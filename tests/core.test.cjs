@@ -2885,3 +2885,76 @@ test('the two demo breakpoints a laptop used to hide are reachable', () => {
   a.ok(k < 1, 'and it is scaled to fit the laptop');
   a.equal(Math.round(w * k), 741, 'filling exactly the room there is');
 });
+
+/* ================================================== somewhere of your own to start
+   The only way out of the demo used to be "Reset to demo content", so building your
+   own site meant deleting two pages and then emptying a six-node header and a
+   fifteen-node footer by hand. */
+test('an empty site is one empty page, and no global regions', () => {
+  fresh();
+  const pg = C.blankProject('Harbour Print Co');
+  a.equal(C.state.meta.name, 'Harbour Print Co');
+  a.equal(C.state.pages.length, 1);
+  a.deepEqual([pg.name, pg.slug], ['Home', 'index']);
+  a.deepEqual(pg.tree, []);
+  a.deepEqual(C.state.header, []);
+  a.deepEqual(C.state.footer, []);
+  a.equal(C.state.cur, 0);
+  a.equal(pg.title, '', 'nothing filled in on your behalf');
+  a.equal(pg.desc, '');
+});
+
+test('what you built survives it: colours, text styles, classes, blocks', () => {
+  fresh();
+  C.classAdd('Card', { d: { padding: '20px' } });
+  C.colorAdd('Brand teal', '#0aa');
+  C.state.meta.blocks = [{ id: 'hero', name: 'Hero', node: C.N('heading'), sync: 0 }];
+  const before = [C.colors().length, C.styles().length, C.classes().length, C.blocks().length];
+  C.blankProject('Mine');
+  a.deepEqual([C.colors().length, C.styles().length, C.classes().length, C.blocks().length], before,
+    'a library is work, not content');
+  a.ok(C.findClass('card'), 'a class you made is still there');
+});
+
+test('a collection keeps its schema and loses its items', () => {
+  fresh();
+  const col = C.collectionAdd('Projects');
+  C.fieldAdd(col.id, 'Summary', 'text');
+  C.itemAdd(col.id); C.itemAdd(col.id);
+  a.equal(C.findCollection(col.id).items.length, 2);
+  C.blankProject('Mine');
+  const after = C.findCollection(col.id);
+  a.ok(after, 'the content type is a library and stays');
+  a.equal(after.fields.length, 2, 'with its fields');
+  a.equal(after.items.length, 0, 'but the items were content, and content goes');
+});
+
+test('starting empty is undoable', () => {
+  fresh();
+  const had = C.state.pages.length;
+  C.edit(() => C.blankProject('Mine'));
+  a.equal(C.state.pages.length, 1);
+  C.undo();
+  a.equal(C.state.pages.length, had, 'the demo comes back');
+  a.equal(C.state.meta.name, 'Pagecraft');
+});
+
+test('an unnamed empty site still has a name', () => {
+  fresh();
+  C.blankProject('');
+  a.equal(C.state.meta.name, 'Untitled site');
+  C.blankProject('   ');
+  a.equal(C.state.meta.name, 'Untitled site');
+  C.blankProject('x'.repeat(90));
+  a.equal(C.state.meta.name.length, 60, 'and a bounded one');
+});
+
+test('a brand-new empty site is not told off for having no H1', () => {
+  fresh();
+  C.blankProject('Mine');
+  const codes = [...new Set(C.lint().map(f => f.code))].sort();
+  /* a page with nothing on it has no heading structure to get wrong; what is left is
+     the two things a new site genuinely has to fill in */
+  a.deepEqual(codes, ['no-desc', 'no-title']);
+  a.equal(C.lintCounts(C.lint()).error, 0, 'and nothing is an error yet');
+});

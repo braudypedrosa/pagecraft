@@ -1568,7 +1568,9 @@ function lint() {
     dupIds.forEach(id => add('error', 'duplicate-id', `The anchor id “${id}” is used more than once on “${pg.name}”.`, scope));
 
     const h1s = headings.filter(h => h.level === 1);
-    if (!h1s.length) add('warn', 'no-h1', `“${pg.name}” has no H1, so its main subject is unstated.`, scope);
+    /* A page with nothing on it has no heading structure to get wrong, and saying so
+       is the first thing a brand-new empty site would hear. */
+    if (!h1s.length && pg.tree.length) add('warn', 'no-h1', `“${pg.name}” has no H1, so its main subject is unstated.`, scope);
     if (h1s.length > 1) add('warn', 'many-h1', `“${pg.name}” has ${h1s.length} H1 headings. Use one, then H2s beneath it.`, scope);
     for (let i = 1; i < headings.length; i++) {
       const jump = headings[i].level - headings[i - 1].level;
@@ -2729,6 +2731,35 @@ function pageFromTemplate(tid, name) {
   return { id: uid(), name: n, slug, title: '', desc: '', ogImage: '', tree: t.build() };
 }
 
+/* Somewhere to start that is not somebody else's website.
+   The only way out of the demo used to be "Reset to demo content", which is the
+   opposite of what a new user wants: to build their own site they had to delete two
+   pages and then empty a six-node header and a fifteen-node footer by hand. That is
+   the first thing anyone does with this tool and it was the roughest path in it.
+
+   The counterpart to seed(), and the line it draws is content out, libraries in.
+   Colours, text styles, classes and saved blocks are things you built rather than
+   content, and clearing them would be destroying work to save a click.
+
+   A collection splits across that line, which seed() does not have to face: the
+   *schema* is a library — 'Projects has a title, a summary, a cover and a year' is a
+   content type you would reuse — while the *items* are content as much as any page
+   is. Keeping both left the demo's Acme rebrand sitting inside a site the user had
+   just asked to be empty. So the schemas stay and the items go.
+
+   It runs inside edit(), so Cmd-Z brings the whole previous project back. */
+function blankProject(name) {
+  state.meta.name = String(name || '').trim().slice(0, 60) || 'Untitled site';
+  /* the global regions still exist, they are simply empty — structure, not content:
+     an empty one renders as nothing while staying there to be filled */
+  state.header = [];
+  state.footer = [];
+  state.pages = [{ id: uid(), name: 'Home', slug: 'index', title: '', desc: '', ogImage: '', tree: [] }];
+  collections().forEach(c => { c.items = []; });
+  state.cur = 0;
+  return state.pages[0];
+}
+
 /* ---- starter project ------------------------------------------------- */
 /* The Pagecraft demo site. Every colour is a token reference and every text
    element uses a text style, so the whole thing re-skins from Project. Copy
@@ -3689,4 +3720,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };

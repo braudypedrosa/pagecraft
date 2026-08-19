@@ -2520,7 +2520,9 @@ function lint() {
     dupIds.forEach(id => add('error', 'duplicate-id', `The anchor id “${id}” is used more than once on “${pg.name}”.`, scope));
 
     const h1s = headings.filter(h => h.level === 1);
-    if (!h1s.length) add('warn', 'no-h1', `“${pg.name}” has no H1, so its main subject is unstated.`, scope);
+    /* A page with nothing on it has no heading structure to get wrong, and saying so
+       is the first thing a brand-new empty site would hear. */
+    if (!h1s.length && pg.tree.length) add('warn', 'no-h1', `“${pg.name}” has no H1, so its main subject is unstated.`, scope);
     if (h1s.length > 1) add('warn', 'many-h1', `“${pg.name}” has ${h1s.length} H1 headings. Use one, then H2s beneath it.`, scope);
     for (let i = 1; i < headings.length; i++) {
       const jump = headings[i].level - headings[i - 1].level;
@@ -3794,6 +3796,35 @@ function pageFromTemplate(tid, name) {
   let slug = base, k = 2;
   while (state.pages.some(p => p.slug === slug)) slug = base + '-' + k++;
   return { id: uid(), name: n, slug, title: '', desc: '', ogImage: '', tree: t.build() };
+}
+
+/* Somewhere to start that is not somebody else's website.
+   The only way out of the demo used to be "Reset to demo content", which is the
+   opposite of what a new user wants: to build their own site they had to delete two
+   pages and then empty a six-node header and a fifteen-node footer by hand. That is
+   the first thing anyone does with this tool and it was the roughest path in it.
+
+   The counterpart to seed(), and the line it draws is content out, libraries in.
+   Colours, text styles, classes and saved blocks are things you built rather than
+   content, and clearing them would be destroying work to save a click.
+
+   A collection splits across that line, which seed() does not have to face: the
+   *schema* is a library — 'Projects has a title, a summary, a cover and a year' is a
+   content type you would reuse — while the *items* are content as much as any page
+   is. Keeping both left the demo's Acme rebrand sitting inside a site the user had
+   just asked to be empty. So the schemas stay and the items go.
+
+   It runs inside edit(), so Cmd-Z brings the whole previous project back. */
+function blankProject(name) {
+  state.meta.name = String(name || '').trim().slice(0, 60) || 'Untitled site';
+  /* the global regions still exist, they are simply empty — structure, not content:
+     an empty one renders as nothing while staying there to be filled */
+  state.header = [];
+  state.footer = [];
+  state.pages = [{ id: uid(), name: 'Home', slug: 'index', title: '', desc: '', ogImage: '', tree: [] }];
+  collections().forEach(c => { c.items = []; });
+  state.cur = 0;
+  return state.pages[0];
 }
 
 /* ---- starter project ------------------------------------------------- */
@@ -7766,6 +7797,7 @@ function projectModal() {
       <textarea class="ctl" id="mCss" style="min-height:88px">${esc(m.css)}</textarea></div>
     <div class="f"><label>Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
       <textarea class="ctl" id="mHeadHtml" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>`, `
+    <button class="btn" id="mBlank" title="Clear the pages and global regions, keep your colours and styles">Start an empty site</button>
     <button class="btn danger" id="mReset">Reset to demo content</button>
     <span style="flex:1"></span>
     <button class="btn primary" id="mDone">Done</button>`);
@@ -8074,6 +8106,24 @@ function projectModal() {
   /* ---- image manager ---- */
 
   $('#mDone').addEventListener('click', () => { closeModal(); render(); });
+  /* Naming the site *is* the confirmation: cancelling the name cancels the whole
+     thing, so there is one dialog rather than a warning followed by a prompt — and
+     naming it is what you were going to do next anyway. */
+  $('#mBlank').addEventListener('click', async () => {
+    const name = await askText('Start an empty site', 'Site name', '', {
+      ok: 'Start empty',
+      placeholder: state.meta.name === 'Pagecraft' ? 'My site' : state.meta.name,
+      note: 'Clears every page, the global header and footer, and the items in any CMS '
+        + 'collection. Your colours, text styles, classes, saved blocks and the collections '
+        + 'themselves stay — and ⌘Z brings this project back.'
+    });
+    if (name === null) return;
+    edit(() => blankProject(name));
+    selSet([]); closeModal(); render(); writeNow();
+    toast('Empty site — add your first section');
+    showPanel('add');
+  });
+
   $('#mReset').addEventListener('click', async () => {
     if (!await askConfirm('Replace everything?', '<b>Your current pages are lost.</b> Export a project JSON first to keep them.', { ok: 'Replace with demo' })) return;
     hist.u.push(clone(doc()));
@@ -8202,17 +8252,22 @@ function bindTop() {
   $('#reviewBtn').addEventListener('click', exportModal);
   $('#projBtn').addEventListener('click', projectModal);
   $('#helpBtn').addEventListener('click', helpModal);
+  /* Extracted so anything can open a panel, not only a click on the rail — starting
+     an empty site sends you to Add, which is the only thing left to do. */
+  window.showPanel = t => {
+    state.ui.tab = t;
+    $$('#leftRail button[data-t]').forEach(x => x.classList.toggle('on', x.dataset.t === t));
+    ['add', 'layers', 'pages', 'cms'].forEach(k => { $('#pane' + k[0].toUpperCase() + k.slice(1)).hidden = k !== t; });
+    renderPanelHead();
+    renderCms();
+  };
   $$('#leftRail button').forEach(b => b.addEventListener('click', () => {
     /* Media and Project open dialogs rather than swapping the panel, so they set
        neither `state.ui.tab` nor the `on` treatment — the panel behind them has not
        changed. Scoping the toggle to `[data-t]` is what keeps them out of it. */
     const dialog = { media: mediaModal, project: projectModal }[b.dataset.act];
     if (dialog) { dialog(); return; }
-    state.ui.tab = b.dataset.t;
-    $$('#leftRail button[data-t]').forEach(x => x.classList.toggle('on', x === b));
-    ['add', 'layers', 'pages', 'cms'].forEach(t => { $('#pane' + t[0].toUpperCase() + t.slice(1)).hidden = t !== b.dataset.t; });
-    renderPanelHead();
-    renderCms();
+    showPanel(b.dataset.t);
   }));
   window.addEventListener('resize', () => { layoutCanvas(); positionHud(); renderDim(); });
 }

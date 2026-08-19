@@ -94,7 +94,7 @@ const EXPORTS = [
   'N', 'cols', 'BOX', 'state', 'doc', 'page', 'tree', 'dk', 'DEV_KEY', 'DEV_LABEL',
   'DEV_W', 'canvasWidth', 'fitZoom', 'ZOOMS', 'zoomFor',
   'locate', 'locateAny', 'eachNode', 'nameOf', 'lvl', 'holds', 'wrap',
-  'insert', 'moveNode', 'reid', 'pageMove', 'dupNode', 'delNode', 'applyCols', 'seed',
+  'insert', 'moveNode', 'reid', 'pageMove', 'dupNode', 'delNode', 'applyCols', 'seed', 'blankProject',
   'MIN_COL', 'BP_CHAIN', 'rowRatiosAt', 'resizeCols', 'applyColsAt',
   // the selection set
   'selIds', 'selNodes', 'multiOn', 'selSet', 'selToggle', 'selOrder', 'selRange', 'topMost',

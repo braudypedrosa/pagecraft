@@ -112,6 +112,17 @@ keystroke; an embed that draws nothing without its script shows a placeholder an
 many were held back. The review says the same thing, because it cannot check markup it does
 not read. Pick an aspect ratio for an iframe that has no height of its own.
 
+## Starting your own site
+
+The builder opens on the Pagecraft demo, which is there to be read rather than kept.
+**Project → Start an empty site** clears every page, the global header and footer, and the
+items in any CMS collection, then asks what to call yours. What you *built* stays: colours,
+text styles, style classes, saved blocks, and the collections' own field schemas — a content
+type is something you designed, its items are content. ⌘Z brings the whole previous project
+back if you change your mind.
+
+**Reset to demo content** is the way back in the other direction.
+
 ## Global header and footer
 
 Global by default on every page, and **edited in place** — never on a separate screen.
