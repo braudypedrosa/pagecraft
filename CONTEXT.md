@@ -16,10 +16,25 @@ browser. Lives at `~/Projects/braudyp.dev/page-builder/`.
 
 Published (private) at
 <https://claude.ai/code/artifact/16d1f437-f2ca-44df-aff7-02875acdd2c2> — to update it,
-publish `dist/artifact.html` and pass that URL, or the link changes. It had gone a long
-way stale: the live copy still carried all 18 native `prompt()`/`confirm()` calls, which
-sandboxed iframes refuse, so naming a class or a colour silently did nothing there.
+publish `dist/artifact.html` and pass that URL, or the link changes.
 **Republish after any session that changes `builder.html`.**
+
+Three facts about that artifact, none of which are recoverable from the repo:
+
+- **Favicon 📐**, and **title from the fragment's own `<title>Pagecraft Builder</title>`**.
+  Keep both stable — a changed tab icon reads as a different page.
+- **It carries a stored `capabilities: {downloads}` declaration on contract `0.2.4`.**
+  Publishing without an explicit `capabilities` argument carries it forward, which is what
+  you want: the sandbox blocks a page-initiated download otherwise, and every export button
+  in this tool is one. Passing `capabilities: {}` would silently break all of them.
+- **A republish will 409** because the session doing it has not read the live copy. The fix
+  is to `WebFetch` the URL first and check what is actually on it, *then* publish. Do not
+  reach for `force` before looking: it discards whatever is live.
+
+It had gone a long way stale twice now. The second time, the live copy predated the whole
+CMS — no collections, no Collection list, no detail pages, no zip export — while the repo was
+six commits ahead. Both times the cause was the same: republishing is a separate act from
+committing, and nothing enforces it.
 
 > The repo it sits in (`braudyp.dev`) is an unrelated Next.js finance app. This builder is
 > standalone and does not touch it. It lives on the **`page-builder`** branch; the generated
