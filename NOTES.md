@@ -14,7 +14,7 @@ transcript is never required to pick this up.
 | `dist/artifact.html` | generated: same fragment with fonts inlined, for publishing |
 | `dist/core.cjs` | generated: the DOM-free regions, for `node --test` |
 | `brand/` | vendored from the Pagecraft brand kit (fonts, licenses, tokens, logo) |
-| `tests/core.test.cjs` | 206 cases against `dist/core.cjs` |
+| `tests/core.test.cjs` | 215 cases against `dist/core.cjs` |
 
 ```bash
 npm test          # rebuild, then run the suite
@@ -163,7 +163,37 @@ Its contents repeat **as a group**, once per item. One column in means N columns
 - `select` controls may now take `opts` as a function of the node, which is how Sort by lists the
   chosen collection's fields.
 
-**Still to come:** detail pages and multi-file export (phase 4), `content.json` (phase 5). Everything resolves at export — the site
+### Detail pages
+
+`page.collection` makes a page a template: at export it emits one file per item at
+`<collection.slug>/<item.slug>.html`. `page.bindTitle` / `page.bindDesc` give each file its own
+`<title>` and meta description, which is most of why per-item pages are worth having.
+
+**`exportTargets()` is the new source of truth for what ships** — one entry per ordinary page,
+one per item for a template, each carrying `{ pg, path, rel, col, item }`. The export picker, the
+download handlers and `sitemapXml` all read it, so none of them can disagree about the file list.
+
+The hard part was not generating the files, it was that **a page in a folder breaks every internal
+link**. Two choke points fixed it:
+
+- **`pageHref(link, o)`** — every link a page emits already funnelled through `safeUrl(p.link)`,
+  so wrapping that one call in three widget cases plus the nav was enough. It prefixes `o.rel`,
+  and resolves `cms:item` to the detail page of whichever item is rendering. Anything already
+  absolute — a scheme, `//`, a rooted path, a bare fragment — is left alone.
+- **`assetsToPaths(str, rel)`** — image paths climb out of the folder the same way.
+
+Because both read `o`, the **shared header and footer come out right on a nested page** without
+knowing anything about collections: `../index.html` there, `index.html` at the root.
+
+`bindScope` falls back to `page().collection`, so a detail template needs no `src` node — the page
+itself is the scope.
+
+The review learned one thing: `cms:item` cannot be checked as a path, so instead it reports the two
+ways it can genuinely fail — nothing around it names a collection (`item-link-no-scope`), or no
+page templates that collection (`item-link-no-template`). It flagged `cms:item` as a dead link
+until then.
+
+**Still to come:** `content.json` beside the HTML (phase 5). Everything resolves at export — the site
 that ships is plain HTML, with the JSON alongside as a portable copy.
 
 ## Media library
@@ -439,7 +469,7 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 4. Measure before optimising: canvas rebuilds `innerHTML` on content edits, and undo keeps
    80 full document clones. The demo is 64 nodes — generate 300–500 and measure first
 5. Canvas zoom; custom layer names; an Assets item in the rail
-6. `4,080` of `7,105` lines are UI with no unit tests — extract more into core, or add a
+6. `4,138` of `7,224` lines are UI with no unit tests — extract more into core, or add a
    DOM-shimmed layer
 7. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next

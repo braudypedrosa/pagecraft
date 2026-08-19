@@ -29,14 +29,14 @@ sandboxed iframes refuse, so naming a class or a colour silently did nothing the
 
 | | |
 |---|---|
-| Tests | **206**, `npm test` |
+| Tests | **215**, `npm test` |
 | Widgets | 13 |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
 | Section templates | 23, in 12 categories |
 | Page templates | 12 |
 | Font library | 49 Google Fonts, auto-linked on export |
 | Storage schema | `SCHEMA = 7`, seven cumulative migrations |
-| `builder.html` | 7,105 lines — 3,025 tested core, 4,080 untested UI |
+| `builder.html` | 7,224 lines — 3,086 tested core, 4,138 untested UI |
 | `index.html` | 744 KB with brand fonts embedded |
 | Demo project | 64 nodes, 24.6 KB export |
 
@@ -52,7 +52,7 @@ style edit fans out to the set).
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 206 cases
+npm test            # rebuild + 215 cases
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 ```

@@ -2325,3 +2325,104 @@ test('in the editor the first repeat keeps the bare node id', () => {
   a.equal((html.match(new RegExp('data-id="' + card.id + '"', 'g')) || []).length, 3,
     'but every copy still points at the one template node');
 });
+
+/* ------------------------------------------------------------- detail pages */
+const detail = () => {
+  blank();
+  const col = C.collectionAdd('Projects');
+  col.slug = 'work';
+  C.fieldAdd(col.id, 'Body', 'rich');
+  ['Acme rebrand', 'Northwind app'].forEach(t => {
+    const it = C.itemAdd(col.id);
+    C.itemSet(col.id, it.id, 'title', t);
+    C.itemSet(col.id, it.id, 'body', 'The story of ' + t);
+  });
+  /* a second ordinary page to link to */
+  C.state.pages.push(C.pageFromTemplate('blank', 'About'));
+  const tpl = C.pageFromTemplate('blank', 'Project');
+  tpl.collection = col.id;
+  tpl.bindTitle = 'title';
+  C.state.pages.push(tpl);
+  return { col, tpl };
+};
+
+test('a detail template emits one file per item, the rest one each', () => {
+  const { col } = detail();
+  const t = C.exportTargets();
+  a.deepEqual(t.map(x => x.path),
+    ['index.html', 'pricing.html', 'about.html', 'work/acme-rebrand.html', 'work/northwind-app.html']);
+  a.deepEqual(t.map(x => x.rel), ['', '', '', '../', '../'], 'and each knows how deep it sits');
+});
+
+test('a detail page takes its title from the field it is bound to', () => {
+  detail();
+  const t = C.exportTargets().filter(x => x.item);
+  a.deepEqual(t.map(x => x.pg.title), ['Acme rebrand', 'Northwind app']);
+});
+
+test('an internal link climbs out of the folder, an external one does not', () => {
+  const o = { rel: '../' };
+  a.equal(C.pageHref('about.html', o), '../about.html');
+  a.equal(C.pageHref('index.html#craft', o), '../index.html#craft');
+  a.equal(C.pageHref('https://example.com', o), 'https://example.com');
+  a.equal(C.pageHref('mailto:a@b.com', o), 'mailto:a@b.com');
+  a.equal(C.pageHref('/rooted.html', o), '/rooted.html');
+  a.equal(C.pageHref('#anchor', o), '#anchor');
+  a.equal(C.pageHref('about.html', { rel: '' }), 'about.html', 'a root page is untouched');
+});
+
+test('cms:item resolves to the page of whichever item is rendering', () => {
+  const { col } = detail();
+  const it = col.items[1];
+  a.equal(C.pageHref('cms:item', { col, item: it }), 'work/northwind-app.html');
+  a.equal(C.pageHref('cms:item', { col, item: it, rel: '../' }), '../work/northwind-app.html');
+  a.equal(C.pageHref('cms:item', {}), '', 'outside an item it points nowhere rather than at "#"');
+  a.deepEqual(C.parseLink('cms:item', 'index'), { mode: 'item' });
+  a.equal(C.buildLink({ mode: 'item' }), 'cms:item');
+});
+
+test('a detail page renders the item it stands for', () => {
+  const { col, tpl } = detail();
+  const h = C.N('heading', { text: 'placeholder', ts: 'display' });
+  C.bindSet(h, 'text', 'title');
+  tpl.tree.push(C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [h])])]));
+  const t = C.exportTargets().find(x => x.item && x.item.slug === 'acme-rebrand');
+  const html = C.buildPage(t.pg, t);
+  a.match(html, /Acme rebrand/);
+  a.equal(/placeholder/.test(html), false);
+  a.match(html, /<title>Acme rebrand<\/title>/, 'and its own title');
+});
+
+test('the header on a nested page links back out', () => {
+  const { col } = detail();
+  C.state.header.push(C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {},
+    [C.N('nav', { items: [{ label: 'Home', href: 'index.html' }, { label: 'Out', href: 'https://x.com' }] })])])]));
+  const root = C.exportTargets()[0], deep = C.exportTargets().find(x => x.item);
+  a.match(C.buildPage(root.pg, root), /href="index\.html"/);
+  const nested = C.buildPage(deep.pg, deep);
+  a.match(nested, /href="\.\.\/index\.html"/, 'the shared header follows the page it is on');
+  a.match(nested, /href="https:\/\/x\.com"/, 'but an external link is left alone');
+});
+
+test('the sitemap lists every generated file', () => {
+  detail();
+  C.state.meta.baseUrl = 'https://example.com';
+  const xml = C.sitemapXml();
+  for (const u of ['index.html', 'about.html', 'work/acme-rebrand.html', 'work/northwind-app.html'])
+    a.match(xml, new RegExp('<loc>https://example\\.com/' + u.replace(/[/.]/g, m => '\\' + m) + '</loc>'));
+});
+
+test('a detail template with an empty collection emits nothing for it', () => {
+  const { col } = detail();
+  C.collections()[0].items = [];
+  a.deepEqual(C.exportTargets().map(x => x.path), ['index.html', 'pricing.html', 'about.html']);
+});
+
+test('on a detail page the whole page is the binding scope', () => {
+  const { tpl, col } = detail();
+  C.state.cur = C.state.pages.indexOf(tpl);
+  const h = C.insert('heading', null, 0);
+  const sc = C.bindScope(h.id);
+  a.equal(sc.col.id, col.id);
+  a.equal(sc.node, null, 'no src node needed — the page provides it');
+});

@@ -1010,6 +1010,7 @@ function parseLink(href, hereSlug) {
   if (!v) return { mode: 'none' };
   if (/^mailto:/i.test(v)) return { mode: 'email', value: v.replace(/^mailto:/i, '') };
   if (/^tel:/i.test(v)) return { mode: 'phone', value: v.replace(/^tel:/i, '') };
+  if (v === 'cms:item') return { mode: 'item' };     // resolved per item at render
   if (v === '#') return { mode: 'none' };          // a bare hash is not a destination
   if (v.startsWith('#')) return { mode: 'page', page: hereSlug, frag: v.slice(1) };
   const m = v.match(/^([\w-]+)\.html(?:#([\w-]+))?$/);
@@ -1020,6 +1021,7 @@ function buildLink(o) {
   if (!o || o.mode === 'none') return '';
   if (o.mode === 'email') return o.value ? 'mailto:' + o.value : '';
   if (o.mode === 'phone') return o.value ? 'tel:' + o.value : '';
+  if (o.mode === 'item') return 'cms:item';
   if (o.mode === 'page') return o.page ? o.page + '.html' + (o.frag ? '#' + o.frag : '') : '';
   return o.value || '';
 }
@@ -1196,6 +1198,20 @@ function lint() {
         if (!h) return;
         if (h === '#') { add('warn', 'empty-anchor', `A link in the ${region} points at “#”, which goes nowhere.`, w, n.id); return; }
         if (/^(https?:|mailto:|tel:|data:)/i.test(h)) return;
+        /* `cms:item` resolves per item at export, so it cannot be checked as a path.
+           What can go wrong is that nothing templates the collection — then it
+           resolves to nothing at all. */
+        if (h === 'cms:item') {
+          const isc = n.src ? findCollection(n.src) : null;
+          const owner = isc || (() => {
+            let f = null;
+            eachNode(pg.tree, x => { if (!f && x.src && findCollection(x.src)) { let d = false; eachNode([x], y => { if (y.id === n.id) d = true; }); if (d) f = findCollection(x.src); } });
+            return f || (pg.collection ? findCollection(pg.collection) : null);
+          })();
+          if (!owner) add('error', 'item-link-no-scope', `A link in the ${region} points at “this item’s page”, but nothing around it says which collection.`, w, n.id);
+          else if (!state.pages.some(x => x.collection === owner.id)) add('error', 'item-link-no-template', `A link in the ${region} points at an item’s own page, but no page is a detail template for “${owner.name}”.`, w, n.id);
+          return;
+        }
         const [path, frag] = h.split('#');
         const target = path === '' ? here : path;
         if (path === '' && region !== 'page') {
@@ -1479,6 +1495,41 @@ function listItems(n, col) {
   return lim > 0 ? out.slice(0, lim) : out;
 }
 
+/* Every link a page emits goes through here. Two jobs: `cms:item` becomes the
+   detail page of whichever item is being rendered, and a page that sits in a
+   folder has to climb back out to reach a sibling. Anything already absolute —
+   a scheme, a protocol-relative or rooted path, a bare fragment — is left alone. */
+function pageHref(link, o) {
+  let v = String(link || '');
+  if (v === 'cms:item') {
+    if (!o || !o.col || !o.item) return '';
+    v = o.col.slug + '/' + o.item.slug + '.html';
+  }
+  v = safeUrl(v);
+  if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
+  return o.rel + v;
+}
+
+/* Every file the project exports: one per ordinary page, and one per item for a
+   page marked as a collection's detail template. `rel` is how far that file sits
+   from the root, which is what every internal link and asset path needs. */
+function exportTargets() {
+  const out = [];
+  for (const pg of state.pages) {
+    const col = pg.collection ? findCollection(pg.collection) : null;
+    if (!col) { out.push({ pg, path: pg.slug + '.html', rel: '', col: null, item: null }); continue; }
+    for (const it of col.items) {
+      const t = pg.bindTitle ? String(fieldValue(col, it, pg.bindTitle) || '').trim() : '';
+      const d = pg.bindDesc ? String(fieldValue(col, it, pg.bindDesc) || '').trim() : '';
+      out.push({
+        pg: { ...pg, slug: col.slug + '/' + it.slug, title: t || pg.title, desc: d || pg.desc },
+        path: col.slug + '/' + it.slug + '.html', rel: '../', col, item: it
+      });
+    }
+  }
+  return out;
+}
+
 /* ---- binding -------------------------------------------------------------
    A binding names a field and nothing else. The collection comes from the nearest
    ancestor that declares a source (`node.src`), so one card carries no collection
@@ -1509,7 +1560,9 @@ function bindScope(id) {
     if (col) return { node: h.node, col };
     h = h.parent ? locate(h.parent.id) : null;
   }
-  return null;
+  /* a detail template makes the whole page the scope, with no `src` node at all */
+  const pc = page().collection ? findCollection(page().collection) : null;
+  return pc ? { node: null, col: pc } : null;
 }
 /* which item the canvas is previewing, per collection */
 const previewIndex = colId => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
@@ -2832,7 +2885,7 @@ function renderNode(n, o) {
     case 'heading': {
       const tg = /^(h[1-6]|p|div)$/.test(p.level) ? p.level : 'h2';
       const body = esc(p.text).replace(/\n/g, '<br>');
-      const href = safeUrl(p.link);
+      const href = pageHref(p.link, o);
       const inner = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${body}</a>` : body;
       return `<${tg} ${at} ${cx('pagecraft-heading')}>${inner}</${tg}>`;
     }
@@ -2844,7 +2897,7 @@ function renderNode(n, o) {
       /* intrinsic dimensions let the browser reserve space — no layout shift */
       const dim = (p.w && p.h) ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : '';
       const alt = ` alt="${p.decorative ? '' : esc(p.alt)}"`;
-      const ihref = safeUrl(p.link);
+      const ihref = pageHref(p.link, o);
       if (p.caption) {
         const img = `<img src="${src}"${alt}${dim}${lz} class="pagecraft-image">`;
         return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
@@ -2863,7 +2916,7 @@ function renderNode(n, o) {
     }
     case 'button': {
       const ico = p.icon && p.icon !== 'none' ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${BICON[p.icon] || ''}</svg>` : '';
-      const bhref = safeUrl(p.link);
+      const bhref = pageHref(p.link, o);
       const tag = bhref ? 'a' : 'button';
       const attrs = bhref ? `href="${esc(bhref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}` : 'type="button"';
       return `<${tag} ${at} ${cx('pagecraft-button')} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
@@ -2875,7 +2928,7 @@ function renderNode(n, o) {
       return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav aria-label="${name}">`
         + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
-        + items.map(it => `<li><a href="${esc(safeUrl(it.href) || '#')}">${esc(it.label || '')}</a></li>`).join('')
+        + items.map(it => `<li><a href="${esc(pageHref(it.href, o) || '#')}">${esc(it.label || '')}</a></li>`).join('')
         + `</ul></nav>`;
     }
     case 'form': {
@@ -2954,9 +3007,13 @@ function matchLayout(row) {
 function sitemapXml() {
   const base = String(state.meta.baseUrl || '').replace(/\/+$/, '');
   if (!base) return '';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
-    + state.pages.map(p => `  <url><loc>${esc(base + '/' + p.slug + '.html')}</loc></url>`).join('\n')
-    + `\n</urlset>\n`;
+  /* every file, which for a detail template is one per item */
+  const urls = exportTargets().map(t => `${base}/${t.pg.slug}.html`);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url><loc>${esc(u)}</loc></url>`).join('\n')}
+</urlset>
+`;
 }
 function robotsTxt() {
   const base = String(state.meta.baseUrl || '').replace(/\/+$/, '');
@@ -2992,10 +3049,14 @@ f.setAttribute('allowfullscreen','');b.parentNode.replaceChild(f,b);
 
 const tidy = css => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n').replace(/^\s+|\s+$/g, '');
 
-function buildPage(pg) {
+/* `ctx` carries the item a detail page stands for, and `rel` — how far this file
+   sits from the root. Both reach every link and every asset path through the
+   render options, so the header and footer come out right on a nested page too. */
+function buildPage(pg, ctx = {}) {
   const m = state.meta;
+  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '' };
   const css = treeCss([state.header, pg.tree, state.footer], false);
-  const body = renderList(state.header, { edit: false }) + renderList(pg.tree, { edit: false }) + renderList(state.footer, { edit: false });
+  const body = renderList(state.header, o) + renderList(pg.tree, o) + renderList(state.footer, o);
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
   const abs = u => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
@@ -3007,7 +3068,7 @@ function buildPage(pg) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(m.favicon)}">\n` : ''}${gfontsLink()}<meta property="og:type" content="website">
+${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${gfontsLink()}<meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
 ${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}<style>
 ${tidy(css)}
@@ -3022,4 +3083,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, bindableKeys, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, bindableKeys, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
