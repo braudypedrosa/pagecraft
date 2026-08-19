@@ -88,7 +88,7 @@ const EXPORTS = [
   // primitives
   'esc', 'safeUrl', 'uid', 'clone', 'slugify', 'dbounce',
   // registry
-  'DEF', 'IC', 'COMMON_STYLE', 'GF', 'stackFor', 'familyOf', 'isGoogle', 'usedFamilies', 'gfontsHref', 'gfontsLink', 'fontGroups', 'FONT_BASE', 'LAYOUTS', 'COUNTS', 'DEFAULT_COLS', 'BASE', 'makeFor', 'labelOf', 'iconOf', 'rowRatios', 'matchLayout',
+  'DEF', 'IC', 'ICONS', 'ICON_PATHS', 'ICON_NAMES', 'iconSvg', 'COMMON_STYLE', 'GF', 'stackFor', 'familyOf', 'isGoogle', 'usedFamilies', 'gfontsHref', 'gfontsLink', 'fontGroups', 'FONT_BASE', 'LAYOUTS', 'COUNTS', 'DEFAULT_COLS', 'BASE', 'makeFor', 'labelOf', 'iconOf', 'rowRatios', 'matchLayout',
   // model + tree
   'N', 'cols', 'BOX', 'state', 'doc', 'page', 'tree', 'dk', 'DEV_KEY', 'DEV_LABEL',
   'locate', 'locateAny', 'eachNode', 'nameOf', 'lvl', 'holds', 'wrap',
@@ -109,7 +109,7 @@ const EXPORTS = [
   'fieldAdd', 'fieldDelete', 'fieldMove', 'titleField', 'itemTitle', 'itemSlug',
   'itemAdd', 'itemDelete', 'itemMove', 'itemSet', 'itemSetSlug',
   'listItems', 'pageHref', 'exportTargets', 'contentJson', 'sitePlan',
-  'bindableKeys', 'bindGet', 'bindSet', 'srcSet', 'bindScope',
+  'bindableKeys', 'COLL_CTL', 'bindGet', 'bindSet', 'srcSet', 'bindScope',
   'previewIndex', 'previewItem', 'fieldValue', 'boundProps',
   'blockInstances', 'blockUsage', 'blockPush',
   'TEMPLATES', 'pageFromTemplate', 'PATTERNS', 'patternInsert', 'flatten', 'step', 'parentOf', 'firstChildOf', 'nudge', 'nudgeMany',
@@ -122,7 +122,7 @@ const EXPORTS = [
   'SCHEMA', 'migrate',
   // rendering + export
   'PH', 'MQ', 'decl', 'selOf', 'PFX', 'widgetSlug', 'nodeClass', 'autoId', 'domIdOf', 'bucket', 'nodeCss', 'treeCss', 'baseCss', 'navCollapse',
-  'vid', 'vidSrc', 'vidPoster', 'embedUrl', 'canFacade', 'SEC_TAGS', 'FACADE_JS', 'renderNode', 'renderList', 'tidy', 'NAV_JS', 'buildPage'
+  'vid', 'vidSrc', 'vidPoster', 'embedUrl', 'canFacade', 'SEC_TAGS', 'FACADE_JS', 'LB_JS', 'para', 'stripScripts', 'renderNode', 'renderList', 'tidy', 'NAV_JS', 'buildPage'
 ];
 
 writeFileSync(join(here, 'dist', 'core.cjs'),

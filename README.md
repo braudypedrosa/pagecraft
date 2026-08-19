@@ -30,6 +30,10 @@ One file, no install. Everything — including autosave — runs in the browser.
 | **Button** | Solid/outline/ghost/link, hover colours, trailing icon |
 | **Nav menu** | Link list that collapses to an accessible burger menu |
 | **Form** | Labelled fields (text, email, phone, number, long text, dropdown, checkbox), required flags, a submit endpoint |
+| **Accordion** | Question and answer rows that fold. Native `<details>`, so it ships no JavaScript |
+| **Gallery** | A grid of stored images, with captions and a full-size lightbox |
+| **Icon** | One of 35 stroke glyphs, sized and coloured like text |
+| **Embed** | Raw HTML for anything this builder does not model — a map, a booking widget, an SVG |
 | **Divider**, **Spacer** | Layout helpers |
 
 Columns stack their children with a 16px gap by default, so a first draft is never cramped.
@@ -57,6 +61,56 @@ than one split exists for that count, a layout picker drawn as proportional diag
 (50/50, 66/33, 33/66, 75/25, …). The count is structural, so it lives on the desktop base;
 per-breakpoint widths are set on each column's own Width control. Reducing the count moves
 content out of the removed columns into the last surviving one rather than discarding it.
+
+### Accordion
+
+Each row is a real `<details>` with a `<summary>`, so the browser owns the behaviour: it
+opens on click *and* on Enter or Space, it is announced to a screen reader, and the page
+ships no accordion script at all. **One open at a time** is the native `name` attribute —
+also the browser's job, not a script's. Where a browser has not caught up, the panels stay
+independent, which is a lesser accordion rather than a broken one.
+
+An answer is plain text: a blank line starts a new paragraph, a single newline is a break.
+The marker is plus/minus, a caret, or nothing, and every part of a row — padding, both type
+sizes, the divider and the marker — is a variable you can restyle at any breakpoint.
+
+Select the accordion and every panel opens on the canvas, so the answers can be read and
+styled; that is editor-only and never reaches the export.
+
+### Gallery
+
+Pick images from the Media library or upload several at once. Columns are **responsive** —
+three on desktop, two on mobile by default — and the tile shape is a ratio (4:3, square,
+16:9, or whatever each image is). Alt text and an optional caption belong to each image.
+
+With **Open full size on click** on, every tile is a real `<a href>` to the full image, so
+the gallery works with JavaScript off. The small script that ships only *upgrades* that link
+into an overlay — a native `<dialog>`, which brings its own focus trap, Escape handling and
+backdrop; arrow keys and the on-screen arrows step through, and it wraps.
+
+### Icon
+
+Thirty-five stroke glyphs on a 24px grid, in four groups. An icon takes `currentColor` and
+one size variable, so it inherits colour the way text does and scales with one control; give
+it a background and padding and it becomes a badge.
+
+Naming an icon makes a screen reader read it; leaving the label empty hides it, which is the
+right answer for a glyph beside text that already says the same thing. A **linked** icon puts
+the label on the link, because a link whose only content is a glyph otherwise has no
+accessible name — and the review reports it as an error if you leave it out.
+
+For a mark the set does not carry — a specific brand logo, say — paste its SVG into an
+**Embed**.
+
+### Embed
+
+The escape hatch: markup this builder agrees not to understand, pasted straight into the
+page. A map, a booking widget, a payment button, a third-party form, an inline SVG.
+
+Scripts **ship to the exported page but never run in the editor**, which renders on every
+keystroke; an embed that draws nothing without its script shows a placeholder and says how
+many were held back. The review says the same thing, because it cannot check markup it does
+not read. Pick an aspect ratio for an iframe that has no height of its own.
 
 ## Global header and footer
 
@@ -89,6 +143,12 @@ Anything with a known set of values is a picker, not a text field. **Shadow** an
 **Custom…**, which reveals a text field for anything the list does not cover — and a value
 the list does not recognise reopens that field automatically.
 
+**Icon** is a grid of the glyphs themselves, grouped, not a dropdown of names — thirty-five
+names in a list is not a set you can choose from. **Questions** and **Images** are repeatable
+rows on the same chrome as menu links and form fields, so a list of things looks the same
+wherever one appears. A property that edits a list of its own is never offered for CMS
+binding: there is no single field an item could supply for an array.
+
 Every measurement has a unit dropdown, and the same property offers the same units wherever
 it appears: sizes in `px/rem/em/vw`, lengths in `px/rem/%/vw/vh`, spacing and radii in
 `px/rem/%`, tracking in `em/px`, border widths in `px/rem`.
@@ -108,14 +168,16 @@ locally to preview them for real.
 
 ## Add panel
 
-Three tabs. **Widgets** are the components. **Blocks** are what you have saved from your own
-pages. **Templates** are twenty-three ready-made sections, grouped by what they are for:
+Three tabs. **Widgets** are the components, in four groups — Layout, Content, Interactive,
+Spacing — grouped by what a thing does rather than by how it is built, which is why the
+Accordion sits beside the Form. **Blocks** are what you have saved from your own
+pages. **Templates** are twenty-six ready-made sections, grouped by what they are for:
 
 | category | sections |
 |---|---|
 | Hero | Split hero · Centred hero · Hero with signup |
-| Features | Three features · Three cards · Alternating rows · Two cards |
-| Media | Full-width media · Logo strip · Image pair |
+| Features | Three features · Three cards · **Three features with icons** · Alternating rows · Two cards |
+| Media | **Image grid** · Full-width media · Logo strip · Image pair |
 | Call to action | Closing call to action · Inline call to action |
 | About | About, image left · Statistics row |
 | Testimonial | Pull quote · Three testimonials |
@@ -123,7 +185,7 @@ pages. **Templates** are twenty-three ready-made sections, grouped by what they 
 | Pricing | Three plans · Two plans |
 | Process | Numbered steps |
 | Team | Team grid |
-| FAQ | Question list |
+| FAQ | **Questions that fold** · Question list |
 | Content | Two-column prose |
 
 Each is shown as a **wireframe preview** rather than a name in a list, with the green mark
@@ -372,6 +434,14 @@ output are silent ones. It reports:
 - **Forms that go nowhere** — a static page cannot receive its own POST, so a form with no
   endpoint is an error, not a shrug. Unlabelled fields and two fields submitting under the
   same name are reported too, as are form colours that lose contrast on a dark section
+- **Accordion rows with no question**, which is a row nobody can click, and rows that open
+  onto an empty answer. Counted per accordion, not listed per row
+- **Galleries** held to the same standards as the Image element: alt text on every image
+  that has one, intrinsic sizes, and a note for tiles still waiting for a file
+- **A linked icon with no label** — a link whose only content is a glyph has no accessible
+  name at all
+- **Embeds** — an empty one, and one carrying a script, which is the review saying plainly
+  that it cannot check markup it does not read
 
 Problems open the list automatically; suggestions wait to be asked for. **Show me** on any
 finding jumps to the page, switches to the right region, and selects the element.
@@ -393,12 +463,13 @@ Two modes in the Export dialog:
 - **Images as separate files** — markup points at `assets/…` and the images download
   beside the HTML, so browsers can cache them across pages.
 
-Either way the output is semantic markup plus a single inline stylesheet with exactly two
-media queries.
+Either way the output is semantic markup plus a single inline stylesheet with two breakpoint
+media queries and one for reduced motion.
 
 Pagecraft emits JavaScript only when a component needs it, and only onto pages using that
-component: a ~650-byte burger-menu toggle for a Nav, and a ~400-byte facade swap for
-deferred video. Both are absent otherwise.
+component: a 677-byte burger-menu toggle for a Nav, a 502-byte facade swap for deferred
+video, and a 2.2 KB lightbox for a Gallery that opens full size. All three are absent
+otherwise, and an Accordion needs none at all.
 
 Output quality built into every export:
 
@@ -409,6 +480,13 @@ Output quality built into every export:
 - `lang`, and — once a **Site URL** is set in Project settings — `canonical`, `og:url`,
   absolute `og:image`, `twitter:card`, plus **sitemap.xml** and **robots.txt**
 - per-page social share image, falling back to a project-wide one
+- **a visible keyboard focus ring** on every link, button, summary, gallery tile and form
+  control. It is `currentColor` rather than the brand colour, because a brand ring around a
+  brand-filled button is invisible in exactly the case it has to work — text colour already
+  contrasts with its own ground, so the ring inherits that guarantee
+- **`prefers-reduced-motion` honoured.** A visitor who has asked their system for less motion
+  gets it, and that block closes the stylesheet — after your own CSS — so a project rule
+  cannot switch motion back on
 
 Also there: **Copy HTML** (for where the browser blocks downloads) and project JSON
 export/import.

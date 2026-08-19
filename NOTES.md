@@ -14,10 +14,10 @@ transcript is never required to pick this up.
 | `dist/artifact.html` | generated: same fragment with fonts inlined, for publishing |
 | `dist/core.cjs` | generated: the DOM-free regions, for `node --test` |
 | `brand/` | vendored from the Pagecraft brand kit (fonts, licenses, tokens, logo) |
-| `tests/core.test.cjs` | 221 cases against `dist/core.cjs` |
+| `tests/core.test.cjs` | 254 cases against `dist/core.cjs` |
 
 ```bash
-npm test          # rebuild, then run the suite
+npm test          # rebuild, then run the suite (254 cases)
 npm run build     # regenerate outputs
 npm run serve     # static server on :4877
 ```
@@ -263,6 +263,58 @@ in IndexedDB.
   `white-space:nowrap` widened one card to 254px inside a 161px grid cell — and since the thumb is
   `aspect-ratio:4/3`, it grew taller too, giving a row of uneven tiles.
 
+## The dialog inset, and a rule that existed twice
+
+Reported as "no proper padding" on the CMS dialog's tab row. Measuring the *text* left
+edges rather than the boxes found **four different insets in one dialog**:
+
+| | text starts at |
+|---|---|
+| dialog title (`.mh`) | 18px |
+| footer note (`.mf`) | 18px |
+| tab label (`#cmsTabs`) | 22px |
+| table header (`.cmst th`) | 26px |
+
+Three separate causes, and the boxes all looked fine — only the text gave it away.
+
+- **`--mpad:18px` now owns the dialog inset.** `.mh`, `.mb`, `.mf` and `#askBody` had it
+  hard-coded four times, and the CMS tab row's inline style had to *agree* with `.mb` while
+  deriving nothing from it: `margin:-18px -18px 16px;padding:0 12px`. The −18 cancelled the
+  body inset to reach both edges, then 12 put the labels back on the wrong one.
+- **`.tabs.flush` replaces that inline style.** It reads `--mpad` for the cancel and for the
+  re-inset, minus `--tabpad` — the button's own padding, now a variable too, so the label
+  text lands on the inset rather than the button box. Same reasoning as `--gap-*`/`--h-ctl`
+  for form rhythm: one owner, no number repeated in two places that must match.
+- **The row was 22px tall where `.tabs` asks for 44.** `flex:0 0 44px` does nothing inside
+  `.mb`, which is a scrolling *block*, not a flex column — so the row collapsed to its line
+  box and the labels had no vertical room. `.tabs.flush` sets `height` explicitly.
+- **A column header sat 8px right of the field it names.** `.cmst td` has no left padding and
+  `.cmst th` had 8px. Now `0 8px 8px 0`, so a label is directly over its own input.
+
+### `.cmst` and `.cmsimg` were each defined twice
+
+Twenty lines apart, both under the same comment, and **the live styling was a merge** — which
+is why it was hard to reason about from either copy. The later block won on `th`/`td` padding
+and on the whole `.cmsimg` treatment (56×40 solid, not full-width dashed); `table-layout:fixed`,
+the header's `text-overflow:ellipsis` and the textarea's `line-height` survived from the earlier
+one only because the later block never restated them.
+
+Collapsed into one block carrying what the merge actually resolved to, then corrected. A sweep
+of every top-level selector in the chrome stylesheet found no other duplicate — worth re-running
+after any session that adds CSS, because nothing in the build catches this:
+
+```js
+const css = html.slice(0, html.indexOf('<script>'));
+// count occurrences of /(?m)^([.#][^{]+?)\{/ and look for any selector appearing twice
+```
+
+### While in there: fixed-width columns
+
+`table-layout:fixed` split the field columns evenly, so a 56px image button and a checkbox each
+took the same share as a summary that needed to be readable — Summary was truncated at ~110px
+while Cover held 130px of empty space. `CMS_COL_W` gives the types whose control has a fixed
+intrinsic width a stated width, the way Slug already did. Summary went 110px → 349px.
+
 ## Dense list rows
 
 The three lists in Project settings — colours, text styles, style classes — all use `.arow`, and
@@ -398,6 +450,148 @@ are inline SVG wireframes built from the `pb`/`pl`/`pg`/`ph` helpers — blocks,
 action, headings — so nothing raster ships. Every left edge in the panel is on a 14px inset;
 the tab row needs an explicit `height` because its parent scrolls as a block, not a flex column.
 
+## The four components added after the CMS
+
+The gap the CMS closed was content. The gap these close is *what a page can be made of* — a
+site kept running into four things the builder had no shape for.
+
+### Accordion: the browser already owns this
+
+`<details>` and `<summary>` do the whole job. Click, Enter and Space all open it, the state is
+announced, and **the page ships no accordion script at all** — which matters more here than in
+a framework, because every byte of JavaScript in an export is a byte this builder chose to add.
+
+**One open at a time is the native `name` attribute**, not a script either. That has one
+consequence worth stating: a shared name allows exactly one open panel, so "all open" and "one
+at a time" cannot both be honoured. The toggle wins and the first panel is the one left open,
+because the toggle is the more specific instruction. Where a browser has not caught up with
+`name`, the panels stay independent — a lesser accordion, not a broken one.
+
+- **The answer is plain text, deliberately.** `para()` turns a blank line into a paragraph and
+  a single newline into a break, escaping as it goes. A rich-text surface here would need the
+  WYSIWYG's whole editing apparatus pointed at a string inside an array, for a field whose job
+  is two sentences.
+- **The marker is two absolutely-positioned bars.** Plus/minus collapses the vertical one with
+  `scaleY(0)`; the caret rotates both to ±45° and flips the whole mark 180° when open. Each
+  variant restates *every* property it touches — width, height, margin, transform and origin —
+  because a variant that inherits half a rule is exactly how the 1.19:1 hover bug got in.
+- **Selecting the accordion opens every panel on the canvas.** You cannot style an answer you
+  cannot see, and CSS cannot force a closed `<details>` open in any way that will still work in
+  a year. So `renderNode` writes `open` on all of them when `state.ui.sel === n.id`, the same
+  way the burger menu unfolds when selected. Editor-only; it never reaches an export.
+
+### Embed: markup this builder agrees not to understand
+
+Everything else here is a described shape the builder knows how to style. This one is a hole in
+that, and it existed because there was no other way to put a map, a booking widget or a
+specific brand logo on a page — `adv` is only `{htmlId, cls, css}`, and `meta.headHtml` is
+head-only.
+
+**The export ships it verbatim. The canvas does not.** The editor renders inside a live iframe
+on the same origin and re-renders on every keystroke, so a pasted analytics tag or widget
+loader would execute dozens of times while someone typed. `stripScripts()` takes both forms —
+the `<script>` element and the inline `on*` handler — and returns *how many*, because an embed
+that draws nothing without its script has to say why rather than look broken.
+
+This is the one place the canvas and the export deliberately disagree, so three things say so:
+the field's note, a dashed badge on the canvas counting what was held back, and an
+`embed-script` finding in the review.
+
+**A ratio needs a class, not an attribute selector.** The first version reached the iframe with
+`[style*="aspect-ratio"]`, which is a string match on a style attribute. `pagecraft-embed-ratio`
+is added when a ratio is chosen and the rule hangs off that.
+
+### Icon: `currentColor` and one variable
+
+A separate set from `IC`. `IC` is 16px chrome furniture at stroke 1.4 that never leaves the
+editor; `ICONS` is 35 content glyphs on a 24px grid at 1.75 that ship in exports. Keeping them
+apart means the chrome can change without touching anyone's page.
+
+- **`iconSvg()` always writes `width="24" height="24"`.** A viewBox with no dimensions has
+  collapsed to nothing three times in this project. `--icon-size` layers the real size on in
+  CSS, so the attributes are the floor, not the answer, and a test fails if they go missing.
+- **`.pagecraft-icon-glyph` comes second in the stylesheet on purpose.** An unlinked icon *is*
+  the svg and wears both classes, so `display:block` has to beat the wrapper's `inline-flex`.
+- **A linked icon puts the label on the link.** A link whose only content is a glyph has no
+  accessible name whatsoever, and that is a real failure rather than a nicety — so
+  `icon-link-no-label` is an error, while an *unlinked* glyph with no label is hidden and
+  perfectly fine, which is what you want beside text that already says the same thing.
+- **The picker is a grid of the glyphs, grouped.** A `<select>` of 35 names is not a set anyone
+  can choose from. Size comes from `.ipgrid button svg`, never from attributes passed through
+  `iconSvg` — duplicate attributes are a silent trap.
+- **No brand marks.** Drawing eight social logos badly is worse than not drawing them, and the
+  Embed now takes the official SVG.
+
+### Gallery: the lightbox is an upgrade, not a feature
+
+With the lightbox on, **each tile is already a real `<a href>` to the full image**. The script
+that ships only intercepts a click that was going somewhere useful anyway — so the gallery
+works with scripting off, in a browser with no `<dialog>`, and on a modified click that should
+open a tab. `LB_JS` returns early on all three.
+
+The overlay is a native `<dialog>` opened with `showModal()`, which brings its own focus trap,
+Escape handling and `::backdrop`. 2,265 bytes, emitted only where `data-lightbox` is in the
+body — the third member of the `NAV_JS`/`FACADE_JS` family, which are 677 and 502.
+
+- **A tile with no source is a slot, not a mistake.** The first version filtered them out, so a
+  six-slot template rendered as nothing. It now falls back to `PH`, exactly as the Image widget
+  does, and the review splits the same way it does: `gallery-no-image` for a slot to fill,
+  `gallery-no-alt` only once there is an image to describe. Without that split a fresh template
+  opened on a wall of errors nobody could act on — the lesson the Image widget already learnt.
+- **Findings are counted per gallery, not listed per tile.** Twenty images with no alt text is
+  one finding that says twenty, not twenty findings.
+- **A ratio needs its own class too** (`pagecraft-gallery-fixed`), because `height:100%` on an
+  image inside an auto-height frame whose height comes from that image is circular. With the
+  class, `aspect-ratio` and `height:100%` are both conditional on the same thing.
+- **`--g-cols` is a responsive CSS variable,** so three-on-desktop and two-on-mobile costs no
+  new machinery — it rides the existing breakpoint controls. `.pagecraft-lightbox-btn[hidden]`
+  needs its own `display:none`, because the class sets `display:grid` and beats `[hidden]`; the
+  third time that trap has been paid for here.
+
+### Three new controls, and one binding fix
+
+`qa`, `icon` and `imgs`, each with a `ctlHtml` case and a matching `bindRight` case — the build
+fails by name otherwise. `qa` and `imgs` sit on the same `.frow` chrome as menu links and form
+fields, so a repeatable list looks the same wherever one appears. `imgs` takes several files in
+one gesture and commits them as **one** undo step, and it reads intrinsic size once from what
+`assetAdd` measured.
+
+Adding them surfaced an existing bug: **`bindableKeys` offered array controls for CMS binding.**
+Nav links and form fields both wore a bind badge that could only ever write a string over an
+array. `COLL_CTL` now excludes them by control type, which is the property that actually
+distinguishes them.
+
+## The export stylesheet
+
+Two changes here are fixes, not features.
+
+- **`prefers-reduced-motion` never reached the export.** The editor chrome honoured it; the
+  exported page emitted `transition:…transform .18s` on every button and the video icon with no
+  guard, and the review could never see it. The block now closes the stylesheet — *after*
+  `meta.css` — so a visitor's system preference outranks the project's own rules. That is a
+  deliberate ordering, not an accident of where it was pasted.
+- **Only two things on an exported page had a visible focus ring**: the video facade and the
+  form fields. Every link, button, summary and tile fell back to whatever the browser felt
+  like. There is now one rule covering all of them.
+
+  **The ring is `currentColor`, not the brand colour** — and this is the interesting part,
+  because the first version *was* the brand green and passed its test. Looking at it showed the
+  problem: `#b7f34a` is 1.6:1 on Paper, so a green ring around a green button was invisible in
+  exactly the case it had to work. Text colour is already chosen to contrast with its own
+  ground, so the ring inherits that guarantee on paper, on ink, and on a section colour nobody
+  has thought of yet. Using `outline` alone also leaves any author `box-shadow` intact, which a
+  two-tone `box-shadow` ring would have clobbered. The video facade's old green ring folded into
+  the same rule rather than leaving two focus idioms in one stylesheet.
+
+Two more things about this stylesheet:
+
+- **It carries no comments.** Seven leaked into every exported page before that was noticed —
+  the shared half of `baseCss` is output, not source. The reasoning lives here and in the
+  preamble above the function.
+- **Three `@media` blocks now, two of them breakpoints.** A test asserted `@media` appeared
+  exactly twice, which conflated "one block per breakpoint" with "two media queries total". It
+  counts `@media (max-width` now, which is what it always meant.
+
 ## Exported naming
 
 Widget class `pagecraft-<widget-slug>` + styling hook `pagecraft-<nodeid>`; auto id
@@ -409,7 +603,8 @@ Widget class `pagecraft-<widget-slug>` + styling hook `pagecraft-<nodeid>`; auto
 
 Within each breakpoint: **text style → class → element**. All are single-class selectors, so
 source order decides. `treeCss` emits `baseCss + tokens.d + elements.d`, then one `@media`
-per breakpoint in the same order. Exactly two media queries reach the export.
+per breakpoint in the same order. Exactly two **breakpoint** media queries reach the export;
+a third `prefers-reduced-motion` block closes the stylesheet after `meta.css`.
 
 The consequence that bites: because the breakpoint blocks come *after* the desktop element
 rules, an element value set only on the desktop base loses to a text style's own tablet or
@@ -494,6 +689,12 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 - **SVG with a `viewBox` and no dimensions.** Bit three times: inline icons collapsed to
   nothing, and a background caret scaled to fill. Always set width/height, or
   `background-size`.
+- **A test that asserts a thing exists has not checked that it works.** The focus ring passed
+  its assertion while being invisible. Same family as bad defaults: the suite can only tell you
+  the code ran.
+- **A CSS transition makes the computed style right after a click the *old* one.** The caret's
+  `transform` read as the identity matrix immediately after opening a panel and as
+  `rotate(180deg)` one call later. Separate the act from the measurement.
 - **Bundled probes lie.** Several verification steps gave wrong answers because six
   mutations shared one expression, or the canvas was at tablet width. One step per call.
 
@@ -511,7 +712,16 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 4. Measure before optimising: canvas rebuilds `innerHTML` on content edits, and undo keeps
    80 full document clones. The demo is 64 nodes — generate 300–500 and measure first
 5. Canvas zoom; custom layer names; an Assets item in the rail
-6. `4,241` of `7,363` lines are UI with no unit tests — extract more into core, or add a
-   DOM-shimmed layer
-7. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
+6. `4,400` of `8,052` lines are UI with no unit tests — extract more into core, or add a
+   DOM-shimmed layer. `qa`, `icon` and `imgs` are all in the untested half
+7. **Tabs** next among the components — it needs a script, and it is the exact shape
+   `NAV_JS`/`FACADE_JS`/`LB_JS` already establish: emit only when the data attribute is in the
+   body. Then **Blockquote** as a real widget, since the Pull quote pattern still exports a
+   `<p>` where it means `<blockquote>` + `<cite>`
+8. **The CMS's missing verbs**: a Collection List cannot **filter**, there is no **reference**
+   field type, `content.json` has no way back in, and no **pagination** or **draft flag**
+9. **Export quality**: `srcset` by downscaling through a canvas at export time; **JSON-LD**,
+   which is a pure core function and cheap to test; a **404** convention; self-hosted fonts,
+   because `gfontsLink()` is a third-party request `brand/fonts/` shows how to avoid
+10. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next

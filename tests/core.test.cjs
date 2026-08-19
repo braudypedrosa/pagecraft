@@ -208,7 +208,11 @@ test('breakpoint overrides land in the matching media query only', () => {
   a.match(tablet, /font-size:30px/);
   a.match(mobile, /font-size:20px/);
   a.equal(/font-size:20px/.test(tablet), false);
-  a.equal((css.match(/@media/g) || []).length, 2, 'exactly one media block per breakpoint');
+  /* Two *breakpoint* blocks is the invariant — the stylesheet also closes with a
+     prefers-reduced-motion block, which is not a breakpoint and must not be
+     counted as one. Counting bare `@media` conflated the two. */
+  a.equal((css.match(/@media \(max-width/g) || []).length, 2, 'exactly one media block per breakpoint');
+  a.equal(css.indexOf(C.MQ.t) < css.indexOf(C.MQ.m), true, 'tablet before mobile');
 });
 
 test('hidden elements are removed on export but only ghosted while editing', () => {
@@ -1677,7 +1681,10 @@ test('no page template skips a heading level', () => {
 /* The review is the contract with the user, so a template must not open on
    problems the user did not cause. Page title, description and the image and
    form placeholders are theirs to fill in — everything else is ours. */
-const THEIRS = ['no-title', 'no-desc', 'no-image', 'no-dimensions', 'form-no-action', 'no-h1'];
+/* Findings that belong to the author, not to the template: a slot to fill, a
+   title to write, an endpoint to paste. `gallery-no-image` is one of these for
+   the same reason `no-image` is — a template ships somewhere to put an image. */
+const THEIRS = ['no-title', 'no-desc', 'no-image', 'no-dimensions', 'form-no-action', 'no-h1', 'gallery-no-image'];
 
 test('no page template lands with a problem of its own making', () => {
   for (const t of C.TEMPLATES) {
@@ -2482,4 +2489,324 @@ test('content.json is valid JSON and ends with a newline', () => {
   const raw = C.contentJson();
   a.doesNotThrow(() => JSON.parse(raw));
   a.equal(raw.endsWith('\n'), true);
+});
+
+/* =============================================================== accordion
+   Native <details>, which is the whole reason this widget costs no JavaScript. */
+const acc = (props = {}) => {
+  blank();
+  const n = C.insert('accordion', null, 0);
+  Object.assign(n.props, props);
+  return n;
+};
+
+test('an accordion is native <details>, so it ships no script of its own', () => {
+  const n = acc();
+  const html = C.renderNode(n, { edit: false });
+  a.equal((html.match(/<details/g) || []).length, 3);
+  a.equal((html.match(/<summary/g) || []).length, 3);
+  a.equal(/<script/i.test(html), false);
+  a.equal(/aria-expanded/.test(html), false, 'the element carries its own state');
+});
+
+test('“one open at a time” is the native name attribute, and only one panel may be open', () => {
+  const n = acc({ single: 1, open: 'all' });
+  const html = C.renderNode(n, { edit: false });
+  const names = html.match(/name="[^"]+"/g) || [];
+  a.equal(names.length, 3, 'every panel is in the group');
+  a.equal(new Set(names).size, 1, 'one shared name is what makes it exclusive');
+  a.equal((html.match(/ open>/g) || []).length, 1,
+    'a shared name allows one open panel, so “all open” cannot also be honoured');
+});
+
+test('what opens on load follows the setting', () => {
+  a.equal((C.renderNode(acc({ open: 'none' }), { edit: false }).match(/ open>/g) || []).length, 0);
+  a.equal((C.renderNode(acc({ open: 'first' }), { edit: false }).match(/ open>/g) || []).length, 1);
+  a.equal((C.renderNode(acc({ open: 'all' }), { edit: false }).match(/ open>/g) || []).length, 3);
+});
+
+test('a selected accordion opens every panel in the editor, so the answers can be styled', () => {
+  const n = acc({ open: 'none' });
+  C.state.ui.sel = n.id;
+  a.equal((C.renderNode(n, { edit: true }).match(/ open>/g) || []).length, 3);
+  C.state.ui.sel = null;
+  a.equal((C.renderNode(n, { edit: true }).match(/ open>/g) || []).length, 0);
+});
+
+test('an answer becomes paragraphs: a blank line starts one, a single newline breaks', () => {
+  a.equal(C.para('one\n\ntwo'), '<p>one</p><p>two</p>');
+  a.equal(C.para('one\ntwo'), '<p>one<br>two</p>');
+  a.equal(C.para('  '), '', 'nothing in, nothing out');
+  a.match(C.para('<b>hi</b>'), /&lt;b&gt;/, 'an answer is text, not markup');
+});
+
+test('an accordion with no questions exports nothing but explains itself in the editor', () => {
+  const n = acc({ items: [] });
+  a.equal(C.renderNode(n, { edit: false }), '');
+  a.match(C.renderNode(n, { edit: true }), /s-empty/);
+});
+
+/* =================================================================== embed */
+test('an embed exports its markup verbatim — that is the entire point', () => {
+  blank();
+  const n = C.insert('embed', null, 0);
+  n.props.html = '<iframe src="https://example.com/x" title="Map"></iframe>';
+  a.match(C.renderNode(n, { edit: false }), /<iframe src="https:\/\/example\.com\/x" title="Map"><\/iframe>/);
+});
+
+test('the canvas holds back scripts the export ships', () => {
+  blank();
+  const n = C.insert('embed', null, 0);
+  n.props.html = '<div id="w"></div><script src="https://x.test/w.js"></script>';
+  const shipped = C.renderNode(n, { edit: false });
+  const drawn = C.renderNode(n, { edit: true });
+  a.match(shipped, /<script src="https:\/\/x\.test\/w\.js">/, 'the export keeps it');
+  a.equal(/<script/i.test(drawn), false, 'the editor renders on every keystroke, so it must not run');
+  a.match(drawn, /1 script held back/);
+});
+
+test('stripScripts takes both forms and counts what it took', () => {
+  a.deepEqual(C.stripScripts('<script>a()</script>'), { html: '', stripped: 1 });
+  a.deepEqual(C.stripScripts('<script src="x.js"></script>'), { html: '', stripped: 1 });
+  a.deepEqual(C.stripScripts('<b onclick="a()">x</b>'), { html: '<b>x</b>', stripped: 1 });
+  a.deepEqual(C.stripScripts("<b onmouseover='a()'>x</b>"), { html: '<b>x</b>', stripped: 1 });
+  a.deepEqual(C.stripScripts('<b>x</b>'), { html: '<b>x</b>', stripped: 0 });
+});
+
+test('an aspect ratio reaches the iframe through a class, not a style-attribute selector', () => {
+  blank();
+  const n = C.insert('embed', null, 0);
+  n.props.html = '<iframe src="x"></iframe>';
+  a.equal(/pagecraft-embed-ratio/.test(C.renderNode(n, { edit: false })), false, 'none chosen, none applied');
+  n.props.ratio = '16 / 9';
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, /pagecraft-embed-ratio/);
+  a.match(html, /aspect-ratio:16 \/ 9/);
+  a.match(C.baseCss(false), /\.pagecraft-embed-ratio>iframe[^}]*height:100%/);
+});
+
+test('an empty embed exports nothing', () => {
+  blank();
+  const n = C.insert('embed', null, 0);
+  a.equal(C.renderNode(n, { edit: false }), '');
+});
+
+/* ==================================================================== icon */
+test('every icon in the set has a path, and none is empty', () => {
+  a.ok(C.ICON_NAMES.length >= 30, 'a set worth picking from');
+  C.ICON_NAMES.forEach(k => {
+    a.match(C.ICON_PATHS[k], /^<(path|circle|rect|ellipse)/, k + ' draws something');
+    a.equal(/viewBox/.test(C.ICON_PATHS[k]), false, k + ' is a bare path list');
+  });
+  a.equal(new Set(C.ICONS.flatMap(([, l]) => l.map(([k]) => k))).size, C.ICON_NAMES.length,
+    'no glyph appears in two groups');
+});
+
+test('an icon always carries width and height — a viewBox alone collapses', () => {
+  blank();
+  const n = C.insert('icon', null, 0);
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, /width="24"/);
+  a.match(html, /height="24"/);
+  a.match(html, /viewBox="0 0 24 24"/);
+  a.match(C.baseCss(false), /\.pagecraft-icon-glyph\{[^}]*width:var\(--icon-size/);
+});
+
+test('a label makes an icon announced; without one it is hidden', () => {
+  blank();
+  const n = C.insert('icon', null, 0);
+  a.match(C.renderNode(n, { edit: false }), /aria-hidden="true"/);
+  n.props.label = 'Verified';
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, /role="img"/);
+  a.match(html, /aria-label="Verified"/);
+  a.equal(/aria-hidden/.test(html), false);
+});
+
+test('a linked icon names the link, not the glyph', () => {
+  blank();
+  const n = C.insert('icon', null, 0);
+  n.props.link = 'https://example.com';
+  n.props.label = 'Our GitHub';
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, /<a [^>]*aria-label="Our GitHub"/, 'the link is what gets the name');
+  a.match(html, /<svg [^>]*aria-hidden="true"/, 'the glyph inside it says nothing twice');
+  a.match(html, /class="pagecraft-icon-glyph"/);
+});
+
+test('an unknown icon name falls back rather than drawing an empty box', () => {
+  blank();
+  const n = C.insert('icon', null, 0);
+  n.props.name = 'no-such-glyph';
+  a.match(C.renderNode(n, { edit: false }), new RegExp(C.ICON_PATHS.check.slice(1, 20).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+/* ================================================================= gallery */
+const gal = (count, props = {}) => {
+  blank();
+  const n = C.insert('gallery', null, 0);
+  n.props.items = Array.from({ length: count }, (_, i) =>
+    ({ src: 'asset:a' + i, alt: 'Shot ' + i, caption: 'Cap ' + i, w: '1200', h: '900' }));
+  Object.assign(n.props, props);
+  return n;
+};
+
+test('a gallery is one figure per tile, and an empty tile is a slot, not a gap', () => {
+  const n = gal(3);
+  n.props.items.push({ src: '', alt: '' });
+  const html = C.renderNode(n, { edit: false });
+  /* the same call the Image widget makes: no source means the placeholder, so a
+     three-slot template renders as three slots rather than as nothing */
+  a.equal((html.match(/<figure/g) || []).length, 4);
+  /* twice for the one empty slot: the img and the lightbox href it is wrapped in */
+  a.equal((html.match(new RegExp(C.PH.slice(0, 24).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length, 2);
+  a.match(html, /class="pagecraft-gallery [^"]*"/);
+});
+
+test('with the lightbox on every tile is a real link, so it works with scripting off', () => {
+  const html = C.renderNode(gal(2), { edit: false });
+  a.match(html, /data-lightbox/);
+  a.equal((html.match(/<a class="pagecraft-gallery-frame" href="asset:a\d"/g) || []).length, 2);
+  a.match(html, /data-lb="0"/);
+});
+
+test('with the lightbox off there is nothing to intercept and nothing linked', () => {
+  const html = C.renderNode(gal(2, { lightbox: 0 }), { edit: false });
+  a.equal(/data-lightbox/.test(html), false);
+  a.equal(/<a class="pagecraft-gallery-frame"/.test(html), false);
+  a.match(html, /<span class="pagecraft-gallery-frame">/);
+});
+
+test('a gallery writes intrinsic size, so the grid does not shift as it loads', () => {
+  a.match(C.renderNode(gal(1), { edit: false }), /width="1200" height="900"/);
+});
+
+test('captions are opt-in', () => {
+  a.equal(/figcaption/.test(C.renderNode(gal(1), { edit: false })), false);
+  a.match(C.renderNode(gal(1, { captions: 1 }), { edit: false }), /<figcaption class="pagecraft-gallery-caption">Cap 0/);
+});
+
+test('a tile shape reaches the frame through a class and a variable', () => {
+  const html = C.renderNode(gal(1, { ratio: '1 / 1', fit: 'contain' }), { edit: false });
+  a.match(html, /pagecraft-gallery-fixed/);
+  a.match(html, /--g-ratio:1 \/ 1/);
+  a.match(html, /--g-fit:contain/);
+  a.equal(/pagecraft-gallery-fixed/.test(C.renderNode(gal(1, { ratio: '' }), { edit: false })), false);
+});
+
+test('an empty gallery exports nothing', () => {
+  const n = gal(0);
+  a.equal(C.renderNode(n, { edit: false }), '');
+  a.match(C.renderNode(n, { edit: true }), /s-empty/);
+});
+
+test('the lightbox script ships only onto a page that has one', () => {
+  /* the marker is the script's own code, not the class name — the stylesheet
+     carries .pagecraft-lightbox rules on every page, the way the nav and form
+     rules do, and only the script is conditional */
+  gal(2);
+  a.match(C.buildPage(C.page()), /HTMLDialogElement/);
+  blank();
+  C.insert('heading', null, 0);
+  a.equal(/HTMLDialogElement/.test(C.buildPage(C.page())), false, 'no gallery, no script');
+  gal(2, { lightbox: 0 });
+  a.equal(/data-lightbox/.test(C.buildPage(C.page())), false);
+  a.equal(/HTMLDialogElement/.test(C.buildPage(C.page())), false, 'nothing to upgrade, nothing shipped');
+});
+
+/* ====================================================== the exported page */
+test('a visitor asking for less motion gets it, and outranks the project CSS', () => {
+  C.state.meta.css = '.x{transition:all 2s}';
+  const css = C.baseCss(false);
+  a.match(css, /@media \(prefers-reduced-motion:reduce\)/);
+  a.match(css, /transition-duration:\.01ms !important/);
+  a.ok(css.indexOf('prefers-reduced-motion') > css.indexOf('.x{transition:all 2s}'),
+    'it closes the stylesheet, so a project rule cannot re-enable motion');
+  C.state.meta.css = '';
+});
+
+test('keyboard focus is visible on everything that can take it', () => {
+  const css = C.baseCss(false);
+  ['.pagecraft-button:focus-visible', '.pagecraft-nav-list a:focus-visible',
+    '.pagecraft-heading a:focus-visible', '.pagecraft-wysiwyg a:focus-visible',
+    '.pagecraft-accordion-q:focus-visible', '.pagecraft-gallery-frame:focus-visible',
+    '.pagecraft-icon:focus-visible', '.pagecraft-form-button:focus-visible',
+    '.pagecraft-video-play:focus-visible'
+  ].forEach(sel => a.ok(css.includes(sel), sel + ' has a focus ring'));
+  /* currentColor, not the brand: #b7f34a is 1.6:1 on Paper, so a brand ring round
+     a brand-filled button was invisible in the one case it had to work. Text
+     colour already contrasts with its own ground, so the ring inherits that. */
+  a.match(css, /outline:3px solid currentColor;outline-offset:3px/);
+  a.equal(/focus-visible\{outline:3px solid var\(--c-brand\)/.test(css), false);
+});
+
+test('a hidden lightbox control has the display escape hatch its own class needs', () => {
+  a.match(C.baseCss(false), /\.pagecraft-lightbox-btn\[hidden\]\{display:none\}/);
+});
+
+/* ======================================================= review, new rules */
+test('an accordion row with no question is an error, an empty answer a warning', () => {
+  const n = acc({ items: [{ q: '', a: 'x' }, { q: 'Real?', a: '' }, { q: 'Fine', a: 'Yes' }] });
+  const f = C.lint();
+  a.equal(find(f, 'accordion-no-question').length, 1, 'counted per accordion, not per row');
+  a.match(find(f, 'accordion-no-question')[0].msg, /^1 row /);
+  a.equal(find(f, 'accordion-no-answer').length, 1);
+  a.equal(find(f, 'accordion-empty').length, 0);
+  n.props.items = [];
+  a.equal(find(C.lint(), 'accordion-empty').length, 1);
+});
+
+test('an embed says what the review cannot check for it', () => {
+  blank();
+  const n = C.insert('embed', null, 0);
+  a.equal(find(C.lint(), 'embed-empty').length, 1);
+  n.props.html = '<iframe src="https://x.test"></iframe>';
+  a.equal(codes(C.lint()).filter(x => x.startsWith('embed-')).length, 0);
+  n.props.html += '<script src="https://x.test/w.js"></script>';
+  a.equal(find(C.lint(), 'embed-script').length, 1);
+});
+
+test('a linked icon with no label is an error — the link would have no name at all', () => {
+  blank();
+  const n = C.insert('icon', null, 0);
+  a.equal(find(C.lint(), 'icon-link-no-label').length, 0, 'an unlinked glyph is allowed to be decorative');
+  n.props.link = 'https://example.com';
+  a.equal(find(C.lint(), 'icon-link-no-label').length, 1);
+  n.props.label = 'GitHub';
+  a.equal(find(C.lint(), 'icon-link-no-label').length, 0);
+});
+
+test('a gallery is held to the Image widget’s standards, counted per gallery', () => {
+  const n = gal(4);
+  a.equal(codes(C.lint()).filter(x => x.startsWith('gallery-')).length, 0);
+  n.props.items[0].alt = '';
+  n.props.items[1].alt = ' ';
+  n.props.items[2].w = '';
+  const f = C.lint();
+  a.equal(find(f, 'gallery-no-alt').length, 1);
+  a.match(find(f, 'gallery-no-alt')[0].msg, /2 of 4 images/);
+  a.equal(find(f, 'gallery-no-dimensions').length, 1);
+  n.props.items = [];
+  a.equal(find(C.lint(), 'gallery-empty').length, 1);
+});
+
+test('a gallery slot with no image yet is a slot to fill, not an alt-text error', () => {
+  const n = gal(2);
+  n.props.items.push({ src: '', alt: '', caption: '' });
+  const f = C.lint();
+  a.equal(find(f, 'gallery-no-image').length, 1, 'reported as the placeholder it is');
+  a.match(find(f, 'gallery-no-image')[0].msg, /^1 tile /);
+  a.equal(find(f, 'gallery-no-alt').length, 0,
+    'nothing to describe yet — the same rule the Image widget follows');
+  a.equal(C.lintCounts(f).error, 0, 'a fresh gallery template opens on no errors at all');
+});
+
+/* ================================================================ binding */
+test('a control that edits a list of its own is not offered for binding', () => {
+  a.equal(C.bindableKeys('nav').includes('items'), false, 'a field cannot fill an array of links');
+  a.equal(C.bindableKeys('form').includes('fields'), false);
+  a.equal(C.bindableKeys('accordion').includes('items'), false);
+  a.equal(C.bindableKeys('gallery').includes('items'), false);
+  a.ok(C.bindableKeys('embed').includes('html'), 'a single value still binds');
+  a.ok(C.bindableKeys('icon').includes('name'));
 });

@@ -29,16 +29,17 @@ sandboxed iframes refuse, so naming a class or a colour silently did nothing the
 
 | | |
 |---|---|
-| Tests | **221**, `npm test` |
-| Widgets | 13 |
+| Tests | **254**, `npm test` |
+| Widgets | 17 |
+| Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
-| Section templates | 23, in 12 categories |
+| Section templates | 26, in 12 categories |
 | Page templates | 12 |
 | Font library | 49 Google Fonts, auto-linked on export |
 | Storage schema | `SCHEMA = 7`, seven cumulative migrations |
-| `builder.html` | 7,363 lines — 3,122 tested core, 4,241 untested UI |
-| `index.html` | 744 KB with brand fonts embedded |
-| Demo project | 64 nodes, 24.6 KB export |
+| `builder.html` | 8,052 lines — 3,653 tested core, 4,400 untested UI |
+| `index.html` | 856 KB with brand fonts embedded |
+| Demo project | 64 nodes, 29.5 KB export |
 
 Built and working: sections/rows/columns with auto-wrapping · inline WYSIWYG · images with an
 IndexedDB asset store · deferred video · accessible nav · forms · design tokens (colours,
@@ -48,11 +49,27 @@ namespaced `pagecraft-` output with overridable ids · SEO head, sitemap, robots
 **multi-select** (⌘/⇧-click to add on the canvas, ⇧-click for a range in the Navigator, one
 style edit fans out to the set).
 
+**Newest, this session** — four components and two export-quality fixes:
+
+- **Accordion** — native `<details>`, so it ships no JavaScript; `single` is the native
+  `name` attribute. Answers are plain text, paragraphed by blank lines.
+- **Embed** — the escape hatch for markup the builder does not model. Ships verbatim;
+  scripts are stripped *in the canvas only*, which renders on every keystroke.
+- **Icon** — 35 stroke glyphs, `currentColor` plus one size variable. A linked icon with no
+  label is a review error, because that link has no accessible name.
+- **Gallery** — responsive grid, captions, and a lightbox that is a progressive enhancement:
+  every tile is already an `<a href>` to the full image, so it works with scripting off.
+- **A visible focus ring** on every focusable, in `currentColor` — the brand green measured
+  1.6:1 on Paper, so a brand ring on a brand button was invisible. The video facade's old
+  green ring folded into the same rule.
+- **`prefers-reduced-motion`** now reaches the export. It closes the stylesheet, *after*
+  `meta.css`, so a project rule cannot switch motion back on.
+
 ## Verify it works
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 221 cases
+npm test            # rebuild + 254 cases
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 ```
@@ -73,8 +90,17 @@ open index.html     # or just open the file
 4. **Namespacing.** Class `pagecraft-<widget-slug>` plus styling hook `pagecraft-<nodeid>`;
    auto id `pagecraft-<widget-slug>-<nodeid>`, overridden verbatim by `adv.htmlId`. All of it
    derives from `widgetSlug` / `nodeClass` / `autoId` / `domIdOf` in core.
-5. **Cascade order** within a breakpoint: text style → class → element. Exactly two media
-   queries reach the export.
+5. **Cascade order** within a breakpoint: text style → class → element. Exactly two
+   *breakpoint* media queries reach the export, plus one `prefers-reduced-motion` block that
+   closes the stylesheet after `meta.css`. A test counts `@media (max-width` rather than bare
+   `@media`, so the two do not get conflated again.
+6. **`--mpad` owns the dialog inset**, the way `--gap-*`/`--h-ctl` own form rhythm. `.mh`,
+   `.mb`, `.mf` and `#askBody` all read it, and `.tabs.flush` derives its edge-to-edge cancel
+   and its label inset from it. Do not hard-code 18px in a dialog again — four copies of it
+   plus an inline `padding:0 12px` gave the CMS dialog four different left edges.
+7. **The export stylesheet carries no comments.** The first half of `baseCss` ships to every
+   page; the reasoning for each block lives in `NOTES.md` and in the preamble above the
+   function. Seven comments leaked into every export before this was noticed.
 
 ## How to work on it well
 
@@ -85,7 +111,8 @@ Three failure modes cost real time in this project. They are worth knowing in ad
   Build a page as a user before trusting the suite.
 - **SVG with a `viewBox` and no dimensions.** Bit three times — inline icons collapsed to
   nothing, a background caret scaled to fill the field. Always set width/height, or
-  `background-size`.
+  `background-size`. `iconSvg()` writes `width="24" height="24"` on every glyph for this
+  reason, with `--icon-size` layered on in CSS; a test fails if the attributes go missing.
 - **A promise resolves on a microtask, so a synchronous probe reads the old value.** Testing
   the new `askText`/`askConfirm` dialogs, cancelling and immediately reading the control that
   the cancel branch resets reported it unchanged — the `await` continuation had not run. `await
@@ -97,6 +124,14 @@ Three failure modes cost real time in this project. They are worth knowing in ad
   mutations shared one expression, or the canvas was rendering at tablet width, or a
   screenshot caught a mid-render frame. One assertion per call, and prefer the generated
   stylesheet or a screenshot over `getComputedStyle` through an iframe.
+- **A CSS transition means a computed style read right after the click is the old one.**
+  Reading the caret marker's `transform` immediately after opening a panel reported the
+  identity matrix; the same read one call later reported `rotate(180deg)`. Same family as the
+  microtask trap above — separate the act from the measurement.
+- **A test that asserts a thing exists has not checked that it works.** The focus ring passed
+  its assertion and was invisible: brand green measures 1.6:1 on Paper, so the ring round a
+  brand-filled button could not be seen. Only looking at it caught that. This is the
+  "bad defaults pass tests" lesson again, in a new costume.
 - **The tablet breakpoint is `max-width:1024px`, so the editor canvas is almost never at
   the desktop base.** At a 1500px window the canvas is 816px, which matches the tablet
   query. A text style carries its own `t`/`m` sizes and `treeCss` emits the breakpoint
@@ -133,12 +168,28 @@ that the browser failed.
    before changing anything
 3. **Canvas zoom** (it is in the brand mockup; only the px readout exists), custom layer
    names, an Assets item in the rail
-4. **Test the UI layer** — over 4,000 lines have no unit tests, which is where the one real
-   regression came from. Either extract more into core or add a DOM-shimmed layer
-5. **Keep new form markup on the variables.** `--gap-1/2/3` and `--h-ctl/--h-row` in `:root`
+4. **Test the UI layer** — 4,400 lines have no unit tests, which is where the one real
+   regression came from. Either extract more into core or add a DOM-shimmed layer. The three
+   controls added this session (`qa`, `icon`, `imgs`) are all in that untested half
+5. **The obvious next components**, now that the escape hatch exists: **Tabs** (needs a small
+   script, and follows the `NAV_JS`/`LB_JS` pattern of emitting only when `data-tabs` is in
+   the body), **Blockquote** as a real widget (the Pull quote pattern still exports a `<p>`
+   where it wants `<blockquote>` + `<cite>`), **Table**, **Code block**, **Breadcrumb**
+   (which pairs with CMS detail pages and would drive BreadcrumbList structured data), and a
+   **scroll-snap slider** for logos and testimonials
+6. **The CMS's missing verbs**: a Collection List sorts, directs and limits but cannot
+   **filter**, which is what category and tag pages need; there is no **reference** field
+   type, so nothing relates a post to an author; `content.json` goes out but nothing comes
+   back **in**; and no **pagination** or **draft flag** that `exportTargets()` honours
+7. **Export quality still open**: `srcset` (downscale via canvas at export — the biggest
+   Lighthouse win and the biggest job), **JSON-LD** (Organization/WebSite per page, Article
+   per item — a pure core function, easily tested), a **404 page** convention, and a
+   **self-hosted fonts** option, since `gfontsLink()` is a third-party request and an EU
+   privacy problem while `brand/fonts/` already proves the machinery
+8. **Keep new form markup on the variables.** `--gap-1/2/3` and `--h-ctl/--h-row` in `:root`
    own every form measurement; there are no hard-coded vertical margins left in the markup.
    Anything sitting in a field row takes `--h-ctl` or it will be the one thing out of line
-6. **Decide the product question**: does this become the editor for
+9. **Decide the product question**: does this become the editor for
    `~/Documents/Braudy/pagecraft` (a Next.js app with its own `PRODUCT.md` and `ROADMAP.md`,
    untouched so far), or stay standalone? The CMS now ships, so what a single HTML file cannot
    do is the deciding factor: letting anyone edit content without re-exporting needs a server

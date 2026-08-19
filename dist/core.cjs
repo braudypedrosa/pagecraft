@@ -45,10 +45,74 @@ const IC = {
   arrow:'<path d="M6 3.5L10.5 8 6 12.5" stroke-linecap="round" stroke-linejoin="round"/>',
   check:'<path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/>',
   page:'<rect x="2.5" y="1.5" width="11" height="13" rx="1.5"/><path d="M5 5h6M5 8h6M5 11h4"/>',
-  code:'<path d="M5.5 5L2.5 8l3 3M10.5 5l3 3-3 3M9.3 3.2l-2.6 9.6" stroke-linecap="round"/>'
+  code:'<path d="M5.5 5L2.5 8l3 3M10.5 5l3 3-3 3M9.3 3.2l-2.6 9.6" stroke-linecap="round"/>',
+  accordion:'<rect x="1.5" y="2.2" width="13" height="3.6" rx="1"/><rect x="1.5" y="7.4" width="13" height="6.4" rx="1"/><path d="M4 9.9h6M4 11.9h4" opacity=".5"/>',
+  gallery:'<rect x="1.5" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="9.1" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="1.5" y="9.6" width="5.4" height="3.9" rx="1"/><rect x="9.1" y="9.6" width="5.4" height="3.9" rx="1"/>'
 };
 const svg = (n, s = 14, cls = '') =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;
+
+/* --------------------------------------------------- the public icon set
+   Drawn on a 24px grid at stroke 1.75, stroke-only so `currentColor` and one
+   size variable style every one of them. IC above is 16px chrome furniture at
+   stroke 1.4 — the two sets are deliberately separate: these ship in exports,
+   those never leave the editor.
+
+   Every glyph is a bare path list. `iconSvg` supplies viewBox, dimensions and
+   stroke — dimensions above all, because a viewBox with no width/height has
+   collapsed to nothing three times in this project. */
+const ICONS = [
+  ['Interface', [
+    ['check', '<path d="M20 6.5L9.2 17.3 4 12.1"/>'],
+    ['check-circle', '<circle cx="12" cy="12" r="9"/><path d="M8.2 12.4l2.6 2.6 5-5.6"/>'],
+    ['plus', '<path d="M12 5v14M5 12h14"/>'],
+    ['minus', '<path d="M5 12h14"/>'],
+    ['close', '<path d="M6 6l12 12M18 6L6 18"/>'],
+    ['arrow-right', '<path d="M4 12h15M13.2 6l6 6-6 6"/>'],
+    ['arrow-up-right', '<path d="M7 17L17.2 6.8M8.4 6.8h8.8v8.8"/>'],
+    ['chevron-down', '<path d="M6 9.5l6 6 6-6"/>'],
+    ['chevron-right', '<path d="M9.5 6l6 6-6 6"/>'],
+    ['menu', '<path d="M4 7h16M4 12h16M4 17h16"/>'],
+    ['search', '<circle cx="11" cy="11" r="6.4"/><path d="M15.8 15.8l4.7 4.7"/>'],
+    ['settings', '<circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v3.1M12 18.3v3.1M4.4 7.2l2.7 1.6M16.9 15.2l2.7 1.6M4.4 16.8l2.7-1.6M16.9 8.8l2.7-1.6"/>'],
+    ['external', '<path d="M14 4h6v6M20 4l-8.6 8.6M17 14.4v5.1H4.5V7h5.1"/>'],
+    ['download', '<path d="M12 4v11.4M7.4 11l4.6 4.6L16.6 11M4.4 19.6h15.2"/>']
+  ]],
+  ['Signals', [
+    ['star', '<path d="M12 3.2l2.7 5.6 6.1.9-4.4 4.4 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.4 6.1-.9z"/>'],
+    ['heart', '<path d="M12 20.2C9.5 18.4 4.6 14.9 4.6 11a3.9 3.9 0 017.4-1.8A3.9 3.9 0 0119.4 11c0 3.9-4.9 7.4-7.4 9.2z"/>'],
+    ['zap', '<path d="M13.4 2.4L4.6 14.2H10l-1.4 7.4 8.8-11.8h-5.4z"/>'],
+    ['sparkle', '<path d="M10 3.2l1.7 4.6 4.6 1.7-4.6 1.7L10 15.8 8.3 11.2 3.7 9.5l4.6-1.7z"/><path d="M17.6 14.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>'],
+    ['info', '<circle cx="12" cy="12" r="9"/><path d="M12 11.1v5.6M12 7.5v.9"/>'],
+    ['alert', '<path d="M12 3.6l8.8 15.8H3.2z"/><path d="M12 9.4v4.4M12 16.6v.9"/>'],
+    ['shield', '<path d="M12 3l8 3v5.9c0 5-3.4 8.1-8 9.1-4.6-1-8-4.1-8-9.1V6z"/>'],
+    ['lock', '<rect x="4.8" y="10.9" width="14.4" height="9.4" rx="2"/><path d="M8.2 10.9V8a3.8 3.8 0 017.6 0v2.9"/>']
+  ]],
+  ['Contact', [
+    ['mail', '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.6 6.6L12 12.5l8.4-5.9"/>'],
+    ['phone', '<path d="M6.1 3.2h2.8l1.9 4.7-2.1 1.4a12.3 12.3 0 005.9 5.9l1.4-2.1 4.7 1.9v2.8a2 2 0 01-2.2 2A16.6 16.6 0 014.1 5.4a2 2 0 012-2.2z"/>'],
+    ['chat', '<path d="M20 14.8a2 2 0 01-2 2H8.6L4 20.6V6a2 2 0 012-2h12a2 2 0 012 2z"/>'],
+    ['map-pin', '<path d="M12 21.2C12 21.2 5 15.1 5 10.4a7 7 0 1114 0c0 4.7-7 10.8-7 10.8z"/><circle cx="12" cy="10.2" r="2.6"/>'],
+    ['clock', '<circle cx="12" cy="12" r="9"/><path d="M12 6.9v5.5l3.6 2.2"/>'],
+    ['calendar', '<rect x="3.6" y="5.1" width="16.8" height="15.3" rx="2"/><path d="M3.6 10.1h16.8M8.2 3v4.1M15.8 3v4.1"/>'],
+    ['users', '<circle cx="9.2" cy="8" r="3.4"/><path d="M2.6 20a6.6 6.6 0 0113.2 0"/><path d="M16.2 5.2a3.4 3.4 0 010 5.6M17.6 14.5A6.6 6.6 0 0121.4 20"/>']
+  ]],
+  ['Craft', [
+    ['code', '<path d="M8.4 7.4L3.8 12l4.6 4.6M15.6 7.4L20.2 12l-4.6 4.6M13.7 4.4l-3.4 15.2"/>'],
+    ['layers', '<path d="M12 3l9 4.8-9 4.8-9-4.8z"/><path d="M3 12.6l9 4.8 9-4.8"/>'],
+    ['box', '<path d="M12 3.2l8.4 4.4v8.8L12 20.8l-8.4-4.4V7.6z"/><path d="M3.6 7.6L12 12l8.4-4.4M12 12v8.8"/>'],
+    ['chart', '<path d="M3 20.2h18"/><path d="M6.6 20.2v-6.4M12 20.2V7.4M17.4 20.2v-9.2"/>'],
+    ['globe', '<circle cx="12" cy="12" r="9"/><path d="M3.2 9.4h17.6M3.2 14.6h17.6"/><path d="M12 3c-2.4 2.6-3.7 5.7-3.7 9s1.3 6.4 3.7 9c2.4-2.6 3.7-5.7 3.7-9S14.4 5.6 12 3z"/>'],
+    ['play', '<circle cx="12" cy="12" r="9"/><path d="M10.2 8.4l6 3.6-6 3.6z"/>']
+  ]]
+];
+/* flat lookup, and the order the picker walks */
+const ICON_PATHS = ICONS.reduce((all, [, list]) => { list.forEach(([k, p]) => { all[k] = p; }); return all; }, {});
+const ICON_NAMES = Object.keys(ICON_PATHS);
+/* Dimensions are not optional. A viewBox with no width/height collapses, and it
+   has done so three times here — the CSS var carries the real size on top. */
+const iconSvg = (name, attrs = '') =>
+  `<svg ${attrs} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name] || ICON_PATHS.check}</svg>`;
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
@@ -500,6 +564,136 @@ const DEF = {
         { t: 'color', c: 'border-top-color', label: 'Colour' },
         { t: 'unit', c: 'width', label: 'Width', r: 1, units: U.len }
       ], style: []
+    }
+  },
+
+  /* Native `<details>`, so an accordion needs no JavaScript at all and arrives
+     keyboard-operable and screen-reader-announced for free. `single` sets the
+     shared `name` attribute, which is what makes one-open-at-a-time native too;
+     where a browser has not caught up the panels stay independent, which is a
+     lesser accordion rather than a broken one. */
+  accordion: {
+    label: 'Accordion', icon: 'accordion', level: 4,
+    make: () => ({
+      props: {
+        items: [
+          { q: 'What do I get?', a: 'One paragraph that answers the question plainly.' },
+          { q: 'How long does it take?', a: 'Say the real number. A range is fine; a dodge is not.' },
+          { q: 'What does it cost?', a: 'The answer people scrolled this far to find.' }
+        ],
+        open: 'first', single: 0, marker: 'plus'
+      },
+      css: {
+        d: {
+          width: '100%', '--ac-line': cvar('line'), '--ac-pad': '18px', '--ac-gap': '0px',
+          '--ac-q-size': '17px', '--ac-q-weight': '600', '--ac-q-color': cvar('ink'),
+          '--ac-a-size': '16px', '--ac-a-color': cvar('muted'), '--ac-mark': cvar('slate'),
+          '--ac-radius': '0px'
+        }, t: {}, m: { '--ac-pad': '15px', '--ac-q-size': '16px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'qa', k: 'items', label: 'Questions' },
+        { t: 'select', k: 'open', label: 'Open on load', opts: [['none', 'All closed'], ['first', 'The first one'], ['all', 'All open']] },
+        { t: 'toggle', k: 'single', label: 'One open at a time' },
+        { t: 'select', k: 'marker', label: 'Marker', opts: [['plus', 'Plus / minus'], ['caret', 'Caret'], ['none', 'None']] }
+      ],
+      style: [
+        { t: 'color', c: '--ac-line', label: 'Divider colour' },
+        { t: 'unit', c: '--ac-pad', label: 'Row padding', r: 1, units: U.space },
+        { t: 'unit', c: '--ac-gap', label: 'Gap between rows', r: 1, units: U.space },
+        { t: 'unit', c: '--ac-q-size', label: 'Question size', r: 1, units: U.size },
+        { t: 'select', c: '--ac-q-weight', label: 'Question weight', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
+        { t: 'color', c: '--ac-q-color', label: 'Question colour' },
+        { t: 'unit', c: '--ac-a-size', label: 'Answer size', r: 1, units: U.size },
+        { t: 'color', c: '--ac-a-color', label: 'Answer colour' },
+        { t: 'color', c: '--ac-mark', label: 'Marker colour' },
+        { t: 'unit', c: '--ac-radius', label: 'Row radius', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  /* The escape hatch. Everything else in this builder is a described shape it
+     knows how to style; this one is markup it agrees not to understand — a map,
+     a booking widget, a payment button, an SVG the icon set does not carry. */
+  embed: {
+    label: 'Embed', icon: 'code', level: 4,
+    make: () => ({ props: { html: '', ratio: '' }, css: { d: { width: '100%' }, t: {}, m: {} } }),
+    controls: {
+      content: [
+        {
+          t: 'area', k: 'html', label: 'HTML', rows: 8, mono: 1, ph: '<iframe src="…" …></iframe>',
+          note: 'Pasted straight into the page. Scripts run on the exported site but not in this canvas — an embed that needs one shows a placeholder here.'
+        },
+        {
+          t: 'select', k: 'ratio', label: 'Aspect ratio',
+          opts: [['', 'Whatever the markup is'], ['16 / 9', '16:9'], ['4 / 3', '4:3'], ['1 / 1', '1:1'], ['21 / 9', '21:9'], ['9 / 16', '9:16 vertical']],
+          note: 'Pick one for an iframe with no height of its own.'
+        }
+      ],
+      style: []
+    }
+  },
+
+  /* Stroke-only glyphs on `currentColor`, sized by one variable, so an icon
+     inherits colour the way text does and scales with a single control. */
+  icon: {
+    label: 'Icon', icon: 'icon', level: 4,
+    make: () => ({
+      props: { name: 'check', label: '', link: '', target: '' },
+      css: {
+        d: { '--icon-size': '30px', '--icon-stroke': '1.75', color: cvar('ink'), 'align-self': 'flex-start' },
+        t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'icon', k: 'name', label: 'Icon' },
+        {
+          t: 'text', k: 'label', label: 'Accessible label', ph: 'Leave empty if decorative',
+          note: 'Named, a screen reader reads it. Empty, it is hidden — right for an icon beside text that already says it.'
+        },
+        { t: 'link', k: 'link', label: 'Link' },
+        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
+      ],
+      style: [
+        { t: 'unit', c: '--icon-size', label: 'Size', r: 1, units: U.size },
+        { t: 'color', c: 'color', label: 'Colour' },
+        { t: 'slider', c: '--icon-stroke', label: 'Stroke weight', min: 1, max: 3, step: .05, raw: 1 },
+        { t: 'color', c: 'background-color', label: 'Badge background' },
+        { t: 'box', c: 'padding', label: 'Badge padding', r: 1 },
+        { t: 'unit', c: 'border-radius', label: 'Badge radius', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  /* A grid of stored images. With the lightbox on, each tile is a real link to
+     the full image — so it works with JavaScript off, and the script that ships
+     only intercepts a click that would already have gone somewhere useful. */
+  gallery: {
+    label: 'Gallery', icon: 'gallery', level: 4,
+    make: () => ({
+      props: { items: [], ratio: '4 / 3', fit: 'cover', lightbox: 1, lazy: 1, captions: 0 },
+      css: {
+        d: { width: '100%', '--g-cols': '3', '--g-gap': '12px', '--g-radius': '10px' },
+        t: {}, m: { '--g-cols': '2', '--g-gap': '8px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'imgs', k: 'items', label: 'Images' },
+        { t: 'unit', c: '--g-cols', label: 'Columns', r: 1, units: [''], note: 'Responsive — set fewer on Tablet and Mobile.' },
+        { t: 'select', k: 'ratio', label: 'Tile shape', opts: [['4 / 3', '4:3'], ['1 / 1', 'Square'], ['3 / 2', '3:2'], ['16 / 9', '16:9'], ['3 / 4', '3:4 portrait'], ['', 'Whatever each image is']] },
+        { t: 'select', k: 'fit', label: 'Fit', opts: [['cover', 'Cover — fill and crop'], ['contain', 'Contain — fit inside']] },
+        { t: 'toggle', k: 'lightbox', label: 'Open full size on click' },
+        { t: 'toggle', k: 'captions', label: 'Show captions under each tile' },
+        { t: 'toggle', k: 'lazy', label: 'Lazy load' }
+      ],
+      style: [
+        { t: 'unit', c: '--g-gap', label: 'Gap', r: 1, units: U.space },
+        { t: 'unit', c: '--g-radius', label: 'Tile radius', r: 1, units: U.radius }
+      ]
     }
   }
 };
@@ -1238,6 +1432,44 @@ function lint() {
       if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add('warn', 'eager-video', `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`, w, n.id);
 
+      /* accordion — the two ways a row can be a dead end */
+      if (n.type === 'accordion') {
+        const rows = Array.isArray(n.props.items) ? n.props.items : [];
+        if (!rows.length) add('warn', 'accordion-empty', `An accordion in the ${region} has no questions, so it exports nothing.`, w, n.id);
+        /* counted rather than listed: twelve rows would otherwise be twelve findings */
+        const noQ = rows.filter(r => !String(r && r.q || '').trim()).length;
+        const noA = rows.filter(r => String(r && r.q || '').trim() && !String(r && r.a || '').trim()).length;
+        if (noQ) add('error', 'accordion-no-question', `${noQ} row${noQ === 1 ? '' : 's'} of an accordion in the ${region} have no question, so there is nothing to click.`, w, n.id);
+        if (noA) add('warn', 'accordion-no-answer', `${noA} row${noA === 1 ? '' : 's'} of an accordion in the ${region} open onto an empty answer.`, w, n.id);
+      }
+
+      /* embed — markup this builder does not read, so it says what it cannot check */
+      if (n.type === 'embed') {
+        const raw = String(n.props.html || '');
+        if (!raw.trim()) add('warn', 'embed-empty', `An embed in the ${region} has no markup, so it exports an empty box.`, w, n.id);
+        else if (/<script\b/i.test(raw)) add('warn', 'embed-script', `An embed in the ${region} carries a script. It ships to the exported page but never runs in this editor, so open the real file before you publish.`, w, n.id);
+      }
+
+      /* icon — a link whose only content is a glyph has no name without a label */
+      if (n.type === 'icon' && String(n.props.link || '').trim() && !String(n.props.label || '').trim())
+        add('error', 'icon-link-no-label', `A linked icon in the ${region} has no accessible label, so the link has no name at all for anyone using a screen reader.`, w, n.id);
+
+      /* gallery — same demands as the Image widget, counted per gallery */
+      if (n.type === 'gallery') {
+        const slots = (Array.isArray(n.props.items) ? n.props.items : []).filter(Boolean);
+        if (!slots.length) add('warn', 'gallery-empty', `A gallery in the ${region} has no images, so it exports nothing.`, w, n.id);
+        /* An empty slot is reported as a slot. Demanding alt text for an image
+           that is not there yet is what made a fresh template open on a wall of
+           errors nobody could act on — the same split the Image widget uses. */
+        const empty = slots.filter(t => !String(t.src || '').trim()).length;
+        if (empty) add('warn', 'gallery-no-image', `${empty} tile${empty === 1 ? '' : 's'} in a gallery in the ${region} have no image yet and will export a placeholder.`, w, n.id);
+        const tiles = slots.filter(t => String(t.src || '').trim());
+        const noAlt = tiles.filter(t => !String(t.alt || '').trim()).length;
+        const noDim = tiles.filter(t => !(t.w && t.h)).length;
+        if (noAlt) add('error', 'gallery-no-alt', `${noAlt} of ${tiles.length} image${tiles.length === 1 ? '' : 's'} in a gallery in the ${region} have no alt text. Describe each one.`, w, n.id);
+        if (noDim) add('warn', 'gallery-no-dimensions', `${noDim} image${noDim === 1 ? '' : 's'} in a gallery in the ${region} have no width/height, so the grid will shift as it loads.`, w, n.id);
+      }
+
       /* headings, in document order */
       if (n.type === 'heading' && HEADING_TAGS.test(n.props.level))
         headings.push({ level: +n.props.level[1], node: n, region });
@@ -1571,10 +1803,14 @@ function sitePlan() {
    ancestor that declares a source (`node.src`), so one card carries no collection
    id of its own and the same card works wherever it is placed — inside a
    Collection List, or on a detail page. */
+/* Controls that edit a list of their own. There is no single field a CMS item
+   could supply for one, so they are not offered — before this, Nav links and
+   form fields wore a bind badge that could only ever write a string over an array. */
+const COLL_CTL = ['items', 'fields', 'qa', 'imgs'];
 const bindableKeys = type => {
   const c = (DEF[type] || {}).controls || {};
   /* content props only: a text style is a design choice, not content */
-  return (c.content || []).filter(x => x.k && x.k !== 'ts').map(x => x.k);
+  return (c.content || []).filter(x => x.k && x.k !== 'ts' && !COLL_CTL.includes(x.t)).map(x => x.k);
 };
 const bindGet = (n, key) => (n.bind || {})[key] || '';
 function bindSet(n, key, fieldId) {
@@ -1841,6 +2077,51 @@ const PATTERNS = [
         T_H('Card ' + i, 'subtitle', {}, 'h2'),
         T_T('<p>A short line of supporting copy.</p>', 'small')
       ]), { d: { gap: '24px' } }))
+    ])
+  },
+  {
+    id: 'faq-accordion', cat: 'FAQ', preview: () => PV(ph(8,7,38)+pb(8,17,80,1,0.5)+ph(8,22,32)+pl(8,30,66)+pl(8,36,54)+pb(8,44,80,1,0.5)+ph(8,49,36)+pb(84,21,4,4,2)+pb(84,48,4,4,2)),
+    name: 'Questions that fold', desc: 'The same list, but each answer opens on click.',
+    build: () => T_SEC({ 'background-color': cvar('bg') }, [
+      cols(1, [[T_H('Common questions', 'title', { d: { 'margin-bottom': '32px' } })]]),
+      cols(1, [[N('accordion', {
+        items: [
+          { q: 'What does this cost?', a: 'Say the real number. A range is fine; a dodge is not.' },
+          { q: 'How long does it take?', a: 'Two sentences. The first answers it, the second says what it depends on.' },
+          { q: 'What do you need from me?', a: 'List it plainly, so nobody has to ask twice.' },
+          { q: 'What if it is not right?', a: 'Describe what happens next, in the words you would use out loud.' }
+        ],
+        open: 'first'
+      })]], { d: { 'max-width': '72ch' } })
+    ])
+  },
+  {
+    id: 'features-icons', cat: 'Features', preview: () => PV(ph(34,7,28)+pb(8,17,9,9,4.5)+pl(8,31,20)+pl(8,37,16)+pb(36,17,9,9,4.5)+pl(36,31,20)+pl(36,37,16)+pb(64,17,9,9,4.5)+pl(64,31,20)+pl(64,37,16)),
+    name: 'Three features with icons', desc: 'A glyph over each of three explained columns.',
+    build: () => T_SEC({ 'background-color': cvar('bg') }, [
+      cols(1, [[T_H('Built to be lived in', 'title', { d: { 'text-align': 'center', 'margin-bottom': '44px' } })]]),
+      cols(3, [
+        ['zap', 'Fast where it counts', 'One sentence on what this saves them.'],
+        ['shield', 'Safe by default', 'One sentence on what it protects.'],
+        ['layers', 'Yours to shape', 'One sentence on what it lets them change.']
+      ].map(([ico, title, body]) => [
+        N('icon', { name: ico }, { d: { '--icon-size': '26px', color: cvar('ink'), 'background-color': cvar('brand'), ...BOX('11px', '11px', '11px', '11px'), 'border-radius': '10px', 'margin-bottom': '18px' } }),
+        T_H(title, 'subtitle', { d: { 'margin-bottom': '8px' } }),
+        T_T('<p>' + body + '</p>', 'body')
+      ]), { d: { gap: '32px' } })
+    ])
+  },
+  {
+    id: 'gallery-grid', cat: 'Media', preview: () => PV(ph(8,7,30)+pb(8,17,26,17,2)+pb(36,17,26,17,2)+pb(64,17,26,17,2)+pb(8,37,26,17,2)+pb(36,37,26,17,2)+pb(64,37,26,17,2)),
+    name: 'Image grid', desc: 'Six slots in three columns, each opening full size.',
+    build: () => T_SEC({ 'background-color': cvar('bg') }, [
+      cols(1, [[T_H('Selected work', 'title', { d: { 'margin-bottom': '28px' } })]]),
+      cols(1, [[N('gallery', {
+        /* six empty slots: a gallery arrives as somewhere to put images, the way
+           the hero arrives with an image placeholder rather than with no image */
+        items: Array.from({ length: 6 }, () => ({ src: '', alt: '', caption: '' })),
+        ratio: '4 / 3'
+      })]])
     ])
   },
   {
@@ -2638,6 +2919,22 @@ function treeCss(lists, editing) {
     + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : '');
 }
 
+/* The first half of this ships to every exported page, so it carries no comments
+   — the reasoning for each block lives in NOTES.md under “The export stylesheet”.
+   Four things worth knowing before editing it:
+     · `.pagecraft-icon-glyph` must come after `.pagecraft-icon`, because an
+       unlinked icon is the svg itself and wears both classes.
+     · every marker variant restates each property it touches; a variant that
+       inherits half a rule is how the 1.19:1 hover bug got in.
+     · the focus ring is the only thing giving links, buttons and summaries a
+       visible focus state — before it, only the video facade and the form fields
+       had one. It is `currentColor`, not the brand: the default brand green is
+       1.6:1 on Paper, so a green ring round a green button was invisible in
+       exactly the case it mattered. Text colour is already chosen to contrast
+       with its own ground, so the ring inherits that guarantee — and using
+       `outline` alone leaves any author box-shadow intact.
+     · the reduced-motion query closes the sheet, after `meta.css`, so a visitor's
+       system preference outranks the project's own rules. */
 function baseCss(editing) {
   const m = state.meta;
   return `
@@ -2677,7 +2974,6 @@ img,video,svg{max-width:100%}
   border-width:12px 0 12px 19px;border-color:transparent transparent transparent var(--c-ink);
 }
 .pagecraft-video-play:hover .pagecraft-video-icon{transform:scale(1.08)}
-.pagecraft-video-play:focus-visible{outline:3px solid var(--c-brand);outline-offset:2px}
 .pagecraft-video>iframe,.pagecraft-video>video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover}
 .pagecraft-nav-menu{display:flex;align-items:center;position:relative}
 .pagecraft-nav-list{display:flex;align-items:center;gap:var(--nav-gap,26px);list-style:none;margin:0;padding:0}
@@ -2711,7 +3007,101 @@ img,video,svg{max-width:100%}
 }
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
+
+.pagecraft-accordion{display:flex;flex-direction:column;gap:var(--ac-gap,0px);width:100%}
+.pagecraft-accordion-item{border-top:1px solid var(--ac-line,currentColor);border-radius:var(--ac-radius,0px)}
+.pagecraft-accordion-item:last-child{border-bottom:1px solid var(--ac-line,currentColor)}
+.pagecraft-accordion-q{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;
+  padding:var(--ac-pad,18px) 0;list-style:none;
+  font-size:var(--ac-q-size,17px);font-weight:var(--ac-q-weight,600);
+  color:var(--ac-q-color,inherit);line-height:1.35;
+}
+.pagecraft-accordion-q::-webkit-details-marker{display:none}
+.pagecraft-accordion-q::marker{content:""}
+.pagecraft-accordion-a{
+  font-size:var(--ac-a-size,16px);color:var(--ac-a-color,inherit);
+  line-height:1.65;padding:0 0 var(--ac-pad,18px);max-width:72ch;
+}
+.pagecraft-accordion-a>:first-child{margin-top:0}
+.pagecraft-accordion-a>:last-child{margin-bottom:0}
+.pagecraft-accordion-a p{margin:0 0 .85em}
+.pagecraft-accordion-mark{
+  position:relative;flex:0 0 auto;width:16px;height:16px;
+  color:var(--ac-mark,currentColor);transition:transform .2s ease;
+}
+.pagecraft-accordion-mark::before,.pagecraft-accordion-mark::after{
+  content:"";position:absolute;left:50%;top:50%;background:currentColor;border-radius:1px;
+}
+.pagecraft-accordion-mark::before{width:15px;height:1.8px;margin:-.9px 0 0 -7.5px;transform:none}
+.pagecraft-accordion-mark::after{width:1.8px;height:15px;margin:-7.5px 0 0 -.9px;transform:none;transition:transform .2s ease}
+[data-marker=plus] [open]>.pagecraft-accordion-q .pagecraft-accordion-mark::after{transform:scaleY(0)}
+[data-marker=caret] .pagecraft-accordion-mark::before{
+  width:10.5px;height:1.8px;margin:-.9px 0 0 -8.9px;transform:rotate(45deg);transform-origin:right center;
+}
+[data-marker=caret] .pagecraft-accordion-mark::after{
+  width:10.5px;height:1.8px;margin:-.9px 0 0 -1.6px;transform:rotate(-45deg);transform-origin:left center;
+}
+[data-marker=caret] [open]>.pagecraft-accordion-q .pagecraft-accordion-mark{transform:rotate(180deg)}
+
+.pagecraft-embed{width:100%}
+.pagecraft-embed>*{max-width:100%}
+.pagecraft-embed-ratio{position:relative}
+.pagecraft-embed-ratio>iframe,.pagecraft-embed-ratio>video,.pagecraft-embed-ratio>embed,.pagecraft-embed-ratio>object{
+  position:absolute;inset:0;width:100%;height:100%;border:0;
+}
+
+.pagecraft-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:inherit;text-decoration:none}
+.pagecraft-icon-glyph{
+  display:block;flex:0 0 auto;
+  width:var(--icon-size,30px);height:var(--icon-size,30px);stroke-width:var(--icon-stroke,1.75);
+}
+
+.pagecraft-gallery{display:grid;grid-template-columns:repeat(var(--g-cols,3),minmax(0,1fr));gap:var(--g-gap,12px);width:100%}
+.pagecraft-gallery-item{margin:0;display:flex;flex-direction:column;min-width:0}
+.pagecraft-gallery-frame{
+  display:block;position:relative;overflow:hidden;
+  border-radius:var(--g-radius,10px);background:rgba(17,19,17,.05);
+}
+.pagecraft-gallery-img{display:block;width:100%;height:auto}
+.pagecraft-gallery-fixed .pagecraft-gallery-frame{aspect-ratio:var(--g-ratio,4 / 3)}
+.pagecraft-gallery-fixed .pagecraft-gallery-img{height:100%;object-fit:var(--g-fit,cover)}
+.pagecraft-gallery-caption{font-size:.82em;opacity:.7;margin-top:.5em}
+.pagecraft-lightbox{
+  padding:0;border:0;background:transparent;width:100%;height:100%;
+  max-width:100vw;max-height:100vh;overflow:hidden;
+}
+.pagecraft-lightbox::backdrop{background:rgba(10,12,10,.93)}
+.pagecraft-lightbox-fig{
+  margin:0;width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;padding:clamp(16px,4vw,48px);
+}
+.pagecraft-lightbox-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.pagecraft-lightbox-cap{margin:0;color:#f2f2ee;font-size:14px;line-height:1.5;text-align:center;max-width:64ch}
+.pagecraft-lightbox-btn{
+  position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
+  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;
+}
+.pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}
+.pagecraft-lightbox-prev{left:14px}
+.pagecraft-lightbox-next{right:14px}
+.pagecraft-lightbox-close{position:absolute;top:14px;right:14px;transform:none}
+.pagecraft-lightbox-btn[hidden]{display:none}
+
+.pagecraft-button:focus-visible,.pagecraft-form-button:focus-visible,
+.pagecraft-nav-list a:focus-visible,.pagecraft-nav-toggle:focus-visible,
+.pagecraft-heading a:focus-visible,.pagecraft-wysiwyg a:focus-visible,
+.pagecraft-figure:focus-visible,.pagecraft-icon:focus-visible,
+.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible,
+.pagecraft-lightbox-btn:focus-visible,.pagecraft-video-play:focus-visible{outline:3px solid currentColor;outline-offset:3px}
 ${m.css || ''}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;scroll-behavior:auto !important;
+  }
+}
 ` + (editing ? `
 [data-id]{position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
@@ -2727,6 +3117,11 @@ ${m.css || ''}
   display:flex;align-items:center;justify-content:center;gap:7px;min-height:76px;width:100%;
   border:1px dashed #cfcabb;border-radius:8px;color:#6f7771;
   font:500 12.5px "DM Sans",system-ui,sans-serif;background:#f8f6ef80;
+}
+.s-held{
+  display:block;margin-top:8px;padding:7px 10px;border-radius:6px;
+  background:#f8f6ef;border:1px dashed #cfcabb;color:#6f7771;
+  font:500 11.5px "DM Sans",system-ui,sans-serif;
 }
 [data-editing]{outline:1.5px solid #111311 !important;outline-offset:2px;cursor:text !important}
 [data-editing] *{cursor:text !important}
@@ -2864,6 +3259,30 @@ function vid(p) {
   return `<iframe src="${esc(src)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
 }
 
+/* Plain multi-line text to paragraphs: a blank line starts one, a single
+   newline is a break. The same shape a WYSIWYG would produce by hand, without
+   handing an accordion answer a rich-text surface it has nowhere to put. */
+function para(str) {
+  const t = String(str == null ? '' : str).replace(/\r\n?/g, '\n').trim();
+  if (!t) return '';
+  return t.split(/\n{2,}/).map(b => `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('');
+}
+
+/* What the canvas is allowed to run from an Embed: nothing. The export ships the
+   markup verbatim — that is the whole point of the widget — but the editor renders
+   inside a live iframe on the same origin, so a pasted analytics tag or a widget
+   loader would execute on every repaint, once per keystroke. Both forms go: the
+   `<script>` element and the inline `on*` handler. Returns how many it held back,
+   because an embed that renders as nothing needs to say why. */
+function stripScripts(html) {
+  let stripped = 0;
+  const out = String(html == null ? '' : html)
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => { stripped++; return ''; })
+    .replace(/<script\b[^>]*\/?>/gi, () => { stripped++; return ''; })
+    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, () => { stripped++; return ''; });
+  return { html: out, stripped };
+}
+
 const BICON = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
 const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'aside', 'nav'];
 
@@ -2995,6 +3414,72 @@ function renderNode(n, o) {
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
         + `</form>`;
     }
+    case 'accordion': {
+      const items = Array.isArray(p.items) ? p.items : [];
+      if (!items.length) return o.edit
+        ? `<div ${at} ${cx('pagecraft-accordion')}><div class="s-empty">${svg('plus', 12)} Add a question in the panel</div></div>` : '';
+      /* One shared name is what makes exclusive opening native. It also means only
+         one panel may carry `open`, so "all open" and "one at a time" cannot both
+         be honoured — the toggle wins, and the first panel is the one left open. */
+      const grp = p.single ? ` name="${domId}-ac"` : '';
+      const mark = p.marker === 'none' ? '' : '<span class="pagecraft-accordion-mark" aria-hidden="true"></span>';
+      /* While the accordion is selected every panel is opened, so the answers can
+         be read and restyled. The same reason the burger menu unfolds when selected. */
+      const forced = o.edit && state.ui.sel === n.id;
+      const body = items.map((it, k) => {
+        const wants = p.open === 'all' || (p.open === 'first' && k === 0);
+        const open = forced || (p.single ? (wants && k === 0) : wants);
+        return `<details class="pagecraft-accordion-item"${grp}${open ? ' open' : ''}>`
+          + `<summary class="pagecraft-accordion-q"><span>${esc(String(it.q == null ? '' : it.q)).replace(/\n/g, ' ')}</span>${mark}</summary>`
+          + `<div class="pagecraft-accordion-a">${para(it.a)}</div></details>`;
+      }).join('');
+      return `<div ${at} ${cx('pagecraft-accordion')} data-marker="${esc(p.marker || 'plus')}">${body}</div>`;
+    }
+    case 'embed': {
+      const raw = String(p.html == null ? '' : p.html);
+      const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : '';
+      const ecls = 'pagecraft-embed' + (p.ratio ? ' pagecraft-embed-ratio' : '');
+      if (!raw.trim()) return o.edit
+        ? `<div ${at} ${cx('pagecraft-embed')}><div class="s-empty">${svg('code', 12)} Paste embed HTML in the panel</div></div>` : '';
+      if (!o.edit) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      const { html, stripped } = stripScripts(raw);
+      const note = stripped
+        ? `<div class="s-held">${stripped} script${stripped === 1 ? '' : 's'} held back here — ${stripped === 1 ? 'it runs' : 'they run'} on the exported page</div>` : '';
+      return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? '' : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
+    }
+    case 'icon': {
+      const nm = ICON_PATHS[p.name] ? p.name : 'check';
+      const lab = String(p.label == null ? '' : p.label).trim();
+      const ihref2 = pageHref(p.link, o);
+      /* A link with an icon inside and no text has no accessible name at all, so
+         the label becomes the link's name and the glyph goes hidden. Unlinked, the
+         glyph carries the label itself — or is hidden when there is none, which is
+         the right answer for an icon sitting beside text that already says it. */
+      if (ihref2) return `<a ${at} ${cx('pagecraft-icon')} href="${esc(ihref2)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}`
+        + `${lab ? ` aria-label="${esc(lab)}"` : ''}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
+      return iconSvg(nm, `${at} ${cx('pagecraft-icon pagecraft-icon-glyph')} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
+    }
+    case 'gallery': {
+      const shown = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      if (!shown.length) return o.edit
+        ? `<div ${at} ${cx('pagecraft-gallery')}><div class="s-empty">${svg('image', 12)} Add images in the panel</div></div>` : '';
+      const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : '';
+      const tiles = shown.map((it, k) => {
+        const dim = (it.w && it.h) ? ` width="${parseInt(it.w, 10)}" height="${parseInt(it.h, 10)}"` : '';
+        const tsrc = esc(it.src || PH);
+        const img = `<img src="${tsrc}" alt="${esc(it.alt || '')}"${dim}${lz} class="pagecraft-gallery-img">`;
+        /* With the lightbox on the tile is a real link to the full image, so the
+           gallery still works with scripting off; the script only intercepts a
+           click that was already going somewhere useful. */
+        const frame = p.lightbox
+          ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}"${it.alt ? ` aria-label="${esc(it.alt)}"` : ''}>${img}</a>`
+          : `<span class="pagecraft-gallery-frame">${img}</span>`;
+        return `<figure class="pagecraft-gallery-item">${frame}`
+          + `${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ''}</figure>`;
+      }).join('');
+      return `<div ${at} ${cx('pagecraft-gallery' + (p.ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
+        + `${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"` : ` style="--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"`}>${tiles}</div>`;
+    }
     case 'spacer': return `<div ${at} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at} ${cx('pagecraft-divider')}>`;
   }
@@ -3083,6 +3568,56 @@ f.setAttribute('allowfullscreen','');b.parentNode.replaceChild(f,b);
 <\/script>
 `;
 
+/* Emitted only onto pages with a Gallery whose lightbox is on. Every tile is
+   already a working link to the full image, so this script never adds a
+   capability — it upgrades a navigation into an overlay, and steps aside for a
+   modified click or a browser with no <dialog>. */
+const LB_JS = `<script>
+(function(){
+var gs=document.querySelectorAll('[data-lightbox]');if(!gs.length)return;
+if(typeof HTMLDialogElement!=='function')return;
+var dlg=null,imgEl,capEl,prevB,nextB,list=[],at=0;
+function build(){
+dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';
+dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" alt=""><p class="pagecraft-lightbox-cap"></p></figure>'
++'<button class="pagecraft-lightbox-btn pagecraft-lightbox-prev" type="button" aria-label="Previous image">\u2039</button>'
++'<button class="pagecraft-lightbox-btn pagecraft-lightbox-next" type="button" aria-label="Next image">\u203a</button>'
++'<button class="pagecraft-lightbox-btn pagecraft-lightbox-close" type="button" aria-label="Close">\u00d7</button>';
+document.body.appendChild(dlg);
+imgEl=dlg.querySelector('.pagecraft-lightbox-img');capEl=dlg.querySelector('.pagecraft-lightbox-cap');
+prevB=dlg.querySelector('.pagecraft-lightbox-prev');nextB=dlg.querySelector('.pagecraft-lightbox-next');
+prevB.addEventListener('click',function(){go(-1);});
+nextB.addEventListener('click',function(){go(1);});
+dlg.querySelector('.pagecraft-lightbox-close').addEventListener('click',function(){dlg.close();});
+dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
+dlg.addEventListener('keydown',function(e){
+if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
+if(e.key==='ArrowRight'){e.preventDefault();go(1);}
+});
+}
+function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;
+capEl.textContent=it.cap;capEl.hidden=!it.cap;
+prevB.hidden=nextB.hidden=list.length<2;}
+function go(d){at=(at+d+list.length)%list.length;show();}
+Array.prototype.forEach.call(gs,function(g){
+var links=g.querySelectorAll('.pagecraft-gallery-frame[href]');
+Array.prototype.forEach.call(links,function(a,i){
+a.addEventListener('click',function(e){
+if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;
+e.preventDefault();
+if(!dlg)build();
+list=Array.prototype.map.call(links,function(x){
+var fg=x.parentNode,c=fg&&fg.querySelector('.pagecraft-gallery-caption'),im=x.querySelector('img');
+return {href:x.getAttribute('href'),alt:im?im.getAttribute('alt')||'':'',cap:c?c.textContent:''};
+});
+at=i;show();dlg.showModal();
+});
+});
+});
+})();
+<\/script>
+`;
+
 const tidy = css => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n').replace(/^\s+|\s+$/g, '');
 
 /* `ctx` carries the item a detail page stands for, and `rel` — how far this file
@@ -3113,10 +3648,10 @@ ${m.headHtml || ''}
 </head>
 <body>
 ${body}
-${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}</body>
+${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}</body>
 </html>
 `;
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };
