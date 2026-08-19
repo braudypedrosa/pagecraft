@@ -133,15 +133,19 @@ that the browser failed.
    before changing anything
 3. **Canvas zoom** (it is in the brand mockup; only the px readout exists), custom layer
    names, an Assets item in the rail
-4. **Test the UI layer** — 3,288 lines have no unit tests, which is where the one real
+4. **Test the UI layer** — over 4,000 lines have no unit tests, which is where the one real
    regression came from. Either extract more into core or add a DOM-shimmed layer
 5. **Keep new form markup on the variables.** `--gap-1/2/3` and `--h-ctl/--h-row` in `:root`
    own every form measurement; there are no hard-coded vertical margins left in the markup.
    Anything sitting in a field row takes `--h-ctl` or it will be the one thing out of line
-6. **Decide the product question**: does this become the editor for
+6. **A zip export.** Detail pages emit into folders (`projects/acme-rebrand.html`), but a
+   download from a single HTML file saves flat, so the name is squashed to
+   `projects-acme-rebrand.html` and a toast says where it belongs. That is the last thing
+   standing between the CMS and self-hosting a real site
+7. **Decide the product question**: does this become the editor for
    `~/Documents/Braudy/pagecraft` (a Next.js app with its own `PRODUCT.md` and `ROADMAP.md`,
-   untouched so far), or stay standalone? It determines whether CMS, accounts and cloud
-   persistence are next
+   untouched so far), or stay standalone? The CMS now ships, so what a single HTML file cannot
+   do is the deciding factor: letting anyone edit content without re-exporting needs a server
 
 - **A variant rule leaks the properties its context override forgets to restate.** The dark
   top bar and the `.btn.ghost` variant have equal specificity, so the bar won only on source
