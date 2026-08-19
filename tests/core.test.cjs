@@ -16,6 +16,10 @@ const blank = () => {
   fresh();
   C.state.pages[0].tree = []; C.state.header = []; C.state.footer = [];
   C.state.meta.tokens.classes = [];
+  /* seed() leaves project-level libraries alone — blocks and collections are
+     assets, not page content — so a test that wants a clean slate says so */
+  C.state.meta.blocks = [];
+  C.state.meta.collections = [];
 };
 const types = l => l.map(n => n.type);
 /* the two media blocks, either of which may be absent when nothing overrides */
@@ -2000,4 +2004,110 @@ test('every link mode round-trips through build and parse', () => {
   /* and a mode with no value yet builds nothing — which is why the inspector has to
      remember the choice rather than read it back from the href */
   for (const m of ['url', 'email', 'phone']) a.equal(C.buildLink({ mode: m }), '');
+});
+
+/* ------------------------------------------------------- content collections */
+const projects = () => {
+  blank();
+  const col = C.collectionAdd('Projects');
+  C.fieldAdd(col.id, 'Summary', 'text');
+  C.fieldAdd(col.id, 'Cover', 'image');
+  return col;
+};
+
+test('a new collection arrives usable, with an id you can put in a URL', () => {
+  blank();
+  const col = C.collectionAdd('Case Studies');
+  a.equal(col.id, 'case-studies');
+  a.equal(col.slug, 'case-studies');
+  a.equal(col.fields.length, 1, 'one field to start, or there is nothing to fill in');
+  a.equal(col.fields[0].type, 'text');
+  a.deepEqual(col.items, []);
+});
+
+test('two collections of the same name do not collide', () => {
+  blank();
+  a.equal(C.collectionAdd('Work').id, 'work');
+  a.equal(C.collectionAdd('Work').id, 'work-2');
+});
+
+test('an item names itself from the first text field, and slugs from that', () => {
+  const col = projects();
+  const it = C.itemAdd(col.id);
+  a.equal(C.itemTitle(col, it), 'Untitled');
+  C.itemSet(col.id, it.id, 'title', 'Acme rebrand');
+  a.equal(C.itemTitle(col, it), 'Acme rebrand');
+  a.equal(it.slug, 'acme-rebrand', 'the slug follows the title');
+});
+
+test('two items with the same title get different slugs', () => {
+  const col = projects();
+  const a1 = C.itemAdd(col.id), a2 = C.itemAdd(col.id);
+  C.itemSet(col.id, a1.id, 'title', 'Rebrand');
+  C.itemSet(col.id, a2.id, 'title', 'Rebrand');
+  a.equal(a1.slug, 'rebrand');
+  a.equal(a2.slug, 'rebrand-2', 'or one would overwrite the other on export');
+});
+
+test('a hand-set slug stops following the title', () => {
+  const col = projects();
+  const it = C.itemAdd(col.id);
+  C.itemSet(col.id, it.id, 'title', 'First name');
+  a.equal(it.slug, 'first-name');
+  C.itemSetSlug(col.id, it.id, 'custom-url');
+  a.equal(it.slug, 'custom-url');
+  C.itemSet(col.id, it.id, 'title', 'Renamed after publishing');
+  a.equal(it.slug, 'custom-url', 'a published URL does not move on a typo fix');
+});
+
+test('deleting a field takes its values with it', () => {
+  const col = projects();
+  const it = C.itemAdd(col.id);
+  C.itemSet(col.id, it.id, 'title', 'One');
+  C.itemSet(col.id, it.id, 'summary', 'kept');
+  C.itemSet(col.id, it.id, 'cover', 'asset:abc');
+  a.equal(C.fieldDelete(col.id, 'cover'), 1, 'one value cleared');
+  a.equal('cover' in it.values, false, 'no orphan value survives the schema');
+  a.deepEqual(Object.keys(it.values).sort(), ['summary', 'title']);
+});
+
+test('the last field cannot be deleted', () => {
+  blank();
+  const col = C.collectionAdd('Notes');
+  a.equal(C.fieldDelete(col.id, col.fields[0].id), 0);
+  a.equal(col.fields.length, 1, 'a collection with no fields could hold nothing');
+});
+
+test('fields and items reorder, and stop at the ends', () => {
+  const col = projects();
+  a.equal(C.fieldMove(col.id, 'cover', -1), true);
+  a.deepEqual(col.fields.map(f => f.id), ['title', 'cover', 'summary']);
+  a.equal(C.fieldMove(col.id, 'title', -1), false, 'already first');
+  const i1 = C.itemAdd(col.id), i2 = C.itemAdd(col.id);
+  a.equal(C.itemMove(col.id, i2.id, -1), true);
+  a.deepEqual(col.items.map(i => i.id), [i2.id, i1.id]);
+  a.equal(C.itemMove(col.id, i1.id, 1), false, 'already last');
+});
+
+test('an unknown field type falls back rather than storing nonsense', () => {
+  const col = projects();
+  a.equal(C.fieldAdd(col.id, 'Odd', 'not-a-type').type, 'text');
+  a.equal(C.fieldAdd(col.id, 'Price', 'number').type, 'number');
+});
+
+test('deleting a collection leaves the others alone', () => {
+  blank();
+  const a1 = C.collectionAdd('One'), a2 = C.collectionAdd('Two');
+  C.collectionDelete(a1.id);
+  a.deepEqual(C.collections().map(c => c.id), [a2.id]);
+});
+
+test('migration v6 to v7 adds the collection list', () => {
+  const before = { v: 6, pages: [{ id: 'p', name: 'Home', slug: 'index', tree: [] }], meta: { blocks: [] } };
+  const after = C.migrate(before);
+  a.deepEqual(after.meta.collections, []);
+  a.equal(after.v, 7);
+  /* and a project already on 7 is left as it is */
+  const kept = { v: 7, pages: before.pages, meta: { collections: [{ id: 'x', name: 'X', fields: [], items: [] }] } };
+  a.equal(C.migrate(kept).meta.collections.length, 1);
 });

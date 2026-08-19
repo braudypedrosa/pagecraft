@@ -103,6 +103,11 @@ const EXPORTS = [
   // clipboard + traversal
   'clip', 'copyNode', 'pasteNode', 'dropTree',
   'blocks', 'findBlock', 'blockRootType', 'blockSave', 'blockInsert', 'blockDelete',
+  // content collections
+  'FIELD_TYPES', 'collections', 'findCollection', 'findField', 'findItem', 'uniqueId',
+  'collectionAdd', 'collectionDelete', 'collectionRename',
+  'fieldAdd', 'fieldDelete', 'fieldMove', 'titleField', 'itemTitle', 'itemSlug',
+  'itemAdd', 'itemDelete', 'itemMove', 'itemSet', 'itemSetSlug',
   'blockInstances', 'blockUsage', 'blockPush',
   'TEMPLATES', 'pageFromTemplate', 'PATTERNS', 'patternInsert', 'flatten', 'step', 'parentOf', 'firstChildOf', 'nudge', 'nudgeMany',
   // history

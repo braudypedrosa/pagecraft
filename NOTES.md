@@ -14,7 +14,7 @@ transcript is never required to pick this up.
 | `dist/artifact.html` | generated: same fragment with fonts inlined, for publishing |
 | `dist/core.cjs` | generated: the DOM-free regions, for `node --test` |
 | `brand/` | vendored from the Pagecraft brand kit (fonts, licenses, tokens, logo) |
-| `tests/core.test.cjs` | 172 cases against `dist/core.cjs` |
+| `tests/core.test.cjs` | 183 cases against `dist/core.cjs` |
 
 ```bash
 npm test          # rebuild, then run the suite
@@ -36,13 +36,14 @@ npm run serve     # static server on :4877
 `localStorage['pagecraft.project.v1']`, migrating forward from the legacy `slate.*` key.
 Images are blobs in IndexedDB (`slate.assets`), referenced as `asset:<id>`.
 
-`SCHEMA = 6`. Migrations are cumulative and each is a no-op when already applied:
+`SCHEMA = 7`. Migrations are cumulative and each is a no-op when already applied:
 
 - v1→v2 images moved out of the JSON into the asset store
 - v2→v3 loose `meta.color/bg/accent` became the reserved `text/bg/brand` tokens
 - v3→v4 added `tokens.classes`
 - v4→v5 backfilled `tag` onto the stock text styles
 - v5→v6 added `meta.blocks`
+- v6→v7 added `meta.collections`
 
 ## Blocks, and what "global" means
 
@@ -68,6 +69,28 @@ paste, place a block, push a block — and all four produced a `duplicate-id` er
 source carried a hand-set anchor. Placing the demo's `#craft` section as a block was enough to do
 it. Auto ids are derived per node so they stay unique on their own; only the hand-set anchor has
 to go, and originals never pass through `reid`.
+
+## Content collections
+
+A collection is a content type: `{ id, name, slug, fields[], items[], detail }` on `state.meta`,
+beside `tokens` and `blocks`. `SCHEMA` 6 → 7, one additive migration — nothing existing binds to
+one, so an empty list is the whole step.
+
+Phase 1 is the data only: the sidebar lists collections, and a wide dialog holds the field schema
+and the items table. Binding, the Collection List and per-item pages come next.
+
+- **Ids are slugs.** A collection id and an item slug both read in the binding UI and in exported
+  paths, so both go through `uniqueId` against their own list rather than a global counter.
+- **The first text field is the title.** It names the item everywhere and derives its slug — the
+  closest thing a collection has to a title, without making the author nominate one.
+- **A hand-set slug stops following the title.** `itemSetSlug` sets `slugLocked`, because a URL
+  that is already published should not move when someone fixes a typo in the heading.
+- **Deleting a field clears its values.** An item cannot carry a value for a field the schema no
+  longer has, or the next export emits orphans. `fieldDelete` returns how many it cleared, which
+  is what the confirmation counts.
+- **A collection keeps at least one field**, or there is nothing to fill in.
+- **`seed()` does not clear collections or blocks** — they are project libraries, not page
+  content, so Reset to demo content leaves them. The test harness clears them itself.
 
 ## Media library
 

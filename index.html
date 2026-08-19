@@ -600,6 +600,24 @@ body.dragging{cursor:grabbing !important;user-select:none}
 #askBody{padding:18px}
 #askBody .msg{font-size:13.5px;line-height:1.6;color:var(--text-2)}
 #askBody .msg b{color:var(--text)}
+/* the items table — one row per item, one column per field */
+.cmst{width:100%;border-collapse:collapse;table-layout:fixed}
+.cmst th{
+  text-align:left;padding:0 6px 8px;font-family:var(--label);font-size:11px;font-weight:600;
+  color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cmst td{padding:3px 3px;vertical-align:middle}
+.cmst tr+tr td{border-top:1px solid var(--line)}
+.cmst .ctl{padding:5px 7px}
+.cmst textarea.ctl{min-height:0;line-height:1.4}
+.cmsimg{
+  width:100%;height:34px;border:1px dashed var(--line-2);border-radius:var(--r-sm);
+  background:var(--field);display:grid;place-items:center;overflow:hidden;
+}
+.cmsimg:hover{border-color:var(--ink);background:var(--panel)}
+.cmsimg img{width:100%;height:100%;object-fit:cover;display:block}
+.cmsimg span{font-family:var(--label);font-size:11px;color:var(--text-3)}
+
 /* the media library grid — same cards in the panel and in the picker */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:8px}
 .mgrid.wide{grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:12px}
@@ -758,6 +776,10 @@ pre.code{
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="1.5" width="11" height="13" rx="1.6"/><path d="M5 5h6M5 8h6M5 11h4" stroke-linecap="round"/></svg>
         <span>Pages</span>
       </button>
+      <button data-t="cms" title="Content collections">
+        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/></svg>
+        <span>CMS</span>
+      </button>
       <button data-act="media" title="Media library">
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.8" y="3" width="12.4" height="10" rx="1.6"/><circle cx="5.6" cy="6.6" r="1.1"/><path d="M2.2 11.4l3.3-2.9 2.9 2.5 2.2-1.9 3.6 3.2" stroke-linejoin="round"/></svg>
         <span>Media</span>
@@ -774,6 +796,7 @@ pre.code{
       <div class="pane" id="paneAdd"></div>
       <div class="pane" id="paneLayers" hidden></div>
       <div class="pane" id="panePages" hidden></div>
+      <div class="pane" id="paneCms" hidden></div>
     </aside>
 
     <!-- ============ CANVAS ============ -->
@@ -2150,6 +2173,119 @@ function dropTree(fresh, intoId) {
    project JSON and keeps following the classes and text styles it references. */
 const blocks = () => (state.meta.blocks || (state.meta.blocks = []));
 const findBlock = id => blocks().find(b => b.id === id) || null;
+
+/* ---- content collections ------------------------------------------------
+   A collection is a content type: a field schema plus the items that fill it.
+   Widgets bind to a field, a Collection List repeats over the items, and a page
+   marked with a collection becomes the template for one static file per item.
+   Everything resolves at export — the site that ships is plain HTML. */
+const FIELD_TYPES = [
+  ['text', 'Text'], ['rich', 'Rich text'], ['image', 'Image'], ['link', 'Link'],
+  ['number', 'Number'], ['date', 'Date'], ['option', 'Option'], ['bool', 'Yes / no']
+];
+const collections = () => (state.meta.collections || (state.meta.collections = []));
+const findCollection = id => collections().find(c => c.id === id) || null;
+const findField = (col, fid) => (col ? (col.fields || []).find(f => f.id === fid) || null : null);
+const findItem = (col, iid) => (col ? (col.items || []).find(i => i.id === iid) || null : null);
+
+/* ids are slugs so they read in the binding UI and in exported paths; both are
+   made unique against their own list rather than globally */
+const uniqueId = (base, taken) => {
+  const b = tokenId(base) || 'x';
+  let id = b, k = 2;
+  while (taken.includes(id)) id = b + '-' + k++;
+  return id;
+};
+function collectionAdd(name) {
+  const id = uniqueId(name || 'collection', collections().map(c => c.id));
+  const col = {
+    id, name: String(name || 'Collection').slice(0, 40), slug: id,
+    fields: [{ id: 'title', name: 'Title', type: 'text', required: 1 }],
+    items: [], detail: ''
+  };
+  collections().push(col);
+  return col;
+}
+const collectionDelete = id => { state.meta.collections = collections().filter(c => c.id !== id); };
+function collectionRename(id, name) {
+  const col = findCollection(id); if (!col) return;
+  col.name = String(name || col.name).slice(0, 40);
+}
+
+function fieldAdd(colId, name, type) {
+  const col = findCollection(colId); if (!col) return null;
+  const f = {
+    id: uniqueId(name || 'field', col.fields.map(x => x.id)),
+    name: String(name || 'Field').slice(0, 40),
+    type: FIELD_TYPES.some(([t]) => t === type) ? type : 'text',
+    required: 0
+  };
+  col.fields.push(f);
+  return f;
+}
+/* Deleting a field drops its values too — an item cannot carry a value for a
+   field the schema no longer has, or the next export would emit orphans. */
+function fieldDelete(colId, fid) {
+  const col = findCollection(colId); if (!col) return 0;
+  if (col.fields.length <= 1) return 0;              // a collection needs one field
+  col.fields = col.fields.filter(f => f.id !== fid);
+  let cleared = 0;
+  col.items.forEach(it => { if (fid in it.values) { delete it.values[fid]; cleared++; } });
+  return cleared;
+}
+const swap = (list, i, dir) => {
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return false;
+  [list[i], list[j]] = [list[j], list[i]];
+  return true;
+};
+function fieldMove(colId, fid, dir) {
+  const col = findCollection(colId); if (!col) return false;
+  return swap(col.fields, col.fields.findIndex(f => f.id === fid), dir);
+}
+
+/* The first text field is what names an item in lists and what its slug derives
+   from — it is the closest thing a collection has to a title. */
+const titleField = col => (col && (col.fields || []).find(f => f.type === 'text')) || null;
+const itemTitle = (col, it) => {
+  const tf = titleField(col);
+  return String((tf && it.values[tf.id]) || '').trim() || 'Untitled';
+};
+function itemSlug(col, it) {
+  const base = tokenId(itemTitle(col, it)) || 'item';
+  const taken = col.items.filter(x => x.id !== it.id).map(x => x.slug);
+  return uniqueId(base, taken);
+}
+function itemAdd(colId) {
+  const col = findCollection(colId); if (!col) return null;
+  const it = { id: uid(), slug: '', values: {} };
+  col.items.push(it);
+  it.slug = itemSlug(col, it);
+  return it;
+}
+const itemDelete = (colId, iid) => {
+  const col = findCollection(colId); if (!col) return;
+  col.items = col.items.filter(i => i.id !== iid);
+};
+function itemMove(colId, iid, dir) {
+  const col = findCollection(colId); if (!col) return false;
+  return swap(col.items, col.items.findIndex(i => i.id === iid), dir);
+}
+/* Writing the title re-derives the slug, but only while the author has not set
+   one by hand — an item that is already published should not move on a typo fix. */
+function itemSet(colId, iid, fid, value) {
+  const col = findCollection(colId); if (!col) return;
+  const it = findItem(col, iid); if (!it) return;
+  it.values[fid] = value;
+  const tf = titleField(col);
+  if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
+}
+function itemSetSlug(colId, iid, slug) {
+  const col = findCollection(colId); if (!col) return;
+  const it = findItem(col, iid); if (!it) return;
+  it.slugLocked = 1;
+  it.slug = uniqueId(slug || itemTitle(col, it), col.items.filter(x => x.id !== it.id).map(x => x.slug));
+}
 const blockRootType = id => { const b = findBlock(id); return b ? b.node.type : null; };
 /* A block is saved content. A **global** block additionally tags every copy it
    places with `adv.block`, which is what lets one copy push its content back to
@@ -2349,7 +2485,7 @@ window.addEventListener('storage', e => {
 
 /*<core>*/
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 6;                       // bump when the stored shape changes
+const SCHEMA = 7;                       // bump when the stored shape changes
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -2381,6 +2517,12 @@ function migrate(d) {
   if (v < 6) {
     d.meta = d.meta || {};
     if (!Array.isArray(d.meta.blocks)) d.meta.blocks = [];
+  }
+  /* v6 → v7: content collections. Nothing existing binds to one, so an empty
+     list is the whole migration. */
+  if (v < 7) {
+    d.meta = d.meta || {};
+    if (!Array.isArray(d.meta.collections)) d.meta.collections = [];
   }
   d.v = SCHEMA;
   return d;
@@ -4701,6 +4843,164 @@ function mediaModal() {
   draw();
 }
 
+/* ================================================================ content
+   The sidebar lists collections; the data itself is edited in a wide dialog,
+   because a field schema and a table of items do not fit 272px. */
+function renderCms() {
+  const p = $('#paneCms');
+  if (!p || p.hidden) return;
+  const list = collections();
+  p.innerHTML = `
+    <div style="padding:12px 14px 0">
+      <button class="btn primary" id="cmsAdd" style="width:100%;justify-content:center">${svg('plus', 13)} New collection</button>
+      <div class="note">A collection is a content type — a set of fields, and the items that fill them. Bind a widget to a field and it shows real content.</div>
+    </div>
+    ${list.length ? `<div style="padding:12px 14px">${list.map(c => `
+      <div class="brow" data-col="${c.id}" title="Edit ${esc(c.name)}">
+        ${svg('page', 14)}
+        <span class="bn"><b>${esc(c.name)}</b><small>${c.fields.length} field${c.fields.length === 1 ? '' : 's'} · ${c.items.length} item${c.items.length === 1 ? '' : 's'}</small></span>
+        <button class="bx" data-coldel="${c.id}" title="Delete this collection">${svg('trash', 11)}</button>
+      </div>`).join('')}</div>`
+    : `<div class="empty">No collections yet.<br><br>
+        A <b>Projects</b> collection with a title, a cover and a summary is enough to drive a
+        work grid and a page for every project.</div>`}`;
+
+  $('#cmsAdd').addEventListener('click', async () => {
+    const name = await askText('New collection', 'Name', 'Projects',
+      { ok: 'Create', note: 'Plural reads best — Projects, Posts, Team.' });
+    if (!name) return;
+    let made = null;
+    edit(() => { made = collectionAdd(name); });
+    cmsModal(made.id);
+  });
+  $$('[data-col]', p).forEach(row => row.addEventListener('click', e => {
+    if (e.target.closest('[data-coldel]')) return;
+    cmsModal(row.dataset.col);
+  }));
+  $$('[data-coldel]', p).forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    const col = findCollection(b.dataset.coldel); if (!col) return;
+    if (!await askConfirm('Delete this collection?',
+      `<b>${esc(col.name)}</b> and its ${col.items.length} item${col.items.length === 1 ? '' : 's'}. Anything bound to its fields falls back to placeholder text.`,
+      { ok: 'Delete collection' })) return;
+    edit(() => collectionDelete(col.id));
+  }));
+}
+
+/* The content editor: schema on the left, items on the right. */
+let cmsTab = 'items';
+function cmsModal(colId) {
+  if (editing.on) exitEdit();
+  const draw = () => {
+    const col = findCollection(colId);
+    if (!col) return closeModal();
+    const tf = titleField(col);
+    openModal(`Content — ${col.name}`, `
+      <div class="tabs" id="cmsTabs" style="flex:none;margin:-18px -18px 16px;padding:0 12px">
+        <button data-c="items" class="${cmsTab === 'items' ? 'on' : ''}">Items · ${col.items.length}</button>
+        <button data-c="fields" class="${cmsTab === 'fields' ? 'on' : ''}">Fields · ${col.fields.length}</button>
+      </div>
+      ${cmsTab === 'fields' ? `
+        ${col.fields.map((f, i) => `<div class="arow" data-f="${f.id}">
+          <span class="rowmeta" style="flex-basis:64px;justify-content:flex-start">${esc(f.id)}</span>
+          <span class="an"><input class="ctl" data-fname="${f.id}" value="${esc(f.name)}" style="font-size:12.5px;font-weight:600"></span>
+          <select class="ctl" data-ftype="${f.id}" style="width:132px;flex:0 0 132px;font-size:11.5px">
+            ${FIELD_TYPES.map(([t, l]) => `<option value="${t}"${f.type === t ? ' selected' : ''}>${l}</option>`).join('')}
+          </select>
+          <button class="iconbtn" data-fup="${f.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
+          <button class="iconbtn" data-fdel="${f.id}" title="Delete field"${col.fields.length < 2 ? ' disabled' : ''}>${svg('trash', 13)}</button>
+        </div>`).join('')}
+        <div class="note">The first <b>Text</b> field names each item and gives it its URL.</div>`
+      : col.items.length ? `
+        <table class="cmst"><thead><tr>
+          ${col.fields.map(f => `<th>${esc(f.name)}</th>`).join('')}<th style="width:96px">Slug</th><th style="width:74px"></th>
+        </tr></thead><tbody>
+        ${col.items.map((it, i) => `<tr data-i="${it.id}">
+          ${col.fields.map(f => `<td>${cmsCell(col, it, f)}</td>`).join('')}
+          <td><input class="ctl" data-islug="${it.id}" value="${esc(it.slug)}" style="font-family:var(--mono);font-size:11px"></td>
+          <td style="white-space:nowrap;display:flex;gap:2px;align-items:center">
+            <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
+            <button class="iconbtn" data-idel="${it.id}" title="Delete item">${svg('trash', 13)}</button>
+          </td></tr>`).join('')}
+        </tbody></table>`
+        : `<div class="empty">No items yet. Add one and fill in its fields.</div>`}`,
+      `<span class="note" style="margin:0;flex:1;text-align:left">${cmsTab === 'items'
+        ? `${col.items.length} item${col.items.length === 1 ? '' : 's'} · URLs will be <b>${esc(col.slug)}/&lt;slug&gt;.html</b>`
+        : 'Deleting a field clears its values on every item'}</span>
+       <button class="btn" id="cmsNew">${svg('plus', 13)} ${cmsTab === 'items' ? 'Add item' : 'Add field'}</button>
+       <button class="btn primary" id="cmsDone">Done</button>`, 'lg');
+
+    $$('#cmsTabs button').forEach(b => b.addEventListener('click', () => { cmsTab = b.dataset.c; draw(); }));
+    $('#cmsDone').addEventListener('click', () => { closeModal(); renderCms(); });
+    $('#cmsNew').addEventListener('click', async () => {
+      if (cmsTab === 'items') { edit(() => itemAdd(colId)); return draw(); }
+      const name = await askText('New field', 'Field name', 'Summary', { ok: 'Add field' });
+      if (!name) return;
+      edit(() => fieldAdd(colId, name, 'text'));
+      draw();
+    });
+    const box = $('#mBody');
+    $$('[data-fname]', box).forEach(el => el.addEventListener('input', () => {
+      tx('fname:' + el.dataset.fname);
+      const f = findField(findCollection(colId), el.dataset.fname); if (f) { f.name = el.value; save(); }
+    }));
+    $$('[data-ftype]', box).forEach(el => el.addEventListener('change', () => {
+      edit(() => { const f = findField(findCollection(colId), el.dataset.ftype); if (f) f.type = el.value; });
+      draw();
+    }));
+    $$('[data-fup]', box).forEach(b => b.addEventListener('click', () => { edit(() => fieldMove(colId, b.dataset.fup, -1)); draw(); }));
+    $$('[data-fdel]', box).forEach(b => b.addEventListener('click', async () => {
+      const f = findField(findCollection(colId), b.dataset.fdel); if (!f) return;
+      const n = findCollection(colId).items.filter(it => f.id in it.values).length;
+      if (n && !await askConfirm('Delete this field?',
+        `<b>${esc(f.name)}</b> holds a value on ${n} item${n === 1 ? '' : 's'}. Those values go with it.`,
+        { ok: 'Delete field' })) return;
+      edit(() => fieldDelete(colId, f.id));
+      draw();
+    }));
+    $$('[data-iup]', box).forEach(b => b.addEventListener('click', () => { edit(() => itemMove(colId, b.dataset.iup, -1)); draw(); }));
+    $$('[data-idel]', box).forEach(b => b.addEventListener('click', async () => {
+      const it = findItem(findCollection(colId), b.dataset.idel); if (!it) return;
+      if (!await askConfirm('Delete this item?', `<b>${esc(itemTitle(findCollection(colId), it))}</b> and its values.`, { ok: 'Delete item' })) return;
+      edit(() => itemDelete(colId, it.id));
+      draw();
+    }));
+    $$('[data-islug]', box).forEach(el => el.addEventListener('blur', () => {
+      edit(() => itemSetSlug(colId, el.dataset.islug, el.value.trim()));
+      draw();
+    }));
+    $$('[data-v]', box).forEach(el => {
+      const [iid, fid] = el.dataset.v.split('|');
+      const push = () => { tx('cms:' + iid + fid); itemSet(colId, iid, fid, el.type === 'checkbox' ? (el.checked ? 1 : 0) : el.value); save(); };
+      el.addEventListener(el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input', push);
+      el.addEventListener('blur', () => { endTx(); draw(); });
+    });
+    $$('[data-vimg]', box).forEach(b => b.addEventListener('click', async () => {
+      const [iid, fid] = b.dataset.vimg.split('|');
+      const id = await mediaPicker();
+      if (!id) return;
+      edit(() => itemSet(colId, iid, fid, 'asset:' + id));
+      draw();
+    }));
+  };
+  draw();
+}
+
+/* one cell of the items table, per field type */
+function cmsCell(col, it, f) {
+  const v = it.values[f.id] ?? '';
+  const k = `${it.id}|${f.id}`;
+  if (f.type === 'image') {
+    const a = /^asset:(\w+)$/.test(String(v)) && AS.mem.get(String(v).slice(6));
+    return `<button class="cmsimg" data-vimg="${k}" title="Choose from the library">
+      ${a ? `<img src="${a.url}" alt="">` : `<span>Choose…</span>`}</button>`;
+  }
+  if (f.type === 'bool') return `<input type="checkbox" data-v="${k}"${v ? ' checked' : ''}>`;
+  if (f.type === 'rich') return `<textarea class="ctl" data-v="${k}" rows="2" style="font-size:12px">${esc(v)}</textarea>`;
+  const type = f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text';
+  return `<input class="ctl" type="${type}" data-v="${k}" value="${esc(v)}" style="font-size:12.5px">`;
+}
+
 function renderPages() {
   const p = $('#panePages');
   const pg = page();
@@ -5512,7 +5812,7 @@ function renderModebar() {
     `<span class="pill">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
 }
 
-const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Pages and SEO' };
+const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Pages and SEO', cms: 'Content' };
 function renderPanelHead() {
   const h = $('#panelHead');
   if (h) h.innerHTML = `<span>${esc(PANEL_TITLE[state.ui.tab] || '')}</span>`;
@@ -5549,7 +5849,7 @@ function paintReview() {
 
 function render(opts = {}) {
   paint(); paintSel();
-  renderLayers(); renderPages(); renderRight(); renderModebar();
+  renderLayers(); renderPages(); renderCms(); renderRight(); renderModebar();
   renderPanelHead(); renderDoc(); renderDim(); drawBlocks();
   paintReview(); refreshReview();
   const done = $('#doneScope');
@@ -6540,8 +6840,9 @@ function bindTop() {
     if (dialog) { dialog(); return; }
     state.ui.tab = b.dataset.t;
     $$('#leftRail button[data-t]').forEach(x => x.classList.toggle('on', x === b));
-    ['add', 'layers', 'pages'].forEach(t => { $('#pane' + t[0].toUpperCase() + t.slice(1)).hidden = t !== b.dataset.t; });
+    ['add', 'layers', 'pages', 'cms'].forEach(t => { $('#pane' + t[0].toUpperCase() + t.slice(1)).hidden = t !== b.dataset.t; });
     renderPanelHead();
+    renderCms();
   }));
   window.addEventListener('resize', () => { positionHud(); renderDim(); });
 }

@@ -1328,6 +1328,119 @@ function dropTree(fresh, intoId) {
    project JSON and keeps following the classes and text styles it references. */
 const blocks = () => (state.meta.blocks || (state.meta.blocks = []));
 const findBlock = id => blocks().find(b => b.id === id) || null;
+
+/* ---- content collections ------------------------------------------------
+   A collection is a content type: a field schema plus the items that fill it.
+   Widgets bind to a field, a Collection List repeats over the items, and a page
+   marked with a collection becomes the template for one static file per item.
+   Everything resolves at export — the site that ships is plain HTML. */
+const FIELD_TYPES = [
+  ['text', 'Text'], ['rich', 'Rich text'], ['image', 'Image'], ['link', 'Link'],
+  ['number', 'Number'], ['date', 'Date'], ['option', 'Option'], ['bool', 'Yes / no']
+];
+const collections = () => (state.meta.collections || (state.meta.collections = []));
+const findCollection = id => collections().find(c => c.id === id) || null;
+const findField = (col, fid) => (col ? (col.fields || []).find(f => f.id === fid) || null : null);
+const findItem = (col, iid) => (col ? (col.items || []).find(i => i.id === iid) || null : null);
+
+/* ids are slugs so they read in the binding UI and in exported paths; both are
+   made unique against their own list rather than globally */
+const uniqueId = (base, taken) => {
+  const b = tokenId(base) || 'x';
+  let id = b, k = 2;
+  while (taken.includes(id)) id = b + '-' + k++;
+  return id;
+};
+function collectionAdd(name) {
+  const id = uniqueId(name || 'collection', collections().map(c => c.id));
+  const col = {
+    id, name: String(name || 'Collection').slice(0, 40), slug: id,
+    fields: [{ id: 'title', name: 'Title', type: 'text', required: 1 }],
+    items: [], detail: ''
+  };
+  collections().push(col);
+  return col;
+}
+const collectionDelete = id => { state.meta.collections = collections().filter(c => c.id !== id); };
+function collectionRename(id, name) {
+  const col = findCollection(id); if (!col) return;
+  col.name = String(name || col.name).slice(0, 40);
+}
+
+function fieldAdd(colId, name, type) {
+  const col = findCollection(colId); if (!col) return null;
+  const f = {
+    id: uniqueId(name || 'field', col.fields.map(x => x.id)),
+    name: String(name || 'Field').slice(0, 40),
+    type: FIELD_TYPES.some(([t]) => t === type) ? type : 'text',
+    required: 0
+  };
+  col.fields.push(f);
+  return f;
+}
+/* Deleting a field drops its values too — an item cannot carry a value for a
+   field the schema no longer has, or the next export would emit orphans. */
+function fieldDelete(colId, fid) {
+  const col = findCollection(colId); if (!col) return 0;
+  if (col.fields.length <= 1) return 0;              // a collection needs one field
+  col.fields = col.fields.filter(f => f.id !== fid);
+  let cleared = 0;
+  col.items.forEach(it => { if (fid in it.values) { delete it.values[fid]; cleared++; } });
+  return cleared;
+}
+const swap = (list, i, dir) => {
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return false;
+  [list[i], list[j]] = [list[j], list[i]];
+  return true;
+};
+function fieldMove(colId, fid, dir) {
+  const col = findCollection(colId); if (!col) return false;
+  return swap(col.fields, col.fields.findIndex(f => f.id === fid), dir);
+}
+
+/* The first text field is what names an item in lists and what its slug derives
+   from — it is the closest thing a collection has to a title. */
+const titleField = col => (col && (col.fields || []).find(f => f.type === 'text')) || null;
+const itemTitle = (col, it) => {
+  const tf = titleField(col);
+  return String((tf && it.values[tf.id]) || '').trim() || 'Untitled';
+};
+function itemSlug(col, it) {
+  const base = tokenId(itemTitle(col, it)) || 'item';
+  const taken = col.items.filter(x => x.id !== it.id).map(x => x.slug);
+  return uniqueId(base, taken);
+}
+function itemAdd(colId) {
+  const col = findCollection(colId); if (!col) return null;
+  const it = { id: uid(), slug: '', values: {} };
+  col.items.push(it);
+  it.slug = itemSlug(col, it);
+  return it;
+}
+const itemDelete = (colId, iid) => {
+  const col = findCollection(colId); if (!col) return;
+  col.items = col.items.filter(i => i.id !== iid);
+};
+function itemMove(colId, iid, dir) {
+  const col = findCollection(colId); if (!col) return false;
+  return swap(col.items, col.items.findIndex(i => i.id === iid), dir);
+}
+/* Writing the title re-derives the slug, but only while the author has not set
+   one by hand — an item that is already published should not move on a typo fix. */
+function itemSet(colId, iid, fid, value) {
+  const col = findCollection(colId); if (!col) return;
+  const it = findItem(col, iid); if (!it) return;
+  it.values[fid] = value;
+  const tf = titleField(col);
+  if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
+}
+function itemSetSlug(colId, iid, slug) {
+  const col = findCollection(colId); if (!col) return;
+  const it = findItem(col, iid); if (!it) return;
+  it.slugLocked = 1;
+  it.slug = uniqueId(slug || itemTitle(col, it), col.items.filter(x => x.id !== it.id).map(x => x.slug));
+}
 const blockRootType = id => { const b = findBlock(id); return b ? b.node.type : null; };
 /* A block is saved content. A **global** block additionally tags every copy it
    places with `adv.block`, which is what lets one copy push its content back to
@@ -1441,7 +1554,7 @@ function nudgeMany(ids, dir) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 6;                       // bump when the stored shape changes
+const SCHEMA = 7;                       // bump when the stored shape changes
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -1473,6 +1586,12 @@ function migrate(d) {
   if (v < 6) {
     d.meta = d.meta || {};
     if (!Array.isArray(d.meta.blocks)) d.meta.blocks = [];
+  }
+  /* v6 → v7: content collections. Nothing existing binds to one, so an empty
+     list is the whole migration. */
+  if (v < 7) {
+    d.meta = d.meta || {};
+    if (!Array.isArray(d.meta.collections)) d.meta.collections = [];
   }
   d.v = SCHEMA;
   return d;
@@ -2776,4 +2895,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
