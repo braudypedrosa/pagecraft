@@ -2426,3 +2426,60 @@ test('on a detail page the whole page is the binding scope', () => {
   a.equal(sc.col.id, col.id);
   a.equal(sc.node, null, 'no src node needed — the page provides it');
 });
+
+/* -------------------------------------------------------------- content.json */
+test('content.json carries the schema, the items and their URLs', () => {
+  const { col } = detail();
+  const j = JSON.parse(C.contentJson());
+  a.equal(j.site.name, C.state.meta.name);
+  a.equal(j.collections.length, 1);
+  const c = j.collections[0];
+  a.equal(c.id, 'projects');
+  a.equal(c.slug, 'work');
+  a.deepEqual(c.fields.map(f => f.id), ['title', 'body']);
+  a.deepEqual(c.fields.map(f => f.type), ['text', 'rich']);
+  a.deepEqual(c.items.map(i => i.slug), ['acme-rebrand', 'northwind-app']);
+  a.equal(c.items[0].url, 'work/acme-rebrand.html', 'so a consumer knows where the page is');
+  a.equal(c.items[0].values.title, 'Acme rebrand');
+});
+
+test('an item with no detail page carries no url', () => {
+  blank();
+  const col = C.collectionAdd('Notes');
+  const it = C.itemAdd(col.id);
+  C.itemSet(col.id, it.id, 'title', 'One');
+  const c = JSON.parse(C.contentJson()).collections[0];
+  a.equal('url' in c.items[0], false, 'rather than a link to a file that is not written');
+});
+
+test('every field appears on every item, even the ones never filled in', () => {
+  const { col } = detail();
+  C.fieldAdd(col.id, 'Client', 'text');
+  const c = JSON.parse(C.contentJson()).collections[0];
+  for (const it of c.items) a.deepEqual(Object.keys(it.values).sort(), ['body', 'client', 'title']);
+  a.equal(c.items[0].values.client, '', 'an unset value is empty, not missing');
+});
+
+test('image values go through the resolver the caller supplies', () => {
+  blank();
+  const col = C.collectionAdd('Gallery');
+  C.fieldAdd(col.id, 'Shot', 'image');
+  const it = C.itemAdd(col.id);
+  C.itemSet(col.id, it.id, 'shot', 'asset:abc123');
+  a.equal(JSON.parse(C.contentJson()).collections[0].items[0].values.shot, 'asset:abc123',
+    'untouched by default, since core cannot see the asset store');
+  const resolved = JSON.parse(C.contentJson(v => String(v).replace(/^asset:/, 'assets/') + '.png'));
+  a.equal(resolved.collections[0].items[0].values.shot, 'assets/abc123.png');
+});
+
+test('the same project exports the same bytes', () => {
+  detail();
+  a.equal(C.contentJson(), C.contentJson(), 'no timestamp, so it diffs cleanly');
+});
+
+test('content.json is valid JSON and ends with a newline', () => {
+  detail();
+  const raw = C.contentJson();
+  a.doesNotThrow(() => JSON.parse(raw));
+  a.equal(raw.endsWith('\n'), true);
+});

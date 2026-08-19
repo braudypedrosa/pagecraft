@@ -14,7 +14,7 @@ transcript is never required to pick this up.
 | `dist/artifact.html` | generated: same fragment with fonts inlined, for publishing |
 | `dist/core.cjs` | generated: the DOM-free regions, for `node --test` |
 | `brand/` | vendored from the Pagecraft brand kit (fonts, licenses, tokens, logo) |
-| `tests/core.test.cjs` | 215 cases against `dist/core.cjs` |
+| `tests/core.test.cjs` | 221 cases against `dist/core.cjs` |
 
 ```bash
 npm test          # rebuild, then run the suite
@@ -193,7 +193,25 @@ ways it can genuinely fail — nothing around it names a collection (`item-link-
 page templates that collection (`item-link-no-template`). It flagged `cms:item` as a dead link
 until then.
 
-**Still to come:** `content.json` beside the HTML (phase 5). Everything resolves at export — the site
+### content.json
+
+`contentJson(imgPath)` writes every collection — schema and items — beside the HTML. Two
+deliberate choices:
+
+- **No timestamp.** The same project exports the same bytes, so the file diffs cleanly and
+  re-imports predictably. A generated-at stamp would make every export differ.
+- **Every field appears on every item**, empty where unset, rather than omitted. A consumer can
+  rely on the shape instead of probing for keys.
+
+An item that has a detail page carries its `url`; one that does not carries none, rather than a
+link to a file that was never written. Image values pass through the `imgPath` resolver the caller
+supplies — the UI hands it `assetPath`, which maps `asset:<id>` to the same `assets/…` path the
+HTML uses. Core takes it as an argument because only the UI holds the asset store, and that keeps
+the function testable.
+
+The site itself stays plain static HTML with everything baked in. This file is the portable copy —
+re-importable, diffable, feedable to something else — not a runtime dependency. A page never
+fetches it. Everything resolves at export — the site
 that ships is plain HTML, with the JSON alongside as a portable copy.
 
 ## Media library
@@ -469,7 +487,7 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 4. Measure before optimising: canvas rebuilds `innerHTML` on content edits, and undo keeps
    80 full document clones. The demo is 64 nodes — generate 300–500 and measure first
 5. Canvas zoom; custom layer names; an Assets item in the rail
-6. `4,138` of `7,224` lines are UI with no unit tests — extract more into core, or add a
+6. `4,148` of `7,259` lines are UI with no unit tests — extract more into core, or add a
    DOM-shimmed layer
 7. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next

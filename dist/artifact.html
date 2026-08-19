@@ -2406,6 +2406,31 @@ function exportTargets() {
   return out;
 }
 
+/* The content that shipped, as data. Deliberately has no timestamp: the same
+   project exports the same bytes, so it diffs cleanly and re-imports predictably.
+   Image values resolve to the `assets/…` path the HTML uses, and every item that
+   has a detail page carries its URL, so a consumer needs nothing but this file. */
+function contentJson(imgPath = v => (v == null ? '' : String(v))) {
+  const urlOf = {};
+  for (const t of exportTargets()) if (t.item) urlOf[t.col.id + '|' + t.item.id] = t.path;
+  return JSON.stringify({
+    site: { name: state.meta.name, lang: state.meta.lang || 'en', baseUrl: state.meta.baseUrl || '' },
+    collections: collections().map(c => ({
+      id: c.id, name: c.name, slug: c.slug,
+      fields: c.fields.map(f => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
+      items: c.items.map(it => {
+        const values = {};
+        for (const f of c.fields) {
+          const v = it.values[f.id];
+          values[f.id] = f.type === 'image' ? imgPath(v) : (v == null ? '' : v);
+        }
+        const url = urlOf[c.id + '|' + it.id];
+        return url ? { id: it.id, slug: it.slug, url, values } : { id: it.id, slug: it.slug, values };
+      })
+    }))
+  }, null, 2) + '\n';
+}
+
 /* ---- binding -------------------------------------------------------------
    A binding names a field and nothing else. The collection comes from the nearest
    ancestor that declares a source (`node.src`), so one card carries no collection
@@ -3617,6 +3642,13 @@ async function assetsToData(str) {
   return str.replace(A_RE, (m, id) => map[id] || PH);
 }
 const assetFile = a => 'assets/' + (a.name || a.id).replace(/[^\w.-]+/g, '-').toLowerCase();
+/* `asset:<id>` → the path the exported HTML uses for it. Lives here because only
+   the UI holds the asset store; core takes it as an argument so it stays testable. */
+const assetPath = v => {
+  const m = /^asset:(\w+)$/.exec(String(v == null ? '' : v));
+  const a = m && AS.mem.get(m[1]);
+  return a ? assetFile(a) : String(v == null ? '' : v);
+};
 const assetsToPaths = (str, rel = '') => str.replace(A_RE, (m, id) => {
   const a = AS.mem.get(id);
   return a ? rel + assetFile(a) : PH;
@@ -6487,6 +6519,7 @@ function exportModal() {
     <pre class="code" id="exCode">Building…</pre>
     <div class="note" id="exNote" style="margin-top:var(--gap-2)"></div>`, `
     <button class="btn" id="exSeo" title="sitemap.xml and robots.txt">SEO files</button>
+    ${collections().length ? `<button class="btn" id="exContent" title="Every collection and item as data">content.json</button>` : ''}
     <button class="btn" id="exJson">Export project JSON</button>
     <button class="btn" id="exImport">Import JSON</button>
     <span style="flex:1"></span>
@@ -6604,6 +6637,8 @@ function exportModal() {
     if (await download('sitemap.xml', sitemapXml(), 'application/xml') === false) return;
     await download('robots.txt', robotsTxt(), 'text/plain');
   });
+  const exc = $('#exContent');
+  if (exc) exc.addEventListener('click', () => download('content.json', contentJson(assetPath), 'application/json'));
   $('#exJson').addEventListener('click', backupJson);
   $('#exImport').addEventListener('click', () => {
     const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json';

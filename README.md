@@ -310,7 +310,28 @@ pick receives the writes, and the note tells you how many elements a class edit 
 Nothing is restyled by accident. Deleting a class bakes its declarations into every user
 first, so the page never moves — local overrides still win on the way out.
 
-## Media library
+## Content collections
+
+**CMS** in the tool rail holds your content types. A collection is a field schema plus the items
+that fill it — text, rich text, image, link, number, date, option, yes/no.
+
+Three things you can do with one:
+
+- **Bind a property to a field.** Point any container at a collection (*Advanced → Content
+  source*) and every content field inside grows a badge next to its label. Click it, pick a
+  field, and that property comes from content. A bound field shows the value it will render and
+  goes inert; the badge unbinds it.
+- **Repeat with a Collection list.** Drop one from *Add → Layout*, put a single Column inside, and
+  that card renders once per item — with sort, direction and a limit.
+- **Generate a page per item.** Mark a page as a collection's detail template in *Pages*, and the
+  export writes `<collection>/<slug>.html` for every item, each with its own title and meta
+  description taken from fields you choose. A card can link to *this item's own page*.
+
+Everything resolves at export: what ships is plain static HTML with the content baked in, so it
+needs no JavaScript and crawlers see all of it. **content.json** in the export dialog writes the
+same data as a portable file — the site never fetches it.
+
+## Image storage
 
 **Media** in the tool rail opens the library as a grid. Everything you upload anywhere in the
 builder lands there, so the same file is never stored twice:
