@@ -4,6 +4,7 @@
 
 /* ---------------------------------------------------------------- icons */
 const IC = {
+  cms: '<ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/>',
   section:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 5.5h8M4 8h8M4 10.5h5"/>',
   row:'<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M8 3.5v9"/>',
   column:'<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
@@ -1435,6 +1436,60 @@ function itemSet(colId, iid, fid, value) {
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
+/* ---- binding -------------------------------------------------------------
+   A binding names a field and nothing else. The collection comes from the nearest
+   ancestor that declares a source (`node.src`), so one card carries no collection
+   id of its own and the same card works wherever it is placed — inside a
+   Collection List, or on a detail page. */
+const bindableKeys = type => {
+  const c = (DEF[type] || {}).controls || {};
+  /* content props only: a text style is a design choice, not content */
+  return (c.content || []).filter(x => x.k && x.k !== 'ts').map(x => x.k);
+};
+const bindGet = (n, key) => (n.bind || {})[key] || '';
+function bindSet(n, key, fieldId) {
+  if (!fieldId) {
+    if (n.bind) { delete n.bind[key]; if (!Object.keys(n.bind).length) delete n.bind; }
+    return;
+  }
+  n.bind = n.bind || {};
+  n.bind[key] = fieldId;
+}
+function srcSet(n, colId) {
+  if (colId && findCollection(colId)) n.src = colId; else delete n.src;
+}
+/* the nearest source above this node, itself included */
+function bindScope(id) {
+  let h = locate(id);
+  while (h) {
+    const col = h.node.src ? findCollection(h.node.src) : null;
+    if (col) return { node: h.node, col };
+    h = h.parent ? locate(h.parent.id) : null;
+  }
+  return null;
+}
+/* which item the canvas is previewing, per collection */
+const previewIndex = colId => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
+function previewItem(col) {
+  if (!col || !col.items.length) return null;
+  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
+}
+const fieldValue = (col, item, fid) => {
+  if (!col || !item || !findField(col, fid)) return '';
+  const v = item.values[fid];
+  return v == null ? '' : v;
+};
+/* Props with bindings resolved. A bound value always wins, even when it is
+   empty — the canvas should show what the export will, not a placeholder that
+   quietly disappears at build time. Returns the identity object when nothing is
+   bound, so an unbound tree costs nothing to render. */
+function boundProps(n, col, item) {
+  if (!n.bind || !col || !item) return n.props;
+  const out = { ...n.props };
+  for (const [k, fid] of Object.entries(n.bind)) out[k] = fieldValue(col, item, fid);
+  return out;
+}
+
 function itemSetSlug(colId, iid, slug) {
   const col = findCollection(colId); if (!col) return;
   const it = findItem(col, iid); if (!it) return;
@@ -2689,8 +2744,12 @@ function renderNode(n, o) {
   /* the editor addresses elements by node id; the export uses the readable one */
   const domId = o.edit ? n.id : esc(domIdOf(n));
   const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? ' data-sel' : ''}` : ''}`;
-  const kids = (n.children || []).map(c => renderNode(c, o)).join('');
-  const p = n.props;
+  /* a node that declares a source opens a scope for itself and everything under
+     it; `o.item` is set by a repeater, otherwise the canvas previews one */
+  const sc = n.src ? findCollection(n.src) : null;
+  const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
+  const kids = (n.children || []).map(c => renderNode(c, o2)).join('');
+  const p = boundProps(n, o2.col, o2.item);
 
   switch (n.type) {
     case 'section': {
@@ -2895,4 +2954,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, bindableKeys, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };

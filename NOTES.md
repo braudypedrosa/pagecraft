@@ -14,7 +14,7 @@ transcript is never required to pick this up.
 | `dist/artifact.html` | generated: same fragment with fonts inlined, for publishing |
 | `dist/core.cjs` | generated: the DOM-free regions, for `node --test` |
 | `brand/` | vendored from the Pagecraft brand kit (fonts, licenses, tokens, logo) |
-| `tests/core.test.cjs` | 183 cases against `dist/core.cjs` |
+| `tests/core.test.cjs` | 193 cases against `dist/core.cjs` |
 
 ```bash
 npm test          # rebuild, then run the suite
@@ -121,8 +121,28 @@ option · bool`. An image value is an `asset:<id>` reference, and its cell opens
 `seed()` deliberately leaves collections and blocks alone — they are project libraries, not page
 content, and "Reset to demo content" is page-scoped. The test harness's `blank()` clears them.
 
-**Still to come:** binding (phase 2), the Collection List repeater (phase 3), detail pages and
-multi-file export (phase 4), `content.json` (phase 5). Everything resolves at export — the site
+### Binding
+
+`node.bind = { text: 'title' }` names a **field and nothing else**. The collection comes from
+`node.src` on the nearest ancestor, so a card carries no collection id of its own and the same
+card works wherever it lands — under a Collection List, or on a detail page.
+
+- **`renderNode` resolves at one line.** `const p = boundProps(n, o2.col, o2.item)` replaces
+  `const p = n.props`, so every widget case picks up bound values without being touched. A node
+  with `src` opens a scope for itself and its subtree; `boundProps` returns the identity object
+  when nothing is bound, so an unbound tree costs nothing.
+- **A bound value always wins, even when empty.** The canvas has to show what the export writes,
+  not a placeholder that quietly vanishes at build time.
+- **The bind badge shares the label slot with the responsive badge** — same size, same green
+  "this is not a literal any more" meaning. That is what made "everything that can be set"
+  affordable: one badge per control, not a redesign.
+- **A bound control shows its resolved value and goes inert**, with the badge left live to
+  unbind. Showing the stale literal while the canvas showed something else was the first version
+  and it read as a bug.
+- Bindable = content props, minus `ts`: a text style is a design choice, not content.
+
+**Still to come:** the Collection List repeater (phase 3), detail pages and multi-file export
+(phase 4), `content.json` (phase 5). Everything resolves at export — the site
 that ships is plain HTML, with the JSON alongside as a portable copy.
 
 ## Media library
@@ -398,7 +418,7 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 4. Measure before optimising: canvas rebuilds `innerHTML` on content edits, and undo keeps
    80 full document clones. The demo is 64 nodes — generate 300–500 and measure first
 5. Canvas zoom; custom layer names; an Assets item in the rail
-6. `3,972` of `6,870` lines are UI with no unit tests — extract more into core, or add a
+6. `4,068` of `7,025` lines are UI with no unit tests — extract more into core, or add a
    DOM-shimmed layer
 7. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next

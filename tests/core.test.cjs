@@ -2111,3 +2111,100 @@ test('migration v6 to v7 adds the collection list', () => {
   const kept = { v: 7, pages: before.pages, meta: { collections: [{ id: 'x', name: 'X', fields: [], items: [] }] } };
   a.equal(C.migrate(kept).meta.collections.length, 1);
 });
+
+/* -------------------------------------------------------------------- binding */
+const bound = () => {
+  blank();
+  const col = C.collectionAdd('Projects');
+  C.fieldAdd(col.id, 'Summary', 'text');
+  const i1 = C.itemAdd(col.id), i2 = C.itemAdd(col.id);
+  C.itemSet(col.id, i1.id, 'title', 'Acme rebrand');
+  C.itemSet(col.id, i1.id, 'summary', 'A full identity refresh');
+  C.itemSet(col.id, i2.id, 'title', 'Northwind app');
+  C.itemSet(col.id, i2.id, 'summary', 'Design system and product UI');
+  const h = C.insert('heading', null, 0);
+  const col_ = C.locate(h.id).parent;                 // the column that wraps it
+  C.srcSet(col_, col.id);
+  C.bindSet(h, 'text', 'title');
+  return { col, i1, i2, h, holder: col_ };
+};
+
+test('a binding names a field, and takes its collection from the scope above', () => {
+  const { h, holder, col } = bound();
+  a.deepEqual(h.bind, { text: 'title' }, 'the node stores only the field');
+  a.equal(h.src, undefined, 'no collection id on the bound node');
+  const sc = C.bindScope(h.id);
+  a.equal(sc.col.id, col.id);
+  a.equal(sc.node.id, holder.id, 'resolved from the nearest ancestor with a source');
+});
+
+test('a bound property renders the item, not the placeholder', () => {
+  const { h, i1 } = bound();
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  a.match(html, /Acme rebrand/);
+  a.equal(/A headline that carries weight/.test(html), false, 'the default text is gone');
+});
+
+test('the canvas previews one item, and the switcher moves it', () => {
+  const { col } = bound();
+  a.match(C.renderNode(C.state.pages[0].tree[0], { edit: false }), /Acme rebrand/);
+  C.state.ui.item = { [col.id]: 1 };
+  a.match(C.renderNode(C.state.pages[0].tree[0], { edit: false }), /Northwind app/);
+});
+
+test('a preview index past the end falls back rather than rendering nothing', () => {
+  const { col } = bound();
+  C.state.ui.item = { [col.id]: 99 };
+  a.equal(C.previewItem(col).values.title, 'Northwind app', 'clamped to the last item');
+  C.collections()[0].items = [];
+  a.equal(C.previewItem(col), null, 'and an empty collection binds to nothing');
+});
+
+test('an empty field renders empty, not the placeholder it replaced', () => {
+  const { h, col, i1 } = bound();
+  C.itemSet(col.id, i1.id, 'title', '');
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  a.equal(/A headline that carries weight/.test(html), false,
+    'what the canvas shows has to be what the export writes');
+});
+
+test('binding to a field that no longer exists yields empty, not a crash', () => {
+  const { h, col } = bound();
+  C.fieldDelete(col.id, 'summary');
+  C.bindSet(h, 'text', 'summary');
+  a.equal(C.boundProps(h, col, col.items[0]).text, '');
+  a.doesNotThrow(() => C.renderNode(C.state.pages[0].tree[0], { edit: false }));
+});
+
+test('clearing a binding drops the map when it was the last one', () => {
+  const { h } = bound();
+  C.bindSet(h, 'text', '');
+  a.equal(h.bind, undefined, 'no empty object left behind');
+  C.bindSet(h, 'text', 'title');
+  C.bindSet(h, 'link', 'title');
+  C.bindSet(h, 'link', '');
+  a.deepEqual(h.bind, { text: 'title' });
+});
+
+test('an unbound tree is left exactly as it was', () => {
+  blank();
+  const h = C.insert('heading', null, 0);
+  a.equal(C.boundProps(h, null, null), h.props, 'the identity object, not a copy');
+});
+
+test('a source only counts when the collection is real', () => {
+  const { holder } = bound();
+  C.srcSet(holder, 'ghost-collection');
+  a.equal(holder.src, undefined);
+  const h2 = C.insert('heading', null, 0);
+  a.equal(C.bindScope(h2.id), null, 'nothing above it declares a source');
+});
+
+test('which props may bind: content, but never the text style', () => {
+  const keys = C.bindableKeys('heading');
+  a.ok(keys.includes('text'));
+  a.ok(keys.includes('link'));
+  a.equal(keys.includes('ts'), false, 'a text style is a design choice, not content');
+  a.ok(C.bindableKeys('image').includes('src'));
+  a.ok(C.bindableKeys('image').includes('alt'));
+});

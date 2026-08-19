@@ -346,6 +346,9 @@ body.preview .modebar{display:none}
 }
 .pill.g{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .pill.g svg{color:var(--green)}
+#itemBar button{padding:0 4px;color:var(--text-3);font-size:13px;line-height:1}
+#itemBar button:hover{color:var(--text)}
+#itemBar button:disabled{opacity:.3;cursor:default}
 /* dimension readout, kept close to the working surface */
 .dim{
   position:absolute;left:16px;bottom:12px;z-index:12;display:flex;align-items:center;gap:8px;
@@ -381,6 +384,15 @@ body.preview .dim{display:none}
 .f>label .rsp{width:16px;height:16px;border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2)}
 .f>label .rsp svg{width:9px;height:9px}
 .f>label .ovr{color:var(--on-green);background:var(--green)}
+/* bound values get the same badge treatment as a breakpoint override — green
+   means "this is not a literal any more" in both cases */
+.f>label .bnd{width:16px;height:16px;border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2);cursor:pointer}
+.f>label .bnd svg{width:9px;height:9px}
+.f>label .bnd:hover{color:var(--text);background:var(--line)}
+.f>label .bnd.on{color:var(--on-green);background:var(--green)}
+/* the control, not the label — the badge has to stay clickable to unbind */
+.f.bound>.ctl,.f.bound>.unit,.f.bound>.clr,.f.bound>.pick,.f.bound>.sld,
+.f.bound>.imgset,.f.bound>.imgdrop,.f.bound>div>.ctl{pointer-events:none;opacity:.5}
 /* line-height is pinned so --h-ctl is a fact rather than an estimate: without it
    the same .ctl measured 37px in a panel and 38px in a dialog, and nothing could
    be reliably aligned to it. */
@@ -595,6 +607,13 @@ body.dragging{cursor:grabbing !important;user-select:none}
 #askBody{padding:18px}
 #askBody .msg{font-size:13.5px;line-height:1.6;color:var(--text-2)}
 #askBody .msg b{color:var(--text)}
+.pickrows{display:flex;flex-direction:column;gap:4px}
+.pickrow{
+  text-align:left;padding:9px 11px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--panel);font-size:13px;color:var(--text-2);
+}
+.pickrow:hover{border-color:var(--text-3);background:var(--field);color:var(--text)}
+.pickrow.on{border-color:var(--ink);background:var(--field);color:var(--text);font-weight:600}
 /* the items table — one row per item, one column per field */
 .cmst{width:100%;border-collapse:collapse;table-layout:fixed}
 .cmst th{
@@ -853,6 +872,7 @@ pre.code{
 /*<core>*/
 /* ---------------------------------------------------------------- icons */
 const IC = {
+  cms: '<ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/>',
   section:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 5.5h8M4 8h8M4 10.5h5"/>',
   row:'<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M8 3.5v9"/>',
   column:'<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
@@ -2287,6 +2307,60 @@ function itemSet(colId, iid, fid, value) {
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
+/* ---- binding -------------------------------------------------------------
+   A binding names a field and nothing else. The collection comes from the nearest
+   ancestor that declares a source (`node.src`), so one card carries no collection
+   id of its own and the same card works wherever it is placed — inside a
+   Collection List, or on a detail page. */
+const bindableKeys = type => {
+  const c = (DEF[type] || {}).controls || {};
+  /* content props only: a text style is a design choice, not content */
+  return (c.content || []).filter(x => x.k && x.k !== 'ts').map(x => x.k);
+};
+const bindGet = (n, key) => (n.bind || {})[key] || '';
+function bindSet(n, key, fieldId) {
+  if (!fieldId) {
+    if (n.bind) { delete n.bind[key]; if (!Object.keys(n.bind).length) delete n.bind; }
+    return;
+  }
+  n.bind = n.bind || {};
+  n.bind[key] = fieldId;
+}
+function srcSet(n, colId) {
+  if (colId && findCollection(colId)) n.src = colId; else delete n.src;
+}
+/* the nearest source above this node, itself included */
+function bindScope(id) {
+  let h = locate(id);
+  while (h) {
+    const col = h.node.src ? findCollection(h.node.src) : null;
+    if (col) return { node: h.node, col };
+    h = h.parent ? locate(h.parent.id) : null;
+  }
+  return null;
+}
+/* which item the canvas is previewing, per collection */
+const previewIndex = colId => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
+function previewItem(col) {
+  if (!col || !col.items.length) return null;
+  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
+}
+const fieldValue = (col, item, fid) => {
+  if (!col || !item || !findField(col, fid)) return '';
+  const v = item.values[fid];
+  return v == null ? '' : v;
+};
+/* Props with bindings resolved. A bound value always wins, even when it is
+   empty — the canvas should show what the export will, not a placeholder that
+   quietly disappears at build time. Returns the identity object when nothing is
+   bound, so an unbound tree costs nothing to render. */
+function boundProps(n, col, item) {
+  if (!n.bind || !col || !item) return n.props;
+  const out = { ...n.props };
+  for (const [k, fid] of Object.entries(n.bind)) out[k] = fieldValue(col, item, fid);
+  return out;
+}
+
 function itemSetSlug(colId, iid, slug) {
   const col = findCollection(colId); if (!col) return;
   const it = findItem(col, iid); if (!it) return;
@@ -3758,8 +3832,12 @@ function renderNode(n, o) {
   /* the editor addresses elements by node id; the export uses the readable one */
   const domId = o.edit ? n.id : esc(domIdOf(n));
   const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? ' data-sel' : ''}` : ''}`;
-  const kids = (n.children || []).map(c => renderNode(c, o)).join('');
-  const p = n.props;
+  /* a node that declares a source opens a scope for itself and everything under
+     it; `o.item` is set by a repeater, otherwise the canvas previews one */
+  const sc = n.src ? findCollection(n.src) : null;
+  const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
+  const kids = (n.children || []).map(c => renderNode(c, o2)).join('');
+  const p = boundProps(n, o2.col, o2.item);
 
   switch (n.type) {
     case 'section': {
@@ -5145,12 +5223,29 @@ function labelHtml(c, n) {
     ? `<span class="rsp${own && dev !== 'd' ? ' ovr' : ''}" data-clear="${own && dev !== 'd' ? '1' : ''}"
         title="${dev === 'd' ? 'Editing the desktop base value' : own ? 'Overridden on ' + DEV_LABEL[dev] + ' — click to clear' : 'Set a ' + DEV_LABEL[dev] + ' override'}">${svg(dev === 'd' ? 'desktop' : dev === 't' ? 'tablet' : 'mobile', 9)}</span>`
     : '';
-  return `<label>${esc(c.label || '')}${badge}</label>`;
+  /* the binding badge sits beside the responsive one: same slot, same size, so
+     "this value comes from content" reads at a glance without a second row */
+  const sc = c.k && bindableKeys(n.type).includes(c.k) ? bindScope(n.id) : null;
+  const fid = sc ? bindGet(n, c.k) : '';
+  const f = fid && findField(sc.col, fid);
+  const bind = sc
+    ? `<span class="bnd${fid ? ' on' : ''}" data-bind="${esc(c.k)}"
+        title="${fid ? (f ? `Bound to ${esc(f.name)} — click to change` : 'Bound to a field that no longer exists') : `Bind to a field in ${esc(sc.col.name)}`}">${svg('cms', 9)}</span>`
+    : '';
+  return `<label>${esc(c.label || '')}${badge}${bind}</label>`;
 }
 
 function ctlHtml(n, c, i) {
-  const val = c.c ? cssVal(tgtObj(n), c.c, !!c.r).v : propVal(n, c.k);
-  const F = inner => `<div class="f" data-ci="${i}">${labelHtml(c, n)}${inner}${c.note ? `<div class="note">${esc(c.note)}</div>` : ''}</div>`;
+  /* A bound field shows the value it will actually render, not the literal it is
+     standing in for — otherwise the panel says one thing and the canvas another.
+     The control goes inert; the badge in the label stays live so you can unbind. */
+  const bsc = c.k ? bindScope(n.id) : null;
+  const bfid = bsc ? bindGet(n, c.k) : '';
+  const val = bfid ? fieldValue(bsc.col, previewItem(bsc.col), bfid)
+    : c.c ? cssVal(tgtObj(n), c.c, !!c.r).v : propVal(n, c.k);
+  const F = inner => `<div class="f${bfid ? ' bound' : ''}" data-ci="${i}">${labelHtml(c, n)}${inner}${
+    bfid ? `<div class="note">From <b>${esc((findField(bsc.col, bfid) || { name: 'a missing field' }).name)}</b> on the item shown above.</div>`
+      : c.note ? `<div class="note">${esc(c.note)}</div>` : ''}</div>`;
 
   switch (c.t) {
     case 'text': return F(`<input class="ctl" data-x="v" value="${esc(val)}" placeholder="${esc(c.ph || '')}">`);
@@ -5443,6 +5538,17 @@ function renderRight() {
     ];
     CUR = adv.slice();
     html += `<div class="group"><div class="gh">${svg('caret', 10)} Identity & layout</div><div class="gb">${adv.map((c, i) => ctlHtml(n, c, i)).join('')}</div></div>
+    ${DEF[n.type].level < 4 ? `<div class="group"><div class="gh">${svg('caret', 10)} Content source</div><div class="gb">
+      <select class="ctl" id="advSrc">
+        <option value="">— None —</option>
+        ${collections().map(c => `<option value="${c.id}"${n.src === c.id ? ' selected' : ''}>${esc(c.name)} · ${c.items.length} item${c.items.length === 1 ? '' : 's'}</option>`).join('')}
+      </select>
+      <div class="note">${n.src && findCollection(n.src)
+        ? `Anything inside can bind to a field of <b>${esc(findCollection(n.src).name)}</b>. The canvas shows one item; pick which in the bar above it.`
+        : collections().length
+          ? 'Point this at a collection and everything inside it can bind to a field.'
+          : 'No collections yet — make one in <b>CMS</b>.'}</div>
+    </div></div>` : ''}
     <div class="group"><div class="gh">${svg('caret', 10)} Visibility</div><div class="gb">
       ${['d', 't', 'm'].map(b => `<div class="tog-row" style="margin-bottom:var(--gap-1)"><span>${svg(b === 'd' ? 'desktop' : b === 't' ? 'tablet' : 'mobile', 12)} Hide on ${DEV_LABEL[b]}</span>
         <button class="sw-tog${n.hide && n.hide[b] ? ' on' : ''}" data-hide="${b}"><i></i></button></div>`).join('')}
@@ -5491,6 +5597,11 @@ function bindRight(n) {
   if (st) $$('button', st).forEach(b => b.addEventListener('click', () => { state.ui.stab = b.dataset.s; renderRight(); }));
   const sp = $('#selParent');
   if (sp) sp.addEventListener('click', () => { const h = locate(n.id); select(h.parent ? h.parent.id : null); });
+  const asrc = $('#advSrc');
+  if (asrc) asrc.addEventListener('change', () => {
+    edit(() => srcSet(n, asrc.value));
+    toast(asrc.value ? 'Bound to ' + findCollection(asrc.value).name : 'Content source cleared');
+  });
   const sd = $('#sDup'); if (sd) sd.addEventListener('click', () => {
     const ids = selIds(); edit(() => ids.length > 1 ? dupMany(ids) : dupNode(n.id));
   });
@@ -5519,6 +5630,17 @@ function bindRight(n) {
     }
     edit(() => { classApply(n, v); state.ui.target = v; });
   });
+  $$('[data-bind]', box).forEach(b => b.addEventListener('click', async () => {
+    const key = b.dataset.bind, sc = bindScope(n.id);
+    if (!sc) return;
+    const cur = bindGet(n, key);
+    const chosen = await askPick(`Bind to ${esc(sc.col.name)}`,
+      [['', '— No binding, use the value typed here —'], ...sc.col.fields.map(f => [f.id, `${f.name} · ${f.type}`])],
+      cur);
+    if (chosen === null) return;
+    edit(() => bindSet(n, key, chosen));
+    toast(chosen ? 'Bound to ' + (findField(sc.col, chosen) || {}).name : 'Binding cleared');
+  }));
   $$('[data-hide]', box).forEach(b => b.addEventListener('click', () => edit(() => {
     n.hide = n.hide || {}; n.hide[b.dataset.hide] = !n.hide[b.dataset.hide];
   })));
@@ -5816,7 +5938,32 @@ function renderModebar() {
         + `<button class="btn tiny" id="doneScope">Done</button>`) +
     `<span class="spacer"></span>` +
     (crumbs.length ? `<span class="crumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
+    itemBarHtml() +
     `<span class="pill">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+  const ib = $('#itemBar');
+  if (ib) $$('button', ib).forEach(b => b.addEventListener('click', () => {
+    state.ui.item = state.ui.item || {};
+    state.ui.item[b.dataset.col] = +b.dataset.i;
+    paint(); renderModebar();
+  }));
+}
+
+/* Which item the canvas is standing in for. Only shown when something on this
+   page actually declares a source — otherwise it is noise. */
+function itemBarHtml() {
+  const seen = [];
+  eachNode(tree(), n => { if (n.src && findCollection(n.src) && !seen.includes(n.src)) seen.push(n.src); });
+  if (!seen.length) return '';
+  return seen.map(id => {
+    const col = findCollection(id);
+    if (!col.items.length) return `<span class="pill">${svg('cms', 11)} ${esc(col.name)} — no items yet</span>`;
+    const at = Math.min(previewIndex(id), col.items.length - 1);
+    return `<span class="pill" id="itemBar" style="gap:4px">${svg('cms', 11)} ${esc(col.name)}
+      <button data-col="${id}" data-i="${Math.max(0, at - 1)}" title="Previous item"${at === 0 ? ' disabled' : ''}>‹</button>
+      <b style="font-weight:600">${esc(itemTitle(col, col.items[at]))}</b>
+      <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" title="Next item"${at === col.items.length - 1 ? ' disabled' : ''}>›</button>
+      <small style="color:var(--text-3)">${at + 1}/${col.items.length}</small></span>`;
+  }).join('');
 }
 
 const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Pages and SEO', cms: 'Content' };
@@ -6070,6 +6217,14 @@ function askConfirm(title, msg, opts = {}) {
 
 /* The media library as a picker. Resolves with an asset id, or null. It rides the
    ask layer so it can open from inside Project settings without displacing it. */
+/* one-of-many, for choosing a field. Resolves with the value, or null on exit. */
+function askPick(title, opts, current = '') {
+  const p = askOpen(title, `<div class="pickrows">${opts.map(([v, l]) =>
+    `<button class="pickrow${v === current ? ' on' : ''}" data-p="${esc(v)}">${esc(l)}</button>`).join('')}</div>`, null, false);
+  $$('#askBody [data-p]').forEach(b => b.addEventListener('click', () => askClose(b.dataset.p)));
+  return p;
+}
+
 function mediaPicker(title = 'Choose from the library') {
   const list = [...AS.mem.values()];
   if (!list.length) {

@@ -108,6 +108,8 @@ const EXPORTS = [
   'collectionAdd', 'collectionDelete', 'collectionRename',
   'fieldAdd', 'fieldDelete', 'fieldMove', 'titleField', 'itemTitle', 'itemSlug',
   'itemAdd', 'itemDelete', 'itemMove', 'itemSet', 'itemSetSlug',
+  'bindableKeys', 'bindGet', 'bindSet', 'srcSet', 'bindScope',
+  'previewIndex', 'previewItem', 'fieldValue', 'boundProps',
   'blockInstances', 'blockUsage', 'blockPush',
   'TEMPLATES', 'pageFromTemplate', 'PATTERNS', 'patternInsert', 'flatten', 'step', 'parentOf', 'firstChildOf', 'nudge', 'nudgeMany',
   // history
