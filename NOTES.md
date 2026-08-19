@@ -61,7 +61,9 @@ on disk now.
   it is a command you type after publishing rather than something the build does.
 - **`commit` records the last commit to touch `builder.html`, not `HEAD`** — that is the source
   which produced those bytes, so "published from X" stays true even when the stamp lands in a
-  later commit of its own.
+  later commit of its own. It always does: a hash cannot be recorded before the commit it
+  names exists, so the working order is *commit → republish → stamp → commit the stamp*. The
+  second commit is one line and the price of the record being truthful.
 - **The hook installer refuses rather than clobbers.** `core.hooksPath` is a whole-repository
   setting and this builder shares its repo with an unrelated Next.js app; losing someone
   else's `pre-commit` to a convenience script would be a bad trade for a warning. It checks
