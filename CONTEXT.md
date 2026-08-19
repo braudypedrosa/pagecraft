@@ -16,11 +16,14 @@ browser. Lives at `~/Projects/braudyp.dev/page-builder/`.
 
 Published (private) at
 <https://claude.ai/code/artifact/16d1f437-f2ca-44df-aff7-02875acdd2c2> — to update it,
-publish `dist/artifact.html` and pass that URL, or the link changes.
+publish `dist/artifact.html` and pass that URL, or the link changes. It had gone a long
+way stale: the live copy still carried all 18 native `prompt()`/`confirm()` calls, which
+sandboxed iframes refuse, so naming a class or a colour silently did nothing there.
+**Republish after any session that changes `builder.html`.**
 
 > The repo it sits in (`braudyp.dev`) is an unrelated Next.js finance app. This builder is
-> standalone and does not touch it. **Nothing is committed to git yet** — `page-builder/`
-> is untracked.
+> standalone and does not touch it. It lives on the **`page-builder`** branch; the generated
+> `index.html` and `dist/` are committed too, so a clone can just open the file.
 
 ## State as of this handoff
 
