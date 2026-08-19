@@ -746,6 +746,33 @@ const cols = (n, kids, css) => N('row', {}, css, Array.from({ length: n }, (_, i
 const DEV_KEY = { desktop: 'd', tablet: 't', mobile: 'm' };
 const DEV_LABEL = { d: 'Desktop', t: 'Tablet', m: 'Mobile' };
 
+/* ---- how wide the canvas renders, and how much it is scaled to fit -------
+   The canvas used to be whatever width the panels left over, which meant the
+   breakpoint it rendered at was an accident of the window and of whether the
+   inspector happened to be open. At a 1440px window with a selection made it was
+   741px — so it drew the *mobile* layout, at 27px type instead of 38px, while the
+   chip read "Desktop base". Two different things were being conflated: the width a
+   breakpoint means, and the room available to show it.
+
+   They are separate now. The frame is always `canvasWidth()` wide and is scaled
+   down to fit; what you see is the breakpoint you are editing, at any window size. */
+const DEV_W = { mobile: 414, tablet: 834 };
+function canvasWidth(dev, maxWidth) {
+  if (DEV_W[dev]) return DEV_W[dev];
+  /* Desktop has to clear the 1024px tablet query with room to spare, and it has to
+     be at least the project's own container — otherwise the container, not the
+     breakpoint, is what the preview is showing you. A non-px max-width (%, vw)
+     parses to 0 and falls back to the floor. */
+  const px = /^[\d.]+px$/.test(String(maxWidth || '').trim()) ? parseFloat(maxWidth) : 0;
+  return Math.max(1280, Math.round(px) + 120);
+}
+/* Fit never magnifies. A 414px mobile frame in a wide window belongs at 100%,
+   not blown up to fill the space. */
+const fitZoom = (target, avail) => (!target || !(avail > 0) ? 1 : Math.min(1, avail / target));
+const ZOOMS = [['fit', 'Fit'], ['1', '100%'], ['0.75', '75%'], ['0.5', '50%'], ['0.25', '25%']];
+const zoomFor = (z, target, avail) =>
+  (z == null || z === 'fit' ? fitZoom(target, avail) : (parseFloat(z) || 1));
+
 const state = {
   v: 1,
   meta: {
@@ -758,7 +785,7 @@ const state = {
   header: [], footer: [], pages: [], cur: 0,
   ui: {
     mode: 'page', dev: 'desktop', sel: null, multi: [], tab: 'add', atab: 'widgets', stab: 'content', target: '', lmode: null,
-    open: {}, collapsed: {}, custom: {}
+    open: {}, collapsed: {}, custom: {}, zoom: 'fit'
   }
 };
 
@@ -3170,34 +3197,42 @@ ${m.css || ''}
 
 /* selection: green outline plus the eight handles from the product screens */
 #s-hud{position:absolute;top:0;left:0;z-index:9998;pointer-events:none}
-#s-hud .frame{position:absolute;outline:1.5px solid #b7f34a;pointer-events:none}
-#s-hud .frame i{position:absolute;width:7px;height:7px;background:#b7f34a;border-radius:1px}
-#s-hud .frame i.nw{left:-4px;top:-4px}
-#s-hud .frame i.ne{right:-4px;top:-4px}
-#s-hud .frame i.sw{left:-4px;bottom:-4px}
-#s-hud .frame i.se{right:-4px;bottom:-4px}
-#s-hud .frame i.n{left:50%;margin-left:-3.5px;top:-4px}
-#s-hud .frame i.s{left:50%;margin-left:-3.5px;bottom:-4px}
-#s-hud .frame i.w{top:50%;margin-top:-3.5px;left:-4px}
-#s-hud .frame i.e{top:50%;margin-top:-3.5px;right:-4px}
-#s-hud .frame.alt{outline:1.5px dashed #b7f34a;opacity:.8}
+/* Everything below divides by --z so it stays the same size on screen whatever the
+   canvas is scaled to. The frame's *position* still comes from the element, which is
+   what keeps it locked on; only its thickness is corrected. */
+#s-hud .frame{position:absolute;outline:calc(1.5px / var(--z,1)) solid #b7f34a;pointer-events:none}
+#s-hud .frame i{
+  position:absolute;background:#b7f34a;border-radius:1px;
+  width:calc(7px / var(--z,1));height:calc(7px / var(--z,1));
+}
+#s-hud .frame i.nw{left:calc(-4px / var(--z,1));top:calc(-4px / var(--z,1))}
+#s-hud .frame i.ne{right:calc(-4px / var(--z,1));top:calc(-4px / var(--z,1))}
+#s-hud .frame i.sw{left:calc(-4px / var(--z,1));bottom:calc(-4px / var(--z,1))}
+#s-hud .frame i.se{right:calc(-4px / var(--z,1));bottom:calc(-4px / var(--z,1))}
+#s-hud .frame i.n{left:50%;margin-left:calc(-3.5px / var(--z,1));top:calc(-4px / var(--z,1))}
+#s-hud .frame i.s{left:50%;margin-left:calc(-3.5px / var(--z,1));bottom:calc(-4px / var(--z,1))}
+#s-hud .frame i.w{top:50%;margin-top:calc(-3.5px / var(--z,1));left:calc(-4px / var(--z,1))}
+#s-hud .frame i.e{top:50%;margin-top:calc(-3.5px / var(--z,1));right:calc(-4px / var(--z,1))}
+#s-hud .frame.alt{outline:calc(1.5px / var(--z,1)) dashed #b7f34a;opacity:.8}
 /* Column gutter grips. They live in the HUD overlay rather than the canvas DOM,
    so nothing about resizing can leak into the export. */
 #s-hud .grip{
-  position:absolute;width:11px;margin-left:-5.5px;pointer-events:auto;cursor:col-resize;
-  display:flex;align-items:center;justify-content:center;
+  position:absolute;width:calc(11px / var(--z,1));margin-left:calc(-5.5px / var(--z,1));
+  pointer-events:auto;cursor:col-resize;display:flex;align-items:center;justify-content:center;
 }
 #s-hud .grip::before{content:'';width:3px;height:100%;border-radius:2px;background:#b7f34a;opacity:.35;transition:opacity .12s}
 #s-hud .grip:hover::before,#s-hud .grip.on::before{opacity:1}
 #s-hud .gtip{
-  position:absolute;transform:translate(-50%,-100%);background:#111311;color:#f8f6ef;
+  position:absolute;transform:scale(calc(1 / var(--z,1))) translate(-50%,-100%);
+  transform-origin:50% 100%;background:#111311;color:#f8f6ef;
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar{
   position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f8f6ef;
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
-  transform:translateY(-100%);font:500 12px "DM Sans",system-ui,sans-serif;
+  transform:scale(calc(1 / var(--z,1))) translateY(-100%);transform-origin:0 100%;
+  font:500 12px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar .nm{padding-right:6px}
 #s-hud .bar button{
@@ -3206,7 +3241,7 @@ ${m.css || ''}
 }
 #s-hud .bar button:hover{background:#ffffff26;opacity:1;color:#b7f34a}
 #s-hud .bar button.g{cursor:grab}
-#s-drop{position:absolute;z-index:9999;pointer-events:none;background:#b7f34a;border-radius:2px;box-shadow:0 0 0 1px #11131126}
+#s-drop{position:absolute;z-index:9999;pointer-events:none;background:#b7f34a;border-radius:2px;box-shadow:0 0 0 calc(1px / var(--z,1)) #11131126}
 #s-drop.box{background:#b7f34a24;border:1.5px solid #b7f34a;border-radius:8px;box-shadow:none}
 ` : '');
 }
@@ -3654,4 +3689,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };

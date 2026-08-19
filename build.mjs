@@ -92,6 +92,7 @@ const EXPORTS = [
   'DEF', 'IC', 'ICONS', 'ICON_PATHS', 'ICON_NAMES', 'iconSvg', 'COMMON_STYLE', 'GF', 'stackFor', 'familyOf', 'isGoogle', 'usedFamilies', 'gfontsHref', 'gfontsLink', 'fontGroups', 'FONT_BASE', 'LAYOUTS', 'COUNTS', 'DEFAULT_COLS', 'BASE', 'makeFor', 'labelOf', 'iconOf', 'rowRatios', 'matchLayout',
   // model + tree
   'N', 'cols', 'BOX', 'state', 'doc', 'page', 'tree', 'dk', 'DEV_KEY', 'DEV_LABEL',
+  'DEV_W', 'canvasWidth', 'fitZoom', 'ZOOMS', 'zoomFor',
   'locate', 'locateAny', 'eachNode', 'nameOf', 'lvl', 'holds', 'wrap',
   'insert', 'moveNode', 'reid', 'pageMove', 'dupNode', 'delNode', 'applyCols', 'seed',
   'MIN_COL', 'BP_CHAIN', 'rowRatiosAt', 'resizeCols', 'applyColsAt',

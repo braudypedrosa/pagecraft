@@ -335,19 +335,36 @@ body.preview .left,body.preview .right{display:none}
 
 /* ---- canvas ------------------------------------------------------------ */
 .stage{
-  flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
+  flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;
   background:var(--stage);overflow:auto;padding:14px 16px 0;position:relative;
 }
+.stage>.modebar{width:100%}
 body.preview .stage{padding:0}
+/* layoutCanvas() sets the width, and the iframe's own width and scale: the frame
+   renders at the breakpoint's real width and is scaled to fit the space. The device
+   max-widths that used to live here are gone — a width the CSS guesses at and a
+   width JS computes would only ever disagree. */
 .frameWrap{
   background:var(--white);border-radius:var(--r-md) var(--r-md) 0 0;overflow:hidden;
-  box-shadow:var(--shadow);width:100%;max-width:100%;flex:1;display:flex;min-height:0;
-  transition:max-width .24s cubic-bezier(.4,0,.2,1);
+  box-shadow:var(--shadow);width:100%;flex:1;display:flex;min-height:0;
+  /* centres when it fits and starts at the left edge when it does not, without the
+     unreachable overflow that align-items:center would cause */
+  margin-inline:auto;
+  transition:width .24s cubic-bezier(.4,0,.2,1);
 }
-body.preview .frameWrap{border-radius:0;box-shadow:none}
-.frameWrap.tablet{max-width:834px}
-.frameWrap.mobile{max-width:414px}
-#canvas{width:100%;height:100%;border:0;display:block;background:var(--white)}
+body.preview .frameWrap{border-radius:0;box-shadow:none;width:100% !important}
+#canvas{
+  width:100%;height:100%;border:0;display:block;background:var(--white);
+  flex:0 0 auto;transform-origin:0 0;
+}
+/* the zoom readout doubles as its control */
+.dim select{
+  appearance:none;border:0;background:none;cursor:pointer;padding:0 14px 0 0;margin:0;
+  font-family:var(--label);font-size:12px;font-weight:600;color:var(--text);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5L6 8.5l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat;background-position:right center;background-size:9px 9px;
+}
+.dim .sep{width:1px;height:13px;background:var(--line-2);flex:0 0 1px}
 .modebar{
   display:flex;align-items:center;gap:10px;width:100%;padding:0 2px 10px;
   color:var(--text-3);font-size:12.5px;
@@ -1681,6 +1698,33 @@ const cols = (n, kids, css) => N('row', {}, css, Array.from({ length: n }, (_, i
 const DEV_KEY = { desktop: 'd', tablet: 't', mobile: 'm' };
 const DEV_LABEL = { d: 'Desktop', t: 'Tablet', m: 'Mobile' };
 
+/* ---- how wide the canvas renders, and how much it is scaled to fit -------
+   The canvas used to be whatever width the panels left over, which meant the
+   breakpoint it rendered at was an accident of the window and of whether the
+   inspector happened to be open. At a 1440px window with a selection made it was
+   741px — so it drew the *mobile* layout, at 27px type instead of 38px, while the
+   chip read "Desktop base". Two different things were being conflated: the width a
+   breakpoint means, and the room available to show it.
+
+   They are separate now. The frame is always `canvasWidth()` wide and is scaled
+   down to fit; what you see is the breakpoint you are editing, at any window size. */
+const DEV_W = { mobile: 414, tablet: 834 };
+function canvasWidth(dev, maxWidth) {
+  if (DEV_W[dev]) return DEV_W[dev];
+  /* Desktop has to clear the 1024px tablet query with room to spare, and it has to
+     be at least the project's own container — otherwise the container, not the
+     breakpoint, is what the preview is showing you. A non-px max-width (%, vw)
+     parses to 0 and falls back to the floor. */
+  const px = /^[\d.]+px$/.test(String(maxWidth || '').trim()) ? parseFloat(maxWidth) : 0;
+  return Math.max(1280, Math.round(px) + 120);
+}
+/* Fit never magnifies. A 414px mobile frame in a wide window belongs at 100%,
+   not blown up to fill the space. */
+const fitZoom = (target, avail) => (!target || !(avail > 0) ? 1 : Math.min(1, avail / target));
+const ZOOMS = [['fit', 'Fit'], ['1', '100%'], ['0.75', '75%'], ['0.5', '50%'], ['0.25', '25%']];
+const zoomFor = (z, target, avail) =>
+  (z == null || z === 'fit' ? fitZoom(target, avail) : (parseFloat(z) || 1));
+
 const state = {
   v: 1,
   meta: {
@@ -1693,7 +1737,7 @@ const state = {
   header: [], footer: [], pages: [], cur: 0,
   ui: {
     mode: 'page', dev: 'desktop', sel: null, multi: [], tab: 'add', atab: 'widgets', stab: 'content', target: '', lmode: null,
-    open: {}, collapsed: {}, custom: {}
+    open: {}, collapsed: {}, custom: {}, zoom: 'fit'
   }
 };
 
@@ -4387,34 +4431,42 @@ ${m.css || ''}
 
 /* selection: green outline plus the eight handles from the product screens */
 #s-hud{position:absolute;top:0;left:0;z-index:9998;pointer-events:none}
-#s-hud .frame{position:absolute;outline:1.5px solid #b7f34a;pointer-events:none}
-#s-hud .frame i{position:absolute;width:7px;height:7px;background:#b7f34a;border-radius:1px}
-#s-hud .frame i.nw{left:-4px;top:-4px}
-#s-hud .frame i.ne{right:-4px;top:-4px}
-#s-hud .frame i.sw{left:-4px;bottom:-4px}
-#s-hud .frame i.se{right:-4px;bottom:-4px}
-#s-hud .frame i.n{left:50%;margin-left:-3.5px;top:-4px}
-#s-hud .frame i.s{left:50%;margin-left:-3.5px;bottom:-4px}
-#s-hud .frame i.w{top:50%;margin-top:-3.5px;left:-4px}
-#s-hud .frame i.e{top:50%;margin-top:-3.5px;right:-4px}
-#s-hud .frame.alt{outline:1.5px dashed #b7f34a;opacity:.8}
+/* Everything below divides by --z so it stays the same size on screen whatever the
+   canvas is scaled to. The frame's *position* still comes from the element, which is
+   what keeps it locked on; only its thickness is corrected. */
+#s-hud .frame{position:absolute;outline:calc(1.5px / var(--z,1)) solid #b7f34a;pointer-events:none}
+#s-hud .frame i{
+  position:absolute;background:#b7f34a;border-radius:1px;
+  width:calc(7px / var(--z,1));height:calc(7px / var(--z,1));
+}
+#s-hud .frame i.nw{left:calc(-4px / var(--z,1));top:calc(-4px / var(--z,1))}
+#s-hud .frame i.ne{right:calc(-4px / var(--z,1));top:calc(-4px / var(--z,1))}
+#s-hud .frame i.sw{left:calc(-4px / var(--z,1));bottom:calc(-4px / var(--z,1))}
+#s-hud .frame i.se{right:calc(-4px / var(--z,1));bottom:calc(-4px / var(--z,1))}
+#s-hud .frame i.n{left:50%;margin-left:calc(-3.5px / var(--z,1));top:calc(-4px / var(--z,1))}
+#s-hud .frame i.s{left:50%;margin-left:calc(-3.5px / var(--z,1));bottom:calc(-4px / var(--z,1))}
+#s-hud .frame i.w{top:50%;margin-top:calc(-3.5px / var(--z,1));left:calc(-4px / var(--z,1))}
+#s-hud .frame i.e{top:50%;margin-top:calc(-3.5px / var(--z,1));right:calc(-4px / var(--z,1))}
+#s-hud .frame.alt{outline:calc(1.5px / var(--z,1)) dashed #b7f34a;opacity:.8}
 /* Column gutter grips. They live in the HUD overlay rather than the canvas DOM,
    so nothing about resizing can leak into the export. */
 #s-hud .grip{
-  position:absolute;width:11px;margin-left:-5.5px;pointer-events:auto;cursor:col-resize;
-  display:flex;align-items:center;justify-content:center;
+  position:absolute;width:calc(11px / var(--z,1));margin-left:calc(-5.5px / var(--z,1));
+  pointer-events:auto;cursor:col-resize;display:flex;align-items:center;justify-content:center;
 }
 #s-hud .grip::before{content:'';width:3px;height:100%;border-radius:2px;background:#b7f34a;opacity:.35;transition:opacity .12s}
 #s-hud .grip:hover::before,#s-hud .grip.on::before{opacity:1}
 #s-hud .gtip{
-  position:absolute;transform:translate(-50%,-100%);background:#111311;color:#f8f6ef;
+  position:absolute;transform:scale(calc(1 / var(--z,1))) translate(-50%,-100%);
+  transform-origin:50% 100%;background:#111311;color:#f8f6ef;
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar{
   position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f8f6ef;
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
-  transform:translateY(-100%);font:500 12px "DM Sans",system-ui,sans-serif;
+  transform:scale(calc(1 / var(--z,1))) translateY(-100%);transform-origin:0 100%;
+  font:500 12px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar .nm{padding-right:6px}
 #s-hud .bar button{
@@ -4423,7 +4475,7 @@ ${m.css || ''}
 }
 #s-hud .bar button:hover{background:#ffffff26;opacity:1;color:#b7f34a}
 #s-hud .bar button.g{cursor:grab}
-#s-drop{position:absolute;z-index:9999;pointer-events:none;background:#b7f34a;border-radius:2px;box-shadow:0 0 0 1px #11131126}
+#s-drop{position:absolute;z-index:9999;pointer-events:none;background:#b7f34a;border-radius:2px;box-shadow:0 0 0 calc(1px / var(--z,1)) #11131126}
 #s-drop.box{background:#b7f34a24;border:1.5px solid #b7f34a;border-radius:8px;box-shadow:none}
 ` : '');
 }
@@ -5087,11 +5139,18 @@ function startColResize(e, grip) {
   cdoc.addEventListener('pointercancel', up);
 }
 
+/* Note this is the *visual* box: with the canvas scaled, its width and height are
+   already multiplied by zoomK. Only three places mix outer coordinates with iframe
+   ones, and all three are here — everything else measures inside the iframe, where
+   the scale does not exist. `inFrame` and `toScreen` are the whole conversion. */
 function frameRect() { return $('#canvas').getBoundingClientRect(); }
+const inFrame = (v, off) => (v - off) / zoomK;      // screen px -> iframe px
+const toScreen = (v, off) => v * zoomK + off;       // iframe px -> screen px
+
 function moveGhost(e, fromFrame) {
   const r = frameRect();
-  const x = fromFrame ? e.clientX + r.left : e.clientX;
-  const y = fromFrame ? e.clientY + r.top : e.clientY;
+  const x = fromFrame ? toScreen(e.clientX, r.left) : e.clientX;
+  const y = fromFrame ? toScreen(e.clientY, r.top) : e.clientY;
   const g = $('#ghost'); g.style.left = x + 'px'; g.style.top = y + 'px';
 }
 
@@ -5100,9 +5159,12 @@ function onDragMove(e, fromFrame) {
   drag.moved = true;
   moveGhost(e, fromFrame);
   const r = frameRect();
-  const x = fromFrame ? e.clientX : e.clientX - r.left;
-  const y = fromFrame ? e.clientY : e.clientY - r.top;
-  if (x < 0 || y < 0 || x > r.width || y > r.height) { drag.drop = null; showDrop(null); return; }
+  /* findDrop works in iframe document coordinates, so a pointer that came from the
+     outer document has to be divided by the scale, not just offset. */
+  const x = fromFrame ? e.clientX : inFrame(e.clientX, r.left);
+  const y = fromFrame ? e.clientY : inFrame(e.clientY, r.top);
+  /* the bounds are compared in iframe units too — r.width is the scaled box */
+  if (x < 0 || y < 0 || x > r.width / zoomK || y > r.height / zoomK) { drag.drop = null; showDrop(null); return; }
   const type = drag.kind === 'new' ? drag.type
     : drag.kind === 'pattern' ? 'section'
       : drag.kind === 'block' ? blockRootType(drag.blockId)
@@ -5244,9 +5306,11 @@ function placeRT() {
   const r = el.getBoundingClientRect();
   rt.classList.add('show');
   const w = rt.offsetWidth || 340;
-  let left = fr.left + r.left + r.width / 2 - w / 2;
+  /* the toolbar lives in the outer document, so the element's iframe rect has to be
+     scaled before it is offset — at 50% zoom it otherwise floats twice as far out */
+  let left = toScreen(r.left + r.width / 2, fr.left) - w / 2;
   left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
-  let top = fr.top + r.top - rt.offsetHeight - 8;
+  let top = toScreen(r.top, fr.top) - rt.offsetHeight - 8;
   if (top < 54) top = Math.min(fr.top + r.bottom + 8, window.innerHeight - 40);
   rt.style.left = left + 'px'; rt.style.top = top + 'px';
 }
@@ -6344,7 +6408,7 @@ function renderRight() {
   /* Joining or leaving changes the canvas width, so the selection frame and the
      px readout need recomputing once layout settles — `select()` paints the HUD
      before it calls this. */
-  if (was !== box.hidden) requestAnimationFrame(() => { positionHud(); renderDim(); });
+  if (was !== box.hidden) requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
   if (!s) { box.innerHTML = ''; return; }
 
   const n = s.node, d = DEF[n.type], tab = state.ui.stab;
@@ -6930,11 +6994,58 @@ function renderDoc() {
   const d = $('#docName');
   if (d) d.innerHTML = `<b>${esc(state.meta.name)}</b><small>· ${esc(page().name)}</small>`;
 }
+/* The frame renders at its breakpoint's width and is scaled to fit whatever the
+   panels leave. Everything the drag and selection code measures lives *inside* the
+   iframe, so it keeps working in unscaled document coordinates — only the three
+   places that cross the boundary need the factor, and `zoomK` is what they read. */
+let zoomK = 1;
+function layoutCanvas() {
+  const wrap = $('#frameWrap'), cv = $('#canvas');
+  if (!wrap || !cv) return;
+  if (document.body.classList.contains('preview')) {
+    /* preview is the real thing at real size — no frame, no scale */
+    zoomK = 1;
+    wrap.style.width = ''; cv.style.width = ''; cv.style.height = '';
+    cv.style.transform = '';
+    return;
+  }
+  const target = canvasWidth(state.ui.dev, state.meta.maxWidth);
+  const stage = $('#stage');
+  /* the stage's own padding is 16px a side; clientWidth already excludes any
+     scrollbar, which is why it is read rather than the window */
+  const avail = Math.max(120, stage.clientWidth - 32);
+  const k = zoomK = zoomFor(state.ui.zoom, target, avail);
+  wrap.style.width = Math.round(target * k) + 'px';
+  cv.style.width = target + 'px';
+  /* the wrap's height comes from flex and does not depend on the iframe, so this
+     is not circular: the iframe is made tall enough that scaling fills the wrap */
+  cv.style.height = Math.max(1, Math.round(wrap.clientHeight / k)) + 'px';
+  cv.style.transform = k === 1 ? 'none' : `scale(${k})`;
+  /* The selection HUD lives inside the iframe, so it is scaled along with the page.
+     The frame has to be — it tracks the element — but its label bar and handles are
+     editor chrome and were shrinking to 57% of legible. `--z` lets that CSS divide
+     itself back out. Set after renderDoc(), which rewrites the document. */
+  if (cdoc && cdoc.documentElement) cdoc.documentElement.style.setProperty('--z', String(k));
+}
+
 function renderDim() {
   const el = $('#dim');
   if (!el || !cwin) return;
-  const w = Math.round($('#canvas').getBoundingClientRect().width);
-  el.innerHTML = `<span>${esc(DEV_LABEL[dk()])}</span><b>${w} PX</b>`;
+  const target = canvasWidth(state.ui.dev, state.meta.maxWidth);
+  const stage = $('#stage');
+  /* what Fit *would* give, so the label reads the same whichever option is chosen */
+  const pct = Math.round(fitZoom(target, Math.max(120, (stage ? stage.clientWidth : 0) - 32)) * 100);
+  /* the width shown is the width the page is *rendered* at, which is now the same
+     thing as the breakpoint being edited — that is the whole point of the scale */
+  el.innerHTML = `<span>${esc(DEV_LABEL[dk()])}</span><b>${target} PX</b>`
+    + `<span class="sep"></span>`
+    + `<select id="zoomSel" title="Canvas zoom">${ZOOMS.map(([v, lb]) =>
+      `<option value="${v}"${String(state.ui.zoom) === v ? ' selected' : ''}>${lb}${v === 'fit' ? ' · ' + pct + '%' : ''}</option>`).join('')}</select>`;
+  const sel = $('#zoomSel');
+  if (sel) sel.addEventListener('change', () => {
+    state.ui.zoom = sel.value;
+    layoutCanvas(); positionHud(); renderDim();
+  });
 }
 
 /* The review runs on idle rather than on every keystroke, so a large project
@@ -6959,7 +7070,7 @@ function paintReview() {
 function render(opts = {}) {
   paint(); paintSel();
   renderLayers(); renderPages(); renderCms(); renderRight(); renderModebar();
-  renderPanelHead(); renderDoc(); renderDim(); drawBlocks();
+  renderPanelHead(); renderDoc(); layoutCanvas(); renderDim(); drawBlocks();
   paintReview(); refreshReview();
   const done = $('#doneScope');
   if (done) done.addEventListener('click', () => setMode('page'));
@@ -6979,8 +7090,11 @@ function setDev(d) {
   });
   const w = $('#frameWrap');
   w.className = 'frameWrap' + (d === 'desktop' ? '' : ' ' + d);
+  layoutCanvas();
   render();
-  setTimeout(renderDim, 260);            // after the width transition settles
+  /* the width transitions, so the scale that fits it has to be recomputed after —
+     and the HUD repositioned against where the frame actually ended up */
+  setTimeout(() => { layoutCanvas(); positionHud(); renderDim(); }, 260);
 }
 function togglePreview() {
   if (editing.on) exitEdit();
@@ -6988,6 +7102,7 @@ function togglePreview() {
   $('#previewBtn').innerHTML = on
     ? `${svg('edit', 14)} Exit preview`
     : `${svg('eye', 14)} Preview`;
+  layoutCanvas();
   paint();
   if (!on) paintSel();
 }
@@ -8099,7 +8214,7 @@ function bindTop() {
     renderPanelHead();
     renderCms();
   }));
-  window.addEventListener('resize', () => { positionHud(); renderDim(); });
+  window.addEventListener('resize', () => { layoutCanvas(); positionHud(); renderDim(); });
 }
 
 HOOKS.change = () => render();

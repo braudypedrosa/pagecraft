@@ -2810,3 +2810,78 @@ test('a control that edits a list of its own is not offered for binding', () => 
   a.ok(C.bindableKeys('embed').includes('html'), 'a single value still binds');
   a.ok(C.bindableKeys('icon').includes('name'));
 });
+
+/* ============================================ the canvas renders its breakpoint
+   The canvas used to be whatever width the panels left over, so which breakpoint it
+   drew was an accident of the window. At a 1440px window with the inspector open it
+   was 741px and quietly rendering mobile while the chip read "Desktop base". These
+   pin the two things that were being conflated: the width a breakpoint means, and
+   the room available to show it. */
+test('a breakpoint renders at the width it means, not at whatever is left over', () => {
+  a.equal(C.canvasWidth('mobile', '1200px'), 414);
+  a.equal(C.canvasWidth('tablet', '1200px'), 834);
+  /* desktop has to clear the 1024px tablet query with room to spare */
+  a.ok(C.canvasWidth('desktop', '1200px') > 1024);
+  a.equal(C.canvasWidth('desktop', '1200px'), 1320, 'the container plus breathing room');
+});
+
+test('the desktop canvas is never narrower than the project container', () => {
+  /* otherwise the container, not the breakpoint, is what the preview shows you */
+  a.ok(C.canvasWidth('desktop', '1600px') >= 1600);
+  a.equal(C.canvasWidth('desktop', '1600px'), 1720);
+  /* and never narrower than the floor, whatever the container says */
+  a.equal(C.canvasWidth('desktop', '600px'), 1280);
+  a.equal(C.canvasWidth('desktop', ''), 1280);
+  a.equal(C.canvasWidth('desktop', '90%'), 1280, 'a non-px container falls back to the floor');
+  a.equal(C.canvasWidth('desktop', '80vw'), 1280);
+});
+
+test('every device width clears the query below it, at any window size', () => {
+  /* the actual regression: no available width may change which breakpoint renders */
+  for (const avail of [400, 581, 741, 900, 1059, 1400, 2200]) {
+    const w = C.canvasWidth('desktop', '1200px');
+    a.ok(w > 1024, `desktop stays above the tablet query with ${avail}px available`);
+    a.ok(C.zoomFor('fit', w, avail) > 0, 'and is always shown at some scale');
+  }
+  a.ok(C.canvasWidth('tablet', '1200px') <= 1024, 'tablet sits inside the tablet query');
+  a.ok(C.canvasWidth('tablet', '1200px') > 767, 'but above the mobile one');
+  a.ok(C.canvasWidth('mobile', '1200px') <= 767);
+});
+
+test('fit scales down to the space available and never magnifies', () => {
+  a.equal(C.fitZoom(1320, 660), 0.5);
+  a.equal(C.fitZoom(1320, 1320), 1);
+  /* a 414px mobile frame in a wide window belongs at 100%, not blown up */
+  a.equal(C.fitZoom(414, 1400), 1);
+  a.equal(C.fitZoom(0, 500), 1, 'no target, no scaling');
+  a.equal(C.fitZoom(1320, 0), 1, 'no room measured yet, no scaling');
+  a.equal(C.fitZoom(1320, -20), 1);
+});
+
+test('zoomFor honours an explicit choice and falls back to fit', () => {
+  a.equal(C.zoomFor('fit', 1320, 660), 0.5);
+  a.equal(C.zoomFor(null, 1320, 660), 0.5, 'unset means fit');
+  a.equal(C.zoomFor('1', 1320, 660), 1, 'an explicit 100% overrides the space available');
+  a.equal(C.zoomFor('0.25', 1320, 660), 0.25);
+  a.equal(C.zoomFor('nonsense', 1320, 660), 1, 'an unparseable choice is 100%, not 0');
+});
+
+test('the zoom list offers fit plus fixed steps, all parseable', () => {
+  a.equal(C.ZOOMS[0][0], 'fit');
+  C.ZOOMS.slice(1).forEach(([v]) => {
+    const n = parseFloat(v);
+    a.ok(n > 0 && n <= 1, `${v} is a usable factor`);
+  });
+  a.deepEqual(C.ZOOMS.map(z => z[1]), ['Fit', '100%', '75%', '50%', '25%']);
+});
+
+test('the two demo breakpoints a laptop used to hide are reachable', () => {
+  /* 1440px window, inspector open: ~741px of room. Before, that *was* the canvas
+     width, so the title rendered at its mobile 27px. Now the frame is 1320px wide
+     and scaled, so the desktop rule is the one that applies. */
+  const w = C.canvasWidth('desktop', C.state.meta.maxWidth);
+  const k = C.fitZoom(w, 741);
+  a.ok(w > 1024, 'desktop rules apply in the frame');
+  a.ok(k < 1, 'and it is scaled to fit the laptop');
+  a.equal(Math.round(w * k), 741, 'filling exactly the room there is');
+});

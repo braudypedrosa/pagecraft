@@ -54,7 +54,7 @@ Three things the stale message carries because they are not recoverable from the
   is live, and only checking made it safe last time.
 
 Deliberately **not** wired into `npm test`: a stale artifact is not a broken build, and
-failing 254 passing tests over a publishing chore would train everyone to ignore the check.
+failing 261 passing tests over a publishing chore would train everyone to ignore the check.
 It reports on every build and gates only where asked.
 
 Why any of this exists: the live copy went stale twice. The second time it predated the whole
@@ -71,7 +71,7 @@ something does.
 
 | | |
 |---|---|
-| Tests | **254**, `npm test` |
+| Tests | **261**, `npm test` |
 | Widgets | 17 |
 | Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
@@ -111,7 +111,7 @@ style edit fans out to the set).
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 254 cases, and reports the Artifact's freshness
+npm test            # rebuild + 261 cases, and reports the Artifact's freshness
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 npm run publish:check   # exits 1 if the published Artifact is behind
@@ -176,14 +176,18 @@ Three failure modes cost real time in this project. They are worth knowing in ad
   its assertion and was invisible: brand green measures 1.6:1 on Paper, so the ring round a
   brand-filled button could not be seen. Only looking at it caught that. This is the
   "bad defaults pass tests" lesson again, in a new costume.
-- **The tablet breakpoint is `max-width:1024px`, so the editor canvas is almost never at
-  the desktop base.** At a 1500px window the canvas is 816px, which matches the tablet
-  query. A text style carries its own `t`/`m` sizes and `treeCss` emits the breakpoint
-  blocks *after* the desktop element rules — so overriding `font-size` on the desktop base
-  alone is silently beaten everywhere you can actually see it. A step number set to 19px
-  rendered at the Display style's 44px for exactly this reason. Use the `sized()` helper,
-  which pins all three; a test now fails if a styled heading resizes only on desktop.
-  Also: after `setDev()` the canvas width transitions, so re-read it in a later call.
+- **~~The editor canvas is almost never at the desktop base~~ — fixed, and worth knowing
+  why.** The canvas used to be whatever the panels left over (`window - 684`), so at a
+  1440px window with the inspector open it was 741px and rendered the *mobile* layout
+  while the chip read Desktop base. This was documented here as a gotcha for months; it
+  was a design flaw. `canvasWidth()` now gives each breakpoint the width it means and the
+  frame is scaled to fit, so what you see is what you are editing. The cascade fact behind
+  the old symptom still holds: a text style carries its own `t`/`m` sizes and `treeCss`
+  emits the breakpoint blocks *after* the desktop element rules, so setting `font-size` on
+  the desktop base alone is still beaten below 1024px. Use `sized()`, which pins all three;
+  a test fails if a styled heading resizes only on desktop.
+  Also: after `setDev()` the frame width transitions, so `layoutCanvas` runs again on a
+  timer — re-read any width in a later call.
 
 ## One thing left open
 
@@ -210,7 +214,8 @@ that the browser failed.
 2. **Measure before optimising** — the canvas rebuilds `innerHTML` on content edits and undo
    keeps 80 full document clones. The demo is only 64 nodes; generate 300–500 and measure
    before changing anything
-3. **Canvas zoom** (it is in the brand mockup; only the px readout exists), custom layer
+3. ~~Canvas zoom~~ — done, and it was the most important thing in the tool rather than
+   the cosmetic item this list had it down as. Still open from that line: custom layer
    names, an Assets item in the rail
 4. **Test the UI layer** — 4,400 lines have no unit tests, which is where the one real
    regression came from. Either extract more into core or add a DOM-shimmed layer. The three

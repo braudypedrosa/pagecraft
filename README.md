@@ -323,6 +323,21 @@ primary and says so.
 `esc` drops back to a single element before it starts walking up the tree, so you never lose
 the set in one keystroke.
 
+## Canvas zoom
+
+The canvas renders each breakpoint at the width that breakpoint actually means — 414px on
+Mobile, 834px on Tablet, and the larger of 1280px or your container width on Desktop — and
+scales the frame to fit the space the panels leave. **What you see is the breakpoint you
+are editing, whatever the size of your window.**
+
+The readout at the bottom left shows the rendered width and doubles as the zoom control:
+**Fit** (the default, which never magnifies) or a fixed 100 / 75 / 50 / 25%. On a 1280px
+laptop the 1320px desktop frame sits at 45%; pick 100% and scroll if you need to read it.
+
+Before this the canvas was simply whatever width was left over, so selecting an element —
+which opens the inspector — could flip the canvas from your desktop layout to your mobile
+one without saying so.
+
 ## Responsive
 
 Pick Tablet or Mobile in the top bar and any value you change is written as a
