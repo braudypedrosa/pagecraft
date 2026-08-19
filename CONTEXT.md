@@ -19,22 +19,49 @@ Published (private) at
 publish `dist/artifact.html` and pass that URL, or the link changes.
 **Republish after any session that changes `builder.html`.**
 
-Three facts about that artifact, none of which are recoverable from the repo:
+**You no longer have to remember any of this.** `dist/PUBLISHED.json` records the sha256 of
+the copy that was actually published, and every `npm run build` / `npm test` ends with one
+line saying whether the live artifact matches what the repo would produce:
 
-- **Favicon 📐**, and **title from the fragment's own `<title>Pagecraft Builder</title>`**.
-  Keep both stable — a changed tab icon reads as a different page.
-- **It carries a stored `capabilities: {downloads}` declaration on contract `0.2.4`.**
-  Publishing without an explicit `capabilities` argument carries it forward, which is what
-  you want: the sandbox blocks a page-initiated download otherwise, and every export button
-  in this tool is one. Passing `capabilities: {}` would silently break all of them.
-- **A republish will 409** because the session doing it has not read the live copy. The fix
-  is to `WebFetch` the URL first and check what is actually on it, *then* publish. Do not
-  reach for `force` before looking: it discards whatever is live.
+```
+Artifact: up to date — published 2026-08-19 from ad1eeff
+Artifact is STALE — 3 commits behind (published from ad1eeff).
+  live   https://claude.ai/code/artifact/16d1f437-…
+  fix    republish dist/artifact.html to that URL, then: npm run publish:stamp
+  keep   capabilities ["downloads"] · contract 0.2.4 · favicon 📐
+```
 
-It had gone a long way stale twice now. The second time, the live copy predated the whole
+The comparison is sound because the build is **byte-deterministic** — same `builder.html`
+and same vendored fonts, same output, no timestamps. A test would be nice; three runs
+hashing identically is what was actually checked.
+
+| | |
+|---|---|
+| `npm run publish:check` | exits **1** when stale, so it can gate anything |
+| `npm run publish:stamp -- <url>` | run this **immediately after** a real publish |
+| `npm run hooks` | installs the tracked `post-commit`, which repeats the warning when a commit touches `builder.html`. Refuses if `core.hooksPath` is taken or `.git/hooks` holds anything real — this repo is shared with an unrelated app |
+
+Three things the stale message carries because they are not recoverable from the repo:
+
+- **Favicon 📐**, title from the fragment's own `<title>Pagecraft Builder</title>`. Keep both
+  stable; a changed tab icon reads as a different page.
+- **`capabilities: {downloads}` on contract `0.2.4`.** Publishing without an explicit
+  `capabilities` argument carries it forward, which is what you want — the sandbox blocks a
+  page-initiated download otherwise, and every export button here is one. `capabilities: {}`
+  would break all of them silently.
+- **A republish 409s** until that session has read the live copy. `WebFetch` the URL and look
+  at what is on it *before* publishing. Do not reach for `force` first: it discards whatever
+  is live, and only checking made it safe last time.
+
+Deliberately **not** wired into `npm test`: a stale artifact is not a broken build, and
+failing 254 passing tests over a publishing chore would train everyone to ignore the check.
+It reports on every build and gates only where asked.
+
+Why any of this exists: the live copy went stale twice. The second time it predated the whole
 CMS — no collections, no Collection list, no detail pages, no zip export — while the repo was
-six commits ahead. Both times the cause was the same: republishing is a separate act from
-committing, and nothing enforces it.
+six commits ahead. Both times the cause was the same, and it is not forgetfulness:
+**republishing is a separate act from committing, and nothing connected the two.** Now
+something does.
 
 > The repo it sits in (`braudyp.dev`) is an unrelated Next.js finance app. This builder is
 > standalone and does not touch it. It lives on the **`page-builder`** branch; the generated
@@ -84,9 +111,11 @@ style edit fans out to the set).
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 254 cases
+npm test            # rebuild + 254 cases, and reports the Artifact's freshness
 npm run serve       # static server on :4877
 open index.html     # or just open the file
+npm run publish:check   # exits 1 if the published Artifact is behind
+npm run hooks           # one-time: post-commit repeats that warning
 ```
 
 `npm run build` regenerates `index.html`, `dist/artifact.html` and `dist/core.cjs` from

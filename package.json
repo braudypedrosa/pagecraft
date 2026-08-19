@@ -6,6 +6,9 @@
   "scripts": {
     "build": "node build.mjs",
     "test": "node build.mjs && node --test tests/*.test.cjs",
-    "serve": "python3 -m http.server 4877"
+    "serve": "python3 -m http.server 4877",
+    "publish:check": "node tools/pubcheck.mjs",
+    "publish:stamp": "node tools/pubcheck.mjs stamp",
+    "hooks": "node tools/install-hooks.mjs"
   }
 }

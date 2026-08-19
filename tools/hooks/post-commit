@@ -1,0 +1,16 @@
+#!/bin/sh
+# Says so when a commit changes the builder but the published Artifact still shows
+# the old one. Tracked, and installed with `npm run hooks` — .git/hooks is not
+# tracked, so a clone gets this only by asking for it.
+#
+# post-commit cannot fail a commit and should not try: the commit has happened.
+# This prints, at the one moment the omission is fresh enough to act on.
+touched=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null)
+case "$touched" in
+  *page-builder/builder.html*|*page-builder/dist/artifact.html*) ;;
+  *) exit 0 ;;
+esac
+dir=$(git rev-parse --show-toplevel)/page-builder
+[ -f "$dir/tools/pubcheck.mjs" ] || exit 0
+node "$dir/tools/pubcheck.mjs" --hook
+exit 0

@@ -514,6 +514,19 @@ generates:
 - `dist/core.cjs` — the DOM-free regions of the script, extracted verbatim between
   `/*<core>*/` markers, so `tests/core.test.cjs` exercises the code that actually ships
 
+The build is **byte-deterministic** — the same source and the same vendored fonts give the
+same output, with no timestamps anywhere. That is what lets the last line of every build tell
+you whether the published copy is still the one this repo would produce:
+
+```bash
+npm run publish:check          # exits 1 when the published Artifact is behind
+npm run publish:stamp -- <url> # run immediately after a real publish
+npm run hooks                  # one-time: post-commit repeats the warning
+```
+
+`dist/PUBLISHED.json` holds the hash of what was published. Publishing is a manual step with
+no CLI, so nothing can do it for you — but nothing has to remember it either.
+
 ## Brand
 
 `brand/` vendors what the build needs from the Pagecraft brand kit: Manrope (variable) and

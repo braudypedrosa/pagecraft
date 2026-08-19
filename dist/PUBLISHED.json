@@ -1,0 +1,12 @@
+{
+  "url": "https://claude.ai/code/artifact/16d1f437-f2ca-44df-aff7-02875acdd2c2",
+  "sha256": "6ca3a63f0938d53f95fb8f185153fd56406d375091d43aecdaf8bf82fbc7c263",
+  "commit": "ad1eeff",
+  "publishedAt": "2026-08-19",
+  "favicon": "📐",
+  "contract": "0.2.4",
+  "capabilities": [
+    "downloads"
+  ],
+  "note": "sha256 is of dist/artifact.html as published. build.mjs is byte-deterministic, so a mismatch means the live copy is behind. Written by `npm run publish:stamp`."
+}

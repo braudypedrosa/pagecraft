@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { status, report } from './tools/pubcheck.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const frag = readFileSync(join(here, 'builder.html'), 'utf8');
@@ -134,3 +135,12 @@ module.exports = { ${EXPORTS.join(', ')} };
 `);
 
 console.log(`index.html + dist/artifact.html written (fonts ${Math.round(FONT_CSS.length / 1024)} KB) · dist/core.cjs written (${regions.length} core regions, ${regions.join('').split('\n').length} lines)`);
+
+/* ---- 4. is the published Artifact still the copy we just built? ---------
+   Publishing is an agent action with no CLI, so this cannot be automated — but the
+   live copy has gone stale twice, once by six commits, on the strength of a note in
+   CONTEXT.md. Reporting it on every build is the part that can be. `--check` makes
+   it gateable; see tools/pubcheck.mjs. */
+const pub = status();
+console.log(report(pub));
+if (process.argv.includes('--check') && pub.state !== 'current') process.exit(1);
