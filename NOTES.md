@@ -14,7 +14,7 @@ transcript is never required to pick this up.
 | `dist/artifact.html` | generated: same fragment with fonts inlined, for publishing |
 | `dist/core.cjs` | generated: the DOM-free regions, for `node --test` |
 | `brand/` | vendored from the Pagecraft brand kit (fonts, licenses, tokens, logo) |
-| `tests/core.test.cjs` | 193 cases against `dist/core.cjs` |
+| `tests/core.test.cjs` | 206 cases against `dist/core.cjs` |
 
 ```bash
 npm test          # rebuild, then run the suite
@@ -141,8 +141,29 @@ card works wherever it lands — under a Collection List, or on a detail page.
   and it read as a bug.
 - Bindable = content props, minus `ts`: a text style is a design choice, not content.
 
-**Still to come:** the Collection List repeater (phase 3), detail pages and multi-file export
-(phase 4), `content.json` (phase 5). Everything resolves at export — the site
+### The Collection List
+
+A `list` widget at the **same level as a row**, so it drops wherever a row drops and holds
+columns. Its collection is `node.src` — the field phase 2 already uses — so anything inside binds
+with no extra plumbing. Put one Column in and you get a grid of cards.
+
+Its contents repeat **as a group**, once per item. One column in means N columns out; two means
+2N. Nothing is silently dropped, which is why it repeats everything rather than only `children[0]`.
+
+- **Every repeat needs its own id.** The first version shipped the same `id` on all N cards —
+  invalid markup, and it breaks any anchor pointing into one. `renderNode` suffixes the id with
+  the item slug when `o.repeat` is set; a hand-set `adv.htmlId` gets the same treatment, since an
+  anchor cannot be unique across repeats either. In the **editor** the first repeat keeps the bare
+  node id so `getElementById` still resolves it for selection painting, the HUD and the grips,
+  while every copy keeps `data-id` pointing at the one template node.
+- **`listItems`** applies sort, direction and limit. Sorting a `number` field compares numerically
+  — as text, 100 sorts before 99. A limit of 0, empty or unparseable means all.
+- **An empty collection exports nothing**, not an empty wrapper; the editor still explains why.
+  Same for a list with no collection or no card.
+- `select` controls may now take `opts` as a function of the node, which is how Sort by lists the
+  chosen collection's fields.
+
+**Still to come:** detail pages and multi-file export (phase 4), `content.json` (phase 5). Everything resolves at export — the site
 that ships is plain HTML, with the JSON alongside as a portable copy.
 
 ## Media library
@@ -418,7 +439,7 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 4. Measure before optimising: canvas rebuilds `innerHTML` on content edits, and undo keeps
    80 full document clones. The demo is 64 nodes — generate 300–500 and measure first
 5. Canvas zoom; custom layer names; an Assets item in the rail
-6. `4,068` of `7,025` lines are UI with no unit tests — extract more into core, or add a
+6. `4,080` of `7,105` lines are UI with no unit tests — extract more into core, or add a
    DOM-shimmed layer
 7. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next

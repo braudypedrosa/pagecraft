@@ -2208,3 +2208,120 @@ test('which props may bind: content, but never the text style', () => {
   a.ok(C.bindableKeys('image').includes('src'));
   a.ok(C.bindableKeys('image').includes('alt'));
 });
+
+/* --------------------------------------------------------- collection list */
+const withList = () => {
+  blank();
+  const col = C.collectionAdd('Projects');
+  C.fieldAdd(col.id, 'Year', 'number');
+  [['Acme rebrand', '2025'], ['Northwind app', '2024'], ['Harbour print', '100']].forEach(([t, y]) => {
+    const it = C.itemAdd(col.id);
+    C.itemSet(col.id, it.id, 'title', t);
+    C.itemSet(col.id, it.id, 'year', y);
+  });
+  const list = C.N('list');
+  C.srcSet(list, col.id);
+  const card = C.N('column', {}, {}, [C.N('heading', { text: 'placeholder', ts: 'subtitle' })]);
+  list.children.push(card);
+  C.state.pages[0].tree.push(C.N('section', {}, {}, [list]));
+  const heading = card.children[0];
+  C.bindSet(heading, 'text', 'title');
+  return { col, list, card, heading };
+};
+
+test('a collection list renders its contents once per item', () => {
+  const { col } = withList();
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  a.equal((html.match(/class="pagecraft-column/g) || []).length, 3, 'one card per item');
+  for (const t of ['Acme rebrand', 'Northwind app', 'Harbour print']) a.match(html, new RegExp(t));
+  a.equal(/placeholder/.test(html), false, 'the template text is replaced everywhere');
+});
+
+test('every repeat gets its own item, not the previewed one', () => {
+  const { col } = withList();
+  C.state.ui.item = { [col.id]: 2 };                 // preview the third
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  a.equal((html.match(/Acme rebrand/g) || []).length, 1, 'still one of each');
+  a.equal((html.match(/Harbour print/g) || []).length, 1, 'the preview index does not leak into a repeat');
+});
+
+test('sorting a number field compares numerically', () => {
+  const { list, col } = withList();
+  list.props.sort = 'year';
+  const order = () => C.listItems(list, col).map(i => i.values.year);
+  a.deepEqual(order(), ['100', '2024', '2025'], 'not string order, which puts 100 last');
+  list.props.dir = 'desc';
+  a.deepEqual(order(), ['2025', '2024', '100']);
+});
+
+test('sorting a text field compares as text', () => {
+  const { list, col } = withList();
+  list.props.sort = 'title';
+  a.deepEqual(C.listItems(list, col).map(i => i.values.title), ['Acme rebrand', 'Harbour print', 'Northwind app']);
+});
+
+test('no sort means the order set in the CMS', () => {
+  const { list, col } = withList();
+  a.deepEqual(C.listItems(list, col).map(i => i.values.title), ['Acme rebrand', 'Northwind app', 'Harbour print']);
+});
+
+test('a limit caps the list, and a bad limit does not', () => {
+  const { list, col } = withList();
+  list.props.limit = '2';
+  a.equal(C.listItems(list, col).length, 2);
+  for (const bad of ['', '0', '-3', 'abc']) { list.props.limit = bad; a.equal(C.listItems(list, col).length, 3, `limit ${JSON.stringify(bad)} means all`); }
+});
+
+test('an empty collection exports nothing rather than an empty shell', () => {
+  const { col } = withList();
+  C.collections()[0].items = [];
+  const shipped = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  a.equal(/pagecraft-list/.test(shipped), false, 'no stray wrapper in the export');
+  a.match(C.renderNode(C.state.pages[0].tree[0], { edit: true }), /has no items yet/, 'but the editor says why');
+});
+
+test('a list with no collection exports nothing and prompts in the editor', () => {
+  const { list } = withList();
+  C.srcSet(list, '');
+  a.equal(/pagecraft-list/.test(C.renderNode(C.state.pages[0].tree[0], { edit: false })), false);
+  a.match(C.renderNode(C.state.pages[0].tree[0], { edit: true }), /Pick a collection/);
+});
+
+test('a list with no card exports nothing and prompts in the editor', () => {
+  const { list } = withList();
+  list.children = [];
+  a.equal(/pagecraft-list/.test(C.renderNode(C.state.pages[0].tree[0], { edit: false })), false);
+  a.match(C.renderNode(C.state.pages[0].tree[0], { edit: true }), /becomes the card/);
+});
+
+test('a list sits where a row sits, and holds columns', () => {
+  a.equal(C.lvl('list'), C.lvl('row'), 'same level, so it drops in the same places');
+  a.equal(C.holds('section', 'list'), true);
+  a.equal(C.holds('list', 'column'), true);
+  a.equal(C.holds('column', 'list'), false, 'a card cannot contain the list it repeats in');
+});
+
+test('every repeat ships a unique id, or the export is invalid markup', () => {
+  const { col } = withList();
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  const ids = [...html.matchAll(/id="([^"]+)"/g)].map(m => m[1]);
+  a.equal(ids.length, new Set(ids).size, 'no id appears twice: ' + ids.join(' '));
+  a.ok(ids.some(x => /-acme-rebrand$/.test(x)), 'the item slug is what makes them unique');
+});
+
+test('a hand-set anchor inside a card is made per-item too', () => {
+  const { heading } = withList();
+  heading.adv.htmlId = 'card-title';
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  const ids = [...html.matchAll(/id="([^"]+)"/g)].map(m => m[1]);
+  a.equal(ids.length, new Set(ids).size, 'still unique');
+  a.ok(ids.includes('card-title-acme-rebrand'));
+});
+
+test('in the editor the first repeat keeps the bare node id', () => {
+  const { col, card } = withList();
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: true });
+  a.match(html, new RegExp('id="' + card.id + '"'), 'so selection and the HUD still find it');
+  a.equal((html.match(new RegExp('data-id="' + card.id + '"', 'g')) || []).length, 3,
+    'but every copy still points at the one template node');
+});

@@ -227,6 +227,33 @@ const DEF = {
     }
   },
 
+  /* A Collection List is a Row whose contents repeat — put one Column inside and
+     you get a grid of cards. The collection lives on `node.src`, the same field
+     phase 2 uses, so anything inside binds with no extra plumbing. */
+  list: {
+    label: 'Collection list', icon: 'cms', level: 2, accepts: [3],
+    make: () => ({
+      props: { sort: '', dir: 'asc', limit: '' },
+      css: { d: { gap: '24px', 'align-items': 'stretch', 'flex-wrap': 'wrap' }, t: {}, m: { gap: '20px' } }
+    }),
+    controls: {
+      content: [
+        { t: 'source', label: 'Collection' },
+        {
+          t: 'select', k: 'sort', label: 'Sort by',
+          opts: n => [['', 'The order in the CMS'],
+            ...((n.src && findCollection(n.src) ? findCollection(n.src).fields : []).map(f => [f.id, f.name]))]
+        },
+        { t: 'pick', k: 'dir', label: 'Direction', opts: [['asc', 'A–Z'], ['desc', 'Z–A']] },
+        { t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all' },
+        { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space },
+        { t: 'pick', c: 'align-items', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['stretch', 'Fill']] },
+        { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, opts: [['wrap', 'Wrap'], ['nowrap', 'No wrap']] }
+      ],
+      style: []
+    }
+  },
+
   column: {
     label: 'Column', icon: 'column', level: 3, accepts: [2, 4],
     make: () => ({ props: {}, css: { d: { 'flex-grow': '100', 'justify-content': 'flex-start', 'align-items': 'stretch', gap: '16px' }, t: {}, m: { 'flex-basis': '100%' } } }),
@@ -1436,6 +1463,22 @@ function itemSet(colId, iid, fid, value) {
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
+/* The items a Collection List renders, in order. Sorting on a number field
+   compares numerically — sorting a year as text puts 100 before 99. */
+function listItems(n, col) {
+  let out = (col.items || []).slice();
+  const f = n.props.sort ? findField(col, n.props.sort) : null;
+  if (f) out.sort((a, b) => {
+    const av = a.values[f.id] ?? '', bv = b.values[f.id] ?? '';
+    return f.type === 'number'
+      ? (parseFloat(av) || 0) - (parseFloat(bv) || 0)
+      : String(av).localeCompare(String(bv));
+  });
+  if (n.props.dir === 'desc') out.reverse();
+  const lim = parseInt(n.props.limit, 10);
+  return lim > 0 ? out.slice(0, lim) : out;
+}
+
 /* ---- binding -------------------------------------------------------------
    A binding names a field and nothing else. The collection comes from the nearest
    ancestor that declares a source (`node.src`), so one card carries no collection
@@ -2518,7 +2561,7 @@ img,video,svg{max-width:100%}
 .pagecraft-section{position:relative;width:100%}
 .pagecraft-container{width:100%;max-width:var(--maxw);margin-left:auto;margin-right:auto;position:relative}
 .pagecraft-container.full{max-width:none}
-.pagecraft-row{display:flex;flex-wrap:wrap;width:100%}
+.pagecraft-row,.pagecraft-list{display:flex;flex-wrap:wrap;width:100%}
 .pagecraft-column{display:flex;flex-direction:column;min-width:0;flex-shrink:1;flex-basis:0%}
 .pagecraft-heading{margin:0;font-family:${m.headFont || 'inherit'}}
 .pagecraft-heading a{color:inherit;text-decoration:none}
@@ -2741,14 +2784,23 @@ function renderNode(n, o) {
   const ts = n.props.ts && findStyle(n.props.ts) ? ' ts-' + n.props.ts : '';
   const managed = nodeClasses(n).map(c => ' c-' + c.id).join('');
   const cx = c => `class="${c} ${nodeClass(n)}${ts}${managed}${n.adv && n.adv.cls ? ' ' + esc(n.adv.cls) : ''}"`;
-  /* the editor addresses elements by node id; the export uses the readable one */
-  const domId = o.edit ? n.id : esc(domIdOf(n));
+  /* The editor addresses elements by node id; the export uses the readable one.
+     A repeat is the same node rendered many times, so both need a per-item suffix
+     or every card in a Collection List ships the same id — invalid markup, and it
+     breaks every anchor pointing into one. The item slug is the suffix because it
+     is stable and it matches the detail-page URLs.
+     In the editor the first repeat keeps the bare node id, so selection painting,
+     the HUD and the column grips still resolve it with getElementById. */
+  const rep = o.repeat && o.item ? '-' + o.item.slug : '';
+  const domId = o.edit
+    ? (o.repIndex ? n.id + rep : n.id)
+    : esc(domIdOf(n) + rep);
   const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? ' data-sel' : ''}` : ''}`;
   /* a node that declares a source opens a scope for itself and everything under
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
   const sc = n.src ? findCollection(n.src) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
-  const kids = (n.children || []).map(c => renderNode(c, o2)).join('');
+  const kids = n.type === 'list' ? '' : (n.children || []).map(c => renderNode(c, o2)).join('');
   const p = boundProps(n, o2.col, o2.item);
 
   switch (n.type) {
@@ -2759,6 +2811,22 @@ function renderNode(n, o) {
     }
     case 'row':
       return `<div ${at} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
+    case 'list': {
+      const lc = n.src ? findCollection(n.src) : null;
+      const kidz = n.children || [];
+      if (!lc) return o.edit
+        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Pick a collection for this list</div></div>` : '';
+      if (!kidz.length) return o.edit
+        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
+      const rows = listItems(n, lc);
+      /* An empty collection exports nothing rather than an empty shell; the editor
+         still says so, or the list would look broken. */
+      if (!rows.length) return o.edit
+        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : '';
+      const reps = rows.map((it, k) =>
+        kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join('')).join('');
+      return `<div ${at} ${cx('pagecraft-list')}>${reps}</div>`;
+    }
     case 'column':
       return `<div ${at} ${cx('pagecraft-column')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a component</div>` : '')}</div>`;
     case 'heading': {
@@ -2954,4 +3022,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, bindableKeys, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, bindableKeys, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, renderNode, renderList, tidy, NAV_JS, buildPage };
