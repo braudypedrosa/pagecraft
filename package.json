@@ -1,0 +1,11 @@
+{
+  "name": "slate-page-builder",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Visual page builder that exports static HTML",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test tests/*.test.cjs",
+    "serve": "python3 -m http.server 4877"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brand": {
+    "color": {
+      "ink": { "$type": "color", "$value": "#111311" },
+      "craftGreen": { "$type": "color", "$value": "#B7F34A" },
+      "paper": { "$type": "color", "$value": "#F8F6EF" },
+      "slate": { "$type": "color", "$value": "#6F7771" },
+      "white": { "$type": "color", "$value": "#FFFFFF" }
+    },
+    "fontFamily": {
+      "primary": { "$type": "fontFamily", "$value": "Manrope" },
+      "supporting": { "$type": "fontFamily", "$value": "DM Sans" }
+    },
+    "fontWeight": {
+      "regular": { "$type": "fontWeight", "$value": 400 },
+      "medium": { "$type": "fontWeight", "$value": 500 },
+      "semibold": { "$type": "fontWeight", "$value": 600 },
+      "bold": { "$type": "fontWeight", "$value": 700 }
+    },
+    "radius": {
+      "small": { "$type": "dimension", "$value": { "value": 4, "unit": "px" } },
+      "medium": { "$type": "dimension", "$value": { "value": 8, "unit": "px" } },
+      "large": { "$type": "dimension", "$value": { "value": 16, "unit": "px" } }
+    }
+  }
+}

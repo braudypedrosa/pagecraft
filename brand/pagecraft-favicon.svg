@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Pagecraft favicon</title>
+  
+  <rect width="64" height="64" rx="12" fill="#111311"/>
+  <path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill="#B7F34A" fill-rule="evenodd" transform="translate(15 10) scale(.46)"/>
+</svg>

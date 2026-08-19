@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Pagecraft compatibility probe</title>
+<style>
+  body{font:14px/1.5 -apple-system,system-ui,sans-serif;margin:0;padding:24px;background:#f8f6ef;color:#111311}
+  h1{font-size:18px;margin:0 0 4px}
+  p.sub{color:#5f6660;margin:0 0 18px;font-size:13px}
+  table{border-collapse:collapse;width:100%;max-width:760px;background:#fff;border:1px solid #e5e1d6;border-radius:8px;overflow:hidden}
+  td{padding:8px 12px;border-top:1px solid #f1eee3;font-size:13px}
+  td:first-child{font-weight:600;width:42%}
+  td:last-child{width:70px;text-align:right;font-weight:600}
+  .ok{color:#2f6a12}.no{color:#a8402f}.na{color:#5f6660}
+  #done{margin-top:16px;font-size:13px;color:#5f6660}
+  #dragbox{max-width:760px;margin-top:22px;padding:16px;background:#fff;border:1px solid #e5e1d6;border-radius:8px}
+  #dragbox b{font-size:14px}
+  #dragbox p{color:#5f6660;font-size:13px;margin:6px 0 12px}
+  #handle{width:88px;height:36px;background:#b7f34a;border-radius:8px;display:grid;place-items:center;
+          font-weight:600;font-size:12px;cursor:grab;touch-action:none;user-select:none}
+  #target{width:100%;height:90px;border:1px solid #d4cfc0;border-radius:6px;margin-top:10px}
+  #dragresult{margin-top:12px;font-size:13px;font-weight:600}
+</style></head><body>
+<h1>Pagecraft compatibility probe</h1>
+<p class="sub" id="ua"></p>
+<table id="out"></table>
+<div id="done">running…</div>
+
+<div id="dragbox">
+  <b>One manual check</b>
+  <p>API support cannot prove that pointer capture survives a drag <em>over</em> an iframe —
+     that needs a real gesture. Press the green square and drag it across the grey frame below,
+     then release.</p>
+  <div id="handle">drag me</div>
+  <iframe id="target" srcdoc="<!doctype html><body style='margin:0;background:#eceade;font:12px system-ui;display:grid;place-items:center;height:100%'>iframe</body>"></iframe>
+  <div id="dragresult">not run yet</div>
+</div>
+<iframe id="frame" srcdoc="<!doctype html><body style='margin:0'><div id='t'></div>" style="width:80px;height:80px;border:1px solid #ccc;margin-top:14px"></iframe>
+<script>
+const results = [];
+const add = (name, pass, note) => results.push({ name, pass, note: note || '' });
+const cssOk = (prop, val) => { try { return CSS.supports(prop, val); } catch (e) { return false; } };
+
+async function run() {
+  document.getElementById('ua').textContent = navigator.userAgent;
+
+  /* --- APIs the editor cannot work without ---------------------------- */
+  add('setPointerCapture', 'setPointerCapture' in Element.prototype);
+  add('releasePointerCapture', 'releasePointerCapture' in Element.prototype);
+  add('PointerEvent constructor', typeof PointerEvent === 'function');
+  add('document.execCommand', typeof document.execCommand === 'function');
+  add('iframe srcdoc', 'srcdoc' in document.createElement('iframe'));
+  add('FileReader', typeof FileReader === 'function');
+  add('URL.createObjectURL', !!(window.URL && URL.createObjectURL));
+  add('indexedDB', !!window.indexedDB);
+  add('String.matchAll', typeof ''.matchAll === 'function');
+  add('Object.fromEntries', typeof Object.fromEntries === 'function');
+  add('Array.at', typeof [].at === 'function');
+  add('navigator.clipboard.writeText', !!(navigator.clipboard && navigator.clipboard.writeText));
+
+  /* --- CSS the chrome and the export rely on -------------------------- */
+  add('CSS: aspect-ratio', cssOk('aspect-ratio', '16 / 9'));
+  add('CSS: flex gap', cssOk('gap', '10px'));
+  add('CSS: custom properties', cssOk('color', 'var(--x)'));
+  add('CSS: inset', cssOk('inset', '0'));
+  add('CSS: appearance none', cssOk('appearance', 'none') || cssOk('-webkit-appearance', 'none'));
+  add('CSS: backdrop-filter', cssOk('backdrop-filter', 'blur(3px)') || cssOk('-webkit-backdrop-filter', 'blur(3px)'));
+  add('CSS: :focus-visible', (() => { try { document.querySelector(':focus-visible'); return true; } catch (e) { return false; } })());
+  add('CSS: position sticky', cssOk('position', 'sticky'));
+
+  /* --- execCommand actually formatting, not just existing ------------- */
+  try {
+    const d = document.createElement('div');
+    d.contentEditable = 'true';
+    d.textContent = 'sample';
+    d.style.position = 'fixed'; d.style.left = '-9999px';
+    document.body.appendChild(d);
+    d.focus();
+    const r = document.createRange(); r.selectNodeContents(d);
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    document.execCommand('bold');
+    const html = d.innerHTML;
+    add('execCommand("bold") works', /<(b|strong)\b/i.test(html), html.slice(0, 40));
+    document.execCommand('insertText', false, 'X');
+    add('execCommand("insertText")', d.innerHTML !== html);
+    d.remove();
+  } catch (e) { add('execCommand("bold") works', false, String(e).slice(0, 40)); }
+
+  /* --- a blob through IndexedDB and back out as an image -------------- */
+  try {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 8;
+    cv.getContext('2d').fillRect(0, 0, 8, 8);
+    const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    const db = await new Promise((res, rej) => {
+      const rq = indexedDB.open('pagecraft-probe', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('a', { keyPath: 'id' });
+      rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error);
+    });
+    await new Promise((res, rej) => {
+      const t = db.transaction('a', 'readwrite').objectStore('a').put({ id: 'x', blob });
+      t.onsuccess = res; t.onerror = () => rej(t.error);
+    });
+    const got = await new Promise((res, rej) => {
+      const t = db.transaction('a', 'readonly').objectStore('a').get('x');
+      t.onsuccess = () => res(t.result); t.onerror = () => rej(t.error);
+    });
+    add('IndexedDB stores a Blob', !!(got && got.blob && got.blob.size > 0), got && got.blob ? got.blob.size + ' bytes' : '');
+    const url = URL.createObjectURL(got.blob);
+    const okImg = await new Promise(res => {
+      const i = new Image(); i.onload = () => res(i.naturalWidth === 8); i.onerror = () => res(false); i.src = url;
+    });
+    add('blob: URL renders as an image', okImg);
+    const dataUrl = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(got.blob); });
+    add('FileReader gives a data URI', /^data:image\/png;base64,/.test(dataUrl));
+    db.close(); indexedDB.deleteDatabase('pagecraft-probe');
+  } catch (e) { add('IndexedDB stores a Blob', false, String(e).slice(0, 50)); }
+
+  /* --- can the parent reach into a srcdoc iframe and style it? -------- */
+  try {
+    const f = document.getElementById('frame');
+    const d = f.contentDocument;
+    add('srcdoc iframe is same-origin', !!(d && d.getElementById('t')));
+    const st = d.createElement('style'); st.textContent = '#t{width:60px;height:60px;background:#111311}';
+    d.head.appendChild(st);
+    const painted = f.contentWindow.getComputedStyle(d.getElementById('t')).backgroundColor;
+    add('injected CSS applies in iframe', painted === 'rgb(17, 19, 17)', painted);
+    let got = 0;
+    d.addEventListener('pointerdown', () => got++);
+    d.getElementById('t').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    add('pointer events cross into iframe', got === 1);
+  } catch (e) { add('srcdoc iframe is same-origin', false, String(e).slice(0, 50)); }
+
+  /* --- render + report ----------------------------------------------- */
+  document.getElementById('out').innerHTML = results.map(r =>
+    `<tr><td>${r.name}</td><td class="na">${r.note}</td><td class="${r.pass ? 'ok' : 'no'}">${r.pass ? 'pass' : 'FAIL'}</td></tr>`).join('');
+  const fails = results.filter(r => !r.pass);
+  document.getElementById('done').textContent = fails.length
+    ? fails.length + ' failing: ' + fails.map(f => f.name).join(', ')
+    : 'all ' + results.length + ' checks passed';
+
+  try {
+    await fetch('/report?ua=' + encodeURIComponent(navigator.userAgent)
+      + '&data=' + encodeURIComponent(JSON.stringify(results)));
+  } catch (e) { document.getElementById('done').textContent += ' (could not report)'; }
+}
+run();
+
+/* The one thing only a real gesture can answer: does the capturing element keep
+   receiving pointermove while the pointer is over a cross-document iframe? */
+(function dragProbe() {
+  const handle = document.getElementById('handle');
+  const frame = document.getElementById('target');
+  const out = document.getElementById('dragresult');
+  let moves = 0, overFrame = 0, captured = false;
+
+  handle.addEventListener('pointerdown', e => {
+    moves = overFrame = 0;
+    try { handle.setPointerCapture(e.pointerId); captured = handle.hasPointerCapture(e.pointerId); }
+    catch (err) { captured = false; }
+    out.textContent = 'dragging…';
+    out.style.color = '#5f6660';
+  });
+  handle.addEventListener('pointermove', e => {
+    moves++;
+    const r = frame.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) overFrame++;
+  });
+  handle.addEventListener('pointerup', async () => {
+    const pass = captured && moves > 3 && overFrame > 0;
+    out.textContent = pass
+      ? `pass — ${moves} moves, ${overFrame} of them over the iframe, capture held`
+      : `INCONCLUSIVE — capture:${captured} moves:${moves} overIframe:${overFrame} (drag right across the frame)`;
+    out.style.color = pass ? '#2f6a12' : '#a8402f';
+    try {
+      await fetch('/report?ua=' + encodeURIComponent(navigator.userAgent) + '&data='
+        + encodeURIComponent(JSON.stringify([{ name: 'pointer capture holds over an iframe (real drag)', pass, note: moves + ' moves, ' + overFrame + ' over frame' }])));
+    } catch (e) { }
+  });
+})();
+</script></body></html>

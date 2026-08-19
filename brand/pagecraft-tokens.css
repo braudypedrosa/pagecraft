@@ -1,0 +1,53 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..600&family=Manrope:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Brand colors */
+  --pc-ink: #111311;
+  --pc-craft-green: #b7f34a;
+  --pc-paper: #f8f6ef;
+  --pc-slate: #6f7771;
+  --pc-white: #ffffff;
+
+  /* Functional colors */
+  --pc-background: var(--pc-paper);
+  --pc-surface: var(--pc-white);
+  --pc-text: var(--pc-ink);
+  --pc-text-muted: var(--pc-slate);
+  --pc-accent: var(--pc-craft-green);
+  --pc-on-accent: var(--pc-ink);
+
+  /* Typography */
+  --pc-font-primary: "Manrope", system-ui, sans-serif;
+  --pc-font-supporting: "DM Sans", system-ui, sans-serif;
+  --pc-weight-regular: 400;
+  --pc-weight-medium: 500;
+  --pc-weight-semibold: 600;
+  --pc-weight-bold: 700;
+
+  /* Shape and spacing */
+  --pc-radius-sm: 4px;
+  --pc-radius-md: 8px;
+  --pc-radius-lg: 16px;
+  --pc-space-unit: 4px;
+}
+
+.pc-display {
+  font-family: var(--pc-font-primary);
+  font-weight: var(--pc-weight-semibold);
+  letter-spacing: -0.04em;
+  line-height: 0.96;
+}
+
+.pc-body {
+  font-family: var(--pc-font-primary);
+  font-weight: var(--pc-weight-regular);
+  line-height: 1.5;
+}
+
+.pc-label {
+  font-family: var(--pc-font-supporting);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
