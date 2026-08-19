@@ -36,7 +36,7 @@ sandboxed iframes refuse, so naming a class or a colour silently did nothing the
 | Page templates | 12 |
 | Font library | 49 Google Fonts, auto-linked on export |
 | Storage schema | `SCHEMA = 7`, seven cumulative migrations |
-| `builder.html` | 7,259 lines — 3,111 tested core, 4,148 untested UI |
+| `builder.html` | 7,363 lines — 3,122 tested core, 4,241 untested UI |
 | `index.html` | 744 KB with brand fonts embedded |
 | Demo project | 64 nodes, 24.6 KB export |
 
@@ -138,11 +138,7 @@ that the browser failed.
 5. **Keep new form markup on the variables.** `--gap-1/2/3` and `--h-ctl/--h-row` in `:root`
    own every form measurement; there are no hard-coded vertical margins left in the markup.
    Anything sitting in a field row takes `--h-ctl` or it will be the one thing out of line
-6. **A zip export.** Detail pages emit into folders (`projects/acme-rebrand.html`), but a
-   download from a single HTML file saves flat, so the name is squashed to
-   `projects-acme-rebrand.html` and a toast says where it belongs. That is the last thing
-   standing between the CMS and self-hosting a real site
-7. **Decide the product question**: does this become the editor for
+6. **Decide the product question**: does this become the editor for
    `~/Documents/Braudy/pagecraft` (a Next.js app with its own `PRODUCT.md` and `ROADMAP.md`,
    untouched so far), or stay standalone? The CMS now ships, so what a single HTML file cannot
    do is the deciding factor: letting anyone edit content without re-exporting needs a server

@@ -378,6 +378,15 @@ finding jumps to the page, switches to the right region, and selects the element
 
 ## Export
 
+
+**Download site .zip** is the one to reach for: every page, every image it references,
+`content.json`, and the sitemap and robots pair, with folders intact. It is the only export that
+can place a detail page at `projects/acme-rebrand.html` — a browser download saves flat, so the
+per-page buttons squash that to `projects-acme-rebrand.html`.
+
+The archive is written without any library: deflate where the browser offers it, stored otherwise,
+and fixed timestamps so the same site zips to the same bytes.
+
 Two modes in the Export dialog:
 
 - **Images inlined** — one self-contained `.html` per page, nothing to upload alongside it.

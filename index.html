@@ -2437,6 +2437,17 @@ function contentJson(imgPath = v => (v == null ? '' : String(v))) {
   }, null, 2) + '\n';
 }
 
+/* Everything a finished site needs, in the order it should be written. The paths
+   are the real ones — folders included — which is what a zip can honour and a
+   one-file-at-a-time download cannot. Images are appended by the caller, since
+   only the UI knows the asset store. */
+function sitePlan() {
+  const out = exportTargets().map(t => ({ kind: 'page', path: t.path, target: t }));
+  if (collections().length) out.push({ kind: 'content', path: 'content.json' });
+  if (state.meta.baseUrl) out.push({ kind: 'sitemap', path: 'sitemap.xml' }, { kind: 'robots', path: 'robots.txt' });
+  return out;
+}
+
 /* ---- binding -------------------------------------------------------------
    A binding names a field and nothing else. The collection comes from the nearest
    ancestor that declares a source (`node.src`), so one card carries no collection
@@ -3659,6 +3670,64 @@ const assetsToPaths = (str, rel = '') => str.replace(A_RE, (m, id) => {
   const a = AS.mem.get(id);
   return a ? rel + assetFile(a) : PH;
 });
+/* ---- zip -----------------------------------------------------------------
+   Written by hand rather than pulled in: a whole site is a handful of files, and
+   the format is a local header per entry, then a central directory, then a
+   twenty-two byte tail. Deflate comes from CompressionStream where the browser
+   has it and falls back to stored, which is still a valid archive.
+   Timestamps are fixed at the ZIP epoch so the same site zips to the same bytes —
+   the same reason content.json carries no generated-at stamp. */
+const CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+const deflateRaw = async u8 => {
+  if (typeof CompressionStream !== 'function') return null;
+  try {
+    const st = new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    const packed = new Uint8Array(await new Response(st).arrayBuffer());
+    return packed.length < u8.length ? packed : null;
+  } catch (e) { return null; }
+};
+
+async function makeZip(entries) {
+  const enc = new TextEncoder();
+  const chunks = [], central = [];
+  let offset = 0, count = 0;
+  const put = (n, len) => { const b = new Uint8Array(len); for (let i = 0; i < len; i++) b[i] = (n >>> (8 * i)) & 0xFF; return b; };
+  for (const e of entries) {
+    const name = enc.encode(e.path);
+    const raw = typeof e.data === 'string' ? enc.encode(e.data)
+      : e.data instanceof Uint8Array ? e.data
+        : new Uint8Array(await e.data.arrayBuffer());
+    const crc = crc32(raw);
+    const packed = raw.length > 256 ? await deflateRaw(raw) : null;
+    const body = packed || raw, method = packed ? 8 : 0;
+    const head = [put(0x04034b50, 4), put(20, 2), put(0, 2), put(method, 2), put(0, 2), put(0x21, 2),
+      put(crc, 4), put(body.length, 4), put(raw.length, 4), put(name.length, 2), put(0, 2), name];
+    chunks.push(...head, body);
+    central.push(...[put(0x02014b50, 4), put(20, 2), put(20, 2), put(0, 2), put(method, 2), put(0, 2), put(0x21, 2),
+      put(crc, 4), put(body.length, 4), put(raw.length, 4), put(name.length, 2), put(0, 2), put(0, 2),
+      put(0, 2), put(0, 2), put(0, 4), put(offset, 4), name]);
+    offset += head.reduce((n, b) => n + b.length, 0) + body.length;
+    count++;
+  }
+  const cdSize = central.reduce((n, b) => n + b.length, 0);
+  return new Blob([...chunks, ...central,
+    put(0x06054b50, 4), put(0, 2), put(0, 2), put(count, 2), put(count, 2), put(cdSize, 4), put(offset, 4), put(0, 2)],
+    { type: 'application/zip' });
+}
+
 const assetsUsedIn = str => [...new Set([...str.matchAll(A_RE)].map(m => m[1]))].map(id => AS.mem.get(id)).filter(Boolean);
 
 /*<core>*/
@@ -6530,8 +6599,9 @@ function exportModal() {
     <button class="btn" id="exImport">Import JSON</button>
     <span style="flex:1"></span>
     <button class="btn" id="exCopy">Copy HTML</button>
-    <button class="btn" id="exAll">Download all ${state.pages.length}</button>
-    <button class="btn primary" id="exOne">Download page</button>`);
+    <button class="btn" id="exAll">Download all ${targets.length}</button>
+    <button class="btn primary" id="exZip" title="Every page, image and SEO file, with folders intact">${svg('copy', 13)} Download site .zip</button>
+    <button class="btn" id="exOne">This page only</button>`);
 
   /* Review the whole project before anything leaves the building. */
   const findings = lint();
@@ -6642,6 +6712,40 @@ function exportModal() {
     }
     if (await download('sitemap.xml', sitemapXml(), 'application/xml') === false) return;
     await download('robots.txt', robotsTxt(), 'text/plain');
+  });
+  /* The whole site as one archive: real folder paths, the images beside them, and
+     the SEO files. This is the only export that can honour a nested detail page,
+     since a browser download saves flat. */
+  const buildSite = async () => {
+    const files = [];
+    for (const step of sitePlan()) {
+      if (step.kind === 'page') files.push({ path: step.path, data: assetsToPaths(buildPage(step.target.pg, step.target), step.target.rel) });
+      else if (step.kind === 'content') files.push({ path: step.path, data: contentJson(assetPath) });
+      else if (step.kind === 'sitemap') files.push({ path: step.path, data: sitemapXml() });
+      else if (step.kind === 'robots') files.push({ path: step.path, data: robotsTxt() });
+    }
+    /* every image any page references, once, at the path those pages point to */
+    const seen = new Set();
+    for (const t of exportTargets()) for (const a of assetsUsedIn(buildPage(t.pg, t))) seen.add(a.id);
+    for (const id of seen) {
+      const a = AS.mem.get(id);
+      if (a && a.blob) files.push({ path: assetFile(a), data: a.blob });
+    }
+    return files;
+  };
+  $('#exZip').addEventListener('click', async () => {
+    const btn = $('#exZip'), was = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Building…';
+    try {
+      const files = await buildSite();
+      const blob = await makeZip(files);
+      const name = (slugify(state.meta.name) || 'site') + '.zip';
+      if (await download(name, blob, 'application/zip') !== false) {
+        toast(`${files.length} file${files.length === 1 ? '' : 's'} · ${(blob.size / 1024).toFixed(0)} KB`);
+      }
+    } catch (e) {
+      toast('Could not build the archive');
+    } finally { btn.disabled = false; btn.textContent = was; }
   });
   const exc = $('#exContent');
   if (exc) exc.addEventListener('click', () => download('content.json', contentJson(assetPath), 'application/json'));

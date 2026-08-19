@@ -214,6 +214,30 @@ re-importable, diffable, feedable to something else — not a runtime dependency
 fetches it. Everything resolves at export — the site
 that ships is plain HTML, with the JSON alongside as a portable copy.
 
+## Zip export
+
+The whole site as one archive, which is the only export that can honour a nested detail page — a
+browser download saves flat, so `projects/acme-rebrand.html` would arrive as
+`projects-acme-rebrand.html`.
+
+Written by hand rather than pulled in: a site is a handful of files, and the format is a local
+header per entry, a central directory, then a twenty-two byte tail. `CRC32` is a table and a loop;
+compression comes from `CompressionStream('deflate-raw')` where the browser has it and falls back
+to **stored**, which is still a valid archive. Entries under 256 bytes are stored regardless.
+
+**Timestamps are fixed at the ZIP epoch** so the same site zips to the same bytes — the same
+reasoning as `content.json` carrying no generated-at stamp.
+
+`sitePlan()` in core lists what belongs in it: every page from `exportTargets()`, `content.json`
+when there are collections, and the SEO pair when a Site URL is set. The UI appends every image any
+page references, at the path those pages point to.
+
+Verified by decompressing the archive with the browser's own `DecompressionStream` — independent of
+the compressor — checking that each central-directory offset lands on a local header with a
+matching name, and reading the extracted files: the detail page's `<title>` is the item's, its nav
+carries `../`, the root page's does not, `content.json` parses, and `robots.txt` came through
+stored. A system `unzip -t` would be a stronger check and is worth doing once by hand.
+
 ## Media library
 
 A **grid modal** off the rail (`mediaModal`), not a side panel and not a field buried in Project
@@ -487,7 +511,7 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 4. Measure before optimising: canvas rebuilds `innerHTML` on content edits, and undo keeps
    80 full document clones. The demo is 64 nodes — generate 300–500 and measure first
 5. Canvas zoom; custom layer names; an Assets item in the rail
-6. `4,148` of `7,259` lines are UI with no unit tests — extract more into core, or add a
+6. `4,241` of `7,363` lines are UI with no unit tests — extract more into core, or add a
    DOM-shimmed layer
 7. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next
