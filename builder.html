@@ -731,7 +731,23 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .mh{display:flex;align-items:center;gap:10px;padding:16px var(--mpad);border-bottom:1px solid var(--line)}
 .mh b{font-size:17px;font-weight:600;flex:1;letter-spacing:-.02em}
 .mb{padding:var(--mpad);overflow:auto;flex:1;min-height:0}
-.mf{padding:13px var(--mpad);border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:var(--field)}
+/* wrap is a safety net, not a layout: a footer should hold the committed action
+   and its near alternatives, and anything that needs a second line has outgrown
+   the footer. The Export dialog had eight buttons here doing three unrelated jobs. */
+.mf{padding:13px var(--mpad);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center;background:var(--field)}
+
+/* secondary actions that belong in the body, where they can be grouped and
+   explained, rather than crowded into the footer beside the primary one */
+.xtra{border-top:1px solid var(--line);margin-top:var(--gap-3);padding-top:var(--gap-3)}
+.xtra+.xtra{margin-top:var(--gap-2)}
+.xlab{
+  font-family:var(--label);font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--text-3);margin-bottom:var(--gap-1);
+}
+.xrow{display:flex;flex-wrap:wrap;gap:var(--gap-1);align-items:center}
+.xrow .btn{font-size:12.5px}
+.xrow .btn[disabled]{opacity:.45;cursor:default}
+.xrow .btn[disabled]:hover{background:var(--panel);border-color:var(--line-2)}
 pre.code{
   background:var(--ink);border-radius:var(--r-md);padding:14px;
   font-family:var(--mono);font-size:12px;line-height:1.6;color:#d8d5c9;
@@ -7286,17 +7302,33 @@ function exportModal() {
       <span style="font-size:11.5px;color:var(--text-3)" id="exSize">…</span>
     </div>
     <div class="review" id="exReview"></div>
-    <pre class="code" id="exCode">Building…</pre>
-    <div class="note" id="exNote" style="margin-top:var(--gap-2)"></div>`, `
-    <button class="btn" id="exSeo" title="sitemap.xml and robots.txt">SEO files</button>
-    ${collections().length ? `<button class="btn" id="exContent" title="Every collection and item as data">content.json</button>` : ''}
-    <button class="btn" id="exJson">Export project JSON</button>
-    <button class="btn" id="exImport">Import JSON</button>
-    <span style="flex:1"></span>
-    <button class="btn" id="exCopy">Copy HTML</button>
-    <button class="btn" id="exAll">Download all ${targets.length}</button>
-    <button class="btn primary" id="exZip" title="Every page, image and SEO file, with folders intact">${svg('copy', 13)} Download site .zip</button>
-    <button class="btn" id="exOne">This page only</button>`);
+    <pre class="code" id="exCode" style="max-height:32vh">Building…</pre>
+    <div class="note" id="exNote" style="margin-top:var(--gap-2)"></div>
+
+    <div class="xtra">
+      <div class="xlab">Individual files, instead of the archive</div>
+      <div class="xrow">
+        <button class="btn" id="exAll">Download all ${targets.length} page${targets.length === 1 ? '' : 's'}</button>
+        <button class="btn" id="exSeo"${state.meta.baseUrl ? '' : ' disabled title="Needs a Site URL in Project settings — a sitemap has to know its own domain"'}>sitemap.xml + robots.txt</button>
+        ${collections().length ? `<button class="btn" id="exContent" title="Every collection and item as data">content.json</button>` : ''}
+        <button class="btn" id="exCopy">Copy this page's HTML</button>
+      </div>
+      <div class="note">The archive already contains every one of these, with folders intact. Reach for
+        these when a browser blocks the .zip${targets.some(t => t.rel) ? ', but note that a browser saves downloads flat — a page in a folder arrives with its path in the filename' : ''}.</div>
+    </div>
+
+    <div class="xtra">
+      <div class="xlab">The project itself, not the site</div>
+      <div class="xrow">
+        <button class="btn" id="exJson">Export project JSON</button>
+        <button class="btn" id="exImport">Import project JSON…</button>
+      </div>
+      <div class="note">A backup you can reopen and keep editing — pages, styles and content, not
+        publishable HTML. <b>Importing replaces everything in this project.</b></div>
+    </div>`, `
+    <span class="note" id="exFoot" style="margin:0;flex:1;text-align:left"></span>
+    <button class="btn" id="exOne">Download this page</button>
+    <button class="btn primary" id="exZip" title="Every page, image and SEO file, with folders intact">${svg('copy', 13)} Download site .zip</button>`);
 
   /* Review the whole project before anything leaves the building. */
   const findings = lint();
@@ -7401,6 +7433,8 @@ function exportModal() {
     }
   });
   $('#exSeo').addEventListener('click', async () => {
+    /* the button is disabled without a Site URL, so this is a belt-and-braces guard:
+       a sitemap with no domain is worse than no sitemap */
     if (!state.meta.baseUrl) {
       toast('Add a Site URL in Project settings first');
       return;
@@ -7429,7 +7463,9 @@ function exportModal() {
     return files;
   };
   $('#exZip').addEventListener('click', async () => {
-    const btn = $('#exZip'), was = btn.textContent;
+    /* innerHTML, not textContent: the label carries an inline svg, and restoring a
+       textContent snapshot silently stripped the icon for the rest of the session. */
+    const btn = $('#exZip'), was = btn.innerHTML;
     btn.disabled = true; btn.textContent = 'Building…';
     try {
       const files = await buildSite();
@@ -7440,8 +7476,21 @@ function exportModal() {
       }
     } catch (e) {
       toast('Could not build the archive');
-    } finally { btn.disabled = false; btn.textContent = was; }
+    } finally { btn.disabled = false; btn.innerHTML = was; }
   });
+  /* The footer says what the committed action will actually produce, so the count
+     is not hidden inside a tooltip on the button. */
+  const foot = $('#exFoot');
+  if (foot) {
+    const n = sitePlan().length;
+    const imgs = new Set();
+    for (const t of exportTargets()) for (const a of assetsUsedIn(buildPage(t.pg, t))) imgs.add(a.id);
+    foot.innerHTML = `The archive holds <b>${n + imgs.size}</b> file${n + imgs.size === 1 ? '' : 's'}`
+      + ` — ${targets.length} page${targets.length === 1 ? '' : 's'}`
+      + `${imgs.size ? `, ${imgs.size} image${imgs.size === 1 ? '' : 's'}` : ''}`
+      + `${collections().length ? ', content.json' : ''}`
+      + `${state.meta.baseUrl ? ', sitemap and robots' : ''}.`;
+  }
   const exc = $('#exContent');
   if (exc) exc.addEventListener('click', () => download('content.json', contentJson(assetPath), 'application/json'));
   $('#exJson').addEventListener('click', backupJson);

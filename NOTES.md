@@ -632,6 +632,44 @@ Two more things about this stylesheet:
   exactly twice, which conflated "one block per breakpoint" with "two media queries total". It
   counts `@media (max-width` now, which is what it always meant.
 
+## The Export dialog's footer
+
+Reported as "too crowded". It held **eight buttons doing three unrelated jobs**, and the
+spacer split them 4/4 in a way that matched neither:
+
+| | job |
+|---|---|
+| Download site .zip · Download all N · This page only · Copy HTML | ship the site |
+| SEO files · content.json | extra files — **already inside the zip** |
+| Export project JSON · Import JSON | back up the *editable project*, not the site |
+
+Two things were wrong beyond the crowding. `SEO files` and `content.json` read as peers of the
+primary action while `sitePlan()` already puts both in the archive, so they are the *non-archive
+route*, not alternatives to it. And `Import JSON` was the single inbound, destructive action in
+a footer where everything else produced a file — the worst neighbour the primary button could
+have.
+
+**A footer holds the committed action and its near alternatives; anything needing a second line
+has outgrown the footer.** So the footer is now a note, `Download this page`, and
+`Download site .zip`, and the rest moved into the body as two labelled groups where they can be
+explained: *Individual files, instead of the archive* and *The project itself, not the site*.
+
+- **The footer note says what the archive will contain** — `2 pages, content.json, sitemap and
+  robots` — rather than hiding the count in a tooltip on the button.
+- **`sitemap.xml + robots.txt` is disabled without a Site URL**, with the reason in its title. It
+  used to look available and answer a click with a toast. Labelled as its filenames, so it reads
+  as a set with `content.json` beside it.
+- **"Download all 2" became "Download all 2 pages"**, and "This page only" became "Download this
+  page" — three download buttons had three different naming schemes.
+- **The flat-download caveat appears only when a detail page exists** (`targets.some(t => t.rel)`),
+  which is the only time a browser saving downloads flat actually loses information.
+- `.mf` gained `flex-wrap` as a safety net. It is not a layout: if a footer wraps, regroup it.
+- **Fixed while in there:** the zip button snapshotted its label with `textContent` and restored
+  it the same way, so the inline svg was stripped after the first export and stayed gone for the
+  rest of the session. `innerHTML` both ways.
+- The source preview was `max-height:52vh`, which pushed the second group half off the fold and
+  read as a truncated dialog. At 32vh the whole thing fits with no scrolling.
+
 ## Exported naming
 
 Widget class `pagecraft-<widget-slug>` + styling hook `pagecraft-<nodeid>`; auto id

@@ -488,8 +488,18 @@ Output quality built into every export:
   gets it, and that block closes the stylesheet — after your own CSS — so a project rule
   cannot switch motion back on
 
-Also there: **Copy HTML** (for where the browser blocks downloads) and project JSON
-export/import.
+The dialog is ordered by what you are most likely to want. The footer carries the two
+committed actions — **Download site .zip** and **Download this page** — beside a note saying
+exactly what the archive will contain. Below the preview, two labelled groups hold the rest:
+
+- **Individual files, instead of the archive** — every page as flat files, `sitemap.xml +
+  robots.txt`, `content.json`, and **Copy this page's HTML** for where a browser blocks
+  downloads. The archive already contains all of these, so these are the route for when it
+  cannot be used. `sitemap.xml + robots.txt` is disabled until a **Site URL** is set, since a
+  sitemap has to know its own domain.
+- **The project itself, not the site** — export and import project JSON. A backup you reopen
+  and keep editing, not publishable HTML. Importing replaces everything in the project, and
+  says so.
 
 ## Saving
 
