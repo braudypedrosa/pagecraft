@@ -36,7 +36,7 @@ sandboxed iframes refuse, so naming a class or a colour silently did nothing the
 | Page templates | 12 |
 | Font library | 49 Google Fonts, auto-linked on export |
 | Storage schema | `SCHEMA = 7`, seven cumulative migrations |
-| `builder.html` | 6,551 lines — 2,779 tested core, 3,772 untested UI |
+| `builder.html` | 6,870 lines — 2,898 tested core, 3,972 untested UI |
 | `index.html` | 744 KB with brand fonts embedded |
 | Demo project | 64 nodes, 24.6 KB export |
 

@@ -398,7 +398,7 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 4. Measure before optimising: canvas rebuilds `innerHTML` on content edits, and undo keeps
    80 full document clones. The demo is 64 nodes — generate 300–500 and measure first
 5. Canvas zoom; custom layer names; an Assets item in the rail
-6. `3,772` of `6,551` lines are UI with no unit tests — extract more into core, or add a
+6. `3,972` of `6,870` lines are UI with no unit tests — extract more into core, or add a
    DOM-shimmed layer
 7. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next
