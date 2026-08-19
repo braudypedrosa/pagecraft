@@ -621,6 +621,24 @@ body.dragging{cursor:grabbing !important;user-select:none}
 /* the media library grid — same cards in the panel and in the picker */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:8px}
 .mgrid.wide{grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:12px}
+/* the items table — one row per item, one column per field */
+.cmst{width:100%;border-collapse:collapse}
+.cmst th{
+  text-align:left;padding:0 8px 8px;font-family:var(--label);font-size:11px;font-weight:600;
+  color:var(--text-3);white-space:nowrap;
+}
+.cmst td{padding:4px 8px 4px 0;vertical-align:middle}
+.cmst td:last-child{padding-right:0}
+.cmst tr+tr td{border-top:1px solid var(--line)}
+.cmst .ctl{padding:5px 8px}
+.cmst textarea.ctl{min-height:0;resize:vertical}
+.cmsimg{
+  width:56px;height:40px;border-radius:var(--r-sm);border:1px solid var(--line-2);
+  background:var(--field);display:grid;place-items:center;overflow:hidden;padding:0;
+  font-family:var(--label);font-size:11px;color:var(--text-3);
+}
+.cmsimg:hover{border-color:var(--text-3);background:var(--panel)}
+.cmsimg img{width:100%;height:100%;object-fit:cover;display:block}
 /* `width:100%` matters: a <button> sizes to fit-content, so a long filename with
    `white-space:nowrap` widened the card past its grid cell and the 4:3 thumb grew
    with it — one card 254px in a 161px column, and a row of uneven tiles. */

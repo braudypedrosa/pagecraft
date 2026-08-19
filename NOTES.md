@@ -92,6 +92,39 @@ and the items table. Binding, the Collection List and per-item pages come next.
 - **`seed()` does not clear collections or blocks** — they are project libraries, not page
   content, so Reset to demo content leaves them. The test harness clears them itself.
 
+## Content collections
+
+`meta.collections`, `SCHEMA` 6 → 7. A collection is a content type — a field schema plus the
+items that fill it:
+
+```js
+{ id:'projects', name:'Projects', slug:'projects',
+  fields:[{ id:'title', name:'Title', type:'text', required:1 }, …],
+  items: [{ id, slug:'acme-rebrand', values:{ title:'…' } }],
+  detail:'' }            // the page that templates each item (phase 4)
+```
+
+Field types mirror controls that already exist: `text · rich · image · link · number · date ·
+option · bool`. An image value is an `asset:<id>` reference, and its cell opens the same
+`mediaPicker()` every image field uses.
+
+- **Ids are slugs**, made unique against their own list by `uniqueId` — they read in the binding
+  UI and land in exported paths.
+- **The first text field names each item** and gives it its URL. `itemSet` re-derives the slug
+  as the title is typed, but stops the moment `itemSetSlug` is used: a published URL should not
+  move because someone fixed a typo. That is what `slugLocked` is for.
+- **Deleting a field clears its values on every item.** An item cannot carry a value for a field
+  the schema no longer has, or the next export emits orphans. The confirm only appears when
+  values would actually be lost — the same rule the colour and class deletions use.
+- **A collection keeps at least one field**, since a collection with none could hold nothing.
+
+`seed()` deliberately leaves collections and blocks alone — they are project libraries, not page
+content, and "Reset to demo content" is page-scoped. The test harness's `blank()` clears them.
+
+**Still to come:** binding (phase 2), the Collection List repeater (phase 3), detail pages and
+multi-file export (phase 4), `content.json` (phase 5). Everything resolves at export — the site
+that ships is plain HTML, with the JSON alongside as a portable copy.
+
 ## Media library
 
 A **grid modal** off the rail (`mediaModal`), not a side panel and not a field buried in Project

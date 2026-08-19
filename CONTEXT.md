@@ -31,7 +31,7 @@ sandboxed iframes refuse, so naming a class or a colour silently did nothing the
 |---|---|
 | Tests | **183**, `npm test` |
 | Widgets | 12 |
-| Rail | Add · Navigator · Pages, then Media and Project as dialogs |
+| Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
 | Section templates | 23, in 12 categories |
 | Page templates | 12 |
 | Font library | 49 Google Fonts, auto-linked on export |
