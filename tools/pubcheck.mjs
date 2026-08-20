@@ -62,10 +62,14 @@ export function report(s = status()) {
     return `${G}Artifact: up to date${S}${D} — published ${s.publishedAt || 'at some point'}${from}${S}`;
   }
   const lines = [];
-  const how = s.behind && s.behind !== '0' ? `${s.behind} commit${s.behind === '1' ? '' : 's'} behind` : 'out of date';
+  /* the distance is a nicety — git may be shallow or absent — so its clause drops out
+     entirely rather than degrading to "STALE — out of date", which says it twice */
+  const how = s.behind && s.behind !== '0'
+    ? ` — ${s.behind} commit${s.behind === '1' ? '' : 's'} behind`
+    : '';
   if (s.state === 'never') lines.push(`${Y}${B}Artifact: never published from this repo.${S}`);
   else if (s.state === 'unreadable') lines.push(`${Y}${B}Artifact: dist/PUBLISHED.json will not parse.${S}`);
-  else lines.push(`${Y}${B}Artifact is STALE — ${how}${s.commit ? ` (published from ${s.commit})` : ''}.${S}`);
+  else lines.push(`${Y}${B}Artifact is STALE${how}${s.commit ? ` (published from ${s.commit})` : ''}.${S}`);
   if (s.url) lines.push(`${D}  live${S}   ${s.url}`);
   lines.push(`${D}  fix${S}    republish dist/artifact.html to that URL, then: npm run publish:stamp`);
   if (s.capabilities) lines.push(`${D}  keep${S}   capabilities ${JSON.stringify(s.capabilities)} · contract ${s.contract || '?'} · favicon ${s.favicon || '?'}`);

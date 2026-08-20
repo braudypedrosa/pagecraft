@@ -32,8 +32,11 @@ Artifact is STALE — 3 commits behind (published from ad1eeff).
 ```
 
 The comparison is sound because the build is **byte-deterministic** — same `builder.html`
-and same vendored fonts, same output, no timestamps. A test would be nice; three runs
-hashing identically is what was actually checked.
+and same vendored fonts, same output, no timestamps. Three runs hashing identically is what
+was actually checked, and `tests/pubcheck.test.mjs` covers the message states and the exit
+codes. Those cases deliberately never assert the artifact *is* published: doing so would fail
+the suite whenever someone edits `builder.html`, which is the coupling this check was kept
+out of `npm test` to avoid.
 
 | | |
 |---|---|
@@ -71,7 +74,7 @@ something does.
 
 | | |
 |---|---|
-| Tests | **306**, `npm test` |
+| Tests | **317**, `npm test` |
 | Widgets | 17 |
 | Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
@@ -137,7 +140,7 @@ deleting two pages plus a 21-node header and footer by hand.
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 306 cases, and reports the Artifact's freshness
+npm test            # rebuild + 317 cases, and reports the Artifact's freshness
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 npm run publish:check   # exits 1 if the published Artifact is behind
