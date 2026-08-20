@@ -97,8 +97,12 @@ export interface Control {
   c?: string;
   /** responsive: writes at the breakpoint being edited rather than the base */
   r?: 0 | 1;
-  opts?: [string, string][] | ((n: Node) => [string, string][]);
-  og?: () => [string, [string, string][]][];
+  /** pairs of value and label. Built with `.map` in places, so string[][] rather
+      than a tuple type — describing what the code does, not what would be tidier. */
+  opts?: string[][] | ((n: Node) => string[][]);
+  /** grouped options: a label and its pairs. Loose because the producers build it
+      with nested maps rather than as tuples. */
+  og?: () => any[][];
   units?: string[];
   ph?: string;
   note?: string;

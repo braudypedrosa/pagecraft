@@ -1191,7 +1191,7 @@ function selIds() {
   for (const id of state.ui.multi || []) if (!out.includes(id)) out.push(id);
   return out.filter((id) => locate(id));
 }
-var selNodes = () => selIds().map((id) => locate(id).node);
+var selNodes = () => selIds().map((id) => locate(id)).filter(Boolean).map((h) => h.node);
 var multiOn = () => selIds().length > 1;
 function selSet(ids) {
   const live = ids.filter((id) => locate(id));
@@ -1226,7 +1226,7 @@ function topMost(ids) {
   return ids.filter((id) => {
     let h = locate(id);
     if (!h) return false;
-    for (let p = h.parent; p; p = (locate(p.id) || {}).parent) if (set.has(p.id)) return false;
+    for (let p = h.parent; p; p = (locate(p.id) || { parent: null }).parent) if (set.has(p.id)) return false;
     return true;
   });
 }
@@ -1499,6 +1499,7 @@ var refId = (v) => {
 };
 var colors = () => state.meta.tokens && state.meta.tokens.colors || [];
 var styles = () => state.meta.tokens && state.meta.tokens.text || [];
+var ensureTokens = () => state.meta.tokens ||= defaultTokens(state.meta);
 var classes = () => state.meta.tokens && state.meta.tokens.classes || [];
 var findColor = (id) => colors().find((c) => c.id === id) || null;
 var findStyle = (id) => styles().find((t) => t.id === id) || null;
@@ -1596,7 +1597,7 @@ function tsCreateFrom(n, name) {
   const base = tokenId(name) || "style";
   let id = base, k = 2;
   while (findStyle(id)) id = base + "-" + k++;
-  state.meta.tokens.text.push({ id, name: String(name || "New style").slice(0, 40), css: grabTypo(n) });
+  ensureTokens().text.push({ id, name: String(name || "New style").slice(0, 40), css: grabTypo(n) });
   stripTypo(n);
   n.props.ts = id;
   return id;
@@ -1659,7 +1660,7 @@ function classAdd(name, css) {
   const base = tokenId(name) || "class";
   let id = base, k = 2;
   while (findClass(id)) id = base + "-" + k++;
-  state.meta.tokens.classes = classes().concat([{
+  ensureTokens().classes = classes().concat([{
     id,
     name: String(name || "New class").slice(0, 40),
     css: { d: { ...css && css.d || {} }, t: { ...css && css.t || {} }, m: { ...css && css.m || {} } }
@@ -1698,7 +1699,7 @@ function classDelete(id) {
     });
     classRemove(x, id);
   }));
-  state.meta.tokens.classes = classes().filter((x) => x.id !== id);
+  ensureTokens().classes = classes().filter((x) => x.id !== id);
   return true;
 }
 function classMove(id, dir) {
@@ -1719,7 +1720,7 @@ function styleDelete(id) {
   allTrees().forEach((l) => eachNode(l, (x) => {
     if (x.props.ts === id) tsUnlink(x);
   }));
-  state.meta.tokens.text = styles().filter((t) => t.id !== id);
+  ensureTokens().text = styles().filter((t) => t.id !== id);
 }
 function colorDelete(id) {
   if (RESERVED.includes(id)) return false;
@@ -1729,14 +1730,14 @@ function colorDelete(id) {
   };
   allTrees().forEach((l) => eachNode(l, (x) => ["d", "t", "m"].forEach((b) => swap2(x.css[b] || {}))));
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => swap2(t.css && t.css[b] || {})));
-  state.meta.tokens.colors = colors().filter((c) => c.id !== id);
+  ensureTokens().colors = colors().filter((c) => c.id !== id);
   return true;
 }
 function colorAdd(name, value) {
   const base = tokenId(name) || "colour";
   let id = base, k = 2;
   while (findColor(id)) id = base + "-" + k++;
-  state.meta.tokens.colors.push({ id, name: String(name || "New colour").slice(0, 40), value: value || "#888888" });
+  ensureTokens().colors.push({ id, name: String(name || "New colour").slice(0, 40), value: value || "#888888" });
   return id;
 }
 var colorUsage = (id) => {
@@ -1989,9 +1990,9 @@ function copyStyles(id) {
   const n = h.node;
   styleClip.css = clone(n.css);
   styleClip.cls = [...Array.isArray(n.cls) ? n.cls : []];
-  styleClip.ts = n.props && n.props.ts || "";
+  styleClip.ts = String(n.props && n.props.ts || "");
   styleClip.adv = n.adv && n.adv.css || "";
-  styleClip.from = nameOf(n);
+  styleClip.from = String(nameOf(n));
   return true;
 }
 function pasteStyles(id) {
@@ -2000,7 +2001,7 @@ function pasteStyles(id) {
   if (!h) return false;
   const n = h.node;
   n.css = clone(styleClip.css);
-  n.cls = styleClip.cls.filter(findClass);
+  n.cls = (styleClip.cls || []).filter(findClass);
   if (n.adv) n.adv.css = styleClip.adv;
   if (ctlKeys(n.type).has("ts")) n.props.ts = styleClip.ts;
   return true;
@@ -3137,7 +3138,7 @@ function patternInsert(pid, parentNode, index) {
 var TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
 var T_H = (text, ts, css, level) => N("heading", { text, ts, level: level || TS_LEVEL[ts] || "h3" }, css);
 var T_T = (html, ts, css) => N("text", { html, ts }, css);
-var T_SEC = (css, kids) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
+var T_SEC = (css, kids, m) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
 var T_B = (text, css) => N(
   "button",
   { text, ts: "btn" },
@@ -3178,7 +3179,7 @@ function cardClass() {
       },
       m: { ...BOX("22px", "22px", "22px", "22px") }
     });
-    c = findClass("card");
+    c = findClass("card") || void 0;
   }
   return c;
 }
@@ -4034,7 +4035,8 @@ function vidPoster(p) {
   return v.kind === "youtube" ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : "";
 }
 var embedUrl = (p) => {
-  const v = vidSrc(p), q = [];
+  const v = vidSrc(p);
+  const q = [];
   if (p.autoplay) q.push("autoplay=1");
   if (p.muted || p.autoplay) q.push("mute=1", "muted=1");
   if (p.loop) q.push("loop=1");

@@ -15,8 +15,8 @@
    the legacy single-file build, so there is one source of truth during the port. */
 /* eslint-disable */
 import type {
-  State, Tokens, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  ColorToken, TextStyle, StyleClass, Collection, Field, Item, Page, SavedBlock,
+  State, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
+  ColorToken, TextStyle, StyleClass, Collection, Field, FieldType, Item, Page, SavedBlock,
   Finding, Target, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
 
@@ -126,7 +126,7 @@ const ICONS = [
   ]]
 ];
 /* flat lookup, and the order the picker walks */
-const ICON_PATHS = ICONS.reduce((all, [, list]) => { list.forEach(([k, p]) => { all[k] = p; }); return all; }, {});
+const ICON_PATHS: Record<string, string> = ICONS.reduce((all: Record<string, string>, [, list]: any) => { list.forEach(([k, p]: [string, string]) => { all[k] = p; }); return all; }, {});
 const ICON_NAMES = Object.keys(ICON_PATHS);
 /* Dimensions are not optional. A viewBox with no width/height collapses, and it
    has done so three times here — the CSS var carries the real size on top. */
@@ -220,7 +220,7 @@ const isGoogle = stack => !!gfIndex[familyOf(stack).toLowerCase()];
 
 /* every Google family the project actually uses, in a stable order */
 function usedFamilies() {
-  const seen = new Set();
+  const seen = new Set<string>();
   const take = v => { const g = gfIndex[familyOf(v).toLowerCase()]; if (g) seen.add(g.fam); };
   take(state.meta.font); take(state.meta.headFont);
   const scan = css => ['d', 't', 'm'].forEach(b => { const v = (css && css[b] || {})['font-family']; if (v) take(v); });
@@ -325,7 +325,7 @@ const DEF: Record<string, WidgetDef> = {
         {
           t: 'select', k: 'sort', label: 'Sort by',
           opts: n => [['', 'The order in the CMS'],
-            ...((n.src && findCollection(n.src) ? findCollection(n.src).fields : []).map(f => [f.id, f.name]))]
+            ...((n.src && findCollection(n.src) ? findCollection(n.src)!.fields : []).map((f: Field) => [f.id, f.name]))]
         },
         { t: 'pick', k: 'dir', label: 'Direction', opts: [['asc', 'A–Z'], ['desc', 'Z–A']] },
         { t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all' },
@@ -752,7 +752,7 @@ const COMMON_STYLE = [
 const N = (type: string, props: any = {}, css: any = {}, children: any[] = []): PcNode => {
   const base = DEF[type].make();
   return {
-    id: uid(), type,
+    id: uid(), type: type as any,
     props: { ...base.props, ...props },
     css: { d: { ...base.css.d, ...(css.d || {}) }, t: { ...base.css.t, ...(css.t || {}) }, m: { ...base.css.m, ...(css.m || {}) } },
     hide: {}, cls: [], adv: { htmlId: '', cls: '', css: '' },
@@ -856,7 +856,9 @@ function selIds() {
   for (const id of state.ui.multi || []) if (!out.includes(id)) out.push(id);
   return out.filter(id => locate(id));            // undo can retire a member
 }
-const selNodes = () => selIds().map(id => locate(id).node);
+/* selSet drops ids with no node, so every id here resolves; filter anyway rather
+   than assert, since a stale id would otherwise throw inside a render */
+const selNodes = () => selIds().map(id => locate(id)).filter(Boolean).map(h => h!.node);
 const multiOn = () => selIds().length > 1;
 function selSet(ids) {
   const live = ids.filter(id => locate(id));
@@ -900,7 +902,7 @@ function topMost(ids) {
   return ids.filter(id => {
     let h = locate(id);
     if (!h) return false;
-    for (let p = h.parent; p; p = (locate(p.id) || {}).parent) if (set.has(p.id)) return false;
+    for (let p = h.parent; p; p = (locate(p.id) || { parent: null }).parent) if (set.has(p.id)) return false;
     return true;
   });
 }
@@ -931,7 +933,7 @@ function fanTargets(c, ids) {
 /* the UI assigns real implementations over these no-ops at boot */
 const HOOKS: { change(): void; save(): void; note(m?: string): void } =
   { change() { }, save() { }, note() { } };
-const hist = { u: [], r: [], max: 80 };
+const hist: { u: Doc[]; r: Doc[]; max: number } = { u: [], r: [], max: 80 };
 function edit(fn) {
   hist.u.push(clone(doc())); if (hist.u.length > hist.max) hist.u.shift();
   hist.r.length = 0;
@@ -955,7 +957,7 @@ const CHAIN = { 1: 'section', 2: 'row', 3: 'column' };
 /* Builds the wrapper chain needed to legally place `type` inside a parent
    of level `pl`, e.g. a Heading (4) dropped on the root (0) becomes
    Section > Row > Column > Heading. */
-function wrap(type, pl, node) {
+function wrap(type: string, pl: number, node: any): any {
   let out = node;
   for (let l = lvl(type) - 1; l > pl; l--) out = N(CHAIN[l], {}, {}, [out]);
   return out;
@@ -1000,7 +1002,7 @@ function menuFor(ids) {
   const list = (ids || []).filter(id => locate(id));
   if (!list.length) return [];
   const many = list.length > 1;
-  const h = locate(list[0]);
+  const h = locate(list[0])!;                 // list was filtered to live ids above
   const n = h.node;
   const d = DEF[n.type];
   const dev = DEV_LABEL[dk()];
@@ -1143,7 +1145,7 @@ function delMany(ids) {
   for (const id of top.slice().reverse()) {
     const h = locate(id); if (!h) continue;
     h.list.splice(h.i, 1);
-    fallback = h.parent ? h.parent.id : null;      // the shallowest survivor wins
+    fallback = (h.parent ? h.parent.id : null) as any;      // the shallowest survivor wins
   }
   selSet(fallback ? [fallback] : []);
   return top.length;
@@ -1217,6 +1219,13 @@ const refId = v => { const m = String(v || '').trim().match(/^var\(--c-([\w-]+)\
 
 const colors = () => (state.meta.tokens && state.meta.tokens.colors) || [];
 const styles = () => (state.meta.tokens && state.meta.tokens.text) || [];
+
+/* `tokens` is null until boot fills it, and six mutators below dereferenced it with
+   no check — a throw waiting for any path that reached them before load() ran. The
+   readers above already handle null by returning []; this handles it once for the
+   writers instead of six times, and lazily rather than by asserting, so a path that
+   used to throw now works. TypeScript found all six; nothing else ever had. */
+const ensureTokens = (): Tokens => (state.meta.tokens ||= defaultTokens(state.meta));
 const classes = () => (state.meta.tokens && state.meta.tokens.classes) || [];
 const findColor = id => colors().find(c => c.id === id) || null;
 const findStyle = id => styles().find(t => t.id === id) || null;
@@ -1325,7 +1334,7 @@ function tsCreateFrom(n, name) {
   const base = tokenId(name) || 'style';
   let id = base, k = 2;
   while (findStyle(id)) id = base + '-' + k++;
-  state.meta.tokens.text.push({ id, name: String(name || 'New style').slice(0, 40), css: grabTypo(n) });
+  ensureTokens().text.push({ id, name: String(name || 'New style').slice(0, 40), css: grabTypo(n) });
   stripTypo(n);
   n.props.ts = id;
   return id;
@@ -1382,7 +1391,7 @@ function classAdd(name, css) {
   const base = tokenId(name) || 'class';
   let id = base, k = 2;
   while (findClass(id)) id = base + '-' + k++;
-  state.meta.tokens.classes = classes().concat([{
+  ensureTokens().classes = classes().concat([{
     id, name: String(name || 'New class').slice(0, 40),
     css: { d: { ...((css && css.d) || {}) }, t: { ...((css && css.t) || {}) }, m: { ...((css && css.m) || {}) } }
   }]);
@@ -1418,7 +1427,7 @@ function classDelete(id) {
     ['d', 't', 'm'].forEach(b => { x.css[b] = { ...((c.css && c.css[b]) || {}), ...(x.css[b] || {}) }; });
     classRemove(x, id);
   }));
-  state.meta.tokens.classes = classes().filter(x => x.id !== id);
+  ensureTokens().classes = classes().filter(x => x.id !== id);
   return true;
 }
 /* precedence follows list order, so moving a class changes which one wins */
@@ -1436,7 +1445,7 @@ const tsUsage = id => {
 };
 function styleDelete(id) {
   allTrees().forEach(l => eachNode(l, x => { if (x.props.ts === id) tsUnlink(x); }));
-  state.meta.tokens.text = styles().filter(t => t.id !== id);
+  ensureTokens().text = styles().filter(t => t.id !== id);
 }
 /* deleting a colour inlines its literal everywhere, so nothing silently breaks */
 function colorDelete(id) {
@@ -1445,14 +1454,14 @@ function colorDelete(id) {
   const swap = o => { for (const k in o) if (refId(o[k]) === id) o[k] = lit; };
   allTrees().forEach(l => eachNode(l, x => ['d', 't', 'm'].forEach(b => swap(x.css[b] || {}))));
   styles().forEach(t => ['d', 't', 'm'].forEach(b => swap((t.css && t.css[b]) || {})));
-  state.meta.tokens.colors = colors().filter(c => c.id !== id);
+  ensureTokens().colors = colors().filter(c => c.id !== id);
   return true;
 }
 function colorAdd(name, value) {
   const base = tokenId(name) || 'colour';
   let id = base, k = 2;
   while (findColor(id)) id = base + '-' + k++;
-  state.meta.tokens.colors.push({ id, name: String(name || 'New colour').slice(0, 40), value: value || '#888888' });
+  ensureTokens().colors.push({ id, name: String(name || 'New colour').slice(0, 40), value: value || '#888888' });
   return id;
 }
 const colorUsage = id => {
@@ -1515,7 +1524,7 @@ function lint() {
   /* ids available on each page, so links can be resolved across the site */
   const idsBySlug: Record<string, Set<string>> = {};
   state.pages.forEach(pg => {
-    const ids = new Set();
+    const ids = new Set<string>();
     [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
     idsBySlug[pg.slug + '.html'] = ids;
   });
@@ -1552,9 +1561,9 @@ function lint() {
         if (h === 'cms:item') {
           const isc = n.src ? findCollection(n.src) : null;
           const owner = isc || (() => {
-            let f = null;
+            let f: Collection | null = null;
             eachNode(pg.tree, x => { if (!f && x.src && findCollection(x.src)) { let d = false; eachNode([x], y => { if (y.id === n.id) d = true; }); if (d) f = findCollection(x.src); } });
-            return f || (pg.collection ? findCollection(pg.collection) : null);
+            return (f || (pg.collection ? findCollection(pg.collection) : null)) as any;
           })();
           if (!owner) add('error', 'item-link-no-scope', `A link in the ${region} points at “this item’s page”, but nothing around it says which collection.`, w, n.id);
           else if (!state.pages.some(x => x.collection === owner.id)) add('error', 'item-link-no-template', `A link in the ${region} points at an item’s own page, but no page is a detail template for “${owner.name}”.`, w, n.id);
@@ -1731,9 +1740,9 @@ function copyStyles(id) {
   const n = h.node;
   styleClip.css = clone(n.css);
   styleClip.cls = [...(Array.isArray(n.cls) ? n.cls : [])];
-  styleClip.ts = (n.props && n.props.ts) || '';
+  styleClip.ts = String((n.props && n.props.ts) || '');
   styleClip.adv = (n.adv && n.adv.css) || '';
-  styleClip.from = nameOf(n);
+  styleClip.from = String(nameOf(n));
   return true;
 }
 
@@ -1752,10 +1761,10 @@ function pasteStyles(id) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
-  n.css = clone(styleClip.css);
+  n.css = clone(styleClip.css) as Css;
   /* a class deleted between the copy and the paste is dropped rather than carried
      as a dangling id */
-  n.cls = styleClip.cls.filter(findClass);
+  n.cls = (styleClip.cls || []).filter(findClass);
   if (n.adv) n.adv.css = styleClip.adv;
   if (ctlKeys(n.type).has('ts')) n.props.ts = styleClip.ts;
   return true;
@@ -1850,7 +1859,7 @@ function snippet(text, at, len, pad = 26) {
 
 /* Every hit in the project, in reading order: the header, then each page, then the
    footer, then the CMS. `where` is what the results list groups by. */
-function searchAll(q, o = {}) {
+function searchAll(q: string | null, o: { caseSensitive?: boolean; cms?: boolean } = {}) {
   const needle = String(q || '');
   if (!needle) return [];
   const ci = !o.caseSensitive;
@@ -1903,7 +1912,7 @@ const searchCount = hits => hits.reduce((t, h) => t + h.hits, 0);
 
 /* Its own walk rather than a replay of a hit list: a list held across an edit is
    stale, and this is the one operation that must not act on a stale one. */
-function replaceAll(q, to, o = {}) {
+function replaceAll(q: string | null, to: string | null, o: { caseSensitive?: boolean; cms?: boolean } = {}) {
   const needle = String(q || '');
   if (!needle) return 0;
   const ci = !o.caseSensitive;
@@ -1943,7 +1952,7 @@ function replaceAll(q, to, o = {}) {
 /* The clipboard holds a detached copy, so pasting works across pages and
    regions. Classes and text styles travel as references — they are project
    level, so the pasted copy keeps following them. */
-const clip = { node: null };
+const clip: { node: PcNode | null } = { node: null };
 function copyNode(id) {
   const h = locate(id);
   if (!h) return false;
@@ -2007,11 +2016,11 @@ const uniqueId = (base, taken) => {
   while (taken.includes(id)) id = b + '-' + k++;
   return id;
 };
-function collectionAdd(name) {
+function collectionAdd(name: string): any {
   const id = uniqueId(name || 'collection', collections().map(c => c.id));
   const col = {
     id, name: String(name || 'Collection').slice(0, 40), slug: id,
-    fields: [{ id: 'title', name: 'Title', type: 'text', required: 1 }],
+    fields: [{ id: 'title', name: 'Title', type: 'text', required: 1 }] as Field[],
     items: [], detail: ''
   };
   collections().push(col);
@@ -2023,15 +2032,15 @@ function collectionRename(id, name) {
   col.name = String(name || col.name).slice(0, 40);
 }
 
-function fieldAdd(colId, name, type) {
+function fieldAdd(colId: string, name: string, type: string): any {
   const col = findCollection(colId); if (!col) return null;
   const f = {
     id: uniqueId(name || 'field', col.fields.map(x => x.id)),
     name: String(name || 'Field').slice(0, 40),
-    type: FIELD_TYPES.some(([t]) => t === type) ? type : 'text',
+    type: (FIELD_TYPES.some(([t]: any) => t === type) ? type : 'text') as FieldType,
     required: 0
   };
-  col.fields.push(f);
+  col.fields.push(f as Field);
   return f;
 }
 /* Deleting a field drops its values too — an item cannot carry a value for a
@@ -2171,10 +2180,10 @@ function contentJson(imgPath = v => (v == null ? '' : String(v))) {
    are the real ones — folders included — which is what a zip can honour and a
    one-file-at-a-time download cannot. Images are appended by the caller, since
    only the UI knows the asset store. */
-function sitePlan() {
+function sitePlan(): any[] {
   const out = exportTargets().map(t => ({ kind: 'page', path: t.path, target: t }));
-  if (collections().length) out.push({ kind: 'content', path: 'content.json' });
-  if (state.meta.baseUrl) out.push({ kind: 'sitemap', path: 'sitemap.xml' }, { kind: 'robots', path: 'robots.txt' });
+  if (collections().length) out.push({ kind: 'content', path: 'content.json' } as any);
+  if (state.meta.baseUrl) out.push({ kind: 'sitemap', path: 'sitemap.xml' } as any, { kind: 'robots', path: 'robots.txt' } as any);
   return out;
 }
 
@@ -2246,7 +2255,7 @@ function guessBindings(slots, col) {
     if (f) take(s, f);
   });
   /* 2. the shape of the control, most-certain first, one slot each */
-  const first = (pred) => slots.filter(free).find(pred);
+  const first = (pred: any) => slots.filter(free).find(pred);
   const rules = [
     [s => s.key === 'src', () => byType('image')],
     [s => s.key === 'text' && s.type === 'heading', () => (left.includes(title) ? title : null)],
@@ -2254,7 +2263,7 @@ function guessBindings(slots, col) {
     [s => s.key === 'link' && s.type === 'button', () => byType('link')],
     [s => s.key === 'text' && s.type === 'button', () => left.find(f => f.type === 'text' && f !== title)]
   ];
-  rules.forEach(([pick, field]) => {
+  rules.forEach(([pick, field]: any) => {
     const s = first(pick);
     if (!s) return;
     const f = field();
@@ -2399,10 +2408,10 @@ function blockInsert(id, parentNode, index) {
   list.splice(Math.max(0, Math.min(index, list.length)), 0, nested ? fresh : wrap(fresh.type, pl, fresh));
   return fresh;
 }
-const blockDelete = id => { state.meta.blocks = blocks().filter(b => b.id !== id); };
+const blockDelete = (id: string) => { state.meta.blocks = blocks().filter(b => b.id !== id); };
 
 /* Arrow-key traversal of the tree as it reads on screen */
-const flatten = (list, out = []) => { list.forEach(n => { out.push(n); flatten(n.children || [], out); }); return out; };
+const flatten = (list: any[], out: any[] = []): any[] => { list.forEach(n => { out.push(n); flatten(n.children || [], out); }); return out; };
 function step(id, dir) {
   const flat = flatten(tree());
   if (!flat.length) return null;
@@ -2497,9 +2506,9 @@ function migrate(d) {
    scales, and reads in either theme. */
 const PV = body => `<svg class="pvw" viewBox="0 0 96 58" aria-hidden="true">${body}</svg>`;
 const pb = (x: number, y: number, w: number, h: number, r?: number) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r || 1.5}" class="pv-b"/>`;
-const pl = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
+const pl = (x: number, y: number, w: number) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
 const pg = (x: number, y: number, w?: number) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
-const ph = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
+const ph = (x: number, y: number, w: number) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
 
 const PATTERNS = [
   {
@@ -2846,7 +2855,7 @@ function patternInsert(pid, parentNode, index) {
 const TS_LEVEL = { display: 'h1', title: 'h2', subtitle: 'h3', eyebrow: 'div' };
 const T_H = (text: string, ts: string, css?: any, level?: string) => N('heading', { text, ts, level: level || TS_LEVEL[ts] || 'h3' }, css);
 const T_T = (html: string, ts: string, css?: any) => N('text', { html, ts }, css);
-const T_SEC = (css?: any, kids?: any) => N('section', {}, { d: { ...BOX('88px', '28px', '88px', '28px'), ...(css || {}) }, m: { ...BOX('56px', '20px', '56px', '20px') } }, kids);
+const T_SEC = (css?: any, kids?: any, m?: any) => N('section', {}, { d: { ...BOX('88px', '28px', '88px', '28px'), ...(css || {}) }, m: { ...BOX('56px', '20px', '56px', '20px') } }, kids);
 /* Green is for action, so it belongs on the primary button and nowhere else in
    a pattern; anything secondary takes the outline treatment. */
 const T_B = (text: string, css?: any) => N('button', { text, ts: 'btn' },
@@ -2880,11 +2889,11 @@ function cardClass() {
       },
       m: { ...BOX('22px', '22px', '22px', '22px') }
     });
-    c = findClass('card');
+    c = findClass('card') || undefined;
   }
   return c;
 }
-const carded = row => { row.children.forEach(col => classApply(col, cardClass().id)); return row; };
+const carded = (row: any) => { row.children.forEach((col: any) => classApply(col, cardClass()!.id)); return row; };
 
 const TEMPLATES = [
   {
@@ -3211,11 +3220,11 @@ function seed() {
   state.meta.headHtml = '';        // the font stylesheet is written automatically
 
   const C = cvar;
-  const H = (text, ts, css) => N('heading', {
+  const H = (text: string, ts: string, css?: any) => N('heading', {
     text, ts,
     level: ts === 'display' ? 'h1' : ts === 'title' ? 'h2' : ts === 'eyebrow' ? 'div' : 'h3'
   }, css);
-  const T = (html, ts, css) => N('text', { html, ts }, css);
+  const T = (html: string, ts: string, css?: any) => N('text', { html, ts }, css);
   const B = (text, o = {}, css = {}) => N('button', { text, ts: 'btn', ...o }, css);
   const cell = (w) => N('column', {}, { d: { 'flex-grow': String(w), 'flex-basis': 'auto' }, m: { 'flex-basis': 'auto' } });
 
@@ -3285,7 +3294,7 @@ function seed() {
     },
     m: { ...BOX('22px', '22px', '22px', '22px') }
   });
-  const card = (t, body) => [H(t, 'subtitle', { d: { 'margin-bottom': '10px' } }), T('<p>' + body + '</p>', 'small')];
+  const card = (t: string, body: string) => [H(t, 'subtitle', { d: { 'margin-bottom': '10px' } }), T('<p>' + body + '</p>', 'small')];
   const craft = N('section', {}, {
     d: { ...BOX('96px', '28px', '96px', '28px'), 'background-color': C('surface') },
     m: { ...BOX('56px', '20px', '56px', '20px') }
@@ -3735,8 +3744,9 @@ function vidPoster(p) {
   const v = vidSrc(p);
   return v.kind === 'youtube' ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : '';
 }
-const embedUrl = p => {
-  const v = vidSrc(p), q = [];
+const embedUrl = (p: any) => {
+  const v = vidSrc(p);
+  const q: string[] = [];
   if (p.autoplay) q.push('autoplay=1');
   if (p.muted || p.autoplay) q.push('mute=1', 'muted=1');
   if (p.loop) q.push('loop=1');
@@ -4129,7 +4139,7 @@ const tidy = css => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n').replace(/
 /* `ctx` carries the item a detail page stands for, and `rel` — how far this file
    sits from the root. Both reach every link and every asset path through the
    render options, so the header and footer come out right on a nested page too. */
-function buildPage(pg, ctx = {}) {
+function buildPage(pg: Page, ctx: { col?: Collection | null; item?: Item | null; rel?: string } = {}) {
   const m = state.meta;
   const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '' };
   const css = treeCss([state.header, pg.tree, state.footer], false);

@@ -57,6 +57,22 @@ Two things went wrong on the way, both worth remembering:
   instead leaves every top-level declaration where it was, which makes this a move rather
   than a rewrite. Fewer moving parts, and the output keeps its original shape.
 
+### What tightening the core found
+
+53 errors down to 0, and six of them were real: **`state.meta.tokens` is `Tokens | null`**
+until `defaultTokens()` fills it at boot, and six mutators — `colorAdd`, `colorDelete`,
+`styleDelete`, `tsCreateFrom`, `classAdd`, `classDelete` — dereferenced it with no check.
+The readers had always guarded (`(state.meta.tokens && …) || []`); only the writers hadn't.
+`ensureTokens()` handles it once, and lazily rather than by asserting, so a path that used
+to throw now works. Nothing but the type had ever noticed.
+
+The rest were the compiler being right about looseness rather than about bugs: empty-array
+accumulators inferring `never[]`, options bags typed `{}`, helpers whose trailing arguments
+are optional in practice, and `locate()` now honestly returning `Handle | null` at the
+dozen sites that had been assuming otherwise. Each was fixed by describing what the code
+does — a guard, a filter, or a cast at exactly one boundary — never by widening a type to
+make a symptom go away.
+
 ## Two rules the build enforces
 
 1. **Core/UI split.** Pure logic lives between `/*<core>*/` … `/*</core>*/` markers and is

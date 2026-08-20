@@ -33,12 +33,20 @@ around 180 cross-references and real cycles — `menuFor` needs `clip`, whose mo
 need `DEF`. Splitting it in one move is how a working system breaks. Split one boundary at
 a time, suite green after each.
 
-**Type errors, deliberately not zero yet:** 53 in the ported core, 199 in the test file.
-None block anything — esbuild strips types without checking, and all 325 tests pass. The
-core's 53 include **7 real findings**: `state.meta.tokens` is dereferenced in 7 places
-without a null check, and it is typed `Tokens | null` because `defaultTokens()` fills it at
-boot. Those are latent throws that nothing had ever noticed. `noImplicitAny` is off for the
-port; turning it on is the tightening work, a function at a time.
+**The core is at 0 type errors.** 199 remain in the test file, which is unconverted and
+mostly `locate()` now being honest about returning `Handle | null` where the tests never
+checked. Nothing blocks — esbuild strips types without checking and all 325 pass.
+
+Tightening it found **six real bugs**: `state.meta.tokens` is `Tokens | null` until
+`defaultTokens()` runs at boot, and six mutators dereferenced it with no check — latent
+throws for any path reaching them before `load()`. The readers already returned `[]` for
+null; `ensureTokens()` now handles the writers once, lazily, so a path that used to throw
+works instead.
+
+**`noImplicitAny` is still off**, and turning it on is **424 unannotated parameters**. That
+is the next increment and it is a real one: each is a type decision, not a mechanical fix,
+and spraying `: any` across 424 of them would satisfy the compiler and deliver nothing. Do
+it per-section as the modules split, so each annotation is made with its neighbours in view.
 
 **One thing the types already found:** the text styles are stored under `tokens.text` while
 the accessor is called `styles()`. The key and the name have never agreed, and only writing
