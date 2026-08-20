@@ -180,6 +180,33 @@ The bar carries all seven again, and the menu still holds every verb, so nothing
 reachable from only one place. The rule to keep: collapse implementations, not entry
 points. If two buttons can disagree, fix the code behind them — do not delete a button.
 
+## The canvas is an iframe, so outer-document listeners do not see it
+
+The context menu stuck. It was opened by right-clicking an element, and then clicking a
+different element left it sitting there.
+
+Its closers were all on the outer document:
+
+    document.addEventListener('pointerdown', ... closeCtx, true)
+    document.addEventListener('keydown', Escape -> closeCtx)
+    window.addEventListener('resize', closeCtx)
+
+Which reads as complete, and is — for the outer document. But the canvas is an iframe, and
+events inside it never cross into the parent. The menu is nearly always opened from *within*
+the canvas, so the very next thing anyone does — click another element — happened in the one
+document that had no closer. The scroll closer the comment promised did not exist either.
+
+Anything global in this app has to be bound twice, once on `document` and once on `cdoc`, or
+it only half exists. `bindCanvas` is where the inner half goes, because it re-runs whenever
+the canvas remounts.
+
+**And the second bug, which the first fix caused.** Adding a plain Escape closer to `cdoc`
+meant Escape both dismissed the menu and ran `hotkey`'s Escape branch, so one press closed
+the menu *and* walked the selection up a level. Two things for one key. The fix is that
+Escape now *consumes* the event when it dismisses a menu and only then — with nothing open
+it is left alone and Escape means what it always meant. One policy, shared by both
+documents, instead of two listeners that each did half the job.
+
 ## Two rules the build enforces
 
 1. **Core/UI split.** Pure logic lives between `/*<core>*/` … `/*</core>*/` markers and is

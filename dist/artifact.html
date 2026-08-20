@@ -9450,13 +9450,32 @@ function openCtx(x, y, ids) {
     runAct(a, ids);
   }));
 }
-/* one closer for every way out: another click, Escape, a scroll, a resize */
+/* One closer for every way out: another click, Escape, a scroll, a resize.
+
+   Escape *consumes* the event when it dismisses a menu, and only then. Otherwise the
+   menu closed and `hotkey` also ran its own Escape branch on the same press, so one tap
+   dismissed the menu and walked the selection up a level — two things for one key. With
+   no menu open the event is left alone and Escape means what it always meant. */
+const escCtx = e => {
+  if (e.key !== 'Escape' || !$('#ctx')) return;
+  closeCtx();
+  e.stopPropagation();
+};
 document.addEventListener('pointerdown', e => { if (!e.target.closest('#ctx')) closeCtx(); }, true);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCtx(); });
+document.addEventListener('keydown', escCtx, true);
 window.addEventListener('resize', closeCtx);
 
 /* ========================================================= canvas events */
 function bindCanvas() {
+  /* The context menu lives in the outer document, and so did every one of its closers —
+     but the canvas is an iframe, and events inside it never reach the outer document. So
+     the menu, which is nearly always opened by right-clicking an element *in the canvas*,
+     survived the very next thing anyone does: clicking another element. Capture phase, so
+     it runs before the handler below decides what the click meant, and unconditional,
+     because a pointerdown anywhere in the canvas is never a click on the menu. */
+  cdoc.addEventListener('pointerdown', closeCtx, true);
+  cdoc.addEventListener('keydown', escCtx, true);
+
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
@@ -9547,7 +9566,9 @@ function bindCanvas() {
       if (b) b.setAttribute('aria-expanded', 'false');
     });
   });
-  cwin.addEventListener('scroll', () => { positionHud(); if (editing.on) placeRT(); }, { passive: true });
+  /* the menu is placed at the pointer in outer-document coordinates, so once the canvas
+     scrolls it is pointing at whatever moved into that spot */
+  cwin.addEventListener('scroll', () => { closeCtx(); positionHud(); if (editing.on) placeRT(); }, { passive: true });
   cwin.addEventListener('resize', () => { positionHud(); if (editing.on) placeRT(); });
   /* Right-click selects what is under the pointer if it is not already selected — a
      menu that acts on something you cannot see selected is how you delete the wrong
