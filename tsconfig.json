@@ -9,8 +9,6 @@
     "types": ["vite/client"],
 
     "strict": true,
-    /* Off for the port: the core carries inferred types for now. Turning this on is
-       step 1 of tightening, done a function at a time with the suite green. */
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": false,
     "noUnusedLocals": true,

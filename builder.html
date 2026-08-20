@@ -2216,77 +2216,21 @@ function appendSmart(key) {
 }
 
 /* =============================================================== layers */
-function renderLayers() {
-  const p = $('#paneLayers');
-  const list = tree();
-  const rows = [];
+/* The Navigator lives in app/src/ui/Layers.tsx now. What stood here was a renderer
+   that built HTML strings and a binder that queried them back out of the DOM to
+   attach handlers — the split the control-parity guard exists to police. In a
+   component a row's handler sits next to its markup and cannot drift from it.
 
-  /* Global regions are edited in place: the live one expands, the others stay
-     collapsed and locked. Selecting one switches the editing scope. */
-  const scope = scopeOf();
-  const regionRow = R => {
-    const live = R.kind === scope;
-    return `<div class="lrow region${live ? ' live' : ' locked'}" data-goto="${modeFor(R.kind)}">
-      ${svg(R.kind === 'main' ? 'page' : 'globe', 13, 'ico')}
-      <span class="nm">${R.label}</span>
-      ${live ? '<span class="badge">Editing</span>' : svg('lock', 12, 'lk')}
-    </div>`;
-  };
-  const picked = new Set(selIds());
-  const walk = (arr, depth) => arr.forEach(n => {
-    const kids = n.children || [];
-    const col = state.ui.collapsed[n.id];
-    const hid = n.hide && n.hide[dk()];
-    const mark = state.ui.sel === n.id ? ' sel' : picked.has(n.id) ? ' sel2' : '';
-    rows.push(`<div class="lrow${mark}${col ? ' collapsed' : ''}" data-id="${n.id}" style="padding-left:${6 + depth * 13}px">
-      <span class="tw" data-tw="${n.id}">${kids.length ? svg('caret', 10) : ''}</span>
-      <span class="gr" data-gr="${n.id}" title="Drag to reorder">${svg('drag', 11)}</span>
-      ${svg(DEF[n.type].icon, 13, 'ico')}
-      <span class="nm">${esc(nameOf(n))}</span>
-      <span class="act">
-        <button data-act="hide" title="${hid ? 'Show' : 'Hide'} on ${DEV_LABEL[dk()]}">${svg(hid ? 'eyeoff' : 'eye', 12)}</button>
-        <button data-act="dup" title="Duplicate">${svg('copy', 12)}</button>
-        <button data-act="del" title="Delete">${svg('trash', 12)}</button>
-      </span>
-    </div>`);
-    if (kids.length && !col) walk(kids, depth + 1);
-  });
-  for (const R of REGIONS) {
-    rows.push(regionRow(R));
-    if (R.kind !== scope) continue;
-    if (!list.length) rows.push(`<div class="empty" style="padding:14px 16px">Empty.<br>Add an element from the <b>Add</b> panel.</div>`);
-    else walk(list, 1);
-  }
-  p.innerHTML = `<div class="layers">${rows.join('')}</div>`;
-  bindLayers(p);
-}
-
-function bindLayers(p) {
-  $$('.lrow', p).forEach(r => {
-    if (r.dataset.goto) { r.addEventListener('click', () => setMode(r.dataset.goto)); return; }
-    if (r.dataset.main) { r.addEventListener('click', () => select(null)); return; }
-    const id = r.dataset.id;
-    r.addEventListener('click', e => {
-      const tw = e.target.closest('[data-tw]');
-      if (tw) { state.ui.collapsed[id] = !state.ui.collapsed[id]; renderLayers(); return; }
-      const b = e.target.closest('button[data-act]');
-      if (b) {
-        e.stopPropagation();
-        /* a row's own actions apply to that row, not to whatever is selected */
-        runAct(b.dataset.act, [id]);
-        return;
-      }
-      select(id, { scroll: true, add: e.metaKey || e.ctrlKey, range: e.shiftKey });
-    });
-    const gr = r.querySelector('[data-gr]');
-    if (gr) gr.addEventListener('pointerdown', e => startLayerDrag(e, id));
-    r.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      if (!selIds().includes(id)) select(id);
-      openCtx(e.clientX, e.clientY, selIds());
-    });
-  });
-}
+   Mounted lazily so this does not depend on where in the file it sits: REGIONS,
+   scopeOf and modeFor are `const`, and a call at the wrong line would hit their
+   temporal dead zone. The two object literals are the whole seam — everything the
+   ported panel is still borrowing from this file. */
+let UI = null;
+const ui = () => UI || (UI = PC_UI.mount(
+  { IC, DEF, DEV_LABEL, state, dk, tree, selIds, nameOf },
+  { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor }
+));
+function renderLayers() { ui().renderLayers(); }
 
 /* ---- reordering in the Navigator --------------------------------------
    The canvas can already do this, but only where the thing is visible and big

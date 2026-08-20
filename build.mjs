@@ -94,6 +94,7 @@ const EXPORTS = [
    below let the remaining UI code keep referring to core symbols by bare name,
    which is what makes this a move rather than a rewrite. */
 const CORE_TS = join(here, 'app', 'src', 'core', 'index.ts');
+const UI_TS = join(here, 'app', 'src', 'ui', 'index.tsx');
 
 /* Bundled as ESM, then the trailing export is cut.
 
@@ -118,6 +119,37 @@ const coreBundle = (() => {
   return out.slice(0, cut);
 })();
 
+/* The ported panels, as an IIFE.
+
+   Not spliced into the shared scope like the core is, and the reason is concrete
+   rather than stylistic: Preact's bundle declares `$` at top level, and builder.html
+   has declared `$` as its DOM query helper since the first commit. One scope for both
+   is `Identifier '$' has already been declared` — a SyntaxError that takes the whole
+   app with it. So this stays sealed, exports one `mount`, and receives everything it
+   needs as arguments.
+
+   The guard below is the same idea as the control-parity check: assert the property
+   the design depends on rather than trusting it to stay true. If a future esbuild
+   emits anything at top level besides `var PC_UI`, the build says so here instead of
+   the app dying at boot with a name clash. */
+const uiBundle = (() => {
+  const out = buildSync({
+    entryPoints: [UI_TS],
+    bundle: true, write: false, format: 'iife', globalName: 'PC_UI',
+    jsx: 'automatic', jsxImportSource: 'preact',
+    target: 'es2022', platform: 'browser', legalComments: 'none'
+  }).outputFiles[0].text;
+
+  const top = [...out.matchAll(/^(?:var|let|const|function|class)\s+([A-Za-z_$][\w$]*)/gm)].map(m => m[1]);
+  const leaked = top.filter(n => n !== 'PC_UI');
+  if (leaked.length) {
+    throw new Error('the UI bundle leaked ' + leaked.length + ' name(s) into the shared scope: '
+      + leaked.slice(0, 8).join(', ') + ' — it must stay sealed, or it will collide with builder.html');
+  }
+  if (!top.includes('PC_UI')) throw new Error('the UI bundle did not declare PC_UI');
+  return out;
+})();
+
 const script = (() => {
   const O = '/*<core>*/', C = '/*</core>*/';
   let at = 0, first = -1, out = '', last = 0;
@@ -135,6 +167,8 @@ const script = (() => {
   return out.slice(0, first)
     + `\n/* ==== core: compiled from app/src/core/index.ts — do not edit here ==== */\n`
     + coreBundle
+    + `\n/* ==== ported panels: compiled from app/src/ui/ — sealed, see build.mjs ==== */\n`
+    + uiBundle
     + out.slice(first);
 })();
 
