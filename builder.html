@@ -2113,7 +2113,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    newPageModal, renderModebar, save, appRender: render, assetField, wireAsset,
+    newPageModal, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
     mediaTake, mediaPicker, assetsToBlob, imgSize,
@@ -3036,49 +3036,6 @@ function langSelect(id, val) {
     </select>`;
 }
 /* the same upload affordance the inspector uses, for project-level images */
-function assetField(pfx, rawv, note) {
-  const ref = String(rawv || '').match(/^asset:([a-z0-9]+)$/);
-  const a = ref && AS.mem.get(ref[1]);
-  return `${a
-    ? `<div class="imgset">
-          <img src="${a.url}" alt="">
-          <span class="an"><b>${esc(a.name)}</b><small>${kb(a.size)}${a.w ? ` · ${a.w} × ${a.h}` : ''}</small></span>
-          <button class="x" id="${pfx}Clr" title="Remove">${svg('trash', 12)}</button>
-        </div>`
-    : `<div class="imgdrop" id="${pfx}Drop"><b>Drop an image here</b><span>or choose a file</span></div>`}
-    <div style="display:flex;gap:6px;margin-top:var(--gap-1)">
-      <button class="btn" id="${pfx}Up" style="flex:1;justify-content:center">${svg('image', 13)} ${a ? 'Replace' : 'Upload'}</button>
-      ${AS.mem.size ? `<button class="btn" id="${pfx}Lib" style="flex:1;justify-content:center" title="Pick from the Media library">${svg('copy', 13)} Library</button>` : ''}
-    </div>
-    ${note ? `<div class="note">${note}</div>` : ''}`;
-}
-function wireAsset(pfx, set, redraw) {
-  const take = async file => {
-    const id = await mediaTake(file);
-    if (!id) return;
-    set('asset:' + id); redraw();
-  };
-  const choose = () => {
-    const fi = document.createElement('input');
-    fi.type = 'file'; fi.accept = 'image/*';
-    fi.onchange = () => take(fi.files[0]);
-    fi.click();
-  };
-  const up = $('#' + pfx + 'Up'); if (up) up.addEventListener('click', choose);
-  const clr = $('#' + pfx + 'Clr'); if (clr) clr.addEventListener('click', () => { set(''); writeNow(); redraw(); });
-  const lib = $('#' + pfx + 'Lib'); if (lib) lib.addEventListener('click', async () => {
-    const id = await mediaPicker();
-    if (!id) return;
-    set('asset:' + id); writeNow(); redraw();
-  });
-  const drop = $('#' + pfx + 'Drop');
-  if (drop) {
-    drop.addEventListener('click', choose);
-    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-    drop.addEventListener('drop', e => take(e.dataTransfer.files[0]));
-  }
-}
 
 /* the same font vocabulary the inspector offers, for the project defaults */
 function fontSelect(id, val) {
@@ -3168,16 +3125,16 @@ function projectModal() {
   const langEl = $('#mLang');
   if (langEl) langEl.addEventListener('change', () => { m.lang = langEl.value; paintCss(); save(); });
 
-  const drawFav = () => {
-    $('#mFavBox').innerHTML = assetField('mFav', m.favicon, 'Exported as a &lt;link rel="icon"&gt;.');
-    wireAsset('mFav', v => { m.favicon = v; }, drawFav);
-  };
-  const drawOg = () => {
-    $('#mOgBox').innerHTML = assetField('mOg', m.ogImage,
-      'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.');
-    wireAsset('mOg', v => { m.ogImage = v; }, drawOg);
-  };
-  drawFav(); drawOg();
+  /* app/src/ui/AssetField.tsx. Each box has one writer, so the component owns the div
+     and redraws itself — there is nothing here to keep in step with it. */
+  ui().mountAssetField('mFavBox', {
+    get: () => m.favicon, set: v => { m.favicon = v; },
+    note: 'Exported as a &lt;link rel="icon"&gt;.'
+  });
+  ui().mountAssetField('mOgBox', {
+    get: () => m.ogImage, set: v => { m.ogImage = v; },
+    note: 'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.'
+  });
   wire('mCss', v => { m.css = v; });
   wire('mHeadHtml', v => { m.headHtml = v; });
 

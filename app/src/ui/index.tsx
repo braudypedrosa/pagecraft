@@ -11,6 +11,7 @@ import { Cms } from './Cms';
 import { Add } from './Add';
 import { Pages } from './Pages';
 import { Inspector } from './inspector/Inspector';
+import { AssetField } from './AssetField';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
@@ -42,5 +43,20 @@ export function mount(core: Core, legacy: Legacy) {
   registerPainter('pages', painters.renderPages);
   registerPainter('right', painters.renderRight);
 
-  return painters;
+  /* The project dialog is still legacy, but each of its image boxes has exactly one
+     writer, so Preact can own that div outright — the same rule the panels were chosen
+     by. It re-renders itself on change rather than the caller redrawing, which is why
+     the legacy `redraw` argument has no counterpart here. */
+  const mountAssetField = (hostId: string, opts: {
+    get(): string | undefined; set(v: string): void; note?: string;
+  }) => {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    const draw = () => render(
+      <AssetField value={opts.get()} note={opts.note}
+        onChange={v => { opts.set(v); draw(); }} />, host);
+    draw();
+  };
+
+  return { ...painters, mountAssetField };
 }

@@ -85,12 +85,8 @@ export interface Legacy {
   /** repaint everything — the app's own render cycle */
   appRender(): void;
 
-  /* The image field, still legacy because it is backed by IndexedDB and the media
-     library. A ported panel renders the markup it returns and then calls wireAsset in
-     an effect, so Preact owns the HTML and the old code only attaches handlers to it.
-     That is a bridge, not a destination: it goes when the media library moves. */
-  assetField(prefix: string, value: string | undefined, note?: string): string;
-  wireAsset(prefix: string, set: (v: string) => void, redraw: () => void): void;
+  /** write the project to storage immediately, skipping the debounce */
+  writeNow(): void;
 
   /* History. `tx` opens a coalescing transaction keyed by field, so a run of
      keystrokes is one undo step; `endTx` closes it on blur. Anything that moves

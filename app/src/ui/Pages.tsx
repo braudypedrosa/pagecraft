@@ -1,19 +1,16 @@
 /* Pages and their SEO.
 
-   The awkward part of this panel is the social-share image: it is the legacy asset
-   field, backed by IndexedDB and the media library, and it used to fill its own div
-   with innerHTML. Preact cannot share a container with that. The bridge is to render
-   the markup it returns and call `wireAsset` in an effect, so Preact owns the HTML and
-   the old code only attaches handlers to it. When the media library moves across, both
-   seam entries go.
+   The share image was the awkward part: it used to be the legacy asset field, filling
+   its own div with innerHTML, which Preact cannot share a container with. It is a
+   component now — see AssetField.tsx — so the bridge that stood here is gone.
 
    The text fields deliberately do *not* repaint as you type. The original wired `input`
    to update-and-save and `change` to re-render, because repainting on every keystroke
    loses the caret. Same split here — which is also why they are uncontrolled: nothing
    re-renders mid-typing, so nothing fights the DOM value. */
-import { useEffect } from 'preact/hooks';
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
+import { AssetField } from './AssetField';
 
 function PageRow({ i }: { i: number }) {
   const p = C.state.pages[i];
@@ -56,15 +53,6 @@ function PageRow({ i }: { i: number }) {
       </span>
     </div>
   );
-}
-
-/** The share image. Legacy markup, Preact-owned container, handlers attached after. */
-function OgField() {
-  const html = L.assetField('pgOg', C.page().ogImage, 'Falls back to the project image when empty.');
-  useEffect(() => {
-    L.wireAsset('pgOg', v => { C.page().ogImage = v; }, () => repaint('pages'));
-  });
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /** A detail template's two binding selects, plus what it will export. */
@@ -150,7 +138,9 @@ export function Pages() {
             style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: '12.5px' }}
             {...field(v => { C.page().desc = v; })} /></div>
 
-        <div class="f"><label>Social share image</label><OgField /></div>
+        <div class="f"><label>Social share image</label>
+          <AssetField value={pg.ogImage} note="Falls back to the project image when empty."
+            onChange={v => { C.page().ogImage = v; repaint('pages'); }} /></div>
 
         <div class="f">
           <label>Detail template <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>

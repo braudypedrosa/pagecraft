@@ -6209,97 +6209,84 @@ var PC_UI = (() => {
   }
   var esc2 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-  // node_modules/preact/hooks/dist/hooks.module.js
-  var t2;
-  var r2;
-  var u3;
-  var i2;
-  var o2 = 0;
-  var f3 = [];
-  var c2 = l;
-  var e2 = c2.__b;
-  var a2 = c2.__r;
-  var v2 = c2.diffed;
-  var l2 = c2.__c;
-  var m2 = c2.unmount;
-  var p2 = c2.__;
-  function s2(n2, t3) {
-    c2.__h && c2.__h(r2, n2, o2 || t3), o2 = 0;
-    var u4 = r2.__H || (r2.__H = { __: [], __h: [] });
-    return n2 >= u4.__.length && u4.__.push({}), u4.__[n2];
-  }
-  function h2(n2, u4) {
-    var i3 = s2(t2++, 3);
-    !c2.__s && C3(i3.__H, u4) && (i3.__ = n2, i3.u = u4, r2.__H.__h.push(i3));
-  }
-  function j2() {
-    for (var n2; n2 = f3.shift(); ) {
-      var t3 = n2.__H;
-      if (n2.__P && t3) try {
-        t3.__h.some(z2), t3.__h.some(B2), t3.__h = [];
-      } catch (r3) {
-        t3.__h = [], c2.__e(r3, n2.__v);
-      }
-    }
-  }
-  c2.__b = function(n2) {
-    r2 = null, e2 && e2(n2);
-  }, c2.__ = function(n2, t3) {
-    n2 && t3.__k && t3.__k.__m && (n2.__m = t3.__k.__m), p2 && p2(n2, t3);
-  }, c2.__r = function(n2) {
-    a2 && a2(n2), t2 = 0;
-    var i3 = (r2 = n2.__c).__H;
-    i3 && (u3 === r2 ? (i3.__h = [], r2.__h = [], i3.__.some(function(n3) {
-      n3.__N && (n3.__ = n3.__N), n3.u = n3.__N = void 0;
-    })) : (i3.__h.some(z2), i3.__h.some(B2), i3.__h = [], t2 = 0)), u3 = r2;
-  }, c2.diffed = function(n2) {
-    v2 && v2(n2);
-    var t3 = n2.__c;
-    t3 && t3.__H && (t3.__H.__h.length && (1 !== f3.push(t3) && i2 === c2.requestAnimationFrame || ((i2 = c2.requestAnimationFrame) || w2)(j2)), t3.__H.__.some(function(n3) {
-      n3.u && (n3.__H = n3.u, n3.u = void 0);
-    })), u3 = r2 = null;
-  }, c2.__c = function(n2, t3) {
-    t3.some(function(n3) {
-      try {
-        n3.__h.some(z2), n3.__h = n3.__h.filter(function(n4) {
-          return !n4.__ || B2(n4);
-        });
-      } catch (r3) {
-        t3.some(function(n4) {
-          n4.__h && (n4.__h = []);
-        }), t3 = [], c2.__e(r3, n3.__v);
-      }
-    }), l2 && l2(n2, t3);
-  }, c2.unmount = function(n2) {
-    m2 && m2(n2);
-    var t3, r3 = n2.__c;
-    r3 && r3.__H && (r3.__H.__.some(function(n3) {
-      try {
-        z2(n3);
-      } catch (n4) {
-        t3 = n4;
-      }
-    }), r3.__H = void 0, t3 && c2.__e(t3, r3.__v));
-  };
-  var k2 = "function" == typeof requestAnimationFrame;
-  function w2(n2) {
-    var t3, r3 = function() {
-      clearTimeout(u4), k2 && cancelAnimationFrame(t3), setTimeout(n2);
-    }, u4 = setTimeout(r3, 35);
-    k2 && (t3 = requestAnimationFrame(r3));
-  }
-  function z2(n2) {
-    var t3 = r2, u4 = n2.__c;
-    "function" == typeof u4 && (n2.__c = void 0, u4()), r2 = t3;
-  }
-  function B2(n2) {
-    var t3 = r2;
-    n2.__c = n2.__(), r2 = t3;
-  }
-  function C3(n2, t3) {
-    return !n2 || n2.length !== t3.length || t3.some(function(t4, r3) {
-      return t4 !== n2[r3];
-    });
+  // app/src/ui/AssetField.tsx
+  function AssetField({ value, note, onChange }) {
+    const ref = String(value || "").match(/^asset:([a-z0-9]+)$/);
+    const a3 = ref ? L2.asset(ref[1]) : null;
+    const take = async (file) => {
+      if (!file) return;
+      const id = await L2.mediaTake(file);
+      if (id) onChange("asset:" + id);
+    };
+    const choose = () => {
+      const fi = document.createElement("input");
+      fi.type = "file";
+      fi.accept = "image/*";
+      fi.onchange = () => void take(fi.files ? fi.files[0] : void 0);
+      fi.click();
+    };
+    const commit = (v3) => {
+      onChange(v3);
+      L2.writeNow();
+    };
+    const over = (e3, on) => {
+      e3.preventDefault();
+      e3.currentTarget.classList.toggle("over", on);
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      a3 ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
+        /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }),
+        /* @__PURE__ */ u2("span", { class: "an", children: [
+          /* @__PURE__ */ u2("b", { children: a3.name }),
+          /* @__PURE__ */ u2("small", { children: [
+            C2.kb(a3.size),
+            a3.w ? ` \xB7 ${a3.w} \xD7 ${a3.h}` : ""
+          ] })
+        ] }),
+        /* @__PURE__ */ u2("button", { class: "x", title: "Remove", onClick: () => commit(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
+      ] }) : /* @__PURE__ */ u2(
+        "div",
+        {
+          class: "imgdrop",
+          onClick: choose,
+          onDragEnter: (e3) => over(e3, true),
+          onDragOver: (e3) => over(e3, true),
+          onDragLeave: (e3) => over(e3, false),
+          onDrop: (e3) => {
+            over(e3, false);
+            void take(e3.dataTransfer?.files[0]);
+          },
+          children: [
+            /* @__PURE__ */ u2("b", { children: "Drop an image here" }),
+            /* @__PURE__ */ u2("span", { children: "or choose a file" })
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2("div", { style: { display: "flex", gap: "6px", marginTop: "var(--gap-1)" }, children: [
+        /* @__PURE__ */ u2("button", { class: "btn", style: { flex: 1, justifyContent: "center" }, onClick: choose, children: [
+          /* @__PURE__ */ u2(Icon, { name: "image", size: 13 }),
+          " ",
+          a3 ? "Replace" : "Upload"
+        ] }),
+        L2.assetCount() ? /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "btn",
+            style: { flex: 1, justifyContent: "center" },
+            title: "Pick from the Media library",
+            onClick: async () => {
+              const id = await L2.mediaPicker();
+              if (id) commit("asset:" + id);
+            },
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
+              " Library"
+            ]
+          }
+        ) : null
+      ] }),
+      note ? /* @__PURE__ */ u2("div", { class: "note", dangerouslySetInnerHTML: { __html: note } }) : null
+    ] });
   }
 
   // app/src/ui/Pages.tsx
@@ -6348,15 +6335,6 @@ var PC_UI = (() => {
         C2.state.pages.length > 1 && /* @__PURE__ */ u2("button", { title: "Delete page", onClick: (e3) => act(e3, "del"), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
       ] })
     ] });
-  }
-  function OgField() {
-    const html = L2.assetField("pgOg", C2.page().ogImage, "Falls back to the project image when empty.");
-    h2(() => {
-      L2.wireAsset("pgOg", (v3) => {
-        C2.page().ogImage = v3;
-      }, () => repaint("pages"));
-    });
-    return /* @__PURE__ */ u2("div", { dangerouslySetInnerHTML: { __html: html } });
   }
   function DetailBindings({ colId }) {
     const dc = C2.findCollection(colId);
@@ -6498,7 +6476,17 @@ var PC_UI = (() => {
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { children: "Social share image" }),
-            /* @__PURE__ */ u2(OgField, {})
+            /* @__PURE__ */ u2(
+              AssetField,
+              {
+                value: pg.ogImage,
+                note: "Falls back to the project image when empty.",
+                onChange: (v3) => {
+                  C2.page().ogImage = v3;
+                  repaint("pages");
+                }
+              }
+            )
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { children: [
@@ -6530,6 +6518,99 @@ var PC_UI = (() => {
     ] });
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
+  // node_modules/preact/hooks/dist/hooks.module.js
+  var t2;
+  var r2;
+  var u3;
+  var i2;
+  var o2 = 0;
+  var f3 = [];
+  var c2 = l;
+  var e2 = c2.__b;
+  var a2 = c2.__r;
+  var v2 = c2.diffed;
+  var l2 = c2.__c;
+  var m2 = c2.unmount;
+  var p2 = c2.__;
+  function s2(n2, t3) {
+    c2.__h && c2.__h(r2, n2, o2 || t3), o2 = 0;
+    var u4 = r2.__H || (r2.__H = { __: [], __h: [] });
+    return n2 >= u4.__.length && u4.__.push({}), u4.__[n2];
+  }
+  function h2(n2, u4) {
+    var i3 = s2(t2++, 3);
+    !c2.__s && C3(i3.__H, u4) && (i3.__ = n2, i3.u = u4, r2.__H.__h.push(i3));
+  }
+  function j2() {
+    for (var n2; n2 = f3.shift(); ) {
+      var t3 = n2.__H;
+      if (n2.__P && t3) try {
+        t3.__h.some(z2), t3.__h.some(B2), t3.__h = [];
+      } catch (r3) {
+        t3.__h = [], c2.__e(r3, n2.__v);
+      }
+    }
+  }
+  c2.__b = function(n2) {
+    r2 = null, e2 && e2(n2);
+  }, c2.__ = function(n2, t3) {
+    n2 && t3.__k && t3.__k.__m && (n2.__m = t3.__k.__m), p2 && p2(n2, t3);
+  }, c2.__r = function(n2) {
+    a2 && a2(n2), t2 = 0;
+    var i3 = (r2 = n2.__c).__H;
+    i3 && (u3 === r2 ? (i3.__h = [], r2.__h = [], i3.__.some(function(n3) {
+      n3.__N && (n3.__ = n3.__N), n3.u = n3.__N = void 0;
+    })) : (i3.__h.some(z2), i3.__h.some(B2), i3.__h = [], t2 = 0)), u3 = r2;
+  }, c2.diffed = function(n2) {
+    v2 && v2(n2);
+    var t3 = n2.__c;
+    t3 && t3.__H && (t3.__H.__h.length && (1 !== f3.push(t3) && i2 === c2.requestAnimationFrame || ((i2 = c2.requestAnimationFrame) || w2)(j2)), t3.__H.__.some(function(n3) {
+      n3.u && (n3.__H = n3.u, n3.u = void 0);
+    })), u3 = r2 = null;
+  }, c2.__c = function(n2, t3) {
+    t3.some(function(n3) {
+      try {
+        n3.__h.some(z2), n3.__h = n3.__h.filter(function(n4) {
+          return !n4.__ || B2(n4);
+        });
+      } catch (r3) {
+        t3.some(function(n4) {
+          n4.__h && (n4.__h = []);
+        }), t3 = [], c2.__e(r3, n3.__v);
+      }
+    }), l2 && l2(n2, t3);
+  }, c2.unmount = function(n2) {
+    m2 && m2(n2);
+    var t3, r3 = n2.__c;
+    r3 && r3.__H && (r3.__H.__.some(function(n3) {
+      try {
+        z2(n3);
+      } catch (n4) {
+        t3 = n4;
+      }
+    }), r3.__H = void 0, t3 && c2.__e(t3, r3.__v));
+  };
+  var k2 = "function" == typeof requestAnimationFrame;
+  function w2(n2) {
+    var t3, r3 = function() {
+      clearTimeout(u4), k2 && cancelAnimationFrame(t3), setTimeout(n2);
+    }, u4 = setTimeout(r3, 35);
+    k2 && (t3 = requestAnimationFrame(r3));
+  }
+  function z2(n2) {
+    var t3 = r2, u4 = n2.__c;
+    "function" == typeof u4 && (n2.__c = void 0, u4()), r2 = t3;
+  }
+  function B2(n2) {
+    var t3 = r2;
+    n2.__c = n2.__(), r2 = t3;
+  }
+  function C3(n2, t3) {
+    return !n2 || n2.length !== t3.length || t3.some(function(t4, r3) {
+      return t4 !== n2[r3];
+    });
+  }
 
   // app/src/ui/inspector/ctl.ts
   function bound(n2, c3) {
@@ -8107,7 +8188,26 @@ var PC_UI = (() => {
     registerPainter("cms", painters2.renderCms);
     registerPainter("pages", painters2.renderPages);
     registerPainter("right", painters2.renderRight);
-    return painters2;
+    const mountAssetField = (hostId, opts) => {
+      const host = document.getElementById(hostId);
+      if (!host) return;
+      const draw = () => R(
+        /* @__PURE__ */ u2(
+          AssetField,
+          {
+            value: opts.get(),
+            note: opts.note,
+            onChange: (v3) => {
+              opts.set(v3);
+              draw();
+            }
+          }
+        ),
+        host
+      );
+      draw();
+    };
+    return { ...painters2, mountAssetField };
   }
   return __toCommonJS(index_exports);
 })();
@@ -9206,7 +9306,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    newPageModal, renderModebar, save, appRender: render, assetField, wireAsset,
+    newPageModal, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
     mediaTake, mediaPicker, assetsToBlob, imgSize,
@@ -10129,49 +10229,6 @@ function langSelect(id, val) {
     </select>`;
 }
 /* the same upload affordance the inspector uses, for project-level images */
-function assetField(pfx, rawv, note) {
-  const ref = String(rawv || '').match(/^asset:([a-z0-9]+)$/);
-  const a = ref && AS.mem.get(ref[1]);
-  return `${a
-    ? `<div class="imgset">
-          <img src="${a.url}" alt="">
-          <span class="an"><b>${esc(a.name)}</b><small>${kb(a.size)}${a.w ? ` · ${a.w} × ${a.h}` : ''}</small></span>
-          <button class="x" id="${pfx}Clr" title="Remove">${svg('trash', 12)}</button>
-        </div>`
-    : `<div class="imgdrop" id="${pfx}Drop"><b>Drop an image here</b><span>or choose a file</span></div>`}
-    <div style="display:flex;gap:6px;margin-top:var(--gap-1)">
-      <button class="btn" id="${pfx}Up" style="flex:1;justify-content:center">${svg('image', 13)} ${a ? 'Replace' : 'Upload'}</button>
-      ${AS.mem.size ? `<button class="btn" id="${pfx}Lib" style="flex:1;justify-content:center" title="Pick from the Media library">${svg('copy', 13)} Library</button>` : ''}
-    </div>
-    ${note ? `<div class="note">${note}</div>` : ''}`;
-}
-function wireAsset(pfx, set, redraw) {
-  const take = async file => {
-    const id = await mediaTake(file);
-    if (!id) return;
-    set('asset:' + id); redraw();
-  };
-  const choose = () => {
-    const fi = document.createElement('input');
-    fi.type = 'file'; fi.accept = 'image/*';
-    fi.onchange = () => take(fi.files[0]);
-    fi.click();
-  };
-  const up = $('#' + pfx + 'Up'); if (up) up.addEventListener('click', choose);
-  const clr = $('#' + pfx + 'Clr'); if (clr) clr.addEventListener('click', () => { set(''); writeNow(); redraw(); });
-  const lib = $('#' + pfx + 'Lib'); if (lib) lib.addEventListener('click', async () => {
-    const id = await mediaPicker();
-    if (!id) return;
-    set('asset:' + id); writeNow(); redraw();
-  });
-  const drop = $('#' + pfx + 'Drop');
-  if (drop) {
-    drop.addEventListener('click', choose);
-    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-    drop.addEventListener('drop', e => take(e.dataTransfer.files[0]));
-  }
-}
 
 /* the same font vocabulary the inspector offers, for the project defaults */
 function fontSelect(id, val) {
@@ -10261,16 +10318,16 @@ function projectModal() {
   const langEl = $('#mLang');
   if (langEl) langEl.addEventListener('change', () => { m.lang = langEl.value; paintCss(); save(); });
 
-  const drawFav = () => {
-    $('#mFavBox').innerHTML = assetField('mFav', m.favicon, 'Exported as a &lt;link rel="icon"&gt;.');
-    wireAsset('mFav', v => { m.favicon = v; }, drawFav);
-  };
-  const drawOg = () => {
-    $('#mOgBox').innerHTML = assetField('mOg', m.ogImage,
-      'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.');
-    wireAsset('mOg', v => { m.ogImage = v; }, drawOg);
-  };
-  drawFav(); drawOg();
+  /* app/src/ui/AssetField.tsx. Each box has one writer, so the component owns the div
+     and redraws itself — there is nothing here to keep in step with it. */
+  ui().mountAssetField('mFavBox', {
+    get: () => m.favicon, set: v => { m.favicon = v; },
+    note: 'Exported as a &lt;link rel="icon"&gt;.'
+  });
+  ui().mountAssetField('mOgBox', {
+    get: () => m.ogImage, set: v => { m.ogImage = v; },
+    note: 'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.'
+  });
   wire('mCss', v => { m.css = v; });
   wire('mHeadHtml', v => { m.headHtml = v; });
 
