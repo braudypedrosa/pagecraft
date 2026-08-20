@@ -66,8 +66,10 @@ __export(index_exports, {
   ZOOMS: () => ZOOMS,
   anchorsOf: () => anchorsOf,
   applyBindings: () => applyBindings,
+  applyC: () => applyC,
   applyCols: () => applyCols,
   applyColsAt: () => applyColsAt,
+  applyOne: () => applyOne,
   autoId: () => autoId,
   baseCss: () => baseCss,
   bindGet: () => bindGet,
@@ -2322,6 +2324,30 @@ function smartTarget(key) {
   if (index === null) index = tree().length;
   return [container, index];
 }
+function applyOne(n, c, v) {
+  if (c.k === "_id") {
+    n.adv.htmlId = String(v == null ? "" : v).replace(/[^\w-]/g, "");
+    return;
+  }
+  if (c.k === "_cls") {
+    n.adv.cls = v;
+    return;
+  }
+  if (c.k === "_css") {
+    n.adv.css = v;
+    return;
+  }
+  if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
+  else if (c.k) n.props[c.k] = v;
+}
+function applyC(n, c, v) {
+  const ids = selIds();
+  if (ids.length > 1 && ids.includes(n.id) && !(c.c && tgtIsClass(n))) {
+    fanTargets(c, ids).forEach((t) => applyOne(t, c, v));
+    return;
+  }
+  applyOne(n, c, v);
+}
 var blocks = () => state.meta.blocks || (state.meta.blocks = []);
 var findBlock = (id) => blocks().find((b) => b.id === id) || null;
 var FIELD_TYPES = [
@@ -4513,8 +4539,10 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   ZOOMS,
   anchorsOf,
   applyBindings,
+  applyC,
   applyCols,
   applyColsAt,
+  applyOne,
   autoId,
   baseCss,
   bindGet,

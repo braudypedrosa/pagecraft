@@ -3811,3 +3811,142 @@ test('nothing holds a section, so one always lands at the page root', () => {
   a.equal(container, null, 'not the column, not the row, not the section');
   a.equal(index, 1, 'after the section the selection was inside, not before it');
 });
+
+/* -------------------------------------------- a control value becoming state
+   applyC/applyOne are the single point where editing a field mutates the document.
+   They were in the UI half, so none of these rules had a test. */
+
+test('applyOne writes a prop, a CSS declaration, or an Advanced field', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  C.applyOne(h, { k: 'text' }, 'Written');
+  a.equal(h.props.text, 'Written');
+
+  C.applyOne(h, { c: 'text-align' }, 'center');
+  a.equal(h.css.d['text-align'], 'center', 'a control with `c` writes CSS, not a prop');
+  a.equal('text-align' in h.props, false);
+
+  C.applyOne(h, { k: '_cls' }, 'promo wide');
+  C.applyOne(h, { k: '_css' }, '&{outline:1px solid red}');
+  a.equal(h.adv.cls, 'promo wide');
+  a.equal(h.adv.css, '&{outline:1px solid red}');
+  a.equal('_cls' in h.props, false, 'the escape hatches land on adv, never on props');
+});
+
+test('the _id control strips anything an id attribute cannot carry', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  /* this value becomes an id in the exported HTML and the target of a #fragment link,
+     so a space or a '#' — both of which a person types naturally when writing an
+     anchor — has to come out rather than ship */
+  const clean = (v: any) => { C.applyOne(h, { k: '_id' }, v); return h.adv.htmlId; };
+  a.equal(clean('sign up now'), 'signupnow');
+  a.equal(clean('#pricing'), 'pricing');
+  a.equal(clean('Get-Started_2'), 'Get-Started_2', 'letters, digits, dash and underscore survive');
+  a.equal(clean('a"b\'c<d>e&f'), 'abcdef', 'and nothing that could break out of the attribute');
+  a.equal(clean(''), '');
+  a.equal(clean(null), '', 'a cleared field is empty, not "null"');
+});
+
+test('applyOne on a targeted class writes the class, not the element', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const other = insert('heading', holderOf(h.id), 1);
+  const id = C.classAdd('Promo');
+  C.classApply(h, id);
+  C.classApply(other, id);
+  C.state.ui.target = id;
+
+  C.applyOne(h, { c: 'padding-top' }, '40px');
+  a.equal(C.findClass(id)!.css.d['padding-top'], '40px', 'the class took it');
+  a.equal('padding-top' in h.css.d, false, 'and the element itself was not touched');
+  /* which is the point: every other user of the class moves with it */
+  a.equal('padding-top' in other.css.d, false);
+  C.state.ui.target = '';
+});
+
+test('applyC fans one edit out across a multi-selection', () => {
+  blank();
+  const one = insert('heading', null, 0);
+  const two = insert('heading', holderOf(one.id), 1);
+  const three = insert('heading', holderOf(one.id), 2);
+  C.selSet([one.id, two.id, three.id]);
+  C.applyC(one, { k: 'text' }, 'All three');
+  a.deepEqual([one, two, three].map(n => n.props.text), ['All three', 'All three', 'All three']);
+
+  C.applyC(one, { c: 'color' }, '#ff0000');
+  a.deepEqual([one, two, three].map(n => n.css.d.color), ['#ff0000', '#ff0000', '#ff0000']);
+});
+
+test('applyC only fans out to elements that have the control', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const img = insert('image', holderOf(h.id), 1);
+  C.selSet([h.id, img.id]);
+  /* `text` is not an image control, so the image must not grow a stray prop */
+  C.applyC(h, { k: 'text' }, 'Only the heading');
+  a.equal(h.props.text, 'Only the heading');
+  a.equal('text' in img.props, false, 'an image has no text control, so it is skipped');
+
+  /* CSS is shared by everything, so that does reach both */
+  C.applyC(h, { c: 'margin-top' }, '12px');
+  a.equal(h.css.d['margin-top'], '12px');
+  a.equal(img.css.d['margin-top'], '12px');
+});
+
+test('a class target takes one write, not one per selected element', () => {
+  blank();
+  const one = insert('heading', null, 0);
+  const two = insert('heading', holderOf(one.id), 1);
+  const id = C.classAdd('Shared');
+  C.classApply(one, id); C.classApply(two, id);
+  C.state.ui.target = id;
+  C.selSet([one.id, two.id]);
+
+  /* both selected elements resolve to the same class object, so fanning out would
+     write the identical value twice. The result is the same either way — this asserts
+     the values land where they should and nowhere else. */
+  C.applyC(one, { c: 'gap' }, '8px');
+  a.equal(C.findClass(id)!.css.d.gap, '8px');
+  a.equal('gap' in one.css.d, false);
+  a.equal('gap' in two.css.d, false);
+  C.state.ui.target = '';
+});
+
+test('applyC with a single selection writes only that element', () => {
+  blank();
+  const one = insert('heading', null, 0);
+  const two = insert('heading', holderOf(one.id), 1);
+  C.selSet([one.id]);
+  C.applyC(one, { k: 'text' }, 'Just me');
+  a.equal(one.props.text, 'Just me');
+  a.notEqual(two.props.text, 'Just me');
+});
+
+test('applyC does not fan out from an element outside the selection', () => {
+  blank();
+  const one = insert('heading', null, 0);
+  const two = insert('heading', holderOf(one.id), 1);
+  const three = insert('heading', holderOf(one.id), 2);
+  C.selSet([one.id, two.id]);
+  /* the inspector draws the primary selection, so a call naming something else is not
+     a fan-out — it is a targeted write, and treating it as a fan-out would edit two
+     elements the user did not have selected */
+  C.applyC(three, { k: 'text' }, 'Only three');
+  a.equal(three.props.text, 'Only three');
+  a.notEqual(one.props.text, 'Only three');
+  a.notEqual(two.props.text, 'Only three');
+});
+
+test('applyOne respects the breakpoint for a responsive control', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  C.state.ui.dev = 'mobile';
+  C.applyOne(h, { c: 'font-size', r: 1 }, '24px');
+  a.equal(h.css.m['font-size'], '24px');
+  a.equal('font-size' in h.css.d, false, 'the base is untouched');
+  /* and a control that is not marked responsive edits the base wherever you stand */
+  C.applyOne(h, { c: 'font-weight' }, '700');
+  a.equal(h.css.d['font-weight'], '700');
+  C.state.ui.dev = 'desktop';
+});
