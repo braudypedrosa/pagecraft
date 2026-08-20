@@ -700,7 +700,6 @@ select.ctl{
 #ctx button[data-sep]{margin-bottom:5px;border-bottom:1px solid var(--line);padding-bottom:9px}
 #ctx button[data-sep]:last-child{margin-bottom:0;border-bottom:0;padding-bottom:7px}
 /* the bar's "everything else" glyph is the drag dots turned on their side */
-#s-hud .bar button.rot svg,#s-hud .bar button svg.rot{transform:rotate(90deg)}
 
 #ghost{
   position:fixed;z-index:9999;pointer-events:none;padding:7px 12px;border-radius:var(--r-md);
@@ -1442,7 +1441,7 @@ function positionHud() {
         ? `<button data-act="push" title="Global block — push this copy out to the others">${svg('globe', 12)}</button>` : ''}
       <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 12)}</button>
       <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 12)}</button>
-      <button data-act="more" title="Everything else — or right-click the element">${svg('drag', 12, 'rot')}</button>
+      <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
     </div>`
     + (many ? '' : gripsHtml(s));
 }
