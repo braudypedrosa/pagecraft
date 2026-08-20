@@ -2736,8 +2736,8 @@ function lint() {
         if (noAlt) add("error", "gallery-no-alt", `${noAlt} of ${tiles.length} image${tiles.length === 1 ? "" : "s"} in a gallery in the ${region} have no alt text. Describe each one.`, w, n.id);
         if (noDim) add("warn", "gallery-no-dimensions", `${noDim} image${noDim === 1 ? "" : "s"} in a gallery in the ${region} have no width/height, so the grid will shift as it loads.`, w, n.id);
       }
-      if (n.type === "heading" && HEADING_TAGS.test(n.props.level))
-        headings.push({ level: +n.props.level[1], node: n, region });
+      if (n.type === "heading" && HEADING_TAGS.test(String(n.props.level || "")))
+        headings.push({ level: +String(n.props.level)[1], node: n, region });
       if (n.type === "form") {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
         if (!String(n.props.action || "").trim())
@@ -2886,10 +2886,14 @@ function textSlots(n) {
   }
   return out;
 }
-var slotGet = (n, s) => s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub];
+var slotGet = (n, s) => {
+  const bag = n.props;
+  return s.i < 0 ? bag[s.prop] : bag[s.prop][s.i][s.sub];
+};
 var slotSet = (n, s, v) => {
-  if (s.i < 0) n.props[s.prop] = v;
-  else n.props[s.prop][s.i][s.sub] = v;
+  const bag = n.props;
+  if (s.i < 0) bag[s.prop] = v;
+  else bag[s.prop][s.i][s.sub] = v;
 };
 var slotName = (s) => SLOT_LABEL[s.sub || s.prop] || (s.sub || s.prop);
 var outsideTags = (str, fn) => String(str == null ? "" : str).split(/(<[^>]*>)/).map((part) => part.startsWith("<") ? part : fn(part)).join("");
@@ -3246,7 +3250,7 @@ function listItems(n, col) {
     return f.type === "number" ? (parseFloat(av) || 0) - (parseFloat(bv) || 0) : String(av).localeCompare(String(bv));
   });
   if (n.props.dir === "desc") out.reverse();
-  const lim = parseInt(n.props.limit, 10);
+  const lim = parseInt(n.props.limit || "", 10);
   return lim > 0 ? out.slice(0, lim) : out;
 }
 function pageHref(link, o) {
@@ -4994,7 +4998,7 @@ function renderNode(n, o) {
   const p = boundProps(n, o2.col || null, o2.item || null);
   switch (n.type) {
     case "section": {
-      const tag = SEC_TAGS.includes(p.tag) ? p.tag : "section";
+      const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : "section";
       const inner = kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Row or component here</div>` : "");
       return `<${tag} ${at} ${cx("pagecraft-section")}><div class="pagecraft-container${p.width === "full" ? " full" : ""}">${inner}</div></${tag}>`;
     }
@@ -5013,7 +5017,7 @@ function renderNode(n, o) {
     case "column":
       return `<div ${at} ${cx("pagecraft-column")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a component</div>` : "")}</div>`;
     case "heading": {
-      const tg = /^(h[1-6]|p|div)$/.test(p.level) ? p.level : "h2";
+      const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : "h2";
       const body = esc(p.text).replace(/\n/g, "<br>");
       const href = pageHref(p.link, o);
       const inner = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${body}</a>` : body;
@@ -5093,7 +5097,7 @@ function renderNode(n, o) {
       return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? "" : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
     }
     case "icon": {
-      const nm = ICON_PATHS[p.name] ? p.name : "check";
+      const nm = p.name && ICON_PATHS[p.name] ? p.name : "check";
       const lab = String(p.label == null ? "" : p.label).trim();
       const ihref2 = pageHref(p.link, o);
       if (ihref2) return `<a ${at} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
@@ -6710,7 +6714,10 @@ var PC_UI = (() => {
       }
     };
   }
-  var rows = (n2, c3) => n2.props[c3.k] = Array.isArray(n2.props[c3.k]) ? n2.props[c3.k] : [];
+  var rows = (n2, c3) => {
+    const bag = n2.props;
+    return bag[c3.k] = Array.isArray(bag[c3.k]) ? bag[c3.k] : [];
+  };
   var liftRow = (n2, c3, k3) => {
     if (!k3) return;
     C2.edit(() => {

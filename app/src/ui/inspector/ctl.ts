@@ -6,7 +6,7 @@
    build.mjs polices, and it exists only because markup and wiring were written in
    different functions. Here the control object is simply in scope. */
 import { C, L, repaint } from '../ctx';
-import type { Control, Node as PcNode } from '../../core/types';
+import type { Control, Node as PcNode, PropBag } from '../../core/types';
 
 /** A control's current value — the bound field's value if it has one, else the CSS
     declaration or the prop. A bound field shows what will actually render, not the
@@ -69,8 +69,10 @@ export function writer(n: PcNode, c: Control): Writer {
 }
 
 /** An array prop, created on demand. Used by items, fields, qa and imgs. */
-export const rows = (n: PcNode, c: Control): any[] =>
-  (n.props[c.k!] = Array.isArray(n.props[c.k!]) ? n.props[c.k!] : []);
+export const rows = (n: PcNode, c: Control): any[] => {
+  const bag = n.props as PropBag;
+  return (bag[c.k!] = Array.isArray(bag[c.k!]) ? bag[c.k!] : []) as any[];
+};
 
 /** Swap a row with the one above it. Every list control offers this. */
 export const liftRow = (n: PcNode, c: Control, k: number) => {

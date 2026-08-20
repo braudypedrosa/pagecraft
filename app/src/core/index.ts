@@ -16,7 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  Collection, Field, FieldType, Item, Page, StyleClass,
+  Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons';
@@ -1155,9 +1155,9 @@ const styles = () => (state.meta.tokens && state.meta.tokens.text) || [];
    used to throw now works. TypeScript found all six; nothing else ever had. */
 const ensureTokens = (): Tokens => (state.meta.tokens ||= defaultTokens(state.meta));
 const classes = () => (state.meta.tokens && state.meta.tokens.classes) || [];
-const findColor = (id: string) => colors().find(c => c.id === id) || null;
-const findStyle = (id: string) => styles().find(t => t.id === id) || null;
-const findClass = (id: string) => classes().find(c => c.id === id) || null;
+const findColor = (id?: string) => colors().find(c => c.id === id) || null;
+const findStyle = (id?: string) => styles().find(t => t.id === id) || null;
+const findClass = (id?: string) => classes().find(c => c.id === id) || null;
 /* applied classes, dangling ids filtered, in project order — because CSS source
    order decides precedence and the project list is that order */
 const nodeClasses = (n: PcNode) => {
@@ -1310,7 +1310,7 @@ function anchorsOf(slug: string) {
 }
 /* A bare "#anchor" is read as belonging to its own page, which is what lets it
    survive being placed in a global header or footer. */
-function parseLink(href: string, hereSlug: string) {
+function parseLink(href: unknown, hereSlug: string) {
   const v = String(href == null ? '' : href).trim();
   if (!v) return { mode: 'none' };
   if (/^mailto:/i.test(v)) return { mode: 'email', value: v.replace(/^mailto:/i, '') };
@@ -1437,7 +1437,7 @@ function tgtObj(n: PcNode): PcNode | StyleClass {
 }
 const tgtIsClass = (n: PcNode) => tgtObj(n) !== n;
 
-const propVal = (n: PcNode, k?: string) => (k == null ? undefined : n.props[k]);
+const propVal = (n: PcNode, k?: string) => (k == null ? undefined : (n.props as PropBag)[k]);
 
 /** A link's mode is derived from the href it holds, so a mode picked but not yet
     filled in has nothing to derive from. `ui.lmode` remembers the choice for exactly
@@ -1652,7 +1652,9 @@ function lint() {
 
       /* gallery — same demands as the Image widget, counted per gallery */
       if (n.type === 'gallery') {
-        const slots = (Array.isArray(n.props.items) ? n.props.items : []).filter(Boolean);
+        /* `items` is gallery tiles here, nav links on a nav and questions on an
+           accordion, so the branch that knows which says so. */
+        const slots = (Array.isArray(n.props.items) ? n.props.items as GalleryTile[] : []).filter(Boolean);
         if (!slots.length) add('warn', 'gallery-empty', `A gallery in the ${region} has no images, so it exports nothing.`, w, n.id);
         /* An empty slot is reported as a slot. Demanding alt text for an image
            that is not there yet is what made a fresh template open on a wall of
@@ -1667,8 +1669,8 @@ function lint() {
       }
 
       /* headings, in document order */
-      if (n.type === 'heading' && HEADING_TAGS.test(n.props.level))
-        headings.push({ level: +n.props.level[1], node: n, region });
+      if (n.type === 'heading' && HEADING_TAGS.test(String(n.props.level || '')))
+        headings.push({ level: +String(n.props.level)[1], node: n, region });
 
       /* forms */
       if (n.type === 'form') {
@@ -1833,10 +1835,10 @@ function textSlots(n: PcNode) {
   const out: any[] = [];
   for (const spec of ((TEXT_SLOTS as Record<string, any[]>)[n.type] || [])) {
     if (typeof spec === 'string') {
-      if (typeof n.props[spec] === 'string') out.push({ prop: spec, i: -1, sub: '' });
+      if (typeof (n.props as PropBag)[spec] === 'string') out.push({ prop: spec, i: -1, sub: '' });
     } else {
       const [arr, ...subs] = spec;
-      const list = Array.isArray(n.props[arr]) ? n.props[arr] : [];
+      const list = Array.isArray((n.props as PropBag)[arr]) ? (n.props as PropBag)[arr] as any[] : [];
       list.forEach((row: any, i: number) => subs.forEach((sub: string) => {
         if (row && typeof row[sub] === 'string') out.push({ prop: arr, i, sub });
       }));
@@ -1844,8 +1846,14 @@ function textSlots(n: PcNode) {
   }
   return out;
 }
-const slotGet = (n: PcNode, s: Slot): any => (s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub]);
-const slotSet = (n: PcNode, s: Slot, v: string) => { if (s.i < 0) n.props[s.prop] = v; else n.props[s.prop][s.i][s.sub] = v; };
+const slotGet = (n: PcNode, s: Slot): any => {
+  const bag = n.props as PropBag;
+  return s.i < 0 ? bag[s.prop] : (bag[s.prop] as any[])[s.i][s.sub];
+};
+const slotSet = (n: PcNode, s: Slot, v: string) => {
+  const bag = n.props as PropBag;
+  if (s.i < 0) bag[s.prop] = v; else (bag[s.prop] as any[])[s.i][s.sub] = v;
+};
 const slotName = (s: Slot) => (SLOT_LABEL as Record<string, string>)[s.sub || s.prop] || (s.sub || s.prop);
 
 /* Rich text is markup, so neither the search nor the replace may wander into a tag:
@@ -2074,7 +2082,7 @@ function applyOne(n: PcNode, c: Pick<Control, 'k' | 'c' | 'r'>, v: any) {
   if (c.k === '_cls') { n.adv.cls = v; return; }
   if (c.k === '_css') { n.adv.css = v; return; }
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
-  else if (c.k) n.props[c.k] = v;
+  else if (c.k) (n.props as PropBag)[c.k] = v;
 }
 
 /** One edit reaches every selected element. The exception is a class target: its
@@ -2213,7 +2221,7 @@ function listItems(n: PcNode, col: Collection) {
       : String(av).localeCompare(String(bv));
   });
   if (n.props.dir === 'desc') out.reverse();
-  const lim = parseInt(n.props.limit, 10);
+  const lim = parseInt(n.props.limit || '', 10);
   return lim > 0 ? out.slice(0, lim) : out;
 }
 
@@ -2432,7 +2440,7 @@ const fieldValue = (col: Collection | null, item: Item | null, fid: string) => {
 function boundProps(n: PcNode, col: Collection | null, item: Item | null) {
   if (!n.bind || !col || !item) return n.props;
   const out = { ...n.props };
-  for (const [k, fid] of Object.entries(n.bind)) out[k] = fieldValue(col, item, fid);
+  for (const [k, fid] of Object.entries(n.bind)) (out as PropBag)[k] = fieldValue(col, item, fid);
   return out;
 }
 
@@ -3935,7 +3943,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
 
   switch (n.type) {
     case 'section': {
-      const tag = SEC_TAGS.includes(p.tag) ? p.tag : 'section';
+      const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : 'section';
       const inner = kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Row or component here</div>` : '');
       return `<${tag} ${at} ${cx('pagecraft-section')}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
     }
@@ -3960,7 +3968,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     case 'column':
       return `<div ${at} ${cx('pagecraft-column')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a component</div>` : '')}</div>`;
     case 'heading': {
-      const tg = /^(h[1-6]|p|div)$/.test(p.level) ? p.level : 'h2';
+      const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : 'h2';
       const body = esc(p.text).replace(/\n/g, '<br>');
       const href = pageHref(p.link, o);
       const inner = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${body}</a>` : body;
@@ -3999,7 +4007,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       return `<${tag} ${at} ${cx('pagecraft-button')} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case 'nav': {
-      const items = Array.isArray(p.items) ? p.items : [];
+      const items = Array.isArray(p.items) ? p.items as NavItem[] : [];
       const name = esc(p.aria || 'Main');
       const mid = domId + '-menu';
       return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav aria-label="${name}">`
@@ -4070,7 +4078,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? '' : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
     }
     case 'icon': {
-      const nm = ICON_PATHS[p.name] ? p.name : 'check';
+      const nm = p.name && ICON_PATHS[p.name] ? p.name : 'check';
       const lab = String(p.label == null ? '' : p.label).trim();
       const ihref2 = pageHref(p.link, o);
       /* A link with an icon inside and no text has no accessible name at all, so
@@ -4082,7 +4090,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       return iconSvg(nm, `${at} ${cx('pagecraft-icon pagecraft-icon-glyph')} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
     }
     case 'gallery': {
-      const shown = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
+      const shown = (Array.isArray(p.items) ? p.items as GalleryTile[] : []).filter(Boolean);
       if (!shown.length) return o.edit
         ? `<div ${at} ${cx('pagecraft-gallery')}><div class="s-empty">${svg('image', 12)} Add images in the panel</div></div>` : '';
       const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : '';

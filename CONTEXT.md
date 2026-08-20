@@ -37,6 +37,24 @@ a time, suite green after each.
 **The whole project is at 0 type errors** under `strict`, `noImplicitAny` and both
 unused checks, tests included, and `npm test` enforces it.
 
+**`Props` is typed.** Forty-five named props across seventeen per-widget interfaces in
+`types.ts`, with the flat `Props` *derived* from them so there is no second list to drift.
+A misspelt prop name is now a build error rather than an empty string in exported HTML —
+`p.txt` for `p.text` used to compile.
+
+Two named escape hatches carry the parts a closed interface cannot: `PropBag` for the
+inspector writing `props[c.k]` from a control descriptor, which genuinely does not know
+the name at compile time, and a row-type cast where `items` means gallery tiles, nav links
+or accordion questions depending on the widget.
+
+Why flat and not a discriminated union keyed on `Node['type']`: measured first. The union
+produces 281 errors — 75 core, 18 components, 149 tests — and two thirds of the core's sit
+in `renderNode`, which computes `boundProps` into a local *before* its switch so nothing
+narrows. What it adds over the flat type is catching a *cross-widget* read (`p.alt` in the
+video branch); what it does not add, because the flat type already does it, is catching the
+typo that actually happens. `PropsByType` is written and correct, so the union is a
+decision with a known price rather than an aspiration.
+
 Tightening it found **six real bugs**: `state.meta.tokens` is `Tokens | null` until
 `defaultTokens()` runs at boot, and six mutators dereferenced it with no check — latent
 throws for any path reaching them before `load()`. The readers already returned `[]` for

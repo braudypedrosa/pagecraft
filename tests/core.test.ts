@@ -6,7 +6,7 @@
 import { test, beforeEach } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
-import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field, Item } from '../app/src/core/types';
+import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field, Item, GalleryTile } from '../app/src/core/types';
 
 /* The core's finders return `T | null` because in the running app a stale id is a
    real possibility worth handling. In a test the id always comes from something the
@@ -25,6 +25,10 @@ const klass = (id: string) => must(C.findClass(id), `class ${id}`);
 /* `Handle.parent` is null for a level-1 node, which is correct — but a test asking
    for the parent has just put the node inside something. */
 const holderOf = (id: string) => must(at(id).parent, `parent of ${id}`);
+/* A repeater's rows, typed. `items` is gallery tiles on a gallery, links on a nav and
+   questions on an accordion, so a test that just built one says which it has — the same
+   cast the core makes inside its own branch. */
+const rowsOf = <T,>(n: PcNode): T[] => must(n.props.items, 'items rows') as T[];
 /* These core calls return null when the operation is refused — a real outcome the
    app handles and a few tests below assert. A test that goes on to *use* the result
    is asserting it succeeded, so it says so here once rather than at every property
@@ -1697,7 +1701,7 @@ const asPage = (tid: string) => {
 };
 const outline = (tree: PcNode[]) => {
   const out: number[] = [];
-  C.eachNode(tree, n => { if (n.type === 'heading' && /^h[1-6]$/.test(n.props.level)) out.push(+n.props.level[1]); });
+  C.eachNode(tree, n => { const lv = String(n.props.level || ''); if (n.type === 'heading' && /^h[1-6]$/.test(lv)) out.push(+lv[1]); });
   return out;
 };
 
@@ -2694,7 +2698,7 @@ const gal = (count: number, props: Record<string, any> = {}) => {
 
 test('a gallery is one figure per tile, and an empty tile is a slot, not a gap', () => {
   const n = gal(3);
-  n.props.items.push({ src: '', alt: '' });
+  rowsOf<GalleryTile>(n).push({ src: '', alt: '' });
   const html = C.renderNode(n, { edit: false });
   /* the same call the Image widget makes: no source means the placeholder, so a
      three-slot template renders as three slots rather than as nothing */
@@ -2825,9 +2829,9 @@ test('a linked icon with no label is an error — the link would have no name at
 test('a gallery is held to the Image widget’s standards, counted per gallery', () => {
   const n = gal(4);
   a.equal(codes(C.lint()).filter(x => x.startsWith('gallery-')).length, 0);
-  n.props.items[0].alt = '';
-  n.props.items[1].alt = ' ';
-  n.props.items[2].w = '';
+  rowsOf<GalleryTile>(n)[0].alt = '';
+  rowsOf<GalleryTile>(n)[1].alt = ' ';
+  rowsOf<GalleryTile>(n)[2].w = '';
   const f = C.lint();
   a.equal(find(f, 'gallery-no-alt').length, 1);
   a.match(find(f, 'gallery-no-alt')[0].msg, /2 of 4 images/);
@@ -2838,7 +2842,7 @@ test('a gallery is held to the Image widget’s standards, counted per gallery',
 
 test('a gallery slot with no image yet is a slot to fill, not an alt-text error', () => {
   const n = gal(2);
-  n.props.items.push({ src: '', alt: '', caption: '' });
+  rowsOf<GalleryTile>(n).push({ src: '', alt: '', caption: '' });
   const f = C.lint();
   a.equal(find(f, 'gallery-no-image').length, 1, 'reported as the placeholder it is');
   a.match(find(f, 'gallery-no-image')[0].msg, /^1 tile /);

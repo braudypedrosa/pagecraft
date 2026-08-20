@@ -10,7 +10,7 @@ import { Icon } from '../Icon';
 import { Field } from './Field';
 import { valueOf, bound, writer } from './ctl';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
-import type { Control, Node as PcNode } from '../../core/types';
+import type { Control, Node as PcNode, PropBag } from '../../core/types';
 
 type P = { n: PcNode; c: Control };
 
@@ -441,7 +441,7 @@ function LinkCtl({ n, c }: P) {
 
   const key = n.id + '|' + (c.c || c.k || c.t);
   const commit = (o: any) => {
-    L.tx(key); n.props[c.k!] = C.buildLink(o);
+    L.tx(key); (n.props as PropBag)[c.k!] = C.buildLink(o);
     L.endTx(); L.paint(); L.save(); repaint('right');
   };
 
@@ -449,7 +449,7 @@ function LinkCtl({ n, c }: P) {
     <select class="ctl" value={link.mode}
       onChange={e => {
         const mode = (e.target as HTMLSelectElement).value;
-        if (mode === 'none') n.props[tkey] = '';
+        if (mode === 'none') (n.props as PropBag)[tkey] = '';
         /* a mode with nothing stored yet cannot be derived from the href, so it is
            remembered here until a value makes it real */
         C.state.ui.lmode = mode === 'none' ? null : { key: n.id + '|' + c.k, mode };
@@ -486,7 +486,7 @@ function LinkCtl({ n, c }: P) {
           : link.mode === 'email' ? 'hello@example.com' : '+1 555 0100'}
         onInput={e => {
           L.tx(key);
-          n.props[c.k!] = C.buildLink({ ...C.linkOf(n, c.k!, here), value: (e.target as HTMLInputElement).value.trim() });
+          (n.props as PropBag)[c.k!] = C.buildLink({ ...C.linkOf(n, c.k!, here), value: (e.target as HTMLInputElement).value.trim() });
           L.repaint();
         }} onBlur={L.endTx} />
     ) : null}
@@ -501,7 +501,7 @@ function LinkCtl({ n, c }: P) {
         <button class={'sw-tog' + (C.propVal(n, tkey) === '_blank' ? ' on' : '')}
           onClick={() => {
             L.tx(key);
-            n.props[tkey] = C.propVal(n, tkey) === '_blank' ? '' : '_blank';
+            (n.props as PropBag)[tkey] = C.propVal(n, tkey) === '_blank' ? '' : '_blank';
             L.endTx(); L.paint(); L.save(); repaint('right');
           }}><i /></button>
       </div>

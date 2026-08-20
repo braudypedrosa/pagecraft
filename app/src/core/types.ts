@@ -39,18 +39,113 @@ export interface Css { d: Decls; t: Decls; m: Decls }
 
 /* ---- nodes ------------------------------------------------------------ */
 
+/* ---- per-widget props ---------------------------------------------------
+   Every prop each widget stores, named. Extracted from each `make()` and every
+   control's `k`, so this is the real set rather than a guess. `PropsByType` is what
+   makes `Node` a discriminated union: `switch (n.type)` narrows `n.props` with it. */
+
+/** Carried by anything that can link: heading, image, button, icon. */
+interface Linkable { link?: string; target?: string }
+/** Carried by anything that can take a text style. */
+interface Styled { ts?: string }
+
+export interface SectionProps { tag?: string; width?: string; inner?: string }
+export interface RowProps { }
+export interface ColumnProps { }
+export interface ListProps { sort?: string; dir?: string; limit?: string }
+export interface HeadingProps extends Linkable, Styled { text?: string; level?: string }
+export interface TextProps extends Styled { html?: string }
+export interface ImageProps extends Linkable {
+  src?: string; alt?: string; caption?: string; decorative?: 0 | 1 | boolean;
+  w?: string; h?: string; lazy?: 0 | 1 | boolean;
+}
+export interface GalleryProps {
+  items?: GalleryTile[]; ratio?: string; fit?: string;
+  captions?: 0 | 1 | boolean; lightbox?: 0 | 1 | boolean; lazy?: 0 | 1 | boolean;
+}
+export interface GalleryTile { src?: string; alt?: string; caption?: string; w?: string; h?: string }
+export interface VideoProps {
+  src?: string; poster?: string; ratio?: string;
+  autoplay?: 0 | 1 | boolean; loop?: 0 | 1 | boolean;
+  muted?: 0 | 1 | boolean; controls?: 0 | 1 | boolean; facade?: 0 | 1 | boolean;
+}
+export interface IconProps extends Linkable { name?: string; label?: string }
+export interface ButtonProps extends Linkable, Styled {
+  text?: string; variant?: string; icon?: string; align?: string; wrap?: string;
+}
+export interface NavProps { items?: NavItem[]; collapse?: string; aria?: string }
+export interface NavItem { label?: string; href?: string }
+export interface FormProps {
+  fields?: FormField[]; submit?: string; action?: string; method?: string; aria?: string;
+}
+export interface FormField {
+  type?: string; label?: string; name?: string; ph?: string; opts?: string; required?: 0 | 1;
+}
+export interface AccordionProps {
+  items?: QaItem[]; open?: string; single?: 0 | 1 | boolean; marker?: string;
+}
+export interface QaItem { q?: string; a?: string }
+export interface EmbedProps { html?: string; ratio?: string }
+export interface SpacerProps { }
+export interface DividerProps { }
+
+/** Which prop shape belongs to which widget. */
+export interface PropsByType {
+  section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
+  heading: HeadingProps; text: TextProps; image: ImageProps; gallery: GalleryProps;
+  video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
+  form: FormProps; accordion: AccordionProps; embed: EmbedProps;
+  spacer: SpacerProps; divider: DividerProps;
+}
+
+/* Flatten the per-widget shapes into one optional-field interface. */
+type UnionToIntersection<U> =
+  (U extends unknown ? (x: U) => void : never) extends (x: infer I) => void ? I : never;
+
 /**
- * Anything a widget stores that is not styling. Shapes vary by type.
+ * What a node stores that is not styling: every prop any widget has, all optional.
  *
- * `any`, deliberately and temporarily. `unknown` is the honest type here and it was
- * tried first — it forces a cast at roughly twenty call sites and buys nothing,
- * because the guarantee people want is "a heading has `text`, an image has `src`",
- * which a cast cannot express. The real fix is a discriminated union of per-widget
- * prop shapes keyed on `Node['type']`, so `renderNode`'s switch narrows for free.
- * That is the next tightening target, and it is worth more than every remaining
- * annotation in the core put together.
+ * Derived from `PropsByType` rather than listed again, so adding a prop to one widget
+ * adds it here and there is no second list to drift.
+ *
+ * **Why flat rather than discriminated.** A union keyed on `Node['type']` is the stronger
+ * type and the note that used to sit here argued for it. I measured it before writing it:
+ * making `Node` a distributed union produces **281 errors** — 75 in the core, 18 in the
+ * components, 149 in the tests — and 253 of those are one shape, "property does not exist
+ * on the union". Two thirds of the core's are inside `renderNode` alone, which computes
+ * `boundProps` into a local *before* its `switch`, so nothing narrows; fixing it means
+ * moving that line into all seventeen cases.
+ *
+ * What that buys over this is only the *cross-widget* mistake — reading `p.alt` in the
+ * video case. What it does not buy, because this already does, is catching a misspelt prop
+ * name, which is the failure that actually happens and which used to reach exported HTML
+ * as a silent empty string.
+ *
+ * So: this now, and the union is a decision with a known price rather than an aspiration.
+ * `PropsByType` is written and correct, so the step is mechanical whenever it is wanted.
  */
-export type Props = Record<string, any>;
+export type Props = Partial<UnionToIntersection<PropsByType[WidgetType]>>;
+
+/**
+ * A props object being read or written by a name computed at runtime.
+ *
+ * The inspector does exactly this: a control descriptor carries `k`, and `applyOne`
+ * writes `props[k]`. It genuinely does not know which prop it is setting, and a closed
+ * interface cannot be indexed by an arbitrary string. Twenty-two branches that all do
+ * the same assignment would be worse than saying so here.
+ *
+ * The point is that this is now *named and local* — about sixteen sites — rather than
+ * every prop access in the app being `any`.
+ */
+export type PropBag = Props & Record<string, unknown>;
+
+/**
+ * `items` is three different shapes: gallery tiles, nav links, accordion questions.
+ * Flattening the per-widget props therefore makes its element type a union, and a
+ * caller inside `case 'gallery'` has to say which one it has. That cast is the one real
+ * cost of the flat type over a discriminated `Node`, and it is about ten sites.
+ */
+export type RowsOf<T> = T[];
 
 /** Advanced, per-node escape hatches. All three reach the export verbatim. */
 export interface Adv {
@@ -80,6 +175,7 @@ export interface Node {
   /** prop key to field id. A bound prop takes its value from the item being shown. */
   bind?: Record<string, string>;
 }
+
 
 /** Where a node sits: the node, its parent, the array holding it, and its index. */
 export interface Handle {

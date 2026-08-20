@@ -15,13 +15,17 @@ import * as C from '../app/src/core/index';
 import { Ctl } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
 import { rig, type Rig } from './ui.setup';
-import type { Control } from '../app/src/core/types';
+import type { Control, NavItem } from '../app/src/core/types';
 
 let r: Rig;
 beforeEach(() => { r = rig(); });
 afterEach(() => { r.host.remove(); });
 
 const heading = () => C.insert('heading', null, 0)!;
+
+/* A repeater's rows, typed. `items` is a different shape per widget, so the test that
+   built the node says which it has. */
+const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
 
 /* ------------------------------------------------------------------ unit */
 
@@ -153,23 +157,23 @@ test('a repeater adds, reorders and removes rows', () => {
   const drawn = () => r.draw(<Ctl n={n} c={c} />);
   drawn();
 
-  const before = n.props.items.length;
+  const before = navRows(n).length;
   r.click(r.$$('button').find(b => /Add link/.test(b.textContent || '')) || null);
-  a.equal(n.props.items.length, before + 1);
+  a.equal(navRows(n).length, before + 1);
 
   drawn();
   r.type(r.$$('.irow')[0].querySelector('input')!, 'Renamed');
-  a.equal(n.props.items[0].label, 'Renamed');
+  a.equal(navRows(n)[0].label, 'Renamed');
 
   drawn();
-  const second = n.props.items[1].label;
+  const second = navRows(n)[1].label;
   r.click(r.$$('.irow')[1].querySelector('[title="Move up"]'));
-  a.equal(n.props.items[0].label, second, 'it swapped with the row above');
+  a.equal(navRows(n)[0].label, second, 'it swapped with the row above');
 
   drawn();
-  const count = n.props.items.length;
+  const count = navRows(n).length;
   r.click(r.$$('.irow')[0].querySelector('[title="Remove"]'));
-  a.equal(n.props.items.length, count - 1);
+  a.equal(navRows(n).length, count - 1);
 });
 
 test('move up is disabled on the first row', () => {
