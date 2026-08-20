@@ -12,6 +12,7 @@ import { Add } from './Add';
 import { Pages } from './Pages';
 import { Inspector } from './inspector/Inspector';
 import { AssetField } from './AssetField';
+import { ColorTokens } from './ColorTokens';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
@@ -58,5 +59,12 @@ export function mount(core: Core, legacy: Legacy) {
     draw();
   };
 
-  return { ...painters, mountAssetField };
+  /* Same rule again: #mColors has one writer, so the component owns it. */
+  const mountColors = () => {
+    const host = document.getElementById('mColors');
+    if (host) render(<ColorTokens />, host);
+  };
+  registerPainter('colors', mountColors);
+
+  return { ...painters, mountAssetField, mountColors };
 }

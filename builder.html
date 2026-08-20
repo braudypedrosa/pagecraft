@@ -3138,54 +3138,10 @@ function projectModal() {
   wire('mCss', v => { m.css = v; });
   wire('mHeadHtml', v => { m.headHtml = v; });
 
-  /* ---- colour tokens ---- */
-  function drawColors() {
-    const box = $('#mColors'); if (!box) return;
-    box.innerHTML = colors().map(t => {
-      const lock = RESERVED.includes(t.id);
-      return `<div class="arow" data-c="${t.id}">
-        <span class="sw"><i style="background:${esc(t.value)}"></i>
-          <input type="color" data-cp="${t.id}" value="${/^#[0-9a-f]{6}$/i.test(t.value) ? t.value : '#888888'}"></span>
-        <span class="an">
-          <input class="ctl" data-cn="${t.id}" value="${esc(t.name)}" style="font-size:12.5px;font-weight:600">
-        </span>
-        <input class="ctl" data-cv="${t.id}" value="${esc(t.value)}" style="width:92px;flex:0 0 92px;font-family:var(--mono);font-size:11px">
-        ${lock
-        ? `<span class="rowlock" title="Built in — part of the brand, so it cannot be deleted">${svg('lock', 13)}</span>`
-        : `<button class="iconbtn" data-cd="${t.id}" title="Delete — usages keep this colour as a literal">${svg('trash', 13)}</button>`}
-      </div>`;
-    }).join('') + `<button class="btn" id="mColorAdd" style="width:100%;justify-content:center;font-size:11px">${svg('plus', 12)} Add colour</button>`;
-
-    const set = (id, v) => {
-      const t = findColor(id); if (!t) return;
-      t.value = v;
-      const row = box.querySelector(`[data-c="${id}"]`);
-      row.querySelector('.sw i').style.background = v;
-      const cp = row.querySelector('[data-cp]'), cv = row.querySelector('[data-cv]');
-      if (/^#[0-9a-f]{6}$/i.test(v) && cp.value !== v) cp.value = v;
-      if (cv.value !== v) cv.value = v;
-      paintCss(); save();
-    };
-    $$('[data-cp]', box).forEach(el => el.addEventListener('input', () => { tx('tok:' + el.dataset.cp); set(el.dataset.cp, el.value); }));
-    $$('[data-cv]', box).forEach(el => el.addEventListener('input', () => { tx('tok:' + el.dataset.cv); set(el.dataset.cv, el.value.trim()); }));
-    $$('[data-cn]', box).forEach(el => el.addEventListener('input', () => {
-      tx('tokname:' + el.dataset.cn);
-      const t = findColor(el.dataset.cn); if (t) { t.name = el.value; save(); }
-    }));
-    $$('[data-cd]', box).forEach(b => b.addEventListener('click', async () => {
-      const id = b.dataset.cd, used = colorUsage(id);
-      if (used && !await askConfirm('Delete this colour token?', `<b>${esc(findColor(id).name)}</b> is used ${used}×. Those elements keep the colour, as a literal value — they just stop following the token.`, { ok: 'Delete token' })) return;
-      edit(() => colorDelete(id));
-      drawColors(); toast('Token deleted, colours kept');
-    }));
-    $('#mColorAdd').addEventListener('click', async () => {
-      const name = await askText('New colour token', 'Colour name', 'New colour', { ok: 'Add colour' });
-      if (name === null) return;
-      edit(() => colorAdd(name, '#888888'));
-      drawColors();
-    });
-  }
-  drawColors();
+  /* app/src/ui/ColorTokens.tsx owns #mColors. It repaints itself on add and delete,
+     and pokes its own row while you type — a full redraw would take the caret out of
+     whichever of the three fields you were in. */
+  ui().mountColors();
 
   /* ---- text styles: created, named and edited here ---- */
   let openStyle = null, styleDev = 'd';
