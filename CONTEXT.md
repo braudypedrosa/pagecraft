@@ -19,10 +19,11 @@ both builds work, and neither has to break for the other to progress.
 | `app/src/core/types.ts` | the domain, typed. The point of the migration. |
 | `builder.html` | the legacy chrome. Its `/*<core>*/` regions are **stripped at build time** and replaced by the compiled TypeScript, so there is only ever one copy. |
 | `build.mjs` | type-strips the core with esbuild and splices it in; still produces the shipping artifact |
+| `app/src/ui/` | **panels ported to Preact**, bundled as a sealed IIFE and spliced in beside the core. The Navigator lives here. |
 | `app/index.html` + `main.tsx` | the Preact successor. `npm run build:next` → one self-contained file in `dist/next/` |
 
 ```bash
-npm test        # build + 325 cases, in Vitest, against the TypeScript
+npm test        # build + tsc --noEmit (everything, full strictness) + 353 cases
 npm run build       # the shipping single-file artifact (legacy chrome, TS core)
 npm run build:next  # the Preact/TS successor, also one self-contained file
 npm run typecheck   # tsc --noEmit
@@ -33,9 +34,8 @@ around 180 cross-references and real cycles — `menuFor` needs `clip`, whose mo
 need `DEF`. Splitting it in one move is how a working system breaks. Split one boundary at
 a time, suite green after each.
 
-**The core is at 0 type errors.** 199 remain in the test file, which is unconverted and
-mostly `locate()` now being honest about returning `Handle | null` where the tests never
-checked. Nothing blocks — esbuild strips types without checking and all 325 pass.
+**The whole project is at 0 type errors** under `strict`, `noImplicitAny` and both
+unused checks, tests included, and `npm test` enforces it.
 
 Tightening it found **six real bugs**: `state.meta.tokens` is `Tokens | null` until
 `defaultTokens()` runs at boot, and six mutators dereferenced it with no check — latent
@@ -78,6 +78,42 @@ Take the leaves first; a split that creates a cycle is worse than no split.
 **One thing the types already found:** the text styles are stored under `tokens.text` while
 the accessor is called `styles()`. The key and the name have never agreed, and only writing
 the type down made it visible.
+
+## The UI seam — how a panel gets ported
+
+Ported panels are **not** in builder.html's scope. Preact's bundle declares `$` at top
+level and builder.html has declared `$` as its DOM query helper since the first commit;
+one scope for both is `Identifier '$' has already been declared`, which is a SyntaxError
+that takes the whole app down. So `app/src/ui/` is bundled as an IIFE exporting one
+`mount`, and `build.mjs` asserts it stays sealed — if a future esbuild emits anything at
+top level besides `var PC_UI`, the build fails instead of the app dying at boot.
+
+Everything a ported panel borrows arrives through `app/src/ui/ctx.ts` as two objects:
+
+- **`Core`** — a `Pick` of the core module, so the types are the real ones and cannot
+  drift, while the object builder.html hands over stays small enough to write out.
+- **`Legacy`** — what builder.html still owns. Every entry is a thing left to port, and
+  the list reaching empty is the migration being finished. This is why it is a typed
+  interface rather than an ambient `declare function` file: the latter compiles just as
+  well and tells nobody anything.
+
+**Picking the next panel: find a container with exactly one writer.** Preact diffs
+against what it rendered last time, so a panel sharing a mount point with a function
+that sets `innerHTML` will have its tree torn up underneath it. `#paneLayers` had one
+writer, which is why the Navigator went first. `#addBody` has two (`drawAddBody` and
+`drawBlocks`), so that whole panel has to move in one go.
+
+**Then grep for everything that reaches into the panel from outside.** The Navigator
+port nearly shipped with drag-to-reorder silently broken: `startLayerDrag` is still in
+builder.html and finds its drop target with
+`elementFromPoint(...).closest('.lrow[data-id]')`. The component had no reason to emit
+`data-id`. Attributes another file queries are load-bearing, and they do not announce
+themselves — check before trusting.
+
+**Ported so far:** the Navigator (`Layers.tsx`), 71 lines of render-plus-rebind down to
+15 lines of mount. That split — markup built as strings, handlers attached by querying
+the result back out of the DOM — is what the control-parity guard in `build.mjs` exists
+to police. A component cannot have it.
 
 ## What this is
 

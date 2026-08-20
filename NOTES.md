@@ -107,6 +107,28 @@ once. Rewrite the call sites first and add the helpers afterwards, or the pass e
 tail. The third variant slipped past a guard that looked for `name(` because a declaration
 reads `name = (`.
 
+## Why the ported UI is sealed and the core is not
+
+The core is spliced into builder.html's scope on purpose: the remaining UI code goes on
+calling `locate` and `tree` by bare name, whatever the module layout underneath. That
+works because the core's names were already builder.html's names.
+
+Preact's are not. Its bundle declares 52 top-level names, and one of them is `$` —
+which builder.html has used for `querySelector` since the beginning. Merging the two
+scopes is `Identifier '$' has already been declared`: not a subtle bug, a SyntaxError
+that takes the entire app with it. `render` would have collided too.
+
+So `app/src/ui/` is an IIFE with one export, and everything it needs is passed in. The
+constraint improved the design — the seam is now a typed interface listing exactly what
+is not ported yet, instead of ambient declarations that compile silently and document
+nothing. `build.mjs` asserts the seal rather than trusting it.
+
+Two things worth knowing before porting the next panel: pick a container with exactly
+one writer, or Preact's diff fights whatever else sets `innerHTML`; and grep for every
+selector that reaches into the panel from outside. The Navigator nearly shipped with
+drag-to-reorder dead because `startLayerDrag` finds its drop target by
+`closest('.lrow[data-id]')` and the component had no reason to emit `data-id`.
+
 ## Two rules the build enforces
 
 1. **Core/UI split.** Pure logic lives between `/*<core>*/` … `/*</core>*/` markers and is
