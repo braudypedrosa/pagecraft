@@ -85,10 +85,12 @@ export function stamp(url) {
   const next = {
     url: url || rec.url || '',
     sha256: sha(ARTIFACT),
-    /* the commit that last touched builder.html, not HEAD — that is the source
-       which produced these bytes, so "published from X" stays true even when the
-       stamp lands in a later commit of its own */
-    commit: git('log', '-1', '--format=%h', '--', 'builder.html') || null,
+    /* The commit that last touched whatever actually feeds the artifact — not HEAD,
+       so "published from X" stays true even when the stamp lands in a later commit
+       of its own. That used to be builder.html alone; since the core moved to
+       TypeScript it is both, and tracking only builder.html made this record name
+       the wrong commit the first time a core-only change shipped. */
+    commit: git('log', '-1', '--format=%h', '--', 'builder.html', 'app/src/core') || null,
     publishedAt: new Date().toISOString().slice(0, 10),
     favicon: rec.favicon || '📐',
     contract: rec.contract || '0.2.4',
