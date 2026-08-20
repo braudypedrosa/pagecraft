@@ -71,7 +71,7 @@ something does.
 
 | | |
 |---|---|
-| Tests | **285**, `npm test` |
+| Tests | **294**, `npm test` |
 | Widgets | 17 |
 | Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
@@ -90,6 +90,12 @@ gallery · export review (lint) with a live indicator · keyboard editing and cl
 namespaced `pagecraft-` output with overridable ids · SEO head, sitemap, robots ·
 **multi-select** (⌘/⇧-click to add on the canvas, ⇧-click for a range in the Navigator, one
 style edit fans out to the set).
+
+**Bind a whole card at once** — "Bind the fields inside…" on any container with a content
+source. One sheet, every bindable place, pre-filled by `guessBindings` (which runs by
+confidence, not document order, and consumes a field once used). Was ~15 interactions for a
+five-field card. Doing it surfaced that **a WYSIWYG body was not bindable at all** — the
+`rich` control had no `k`, so the UI never offered the most useful binding there is.
 
 **Find and replace** — ⌘F. Searches page elements, both global regions, each page's title,
 description and name, the project name and every CMS item value; a row jumps to wherever that
@@ -126,7 +132,7 @@ deleting two pages plus a 21-node header and footer by hand.
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 285 cases, and reports the Artifact's freshness
+npm test            # rebuild + 294 cases, and reports the Artifact's freshness
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 npm run publish:check   # exits 1 if the published Artifact is behind

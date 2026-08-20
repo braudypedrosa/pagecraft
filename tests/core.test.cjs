@@ -3176,3 +3176,121 @@ test('every widget that carries text declares it', () => {
     .forEach(t => a.ok(C.TEXT_SLOTS[t], t + ' names its text props'));
   Object.keys(C.TEXT_SLOTS).forEach(t => a.ok(C.DEF[t], t + ' is a real widget'));
 });
+
+/* ============================================================= binding a card
+   Binding was one control at a time: select, open Content, click the badge, pick a
+   field, repeat. About fifteen interactions for a five-field card, and nowhere to
+   see the mapping as a whole. */
+const cardIn = () => {
+  blank();
+  const col = C.collectionAdd('Projects');
+  C.fieldAdd(col.id, 'Summary', 'rich');
+  C.fieldAdd(col.id, 'Cover', 'image');
+  C.fieldAdd(col.id, 'Year', 'number');
+  C.fieldAdd(col.id, 'Read more', 'link');
+  const card = C.N('column', {}, {}, [C.N('heading'), C.N('text'), C.N('image'), C.N('button')]);
+  const list = C.N('list', {}, {}, [card]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+  return { col, list };
+};
+
+test('the sheet lists content, not settings', () => {
+  const { list } = cardIn();
+  const slots = C.bindSlots(list.id);
+  /* every bindable key would be sixteen rows for this card, thirteen of them things
+     nobody binds — a list's sort order, a heading's HTML tag, an image's lazy flag */
+  a.equal(slots.length, 9);
+  slots.forEach(s => a.ok(C.BIND_CTL.includes(s.ctl), s.label + ' is a content control'));
+  a.equal(slots.filter(s => s.key === 'html').length, 1, 'the WYSIWYG body is in there');
+});
+
+test('a WYSIWYG body can be bound at all', () => {
+  /* the rich control had no `k`, so bindableKeys skipped it and the single most
+     useful thing to bind was unreachable — boundProps could always resolve it */
+  a.deepEqual(C.bindableKeys('text'), ['html']);
+});
+
+test('the first guess gets a normal card right', () => {
+  const { col, list } = cardIn();
+  const slots = C.bindSlots(list.id);
+  const g = C.guessBindings(slots, col);
+  const at = (type, key) => g[slots.find(s => s.type === type && s.key === key).nodeId + '|' + key];
+  a.equal(at('heading', 'text'), 'title');
+  a.equal(at('text', 'html'), 'summary');
+  a.equal(at('image', 'src'), 'cover');
+  a.equal(at('button', 'link'), 'read-more', 'the button gets the link field, not the heading');
+  a.equal(at('heading', 'link'), '', 'and the heading is left alone rather than guessed at');
+});
+
+test('a field is used once, so a second heading does not also take the title', () => {
+  const { col } = cardIn();
+  const card = C.N('column', {}, {}, [C.N('heading'), C.N('heading')]);
+  const list = C.N('list', {}, {}, [card]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+  const slots = C.bindSlots(list.id);
+  const g = C.guessBindings(slots, col);
+  const texts = slots.filter(s => s.key === 'text').map(s => g[s.nodeId + '|text']);
+  a.equal(texts[0], 'title');
+  a.equal(texts[1], '', 'the title is consumed, and a wrong guess is worse than none');
+});
+
+test('a name match beats the shape of the control', () => {
+  blank();
+  const col = C.collectionAdd('Things');
+  C.fieldAdd(col.id, 'Caption', 'text');
+  const img = C.N('image');
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [img])]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+  const slots = C.bindSlots(list.id);
+  const g = C.guessBindings(slots, col);
+  a.equal(g[img.id + '|caption'], 'caption', 'a field called Caption goes to the Caption control');
+});
+
+test('an existing binding is never guessed over', () => {
+  const { col, list } = cardIn();
+  const h = C.locate(C.bindSlots(list.id)[0].nodeId).node;
+  C.bindSet(h, 'text', 'year');
+  const slots = C.bindSlots(list.id);
+  const g = C.guessBindings(slots, col);
+  a.equal(g[h.id + '|text'], 'year', 'a decision already made stays made');
+});
+
+test('applyBindings writes the map and counts only what changed', () => {
+  const { col, list } = cardIn();
+  const slots = C.bindSlots(list.id);
+  const g = C.guessBindings(slots, col);
+  a.equal(C.applyBindings(g), 4);
+  a.equal(C.applyBindings(g), 0, 'writing the same map again changes nothing');
+  const h = C.locate(slots.find(s => s.key === 'text').nodeId).node;
+  a.equal(C.bindGet(h, 'text'), 'title');
+  /* clearing is a write too */
+  slots.forEach(s => { g[s.nodeId + '|' + s.key] = ''; });
+  a.equal(C.applyBindings(g), 4);
+  a.equal(C.bindGet(h, 'text'), '');
+});
+
+test('a bound card renders one per item, with the bound values', () => {
+  const { col, list } = cardIn();
+  C.applyBindings(C.guessBindings(C.bindSlots(list.id), col));
+  const a1 = C.itemAdd(col.id); C.itemSet(col.id, a1.id, 'title', 'Acme rebrand');
+  const a2 = C.itemAdd(col.id); C.itemSet(col.id, a2.id, 'title', 'Northwind app');
+  const html = C.renderNode(C.locate(list.id).node, { edit: false });
+  a.match(html, /Acme rebrand/);
+  a.match(html, /Northwind app/);
+  /* the class *and* the auto id both contain the widget slug, so count the class */
+  a.equal((html.match(/class="pagecraft-heading/g) || []).length, 2, 'one card per item');
+});
+
+test('a scope with nothing bindable in it gives an empty sheet', () => {
+  blank();
+  const col = C.collectionAdd('Things');
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [C.N('divider'), C.N('spacer')])]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+  a.deepEqual(C.bindSlots(list.id), []);
+  a.deepEqual(C.guessBindings([], col), {});
+  a.deepEqual(C.guessBindings(C.bindSlots(list.id), null), {}, 'and no collection means no guess');
+});

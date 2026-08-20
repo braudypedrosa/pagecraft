@@ -367,7 +367,7 @@ const DEF = {
     }),
     controls: {
       content: [
-        { t: 'rich', label: 'Rich text' },
+        { t: 'rich', k: 'html', label: 'Rich text' },
         { t: 'tstyle', k: 'ts', label: 'Text style' },
         { t: 'pick', c: 'text-align', label: 'Alignment', r: 1, opts: [['left', 'alignL'], ['center', 'alignC'], ['right', 'alignR'], ['justify', 'alignJ']] }
       ],
@@ -2064,6 +2064,94 @@ const bindableKeys = type => {
   /* content props only: a text style is a design choice, not content */
   return (c.content || []).filter(x => x.k && x.k !== 'ts' && !COLL_CTL.includes(x.t)).map(x => x.k);
 };
+/* ---- binding a whole card at once -----------------------------------
+   Binding was one control at a time: select the element, open Content, click the
+   badge, pick a field, repeat. A five-field card was about fifteen interactions and
+   there was nowhere to see the mapping as a whole.
+
+   `bindSlots` lists every bindable control inside a scope in document order, which is
+   both what the sheet draws and what its commit writes back. */
+/* Controls that hold content rather than settings. A sheet listing every bindable
+   key showed sixteen rows for a four-element card, thirteen of them things nobody
+   binds — the sort order of a list, a heading's HTML tag, an image's lazy flag. The
+   per-control badge still reaches those; the sheet stays on what content means. */
+const BIND_CTL = ['text', 'area', 'rich', 'img', 'link'];
+
+function bindSlots(rootId) {
+  const h = locate(rootId);
+  if (!h) return [];
+  const out = [];
+  eachNode([h.node], n => {
+    const keys = bindableKeys(n.type);
+    (DEF[n.type].controls.content || []).forEach(c => {
+      if (!c.k || !keys.includes(c.k) || !BIND_CTL.includes(c.t)) return;
+      out.push({
+        nodeId: n.id, type: n.type, key: c.k, ctl: c.t,
+        element: nameOf(n), label: c.label || c.k, current: bindGet(n, c.k)
+      });
+    });
+  });
+  return out;
+}
+
+/* A first guess, so the sheet opens mostly filled in rather than empty.
+   It runs by *confidence*, not in document order — which matters: walking the tree,
+   a card's heading reached the "Read more" link field before the button did, and the
+   button is obviously what that field is for. A field is consumed once used, or two
+   headings both take the title and the second one is wrong. */
+function guessBindings(slots, col) {
+  if (!col) return {};
+  const out = {};
+  const left = col.fields.slice();
+  const key = s => s.nodeId + '|' + s.key;
+  const take = (s, f) => { out[key(s)] = f.id; left.splice(left.indexOf(f), 1); };
+  const free = s => !(key(s) in out);
+  const byType = t => left.find(f => f.type === t);
+  const title = titleField(col);
+
+  /* an existing binding is a decision already made, and is never guessed over */
+  slots.forEach(s => { if (s.current) out[key(s)] = s.current; });
+
+  /* 1. a control whose label or key reads like a field's name */
+  slots.filter(free).forEach(s => {
+    const f = left.find(x => slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key));
+    if (f) take(s, f);
+  });
+  /* 2. the shape of the control, most-certain first, one slot each */
+  const first = (pred) => slots.filter(free).find(pred);
+  const rules = [
+    [s => s.key === 'src', () => byType('image')],
+    [s => s.key === 'text' && s.type === 'heading', () => (left.includes(title) ? title : null)],
+    [s => s.key === 'html', () => byType('rich') || left.find(f => f.type === 'text' && f !== title)],
+    [s => s.key === 'link' && s.type === 'button', () => byType('link')],
+    [s => s.key === 'text' && s.type === 'button', () => left.find(f => f.type === 'text' && f !== title)]
+  ];
+  rules.forEach(([pick, field]) => {
+    const s = first(pick);
+    if (!s) return;
+    const f = field();
+    if (f) take(s, f);
+  });
+  /* 3. anything left is left alone — an unbound slot beats a wrong guess */
+  slots.forEach(s => { if (free(s)) out[key(s)] = ''; });
+  return out;
+}
+
+/* Write a whole map back. Returns how many bindings changed, so the toast can say. */
+function applyBindings(map) {
+  let n = 0;
+  Object.entries(map || {}).forEach(([k, fieldId]) => {
+    const i = k.lastIndexOf('|');
+    const h = locate(k.slice(0, i));
+    if (!h) return;
+    const prop = k.slice(i + 1);
+    if (bindGet(h.node, prop) === (fieldId || '')) return;
+    bindSet(h.node, prop, fieldId);
+    n++;
+  });
+  return n;
+}
+
 const bindGet = (n, key) => (n.bind || {})[key] || '';
 function bindSet(n, key, fieldId) {
   if (!fieldId) {
@@ -3943,4 +4031,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };

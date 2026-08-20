@@ -424,6 +424,11 @@ Three things you can do with one:
   source*) and every content field inside grows a badge next to its label. Click it, pick a
   field, and that property comes from content. A bound field shows the value it will render and
   goes inert; the badge unbinds it.
+- **Or bind the whole card at once.** **Bind the fields inside…** opens a sheet listing every
+  place inside the scope that could take a value, already filled in with a first guess — a
+  heading takes the title, a text block the summary, an image the image field, a button the
+  link field. Change any row, then commit the lot in one step. It also serves as the one place
+  to *see* what is bound to what.
 - **Repeat with a Collection list.** Drop one from *Add → Layout*, put a single Column inside, and
   that card renders once per item — with sort, direction and a limit.
 - **Generate a page per item.** Mark a page as a collection's detail template in *Pages*, and the

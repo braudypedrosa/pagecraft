@@ -115,6 +115,7 @@ const EXPORTS = [
   'itemAdd', 'itemDelete', 'itemMove', 'itemSet', 'itemSetSlug',
   'listItems', 'pageHref', 'exportTargets', 'contentJson', 'sitePlan',
   'bindableKeys', 'COLL_CTL', 'bindGet', 'bindSet', 'srcSet', 'bindScope',
+  'BIND_CTL', 'bindSlots', 'guessBindings', 'applyBindings',
   'previewIndex', 'previewItem', 'fieldValue', 'boundProps',
   'blockInstances', 'blockUsage', 'blockPush',
   'TEMPLATES', 'pageFromTemplate', 'PATTERNS', 'patternInsert', 'flatten', 'step', 'parentOf', 'firstChildOf', 'nudge', 'nudgeMany',

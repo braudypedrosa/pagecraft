@@ -1334,7 +1334,7 @@ const DEF = {
     }),
     controls: {
       content: [
-        { t: 'rich', label: 'Rich text' },
+        { t: 'rich', k: 'html', label: 'Rich text' },
         { t: 'tstyle', k: 'ts', label: 'Text style' },
         { t: 'pick', c: 'text-align', label: 'Alignment', r: 1, opts: [['left', 'alignL'], ['center', 'alignC'], ['right', 'alignR'], ['justify', 'alignJ']] }
       ],
@@ -3031,6 +3031,94 @@ const bindableKeys = type => {
   /* content props only: a text style is a design choice, not content */
   return (c.content || []).filter(x => x.k && x.k !== 'ts' && !COLL_CTL.includes(x.t)).map(x => x.k);
 };
+/* ---- binding a whole card at once -----------------------------------
+   Binding was one control at a time: select the element, open Content, click the
+   badge, pick a field, repeat. A five-field card was about fifteen interactions and
+   there was nowhere to see the mapping as a whole.
+
+   `bindSlots` lists every bindable control inside a scope in document order, which is
+   both what the sheet draws and what its commit writes back. */
+/* Controls that hold content rather than settings. A sheet listing every bindable
+   key showed sixteen rows for a four-element card, thirteen of them things nobody
+   binds — the sort order of a list, a heading's HTML tag, an image's lazy flag. The
+   per-control badge still reaches those; the sheet stays on what content means. */
+const BIND_CTL = ['text', 'area', 'rich', 'img', 'link'];
+
+function bindSlots(rootId) {
+  const h = locate(rootId);
+  if (!h) return [];
+  const out = [];
+  eachNode([h.node], n => {
+    const keys = bindableKeys(n.type);
+    (DEF[n.type].controls.content || []).forEach(c => {
+      if (!c.k || !keys.includes(c.k) || !BIND_CTL.includes(c.t)) return;
+      out.push({
+        nodeId: n.id, type: n.type, key: c.k, ctl: c.t,
+        element: nameOf(n), label: c.label || c.k, current: bindGet(n, c.k)
+      });
+    });
+  });
+  return out;
+}
+
+/* A first guess, so the sheet opens mostly filled in rather than empty.
+   It runs by *confidence*, not in document order — which matters: walking the tree,
+   a card's heading reached the "Read more" link field before the button did, and the
+   button is obviously what that field is for. A field is consumed once used, or two
+   headings both take the title and the second one is wrong. */
+function guessBindings(slots, col) {
+  if (!col) return {};
+  const out = {};
+  const left = col.fields.slice();
+  const key = s => s.nodeId + '|' + s.key;
+  const take = (s, f) => { out[key(s)] = f.id; left.splice(left.indexOf(f), 1); };
+  const free = s => !(key(s) in out);
+  const byType = t => left.find(f => f.type === t);
+  const title = titleField(col);
+
+  /* an existing binding is a decision already made, and is never guessed over */
+  slots.forEach(s => { if (s.current) out[key(s)] = s.current; });
+
+  /* 1. a control whose label or key reads like a field's name */
+  slots.filter(free).forEach(s => {
+    const f = left.find(x => slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key));
+    if (f) take(s, f);
+  });
+  /* 2. the shape of the control, most-certain first, one slot each */
+  const first = (pred) => slots.filter(free).find(pred);
+  const rules = [
+    [s => s.key === 'src', () => byType('image')],
+    [s => s.key === 'text' && s.type === 'heading', () => (left.includes(title) ? title : null)],
+    [s => s.key === 'html', () => byType('rich') || left.find(f => f.type === 'text' && f !== title)],
+    [s => s.key === 'link' && s.type === 'button', () => byType('link')],
+    [s => s.key === 'text' && s.type === 'button', () => left.find(f => f.type === 'text' && f !== title)]
+  ];
+  rules.forEach(([pick, field]) => {
+    const s = first(pick);
+    if (!s) return;
+    const f = field();
+    if (f) take(s, f);
+  });
+  /* 3. anything left is left alone — an unbound slot beats a wrong guess */
+  slots.forEach(s => { if (free(s)) out[key(s)] = ''; });
+  return out;
+}
+
+/* Write a whole map back. Returns how many bindings changed, so the toast can say. */
+function applyBindings(map) {
+  let n = 0;
+  Object.entries(map || {}).forEach(([k, fieldId]) => {
+    const i = k.lastIndexOf('|');
+    const h = locate(k.slice(0, i));
+    if (!h) return;
+    const prop = k.slice(i + 1);
+    if (bindGet(h.node, prop) === (fieldId || '')) return;
+    bindSet(h.node, prop, fieldId);
+    n++;
+  });
+  return n;
+}
+
 const bindGet = (n, key) => (n.bind || {})[key] || '';
 function bindSet(n, key, fieldId) {
   if (!fieldId) {
@@ -6486,11 +6574,16 @@ function ctlHtml(n, c, i) {
       return F(`<select class="ctl" data-x="src">
           <option value="">— Pick a collection —</option>
           ${collections().map(x => `<option value="${x.id}"${cur === x.id ? ' selected' : ''}>${esc(x.name)} · ${x.items.length} item${x.items.length === 1 ? '' : 's'}</option>`).join('')}
-        </select>${collections().length ? '' : '<div class="note">No collections yet — make one in <b>CMS</b>.</div>'}`);
+        </select>
+        ${n.src && findCollection(n.src)
+          ? `<button class="btn" data-x="bindall" style="width:100%;justify-content:center;margin-top:var(--gap-1)">${svg('cms', 13)} Bind the fields inside…</button>`
+          : ''}${collections().length ? '' : '<div class="note">No collections yet — make one in <b>CMS</b>.</div>'}`);
     }
-    case 'rich': return `<div class="f" data-ci="${i}">${labelHtml(c, n)}
-      <button class="btn" data-x="rich" style="width:100%;justify-content:center">${svg('edit', 13)} Edit on canvas</button>
-      <div class="note">Or double-click the block directly. Toolbar: bold, italic, links, lists, headings.</div></div>`;
+    case 'rich': return `<div class="f${bfid ? ' bound' : ''}" data-ci="${i}">${labelHtml(c, n)}
+      ${bfid
+        ? `<div class="note">This block's content comes from <b>${esc((findField(bsc.col, bfid) || { name: 'a missing field' }).name)}</b>. Unbind it to edit the text here.</div>`
+        : `<button class="btn" data-x="rich" style="width:100%;justify-content:center">${svg('edit', 13)} Edit on canvas</button>
+           <div class="note">Or double-click the block directly. Toolbar: bold, italic, links, lists, headings.</div>`}</div>`;
     case 'tstyle': {
       const cur = findStyle(val);
       const used = cur ? tsUsage(cur.id) : 0;
@@ -6766,6 +6859,9 @@ function renderRight() {
         <option value="">— None —</option>
         ${collections().map(c => `<option value="${c.id}"${n.src === c.id ? ' selected' : ''}>${esc(c.name)} · ${c.items.length} item${c.items.length === 1 ? '' : 's'}</option>`).join('')}
       </select>
+      ${n.src && findCollection(n.src)
+        ? `<button class="btn" id="advBindAll" style="width:100%;justify-content:center;margin-top:var(--gap-1)">${svg('cms', 13)} Bind the fields inside…</button>`
+        : ''}
       <div class="note">${n.src && findCollection(n.src)
         ? `Nothing on the canvas changes yet — this only opens the scope. Select something
            inside and click the badge beside a field to take its value from
@@ -6823,6 +6919,8 @@ function bindRight(n) {
   if (st) $$('button', st).forEach(b => b.addEventListener('click', () => { state.ui.stab = b.dataset.s; renderRight(); }));
   const sp = $('#selParent');
   if (sp) sp.addEventListener('click', () => { const h = locate(n.id); select(h.parent ? h.parent.id : null); });
+  const abAll = $('#advBindAll');
+  if (abAll) abAll.addEventListener('click', () => bindModal(n.id));
   const asrc = $('#advSrc');
   if (asrc) asrc.addEventListener('change', () => {
     edit(() => srcSet(n, asrc.value));
@@ -7138,12 +7236,17 @@ function bindRight(n) {
         });
         break;
       }
-      case 'source': gv('src').addEventListener('change', () => {
-        const v = gv('src').value;
-        edit(() => { srcSet(n, v); if (!v) n.props.sort = ''; });
-        toast(v ? findCollection(v).name + ' — ' + findCollection(v).items.length + ' items' : 'Collection cleared');
-      }); break;
-      case 'rich': gv('rich').addEventListener('click', () => enterEdit(n.id)); break;
+      case 'source': {
+        gv('src').addEventListener('change', () => {
+          const v = gv('src').value;
+          edit(() => { srcSet(n, v); if (!v) n.props.sort = ''; });
+          toast(v ? findCollection(v).name + ' — ' + findCollection(v).items.length + ' items' : 'Collection cleared');
+        });
+        const ba = gv('bindall');
+        if (ba) ba.addEventListener('click', () => bindModal(n.id));
+        break;
+      }
+      case 'rich': { const rb = gv('rich'); if (rb) rb.addEventListener('click', () => enterEdit(n.id)); break; }
       case 'qa': {
         const arr = () => (n.props[c.k] = Array.isArray(n.props[c.k]) ? n.props[c.k] : []);
         const fld = (x, prop) => $$(`[data-x="${x}"]`, f).forEach(el => {
@@ -8395,6 +8498,65 @@ function projectModal() {
    element and scrolls to it. Replace is one action over the whole project with undo
    behind it, since a per-hit replace list goes stale the moment the first one lands. */
 let findState = { q: '', to: '', ci: true };
+/* ---- the bind sheet -------------------------------------------------
+   One dialog that shows the whole mapping and commits it in one go. Binding used to
+   be one control at a time — select, open Content, click the badge, pick a field,
+   repeat — which was about fifteen interactions for a five-field card, and there was
+   nowhere to see what was bound to what. */
+function bindModal(rootId) {
+  if (editing.on) exitEdit();
+  const sc = bindScope(rootId);
+  if (!sc) { toast('Point this at a collection first'); return; }
+  const col = sc.col;
+  const slots = bindSlots(rootId);
+  if (!slots.length) {
+    toast('Nothing inside this to bind — add a Heading, an Image or a text block');
+    return;
+  }
+  let map = guessBindings(slots, col);
+  const key = s => s.nodeId + '|' + s.key;
+
+  const draw = () => {
+    const set = Object.values(map).filter(Boolean).length;
+    $('#bsCount').innerHTML = set
+      ? `<b>${set}</b> of ${slots.length} bound to <b>${esc(col.name)}</b>`
+      : `Nothing bound yet. ${slots.length} places could take a value.`;
+    $('#bsBody').innerHTML = `<table class="cmst"><thead><tr>
+        <th>Element</th><th style="width:150px">Its field</th><th style="width:230px">Takes its value from</th>
+      </tr></thead><tbody>${slots.map((s, i) => `<tr>
+        <td><b style="font-size:12.5px">${esc(s.element)}</b><br><small style="font-family:var(--label);font-size:11px;color:var(--text-3)">${esc(DEF[s.type].label)}</small></td>
+        <td>${esc(s.label)}</td>
+        <td><select class="ctl" data-b="${i}">
+          <option value="">— not bound —</option>
+          ${col.fields.map(f => `<option value="${f.id}"${map[key(s)] === f.id ? ' selected' : ''}>${esc(f.name)} · ${f.type}</option>`).join('')}
+        </select></td>
+      </tr>`).join('')}</tbody></table>`;
+    $$('#bsBody select').forEach(el => el.addEventListener('change', () => {
+      map[key(slots[+el.dataset.b])] = el.value;
+      draw();
+    }));
+  };
+
+  openModal(`Bind to ${col.name}`, `
+    <div class="note" style="margin:0 0 var(--gap-2)">Each row takes its value from a field, once
+      per item. A field can be used twice if you want it twice. Nothing is written until you commit.</div>
+    <div id="bsBody"></div>`, `
+    <span class="note" id="bsCount" style="margin:0;flex:1;text-align:left"></span>
+    <button class="btn" id="bsGuess">Suggest again</button>
+    <button class="btn" id="bsNone">Clear all</button>
+    <button class="btn primary" id="bsOk">Bind</button>`, 'lg');
+
+  $('#bsGuess').addEventListener('click', () => { map = guessBindings(slots.map(s => ({ ...s, current: '' })), col); draw(); });
+  $('#bsNone').addEventListener('click', () => { slots.forEach(s => { map[key(s)] = ''; }); draw(); });
+  $('#bsOk').addEventListener('click', () => {
+    let n = 0;
+    edit(() => { n = applyBindings(map); });
+    closeModal(); render();
+    toast(n ? `${n} binding${n === 1 ? '' : 's'} set` : 'Nothing changed');
+  });
+  draw();
+}
+
 function findModal() {
   if (editing.on) exitEdit();
   openModal('Find and replace', `
