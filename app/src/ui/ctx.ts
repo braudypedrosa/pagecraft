@@ -15,18 +15,18 @@
 import type * as CoreNs from '../core/index';
 
 /**
- * Exactly the core a ported panel uses — derived with `Pick`, so the types are the
- * real ones and cannot drift, while the object builder.html has to hand over stays
- * small enough to write out. The list grows as panels come across; it is not an
- * attempt to describe the whole core.
+ * The whole core module.
+ *
+ * This started as a `Pick` of the handful of names the first ported panel used, which
+ * was honest while the list was short. By the inspector it was heading past sixty, and
+ * a hand-written list of core exports is the EXPORTS mistake again — a second list to
+ * drift from the first.
+ *
+ * So `build.mjs` reshapes the core bundle's own trailing `export { … }` into
+ * `var __CORE = { … }` and builder.html hands that over. The list is generated from
+ * the real exports, this type is the real module, and neither can fall out of step.
  */
-export type Core = Pick<typeof CoreNs,
-  | 'IC' | 'DEF' | 'DEV_LABEL' | 'state' | 'dk' | 'tree' | 'selIds' | 'nameOf'
-  | 'edit' | 'collections' | 'findCollection' | 'collectionAdd' | 'collectionDelete'
-  | 'locate' | 'selSet' | 'iconOf' | 'labelOf'
-  | 'PATTERNS' | 'patternInsert'
-  | 'blocks' | 'findBlock' | 'blockInsert' | 'blockDelete' | 'blockUsage'
-  | 'page' | 'pageMove' | 'pageDup' | 'pageDelete' | 'slugify'>;
+export type Core = typeof CoreNs;
 
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {

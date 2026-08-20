@@ -108,7 +108,7 @@ const UI_TS = join(here, 'app', 'src', 'ui', 'index.tsx');
    at top level, which is exactly the shape a classic script needs. Cut the one
    trailing `export { … }` and the remaining UI code keeps referring to core symbols
    by bare name, whatever the file layout underneath. */
-const coreBundle = (() => {
+const { coreBundle, coreObject } = (() => {
   const out = buildSync({
     entryPoints: [CORE_TS],
     bundle: true, write: false, format: 'esm',
@@ -116,7 +116,29 @@ const coreBundle = (() => {
   }).outputFiles[0].text;
   const cut = out.lastIndexOf('\nexport {');
   if (cut < 0) throw new Error('bundled core has no trailing export block to cut');
-  return out.slice(0, cut);
+
+  /* The cut export block, turned into an object rather than thrown away.
+     The sealed UI bundle cannot see the core by bare name — that is the whole point of
+     sealing it — so it has to be handed one object. Hand-listing 265 names was the
+     first idea and it is the EXPORTS mistake again: a second list to drift from the
+     first. This is the first list, reshaped. `export { a, b };` becomes
+     `var __CORE = { a, b };` and nothing can fall out of step.
+
+     A rename would break the shorthand, so it fails loudly instead of silently
+     emitting `{ x as y }`. esbuild only renames on a collision, which would itself be
+     worth knowing about. */
+  const block = out.slice(cut);
+  if (/\bas\b/.test(block)) {
+    throw new Error('the core export block contains a rename; __CORE cannot use shorthand');
+  }
+  const names = block.match(/^\s{2}([A-Za-z_$][\w$]*),?$/gm) || [];
+  if (names.length < 200) throw new Error(`only parsed ${names.length} core exports — expected the whole surface`);
+
+  return {
+    coreBundle: out.slice(0, cut),
+    coreObject: '\n/* The core as one object, derived from its own export list above. */\n'
+      + 'var __CORE = ' + block.replace(/^\s*export\s*/, '').trim() + '\n'
+  };
 })();
 
 /* The ported panels, as an IIFE.
@@ -167,6 +189,7 @@ const script = (() => {
   return out.slice(0, first)
     + `\n/* ==== core: compiled from app/src/core/index.ts — do not edit here ==== */\n`
     + coreBundle
+    + coreObject
     + `\n/* ==== ported panels: compiled from app/src/ui/ — sealed, see build.mjs ==== */\n`
     + uiBundle
     + out.slice(first);
