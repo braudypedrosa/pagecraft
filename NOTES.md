@@ -10,7 +10,8 @@ Mid-migration to TypeScript + Preact + Vite, run as a strangler: both builds wor
 
 | path | role |
 |---|---|
-| `app/src/core/*.ts` | **source of truth for core logic** — edit here, not in builder.html |
+| `app/src/core/index.ts` | the core, still mostly one flat scope — being split leaf-first |
+| `app/src/core/icons.ts` | first module out; strict-clean |
 | `app/src/core/types.ts` | the domain, typed |
 | `app/index.html`, `app/src/main.tsx` | the Preact successor, built by `vite build` |
 | `builder.html` | the legacy chrome. Its `/*<core>*/` regions are stripped at build time |
@@ -72,6 +73,31 @@ are optional in practice, and `locate()` now honestly returning `Handle | null` 
 dozen sites that had been assuming otherwise. Each was fixed by describing what the code
 does — a guard, a filter, or a cast at exactly one boundary — never by widening a type to
 make a symptom go away.
+
+### Splitting the core, one leaf at a time
+
+`icons.ts` is the first module out. It went first because it is a **true leaf**: six
+declarations, and nothing in it calls anything outside it — verified before moving it, not
+assumed. The rest of the core has real cycles waiting, and a split that creates one is worse
+than no split at all.
+
+Splitting forced a third change to how the legacy build gets the core, and the reasons the
+first two lost are worth keeping:
+
+1. **IIFE + `var x = __PC.x` bindings** — died on `svg is not defined`, because the binding
+   list came from `EXPORTS`, which is the *test* surface rather than everything the UI uses.
+2. **A plain type-strip** — worked while the core was one file, but cannot follow an
+   `import`, and following imports is the whole point of splitting.
+3. **An ESM bundle with the trailing export cut** — concatenates every module into one scope
+   with declarations still at top level, which is exactly what a classic script needs. Works
+   for any number of modules. Note esbuild emits `var` rather than `const` there; a grep for
+   `^const svg` reported it missing when it was not.
+
+Strictness moves per module, and is enforced by `tsconfig.strict.json` +
+`npm run typecheck:strict`, which `npm test` runs. Adding a file to that list is the last
+step of splitting it. `include` does not stop TypeScript following an import, so only files
+that do not import the loose core can be listed — adding `main.tsx` pulled index.ts in and
+produced 400 errors from the file the list exists to exclude.
 
 ## Two rules the build enforces
 

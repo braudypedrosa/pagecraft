@@ -43,10 +43,28 @@ throws for any path reaching them before `load()`. The readers already returned 
 null; `ensureTokens()` now handles the writers once, lazily, so a path that used to throw
 works instead.
 
-**`noImplicitAny` is still off**, and turning it on is **424 unannotated parameters**. That
-is the next increment and it is a real one: each is a type decision, not a mechanical fix,
-and spraying `: any` across 424 of them would satisfy the compiler and deliver nothing. Do
-it per-section as the modules split, so each annotation is made with its neighbours in view.
+**`noImplicitAny` is off for the flat core** — turning it on there is 424 unannotated
+parameters, each a type decision rather than a mechanical fix. Spraying `: any` across them
+would satisfy the compiler and deliver nothing.
+
+So it moves per module instead, and it is **enforced rather than claimed**:
+
+```bash
+npm run typecheck:strict   # tsconfig.strict.json — full strictness, split modules only
+```
+
+`tsconfig.strict.json` lists every module split out of the core. Adding a file to that list
+is the *last step* of splitting it; if it will not pass, it is not finished. `npm test` runs
+it, so the ratchet cannot slip.
+
+One catch worth knowing: `include` does not stop TypeScript following an import, so only
+files that do not import the still-loose `index.ts` can be listed. Adding `main.tsx`
+dragged index.ts in and produced 400 errors from the very file the list exists to exclude.
+`main.tsx` joins when index.ts is clean, which is also when the flag moves for good.
+
+**Split so far:** `icons.ts` (6 declarations). It went first because it is a true leaf —
+nothing in it calls anything outside it — and the rest of the core has real cycles waiting.
+Take the leaves first; a split that creates a cycle is worse than no split.
 
 **One thing the types already found:** the text styles are stored under `tokens.text` while
 the accessor is called `styles()`. The key and the name have never agreed, and only writing

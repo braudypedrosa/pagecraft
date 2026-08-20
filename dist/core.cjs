@@ -270,6 +270,8 @@ __export(index_exports, {
   zoomFor: () => zoomFor
 });
 module.exports = __toCommonJS(index_exports);
+
+// app/src/core/icons.ts
 var IC = {
   cms: '<ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/>',
   section: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 5.5h8M4 8h8M4 10.5h5"/>',
@@ -363,14 +365,19 @@ var ICONS = [
     ["play", '<circle cx="12" cy="12" r="9"/><path d="M10.2 8.4l6 3.6-6 3.6z"/>']
   ]]
 ];
-var ICON_PATHS = ICONS.reduce((all, [, list]) => {
-  list.forEach(([k, p]) => {
-    all[k] = p;
-  });
-  return all;
-}, {});
+var ICON_PATHS = ICONS.reduce(
+  (all, [, list]) => {
+    list.forEach(([k, p]) => {
+      all[k] = p;
+    });
+    return all;
+  },
+  {}
+);
 var ICON_NAMES = Object.keys(ICON_PATHS);
 var iconSvg = (name, attrs = "") => `<svg ${attrs} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name] || ICON_PATHS.check}</svg>`;
+
+// app/src/core/index.ts
 var _seq = 0;
 var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 var esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

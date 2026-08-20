@@ -1026,7 +1026,8 @@ pre.code{
 
 
 /* ==== core: compiled from app/src/core/index.ts — do not edit here ==== */
-const IC = {
+// app/src/core/icons.ts
+var IC = {
   cms: '<ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/>',
   section: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 5.5h8M4 8h8M4 10.5h5"/>',
   row: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M8 3.5v9"/>',
@@ -1073,8 +1074,8 @@ const IC = {
   gallery: '<rect x="1.5" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="9.1" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="1.5" y="9.6" width="5.4" height="3.9" rx="1"/><rect x="9.1" y="9.6" width="5.4" height="3.9" rx="1"/>',
   pipette: '<path d="M9.6 2.4l4 4" stroke-linecap="round"/><path d="M12.3 5.1L6.2 11.2l-2.9.9.9-2.9 6.1-6.1z" stroke-linecap="round" stroke-linejoin="round"/>'
 };
-const svg = (n, s = 14, cls = "") => `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ""}</svg>`;
-const ICONS = [
+var svg = (n, s = 14, cls = "") => `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ""}</svg>`;
+var ICONS = [
   ["Interface", [
     ["check", '<path d="M20 6.5L9.2 17.3 4 12.1"/>'],
     ["check-circle", '<circle cx="12" cy="12" r="9"/><path d="M8.2 12.4l2.6 2.6 5-5.6"/>'],
@@ -1119,18 +1120,23 @@ const ICONS = [
     ["play", '<circle cx="12" cy="12" r="9"/><path d="M10.2 8.4l6 3.6-6 3.6z"/>']
   ]]
 ];
-const ICON_PATHS = ICONS.reduce((all, [, list]) => {
-  list.forEach(([k, p]) => {
-    all[k] = p;
-  });
-  return all;
-}, {});
-const ICON_NAMES = Object.keys(ICON_PATHS);
-const iconSvg = (name, attrs = "") => `<svg ${attrs} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name] || ICON_PATHS.check}</svg>`;
-let _seq = 0;
-const uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
-const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const safeUrl = (u) => {
+var ICON_PATHS = ICONS.reduce(
+  (all, [, list]) => {
+    list.forEach(([k, p]) => {
+      all[k] = p;
+    });
+    return all;
+  },
+  {}
+);
+var ICON_NAMES = Object.keys(ICON_PATHS);
+var iconSvg = (name, attrs = "") => `<svg ${attrs} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name] || ICON_PATHS.check}</svg>`;
+
+// app/src/core/index.ts
+var _seq = 0;
+var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
+var esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+var safeUrl = (u) => {
   const v = String(u == null ? "" : u).trim();
   if (!v) return "";
   if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
@@ -1138,17 +1144,17 @@ const safeUrl = (u) => {
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
   return "";
 };
-const clone = (o) => JSON.parse(JSON.stringify(o));
-const slugify = (s) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "page";
-const dbounce = (fn, ms) => {
+var clone = (o) => JSON.parse(JSON.stringify(o));
+var slugify = (s) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "page";
+var dbounce = (fn, ms) => {
   let t;
   return (...a) => {
     clearTimeout(t);
     t = setTimeout(() => fn(...a), ms);
   };
 };
-const BOX = (t, r, b, l) => ({ "padding-top": t, "padding-right": r, "padding-bottom": b, "padding-left": l });
-const U = {
+var BOX = (t, r, b, l) => ({ "padding-top": t, "padding-right": r, "padding-bottom": b, "padding-left": l });
+var U = {
   size: ["px", "rem", "em", "vw"],
   len: ["px", "rem", "%", "vw", "vh"],
   space: ["px", "rem", "%"],
@@ -1157,15 +1163,15 @@ const U = {
   track: ["em", "px"],
   border: ["px", "rem"]
 };
-const GF_FALLBACK = {
+var GF_FALLBACK = {
   s: "system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
   f: "Georgia,'Times New Roman',serif",
   d: "system-ui,-apple-system,sans-serif",
   m: "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
 };
-const GF_GROUP = { s: "Sans serif", f: "Serif", d: "Display", m: "Monospace" };
-const W4 = "400;500;600;700";
-const GF = [
+var GF_GROUP = { s: "Sans serif", f: "Serif", d: "Display", m: "Monospace" };
+var W4 = "400;500;600;700";
+var GF = [
   ["Manrope", "s", W4],
   ["DM Sans", "s", W4],
   ["Inter", "s", W4],
@@ -1216,13 +1222,13 @@ const GF = [
   ["Fira Code", "m", W4],
   ["DM Mono", "m", "400;500"]
 ];
-const gfIndex = Object.fromEntries(GF.map(([fam, cat, w]) => [fam.toLowerCase(), { fam, cat, w }]));
-const stackFor = (fam, cat) => `'${fam}',${GF_FALLBACK[cat] || GF_FALLBACK.s}`;
+var gfIndex = Object.fromEntries(GF.map(([fam, cat, w]) => [fam.toLowerCase(), { fam, cat, w }]));
+var stackFor = (fam, cat) => `'${fam}',${GF_FALLBACK[cat] || GF_FALLBACK.s}`;
 function familyOf(stack) {
   const first = String(stack || "").split(",")[0].trim().replace(/^['"]|['"]$/g, "");
   return first;
 }
-const isGoogle = (stack) => !!gfIndex[familyOf(stack).toLowerCase()];
+var isGoogle = (stack) => !!gfIndex[familyOf(stack).toLowerCase()];
 function usedFamilies() {
   const seen = /* @__PURE__ */ new Set();
   const take = (v) => {
@@ -1254,7 +1260,7 @@ function gfontsLink() {
 <link rel="stylesheet" href="${esc(href)}">
 `;
 }
-const FONT_BASE = [
+var FONT_BASE = [
   ["", "Inherit"],
   ["system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", "System sans"],
   ["Georgia,'Times New Roman',serif", "System serif"],
@@ -1270,20 +1276,20 @@ function fontGroups() {
   });
   return groups;
 }
-const SHADOWS = [
+var SHADOWS = [
   ["", "None"],
   ["0 1px 2px rgba(17,19,17,.07)", "Hairline"],
   ["0 8px 20px -8px rgba(17,19,17,.18)", "Soft"],
   ["0 20px 44px -14px rgba(17,19,17,.28)", "Elevated"],
   ["0 34px 70px -22px rgba(17,19,17,.38)", "Deep"]
 ];
-const TRANSITIONS = [
+var TRANSITIONS = [
   ["", "None"],
   ["all .15s ease", "Fast"],
   ["all .25s ease", "Standard"],
   ["all .4s cubic-bezier(.4,0,.2,1)", "Smooth"]
 ];
-const FILTERS = [
+var FILTERS = [
   ["", "None"],
   ["grayscale(1)", "Greyscale"],
   ["saturate(1.25)", "Richer"],
@@ -1291,7 +1297,7 @@ const FILTERS = [
   ["blur(6px)", "Blurred"],
   ["brightness(.85)", "Darker"]
 ];
-const DEF = {
+var DEF = {
   section: {
     label: "Section",
     icon: "section",
@@ -1808,7 +1814,7 @@ const DEF = {
     }
   }
 };
-const COMMON_STYLE = [
+var COMMON_STYLE = [
   { g: "Spacing", items: [{ t: "box", c: "padding", label: "Padding", r: 1 }, { t: "box", c: "margin", label: "Margin", r: 1, neg: 1 }] },
   {
     g: "Background",
@@ -1840,7 +1846,7 @@ const COMMON_STYLE = [
     ]
   }
 ];
-const N = (type, props = {}, css = {}, children = []) => {
+var N = (type, props = {}, css = {}, children = []) => {
   const base = DEF[type].make();
   return {
     id: uid(),
@@ -1853,19 +1859,19 @@ const N = (type, props = {}, css = {}, children = []) => {
     children: DEF[type].level < 4 ? children : []
   };
 };
-const cols = (n, kids, css) => N("row", {}, css, Array.from({ length: n }, (_, i) => N("column", {}, { d: { "flex-grow": String(+(100 / n).toFixed(4)) } }, kids[i] || [])));
-const DEV_KEY = { desktop: "d", tablet: "t", mobile: "m" };
-const DEV_LABEL = { d: "Desktop", t: "Tablet", m: "Mobile" };
-const DEV_W = { mobile: 414, tablet: 834 };
+var cols = (n, kids, css) => N("row", {}, css, Array.from({ length: n }, (_, i) => N("column", {}, { d: { "flex-grow": String(+(100 / n).toFixed(4)) } }, kids[i] || [])));
+var DEV_KEY = { desktop: "d", tablet: "t", mobile: "m" };
+var DEV_LABEL = { d: "Desktop", t: "Tablet", m: "Mobile" };
+var DEV_W = { mobile: 414, tablet: 834 };
 function canvasWidth(dev, maxWidth) {
   if (DEV_W[dev]) return DEV_W[dev];
   const px = /^[\d.]+px$/.test(String(maxWidth || "").trim()) ? parseFloat(maxWidth) : 0;
   return Math.max(1280, Math.round(px) + 120);
 }
-const fitZoom = (target, avail) => !target || !(avail > 0) ? 1 : Math.min(1, avail / target);
-const ZOOMS = [["fit", "Fit"], ["1", "100%"], ["0.75", "75%"], ["0.5", "50%"], ["0.25", "25%"]];
-const zoomFor = (z, target, avail) => z == null || z === "fit" ? fitZoom(target, avail) : parseFloat(z) || 1;
-const state = {
+var fitZoom = (target, avail) => !target || !(avail > 0) ? 1 : Math.min(1, avail / target);
+var ZOOMS = [["fit", "Fit"], ["1", "100%"], ["0.75", "75%"], ["0.5", "50%"], ["0.25", "25%"]];
+var zoomFor = (z, target, avail) => z == null || z === "fit" ? fitZoom(target, avail) : parseFloat(z) || 1;
+var state = {
   v: 1,
   meta: {
     name: "Untitled project",
@@ -1903,10 +1909,10 @@ const state = {
     zoom: "fit"
   }
 };
-const doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
-const page = () => state.pages[state.cur] || state.pages[0];
-const tree = () => state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
-const dk = () => DEV_KEY[state.ui.dev];
+var doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
+var page = () => state.pages[state.cur] || state.pages[0];
+var tree = () => state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
+var dk = () => DEV_KEY[state.ui.dev];
 function locate(id, list = tree(), parent = null) {
   for (let i = 0; i < list.length; i++) {
     if (list[i].id === id) return { node: list[i], list, parent, i };
@@ -1926,14 +1932,13 @@ function locateAny(id) {
   }
   return null;
 }
-const sel = () => state.ui.sel ? locate(state.ui.sel) : null;
 function eachNode(list, fn, parent = null, depth = 0) {
   list.forEach((n, i) => {
     fn(n, parent, i, depth);
     eachNode(n.children || [], fn, n, depth + 1);
   });
 }
-const nameOf = (n) => {
+var nameOf = (n) => {
   const d = DEF[n.type];
   if (n.type === "heading") return (n.props.text || "").slice(0, 26) || d.label;
   if (n.type === "button") return n.props.text || d.label;
@@ -1948,8 +1953,8 @@ function selIds() {
   for (const id of state.ui.multi || []) if (!out.includes(id)) out.push(id);
   return out.filter((id) => locate(id));
 }
-const selNodes = () => selIds().map((id) => locate(id)).filter(Boolean).map((h) => h.node);
-const multiOn = () => selIds().length > 1;
+var selNodes = () => selIds().map((id) => locate(id)).filter(Boolean).map((h) => h.node);
+var multiOn = () => selIds().length > 1;
 function selSet(ids) {
   const live = ids.filter((id) => locate(id));
   state.ui.sel = live.length ? live[0] : null;
@@ -1987,8 +1992,8 @@ function topMost(ids) {
     return true;
   });
 }
-const ADV_SHARED = /* @__PURE__ */ new Set(["_cls", "_css"]);
-const ctlKeys = (type) => {
+var ADV_SHARED = /* @__PURE__ */ new Set(["_cls", "_css"]);
+var ctlKeys = (type) => {
   const c = (DEF[type] || {}).controls || {};
   const out = /* @__PURE__ */ new Set();
   for (const g of ["content", "style"]) for (const x of c[g] || []) if (x.k) out.add(x.k);
@@ -2000,11 +2005,11 @@ function fanTargets(c, ids) {
   if (c.c || ADV_SHARED.has(c.k)) return nodes;
   return nodes.filter((n) => ctlKeys(n.type).has(c.k));
 }
-const HOOKS = { change() {
+var HOOKS = { change() {
 }, save() {
 }, note() {
 } };
-const hist = { u: [], r: [], max: 80 };
+var hist = { u: [], r: [], max: 80 };
 function edit(fn) {
   hist.u.push(clone(doc()));
   if (hist.u.length > hist.max) hist.u.shift();
@@ -2035,14 +2040,14 @@ function redo() {
   restore(hist.r.pop());
   HOOKS.note("Redo");
 }
-const lvl = (t) => DEF[BASE[t] || t].level;
-const CHAIN = { 1: "section", 2: "row", 3: "column" };
+var lvl = (t) => DEF[BASE[t] || t].level;
+var CHAIN = { 1: "section", 2: "row", 3: "column" };
 function wrap(type, pl2, node) {
   let out = node;
   for (let l = lvl(type) - 1; l > pl2; l--) out = N(CHAIN[l], {}, {}, [out]);
   return out;
 }
-const holds = (pt, t) => {
+var holds = (pt, t) => {
   const b = BASE[t] || t;
   return lvl(b) > lvl(pt) || pt === "column" && b === "row";
 };
@@ -2203,8 +2208,8 @@ function applyCols(row, ws) {
     k.css.d["flex-grow"] = String(+ws[i].toFixed(4));
   });
 }
-const MIN_COL = 4;
-const BP_CHAIN = { d: ["d"], t: ["t", "d"], m: ["m", "t", "d"] };
+var MIN_COL = 4;
+var BP_CHAIN = { d: ["d"], t: ["t", "d"], m: ["m", "t", "d"] };
 function rowRatiosAt(row, b) {
   return (row.children || []).map((c) => {
     for (const k of BP_CHAIN[b] || ["d"]) {
@@ -2235,8 +2240,8 @@ function applyColsAt(row, ws, b = "d") {
     k.css[b]["flex-grow"] = String(+ws[i].toFixed(4));
   });
 }
-const RESERVED = ["text", "bg", "brand"];
-const TYPO_KEYS = [
+var RESERVED = ["text", "bg", "brand"];
+var TYPO_KEYS = [
   "font-family",
   "font-size",
   "font-weight",
@@ -2246,26 +2251,26 @@ const TYPO_KEYS = [
   "text-transform",
   "color"
 ];
-const TS_TYPES = ["heading", "text", "button"];
-const tokenId = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24);
-const cvar = (id) => `var(--c-${id})`;
-const isRef = (v) => /^var\(--c-[\w-]+\)$/.test(String(v || "").trim());
-const refId = (v) => {
+var TS_TYPES = ["heading", "text", "button"];
+var tokenId = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24);
+var cvar = (id) => `var(--c-${id})`;
+var isRef = (v) => /^var\(--c-[\w-]+\)$/.test(String(v || "").trim());
+var refId = (v) => {
   const m = String(v || "").trim().match(/^var\(--c-([\w-]+)\)$/);
   return m ? m[1] : null;
 };
-const colors = () => state.meta.tokens && state.meta.tokens.colors || [];
-const styles = () => state.meta.tokens && state.meta.tokens.text || [];
-const ensureTokens = () => state.meta.tokens ||= defaultTokens(state.meta);
-const classes = () => state.meta.tokens && state.meta.tokens.classes || [];
-const findColor = (id) => colors().find((c) => c.id === id) || null;
-const findStyle = (id) => styles().find((t) => t.id === id) || null;
-const findClass = (id) => classes().find((c) => c.id === id) || null;
-const nodeClasses = (n) => {
+var colors = () => state.meta.tokens && state.meta.tokens.colors || [];
+var styles = () => state.meta.tokens && state.meta.tokens.text || [];
+var ensureTokens = () => state.meta.tokens ||= defaultTokens(state.meta);
+var classes = () => state.meta.tokens && state.meta.tokens.classes || [];
+var findColor = (id) => colors().find((c) => c.id === id) || null;
+var findStyle = (id) => styles().find((t) => t.id === id) || null;
+var findClass = (id) => classes().find((c) => c.id === id) || null;
+var nodeClasses = (n) => {
   const ids = Array.isArray(n.cls) ? n.cls : [];
   return classes().filter((c) => ids.includes(c.id));
 };
-const resolveColor = (v) => {
+var resolveColor = (v) => {
   const id = refId(v);
   if (!id) return String(v || "");
   const t = findColor(id);
@@ -2313,10 +2318,10 @@ function tokenCss() {
   }));
   return acc;
 }
-const stripTypo = (n) => ["d", "t", "m"].forEach((b) => TYPO_KEYS.forEach((k) => {
+var stripTypo = (n) => ["d", "t", "m"].forEach((b) => TYPO_KEYS.forEach((k) => {
   if (n.css[b]) delete n.css[b][k];
 }));
-const grabTypo = (n) => {
+var grabTypo = (n) => {
   const out = { d: {}, t: {}, m: {} };
   ["d", "t", "m"].forEach((b) => TYPO_KEYS.forEach((k) => {
     const v = n.css[b] && n.css[b][k];
@@ -2359,8 +2364,8 @@ function tsCreateFrom(n, name) {
   n.props.ts = id;
   return id;
 }
-const allTrees = () => [state.header, state.footer, ...state.pages.map((p) => p.tree)];
-const LANGS = [
+var allTrees = () => [state.header, state.footer, ...state.pages.map((p) => p.tree)];
+var LANGS = [
   ["en", "English"],
   ["en-GB", "English (UK)"],
   ["en-US", "English (US)"],
@@ -2439,7 +2444,7 @@ function classFrom(n, name) {
   classApply(n, id);
   return id;
 }
-const classUsage = (id) => {
+var classUsage = (id) => {
   let k = 0;
   allTrees().forEach((l) => eachNode(l, (x) => {
     if ((x.cls || []).includes(id)) k++;
@@ -2466,7 +2471,7 @@ function classMove(id, dir) {
   [list[i], list[j]] = [list[j], list[i]];
   return true;
 }
-const tsUsage = (id) => {
+var tsUsage = (id) => {
   let k = 0;
   allTrees().forEach((l) => eachNode(l, (x) => {
     if (x.props.ts === id) k++;
@@ -2497,7 +2502,7 @@ function colorAdd(name, value) {
   ensureTokens().colors.push({ id, name: String(name || "New colour").slice(0, 40), value: value || "#888888" });
   return id;
 }
-const colorUsage = (id) => {
+var colorUsage = (id) => {
   let k = 0;
   const hits = (o) => {
     for (const p in o) if (refId(o[p]) === id) k++;
@@ -2506,7 +2511,7 @@ const colorUsage = (id) => {
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
   return k;
 };
-const hex2rgb = (v) => {
+var hex2rgb = (v) => {
   let h = String(v || "").trim();
   const m3 = h.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
   if (m3) h = "#" + m3[1] + m3[1] + m3[2] + m3[2] + m3[3] + m3[3];
@@ -2519,7 +2524,7 @@ const hex2rgb = (v) => {
   if (rgb) return [+rgb[1], +rgb[2], +rgb[3]];
   return null;
 };
-const lum = (c) => {
+var lum = (c) => {
   const f = c.map((v) => {
     v /= 255;
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
@@ -2548,8 +2553,8 @@ function effective(node, prop, chain) {
   }
   return "";
 }
-const TEXTY = ["heading", "text", "button", "nav"];
-const HEADING_TAGS = /^h([1-6])$/;
+var TEXTY = ["heading", "text", "button", "nav"];
+var HEADING_TAGS = /^h([1-6])$/;
 function lint() {
   const out = [];
   const add = (level, code, msg, where, nodeId) => out.push({ level, code, msg, where, nodeId });
@@ -2736,11 +2741,11 @@ function lint() {
   const rank = { error: 0, warn: 1 };
   return out.sort((a, b) => rank[a.level] - rank[b.level]);
 }
-const lintCounts = (findings) => ({
+var lintCounts = (findings) => ({
   error: findings.filter((f) => f.level === "error").length,
   warn: findings.filter((f) => f.level === "warn").length
 });
-const styleClip = { css: null, cls: null, ts: "", adv: "", from: "" };
+var styleClip = { css: null, cls: null, ts: "", adv: "", from: "" };
 function copyStyles(id) {
   const h = locate(id);
   if (!h) return false;
@@ -2763,8 +2768,8 @@ function pasteStyles(id) {
   if (ctlKeys(n.type).has("ts")) n.props.ts = styleClip.ts;
   return true;
 }
-const pasteStylesMany = (ids) => ids.filter(pasteStyles).length;
-const TEXT_SLOTS = {
+var pasteStylesMany = (ids) => ids.filter(pasteStyles).length;
+var TEXT_SLOTS = {
   heading: ["text"],
   button: ["text"],
   icon: ["label"],
@@ -2776,8 +2781,8 @@ const TEXT_SLOTS = {
   nav: [["items", "label"]],
   form: [["fields", "label", "ph"]]
 };
-const PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
-const SLOT_LABEL = {
+var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
+var SLOT_LABEL = {
   text: "Text",
   html: "Rich text",
   label: "Label",
@@ -2802,15 +2807,15 @@ function textSlots(n) {
   }
   return out;
 }
-const slotGet = (n, s) => s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub];
-const slotSet = (n, s, v) => {
+var slotGet = (n, s) => s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub];
+var slotSet = (n, s, v) => {
   if (s.i < 0) n.props[s.prop] = v;
   else n.props[s.prop][s.i][s.sub] = v;
 };
-const slotName = (s) => SLOT_LABEL[s.sub || s.prop] || (s.sub || s.prop);
-const outsideTags = (str, fn) => String(str == null ? "" : str).split(/(<[^>]*>)/).map((part) => part.startsWith("<") ? part : fn(part)).join("");
-const isHtmlSlot = (s) => s.prop === "html";
-const searchText = (value, html) => {
+var slotName = (s) => SLOT_LABEL[s.sub || s.prop] || (s.sub || s.prop);
+var outsideTags = (str, fn) => String(str == null ? "" : str).split(/(<[^>]*>)/).map((part) => part.startsWith("<") ? part : fn(part)).join("");
+var isHtmlSlot = (s) => s.prop === "html";
+var searchText = (value, html) => {
   const v = String(value == null ? "" : value);
   return html ? v.replace(/<[^>]*>/g, " ") : v;
 };
@@ -2912,7 +2917,7 @@ function searchAll(q, o = {}) {
   }));
   return out;
 }
-const searchCount = (hits) => hits.reduce((t, h) => t + h.hits, 0);
+var searchCount = (hits) => hits.reduce((t, h) => t + h.hits, 0);
 function replaceAll(q, to, o = {}) {
   const needle = String(q || "");
   if (!needle) return 0;
@@ -2952,7 +2957,7 @@ function replaceAll(q, to, o = {}) {
   }));
   return done;
 }
-const clip = { node: null };
+var clip = { node: null };
 function copyNode(id) {
   const h = locate(id);
   if (!h) return false;
@@ -2983,9 +2988,9 @@ function dropTree(fresh, intoId) {
   }
   return null;
 }
-const blocks = () => state.meta.blocks || (state.meta.blocks = []);
-const findBlock = (id) => blocks().find((b) => b.id === id) || null;
-const FIELD_TYPES = [
+var blocks = () => state.meta.blocks || (state.meta.blocks = []);
+var findBlock = (id) => blocks().find((b) => b.id === id) || null;
+var FIELD_TYPES = [
   ["text", "Text"],
   ["rich", "Rich text"],
   ["image", "Image"],
@@ -2995,11 +3000,11 @@ const FIELD_TYPES = [
   ["option", "Option"],
   ["bool", "Yes / no"]
 ];
-const collections = () => state.meta.collections || (state.meta.collections = []);
-const findCollection = (id) => collections().find((c) => c.id === id) || null;
-const findField = (col, fid) => col ? (col.fields || []).find((f) => f.id === fid) || null : null;
-const findItem = (col, iid) => col ? (col.items || []).find((i) => i.id === iid) || null : null;
-const uniqueId = (base, taken) => {
+var collections = () => state.meta.collections || (state.meta.collections = []);
+var findCollection = (id) => collections().find((c) => c.id === id) || null;
+var findField = (col, fid) => col ? (col.fields || []).find((f) => f.id === fid) || null : null;
+var findItem = (col, iid) => col ? (col.items || []).find((i) => i.id === iid) || null : null;
+var uniqueId = (base, taken) => {
   const b = tokenId(base) || "x";
   let id = b, k = 2;
   while (taken.includes(id)) id = b + "-" + k++;
@@ -3018,7 +3023,7 @@ function collectionAdd(name) {
   collections().push(col);
   return col;
 }
-const collectionDelete = (id) => {
+var collectionDelete = (id) => {
   state.meta.collections = collections().filter((c) => c.id !== id);
 };
 function collectionRename(id, name) {
@@ -3052,7 +3057,7 @@ function fieldDelete(colId, fid) {
   });
   return cleared;
 }
-const swap = (list, i, dir) => {
+var swap = (list, i, dir) => {
   const j = i + dir;
   if (i < 0 || j < 0 || j >= list.length) return false;
   [list[i], list[j]] = [list[j], list[i]];
@@ -3063,8 +3068,8 @@ function fieldMove(colId, fid, dir) {
   if (!col) return false;
   return swap(col.fields, col.fields.findIndex((f) => f.id === fid), dir);
 }
-const titleField = (col) => col && (col.fields || []).find((f) => f.type === "text") || null;
-const itemTitle = (col, it) => {
+var titleField = (col) => col && (col.fields || []).find((f) => f.type === "text") || null;
+var itemTitle = (col, it) => {
   const tf = titleField(col);
   return String(tf && it.values[tf.id] || "").trim() || "Untitled";
 };
@@ -3081,7 +3086,7 @@ function itemAdd(colId) {
   it.slug = itemSlug(col, it);
   return it;
 }
-const itemDelete = (colId, iid) => {
+var itemDelete = (colId, iid) => {
   const col = findCollection(colId);
   if (!col) return;
   col.items = col.items.filter((i) => i.id !== iid);
@@ -3171,12 +3176,12 @@ function sitePlan() {
   if (state.meta.baseUrl) out.push({ kind: "sitemap", path: "sitemap.xml" }, { kind: "robots", path: "robots.txt" });
   return out;
 }
-const COLL_CTL = ["items", "fields", "qa", "imgs"];
-const bindableKeys = (type) => {
+var COLL_CTL = ["items", "fields", "qa", "imgs"];
+var bindableKeys = (type) => {
   const c = (DEF[type] || {}).controls || {};
   return (c.content || []).filter((x) => x.k && x.k !== "ts" && !COLL_CTL.includes(x.t)).map((x) => x.k);
 };
-const BIND_CTL = ["text", "area", "rich", "img", "link"];
+var BIND_CTL = ["text", "area", "rich", "img", "link"];
 function bindSlots(rootId) {
   const h = locate(rootId);
   if (!h) return [];
@@ -3249,7 +3254,7 @@ function applyBindings(map) {
   });
   return n;
 }
-const bindGet = (n, key) => (n.bind || {})[key] || "";
+var bindGet = (n, key) => (n.bind || {})[key] || "";
 function bindSet(n, key, fieldId) {
   if (!fieldId) {
     if (n.bind) {
@@ -3275,12 +3280,12 @@ function bindScope(id) {
   const pc = page().collection ? findCollection(page().collection) : null;
   return pc ? { node: null, col: pc } : null;
 }
-const previewIndex = (colId) => (state.ui.item || (state.ui.item = {}))[colId] || 0;
+var previewIndex = (colId) => (state.ui.item || (state.ui.item = {}))[colId] || 0;
 function previewItem(col) {
   if (!col || !col.items.length) return null;
   return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
-const fieldValue = (col, item, fid) => {
+var fieldValue = (col, item, fid) => {
   if (!col || !item || !findField(col, fid)) return "";
   const v = item.values[fid];
   return v == null ? "" : v;
@@ -3299,7 +3304,7 @@ function itemSetSlug(colId, iid, slug) {
   it.slugLocked = 1;
   it.slug = uniqueId(slug || itemTitle(col, it), col.items.filter((x) => x.id !== it.id).map((x) => x.slug));
 }
-const blockRootType = (id) => {
+var blockRootType = (id) => {
   const b = findBlock(id);
   return b ? b.node.type : null;
 };
@@ -3324,7 +3329,7 @@ function blockInstances(id) {
   state.pages.forEach((p, i) => scan(p.tree, "page:" + i));
   return out;
 }
-const blockUsage = (id) => blockInstances(id).length;
+var blockUsage = (id) => blockInstances(id).length;
 function blockPush(nodeId) {
   const h = locate(nodeId);
   if (!h || !h.node.adv || !h.node.adv.block) return 0;
@@ -3364,10 +3369,10 @@ function blockInsert(id, parentNode, index) {
   list.splice(Math.max(0, Math.min(index, list.length)), 0, nested ? fresh : wrap(fresh.type, pl2, fresh));
   return fresh;
 }
-const blockDelete = (id) => {
+var blockDelete = (id) => {
   state.meta.blocks = blocks().filter((b) => b.id !== id);
 };
-const flatten = (list, out = []) => {
+var flatten = (list, out = []) => {
   list.forEach((n) => {
     out.push(n);
     flatten(n.children || [], out);
@@ -3383,11 +3388,11 @@ function step(id, dir) {
   const j = Math.max(0, Math.min(flat.length - 1, i + dir));
   return flat[j].id;
 }
-const parentOf = (id) => {
+var parentOf = (id) => {
   const h = locate(id);
   return h && h.parent ? h.parent.id : null;
 };
-const firstChildOf = (id) => {
+var firstChildOf = (id) => {
   const h = locate(id);
   return h && h.node.children && h.node.children.length ? h.node.children[0].id : null;
 };
@@ -3414,7 +3419,7 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-const SCHEMA = 7;
+var SCHEMA = 7;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -3448,12 +3453,12 @@ function migrate(d) {
   d.v = SCHEMA;
   return d;
 }
-const PV = (body) => `<svg class="pvw" viewBox="0 0 96 58" aria-hidden="true">${body}</svg>`;
-const pb = (x, y, w, h, r) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r || 1.5}" class="pv-b"/>`;
-const pl = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
-const pg = (x, y, w) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
-const ph = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
-const PATTERNS = [
+var PV = (body) => `<svg class="pvw" viewBox="0 0 96 58" aria-hidden="true">${body}</svg>`;
+var pb = (x, y, w, h, r) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r || 1.5}" class="pv-b"/>`;
+var pl = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
+var pg = (x, y, w) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
+var ph = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
+var PATTERNS = [
   {
     id: "hero-split",
     cat: "Hero",
@@ -3892,16 +3897,16 @@ function patternInsert(pid, parentNode, index) {
   list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(node.type, pl2, node));
   return node;
 }
-const TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
-const T_H = (text, ts, css, level) => N("heading", { text, ts, level: level || TS_LEVEL[ts] || "h3" }, css);
-const T_T = (html, ts, css) => N("text", { html, ts }, css);
-const T_SEC = (css, kids, m) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
-const T_B = (text, css) => N(
+var TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
+var T_H = (text, ts, css, level) => N("heading", { text, ts, level: level || TS_LEVEL[ts] || "h3" }, css);
+var T_T = (html, ts, css) => N("text", { html, ts }, css);
+var T_SEC = (css, kids, m) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
+var T_B = (text, css) => N(
   "button",
   { text, ts: "btn" },
   { d: { "background-color": cvar("brand"), color: cvar("ink"), "align-self": "flex-start", ...css || {} } }
 );
-const T_BG = (text, css) => N(
+var T_BG = (text, css) => N(
   "button",
   { text, ts: "btn" },
   { d: {
@@ -3914,8 +3919,8 @@ const T_BG = (text, css) => N(
     ...css || {}
   } }
 );
-const sized = (px, d, mob) => ({ d: { "font-size": px, ...d || {} }, t: { "font-size": px }, m: { "font-size": mob || px } });
-const divider = (last, gap) => last ? { "margin-bottom": "0px" } : {
+var sized = (px, d, mob) => ({ d: { "font-size": px, ...d || {} }, t: { "font-size": px }, m: { "font-size": mob || px } });
+var divider = (last, gap) => last ? { "margin-bottom": "0px" } : {
   "margin-bottom": gap,
   "padding-bottom": gap,
   "border-bottom-width": "1px",
@@ -3940,11 +3945,11 @@ function cardClass() {
   }
   return c;
 }
-const carded = (row) => {
+var carded = (row) => {
   row.children.forEach((col) => classApply(col, cardClass().id));
   return row;
 };
-const TEMPLATES = [
+var TEMPLATES = [
   {
     id: "blank",
     name: "Blank",
@@ -4440,10 +4445,10 @@ function seed() {
   ];
   state.cur = 0;
 }
-const PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
+var PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`
 );
-const MQ = { t: "@media (max-width:1024px)", m: "@media (max-width:767px)" };
+var MQ = { t: "@media (max-width:1024px)", m: "@media (max-width:767px)" };
 function decl(map) {
   let out = "";
   for (const k in map) {
@@ -4453,12 +4458,12 @@ function decl(map) {
   }
   return out;
 }
-const PFX = "pagecraft-";
-const widgetSlug = (type) => slugify(DEF[type] && DEF[type].label || type);
-const nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
-const autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
-const domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
-const selOf = (n) => "." + nodeClass(n);
+var PFX = "pagecraft-";
+var widgetSlug = (type) => slugify(DEF[type] && DEF[type].label || type);
+var nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
+var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
+var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
+var selOf = (n) => "." + nodeClass(n);
 function bucket(n, b, editing) {
   const map = n.css[b] || {};
   let extra = "";
@@ -4473,7 +4478,7 @@ function bucket(n, b, editing) {
   if (n.type === "text" && map["--link"]) rules.push(`${selOf(n)} a{color:${map["--link"]}}`);
   return rules.join("");
 }
-const navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`;
+var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`;
 function nodeCss(n, editing, acc) {
   acc.d += bucket(n, "d", editing);
   if (n.type === "nav") {
@@ -4791,7 +4796,7 @@ function vidPoster(p) {
   const v = vidSrc(p);
   return v.kind === "youtube" ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : "";
 }
-const embedUrl = (p) => {
+var embedUrl = (p) => {
   const v = vidSrc(p);
   const q = [];
   if (p.autoplay) q.push("autoplay=1");
@@ -4802,7 +4807,7 @@ const embedUrl = (p) => {
   if (v.kind === "vimeo") return `https://player.vimeo.com/video/${v.id}?${q.join("&")}`;
   return v.id;
 };
-const canFacade = (p) => p.facade && !p.autoplay && ["youtube", "vimeo"].includes(vidSrc(p).kind);
+var canFacade = (p) => p.facade && !p.autoplay && ["youtube", "vimeo"].includes(vidSrc(p).kind);
 function vid(p) {
   const src = String(p.src || "").trim();
   const q = [];
@@ -4838,8 +4843,8 @@ function stripScripts(html) {
   });
   return { html: out, stripped };
 }
-const BICON = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
-const SEC_TAGS = ["section", "div", "header", "footer", "main", "article", "aside", "nav"];
+var BICON = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
+var SEC_TAGS = ["section", "div", "header", "footer", "main", "article", "aside", "nav"];
 function renderNode(n, o) {
   const d = DEF[n.type];
   if (!d) return "";
@@ -4980,9 +4985,10 @@ function renderNode(n, o) {
   }
   return "";
 }
-const renderList = (list, o) => list.map((n) => renderNode(n, o)).join("");
-const T3 = 33.3333, T6 = 66.6666;
-const LAYOUTS = {
+var renderList = (list, o) => list.map((n) => renderNode(n, o)).join("");
+var T3 = 33.3333;
+var T6 = 66.6666;
+var LAYOUTS = {
   1: [[100]],
   2: [[50, 50], [T6, T3], [T3, T6], [75, 25], [25, 75]],
   3: [[T3, T3, T3], [50, 25, 25], [25, 50, 25], [25, 25, 50]],
@@ -4990,16 +4996,16 @@ const LAYOUTS = {
   5: [[20, 20, 20, 20, 20]],
   6: [[16.6666, 16.6666, 16.6666, 16.6666, 16.6666, 16.6666]]
 };
-const COUNTS = Object.keys(LAYOUTS).map(Number);
-const DEFAULT_COLS = 2;
-const BASE = { columns: "row" };
-const labelOf = (k) => k === "columns" ? "Columns" : DEF[k].label;
-const iconOf = (k) => k === "columns" ? "columns" : DEF[k].icon;
+var COUNTS = Object.keys(LAYOUTS).map(Number);
+var DEFAULT_COLS = 2;
+var BASE = { columns: "row" };
+var labelOf = (k) => k === "columns" ? "Columns" : DEF[k].label;
+var iconOf = (k) => k === "columns" ? "columns" : DEF[k].icon;
 function makeFor(key) {
   if (key !== "columns") return N(key);
   return N("row", {}, {}, LAYOUTS[DEFAULT_COLS][0].map((w) => N("column", {}, { d: { "flex-grow": String(+w.toFixed(4)) } })));
 }
-const rowRatios = (row) => (row.children || []).map((c) => parseFloat((c.css.d || {})["flex-grow"]) || 0);
+var rowRatios = (row) => (row.children || []).map((c) => parseFloat((c.css.d || {})["flex-grow"]) || 0);
 function matchLayout(row) {
   const cur = rowRatios(row), list = LAYOUTS[cur.length] || [];
   const i = list.findIndex((l) => l.every((w, k) => Math.abs(w - cur[k]) < 0.51));
@@ -5022,7 +5028,7 @@ Allow: /
 ` + (base ? `Sitemap: ${base}/sitemap.xml
 ` : "");
 }
-const NAV_JS = `<script>
+var NAV_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
 var b=w.querySelector('[data-nav-t]');if(!b)return;
 function set(o){w.classList.toggle('is-open',o);b.setAttribute('aria-expanded',o?'true':'false');}
@@ -5033,7 +5039,7 @@ document.addEventListener('click',function(e){if(!w.contains(e.target))set(false
 });})();
 <\/script>
 `;
-const FACADE_JS = `<script>
+var FACADE_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-facade] .pagecraft-video-play'),function(b){
 b.addEventListener('click',function(){
 var f=document.createElement('iframe');
@@ -5043,7 +5049,7 @@ f.setAttribute('allowfullscreen','');b.parentNode.replaceChild(f,b);
 });});})();
 <\/script>
 `;
-const LB_JS = `<script>
+var LB_JS = `<script>
 (function(){
 var gs=document.querySelectorAll('[data-lightbox]');if(!gs.length)return;
 if(typeof HTMLDialogElement!=='function')return;
@@ -5088,7 +5094,7 @@ at=i;show();dlg.showModal();
 })();
 <\/script>
 `;
-const tidy = (css) => css.replace(/\}/g, "}\n").replace(/\n{2,}/g, "\n").replace(/^\s+|\s+$/g, "");
+var tidy = (css) => css.replace(/\}/g, "}\n").replace(/\n{2,}/g, "\n").replace(/^\s+|\s+$/g, "");
 function buildPage(pg2, ctx = {}) {
   const m = state.meta;
   const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || "" };
@@ -5125,7 +5131,6 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
 </html>
 `;
 }
-
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];

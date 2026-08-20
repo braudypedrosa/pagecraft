@@ -7,12 +7,13 @@
     "dev": "vite",
     "build": "node build.mjs",
     "build:next": "vite build",
-    "test": "node build.mjs && vitest run",
+    "test": "node build.mjs && tsc -p tsconfig.strict.json --noEmit && vitest run",
     "typecheck": "tsc --noEmit",
     "serve": "python3 -m http.server 4877",
     "publish:check": "node tools/pubcheck.mjs",
     "publish:stamp": "node tools/pubcheck.mjs stamp",
-    "hooks": "node tools/install-hooks.mjs"
+    "hooks": "node tools/install-hooks.mjs",
+    "typecheck:strict": "tsc -p tsconfig.strict.json --noEmit"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",

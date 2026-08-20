@@ -95,21 +95,28 @@ const EXPORTS = [
    which is what makes this a move rather than a rewrite. */
 const CORE_TS = join(here, 'app', 'src', 'core', 'index.ts');
 
-/* Types stripped, not bundled. An IIFE would scope the core's declarations and the
-   remaining UI code refers to them by bare name — the first attempt bound each
-   EXPORTS entry back to the global, and died on `svg is not defined` because EXPORTS
-   is the *test* surface, not everything the UI touches. Transforming instead leaves
-   every top-level declaration exactly where it was, so this is a move rather than a
-   rewrite and the output keeps its original shape.
+/* Bundled as ESM, then the trailing export is cut.
 
-   The trailing `export { … }` is cut first: a classic script cannot carry one. The
-   `import type` line needs no handling — esbuild erases it. */
-const coreSrc = readFileSync(CORE_TS, 'utf8');
-const exportAt = coreSrc.lastIndexOf('\nexport {');
-if (exportAt < 0) throw new Error('app/src/core/index.ts has no trailing export block');
-const coreBundle = transformSync(coreSrc.slice(0, exportAt), {
-  loader: 'ts', target: 'es2022', format: 'esm', legalComments: 'none'
-}).code;
+   Three approaches, and the reasons the first two lost:
+     - an IIFE with `var x = __PC.x` bindings died on `svg is not defined`, because
+       the binding list came from EXPORTS, which is the *test* surface rather than
+       everything the UI touches.
+     - a plain type-strip worked while the core was one file, but cannot follow an
+       `import` — and the whole point now is to split it into modules.
+   An ESM bundle concatenates every module into one scope with its declarations still
+   at top level, which is exactly the shape a classic script needs. Cut the one
+   trailing `export { … }` and the remaining UI code keeps referring to core symbols
+   by bare name, whatever the file layout underneath. */
+const coreBundle = (() => {
+  const out = buildSync({
+    entryPoints: [CORE_TS],
+    bundle: true, write: false, format: 'esm',
+    target: 'es2022', platform: 'browser', legalComments: 'none'
+  }).outputFiles[0].text;
+  const cut = out.lastIndexOf('\nexport {');
+  if (cut < 0) throw new Error('bundled core has no trailing export block to cut');
+  return out.slice(0, cut);
+})();
 
 const script = (() => {
   const O = '/*<core>*/', C = '/*</core>*/';
