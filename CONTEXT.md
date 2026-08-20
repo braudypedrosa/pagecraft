@@ -71,7 +71,7 @@ something does.
 
 | | |
 |---|---|
-| Tests | **267**, `npm test` |
+| Tests | **273**, `npm test` |
 | Widgets | 17 |
 | Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
@@ -90,6 +90,11 @@ gallery · export review (lint) with a live indicator · keyboard editing and cl
 namespaced `pagecraft-` output with overridable ids · SEO head, sitemap, robots ·
 **multi-select** (⌘/⇧-click to add on the canvas, ⇧-click for a range in the Navigator, one
 style edit fans out to the set).
+
+**Copy/paste styles** — ⌘⇧C/⌘⇧V, or the two buttons in the Styling group. A second clipboard
+from `clip` on purpose; replaces rather than merges; carries all three breakpoints, classes
+and the text style, with `ts` gated on the target declaring that control the way `fanTargets`
+already gates content props.
 
 **Start an empty site** now sits beside Reset in Project settings: it clears pages, the
 global regions and CMS *items*, keeps every library (colours, styles, classes, blocks, and
@@ -116,7 +121,7 @@ deleting two pages plus a 21-node header and footer by hand.
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 267 cases, and reports the Artifact's freshness
+npm test            # rebuild + 273 cases, and reports the Artifact's freshness
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 npm run publish:check   # exits 1 if the published Artifact is behind

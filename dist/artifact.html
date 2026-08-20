@@ -2545,6 +2545,52 @@ const lintCounts = findings => ({
   warn: findings.filter(f => f.level === 'warn').length
 });
 
+/* ---- the style clipboard ---------------------------------------------
+   Deliberately a second clipboard rather than a mode on `clip`: copying a look must
+   not throw away an element you copied earlier, and copying an element must not
+   throw away a look. They are different jobs and people interleave them.
+
+   A text style saves the reusable case; this is the one-off. Before it, the only way
+   to make one element look like another was to rebuild it control by control. */
+const styleClip = { css: null, cls: null, ts: '', adv: '', from: '' };
+
+function copyStyles(id) {
+  const h = locate(id);
+  if (!h) return false;
+  const n = h.node;
+  styleClip.css = clone(n.css);
+  styleClip.cls = [...(Array.isArray(n.cls) ? n.cls : [])];
+  styleClip.ts = (n.props && n.props.ts) || '';
+  styleClip.adv = (n.adv && n.adv.css) || '';
+  styleClip.from = nameOf(n);
+  return true;
+}
+
+/* Replace, not merge. "Paste styles" means make this look like that, and a merge
+   leaves behind whatever the target had that the source happened not to mention —
+   which is the one outcome nobody asks for.
+
+   All three breakpoints travel: a look is not a look if it falls apart on mobile.
+
+   What crosses widget types follows the rule fanTargets already set for
+   multi-select — a CSS property goes everywhere, a content prop only where the
+   target declares that control. So `ts` reaches a Heading from a WYSIWYG and stops
+   at an Image, which has no text style to set. */
+function pasteStyles(id) {
+  if (!styleClip.css) return false;
+  const h = locate(id);
+  if (!h) return false;
+  const n = h.node;
+  n.css = clone(styleClip.css);
+  /* a class deleted between the copy and the paste is dropped rather than carried
+     as a dangling id */
+  n.cls = styleClip.cls.filter(findClass);
+  if (n.adv) n.adv.css = styleClip.adv;
+  if (ctlKeys(n.type).has('ts')) n.props.ts = styleClip.ts;
+  return true;
+}
+const pasteStylesMany = ids => ids.filter(pasteStyles).length;
+
 /* ================================================== clipboard + traversal */
 /* The clipboard holds a detached copy, so pasting works across pages and
    regions. Classes and text styles travel as references — they are project
@@ -6499,6 +6545,13 @@ function renderRight() {
       : applied.length
         ? 'Editing this element only. Its classes are listed above; pick one to edit it instead.'
         : 'Editing this element only. Save its styling as a class to reuse it elsewhere.'}</div>
+      <div class="xrow" style="margin-top:var(--gap-2)">
+        <button class="btn" id="stCopy" title="Copy this element's styling (⌘⇧C)">Copy styles</button>
+        <button class="btn" id="stPaste" title="Replace this element's styling with what was copied (⌘⇧V)"${styleClip.css ? '' : ' disabled'}>Paste styles</button>
+      </div>
+      ${styleClip.css
+        ? `<div class="note">Holding the look of <b>${esc(styleClip.from)}</b> — all three breakpoints, its classes and its text style. Pasting replaces, it does not merge.</div>`
+        : '<div class="note">Copy a look here, then paste it onto anything else. A text style is for the reusable case; this is for the one-off.</div>'}
     </div></div>`;
 
     let base = 0;
@@ -6590,6 +6643,19 @@ function bindRight(n) {
        here is most of why setting a source reads as though it should have changed
        something on its own */
     toast(asrc.value ? findCollection(asrc.value).name + ' is the scope — now bind a field' : 'Content source cleared');
+  });
+  const stC = $('#stCopy');
+  if (stC) stC.addEventListener('click', () => {
+    copyStyles(n.id);
+    toast('Styles copied from ' + styleClip.from);
+    renderRight();                                  // so Paste stops being disabled
+  });
+  const stP = $('#stPaste');
+  if (stP) stP.addEventListener('click', () => {
+    const ids = selIds();
+    let k = 0;
+    edit(() => { k = pasteStylesMany(ids); });
+    toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
   });
   const sd = $('#sDup'); if (sd) sd.addEventListener('click', () => {
     const ids = selIds(); edit(() => ids.length > 1 ? dupMany(ids) : dupNode(n.id));
@@ -8144,7 +8210,8 @@ function helpModal() {
     ['Move through elements', '↑ ↓'], ['Select parent · first child', '← →'],
     ['Add to the selection', '⌘click'], ['Select a range, in the Navigator', '⇧click'],
     ['Reorder among siblings', '⇧↑ ⇧↓'], ['Edit text in place', '↵ or double-click'],
-    ['Copy · cut · paste', '⌘C · ⌘X · ⌘V'], ['Duplicate', '⌘D'], ['Delete', '⌫'],
+    ['Copy · cut · paste', '⌘C · ⌘X · ⌘V'],
+    ['Copy · paste the <b>styling</b>', '⌘⇧C · ⌘⇧V'], ['Duplicate', '⌘D'], ['Delete', '⌫'],
     ['Undo / redo', '⌘Z · ⌘⇧Z'], ['Back to one element, then the parent', 'esc'],
     ['Preview', '⌘P'], ['Export HTML', '⌘E'],
     ['Bold / italic while editing', '⌘B · ⌘I'], ['Insert link while editing', '⌘K']
@@ -8180,6 +8247,26 @@ function hotkey(e) {
     e.preventDefault();
     const ids = selIds();
     if (ids.length) edit(() => ids.length > 1 ? dupMany(ids) : dupNode(ids[0]));
+    return;
+  }
+  /* Styles first: the ⌘C and ⌘V branches below never checked shift, so without this
+     ⌘⇧C would copy the element instead of its look. */
+  if (meta && e.shiftKey && k === 'c') {
+    if (!state.ui.sel) return;
+    e.preventDefault();
+    copyStyles(state.ui.sel);
+    toast('Styles copied from ' + styleClip.from);
+    renderRight();
+    return;
+  }
+  if (meta && e.shiftKey && k === 'v') {
+    if (!styleClip.css) { toast('No styles copied yet — ⌘⇧C first'); return; }
+    const ids = selIds();
+    if (!ids.length) return;
+    e.preventDefault();
+    let n = 0;
+    edit(() => { n = pasteStylesMany(ids); });
+    toast(n > 1 ? `Styles pasted onto ${n} elements` : n ? 'Styles pasted' : 'Nothing to paste onto');
     return;
   }
   const oneDeep = ' — the clipboard holds one element at a time';

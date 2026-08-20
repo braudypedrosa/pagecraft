@@ -104,6 +104,7 @@ const EXPORTS = [
   'classAdd', 'classApply', 'classRemove', 'classFrom', 'classUsage', 'classDelete', 'classMove', 'resolveColor', 'defaultTokens', 'tokenVars', 'tokenCss', 'stripTypo', 'grabTypo', 'tsApply', 'tsUnlink', 'tsUpdateFrom', 'tsCreateFrom', 'tsUsage', 'styleDelete', 'colorDelete', 'colorAdd', 'colorUsage',
   // clipboard + traversal
   'clip', 'copyNode', 'pasteNode', 'dropTree',
+  'styleClip', 'copyStyles', 'pasteStyles', 'pasteStylesMany',
   'blocks', 'findBlock', 'blockRootType', 'blockSave', 'blockInsert', 'blockDelete',
   // content collections
   'FIELD_TYPES', 'collections', 'findCollection', 'findField', 'findItem', 'uniqueId',

@@ -2958,3 +2958,91 @@ test('a brand-new empty site is not told off for having no H1', () => {
   a.deepEqual(codes, ['no-desc', 'no-title']);
   a.equal(C.lintCounts(C.lint()).error, 0, 'and nothing is an error yet');
 });
+
+/* ============================================================ style clipboard
+   A text style covers the reusable case. This is the one-off: before it, the only
+   way to make one element look like another was to rebuild it control by control. */
+/* `a` is the assert alias in this file, so the fixture names its nodes src/dst —
+   destructuring a node called `a` shadowed it and every case here failed at once. */
+const styled = () => {
+  blank();
+  const src = C.insert('heading', null, 0);
+  const dst = C.insert('heading', null, 1);
+  src.css.d = { color: '#a8402f', 'letter-spacing': '.06em' };
+  src.css.t = { 'font-size': '30px' };
+  src.css.m = { 'font-size': '22px' };
+  src.props.ts = 'subtitle';
+  return { src, dst };
+};
+
+test('a copied look carries every breakpoint, its classes and its text style', () => {
+  const { src } = styled();
+  C.classAdd('Card', { d: { padding: '20px' } });
+  C.classApply(src, 'card');
+  src.adv.css = '&:hover{opacity:.8}';
+  C.copyStyles(src.id);
+  a.equal(C.styleClip.css.d.color, '#a8402f');
+  a.equal(C.styleClip.css.t['font-size'], '30px', 'a look is not a look if it falls apart on mobile');
+  a.equal(C.styleClip.css.m['font-size'], '22px');
+  a.deepEqual(C.styleClip.cls, ['card']);
+  a.equal(C.styleClip.ts, 'subtitle');
+  a.equal(C.styleClip.adv, '&:hover{opacity:.8}');
+  a.match(C.styleClip.from, /^A headline/, 'it names what it holds');
+});
+
+test('pasting replaces rather than merges', () => {
+  const { src, dst } = styled();
+  dst.css.d = { 'font-weight': '900', 'text-align': 'center' };
+  C.copyStyles(src.id);
+  C.pasteStyles(dst.id);
+  a.equal(dst.css.d.color, '#a8402f');
+  a.equal(dst.css.d['font-weight'], undefined,
+    'a merge would leave whatever the target had that the source never mentioned');
+  a.equal(dst.css.d['text-align'], undefined);
+  a.deepEqual(dst.css.m, { 'font-size': '22px' });
+});
+
+test('a text style travels only where the target has one to set', () => {
+  const { src } = styled();
+  C.copyStyles(src.id);
+  const h = C.insert('heading', null, 1);
+  const img = C.insert('image', null, 2);
+  C.pasteStyles(h.id);
+  C.pasteStyles(img.id);
+  a.equal(h.props.ts, 'subtitle', 'a Heading declares a text style');
+  a.equal(img.props.ts, undefined, 'an Image does not, so it is left alone');
+  /* CSS is universal, the same rule fanTargets uses for multi-select */
+  a.equal(img.css.d['letter-spacing'], '.06em', 'the CSS still crosses');
+});
+
+test('a class deleted between the copy and the paste is dropped, not carried', () => {
+  const { src, dst } = styled();
+  C.classAdd('Card', { d: { padding: '20px' } });
+  C.classApply(src, 'card');
+  C.copyStyles(src.id);
+  C.classDelete('card');
+  C.pasteStyles(dst.id);
+  a.deepEqual(dst.cls, [], 'no dangling id');
+});
+
+test('the two clipboards are independent', () => {
+  const { src, dst } = styled();
+  C.copyNode(src.id);
+  C.copyStyles(dst.id);
+  a.equal(C.clip.node.id, src.id, 'copying a look did not throw away the copied element');
+  C.copyNode(dst.id);
+  a.ok(C.styleClip.css, 'and copying an element did not throw away the look');
+});
+
+test('pasting onto a set counts what it changed, and does nothing with an empty clipboard', () => {
+  const { src } = styled();
+  const one = C.insert('heading', null, 1);
+  const two = C.insert('heading', null, 2);
+  C.copyStyles(src.id);
+  a.equal(C.pasteStylesMany([one.id, two.id]), 2);
+  a.equal(one.css.d.color, '#a8402f');
+  a.equal(two.css.d.color, '#a8402f');
+  a.equal(C.pasteStylesMany([one.id, 'no-such-node']), 1, 'a missing id is skipped, not thrown');
+  C.styleClip.css = null;
+  a.equal(C.pasteStyles(one.id), false, 'nothing copied, nothing pasted');
+});

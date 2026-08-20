@@ -388,6 +388,21 @@ rebrand is one edit rather than one edit per element.
   element, several at once. Save an element's styling as a class and it moves off the
   element onto the class; other elements can then share it.
 
+### Copying a look
+
+**Copy styles** and **Paste styles** sit in the Styling group, or ⌘⇧C and ⌘⇧V. It carries all
+three breakpoints, the element's classes and its text style — and it **replaces** rather than
+merges, because "paste styles" means make this look like that, and a merge leaves behind
+whatever the target had that the source never mentioned.
+
+It works across widget types: CSS goes anywhere, while a text style only lands where the
+target has one to set, so a Heading takes it and an Image quietly does not. Paste onto a
+multi-selection and every member gets it. It is a separate clipboard from ⌘C/⌘V, so copying
+a look never costs you the element you copied earlier.
+
+A text style is still the right tool when a look should stay linked and restyle everywhere
+at once. This is for the one-off.
+
 Precedence within each breakpoint runs **text style → class → this element**, so a preset
 supplies defaults and local tweaks always win. Between two classes, the one lower in the
 project list wins — reorder them in **Project → Style classes**.
