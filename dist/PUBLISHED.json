@@ -1,7 +1,7 @@
 {
   "url": "https://claude.ai/code/artifact/16d1f437-f2ca-44df-aff7-02875acdd2c2",
-  "sha256": "311160bc04c82089534fedde4a923e37cce605c0281e581856b6c50aa6caf3b0",
-  "commit": "e9c3dbb",
+  "sha256": "e3ac444a347a7bef0ccfbd99f509a75d52a7b800653286d423eb5dc19089d8d3",
+  "commit": "023d49e",
   "publishedAt": "2026-08-20",
   "favicon": "📐",
   "contract": "0.2.4",
