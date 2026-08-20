@@ -2584,6 +2584,20 @@ function effective(node, prop, chain) {
 }
 var TEXTY = ["heading", "text", "button", "nav"];
 var HEADING_TAGS = /^h([1-6])$/;
+var CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8) {
+  let c = 4294967295;
+  for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ c >>> 8;
+  return (c ^ 4294967295) >>> 0;
+}
 function lint() {
   const out = [];
   const add = (level, code, msg, where, nodeId) => out.push({ level, code, msg, where, nodeId });
@@ -3017,6 +3031,32 @@ function dropTree(fresh, intoId) {
     up = uh && uh.parent;
   }
   return null;
+}
+function smartTarget(key) {
+  let container = null, index = null;
+  const s = state.ui.sel ? locate(state.ui.sel) : null;
+  if (s) {
+    let node = s.node, parent = s.parent;
+    if (holds(node.type, key)) {
+      container = node;
+      index = node.children.length;
+    } else {
+      while (parent && !holds(parent.type, key)) {
+        node = parent;
+        const up = locate(parent.id);
+        parent = up ? up.parent : null;
+      }
+      if (parent) {
+        container = parent;
+        index = parent.children.findIndex((c) => c.id === node.id) + 1;
+      } else {
+        container = null;
+        index = tree().findIndex((c) => c.id === node.id) + 1;
+      }
+    }
+  }
+  if (index === null) index = tree().length;
+  return [container, index];
 }
 var blocks = () => state.meta.blocks || (state.meta.blocks = []);
 var findBlock = (id) => blocks().find((b) => b.id === id) || null;
@@ -5398,20 +5438,6 @@ const assetsToPaths = (str, rel = '') => str.replace(A_RE, (m, id) => {
    has it and falls back to stored, which is still a valid archive.
    Timestamps are fixed at the ZIP epoch so the same site zips to the same bytes —
    the same reason content.json carries no generated-at stamp. */
-const CRC_T = (() => {
-  const t = new Uint32Array(256);
-  for (let i = 0; i < 256; i++) {
-    let c = i;
-    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-    t[i] = c >>> 0;
-  }
-  return t;
-})();
-function crc32(u8) {
-  let c = 0xFFFFFFFF;
-  for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
 const deflateRaw = async u8 => {
   if (typeof CompressionStream !== 'function') return null;
   try {
@@ -6364,25 +6390,6 @@ function drawBlocks() {
   if (sv && sel) sv.addEventListener('click', () => saveBlockFlow(sel.node.id));
 }
 
-/* click-to-add: drop it into the current selection's nearest legal container */
-/* Where a new `key` should land given the current selection: inside it when it can
-   hold one, otherwise beside the nearest ancestor that can. Shared by the Add
-   panel and the media library, which both place elements without a drag. */
-function smartTarget(key) {
-  let container = null, index = null;
-  const s = state.ui.sel ? locate(state.ui.sel) : null;
-  if (s) {
-    let node = s.node, parent = s.parent;
-    if (holds(node.type, key)) { container = node; index = node.children.length; }
-    else {
-      while (parent && !holds(parent.type, key)) { node = parent; parent = locate(parent.id).parent; }
-      if (parent) { container = parent; index = parent.children.findIndex(c => c.id === node.id) + 1; }
-      else { container = null; index = tree().findIndex(c => c.id === node.id) + 1; }
-    }
-  }
-  if (index === null) index = tree().length;
-  return [container, index];
-}
 function appendSmart(key) {
   const [container, index] = smartTarget(key);
   edit(() => { const leaf = insert(key, container, index); selSet([leaf.id]); });

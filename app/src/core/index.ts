@@ -15,7 +15,7 @@
    the legacy single-file build, so there is one source of truth during the port. */
 /* eslint-disable */
 import type {
-  State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, Css, Decls, Bp,
+  State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
   Collection, Field, FieldType, Item, Page, StyleClass,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
@@ -1474,6 +1474,27 @@ function effective(node: PcNode, prop: string, chain: PcNode[]) {
 const TEXTY = ['heading', 'text', 'button', 'nav'];
 const HEADING_TAGS = /^h([1-6])$/;
 
+/* ---- CRC-32, for the zip export ---------------------------------------
+   The zip builder itself needs Blob and CompressionStream, so it stays in the UI.
+   This part is arithmetic, and a wrong checksum does not fail loudly — it produces an
+   archive that simply will not open. Tested against the published CRC-32 vectors, so
+   the test checks the standard rather than checking this implementation against
+   itself. */
+const CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8: Uint8Array): number {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
 function lint() {
   const out: Finding[] = [];
   const add = (level: 'error' | 'warn', code: string, msg: string, where: any, nodeId?: string) => out.push({ level, code, msg, where, nodeId });
@@ -1947,6 +1968,31 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
     up = uh && uh.parent;
   }
   return null;
+}
+
+/* Where a new `key` should land given the current selection: inside it when it can
+   hold one, otherwise beside the nearest ancestor that can. Shared by the Add panel
+   and the media library, which both place elements without a drag — so "add" lands
+   next to what you were looking at rather than at the end of the page.
+   Returns the container (null meaning the page root) and the index within it. */
+function smartTarget(key: WidgetType): [PcNode | null, number] {
+  let container: PcNode | null = null, index: number | null = null;
+  const s = state.ui.sel ? locate(state.ui.sel) : null;
+  if (s) {
+    let node = s.node, parent = s.parent;
+    if (holds(node.type, key)) { container = node; index = node.children.length; }
+    else {
+      while (parent && !holds(parent.type, key)) {
+        node = parent;
+        const up = locate(parent.id);
+        parent = up ? up.parent : null;
+      }
+      if (parent) { container = parent; index = parent.children.findIndex(c => c.id === node.id) + 1; }
+      else { container = null; index = tree().findIndex(c => c.id === node.id) + 1; }
+    }
+  }
+  if (index === null) index = tree().length;
+  return [container, index];
 }
 
 /* ---- saved blocks -------------------------------------------------------
@@ -4132,5 +4178,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

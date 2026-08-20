@@ -29,6 +29,7 @@ __export(index_exports, {
   COLL_CTL: () => COLL_CTL,
   COMMON_STYLE: () => COMMON_STYLE,
   COUNTS: () => COUNTS,
+  CRC_T: () => CRC_T,
   DEF: () => DEF,
   DEFAULT_COLS: () => DEFAULT_COLS,
   DEV_KEY: () => DEV_KEY,
@@ -112,6 +113,7 @@ __export(index_exports, {
   contrast: () => contrast,
   copyNode: () => copyNode,
   copyStyles: () => copyStyles,
+  crc32: () => crc32,
   cssVal: () => cssVal,
   ctlKeys: () => ctlKeys,
   cvar: () => cvar,
@@ -242,6 +244,7 @@ __export(index_exports, {
   slotName: () => slotName,
   slotSet: () => slotSet,
   slugify: () => slugify,
+  smartTarget: () => smartTarget,
   snippet: () => snippet,
   srcSet: () => srcSet,
   stackFor: () => stackFor,
@@ -1845,6 +1848,20 @@ function effective(node, prop, chain) {
 }
 var TEXTY = ["heading", "text", "button", "nav"];
 var HEADING_TAGS = /^h([1-6])$/;
+var CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8) {
+  let c = 4294967295;
+  for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ c >>> 8;
+  return (c ^ 4294967295) >>> 0;
+}
 function lint() {
   const out = [];
   const add = (level, code, msg, where, nodeId) => out.push({ level, code, msg, where, nodeId });
@@ -2278,6 +2295,32 @@ function dropTree(fresh, intoId) {
     up = uh && uh.parent;
   }
   return null;
+}
+function smartTarget(key) {
+  let container = null, index = null;
+  const s = state.ui.sel ? locate(state.ui.sel) : null;
+  if (s) {
+    let node = s.node, parent = s.parent;
+    if (holds(node.type, key)) {
+      container = node;
+      index = node.children.length;
+    } else {
+      while (parent && !holds(parent.type, key)) {
+        node = parent;
+        const up = locate(parent.id);
+        parent = up ? up.parent : null;
+      }
+      if (parent) {
+        container = parent;
+        index = parent.children.findIndex((c) => c.id === node.id) + 1;
+      } else {
+        container = null;
+        index = tree().findIndex((c) => c.id === node.id) + 1;
+      }
+    }
+  }
+  if (index === null) index = tree().length;
+  return [container, index];
 }
 var blocks = () => state.meta.blocks || (state.meta.blocks = []);
 var findBlock = (id) => blocks().find((b) => b.id === id) || null;
@@ -4433,6 +4476,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   COLL_CTL,
   COMMON_STYLE,
   COUNTS,
+  CRC_T,
   DEF,
   DEFAULT_COLS,
   DEV_KEY,
@@ -4516,6 +4560,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   contrast,
   copyNode,
   copyStyles,
+  crc32,
   cssVal,
   ctlKeys,
   cvar,
@@ -4646,6 +4691,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   slotName,
   slotSet,
   slugify,
+  smartTarget,
   snippet,
   srcSet,
   stackFor,

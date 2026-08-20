@@ -3709,3 +3709,105 @@ test('kb reads as a size a person would say out loud', () => {
   a.equal(C.kb(1048576), '1.0 MB');
   a.equal(C.kb(2_600_000), '2.5 MB');
 });
+
+/* ------------------------------------------------------------------ crc32
+   The zip builder needs Blob and CompressionStream so it stays in the UI, but the
+   checksum is arithmetic and it had no test. A wrong CRC does not fail loudly: it
+   produces an archive that will not open, which is the worst way for this to be
+   wrong. These are the published CRC-32 (IEEE) vectors, so the test checks the
+   standard rather than checking the implementation against itself. */
+test('crc32 matches the published CRC-32 vectors', () => {
+  const of = (s: string) => C.crc32(new TextEncoder().encode(s));
+  a.equal(of(''), 0x00000000, 'empty input');
+  a.equal(of('a'), 0xE8B7BE43);
+  a.equal(of('abc'), 0x352441C2);
+  a.equal(of('message digest'), 0x20159D7F);
+  a.equal(of('123456789'), 0xCBF43926, 'the check value from the CRC catalogue');
+  a.equal(of('The quick brown fox jumps over the lazy dog'), 0x414FA339);
+  a.equal(of('abcdefghijklmnopqrstuvwxyz'), 0x4C2750BD);
+});
+
+test('crc32 stays inside 32 unsigned bits', () => {
+  /* the zip header wants a uint32; a signed result writes the wrong four bytes */
+  const of = (s: string) => C.crc32(new TextEncoder().encode(s));
+  ['', 'a', 'abc', 'ÿþý', 'x'.repeat(5000)].forEach(s => {
+    const v = of(s);
+    a.ok(Number.isInteger(v) && v >= 0 && v <= 0xFFFFFFFF, JSON.stringify(s.slice(0, 12)) + ' -> ' + v);
+  });
+  a.equal(C.CRC_T.length, 256, 'the table is fully built');
+});
+
+test('crc32 is order-sensitive, which is the point of a checksum', () => {
+  const of = (s: string) => C.crc32(new TextEncoder().encode(s));
+  a.notEqual(of('ab'), of('ba'));
+  a.notEqual(of('abc'), of('abcd'));
+});
+
+/* ------------------------------------------------------------ smartTarget
+   Click-to-add. Every Add-panel click and every media-library placement goes through
+   this, and it had no test either. */
+test('smartTarget puts a new element inside the selection when it can hold one', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const col = holderOf(h.id);
+  C.selSet([col.id]);
+  const [container, index] = C.smartTarget('heading');
+  a.equal(container && container.id, col.id, 'a column can hold a heading, so it goes inside');
+  a.equal(index, col.children.length, 'at the end of what is already there');
+});
+
+test('smartTarget places beside a leaf, because a leaf holds nothing', () => {
+  blank();
+  const one = insert('heading', null, 0);
+  const col = holderOf(one.id);
+  const two = insert('heading', col, 1);
+  /* selecting the *first* heading has to place after it, not at the end of the column —
+     "add" landing at the bottom of the page is the thing this exists to prevent */
+  C.selSet([one.id]);
+  const [container, index] = C.smartTarget('heading');
+  a.equal(container && container.id, col.id, 'up one level, to the column that holds it');
+  a.equal(index, 1, 'immediately after the selected heading');
+  a.deepEqual(col.children.map(c => c.id), [one.id, two.id], 'and the fixture really is in that order');
+});
+
+test('smartTarget treats any deeper level as able to hold it, wrappers and all', () => {
+  /* `holds` compares levels rather than listing legal children, so a section holds a
+     heading — `insert` builds the row and column in between. That is why selecting a
+     section adds *into* it rather than after it, and it is worth pinning down: the
+     hierarchy comment reads Section > Row > Column > content, which invites the
+     opposite guess. */
+  blank();
+  insert('heading', null, 0);
+  const sec = C.state.pages[0].tree[0];
+  C.selSet([sec.id]);
+  const [container, index] = C.smartTarget('heading');
+  a.equal(container && container.id, sec.id, 'the section takes it');
+  a.equal(index, sec.children.length, 'after the row already in there');
+
+  const row = sec.children[0];
+  C.selSet([row.id]);
+  const [c2, i2] = C.smartTarget('heading');
+  a.equal(c2 && c2.id, row.id, 'and so does the row, for the same reason');
+  a.equal(i2, row.children.length);
+});
+
+test('smartTarget appends to the end when nothing is selected', () => {
+  blank();
+  insert('heading', null, 0);
+  C.selSet([]);
+  const [container, index] = C.smartTarget('section');
+  a.equal(container, null);
+  a.equal(index, C.state.pages[0].tree.length, 'the end of the page');
+});
+
+test('nothing holds a section, so one always lands at the page root', () => {
+  /* the level rule cuts the other way here: a section is level 1 and `holds` needs
+     something strictly shallower, which no node is. Every ancestor is walked past and
+     the root takes it — however deep the selection was. */
+  blank();
+  const h = insert('heading', null, 0);
+  C.selSet([h.id]);
+  const [container, index] = C.smartTarget('section');
+  a.equal(container, null, 'not the column, not the row, not the section');
+  a.equal(index, 1, 'after the section the selection was inside, not before it');
+});
