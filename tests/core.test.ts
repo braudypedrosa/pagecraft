@@ -4037,3 +4037,77 @@ test('pageDelete refuses an index that is not a page', () => {
   a.equal(C.pageDelete(99), false);
   a.equal(C.state.pages.length, before);
 });
+
+/* --------------------------------------- inserting at the selection, not at an index
+   patternInsert and blockInsert both test `parentNode === undefined` explicitly and
+   mean "drop wherever the selection allows". The signatures declared the argument
+   required, which made that branch unreachable as far as the types were concerned —
+   and it was the branch the Add panel uses for every click. Untested until now. */
+
+test('patternInsert with no parent drops at the selection', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  C.selSet([h.id]);
+  const before = C.state.pages[0].tree.length;
+  const made = C.patternInsert(C.PATTERNS[0].id);
+  a.ok(made, 'it went somewhere');
+  a.equal(C.state.pages[0].tree.length, before + 1, 'a section landed at the root');
+  /* nothing holds a section, so it lands beside the one the selection was inside —
+     the same rule smartTarget follows */
+  a.equal(C.state.pages[0].tree[1].id, made!.id);
+});
+
+test('blockInsert with no parent drops at the selection', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const id = blockSave(h.id, 'Promo');
+  const col = holderOf(h.id);
+  C.selSet([col.id]);
+  const before = col.children.length;
+  const made = C.blockInsert(id);
+  a.ok(made, 'placed');
+  a.equal(col.children.length, before + 1, 'inside the selected column');
+});
+
+test('an explicit parent and index still win over the selection', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const id = blockSave(h.id, 'Promo');
+  const col = holderOf(h.id);
+  C.selSet([col.id]);
+  /* passing null means the page root, and it must not be read as "no parent" — those
+     are different answers and conflating them is what the old signature invited */
+  const made = C.blockInsert(id, null, 0);
+  a.ok(made);
+  a.equal(C.state.pages[0].tree.length, 2, 'a second section at the root, not inside the column');
+});
+
+test('a section-level drop from a leaf selection reaches the root', () => {
+  /* The bug this covers: dropTree walked up through every ancestor and stopped, never
+     trying the document root — which is the only thing that holds a section. So
+     clicking a template with a heading selected did nothing and reported "That does
+     not fit there", while the same click with a section selected worked. Reproduced
+     in the shipped build before fixing it. */
+  blank();
+  const h = insert('heading', null, 0);
+  const sec = C.state.pages[0].tree[0];
+  C.selSet([h.id]);
+  const made = C.dropTree(C.N('section', {}, {}, []), h.id);
+  a.ok(made, 'a section dropped onto a heading has to land somewhere');
+  const list = C.state.pages[0].tree;
+  a.equal(list.length, 2);
+  a.equal(list.indexOf(sec), 0);
+  a.equal(list[1].type, 'section', 'after the section the heading was inside');
+});
+
+test('the root fallback does not fire when something nearer fits', () => {
+  blank();
+  const one = insert('heading', null, 0);
+  const col = holderOf(one.id);
+  const before = C.state.pages[0].tree.length;
+  /* a heading fits inside the column, so it must go there rather than to the root */
+  const made = C.dropTree(C.N('heading', { text: 'x' }, {}, []), one.id);
+  a.ok(made);
+  a.equal(C.state.pages[0].tree.length, before, 'no new section at the root');
+  a.equal(col.children.length, 2, 'it went in beside its sibling');
+});

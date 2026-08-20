@@ -3039,24 +3039,27 @@ function pasteNode(intoId) {
   return dropTree(reid(clone(clip.node)), intoId);
 }
 function dropTree(fresh, intoId) {
-  const place = (list, index, parentType) => {
+  const place = (list2, index, parentType) => {
     const pl2 = parentType === null ? 0 : lvl(parentType);
     const nested = parentType === "column" && lvl(fresh.type) === 2;
     if (lvl(fresh.type) <= pl2 && !nested) return false;
-    list.splice(index, 0, nested ? fresh : wrap(fresh.type, pl2, fresh));
+    list2.splice(index, 0, nested ? fresh : wrap(fresh.type, pl2, fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
   if (!h) return place(tree(), tree().length, null) ? fresh : null;
   if (place(h.node.children, h.node.children.length, h.node.type)) return fresh;
   if (place(h.list, h.i + 1, h.parent ? h.parent.type : null)) return fresh;
-  let up = h.parent;
+  let up = h.parent, top = h.node;
   while (up) {
     const uh = locate(up.id);
     if (place(up.children, up.children.length, up.type)) return fresh;
-    up = uh && uh.parent;
+    top = up;
+    up = uh ? uh.parent : null;
   }
-  return null;
+  const list = tree();
+  const at = list.indexOf(top);
+  return place(list, at < 0 ? list.length : at + 1, null) ? fresh : null;
 }
 function smartTarget(key) {
   let container = null, index = null;
@@ -3473,7 +3476,7 @@ function blockPush(nodeId) {
   }
   return n;
 }
-function blockInsert(id, parentNode, index) {
+function blockInsert(id, parentNode, index = 0) {
   const b = findBlock(id);
   if (!b) return null;
   const fresh = reid(clone(b.node));
@@ -4007,7 +4010,7 @@ var PATTERNS = [
     ])
   }
 ];
-function patternInsert(pid, parentNode, index) {
+function patternInsert(pid, parentNode, index = 0) {
   const p = PATTERNS.find((x) => x.id === pid);
   if (!p) return null;
   const node = p.build();
@@ -5543,6 +5546,14 @@ var PC_UI = (() => {
     C2 = core;
     L2 = legacy;
   }
+  var painters = {};
+  var registerPainter = (name, fn) => {
+    painters[name] = fn;
+  };
+  var repaint = (name) => {
+    const fn = painters[name];
+    if (fn) fn();
+  };
 
   // node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
   var f2 = 0;
@@ -5614,7 +5625,7 @@ var PC_UI = (() => {
           /* @__PURE__ */ u2("span", { class: "tw", onClick: (e2) => {
             e2.stopPropagation();
             C2.state.ui.collapsed[n2.id] = !collapsed;
-            paintLayers();
+            repaint("layers");
           }, children: kids.length ? /* @__PURE__ */ u2(Icon, { name: "caret", size: 10 }) : null }),
           /* @__PURE__ */ u2(
             "span",
@@ -5666,11 +5677,6 @@ var PC_UI = (() => {
       ] })
     ] })) });
   }
-  var paintLayers = () => {
-  };
-  var setPainter = (fn) => {
-    paintLayers = fn;
-  };
 
   // app/src/ui/Cms.tsx
   function CollectionRow({ col }) {
@@ -5734,19 +5740,225 @@ var PC_UI = (() => {
   }
   var esc = (s2) => String(s2 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
+  // app/src/ui/Add.tsx
+  var PAL = [
+    {
+      /* No bare Column. Every route it offered is already covered: dropped on the root
+         or a section it built the same Section > Row > Column that Columns does, and
+         dropped on a row it did what the row's own 1-6 count control does. The type
+         stays in DEF — cols(), wrap(), applyCols() and every template depend on it; it
+         is just not something you add by hand. */
+      g: "Layout",
+      items: [
+        ["section", "Section"],
+        ["columns", "Columns"],
+        ["row", "Row"],
+        ["list", "Collection"]
+      ]
+    },
+    {
+      g: "Content",
+      items: [
+        ["heading", "Heading"],
+        ["text", "WYSIWYG"],
+        ["image", "Image"],
+        ["gallery", "Gallery"],
+        ["video", "Video"],
+        ["icon", "Icon"]
+      ]
+    },
+    {
+      /* Grouped by what they do rather than by how they are built, which is why the
+         Accordion sits with the Form: both are things a visitor operates. */
+      g: "Interactive",
+      items: [
+        ["button", "Button"],
+        ["nav", "Nav menu"],
+        ["form", "Form"],
+        ["accordion", "Accordion"],
+        ["embed", "Embed"]
+      ]
+    },
+    { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
+  ];
+  var TABS = [["widgets", "Widgets"], ["blocks", "Blocks"], ["templates", "Templates"]];
+  var tab = () => C2.state.ui.atab || "widgets";
+  function Widgets() {
+    return /* @__PURE__ */ u2(S, { children: PAL.map((g2) => /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "plabel", children: g2.g }),
+      /* @__PURE__ */ u2("div", { class: "pgrid", children: g2.items.map(([k2, label]) => /* @__PURE__ */ u2(
+        "div",
+        {
+          class: "pitem",
+          title: "Drag onto the canvas \u2014 or click to append",
+          onPointerDown: (e2) => L2.startDrag(
+            e2,
+            { kind: "new", type: k2, label: C2.labelOf(k2), icon: C2.iconOf(k2) },
+            false
+          ),
+          onClick: () => {
+            if (!L2.consumeDragMoved()) L2.appendSmart(k2);
+          },
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: C2.iconOf(k2), size: 19 }),
+            /* @__PURE__ */ u2("span", { children: label })
+          ]
+        },
+        k2
+      )) })
+    ] })) });
+  }
+  function Templates() {
+    const cats = [];
+    C2.PATTERNS.forEach((t2) => {
+      if (!cats.includes(t2.cat)) cats.push(t2.cat);
+    });
+    const place = (id) => {
+      if (L2.consumeDragMoved()) return;
+      let made = null;
+      C2.edit(() => {
+        made = C2.patternInsert(id, void 0);
+        if (made) C2.selSet([made.id]);
+      });
+      const name = C2.PATTERNS.find((x2) => x2.id === id).name;
+      L2.toast(made ? name + " added" : "That does not fit there");
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "hint", style: { paddingBottom: "12px" }, children: "Ready-made sections, built from this project's colours and text styles." }),
+      cats.map((cat) => /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2("div", { class: "plabel", children: cat }),
+        /* @__PURE__ */ u2("div", { class: "pvgrid", children: C2.PATTERNS.filter((t2) => t2.cat === cat).map((t2) => /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "pvcard",
+            title: t2.desc + " \u2014 drag onto the canvas, or click to append",
+            onPointerDown: (e2) => L2.startDrag(
+              e2,
+              { kind: "pattern", patId: t2.id, label: t2.name, icon: "section" },
+              false
+            ),
+            onClick: () => place(t2.id),
+            children: [
+              /* @__PURE__ */ u2("div", { dangerouslySetInnerHTML: { __html: t2.preview() } }),
+              /* @__PURE__ */ u2("span", { children: t2.name })
+            ]
+          },
+          t2.id
+        )) })
+      ] }))
+    ] });
+  }
+  function Blocks() {
+    const sel = C2.state.ui.sel ? C2.locate(C2.state.ui.sel) : null;
+    const list = C2.blocks();
+    const place = (id) => {
+      if (L2.consumeDragMoved()) return;
+      let made = null;
+      C2.edit(() => {
+        made = C2.blockInsert(id, void 0);
+        if (made) C2.selSet([made.id]);
+      });
+      L2.toast(made ? C2.findBlock(id).name + " placed" : "That block does not fit there");
+    };
+    const forget = async (e2, id) => {
+      e2.stopPropagation();
+      const b2 = C2.findBlock(id);
+      if (!b2) return;
+      const ok = await L2.askConfirm(
+        "Forget this block?",
+        `<b>${esc2(b2.name)}</b> leaves the Blocks tab. Copies already placed stay.`,
+        { ok: "Forget block" }
+      );
+      if (!ok) return;
+      C2.edit(() => C2.blockDelete(id));
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      list.length ? list.map((b2) => {
+        const def = C2.DEF[b2.node.type];
+        return /* @__PURE__ */ u2(
+          "div",
+          {
+            class: "brow",
+            title: "Drag onto the canvas, or click to place it",
+            onPointerDown: (e2) => {
+              if (e2.target.closest(".bx")) return;
+              L2.startDrag(
+                e2,
+                { kind: "block", blockId: b2.id, label: b2.name, icon: "section" },
+                false
+              );
+            },
+            onClick: (e2) => {
+              if (!e2.target.closest(".bx")) place(b2.id);
+            },
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: def ? def.icon : "section", size: 14 }),
+              /* @__PURE__ */ u2("span", { class: "bn", children: [
+                /* @__PURE__ */ u2("b", { children: b2.name }),
+                /* @__PURE__ */ u2("small", { children: [
+                  def ? def.label : "Block",
+                  b2.sync ? ` \xB7 global \xB7 ${C2.blockUsage(b2.id)} placed` : ""
+                ] })
+              ] }),
+              /* @__PURE__ */ u2("button", { class: "bx", title: "Forget this block", onClick: (e2) => forget(e2, b2.id), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+            ]
+          },
+          b2.id
+        );
+      }) : /* @__PURE__ */ u2("div", { class: "hint", children: "Nothing saved yet. Select something on the canvas and save it here to reuse it on any page." }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn",
+          disabled: !sel,
+          style: { width: "100%", justifyContent: "center", marginTop: "var(--gap-1)", fontSize: "12px" },
+          onClick: () => sel && L2.saveBlockFlow(sel.node.id),
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+            sel ? " Save " + C2.DEF[sel.node.type].label + " as block" : " Select something to save"
+          ]
+        }
+      )
+    ] });
+  }
+  function Add() {
+    const t2 = tab();
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "tabs atabs", children: TABS.map(([key, label]) => /* @__PURE__ */ u2(
+        "button",
+        {
+          class: t2 === key ? "on" : "",
+          onClick: () => {
+            C2.state.ui.atab = key;
+            repaint("add");
+          },
+          children: label
+        },
+        key
+      )) }),
+      /* @__PURE__ */ u2("div", { class: "palette", children: t2 === "widgets" ? /* @__PURE__ */ u2(Widgets, {}) : t2 === "templates" ? /* @__PURE__ */ u2(Templates, {}) : /* @__PURE__ */ u2(Blocks, {}) })
+    ] });
+  }
+  var esc2 = (s2) => String(s2 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
-    const paint = () => {
-      const host = document.getElementById("paneLayers");
-      if (host) R(/* @__PURE__ */ u2(Layers, {}), host);
+    const panel = (id, node, skipHidden = false) => () => {
+      const host = document.getElementById(id);
+      if (!host) return;
+      if (skipHidden && host.hidden) return;
+      R(node(), host);
     };
-    setPainter(paint);
-    const paintCms = () => {
-      const host = document.getElementById("paneCms");
-      if (host && !host.hidden) R(/* @__PURE__ */ u2(Cms, {}), host);
+    const painters2 = {
+      renderLayers: panel("paneLayers", () => /* @__PURE__ */ u2(Layers, {})),
+      renderCms: panel("paneCms", () => /* @__PURE__ */ u2(Cms, {}), true),
+      renderAdd: panel("paneAdd", () => /* @__PURE__ */ u2(Add, {}))
     };
-    return { renderLayers: paint, renderCms: paintCms };
+    registerPainter("layers", painters2.renderLayers);
+    registerPainter("add", painters2.renderAdd);
+    registerPainter("cms", painters2.renderCms);
+    return painters2;
   }
   return __toCommonJS(index_exports);
 })();
@@ -6780,101 +6992,16 @@ document.addEventListener('pointerdown', e => {
 
 
 /* ============================================================== palette */
-const PAL = [
-  {
-    /* No bare Column here. Every route it offered is already covered: dropped on the
-       root or a section it built the same Section > Row > Column that Columns does,
-       and dropped on a row it did what the row's own 1–6 count control does. The
-       type itself stays in DEF — cols(), wrap(), applyCols() and every template
-       depend on it; it is just not something you add by hand. */
-    g: 'Layout', items: [
-      ['section', 'Section'], ['columns', 'Columns'], ['row', 'Row'], ['list', 'Collection']
-    ]
-  },
-  {
-    g: 'Content', items: [
-      ['heading', 'Heading'], ['text', 'WYSIWYG'], ['image', 'Image'], ['gallery', 'Gallery'],
-      ['video', 'Video'], ['icon', 'Icon']
-    ]
-  },
-  {
-    /* Grouped by what they do rather than by how they are built, which is why the
-       Accordion sits with the Form: both are things a visitor operates. */
-    g: 'Interactive', items: [
-      ['button', 'Button'], ['nav', 'Nav menu'], ['form', 'Form'], ['accordion', 'Accordion'], ['embed', 'Embed']
-    ]
-  },
-  {
-    g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']]
-  }
-];
 
-function renderPalette() {
-  const p = $('#paneAdd');
-  const tab = state.ui.atab || 'widgets';
-  p.innerHTML = `
-    <div class="tabs atabs" id="addTabs">
-      <button data-a="widgets" class="${tab === 'widgets' ? 'on' : ''}">Widgets</button>
-      <button data-a="blocks" class="${tab === 'blocks' ? 'on' : ''}">Blocks</button>
-      <button data-a="templates" class="${tab === 'templates' ? 'on' : ''}">Templates</button>
-    </div>
-    <div class="palette" id="addBody"></div>`;
-  $$('#addTabs button').forEach(b => b.addEventListener('click', () => {
-    state.ui.atab = b.dataset.a;
-    renderPalette();
-  }));
-  drawAddBody();
-}
+/* The Add panel lives in app/src/ui/Add.tsx now — widgets, blocks and templates, plus
+   the PAL list of what is offered. Three functions became one component: renderPalette
+   owned #paneAdd while drawAddBody and drawBlocks both wrote #addBody, so the inner
+   container had two writers and a tab switch meant calling the right one by hand.
+   `drawBlocks` stays as a name because two other places call it after a block changes;
+   repainting the whole panel is the same thing and does not care which tab is open. */
+function renderPalette() { ui().renderAdd(); }
+function drawBlocks() { ui().renderAdd(); }
 
-function drawAddBody() {
-  const box = $('#addBody');
-  if (!box) return;
-  const tab = state.ui.atab || 'widgets';
-
-  if (tab === 'widgets') {
-    box.innerHTML = `${PAL.map(g => `
-      <div class="plabel">${g.g}</div>
-      <div class="pgrid">${g.items.map(([k, lb]) => `
-        <div class="pitem" data-key="${k}" title="Drag onto the canvas — or click to append">
-          ${svg(iconOf(k), 19)}<span>${lb}</span>
-        </div>`).join('')}</div>`).join('')}`;
-    $$('.pitem', box).forEach(it => {
-      const key = it.dataset.key;
-      it.addEventListener('pointerdown', e => startDrag(e, { kind: 'new', type: key, label: labelOf(key), icon: iconOf(key) }, false));
-      it.addEventListener('click', () => {
-        if (dragDidMove) { dragDidMove = false; return; }
-        appendSmart(key);
-      });
-    });
-    return;
-  }
-
-  if (tab === 'templates') {
-    const order = [];
-    PATTERNS.forEach(t => { if (!order.includes(t.cat)) order.push(t.cat); });
-    box.innerHTML = `<div class="hint" style="padding-bottom:12px">Ready-made sections, built from this project's colours and text styles.</div>
-      ${order.map(cat => `
-        <div class="plabel">${esc(cat)}</div>
-        <div class="pvgrid">${PATTERNS.filter(t => t.cat === cat).map(t => `
-          <button class="pvcard" data-pat="${t.id}" title="${esc(t.desc)} — drag onto the canvas, or click to append">
-            ${t.preview()}
-            <span>${esc(t.name)}</span>
-          </button>`).join('')}</div>`).join('')}`;
-    $$('[data-pat]', box).forEach(row => {
-      const id = row.dataset.pat;
-      row.addEventListener('pointerdown', e => startDrag(e, { kind: 'pattern', patId: id, label: PATTERNS.find(x => x.id === id).name, icon: 'section' }, false));
-      row.addEventListener('click', () => {
-        if (dragDidMove) { dragDidMove = false; return; }
-        let made = null;
-        edit(() => { made = patternInsert(id, undefined); if (made) selSet([made.id]); });
-        toast(made ? PATTERNS.find(x => x.id === id).name + ' added' : 'That does not fit there');
-      });
-    });
-    return;
-  }
-
-  drawBlocks();
-}
 
 /* Saved blocks sit alongside the components, because that is where you go to
    put something on the page. */
@@ -6901,43 +7028,6 @@ async function pushBlockFlow(nodeId) {
   toast(n ? `“${esc(b.name)}” updated — ${n} cop${n === 1 ? 'y' : 'ies'} matched` : `“${esc(b.name)}” updated`);
 }
 
-function drawBlocks() {
-  const box = $('#addBody');
-  if (!box || (state.ui.atab || 'widgets') !== 'blocks') return;
-  const sel = state.ui.sel ? locate(state.ui.sel) : null;
-  box.innerHTML = `${blocks().length ? blocks().map(b => `
-      <div class="brow" data-b="${b.id}" title="Drag onto the canvas, or click to place it">
-        ${svg(DEF[b.node.type] ? DEF[b.node.type].icon : 'section', 14)}
-        <span class="bn"><b>${esc(b.name)}</b><small>${esc(DEF[b.node.type] ? DEF[b.node.type].label : 'Block')}${b.sync ? ` · global · ${blockUsage(b.id)} placed` : ''}</small></span>
-        <button class="bx" data-bdel="${b.id}" title="Forget this block">${svg('trash', 11)}</button>
-      </div>`).join('') : '<div class="hint">Nothing saved yet. Select something on the canvas and save it here to reuse it on any page.</div>'}
-    <button class="btn" id="blockSave" style="width:100%;justify-content:center;margin-top:var(--gap-1);font-size:12px"${sel ? '' : ' disabled'}>
-      ${svg('plus', 12)} ${sel ? 'Save ' + esc(DEF[sel.node.type].label) + ' as block' : 'Select something to save'}
-    </button>`;
-
-  $$('.brow', box).forEach(row => {
-    const id = row.dataset.b;
-    row.addEventListener('pointerdown', e => {
-      if (e.target.closest('[data-bdel]')) return;
-      startDrag(e, { kind: 'block', blockId: id, label: findBlock(id).name, icon: 'section' }, false);
-    });
-    row.addEventListener('click', e => {
-      if (e.target.closest('[data-bdel]')) return;
-      if (dragDidMove) { dragDidMove = false; return; }
-      let made = null;
-      edit(() => { made = blockInsert(id, undefined); if (made) selSet([made.id]); });
-      toast(made ? findBlock(id).name + ' placed' : 'That block does not fit there');
-    });
-  });
-  $$('[data-bdel]', box).forEach(b => b.addEventListener('click', async e => {
-    e.stopPropagation();
-    const id = b.dataset.bdel;
-    if (!await askConfirm('Forget this block?', `<b>${esc(findBlock(id).name)}</b> leaves the Blocks tab. Copies already placed stay.`, { ok: 'Forget block' })) return;
-    edit(() => blockDelete(id));
-  }));
-  const sv = $('#blockSave');
-  if (sv && sel) sv.addEventListener('click', () => saveBlockFlow(sel.node.id));
-}
 
 function appendSmart(key) {
   const [container, index] = smartTarget(key);
@@ -6960,9 +7050,14 @@ function appendSmart(key) {
 let UI = null;
 const ui = () => UI || (UI = PC_UI.mount(
   { IC, DEF, DEV_LABEL, state, dk, tree, selIds, nameOf,
-    edit, collections, findCollection, collectionAdd, collectionDelete },
+    edit, collections, findCollection, collectionAdd, collectionDelete,
+    locate, selSet, iconOf, labelOf, PATTERNS, patternInsert,
+    blocks, findBlock, blockInsert, blockDelete, blockUsage },
   { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor,
-    askText, askConfirm, cmsModal }
+    askText, askConfirm, cmsModal, saveBlockFlow, toast, startDrag, appendSmart,
+    /* the click fires after the drag ends, so the flag is read and cleared in one go
+       or the dragged element is also appended where it started */
+    consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; } }
 ));
 function renderLayers() { ui().renderLayers(); }
 

@@ -8,7 +8,7 @@
    the whole reason build.mjs carries a control-parity guard: markup and its wiring
    could drift apart, and did. Here a row's handler is three lines below its markup and
    cannot be forgotten separately. */
-import { C, L } from './ctx';
+import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 
 function RegionRow({ kind, label }: { kind: string; label: string }) {
@@ -51,7 +51,7 @@ function NodeRow({ n, depth }: { n: any; depth: number }) {
       <span class="tw" onClick={e => {
         e.stopPropagation();
         C.state.ui.collapsed[n.id] = !collapsed;
-        paintLayers();
+        repaint('layers');
       }}>{kids.length ? <Icon name="caret" size={10} /> : null}</span>
       <span class="gr" title="Drag to reorder"
         onPointerDown={e => L.startLayerDrag(e as unknown as PointerEvent, n.id)}>
@@ -99,8 +99,3 @@ export function Layers() {
     </div>
   );
 }
-
-/* Set by mount() so a row's twisty can ask for a repaint without importing the
-   mount module and making a cycle of it. */
-let paintLayers: () => void = () => { };
-export const setPainter = (fn: () => void) => { paintLayers = fn; };

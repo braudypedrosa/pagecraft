@@ -2301,24 +2301,27 @@ function pasteNode(intoId) {
   return dropTree(reid(clone(clip.node)), intoId);
 }
 function dropTree(fresh, intoId) {
-  const place = (list, index, parentType) => {
+  const place = (list2, index, parentType) => {
     const pl2 = parentType === null ? 0 : lvl(parentType);
     const nested = parentType === "column" && lvl(fresh.type) === 2;
     if (lvl(fresh.type) <= pl2 && !nested) return false;
-    list.splice(index, 0, nested ? fresh : wrap(fresh.type, pl2, fresh));
+    list2.splice(index, 0, nested ? fresh : wrap(fresh.type, pl2, fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
   if (!h) return place(tree(), tree().length, null) ? fresh : null;
   if (place(h.node.children, h.node.children.length, h.node.type)) return fresh;
   if (place(h.list, h.i + 1, h.parent ? h.parent.type : null)) return fresh;
-  let up = h.parent;
+  let up = h.parent, top = h.node;
   while (up) {
     const uh = locate(up.id);
     if (place(up.children, up.children.length, up.type)) return fresh;
-    up = uh && uh.parent;
+    top = up;
+    up = uh ? uh.parent : null;
   }
-  return null;
+  const list = tree();
+  const at = list.indexOf(top);
+  return place(list, at < 0 ? list.length : at + 1, null) ? fresh : null;
 }
 function smartTarget(key) {
   let container = null, index = null;
@@ -2735,7 +2738,7 @@ function blockPush(nodeId) {
   }
   return n;
 }
-function blockInsert(id, parentNode, index) {
+function blockInsert(id, parentNode, index = 0) {
   const b = findBlock(id);
   if (!b) return null;
   const fresh = reid(clone(b.node));
@@ -3269,7 +3272,7 @@ var PATTERNS = [
     ])
   }
 ];
-function patternInsert(pid, parentNode, index) {
+function patternInsert(pid, parentNode, index = 0) {
   const p = PATTERNS.find((x) => x.id === pid);
   if (!p) return null;
   const node = p.build();

@@ -22,7 +22,10 @@ import type * as CoreNs from '../core/index';
  */
 export type Core = Pick<typeof CoreNs,
   | 'IC' | 'DEF' | 'DEV_LABEL' | 'state' | 'dk' | 'tree' | 'selIds' | 'nameOf'
-  | 'edit' | 'collections' | 'findCollection' | 'collectionAdd' | 'collectionDelete'>;
+  | 'edit' | 'collections' | 'findCollection' | 'collectionAdd' | 'collectionDelete'
+  | 'locate' | 'selSet' | 'iconOf' | 'labelOf'
+  | 'PATTERNS' | 'patternInsert'
+  | 'blocks' | 'findBlock' | 'blockInsert' | 'blockDelete' | 'blockUsage'>;
 
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {
@@ -52,6 +55,25 @@ export interface Legacy {
     opts?: { ok?: string; danger?: boolean }): Promise<boolean>;
   /** the full-screen content editor for one collection */
   cmsModal(collectionId: string): void;
+  /** the save-as-block flow, which asks for a name and whether it is global */
+  saveBlockFlow(nodeId: string): void;
+  /** a short confirmation in the corner */
+  toast(msg: string): void;
+
+  /** begin dragging something onto the canvas */
+  startDrag(e: PointerEvent, payload: {
+    kind: 'new' | 'pattern' | 'block';
+    type?: string; patId?: string; blockId?: string;
+    label: string; icon: string;
+  }, fromFrame: boolean): void;
+  /**
+   * Did the drag that just ended actually move? Reads the flag and clears it, because
+   * every caller does exactly that: a click fires after a drag, and without this the
+   * dragged element would also be appended where it started.
+   */
+  consumeDragMoved(): boolean;
+  /** append a widget at the smart target, select it, and scroll it into view */
+  appendSmart(key: string): void;
 }
 
 /* Assigned once by mount(). Live bindings, so the components below see them. */
@@ -62,3 +84,9 @@ export function install(core: Core, legacy: Legacy) {
   C = core;
   L = legacy;
 }
+
+/* Panels repaint themselves by name rather than importing the mount module, which
+   would make a cycle of it. Registered by mount(), called from inside components. */
+const painters: Record<string, () => void> = {};
+export const registerPainter = (name: string, fn: () => void) => { painters[name] = fn; };
+export const repaint = (name: string) => { const fn = painters[name]; if (fn) fn(); };

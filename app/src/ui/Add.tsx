@@ -1,0 +1,190 @@
+/* The Add panel — widgets, blocks and templates.
+
+   Three functions in builder.html became one component tree, and that is the point:
+   `renderPalette` owned #paneAdd while `drawAddBody` and `drawBlocks` both wrote
+   #addBody, so the container had two writers and a tab switch meant re-running the
+   right one by hand. A component has one owner by construction and the tab is just a
+   branch.
+
+   Every item here is both draggable and clickable, which is why `consumeDragMoved`
+   exists: the click fires after the drag ends, and without swallowing it the dragged
+   element would also be appended where it started. */
+import { C, L, repaint } from './ctx';
+import { Icon } from './Icon';
+
+/* Lives here because the Add panel is the only thing that reads it: which widgets are
+   offered, and how they are grouped. */
+const PAL: { g: string; items: [string, string][] }[] = [
+  {
+    /* No bare Column. Every route it offered is already covered: dropped on the root
+       or a section it built the same Section > Row > Column that Columns does, and
+       dropped on a row it did what the row's own 1-6 count control does. The type
+       stays in DEF — cols(), wrap(), applyCols() and every template depend on it; it
+       is just not something you add by hand. */
+    g: 'Layout', items: [
+      ['section', 'Section'], ['columns', 'Columns'], ['row', 'Row'], ['list', 'Collection']
+    ]
+  },
+  {
+    g: 'Content', items: [
+      ['heading', 'Heading'], ['text', 'WYSIWYG'], ['image', 'Image'], ['gallery', 'Gallery'],
+      ['video', 'Video'], ['icon', 'Icon']
+    ]
+  },
+  {
+    /* Grouped by what they do rather than by how they are built, which is why the
+       Accordion sits with the Form: both are things a visitor operates. */
+    g: 'Interactive', items: [
+      ['button', 'Button'], ['nav', 'Nav menu'], ['form', 'Form'], ['accordion', 'Accordion'], ['embed', 'Embed']
+    ]
+  },
+  { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
+];
+
+const TABS: [string, string][] = [['widgets', 'Widgets'], ['blocks', 'Blocks'], ['templates', 'Templates']];
+const tab = () => C.state.ui.atab || 'widgets';
+
+function Widgets() {
+  return (
+    <>
+      {PAL.map(g => (
+        <>
+          <div class="plabel">{g.g}</div>
+          <div class="pgrid">
+            {g.items.map(([k, label]) => (
+              <div class="pitem" key={k} title="Drag onto the canvas — or click to append"
+                onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
+                  { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
+                onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
+                <Icon name={C.iconOf(k)} size={19} />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ))}
+    </>
+  );
+}
+
+function Templates() {
+  const cats: string[] = [];
+  C.PATTERNS.forEach(t => { if (!cats.includes(t.cat)) cats.push(t.cat); });
+
+  const place = (id: string) => {
+    if (L.consumeDragMoved()) return;
+    let made: { id: string } | null = null;
+    C.edit(() => { made = C.patternInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    const name = C.PATTERNS.find(x => x.id === id)!.name;
+    L.toast(made ? name + ' added' : 'That does not fit there');
+  };
+
+  return (
+    <>
+      <div class="hint" style={{ paddingBottom: '12px' }}>
+        Ready-made sections, built from this project's colours and text styles.
+      </div>
+      {cats.map(cat => (
+        <>
+          <div class="plabel">{cat}</div>
+          <div class="pvgrid">
+            {C.PATTERNS.filter(t => t.cat === cat).map(t => (
+              <button class="pvcard" key={t.id} title={t.desc + ' — drag onto the canvas, or click to append'}
+                onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
+                  { kind: 'pattern', patId: t.id, label: t.name, icon: 'section' }, false)}
+                onClick={() => place(t.id)}>
+                {/* A div, not a span: `.pvcard span` styles the label with a border-top
+                    and padding, so wrapping the preview in a span would draw a stray
+                    line above every card. The preview is markup the pattern builds
+                    from the project's own tokens — our data, not anyone's input. */}
+                <div dangerouslySetInnerHTML={{ __html: t.preview() }} />
+                <span>{t.name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      ))}
+    </>
+  );
+}
+
+function Blocks() {
+  const sel = C.state.ui.sel ? C.locate(C.state.ui.sel) : null;
+  const list = C.blocks();
+
+  const place = (id: string) => {
+    if (L.consumeDragMoved()) return;
+    let made: { id: string } | null = null;
+    C.edit(() => { made = C.blockInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    L.toast(made ? C.findBlock(id)!.name + ' placed' : 'That block does not fit there');
+  };
+
+  const forget = async (e: MouseEvent, id: string) => {
+    e.stopPropagation();
+    const b = C.findBlock(id);
+    if (!b) return;
+    const ok = await L.askConfirm('Forget this block?',
+      `<b>${esc(b.name)}</b> leaves the Blocks tab. Copies already placed stay.`,
+      { ok: 'Forget block' });
+    if (!ok) return;
+    C.edit(() => C.blockDelete(id));
+  };
+
+  return (
+    <>
+      {list.length ? list.map(b => {
+        const def = C.DEF[b.node.type];
+        return (
+          <div class="brow" key={b.id} title="Drag onto the canvas, or click to place it"
+            onPointerDown={e => {
+              if ((e.target as HTMLElement).closest('.bx')) return;
+              L.startDrag(e as unknown as PointerEvent,
+                { kind: 'block', blockId: b.id, label: b.name, icon: 'section' }, false);
+            }}
+            onClick={e => { if (!(e.target as HTMLElement).closest('.bx')) place(b.id); }}>
+            <Icon name={def ? def.icon : 'section'} size={14} />
+            <span class="bn">
+              <b>{b.name}</b>
+              <small>{def ? def.label : 'Block'}{b.sync ? ` · global · ${C.blockUsage(b.id)} placed` : ''}</small>
+            </span>
+            <button class="bx" title="Forget this block" onClick={e => forget(e, b.id)}>
+              <Icon name="trash" size={11} />
+            </button>
+          </div>
+        );
+      }) : (
+        <div class="hint">
+          Nothing saved yet. Select something on the canvas and save it here to reuse it
+          on any page.
+        </div>
+      )}
+      <button class="btn" disabled={!sel}
+        style={{ width: '100%', justifyContent: 'center', marginTop: 'var(--gap-1)', fontSize: '12px' }}
+        onClick={() => sel && L.saveBlockFlow(sel.node.id)}>
+        <Icon name="plus" size={12} />
+        {sel ? ' Save ' + C.DEF[sel.node.type].label + ' as block' : ' Select something to save'}
+      </button>
+    </>
+  );
+}
+
+export function Add() {
+  const t = tab();
+  return (
+    <>
+      <div class="tabs atabs">
+        {TABS.map(([key, label]) => (
+          <button key={key} class={t === key ? 'on' : ''}
+            onClick={() => { C.state.ui.atab = key; repaint('add'); }}>{label}</button>
+        ))}
+      </div>
+      <div class="palette">
+        {t === 'widgets' ? <Widgets /> : t === 'templates' ? <Templates /> : <Blocks />}
+      </div>
+    </>
+  );
+}
+
+/* askConfirm takes HTML, so this one value is escaped by hand. */
+const esc = (s: string) => String(s ?? '').replace(/[&<>"']/g, ch =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));

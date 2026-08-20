@@ -2048,101 +2048,16 @@ document.addEventListener('pointerdown', e => {
 
 
 /* ============================================================== palette */
-const PAL = [
-  {
-    /* No bare Column here. Every route it offered is already covered: dropped on the
-       root or a section it built the same Section > Row > Column that Columns does,
-       and dropped on a row it did what the row's own 1–6 count control does. The
-       type itself stays in DEF — cols(), wrap(), applyCols() and every template
-       depend on it; it is just not something you add by hand. */
-    g: 'Layout', items: [
-      ['section', 'Section'], ['columns', 'Columns'], ['row', 'Row'], ['list', 'Collection']
-    ]
-  },
-  {
-    g: 'Content', items: [
-      ['heading', 'Heading'], ['text', 'WYSIWYG'], ['image', 'Image'], ['gallery', 'Gallery'],
-      ['video', 'Video'], ['icon', 'Icon']
-    ]
-  },
-  {
-    /* Grouped by what they do rather than by how they are built, which is why the
-       Accordion sits with the Form: both are things a visitor operates. */
-    g: 'Interactive', items: [
-      ['button', 'Button'], ['nav', 'Nav menu'], ['form', 'Form'], ['accordion', 'Accordion'], ['embed', 'Embed']
-    ]
-  },
-  {
-    g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']]
-  }
-];
 
-function renderPalette() {
-  const p = $('#paneAdd');
-  const tab = state.ui.atab || 'widgets';
-  p.innerHTML = `
-    <div class="tabs atabs" id="addTabs">
-      <button data-a="widgets" class="${tab === 'widgets' ? 'on' : ''}">Widgets</button>
-      <button data-a="blocks" class="${tab === 'blocks' ? 'on' : ''}">Blocks</button>
-      <button data-a="templates" class="${tab === 'templates' ? 'on' : ''}">Templates</button>
-    </div>
-    <div class="palette" id="addBody"></div>`;
-  $$('#addTabs button').forEach(b => b.addEventListener('click', () => {
-    state.ui.atab = b.dataset.a;
-    renderPalette();
-  }));
-  drawAddBody();
-}
+/* The Add panel lives in app/src/ui/Add.tsx now — widgets, blocks and templates, plus
+   the PAL list of what is offered. Three functions became one component: renderPalette
+   owned #paneAdd while drawAddBody and drawBlocks both wrote #addBody, so the inner
+   container had two writers and a tab switch meant calling the right one by hand.
+   `drawBlocks` stays as a name because two other places call it after a block changes;
+   repainting the whole panel is the same thing and does not care which tab is open. */
+function renderPalette() { ui().renderAdd(); }
+function drawBlocks() { ui().renderAdd(); }
 
-function drawAddBody() {
-  const box = $('#addBody');
-  if (!box) return;
-  const tab = state.ui.atab || 'widgets';
-
-  if (tab === 'widgets') {
-    box.innerHTML = `${PAL.map(g => `
-      <div class="plabel">${g.g}</div>
-      <div class="pgrid">${g.items.map(([k, lb]) => `
-        <div class="pitem" data-key="${k}" title="Drag onto the canvas — or click to append">
-          ${svg(iconOf(k), 19)}<span>${lb}</span>
-        </div>`).join('')}</div>`).join('')}`;
-    $$('.pitem', box).forEach(it => {
-      const key = it.dataset.key;
-      it.addEventListener('pointerdown', e => startDrag(e, { kind: 'new', type: key, label: labelOf(key), icon: iconOf(key) }, false));
-      it.addEventListener('click', () => {
-        if (dragDidMove) { dragDidMove = false; return; }
-        appendSmart(key);
-      });
-    });
-    return;
-  }
-
-  if (tab === 'templates') {
-    const order = [];
-    PATTERNS.forEach(t => { if (!order.includes(t.cat)) order.push(t.cat); });
-    box.innerHTML = `<div class="hint" style="padding-bottom:12px">Ready-made sections, built from this project's colours and text styles.</div>
-      ${order.map(cat => `
-        <div class="plabel">${esc(cat)}</div>
-        <div class="pvgrid">${PATTERNS.filter(t => t.cat === cat).map(t => `
-          <button class="pvcard" data-pat="${t.id}" title="${esc(t.desc)} — drag onto the canvas, or click to append">
-            ${t.preview()}
-            <span>${esc(t.name)}</span>
-          </button>`).join('')}</div>`).join('')}`;
-    $$('[data-pat]', box).forEach(row => {
-      const id = row.dataset.pat;
-      row.addEventListener('pointerdown', e => startDrag(e, { kind: 'pattern', patId: id, label: PATTERNS.find(x => x.id === id).name, icon: 'section' }, false));
-      row.addEventListener('click', () => {
-        if (dragDidMove) { dragDidMove = false; return; }
-        let made = null;
-        edit(() => { made = patternInsert(id, undefined); if (made) selSet([made.id]); });
-        toast(made ? PATTERNS.find(x => x.id === id).name + ' added' : 'That does not fit there');
-      });
-    });
-    return;
-  }
-
-  drawBlocks();
-}
 
 /* Saved blocks sit alongside the components, because that is where you go to
    put something on the page. */
@@ -2169,43 +2084,6 @@ async function pushBlockFlow(nodeId) {
   toast(n ? `“${esc(b.name)}” updated — ${n} cop${n === 1 ? 'y' : 'ies'} matched` : `“${esc(b.name)}” updated`);
 }
 
-function drawBlocks() {
-  const box = $('#addBody');
-  if (!box || (state.ui.atab || 'widgets') !== 'blocks') return;
-  const sel = state.ui.sel ? locate(state.ui.sel) : null;
-  box.innerHTML = `${blocks().length ? blocks().map(b => `
-      <div class="brow" data-b="${b.id}" title="Drag onto the canvas, or click to place it">
-        ${svg(DEF[b.node.type] ? DEF[b.node.type].icon : 'section', 14)}
-        <span class="bn"><b>${esc(b.name)}</b><small>${esc(DEF[b.node.type] ? DEF[b.node.type].label : 'Block')}${b.sync ? ` · global · ${blockUsage(b.id)} placed` : ''}</small></span>
-        <button class="bx" data-bdel="${b.id}" title="Forget this block">${svg('trash', 11)}</button>
-      </div>`).join('') : '<div class="hint">Nothing saved yet. Select something on the canvas and save it here to reuse it on any page.</div>'}
-    <button class="btn" id="blockSave" style="width:100%;justify-content:center;margin-top:var(--gap-1);font-size:12px"${sel ? '' : ' disabled'}>
-      ${svg('plus', 12)} ${sel ? 'Save ' + esc(DEF[sel.node.type].label) + ' as block' : 'Select something to save'}
-    </button>`;
-
-  $$('.brow', box).forEach(row => {
-    const id = row.dataset.b;
-    row.addEventListener('pointerdown', e => {
-      if (e.target.closest('[data-bdel]')) return;
-      startDrag(e, { kind: 'block', blockId: id, label: findBlock(id).name, icon: 'section' }, false);
-    });
-    row.addEventListener('click', e => {
-      if (e.target.closest('[data-bdel]')) return;
-      if (dragDidMove) { dragDidMove = false; return; }
-      let made = null;
-      edit(() => { made = blockInsert(id, undefined); if (made) selSet([made.id]); });
-      toast(made ? findBlock(id).name + ' placed' : 'That block does not fit there');
-    });
-  });
-  $$('[data-bdel]', box).forEach(b => b.addEventListener('click', async e => {
-    e.stopPropagation();
-    const id = b.dataset.bdel;
-    if (!await askConfirm('Forget this block?', `<b>${esc(findBlock(id).name)}</b> leaves the Blocks tab. Copies already placed stay.`, { ok: 'Forget block' })) return;
-    edit(() => blockDelete(id));
-  }));
-  const sv = $('#blockSave');
-  if (sv && sel) sv.addEventListener('click', () => saveBlockFlow(sel.node.id));
-}
 
 function appendSmart(key) {
   const [container, index] = smartTarget(key);
@@ -2228,9 +2106,14 @@ function appendSmart(key) {
 let UI = null;
 const ui = () => UI || (UI = PC_UI.mount(
   { IC, DEF, DEV_LABEL, state, dk, tree, selIds, nameOf,
-    edit, collections, findCollection, collectionAdd, collectionDelete },
+    edit, collections, findCollection, collectionAdd, collectionDelete,
+    locate, selSet, iconOf, labelOf, PATTERNS, patternInsert,
+    blocks, findBlock, blockInsert, blockDelete, blockUsage },
   { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor,
-    askText, askConfirm, cmsModal }
+    askText, askConfirm, cmsModal, saveBlockFlow, toast, startDrag, appendSmart,
+    /* the click fires after the drag ends, so the flag is read and cleared in one go
+       or the dragged element is also appended where it started */
+    consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; } }
 ));
 function renderLayers() { ui().renderLayers(); }
 

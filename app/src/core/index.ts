@@ -1990,13 +1990,21 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
   if (!h) return place(tree(), tree().length, null) ? fresh : null;
   if (place(h.node.children, h.node.children.length, h.node.type)) return fresh;
   if (place(h.list, h.i + 1, h.parent ? h.parent.type : null)) return fresh;
-  let up = h.parent;
+  let up = h.parent, top: PcNode = h.node;
   while (up) {
     const uh = locate(up.id);
     if (place(up.children, up.children.length, up.type)) return fresh;
-    up = uh && uh.parent;
+    top = up;
+    up = uh ? uh.parent : null;
   }
-  return null;
+  /* The document root is the last ancestor, and the only thing that holds a section.
+     Skipping it meant clicking a template with a heading selected did nothing and said
+     "That does not fit there" — while the same click with a section selected, or with
+     nothing selected, worked. It goes after the top-level node the selection sat
+     inside, which is where smartTarget puts one too. */
+  const list = tree();
+  const at = list.indexOf(top);
+  return place(list, at < 0 ? list.length : at + 1, null) ? fresh : null;
 }
 
 /* Where a new `key` should land given the current selection: inside it when it can
@@ -2462,7 +2470,7 @@ function blockPush(nodeId: string) {
   }
   return n;
 }
-function blockInsert(id: string, parentNode: PcNode | null, index: number) {
+function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
   const b = findBlock(id);
   if (!b) return null;
   const fresh = reid(clone(b.node));
@@ -2899,7 +2907,12 @@ const PATTERNS = [
     ])
   }
 ];
-function patternInsert(pid: string, parentNode: PcNode | null, index: number) {
+/* `parentNode` omitted means "drop at the current selection", which the body below
+   tests for explicitly — so the signature declaring it required made its own branch
+   unreachable, and the Add panel's call an error. `index` is only read once a parent
+   is given, and every caller that gives one gives both; the default just keeps the
+   arithmetic total. */
+function patternInsert(pid: string, parentNode?: PcNode | null, index = 0) {
   const p = PATTERNS.find(x => x.id === pid);
   if (!p) return null;
   const node = p.build();
