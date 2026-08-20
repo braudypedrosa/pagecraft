@@ -606,7 +606,10 @@ const DEF: Record<string, WidgetDef> = {
 };
 
 /* style controls shared by every element */
-const COMMON_STYLE = [
+/* Annotated rather than inferred: without it every `t` widens to `string`, so the
+   inspector could not tell these apart from any other object and a typo in a kind name
+   would reach the panel as a silently blank field. */
+const COMMON_STYLE: { g: string; items: Control[] }[] = [
   { g: 'Spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
   {
     g: 'Background', items: [

@@ -224,21 +224,31 @@ ${fragOut.slice(cut).trim()}
 mkdirSync(join(here, 'dist'), { recursive: true });
 writeFileSync(join(here, 'dist', 'artifact.html'), withFonts(fragOut));
 
-/* ---- 1c. every control must be both rendered and wired ------------------
-   A slice-based edit once deleted four wiring branches while leaving their
-   markup in place, producing controls that looked fine and did nothing. */
-const cases = (fnName, endMarker) => {
-  const from = script.indexOf(fnName);
-  const to = script.indexOf(endMarker, from);
-  if (from < 0 || to < 0) throw new Error('could not locate ' + fnName);
-  return new Set([...script.slice(from, to).matchAll(/case '(\w+)':/g)].map(m => m[1]));
-};
-const rendered = cases('function ctlHtml(', 'function groupHtml(');
-const wired = cases('function bindRight(', '/* advanced pseudo-props');
-const unwired = [...rendered].filter(c => !wired.has(c));
-const unrendered = [...wired].filter(c => !rendered.has(c));
-if (unwired.length) throw new Error('control(s) rendered but never wired: ' + unwired.join(', '));
-if (unrendered.length) throw new Error('control(s) wired but never rendered: ' + unrendered.join(', '));
+/* ---- 1c. every control kind must have a component ----------------------
+   This used to compare `ctlHtml`'s cases against `bindRight`'s, because a slice-based
+   edit once deleted four wiring branches while leaving their markup in place, producing
+   controls that looked fine and did nothing. That failure is no longer possible: a
+   control's handlers are written beside its markup and there is nothing to keep in step.
+
+   The check that replaces it guards what *can* still go wrong. `ControlKind` is a union
+   in types.ts, and a widget definition naming a kind with no component renders a silently
+   blank field — the type is satisfied either way, so only this notices. */
+const declaredKinds = (() => {
+  const src = readFileSync(join(here, 'app', 'src', 'core', 'types.ts'), 'utf8');
+  const m = src.match(/export type ControlKind =([\s\S]*?);/);
+  if (!m) throw new Error('could not find the ControlKind union in types.ts');
+  return new Set([...m[1].matchAll(/'([\w-]+)'/g)].map(x => x[1]));
+})();
+const builtKinds = (() => {
+  const src = readFileSync(join(here, 'app', 'src', 'ui', 'inspector', 'Controls.tsx'), 'utf8');
+  const m = src.match(/const KINDS: Record<string, \(p: P\) => any> = \{([\s\S]*?)\};/);
+  if (!m) throw new Error('could not find the KINDS map in Controls.tsx');
+  return new Set([...m[1].matchAll(/(\w+):/g)].map(x => x[1]));
+})();
+const missing = [...declaredKinds].filter(k => !builtKinds.has(k));
+const extra = [...builtKinds].filter(k => !declaredKinds.has(k));
+if (missing.length) throw new Error('control kind(s) declared but with no component: ' + missing.join(', '));
+if (extra.length) throw new Error('component(s) for a kind that is not in ControlKind: ' + extra.join(', '));
 
 /* ---- 2. dist/core.cjs -------------------------------------------------
    The suite reads app/src/core/index.ts directly now, so this is no longer the

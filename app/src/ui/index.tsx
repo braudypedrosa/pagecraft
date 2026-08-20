@@ -10,6 +10,7 @@ import { Layers } from './Layers';
 import { Cms } from './Cms';
 import { Add } from './Add';
 import { Pages } from './Pages';
+import { Inspector } from './inspector/Inspector';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
@@ -30,12 +31,16 @@ export function mount(core: Core, legacy: Legacy) {
     renderLayers: panel('paneLayers', () => <Layers />),
     renderCms: panel('paneCms', () => <Cms />, true),
     renderAdd: panel('paneAdd', () => <Add />),
-    renderPages: panel('panePages', () => <Pages />)
+    renderPages: panel('panePages', () => <Pages />),
+    /* #right is hidden and shown by the Inspector itself, so it must render even while
+       hidden — the component is what decides. */
+    renderRight: panel('right', () => <Inspector />)
   };
   registerPainter('layers', painters.renderLayers);
   registerPainter('add', painters.renderAdd);
   registerPainter('cms', painters.renderCms);
   registerPainter('pages', painters.renderPages);
+  registerPainter('right', painters.renderRight);
 
   return painters;
 }

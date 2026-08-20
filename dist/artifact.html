@@ -5916,21 +5916,21 @@ var PC_UI = (() => {
       }
     );
   }
-  function Rows({ list, depth }) {
+  function Rows({ list: list2, depth }) {
     const out = [];
     const walk = (arr, d2) => arr.forEach((n2) => {
       out.push(/* @__PURE__ */ u2(NodeRow, { n: n2, depth: d2 }, n2.id));
       if ((n2.children || []).length && !C2.state.ui.collapsed[n2.id]) walk(n2.children, d2 + 1);
     });
-    walk(list, depth);
+    walk(list2, depth);
     return /* @__PURE__ */ u2(S, { children: out });
   }
   function Layers() {
     const scope = L2.scopeOf();
-    const list = C2.tree();
+    const list2 = C2.tree();
     return /* @__PURE__ */ u2("div", { class: "layers", children: L2.regions.map((R2) => /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(RegionRow, { kind: R2.kind, label: R2.label }, "r-" + R2.kind),
-      R2.kind !== scope ? null : list.length ? /* @__PURE__ */ u2(Rows, { list, depth: 1 }) : /* @__PURE__ */ u2("div", { class: "empty", style: { padding: "14px 16px" }, children: [
+      R2.kind !== scope ? null : list2.length ? /* @__PURE__ */ u2(Rows, { list: list2, depth: 1 }) : /* @__PURE__ */ u2("div", { class: "empty", style: { padding: "14px 16px" }, children: [
         "Empty.",
         /* @__PURE__ */ u2("br", {}),
         "Add an element from the ",
@@ -5967,7 +5967,7 @@ var PC_UI = (() => {
     ] });
   }
   function Cms() {
-    const list = C2.collections();
+    const list2 = C2.collections();
     const add = async () => {
       const name = await L2.askText(
         "New collection",
@@ -5990,7 +5990,7 @@ var PC_UI = (() => {
         ] }),
         /* @__PURE__ */ u2("div", { class: "note", children: "A collection is a content type \u2014 a set of fields, and the items that fill them. Bind a widget to a field and it shows real content." })
       ] }),
-      list.length ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px" }, children: list.map((c3) => /* @__PURE__ */ u2(CollectionRow, { col: c3 }, c3.id)) }) : /* @__PURE__ */ u2("div", { class: "empty", children: [
+      list2.length ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px" }, children: list2.map((c3) => /* @__PURE__ */ u2(CollectionRow, { col: c3 }, c3.id)) }) : /* @__PURE__ */ u2("div", { class: "empty", children: [
         "No collections yet.",
         /* @__PURE__ */ u2("br", {}),
         /* @__PURE__ */ u2("br", {}),
@@ -6112,7 +6112,7 @@ var PC_UI = (() => {
   }
   function Blocks() {
     const sel = C2.state.ui.sel ? C2.locate(C2.state.ui.sel) : null;
-    const list = C2.blocks();
+    const list2 = C2.blocks();
     const place = (id) => {
       if (L2.consumeDragMoved()) return;
       let made = null;
@@ -6135,7 +6135,7 @@ var PC_UI = (() => {
       C2.edit(() => C2.blockDelete(id));
     };
     return /* @__PURE__ */ u2(S, { children: [
-      list.length ? list.map((b2) => {
+      list2.length ? list2.map((b2) => {
         const def = C2.DEF[b2.node.type];
         return /* @__PURE__ */ u2(
           "div",
@@ -6525,6 +6525,1559 @@ var PC_UI = (() => {
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
+  // app/src/ui/inspector/ctl.ts
+  function bound(n2, c3) {
+    const scope = c3.k ? C2.bindScope(n2.id) : null;
+    const fid = scope ? C2.bindGet(n2, c3.k) : "";
+    return { scope, fid };
+  }
+  function valueOf(n2, c3) {
+    const { scope, fid } = bound(n2, c3);
+    if (fid && scope) return C2.fieldValue(scope.col, C2.previewItem(scope.col), fid);
+    return c3.c ? C2.cssVal(C2.tgtObj(n2), c3.c, !!c3.r).v : C2.propVal(n2, c3.k);
+  }
+  function writer(n2, c3) {
+    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const cssOnly = !!c3.c;
+    return {
+      live(v3) {
+        L2.tx(key);
+        C2.applyC(n2, c3, v3);
+        (cssOnly ? L2.repaintCss : L2.repaint)();
+      },
+      hard(v3) {
+        L2.tx(key);
+        C2.applyC(n2, c3, v3);
+        if (cssOnly) L2.paintCss();
+        else {
+          L2.paint();
+          repaint("layers");
+        }
+        L2.save();
+        L2.endTx();
+        repaint("right");
+      },
+      done: L2.endTx,
+      clearOverride() {
+        L2.tx(key + ":clear");
+        const o3 = C2.tgtObj(n2);
+        if (c3.t === "box") ["top", "right", "bottom", "left"].forEach((s3) => {
+          delete o3.css[C2.dk()][c3.c + "-" + s3];
+        });
+        else delete o3.css[C2.dk()][c3.c];
+        L2.endTx();
+        L2.paintCss();
+        L2.save();
+        repaint("right");
+      }
+    };
+  }
+  var rows = (n2, c3) => n2.props[c3.k] = Array.isArray(n2.props[c3.k]) ? n2.props[c3.k] : [];
+  var liftRow = (n2, c3, k3) => {
+    if (!k3) return;
+    C2.edit(() => {
+      const a3 = rows(n2, c3);
+      [a3[k3 - 1], a3[k3]] = [a3[k3], a3[k3 - 1]];
+    });
+  };
+  var dropRow = (n2, c3, k3) => C2.edit(() => rows(n2, c3).splice(k3, 1));
+
+  // app/src/ui/inspector/Field.tsx
+  var DEV_ICON = { d: "desktop", t: "tablet", m: "mobile" };
+  function ResponsiveBadge({ n: n2, c: c3 }) {
+    const dev = C2.dk();
+    const o3 = C2.tgtObj(n2);
+    const owns = !!(c3.c && o3.css[dev] && o3.css[dev][c3.c] !== void 0);
+    const clearable = owns && dev !== "d";
+    const w3 = writer(n2, c3);
+    return /* @__PURE__ */ u2(
+      "span",
+      {
+        class: "rsp" + (clearable ? " ovr" : ""),
+        title: dev === "d" ? "Editing the desktop base value" : owns ? "Overridden on " + C2.DEV_LABEL[dev] + " \u2014 click to clear" : "Set a " + C2.DEV_LABEL[dev] + " override",
+        onClick: clearable ? () => w3.clearOverride() : void 0,
+        children: /* @__PURE__ */ u2(Icon, { name: DEV_ICON[dev], size: 9 })
+      }
+    );
+  }
+  function BindBadge({ n: n2, c: c3 }) {
+    const scope = C2.bindScope(n2.id);
+    if (!scope) return null;
+    const fid = C2.bindGet(n2, c3.k);
+    const f4 = fid ? C2.findField(scope.col, fid) : null;
+    const pick = async () => {
+      const chosen = await L2.askPick(
+        `Bind to ${scope.col.name}`,
+        [
+          ["", "\u2014 No binding, use the value typed here \u2014"],
+          ...scope.col.fields.map((x2) => [x2.id, `${x2.name} \xB7 ${x2.type}`])
+        ],
+        fid
+      );
+      if (chosen === null) return;
+      C2.edit(() => C2.bindSet(n2, c3.k, chosen));
+      L2.toast(chosen ? "Bound to " + (C2.findField(scope.col, chosen) || { name: "" }).name : "Binding cleared");
+    };
+    return /* @__PURE__ */ u2(
+      "span",
+      {
+        class: "bnd" + (fid ? " on" : ""),
+        onClick: pick,
+        title: fid ? f4 ? `Bound to ${f4.name} \u2014 click to change` : "Bound to a field that no longer exists" : `Bind to a field in ${scope.col.name}`,
+        children: /* @__PURE__ */ u2(Icon, { name: "cms", size: 9 })
+      }
+    );
+  }
+  function Field({ n: n2, c: c3, children }) {
+    const { scope, fid } = bound(n2, c3);
+    const bindable = c3.k && C2.bindableKeys(n2.type).includes(c3.k);
+    const f4 = fid && scope ? C2.findField(scope.col, fid) : null;
+    return /* @__PURE__ */ u2("div", { class: "f" + (fid ? " bound" : ""), children: [
+      /* @__PURE__ */ u2("label", { children: [
+        c3.label || "",
+        c3.r ? /* @__PURE__ */ u2(ResponsiveBadge, { n: n2, c: c3 }) : null,
+        bindable ? /* @__PURE__ */ u2(BindBadge, { n: n2, c: c3 }) : null
+      ] }),
+      children,
+      fid ? /* @__PURE__ */ u2("div", { class: "note", children: [
+        "From ",
+        /* @__PURE__ */ u2("b", { children: (f4 || { name: "a missing field" }).name }),
+        " on the item shown above."
+      ] }) : c3.note ? /* @__PURE__ */ u2("div", { class: "note", children: c3.note }) : null
+    ] });
+  }
+
+  // app/src/ui/inspector/Lists.tsx
+  var list = (n2, c3) => {
+    const v3 = valueOf(n2, c3);
+    return Array.isArray(v3) ? v3 : [];
+  };
+  function RowInput({ n: n2, c: c3, k: k3, prop, ...rest }) {
+    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    return /* @__PURE__ */ u2(
+      "input",
+      {
+        class: "ctl",
+        value: list(n2, c3)[k3][prop] || "",
+        ...rest,
+        onInput: (e3) => {
+          L2.tx(key);
+          rows(n2, c3)[k3][prop] = e3.target.value;
+          L2.repaint();
+        },
+        onBlur: L2.endTx
+      }
+    );
+  }
+  function RowActs({ n: n2, c: c3, k: k3 }) {
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("button", { class: "x", title: "Move up", disabled: k3 === 0, onClick: () => liftRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 11 }) }),
+      /* @__PURE__ */ u2("button", { class: "x", title: "Remove", onClick: () => dropRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+    ] });
+  }
+  function AddButton({ label, onClick, gap, small }) {
+    return /* @__PURE__ */ u2(
+      "button",
+      {
+        class: "btn",
+        onClick,
+        style: { width: "100%", justifyContent: "center", marginTop: gap ? "6px" : "0", fontSize: small ? "11px" : "12px" },
+        children: [
+          /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+          " ",
+          label
+        ]
+      }
+    );
+  }
+  function ItemsCtl({ n: n2, c: c3 }) {
+    const arr = list(n2, c3);
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      arr.map((_2, k3) => /* @__PURE__ */ u2("div", { class: "irow", children: [
+        /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Label" }),
+        /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "href", placeholder: "#anchor or page.html" }),
+        /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 })
+      ] }, k3)),
+      /* @__PURE__ */ u2(
+        AddButton,
+        {
+          label: "Add link",
+          gap: !!arr.length,
+          small: true,
+          onClick: () => C2.edit(() => rows(n2, c3).push({ label: "New link", href: "" }))
+        }
+      )
+    ] });
+  }
+  var FIELD_TYPES = [
+    ["text", "Text"],
+    ["email", "Email"],
+    ["tel", "Phone"],
+    ["number", "Number"],
+    ["textarea", "Long text"],
+    ["select", "Dropdown"],
+    ["checkbox", "Checkbox"]
+  ];
+  function FieldsCtl({ n: n2, c: c3 }) {
+    const arr = list(n2, c3);
+    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      arr.map((f4, k3) => /* @__PURE__ */ u2("div", { class: "frow", children: [
+        /* @__PURE__ */ u2("div", { class: "frow-a", children: [
+          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Label" }),
+          /* @__PURE__ */ u2(
+            "select",
+            {
+              class: "ctl",
+              value: f4.type || "text",
+              onChange: (e3) => {
+                L2.tx(key);
+                rows(n2, c3)[k3].type = e3.target.value;
+                L2.endTx();
+                L2.paint();
+                L2.save();
+                L2.appRender();
+              },
+              children: FIELD_TYPES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
+            }
+          ),
+          /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 })
+        ] }),
+        /* @__PURE__ */ u2("div", { class: "frow-b", children: [
+          /* @__PURE__ */ u2(
+            RowInput,
+            {
+              n: n2,
+              c: c3,
+              k: k3,
+              prop: "name",
+              placeholder: C2.slugify(f4.label) || "field-name",
+              title: "The name submitted with the value"
+            }
+          ),
+          f4.type === "select" ? /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "opts", placeholder: "Option one, Option two" }) : /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "ph", placeholder: "Placeholder" }),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              class: "freq" + (f4.required ? " on" : ""),
+              title: "Required",
+              onClick: () => C2.edit(() => {
+                const a3 = rows(n2, c3);
+                a3[k3].required = a3[k3].required ? 0 : 1;
+              }),
+              children: "Req"
+            }
+          )
+        ] })
+      ] }, k3)),
+      /* @__PURE__ */ u2(
+        AddButton,
+        {
+          label: "Add field",
+          gap: !!arr.length,
+          onClick: () => C2.edit(() => rows(n2, c3).push({ type: "text", label: "New field", name: "", required: 0, ph: "" }))
+        }
+      )
+    ] });
+  }
+  function QaCtl({ n: n2, c: c3 }) {
+    const arr = list(n2, c3);
+    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      arr.map((it, k3) => /* @__PURE__ */ u2("div", { class: "qarow", children: [
+        /* @__PURE__ */ u2("div", { class: "qarow-a", children: [
+          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "q", placeholder: "Question" }),
+          /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 })
+        ] }),
+        /* @__PURE__ */ u2(
+          "textarea",
+          {
+            class: "ctl",
+            rows: 2,
+            value: it.a || "",
+            placeholder: "Answer \u2014 leave a blank line to start a new paragraph",
+            onInput: (e3) => {
+              L2.tx(key);
+              rows(n2, c3)[k3].a = e3.target.value;
+              L2.repaint();
+            },
+            onBlur: L2.endTx
+          }
+        )
+      ] }, k3)),
+      /* @__PURE__ */ u2(
+        AddButton,
+        {
+          label: "Add question",
+          gap: !!arr.length,
+          onClick: () => C2.edit(() => rows(n2, c3).push({ q: "A new question", a: "" }))
+        }
+      )
+    ] });
+  }
+  function ImgsCtl({ n: n2, c: c3 }) {
+    const arr = list(n2, c3);
+    const tile = (id) => {
+      const a3 = L2.asset(id);
+      return { src: "asset:" + id, alt: "", caption: "", w: a3 && a3.w ? String(a3.w) : "", h: a3 && a3.h ? String(a3.h) : "" };
+    };
+    const upload = () => {
+      const fi = document.createElement("input");
+      fi.type = "file";
+      fi.accept = "image/*";
+      fi.multiple = true;
+      fi.onchange = async () => {
+        const got = [];
+        for (const file of Array.from(fi.files || [])) {
+          const id = await L2.mediaTake(file);
+          if (id) got.push(id);
+        }
+        if (got.length) C2.edit(() => got.forEach((id) => rows(n2, c3).push(tile(id))));
+      };
+      fi.click();
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      arr.map((it, k3) => {
+        const ref = String(it.src || "").match(/^asset:([a-z0-9]+)$/);
+        const a3 = ref ? L2.asset(ref[1]) : null;
+        return /* @__PURE__ */ u2("div", { class: "gtile", children: [
+          /* @__PURE__ */ u2("span", { class: "gthumb", children: a3 ? /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }) : /* @__PURE__ */ u2("span", { children: [
+            "not in",
+            /* @__PURE__ */ u2("br", {}),
+            "project"
+          ] }) }),
+          /* @__PURE__ */ u2("span", { class: "gmeta", children: [
+            /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "alt", placeholder: "Alt text \u2014 describe it" }),
+            /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "caption", placeholder: "Caption (optional)" })
+          ] }),
+          /* @__PURE__ */ u2("span", { class: "gacts", children: /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 }) })
+        ] }, k3);
+      }),
+      /* @__PURE__ */ u2("div", { style: { display: "flex", gap: "6px", marginTop: arr.length ? "6px" : "0" }, children: [
+        /* @__PURE__ */ u2("button", { class: "btn", style: { flex: 1, justifyContent: "center", fontSize: "12px" }, onClick: upload, children: [
+          /* @__PURE__ */ u2(Icon, { name: "image", size: 13 }),
+          " Upload"
+        ] }),
+        L2.assetCount() ? /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "btn",
+            style: { flex: 1, justifyContent: "center", fontSize: "12px" },
+            title: "Pick from the Media library",
+            onClick: async () => {
+              const id = await L2.mediaPicker();
+              if (id && L2.asset(id)) C2.edit(() => rows(n2, c3).push(tile(id)));
+            },
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
+              " Library"
+            ]
+          }
+        ) : null
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "note", children: "Upload takes several files at once. Alt text is what a screen reader reads \u2014 the review asks for it." })
+    ] });
+  }
+
+  // app/src/ui/inspector/Controls.tsx
+  var ADV = { _id: "htmlId", _cls: "cls", _css: "css" };
+  var shown = (n2, c3) => {
+    const k3 = c3.k && ADV[c3.k];
+    if (k3) return n2.adv[k3] || "";
+    const v3 = valueOf(n2, c3);
+    return v3 == null ? "" : String(v3);
+  };
+  var inert = (n2, c3) => !!bound(n2, c3).fid;
+  function TextCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
+      "input",
+      {
+        class: "ctl",
+        value: shown(n2, c3),
+        placeholder: c3.ph || "",
+        disabled: inert(n2, c3),
+        onInput: (e3) => w3.live(e3.target.value),
+        onBlur: w3.done
+      }
+    ) });
+  }
+  function AreaCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
+      "textarea",
+      {
+        class: "ctl",
+        rows: c3.rows || 3,
+        placeholder: c3.ph || void 0,
+        disabled: inert(n2, c3),
+        value: shown(n2, c3),
+        style: {
+          fontFamily: c3.mono ? "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" : "var(--sans)",
+          fontSize: "12px",
+          minHeight: "52px",
+          lineHeight: 1.5
+        },
+        onInput: (e3) => w3.live(e3.target.value),
+        onBlur: w3.done
+      }
+    ) });
+  }
+  function SelectCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const opts = typeof c3.opts === "function" ? c3.opts(n2) : c3.opts || [];
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
+      "select",
+      {
+        class: "ctl",
+        value: String(shown(n2, c3)),
+        disabled: inert(n2, c3),
+        onChange: (e3) => w3.hard(e3.target.value),
+        children: opts.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
+      }
+    ) });
+  }
+  function UnitCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const { n: num, u: parsed } = C2.parseU(valueOf(n2, c3));
+    const units = c3.units || ["px"];
+    const u4 = units.includes(parsed) ? parsed : units[0];
+    const push = (root) => {
+      const numEl = root.querySelector("input");
+      const unitEl = root.querySelector("select");
+      const v3 = String(numEl.value).trim();
+      w3.live(v3 === "" ? "" : v3 + (unitEl.value || ""));
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "unit", children: [
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          type: "number",
+          step: c3.step || 1,
+          value: num,
+          placeholder: "auto",
+          onInput: (e3) => push(e3.target.parentElement),
+          onBlur: w3.done
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: u4,
+          onChange: (e3) => {
+            push(e3.target.parentElement);
+            w3.done();
+          },
+          children: units.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 || "\u2014" }, x2))
+        }
+      )
+    ] }) });
+  }
+  function SliderCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const raw = valueOf(n2, c3);
+    const v3 = raw === "" || raw == null ? c3.max === 1 ? 1 : c3.min : parseFloat(String(raw));
+    const push = (x2) => w3.live(c3.raw ? String(x2) : x2 + "px");
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "sld", children: [
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          type: "range",
+          min: c3.min,
+          max: c3.max,
+          step: c3.step,
+          value: v3,
+          onInput: (e3) => push(e3.target.value),
+          onChange: w3.done
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl num",
+          type: "number",
+          min: c3.min,
+          max: c3.max,
+          step: c3.step,
+          value: v3,
+          onInput: (e3) => push(e3.target.value),
+          onBlur: w3.done
+        }
+      )
+    ] }) });
+  }
+  function ColorCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const v3 = String(valueOf(n2, c3) || "");
+    const tok = C2.refId(v3) ? C2.findColor(C2.refId(v3)) : null;
+    const lit = tok ? tok.value : v3;
+    const hexish = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(lit) ? lit : "#000000";
+    const cur = () => c3.c ? C2.cssVal(C2.tgtObj(n2), c3.c, !!c3.r).v : C2.propVal(n2, c3.k);
+    const addToken = async () => {
+      const name = await L2.askText(
+        "New colour token",
+        "Colour name",
+        "Accent",
+        { ok: "Create token", note: "Every element using it changes with it." }
+      );
+      if (name === null) return;
+      C2.edit(() => {
+        const id = C2.colorAdd(name, C2.resolveColor(cur()) || hexish);
+        C2.applyC(n2, c3, C2.cvar(id));
+      });
+      L2.toast("Colour token created");
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2("div", { class: "clr", children: [
+        /* @__PURE__ */ u2("span", { class: "sw", children: [
+          /* @__PURE__ */ u2("i", { style: { background: lit || "transparent" } }),
+          /* @__PURE__ */ u2(
+            "input",
+            {
+              type: "color",
+              value: hexish,
+              onInput: (e3) => w3.live(e3.target.value),
+              onChange: () => {
+                w3.done();
+                if (C2.isRef(cur())) repaint("right");
+              }
+            }
+          )
+        ] }),
+        tok ? /* @__PURE__ */ u2(S, { children: [
+          /* @__PURE__ */ u2("span", { class: "tokchip", title: "Linked to the " + tok.name + " token", children: [
+            /* @__PURE__ */ u2(Icon, { name: "link", size: 10 }),
+            " ",
+            tok.name
+          ] }),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              class: "x",
+              title: "Unlink \u2014 keep the colour, drop the link",
+              onClick: () => w3.hard(C2.resolveColor(cur())),
+              children: /* @__PURE__ */ u2(Icon, { name: "unlink", size: 11 })
+            }
+          )
+        ] }) : /* @__PURE__ */ u2(S, { children: [
+          /* @__PURE__ */ u2(
+            "input",
+            {
+              class: "ctl hex",
+              value: v3,
+              placeholder: "inherit",
+              onInput: (e3) => w3.live(e3.target.value.trim()),
+              onBlur: w3.done
+            }
+          ),
+          /* @__PURE__ */ u2("button", { class: "x", title: "Clear", onClick: () => w3.hard(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+        ] })
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "toks", children: [
+        C2.colors().map((t3) => /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "tok" + (tok && tok.id === t3.id ? " on" : ""),
+            title: t3.name,
+            style: { background: t3.value },
+            onClick: () => w3.hard(C2.cvar(t3.id))
+          },
+          t3.id
+        )),
+        /* @__PURE__ */ u2("button", { class: "tok add", title: "Save this colour as a new token", onClick: addToken, children: /* @__PURE__ */ u2(Icon, { name: "plus", size: 10 }) })
+      ] })
+    ] });
+  }
+  function PickCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const val = String(shown(n2, c3));
+    const opts = (typeof c3.opts === "function" ? c3.opts(n2) : c3.opts) || [];
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "pick", children: opts.map(([v3, l3]) => /* @__PURE__ */ u2(
+      "button",
+      {
+        class: val === String(v3) ? "on" : "",
+        title: l3,
+        onClick: () => w3.hard(v3),
+        children: C2.IC[l3] ? /* @__PURE__ */ u2(Icon, { name: l3, size: 13 }) : l3
+      },
+      v3
+    )) }) });
+  }
+  function ToggleCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const on = !!valueOf(n2, c3);
+    return /* @__PURE__ */ u2("div", { class: "f", children: /* @__PURE__ */ u2("div", { class: "tog-row", children: [
+      /* @__PURE__ */ u2("span", { children: c3.label }),
+      /* @__PURE__ */ u2("button", { class: "sw-tog" + (on ? " on" : ""), onClick: () => w3.hard(on ? 0 : 1), children: /* @__PURE__ */ u2("i", {}) })
+    ] }) });
+  }
+  var SIDES = ["top", "right", "bottom", "left"];
+  function BoxCtl({ n: n2, c: c3 }) {
+    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const vals = SIDES.map((s3) => C2.parseU(C2.cssVal(C2.tgtObj(n2), c3.c + "-" + s3, !!c3.r).v));
+    const withUnit = vals.find((x2) => x2.u);
+    const u4 = withUnit ? withUnit.u : "px";
+    const push = (root) => {
+      L2.tx(key);
+      const unit = root.querySelector("select").value;
+      root.querySelectorAll("input").forEach((inp, i3) => {
+        const v3 = String(inp.value).trim();
+        C2.setCss(C2.tgtObj(n2), c3.c + "-" + SIDES[i3], v3 === "" ? "" : v3 + unit, !!c3.r);
+      });
+      L2.repaintCss();
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2("div", { class: "row4", children: SIDES.map((s3, k3) => /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          type: "number",
+          value: vals[k3].n,
+          placeholder: "0",
+          title: s3,
+          onInput: (e3) => push(e3.target.closest(".f")),
+          onBlur: L2.endTx
+        },
+        s3
+      )) }),
+      /* @__PURE__ */ u2("div", { class: "note", style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [
+        /* @__PURE__ */ u2("span", { children: "top \xB7 right \xB7 bottom \xB7 left" }),
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            class: "ctl",
+            value: u4,
+            style: { width: "58px", padding: "2px 4px", fontSize: "10px" },
+            onChange: (e3) => {
+              push(e3.target.closest(".f"));
+              L2.endTx();
+            },
+            children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
+          }
+        )
+      ] })
+    ] });
+  }
+  function useFilePicker(take, multiple = false) {
+    return () => {
+      const fi = document.createElement("input");
+      fi.type = "file";
+      fi.accept = "image/*";
+      fi.multiple = multiple;
+      fi.onchange = async () => {
+        for (const file of Array.from(fi.files || [])) {
+          const id = await L2.mediaTake(file);
+          if (id) take(id);
+        }
+      };
+      fi.click();
+    };
+  }
+  function ImgCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const val = String(valueOf(n2, c3) || "");
+    const rawv = c3.bg ? val.replace(/^url\(["']?|["']?\)$/g, "") : val;
+    const ref = rawv.match(/^asset:([a-z0-9]+)$/);
+    const a3 = ref ? L2.asset(ref[1]) : null;
+    const wrap = (v3) => c3.bg ? v3 ? `url("${v3}")` : "" : v3;
+    const use = (id) => {
+      const got = L2.asset(id);
+      if (!got) return;
+      C2.edit(() => {
+        C2.applyC(n2, c3, wrap("asset:" + id));
+        if (!c3.bg && got.w) {
+          n2.props.w = String(got.w);
+          n2.props.h = String(got.h);
+        }
+      });
+    };
+    const choose = useFilePicker(use);
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      a3 ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
+        /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }),
+        /* @__PURE__ */ u2("span", { class: "an", children: [
+          /* @__PURE__ */ u2("b", { children: a3.name }),
+          /* @__PURE__ */ u2("small", { children: [
+            C2.kb(a3.size),
+            a3.w ? ` \xB7 ${a3.w} \xD7 ${a3.h}` : ""
+          ] })
+        ] }),
+        /* @__PURE__ */ u2("button", { class: "x", title: "Remove image", onClick: () => w3.hard(wrap("")), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
+      ] }) : rawv ? /* @__PURE__ */ u2("div", { class: "imgset missing", children: [
+        /* @__PURE__ */ u2("span", { class: "an", children: [
+          /* @__PURE__ */ u2("b", { children: "Not in this project" }),
+          /* @__PURE__ */ u2("small", { children: rawv.slice(0, 40) })
+        ] }),
+        /* @__PURE__ */ u2("button", { class: "x", title: "Clear", onClick: () => w3.hard(wrap("")), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
+      ] }) : /* @__PURE__ */ u2(Dropzone, { onFiles: choose }),
+      /* @__PURE__ */ u2("div", { style: { display: "flex", gap: "6px", marginTop: "var(--gap-1)" }, children: [
+        /* @__PURE__ */ u2("button", { class: "btn", style: { flex: 1, justifyContent: "center" }, onClick: choose, children: [
+          /* @__PURE__ */ u2(Icon, { name: "image", size: 13 }),
+          " ",
+          a3 ? "Replace" : "Upload"
+        ] }),
+        L2.assetCount() ? /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "btn",
+            style: { flex: 1, justifyContent: "center" },
+            title: "Pick from the Media library",
+            onClick: async () => {
+              const id = await L2.mediaPicker();
+              if (id) use(id);
+            },
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
+              " Library"
+            ]
+          }
+        ) : null
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "note", children: "Exported inline, or as a file beside the page." })
+    ] });
+  }
+  function Dropzone({ onFiles }) {
+    const stop = (e3, add) => {
+      e3.preventDefault();
+      e3.currentTarget.classList.toggle("over", add);
+    };
+    return /* @__PURE__ */ u2(
+      "div",
+      {
+        class: "imgdrop",
+        onClick: onFiles,
+        onDragEnter: (e3) => stop(e3, true),
+        onDragOver: (e3) => stop(e3, true),
+        onDragLeave: (e3) => stop(e3, false),
+        onDrop: (e3) => {
+          stop(e3, false);
+          void e3;
+          onFiles();
+        },
+        children: [
+          /* @__PURE__ */ u2("b", { children: "Drop an image here" }),
+          /* @__PURE__ */ u2("span", { children: "or choose a file" })
+        ]
+      }
+    );
+  }
+  function SourceCtl({ n: n2, c: c3 }) {
+    const cur = n2.src && C2.findCollection(n2.src) ? n2.src : "";
+    const set = (v3) => {
+      C2.edit(() => {
+        C2.srcSet(n2, v3);
+        if (!v3) n2.props.sort = "";
+      });
+      const col = v3 ? C2.findCollection(v3) : null;
+      L2.toast(col ? `${col.name} \u2014 ${col.items.length} items` : "Collection cleared");
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2("select", { class: "ctl", value: cur, onChange: (e3) => set(e3.target.value), children: [
+        /* @__PURE__ */ u2("option", { value: "", children: "\u2014 Pick a collection \u2014" }),
+        C2.collections().map((x2) => /* @__PURE__ */ u2("option", { value: x2.id, children: [
+          x2.name,
+          " \xB7 ",
+          x2.items.length,
+          " item",
+          x2.items.length === 1 ? "" : "s"
+        ] }, x2.id))
+      ] }),
+      cur ? /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn",
+          style: { width: "100%", justifyContent: "center", marginTop: "var(--gap-1)" },
+          onClick: () => L2.bindModal(n2.id),
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "cms", size: 13 }),
+            " Bind the fields inside\u2026"
+          ]
+        }
+      ) : null,
+      C2.collections().length ? null : /* @__PURE__ */ u2("div", { class: "note", children: [
+        "No collections yet \u2014 make one in ",
+        /* @__PURE__ */ u2("b", { children: "CMS" }),
+        "."
+      ] })
+    ] });
+  }
+  function RichCtl({ n: n2, c: c3 }) {
+    const { scope, fid } = bound(n2, c3);
+    const f4 = fid && scope ? C2.findField(scope.col, fid) : null;
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: fid ? /* @__PURE__ */ u2("div", { class: "note", children: [
+      "This block's content comes from ",
+      /* @__PURE__ */ u2("b", { children: (f4 || { name: "a missing field" }).name }),
+      ". Unbind it to edit the text here."
+    ] }) : /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn",
+          style: { width: "100%", justifyContent: "center" },
+          onClick: () => L2.enterEdit(n2.id),
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "edit", size: 13 }),
+            " Edit on canvas"
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2("div", { class: "note", children: "Or double-click the block directly. Toolbar: bold, italic, links, lists, headings." })
+    ] }) });
+  }
+  function TstyleCtl({ n: n2, c: c3 }) {
+    const cur = C2.findStyle(String(valueOf(n2, c3) || ""));
+    const used = cur ? C2.tsUsage(cur.id) : 0;
+    const push = async () => {
+      const t3 = C2.findStyle(n2.props.ts);
+      const k3 = t3 ? C2.tsUsage(t3.id) : 0;
+      if (k3 > 1 && !await L2.askConfirm(
+        "Update the style everywhere?",
+        `<b>${esc4(t3.name)}</b> is used ${k3}\xD7. Taking this element's typography into the style changes the other ${k3 - 1} too.`,
+        { ok: "Update style", danger: false }
+      )) return;
+      C2.edit(() => C2.tsUpdateFrom(n2));
+      L2.toast("Style updated everywhere");
+    };
+    const create = async () => {
+      const name = await L2.askText(
+        "New text style",
+        "Style name",
+        C2.DEF[n2.type].label,
+        { ok: "Create style", note: "Every element using it follows." }
+      );
+      if (name === null) return;
+      C2.edit(() => C2.tsCreateFrom(n2, name));
+      L2.toast("Text style created");
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: cur ? cur.id : "",
+          onChange: (e3) => {
+            const v3 = e3.target.value;
+            C2.edit(() => {
+              if (v3) C2.tsApply(n2, v3);
+              else C2.tsUnlink(n2);
+            });
+          },
+          children: [
+            /* @__PURE__ */ u2("option", { value: "", children: "\u2014 None (styled directly) \u2014" }),
+            C2.styles().map((t3) => /* @__PURE__ */ u2("option", { value: t3.id, children: t3.name }, t3.id))
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2("div", { style: { display: "flex", gap: "6px", marginTop: "var(--gap-1)" }, children: cur ? /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "btn ghost",
+            style: { flex: 1, justifyContent: "center", fontSize: "12px" },
+            title: "Copy this element's typography into the style, everywhere it is used",
+            onClick: push,
+            children: [
+              "Update style",
+              used > 1 ? ` \xB7 ${used} uses` : ""
+            ]
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "btn ghost",
+            style: { fontSize: "12px" },
+            title: "Keep the look, stop following the style",
+            onClick: () => {
+              C2.edit(() => C2.tsUnlink(n2));
+              L2.toast("Detached \u2014 the look is now local");
+            },
+            children: "Detach"
+          }
+        )
+      ] }) : /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn",
+          style: { flex: 1, justifyContent: "center", fontSize: "11px" },
+          onClick: create,
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+            " Save as text style"
+          ]
+        }
+      ) }),
+      /* @__PURE__ */ u2("div", { class: "note", children: cur ? `Used by ${used} element${used === 1 ? "" : "s"}. Anything you set below overrides the style for this element only.` : "Typography lives on this element. Save it as a style to reuse it and restyle everything at once." })
+    ] });
+  }
+  function OptCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const cur = String(valueOf(n2, c3) ?? "");
+    const groups = c3.og ? c3.og() : null;
+    const pool = groups ? groups.reduce((all, [, list2]) => all.concat(list2), []) : c3.opts || [];
+    const known = pool.some(([v3]) => String(v3) === cur);
+    const ck = n2.id + "|" + (c3.c || c3.k);
+    const custom = !!C2.state.ui.custom[ck] || !known && cur !== "";
+    const opt = ([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3);
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: custom ? "__custom" : cur,
+          onChange: (e3) => {
+            const v3 = e3.target.value;
+            if (v3 === "__custom") {
+              C2.state.ui.custom[ck] = true;
+              repaint("right");
+              return;
+            }
+            delete C2.state.ui.custom[ck];
+            w3.hard(v3);
+          },
+          children: [
+            groups ? groups.map(([g2, list2]) => /* @__PURE__ */ u2("optgroup", { label: g2, children: list2.map(opt) }, g2)) : (c3.opts || []).map(opt),
+            /* @__PURE__ */ u2("option", { value: "__custom", children: "Custom\u2026" })
+          ]
+        }
+      ),
+      custom ? /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          value: cur,
+          placeholder: c3.ph || "",
+          style: { marginTop: "var(--gap-1)", fontFamily: "var(--label)", fontSize: "12px" },
+          onInput: (e3) => w3.live(e3.target.value.trim()),
+          onBlur: w3.done
+        }
+      ) : null
+    ] });
+  }
+  function LinkCtl({ n: n2, c: c3 }) {
+    const here = C2.page().slug;
+    const link = C2.linkOf(n2, c3.k, here);
+    const tkey = c3.tk || "target";
+    const anchors = link.mode === "page" ? C2.anchorsOf(link.page || here) : [];
+    const scope = C2.bindScope(n2.id);
+    const hasDetail = !!scope && C2.state.pages.some((p3) => p3.collection === scope.col.id);
+    const MODES = [
+      ["none", "No link"],
+      ["page", "A page in this project"],
+      ...hasDetail ? [["item", "This item\u2019s own page"]] : [],
+      ["url", "External URL"],
+      ["email", "Email address"],
+      ["phone", "Phone number"]
+    ];
+    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const commit = (o3) => {
+      L2.tx(key);
+      n2.props[c3.k] = C2.buildLink(o3);
+      L2.endTx();
+      L2.paint();
+      L2.save();
+      repaint("right");
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: link.mode,
+          onChange: (e3) => {
+            const mode = e3.target.value;
+            if (mode === "none") n2.props[tkey] = "";
+            C2.state.ui.lmode = mode === "none" ? null : { key: n2.id + "|" + c3.k, mode };
+            commit(mode === "page" ? { mode, page: here, frag: "" } : { mode });
+            if (mode === "item") C2.state.ui.lmode = null;
+          },
+          children: MODES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
+        }
+      ),
+      link.mode === "page" ? /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            class: "ctl",
+            style: { marginTop: "var(--gap-1)" },
+            value: link.page || here,
+            onChange: (e3) => commit({ mode: "page", page: e3.target.value, frag: "" }),
+            children: C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
+              p3.name,
+              " \u2014 /",
+              p3.slug,
+              ".html"
+            ] }, p3.id))
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            class: "ctl",
+            style: { marginTop: "var(--gap-1)" },
+            value: link.frag || "",
+            onChange: (e3) => commit({ ...C2.linkOf(n2, c3.k, here), frag: e3.target.value }),
+            children: [
+              /* @__PURE__ */ u2("option", { value: "", children: "Top of the page" }),
+              anchors.map((id) => /* @__PURE__ */ u2("option", { value: id, children: [
+                "#",
+                id
+              ] }, id)),
+              link.frag && !anchors.includes(link.frag) ? /* @__PURE__ */ u2("option", { value: link.frag, children: [
+                "#",
+                link.frag,
+                " \u2014 missing"
+              ] }) : null
+            ]
+          }
+        ),
+        anchors.length ? null : /* @__PURE__ */ u2("div", { class: "note", children: "That page has no anchors yet. Give an element an HTML anchor id under Advanced." })
+      ] }) : null,
+      ["url", "email", "phone"].includes(link.mode) ? /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          type: link.mode === "email" ? "email" : void 0,
+          value: link.value || "",
+          style: { marginTop: "var(--gap-1)" },
+          placeholder: link.mode === "url" ? "https://example.com" : link.mode === "email" ? "hello@example.com" : "+1 555 0100",
+          onInput: (e3) => {
+            L2.tx(key);
+            n2.props[c3.k] = C2.buildLink({ ...C2.linkOf(n2, c3.k, here), value: e3.target.value.trim() });
+            L2.repaint();
+          },
+          onBlur: L2.endTx
+        }
+      ) : null,
+      link.mode === "item" && scope ? /* @__PURE__ */ u2("div", { class: "note", children: [
+        "Each card links to its own page under ",
+        /* @__PURE__ */ u2("b", { children: [
+          scope.col.slug,
+          "/"
+        ] }),
+        "."
+      ] }) : null,
+      link.mode !== "none" ? /* @__PURE__ */ u2("div", { class: "tog-row", style: { marginTop: "var(--gap-1)" }, children: [
+        /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "sw-tog" + (C2.propVal(n2, tkey) === "_blank" ? " on" : ""),
+            onClick: () => {
+              L2.tx(key);
+              n2.props[tkey] = C2.propVal(n2, tkey) === "_blank" ? "" : "_blank";
+              L2.endTx();
+              L2.paint();
+              L2.save();
+              repaint("right");
+            },
+            children: /* @__PURE__ */ u2("i", {})
+          }
+        )
+      ] }) : null
+    ] });
+  }
+  function DimsCtl({ n: n2, c: c3 }) {
+    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const push = (root) => {
+      L2.tx(key);
+      const [w3, h3] = Array.from(root.querySelectorAll("input"));
+      n2.props.w = w3.value;
+      n2.props.h = h3.value;
+      L2.repaint();
+    };
+    const detect = async () => {
+      const got = await L2.imgSize(L2.assetsToBlob(String(n2.props.src || "")));
+      if (!got) {
+        L2.toast("Could not read that image");
+        return;
+      }
+      C2.edit(() => {
+        n2.props.w = String(got.w);
+        n2.props.h = String(got.h);
+      });
+      L2.toast(`Detected ${got.w} \xD7 ${got.h}`);
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "unit", children: [
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          type: "number",
+          min: "0",
+          value: n2.props.w || "",
+          placeholder: "width",
+          onInput: (e3) => push(e3.target.parentElement),
+          onBlur: L2.endTx
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          type: "number",
+          min: "0",
+          value: n2.props.h || "",
+          placeholder: "height",
+          onInput: (e3) => push(e3.target.parentElement),
+          onBlur: L2.endTx
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn",
+          style: { flex: "0 0 auto", fontSize: "12px" },
+          title: "Read the real dimensions from the image",
+          onClick: detect,
+          children: "Detect"
+        }
+      )
+    ] }) });
+  }
+  function IconCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const val = String(valueOf(n2, c3) || "");
+    const cur = C2.ICON_PATHS[val] ? val : "check";
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "iconpick", children: C2.ICONS.map(([g2, list2]) => /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "ipgroup", children: g2 }, "g" + g2),
+      /* @__PURE__ */ u2("div", { class: "ipgrid", children: list2.map(([nm]) => /* @__PURE__ */ u2(
+        "button",
+        {
+          class: nm === cur ? "on" : "",
+          title: nm,
+          onClick: () => w3.hard(nm),
+          dangerouslySetInnerHTML: { __html: C2.iconSvg(nm) }
+        },
+        nm
+      )) }, "r" + g2)
+    ] })) }) });
+  }
+  function ColsCtl({ n: n2, c: c3 }) {
+    const count = (n2.children || []).length;
+    const hit = C2.matchLayout(n2);
+    const list2 = C2.LAYOUTS[count] || [];
+    const top = C2.COUNTS[C2.COUNTS.length - 1];
+    const setCount = async (k3) => {
+      if (k3 === count) return;
+      const lost = n2.children.slice(k3).reduce((t3, col) => t3 + col.children.length, 0);
+      if (k3 < count && lost && !await L2.askConfirm(
+        "Fewer columns",
+        `${lost} element${lost === 1 ? "" : "s"} will move into the last remaining column.`,
+        { ok: "Continue", danger: false }
+      )) return;
+      C2.edit(() => C2.applyCols(n2, C2.LAYOUTS[k3][0]));
+    };
+    return /* @__PURE__ */ u2("div", { class: "f", children: [
+      /* @__PURE__ */ u2("label", { children: c3.label || "" }),
+      /* @__PURE__ */ u2("div", { class: "pick", children: C2.COUNTS.map((k3) => /* @__PURE__ */ u2(
+        "button",
+        {
+          class: k3 === count ? "on" : "",
+          title: `${k3} column${k3 === 1 ? "" : "s"}`,
+          onClick: () => setCount(k3),
+          children: k3
+        },
+        k3
+      )) }),
+      list2.length > 1 ? /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2("label", { style: { marginTop: "var(--gap-2)" }, children: "Layout" }),
+        /* @__PURE__ */ u2("div", { class: "lay", children: list2.map((l3, k3) => /* @__PURE__ */ u2(
+          "button",
+          {
+            class: hit === k3 ? "on" : "",
+            title: l3.map((x2) => Math.round(x2) + "%").join(" / "),
+            onClick: () => C2.edit(() => C2.applyCols(n2, C2.LAYOUTS[n2.children.length][k3])),
+            children: l3.map((x2, j3) => /* @__PURE__ */ u2("i", { style: { flexGrow: x2 } }, j3))
+          },
+          k3
+        )) })
+      ] }) : null,
+      /* @__PURE__ */ u2("div", { class: "note", children: count > top ? `${count} columns \u2014 more than the presets cover. Set each column's width individually.` : "Drag a gutter on the canvas to change the split. Reducing the count moves content into the last column." })
+    ] });
+  }
+  var KINDS = {
+    text: TextCtl,
+    area: AreaCtl,
+    select: SelectCtl,
+    unit: UnitCtl,
+    slider: SliderCtl,
+    color: ColorCtl,
+    pick: PickCtl,
+    toggle: ToggleCtl,
+    box: BoxCtl,
+    img: ImgCtl,
+    opt: OptCtl,
+    dims: DimsCtl,
+    link: LinkCtl,
+    rich: RichCtl,
+    tstyle: TstyleCtl,
+    source: SourceCtl,
+    items: ItemsCtl,
+    fields: FieldsCtl,
+    qa: QaCtl,
+    imgs: ImgsCtl,
+    icon: IconCtl,
+    cols: ColsCtl
+  };
+  var CONTROL_KINDS = Object.keys(KINDS);
+  function Ctl({ n: n2, c: c3 }) {
+    const Cmp = KINDS[c3.t];
+    if (!Cmp) return null;
+    return /* @__PURE__ */ u2(Cmp, { n: n2, c: c3 });
+  }
+  var esc4 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
+  // app/src/ui/inspector/Inspector.tsx
+  function Group({ title, n: n2, items, gk }) {
+    const key = gk || n2.type + ":" + title;
+    const closed = C2.state.ui.open[key] === false;
+    return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
+      /* @__PURE__ */ u2("div", { class: "gh", onClick: () => {
+        C2.state.ui.open[key] = closed;
+        repaint("right");
+      }, children: [
+        /* @__PURE__ */ u2(Icon, { name: "caret", size: 10 }),
+        " ",
+        title
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "gb", children: items ? items.map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
+    ] });
+  }
+  function Panel({ title, n: n2, gk, children }) {
+    const key = gk || n2.type + ":" + title;
+    const closed = C2.state.ui.open[key] === false;
+    return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
+      /* @__PURE__ */ u2("div", { class: "gh", onClick: () => {
+        C2.state.ui.open[key] = closed;
+        repaint("right");
+      }, children: [
+        /* @__PURE__ */ u2(Icon, { name: "caret", size: 10 }),
+        " ",
+        title
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "gb", children })
+    ] });
+  }
+  function Head({ h: h3 }) {
+    const n2 = h3.node, d2 = C2.DEF[n2.type];
+    const ids = C2.selIds(), many = ids.length > 1;
+    const kinds = [...new Set(C2.selNodes().map((x2) => C2.DEF[x2.type].label))];
+    return /* @__PURE__ */ u2("div", { class: "sHead", children: [
+      /* @__PURE__ */ u2("div", { class: "ic", children: /* @__PURE__ */ u2(Icon, { name: d2.icon, size: 14 }) }),
+      /* @__PURE__ */ u2("div", { class: "tt", children: [
+        /* @__PURE__ */ u2("b", { children: many ? ids.length + " selected" : d2.label }),
+        /* @__PURE__ */ u2("small", { children: many ? kinds.join(" \xB7 ") : "#" + C2.domIdOf(n2) })
+      ] }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "iconbtn",
+          title: "Copy this element's styling (\u2318\u21E7C)",
+          onClick: () => {
+            C2.copyStyles(n2.id);
+            L2.toast("Styles copied from " + C2.styleClip.from);
+            repaint("right");
+          },
+          children: /* @__PURE__ */ u2(Icon, { name: "pipette", size: 13 })
+        }
+      ),
+      !many && h3.parent ? /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "iconbtn",
+          title: "Select parent (esc)",
+          onClick: () => {
+            const at = C2.locate(n2.id);
+            L2.select(at && at.parent ? at.parent.id : null);
+          },
+          children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 13 })
+        }
+      ) : null
+    ] });
+  }
+  function ClipStrip() {
+    if (!C2.styleClip.css) return null;
+    const ids = C2.selIds(), many = ids.length > 1;
+    const paste = () => {
+      let k3 = 0;
+      C2.edit(() => {
+        k3 = C2.pasteStylesMany(C2.selIds());
+      });
+      L2.toast(k3 > 1 ? `Styles pasted onto ${k3} elements` : k3 ? "Styles pasted" : "Nothing changed");
+    };
+    return /* @__PURE__ */ u2("div", { class: "stclip", children: [
+      /* @__PURE__ */ u2(Icon, { name: "pipette", size: 12 }),
+      /* @__PURE__ */ u2("span", { class: "cn", children: [
+        "Holding ",
+        /* @__PURE__ */ u2("b", { children: C2.styleClip.from })
+      ] }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn tiny",
+          onClick: paste,
+          title: `Replace the styling of ${many ? "all " + ids.length : "this element"} (\u2318\u21E7V)`,
+          children: [
+            "Paste",
+            many ? " to " + ids.length : ""
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "x",
+          title: "Forget it",
+          onClick: () => {
+            C2.styleClip.css = null;
+            repaint("right");
+            L2.toast("Style clipboard cleared");
+          },
+          children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 })
+        }
+      )
+    ] });
+  }
+  function StylingTarget({ n: n2 }) {
+    const applied = C2.nodeClasses(n2);
+    const target = C2.state.ui.target && C2.findClass(C2.state.ui.target) && applied.some((c3) => c3.id === C2.state.ui.target) ? C2.state.ui.target : "";
+    const pool = C2.classes().filter((c3) => !applied.some((x2) => x2.id === c3.id));
+    const pick = (id) => {
+      C2.state.ui.target = id;
+      repaint("right");
+    };
+    const add = async (v3, el) => {
+      if (!v3) return;
+      if (v3 === "__new") {
+        const name = await L2.askText(
+          "New class",
+          "Class name",
+          C2.DEF[n2.type].label,
+          { ok: "Create class", note: "Restyling it reaches every element using it." }
+        );
+        if (name === null) {
+          el.value = "";
+          return;
+        }
+        C2.edit(() => {
+          C2.state.ui.target = C2.classFrom(n2, name);
+        });
+        L2.toast("Class created from this element");
+        return;
+      }
+      C2.edit(() => {
+        C2.classApply(n2, v3);
+        C2.state.ui.target = v3;
+      });
+    };
+    return /* @__PURE__ */ u2(Panel, { title: "Styling", n: n2, gk: n2.type + ":Styling", children: [
+      /* @__PURE__ */ u2("div", { class: "tgrow", children: /* @__PURE__ */ u2("button", { class: "tg" + (target ? "" : " on"), onClick: () => pick(""), children: "This element" }) }),
+      applied.map((c3) => {
+        const uses = C2.classUsage(c3.id);
+        return /* @__PURE__ */ u2("div", { class: "tgrow", children: [
+          /* @__PURE__ */ u2("button", { class: "tg" + (target === c3.id ? " on" : ""), onClick: () => pick(c3.id), children: [
+            ".",
+            c3.id
+          ] }),
+          /* @__PURE__ */ u2("small", { children: [
+            uses,
+            " use",
+            uses === 1 ? "" : "s"
+          ] }),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              class: "tgx",
+              title: "Remove this class from the element",
+              onClick: () => {
+                if (C2.state.ui.target === c3.id) C2.state.ui.target = "";
+                C2.edit(() => C2.classRemove(n2, c3.id));
+              },
+              children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 })
+            }
+          )
+        ] }, c3.id);
+      }),
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          style: { marginTop: "var(--gap-1)" },
+          value: "",
+          onChange: (e3) => add(e3.target.value, e3.target),
+          children: [
+            /* @__PURE__ */ u2("option", { value: "", children: "Add a class\u2026" }),
+            pool.map((c3) => /* @__PURE__ */ u2("option", { value: c3.id, children: [
+              ".",
+              c3.id,
+              " \xB7 ",
+              C2.classUsage(c3.id),
+              " use",
+              C2.classUsage(c3.id) === 1 ? "" : "s"
+            ] }, c3.id)),
+            /* @__PURE__ */ u2("option", { value: "__new", children: "\uFF0B New class from this element\u2026" })
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2("div", { class: "note", children: target ? /* @__PURE__ */ u2(S, { children: [
+        "Editing ",
+        /* @__PURE__ */ u2("b", { children: [
+          ".",
+          target
+        ] }),
+        " \u2014 every change here reaches all ",
+        C2.classUsage(target),
+        " element",
+        C2.classUsage(target) === 1 ? "" : "s",
+        " using it."
+      ] }) : applied.length ? "Editing this element only. Its classes are listed above; pick one to edit it instead." : "Editing this element only. Save its styling as a class to reuse it elsewhere." })
+    ] });
+  }
+  var advControls = (n2) => [
+    { t: "text", k: "_id", label: "HTML id", ph: C2.autoId(n2), note: "Auto-generated unless you set one. This is what a link anchor targets." },
+    { t: "text", k: "_cls", label: "CSS classes", ph: "hero card--dark" },
+    { t: "select", c: "position", label: "Position", opts: [["", "Static"], ["relative", "Relative"], ["absolute", "Absolute"], ["sticky", "Sticky"], ["fixed", "Fixed"]] },
+    { t: "unit", c: "top", label: "Top", r: 1, units: ["px", "%", "rem"] },
+    { t: "unit", c: "z-index", label: "Z-index", units: [""] },
+    { t: "select", c: "overflow", label: "Overflow", opts: [["", "Visible"], ["hidden", "Hidden"], ["auto", "Auto"]] },
+    { t: "unit", c: "max-width", label: "Max width", r: 1, units: ["px", "rem", "%", "ch"] },
+    { t: "area", k: "_css", label: "Custom CSS", rows: 4, ph: "& { \u2026 }" }
+  ];
+  function ContentSource({ n: n2 }) {
+    const col = n2.src ? C2.findCollection(n2.src) : null;
+    return /* @__PURE__ */ u2(Panel, { title: "Content source", n: n2, children: [
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: n2.src || "",
+          onChange: (e3) => {
+            const v3 = e3.target.value;
+            C2.edit(() => C2.srcSet(n2, v3));
+            L2.toast(v3 ? C2.findCollection(v3).name + " is the scope \u2014 now bind a field" : "Content source cleared");
+          },
+          children: [
+            /* @__PURE__ */ u2("option", { value: "", children: "\u2014 None \u2014" }),
+            C2.collections().map((c3) => /* @__PURE__ */ u2("option", { value: c3.id, children: [
+              c3.name,
+              " \xB7 ",
+              c3.items.length,
+              " item",
+              c3.items.length === 1 ? "" : "s"
+            ] }, c3.id))
+          ]
+        }
+      ),
+      col ? /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn",
+          style: { width: "100%", justifyContent: "center", marginTop: "var(--gap-1)" },
+          onClick: () => L2.bindModal(n2.id),
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "cms", size: 13 }),
+            " Bind the fields inside\u2026"
+          ]
+        }
+      ) : null,
+      /* @__PURE__ */ u2("div", { class: "note", children: col ? /* @__PURE__ */ u2(S, { children: [
+        "Nothing on the canvas changes yet \u2014 this only opens the scope. Select something inside and click the badge beside a field to take its value from ",
+        /* @__PURE__ */ u2("b", { children: col.name }),
+        ". The bar above shows which item is previewed; to repeat the whole set instead, use a ",
+        /* @__PURE__ */ u2("b", { children: "Collection list" }),
+        "."
+      ] }) : C2.collections().length ? "Point this at a collection and everything inside it can bind to a field." : /* @__PURE__ */ u2(S, { children: [
+        "No collections yet \u2014 make one in ",
+        /* @__PURE__ */ u2("b", { children: "CMS" }),
+        "."
+      ] }) })
+    ] });
+  }
+  var DEV_ICON2 = { d: "desktop", t: "tablet", m: "mobile" };
+  function Visibility({ n: n2 }) {
+    return /* @__PURE__ */ u2(Panel, { title: "Visibility", n: n2, children: [
+      ["d", "t", "m"].map((b2) => /* @__PURE__ */ u2("div", { class: "tog-row", style: { marginBottom: "var(--gap-1)" }, children: [
+        /* @__PURE__ */ u2("span", { children: [
+          /* @__PURE__ */ u2(Icon, { name: DEV_ICON2[b2], size: 12 }),
+          " Hide on ",
+          C2.DEV_LABEL[b2]
+        ] }),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "sw-tog" + (n2.hide && n2.hide[b2] ? " on" : ""),
+            onClick: () => C2.edit(() => {
+              n2.hide = n2.hide || {};
+              n2.hide[b2] = !n2.hide[b2];
+            }),
+            children: /* @__PURE__ */ u2("i", {})
+          }
+        )
+      ] }, b2)),
+      /* @__PURE__ */ u2("div", { class: "note", children: "Ghosted on the canvas, so you can still select them." })
+    ] });
+  }
+  function Inspector() {
+    const h3 = C2.state.ui.sel ? C2.locate(C2.state.ui.sel) : null;
+    h2(() => {
+      const host = document.getElementById("right");
+      if (!host) return;
+      const want = !h3;
+      if (host.hidden === want) return;
+      host.hidden = want;
+      requestAnimationFrame(() => {
+        L2.layoutCanvas();
+        L2.positionHud();
+        L2.renderDim();
+      });
+    });
+    if (!h3) return null;
+    const n2 = h3.node, d2 = C2.DEF[n2.type], tab2 = C2.state.ui.stab;
+    const content = d2.controls.content || [];
+    const style = d2.controls.style || [];
+    const many = C2.selIds().length > 1;
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(Head, { h: h3 }),
+      /* @__PURE__ */ u2(ClipStrip, {}),
+      /* @__PURE__ */ u2("div", { class: "tabs", children: [["content", "Content"], ["style", "Style"], ["advanced", "Advanced"]].map(([k3, label]) => /* @__PURE__ */ u2(
+        "button",
+        {
+          class: tab2 === k3 ? "on" : "",
+          onClick: () => {
+            C2.state.ui.stab = k3;
+            repaint("right");
+          },
+          children: label
+        },
+        k3
+      )) }),
+      /* @__PURE__ */ u2("div", { class: "pane", children: tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: d2.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: d2.label, n: n2, children: /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2(StylingTarget, { n: n2 }),
+        style.length ? /* @__PURE__ */ u2(Group, { title: "Typography & fill", n: n2, items: style }) : null,
+        C2.COMMON_STYLE.map((g2) => /* @__PURE__ */ u2(Group, { title: g2.g, n: n2, items: g2.items }, g2.g))
+      ] }) : /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2(Group, { title: "Identity & layout", n: n2, items: advControls(n2) }),
+        d2.level < 4 ? /* @__PURE__ */ u2(ContentSource, { n: n2 }) : null,
+        /* @__PURE__ */ u2(Visibility, { n: n2 })
+      ] }) }),
+      /* @__PURE__ */ u2("div", { class: "sFoot", children: [
+        /* @__PURE__ */ u2("button", { class: "btn", onClick: () => L2.runAct("dup", C2.selIds()), children: [
+          /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
+          " Duplicate",
+          many ? " all" : ""
+        ] }),
+        /* @__PURE__ */ u2("button", { class: "btn danger", onClick: () => L2.runAct("del", C2.selIds()), children: [
+          /* @__PURE__ */ u2(Icon, { name: "trash", size: 13 }),
+          " Delete",
+          many ? " all" : ""
+        ] })
+      ] })
+    ] });
+  }
+
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
@@ -6538,12 +8091,16 @@ var PC_UI = (() => {
       renderLayers: panel("paneLayers", () => /* @__PURE__ */ u2(Layers, {})),
       renderCms: panel("paneCms", () => /* @__PURE__ */ u2(Cms, {}), true),
       renderAdd: panel("paneAdd", () => /* @__PURE__ */ u2(Add, {})),
-      renderPages: panel("panePages", () => /* @__PURE__ */ u2(Pages, {}))
+      renderPages: panel("panePages", () => /* @__PURE__ */ u2(Pages, {})),
+      /* #right is hidden and shown by the Inspector itself, so it must render even while
+         hidden — the component is what decides. */
+      renderRight: panel("right", () => /* @__PURE__ */ u2(Inspector, {}))
     };
     registerPainter("layers", painters2.renderLayers);
     registerPainter("add", painters2.renderAdd);
     registerPainter("cms", painters2.renderCms);
     registerPainter("pages", painters2.renderPages);
+    registerPainter("right", painters2.renderRight);
     return painters2;
   }
   return __toCommonJS(index_exports);
@@ -7643,7 +9200,11 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    newPageModal, renderModebar, save, appRender: render, assetField, wireAsset }
+    newPageModal, renderModebar, save, appRender: render, assetField, wireAsset,
+    tx, endTx, paint, paintCss, repaint, repaintCss,
+    layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
+    mediaTake, mediaPicker, assetsToBlob, imgSize,
+    asset: id => AS.mem.get(id) || null, assetCount: () => AS.mem.size }
 ));
 function renderLayers() { ui().renderLayers(); }
 
@@ -7933,7 +9494,6 @@ function cmsCell(col, it, f) {
 function renderPages() { ui().renderPages(); }
 
 /* ====================================================== settings panel */
-let CUR = [];                                   // control descriptors for this render
 /* tgtObj, tgtIsClass, parseU, cssVal, setCss, propVal, linkOf and kb used to live in
    this file. They are DOM-free, so they are in the core now — where they are typed and,
    for the first time, tested. The reasoning that was written here moved with them. */
@@ -7959,858 +9519,21 @@ const endTx = () => { txKey = null; paintHistory(); };
 const repaint = dbounce(() => { paint(); save(); renderLayers(); refreshReview(); paintHistory(); }, 90);
 const repaintCss = dbounce(() => { paintCss(); save(); refreshReview(); paintHistory(); }, 60);
 
-function labelHtml(c, n) {
-  const resp = !!c.r, dev = dk(), o = tgtObj(n);
-  const own = resp && c.c ? !!(o.css[dev] && o.css[dev][c.c] !== undefined) : false;
-  const badge = resp
-    ? `<span class="rsp${own && dev !== 'd' ? ' ovr' : ''}" data-clear="${own && dev !== 'd' ? '1' : ''}"
-        title="${dev === 'd' ? 'Editing the desktop base value' : own ? 'Overridden on ' + DEV_LABEL[dev] + ' — click to clear' : 'Set a ' + DEV_LABEL[dev] + ' override'}">${svg(dev === 'd' ? 'desktop' : dev === 't' ? 'tablet' : 'mobile', 9)}</span>`
-    : '';
-  /* the binding badge sits beside the responsive one: same slot, same size, so
-     "this value comes from content" reads at a glance without a second row */
-  const sc = c.k && bindableKeys(n.type).includes(c.k) ? bindScope(n.id) : null;
-  const fid = sc ? bindGet(n, c.k) : '';
-  const f = fid && findField(sc.col, fid);
-  const bind = sc
-    ? `<span class="bnd${fid ? ' on' : ''}" data-bind="${esc(c.k)}"
-        title="${fid ? (f ? `Bound to ${esc(f.name)} — click to change` : 'Bound to a field that no longer exists') : `Bind to a field in ${esc(sc.col.name)}`}">${svg('cms', 9)}</span>`
-    : '';
-  return `<label>${esc(c.label || '')}${badge}${bind}</label>`;
-}
 
-function ctlHtml(n, c, i) {
-  /* A bound field shows the value it will actually render, not the literal it is
-     standing in for — otherwise the panel says one thing and the canvas another.
-     The control goes inert; the badge in the label stays live so you can unbind. */
-  const bsc = c.k ? bindScope(n.id) : null;
-  const bfid = bsc ? bindGet(n, c.k) : '';
-  const val = bfid ? fieldValue(bsc.col, previewItem(bsc.col), bfid)
-    : c.c ? cssVal(tgtObj(n), c.c, !!c.r).v : propVal(n, c.k);
-  const F = inner => `<div class="f${bfid ? ' bound' : ''}" data-ci="${i}">${labelHtml(c, n)}${inner}${
-    bfid ? `<div class="note">From <b>${esc((findField(bsc.col, bfid) || { name: 'a missing field' }).name)}</b> on the item shown above.</div>`
-      : c.note ? `<div class="note">${esc(c.note)}</div>` : ''}</div>`;
 
-  switch (c.t) {
-    case 'text': return F(`<input class="ctl" data-x="v" value="${esc(val)}" placeholder="${esc(c.ph || '')}">`);
-    case 'area': return F(`<textarea class="ctl" data-x="v" rows="${c.rows || 3}"${c.ph ? ` placeholder="${esc(c.ph)}"` : ''} style="font-family:${c.mono ? "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" : 'var(--sans)'};font-size:12px;min-height:52px;line-height:1.5">${esc(val)}</textarea>`);
-    case 'select': return F(`<select class="ctl" data-x="v">${(typeof c.opts === 'function' ? c.opts(n) : c.opts).map(([v, l]) =>
-      `<option value="${esc(v)}"${String(val) === String(v) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`);
-    case 'unit': {
-      const { n: nv, u } = parseU(val);
-      const units = c.units || ['px'];
-      return F(`<div class="unit">
-        <input class="ctl" data-x="n" type="number" step="${c.step || 1}" value="${esc(nv)}" placeholder="auto">
-        <select class="ctl" data-x="u">${units.map(x => `<option value="${x}"${x === u ? ' selected' : ''}>${x || '—'}</option>`).join('')}</select>
-      </div>`);
-    }
-    case 'slider': {
-      const v = val === '' || val == null ? (c.max === 1 ? 1 : c.min) : parseFloat(val);
-      return F(`<div class="sld">
-        <input type="range" data-x="r" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}">
-        <input class="ctl num" data-x="n" type="number" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}">
-      </div>`);
-    }
-    case 'color': {
-      const v = String(val || '');
-      const tok = refId(v) ? findColor(refId(v)) : null;
-      const lit = tok ? tok.value : v;
-      const hexish = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(lit) ? lit : '#000000';
-      return F(`<div class="clr">
-        <span class="sw"><i style="background:${esc(lit || 'transparent')}"></i><input type="color" data-x="c" value="${hexish}"></span>
-        ${tok
-        ? `<span class="tokchip" title="Linked to the ${esc(tok.name)} token">${svg('link', 10)} ${esc(tok.name)}</span>
-           <button class="x" data-x="unlink" title="Unlink — keep the colour, drop the link">${svg('unlink', 11)}</button>`
-        : `<input class="ctl hex" data-x="v" value="${esc(v)}" placeholder="inherit">
-           <button class="x" data-x="clr" title="Clear">${svg('trash', 11)}</button>`}
-      </div>
-      <div class="toks">${colors().map(t =>
-          `<button class="tok${tok && tok.id === t.id ? ' on' : ''}" data-x="tok" data-id="${t.id}"
-             title="${esc(t.name)}" style="background:${esc(t.value)}"></button>`).join('')}
-        <button class="tok add" data-x="tokadd" title="Save this colour as a new token">${svg('plus', 10)}</button>
-      </div>`);
-    }
-    case 'pick': return F(`<div class="pick">${c.opts.map(([v, l]) =>
-      `<button data-x="p" data-v="${esc(v)}" class="${String(val) === String(v) ? 'on' : ''}" title="${esc(l)}">${IC[l] ? svg(l, 13) : esc(l)}</button>`).join('')}</div>`);
-    case 'toggle': return `<div class="f" data-ci="${i}"><div class="tog-row"><span>${esc(c.label)}</span>
-      <button class="sw-tog${val ? ' on' : ''}" data-x="t"><i></i></button></div></div>`;
-    case 'box': {
-      const sides = ['top', 'right', 'bottom', 'left'];
-      const vals = sides.map(s => parseU(cssVal(tgtObj(n), c.c + '-' + s, !!c.r).v));
-      const u = vals.find(v => v.u) ? vals.find(v => v.u).u : 'px';
-      return F(`<div class="row4">${sides.map((s, k) =>
-        `<input class="ctl" data-x="b" data-s="${s}" type="number" value="${esc(vals[k].n)}" placeholder="0" title="${s}">`).join('')}</div>
-        <div class="note" style="display:flex;justify-content:space-between;align-items:center">
-          <span>top · right · bottom · left</span>
-          <select class="ctl" data-x="bu" style="width:58px;padding:2px 4px;font-size:10px">${['px', 'rem', '%', 'em'].map(x => `<option${x === u ? ' selected' : ''}>${x}</option>`).join('')}</select>
-        </div>`);
-    }
-    case 'img': {
-      const rawv = c.bg ? String(val || '').replace(/^url\(["']?|["']?\)$/g, '') : String(val || '');
-      const ref = rawv.match(/^asset:([a-z0-9]+)$/);
-      const a = ref && AS.mem.get(ref[1]);
-      return F(`
-        ${a ? `<div class="imgset">
-              <img src="${a.url}" alt="">
-              <span class="an"><b>${esc(a.name)}</b><small>${kb(a.size)}${a.w ? ` · ${a.w} × ${a.h}` : ''}</small></span>
-              <button class="x" data-x="clr" title="Remove image">${svg('trash', 12)}</button>
-            </div>`
-        : rawv
-          ? `<div class="imgset missing">
-              <span class="an"><b>Not in this project</b><small>${esc(rawv.slice(0, 40))}</small></span>
-              <button class="x" data-x="clr" title="Clear">${svg('trash', 12)}</button>
-            </div>`
-          : `<div class="imgdrop" data-x="drop"><b>Drop an image here</b><span>or choose a file</span></div>`}
-        <div style="display:flex;gap:6px;margin-top:var(--gap-1)">
-          <button class="btn" data-x="up" style="flex:1;justify-content:center">${svg('image', 13)} ${a ? 'Replace' : 'Upload'}</button>
-          ${AS.mem.size ? `<button class="btn" data-x="lib" style="flex:1;justify-content:center" title="Pick from the Media library">${svg('copy', 13)} Library</button>` : ''}
-        </div>
-        <div class="note">Exported inline, or as a file beside the page.</div>`);
-    }
-    case 'source': {
-      const cur = n.src && findCollection(n.src) ? n.src : '';
-      return F(`<select class="ctl" data-x="src">
-          <option value="">— Pick a collection —</option>
-          ${collections().map(x => `<option value="${x.id}"${cur === x.id ? ' selected' : ''}>${esc(x.name)} · ${x.items.length} item${x.items.length === 1 ? '' : 's'}</option>`).join('')}
-        </select>
-        ${n.src && findCollection(n.src)
-          ? `<button class="btn" data-x="bindall" style="width:100%;justify-content:center;margin-top:var(--gap-1)">${svg('cms', 13)} Bind the fields inside…</button>`
-          : ''}${collections().length ? '' : '<div class="note">No collections yet — make one in <b>CMS</b>.</div>'}`);
-    }
-    case 'rich': return `<div class="f${bfid ? ' bound' : ''}" data-ci="${i}">${labelHtml(c, n)}
-      ${bfid
-        ? `<div class="note">This block's content comes from <b>${esc((findField(bsc.col, bfid) || { name: 'a missing field' }).name)}</b>. Unbind it to edit the text here.</div>`
-        : `<button class="btn" data-x="rich" style="width:100%;justify-content:center">${svg('edit', 13)} Edit on canvas</button>
-           <div class="note">Or double-click the block directly. Toolbar: bold, italic, links, lists, headings.</div>`}</div>`;
-    case 'tstyle': {
-      const cur = findStyle(val);
-      const used = cur ? tsUsage(cur.id) : 0;
-      return F(`<select class="ctl" data-x="ts">
-          <option value=""${cur ? '' : ' selected'}>— None (styled directly) —</option>
-          ${styles().map(t => `<option value="${t.id}"${cur && cur.id === t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('')}
-        </select>
-        <div style="display:flex;gap:6px;margin-top:var(--gap-1)">
-          ${cur
-        ? `<button class="btn ghost" data-x="tspush" style="flex:1;justify-content:center;font-size:12px" title="Copy this element's typography into the style, everywhere it is used">Update style${used > 1 ? ` · ${used} uses` : ''}</button>
-             <button class="btn ghost" data-x="tsdrop" style="font-size:12px" title="Keep the look, stop following the style">Detach</button>`
-        : `<button class="btn" data-x="tsnew" style="flex:1;justify-content:center;font-size:11px">${svg('plus', 12)} Save as text style</button>`}
-        </div>
-        <div class="note">${cur
-        ? `Used by ${used} element${used === 1 ? '' : 's'}. Anything you set below overrides the style for this element only.`
-        : 'Typography lives on this element. Save it as a style to reuse it and restyle everything at once.'}</div>`);
-    }
-    case 'opt': {
-      const cur = String(val == null ? '' : val);
-      const pool = c.og ? c.og().reduce((all, [, list]) => all.concat(list), []) : c.opts;
-      const known = pool.some(([v]) => String(v) === cur);
-      const ck = n.id + '|' + (c.c || c.k);
-      const showCustom = state.ui.custom[ck] || (!known && cur !== '');
-      const opt = ([v, l]) => `<option value="${esc(v)}"${!showCustom && cur === String(v) ? ' selected' : ''}>${esc(l)}</option>`;
-      const body = c.og
-        ? c.og().map(([g, list]) => `<optgroup label="${esc(g)}">${list.map(opt).join('')}</optgroup>`).join('')
-        : c.opts.map(opt).join('');
-      return F(`<select class="ctl" data-x="o">
-          ${body}
-          <option value="__custom"${showCustom ? ' selected' : ''}>Custom…</option>
-        </select>
-        ${showCustom ? `<input class="ctl" data-x="oc" value="${esc(cur)}" placeholder="${esc(c.ph || '')}" style="margin-top:var(--gap-1);font-family:var(--label);font-size:12px">` : ''}`);
-    }
-    case 'fields': {
-      const arr = Array.isArray(val) ? val : [];
-      const TYPES = [['text','Text'],['email','Email'],['tel','Phone'],['number','Number'],['textarea','Long text'],['select','Dropdown'],['checkbox','Checkbox']];
-      return F(`${arr.map((f, k) => `<div class="frow">
-          <div class="frow-a">
-            <input class="ctl" data-x="fl" data-k="${k}" value="${esc(f.label || '')}" placeholder="Label">
-            <select class="ctl" data-x="ft" data-k="${k}">
-              ${TYPES.map(([v, l]) => `<option value="${v}"${(f.type || 'text') === v ? ' selected' : ''}>${l}</option>`).join('')}
-            </select>
-            <button class="x" data-x="fu" data-k="${k}" title="Move up"${k === 0 ? ' disabled' : ''}>${svg('caret', 11)}</button>
-            <button class="x" data-x="fx" data-k="${k}" title="Remove">${svg('trash', 11)}</button>
-          </div>
-          <div class="frow-b">
-            <input class="ctl" data-x="fn" data-k="${k}" value="${esc(f.name || '')}" placeholder="${esc(slugify(f.label) || 'field-name')}" title="The name submitted with the value">
-            ${f.type === 'select'
-        ? `<input class="ctl" data-x="fo" data-k="${k}" value="${esc(f.opts || '')}" placeholder="Option one, Option two">`
-        : `<input class="ctl" data-x="fp" data-k="${k}" value="${esc(f.ph || '')}" placeholder="Placeholder">`}
-            <button class="freq${f.required ? ' on' : ''}" data-x="fr" data-k="${k}" title="Required">Req</button>
-          </div>
-        </div>`).join('')}
-        <button class="btn" data-x="fa" style="width:100%;justify-content:center;margin-top:${arr.length ? '6' : '0'}px;font-size:12px">${svg('plus', 12)} Add field</button>`);
-    }
-    case 'link': {
-      const here = page().slug;
-      const L = linkOf(n, c.k, here);
-      const tkey = c.tk || 'target';
-      const anchors = L.mode === 'page' ? anchorsOf(L.page || here) : [];
-      /* "This item's own page" is only offered where there is an item to mean — inside
-         a Collection List, or on a detail template — and only once some page templates
-         the collection, or the link would resolve to nothing. */
-      const lsc = bindScope(n.id);
-      const hasDetail = lsc && state.pages.some(p => p.collection === lsc.col.id);
-      const MODES = [['none', 'No link'], ['page', 'A page in this project'],
-        ...(hasDetail ? [['item', `This item’s own page`]] : []),
-        ['url', 'External URL'], ['email', 'Email address'], ['phone', 'Phone number']];
-      return F(`<select class="ctl" data-x="lm">
-          ${MODES.map(([v, l]) => `<option value="${v}"${L.mode === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}
-        </select>
-        ${L.mode === 'page' ? `<select class="ctl" data-x="lp" style="margin-top:var(--gap-1)">
-            ${state.pages.map(p => `<option value="${esc(p.slug)}"${(L.page || here) === p.slug ? ' selected' : ''}>${esc(p.name)} — /${esc(p.slug)}.html</option>`).join('')}
-          </select>
-          <select class="ctl" data-x="lf" style="margin-top:var(--gap-1)">
-            <option value="">Top of the page</option>
-            ${anchors.map(id => `<option value="${esc(id)}"${L.frag === id ? ' selected' : ''}>#${esc(id)}</option>`).join('')}
-            ${L.frag && !anchors.includes(L.frag) ? `<option value="${esc(L.frag)}" selected>#${esc(L.frag)} — missing</option>` : ''}
-          </select>
-          ${anchors.length ? '' : '<div class="note">That page has no anchors yet. Give an element an HTML anchor id under Advanced.</div>'}` : ''}
-        ${['url', 'email', 'phone'].includes(L.mode) ? `<input class="ctl" data-x="lv"${L.mode === 'email' ? ' type="email"' : ''} value="${esc(L.value || '')}" placeholder="${L.mode === 'url' ? 'https://example.com' : L.mode === 'email' ? 'hello@example.com' : '+1 555 0100'}" style="margin-top:var(--gap-1)">` : ''}
-        ${L.mode === 'item' && lsc ? `<div class="note">Each card links to its own page under <b>${esc(lsc.col.slug)}/</b>.</div>` : ''}
-        ${L.mode !== 'none' ? `<div class="tog-row" style="margin-top:var(--gap-1)"><span>Open in a new tab</span>
-          <button class="sw-tog${propVal(n, tkey) === '_blank' ? ' on' : ''}" data-x="lt"><i></i></button></div>` : ''}`);
-    }
-    case 'dims': {
-      return F(`<div class="unit">
-          <input class="ctl" data-x="dw" type="number" min="0" value="${esc(n.props.w || '')}" placeholder="width">
-          <input class="ctl" data-x="dh" type="number" min="0" value="${esc(n.props.h || '')}" placeholder="height">
-          <button class="btn" data-x="ddetect" style="flex:0 0 auto;font-size:12px" title="Read the real dimensions from the image">Detect</button>
-        </div>`);
-    }
-    case 'items': {
-      const arr = Array.isArray(val) ? val : [];
-      return F(`${arr.map((it, k) => `<div class="irow">
-        <input class="ctl" data-x="il" data-k="${k}" value="${esc(it.label || '')}" placeholder="Label">
-        <input class="ctl" data-x="ih" data-k="${k}" value="${esc(it.href || '')}" placeholder="#anchor or page.html">
-        <button class="x" data-x="iu" data-k="${k}" title="Move up"${k === 0 ? ' disabled' : ''}>${svg('caret', 11)}</button>
-        <button class="x" data-x="ix" data-k="${k}" title="Remove">${svg('trash', 11)}</button>
-      </div>`).join('')}
-      <button class="btn" data-x="ia" style="width:100%;justify-content:center;margin-top:${arr.length ? '6' : '0'}px;font-size:11px">${svg('plus', 12)} Add link</button>`);
-    }
-    case 'qa': {
-      const arr = Array.isArray(val) ? val : [];
-      return F(`${arr.map((it, k) => `<div class="qarow">
-          <div class="qarow-a">
-            <input class="ctl" data-x="qq" data-k="${k}" value="${esc(it.q || '')}" placeholder="Question">
-            <button class="x" data-x="qu" data-k="${k}" title="Move up"${k === 0 ? ' disabled' : ''}>${svg('caret', 11)}</button>
-            <button class="x" data-x="qx" data-k="${k}" title="Remove">${svg('trash', 11)}</button>
-          </div>
-          <textarea class="ctl" data-x="qb" data-k="${k}" rows="2" placeholder="Answer — leave a blank line to start a new paragraph">${esc(it.a || '')}</textarea>
-        </div>`).join('')}
-        <button class="btn" data-x="qadd" style="width:100%;justify-content:center;margin-top:${arr.length ? '6' : '0'}px;font-size:12px">${svg('plus', 12)} Add question</button>`);
-    }
-    case 'icon': {
-      const cur = ICON_PATHS[val] ? val : 'check';
-      return F(`<div class="iconpick">${ICONS.map(([g, list]) => `
-          <div class="ipgroup">${esc(g)}</div>
-          <div class="ipgrid">${list.map(([nm]) =>
-        `<button data-x="ico" data-v="${nm}" class="${nm === cur ? 'on' : ''}" title="${nm}">${iconSvg(nm)}</button>`).join('')}</div>`).join('')}
-        </div>`);
-    }
-    case 'imgs': {
-      const arr = Array.isArray(val) ? val : [];
-      return F(`${arr.map((it, k) => {
-        const ref = String(it.src || '').match(/^asset:([a-z0-9]+)$/);
-        const a = ref && AS.mem.get(ref[1]);
-        return `<div class="gtile">
-            <span class="gthumb">${a ? `<img src="${a.url}" alt="">` : '<span>not in<br>project</span>'}</span>
-            <span class="gmeta">
-              <input class="ctl" data-x="ga" data-k="${k}" value="${esc(it.alt || '')}" placeholder="Alt text — describe it">
-              <input class="ctl" data-x="gc" data-k="${k}" value="${esc(it.caption || '')}" placeholder="Caption (optional)">
-            </span>
-            <span class="gacts">
-              <button class="x" data-x="gu" data-k="${k}" title="Move up"${k === 0 ? ' disabled' : ''}>${svg('caret', 11)}</button>
-              <button class="x" data-x="gx" data-k="${k}" title="Remove">${svg('trash', 11)}</button>
-            </span>
-          </div>`;
-      }).join('')}
-        <div style="display:flex;gap:6px;margin-top:${arr.length ? '6' : '0'}px">
-          <button class="btn" data-x="gadd" style="flex:1;justify-content:center;font-size:12px">${svg('image', 13)} Upload</button>
-          ${AS.mem.size ? `<button class="btn" data-x="glib" style="flex:1;justify-content:center;font-size:12px" title="Pick from the Media library">${svg('copy', 13)} Library</button>` : ''}
-        </div>
-        <div class="note">Upload takes several files at once. Alt text is what a screen reader reads — the review asks for it.</div>`);
-    }
-    case 'cols': {
-      const count = (n.children || []).length;
-      const hit = matchLayout(n);
-      const list = LAYOUTS[count] || [];
-      return `<div class="f" data-ci="${i}">${labelHtml(c, n)}
-        <div class="pick">${COUNTS.map(k =>
-        `<button data-x="ccount" data-v="${k}" class="${k === count ? 'on' : ''}" title="${k} column${k === 1 ? '' : 's'}">${k}</button>`).join('')}</div>
-        ${list.length > 1 ? `<label style="margin-top:var(--gap-2)">Layout</label>
-        <div class="lay">${list.map((l, k) =>
-          `<button data-x="clay" data-v="${k}" class="${hit === k ? 'on' : ''}" title="${l.map(w => Math.round(w) + '%').join(' / ')}">
-             ${l.map(w => `<i style="flex-grow:${w}"></i>`).join('')}
-           </button>`).join('')}</div>` : ''}
-        <div class="note">${count > COUNTS[COUNTS.length - 1] ? `${count} columns — more than the presets cover. Set each column's width individually.` : 'Drag a gutter on the canvas to change the split. Reducing the count moves content into the last column.'}</div>
-      </div>`;
-    }
-  }
-  return '';
-}
 
-function groupHtml(name, items, n, base) {
-  const key = n.type + ':' + name;
-  const closed = state.ui.open[key] === false;
-  return `<div class="group${closed ? ' closed' : ''}" data-gk="${key}">
-    <div class="gh">${svg('caret', 10)} ${esc(name)}</div>
-    <div class="gb">${items.map((c, i) => ctlHtml(n, c, base + i)).join('')}</div>
-  </div>`;
-}
+/* The inspector lives in app/src/ui/inspector/ now.
 
-function renderRight() {
-  const box = $('#right');
-  const s = state.ui.sel ? locate(state.ui.sel) : null;
-  CUR = [];
-
-  /* With nothing selected there is nothing to inspect, so the panel leaves and
-     the canvas takes the space. What the empty state used to hold — the shortcut
-     table — lives in the ? dialog, which is always reachable. */
-  const was = box.hidden;
-  box.hidden = !s;
-  /* Joining or leaving changes the canvas width, so the selection frame and the
-     px readout need recomputing once layout settles — `select()` paints the HUD
-     before it calls this. */
-  if (was !== box.hidden) requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
-  if (!s) { box.innerHTML = ''; return; }
-
-  const n = s.node, d = DEF[n.type], tab = state.ui.stab;
-  const content = d.controls.content || [];
-  const style = d.controls.style || [];
-  /* With several elements picked, the fields still come from the primary — it is
-     the one type whose controls are guaranteed to exist — and `applyC` fans each
-     edit out over the set. The header has to say so, or the count is the only
-     clue that a slider just moved twelve things. */
-  const ids = selIds(), many = ids.length > 1;
-  const kinds = [...new Set(selNodes().map(x => DEF[x.type].label))];
-
-  let html = `
-    <div class="sHead">
-      <div class="ic">${svg(d.icon, 14)}</div>
-      <div class="tt"><b>${many ? ids.length + ' selected' : esc(d.label)}</b>
-        <small>${many ? esc(kinds.join(' · ')) : '#' + esc(domIdOf(n))}</small></div>
-      <button class="iconbtn" id="stCopy" title="Copy this element's styling (⌘⇧C)">${svg('pipette', 13)}</button>
-      ${!many && s.parent ? `<button class="iconbtn" id="selParent" title="Select parent (esc)">${svg('caret', 13)}</button>` : ''}
-    </div>
-    ${styleClip.css ? `<div class="stclip">
-      ${svg('pipette', 12)}
-      <span class="cn">Holding <b>${esc(styleClip.from)}</b></span>
-      <button class="btn tiny" id="stPaste" title="Replace the styling of ${many ? 'all ' + ids.length : 'this element'} (⌘⇧V)">Paste${many ? ' to ' + ids.length : ''}</button>
-      <button class="x" id="stDrop" title="Forget it">${svg('trash', 11)}</button>
-    </div>` : ''}
-    <div class="tabs" id="sTabs">
-      <button data-s="content" class="${tab === 'content' ? 'on' : ''}">Content</button>
-      <button data-s="style" class="${tab === 'style' ? 'on' : ''}">Style</button>
-      <button data-s="advanced" class="${tab === 'advanced' ? 'on' : ''}">Advanced</button>
-    </div><div class="pane">`;
-
-  if (tab === 'content') {
-    CUR = content.slice();
-    html += `<div class="group"><div class="gh">${svg('caret', 10)} ${esc(d.label)}</div><div class="gb">${content.map((c, i) => ctlHtml(n, c, i)).join('') || '<div class="note">No content options — use the Style tab.</div>'}</div></div>`;
-  } else if (tab === 'style') {
-    const applied = nodeClasses(n);
-    const target = state.ui.target && findClass(state.ui.target) && applied.some(c => c.id === state.ui.target) ? state.ui.target : '';
-    const pool = classes().filter(c => !applied.some(x => x.id === c.id));
-    html += `<div class="group" data-gk="${n.type}:Styling"><div class="gh">${svg('caret', 10)} Styling</div><div class="gb">
-      <div class="tgrow">
-        <button class="tg${target ? '' : ' on'}" data-tg="">This element</button>
-      </div>
-      ${applied.map(c => {
-      const uses = classUsage(c.id);
-      return `<div class="tgrow">
-          <button class="tg${target === c.id ? ' on' : ''}" data-tg="${c.id}">.${esc(c.id)}</button>
-          <small>${uses} use${uses === 1 ? '' : 's'}</small>
-          <button class="tgx" data-rm="${c.id}" title="Remove this class from the element">${svg('trash', 12)}</button>
-        </div>`;
-    }).join('')}
-      <select class="ctl" data-x="addcls" style="margin-top:var(--gap-1)">
-        <option value="">Add a class…</option>
-        ${pool.map(c => `<option value="${c.id}">.${esc(c.id)} · ${classUsage(c.id)} use${classUsage(c.id) === 1 ? '' : 's'}</option>`).join('')}
-        <option value="__new">＋ New class from this element…</option>
-      </select>
-      <div class="note">${target
-      ? `Editing <b>.${esc(target)}</b> — every change here reaches all ${classUsage(target)} element${classUsage(target) === 1 ? '' : 's'} using it.`
-      : applied.length
-        ? 'Editing this element only. Its classes are listed above; pick one to edit it instead.'
-        : 'Editing this element only. Save its styling as a class to reuse it elsewhere.'}</div>
-    </div></div>`;
-
-    let base = 0;
-    if (style.length) { CUR = style.slice(); html += groupHtml('Typography & fill', style, n, 0); base = style.length; }
-    COMMON_STYLE.forEach(g => {
-      CUR = CUR.concat(g.items);
-      html += groupHtml(g.g, g.items, n, base);
-      base += g.items.length;
-    });
-  } else {
-    const adv = [
-      { t: 'text', k: '_id', label: 'HTML id', ph: autoId(n), note: 'Auto-generated unless you set one. This is what a link anchor targets.' },
-      { t: 'text', k: '_cls', label: 'CSS classes', ph: 'hero card--dark' },
-      { t: 'select', c: 'position', label: 'Position', opts: [['', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
-      { t: 'unit', c: 'top', label: 'Top', r: 1, units: ['px', '%', 'rem'] },
-      { t: 'unit', c: 'z-index', label: 'Z-index', units: [''] },
-      { t: 'select', c: 'overflow', label: 'Overflow', opts: [['', 'Visible'], ['hidden', 'Hidden'], ['auto', 'Auto']] },
-      { t: 'unit', c: 'max-width', label: 'Max width', r: 1, units: ['px', 'rem', '%', 'ch'] },
-      { t: 'area', k: '_css', label: 'Custom CSS', rows: 4, ph: '& { … }' }
-    ];
-    CUR = adv.slice();
-    html += `<div class="group"><div class="gh">${svg('caret', 10)} Identity & layout</div><div class="gb">${adv.map((c, i) => ctlHtml(n, c, i)).join('')}</div></div>
-    ${DEF[n.type].level < 4 ? `<div class="group"><div class="gh">${svg('caret', 10)} Content source</div><div class="gb">
-      <select class="ctl" id="advSrc">
-        <option value="">— None —</option>
-        ${collections().map(c => `<option value="${c.id}"${n.src === c.id ? ' selected' : ''}>${esc(c.name)} · ${c.items.length} item${c.items.length === 1 ? '' : 's'}</option>`).join('')}
-      </select>
-      ${n.src && findCollection(n.src)
-        ? `<button class="btn" id="advBindAll" style="width:100%;justify-content:center;margin-top:var(--gap-1)">${svg('cms', 13)} Bind the fields inside…</button>`
-        : ''}
-      <div class="note">${n.src && findCollection(n.src)
-        ? `Nothing on the canvas changes yet — this only opens the scope. Select something
-           inside and click the badge beside a field to take its value from
-           <b>${esc(findCollection(n.src).name)}</b>. The bar above shows which item is
-           previewed; to repeat the whole set instead, use a <b>Collection list</b>.`
-        : collections().length
-          ? 'Point this at a collection and everything inside it can bind to a field.'
-          : 'No collections yet — make one in <b>CMS</b>.'}</div>
-    </div></div>` : ''}
-    <div class="group"><div class="gh">${svg('caret', 10)} Visibility</div><div class="gb">
-      ${['d', 't', 'm'].map(b => `<div class="tog-row" style="margin-bottom:var(--gap-1)"><span>${svg(b === 'd' ? 'desktop' : b === 't' ? 'tablet' : 'mobile', 12)} Hide on ${DEV_LABEL[b]}</span>
-        <button class="sw-tog${n.hide && n.hide[b] ? ' on' : ''}" data-hide="${b}"><i></i></button></div>`).join('')}
-      <div class="note">Ghosted on the canvas, so you can still select them.</div>
-    </div></div>`;
-  }
-
-  html += `</div>
-    <div class="sFoot">
-      <button class="btn" id="sDup">${svg('copy', 13)} Duplicate${many ? ' all' : ''}</button>
-      <button class="btn danger" id="sDel">${svg('trash', 13)} Delete${many ? ' all' : ''}</button>
-    </div>`;
-  box.innerHTML = html;
-  bindRight(n);
-}
+   What stood here was 846 lines split three ways: renderRight built the panel as a
+   string, ctlHtml built each field as a string and numbered it `data-ci="i"`, and
+   bindRight found the fields again by that number — through the module-level CUR array
+   — to attach behaviour. build.mjs used to assert every ctlHtml case had a matching
+   bindRight case, because the two could drift and once did. There is nothing left for
+   that guard to check: a control's handlers are written beside its markup. */
+function renderRight() { ui().renderRight(); }
 
 /* ------------------------------------------------------ control wiring */
 
-function bindRight(n) {
-  const box = $('#right');
-
-  $$('.gh', box).forEach(h => h.addEventListener('click', () => {
-    const g = h.parentElement, k = g.dataset.gk;
-    g.classList.toggle('closed');
-    if (k) state.ui.open[k] = !g.classList.contains('closed');
-  }));
-  const st = $('#sTabs');
-  if (st) $$('button', st).forEach(b => b.addEventListener('click', () => { state.ui.stab = b.dataset.s; renderRight(); }));
-  const sp = $('#selParent');
-  if (sp) sp.addEventListener('click', () => { const h = locate(n.id); select(h.parent ? h.parent.id : null); });
-  const abAll = $('#advBindAll');
-  if (abAll) abAll.addEventListener('click', () => bindModal(n.id));
-  const asrc = $('#advSrc');
-  if (asrc) asrc.addEventListener('change', () => {
-    edit(() => srcSet(n, asrc.value));
-    /* not "Bound to X" — that is what binding a *field* does, and reusing the word
-       here is most of why setting a source reads as though it should have changed
-       something on its own */
-    toast(asrc.value ? findCollection(asrc.value).name + ' is the scope — now bind a field' : 'Content source cleared');
-  });
-  const stC = $('#stCopy');
-  if (stC) stC.addEventListener('click', () => {
-    copyStyles(n.id);
-    toast('Styles copied from ' + styleClip.from);
-    renderRight();                                  // so the strip appears
-  });
-  const stP = $('#stPaste');
-  if (stP) stP.addEventListener('click', () => {
-    const ids = selIds();
-    let k = 0;
-    edit(() => { k = pasteStylesMany(ids); });
-    toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
-  });
-  const stD = $('#stDrop');
-  if (stD) stD.addEventListener('click', () => {
-    styleClip.css = null;
-    renderRight();                                  // so the strip goes away
-    toast('Style clipboard cleared');
-  });
-  const sd = $('#sDup'); if (sd) sd.addEventListener('click', () => runAct('dup', selIds()));
-  const sx = $('#sDel'); if (sx) sx.addEventListener('click', () => runAct('del', selIds()));
-  $$('[data-tg]', box).forEach(b => b.addEventListener('click', () => {
-    state.ui.target = b.dataset.tg;
-    renderRight();
-  }));
-  $$('[data-rm]', box).forEach(b => b.addEventListener('click', () => {
-    if (state.ui.target === b.dataset.rm) state.ui.target = '';
-    edit(() => classRemove(n, b.dataset.rm));
-  }));
-  const addCls = box.querySelector('[data-x="addcls"]');
-  if (addCls) addCls.addEventListener('change', async () => {
-    const v = addCls.value;
-    if (!v) return;
-    if (v === '__new') {
-      const name = await askText('New class', 'Class name', DEF[n.type].label,
-        { ok: 'Create class', note: 'Restyling it reaches every element using it.' });
-      if (name === null) { addCls.value = ''; return; }
-      edit(() => { state.ui.target = classFrom(n, name); });
-      toast('Class created from this element');
-      return;
-    }
-    edit(() => { classApply(n, v); state.ui.target = v; });
-  });
-  $$('[data-bind]', box).forEach(b => b.addEventListener('click', async () => {
-    const key = b.dataset.bind, sc = bindScope(n.id);
-    if (!sc) return;
-    const cur = bindGet(n, key);
-    const chosen = await askPick(`Bind to ${esc(sc.col.name)}`,
-      [['', '— No binding, use the value typed here —'], ...sc.col.fields.map(f => [f.id, `${f.name} · ${f.type}`])],
-      cur);
-    if (chosen === null) return;
-    edit(() => bindSet(n, key, chosen));
-    toast(chosen ? 'Bound to ' + (findField(sc.col, chosen) || {}).name : 'Binding cleared');
-  }));
-  $$('[data-hide]', box).forEach(b => b.addEventListener('click', () => edit(() => {
-    n.hide = n.hide || {}; n.hide[b.dataset.hide] = !n.hide[b.dataset.hide];
-  })));
-
-  $$('.f[data-ci]', box).forEach(f => {
-    const c = CUR[+f.dataset.ci]; if (!c) return;
-    const key = n.id + '|' + (c.c || c.k || c.t);
-    const cssOnly = !!c.c;                       // writes a CSS property, not content
-    const live = v => { tx(key); applyC(n, c, v); (cssOnly ? repaintCss : repaint)(); };
-    const hard = v => {
-      tx(key); applyC(n, c, v);
-      if (cssOnly) paintCss(); else { paint(); renderLayers(); }
-      save(); endTx(); renderRight();
-    };
-
-    /* responsive badge → clear the override for this breakpoint */
-    const badge = f.querySelector('.rsp[data-clear="1"]');
-    if (badge) badge.addEventListener('click', () => {
-      tx(key + ':clear');
-      const o = tgtObj(n);
-      if (c.t === 'box') ['top', 'right', 'bottom', 'left'].forEach(s => { delete o.css[dk()][c.c + '-' + s]; });
-      else delete o.css[dk()][c.c];
-      endTx(); paintCss(); save(); renderRight();
-    });
-
-    const gv = x => f.querySelector(`[data-x="${x}"]`);
-
-    switch (c.t) {
-      case 'text': case 'area': {
-        const el = gv('v');
-        el.addEventListener('input', () => live(el.value));
-        el.addEventListener('blur', endTx);
-        break;
-      }
-      case 'select': { const el = gv('v'); el.addEventListener('change', () => hard(el.value)); break; }
-      case 'unit': {
-        const nu = gv('n'), uu = gv('u');
-        const push = () => {
-          const v = String(nu.value).trim();
-          live(v === '' ? '' : v + (uu.value || ''));
-        };
-        nu.addEventListener('input', push);
-        nu.addEventListener('blur', endTx);
-        uu.addEventListener('change', () => { push(); endTx(); });
-        break;
-      }
-      case 'slider': {
-        const r = gv('r'), nn = gv('n');
-        const push = v => { r.value = v; nn.value = v; live(c.raw ? String(v) : v + 'px'); };
-        r.addEventListener('input', () => push(r.value));
-        nn.addEventListener('input', () => push(nn.value));
-        r.addEventListener('change', endTx); nn.addEventListener('blur', endTx);
-        break;
-      }
-      case 'color': {
-        const pk = gv('c'), hx = gv('v'), cl = gv('clr'), sw = f.querySelector('.sw i');
-        const cur = () => (c.c ? cssVal(tgtObj(n), c.c, !!c.r).v : propVal(n, c.k));
-        pk.addEventListener('input', () => {
-          sw.style.background = pk.value;
-          if (hx) hx.value = pk.value;
-          live(pk.value);                       // picking a literal breaks any link
-        });
-        pk.addEventListener('change', () => { endTx(); if (isRef(cur())) renderRight(); });
-        if (hx) {
-          hx.addEventListener('input', () => { sw.style.background = hx.value || 'transparent'; live(hx.value.trim()); });
-          hx.addEventListener('blur', endTx);
-        }
-        if (cl) cl.addEventListener('click', () => hard(''));
-        const un = gv('unlink');
-        if (un) un.addEventListener('click', () => hard(resolveColor(cur())));
-        $$('[data-x="tok"]', f).forEach(b => b.addEventListener('click', () => hard(cvar(b.dataset.id))));
-        gv('tokadd').addEventListener('click', async () => {
-          const lit = resolveColor(cur()) || pk.value;
-          const name = await askText('New colour token', 'Colour name', 'Accent',
-            { ok: 'Create token', note: 'Every element using it changes with it.' });
-          if (name === null) return;
-          edit(() => { const id = colorAdd(name, lit); applyC(n, c, cvar(id)); });
-          toast('Colour token created');
-        });
-        break;
-      }
-      case 'pick': $$('[data-x="p"]', f).forEach(b => b.addEventListener('click', () => hard(b.dataset.v))); break;
-      case 'toggle': gv('t').addEventListener('click', () => hard(propVal(n, c.k) ? 0 : 1)); break;
-      case 'box': {
-        const uu = gv('bu');
-        const push = () => {
-          tx(key);
-          $$('[data-x="b"]', f).forEach(inp => {
-            const v = String(inp.value).trim();
-            setCss(tgtObj(n), c.c + '-' + inp.dataset.s, v === '' ? '' : v + uu.value, !!c.r);
-          });
-          repaintCss();
-        };
-        $$('[data-x="b"]', f).forEach(inp => { inp.addEventListener('input', push); inp.addEventListener('blur', endTx); });
-        uu.addEventListener('change', () => { push(); endTx(); });
-        break;
-      }
-      case 'img': {
-        const wrapv = v => c.bg ? (v ? `url("${v}")` : '') : v;
-        const cl = gv('clr');
-        if (cl) cl.addEventListener('click', () => hard(wrapv('')));
-        const useAsset = got => edit(() => {
-          applyC(n, c, wrapv('asset:' + got.id));
-          if (!c.bg && got.w) { n.props.w = String(got.w); n.props.h = String(got.h); }
-        });
-        const libEl = gv('lib');
-        if (libEl) libEl.addEventListener('click', async () => {
-          const id = await mediaPicker();
-          const got = id && AS.mem.get(id);
-          if (got) useAsset(got);
-        });
-        /* one entry point for taking a file into the library, so the type check, the
-           large-image warning and the toast are identical everywhere */
-        const take = async file => {
-          const id = await mediaTake(file);
-          if (!id) return;
-          const got = AS.mem.get(id);
-          if (got) useAsset(got);
-        };
-        const choose = () => {
-          const fi = document.createElement('input');
-          fi.type = 'file'; fi.accept = 'image/*';
-          fi.onchange = () => take(fi.files[0]);
-          fi.click();
-        };
-        gv('up').addEventListener('click', choose);
-        const drop = gv('drop');
-        if (drop) {
-          drop.addEventListener('click', choose);
-          ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
-            e.preventDefault(); drop.classList.add('over');
-          }));
-          ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
-            e.preventDefault(); drop.classList.remove('over');
-          }));
-          drop.addEventListener('drop', e => take(e.dataTransfer.files[0]));
-        }
-        break;
-      }
-      case 'opt': {
-        const ck = n.id + '|' + (c.c || c.k);
-        const selEl = gv('o'), cin = gv('oc');
-        selEl.addEventListener('change', () => {
-          if (selEl.value === '__custom') { state.ui.custom[ck] = true; renderRight(); return; }
-          delete state.ui.custom[ck];
-          hard(selEl.value);
-        });
-        if (cin) {
-          cin.addEventListener('input', () => live(cin.value.trim()));
-          cin.addEventListener('blur', endTx);
-        }
-        break;
-      }
-      case 'dims': {
-        const w = gv('dw'), h = gv('dh');
-        const push = () => { tx(key); n.props.w = w.value; n.props.h = h.value; repaint(); };
-        w.addEventListener('input', push); h.addEventListener('input', push);
-        w.addEventListener('blur', endTx); h.addEventListener('blur', endTx);
-        gv('ddetect').addEventListener('click', async () => {
-          const got = await imgSize(assetsToBlob(String(n.props.src || '')));
-          if (!got) { toast('Could not read that image'); return; }
-          edit(() => { n.props.w = String(got.w); n.props.h = String(got.h); });
-          toast(`Detected ${got.w} × ${got.h}`);
-        });
-        break;
-      }
-      case 'items': {
-        const arr = () => (n.props[c.k] = Array.isArray(n.props[c.k]) ? n.props[c.k] : []);
-        const fld = (x, prop) => $$(`[data-x="${x}"]`, f).forEach(el => {
-          el.addEventListener('input', () => { tx(key); arr()[+el.dataset.k][prop] = el.value; repaint(); });
-          el.addEventListener('blur', endTx);
-        });
-        fld('il', 'label'); fld('ih', 'href');
-        $$('[data-x="iu"]', f).forEach(b => b.addEventListener('click', () => {
-          const k = +b.dataset.k; if (!k) return;
-          edit(() => { const arr2 = arr(); [arr2[k - 1], arr2[k]] = [arr2[k], arr2[k - 1]]; });
-        }));
-        $$('[data-x="ix"]', f).forEach(b => b.addEventListener('click', () =>
-          edit(() => arr().splice(+b.dataset.k, 1))));
-        gv('ia').addEventListener('click', () => edit(() => arr().push({ label: 'New link', href: '' })));
-        break;
-      }
-      case 'tstyle': {
-        const selEl = gv('ts');
-        selEl.addEventListener('change', () => edit(() => {
-          if (selEl.value) tsApply(n, selEl.value); else tsUnlink(n);
-        }));
-        const push = gv('tspush');
-        if (push) push.addEventListener('click', async () => {
-          const t = findStyle(n.props.ts), k = t ? tsUsage(t.id) : 0;
-          if (k > 1 && !await askConfirm('Update the style everywhere?', `<b>${esc(t.name)}</b> is used ${k}×. Taking this element's typography into the style changes the other ${k - 1} too.`, { ok: 'Update style', danger: false })) return;
-          edit(() => tsUpdateFrom(n));
-          toast('Style updated everywhere');
-        });
-        const drop = gv('tsdrop');
-        if (drop) drop.addEventListener('click', () => { edit(() => tsUnlink(n)); toast('Detached — the look is now local'); });
-        const mk = gv('tsnew');
-        if (mk) mk.addEventListener('click', async () => {
-          const name = await askText('New text style', 'Style name', DEF[n.type].label,
-            { ok: 'Create style', note: 'Every element using it follows.' });
-          if (name === null) return;
-          edit(() => tsCreateFrom(n, name));
-          toast('Text style created');
-        });
-        break;
-      }
-      case 'fields': {
-        const arr = () => (n.props[c.k] = Array.isArray(n.props[c.k]) ? n.props[c.k] : []);
-        const live = (x, prop) => $$(`[data-x="${x}"]`, f).forEach(el => {
-          el.addEventListener('input', () => { tx(key); arr()[+el.dataset.k][prop] = el.value; repaint(); });
-          el.addEventListener('blur', endTx);
-        });
-        live('fl', 'label'); live('fn', 'name'); live('fp', 'ph'); live('fo', 'opts');
-        $$('[data-x="ft"]', f).forEach(el => el.addEventListener('change', () => {
-          tx(key); arr()[+el.dataset.k].type = el.value; endTx(); paint(); save(); renderRight();
-        }));
-        $$('[data-x="fr"]', f).forEach(b => b.addEventListener('click', () => {
-          const k = +b.dataset.k;
-          edit(() => { const a2 = arr(); a2[k].required = a2[k].required ? 0 : 1; });
-        }));
-        $$('[data-x="fu"]', f).forEach(b => b.addEventListener('click', () => {
-          const k = +b.dataset.k; if (!k) return;
-          edit(() => { const a2 = arr(); [a2[k - 1], a2[k]] = [a2[k], a2[k - 1]]; });
-        }));
-        $$('[data-x="fx"]', f).forEach(b => b.addEventListener('click', () =>
-          edit(() => arr().splice(+b.dataset.k, 1))));
-        gv('fa').addEventListener('click', () => edit(() =>
-          arr().push({ type: 'text', label: 'New field', name: '', required: 0, ph: '' })));
-        break;
-      }
-      case 'link': {
-        const here = page().slug;
-        const tkey = c.tk || 'target';
-        const cur = () => linkOf(n, c.k, here);
-        const commit = o => { tx(key); n.props[c.k] = buildLink(o); endTx(); paint(); save(); renderRight(); };
-        gv('lm').addEventListener('change', () => {
-          const mode = gv('lm').value;
-          if (mode === 'none') n.props[tkey] = '';
-          state.ui.lmode = mode === 'none' ? null : { key: n.id + '|' + c.k, mode };
-          commit(mode === 'page' ? { mode, page: here, frag: '' } : { mode });
-          if (mode === 'item') state.ui.lmode = null;      // it stores a real value straight away
-        });
-        const lp = gv('lp'), lf = gv('lf'), lv = gv('lv'), lt = gv('lt');
-        if (lp) lp.addEventListener('change', () => commit({ mode: 'page', page: lp.value, frag: '' }));
-        if (lf) lf.addEventListener('change', () => { const o = cur(); o.frag = lf.value; commit(o); });
-        if (lv) {
-          lv.addEventListener('input', () => { tx(key); const o = cur(); o.value = lv.value.trim(); n.props[c.k] = buildLink(o); repaint(); });
-          lv.addEventListener('blur', endTx);
-        }
-        if (lt) lt.addEventListener('click', () => {
-          tx(key); n.props[tkey] = propVal(n, tkey) === '_blank' ? '' : '_blank';
-          endTx(); paint(); save(); renderRight();
-        });
-        break;
-      }
-      case 'source': {
-        gv('src').addEventListener('change', () => {
-          const v = gv('src').value;
-          edit(() => { srcSet(n, v); if (!v) n.props.sort = ''; });
-          toast(v ? findCollection(v).name + ' — ' + findCollection(v).items.length + ' items' : 'Collection cleared');
-        });
-        const ba = gv('bindall');
-        if (ba) ba.addEventListener('click', () => bindModal(n.id));
-        break;
-      }
-      case 'rich': { const rb = gv('rich'); if (rb) rb.addEventListener('click', () => enterEdit(n.id)); break; }
-      case 'qa': {
-        const arr = () => (n.props[c.k] = Array.isArray(n.props[c.k]) ? n.props[c.k] : []);
-        const fld = (x, prop) => $$(`[data-x="${x}"]`, f).forEach(el => {
-          el.addEventListener('input', () => { tx(key); arr()[+el.dataset.k][prop] = el.value; repaint(); });
-          el.addEventListener('blur', endTx);
-        });
-        fld('qq', 'q'); fld('qb', 'a');
-        $$('[data-x="qu"]', f).forEach(b => b.addEventListener('click', () => {
-          const k = +b.dataset.k; if (!k) return;
-          edit(() => { const a2 = arr(); [a2[k - 1], a2[k]] = [a2[k], a2[k - 1]]; });
-        }));
-        $$('[data-x="qx"]', f).forEach(b => b.addEventListener('click', () =>
-          edit(() => arr().splice(+b.dataset.k, 1))));
-        gv('qadd').addEventListener('click', () => edit(() =>
-          arr().push({ q: 'A new question', a: '' })));
-        break;
-      }
-      case 'icon': {
-        $$('[data-x="ico"]', f).forEach(b => b.addEventListener('click', () => hard(b.dataset.v)));
-        break;
-      }
-      case 'imgs': {
-        const arr = () => (n.props[c.k] = Array.isArray(n.props[c.k]) ? n.props[c.k] : []);
-        const fld = (x, prop) => $$(`[data-x="${x}"]`, f).forEach(el => {
-          el.addEventListener('input', () => { tx(key); arr()[+el.dataset.k][prop] = el.value; repaint(); });
-          el.addEventListener('blur', endTx);
-        });
-        fld('ga', 'alt'); fld('gc', 'caption');
-        $$('[data-x="gu"]', f).forEach(b => b.addEventListener('click', () => {
-          const k = +b.dataset.k; if (!k) return;
-          edit(() => { const a2 = arr(); [a2[k - 1], a2[k]] = [a2[k], a2[k - 1]]; });
-        }));
-        $$('[data-x="gx"]', f).forEach(b => b.addEventListener('click', () =>
-          edit(() => arr().splice(+b.dataset.k, 1))));
-        /* intrinsic size is taken here, once, from what assetAdd measured — the
-           export writes it as width/height and the review reads it */
-        const tile = id => {
-          const a = AS.mem.get(id);
-          return { src: 'asset:' + id, alt: '', caption: '', w: a && a.w ? String(a.w) : '', h: a && a.h ? String(a.h) : '' };
-        };
-        gv('gadd').addEventListener('click', () => {
-          const fi = document.createElement('input');
-          fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
-          /* every file in one gesture is one undo step, not one per file */
-          fi.onchange = async () => {
-            const got = [];
-            for (const file of fi.files) { const id = await mediaTake(file); if (id) got.push(id); }
-            if (!got.length) return;
-            edit(() => got.forEach(id => arr().push(tile(id))));
-          };
-          fi.click();
-        });
-        const lib = gv('glib');
-        if (lib) lib.addEventListener('click', async () => {
-          const id = await mediaPicker();
-          if (id && AS.mem.get(id)) edit(() => arr().push(tile(id)));
-        });
-        break;
-      }
-      case 'cols': {
-        $$('[data-x="ccount"]', f).forEach(b => b.addEventListener('click', async () => {
-          const k = +b.dataset.v, had = n.children.length;
-          if (k === had) return;
-          const lost = n.children.slice(k).reduce((t, col) => t + col.children.length, 0);
-          if (k < had && lost && !await askConfirm('Fewer columns', `${lost} element${lost === 1 ? '' : 's'} will move into the last remaining column.`, { ok: 'Continue', danger: false })) return;
-          /* keep the current proportions where the count is unchanged-ish */
-          edit(() => applyCols(n, LAYOUTS[k][0]));
-        }));
-        $$('[data-x="clay"]', f).forEach(b => b.addEventListener('click', () =>
-          edit(() => applyCols(n, LAYOUTS[n.children.length][+b.dataset.v]))));
-        break;
-      }
-    }
-  });
-
-  /* advanced pseudo-props need their stored values back in the inputs */
-  $$('.f[data-ci]', box).forEach(f => {
-    const c = CUR[+f.dataset.ci]; if (!c || !c.k || c.k[0] !== '_') return;
-    const el = f.querySelector('[data-x="v"], textarea[data-x="v"]');
-    if (!el) return;
-    el.value = c.k === '_id' ? (n.adv.htmlId || '') : c.k === '_cls' ? (n.adv.cls || '') : (n.adv.css || '');
-  });
-}
 
 /* =============================================================== chrome */
 function renderModebar() {

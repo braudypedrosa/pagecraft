@@ -1,0 +1,75 @@
+/* The frame every control sits in: its label, its two badges, and its note.
+
+   The badges are the reason this is one component rather than markup repeated 22
+   times. The responsive badge has to say whether *this* breakpoint owns the value, not
+   whether a value exists — a mobile field inheriting the desktop size is not an
+   override, and drawing it as one is how you end up clearing something that was never
+   set. The binding badge stays live even when the control itself is inert, because
+   unbinding is the one thing you still need to do to a bound field. */
+import { C, L } from '../ctx';
+import { Icon } from '../Icon';
+import { bound, writer } from './ctl';
+import type { Control, Node as PcNode } from '../../core/types';
+
+const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile' };
+
+function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
+  const dev = C.dk();
+  const o = C.tgtObj(n);
+  const owns = !!(c.c && o.css[dev] && o.css[dev][c.c] !== undefined);
+  const clearable = owns && dev !== 'd';
+  const w = writer(n, c);
+  return (
+    <span class={'rsp' + (clearable ? ' ovr' : '')}
+      title={dev === 'd' ? 'Editing the desktop base value'
+        : owns ? 'Overridden on ' + C.DEV_LABEL[dev] + ' — click to clear'
+          : 'Set a ' + C.DEV_LABEL[dev] + ' override'}
+      onClick={clearable ? () => w.clearOverride() : undefined}>
+      <Icon name={DEV_ICON[dev]} size={9} />
+    </span>
+  );
+}
+
+function BindBadge({ n, c }: { n: PcNode; c: Control }) {
+  const scope = C.bindScope(n.id);
+  if (!scope) return null;
+  const fid = C.bindGet(n, c.k!);
+  const f = fid ? C.findField(scope.col, fid) : null;
+
+  const pick = async () => {
+    const chosen = await L.askPick(`Bind to ${scope.col.name}`,
+      [['', '— No binding, use the value typed here —'],
+        ...scope.col.fields.map(x => [x.id, `${x.name} · ${x.type}`])], fid);
+    if (chosen === null) return;
+    C.edit(() => C.bindSet(n, c.k!, chosen));
+    L.toast(chosen ? 'Bound to ' + (C.findField(scope.col, chosen) || { name: '' }).name : 'Binding cleared');
+  };
+
+  return (
+    <span class={'bnd' + (fid ? ' on' : '')} onClick={pick}
+      title={fid ? (f ? `Bound to ${f.name} — click to change` : 'Bound to a field that no longer exists')
+        : `Bind to a field in ${scope.col.name}`}>
+      <Icon name="cms" size={9} />
+    </span>
+  );
+}
+
+export function Field({ n, c, children }: { n: PcNode; c: Control; children?: any }) {
+  const { scope, fid } = bound(n, c);
+  const bindable = c.k && C.bindableKeys(n.type).includes(c.k);
+  const f = fid && scope ? C.findField(scope.col, fid) : null;
+
+  return (
+    <div class={'f' + (fid ? ' bound' : '')}>
+      <label>
+        {c.label || ''}
+        {c.r ? <ResponsiveBadge n={n} c={c} /> : null}
+        {bindable ? <BindBadge n={n} c={c} /> : null}
+      </label>
+      {children}
+      {fid
+        ? <div class="note">From <b>{(f || { name: 'a missing field' }).name}</b> on the item shown above.</div>
+        : c.note ? <div class="note">{c.note}</div> : null}
+    </div>
+  );
+}

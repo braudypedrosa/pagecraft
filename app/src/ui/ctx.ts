@@ -91,6 +91,44 @@ export interface Legacy {
      That is a bridge, not a destination: it goes when the media library moves. */
   assetField(prefix: string, value: string | undefined, note?: string): string;
   wireAsset(prefix: string, set: (v: string) => void, redraw: () => void): void;
+
+  /* History. `tx` opens a coalescing transaction keyed by field, so a run of
+     keystrokes is one undo step; `endTx` closes it on blur. Anything that moves
+     history depth has to go through these or the Undo button lies. */
+  tx(key: string): void;
+  endTx(): void;
+
+  /* Repaints, in four grades. `paint`/`paintCss` are immediate, the `re-` pair are
+     debounced for typing, and the css-only ones skip re-rendering the canvas markup. */
+  paint(): void;
+  paintCss(): void;
+  repaint(): void;
+  repaintCss(): void;
+
+  /** the canvas geometry, which changes when the inspector shows or hides */
+  layoutCanvas(): void;
+  positionHud(): void;
+  renderDim(): void;
+
+  askPick(title: string, opts: string[][], current?: string): Promise<string | null>;
+  /** the bind-every-field-inside dialog */
+  bindModal(nodeId: string): void;
+  /** put the canvas into rich-text editing on this node */
+  enterEdit(nodeId: string): void;
+
+  /* The media library, still legacy: IndexedDB behind an in-memory map. */
+  /** one asset's metadata, or null */
+  asset(id: string): { url: string; name: string; size: number; w?: number; h?: number } | null;
+  /** how many assets the project holds — the Library button only appears above zero */
+  assetCount(): number;
+  /** take a File into the library, returning its id */
+  mediaTake(file: File): Promise<string | null>;
+  /** the library picker */
+  mediaPicker(): Promise<string | null>;
+  /** resolve `asset:id` to something an <img> can load */
+  assetsToBlob(v: string): string;
+  /** read an image's intrinsic size */
+  imgSize(src: string): Promise<{ w: number; h: number } | null>;
 }
 
 /* Assigned once by mount(). Live bindings, so the components below see them. */
