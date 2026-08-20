@@ -3542,3 +3542,170 @@ test('nothing selected offers nothing, and a stale id is skipped', () => {
   a.deepEqual(C.menuFor(null), []);
   a.deepEqual(C.menuFor(['no-such-node']), [], 'a deleted node has no menu');
 });
+
+/* ------------------------------------------- what the inspector is editing
+   These eight lived in the UI half until now, which is why none of them had a test.
+   `cssVal` is the one that matters: its fallback chain *is* the responsive cascade,
+   and the canvas rendering desktop styling at a mobile width came from getting that
+   relationship wrong elsewhere. */
+
+test('parseU splits a value from its unit, and refuses to guess', () => {
+  a.deepEqual(C.parseU('24px'), { n: '24', u: 'px' });
+  a.deepEqual(C.parseU('1.5rem'), { n: '1.5', u: 'rem' });
+  a.deepEqual(C.parseU('-8px'), { n: '-8', u: 'px' }, 'negatives are real values here');
+  a.deepEqual(C.parseU('  40 %  '), { n: '40', u: '%' }, 'whitespace either side, and before the unit');
+  a.deepEqual(C.parseU('700'), { n: '700', u: '' }, 'unitless is legitimate — font-weight, line-height');
+  /* the inspector shows these straight to the user, so an unparseable value has to
+     come back empty rather than as NaN or a partial number */
+  ['auto', 'inherit', 'calc(100% - 8px)', '10pt', '', null, undefined].forEach(v => {
+    a.deepEqual(C.parseU(v), { n: '', u: '' }, JSON.stringify(v) + ' is not a number and a unit');
+  });
+});
+
+test('cssVal falls back mobile → tablet → desktop, the way the export cascades', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  h.css.d = { 'font-size': '48px' };
+  const read = (dev: 'desktop' | 'tablet' | 'mobile') => { C.state.ui.dev = dev; return C.cssVal(h, 'font-size', true); };
+
+  a.deepEqual(read('desktop'), { v: '48px', own: true }, 'desktop owns the base');
+  a.deepEqual(read('tablet'), { v: '48px', own: false }, 'tablet shows it but does not own it');
+  a.deepEqual(read('mobile'), { v: '48px', own: false });
+
+  h.css.t = { 'font-size': '36px' };
+  a.deepEqual(read('tablet'), { v: '36px', own: true });
+  a.deepEqual(read('mobile'), { v: '36px', own: false },
+    'mobile inherits from tablet, not from desktop — this is the whole chain');
+
+  h.css.m = { 'font-size': '28px' };
+  a.deepEqual(read('mobile'), { v: '28px', own: true });
+  a.deepEqual(read('desktop'), { v: '48px', own: true }, 'and the base is untouched by either');
+});
+
+test('cssVal reports own only for a value set at the breakpoint being edited', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  h.css.d = { color: '#111111' };
+  /* `own` drives the override badge, so it has to mean "set here". An empty string is
+     what a cleared field leaves behind, and it must not read as an override. */
+  h.css.m = { color: '' };
+  C.state.ui.dev = 'mobile';
+  a.deepEqual(C.cssVal(h, 'color', true), { v: '#111111', own: false },
+    'an empty override is not an override');
+  a.deepEqual(C.cssVal(h, 'missing-prop', true), { v: '', own: false }, 'and nothing set reads as empty');
+});
+
+test('cssVal ignores the current device for a non-responsive control', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  h.css.d = { 'font-size': '48px' };
+  h.css.m = { 'font-size': '28px' };
+  C.state.ui.dev = 'mobile';
+  a.deepEqual(C.cssVal(h, 'font-size', false), { v: '48px', own: true },
+    'a control that is not responsive always edits the base, wherever you are standing');
+});
+
+test('setCss writes at the breakpoint being edited, and clearing deletes', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  C.state.ui.dev = 'mobile';
+  C.setCss(h, 'font-size', '28px', true);
+  a.deepEqual(h.css.m, { 'font-size': '28px' });
+  a.equal(h.css.d['font-size'], undefined, 'the base is left alone');
+
+  C.state.ui.dev = 'desktop';
+  C.setCss(h, 'font-size', '48px', true);
+  a.equal(h.css.d['font-size'], '48px');
+
+  /* storing '' would emit `font-size:` into the export and shadow the value below it
+     in the cascade, so clearing has to remove the key outright */
+  C.state.ui.dev = 'mobile';
+  C.setCss(h, 'font-size', '', true);
+  a.equal('font-size' in h.css.m, false, 'cleared, not blanked');
+  C.state.ui.dev = 'desktop';
+  a.deepEqual(C.cssVal(h, 'font-size', true), { v: '48px', own: true }, 'and the base shows through again');
+
+  C.setCss(h, 'color', null, true);
+  a.equal('color' in h.css.d, false, 'null clears too — the inspector sends both');
+});
+
+test('setCss writes the base when the control is not responsive', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  C.state.ui.dev = 'mobile';
+  C.setCss(h, 'text-align', 'center', false);
+  a.equal(h.css.d['text-align'], 'center');
+  a.equal('text-align' in (h.css.m || {}), false, 'and nothing lands at the mobile breakpoint');
+});
+
+test('tgtObj sends styling to the targeted class, but only if the node has it', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const id = C.classAdd('Card', { d: { padding: '20px' } });
+
+  C.state.ui.target = '';
+  a.equal(C.tgtObj(h), h, 'nothing targeted: the element itself');
+  a.equal(C.tgtIsClass(h), false);
+
+  /* targeted but not applied. Without the `cls` check this returned the class, and a
+     style edit would have restyled every other element using it. */
+  C.state.ui.target = id;
+  a.equal(C.tgtObj(h), h, 'a class this element does not carry is not a target');
+  a.equal(C.tgtIsClass(h), false);
+
+  C.classApply(h, id);
+  a.equal(C.tgtObj(h), C.findClass(id), 'applied and targeted: the class');
+  a.equal(C.tgtIsClass(h), true);
+
+  C.classRemove(h, id);
+  a.equal(C.tgtObj(h), h, 'removing it takes the target away with it');
+  C.state.ui.target = '';
+});
+
+test('tgtObj survives a target naming a class that no longer exists', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  C.state.ui.target = 'deleted-class';
+  a.equal(C.tgtObj(h), h, 'a stale target falls back to the element rather than throwing');
+  C.state.ui.target = '';
+});
+
+test('linkOf remembers a mode picked before there is a value to derive it from', () => {
+  blank();
+  const b = insert('button', null, 0);
+  b.props.link = '';
+  a.equal(C.linkOf(b, 'link', 'index').mode, 'none', 'nothing typed, nothing to infer');
+
+  /* the select snapped shut before its input could appear, because an empty URL parses
+     back as `none`. The pending choice lives in ui.lmode until a value makes it real. */
+  C.state.ui.lmode = { key: b.id + '|link', mode: 'url' };
+  a.equal(C.linkOf(b, 'link', 'index').mode, 'url', 'the pending mode holds the field open');
+
+  b.props.link = 'https://example.com';
+  a.equal(C.linkOf(b, 'link', 'index').mode, 'url', 'and once there is a value it derives itself');
+
+  /* the pending mode belongs to one field, not to the editor */
+  C.state.ui.lmode = { key: 'some-other-node|link', mode: 'email' };
+  b.props.link = '';
+  a.equal(C.linkOf(b, 'link', 'index').mode, 'none', 'another field’s pending mode does not leak in');
+  C.state.ui.lmode = null;
+});
+
+test('propVal reads a prop, and tolerates a control with no key', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  h.props.text = 'Hello';
+  a.equal(C.propVal(h, 'text'), 'Hello');
+  a.equal(C.propVal(h, 'nope'), undefined);
+  /* a `toggle` or a section header carries no `k`, and the inspector calls this anyway */
+  a.equal(C.propVal(h, undefined), undefined);
+});
+
+test('kb reads as a size a person would say out loud', () => {
+  a.equal(C.kb(0), '1 KB', 'nothing is still one unit — "0 KB" reads as a broken upload');
+  a.equal(C.kb(1024), '1 KB');
+  a.equal(C.kb(1536), '2 KB');
+  a.equal(C.kb(1048575), '1024 KB');
+  a.equal(C.kb(1048576), '1.0 MB');
+  a.equal(C.kb(2_600_000), '2.5 MB');
+});

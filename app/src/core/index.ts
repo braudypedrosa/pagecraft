@@ -16,7 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, Css, Decls, Bp,
-  Collection, Field, FieldType, Item, Page,
+  Collection, Field, FieldType, Item, Page, StyleClass,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons';
@@ -1331,6 +1331,70 @@ function classMove(id: string, dir: number) {
   [list[i], list[j]] = [list[j], list[i]];
   return true;
 }
+/* ---- what the inspector is editing -------------------------------------
+   These eight were stranded in the UI half, which meant none of them had a test —
+   including `cssVal`, whose fallback chain *is* the responsive cascade. They touch
+   no DOM: they read `state` and return plain data. Moving them here shrinks the seam
+   the inspector has to reach across, and puts the cascade under test. */
+
+/** Split "24px" into its number and unit. A value it cannot parse yields empty
+    strings rather than NaN, because the inspector shows this straight to the user. */
+function parseU(v: unknown): { n: string; u: string } {
+  const s = String(v == null ? '' : v).trim();
+  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
+  return m ? { n: m[1], u: m[2] || '' } : { n: '', u: '' };
+}
+
+/**
+ * What the inspector should show for one CSS property, and whether this breakpoint
+ * owns it. `own` drives the override badge, so it has to mean "set *here*", not
+ * "has a value" — a mobile field inheriting the desktop value is not an override.
+ *
+ * The fallback is mobile → tablet → desktop, matching how the exported media queries
+ * actually cascade. Getting this wrong is what made the canvas show desktop styling
+ * at a mobile width.
+ */
+function cssVal(n: { css: Css }, c: string, resp?: boolean): { v: string; own: boolean } {
+  const b: Bp = resp ? dk() : 'd';
+  const own = n.css[b] ? n.css[b][c] : undefined;
+  if (own !== undefined && own !== '') return { v: own, own: true };
+  if (b === 'm' && n.css.t && n.css.t[c]) return { v: n.css.t[c], own: false };
+  const d = n.css.d ? n.css.d[c] : '';
+  return { v: d == null ? '' : d, own: false };
+}
+
+/** Write one CSS property at the breakpoint being edited. An empty value deletes the
+    declaration rather than storing `""`, so the value below it in the cascade shows
+    through — which is what clearing a field is supposed to do. */
+function setCss(n: { css: Css }, c: string, val: string | null | undefined, resp?: boolean) {
+  const b: Bp = resp ? dk() : 'd';
+  n.css[b] = n.css[b] || {};
+  if (val === '' || val == null) delete n.css[b][c]; else n.css[b][c] = val;
+}
+
+/** What styling edits land on: the selected class if this node carries it, else the
+    node itself. The `cls` check matters — a class can stay targeted after being
+    removed, and without it the edit would silently restyle every other user of it. */
+function tgtObj(n: PcNode): PcNode | StyleClass {
+  const id = state.ui.target;
+  const c = id ? findClass(id) : null;
+  return (c && (n.cls || []).includes(id)) ? c : n;
+}
+const tgtIsClass = (n: PcNode) => tgtObj(n) !== n;
+
+const propVal = (n: PcNode, k?: string) => (k == null ? undefined : n.props[k]);
+
+/** A link's mode is derived from the href it holds, so a mode picked but not yet
+    filled in has nothing to derive from. `ui.lmode` remembers the choice for exactly
+    that gap, which is why the picker does not snap back to "none" as you type. */
+function linkOf(n: PcNode, propKey: string, here: string) {
+  const L = parseLink(propVal(n, propKey), here);
+  if (L.mode === 'none' && state.ui.lmode && state.ui.lmode.key === n.id + '|' + propKey) L.mode = state.ui.lmode.mode;
+  return L;
+}
+
+const kb = (n: number) => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+
 const tsUsage = (id: string) => {
   let k = 0;
   allTrees().forEach(l => eachNode(l, x => { if (x.props.ts === id) k++; }));
@@ -4068,5 +4132,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

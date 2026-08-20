@@ -112,6 +112,7 @@ __export(index_exports, {
   contrast: () => contrast,
   copyNode: () => copyNode,
   copyStyles: () => copyStyles,
+  cssVal: () => cssVal,
   ctlKeys: () => ctlKeys,
   cvar: () => cvar,
   dbounce: () => dbounce,
@@ -169,8 +170,10 @@ __export(index_exports, {
   itemSetSlug: () => itemSetSlug,
   itemSlug: () => itemSlug,
   itemTitle: () => itemTitle,
+  kb: () => kb,
   labelOf: () => labelOf,
   layerTarget: () => layerTarget,
+  linkOf: () => linkOf,
   lint: () => lint,
   lintCounts: () => lintCounts,
   listItems: () => listItems,
@@ -199,12 +202,14 @@ __export(index_exports, {
   para: () => para,
   parentOf: () => parentOf,
   parseLink: () => parseLink,
+  parseU: () => parseU,
   pasteNode: () => pasteNode,
   pasteStyles: () => pasteStyles,
   pasteStylesMany: () => pasteStylesMany,
   patternInsert: () => patternInsert,
   previewIndex: () => previewIndex,
   previewItem: () => previewItem,
+  propVal: () => propVal,
   redo: () => redo,
   refId: () => refId,
   reid: () => reid,
@@ -229,6 +234,7 @@ __export(index_exports, {
   selRange: () => selRange,
   selSet: () => selSet,
   selToggle: () => selToggle,
+  setCss: () => setCss,
   sitePlan: () => sitePlan,
   sitemapXml: () => sitemapXml,
   slotGet: () => slotGet,
@@ -247,6 +253,8 @@ __export(index_exports, {
   styleDelete: () => styleDelete,
   styles: () => styles,
   textSlots: () => textSlots,
+  tgtIsClass: () => tgtIsClass,
+  tgtObj: () => tgtObj,
   tidy: () => tidy,
   titleField: () => titleField,
   tokenCss: () => tokenCss,
@@ -1721,6 +1729,38 @@ function classMove(id, dir) {
   [list[i], list[j]] = [list[j], list[i]];
   return true;
 }
+function parseU(v) {
+  const s = String(v == null ? "" : v).trim();
+  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
+  return m ? { n: m[1], u: m[2] || "" } : { n: "", u: "" };
+}
+function cssVal(n, c, resp) {
+  const b = resp ? dk() : "d";
+  const own = n.css[b] ? n.css[b][c] : void 0;
+  if (own !== void 0 && own !== "") return { v: own, own: true };
+  if (b === "m" && n.css.t && n.css.t[c]) return { v: n.css.t[c], own: false };
+  const d = n.css.d ? n.css.d[c] : "";
+  return { v: d == null ? "" : d, own: false };
+}
+function setCss(n, c, val, resp) {
+  const b = resp ? dk() : "d";
+  n.css[b] = n.css[b] || {};
+  if (val === "" || val == null) delete n.css[b][c];
+  else n.css[b][c] = val;
+}
+function tgtObj(n) {
+  const id = state.ui.target;
+  const c = id ? findClass(id) : null;
+  return c && (n.cls || []).includes(id) ? c : n;
+}
+var tgtIsClass = (n) => tgtObj(n) !== n;
+var propVal = (n, k) => k == null ? void 0 : n.props[k];
+function linkOf(n, propKey, here) {
+  const L = parseLink(propVal(n, propKey), here);
+  if (L.mode === "none" && state.ui.lmode && state.ui.lmode.key === n.id + "|" + propKey) L.mode = state.ui.lmode.mode;
+  return L;
+}
+var kb = (n) => n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
 var tsUsage = (id) => {
   let k = 0;
   allTrees().forEach((l) => eachNode(l, (x) => {
@@ -4476,6 +4516,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   contrast,
   copyNode,
   copyStyles,
+  cssVal,
   ctlKeys,
   cvar,
   dbounce,
@@ -4533,8 +4574,10 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   itemSetSlug,
   itemSlug,
   itemTitle,
+  kb,
   labelOf,
   layerTarget,
+  linkOf,
   lint,
   lintCounts,
   listItems,
@@ -4563,12 +4606,14 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   para,
   parentOf,
   parseLink,
+  parseU,
   pasteNode,
   pasteStyles,
   pasteStylesMany,
   patternInsert,
   previewIndex,
   previewItem,
+  propVal,
   redo,
   refId,
   reid,
@@ -4593,6 +4638,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   selRange,
   selSet,
   selToggle,
+  setCss,
   sitePlan,
   sitemapXml,
   slotGet,
@@ -4611,6 +4657,8 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   styleDelete,
   styles,
   textSlots,
+  tgtIsClass,
+  tgtObj,
   tidy,
   titleField,
   tokenCss,

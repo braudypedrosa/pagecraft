@@ -2468,6 +2468,38 @@ function classMove(id, dir) {
   [list[i], list[j]] = [list[j], list[i]];
   return true;
 }
+function parseU(v) {
+  const s = String(v == null ? "" : v).trim();
+  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
+  return m ? { n: m[1], u: m[2] || "" } : { n: "", u: "" };
+}
+function cssVal(n, c, resp) {
+  const b = resp ? dk() : "d";
+  const own = n.css[b] ? n.css[b][c] : void 0;
+  if (own !== void 0 && own !== "") return { v: own, own: true };
+  if (b === "m" && n.css.t && n.css.t[c]) return { v: n.css.t[c], own: false };
+  const d = n.css.d ? n.css.d[c] : "";
+  return { v: d == null ? "" : d, own: false };
+}
+function setCss(n, c, val, resp) {
+  const b = resp ? dk() : "d";
+  n.css[b] = n.css[b] || {};
+  if (val === "" || val == null) delete n.css[b][c];
+  else n.css[b][c] = val;
+}
+function tgtObj(n) {
+  const id = state.ui.target;
+  const c = id ? findClass(id) : null;
+  return c && (n.cls || []).includes(id) ? c : n;
+}
+var tgtIsClass = (n) => tgtObj(n) !== n;
+var propVal = (n, k) => k == null ? void 0 : n.props[k];
+function linkOf(n, propKey, here) {
+  const L = parseLink(propVal(n, propKey), here);
+  if (L.mode === "none" && state.ui.lmode && state.ui.lmode.key === n.id + "|" + propKey) L.mode = state.ui.lmode.mode;
+  return L;
+}
+var kb = (n) => n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
 var tsUsage = (id) => {
   let k = 0;
   allTrees().forEach((l) => eachNode(l, (x) => {
@@ -5307,7 +5339,6 @@ async function assetDel(id) {
   if (AS.ok) { try { await idbReq(idbStore('readwrite').delete(id)); } catch (e) { } }
 }
 const assetBytes = () => [...AS.mem.values()].reduce((n, a) => n + (a.size || 0), 0);
-const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
 
 /* how many times each asset is referenced by the whole project */
 function assetUsage() {
@@ -6853,14 +6884,9 @@ function renderPages() {
 
 /* ====================================================== settings panel */
 let CUR = [];                                   // control descriptors for this render
-/* Style edits land on whatever the inspector is targeting: this element, or one
-   of its classes. Explicit, so nobody restyles twelve elements by accident. */
-function tgtObj(n) {
-  const id = state.ui.target;
-  const c = id && findClass(id);
-  return (c && (n.cls || []).includes(id)) ? c : n;
-}
-const tgtIsClass = n => tgtObj(n) !== n;
+/* tgtObj, tgtIsClass, parseU, cssVal, setCss, propVal, linkOf and kb used to live in
+   this file. They are DOM-free, so they are in the core now — where they are typed and,
+   for the first time, tested. The reasoning that was written here moved with them. */
 /* The Undo and Redo buttons reflect history depth, and `tx()` pushes a snapshot
    without going through `edit()` — so `HOOKS.change()` never fires and the
    buttons kept their disabled state until the next full render. After any style
@@ -6882,38 +6908,6 @@ function tx(key) {
 const endTx = () => { txKey = null; paintHistory(); };
 const repaint = dbounce(() => { paint(); save(); renderLayers(); refreshReview(); paintHistory(); }, 90);
 const repaintCss = dbounce(() => { paintCss(); save(); refreshReview(); paintHistory(); }, 60);
-
-function parseU(v) {
-  const s = String(v == null ? '' : v).trim();
-  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
-  return m ? { n: m[1], u: m[2] || '' } : { n: '', u: '' };
-}
-/* current + inherited value for a css prop */
-function cssVal(n, c, resp) {
-  const b = resp ? dk() : 'd';
-  const own = n.css[b] ? n.css[b][c] : undefined;
-  if (own !== undefined && own !== '') return { v: own, own: true };
-  if (b === 'm' && n.css.t && n.css.t[c]) return { v: n.css.t[c], own: false };
-  const d = n.css.d ? n.css.d[c] : '';
-  return { v: d == null ? '' : d, own: false };
-}
-function setCss(n, c, val, resp) {
-  const b = resp ? dk() : 'd';
-  n.css[b] = n.css[b] || {};
-  if (val === '' || val == null) delete n.css[b][c]; else n.css[b][c] = val;
-}
-const propVal = (n, k) => n.props[k];
-/* A link's mode is derived from the href it holds, so a mode with nothing to store
-   yet — URL, email or phone before you have typed — parsed back as `none`: the select
-   snapped shut before its input could appear, and anything typed was then discarded
-   because the builder was told the mode was `none`. The pending choice lives in
-   `ui.lmode` until a value makes it real. Both the markup and the wiring read it here,
-   or they disagree about what mode the field is in. */
-function linkOf(n, propKey, here) {
-  const L = parseLink(propVal(n, propKey), here);
-  if (L.mode === 'none' && state.ui.lmode && state.ui.lmode.key === n.id + '|' + propKey) L.mode = state.ui.lmode.mode;
-  return L;
-}
 
 function labelHtml(c, n) {
   const resp = !!c.r, dev = dk(), o = tgtObj(n);
