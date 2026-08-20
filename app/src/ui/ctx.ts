@@ -25,7 +25,8 @@ export type Core = Pick<typeof CoreNs,
   | 'edit' | 'collections' | 'findCollection' | 'collectionAdd' | 'collectionDelete'
   | 'locate' | 'selSet' | 'iconOf' | 'labelOf'
   | 'PATTERNS' | 'patternInsert'
-  | 'blocks' | 'findBlock' | 'blockInsert' | 'blockDelete' | 'blockUsage'>;
+  | 'blocks' | 'findBlock' | 'blockInsert' | 'blockDelete' | 'blockUsage'
+  | 'page' | 'pageMove' | 'pageDup' | 'pageDelete' | 'slugify'>;
 
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {
@@ -74,6 +75,22 @@ export interface Legacy {
   consumeDragMoved(): boolean;
   /** append a widget at the smart target, select it, and scroll it into view */
   appendSmart(key: string): void;
+
+  /** the new-page dialog */
+  newPageModal(): void;
+  /** the breadcrumb above the canvas, which carries the page name */
+  renderModebar(): void;
+  /** write the project to storage now */
+  save(): void;
+  /** repaint everything — the app's own render cycle */
+  appRender(): void;
+
+  /* The image field, still legacy because it is backed by IndexedDB and the media
+     library. A ported panel renders the markup it returns and then calls wireAsset in
+     an effect, so Preact owns the HTML and the old code only attaches handlers to it.
+     That is a bridge, not a destination: it goes when the media library moves. */
+  assetField(prefix: string, value: string | undefined, note?: string): string;
+  wireAsset(prefix: string, set: (v: string) => void, redraw: () => void): void;
 }
 
 /* Assigned once by mount(). Live bindings, so the components below see them. */

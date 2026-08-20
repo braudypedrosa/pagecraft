@@ -9,6 +9,7 @@ import { install, registerPainter, type Core, type Legacy } from './ctx';
 import { Layers } from './Layers';
 import { Cms } from './Cms';
 import { Add } from './Add';
+import { Pages } from './Pages';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
@@ -28,11 +29,13 @@ export function mount(core: Core, legacy: Legacy) {
   const painters = {
     renderLayers: panel('paneLayers', () => <Layers />),
     renderCms: panel('paneCms', () => <Cms />, true),
-    renderAdd: panel('paneAdd', () => <Add />)
+    renderAdd: panel('paneAdd', () => <Add />),
+    renderPages: panel('panePages', () => <Pages />)
   };
   registerPainter('layers', painters.renderLayers);
   registerPainter('add', painters.renderAdd);
   registerPainter('cms', painters.renderCms);
+  registerPainter('pages', painters.renderPages);
 
   return painters;
 }
