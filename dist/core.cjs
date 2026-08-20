@@ -1634,6 +1634,183 @@ function pasteStyles(id) {
 }
 const pasteStylesMany = ids => ids.filter(pasteStyles).length;
 
+/* ---- finding things -------------------------------------------------
+   Nothing could find a word across a project. With twelve pages, two global regions
+   and a CMS, "where did I write that" had no answer and renaming anything meant
+   opening every page and looking.
+
+   One walker underpins all of it, so the count in the results, the jump and the
+   replace can never disagree — and a new widget joins in by naming its text props
+   in TEXT_SLOTS and nothing else. A bare string is a prop; an array names the prop
+   and then the keys inside each row. */
+const TEXT_SLOTS = {
+  heading: ['text'], button: ['text'], icon: ['label'],
+  text: ['html'], embed: ['html'],
+  image: ['alt', 'caption'],
+  accordion: [['items', 'q', 'a']],
+  gallery: [['items', 'alt', 'caption']],
+  nav: [['items', 'label']],
+  form: [['fields', 'label', 'ph']]
+};
+/* the fields on a page itself, rather than on anything in it */
+const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['name', 'Page name']];
+const SLOT_LABEL = {
+  text: 'Text', html: 'Rich text', label: 'Label', alt: 'Alt text', caption: 'Caption',
+  q: 'Question', a: 'Answer', ph: 'Placeholder'
+};
+
+function textSlots(n) {
+  const out = [];
+  for (const spec of (TEXT_SLOTS[n.type] || [])) {
+    if (typeof spec === 'string') {
+      if (typeof n.props[spec] === 'string') out.push({ prop: spec, i: -1, sub: '' });
+    } else {
+      const [arr, ...subs] = spec;
+      const list = Array.isArray(n.props[arr]) ? n.props[arr] : [];
+      list.forEach((row, i) => subs.forEach(sub => {
+        if (row && typeof row[sub] === 'string') out.push({ prop: arr, i, sub });
+      }));
+    }
+  }
+  return out;
+}
+const slotGet = (n, s) => (s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub]);
+const slotSet = (n, s, v) => { if (s.i < 0) n.props[s.prop] = v; else n.props[s.prop][s.i][s.sub] = v; };
+const slotName = s => SLOT_LABEL[s.sub || s.prop] || (s.sub || s.prop);
+
+/* Rich text is markup, so neither the search nor the replace may wander into a tag:
+   looking for "div" must not report or rewrite every <div>. Split on tags and touch
+   only what sits between them. Entities are left as written — searching for "&" will
+   match an &amp; and that is a known edge rather than a handled one. */
+const outsideTags = (str, fn) =>
+  String(str == null ? '' : str).split(/(<[^>]*>)/)
+    .map(part => (part.startsWith('<') ? part : fn(part))).join('');
+const isHtmlSlot = s => s.prop === 'html';
+
+/* How many times the needle appears in one slot, and where the first one is. */
+function slotHits(value, needle, ci, html) {
+  const nq = ci ? needle.toLowerCase() : needle;
+  if (!nq) return { n: 0, at: -1 };
+  let n = 0, at = -1;
+  const count = (text, offset) => {
+    const h = ci ? text.toLowerCase() : text;
+    let from = 0, i;
+    while ((i = h.indexOf(nq, from)) >= 0) { if (at < 0) at = offset + i; n++; from = i + nq.length; }
+  };
+  if (!html) count(String(value == null ? '' : value), 0);
+  else {
+    let offset = 0;
+    String(value == null ? '' : value).split(/(<[^>]*>)/).forEach(part => {
+      if (!part.startsWith('<')) count(part, offset);
+      offset += part.length;
+    });
+  }
+  return { n, at };
+}
+
+/* A short piece of the value with the match in the middle, for the results list. */
+function snippet(value, at, len, pad = 26) {
+  const v = String(value == null ? '' : value).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+  if (at < 0) return v.slice(0, pad * 2);
+  /* the match moved when the tags came out, so find it again in the flattened text */
+  const raw = String(value).slice(at, at + len);
+  const k = v.indexOf(raw);
+  const i = k < 0 ? 0 : k;
+  const from = Math.max(0, i - pad);
+  return (from ? '…' : '') + v.slice(from, i + len + pad).trim() + (i + len + pad < v.length ? '…' : '');
+}
+
+/* Every hit in the project, in reading order: the header, then each page, then the
+   footer, then the CMS. `where` is what the results list groups by. */
+function searchAll(q, o = {}) {
+  const needle = String(q || '');
+  if (!needle) return [];
+  const ci = !o.caseSensitive;
+  const out = [];
+  const scan = (list, where, page, pageName) => eachNode(list, n => {
+    textSlots(n).forEach(s => {
+      const val = slotGet(n, s);
+      const { n: hits, at } = slotHits(val, needle, ci, isHtmlSlot(s));
+      if (hits) out.push({
+        where, page, pageName, nodeId: n.id, type: n.type, element: nameOf(n),
+        field: slotName(s), slot: s, hits, snippet: snippet(val, at, needle.length)
+      });
+    });
+  });
+  scan(state.header, 'header', -1, 'Global header');
+  state.pages.forEach((p, i) => {
+    PAGE_TEXT.forEach(([k, lb]) => {
+      const { n: hits, at } = slotHits(p[k], needle, ci, false);
+      if (hits) out.push({
+        where: 'page', page: i, pageName: p.name, nodeId: '', type: 'meta',
+        element: 'Page settings', field: lb, meta: k, hits, snippet: snippet(p[k], at, needle.length)
+      });
+    });
+    scan(p.tree, 'page', i, p.name);
+  });
+  scan(state.footer, 'footer', -1, 'Global footer');
+  {
+    const { n: hits, at } = slotHits(state.meta.name, needle, ci, false);
+    if (hits) out.push({
+      where: 'project', page: -1, pageName: 'Project', nodeId: '', type: 'meta',
+      element: 'Project settings', field: 'Project name', meta: 'name', hits,
+      snippet: snippet(state.meta.name, at, needle.length)
+    });
+  }
+  if (o.cms !== false) collections().forEach(col => col.items.forEach(it => {
+    col.fields.forEach(f => {
+      const val = it.values[f.id];
+      if (typeof val !== 'string') return;
+      const { n: hits, at } = slotHits(val, needle, ci, f.type === 'rich');
+      if (hits) out.push({
+        where: 'cms', page: -1, pageName: col.name, colId: col.id, itemId: it.id,
+        element: itemTitle(col, it), type: 'cms', field: f.name, hits,
+        snippet: snippet(val, at, needle.length)
+      });
+    });
+  }));
+  return out;
+}
+const searchCount = hits => hits.reduce((t, h) => t + h.hits, 0);
+
+/* Its own walk rather than a replay of a hit list: a list held across an edit is
+   stale, and this is the one operation that must not act on a stale one. */
+function replaceAll(q, to, o = {}) {
+  const needle = String(q || '');
+  if (!needle) return 0;
+  const ci = !o.caseSensitive;
+  const rep = String(to == null ? '' : to);
+  let done = 0;
+  const swap = text => {
+    const h = ci ? text.toLowerCase() : text;
+    const nq = ci ? needle.toLowerCase() : needle;
+    let outStr = '', from = 0, i;
+    while ((i = h.indexOf(nq, from)) >= 0) { outStr += text.slice(from, i) + rep; from = i + nq.length; done++; }
+    return outStr + text.slice(from);
+  };
+  const scan = list => eachNode(list, n => textSlots(n).forEach(s => {
+    const val = String(slotGet(n, s));
+    slotSet(n, s, isHtmlSlot(s) ? outsideTags(val, swap) : swap(val));
+  }));
+  scan(state.header);
+  state.pages.forEach(p => {
+    /* a page's slug is deliberately left alone: it is a published URL, and moving one
+       silently because a word changed is how links break */
+    PAGE_TEXT.forEach(([k]) => { if (typeof p[k] === 'string') p[k] = swap(p[k]); });
+    scan(p.tree);
+  });
+  scan(state.footer);
+  if (typeof state.meta.name === 'string') state.meta.name = swap(state.meta.name);
+  if (o.cms !== false) collections().forEach(col => col.items.forEach(it => {
+    col.fields.forEach(f => {
+      const val = it.values[f.id];
+      if (typeof val !== 'string') return;
+      it.values[f.id] = f.type === 'rich' ? outsideTags(val, swap) : swap(val);
+    });
+  }));
+  return done;
+}
+
 /* ================================================== clipboard + traversal */
 /* The clipboard holds a detached copy, so pasting works across pages and
    regions. Classes and text styles travel as references — they are project
@@ -3766,4 +3943,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };

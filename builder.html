@@ -765,6 +765,21 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .xrow .btn{font-size:12.5px}
 .xrow .btn[disabled]{opacity:.45;cursor:default}
 .xrow .btn[disabled]:hover{background:var(--panel);border-color:var(--line-2)}
+
+/* one search hit: what it is, which field, and the words around it */
+.hitrow{
+  display:grid;grid-template-columns:minmax(88px,150px) 82px 1fr auto;gap:10px;align-items:center;
+  width:100%;text-align:left;padding:8px 10px;border-radius:var(--r-sm);
+  border:1px solid transparent;background:none;cursor:pointer;
+}
+.hitrow:hover{background:var(--field);border-color:var(--line)}
+.hitrow .hn{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hitrow .hf{font-family:var(--label);font-size:11px;color:var(--text-3);white-space:nowrap}
+.hitrow .hs{font-size:12.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hitrow .hc{
+  font-family:var(--label);font-size:11px;font-weight:600;color:var(--text-2);
+  background:var(--field-2);border-radius:99px;padding:2px 7px;white-space:nowrap;
+}
 pre.code{
   background:var(--ink);border-radius:var(--r-md);padding:14px;
   font-family:var(--mono);font-size:12px;line-height:1.6;color:#d8d5c9;
@@ -2585,6 +2600,183 @@ function pasteStyles(id) {
   return true;
 }
 const pasteStylesMany = ids => ids.filter(pasteStyles).length;
+
+/* ---- finding things -------------------------------------------------
+   Nothing could find a word across a project. With twelve pages, two global regions
+   and a CMS, "where did I write that" had no answer and renaming anything meant
+   opening every page and looking.
+
+   One walker underpins all of it, so the count in the results, the jump and the
+   replace can never disagree — and a new widget joins in by naming its text props
+   in TEXT_SLOTS and nothing else. A bare string is a prop; an array names the prop
+   and then the keys inside each row. */
+const TEXT_SLOTS = {
+  heading: ['text'], button: ['text'], icon: ['label'],
+  text: ['html'], embed: ['html'],
+  image: ['alt', 'caption'],
+  accordion: [['items', 'q', 'a']],
+  gallery: [['items', 'alt', 'caption']],
+  nav: [['items', 'label']],
+  form: [['fields', 'label', 'ph']]
+};
+/* the fields on a page itself, rather than on anything in it */
+const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['name', 'Page name']];
+const SLOT_LABEL = {
+  text: 'Text', html: 'Rich text', label: 'Label', alt: 'Alt text', caption: 'Caption',
+  q: 'Question', a: 'Answer', ph: 'Placeholder'
+};
+
+function textSlots(n) {
+  const out = [];
+  for (const spec of (TEXT_SLOTS[n.type] || [])) {
+    if (typeof spec === 'string') {
+      if (typeof n.props[spec] === 'string') out.push({ prop: spec, i: -1, sub: '' });
+    } else {
+      const [arr, ...subs] = spec;
+      const list = Array.isArray(n.props[arr]) ? n.props[arr] : [];
+      list.forEach((row, i) => subs.forEach(sub => {
+        if (row && typeof row[sub] === 'string') out.push({ prop: arr, i, sub });
+      }));
+    }
+  }
+  return out;
+}
+const slotGet = (n, s) => (s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub]);
+const slotSet = (n, s, v) => { if (s.i < 0) n.props[s.prop] = v; else n.props[s.prop][s.i][s.sub] = v; };
+const slotName = s => SLOT_LABEL[s.sub || s.prop] || (s.sub || s.prop);
+
+/* Rich text is markup, so neither the search nor the replace may wander into a tag:
+   looking for "div" must not report or rewrite every <div>. Split on tags and touch
+   only what sits between them. Entities are left as written — searching for "&" will
+   match an &amp; and that is a known edge rather than a handled one. */
+const outsideTags = (str, fn) =>
+  String(str == null ? '' : str).split(/(<[^>]*>)/)
+    .map(part => (part.startsWith('<') ? part : fn(part))).join('');
+const isHtmlSlot = s => s.prop === 'html';
+
+/* How many times the needle appears in one slot, and where the first one is. */
+function slotHits(value, needle, ci, html) {
+  const nq = ci ? needle.toLowerCase() : needle;
+  if (!nq) return { n: 0, at: -1 };
+  let n = 0, at = -1;
+  const count = (text, offset) => {
+    const h = ci ? text.toLowerCase() : text;
+    let from = 0, i;
+    while ((i = h.indexOf(nq, from)) >= 0) { if (at < 0) at = offset + i; n++; from = i + nq.length; }
+  };
+  if (!html) count(String(value == null ? '' : value), 0);
+  else {
+    let offset = 0;
+    String(value == null ? '' : value).split(/(<[^>]*>)/).forEach(part => {
+      if (!part.startsWith('<')) count(part, offset);
+      offset += part.length;
+    });
+  }
+  return { n, at };
+}
+
+/* A short piece of the value with the match in the middle, for the results list. */
+function snippet(value, at, len, pad = 26) {
+  const v = String(value == null ? '' : value).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+  if (at < 0) return v.slice(0, pad * 2);
+  /* the match moved when the tags came out, so find it again in the flattened text */
+  const raw = String(value).slice(at, at + len);
+  const k = v.indexOf(raw);
+  const i = k < 0 ? 0 : k;
+  const from = Math.max(0, i - pad);
+  return (from ? '…' : '') + v.slice(from, i + len + pad).trim() + (i + len + pad < v.length ? '…' : '');
+}
+
+/* Every hit in the project, in reading order: the header, then each page, then the
+   footer, then the CMS. `where` is what the results list groups by. */
+function searchAll(q, o = {}) {
+  const needle = String(q || '');
+  if (!needle) return [];
+  const ci = !o.caseSensitive;
+  const out = [];
+  const scan = (list, where, page, pageName) => eachNode(list, n => {
+    textSlots(n).forEach(s => {
+      const val = slotGet(n, s);
+      const { n: hits, at } = slotHits(val, needle, ci, isHtmlSlot(s));
+      if (hits) out.push({
+        where, page, pageName, nodeId: n.id, type: n.type, element: nameOf(n),
+        field: slotName(s), slot: s, hits, snippet: snippet(val, at, needle.length)
+      });
+    });
+  });
+  scan(state.header, 'header', -1, 'Global header');
+  state.pages.forEach((p, i) => {
+    PAGE_TEXT.forEach(([k, lb]) => {
+      const { n: hits, at } = slotHits(p[k], needle, ci, false);
+      if (hits) out.push({
+        where: 'page', page: i, pageName: p.name, nodeId: '', type: 'meta',
+        element: 'Page settings', field: lb, meta: k, hits, snippet: snippet(p[k], at, needle.length)
+      });
+    });
+    scan(p.tree, 'page', i, p.name);
+  });
+  scan(state.footer, 'footer', -1, 'Global footer');
+  {
+    const { n: hits, at } = slotHits(state.meta.name, needle, ci, false);
+    if (hits) out.push({
+      where: 'project', page: -1, pageName: 'Project', nodeId: '', type: 'meta',
+      element: 'Project settings', field: 'Project name', meta: 'name', hits,
+      snippet: snippet(state.meta.name, at, needle.length)
+    });
+  }
+  if (o.cms !== false) collections().forEach(col => col.items.forEach(it => {
+    col.fields.forEach(f => {
+      const val = it.values[f.id];
+      if (typeof val !== 'string') return;
+      const { n: hits, at } = slotHits(val, needle, ci, f.type === 'rich');
+      if (hits) out.push({
+        where: 'cms', page: -1, pageName: col.name, colId: col.id, itemId: it.id,
+        element: itemTitle(col, it), type: 'cms', field: f.name, hits,
+        snippet: snippet(val, at, needle.length)
+      });
+    });
+  }));
+  return out;
+}
+const searchCount = hits => hits.reduce((t, h) => t + h.hits, 0);
+
+/* Its own walk rather than a replay of a hit list: a list held across an edit is
+   stale, and this is the one operation that must not act on a stale one. */
+function replaceAll(q, to, o = {}) {
+  const needle = String(q || '');
+  if (!needle) return 0;
+  const ci = !o.caseSensitive;
+  const rep = String(to == null ? '' : to);
+  let done = 0;
+  const swap = text => {
+    const h = ci ? text.toLowerCase() : text;
+    const nq = ci ? needle.toLowerCase() : needle;
+    let outStr = '', from = 0, i;
+    while ((i = h.indexOf(nq, from)) >= 0) { outStr += text.slice(from, i) + rep; from = i + nq.length; done++; }
+    return outStr + text.slice(from);
+  };
+  const scan = list => eachNode(list, n => textSlots(n).forEach(s => {
+    const val = String(slotGet(n, s));
+    slotSet(n, s, isHtmlSlot(s) ? outsideTags(val, swap) : swap(val));
+  }));
+  scan(state.header);
+  state.pages.forEach(p => {
+    /* a page's slug is deliberately left alone: it is a published URL, and moving one
+       silently because a word changed is how links break */
+    PAGE_TEXT.forEach(([k]) => { if (typeof p[k] === 'string') p[k] = swap(p[k]); });
+    scan(p.tree);
+  });
+  scan(state.footer);
+  if (typeof state.meta.name === 'string') state.meta.name = swap(state.meta.name);
+  if (o.cms !== false) collections().forEach(col => col.items.forEach(it => {
+    col.fields.forEach(f => {
+      const val = it.values[f.id];
+      if (typeof val !== 'string') return;
+      it.values[f.id] = f.type === 'rich' ? outsideTags(val, swap) : swap(val);
+    });
+  }));
+  return done;
+}
 
 /* ================================================== clipboard + traversal */
 /* The clipboard holds a detached copy, so pasting works across pages and
@@ -8197,6 +8389,101 @@ function projectModal() {
   });
 }
 
+/* ---- find and replace -----------------------------------------------
+   Grouped by where a hit lives, because "which page was that on" is the question
+   being asked. A row is a button: it switches page or global region, selects the
+   element and scrolls to it. Replace is one action over the whole project with undo
+   behind it, since a per-hit replace list goes stale the moment the first one lands. */
+let findState = { q: '', to: '', ci: true };
+function findModal() {
+  if (editing.on) exitEdit();
+  openModal('Find and replace', `
+    <div class="fgrid" style="margin-bottom:var(--gap-2)">
+      <div class="f"><label>Find</label>
+        <input class="ctl" id="fdQ" value="${esc(findState.q)}" placeholder="Text on any page, or in the CMS" autocomplete="off"></div>
+      <div class="f"><label>Replace with</label>
+        <input class="ctl" id="fdTo" value="${esc(findState.to)}" placeholder="Leave empty to delete it" autocomplete="off"></div>
+    </div>
+    <div class="tog-row" style="margin-bottom:var(--gap-2)"><span>Match case</span>
+      <button class="sw-tog${findState.ci ? '' : ' on'}" id="fdCase"><i></i></button></div>
+    <div id="fdOut"></div>`, `
+    <span class="note" id="fdCount" style="margin:0;flex:1;text-align:left"></span>
+    <button class="btn danger" id="fdRep">Replace all</button>
+    <button class="btn primary" id="fdDone">Close</button>`);
+
+  const q = $('#fdQ'), to = $('#fdTo'), out = $('#fdOut'), count = $('#fdCount'), rep = $('#fdRep');
+
+  const draw = () => {
+    findState.q = q.value; findState.to = to.value;
+    const hits = searchAll(findState.q, { caseSensitive: !findState.ci });
+    const total = searchCount(hits);
+    rep.disabled = !total;
+    count.innerHTML = !findState.q
+      ? 'Searches every page, both global regions and the CMS.'
+      : total
+        ? `<b>${total}</b> occurrence${total === 1 ? '' : 's'} in ${hits.length} place${hits.length === 1 ? '' : 's'}`
+        : 'Nothing found.';
+    if (!findState.q) { out.innerHTML = '<div class="empty">Type to search.</div>'; return; }
+    if (!hits.length) { out.innerHTML = `<div class="empty">No match for <b>${esc(findState.q)}</b>.</div>`; return; }
+    /* group in the order searchAll walked, so the list reads header → pages → footer → CMS */
+    const groups = [];
+    hits.forEach(h => {
+      const key = h.where + ':' + h.pageName;
+      let g = groups.find(x => x.key === key);
+      if (!g) groups.push(g = { key, name: h.pageName, where: h.where, rows: [] });
+      g.rows.push(h);
+    });
+    out.innerHTML = groups.map((g, gi) => `
+      <div class="xlab"${gi ? ' style="margin-top:var(--gap-3)"' : ''}>${esc(g.name)}${g.where === 'cms' ? ' · CMS' : ''}</div>
+      ${g.rows.map(h => `<button class="hitrow" data-h="${hits.indexOf(h)}">
+        <span class="hn">${esc(h.element)}</span>
+        <span class="hf">${esc(h.field)}</span>
+        <span class="hs">${esc(h.snippet)}</span>
+        ${h.hits > 1 ? `<span class="hc">${h.hits}×</span>` : ''}
+      </button>`).join('')}`).join('');
+
+    $$('.hitrow', out).forEach(b => b.addEventListener('click', () => {
+      const h = hits[+b.dataset.h];
+      closeModal();
+      /* a hit goes wherever it is edited: an element on the canvas, an item in the
+         CMS dialog, a page's own fields in the Pages panel, the project name in
+         Project settings */
+      if (h.where === 'cms') { cmsModal(h.colId); return; }
+      if (h.where === 'project') { projectModal(); return; }
+      state.ui.mode = h.where === 'page' ? 'page' : h.where;
+      if (h.where === 'page') state.cur = h.page;
+      render();
+      if (h.type === 'meta') { showPanel('pages'); selSet([]); return; }
+      select(h.nodeId, { scroll: true });
+    }));
+  };
+
+  const live = dbounce(draw, 140);
+  q.addEventListener('input', live);
+  to.addEventListener('input', () => { findState.to = to.value; });
+  $('#fdCase').addEventListener('click', () => {
+    findState.ci = !findState.ci;
+    $('#fdCase').classList.toggle('on', !findState.ci);
+    draw();
+  });
+  rep.addEventListener('click', async () => {
+    const n = searchCount(searchAll(findState.q, { caseSensitive: !findState.ci }));
+    if (!n) return;
+    if (!await askConfirm('Replace across the whole project?',
+      `<b>${n}</b> occurrence${n === 1 ? '' : 's'} of “${esc(findState.q)}” become “${esc(findState.to) || '<i>nothing</i>'}”, `
+      + 'on every page, in both global regions and in the CMS. ⌘Z undoes it in one step.',
+      { ok: 'Replace all ' + n, danger: true })) return;
+    let did = 0;
+    edit(() => { did = replaceAll(findState.q, findState.to, { caseSensitive: !findState.ci }); });
+    render();
+    toast(`Replaced ${did} occurrence${did === 1 ? '' : 's'}`);
+    draw();
+  });
+  $('#fdDone').addEventListener('click', closeModal);
+  draw();
+  q.focus(); q.select();
+}
+
 function helpModal() {
   /* This is now the only place the shortcuts are written down — the inspector's
      empty state used to repeat a shorter list, and that panel no longer appears
@@ -8208,6 +8495,7 @@ function helpModal() {
     ['Copy · cut · paste', '⌘C · ⌘X · ⌘V'],
     ['Copy · paste the <b>styling</b>', '⌘⇧C · ⌘⇧V'], ['Duplicate', '⌘D'], ['Delete', '⌫'],
     ['Undo / redo', '⌘Z · ⌘⇧Z'], ['Back to one element, then the parent', 'esc'],
+    ['Find and replace, across the project', '⌘F'],
     ['Preview', '⌘P'], ['Export HTML', '⌘E'],
     ['Bold / italic while editing', '⌘B · ⌘I'], ['Insert link while editing', '⌘K']
   ];
@@ -8289,6 +8577,7 @@ function hotkey(e) {
     toast(made ? DEF[made.type].label + ' pasted' : 'A ' + DEF[clip.node.type].label + ' cannot go there');
     return;
   }
+  if (meta && k === 'f') { e.preventDefault(); findModal(); return; }
   if (meta && k === 'p') { e.preventDefault(); togglePreview(); return; }
   if (meta && k === 'e') { e.preventDefault(); exportModal(); return; }
   if (meta && k === 's') { e.preventDefault(); save(); toast('Saved locally'); return; }

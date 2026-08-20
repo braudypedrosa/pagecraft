@@ -3046,3 +3046,133 @@ test('pasting onto a set counts what it changed, and does nothing with an empty 
   C.styleClip.css = null;
   a.equal(C.pasteStyles(one.id), false, 'nothing copied, nothing pasted');
 });
+
+/* ================================================================== finding
+   Nothing could find a word across a project. With twelve pages, two global regions
+   and a CMS, "where did I write that" had no answer, and renaming anything meant
+   opening every page to look. */
+test('a search reaches every region, and reports where each hit lives', () => {
+  fresh();
+  const hits = C.searchAll('Pagecraft');
+  const wheres = [...new Set(hits.map(h => h.where))].sort();
+  a.deepEqual(wheres, ['footer', 'header', 'page', 'project'],
+    'the global regions and the page fields are searched, not only page elements');
+  a.ok(hits.some(h => h.field === 'Browser title'),
+    'a page title is text the site publishes, so a rename that misses it is not a rename');
+  a.ok(hits.some(h => h.field === 'Project name'));
+  a.equal(C.searchCount(hits), hits.length, 'one occurrence each in the demo');
+});
+
+test('a search finds nothing for nothing', () => {
+  fresh();
+  a.deepEqual(C.searchAll(''), []);
+  a.deepEqual(C.searchAll(null), []);
+  a.deepEqual(C.searchAll('zzzznotpresent'), []);
+});
+
+test('case sensitivity is a choice', () => {
+  blank();
+  const h = C.insert('heading', null, 0);
+  h.props.text = 'Harbour harbour HARBOUR';
+  a.equal(C.searchCount(C.searchAll('harbour')), 3, 'insensitive by default');
+  a.equal(C.searchCount(C.searchAll('harbour', { caseSensitive: true })), 1);
+  a.equal(C.searchCount(C.searchAll('HARBOUR', { caseSensitive: true })), 1);
+});
+
+test('rich text is searched as text, never as markup', () => {
+  blank();
+  const t = C.insert('text', null, 0);
+  t.props.html = '<div class="wrap"><p>a wrapper of words</p></div>';
+  /* looking for "div" must not report every tag, and "class" must not match an attribute */
+  a.equal(C.searchCount(C.searchAll('div')), 0);
+  a.equal(C.searchCount(C.searchAll('class')), 0);
+  a.equal(C.searchCount(C.searchAll('wrap')), 1, 'the one in the sentence, not the one in the class');
+  a.equal(C.searchCount(C.searchAll('words')), 1);
+});
+
+test('a replace stays out of the tags too', () => {
+  blank();
+  const t = C.insert('text', null, 0);
+  t.props.html = '<div class="wrap"><p>wrap it</p></div>';
+  a.equal(C.replaceAll('wrap', 'fold'), 1);
+  a.equal(t.props.html, '<div class="wrap"><p>fold it</p></div>', 'the class attribute is untouched');
+});
+
+test('outsideTags only transforms what sits between tags', () => {
+  a.equal(C.outsideTags('<b title="a">a</b>', s => s.toUpperCase()), '<b title="a">A</b>');
+  a.equal(C.outsideTags('plain', s => s.toUpperCase()), 'PLAIN');
+  a.equal(C.outsideTags('', s => 'x'), 'x');
+});
+
+test('a replace reaches nested props: accordion rows, nav links, form fields', () => {
+  blank();
+  const acc = C.insert('accordion', null, 0);
+  acc.props.items = [{ q: 'Is Acme good?', a: 'Acme is fine.' }];
+  const nav = C.insert('nav', null, 1);
+  nav.props.items = [{ label: 'Acme', href: '#acme' }];
+  const form = C.insert('form', null, 2);
+  form.props.fields = [{ type: 'text', label: 'Acme name', name: 'n', ph: 'Your Acme id' }];
+  a.equal(C.searchCount(C.searchAll('Acme')), 5, 'both accordion keys, the nav label and href, both form strings');
+  C.replaceAll('Acme', 'Beta');
+  a.equal(acc.props.items[0].q, 'Is Beta good?');
+  a.equal(acc.props.items[0].a, 'Beta is fine.');
+  a.equal(nav.props.items[0].label, 'Beta');
+  a.equal(form.props.fields[0].label, 'Beta name');
+  a.equal(form.props.fields[0].ph, 'Your Beta id');
+  a.equal(C.searchCount(C.searchAll('Acme')), 0);
+});
+
+test('a page slug is left alone — it is a published URL', () => {
+  fresh();
+  const slugs = C.state.pages.map(p => p.slug);
+  C.replaceAll('Pagecraft', 'Harbour');
+  a.deepEqual(C.state.pages.map(p => p.slug), slugs,
+    'moving a URL because a word changed is how links break');
+  a.equal(C.state.meta.name, 'Harbour', 'but the project name does follow');
+});
+
+test('a replace is one undo step for the whole project', () => {
+  fresh();
+  const before = C.searchCount(C.searchAll('Pagecraft'));
+  a.ok(before > 3);
+  C.edit(() => C.replaceAll('Pagecraft', 'Harbour'));
+  a.equal(C.searchCount(C.searchAll('Pagecraft')), 0);
+  C.undo();
+  a.equal(C.searchCount(C.searchAll('Pagecraft')), before);
+});
+
+test('CMS item values are searched and replaced', () => {
+  blank();
+  const col = C.collectionAdd('Projects');
+  const it = C.itemAdd(col.id);
+  C.itemSet(col.id, it.id, 'title', 'Acme rebrand');
+  const hits = C.searchAll('Acme');
+  a.equal(hits.length, 1);
+  a.equal(hits[0].where, 'cms');
+  a.equal(hits[0].pageName, 'Projects');
+  C.replaceAll('Acme', 'Beta');
+  a.equal(C.findCollection(col.id).items[0].values.title, 'Beta rebrand');
+  /* and it can be told not to */
+  C.replaceAll('Beta', 'Gamma', { cms: false });
+  a.equal(C.findCollection(col.id).items[0].values.title, 'Beta rebrand');
+});
+
+test('a text slot is declared once and every walker agrees', () => {
+  blank();
+  const g = C.insert('gallery', null, 0);
+  g.props.items = [{ src: 'asset:a', alt: 'A plate', caption: 'Plate one' }];
+  const slots = C.textSlots(g);
+  a.equal(slots.length, 2, 'alt and caption, not src');
+  a.deepEqual(slots.map(C.slotName), ['Alt text', 'Caption']);
+  a.equal(C.slotGet(g, slots[0]), 'A plate');
+  C.slotSet(g, slots[1], 'Changed');
+  a.equal(g.props.items[0].caption, 'Changed');
+});
+
+test('every widget that carries text declares it', () => {
+  /* the walker is the only place this is written down, so a widget missing from it is
+     a widget find-and-replace silently cannot reach */
+  ['heading', 'text', 'button', 'image', 'icon', 'embed', 'accordion', 'gallery', 'nav', 'form']
+    .forEach(t => a.ok(C.TEXT_SLOTS[t], t + ' names its text props'));
+  Object.keys(C.TEXT_SLOTS).forEach(t => a.ok(C.DEF[t], t + ' is a real widget'));
+});

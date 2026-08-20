@@ -452,6 +452,19 @@ it loads.
 Uploads are stored as blobs in IndexedDB and referenced as `asset:<id>`, so the project JSON
 stays small and there is no 5 MB localStorage ceiling.
 
+## Find and replace
+
+**⌘F** searches every page, both global regions, each page's own browser title, meta
+description and name, the project name, and every CMS item value. Results group by where
+they live, and a row is a button: it switches page or global region, selects the element and
+scrolls to it — or opens the CMS dialog, the Pages panel or Project settings when that is
+where the text is edited.
+
+**Replace all** is one action over the whole project, confirmed with a count, and one ⌘Z
+undoes the lot. Two things it deliberately does not touch: **markup**, so searching `div`
+never rewrites a `<div>` and `class` never matches an attribute; and **page slugs**, because
+a slug is a published URL and moving one because a word changed is how links break.
+
 ## Export review
 
 A **Review** indicator sits in the top bar with a live count — green when clean, amber for

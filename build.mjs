@@ -105,6 +105,8 @@ const EXPORTS = [
   // clipboard + traversal
   'clip', 'copyNode', 'pasteNode', 'dropTree',
   'styleClip', 'copyStyles', 'pasteStyles', 'pasteStylesMany',
+  'TEXT_SLOTS', 'SLOT_LABEL', 'PAGE_TEXT', 'textSlots', 'slotGet', 'slotSet', 'slotName',
+  'outsideTags', 'slotHits', 'snippet', 'searchAll', 'searchCount', 'replaceAll',
   'blocks', 'findBlock', 'blockRootType', 'blockSave', 'blockInsert', 'blockDelete',
   // content collections
   'FIELD_TYPES', 'collections', 'findCollection', 'findField', 'findItem', 'uniqueId',
