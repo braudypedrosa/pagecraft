@@ -23,7 +23,7 @@ both builds work, and neither has to break for the other to progress.
 | `app/index.html` + `main.tsx` | the Preact successor. `npm run build:next` → one self-contained file in `dist/next/` |
 
 ```bash
-npm test        # build + tsc --noEmit (everything, full strictness) + 353 cases
+npm test        # build + tsc --noEmit (everything, full strictness) + 365 cases
 npm run build       # the shipping single-file artifact (legacy chrome, TS core)
 npm run build:next  # the Preact/TS successor, also one self-contained file
 npm run typecheck   # tsc --noEmit
@@ -110,10 +110,35 @@ builder.html and finds its drop target with
 `data-id`. Attributes another file queries are load-bearing, and they do not announce
 themselves — check before trusting.
 
-**Ported so far:** the Navigator (`Layers.tsx`), 71 lines of render-plus-rebind down to
-15 lines of mount. That split — markup built as strings, handlers attached by querying
-the result back out of the DOM — is what the control-parity guard in `build.mjs` exists
-to police. A component cannot have it.
+**All five panels are across.** Navigator, Content, Add, Pages and the inspector —
+about 1,150 lines of render-plus-rebind in builder.html, now ~2,000 lines of components
+under `app/src/ui/`. The file is 3,813 lines, from 9,162.
+
+| panel | was | notes |
+|---|---|---|
+| `Layers.tsx` | 71 | one writer, so it went first |
+| `Cms.tsx` | 40 | brought the promise-returning dialogs into the seam |
+| `Add.tsx` | 102 + PAL | three functions on one container, so they had to move together |
+| `Pages.tsx` | 93 | needs the asset-field bridge, below |
+| `inspector/` | 846 | 22 control kinds; retired the parity guard |
+
+**The parity guard is gone, and what replaced it.** It compared `ctlHtml`'s cases with
+`bindRight`'s, because markup and wiring lived in different functions and could drift —
+a slice-based edit once deleted four wiring branches and left their markup, giving
+controls that looked fine and did nothing. A component cannot be half-wired, so that
+check has nothing to do. The guard now asserts that every kind in the `ControlKind`
+union has a component: a widget naming a kind with no component renders a silently blank
+field, and the type is satisfied either way.
+
+**One bridge, deliberately temporary.** The Pages panel's share-image field is the
+legacy `assetField`/`wireAsset` pair — IndexedDB-backed, tied to the media library, and
+it fills its own div with `innerHTML`, which Preact cannot share a container with. So
+Preact renders the markup it returns and `wireAsset` attaches handlers in an effect.
+Both seam entries go when the media library moves across.
+
+**Uncontrolled inputs are deliberate.** Panels repaint on `change`, never on `input`,
+because repainting mid-typing loses the caret. Nothing re-renders while you type, so
+nothing fights the DOM value.
 
 ## What this is
 

@@ -129,6 +129,37 @@ selector that reaches into the panel from outside. The Navigator nearly shipped 
 drag-to-reorder dead because `startLayerDrag` finds its drop target by
 `closest('.lrow[data-id]')` and the component had no reason to emit `data-id`.
 
+## What the parity guard became
+
+`build.mjs` used to assert that every `case` in `ctlHtml` had a matching `case` in
+`bindRight`. That guard earned its place: a slice-based edit once deleted four wiring
+branches while leaving their markup, and the result was four controls that looked
+perfectly normal and did nothing at all.
+
+The inspector port removed the failure mode rather than the risk of it. Markup and
+handlers are the same expression now, so there is no pair to keep in step. But a new
+gap opened in its place: `ControlKind` is a union, and a widget definition naming a kind
+with no component satisfies the type and renders an empty field. So the guard now
+compares the union in `types.ts` against the `KINDS` map in `Controls.tsx`, both
+directions, and fails the build either way.
+
+The lesson is not "keep the guard" — it is that a guard should assert the property the
+design currently depends on, and that property changes when the design does.
+
+## A bug the port introduced, and how it surfaced
+
+The unit control pairs a number with a unit select. The old markup emitted
+`<option value="px">` with no `selected` attribute when the stored value had no unit at
+all, and relied on the browser picking the first option. Rendering `value={u}` instead
+is more explicit and quietly wrong: with `u` empty and no matching option, selectedIndex
+is -1 and `.value` reads `''`, so typing 900 into Max width stored `max-width: 900` — a
+declaration browsers discard.
+
+Nothing about the code looked wrong, and no test would have caught it, because the
+control's own behaviour is correct in isolation. It surfaced from driving the real panel
+in the browser and reading back what landed in the model. That is the argument for
+verifying ported UI by using it rather than by inspecting it.
+
 ## Two rules the build enforces
 
 1. **Core/UI split.** Pure logic lives between `/*<core>*/` … `/*</core>*/` markers and is
