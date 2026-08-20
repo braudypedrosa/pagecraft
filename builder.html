@@ -408,6 +408,21 @@ body.preview .dim{display:none}
 .sHead .tt{flex:1;min-width:0}
 .sHead .tt b{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em}
 .sHead .tt small{color:var(--text-3);font-size:12px;font-family:var(--label)}
+/* The style clipboard, shown as state rather than as two verbs: it exists only while
+   something is held, so there is never a disabled button sitting on screen. Above the
+   tabs, so it does not belong to any one of them — copying is not a Style-tab act. */
+.stclip{
+  display:flex;align-items:center;gap:8px;padding:7px 14px;flex:0 0 auto;
+  background:var(--field);border-bottom:1px solid var(--line);color:var(--text-2);
+}
+.stclip>svg{color:var(--text-3);flex:0 0 auto}
+.stclip .cn{flex:1;min-width:0;font-family:var(--label);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stclip .cn b{color:var(--text);font-weight:600}
+.stclip .x{
+  width:24px;height:24px;flex:0 0 24px;border-radius:var(--r-sm);color:var(--text-3);
+  display:grid;place-items:center;
+}
+.stclip .x:hover{color:var(--danger);background:var(--danger-soft)}
 .group{border-bottom:1px solid var(--line)}
 .gh{display:flex;align-items:center;gap:7px;padding:11px 14px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text)}
 .gh:hover{color:var(--text)}
@@ -1020,7 +1035,8 @@ const IC = {
   page:'<rect x="2.5" y="1.5" width="11" height="13" rx="1.5"/><path d="M5 5h6M5 8h6M5 11h4"/>',
   code:'<path d="M5.5 5L2.5 8l3 3M10.5 5l3 3-3 3M9.3 3.2l-2.6 9.6" stroke-linecap="round"/>',
   accordion:'<rect x="1.5" y="2.2" width="13" height="3.6" rx="1"/><rect x="1.5" y="7.4" width="13" height="6.4" rx="1"/><path d="M4 9.9h6M4 11.9h4" opacity=".5"/>',
-  gallery:'<rect x="1.5" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="9.1" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="1.5" y="9.6" width="5.4" height="3.9" rx="1"/><rect x="9.1" y="9.6" width="5.4" height="3.9" rx="1"/>'
+  gallery:'<rect x="1.5" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="9.1" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="1.5" y="9.6" width="5.4" height="3.9" rx="1"/><rect x="9.1" y="9.6" width="5.4" height="3.9" rx="1"/>',
+  pipette:'<path d="M9.6 2.4l4 4" stroke-linecap="round"/><path d="M12.3 5.1L6.2 11.2l-2.9.9.9-2.9 6.1-6.1z" stroke-linecap="round" stroke-linejoin="round"/>'
 };
 const svg = (n, s = 14, cls = '') =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;
@@ -6950,8 +6966,15 @@ function renderRight() {
       <div class="ic">${svg(d.icon, 14)}</div>
       <div class="tt"><b>${many ? ids.length + ' selected' : esc(d.label)}</b>
         <small>${many ? esc(kinds.join(' · ')) : '#' + esc(domIdOf(n))}</small></div>
+      <button class="iconbtn" id="stCopy" title="Copy this element's styling (⌘⇧C)">${svg('pipette', 13)}</button>
       ${!many && s.parent ? `<button class="iconbtn" id="selParent" title="Select parent (esc)">${svg('caret', 13)}</button>` : ''}
     </div>
+    ${styleClip.css ? `<div class="stclip">
+      ${svg('pipette', 12)}
+      <span class="cn">Holding <b>${esc(styleClip.from)}</b></span>
+      <button class="btn tiny" id="stPaste" title="Replace the styling of ${many ? 'all ' + ids.length : 'this element'} (⌘⇧V)">Paste${many ? ' to ' + ids.length : ''}</button>
+      <button class="x" id="stDrop" title="Forget it">${svg('trash', 11)}</button>
+    </div>` : ''}
     <div class="tabs" id="sTabs">
       <button data-s="content" class="${tab === 'content' ? 'on' : ''}">Content</button>
       <button data-s="style" class="${tab === 'style' ? 'on' : ''}">Style</button>
@@ -6987,13 +7010,6 @@ function renderRight() {
       : applied.length
         ? 'Editing this element only. Its classes are listed above; pick one to edit it instead.'
         : 'Editing this element only. Save its styling as a class to reuse it elsewhere.'}</div>
-      <div class="xrow" style="margin-top:var(--gap-2)">
-        <button class="btn" id="stCopy" title="Copy this element's styling (⌘⇧C)">Copy styles</button>
-        <button class="btn" id="stPaste" title="Replace this element's styling with what was copied (⌘⇧V)"${styleClip.css ? '' : ' disabled'}>Paste styles</button>
-      </div>
-      ${styleClip.css
-        ? `<div class="note">Holding the look of <b>${esc(styleClip.from)}</b> — all three breakpoints, its classes and its text style. Pasting replaces, it does not merge.</div>`
-        : '<div class="note">Copy a look here, then paste it onto anything else. A text style is for the reusable case; this is for the one-off.</div>'}
     </div></div>`;
 
     let base = 0;
@@ -7095,7 +7111,7 @@ function bindRight(n) {
   if (stC) stC.addEventListener('click', () => {
     copyStyles(n.id);
     toast('Styles copied from ' + styleClip.from);
-    renderRight();                                  // so Paste stops being disabled
+    renderRight();                                  // so the strip appears
   });
   const stP = $('#stPaste');
   if (stP) stP.addEventListener('click', () => {
@@ -7103,6 +7119,12 @@ function bindRight(n) {
     let k = 0;
     edit(() => { k = pasteStylesMany(ids); });
     toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
+  });
+  const stD = $('#stDrop');
+  if (stD) stD.addEventListener('click', () => {
+    styleClip.css = null;
+    renderRight();                                  // so the strip goes away
+    toast('Style clipboard cleared');
   });
   const sd = $('#sDup'); if (sd) sd.addEventListener('click', () => {
     const ids = selIds(); edit(() => ids.length > 1 ? dupMany(ids) : dupNode(n.id));

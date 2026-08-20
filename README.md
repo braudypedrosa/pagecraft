@@ -399,7 +399,10 @@ rebrand is one edit rather than one edit per element.
 
 ### Copying a look
 
-**Copy styles** and **Paste styles** sit in the Styling group, or ⌘⇧C and ⌘⇧V. It carries all
+The **pipette** in the element header copies a look; ⌘⇧C does the same. While the clipboard
+holds something, a strip appears under the header — *Holding "Card title" · Paste* — and
+naming a multi-selection, so it reads **Paste to 3** when three things are selected. ⌘⇧V
+pastes; the ✕ forgets it. Nothing sits on screen when the clipboard is empty. It carries all
 three breakpoints, the element's classes and its text style — and it **replaces** rather than
 merges, because "paste styles" means make this look like that, and a merge leaves behind
 whatever the target had that the source never mentioned.

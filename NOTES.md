@@ -604,6 +604,34 @@ Worth knowing about verifying this: the Browser pane's synthetic key events do n
 modifiers — the pre-existing ⌘D does not fire through it either — so the shortcuts were
 exercised with dispatched `KeyboardEvent`s and the buttons with real clicks.
 
+### Where it lives, and why it moved
+
+It first shipped as two buttons at the foot of the Styling group, and that was a category
+error: **the Styling group answers "where does my edit land?"** — this element, or one of its
+classes. That is a *targeting* control. Copy/paste styles is a *verb on the element*. A verb
+parked at the bottom of a targeting group, behind a tab switch and a scroll, under a class
+list and a three-line note, with one of its two buttons disabled almost always.
+
+It is now **state, not two verbs**:
+
+- **Copy** is a pipette in the element header (`.sHead`) — always visible, tab-independent, one
+  icon. An eyedropper because that is what every other tool uses for "pick up this look", and
+  because `copy` already means Duplicate in this chrome.
+- **Paste** only exists while something is held: a strip between the header and the tabs
+  reading `Holding "Card title" · Paste · ✕`. No disabled button ever sits on screen, and the
+  clipboard becomes *visible* — before this, nothing told you what was held.
+- The strip sits **above the tabs** deliberately: copying is not a Style-tab act, and the
+  clipboard belongs to the selection rather than to one tab.
+- **Paste names its scope** — "Paste to 2" on a multi-selection. The old buttons never said
+  what they would touch.
+- The Paste button is **not** a green fill. Publish is the only green fill in the chrome, and a
+  first pass at this made it `.primary` before that rule caught it.
+
+There are still three partly-overlapping homes for element verbs — the canvas HUD bar (seven
+buttons), the inspector footer (two), and the Navigator row (three) — and no context menu
+anywhere. A right-click menu carrying the whole verb list is the thing that would resolve
+that, and would let the HUD bar shrink. Not done.
+
 ## Asking for things
 
 `askText(title, label, value, opts)` and `askConfirm(title, msg, opts)` replace all 19 native
