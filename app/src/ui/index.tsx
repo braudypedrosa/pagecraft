@@ -13,6 +13,9 @@ import { Pages } from './Pages';
 import { Inspector } from './inspector/Inspector';
 import { AssetField } from './AssetField';
 import { ColorTokens } from './ColorTokens';
+import { StyleClasses } from './StyleClasses';
+import { TextStyles } from './TextStyles';
+import { FontSelect } from './FontSelect';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
@@ -59,12 +62,27 @@ export function mount(core: Core, legacy: Legacy) {
     draw();
   };
 
-  /* Same rule again: #mColors has one writer, so the component owns it. */
-  const mountColors = () => {
-    const host = document.getElementById('mColors');
-    if (host) render(<ColorTokens />, host);
+  /* Same rule again: each of these divs has one writer, so the component owns it. */
+  const inBox = (id: string, node: () => any) => () => {
+    const host = document.getElementById(id);
+    if (host) render(node(), host);
   };
+  const mountColors = inBox('mColors', () => <ColorTokens />);
+  const mountClasses = inBox('mClasses', () => <StyleClasses />);
+  const mountStyles = inBox('mStyles', () => <TextStyles />);
   registerPainter('colors', mountColors);
+  registerPainter('classes', mountClasses);
+  registerPainter('styles', mountStyles);
 
-  return { ...painters, mountAssetField, mountColors };
+  /* The project dialog's two font defaults. Same one-writer rule; the component is the
+     one the text-style editor uses too, so there is a single font picker in the app. */
+  const mountFontSelect = (hostId: string, opts: { get(): string; set(v: string): void }) => {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    const draw = () => render(
+      <FontSelect value={opts.get()} onChange={v => { opts.set(v); draw(); }} />, host);
+    draw();
+  };
+
+  return { ...painters, mountAssetField, mountColors, mountClasses, mountStyles, mountFontSelect };
 }

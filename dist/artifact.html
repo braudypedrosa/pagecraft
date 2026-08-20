@@ -2372,10 +2372,23 @@ function tsUpdateFrom(n) {
   stripTypo(n);
   return true;
 }
-function tsCreateFrom(n, name) {
+var styleId = (name) => {
   const base = tokenId(name) || "style";
   let id = base, k = 2;
   while (findStyle(id)) id = base + "-" + k++;
+  return id;
+};
+function styleAdd(name) {
+  const id = styleId(name);
+  ensureTokens().text.push({
+    id,
+    name: String(name || "New style").slice(0, 40),
+    css: { d: { "font-size": "16px", "font-weight": "400", "line-height": "1.5" }, t: {}, m: {} }
+  });
+  return id;
+}
+function tsCreateFrom(n, name) {
+  const id = styleId(name);
   ensureTokens().text.push({ id, name: String(name || "New style").slice(0, 40), css: grabTypo(n) });
   stripTypo(n);
   n.props.ts = id;
@@ -5293,6 +5306,7 @@ var __CORE = {
   TEXT_SLOTS,
   TS_TYPES,
   TYPO_KEYS,
+  U,
   ZOOMS,
   anchorsOf,
   applyBindings,
@@ -5486,6 +5500,7 @@ var __CORE = {
   step,
   stripScripts,
   stripTypo,
+  styleAdd,
   styleClip,
   styleDelete,
   styles,
@@ -8257,6 +8272,451 @@ var PC_UI = (() => {
   }
   var esc5 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
+  // app/src/ui/StyleClasses.tsx
+  var declCount = (css) => ["d", "t", "m"].reduce((k3, b2) => k3 + Object.keys(css[b2] || {}).length, 0);
+  function StyleClasses() {
+    const list2 = C2.classes();
+    if (!list2.length) {
+      return /* @__PURE__ */ u2("div", { class: "note", children: [
+        "No classes yet. Select an element, open ",
+        /* @__PURE__ */ u2("b", { children: "Style" }),
+        ", and save its styling as a class."
+      ] });
+    }
+    const remove = async (id) => {
+      const c3 = C2.findClass(id);
+      if (!c3) return;
+      const uses = C2.classUsage(id);
+      if (uses && !await L2.askConfirm(
+        "Delete this class?",
+        `<b>${esc6(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
+        { ok: "Delete class" }
+      )) return;
+      C2.edit(() => C2.classDelete(id));
+      repaint("classes");
+      L2.toast("Class deleted, looks kept");
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      list2.map((c3, i3) => {
+        const props = declCount(c3.css);
+        return /* @__PURE__ */ u2("div", { class: "arow", children: [
+          /* @__PURE__ */ u2("span", { style: {
+            flex: "0 0 34px",
+            textAlign: "center",
+            fontFamily: "var(--label)",
+            fontSize: "11px",
+            color: "var(--text-3)"
+          }, children: [
+            ".",
+            c3.id.slice(0, 4)
+          ] }),
+          /* @__PURE__ */ u2("span", { class: "an", children: /* @__PURE__ */ u2(
+            "input",
+            {
+              class: "ctl",
+              value: c3.name,
+              style: { fontSize: "12.5px", fontWeight: 600 },
+              onInput: (e3) => {
+                L2.tx("clsname:" + c3.id);
+                const cls = C2.findClass(c3.id);
+                if (cls) {
+                  cls.name = e3.target.value;
+                  L2.save();
+                }
+              }
+            }
+          ) }),
+          /* @__PURE__ */ u2("span", { class: "rowmeta", title: `${props} declaration${props === 1 ? "" : "s"} in this class`, children: [
+            props,
+            " decl"
+          ] }),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              class: "iconbtn",
+              title: "Raise precedence",
+              disabled: i3 === 0,
+              onClick: () => {
+                C2.edit(() => C2.classMove(c3.id, -1));
+                repaint("classes");
+              },
+              children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 12 })
+            }
+          ),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              class: "iconbtn",
+              title: "Delete \u2014 elements keep the look",
+              onClick: () => remove(c3.id),
+              children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 13 })
+            }
+          )
+        ] }, c3.id);
+      }),
+      /* @__PURE__ */ u2("div", { class: "note", children: "Precedence runs top to bottom: a class lower in this list overrides one above it. An element's own styling always wins." })
+    ] });
+  }
+  var esc6 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
+  // app/src/ui/FontSelect.tsx
+  function FontSelect({ value, onChange }) {
+    const cur = String(value || "");
+    const groups = C2.fontGroups();
+    const known = groups.some(([, list2]) => list2.some(([v3]) => v3 === cur));
+    return /* @__PURE__ */ u2("select", { class: "ctl", value: cur, onChange: (e3) => onChange(e3.target.value), children: [
+      groups.map(([g2, list2]) => /* @__PURE__ */ u2("optgroup", { label: g2, children: list2.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3)) }, g2)),
+      known ? null : /* @__PURE__ */ u2("option", { value: cur, children: [
+        "Custom \u2014 ",
+        C2.familyOf(cur)
+      ] })
+    ] });
+  }
+
+  // app/src/ui/TextStyles.tsx
+  var openStyle = null;
+  var styleDev = "d";
+  var WEIGHTS = [
+    ["", "Default"],
+    ["300", "Light 300"],
+    ["400", "Regular 400"],
+    ["500", "Medium 500"],
+    ["600", "Semibold 600"],
+    ["700", "Bold 700"],
+    ["800", "Extrabold 800"],
+    ["900", "Black 900"]
+  ];
+  var CASES = [
+    ["", "None"],
+    ["uppercase", "UPPERCASE"],
+    ["lowercase", "lowercase"],
+    ["capitalize", "Capitalize"]
+  ];
+  var TAGS = [
+    ["", "Leave as-is"],
+    ["h1", "H1"],
+    ["h2", "H2"],
+    ["h3", "H3"],
+    ["h4", "H4"],
+    ["h5", "H5"],
+    ["h6", "H6"],
+    ["p", "Paragraph"],
+    ["div", "div \u2014 not a heading"]
+  ];
+  var DEV_ICON3 = { d: "desktop", t: "tablet", m: "mobile" };
+  function Editor({ t: t3 }) {
+    const b2 = t3.css[styleDev] || {};
+    const base = t3.css.d || {};
+    const ph = (k3) => styleDev === "d" ? "" : base[k3] || "";
+    const bucket = () => t3.css[styleDev] = t3.css[styleDev] || {};
+    const commit = () => {
+      L2.paintCss();
+      L2.save();
+    };
+    const write = (prop, raw, unit) => {
+      L2.tx("tsval:" + t3.id + prop);
+      if (raw === "") delete bucket()[prop];
+      else bucket()[prop] = unit ? raw + unit : raw;
+      commit();
+    };
+    const Unit = ({ prop, units }) => {
+      const p3 = C2.parseU(b2[prop]);
+      const u4 = units.includes(p3.u) ? p3.u : units[0];
+      const push = (root) => {
+        const numEl = root.querySelector("input");
+        const unitEl = root.querySelector("select");
+        write(prop, String(numEl.value).trim(), unitEl.value);
+      };
+      return /* @__PURE__ */ u2("div", { class: "unit", children: [
+        /* @__PURE__ */ u2(
+          "input",
+          {
+            class: "ctl",
+            type: "number",
+            step: "any",
+            value: p3.n,
+            placeholder: C2.parseU(ph(prop)).n || "auto",
+            onInput: (e3) => push(e3.target.parentElement),
+            onBlur: () => {
+              L2.endTx();
+              repaint("styles");
+            }
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            class: "ctl",
+            value: u4,
+            onChange: (e3) => {
+              push(e3.target.parentElement);
+              L2.endTx();
+            },
+            children: units.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 || "\u2014" }, x2))
+          }
+        )
+      ] });
+    };
+    const Choice = ({ prop, opts, label }) => /* @__PURE__ */ u2("div", { class: "f", children: [
+      /* @__PURE__ */ u2("label", { children: label }),
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: b2[prop] || "",
+          onChange: (e3) => {
+            write(prop, e3.target.value);
+            L2.endTx();
+            repaint("styles");
+          },
+          children: opts.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
+        }
+      )
+    ] });
+    const colVal = b2.color || "";
+    const tok = C2.refId(colVal) ? C2.findColor(C2.refId(colVal)) : null;
+    const setColor = (v3) => {
+      L2.tx("tsval:" + t3.id + "color");
+      if (v3 === null) delete bucket().color;
+      else bucket().color = v3;
+      L2.endTx();
+      commit();
+      repaint("styles");
+    };
+    return /* @__PURE__ */ u2("div", { class: "tsedit", children: [
+      /* @__PURE__ */ u2("div", { class: "pick", style: { marginBottom: "var(--gap-2)" }, children: ["d", "t", "m"].map((d2) => /* @__PURE__ */ u2(
+        "button",
+        {
+          class: styleDev === d2 ? "on" : "",
+          onClick: () => {
+            styleDev = d2;
+            repaint("styles");
+          },
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: DEV_ICON3[d2], size: 12 }),
+            " ",
+            C2.DEV_LABEL[d2]
+          ]
+        },
+        d2
+      )) }),
+      /* @__PURE__ */ u2("div", { class: "row2", children: [
+        /* @__PURE__ */ u2("div", { class: "f", children: [
+          /* @__PURE__ */ u2("label", { children: "Size" }),
+          /* @__PURE__ */ u2(Unit, { prop: "font-size", units: C2.U.size })
+        ] }),
+        /* @__PURE__ */ u2(Choice, { prop: "font-weight", opts: WEIGHTS, label: "Weight" })
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "row2", children: [
+        /* @__PURE__ */ u2("div", { class: "f", children: [
+          /* @__PURE__ */ u2("label", { children: "Line height" }),
+          /* @__PURE__ */ u2(Unit, { prop: "line-height", units: C2.U.line })
+        ] }),
+        /* @__PURE__ */ u2("div", { class: "f", children: [
+          /* @__PURE__ */ u2("label", { children: "Letter spacing" }),
+          /* @__PURE__ */ u2(Unit, { prop: "letter-spacing", units: C2.U.track })
+        ] })
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "f", children: [
+        /* @__PURE__ */ u2("label", { children: "Font" }),
+        /* @__PURE__ */ u2(FontSelect, { value: b2["font-family"] || "", onChange: (v3) => {
+          L2.tx("tsval:" + t3.id + "font");
+          if (v3) bucket()["font-family"] = v3;
+          else delete bucket()["font-family"];
+          L2.endTx();
+          commit();
+          repaint("styles");
+        } })
+      ] }),
+      styleDev === "d" ? /* @__PURE__ */ u2("div", { class: "f", children: [
+        /* @__PURE__ */ u2("label", { children: [
+          "Default HTML tag ",
+          /* @__PURE__ */ u2("span", { style: { color: "var(--text-3)", fontWeight: 400 }, children: "\u2014 applied when a heading takes this style" })
+        ] }),
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            class: "ctl",
+            value: t3.tag || "",
+            onChange: (e3) => {
+              L2.tx("tstag:" + t3.id);
+              const v3 = e3.target.value;
+              if (v3) t3.tag = v3;
+              else delete t3.tag;
+              L2.endTx();
+              L2.save();
+            },
+            children: TAGS.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
+          }
+        )
+      ] }) : null,
+      /* @__PURE__ */ u2("div", { class: "row2", children: [
+        /* @__PURE__ */ u2(Choice, { prop: "text-transform", opts: CASES, label: "Transform" }),
+        /* @__PURE__ */ u2("div", { class: "f", children: [
+          /* @__PURE__ */ u2("label", { children: "Colour" }),
+          /* @__PURE__ */ u2("div", { class: "clr", children: [
+            /* @__PURE__ */ u2("span", { class: "sw", children: /* @__PURE__ */ u2("i", { style: { background: C2.resolveColor(colVal) || "transparent" } }) }),
+            tok ? /* @__PURE__ */ u2("span", { class: "tokchip", children: [
+              /* @__PURE__ */ u2(Icon, { name: "link", size: 10 }),
+              " ",
+              tok.name
+            ] }) : /* @__PURE__ */ u2(
+              "input",
+              {
+                class: "ctl hex",
+                value: colVal,
+                placeholder: ph("color") || "inherit",
+                onInput: (e3) => write("color", e3.target.value.trim()),
+                onBlur: () => {
+                  L2.endTx();
+                  repaint("styles");
+                }
+              }
+            ),
+            /* @__PURE__ */ u2("button", { class: "x", title: "Clear", onClick: () => setColor(null), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+          ] }),
+          /* @__PURE__ */ u2("div", { class: "toks", children: C2.colors().map((c3) => /* @__PURE__ */ u2(
+            "button",
+            {
+              class: "tok" + (tok && tok.id === c3.id ? " on" : ""),
+              title: c3.name,
+              style: { background: c3.value },
+              onClick: () => setColor(C2.cvar(c3.id))
+            },
+            c3.id
+          )) })
+        ] })
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "note", children: styleDev === "d" ? "The base values. Switch to Tablet or Mobile to override only what differs there." : "Only what you set here overrides desktop. Empty fields fall through to the base value shown as a placeholder." })
+    ] });
+  }
+  function Row2({ t: t3 }) {
+    const d2 = t3.css.d || {};
+    const open = openStyle === t3.id;
+    const previewSize = Math.min(19, parseInt(d2["font-size"] || "16", 10) || 16);
+    const remove = async () => {
+      const used = C2.tsUsage(t3.id);
+      if (used && !await L2.askConfirm(
+        "Delete this text style?",
+        `<b>${esc7(t3.name)}</b> is used by ${used} element${used === 1 ? "" : "s"}. They keep their current look \u2014 they just stop following the style.`,
+        { ok: "Delete style" }
+      )) return;
+      C2.edit(() => C2.styleDelete(t3.id));
+      if (openStyle === t3.id) openStyle = null;
+      repaint("styles");
+      L2.toast("Style deleted, looks kept");
+    };
+    const setSize = (raw) => {
+      L2.tx("tssize:" + t3.id);
+      const base = t3.css.d = t3.css.d || {};
+      const p3 = C2.parseU(raw.trim());
+      if (raw.trim() === "" || p3.n === "") delete base["font-size"];
+      else base["font-size"] = p3.n + (p3.u || "px");
+      L2.paintCss();
+      L2.save();
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "arow" + (open ? " open" : ""), children: [
+        /* @__PURE__ */ u2("span", { style: {
+          flex: "0 0 40px",
+          textAlign: "center",
+          color: "var(--text)",
+          fontWeight: d2["font-weight"] || 500,
+          fontSize: previewSize + "px"
+        }, children: "Aa" }),
+        /* @__PURE__ */ u2("span", { class: "an", children: /* @__PURE__ */ u2(
+          "input",
+          {
+            class: "ctl",
+            value: t3.name,
+            style: { fontSize: "12.5px", fontWeight: 600 },
+            onInput: (e3) => {
+              L2.tx("tsname:" + t3.id);
+              const s3 = C2.findStyle(t3.id);
+              if (s3) {
+                s3.name = e3.target.value;
+                L2.save();
+              }
+            }
+          }
+        ) }),
+        /* @__PURE__ */ u2(
+          "input",
+          {
+            class: "ctl",
+            value: d2["font-size"] || "",
+            placeholder: "auto",
+            title: "Base size \u2014 expand the row to set a Tablet or Mobile override",
+            style: { width: "74px", flex: "0 0 74px", fontFamily: "var(--mono)", fontSize: "11px" },
+            onInput: (e3) => setSize(e3.target.value),
+            onBlur: () => {
+              L2.endTx();
+              repaint("styles");
+            }
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            class: "ctl",
+            title: "Base weight",
+            style: { width: "118px", flex: "0 0 118px", fontSize: "11.5px" },
+            value: d2["font-weight"] || "",
+            onChange: (e3) => {
+              L2.tx("tsweight:" + t3.id);
+              const base = t3.css.d = t3.css.d || {};
+              const v3 = e3.target.value;
+              if (v3 === "") delete base["font-weight"];
+              else base["font-weight"] = v3;
+              L2.endTx();
+              L2.paintCss();
+              L2.save();
+              repaint("styles");
+            },
+            children: WEIGHTS.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "iconbtn" + (open ? " flip" : ""),
+            title: open ? "Close" : "Line height, letter spacing, colour, and per-breakpoint overrides",
+            onClick: () => {
+              openStyle = open ? null : t3.id;
+              styleDev = "d";
+              repaint("styles");
+            },
+            children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 13 })
+          }
+        ),
+        /* @__PURE__ */ u2("button", { class: "iconbtn", title: "Delete \u2014 elements keep the look", onClick: remove, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 13 }) })
+      ] }),
+      open ? /* @__PURE__ */ u2(Editor, { t: t3 }) : null
+    ] });
+  }
+  function TextStyles() {
+    const add = async () => {
+      const name = await L2.askText("New text style", "Style name", "New style", { ok: "Add style" });
+      if (name === null) return;
+      let id = "";
+      C2.edit(() => {
+        id = C2.styleAdd(name);
+      });
+      openStyle = id;
+      styleDev = "d";
+      repaint("styles");
+      L2.toast("Text style created \u2014 set its values below");
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      C2.styles().map((t3) => /* @__PURE__ */ u2(Row2, { t: t3 }, t3.id)),
+      /* @__PURE__ */ u2("button", { class: "btn", style: { width: "100%", justifyContent: "center" }, onClick: add, children: [
+        /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+        " Add text style"
+      ] })
+    ] });
+  }
+  var esc7 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
@@ -8299,12 +8759,29 @@ var PC_UI = (() => {
       );
       draw();
     };
-    const mountColors = () => {
-      const host = document.getElementById("mColors");
-      if (host) R(/* @__PURE__ */ u2(ColorTokens, {}), host);
+    const inBox = (id, node) => () => {
+      const host = document.getElementById(id);
+      if (host) R(node(), host);
     };
+    const mountColors = inBox("mColors", () => /* @__PURE__ */ u2(ColorTokens, {}));
+    const mountClasses = inBox("mClasses", () => /* @__PURE__ */ u2(StyleClasses, {}));
+    const mountStyles = inBox("mStyles", () => /* @__PURE__ */ u2(TextStyles, {}));
     registerPainter("colors", mountColors);
-    return { ...painters2, mountAssetField, mountColors };
+    registerPainter("classes", mountClasses);
+    registerPainter("styles", mountStyles);
+    const mountFontSelect = (hostId, opts) => {
+      const host = document.getElementById(hostId);
+      if (!host) return;
+      const draw = () => R(
+        /* @__PURE__ */ u2(FontSelect, { value: opts.get(), onChange: (v3) => {
+          opts.set(v3);
+          draw();
+        } }),
+        host
+      );
+      draw();
+    };
+    return { ...painters2, mountAssetField, mountColors, mountClasses, mountStyles, mountFontSelect };
   }
   return __toCommonJS(index_exports);
 })();
@@ -10328,16 +10805,6 @@ function langSelect(id, val) {
 /* the same upload affordance the inspector uses, for project-level images */
 
 /* the same font vocabulary the inspector offers, for the project defaults */
-function fontSelect(id, val) {
-  const cur = String(val || '');
-  const groups = fontGroups();
-  const known = groups.some(([, list]) => list.some(([v]) => v === cur));
-  return `<select class="ctl" id="${id}">
-      ${groups.map(([g, list]) => `<optgroup label="${esc(g)}">${list.map(([v, l]) =>
-    `<option value="${esc(v)}"${known && cur === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</optgroup>`).join('')}
-      ${known ? '' : `<option value="${esc(cur)}" selected>Custom — ${esc(familyOf(cur))}</option>`}
-    </select>`;
-}
 
 /* A new page starts from a template built out of this project's own tokens. */
 function newPageModal() {
@@ -10367,8 +10834,8 @@ function projectModal() {
     <div class="fgrid">
       <div class="f"><label>Project name</label><input class="ctl" id="mName" value="${esc(m.name)}"></div>
       <div class="f"><label>Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
-      <div class="f"><label>Body font</label>${fontSelect('mFont', m.font)}</div>
-      <div class="f"><label>Heading font</label>${fontSelect('mHead', m.headFont)}</div>
+      <div class="f"><label>Body font</label><div id="mFontBox"></div></div>
+      <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
       <div class="f"><label>Base font size</label>${unitField('mSize', m.size, ['px', 'rem', '%'])}</div>
       <div class="f"><label>Language</label>${langSelect('mLang', m.lang)}</div>
       <div class="f"><label>Site URL <span style="color:var(--text-3);font-weight:400">— enables canonical tags and a sitemap</span></label>
@@ -10403,12 +10870,15 @@ function projectModal() {
   };
   wire('mName', v => { m.name = v; renderModebar(); });
 
-  const wireSel = (id, fn) => {
-    const el = $('#' + id); if (!el) return;
-    el.addEventListener('change', () => { fn(el.value); paintCss(); save(); });
-  };
-  wireSel('mFont', v => { m.font = v || FONT_BASE[1][0]; });
-  wireSel('mHead', v => { m.headFont = v; });
+  /* app/src/ui/FontSelect.tsx, the same picker the text-style editor uses. */
+  ui().mountFontSelect('mFontBox', {
+    get: () => m.font,
+    set: v => { m.font = v || FONT_BASE[1][0]; paintCss(); save(); }
+  });
+  ui().mountFontSelect('mHeadBox', {
+    get: () => m.headFont,
+    set: v => { m.headFont = v; paintCss(); save(); }
+  });
   wire('mBase', v => { m.baseUrl = v.trim(); });
   wireUnit('mMax', null, v => { m.maxWidth = v || '1200px'; });
   wireUnit('mSize', null, v => { m.size = v || '16px'; });
@@ -10433,226 +10903,14 @@ function projectModal() {
      whichever of the three fields you were in. */
   ui().mountColors();
 
-  /* ---- text styles: created, named and edited here ---- */
-  let openStyle = null, styleDev = 'd';
-  const TS_WEIGHTS = [['', 'Default'], ['300', 'Light 300'], ['400', 'Regular 400'], ['500', 'Medium 500'],
-  ['600', 'Semibold 600'], ['700', 'Bold 700'], ['800', 'Extrabold 800'], ['900', 'Black 900']];
-  const TS_CASE = [['', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']];
+  /* app/src/ui/TextStyles.tsx owns #mStyles. */
+  ui().mountStyles();
 
-  function styleEditor(t) {
-    const b = t.css[styleDev] || {};
-    const base = t.css.d || {};
-    const ph = k => styleDev === 'd' ? '' : (base[k] || '');
-    const uf = (prop, units) => {
-      const p = parseU(b[prop]);
-      return `<div class="unit">
-          <input class="ctl" data-sv="${prop}" type="number" step="any" value="${esc(p.n)}" placeholder="${esc(parseU(ph(prop)).n || 'auto')}">
-          <select class="ctl" data-su="${prop}">${units.map(u => `<option value="${u}"${u === p.u ? ' selected' : ''}>${u || '—'}</option>`).join('')}</select>
-        </div>`;
-    };
-    const colVal = b.color || '';
-    const tok = refId(colVal) ? findColor(refId(colVal)) : null;
-    return `<div class="tsedit">
-      <div class="pick" style="margin-bottom:var(--gap-2)">
-        ${['d', 't', 'm'].map(d => `<button data-sd="${d}" class="${styleDev === d ? 'on' : ''}">${svg(d === 'd' ? 'desktop' : d === 't' ? 'tablet' : 'mobile', 12)} ${DEV_LABEL[d]}</button>`).join('')}
-      </div>
-      <div class="row2">
-        <div class="f"><label>Size</label>${uf('font-size', U.size)}</div>
-        <div class="f"><label>Weight</label><select class="ctl" data-sv="font-weight">
-          ${TS_WEIGHTS.map(([v, l]) => `<option value="${v}"${(b['font-weight'] || '') === v ? ' selected' : ''}>${l}</option>`).join('')}
-        </select></div>
-      </div>
-      <div class="row2">
-        <div class="f"><label>Line height</label>${uf('line-height', U.line)}</div>
-        <div class="f"><label>Letter spacing</label>${uf('letter-spacing', U.track)}</div>
-      </div>
-      <div class="f"><label>Font</label>${fontSelect('tsFont', b['font-family'] || '')}</div>
-      ${styleDev === 'd' ? `<div class="f"><label>Default HTML tag <span style="color:var(--text-3);font-weight:400">— applied when a heading takes this style</span></label>
-        <select class="ctl" id="tsTag">
-          ${[['', 'Leave as-is'], ['h1', 'H1'], ['h2', 'H2'], ['h3', 'H3'], ['h4', 'H4'], ['h5', 'H5'], ['h6', 'H6'], ['p', 'Paragraph'], ['div', 'div — not a heading']]
-        .map(([v, l]) => `<option value="${v}"${(t.tag || '') === v ? ' selected' : ''}>${l}</option>`).join('')}
-        </select></div>` : ''}
-      <div class="row2">
-        <div class="f"><label>Transform</label><select class="ctl" data-sv="text-transform">
-          ${TS_CASE.map(([v, l]) => `<option value="${v}"${(b['text-transform'] || '') === v ? ' selected' : ''}>${l}</option>`).join('')}
-        </select></div>
-        <div class="f"><label>Colour</label>
-          <div class="clr">
-            <span class="sw"><i style="background:${esc(resolveColor(colVal) || 'transparent')}"></i></span>
-            ${tok ? `<span class="tokchip">${svg('link', 10)} ${esc(tok.name)}</span>`
-        : `<input class="ctl hex" data-sv="color" value="${esc(colVal)}" placeholder="${esc(ph('color') || 'inherit')}">`}
-            <button class="x" data-sclr="1" title="Clear">${svg('trash', 11)}</button>
-          </div>
-          <div class="toks">${colors().map(c =>
-          `<button class="tok${tok && tok.id === c.id ? ' on' : ''}" data-stok="${c.id}" title="${esc(c.name)}" style="background:${esc(c.value)}"></button>`).join('')}</div>
-        </div>
-      </div>
-      <div class="note">${styleDev === 'd'
-        ? 'The base values. Switch to Tablet or Mobile to override only what differs there.'
-        : 'Only what you set here overrides desktop. Empty fields fall through to the base value shown as a placeholder.'}</div>
-    </div>`;
-  }
 
-  function drawStyles() {
-    const box = $('#mStyles'); if (!box) return;
-    box.innerHTML = styles().map(t => {
-      const d = t.css.d || {};
-      const open = openStyle === t.id;
-      return `<div class="arow${open ? ' open' : ''}" data-t="${t.id}">
-        <span style="flex:0 0 40px;text-align:center;font-weight:${d['font-weight'] || 500};font-size:${Math.min(19, parseInt(d['font-size'] || 16, 10) || 16)}px;color:var(--text)">Aa</span>
-        <span class="an">
-          <input class="ctl" data-tn="${t.id}" value="${esc(t.name)}" style="font-size:12.5px;font-weight:600">
-        </span>
-        <input class="ctl" data-tsize="${t.id}" value="${esc(d['font-size'] || '')}" placeholder="auto"
-          title="Base size — expand the row to set a Tablet or Mobile override"
-          style="width:74px;flex:0 0 74px;font-family:var(--mono);font-size:11px">
-        <select class="ctl" data-tweight="${t.id}" title="Base weight" style="width:118px;flex:0 0 118px;font-size:11.5px">
-          ${TS_WEIGHTS.map(([v, l]) => `<option value="${v}"${(d['font-weight'] || '') === v ? ' selected' : ''}>${l}</option>`).join('')}
-        </select>
-        <button class="iconbtn${open ? ' flip' : ''}" data-te="${t.id}" title="${open ? 'Close' : 'Line height, letter spacing, colour, and per-breakpoint overrides'}">${svg('caret', 13)}</button>
-        <button class="iconbtn" data-td="${t.id}" title="Delete — elements keep the look">${svg('trash', 13)}</button>
-      </div>${open ? styleEditor(t) : ''}`;
-    }).join('') + `<button class="btn" id="mStyleAdd" style="width:100%;justify-content:center">${svg('plus', 12)} Add text style</button>`;
-
-    $$('[data-tn]', box).forEach(el => el.addEventListener('input', () => {
-      tx('tsname:' + el.dataset.tn);
-      const t = findStyle(el.dataset.tn); if (t) { t.name = el.value; save(); }
-    }));
-    /* Size and weight are editable in the row itself — the read-only meta line that
-       used to sit here made every row two lines tall and could not be acted on.
-       Both write the desktop base; the expanded editor is where breakpoints live. */
-    $$('[data-tsize]', box).forEach(el => {
-      const push = () => {
-        const t = findStyle(el.dataset.tsize); if (!t) return;
-        tx('tssize:' + t.id);
-        const base = (t.css.d = t.css.d || {});
-        const raw = String(el.value).trim();
-        const p = parseU(raw);
-        if (raw === '' || p.n === '') delete base['font-size'];
-        else base['font-size'] = p.n + (p.u || 'px');   // a bare number means px
-        paintCss(); save();
-      };
-      el.addEventListener('input', push);
-      el.addEventListener('blur', () => { endTx(); drawStyles(); });
-    });
-    $$('[data-tweight]', box).forEach(el => el.addEventListener('change', () => {
-      const t = findStyle(el.dataset.tweight); if (!t) return;
-      tx('tsweight:' + t.id);
-      const base = (t.css.d = t.css.d || {});
-      if (el.value === '') delete base['font-weight']; else base['font-weight'] = el.value;
-      endTx(); paintCss(); save(); drawStyles();
-    }));
-    $$('[data-te]', box).forEach(b => b.addEventListener('click', () => {
-      openStyle = openStyle === b.dataset.te ? null : b.dataset.te;
-      styleDev = 'd';
-      drawStyles();
-    }));
-    $$('[data-td]', box).forEach(b => b.addEventListener('click', async () => {
-      const id = b.dataset.td, used = tsUsage(id);
-      if (used && !await askConfirm('Delete this text style?', `<b>${esc(findStyle(id).name)}</b> is used by ${used} element${used === 1 ? '' : 's'}. They keep their current look — they just stop following the style.`, { ok: 'Delete style' })) return;
-      edit(() => styleDelete(id));
-      if (openStyle === id) openStyle = null;
-      drawStyles(); toast('Style deleted, looks kept');
-    }));
-    $('#mStyleAdd').addEventListener('click', async () => {
-      const name = await askText('New text style', 'Style name', 'New style', { ok: 'Add style' });
-      if (name === null) return;
-      const base = tokenId(name) || 'style';
-      let id = base, k = 2;
-      while (findStyle(id)) id = base + '-' + k++;
-      edit(() => state.meta.tokens.text.push({
-        id, name: String(name).slice(0, 40),
-        css: { d: { 'font-size': '16px', 'font-weight': '400', 'line-height': '1.5' }, t: {}, m: {} }
-      }));
-      openStyle = id; styleDev = 'd';
-      drawStyles();
-      toast('Text style created — set its values below');
-    });
-
-    /* ---- the expanded editor ---- */
-    const t = openStyle && findStyle(openStyle);
-    if (!t) return;
-    const bucket = () => (t.css[styleDev] = t.css[styleDev] || {});
-    const commit = () => { paintCss(); save(); };
-    $$('[data-sd]', box).forEach(b => b.addEventListener('click', () => { styleDev = b.dataset.sd; drawStyles(); }));
-    $$('select[data-sv]', box).forEach(el => el.addEventListener('change', () => {
-      tx('tsval:' + t.id + el.dataset.sv);
-      if (el.value === '') delete bucket()[el.dataset.sv]; else bucket()[el.dataset.sv] = el.value;
-      endTx(); commit(); drawStyles();
-    }));
-    $$('input[data-sv]', box).forEach(el => {
-      const prop = el.dataset.sv;
-      const unit = box.querySelector(`[data-su="${prop}"]`);
-      const push = () => {
-        tx('tsval:' + t.id + prop);
-        const raw = String(el.value).trim();
-        if (raw === '') delete bucket()[prop];
-        else bucket()[prop] = unit ? raw + unit.value : raw;
-        commit();
-      };
-      el.addEventListener('input', push);
-      el.addEventListener('blur', () => { endTx(); drawStyles(); });
-      if (unit) unit.addEventListener('change', () => { push(); endTx(); });
-    });
-    const tagEl = $('#tsTag');
-    if (tagEl) tagEl.addEventListener('change', () => {
-      tx('tstag:' + t.id);
-      if (tagEl.value) t.tag = tagEl.value; else delete t.tag;
-      endTx(); save();
-    });
-    const fontEl = $('#tsFont');
-    if (fontEl) fontEl.addEventListener('change', () => {
-      tx('tsval:' + t.id + 'font');
-      if (fontEl.value) bucket()['font-family'] = fontEl.value; else delete bucket()['font-family'];
-      endTx(); commit(); drawStyles();
-    });
-    $$('[data-stok]', box).forEach(b => b.addEventListener('click', () => {
-      tx('tsval:' + t.id + 'color');
-      bucket().color = cvar(b.dataset.stok);
-      endTx(); commit(); drawStyles();
-    }));
-    const sclr = box.querySelector('[data-sclr]');
-    if (sclr) sclr.addEventListener('click', () => {
-      tx('tsval:' + t.id + 'color');
-      delete bucket().color;
-      endTx(); commit(); drawStyles();
-    });
-  }
-  drawStyles();
 
   /* ---- style classes ---- */
-  function drawClasses() {
-    const box = $('#mClasses'); if (!box) return;
-    const list = classes();
-    box.innerHTML = list.length ? list.map((c, i) => {
-      const props = ['d', 't', 'm'].reduce((k, b) => k + Object.keys(c.css[b] || {}).length, 0);
-      return `<div class="arow" data-k="${c.id}">
-        <span style="flex:0 0 34px;text-align:center;font-family:var(--label);font-size:11px;color:var(--text-3)">.${esc(c.id.slice(0, 4))}</span>
-        <span class="an">
-          <input class="ctl" data-kn="${c.id}" value="${esc(c.name)}" style="font-size:12.5px;font-weight:600">
-        </span>
-        <span class="rowmeta" title="${props} declaration${props === 1 ? '' : 's'} in this class">${props} decl</span>
-        <button class="iconbtn" data-ku="${c.id}" title="Raise precedence"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
-        <button class="iconbtn" data-kd="${c.id}" title="Delete — elements keep the look">${svg('trash', 13)}</button>
-      </div>`;
-    }).join('') + `<div class="note">Precedence runs top to bottom: a class lower in this list overrides one above it. An element's own styling always wins.</div>`
-      : `<div class="note">No classes yet. Select an element, open <b>Style</b>, and save its styling as a class.</div>`;
-
-    $$('[data-kn]', box).forEach(el => el.addEventListener('input', () => {
-      tx('clsname:' + el.dataset.kn);
-      const c = findClass(el.dataset.kn); if (c) { c.name = el.value; save(); }
-    }));
-    $$('[data-ku]', box).forEach(b => b.addEventListener('click', () => {
-      edit(() => classMove(b.dataset.ku, -1)); drawClasses();
-    }));
-    $$('[data-kd]', box).forEach(b => b.addEventListener('click', async () => {
-      const id = b.dataset.kd, uses = classUsage(id);
-      if (uses && !await askConfirm('Delete this class?', `<b>${esc(findClass(id).name)}</b> is used by ${uses} element${uses === 1 ? '' : 's'}. They keep their current look — they just stop sharing it.`, { ok: 'Delete class' })) return;
-      edit(() => classDelete(id));
-      drawClasses(); toast('Class deleted, looks kept');
-    }));
-  }
-  drawClasses();
+  /* app/src/ui/StyleClasses.tsx owns #mClasses. */
+  ui().mountClasses();
 
   /* ---- image manager ---- */
 

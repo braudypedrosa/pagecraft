@@ -4111,3 +4111,63 @@ test('the root fallback does not fire when something nearer fits', () => {
   a.equal(C.state.pages[0].tree.length, before, 'no new section at the root');
   a.equal(col.children.length, 2, 'it went in beside its sibling');
 });
+
+/* ------------------------------------------------- adding a text style
+   The project dialog's Add button carried its own copy of the id-uniquifying logic and
+   pushed straight into `tokens.text` rather than through ensureTokens() — so on a
+   project whose tokens had not been built it would have thrown. One function now, shared
+   with tsCreateFrom. */
+
+test('styleAdd derives a unique id from the name', () => {
+  blank();
+  const a1 = C.styleAdd('Caption');
+  a.equal(a1, 'caption');
+  const a2 = C.styleAdd('Caption');
+  a.equal(a2, 'caption-2', 'a second one does not overwrite the first');
+  a.equal(C.styleAdd('Caption'), 'caption-3');
+  a.equal(C.styles().filter(t => t.name === 'Caption').length, 3);
+});
+
+test('styleAdd falls back to a usable id when the name has none', () => {
+  blank();
+  /* punctuation-only names slugify to nothing, and an empty id would collide with
+     itself on the next add */
+  a.equal(C.styleAdd('...'), 'style');
+  a.equal(C.styleAdd('!!!'), 'style-2');
+});
+
+test('styleAdd gives the style values, not an empty object', () => {
+  blank();
+  const id = C.styleAdd('Caption');
+  const t = must(C.findStyle(id), 'the new style');
+  a.equal(t.css.d['font-size'], '16px');
+  a.equal(t.css.d['font-weight'], '400');
+  a.equal(t.css.d['line-height'], '1.5');
+  a.deepEqual(t.css.t, {}, 'and no breakpoint overrides yet');
+  a.deepEqual(t.css.m, {});
+});
+
+test('styleAdd works before the tokens exist', () => {
+  blank();
+  /* the old copy of this wrote state.meta.tokens.text directly, which throws when
+     tokens is still null — the exact class of bug the typed core surfaced six of */
+  C.state.meta.tokens = null;
+  const id = C.styleAdd('Caption');
+  a.equal(id, 'caption');
+  a.ok(C.findStyle(id), 'and the tokens were built on the way');
+});
+
+test('styleAdd clamps a very long name', () => {
+  blank();
+  const t = must(C.findStyle(C.styleAdd('x'.repeat(80))), 'the new style');
+  a.equal(t.name.length, 40);
+});
+
+test('tsCreateFrom shares the same id rule', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  h.css.d = { 'font-size': '30px' };
+  C.styleAdd('Feature');
+  const id = C.tsCreateFrom(h, 'Feature');
+  a.equal(id, 'feature-2', 'it sees the style styleAdd made, and steps around it');
+});

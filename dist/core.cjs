@@ -63,6 +63,7 @@ __export(index_exports, {
   TEXT_SLOTS: () => TEXT_SLOTS,
   TS_TYPES: () => TS_TYPES,
   TYPO_KEYS: () => TYPO_KEYS,
+  U: () => U,
   ZOOMS: () => ZOOMS,
   anchorsOf: () => anchorsOf,
   applyBindings: () => applyBindings,
@@ -256,6 +257,7 @@ __export(index_exports, {
   step: () => step,
   stripScripts: () => stripScripts,
   stripTypo: () => stripTypo,
+  styleAdd: () => styleAdd,
   styleClip: () => styleClip,
   styleDelete: () => styleDelete,
   styles: () => styles,
@@ -1640,10 +1642,23 @@ function tsUpdateFrom(n) {
   stripTypo(n);
   return true;
 }
-function tsCreateFrom(n, name) {
+var styleId = (name) => {
   const base = tokenId(name) || "style";
   let id = base, k = 2;
   while (findStyle(id)) id = base + "-" + k++;
+  return id;
+};
+function styleAdd(name) {
+  const id = styleId(name);
+  ensureTokens().text.push({
+    id,
+    name: String(name || "New style").slice(0, 40),
+    css: { d: { "font-size": "16px", "font-weight": "400", "line-height": "1.5" }, t: {}, m: {} }
+  });
+  return id;
+}
+function tsCreateFrom(n, name) {
+  const id = styleId(name);
   ensureTokens().text.push({ id, name: String(name || "New style").slice(0, 40), css: grabTypo(n) });
   stripTypo(n);
   n.props.ts = id;
@@ -4561,6 +4576,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   TEXT_SLOTS,
   TS_TYPES,
   TYPO_KEYS,
+  U,
   ZOOMS,
   anchorsOf,
   applyBindings,
@@ -4754,6 +4770,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   step,
   stripScripts,
   stripTypo,
+  styleAdd,
   styleClip,
   styleDelete,
   styles,
