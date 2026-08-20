@@ -16,6 +16,7 @@ import { ColorTokens } from './ColorTokens';
 import { StyleClasses } from './StyleClasses';
 import { TextStyles } from './TextStyles';
 import { FontSelect } from './FontSelect';
+import { ReviewList } from './ReviewList';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
@@ -70,6 +71,7 @@ export function mount(core: Core, legacy: Legacy) {
   const mountColors = inBox('mColors', () => <ColorTokens />);
   const mountClasses = inBox('mClasses', () => <StyleClasses />);
   const mountStyles = inBox('mStyles', () => <TextStyles />);
+  const mountReview = inBox('exReview', () => <ReviewList />);
   registerPainter('colors', mountColors);
   registerPainter('classes', mountClasses);
   registerPainter('styles', mountStyles);
@@ -84,5 +86,5 @@ export function mount(core: Core, legacy: Legacy) {
     draw();
   };
 
-  return { ...painters, mountAssetField, mountColors, mountClasses, mountStyles, mountFontSelect };
+  return { ...painters, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
 }

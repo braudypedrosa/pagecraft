@@ -87,6 +87,8 @@ export interface Legacy {
 
   /** write the project to storage immediately, skipping the debounce */
   writeNow(): void;
+  /** dismiss whichever dialog is open */
+  closeModal(): void;
 
   /* History. `tx` opens a coalescing transaction keyed by field, so a run of
      keystrokes is one undo step; `endTx` closes it on blur. Anything that moves

@@ -5636,9 +5636,9 @@ var PC_UI = (() => {
     }
   }
   function L(n2, l3, u4, t3, i3, r3, o3, e3, f4, c3, a3) {
-    var s3, h3, p3, v3, y2, _2, g2 = t3 && t3.__k || w, m3 = l3.length;
-    for (f4 = T(u4, l3, g2, f4, m3), s3 = 0; s3 < m3; s3++) null != (p3 = u4.__k[s3]) && (h3 = -1 != p3.__i && g2[p3.__i] || d, p3.__i = s3, _2 = q(n2, p3, h3, i3, r3, o3, e3, f4, c3, a3), v3 = p3.__e, p3.ref && h3.ref != p3.ref && (h3.ref && J(h3.ref, null, p3), a3.push(p3.ref, p3.__c || v3, p3)), null == y2 && null != v3 && (y2 = v3), 4 & p3.__u ? (f4 = j(p3, f4, n2), h3.__e && (h3.__e = null)) : "function" == typeof p3.type && void 0 !== _2 ? f4 = _2 : v3 && (f4 = v3.nextSibling), p3.__u &= -7);
-    return u4.__e = y2, f4;
+    var s3, h3, p3, v3, y3, _2, g2 = t3 && t3.__k || w, m3 = l3.length;
+    for (f4 = T(u4, l3, g2, f4, m3), s3 = 0; s3 < m3; s3++) null != (p3 = u4.__k[s3]) && (h3 = -1 != p3.__i && g2[p3.__i] || d, p3.__i = s3, _2 = q(n2, p3, h3, i3, r3, o3, e3, f4, c3, a3), v3 = p3.__e, p3.ref && h3.ref != p3.ref && (h3.ref && J(h3.ref, null, p3), a3.push(p3.ref, p3.__c || v3, p3)), null == y3 && null != v3 && (y3 = v3), 4 & p3.__u ? (f4 = j(p3, f4, n2), h3.__e && (h3.__e = null)) : "function" == typeof p3.type && void 0 !== _2 ? f4 = _2 : v3 && (f4 = v3.nextSibling), p3.__u &= -7);
+    return u4.__e = y3, f4;
   }
   function T(n2, l3, u4, t3, i3) {
     var r3, o3, e3, f4, c3, a3 = u4.length, s3 = a3, h3 = 0;
@@ -5698,29 +5698,29 @@ var PC_UI = (() => {
     };
   }
   function q(n2, u4, t3, i3, r3, o3, e3, f4, c3, a3) {
-    var s3, h3, p3, v3, y2, d2, _2, k3, x2, M, I2, P2, A2, H2, T2, j3, F = u4.type;
+    var s3, h3, p3, v3, y3, d3, _2, k3, x2, M, I2, P2, A2, H2, T2, j3, F = u4.type;
     if (void 0 !== u4.constructor) return null;
     128 & t3.__u && (c3 = !!(32 & t3.__u), o3 = [f4 = u4.__e = t3.__e]), (s3 = l.__b) && s3(u4);
     n: if ("function" == typeof F) {
       h3 = e3.length;
       try {
-        if (x2 = u4.props, M = F.prototype && F.prototype.render, I2 = (s3 = F.contextType) && i3[s3.__c], P2 = s3 ? I2 ? I2.props.value : s3.__ : i3, t3.__c ? k3 = (p3 = u4.__c = t3.__c).__ = p3.__E : (M ? u4.__c = p3 = new F(x2, P2) : (u4.__c = p3 = new C(x2, P2), p3.constructor = F, p3.render = Q), I2 && I2.sub(p3), p3.state || (p3.state = {}), p3.__n = i3, v3 = p3.__d = true, p3.__h = [], p3._sb = []), M && null == p3.__s && (p3.__s = p3.state), M && null != F.getDerivedStateFromProps && (p3.__s == p3.state && (p3.__s = m({}, p3.__s)), m(p3.__s, F.getDerivedStateFromProps(x2, p3.__s))), y2 = p3.props, d2 = p3.state, p3.__v = u4, v3) M && null == F.getDerivedStateFromProps && null != p3.componentWillMount && p3.componentWillMount(), M && null != p3.componentDidMount && p3.__h.push(p3.componentDidMount);
+        if (x2 = u4.props, M = F.prototype && F.prototype.render, I2 = (s3 = F.contextType) && i3[s3.__c], P2 = s3 ? I2 ? I2.props.value : s3.__ : i3, t3.__c ? k3 = (p3 = u4.__c = t3.__c).__ = p3.__E : (M ? u4.__c = p3 = new F(x2, P2) : (u4.__c = p3 = new C(x2, P2), p3.constructor = F, p3.render = Q), I2 && I2.sub(p3), p3.state || (p3.state = {}), p3.__n = i3, v3 = p3.__d = true, p3.__h = [], p3._sb = []), M && null == p3.__s && (p3.__s = p3.state), M && null != F.getDerivedStateFromProps && (p3.__s == p3.state && (p3.__s = m({}, p3.__s)), m(p3.__s, F.getDerivedStateFromProps(x2, p3.__s))), y3 = p3.props, d3 = p3.state, p3.__v = u4, v3) M && null == F.getDerivedStateFromProps && null != p3.componentWillMount && p3.componentWillMount(), M && null != p3.componentDidMount && p3.__h.push(p3.componentDidMount);
         else {
-          if (M && null == F.getDerivedStateFromProps && x2 !== y2 && null != p3.componentWillReceiveProps && p3.componentWillReceiveProps(x2, P2), u4.__v == t3.__v || !p3.__e && null != p3.shouldComponentUpdate && false === p3.shouldComponentUpdate(x2, p3.__s, P2)) {
+          if (M && null == F.getDerivedStateFromProps && x2 !== y3 && null != p3.componentWillReceiveProps && p3.componentWillReceiveProps(x2, P2), u4.__v == t3.__v || !p3.__e && null != p3.shouldComponentUpdate && false === p3.shouldComponentUpdate(x2, p3.__s, P2)) {
             u4.__v != t3.__v && (p3.props = x2, p3.state = p3.__s, p3.__d = false), u4.__e = t3.__e, u4.__k = t3.__k, u4.__k.some(function(n3) {
               n3 && (n3.__ = u4);
             }), w.push.apply(p3.__h, p3._sb), p3._sb = [], p3.__h.length && e3.push(p3), f4 = $(t3);
             break n;
           }
           null != p3.componentWillUpdate && p3.componentWillUpdate(x2, p3.__s, P2), M && null != p3.componentDidUpdate && p3.__h.push(function() {
-            p3.componentDidUpdate(y2, d2, _2);
+            p3.componentDidUpdate(y3, d3, _2);
           });
         }
         if (p3.context = P2, p3.props = x2, p3.__P = n2, p3.__e = false, A2 = l.__r, H2 = 0, M) p3.state = p3.__s, p3.__d = false, A2 && A2(u4), s3 = p3.render(p3.props, p3.state, p3.context), w.push.apply(p3.__h, p3._sb), p3._sb = [];
         else do {
           p3.__d = false, A2 && A2(u4), s3 = p3.render(p3.props, p3.state, p3.context), p3.state = p3.__s;
         } while (p3.__d && ++H2 < 25);
-        p3.state = p3.__s, null != p3.getChildContext && (i3 = m(m({}, i3), p3.getChildContext())), M && !v3 && null != p3.getSnapshotBeforeUpdate && (_2 = p3.getSnapshotBeforeUpdate(y2, d2)), T2 = null != s3 && s3.type === S && null == s3.key ? E(s3.props.children) : s3, f4 = L(n2, g(T2) ? T2 : [T2], u4, t3, i3, r3, o3, e3, f4, c3, a3), p3.base = u4.__e, u4.__u &= -161, p3.__h.length && e3.push(p3), k3 && (p3.__E = p3.__ = null);
+        p3.state = p3.__s, null != p3.getChildContext && (i3 = m(m({}, i3), p3.getChildContext())), M && !v3 && null != p3.getSnapshotBeforeUpdate && (_2 = p3.getSnapshotBeforeUpdate(y3, d3)), T2 = null != s3 && s3.type === S && null == s3.key ? E(s3.props.children) : s3, f4 = L(n2, g(T2) ? T2 : [T2], u4, t3, i3, r3, o3, e3, f4, c3, a3), p3.base = u4.__e, u4.__u &= -161, p3.__h.length && e3.push(p3), k3 && (p3.__E = p3.__ = null);
       } catch (n3) {
         if (e3.length = h3, u4.__v = null, c3 || null != o3) {
           if (n3.then) {
@@ -5752,10 +5752,10 @@ var PC_UI = (() => {
     return "object" != typeof n2 || null == n2 || n2.__b > 0 ? n2 : g(n2) ? n2.map(E) : void 0 !== n2.constructor ? null : m({}, n2);
   }
   function G(u4, t3, i3, r3, o3, e3, f4, c3, a3) {
-    var s3, h3, p3, v3, y2, w3, _2, m3 = i3.props || d, k3 = t3.props, x2 = t3.type;
+    var s3, h3, p3, v3, y3, w3, _2, m3 = i3.props || d, k3 = t3.props, x2 = t3.type;
     if ("svg" == x2 ? o3 = "http://www.w3.org/2000/svg" : "math" == x2 ? o3 = "http://www.w3.org/1998/Math/MathML" : o3 || (o3 = "http://www.w3.org/1999/xhtml"), null != e3) {
-      for (s3 = 0; s3 < e3.length; s3++) if ((y2 = e3[s3]) && "setAttribute" in y2 == !!x2 && (x2 ? y2.localName == x2 : 3 == y2.nodeType)) {
-        u4 = y2, e3[s3] = null;
+      for (s3 = 0; s3 < e3.length; s3++) if ((y3 = e3[s3]) && "setAttribute" in y3 == !!x2 && (x2 ? y3.localName == x2 : 3 == y3.nodeType)) {
+        u4 = y3, e3[s3] = null;
         break;
       }
     }
@@ -5765,9 +5765,9 @@ var PC_UI = (() => {
     }
     if (null == x2) m3 === k3 || c3 && u4.data == k3 || (u4.data = k3);
     else {
-      if (e3 = "textarea" == x2 && null != k3.defaultValue ? null : e3 && n.call(u4.childNodes), !c3 && null != e3) for (m3 = {}, s3 = 0; s3 < u4.attributes.length; s3++) m3[(y2 = u4.attributes[s3]).name] = y2.value;
-      for (s3 in m3) y2 = m3[s3], "dangerouslySetInnerHTML" == s3 ? p3 = y2 : "children" == s3 || s3 in k3 || "value" == s3 && "defaultValue" in k3 || "checked" == s3 && "defaultChecked" in k3 || N(u4, s3, null, y2, o3);
-      for (s3 in k3) y2 = k3[s3], "children" == s3 ? v3 = y2 : "dangerouslySetInnerHTML" == s3 ? h3 = y2 : "value" == s3 ? w3 = y2 : "checked" == s3 ? _2 = y2 : c3 && "function" != typeof y2 || m3[s3] === y2 || N(u4, s3, y2, m3[s3], o3);
+      if (e3 = "textarea" == x2 && null != k3.defaultValue ? null : e3 && n.call(u4.childNodes), !c3 && null != e3) for (m3 = {}, s3 = 0; s3 < u4.attributes.length; s3++) m3[(y3 = u4.attributes[s3]).name] = y3.value;
+      for (s3 in m3) y3 = m3[s3], "dangerouslySetInnerHTML" == s3 ? p3 = y3 : "children" == s3 || s3 in k3 || "value" == s3 && "defaultValue" in k3 || "checked" == s3 && "defaultChecked" in k3 || N(u4, s3, null, y3, o3);
+      for (s3 in k3) y3 = k3[s3], "children" == s3 ? v3 = y3 : "dangerouslySetInnerHTML" == s3 ? h3 = y3 : "value" == s3 ? w3 = y3 : "checked" == s3 ? _2 = y3 : c3 && "function" != typeof y3 || m3[s3] === y3 || N(u4, s3, y3, m3[s3], o3);
       if (h3) c3 || p3 && (h3.__html == p3.__html || h3.__html == u4.innerHTML) || (u4.innerHTML = h3.__html), t3.__k = [];
       else if (p3 && (u4.innerHTML = ""), L("template" == t3.type ? u4.content : u4, g(v3) ? v3 : [v3], t3, i3, r3, "foreignObject" == x2 ? "http://www.w3.org/1999/xhtml" : o3, e3, f4, e3 ? e3[0] : i3.__k && $(i3, 0), c3, a3), null != e3) for (s3 = e3.length; s3--; ) b(e3[s3]);
       c3 && "textarea" != x2 || (s3 = "value", "progress" == x2 && null == w3 ? u4.removeAttribute("value") : null != w3 && (w3 !== u4[s3] || "progress" == x2 && !w3 || "option" == x2 && w3 != m3[s3]) && N(u4, s3, w3, m3[s3], o3), s3 = "checked", null != _2 && _2 != u4[s3] && N(u4, s3, _2, m3[s3], o3));
@@ -5939,9 +5939,9 @@ var PC_UI = (() => {
   }
   function Rows({ list: list2, depth }) {
     const out = [];
-    const walk = (arr, d2) => arr.forEach((n2) => {
-      out.push(/* @__PURE__ */ u2(NodeRow, { n: n2, depth: d2 }, n2.id));
-      if ((n2.children || []).length && !C2.state.ui.collapsed[n2.id]) walk(n2.children, d2 + 1);
+    const walk = (arr, d3) => arr.forEach((n2) => {
+      out.push(/* @__PURE__ */ u2(NodeRow, { n: n2, depth: d3 }, n2.id));
+      if ((n2.children || []).length && !C2.state.ui.collapsed[n2.id]) walk(n2.children, d3 + 1);
     });
     walk(list2, depth);
     return /* @__PURE__ */ u2(S, { children: out });
@@ -6553,6 +6553,42 @@ var PC_UI = (() => {
     var u4 = r2.__H || (r2.__H = { __: [], __h: [] });
     return n2 >= u4.__.length && u4.__.push({}), u4.__[n2];
   }
+  function d2(n2) {
+    return o2 = 1, y2(D2, n2);
+  }
+  function y2(n2, u4, i3) {
+    var o3 = s2(t2++, 2);
+    if (o3.t = n2, !o3.__c && (o3.__ = [i3 ? i3(u4) : D2(void 0, u4), function(n3) {
+      var t3 = o3.__N ? o3.__N[0] : o3.__[0], r3 = o3.t(t3, n3);
+      t3 !== r3 && (o3.__N = [r3, o3.__[1]], o3.__c.setState({}));
+    }], o3.__c = r2, !r2.__f)) {
+      var f4 = function(n3, t3, r3) {
+        if (!o3.__c.__H) return true;
+        var u5 = false, i4 = o3.__c.props !== n3;
+        if (o3.__c.__H.__.some(function(n4) {
+          if (n4.__N) {
+            u5 = true;
+            var t4 = n4.__[0];
+            n4.__ = n4.__N, n4.__N = void 0, t4 !== n4.__[0] && (i4 = true);
+          }
+        }), c3) {
+          var f5 = c3.call(this, n3, t3, r3);
+          return u5 ? f5 || i4 : f5;
+        }
+        return !u5 || i4;
+      };
+      r2.__f = true;
+      var c3 = r2.shouldComponentUpdate, e3 = r2.componentWillUpdate;
+      r2.componentWillUpdate = function(n3, t3, r3) {
+        if (this.__e) {
+          var u5 = c3;
+          c3 = void 0, f4(n3, t3, r3), c3 = u5;
+        }
+        e3 && e3.call(this, n3, t3, r3);
+      }, r2.shouldComponentUpdate = f4;
+    }
+    return o3.__N || o3.__;
+  }
   function h2(n2, u4) {
     var i3 = s2(t2++, 3);
     !c2.__s && C3(i3.__H, u4) && (i3.__ = n2, i3.u = u4, r2.__H.__h.push(i3));
@@ -6625,6 +6661,9 @@ var PC_UI = (() => {
     return !n2 || n2.length !== t3.length || t3.some(function(t4, r3) {
       return t4 !== n2[r3];
     });
+  }
+  function D2(n2, t3) {
+    return "function" == typeof t3 ? t3(n2) : t3;
   }
 
   // app/src/ui/inspector/ctl.ts
@@ -7864,13 +7903,13 @@ var PC_UI = (() => {
     ] });
   }
   function Head({ h: h3 }) {
-    const n2 = h3.node, d2 = C2.DEF[n2.type];
+    const n2 = h3.node, d3 = C2.DEF[n2.type];
     const ids = C2.selIds(), many = ids.length > 1;
     const kinds = [...new Set(C2.selNodes().map((x2) => C2.DEF[x2.type].label))];
     return /* @__PURE__ */ u2("div", { class: "sHead", children: [
-      /* @__PURE__ */ u2("div", { class: "ic", children: /* @__PURE__ */ u2(Icon, { name: d2.icon, size: 14 }) }),
+      /* @__PURE__ */ u2("div", { class: "ic", children: /* @__PURE__ */ u2(Icon, { name: d3.icon, size: 14 }) }),
       /* @__PURE__ */ u2("div", { class: "tt", children: [
-        /* @__PURE__ */ u2("b", { children: many ? ids.length + " selected" : d2.label }),
+        /* @__PURE__ */ u2("b", { children: many ? ids.length + " selected" : d3.label }),
         /* @__PURE__ */ u2("small", { children: many ? kinds.join(" \xB7 ") : "#" + C2.domIdOf(n2) })
       ] }),
       /* @__PURE__ */ u2(
@@ -8137,9 +8176,9 @@ var PC_UI = (() => {
       });
     });
     if (!h3) return null;
-    const n2 = h3.node, d2 = C2.DEF[n2.type], tab2 = C2.state.ui.stab;
-    const content = d2.controls.content || [];
-    const style = d2.controls.style || [];
+    const n2 = h3.node, d3 = C2.DEF[n2.type], tab2 = C2.state.ui.stab;
+    const content = d3.controls.content || [];
+    const style = d3.controls.style || [];
     const many = C2.selIds().length > 1;
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(Head, { h: h3 }),
@@ -8156,13 +8195,13 @@ var PC_UI = (() => {
         },
         k3
       )) }),
-      /* @__PURE__ */ u2("div", { class: "pane", children: tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: d2.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: d2.label, n: n2, children: /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "pane", children: tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: d3.label, n: n2, children: /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
         /* @__PURE__ */ u2(StylingTarget, { n: n2 }),
         style.length ? /* @__PURE__ */ u2(Group, { title: "Typography & fill", n: n2, items: style }) : null,
         C2.COMMON_STYLE.map((g2) => /* @__PURE__ */ u2(Group, { title: g2.g, n: n2, items: g2.items }, g2.g))
       ] }) : /* @__PURE__ */ u2(S, { children: [
         /* @__PURE__ */ u2(Group, { title: "Identity & layout", n: n2, items: advControls(n2) }),
-        d2.level < 4 ? /* @__PURE__ */ u2(ContentSource, { n: n2 }) : null,
+        d3.level < 4 ? /* @__PURE__ */ u2(ContentSource, { n: n2 }) : null,
         /* @__PURE__ */ u2(Visibility, { n: n2 })
       ] }) }),
       /* @__PURE__ */ u2("div", { class: "sFoot", children: [
@@ -8490,21 +8529,21 @@ var PC_UI = (() => {
       repaint("styles");
     };
     return /* @__PURE__ */ u2("div", { class: "tsedit", children: [
-      /* @__PURE__ */ u2("div", { class: "pick", style: { marginBottom: "var(--gap-2)" }, children: ["d", "t", "m"].map((d2) => /* @__PURE__ */ u2(
+      /* @__PURE__ */ u2("div", { class: "pick", style: { marginBottom: "var(--gap-2)" }, children: ["d", "t", "m"].map((d3) => /* @__PURE__ */ u2(
         "button",
         {
-          class: styleDev === d2 ? "on" : "",
+          class: styleDev === d3 ? "on" : "",
           onClick: () => {
-            styleDev = d2;
+            styleDev = d3;
             repaint("styles");
           },
           children: [
-            /* @__PURE__ */ u2(Icon, { name: DEV_ICON3[d2], size: 12 }),
+            /* @__PURE__ */ u2(Icon, { name: DEV_ICON3[d3], size: 12 }),
             " ",
-            C2.DEV_LABEL[d2]
+            C2.DEV_LABEL[d3]
           ]
         },
-        d2
+        d3
       )) }),
       /* @__PURE__ */ u2("div", { class: "row2", children: [
         /* @__PURE__ */ u2("div", { class: "f", children: [
@@ -8597,9 +8636,9 @@ var PC_UI = (() => {
     ] });
   }
   function Row2({ t: t3 }) {
-    const d2 = t3.css.d || {};
+    const d3 = t3.css.d || {};
     const open = openStyle === t3.id;
-    const previewSize = Math.min(19, parseInt(d2["font-size"] || "16", 10) || 16);
+    const previewSize = Math.min(19, parseInt(d3["font-size"] || "16", 10) || 16);
     const remove = async () => {
       const used = C2.tsUsage(t3.id);
       if (used && !await L2.askConfirm(
@@ -8627,7 +8666,7 @@ var PC_UI = (() => {
           flex: "0 0 40px",
           textAlign: "center",
           color: "var(--text)",
-          fontWeight: d2["font-weight"] || 500,
+          fontWeight: d3["font-weight"] || 500,
           fontSize: previewSize + "px"
         }, children: "Aa" }),
         /* @__PURE__ */ u2("span", { class: "an", children: /* @__PURE__ */ u2(
@@ -8650,7 +8689,7 @@ var PC_UI = (() => {
           "input",
           {
             class: "ctl",
-            value: d2["font-size"] || "",
+            value: d3["font-size"] || "",
             placeholder: "auto",
             title: "Base size \u2014 expand the row to set a Tablet or Mobile override",
             style: { width: "74px", flex: "0 0 74px", fontFamily: "var(--mono)", fontSize: "11px" },
@@ -8667,7 +8706,7 @@ var PC_UI = (() => {
             class: "ctl",
             title: "Base weight",
             style: { width: "118px", flex: "0 0 118px", fontSize: "11.5px" },
-            value: d2["font-weight"] || "",
+            value: d3["font-weight"] || "",
             onChange: (e3) => {
               L2.tx("tsweight:" + t3.id);
               const base = t3.css.d = t3.css.d || {};
@@ -8723,6 +8762,55 @@ var PC_UI = (() => {
   }
   var esc7 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
+  // app/src/ui/ReviewList.tsx
+  var REGION_MODE = {
+    page: "page",
+    "global header": "header",
+    "global footer": "footer"
+  };
+  function ReviewList() {
+    const findings = C2.lint();
+    const counts = C2.lintCounts(findings);
+    const [open, setOpen] = d2(counts.error > 0);
+    const clean = !findings.length;
+    const goTo = (f4) => {
+      if (!f4.nodeId) return;
+      const pi = C2.state.pages.findIndex((p3) => p3.slug === f4.where.slug);
+      if (pi > -1) C2.state.cur = pi;
+      C2.state.ui.mode = REGION_MODE[f4.where.region || ""] || "page";
+      L2.closeModal();
+      L2.appRender();
+      L2.select(f4.nodeId, { scroll: true });
+      if (!C2.locate(f4.nodeId)) L2.toast("That element is no longer in the project");
+    };
+    const summary = clean ? "No problems found" : [
+      counts.error ? counts.error + (counts.error === 1 ? " problem" : " problems") : "",
+      counts.warn ? counts.warn + (counts.warn === 1 ? " suggestion" : " suggestions") : ""
+    ].filter(Boolean).join(" \xB7 ");
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "rh", children: [
+        /* @__PURE__ */ u2("span", { class: "dot " + (clean ? "ok" : counts.error ? "bad" : "warn") }),
+        /* @__PURE__ */ u2("span", { children: summary }),
+        /* @__PURE__ */ u2("span", { class: "spacer" }),
+        clean ? null : /* @__PURE__ */ u2("button", { class: "reset", onClick: () => setOpen(!open), children: [
+          open ? "Hide" : "Show",
+          " details"
+        ] })
+      ] }),
+      clean || !open ? null : /* @__PURE__ */ u2("ul", { children: findings.map((f4, i3) => /* @__PURE__ */ u2("li", { children: [
+        /* @__PURE__ */ u2("span", { class: "lv " + f4.level }),
+        /* @__PURE__ */ u2("span", { class: "msg", children: [
+          f4.msg,
+          /* @__PURE__ */ u2("em", { children: [
+            f4.where.page || "",
+            f4.where.region ? " \xB7 " + f4.where.region : ""
+          ] })
+        ] }),
+        f4.nodeId ? /* @__PURE__ */ u2("button", { class: "go", onClick: () => goTo(f4), children: "Show me" }) : null
+      ] }, i3)) })
+    ] });
+  }
+
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
@@ -8772,6 +8860,7 @@ var PC_UI = (() => {
     const mountColors = inBox("mColors", () => /* @__PURE__ */ u2(ColorTokens, {}));
     const mountClasses = inBox("mClasses", () => /* @__PURE__ */ u2(StyleClasses, {}));
     const mountStyles = inBox("mStyles", () => /* @__PURE__ */ u2(TextStyles, {}));
+    const mountReview = inBox("exReview", () => /* @__PURE__ */ u2(ReviewList, {}));
     registerPainter("colors", mountColors);
     registerPainter("classes", mountClasses);
     registerPainter("styles", mountStyles);
@@ -8787,7 +8876,7 @@ var PC_UI = (() => {
       );
       draw();
     };
-    return { ...painters2, mountAssetField, mountColors, mountClasses, mountStyles, mountFontSelect };
+    return { ...painters2, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
   }
   return __toCommonJS(index_exports);
 })();
@@ -9886,6 +9975,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
+    closeModal,
     newPageModal, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
@@ -10597,42 +10687,10 @@ function exportModal() {
     <button class="btn" id="exOne">Download this page</button>
     <button class="btn primary" id="exZip" title="Every page, image and SEO file, with folders intact">${svg('copy', 13)} Download site .zip</button>`);
 
-  /* Review the whole project before anything leaves the building. */
-  const findings = lint();
-  const counts = lintCounts(findings);
-  const REGION_MODE = { 'page': 'page', 'global header': 'header', 'global footer': 'footer' };
-  const drawReview = (open) => {
-    const box = $('#exReview');
-    const clean = !findings.length;
-    box.innerHTML = `
-      <div class="rh">
-        <span class="dot ${clean ? 'ok' : counts.error ? 'bad' : 'warn'}"></span>
-        <span>${clean ? 'No problems found' : [
-        counts.error ? counts.error + (counts.error === 1 ? ' problem' : ' problems') : '',
-        counts.warn ? counts.warn + (counts.warn === 1 ? ' suggestion' : ' suggestions') : ''
-      ].filter(Boolean).join(' · ')}</span>
-        <span class="spacer"></span>
-        ${clean ? '' : `<button class="reset" id="exToggle">${open ? 'Hide' : 'Show'} details</button>`}
-      </div>
-      ${clean || !open ? '' : `<ul>${findings.map((f, i) => `<li>
-          <span class="lv ${f.level}"></span>
-          <span class="msg">${esc(f.msg)}<em>${esc(f.where.page || '')}${f.where.region ? ' · ' + esc(f.where.region) : ''}</em></span>
-          ${f.nodeId ? `<button class="go" data-f="${i}">Show me</button>` : ''}
-        </li>`).join('')}</ul>`}`;
-    const t = $('#exToggle');
-    if (t) t.addEventListener('click', () => drawReview(!open));
-    $$('[data-f]', box).forEach(b => b.addEventListener('click', () => {
-      const f = findings[+b.dataset.f];
-      const pi = state.pages.findIndex(p => p.slug === f.where.slug);
-      if (pi > -1) state.cur = pi;
-      state.ui.mode = REGION_MODE[f.where.region] || 'page';
-      closeModal();
-      render();
-      select(f.nodeId, { scroll: true });
-      if (!locate(f.nodeId)) toast('That element is no longer in the project');
-    }));
-  };
-  drawReview(counts.error > 0);          // problems open themselves; suggestions wait
+  /* app/src/ui/ReviewList.tsx owns #exReview. The rest of this dialog is asynchronous
+     orchestration — building, zipping, saving — and stays imperative, because that is
+     what it is. */
+  ui().mountReview();
 
   const pick = $('#exPick'), mode = $('#exMode'), code = $('#exCode');
   /* the picker indexes files now, not pages, so land on the first file this page

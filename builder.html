@@ -2113,6 +2113,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
+    closeModal,
     newPageModal, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
@@ -2824,42 +2825,10 @@ function exportModal() {
     <button class="btn" id="exOne">Download this page</button>
     <button class="btn primary" id="exZip" title="Every page, image and SEO file, with folders intact">${svg('copy', 13)} Download site .zip</button>`);
 
-  /* Review the whole project before anything leaves the building. */
-  const findings = lint();
-  const counts = lintCounts(findings);
-  const REGION_MODE = { 'page': 'page', 'global header': 'header', 'global footer': 'footer' };
-  const drawReview = (open) => {
-    const box = $('#exReview');
-    const clean = !findings.length;
-    box.innerHTML = `
-      <div class="rh">
-        <span class="dot ${clean ? 'ok' : counts.error ? 'bad' : 'warn'}"></span>
-        <span>${clean ? 'No problems found' : [
-        counts.error ? counts.error + (counts.error === 1 ? ' problem' : ' problems') : '',
-        counts.warn ? counts.warn + (counts.warn === 1 ? ' suggestion' : ' suggestions') : ''
-      ].filter(Boolean).join(' · ')}</span>
-        <span class="spacer"></span>
-        ${clean ? '' : `<button class="reset" id="exToggle">${open ? 'Hide' : 'Show'} details</button>`}
-      </div>
-      ${clean || !open ? '' : `<ul>${findings.map((f, i) => `<li>
-          <span class="lv ${f.level}"></span>
-          <span class="msg">${esc(f.msg)}<em>${esc(f.where.page || '')}${f.where.region ? ' · ' + esc(f.where.region) : ''}</em></span>
-          ${f.nodeId ? `<button class="go" data-f="${i}">Show me</button>` : ''}
-        </li>`).join('')}</ul>`}`;
-    const t = $('#exToggle');
-    if (t) t.addEventListener('click', () => drawReview(!open));
-    $$('[data-f]', box).forEach(b => b.addEventListener('click', () => {
-      const f = findings[+b.dataset.f];
-      const pi = state.pages.findIndex(p => p.slug === f.where.slug);
-      if (pi > -1) state.cur = pi;
-      state.ui.mode = REGION_MODE[f.where.region] || 'page';
-      closeModal();
-      render();
-      select(f.nodeId, { scroll: true });
-      if (!locate(f.nodeId)) toast('That element is no longer in the project');
-    }));
-  };
-  drawReview(counts.error > 0);          // problems open themselves; suggestions wait
+  /* app/src/ui/ReviewList.tsx owns #exReview. The rest of this dialog is asynchronous
+     orchestration — building, zipping, saving — and stays imperative, because that is
+     what it is. */
+  ui().mountReview();
 
   const pick = $('#exPick'), mode = $('#exMode'), code = $('#exCode');
   /* the picker indexes files now, not pages, so land on the first file this page
