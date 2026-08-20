@@ -160,6 +160,26 @@ control's own behaviour is correct in isolation. It surfaced from driving the re
 in the browser and reading back what landed in the model. That is the argument for
 verifying ported UI by using it rather than by inspecting it.
 
+## Duplicated logic is a bug; duplicated affordances are not
+
+The element verbs — duplicate, delete, select parent, save as a block, push a global
+block — had three homes: the bar on the selected element, the inspector footer, and the
+right-click menu. That was reported as a problem and it was one, so the bar was cut to
+three buttons and everything else moved into the menu.
+
+That was the wrong fix, and it took a user saying "there are missing controls here" to
+see why. Two different things were tangled together:
+
+- **Duplicated logic** was the actual defect. Three code paths for "delete" could and did
+  disagree. `runAct` fixed that: one implementation, and every entry point calls it.
+- **Duplicated affordances** were never a defect. A toolbar button, a menu item and a
+  keyboard shortcut for the same action is how every tool works. Removing them turned the
+  two most-used verbs in the app into two clicks each.
+
+The bar carries all seven again, and the menu still holds every verb, so nothing is
+reachable from only one place. The rule to keep: collapse implementations, not entry
+points. If two buttons can disagree, fix the code behind them — do not delete a button.
+
 ## Two rules the build enforces
 
 1. **Core/UI split.** Pure logic lives between `/*<core>*/` … `/*</core>*/` markers and is

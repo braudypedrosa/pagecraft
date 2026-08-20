@@ -1412,8 +1412,16 @@ function positionHud() {
   const flip = r.top < 26;
   const d = DEF[s.node.type];
   const ids = selIds(), many = ids.length > 1;
-  /* Extra members get an outline and nothing else: one bar, on the primary,
-     so there is never a question which element the buttons act on. */
+  /* Extra members get an outline and nothing else: one bar, on the primary, so there is
+     never a question which element the buttons act on.
+
+     The bar was cut to three buttons once, on the reasoning that the verbs had three
+     homes — this bar, the inspector footer and the context menu — and that was one too
+     many. That conflated two different things. Duplicated *logic* was the real problem,
+     and `runAct` fixed it: every entry point now calls the same implementation, so they
+     cannot disagree. Duplicated *affordances* were never the problem — a toolbar button,
+     a menu item and a keyboard shortcut for one action is how tools work, and taking
+     Duplicate and Delete off the bar turned the two most-used verbs into two clicks. */
   const alt = ids.slice(1).map(id => {
     const e2 = cdoc.getElementById(id); if (!e2) return '';
     const q = e2.getBoundingClientRect();
@@ -1427,7 +1435,13 @@ function positionHud() {
      <div class="bar" style="top:${flip ? top + r.height : top}px;left:${left}px;${flip ? 'transform:none' : ''}">
       <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
+      ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caret', 12)}</button>` : ''}
       ${!many && d.edit ? `<button data-act="edit" title="Edit content">${svg('edit', 12)}</button>` : ''}
+      ${!many ? `<button data-act="block" title="Save as a block">${svg('plus', 12)}</button>` : ''}
+      ${!many && s.node.adv && s.node.adv.block && findBlock(s.node.adv.block)
+        ? `<button data-act="push" title="Global block — push this copy out to the others">${svg('globe', 12)}</button>` : ''}
+      <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 12)}</button>
+      <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 12)}</button>
       <button data-act="more" title="Everything else — or right-click the element">${svg('drag', 12, 'rot')}</button>
     </div>`
     + (many ? '' : gripsHtml(s));
