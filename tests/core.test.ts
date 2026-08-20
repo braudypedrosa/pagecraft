@@ -3950,3 +3950,90 @@ test('applyOne respects the breakpoint for a responsive control', () => {
   a.equal(h.css.d['font-weight'], '700');
   C.state.ui.dev = 'desktop';
 });
+
+/* ---------------------------------------------------- duplicating and deleting pages
+   Both were written inline inside a click handler in builder.html, so neither had a
+   test — including the `cur` clamp, which is the same off-by-one twice over. */
+
+test('pageDup copies the tree and gives every node a fresh id', () => {
+  fresh();
+  const before = C.state.pages.length;
+  C.state.cur = 0;
+  const ids = new Set<string>();
+  C.eachNode(C.state.pages[0].tree, n => ids.add(n.id));
+
+  const copy = C.pageDup(0)!;
+  a.equal(C.state.pages.length, before + 1);
+  a.equal(C.state.pages[1].id, copy.id, 'the copy sits directly after its source');
+  a.equal(C.state.cur, 1, 'and becomes the page you are looking at');
+
+  /* two pages sharing node ids would make locate() return whichever it reached
+     first, quietly breaking selection on both */
+  const copied: string[] = [];
+  C.eachNode(copy.tree, n => copied.push(n.id));
+  a.ok(copied.length, 'the copy is not empty');
+  a.equal(copied.some(id => ids.has(id)), false, 'no id is shared with the original');
+  a.equal(new Set(copied).size, copied.length, 'and none is repeated inside the copy');
+});
+
+test('pageDup names and slugs the copy so neither collides', () => {
+  fresh();
+  const src = C.state.pages[0];
+  const name = src.name, slug = src.slug;
+  const copy = C.pageDup(0)!;
+  a.equal(copy.name, name + ' copy');
+  a.equal(copy.slug, C.slugify(slug + '-copy'));
+  a.notEqual(copy.slug, slug, 'two pages exporting to the same file would overwrite each other');
+});
+
+test('pageDup clears the selection, which belonged to the page you left', () => {
+  fresh();
+  const h = C.flatten(C.state.pages[0].tree).find((n: any) => n.type === 'heading');
+  C.selSet([h.id]);
+  C.pageDup(0);
+  a.deepEqual(C.selIds(), [], 'a selection pointing into the old page means nothing here');
+});
+
+test('pageDup refuses an index that is not a page', () => {
+  fresh();
+  const before = C.state.pages.length;
+  a.equal(C.pageDup(99), null);
+  a.equal(C.pageDup(-1), null);
+  a.equal(C.state.pages.length, before, 'and adds nothing');
+});
+
+test('pageDelete keeps cur pointing at a real page, whichever page went', () => {
+  fresh();
+  while (C.state.pages.length < 4) C.pageDup(0);
+
+  /* deleting the last page leaves cur past the end */
+  C.state.cur = 3;
+  a.equal(C.pageDelete(3), true);
+  a.equal(C.state.cur, 2, 'clamped back onto the new last page');
+  a.ok(C.state.pages[C.state.cur], 'and it is a real one');
+
+  /* deleting before the current one shifts everything down */
+  C.state.cur = 2;
+  const wanted = C.state.pages[2];
+  a.equal(C.pageDelete(0), true);
+  a.equal(C.state.cur, 1);
+  a.equal(C.state.pages[C.state.cur].id, wanted.id, 'still the same page, at its new index');
+});
+
+test('pageDelete refuses the last page', () => {
+  fresh();
+  while (C.state.pages.length > 1) C.pageDelete(C.state.pages.length - 1);
+  a.equal(C.state.pages.length, 1);
+  /* a project with no pages has nothing to show and no way back to one */
+  a.equal(C.pageDelete(0), false);
+  a.equal(C.state.pages.length, 1);
+  a.equal(C.state.cur, 0);
+});
+
+test('pageDelete refuses an index that is not a page', () => {
+  fresh();
+  C.pageDup(0);
+  const before = C.state.pages.length;
+  a.equal(C.pageDelete(99), false);
+  a.equal(C.state.pages.length, before);
+});

@@ -200,6 +200,8 @@ __export(index_exports, {
   nudgeMany: () => nudgeMany,
   outsideTags: () => outsideTags,
   page: () => page,
+  pageDelete: () => pageDelete,
+  pageDup: () => pageDup,
   pageFromTemplate: () => pageFromTemplate,
   pageHref: () => pageHref,
   pageMove: () => pageMove,
@@ -1418,6 +1420,26 @@ function pageMove(i, dir) {
   const cur = state.pages[state.cur];
   [state.pages[i], state.pages[j]] = [state.pages[j], state.pages[i]];
   state.cur = state.pages.indexOf(cur);
+  return true;
+}
+function pageDup(i) {
+  const src = state.pages[i];
+  if (!src) return null;
+  const c = clone(src);
+  c.id = uid();
+  c.tree.forEach(reid);
+  c.name += " copy";
+  c.slug = slugify(c.slug + "-copy");
+  state.pages.splice(i + 1, 0, c);
+  state.cur = i + 1;
+  selSet([]);
+  return c;
+}
+function pageDelete(i) {
+  if (state.pages.length < 2 || !state.pages[i]) return false;
+  state.pages.splice(i, 1);
+  state.cur = Math.max(0, Math.min(state.cur, state.pages.length - 1));
+  selSet([]);
   return true;
 }
 function dupNode(id) {
@@ -4673,6 +4695,8 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   nudgeMany,
   outsideTags,
   page,
+  pageDelete,
+  pageDup,
   pageFromTemplate,
   pageHref,
   pageMove,

@@ -2154,6 +2154,26 @@ function pageMove(i, dir) {
   state.cur = state.pages.indexOf(cur);
   return true;
 }
+function pageDup(i) {
+  const src = state.pages[i];
+  if (!src) return null;
+  const c = clone(src);
+  c.id = uid();
+  c.tree.forEach(reid);
+  c.name += " copy";
+  c.slug = slugify(c.slug + "-copy");
+  state.pages.splice(i + 1, 0, c);
+  state.cur = i + 1;
+  selSet([]);
+  return c;
+}
+function pageDelete(i) {
+  if (state.pages.length < 2 || !state.pages[i]) return false;
+  state.pages.splice(i, 1);
+  state.cur = Math.max(0, Math.min(state.cur, state.pages.length - 1));
+  selSet([]);
+  return true;
+}
 function dupNode(id) {
   const h = locate(id);
   if (!h) return;
@@ -7289,13 +7309,9 @@ function renderPages() {
         edit(() => pageMove(i, b.dataset.act === 'up' ? -1 : 1));
         return;
       }
-      if (b.dataset.act === 'dup') edit(() => {
-        const c = clone(state.pages[i]); c.id = uid(); c.tree.forEach(reid);
-        c.name += ' copy'; c.slug = slugify(c.slug + '-copy');
-        state.pages.splice(i + 1, 0, c); state.cur = i + 1; selSet([]);
-      });
+      if (b.dataset.act === 'dup') edit(() => pageDup(i));
       else if (await askConfirm('Delete this page?', `<b>${esc(state.pages[i].name)}</b> and everything on it. ⌘Z will bring it back until you reload.`, { ok: 'Delete page' }))
-        edit(() => { state.pages.splice(i, 1); state.cur = Math.max(0, Math.min(state.cur, state.pages.length - 1)); selSet([]); });
+        edit(() => pageDelete(i));
       return;
     }
     if (i !== state.cur) { state.cur = i; selSet([]); state.ui.mode = 'page'; render(); save(); }
