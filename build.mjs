@@ -98,7 +98,7 @@ const EXPORTS = [
   'MIN_COL', 'BP_CHAIN', 'rowRatiosAt', 'resizeCols', 'applyColsAt',
   // the selection set
   'selIds', 'selNodes', 'multiOn', 'selSet', 'selToggle', 'selOrder', 'selRange', 'topMost',
-  'dupMany', 'delMany', 'ADV_SHARED', 'ctlKeys', 'fanTargets',
+  'dupMany', 'delMany', 'moveMany', 'layerTarget', 'ADV_SHARED', 'ctlKeys', 'fanTargets',
   // design tokens
   'RESERVED', 'TYPO_KEYS', 'TS_TYPES', 'tokenId', 'cvar', 'isRef', 'refId', 'colors', 'styles', 'classes', 'findColor', 'findStyle', 'findClass', 'nodeClasses',
   'classAdd', 'classApply', 'classRemove', 'classFrom', 'classUsage', 'classDelete', 'classMove', 'resolveColor', 'defaultTokens', 'tokenVars', 'tokenCss', 'stripTypo', 'grabTypo', 'tsApply', 'tsUnlink', 'tsUpdateFrom', 'tsCreateFrom', 'tsUsage', 'styleDelete', 'colorDelete', 'colorAdd', 'colorUsage',

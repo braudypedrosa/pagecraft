@@ -3294,3 +3294,77 @@ test('a scope with nothing bindable in it gives an empty sheet', () => {
   a.deepEqual(C.guessBindings([], col), {});
   a.deepEqual(C.guessBindings(C.bindSlots(list.id), null), {}, 'and no collection means no guess');
 });
+
+/* ========================================== moving a set, and moving from the list
+   Dragging with several selected was impossible — the HUD hid its handle, because
+   moving a set was left out of the multi-select pass. */
+const fourSections = () => {
+  blank();
+  const t = C.state.pages[0].tree;
+  ['a', 'b', 'c', 'd'].forEach(k => {
+    const sec = C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [C.N('heading', { text: k })])])]);
+    t.push(sec);
+  });
+  const label = n => { let v = ''; C.eachNode([n], x => { if (!v && x.props && x.props.text) v = x.props.text; }); return v; };
+  return { t, order: () => t.map(label) };
+};
+
+test('a set moves together and keeps its order', () => {
+  const { t, order } = fourSections();
+  a.deepEqual(order(), ['a', 'b', 'c', 'd']);
+  a.equal(C.moveMany([t[0].id, t[1].id], null, 4), 2);
+  a.deepEqual(order(), ['c', 'd', 'a', 'b'], 'a stays ahead of b');
+});
+
+test('a set moving backwards in its own list lands where it was aimed', () => {
+  const { t, order } = fourSections();
+  /* the members that were ahead of the target leave holes behind them, which is why
+     the insertion point is re-read rather than assumed */
+  C.moveMany([t[2].id, t[3].id], null, 0);
+  a.deepEqual(order(), ['c', 'd', 'a', 'b']);
+});
+
+test('moving a set is not confused by document order of the ids', () => {
+  const { t, order } = fourSections();
+  C.moveMany([t[1].id, t[0].id], null, 4);   // given out of order on purpose
+  a.deepEqual(order(), ['c', 'd', 'a', 'b'], 'selOrder settles it, not the caller');
+});
+
+test('a parent and its own child in one set move once, as the parent', () => {
+  const { t, order } = fourSections();
+  const inner = t[0].children[0];
+  a.equal(C.moveMany([t[0].id, inner.id], null, 4), 1, 'topMost drops the child');
+  a.deepEqual(order(), ['b', 'c', 'd', 'a']);
+});
+
+test('a Navigator drop reads the thirds of a row', () => {
+  const { t } = fourSections();
+  const before = C.layerTarget(t[2].id, 'before', 'section', []);
+  const after = C.layerTarget(t[2].id, 'after', 'section', []);
+  a.equal(before.container, null, 'a section sits at the root');
+  a.equal(before.index, 2);
+  a.equal(after.index, 3);
+});
+
+test('the middle of a row drops inside it, when it can hold the thing', () => {
+  const { t } = fourSections();
+  const col = t[0].children[0].children[0];
+  const inside = C.layerTarget(col.id, 'inside', 'heading', []);
+  a.equal(inside.container.id, col.id);
+  a.equal(inside.index, 0, 'first inside — the only way a list can reach an empty container');
+  a.equal(C.layerTarget(col.id, 'inside', 'section', []), null, 'a column cannot hold a section');
+});
+
+test('a row that is the dragged node, or under it, is refused', () => {
+  const { t } = fourSections();
+  const inner = t[0].children[0];
+  a.equal(C.layerTarget(t[0].id, 'inside', 'section', [t[0].id]), null, 'not inside itself');
+  a.equal(C.layerTarget(inner.id, 'inside', 'row', [t[0].id]), null,
+    'and not inside its own descendant — that detaches the tree');
+  a.ok(C.layerTarget(t[1].id, 'after', 'section', [t[0].id]), 'a different branch is fine');
+});
+
+test('a Navigator drop onto a missing row is nothing, not a throw', () => {
+  fourSections();
+  a.equal(C.layerTarget('no-such-row', 'before', 'section', []), null);
+});

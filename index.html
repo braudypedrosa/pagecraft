@@ -315,6 +315,16 @@ body.preview .left,body.preview .right{display:none}
 .lrow:hover .act{opacity:1}
 .lrow .act button{width:21px;height:21px;display:grid;place-items:center;border-radius:var(--r-sm);color:var(--text-3)}
 .lrow .act button:hover{background:var(--line);color:var(--text)}
+/* the row's own grab affordance, revealed on hover so the list stays quiet */
+.lrow .gr{width:14px;flex:0 0 14px;display:grid;place-items:center;color:var(--text-3);cursor:grab;opacity:0}
+.lrow:hover .gr{opacity:.8}
+.lrow .gr:hover{opacity:1;color:var(--text)}
+.lrow .gr svg{width:11px;height:11px}
+body.dragging .lrow{cursor:grabbing}
+/* where it would land: a line between rows, or a ring round the row it goes inside */
+.layers{position:relative}
+#l-drop{position:absolute;left:0;right:0;height:2px;background:var(--green);border-radius:2px;pointer-events:none;z-index:5}
+#l-drop.in{height:auto;background:none;border:1.5px solid var(--green);border-radius:var(--r-sm)}
 .empty{padding:26px 16px;text-align:center;color:var(--text-3);font-size:13px;line-height:1.65}
 .empty b{color:var(--text-2)}
 
@@ -1943,6 +1953,67 @@ function moveNode(id, parentNode, index) {
   const packed = (parentNode && parentNode.type === 'column' && h.node.type === 'row') ? h.node : wrap(h.node.type, pl, h.node);
   list.splice(k, 0, packed);
 }
+/* Move a whole set as a group, keeping their document order and landing them
+   together. Dragging with several selected used to be impossible — the HUD simply
+   hid its handle, because moving a set was left out of the multi-select pass.
+
+   Two things make this more than a loop. `topMost` first, or a parent and its own
+   child both move and the second acts on a node that is no longer where it was. And
+   the insertion point is re-read from the container on every step, because a member
+   that was already ahead of the target in the same list leaves a hole behind it when
+   it goes — assuming the index is stable puts the set in the wrong order. */
+function moveMany(ids, parentNode, index) {
+  const order = topMost(selOrder(ids));
+  let at = Math.max(0, index), moved = 0;
+  order.forEach(id => {
+    const h = locate(id);
+    if (!h) return;
+    const pid = h.parent ? h.parent.id : null;
+    const tid = parentNode ? parentNode.id : null;
+    if (pid === tid) {
+      const list = parentNode ? parentNode.children : tree();
+      const from = list.findIndex(c => c.id === id);
+      if (from >= 0 && from < at) at--;
+    }
+    moveNode(id, parentNode, at);
+    /* moveNode refuses a self-nesting move and leaves the tree alone, so only count
+       the ones that actually landed */
+    const now = locate(id);
+    if (now && (now.parent ? now.parent.id : null) === tid) { at++; moved++; }
+  });
+  return moved;
+}
+
+/* Where a Navigator drop lands. `before`/`after` make the dragged thing a sibling of
+   the row; `inside` puts it first inside, which is the only way the list can reach an
+   empty container — it has no geometry to aim at the way the canvas does.
+
+   A row that *is* one of the dragged nodes, or sits under one, is refused outright:
+   dropping something inside itself detaches the tree. The canvas path guards this by
+   trimming the ancestor chain; a flat list has no chain, so it is checked directly. */
+function layerTarget(rowId, zone, type, movingIds = []) {
+  const h = locate(rowId);
+  if (!h) return null;
+  for (const mid of movingIds) {
+    const mh = locate(mid);
+    if (!mh) continue;
+    let inside = false;
+    eachNode([mh.node], x => { if (x.id === rowId) inside = true; });
+    if (inside) return null;
+  }
+  const canHold = (pt, t) => (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
+  if (zone === 'inside') {
+    if (!canHold(h.node.type, type)) return null;
+    return { container: h.node, index: 0 };
+  }
+  const parent = h.parent || null;
+  if (!canHold(parent ? parent.type : null, type)) return null;
+  const list = parent ? parent.children : tree();
+  const i = list.findIndex(c => c.id === rowId);
+  if (i < 0) return null;
+  return { container: parent, index: zone === 'after' ? i + 1 : i };
+}
+
 /* A fresh copy gets fresh node ids — and loses any hand-set anchor, because two
    elements cannot share an HTML id. Duplicate, paste, and placing a block all run
    through here, and all three used to produce a `duplicate-id` error the moment the
@@ -5256,7 +5327,7 @@ function positionHud() {
      </div>
      <div class="bar" style="top:${flip ? top + r.height : top}px;left:${left}px;${flip ? 'transform:none' : ''}">
       <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
-      ${many ? '' : `<button class="g" data-act="drag" title="Drag to move">${svg('drag', 12)}</button>`}
+      <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
       ${!many && s.parent ? `<button data-act="up" title="Select parent">${svg('caret', 12)}</button>` : ''}
       ${!many && d.edit ? `<button data-act="edit" title="Edit content">${svg('edit', 12)}</button>` : ''}
       ${!many ? `<button data-act="block" title="Save as a block">${svg('plus', 12)}</button>` : ''}
@@ -5345,7 +5416,15 @@ function bindCanvas() {
     if (hudBtn) {
       e.preventDefault();
       const act = hudBtn.dataset.act, id = state.ui.sel, ids = selIds();
-      if (act === 'drag') startDrag(e, { kind: 'move', id, label: DEF[locate(id).node.type].label }, true);
+      if (act === 'drag') {
+        /* dragging any member of a selection drags the whole set */
+        const set = selIds();
+        const many = set.length > 1 && set.includes(id);
+        startDrag(e, {
+          kind: 'move', id, ids: many ? set : [id],
+          label: many ? set.length + ' elements' : DEF[locate(id).node.type].label
+        }, true);
+      }
       else if (act === 'up') select(locate(id).parent ? locate(id).parent.id : null);
       else if (act === 'edit') enterEdit(id);
       else if (act === 'block') saveBlockFlow(id);
@@ -5632,7 +5711,14 @@ function onDrop(e, fromFrame) {
     edit(() => { const leaf = insert(d.type, container, index); selSet([leaf.id]); });
     toast(labelOf(d.type) + ' added');
   } else {
-    edit(() => moveNode(d.id, container, index));
+    const set = d.ids && d.ids.length > 1 ? d.ids : null;
+    if (set) {
+      let k = 0;
+      edit(() => { k = moveMany(set, container, index); });
+      toast(k === set.length ? `${k} elements moved` : k ? `${k} of ${set.length} moved — the rest do not fit there` : 'They do not fit there');
+    } else {
+      edit(() => moveNode(d.id, container, index));
+    }
   }
 }
 
@@ -6022,6 +6108,7 @@ function renderLayers() {
     const mark = state.ui.sel === n.id ? ' sel' : picked.has(n.id) ? ' sel2' : '';
     rows.push(`<div class="lrow${mark}${col ? ' collapsed' : ''}" data-id="${n.id}" style="padding-left:${6 + depth * 13}px">
       <span class="tw" data-tw="${n.id}">${kids.length ? svg('caret', 10) : ''}</span>
+      <span class="gr" data-gr="${n.id}" title="Drag to reorder">${svg('drag', 11)}</span>
       ${svg(DEF[n.type].icon, 13, 'ico')}
       <span class="nm">${esc(nameOf(n))}</span>
       <span class="act">
@@ -6061,7 +6148,82 @@ function bindLayers(p) {
       }
       select(id, { scroll: true, add: e.metaKey || e.ctrlKey, range: e.shiftKey });
     });
+    const gr = r.querySelector('[data-gr]');
+    if (gr) gr.addEventListener('pointerdown', e => startLayerDrag(e, id));
   });
+}
+
+/* ---- reordering in the Navigator --------------------------------------
+   The canvas can already do this, but only where the thing is visible and big
+   enough to aim at. A list is the surface for moving a Section past another Section,
+   or for reaching a container that has nothing in it yet.
+
+   Its own drag rather than the canvas one: the canvas resolves a drop by hit-testing
+   real geometry, and a flat list of rows has none of that. What it has instead is
+   thirds — the top third puts the node before the row, the bottom third after it, and
+   the middle puts it inside when that row can hold it. */
+let layerDrag = null;
+function startLayerDrag(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const set = selIds();
+  const ids = set.length > 1 && set.includes(id) ? set : [id];
+  const type = locate(id).node.type;
+  layerDrag = { ids, type, drop: null, moved: false };
+  document.body.classList.add('dragging');
+  const g = $('#ghost');
+  g.innerHTML = svg('drag', 13) + esc(ids.length > 1 ? ids.length + ' elements' : nameOf(locate(id).node));
+  g.style.display = 'flex';
+
+  const pane = $('#paneLayers');
+  const line = document.createElement('div');
+  line.id = 'l-drop';
+  const host = pane.querySelector('.layers');
+
+  const at = ev => {
+    $('#ghost').style.left = ev.clientX + 'px';
+    $('#ghost').style.top = ev.clientY + 'px';
+    layerDrag.moved = true;
+    const row = document.elementFromPoint(ev.clientX, ev.clientY);
+    const lr = row && row.closest ? row.closest('.lrow[data-id]') : null;
+    if (!lr) { layerDrag.drop = null; line.remove(); return; }
+    const r = lr.getBoundingClientRect();
+    const rel = (ev.clientY - r.top) / r.height;
+    const zone = rel < 0.3 ? 'before' : rel > 0.7 ? 'after' : 'inside';
+    const d = layerTarget(lr.dataset.id, zone, layerDrag.type, layerDrag.ids)
+      /* a row that cannot take it inside still has edges that can */
+      || (zone === 'inside' ? layerTarget(lr.dataset.id, 'after', layerDrag.type, layerDrag.ids) : null);
+    layerDrag.drop = d;
+    if (!d) { line.remove(); return; }
+    const hr = host.getBoundingClientRect();
+    if (zone === 'inside' && d.container && d.container.id === lr.dataset.id) {
+      line.className = 'in';
+      line.style.top = (r.top - hr.top) + 'px';
+      line.style.height = r.height + 'px';
+    } else {
+      line.className = '';
+      line.style.height = '';
+      line.style.top = ((zone === 'after' ? r.bottom : r.top) - hr.top - 1) + 'px';
+    }
+    host.appendChild(line);
+  };
+  const up = () => {
+    document.body.classList.remove('dragging');
+    $('#ghost').style.display = 'none';
+    line.remove();
+    document.removeEventListener('pointermove', at);
+    document.removeEventListener('pointerup', up);
+    document.removeEventListener('pointercancel', up);
+    const d = layerDrag; layerDrag = null;
+    if (!d || !d.drop || !d.moved) return;
+    let k = 0;
+    edit(() => { k = moveMany(d.ids, d.drop.container, d.drop.index); });
+    if (d.ids.length > 1) toast(k ? `${k} element${k === 1 ? '' : 's'} moved` : 'They do not fit there');
+  };
+  try { e.target.setPointerCapture(e.pointerId); } catch (_) { }
+  document.addEventListener('pointermove', at);
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', up);
 }
 
 /* ================================================================ pages */

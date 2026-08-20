@@ -71,7 +71,7 @@ something does.
 
 | | |
 |---|---|
-| Tests | **294**, `npm test` |
+| Tests | **302**, `npm test` |
 | Widgets | 17 |
 | Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
@@ -90,6 +90,10 @@ gallery · export review (lint) with a live indicator · keyboard editing and cl
 namespaced `pagecraft-` output with overridable ids · SEO head, sitemap, robots ·
 **multi-select** (⌘/⇧-click to add on the canvas, ⇧-click for a range in the Navigator, one
 style edit fans out to the set).
+
+**Navigator drag-to-reorder and multi-element drag** — a row handle in the Navigator, and the
+HUD handle now appears for a multi-selection. `moveMany` keeps a set's order and re-reads its
+insertion point each step; `layerTarget` resolves a drop from the thirds of a row.
 
 **Bind a whole card at once** — "Bind the fields inside…" on any container with a content
 source. One sheet, every bindable place, pre-filled by `guessBindings` (which runs by
@@ -132,7 +136,7 @@ deleting two pages plus a 21-node header and footer by hand.
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 294 cases, and reports the Artifact's freshness
+npm test            # rebuild + 302 cases, and reports the Artifact's freshness
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 npm run publish:check   # exits 1 if the published Artifact is behind
@@ -229,9 +233,9 @@ that the browser failed.
 
 ## Next, in priority order
 
-1. **Drag-to-reorder** in the Navigator, and **multi-element drag** — the HUD hides its drag
-   handle while several are selected, because moving a set together was left out of the
-   multi-select pass. (Column drag-resize is done: grips in `#s-hud`, `resizeCols` in core.)
+1. ~~Drag-to-reorder in the Navigator, and multi-element drag~~ — both done. `moveMany` in
+   core moves a set keeping its order; `layerTarget` resolves a Navigator drop from the
+   thirds of a row. The HUD handle now shows for a multi-selection.
 2. **Measure before optimising** — the canvas rebuilds `innerHTML` on content edits and undo
    keeps 80 full document clones. The demo is only 64 nodes; generate 300–500 and measure
    before changing anything

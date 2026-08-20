@@ -965,6 +965,67 @@ function moveNode(id, parentNode, index) {
   const packed = (parentNode && parentNode.type === 'column' && h.node.type === 'row') ? h.node : wrap(h.node.type, pl, h.node);
   list.splice(k, 0, packed);
 }
+/* Move a whole set as a group, keeping their document order and landing them
+   together. Dragging with several selected used to be impossible — the HUD simply
+   hid its handle, because moving a set was left out of the multi-select pass.
+
+   Two things make this more than a loop. `topMost` first, or a parent and its own
+   child both move and the second acts on a node that is no longer where it was. And
+   the insertion point is re-read from the container on every step, because a member
+   that was already ahead of the target in the same list leaves a hole behind it when
+   it goes — assuming the index is stable puts the set in the wrong order. */
+function moveMany(ids, parentNode, index) {
+  const order = topMost(selOrder(ids));
+  let at = Math.max(0, index), moved = 0;
+  order.forEach(id => {
+    const h = locate(id);
+    if (!h) return;
+    const pid = h.parent ? h.parent.id : null;
+    const tid = parentNode ? parentNode.id : null;
+    if (pid === tid) {
+      const list = parentNode ? parentNode.children : tree();
+      const from = list.findIndex(c => c.id === id);
+      if (from >= 0 && from < at) at--;
+    }
+    moveNode(id, parentNode, at);
+    /* moveNode refuses a self-nesting move and leaves the tree alone, so only count
+       the ones that actually landed */
+    const now = locate(id);
+    if (now && (now.parent ? now.parent.id : null) === tid) { at++; moved++; }
+  });
+  return moved;
+}
+
+/* Where a Navigator drop lands. `before`/`after` make the dragged thing a sibling of
+   the row; `inside` puts it first inside, which is the only way the list can reach an
+   empty container — it has no geometry to aim at the way the canvas does.
+
+   A row that *is* one of the dragged nodes, or sits under one, is refused outright:
+   dropping something inside itself detaches the tree. The canvas path guards this by
+   trimming the ancestor chain; a flat list has no chain, so it is checked directly. */
+function layerTarget(rowId, zone, type, movingIds = []) {
+  const h = locate(rowId);
+  if (!h) return null;
+  for (const mid of movingIds) {
+    const mh = locate(mid);
+    if (!mh) continue;
+    let inside = false;
+    eachNode([mh.node], x => { if (x.id === rowId) inside = true; });
+    if (inside) return null;
+  }
+  const canHold = (pt, t) => (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
+  if (zone === 'inside') {
+    if (!canHold(h.node.type, type)) return null;
+    return { container: h.node, index: 0 };
+  }
+  const parent = h.parent || null;
+  if (!canHold(parent ? parent.type : null, type)) return null;
+  const list = parent ? parent.children : tree();
+  const i = list.findIndex(c => c.id === rowId);
+  if (i < 0) return null;
+  return { container: parent, index: zone === 'after' ? i + 1 : i };
+}
+
 /* A fresh copy gets fresh node ids — and loses any hand-set anchor, because two
    elements cannot share an HTML id. Duplicate, paste, and placing a block all run
    through here, and all three used to produce a `duplicate-id` error the moment the
@@ -4031,4 +4092,4 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 }
 
 
-module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };
+module.exports = { esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage };

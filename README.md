@@ -46,6 +46,15 @@ Columns are created for you rather than added by hand — **Columns** drops a ro
 its count control goes from 1 to 6. Select one to style it: proportional width per breakpoint,
 padding, background, alignment.
 
+**Reordering:** drag the handle in the selection toolbar on the canvas, press ⇧↑/⇧↓ to move
+among siblings, or drag a row's handle in the **Navigator** — the list is the surface for
+moving a Section past another Section, or for dropping something into a container that is
+still empty. In the Navigator, the top and bottom thirds of a row place the element before or
+after it, and the middle drops it *inside* when that row can hold it.
+
+**Several at once:** with a multi-selection, the toolbar handle and the Navigator handle both
+move the whole set. They keep their relative order and land together.
+
 **Resizing:** select a row (or any column in it) and a grip appears on each gutter. Drag it to
 move width between the two neighbours — every other column keeps what it had, so the row never
 drifts off 100%. A live readout shows the split, a column stops at 4% rather than collapsing
