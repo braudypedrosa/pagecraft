@@ -2724,37 +2724,37 @@ const outsideTags = (str, fn) =>
     .map(part => (part.startsWith('<') ? part : fn(part))).join('');
 const isHtmlSlot = s => s.prop === 'html';
 
-/* How many times the needle appears in one slot, and where the first one is. */
+/* One string that both the count and the snippet read. A tag becomes a space rather
+   than nothing, so a match can never form across a tag boundary — which is what keeps
+   this count identical to what `replaceAll` will actually change. */
+const searchText = (value, html) => {
+  const v = String(value == null ? '' : value);
+  return html ? v.replace(/<[^>]*>/g, ' ') : v;
+};
+
+/* How many times the needle appears, and where the first one is. Both offsets index
+   the returned `text`, so the snippet can slice it — the earlier version handed back
+   an offset into the *raw* value and the snippet re-found the match with `indexOf`,
+   which returns the earliest occurrence rather than the one that was counted. A second
+   hit was therefore shown with the first one's context. */
 function slotHits(value, needle, ci, html) {
+  const text = searchText(value, html);
   const nq = ci ? needle.toLowerCase() : needle;
-  if (!nq) return { n: 0, at: -1 };
-  let n = 0, at = -1;
-  const count = (text, offset) => {
-    const h = ci ? text.toLowerCase() : text;
-    let from = 0, i;
-    while ((i = h.indexOf(nq, from)) >= 0) { if (at < 0) at = offset + i; n++; from = i + nq.length; }
-  };
-  if (!html) count(String(value == null ? '' : value), 0);
-  else {
-    let offset = 0;
-    String(value == null ? '' : value).split(/(<[^>]*>)/).forEach(part => {
-      if (!part.startsWith('<')) count(part, offset);
-      offset += part.length;
-    });
-  }
-  return { n, at };
+  if (!nq) return { n: 0, at: -1, text };
+  const hay = ci ? text.toLowerCase() : text;
+  let n = 0, at = -1, from = 0, i;
+  while ((i = hay.indexOf(nq, from)) >= 0) { if (at < 0) at = i; n++; from = i + nq.length; }
+  return { n, at, text };
 }
 
-/* A short piece of the value with the match in the middle, for the results list. */
-function snippet(value, at, len, pad = 26) {
-  const v = String(value == null ? '' : value).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
-  if (at < 0) return v.slice(0, pad * 2);
-  /* the match moved when the tags came out, so find it again in the flattened text */
-  const raw = String(value).slice(at, at + len);
-  const k = v.indexOf(raw);
-  const i = k < 0 ? 0 : k;
-  const from = Math.max(0, i - pad);
-  return (from ? '…' : '') + v.slice(from, i + len + pad).trim() + (i + len + pad < v.length ? '…' : '');
+/* A readable piece of `text` around the match. Whitespace is collapsed *after*
+   slicing, never before — collapsing first would move the offset, which is the whole
+   family of bug this replaced. */
+function snippet(text, at, len, pad = 26) {
+  const t = String(text == null ? '' : text);
+  const from = Math.max(0, at - pad);
+  const to = Math.min(t.length, at + len + pad);
+  return (from ? '…' : '') + t.slice(from, to).replace(/\s+/g, ' ').trim() + (to < t.length ? '…' : '');
 }
 
 /* Every hit in the project, in reading order: the header, then each page, then the
@@ -2767,42 +2767,42 @@ function searchAll(q, o = {}) {
   const scan = (list, where, page, pageName) => eachNode(list, n => {
     textSlots(n).forEach(s => {
       const val = slotGet(n, s);
-      const { n: hits, at } = slotHits(val, needle, ci, isHtmlSlot(s));
+      const { n: hits, at, text } = slotHits(val, needle, ci, isHtmlSlot(s));
       if (hits) out.push({
         where, page, pageName, nodeId: n.id, type: n.type, element: nameOf(n),
-        field: slotName(s), slot: s, hits, snippet: snippet(val, at, needle.length)
+        field: slotName(s), slot: s, hits, snippet: snippet(text, at, needle.length)
       });
     });
   });
   scan(state.header, 'header', -1, 'Global header');
   state.pages.forEach((p, i) => {
     PAGE_TEXT.forEach(([k, lb]) => {
-      const { n: hits, at } = slotHits(p[k], needle, ci, false);
+      const { n: hits, at, text } = slotHits(p[k], needle, ci, false);
       if (hits) out.push({
         where: 'page', page: i, pageName: p.name, nodeId: '', type: 'meta',
-        element: 'Page settings', field: lb, meta: k, hits, snippet: snippet(p[k], at, needle.length)
+        element: 'Page settings', field: lb, meta: k, hits, snippet: snippet(text, at, needle.length)
       });
     });
     scan(p.tree, 'page', i, p.name);
   });
   scan(state.footer, 'footer', -1, 'Global footer');
   {
-    const { n: hits, at } = slotHits(state.meta.name, needle, ci, false);
+    const { n: hits, at, text } = slotHits(state.meta.name, needle, ci, false);
     if (hits) out.push({
       where: 'project', page: -1, pageName: 'Project', nodeId: '', type: 'meta',
       element: 'Project settings', field: 'Project name', meta: 'name', hits,
-      snippet: snippet(state.meta.name, at, needle.length)
+      snippet: snippet(text, at, needle.length)
     });
   }
   if (o.cms !== false) collections().forEach(col => col.items.forEach(it => {
     col.fields.forEach(f => {
       const val = it.values[f.id];
       if (typeof val !== 'string') return;
-      const { n: hits, at } = slotHits(val, needle, ci, f.type === 'rich');
+      const { n: hits, at, text } = slotHits(val, needle, ci, f.type === 'rich');
       if (hits) out.push({
         where: 'cms', page: -1, pageName: col.name, colId: col.id, itemId: it.id,
         element: itemTitle(col, it), type: 'cms', field: f.name, hits,
-        snippet: snippet(val, at, needle.length)
+        snippet: snippet(text, at, needle.length)
       });
     });
   }));
@@ -4657,6 +4657,7 @@ img,video,svg{max-width:100%}
   position:absolute;left:50%;top:50%;width:66px;height:66px;margin:-33px 0 0 -33px;border-radius:50%;
   background:var(--c-brand);display:block;transition:transform .18s ease;
 }
+.pagecraft-video-play:focus-visible{outline:3px solid var(--c-brand);outline-offset:2px}
 .pagecraft-video-icon::after{
   content:"";position:absolute;left:26px;top:21px;border-style:solid;
   border-width:12px 0 12px 19px;border-color:transparent transparent transparent var(--c-ink);
@@ -4782,7 +4783,7 @@ img,video,svg{max-width:100%}
 .pagecraft-heading a:focus-visible,.pagecraft-wysiwyg a:focus-visible,
 .pagecraft-figure:focus-visible,.pagecraft-icon:focus-visible,
 .pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible,
-.pagecraft-lightbox-btn:focus-visible,.pagecraft-video-play:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}
 ${m.css || ''}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{

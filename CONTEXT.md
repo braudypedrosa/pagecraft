@@ -71,7 +71,7 @@ something does.
 
 | | |
 |---|---|
-| Tests | **302**, `npm test` |
+| Tests | **306**, `npm test` |
 | Widgets | 17 |
 | Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |
@@ -127,8 +127,9 @@ deleting two pages plus a 21-node header and footer by hand.
 - **Gallery** — responsive grid, captions, and a lightbox that is a progressive enhancement:
   every tile is already an `<a href>` to the full image, so it works with scripting off.
 - **A visible focus ring** on every focusable, in `currentColor` — the brand green measured
-  1.6:1 on Paper, so a brand ring on a brand button was invisible. The video facade's old
-  green ring folded into the same rule.
+  1.6:1 on Paper, so a brand ring on a brand button was invisible. The video facade keeps its
+  own pre-existing green ring: it has the same weakness, but it was not what the change was
+  for, so it is left as found and written down instead.
 - **`prefers-reduced-motion`** now reaches the export. It closes the stylesheet, *after*
   `meta.css`, so a project rule cannot switch motion back on.
 
@@ -136,7 +137,7 @@ deleting two pages plus a 21-node header and footer by hand.
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 302 cases, and reports the Artifact's freshness
+npm test            # rebuild + 306 cases, and reports the Artifact's freshness
 npm run serve       # static server on :4877
 open index.html     # or just open the file
 npm run publish:check   # exits 1 if the published Artifact is behind
