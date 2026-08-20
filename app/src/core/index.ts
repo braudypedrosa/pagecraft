@@ -15,19 +15,19 @@
    the legacy single-file build, so there is one source of truth during the port. */
 /* eslint-disable */
 import type {
-  State, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  ColorToken, TextStyle, StyleClass, Collection, Field, FieldType, Item, Page, SavedBlock,
-  Finding, Target, RenderOpts, MenuItem, Slot, SlotHit, Control
+  State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, Css, Decls, Bp,
+  Collection, Field, FieldType, Item, Page,
+  Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
 const uid = () => (_seq++, 'n' + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
-const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const esc = (s: unknown) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 /* Only link schemes that are safe to put in an exported href. Anything else
    (javascript:, vbscript:, data:text/html, …) becomes an empty link. */
-const safeUrl = u => {
+const safeUrl = (u: unknown) => {
   const v = String(u == null ? '' : u).trim();
   if (!v) return '';
   if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
@@ -35,16 +35,16 @@ const safeUrl = u => {
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;            // page.html, example.com/x
   return '';
 };
-const clone = o => JSON.parse(JSON.stringify(o));
-const slugify = s => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'page';
+const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
+const slugify = (s: unknown) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'page';
 
 
-const dbounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const dbounce = (fn: (...a: any[]) => void, ms: number) => { let t: any; return (...a: any[]) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
 
 /* --------------------------------------------------- element definitions
    level: 0 root · 1 section · 2 row · 3 column · 4 leaf                 */
-const BOX = (t, r, b, l) => ({ 'padding-top': t, 'padding-right': r, 'padding-bottom': b, 'padding-left': l });
+const BOX = (t: string, r: string, b: string, l: string) => ({ 'padding-top': t, 'padding-right': r, 'padding-bottom': b, 'padding-left': l });
 
 /* One vocabulary per kind of measurement, so the same property always offers
    the same units wherever it appears. */
@@ -66,13 +66,13 @@ const U = {
    are collected automatically and the stylesheet link is written into every
    export, so nobody has to hand-manage a <link>. Manrope and DM Sans are also
    embedded in the builder itself, being the brand faces.                   */
-const GF_FALLBACK = {
+const GF_FALLBACK: Record<string, string> = {
   s: "system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
   f: "Georgia,'Times New Roman',serif",
   d: "system-ui,-apple-system,sans-serif",
   m: 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'
 };
-const GF_GROUP = { s: 'Sans serif', f: 'Serif', d: 'Display', m: 'Monospace' };
+const GF_GROUP: Record<string, string> = { s: 'Sans serif', f: 'Serif', d: 'Display', m: 'Monospace' };
 const W4 = '400;500;600;700';
 const GF = [
   ['Manrope', 's', W4], ['DM Sans', 's', W4], ['Inter', 's', W4], ['Figtree', 's', W4],
@@ -97,21 +97,21 @@ const GF = [
   ['DM Mono', 'm', '400;500']
 ];
 const gfIndex = Object.fromEntries(GF.map(([fam, cat, w]) => [fam.toLowerCase(), { fam, cat, w }]));
-const stackFor = (fam, cat) => `'${fam}',${GF_FALLBACK[cat] || GF_FALLBACK.s}`;
+const stackFor = (fam: string, cat: string) => `'${fam}',${GF_FALLBACK[cat] || GF_FALLBACK.s}`;
 
 /* the first family named in a stack, unquoted */
-function familyOf(stack) {
+function familyOf(stack: string) {
   const first = String(stack || '').split(',')[0].trim().replace(/^['"]|['"]$/g, '');
   return first;
 }
-const isGoogle = stack => !!gfIndex[familyOf(stack).toLowerCase()];
+const isGoogle = (stack: string) => !!gfIndex[familyOf(stack).toLowerCase()];
 
 /* every Google family the project actually uses, in a stable order */
 function usedFamilies() {
   const seen = new Set<string>();
-  const take = v => { const g = gfIndex[familyOf(v).toLowerCase()]; if (g) seen.add(g.fam); };
+  const take = (v: string) => { const g = gfIndex[familyOf(v).toLowerCase()]; if (g) seen.add(g.fam); };
   take(state.meta.font); take(state.meta.headFont);
-  const scan = css => ['d', 't', 'm'].forEach(b => { const v = (css && css[b] || {})['font-family']; if (v) take(v); });
+  const scan = (css: any) => (['d', 't', 'm'] as Bp[]).forEach(b => { const v = (css && css[b] || {})['font-family']; if (v) take(v); });
   styles().forEach(t => scan(t.css));
   classes().forEach(c => scan(c.css));
   allTrees().forEach(l => eachNode(l, n => scan(n.css)));
@@ -650,8 +650,8 @@ const N = (type: string, props: any = {}, css: any = {}, children: any[] = []): 
 const cols = (n: number, kids?: any, css?: any) => N('row', {}, css, Array.from({ length: n }, (_, i) =>
   N('column', {}, { d: { 'flex-grow': String(+(100 / n).toFixed(4)) } }, kids[i] || [])));
 
-const DEV_KEY = { desktop: 'd', tablet: 't', mobile: 'm' };
-const DEV_LABEL = { d: 'Desktop', t: 'Tablet', m: 'Mobile' };
+const DEV_KEY: Record<string, Bp> = { desktop: 'd', tablet: 't', mobile: 'm' };
+const DEV_LABEL: Record<string, string> = { d: 'Desktop', t: 'Tablet', m: 'Mobile' };
 
 /* ---- how wide the canvas renders, and how much it is scaled to fit -------
    The canvas used to be whatever width the panels left over, which meant the
@@ -663,8 +663,8 @@ const DEV_LABEL = { d: 'Desktop', t: 'Tablet', m: 'Mobile' };
 
    They are separate now. The frame is always `canvasWidth()` wide and is scaled
    down to fit; what you see is the breakpoint you are editing, at any window size. */
-const DEV_W = { mobile: 414, tablet: 834 };
-function canvasWidth(dev, maxWidth) {
+const DEV_W: Record<string, number> = { mobile: 414, tablet: 834 };
+function canvasWidth(dev: string, maxWidth: string) {
   if (DEV_W[dev]) return DEV_W[dev];
   /* Desktop has to clear the 1024px tablet query with room to spare, and it has to
      be at least the project's own container — otherwise the container, not the
@@ -675,11 +675,20 @@ function canvasWidth(dev, maxWidth) {
 }
 /* Fit never magnifies. A 414px mobile frame in a wide window belongs at 100%,
    not blown up to fill the space. */
-const fitZoom = (target, avail) => (!target || !(avail > 0) ? 1 : Math.min(1, avail / target));
+const fitZoom = (target: number, avail: number) => (!target || !(avail > 0) ? 1 : Math.min(1, avail / target));
 const ZOOMS = [['fit', 'Fit'], ['1', '100%'], ['0.75', '75%'], ['0.5', '50%'], ['0.25', '25%']];
-const zoomFor = (z, target, avail) =>
+const zoomFor = (z: string | null | undefined, target: number, avail: number) =>
   (z == null || z === 'fit' ? fitZoom(target, avail) : (parseFloat(z) || 1));
 
+/* The initial editor state, in one place. The tests used to rebuild this literal by
+   hand and had drifted five fields behind it — so every test ran against a `ui` shape
+   the app never actually has. One definition, and there is nothing to drift from. */
+function initUi(): Ui {
+  return {
+    mode: 'page', dev: 'desktop', sel: null, multi: [], tab: 'add', atab: 'widgets', stab: 'content', target: '', lmode: null,
+    open: {}, collapsed: {}, custom: {}, zoom: 'fit'
+  };
+}
 const state: State = {
   v: 1,
   meta: {
@@ -690,10 +699,7 @@ const state: State = {
     tokens: null      // filled by defaultTokens() at boot
   },
   header: [], footer: [], pages: [], cur: 0,
-  ui: {
-    mode: 'page', dev: 'desktop', sel: null, multi: [], tab: 'add', atab: 'widgets', stab: 'content', target: '', lmode: null,
-    open: {}, collapsed: {}, custom: {}, zoom: 'fit'
-  }
+  ui: initUi()
 };
 
 const doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
@@ -719,11 +725,10 @@ function locateAny(id: string): any {
   }
   return null;
 }
-const sel = () => state.ui.sel ? locate(state.ui.sel) : null;
-function eachNode(list, fn, parent = null, depth = 0) {
+function eachNode(list: PcNode[], fn: (n: PcNode, parent: PcNode | null, i: number, depth: number) => void, parent: PcNode | null = null, depth = 0) {
   list.forEach((n, i) => { fn(n, parent, i, depth); eachNode(n.children || [], fn, n, depth + 1); });
 }
-const nameOf = n => {
+const nameOf = (n: PcNode) => {
   const d = DEF[n.type];
   if (n.type === 'heading') return (n.props.text || '').slice(0, 26) || d.label;
   if (n.type === 'button') return n.props.text || d.label;
@@ -748,21 +753,21 @@ function selIds() {
    than assert, since a stale id would otherwise throw inside a render */
 const selNodes = () => selIds().map(id => locate(id)).filter(Boolean).map(h => h!.node);
 const multiOn = () => selIds().length > 1;
-function selSet(ids) {
+function selSet(ids: string[]) {
   const live = ids.filter(id => locate(id));
   state.ui.sel = live.length ? live[0] : null;
   state.ui.multi = live.slice(1);
 }
 /* Add or remove one member. Dropping the primary promotes the next in line,
    so the inspector always has a key object while anything is selected. */
-function selToggle(id) {
+function selToggle(id: string) {
   if (!id || !locate(id)) return;
   const ids = selIds();
   if (ids.includes(id)) selSet(ids.filter(x => x !== id));
   else selSet([...ids, id]);
 }
 /* document order — deterministic fan-out, and the order a range select means */
-function selOrder(ids) {
+function selOrder(ids: string[]) {
   const rank = new Map();
   let i = 0;
   eachNode(tree(), n => rank.set(n.id, i++));
@@ -771,9 +776,9 @@ function selOrder(ids) {
 /* Every node between two ids, in the order the Navigator lists them — which
    means skipping the children of a collapsed row, so a range can never reach
    something the user cannot see on screen. */
-function selRange(a, b) {
+function selRange(a: string, b: string) {
   const flat: any[] = [];
-  const walk = list => list.forEach(n => {
+  const walk = (list: PcNode[]): void => list.forEach((n: PcNode) => {
     flat.push(n.id);
     if (!state.ui.collapsed[n.id]) walk(n.children || []);
   });
@@ -785,7 +790,7 @@ function selRange(a, b) {
 /* Drop any id that already has an ancestor in the set. Deleting or duplicating
    a parent takes its children with it, so acting on both would act twice — and
    for delete, the second act would be on a node that is already gone. */
-function topMost(ids) {
+function topMost(ids: string[]) {
   const set = new Set(ids);
   return ids.filter(id => {
     let h = locate(id);
@@ -803,16 +808,16 @@ function topMost(ids) {
    invalid markup, and the id is the thing a link anchor points at — so it stays
    on the primary, which `selIds` guarantees is first. */
 const ADV_SHARED = new Set(['_cls', '_css']);
-const ctlKeys = type => {
+const ctlKeys = (type: string) => {
   const c = (DEF[type] || {}).controls || {};
   const out = new Set();
-  for (const g of ['content', 'style']) for (const x of (c[g] || [])) if (x.k) out.add(x.k);
+  for (const g of ['content', 'style'] as ('content' | 'style')[]) for (const x of (c[g] || [])) if (x.k) out.add(x.k);
   return out;
 };
-function fanTargets(c, ids) {
-  const nodes = ids.map(id => locate(id)).filter(Boolean).map(h => h.node);
+function fanTargets(c: Pick<Control, 'k' | 'c'>, ids: string[]) {
+  const nodes = ids.map(id => locate(id)).filter(Boolean).map(h => h!.node);
   if (c.k === '_id') return nodes.slice(0, 1);
-  if (c.c || ADV_SHARED.has(c.k)) return nodes;
+  if (c.c || ADV_SHARED.has(c.k as string)) return nodes;
   return nodes.filter(n => ctlKeys(n.type).has(c.k));
 }
 
@@ -822,25 +827,25 @@ function fanTargets(c, ids) {
 const HOOKS: { change(): void; save(): void; note(m?: string): void } =
   { change() { }, save() { }, note() { } };
 const hist: { u: Doc[]; r: Doc[]; max: number } = { u: [], r: [], max: 80 };
-function edit(fn) {
+function edit(fn: () => void) {
   hist.u.push(clone(doc())); if (hist.u.length > hist.max) hist.u.shift();
   hist.r.length = 0;
   fn();
   HOOKS.change();
   HOOKS.save();
 }
-function restore(snap) {
+function restore(snap: Doc) {
   state.meta = snap.meta; state.header = snap.header; state.footer = snap.footer; state.pages = snap.pages;
   if (state.cur >= state.pages.length) state.cur = 0;
   selSet(selIds());                        // drop members this snapshot has no node for
   HOOKS.change(); HOOKS.save();
 }
-function undo() { if (!hist.u.length) return; hist.r.push(clone(doc())); restore(hist.u.pop()); HOOKS.note('Undo'); }
-function redo() { if (!hist.r.length) return; hist.u.push(clone(doc())); restore(hist.r.pop()); HOOKS.note('Redo'); }
+function undo() { if (!hist.u.length) return; hist.r.push(clone(doc())); restore(hist.u.pop()!); HOOKS.note('Undo'); }
+function redo() { if (!hist.r.length) return; hist.u.push(clone(doc())); restore(hist.r.pop()!); HOOKS.note('Redo'); }
 
 /* ---- insertion rules ------------------------------------------------- */
 const lvl = (t: string) => DEF[BASE[t] || t].level;
-const CHAIN = { 1: 'section', 2: 'row', 3: 'column' };
+const CHAIN: Record<number, string> = { 1: 'section', 2: 'row', 3: 'column' };
 
 /* Builds the wrapper chain needed to legally place `type` inside a parent
    of level `pl`, e.g. a Heading (4) dropped on the root (0) becomes
@@ -886,7 +891,7 @@ function moveNode(id: string, parentNode: any, index: number) {
 
    `menuFor` is the single answer to "what applies here". Pure, so the menu, the HUD
    and anything else read the same list; `sep` marks a group boundary. */
-function menuFor(ids) {
+function menuFor(ids: string[] | null) {
   const list = (ids || []).filter(id => locate(id));
   if (!list.length) return [];
   const many = list.length > 1;
@@ -930,7 +935,7 @@ function menuFor(ids) {
    the insertion point is re-read from the container on every step, because a member
    that was already ahead of the target in the same list leaves a hole behind it when
    it goes — assuming the index is stable puts the set in the wrong order. */
-function moveMany(ids, parentNode, index) {
+function moveMany(ids: string[], parentNode: PcNode | null, index: number) {
   const order = topMost(selOrder(ids));
   let at = Math.max(0, index), moved = 0;
   order.forEach(id => {
@@ -959,7 +964,7 @@ function moveMany(ids, parentNode, index) {
    A row that *is* one of the dragged nodes, or sits under one, is refused outright:
    dropping something inside itself detaches the tree. The canvas path guards this by
    trimming the ancestor chain; a flat list has no chain, so it is checked directly. */
-function layerTarget(rowId, zone, type, movingIds = []) {
+function layerTarget(rowId: string, zone: string, type: string, movingIds: string[] = []) {
   const h = locate(rowId);
   if (!h) return null;
   for (const mid of movingIds) {
@@ -969,7 +974,7 @@ function layerTarget(rowId, zone, type, movingIds = []) {
     eachNode([mh.node], x => { if (x.id === rowId) inside = true; });
     if (inside) return null;
   }
-  const canHold = (pt, t) => (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
+  const canHold = (pt: string | null, t: string) => (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
   if (zone === 'inside') {
     if (!canHold(h.node.type, type)) return null;
     return { container: h.node, index: 0 };
@@ -987,14 +992,14 @@ function layerTarget(rowId, zone, type, movingIds = []) {
    through here, and all three used to produce a `duplicate-id` error the moment the
    source carried an anchor. Auto ids are derived per node so they stay unique on
    their own; only `adv.htmlId` has to be surrendered. Originals never pass here. */
-function reid(n) {
+function reid(n: PcNode) {
   n.id = uid();
   if (n.adv) n.adv.htmlId = '';
   (n.children || []).forEach(reid);
   return n;
 }
 /* page order drives the sitemap and the nav a user authors by hand */
-function pageMove(i, dir) {
+function pageMove(i: number, dir: number) {
   const j = i + dir;
   if (i < 0 || j < 0 || j >= state.pages.length) return false;
   const cur = state.pages[state.cur];
@@ -1002,13 +1007,13 @@ function pageMove(i, dir) {
   state.cur = state.pages.indexOf(cur);
   return true;
 }
-function dupNode(id) {
+function dupNode(id: string) {
   const h = locate(id); if (!h) return;
   const c = reid(clone(h.node));
   h.list.splice(h.i + 1, 0, c);
   selSet([c.id]);
 }
-function delNode(id) {
+function delNode(id: string) {
   const h = locate(id); if (!h) return;
   h.list.splice(h.i, 1);
   selSet(h.parent ? [h.parent.id] : []);
@@ -1016,7 +1021,7 @@ function delNode(id) {
 /* The set versions of the two. Both work on `topMost` so a parent and its own
    child in one selection count once, and delete runs back to front so the
    splices cannot shift an index still to come. */
-function dupMany(ids) {
+function dupMany(ids: string[]) {
   const made: any[] = [];
   for (const id of selOrder(topMost(ids))) {
     const h = locate(id); if (!h) continue;
@@ -1027,7 +1032,7 @@ function dupMany(ids) {
   if (made.length) selSet(made);
   return made.length;
 }
-function delMany(ids) {
+function delMany(ids: string[]) {
   const top = selOrder(topMost(ids));
   let fallback = null;
   for (const id of top.slice().reverse()) {
@@ -1039,7 +1044,7 @@ function delMany(ids) {
   return top.length;
 }
 
-function applyCols(row, ws) {
+function applyCols(row: PcNode, ws: number[]) {
   const kids = row.children;
   while (kids.length < ws.length) kids.push(N('column'));
   if (kids.length > ws.length) {
@@ -1058,17 +1063,17 @@ const MIN_COL = 4;
    stylesheet does (mobile → tablet → desktop). `rowRatios` stays the desktop-only
    reader its existing callers expect. */
 const BP_CHAIN = { d: ['d'], t: ['t', 'd'], m: ['m', 't', 'd'] };
-function rowRatiosAt(row, b) {
+function rowRatiosAt(row: PcNode, b: Bp) {
   return (row.children || []).map(c => {
     for (const k of (BP_CHAIN[b] || ['d'])) {
-      const v = (c.css[k] || {})['flex-grow'];
+      const v = ((c.css as any)[k] || {})['flex-grow'];
       if (v !== undefined && v !== '') return parseFloat(v) || 0;
     }
     return 0;
   });
 }
 /* `pct` is a share of the whole row, signed: positive grows column `i`. */
-function resizeCols(row, i, pct, b = 'd') {
+function resizeCols(row: PcNode, i: number, pct: number, b: Bp = 'd') {
   const ws = rowRatiosAt(row, b);
   if (i < 0 || i + 1 >= ws.length) return null;
   const total = ws.reduce((a, x) => a + x, 0);
@@ -1083,7 +1088,7 @@ function resizeCols(row, i, pct, b = 'd') {
 }
 /* Writes proportions at one breakpoint without touching the column count —
    `applyCols` is the one that adds and removes columns. */
-function applyColsAt(row, ws, b = 'd') {
+function applyColsAt(row: PcNode, ws: number[], b: Bp = 'd') {
   (row.children || []).forEach((k, i) => {
     if (ws[i] === undefined) return;
     k.css[b] = k.css[b] || {};
@@ -1100,10 +1105,10 @@ const TYPO_KEYS = ['font-family', 'font-size', 'font-weight', 'font-style',
   'line-height', 'letter-spacing', 'text-transform', 'color'];
 const TS_TYPES = ['heading', 'text', 'button'];    // elements that can carry a text style
 
-const tokenId = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24);
-const cvar = id => `var(--c-${id})`;
-const isRef = v => /^var\(--c-[\w-]+\)$/.test(String(v || '').trim());
-const refId = v => { const m = String(v || '').trim().match(/^var\(--c-([\w-]+)\)$/); return m ? m[1] : null; };
+const tokenId = (s: unknown) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24);
+const cvar = (id: string) => `var(--c-${id})`;
+const isRef = (v: unknown) => /^var\(--c-[\w-]+\)$/.test(String(v || '').trim());
+const refId = (v: unknown) => { const m = String(v || '').trim().match(/^var\(--c-([\w-]+)\)$/); return m ? m[1] : null; };
 
 const colors = () => (state.meta.tokens && state.meta.tokens.colors) || [];
 const styles = () => (state.meta.tokens && state.meta.tokens.text) || [];
@@ -1115,17 +1120,17 @@ const styles = () => (state.meta.tokens && state.meta.tokens.text) || [];
    used to throw now works. TypeScript found all six; nothing else ever had. */
 const ensureTokens = (): Tokens => (state.meta.tokens ||= defaultTokens(state.meta));
 const classes = () => (state.meta.tokens && state.meta.tokens.classes) || [];
-const findColor = id => colors().find(c => c.id === id) || null;
-const findStyle = id => styles().find(t => t.id === id) || null;
-const findClass = id => classes().find(c => c.id === id) || null;
+const findColor = (id: string) => colors().find(c => c.id === id) || null;
+const findStyle = (id: string) => styles().find(t => t.id === id) || null;
+const findClass = (id: string) => classes().find(c => c.id === id) || null;
 /* applied classes, dangling ids filtered, in project order — because CSS source
    order decides precedence and the project list is that order */
-const nodeClasses = n => {
+const nodeClasses = (n: PcNode) => {
   const ids = Array.isArray(n.cls) ? n.cls : [];
   return classes().filter(c => ids.includes(c.id));
 };
 /* the literal behind a value, following one level of token reference */
-const resolveColor = v => {
+const resolveColor = (v: unknown) => {
   const id = refId(v);
   if (!id) return String(v || '');
   const t = findColor(id);
@@ -1166,13 +1171,13 @@ function tokenVars() {
 }
 function tokenCss() {
   const acc = { d: '', t: '', m: '' };
-  styles().forEach(t => ['d', 't', 'm'].forEach(b => {
+  styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => {
     const decls = decl((t.css && t.css[b]) || {});
     if (decls) acc[b] += `.ts-${t.id}{${decls}}`;
   }));
   /* classes come after text styles and before element rules, so the order of
      precedence reads: text style < class < this element */
-  classes().forEach(c => ['d', 't', 'm'].forEach(b => {
+  classes().forEach(c => (['d', 't', 'm'] as Bp[]).forEach(b => {
     const decls = decl((c.css && c.css[b]) || {});
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
   }));
@@ -1180,17 +1185,17 @@ function tokenCss() {
 }
 
 /* ---- applying and detaching text styles -------------------------------- */
-const stripTypo = n => ['d', 't', 'm'].forEach(b => TYPO_KEYS.forEach(k => { if (n.css[b]) delete n.css[b][k]; }));
-const grabTypo = n => {
-  const out = { d: {}, t: {}, m: {} };
-  ['d', 't', 'm'].forEach(b => TYPO_KEYS.forEach(k => {
+const stripTypo = (n: PcNode) => (['d', 't', 'm'] as Bp[]).forEach(b => TYPO_KEYS.forEach(k => { if (n.css[b]) delete n.css[b][k]; }));
+const grabTypo = (n: PcNode) => {
+  const out: Css = { d: {}, t: {}, m: {} };
+  (['d', 't', 'm'] as Bp[]).forEach(b => TYPO_KEYS.forEach(k => {
     const v = n.css[b] && n.css[b][k];
     if (v !== undefined && v !== '') out[b][k] = v;
   }));
   return out;
 };
 /* use a style: the element's own typography steps aside so the style shows */
-function tsApply(n, id) {
+function tsApply(n: PcNode, id: string) {
   const t = findStyle(id);
   if (!t) return false;
   stripTypo(n);
@@ -1201,24 +1206,24 @@ function tsApply(n, id) {
   return true;
 }
 /* detach: bake the style's values in so nothing moves visually */
-function tsUnlink(n) {
+function tsUnlink(n: PcNode) {
   const t = findStyle(n.props.ts);
-  if (t) ['d', 't', 'm'].forEach(b => {
+  if (t) (['d', 't', 'm'] as Bp[]).forEach(b => {
     n.css[b] = { ...((t.css && t.css[b]) || {}), ...(n.css[b] || {}) };
   });
   n.props.ts = '';
   return !!t;
 }
 /* push this element's typography up into the style it is using */
-function tsUpdateFrom(n) {
+function tsUpdateFrom(n: PcNode) {
   const t = findStyle(n.props.ts);
   if (!t) return false;
   const got = grabTypo(n);
-  ['d', 't', 'm'].forEach(b => { t.css[b] = { ...(t.css[b] || {}), ...got[b] }; });
+  (['d', 't', 'm'] as Bp[]).forEach(b => { t.css[b] = { ...(t.css[b] || {}), ...got[b] }; });
   stripTypo(n);
   return true;
 }
-function tsCreateFrom(n, name) {
+function tsCreateFrom(n: PcNode, name: string) {
   const base = tokenId(name) || 'style';
   let id = base, k = 2;
   while (findStyle(id)) id = base + '-' + k++;
@@ -1240,7 +1245,7 @@ const LANGS = [
   ['es', 'Spanish'], ['sv', 'Swedish'], ['tr', 'Turkish'], ['uk', 'Ukrainian'], ['vi', 'Vietnamese']
 ];
 
-function anchorsOf(slug) {
+function anchorsOf(slug: string) {
   const pg = state.pages.find(p => p.slug === slug) || page();
   const out: any[] = [];
   [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => {
@@ -1250,7 +1255,7 @@ function anchorsOf(slug) {
 }
 /* A bare "#anchor" is read as belonging to its own page, which is what lets it
    survive being placed in a global header or footer. */
-function parseLink(href, hereSlug) {
+function parseLink(href: string, hereSlug: string) {
   const v = String(href == null ? '' : href).trim();
   if (!v) return { mode: 'none' };
   if (/^mailto:/i.test(v)) return { mode: 'email', value: v.replace(/^mailto:/i, '') };
@@ -1262,7 +1267,7 @@ function parseLink(href, hereSlug) {
   if (m && state.pages.some(p => p.slug === m[1])) return { mode: 'page', page: m[1], frag: m[2] || '' };
   return { mode: 'url', value: v };
 }
-function buildLink(o) {
+function buildLink(o: any) {
   if (!o || o.mode === 'none') return '';
   if (o.mode === 'email') return o.value ? 'mailto:' + o.value : '';
   if (o.mode === 'phone') return o.value ? 'tel:' + o.value : '';
@@ -1275,7 +1280,7 @@ function buildLink(o) {
    A class is any set of CSS declarations, per breakpoint, shared by any number
    of elements. Text styles are the typography-only special case of the same
    idea, kept separate because applying one has its own semantics.          */
-function classAdd(name, css) {
+function classAdd(name: string, css?: Partial<Css>) {
   const base = tokenId(name) || 'class';
   let id = base, k = 2;
   while (findClass(id)) id = base + '-' + k++;
@@ -1285,78 +1290,78 @@ function classAdd(name, css) {
   }]);
   return id;
 }
-function classApply(n, id) {
+function classApply(n: PcNode, id: string) {
   if (!findClass(id)) return false;
   n.cls = Array.isArray(n.cls) ? n.cls : [];
   if (!n.cls.includes(id)) n.cls.push(id);
   return true;
 }
-function classRemove(n, id) {
+function classRemove(n: PcNode, id: string) {
   n.cls = (Array.isArray(n.cls) ? n.cls : []).filter(x => x !== id);
 }
 /* take this element's own styling and turn it into a class others can share */
-function classFrom(n, name) {
+function classFrom(n: PcNode, name: string) {
   const id = classAdd(name, n.css);
   n.css = { d: {}, t: {}, m: {} };
   classApply(n, id);
   return id;
 }
-const classUsage = id => {
+const classUsage = (id: string) => {
   let k = 0;
   allTrees().forEach(l => eachNode(l, x => { if ((x.cls || []).includes(id)) k++; }));
   return k;
 };
 /* deleting a class bakes its declarations into every user, so nothing moves */
-function classDelete(id) {
+function classDelete(id: string) {
   const c = findClass(id);
   if (!c) return false;
   allTrees().forEach(l => eachNode(l, x => {
     if (!(x.cls || []).includes(id)) return;
-    ['d', 't', 'm'].forEach(b => { x.css[b] = { ...((c.css && c.css[b]) || {}), ...(x.css[b] || {}) }; });
+    (['d', 't', 'm'] as Bp[]).forEach(b => { x.css[b] = { ...((c.css && c.css[b]) || {}), ...(x.css[b] || {}) }; });
     classRemove(x, id);
   }));
   ensureTokens().classes = classes().filter(x => x.id !== id);
   return true;
 }
 /* precedence follows list order, so moving a class changes which one wins */
-function classMove(id, dir) {
+function classMove(id: string, dir: number) {
   const list = classes(), i = list.findIndex(c => c.id === id);
   const j = i + dir;
   if (i < 0 || j < 0 || j >= list.length) return false;
   [list[i], list[j]] = [list[j], list[i]];
   return true;
 }
-const tsUsage = id => {
+const tsUsage = (id: string) => {
   let k = 0;
   allTrees().forEach(l => eachNode(l, x => { if (x.props.ts === id) k++; }));
   return k;
 };
-function styleDelete(id) {
+function styleDelete(id: string) {
   allTrees().forEach(l => eachNode(l, x => { if (x.props.ts === id) tsUnlink(x); }));
   ensureTokens().text = styles().filter(t => t.id !== id);
 }
 /* deleting a colour inlines its literal everywhere, so nothing silently breaks */
-function colorDelete(id) {
+function colorDelete(id: string) {
   if (RESERVED.includes(id)) return false;
   const lit = resolveColor(cvar(id)) || 'transparent';
-  const swap = o => { for (const k in o) if (refId(o[k]) === id) o[k] = lit; };
-  allTrees().forEach(l => eachNode(l, x => ['d', 't', 'm'].forEach(b => swap(x.css[b] || {}))));
-  styles().forEach(t => ['d', 't', 'm'].forEach(b => swap((t.css && t.css[b]) || {})));
+  const swap = (o: Decls) => { for (const k in o) if (refId(o[k]) === id) o[k] = lit; };
+  allTrees().forEach(l => eachNode(l, x => (['d', 't', 'm'] as Bp[]).forEach(b => swap(x.css[b] || {}))));
+  styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => swap((t.css && t.css[b]) || {})));
   ensureTokens().colors = colors().filter(c => c.id !== id);
   return true;
 }
-function colorAdd(name, value) {
+function colorAdd(name: string, value: string) {
   const base = tokenId(name) || 'colour';
   let id = base, k = 2;
   while (findColor(id)) id = base + '-' + k++;
   ensureTokens().colors.push({ id, name: String(name || 'New colour').slice(0, 40), value: value || '#888888' });
   return id;
 }
-const colorUsage = id => {
+const colorUsage = (id: string) => {
   let k = 0;
-  const hits = o => { for (const p in o) if (refId(o[p]) === id) k++; };
-  allTrees().forEach(l => eachNode(l, x => ['d', 't', 'm'].forEach(b => hits(x.css[b] || {}))));
-  styles().forEach(t => ['d', 't', 'm'].forEach(b => hits((t.css && t.css[b]) || {})));
+  const hits = (o: Decls) => { for (const p in o) if (refId(o[p]) === id) k++; };
+  allTrees().forEach(l => eachNode(l, x => (['d', 't', 'm'] as Bp[]).forEach(b => hits(x.css[b] || {}))));
+  styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => hits((t.css && t.css[b]) || {})));
   return k;
 };
 
@@ -1364,7 +1369,7 @@ const colorUsage = id => {
    The exported file is the product, and its failures are silent: a dead link,
    a missing alt, an unreadable colour pair. This walks the whole project and
    reports them before anyone publishes.                                     */
-const hex2rgb = v => {
+const hex2rgb = (v: string) => {
   let h = String(v || '').trim();
   const m3 = h.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
   if (m3) h = '#' + m3[1] + m3[1] + m3[2] + m3[2] + m3[3] + m3[3];
@@ -1374,19 +1379,19 @@ const hex2rgb = v => {
   if (rgb) return [+rgb[1], +rgb[2], +rgb[3]];
   return null;
 };
-const lum = c => {
+const lum = (c: number[]) => {
   const f = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
   return .2126 * f[0] + .7152 * f[1] + .0722 * f[2];
 };
 /* WCAG 2.1 contrast ratio, 1–21 */
-function contrast(fg, bg) {
+function contrast(fg: string, bg: string) {
   const a = hex2rgb(resolveColor(fg)), b = hex2rgb(resolveColor(bg));
   if (!a || !b) return null;
   const l1 = lum(a), l2 = lum(b);
   return (Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05);
 }
 /* the effective value of a css prop, following text styles then ancestors */
-function effective(node, prop, chain) {
+function effective(node: PcNode, prop: string, chain: PcNode[]) {
   const own = (node.css.d || {})[prop];
   if (own) return own;
   const applied = nodeClasses(node);
@@ -1416,7 +1421,7 @@ function lint() {
     [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
     idsBySlug[pg.slug + '.html'] = ids;
   });
-  const pageOf = slug => idsBySlug[slug];
+  const pageOf = (slug: string) => idsBySlug[slug];
 
   /* ---- per page: links, headings, images, contrast ---- */
   state.pages.forEach(pg => {
@@ -1428,14 +1433,14 @@ function lint() {
     const seenIds = new Set(), dupIds = new Set();
     let headings: any[] = [];
 
-    const visit = (list, chain, region) => list.forEach(n => {
+    const visit = (list: PcNode[], chain: PcNode[], region: string): void => list.forEach((n: PcNode) => {
       const w = { ...scope, region, node: DEF[n.type].label };
       const anchor = n.adv && n.adv.htmlId;
       if (anchor) { if (seenIds.has(anchor)) dupIds.add(anchor); seenIds.add(anchor); }
 
       /* links */
       const links: any[] = [];
-      if (n.type === 'nav') (n.props.items || []).forEach(it => links.push(it.href));
+      if (n.type === 'nav') ((n.props.items as any[]) || []).forEach((it: any) => links.push(it.href));
       if (n.props.link !== undefined) links.push(n.props.link);
       if (n.type === 'text') [...String(n.props.html || '').matchAll(/href="([^"]*)"/g)].forEach(m => links.push(m[1]));
       links.filter(h => h !== undefined && h !== null).forEach(href => {
@@ -1607,7 +1612,7 @@ function lint() {
   const rank = { error: 0, warn: 1 };
   return out.sort((a, b) => rank[a.level] - rank[b.level]);
 }
-const lintCounts = findings => ({
+const lintCounts = (findings: Finding[]) => ({
   error: findings.filter(f => f.level === 'error').length,
   warn: findings.filter(f => f.level === 'warn').length
 });
@@ -1622,7 +1627,7 @@ const lintCounts = findings => ({
 const styleClip: { css: Css | null; cls: string[] | null; ts: string; adv: string; from: string } =
   { css: null, cls: null, ts: '', adv: '', from: '' };
 
-function copyStyles(id) {
+function copyStyles(id: string) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
@@ -1644,7 +1649,7 @@ function copyStyles(id) {
    multi-select — a CSS property goes everywhere, a content prop only where the
    target declares that control. So `ts` reaches a Heading from a WYSIWYG and stops
    at an Image, which has no text style to set. */
-function pasteStyles(id) {
+function pasteStyles(id: string) {
   if (!styleClip.css) return false;
   const h = locate(id);
   if (!h) return false;
@@ -1657,7 +1662,7 @@ function pasteStyles(id) {
   if (ctlKeys(n.type).has('ts')) n.props.ts = styleClip.ts;
   return true;
 }
-const pasteStylesMany = ids => ids.filter(pasteStyles).length;
+const pasteStylesMany = (ids: string[]) => ids.filter(pasteStyles).length;
 
 /* ---- finding things -------------------------------------------------
    Nothing could find a word across a project. With twelve pages, two global regions
@@ -1684,38 +1689,38 @@ const SLOT_LABEL = {
   q: 'Question', a: 'Answer', ph: 'Placeholder'
 };
 
-function textSlots(n) {
+function textSlots(n: PcNode) {
   const out: any[] = [];
-  for (const spec of (TEXT_SLOTS[n.type] || [])) {
+  for (const spec of ((TEXT_SLOTS as Record<string, any[]>)[n.type] || [])) {
     if (typeof spec === 'string') {
       if (typeof n.props[spec] === 'string') out.push({ prop: spec, i: -1, sub: '' });
     } else {
       const [arr, ...subs] = spec;
       const list = Array.isArray(n.props[arr]) ? n.props[arr] : [];
-      list.forEach((row, i) => subs.forEach(sub => {
+      list.forEach((row: any, i: number) => subs.forEach((sub: string) => {
         if (row && typeof row[sub] === 'string') out.push({ prop: arr, i, sub });
       }));
     }
   }
   return out;
 }
-const slotGet = (n, s) => (s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub]);
-const slotSet = (n, s, v) => { if (s.i < 0) n.props[s.prop] = v; else n.props[s.prop][s.i][s.sub] = v; };
-const slotName = s => SLOT_LABEL[s.sub || s.prop] || (s.sub || s.prop);
+const slotGet = (n: PcNode, s: Slot): any => (s.i < 0 ? n.props[s.prop] : n.props[s.prop][s.i][s.sub]);
+const slotSet = (n: PcNode, s: Slot, v: string) => { if (s.i < 0) n.props[s.prop] = v; else n.props[s.prop][s.i][s.sub] = v; };
+const slotName = (s: Slot) => (SLOT_LABEL as Record<string, string>)[s.sub || s.prop] || (s.sub || s.prop);
 
 /* Rich text is markup, so neither the search nor the replace may wander into a tag:
    looking for "div" must not report or rewrite every <div>. Split on tags and touch
    only what sits between them. Entities are left as written — searching for "&" will
    match an &amp; and that is a known edge rather than a handled one. */
-const outsideTags = (str, fn) =>
+const outsideTags = (str: unknown, fn: (t: string) => string) =>
   String(str == null ? '' : str).split(/(<[^>]*>)/)
     .map(part => (part.startsWith('<') ? part : fn(part))).join('');
-const isHtmlSlot = s => s.prop === 'html';
+const isHtmlSlot = (s: Slot) => s.prop === 'html';
 
 /* One string that both the count and the snippet read. A tag becomes a space rather
    than nothing, so a match can never form across a tag boundary — which is what keeps
    this count identical to what `replaceAll` will actually change. */
-const searchText = (value, html) => {
+const searchText = (value: unknown, html: boolean) => {
   const v = String(value == null ? '' : value);
   return html ? v.replace(/<[^>]*>/g, ' ') : v;
 };
@@ -1725,7 +1730,7 @@ const searchText = (value, html) => {
    an offset into the *raw* value and the snippet re-found the match with `indexOf`,
    which returns the earliest occurrence rather than the one that was counted. A second
    hit was therefore shown with the first one's context. */
-function slotHits(value, needle, ci, html) {
+function slotHits(value: unknown, needle: string, ci: boolean, html: boolean): SlotHit {
   const text = searchText(value, html);
   const nq = ci ? needle.toLowerCase() : needle;
   if (!nq) return { n: 0, at: -1, text };
@@ -1738,7 +1743,7 @@ function slotHits(value, needle, ci, html) {
 /* A readable piece of `text` around the match. Whitespace is collapsed *after*
    slicing, never before — collapsing first would move the offset, which is the whole
    family of bug this replaced. */
-function snippet(text, at, len, pad = 26) {
+function snippet(text: unknown, at: number, len: number, pad = 26) {
   const t = String(text == null ? '' : text);
   const from = Math.max(0, at - pad);
   const to = Math.min(t.length, at + len + pad);
@@ -1752,7 +1757,7 @@ function searchAll(q: string | null, o: { caseSensitive?: boolean; cms?: boolean
   if (!needle) return [];
   const ci = !o.caseSensitive;
   const out: any[] = [];
-  const scan = (list, where, page, pageName) => eachNode(list, n => {
+  const scan = (list: PcNode[], where: string, page: number, pageName: string) => eachNode(list, (n: PcNode) => {
     textSlots(n).forEach(s => {
       const val = slotGet(n, s);
       const { n: hits, at, text } = slotHits(val, needle, ci, isHtmlSlot(s));
@@ -1765,7 +1770,7 @@ function searchAll(q: string | null, o: { caseSensitive?: boolean; cms?: boolean
   scan(state.header, 'header', -1, 'Global header');
   state.pages.forEach((p, i) => {
     PAGE_TEXT.forEach(([k, lb]) => {
-      const { n: hits, at, text } = slotHits(p[k], needle, ci, false);
+      const { n: hits, at, text } = slotHits((p as any)[k], needle, ci, false);
       if (hits) out.push({
         where: 'page', page: i, pageName: p.name, nodeId: '', type: 'meta',
         element: 'Page settings', field: lb, meta: k, hits, snippet: snippet(text, at, needle.length)
@@ -1796,7 +1801,7 @@ function searchAll(q: string | null, o: { caseSensitive?: boolean; cms?: boolean
   }));
   return out;
 }
-const searchCount = hits => hits.reduce((t, h) => t + h.hits, 0);
+const searchCount = (hits: { hits: number }[]) => hits.reduce((t, h) => t + h.hits, 0);
 
 /* Its own walk rather than a replay of a hit list: a list held across an edit is
    stale, and this is the one operation that must not act on a stale one. */
@@ -1806,14 +1811,14 @@ function replaceAll(q: string | null, to: string | null, o: { caseSensitive?: bo
   const ci = !o.caseSensitive;
   const rep = String(to == null ? '' : to);
   let done = 0;
-  const swap = text => {
+  const swap = (text: string) => {
     const h = ci ? text.toLowerCase() : text;
     const nq = ci ? needle.toLowerCase() : needle;
     let outStr = '', from = 0, i;
     while ((i = h.indexOf(nq, from)) >= 0) { outStr += text.slice(from, i) + rep; from = i + nq.length; done++; }
     return outStr + text.slice(from);
   };
-  const scan = list => eachNode(list, n => textSlots(n).forEach(s => {
+  const scan = (list: PcNode[]) => eachNode(list, (n: PcNode) => textSlots(n).forEach((s: Slot) => {
     const val = String(slotGet(n, s));
     slotSet(n, s, isHtmlSlot(s) ? outsideTags(val, swap) : swap(val));
   }));
@@ -1821,7 +1826,7 @@ function replaceAll(q: string | null, to: string | null, o: { caseSensitive?: bo
   state.pages.forEach(p => {
     /* a page's slug is deliberately left alone: it is a published URL, and moving one
        silently because a word changed is how links break */
-    PAGE_TEXT.forEach(([k]) => { if (typeof p[k] === 'string') p[k] = swap(p[k]); });
+    PAGE_TEXT.forEach(([k]) => { const q = p as any; if (typeof q[k] === 'string') q[k] = swap(q[k]); });
     scan(p.tree);
   });
   scan(state.footer);
@@ -1841,7 +1846,7 @@ function replaceAll(q: string | null, to: string | null, o: { caseSensitive?: bo
    regions. Classes and text styles travel as references — they are project
    level, so the pasted copy keeps following them. */
 const clip: { node: PcNode | null } = { node: null };
-function copyNode(id) {
+function copyNode(id: string) {
   const h = locate(id);
   if (!h) return false;
   clip.node = clone(h.node);
@@ -1849,14 +1854,18 @@ function copyNode(id) {
 }
 /* Paste inside the selection when it can hold one, else as its sibling, else
    wherever above it fits. Wrappers are created exactly as a drag would. */
-function pasteNode(intoId) {
+function pasteNode(intoId: string | null) {
   if (!clip.node) return null;
   return dropTree(reid(clone(clip.node)), intoId);
 }
 /* Place a detached subtree: inside the target when it can hold one, else as its
    sibling, else wherever above it fits — building wrappers as a drag would. */
-function dropTree(fresh, intoId) {
-  const place = (list, index, parentType) => {
+function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
+  /* A predicate: did it fit here? Every call site below reads it as one, and dropTree
+     returns `fresh` rather than anything place() hands back. Annotated as boolean
+     because that is what it means — the first pass typed it `PcNode | null` and then
+     changed the code to suit the annotation, which is backwards. */
+  const place = (list: PcNode[], index: number, parentType: string | null): boolean => {
     const pl = parentType === null ? 0 : lvl(parentType);
     const nested = parentType === 'column' && lvl(fresh.type) === 2;
     if (lvl(fresh.type) <= pl && !nested) return false;
@@ -1880,7 +1889,7 @@ function dropTree(fresh, intoId) {
    A block is a detached subtree kept on the project, so it travels with the
    project JSON and keeps following the classes and text styles it references. */
 const blocks = () => (state.meta.blocks || (state.meta.blocks = []));
-const findBlock = id => blocks().find(b => b.id === id) || null;
+const findBlock = (id: string) => blocks().find(b => b.id === id) || null;
 
 /* ---- content collections ------------------------------------------------
    A collection is a content type: a field schema plus the items that fill it.
@@ -1892,13 +1901,13 @@ const FIELD_TYPES = [
   ['number', 'Number'], ['date', 'Date'], ['option', 'Option'], ['bool', 'Yes / no']
 ];
 const collections = () => (state.meta.collections || (state.meta.collections = []));
-const findCollection = id => collections().find(c => c.id === id) || null;
-const findField = (col, fid) => (col ? (col.fields || []).find(f => f.id === fid) || null : null);
-const findItem = (col, iid) => (col ? (col.items || []).find(i => i.id === iid) || null : null);
+const findCollection = (id: string) => collections().find(c => c.id === id) || null;
+const findField = (col: Collection | null, fid: string) => (col ? (col.fields || []).find(f => f.id === fid) || null : null);
+const findItem = (col: Collection | null, iid: string) => (col ? (col.items || []).find(i => i.id === iid) || null : null);
 
 /* ids are slugs so they read in the binding UI and in exported paths; both are
    made unique against their own list rather than globally */
-const uniqueId = (base, taken) => {
+const uniqueId = (base: unknown, taken: string[]) => {
   const b = tokenId(base) || 'x';
   let id = b, k = 2;
   while (taken.includes(id)) id = b + '-' + k++;
@@ -1914,8 +1923,8 @@ function collectionAdd(name: string): any {
   collections().push(col);
   return col;
 }
-const collectionDelete = id => { state.meta.collections = collections().filter(c => c.id !== id); };
-function collectionRename(id, name) {
+const collectionDelete = (id: string) => { state.meta.collections = collections().filter(c => c.id !== id); };
+function collectionRename(id: string, name: string) {
   const col = findCollection(id); if (!col) return;
   col.name = String(name || col.name).slice(0, 40);
 }
@@ -1933,7 +1942,7 @@ function fieldAdd(colId: string, name: string, type: string): any {
 }
 /* Deleting a field drops its values too — an item cannot carry a value for a
    field the schema no longer has, or the next export would emit orphans. */
-function fieldDelete(colId, fid) {
+function fieldDelete(colId: string, fid: string) {
   const col = findCollection(colId); if (!col) return 0;
   if (col.fields.length <= 1) return 0;              // a collection needs one field
   col.fields = col.fields.filter(f => f.id !== fid);
@@ -1941,47 +1950,47 @@ function fieldDelete(colId, fid) {
   col.items.forEach(it => { if (fid in it.values) { delete it.values[fid]; cleared++; } });
   return cleared;
 }
-const swap = (list, i, dir) => {
+const swap = (list: any[], i: number, dir: number) => {
   const j = i + dir;
   if (i < 0 || j < 0 || j >= list.length) return false;
   [list[i], list[j]] = [list[j], list[i]];
   return true;
 };
-function fieldMove(colId, fid, dir) {
+function fieldMove(colId: string, fid: string, dir: number) {
   const col = findCollection(colId); if (!col) return false;
   return swap(col.fields, col.fields.findIndex(f => f.id === fid), dir);
 }
 
 /* The first text field is what names an item in lists and what its slug derives
    from — it is the closest thing a collection has to a title. */
-const titleField = col => (col && (col.fields || []).find(f => f.type === 'text')) || null;
-const itemTitle = (col, it) => {
+const titleField = (col: Collection | null) => (col && (col.fields || []).find(f => f.type === 'text')) || null;
+const itemTitle = (col: Collection, it: Item) => {
   const tf = titleField(col);
   return String((tf && it.values[tf.id]) || '').trim() || 'Untitled';
 };
-function itemSlug(col, it) {
+function itemSlug(col: Collection, it: Item) {
   const base = tokenId(itemTitle(col, it)) || 'item';
   const taken = col.items.filter(x => x.id !== it.id).map(x => x.slug);
   return uniqueId(base, taken);
 }
-function itemAdd(colId) {
+function itemAdd(colId: string) {
   const col = findCollection(colId); if (!col) return null;
   const it = { id: uid(), slug: '', values: {} };
   col.items.push(it);
   it.slug = itemSlug(col, it);
   return it;
 }
-const itemDelete = (colId, iid) => {
+const itemDelete = (colId: string, iid: string) => {
   const col = findCollection(colId); if (!col) return;
   col.items = col.items.filter(i => i.id !== iid);
 };
-function itemMove(colId, iid, dir) {
+function itemMove(colId: string, iid: string, dir: number) {
   const col = findCollection(colId); if (!col) return false;
   return swap(col.items, col.items.findIndex(i => i.id === iid), dir);
 }
 /* Writing the title re-derives the slug, but only while the author has not set
    one by hand — an item that is already published should not move on a typo fix. */
-function itemSet(colId, iid, fid, value) {
+function itemSet(colId: string, iid: string, fid: string, value: string) {
   const col = findCollection(colId); if (!col) return;
   const it = findItem(col, iid); if (!it) return;
   it.values[fid] = value;
@@ -1990,7 +1999,7 @@ function itemSet(colId, iid, fid, value) {
 }
 /* The items a Collection List renders, in order. Sorting on a number field
    compares numerically — sorting a year as text puts 100 before 99. */
-function listItems(n, col) {
+function listItems(n: PcNode, col: Collection) {
   let out = (col.items || []).slice();
   const f = n.props.sort ? findField(col, n.props.sort) : null;
   if (f) out.sort((a, b) => {
@@ -2008,7 +2017,7 @@ function listItems(n, col) {
    detail page of whichever item is being rendered, and a page that sits in a
    folder has to climb back out to reach a sibling. Anything already absolute —
    a scheme, a protocol-relative or rooted path, a bare fragment — is left alone. */
-function pageHref(link, o) {
+function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   let v = String(link || '');
   if (v === 'cms:item') {
     if (!o || !o.col || !o.item) return '';
@@ -2043,7 +2052,7 @@ function exportTargets() {
    project exports the same bytes, so it diffs cleanly and re-imports predictably.
    Image values resolve to the `assets/…` path the HTML uses, and every item that
    has a detail page carries its URL, so a consumer needs nothing but this file. */
-function contentJson(imgPath = v => (v == null ? '' : String(v))) {
+function contentJson(imgPath: (v: unknown) => string = v => (v == null ? '' : String(v))) {
   const urlOf: Record<string, string> = {};
   for (const t of exportTargets()) if (t.item) urlOf[t.col.id + '|' + t.item.id] = t.path;
   return JSON.stringify({
@@ -2084,7 +2093,7 @@ function sitePlan(): any[] {
    could supply for one, so they are not offered — before this, Nav links and
    form fields wore a bind badge that could only ever write a string over an array. */
 const COLL_CTL = ['items', 'fields', 'qa', 'imgs'];
-const bindableKeys = type => {
+const bindableKeys = (type: string) => {
   const c = (DEF[type] || {}).controls || {};
   /* content props only: a text style is a design choice, not content */
   return (c.content || []).filter(x => x.k && x.k !== 'ts' && !COLL_CTL.includes(x.t)).map(x => x.k);
@@ -2102,7 +2111,7 @@ const bindableKeys = type => {
    per-control badge still reaches those; the sheet stays on what content means. */
 const BIND_CTL = ['text', 'area', 'rich', 'img', 'link'];
 
-function bindSlots(rootId) {
+function bindSlots(rootId: string) {
   const h = locate(rootId);
   if (!h) return [];
   const out: any[] = [];
@@ -2124,14 +2133,14 @@ function bindSlots(rootId) {
    a card's heading reached the "Read more" link field before the button did, and the
    button is obviously what that field is for. A field is consumed once used, or two
    headings both take the title and the second one is wrong. */
-function guessBindings(slots, col) {
+function guessBindings(slots: any[], col: Collection | null) {
   if (!col) return {};
   const out: Record<string, string> = {};
   const left = col.fields.slice();
-  const key = s => s.nodeId + '|' + s.key;
-  const take = (s, f) => { out[key(s)] = f.id; left.splice(left.indexOf(f), 1); };
-  const free = s => !(key(s) in out);
-  const byType = t => left.find(f => f.type === t);
+  const key = (s: any) => s.nodeId + '|' + s.key;
+  const take = (s: any, f: Field) => { out[key(s)] = f.id; left.splice(left.indexOf(f), 1); };
+  const free = (s: any) => !(key(s) in out);
+  const byType = (t: string) => left.find((f: Field) => f.type === t);
   const title = titleField(col);
 
   /* an existing binding is a decision already made, and is never guessed over */
@@ -2144,9 +2153,9 @@ function guessBindings(slots, col) {
   });
   /* 2. the shape of the control, most-certain first, one slot each */
   const first = (pred: any) => slots.filter(free).find(pred);
-  const rules = [
+  const rules: [(s: any) => boolean, () => Field | undefined | null][] = [
     [s => s.key === 'src', () => byType('image')],
-    [s => s.key === 'text' && s.type === 'heading', () => (left.includes(title) ? title : null)],
+    [s => s.key === 'text' && s.type === 'heading', () => (title && left.includes(title) ? title : null)],
     [s => s.key === 'html', () => byType('rich') || left.find(f => f.type === 'text' && f !== title)],
     [s => s.key === 'link' && s.type === 'button', () => byType('link')],
     [s => s.key === 'text' && s.type === 'button', () => left.find(f => f.type === 'text' && f !== title)]
@@ -2163,7 +2172,7 @@ function guessBindings(slots, col) {
 }
 
 /* Write a whole map back. Returns how many bindings changed, so the toast can say. */
-function applyBindings(map) {
+function applyBindings(map: Record<string, string> | null) {
   let n = 0;
   Object.entries(map || {}).forEach(([k, fieldId]) => {
     const i = k.lastIndexOf('|');
@@ -2177,8 +2186,8 @@ function applyBindings(map) {
   return n;
 }
 
-const bindGet = (n, key) => (n.bind || {})[key] || '';
-function bindSet(n, key, fieldId) {
+const bindGet = (n: PcNode, key: string) => (n.bind || {})[key] || '';
+function bindSet(n: PcNode, key: string, fieldId: string) {
   if (!fieldId) {
     if (n.bind) { delete n.bind[key]; if (!Object.keys(n.bind).length) delete n.bind; }
     return;
@@ -2186,11 +2195,11 @@ function bindSet(n, key, fieldId) {
   n.bind = n.bind || {};
   n.bind[key] = fieldId;
 }
-function srcSet(n, colId) {
+function srcSet(n: PcNode, colId: string) {
   if (colId && findCollection(colId)) n.src = colId; else delete n.src;
 }
 /* the nearest source above this node, itself included */
-function bindScope(id) {
+function bindScope(id: string): { node: PcNode | null; col: Collection } | null {
   let h = locate(id);
   while (h) {
     const col = h.node.src ? findCollection(h.node.src) : null;
@@ -2198,16 +2207,16 @@ function bindScope(id) {
     h = h.parent ? locate(h.parent.id) : null;
   }
   /* a detail template makes the whole page the scope, with no `src` node at all */
-  const pc = page().collection ? findCollection(page().collection) : null;
+  const pc = page().collection ? findCollection(page().collection as string) : null;
   return pc ? { node: null, col: pc } : null;
 }
 /* which item the canvas is previewing, per collection */
-const previewIndex = colId => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
-function previewItem(col) {
+const previewIndex = (colId: string) => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
+function previewItem(col: Collection | null) {
   if (!col || !col.items.length) return null;
   return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
-const fieldValue = (col, item, fid) => {
+const fieldValue = (col: Collection | null, item: Item | null, fid: string) => {
   if (!col || !item || !findField(col, fid)) return '';
   const v = item.values[fid];
   return v == null ? '' : v;
@@ -2216,25 +2225,25 @@ const fieldValue = (col, item, fid) => {
    empty — the canvas should show what the export will, not a placeholder that
    quietly disappears at build time. Returns the identity object when nothing is
    bound, so an unbound tree costs nothing to render. */
-function boundProps(n, col, item) {
+function boundProps(n: PcNode, col: Collection | null, item: Item | null) {
   if (!n.bind || !col || !item) return n.props;
   const out = { ...n.props };
   for (const [k, fid] of Object.entries(n.bind)) out[k] = fieldValue(col, item, fid);
   return out;
 }
 
-function itemSetSlug(colId, iid, slug) {
+function itemSetSlug(colId: string, iid: string, slug: string) {
   const col = findCollection(colId); if (!col) return;
   const it = findItem(col, iid); if (!it) return;
   it.slugLocked = 1;
   it.slug = uniqueId(slug || itemTitle(col, it), col.items.filter(x => x.id !== it.id).map(x => x.slug));
 }
-const blockRootType = id => { const b = findBlock(id); return b ? b.node.type : null; };
+const blockRootType = (id: string) => { const b = findBlock(id); return b ? b.node.type : null; };
 /* A block is saved content. A **global** block additionally tags every copy it
    places with `adv.block`, which is what lets one copy push its content back to
    the block and out to the others. Copies are still real nodes with their own ids —
    nothing about this reaches the export, which only reads `adv.htmlId/cls/css`. */
-function blockSave(nodeId, name, sync) {
+function blockSave(nodeId: string, name: string, sync?: boolean | 0 | 1) {
   const h = locate(nodeId);
   if (!h) return null;
   const base = tokenId(name) || 'block';
@@ -2246,9 +2255,9 @@ function blockSave(nodeId, name, sync) {
   return id;
 }
 /* Every placed copy of a global block, across every page and both global regions. */
-function blockInstances(id) {
+function blockInstances(id: string) {
   const out: any[] = [];
-  const scan = (list, where) => eachNode(list, n => {
+  const scan = (list: PcNode[], where: string) => eachNode(list, (n: PcNode) => {
     if (n.adv && n.adv.block === id) out.push({ node: n, where });
   });
   scan(state.header, 'header');
@@ -2256,11 +2265,11 @@ function blockInstances(id) {
   state.pages.forEach((p, i) => scan(p.tree, 'page:' + i));
   return out;
 }
-const blockUsage = id => blockInstances(id).length;
+const blockUsage = (id: string) => blockInstances(id).length;
 /* Takes the content of one copy and makes it the block, then brings every other
    copy into line. Each keeps its own node id and its own link, so selections and
    styling hooks survive; only the content beneath is replaced. */
-function blockPush(nodeId) {
+function blockPush(nodeId: string) {
   const h = locate(nodeId);
   if (!h || !h.node.adv || !h.node.adv.block) return 0;
   const b = findBlock(h.node.adv.block);
@@ -2283,7 +2292,7 @@ function blockPush(nodeId) {
   }
   return n;
 }
-function blockInsert(id, parentNode, index) {
+function blockInsert(id: string, parentNode: PcNode | null, index: number) {
   const b = findBlock(id);
   if (!b) return null;
   const fresh = reid(clone(b.node));
@@ -2300,7 +2309,7 @@ const blockDelete = (id: string) => { state.meta.blocks = blocks().filter(b => b
 
 /* Arrow-key traversal of the tree as it reads on screen */
 const flatten = (list: any[], out: any[] = []): any[] => { list.forEach(n => { out.push(n); flatten(n.children || [], out); }); return out; };
-function step(id, dir) {
+function step(id: string | null, dir: number) {
   const flat = flatten(tree());
   if (!flat.length) return null;
   if (!id) return flat[0].id;
@@ -2309,10 +2318,10 @@ function step(id, dir) {
   const j = Math.max(0, Math.min(flat.length - 1, i + dir));
   return flat[j].id;
 }
-const parentOf = id => { const h = locate(id); return h && h.parent ? h.parent.id : null; };
-const firstChildOf = id => { const h = locate(id); return h && h.node.children && h.node.children.length ? h.node.children[0].id : null; };
+const parentOf = (id: string) => { const h = locate(id); return h && h.parent ? h.parent.id : null; };
+const firstChildOf = (id: string) => { const h = locate(id); return h && h.node.children && h.node.children.length ? h.node.children[0].id : null; };
 /* move a node among its siblings */
-function nudge(id, dir) {
+function nudge(id: string, dir: number) {
   const h = locate(id);
   if (!h) return false;
   const j = h.i + dir;
@@ -2324,7 +2333,7 @@ function nudge(id, dir) {
    nearest the destination first so a swap cannot land on one that has yet to
    move. A neighbour already in the set is skipped — those two would only trade
    places, leaving the set exactly where it started. */
-function nudgeMany(ids, dir) {
+function nudgeMany(ids: string[], dir: number) {
   const set = new Set(ids);
   const order = selOrder(topMost(ids));
   let moved = 0;
@@ -2343,7 +2352,7 @@ function nudgeMany(ids, dir) {
 
 /* ---- schema migration ------------------------------------------------ */
 const SCHEMA = 7;                       // bump when the stored shape changes
-function migrate(d) {
+function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
   if (v > SCHEMA) return null;          // written by a newer build — refuse rather than corrupt
@@ -2368,7 +2377,7 @@ function migrate(d) {
      shipped with the defaults; anything else simply has none. */
   if (v < 5) {
     const TAGS = { display: 'h1', title: 'h2', subtitle: 'h3', lead: 'p', body: 'p', small: 'p', eyebrow: 'div' };
-    ((d.meta.tokens || {}).text || []).forEach(t => { if (!t.tag && TAGS[t.id]) t.tag = TAGS[t.id]; });
+    (((d.meta.tokens || {}).text as any[]) || []).forEach((t: any) => { const tg = TAGS as Record<string, string>; if (!t.tag && tg[t.id]) t.tag = tg[t.id]; });
   }
   /* v5 → v6: saved blocks live on the project */
   if (v < 6) {
@@ -2392,7 +2401,7 @@ function migrate(d) {
    colour tokens and text styles, so a pattern arrives already on-brand.      */
 /* Previews are drawn, not shipped: an inline wireframe stays self-contained,
    scales, and reads in either theme. */
-const PV = body => `<svg class="pvw" viewBox="0 0 96 58" aria-hidden="true">${body}</svg>`;
+const PV = (body: string) => `<svg class="pvw" viewBox="0 0 96 58" aria-hidden="true">${body}</svg>`;
 const pb = (x: number, y: number, w: number, h: number, r?: number) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r || 1.5}" class="pv-b"/>`;
 const pl = (x: number, y: number, w: number) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
 const pg = (x: number, y: number, w?: number) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
@@ -2577,7 +2586,7 @@ const PATTERNS = [
     name: 'Alternating rows', desc: 'Two feature rows with the image sides swapped.',
     build: () => {
       const shot = () => N('image', { src: '', alt: '' }, { d: { 'border-radius': '16px', height: '260px', 'object-fit': 'cover' }, m: { height: '200px' } });
-      const copy = i => [
+      const copy = (i: number) => [
         T_H('Feature ' + i, 'title', { d: { 'margin-bottom': '12px' } }),
         T_T('<p>Two sentences on what this does.</p>', 'lead')
       ];
@@ -2720,7 +2729,7 @@ const PATTERNS = [
     ])
   }
 ];
-function patternInsert(pid, parentNode, index) {
+function patternInsert(pid: string, parentNode: PcNode | null, index: number) {
   const p = PATTERNS.find(x => x.id === pid);
   if (!p) return null;
   const node = p.build();
@@ -2740,10 +2749,10 @@ function patternInsert(pid, parentNode, index) {
    which is H2 — so every template used to render a flat run of H2s with no H1 at
    all. Deriving the tag from the text style fixes the whole library at once;
    pass `level` where a particular outline needs something else. */
-const TS_LEVEL = { display: 'h1', title: 'h2', subtitle: 'h3', eyebrow: 'div' };
+const TS_LEVEL: Record<string, string> = { display: 'h1', title: 'h2', subtitle: 'h3', eyebrow: 'div' };
 const T_H = (text: string, ts: string, css?: any, level?: string) => N('heading', { text, ts, level: level || TS_LEVEL[ts] || 'h3' }, css);
 const T_T = (html: string, ts: string, css?: any) => N('text', { html, ts }, css);
-const T_SEC = (css?: any, kids?: any, m?: any) => N('section', {}, { d: { ...BOX('88px', '28px', '88px', '28px'), ...(css || {}) }, m: { ...BOX('56px', '20px', '56px', '20px') } }, kids);
+const T_SEC = (css?: any, kids?: any) => N('section', {}, { d: { ...BOX('88px', '28px', '88px', '28px'), ...(css || {}) }, m: { ...BOX('56px', '20px', '56px', '20px') } }, kids);
 /* Green is for action, so it belongs on the primary button and nowhere else in
    a pattern; anything secondary takes the outline treatment. */
 const T_B = (text: string, css?: any) => N('button', { text, ts: 'btn' },
@@ -2908,7 +2917,7 @@ const TEMPLATES = [
   {
     id: 'work', name: 'Work', desc: 'A grid of projects with room for captions.',
     build: () => {
-      const card = i => [
+      const card = (i: number) => [
         N('image', { src: '', alt: '' }, { d: { 'border-radius': '14px', height: '220px', 'object-fit': 'cover', 'margin-bottom': '14px' }, m: { height: '180px' } }),
         T_H('Project ' + i, 'subtitle', { d: { 'margin-bottom': '6px' } }, 'h2'),
         T_T('<p>Client · what you did · the year</p>', 'small')
@@ -3084,7 +3093,7 @@ function pageFromTemplate(tid: string, name?: string): any {
    just asked to be empty. So the schemas stay and the items go.
 
    It runs inside edit(), so Cmd-Z brings the whole previous project back. */
-function blankProject(name) {
+function blankProject(name: string) {
   state.meta.name = String(name || '').trim().slice(0, 60) || 'Untitled site';
   /* the global regions still exist, they are simply empty — structure, not content:
      an empty one renders as nothing while staying there to be filled */
@@ -3113,8 +3122,8 @@ function seed() {
     level: ts === 'display' ? 'h1' : ts === 'title' ? 'h2' : ts === 'eyebrow' ? 'div' : 'h3'
   }, css);
   const T = (html: string, ts: string, css?: any) => N('text', { html, ts }, css);
-  const B = (text, o = {}, css = {}) => N('button', { text, ts: 'btn', ...o }, css);
-  const cell = (w) => N('column', {}, { d: { 'flex-grow': String(w), 'flex-basis': 'auto' }, m: { 'flex-basis': 'auto' } });
+  const B = (text: string, o: any = {}, css: any = {}) => N('button', { text, ts: 'btn', ...o }, css);
+  const cell = (w: number) => N('column', {}, { d: { 'flex-grow': String(w), 'flex-basis': 'auto' }, m: { 'flex-basis': 'auto' } });
 
   state.header = [
     N('section', { tag: 'header' }, {
@@ -3248,7 +3257,7 @@ const PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
 
 const MQ = { t: '@media (max-width:1024px)', m: '@media (max-width:767px)' };
 
-function decl(map) {
+function decl(map: Decls) {
   let out = '';
   for (const k in map) {
     const v = map[k];
@@ -3260,14 +3269,14 @@ function decl(map) {
 /* Everything Pagecraft emits is namespaced. The per-element class is what the
    generated stylesheet targets; the id is for anchors and can be overridden. */
 const PFX = 'pagecraft-';
-const widgetSlug = type => slugify((DEF[type] && DEF[type].label) || type);
-const nodeClass = n => PFX + String(n.id).replace(/^n/, '');
-const autoId = n => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, '')}`;
-const domIdOf = n => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);
-const selOf = n => '.' + nodeClass(n);
+const widgetSlug = (type: string) => slugify((DEF[type] && DEF[type].label) || type);
+const nodeClass = (n: PcNode) => PFX + String(n.id).replace(/^n/, '');
+const autoId = (n: PcNode) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, '')}`;
+const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);
+const selOf = (n: PcNode) => '.' + nodeClass(n);
 
 /* per-node CSS for one breakpoint bucket */
-function bucket(n, b, editing) {
+function bucket(n: PcNode, b: Bp, editing: boolean) {
   const map = n.css[b] || {};
   let extra = '';
   if (n.hide && n.hide[b]) extra = editing ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;' : 'display:none !important;';
@@ -3283,14 +3292,14 @@ function bucket(n, b, editing) {
 }
 
 /* a burger menu is just "the inline list stops being inline below X" */
-const navCollapse = n => `${selOf(n)} .pagecraft-nav-toggle{display:flex}`
+const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}`
   + `${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;`
   + `flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;`
   + `background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}`
   + `${selOf(n)}.is-open .pagecraft-nav-list{display:flex}`
   + `${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`;
 
-function nodeCss(n, editing, acc) {
+function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string }) {
   acc.d += bucket(n, 'd', editing);
   if (n.type === 'nav') {
     const c = n.props.collapse;
@@ -3304,7 +3313,7 @@ function nodeCss(n, editing, acc) {
   return acc;
 }
 /* one stylesheet for a set of trees: base + all desktop rules + two media blocks */
-function treeCss(lists, editing) {
+function treeCss(lists: PcNode[][], editing: boolean) {
   const acc = { d: '', t: '', m: '' };
   lists.forEach(l => l.forEach(n => nodeCss(n, editing, acc)));
   const tk = tokenCss();
@@ -3329,7 +3338,7 @@ function treeCss(lists, editing) {
        `outline` alone leaves any author box-shadow intact.
      · the reduced-motion query closes the sheet, after `meta.css`, so a visitor's
        system preference outranks the project's own rules. */
-function baseCss(editing) {
+function baseCss(editing: boolean) {
   const m = state.meta;
   return `
 ${tokenVars()}
@@ -3616,7 +3625,7 @@ ${m.css || ''}
 
 /* --------------------------------------------------------- node markup */
 /* One place that understands a video URL, used by both the embed and the facade */
-function vidSrc(p) {
+function vidSrc(p: any) {
   const src = String(p.src || '').trim();
   let m = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{6,})/);
   if (m) return { kind: 'youtube', id: m[1] };
@@ -3627,7 +3636,7 @@ function vidSrc(p) {
 }
 /* Poster for a click-to-play facade. YouTube publishes a predictable still;
    Vimeo needs an API call, so it falls back to whatever the author supplied. */
-function vidPoster(p) {
+function vidPoster(p: any) {
   if (p.poster) return p.poster;
   const v = vidSrc(p);
   return v.kind === 'youtube' ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : '';
@@ -3644,9 +3653,9 @@ const embedUrl = (p: any) => {
   return v.id;
 };
 /* A facade keeps the player's ~600KB off the page until someone clicks it. */
-const canFacade = p => p.facade && !p.autoplay && ['youtube', 'vimeo'].includes(vidSrc(p).kind);
+const canFacade = (p: any) => p.facade && !p.autoplay && ['youtube', 'vimeo'].includes(vidSrc(p).kind);
 
-function vid(p) {
+function vid(p: any) {
   const src = String(p.src || '').trim();
   const q: string[] = [];
   if (p.autoplay) q.push('autoplay=1');
@@ -3666,7 +3675,7 @@ function vid(p) {
 /* Plain multi-line text to paragraphs: a blank line starts one, a single
    newline is a break. The same shape a WYSIWYG would produce by hand, without
    handing an accordion answer a rich-text surface it has nowhere to put. */
-function para(str) {
+function para(str: unknown) {
   const t = String(str == null ? '' : str).replace(/\r\n?/g, '\n').trim();
   if (!t) return '';
   return t.split(/\n{2,}/).map(b => `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('');
@@ -3678,7 +3687,7 @@ function para(str) {
    loader would execute on every repaint, once per keystroke. Both forms go: the
    `<script>` element and the inline `on*` handler. Returns how many it held back,
    because an embed that renders as nothing needs to say why. */
-function stripScripts(html) {
+function stripScripts(html: unknown) {
   let stripped = 0;
   const out = String(html == null ? '' : html)
     .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => { stripped++; return ''; })
@@ -3687,15 +3696,15 @@ function stripScripts(html) {
   return { html: out, stripped };
 }
 
-const BICON = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
+const BICON: Record<string, string> = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
 const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'aside', 'nav'];
 
-function renderNode(n, o) {
+function renderNode(n: PcNode, o: RenderOpts): string {
   const d = DEF[n.type];
   if (!d) return '';
   const ts = n.props.ts && findStyle(n.props.ts) ? ' ts-' + n.props.ts : '';
   const managed = nodeClasses(n).map(c => ' c-' + c.id).join('');
-  const cx = c => `class="${c} ${nodeClass(n)}${ts}${managed}${n.adv && n.adv.cls ? ' ' + esc(n.adv.cls) : ''}"`;
+  const cx = (c: string) => `class="${c} ${nodeClass(n)}${ts}${managed}${n.adv && n.adv.cls ? ' ' + esc(n.adv.cls) : ''}"`;
   /* The editor addresses elements by node id; the export uses the readable one.
      A repeat is the same node rendered many times, so both need a per-item suffix
      or every card in a Collection List ships the same id — invalid markup, and it
@@ -3713,7 +3722,7 @@ function renderNode(n, o) {
   const sc = n.src ? findCollection(n.src) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
   const kids = n.type === 'list' ? '' : (n.children || []).map(c => renderNode(c, o2)).join('');
-  const p = boundProps(n, o2.col, o2.item);
+  const p = boundProps(n, o2.col || null, o2.item || null);
 
   switch (n.type) {
     case 'section': {
@@ -3792,7 +3801,7 @@ function renderNode(n, o) {
     }
     case 'form': {
       const fields = Array.isArray(p.fields) ? p.fields : [];
-      const fid = (i) => domId + '-f' + i;
+      const fid = (i: number) => domId + '-f' + i;
       const body = fields.map((f, i) => {
         const name = esc(f.name || slugify(f.label) || 'field-' + (i + 1));
         const req = f.required ? ' required' : '';
@@ -3890,7 +3899,7 @@ function renderNode(n, o) {
   return '';
 }
 
-const renderList = (list, o) => list.map(n => renderNode(n, o)).join('');
+const renderList = (list: PcNode[], o: RenderOpts) => list.map(n => renderNode(n, o)).join('');
 
 
 /* ============================================================== presets */
@@ -3909,19 +3918,19 @@ const LAYOUTS = {
 const COUNTS = Object.keys(LAYOUTS).map(Number);
 const DEFAULT_COLS = 2;                       // what a fresh Columns drop gives you
 /* `columns` is a palette key, not a node type — it builds a row of columns */
-const BASE = { columns: 'row' };
-const labelOf = k => k === 'columns' ? 'Columns' : DEF[k].label;
-const iconOf = k => k === 'columns' ? 'columns' : DEF[k].icon;
-function makeFor(key) {
+const BASE: Record<string, string> = { columns: 'row' };
+const labelOf = (k: string) => k === 'columns' ? 'Columns' : DEF[k].label;
+const iconOf = (k: string) => k === 'columns' ? 'columns' : DEF[k].icon;
+function makeFor(key: string) {
   if (key !== 'columns') return N(key);
   return N('row', {}, {}, LAYOUTS[DEFAULT_COLS][0].map(w =>
     N('column', {}, { d: { 'flex-grow': String(+w.toFixed(4)) } })));
 }
 /* which layout, if any, the row currently matches */
-const rowRatios = row => (row.children || []).map(c => parseFloat((c.css.d || {})['flex-grow']) || 0);
-function matchLayout(row) {
-  const cur = rowRatios(row), list = LAYOUTS[cur.length] || [];
-  const i = list.findIndex(l => l.every((w, k) => Math.abs(w - cur[k]) < 0.51));
+const rowRatios = (row: PcNode) => (row.children || []).map(c => parseFloat((c.css.d || {})['flex-grow']) || 0);
+function matchLayout(row: PcNode) {
+  const cur = rowRatios(row), list = (LAYOUTS as Record<number, number[][]>)[cur.length] || [];
+  const i = list.findIndex((l: number[]) => l.every((w: number, k: number) => Math.abs(w - cur[k]) < 0.51));
   return i < 0 ? null : i;
 }
 
@@ -4022,7 +4031,7 @@ at=i;show();dlg.showModal();
 <\/script>
 `;
 
-const tidy = css => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n').replace(/^\s+|\s+$/g, '');
+const tidy = (css: string) => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n').replace(/^\s+|\s+$/g, '');
 
 /* `ctx` carries the item a detail page stands for, and `rel` — how far this file
    sits from the root. Both reach every link and every asset path through the
@@ -4034,7 +4043,7 @@ function buildPage(pg: Page, ctx: { col?: Collection | null; item?: Item | null;
   const body = renderList(state.header, o) + renderList(pg.tree, o) + renderList(state.footer, o);
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
-  const abs = u => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
+  const abs = (u: string) => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
   const canon = base ? `${base}/${pg.slug}.html` : '';
   const ogImg = abs(pg.ogImage || m.ogImage || '');
   return `<!doctype html>
@@ -4059,5 +4068,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleDelete, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

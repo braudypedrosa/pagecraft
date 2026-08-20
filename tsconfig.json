@@ -11,10 +11,10 @@
     "strict": true,
     /* Off for the port: the core carries inferred types for now. Turning this on is
        step 1 of tightening, done a function at a time with the suite green. */
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noUncheckedIndexedAccess": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": false,
 

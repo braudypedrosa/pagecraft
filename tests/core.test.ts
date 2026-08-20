@@ -6,25 +6,64 @@
 import { test, beforeEach } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
+import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field, Item } from '../app/src/core/types';
+
+/* The core's finders return `T | null` because in the running app a stale id is a
+   real possibility worth handling. In a test the id always comes from something the
+   test just made, so a null is a broken fixture rather than a case to cover. These
+   say that once instead of two hundred `!`s, and they throw naming what was missing —
+   a broken fixture then fails as "no node abc" rather than as a TypeError three
+   assertions further down. */
+function must<T>(x: T | null | undefined, what: string): T {
+  if (x == null) throw new Error(`test fixture: no ${what}`);
+  return x;
+}
+const at = (id: string): Handle => must(C.locate(id), `node ${id}`);
+const color = (id: string) => must(C.findColor(id), `colour ${id}`);
+const style = (id: string) => must(C.findStyle(id), `text style ${id}`);
+const klass = (id: string) => must(C.findClass(id), `class ${id}`);
+/* `Handle.parent` is null for a level-1 node, which is correct — but a test asking
+   for the parent has just put the node inside something. */
+const holderOf = (id: string) => must(at(id).parent, `parent of ${id}`);
+/* These core calls return null when the operation is refused — a real outcome the
+   app handles and a few tests below assert. A test that goes on to *use* the result
+   is asserting it succeeded, so it says so here once rather than at every property
+   access. The parameter lists come from the core, so they cannot drift out of step.
+   The tests that check a refusal call C.* directly, and are the reason these are
+   wrappers rather than a change to the core's return types. */
+const insert = (...a: Parameters<typeof C.insert>) => must(C.insert(...a), 'insert');
+const paste = (...a: Parameters<typeof C.pasteNode>) => must(C.pasteNode(...a), 'pasteNode');
+const blockInsert = (...a: Parameters<typeof C.blockInsert>) => must(C.blockInsert(...a), 'blockInsert');
+const itemAdd = (...a: Parameters<typeof C.itemAdd>) => must(C.itemAdd(...a), 'itemAdd');
+const collectionAdd = (...a: Parameters<typeof C.collectionAdd>) => must(C.collectionAdd(...a), 'collectionAdd');
+const pageFromTemplate = (...a: Parameters<typeof C.pageFromTemplate>) => must(C.pageFromTemplate(...a), 'pageFromTemplate');
+const patternInsert = (...a: Parameters<typeof C.patternInsert>) => must(C.patternInsert(...a), 'patternInsert');
+const resizeCols = (...a: Parameters<typeof C.resizeCols>) => must(C.resizeCols(...a), 'resizeCols');
+const layerTarget = (...a: Parameters<typeof C.layerTarget>) => must(C.layerTarget(...a), 'layerTarget');
+const bindScope = (...a: Parameters<typeof C.bindScope>) => must(C.bindScope(...a), 'bindScope');
+const coll = (...a: Parameters<typeof C.findCollection>) => must(C.findCollection(...a), 'findCollection');
+const block = (...a: Parameters<typeof C.findBlock>) => must(C.findBlock(...a), 'findBlock');
+const blockSave = (...a: Parameters<typeof C.blockSave>) => must(C.blockSave(...a), 'blockSave');
+const pageMove = (...a: Parameters<typeof C.pageMove>) => must(C.pageMove(...a), 'pageMove');
 
 const fresh = () => {
   C.seed();
-  C.state.ui = { mode: 'page', dev: 'desktop', sel: null, multi: [], tab: 'add', stab: 'content', open: {}, collapsed: {} };
+  C.state.ui = C.initUi();
   C.state.cur = 0;
   C.hist.u.length = 0; C.hist.r.length = 0;
 };
 const blank = () => {
   fresh();
   C.state.pages[0].tree = []; C.state.header = []; C.state.footer = [];
-  C.state.meta.tokens.classes = [];
+  C.ensureTokens().classes = [];
   /* seed() leaves project-level libraries alone — blocks and collections are
      assets, not page content — so a test that wants a clean slate says so */
   C.state.meta.blocks = [];
   C.state.meta.collections = [];
 };
-const types = l => l.map(n => n.type);
+const types = (l: PcNode[]) => l.map(n => n.type);
 /* the two media blocks, either of which may be absent when nothing overrides */
-const blocks = css => {
+const blocks = (css: string) => {
   const t = css.indexOf(C.MQ.t), m = css.indexOf(C.MQ.m);
   return {
     base: css.slice(0, t < 0 ? (m < 0 ? undefined : m) : t),
@@ -32,7 +71,7 @@ const blocks = css => {
     mobile: m < 0 ? '' : css.slice(m)
   };
 };
-const count = (list, type) => { let n = 0; C.eachNode(list, x => { if (x.type === type) n++; }); return n; };
+const count = (list: PcNode[], type: string) => { let n = 0; C.eachNode(list, x => { if (x.type === type) n++; }); return n; };
 
 beforeEach(fresh);
 
@@ -49,7 +88,7 @@ test('holds() encodes the Section > Row > Column > content hierarchy', () => {
 
 test('dropping a leaf at the root builds the missing wrappers', () => {
   blank();
-  const leaf = C.insert('heading', null, 0);
+  const leaf = insert('heading', null, 0);
   const t = C.state.pages[0].tree;
   a.equal(t.length, 1);
   a.equal(t[0].type, 'section');
@@ -60,9 +99,9 @@ test('dropping a leaf at the root builds the missing wrappers', () => {
 
 test('a row dropped in a column nests instead of wrapping', () => {
   blank();
-  C.insert('heading', null, 0);
+  insert('heading', null, 0);
   const col = C.state.pages[0].tree[0].children[0].children[0];
-  C.insert('row', col, 1);
+  insert('row', col, 1);
   a.deepEqual(types(col.children), ['heading', 'row']);
 });
 
@@ -90,8 +129,8 @@ test('changing the column count expands and contracts without losing content', (
 
 test('every layout adds up to a full row and matches its own count', () => {
   C.COUNTS.forEach(k => {
-    a.ok(C.LAYOUTS[k].length, k + ' has at least one layout');
-    C.LAYOUTS[k].forEach(l => {
+    a.ok(C.LAYOUTS[k as keyof typeof C.LAYOUTS].length, k + ' has at least one layout');
+    C.LAYOUTS[k as keyof typeof C.LAYOUTS].forEach((l: number[]) => {
       a.equal(l.length, k, 'a ' + k + '-column layout lists ' + k + ' widths');
       a.ok(Math.abs(l.reduce((t, w) => t + w, 0) - 100) < 0.51, l.join('/') + ' sums to 100');
     });
@@ -112,21 +151,21 @@ test('matchLayout identifies the active split, or none after a manual tweak', ()
 
 test('Columns drops as a row, and nests inside a column', () => {
   blank();
-  C.insert('columns', null, 0);
+  insert('columns', null, 0);
   const sec = C.state.pages[0].tree[0];
   a.equal(sec.type, 'section');
   a.equal(sec.children[0].type, 'row', 'a Columns drop at the root gets a section wrapper');
   a.equal(sec.children[0].children.length, C.DEFAULT_COLS);
   a.equal(C.holds('column', 'columns'), true, 'and may nest inside a column');
   const col = sec.children[0].children[0];
-  C.insert('columns', col, 0);
+  insert('columns', col, 0);
   a.equal(col.children[0].type, 'row');
 });
 
 /* ------------------------------------------------------- tree operations */
 test('moveNode refuses to nest a node inside itself', () => {
   blank();
-  C.insert('heading', null, 0);
+  insert('heading', null, 0);
   const sec = C.state.pages[0].tree[0];
   const col = sec.children[0].children[0];
   C.moveNode(sec.id, col, 0);
@@ -136,13 +175,13 @@ test('moveNode refuses to nest a node inside itself', () => {
 
 test('duplicate assigns fresh ids to every descendant', () => {
   blank();
-  C.insert('heading', null, 0);
+  insert('heading', null, 0);
   const sec = C.state.pages[0].tree[0];
-  const before = [];
+  const before: string[] = [];
   C.eachNode([sec], n => before.push(n.id));
   C.dupNode(sec.id);
   const copy = C.state.pages[0].tree[1];
-  const after = [];
+  const after: string[] = [];
   C.eachNode([copy], n => after.push(n.id));
   a.equal(after.length, before.length);
   a.equal(after.some(id => before.includes(id)), false, 'no id is reused');
@@ -151,8 +190,8 @@ test('duplicate assigns fresh ids to every descendant', () => {
 
 test('delete selects the parent so focus never disappears', () => {
   blank();
-  const leaf = C.insert('heading', null, 0);
-  const col = C.locate(leaf.id).parent;
+  const leaf = insert('heading', null, 0);
+  const col = holderOf(leaf.id);
   C.state.ui.sel = leaf.id;
   C.delNode(leaf.id);
   a.equal(C.state.ui.sel, col.id);
@@ -161,16 +200,16 @@ test('delete selects the parent so focus never disappears', () => {
 
 test('locate finds nodes at any depth and returns their position', () => {
   const deep = C.state.pages[0].tree[0].children[0].children[0].children[0];
-  const hit = C.locate(deep.id);
+  const hit = at(deep.id);
   a.equal(hit.node.id, deep.id);
   a.equal(hit.i, 0);
-  a.equal(hit.parent.type, 'column');
+  a.equal(must(hit.parent, 'parent').type, 'column');
 });
 
 /* ------------------------------------------------------------- history */
 test('undo and redo round-trip an edit', () => {
   blank();
-  C.edit(() => C.insert('heading', null, 0));
+  C.edit(() => insert('heading', null, 0));
   a.equal(C.state.pages[0].tree.length, 1);
   C.undo();
   a.equal(C.state.pages[0].tree.length, 0);
@@ -180,10 +219,10 @@ test('undo and redo round-trip an edit', () => {
 
 test('a new edit clears the redo stack', () => {
   blank();
-  C.edit(() => C.insert('heading', null, 0));
+  C.edit(() => insert('heading', null, 0));
   C.undo();
   a.equal(C.hist.r.length, 1);
-  C.edit(() => C.insert('button', null, 0));
+  C.edit(() => insert('button', null, 0));
   a.equal(C.hist.r.length, 0);
 });
 
@@ -199,7 +238,7 @@ test('migrate stamps old projects and refuses newer ones', () => {
 /* ------------------------------------------------ responsive stylesheet */
 test('breakpoint overrides land in the matching media query only', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.css.d = { 'font-size': '40px' };
   h.css.t = { 'font-size': '30px' };
   h.css.m = { 'font-size': '20px' };
@@ -218,7 +257,7 @@ test('breakpoint overrides land in the matching media query only', () => {
 
 test('hidden elements are removed on export but only ghosted while editing', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.hide = { m: true };
   a.match(C.treeCss([C.state.pages[0].tree], false), /display:none !important/);
   const editing = C.treeCss([C.state.pages[0].tree], true);
@@ -228,7 +267,7 @@ test('hidden elements are removed on export but only ghosted while editing', () 
 
 test('custom CSS substitutes & for the element selector', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.adv.css = '& { outline: 2px solid red } &:hover { opacity: .5 }';
   const css = C.treeCss([C.state.pages[0].tree], false);
   a.match(css, new RegExp('\\.' + C.nodeClass(h) + ' \\{ outline: 2px solid red \\}'));
@@ -237,7 +276,7 @@ test('custom CSS substitutes & for the element selector', () => {
 
 test('button hover colours become a :hover rule', () => {
   blank();
-  const b = C.insert('button', null, 0);
+  const b = insert('button', null, 0);
   b.css.d['--hover-bg'] = '#ff0000';
   a.match(C.treeCss([C.state.pages[0].tree], false), new RegExp('\\.' + C.nodeClass(b) + ':hover\\{background-color:#ff0000'));
 });
@@ -245,7 +284,7 @@ test('button hover colours become a :hover rule', () => {
 /* --------------------------------------------------------------- markup */
 test('author text is escaped, never injected', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.text = '<script>alert(1)</script>';
   const html = C.renderNode(h, { edit: false });
   a.equal(html.includes('<script>'), false);
@@ -254,7 +293,7 @@ test('author text is escaped, never injected', () => {
 
 test('element tags come from a whitelist', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.level = 'script';
   a.match(C.renderNode(h, { edit: false }), /^<h2 /, 'an unknown heading level falls back to h2');
 
@@ -274,7 +313,7 @@ test('safeUrl passes real links and drops script schemes', () => {
 
 test('a blocked href renders no link at all', () => {
   blank();
-  const b = C.insert('button', null, 0);
+  const b = insert('button', null, 0);
   b.props.link = 'javascript:alert(1)';
   const html = C.renderNode(b, { edit: false });
   a.equal(/javascript:/i.test(html), false);
@@ -291,7 +330,7 @@ test('video URLs resolve to the right embed', () => {
 
 test('a captioned image becomes a figure, a plain one stays an img', () => {
   blank();
-  const img = C.insert('image', null, 0);
+  const img = insert('image', null, 0);
   img.props.src = 'https://x.com/a.png';
   a.match(C.renderNode(img, { edit: false }), /^<img /);
   img.props.caption = 'A caption';
@@ -302,7 +341,7 @@ test('a captioned image becomes a figure, a plain one stays an img', () => {
 
 test('lazy loading is an export-only attribute', () => {
   blank();
-  const img = C.insert('image', null, 0);
+  const img = insert('image', null, 0);
   img.props.src = 'https://x.com/a.png';
   a.match(C.renderNode(img, { edit: false }), /loading="lazy"/);
   a.equal(/loading="lazy"/.test(C.renderNode(img, { edit: true })), false);
@@ -344,7 +383,7 @@ test('the nav toggle script ships only when a page uses a nav', () => {
   blank();
   C.state.header = []; C.state.footer = [];
   a.equal(/<script/.test(C.buildPage(C.state.pages[0])), false, 'no nav, no script');
-  C.insert('nav', null, 0);
+  insert('nav', null, 0);
   const html = C.buildPage(C.state.pages[0]);
   a.equal((html.match(/<script/g) || []).length, 1, 'exactly one copy');
   a.match(html, /aria-expanded="false"/);
@@ -353,7 +392,7 @@ test('the nav toggle script ships only when a page uses a nav', () => {
 
 test('a nav collapses at the breakpoint the author chose', () => {
   blank();
-  const nav = C.insert('nav', null, 0);
+  const nav = insert('nav', null, 0);
   const at = () => {
     const { tablet, mobile } = blocks(C.treeCss([C.state.pages[0].tree], false));
     return { tablet: tablet.includes('.pagecraft-nav-toggle{display:flex}'), mobile: mobile.includes('.pagecraft-nav-toggle{display:flex}') };
@@ -368,7 +407,7 @@ test('a nav collapses at the breakpoint the author chose', () => {
 
 test('asset references survive buildPage for the export step to resolve', () => {
   blank();
-  const img = C.insert('image', null, 0);
+  const img = insert('image', null, 0);
   img.props.src = 'asset:abc123';
   a.match(C.buildPage(C.state.pages[0]), /src="asset:abc123"/);
 });
@@ -393,19 +432,19 @@ test('the demo project renders every component type', () => {
 
 /* --------------------------------------------------------- design tokens */
 test('the default token set is the Pagecraft working palette', () => {
-  const hex = id => C.findColor(id).value;
+  const hex = (id: string) => color(id).value;
   a.equal(hex('text'), '#111311', 'Ink');
   a.equal(hex('bg'), '#f8f6ef', 'Paper');
   a.equal(hex('brand'), '#b7f34a', 'Craft Green');
   a.equal(hex('slate'), '#6f7771', 'brand Slate');
   a.equal(hex('surface'), '#ffffff', 'White');
   /* display type follows .pc-display from the brand token file */
-  const d = C.findStyle('display').css.d;
+  const d = style('display').css.d;
   a.equal(d['font-weight'], '600');
   a.equal(d['letter-spacing'], '-.04em');
   a.equal(d['line-height'], '.96');
   /* labels are set in the supporting face */
-  a.match(C.findStyle('eyebrow').css.d['font-family'], /DM Sans/);
+  a.match(style('eyebrow').css.d['font-family'], /DM Sans/);
 });
 
 test('the demo project is typeset in the brand faces', () => {
@@ -426,9 +465,9 @@ test('only the families actually in use are requested', () => {
   blank();
   C.state.meta.font = C.stackFor('Inter', 's');
   C.state.meta.headFont = '';
-  C.state.meta.tokens.text = [];
+  C.ensureTokens().text = [];
   a.deepEqual(C.usedFamilies(), ['Inter']);
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.ts = '';
   h.css.d['font-family'] = C.stackFor('Playfair Display', 'f');
   a.deepEqual(C.usedFamilies(), ['Inter', 'Playfair Display'].sort((x, y) =>
@@ -439,16 +478,16 @@ test('only the families actually in use are requested', () => {
 test('a family reached only through a class or text style still loads', () => {
   blank();
   C.state.meta.font = ''; C.state.meta.headFont = '';
-  C.state.meta.tokens.text = [{ id: 'x', name: 'X', css: { d: { 'font-family': C.stackFor('Lora', 'f') }, t: {}, m: {} } }];
+  C.ensureTokens().text = [{ id: 'x', name: 'X', css: { d: { 'font-family': C.stackFor('Lora', 'f') }, t: {}, m: {} } }];
   a.deepEqual(C.usedFamilies(), ['Lora'], 'via a text style');
-  C.state.meta.tokens.text = [];
+  C.ensureTokens().text = [];
   C.classAdd('Mono', { d: { 'font-family': C.stackFor('JetBrains Mono', 'm') } });
   a.deepEqual(C.usedFamilies(), ['JetBrains Mono'], 'via a class');
 });
 
 test('a system stack or custom family requests nothing', () => {
   blank();
-  C.state.meta.tokens.text = [];
+  C.ensureTokens().text = [];
   C.state.meta.font = C.FONT_BASE[1][0];              // System sans
   C.state.meta.headFont = "'Wingdings Pro',sans-serif";
   a.deepEqual(C.usedFamilies(), []);
@@ -475,20 +514,20 @@ test('the picker groups the library and covers every family', () => {
 });
 test('colour tokens become :root variables and elements reference them', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.css.d.color = C.cvar('brand');
   const css = C.treeCss([C.state.pages[0].tree], false);
-  a.match(css, new RegExp('--c-brand:' + C.findColor('brand').value));
+  a.match(css, new RegExp('--c-brand:' + color('brand').value));
   a.match(css, new RegExp('\\.' + C.nodeClass(h) + '\\{[^}]*color:var\\(--c-brand\\)'));
 });
 
 test('changing one token restyles every element linked to it', () => {
   blank();
-  const one = C.insert('heading', null, 0);
-  const two = C.insert('button', null, 1);
+  const one = insert('heading', null, 0);
+  const two = insert('button', null, 1);
   one.css.d.color = C.cvar('brand');
   two.css.d['background-color'] = C.cvar('brand');
-  C.findColor('brand').value = '#ff0055';
+  color('brand').value = '#ff0055';
   const css = C.treeCss([C.state.pages[0].tree], false);
   a.match(css, /--c-brand:#ff0055/);
   a.match(css, new RegExp('\\.' + C.nodeClass(one) + '\\{[^}]*color:var\\(--c-brand\\)'));
@@ -498,11 +537,11 @@ test('changing one token restyles every element linked to it', () => {
 
 test('text styles emit one rule per breakpoint, before element rules', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   C.tsApply(h, 'display');
   const css = C.treeCss([C.state.pages[0].tree], false);
   const { base, tablet, mobile } = blocks(css);
-  const size = b => C.findStyle('display').css[b]['font-size'];
+  const size = (b: Bp) => style('display').css[b]['font-size'];
   a.match(base, new RegExp('\\.ts-display\\{[^}]*font-size:' + size('d')));
   a.match(tablet, new RegExp('\\.ts-display\\{[^}]*font-size:' + size('t')));
   a.match(mobile, new RegExp('\\.ts-display\\{[^}]*font-size:' + size('m')));
@@ -512,7 +551,7 @@ test('text styles emit one rule per breakpoint, before element rules', () => {
 
 test('an element carrying a text style renders its class', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   C.tsApply(h, 'title');
   a.match(C.renderNode(h, { edit: false }), new RegExp('class="pagecraft-heading ' + C.nodeClass(h) + ' ts-title"'));
   h.props.ts = 'does-not-exist';
@@ -521,7 +560,7 @@ test('an element carrying a text style renders its class', () => {
 
 test('applying a style clears the typography that would mask it', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.css.d['font-size'] = '99px';
   h.css.d['margin-bottom'] = '10px';
   C.tsApply(h, 'body');
@@ -532,8 +571,8 @@ test('applying a style clears the typography that would mask it', () => {
 
 test('detaching a style bakes its values in so nothing moves', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  const want = { d: C.findStyle('display').css.d['font-size'], t: C.findStyle('display').css.t['font-size'], m: C.findStyle('display').css.m['font-size'] };
+  const h = insert('heading', null, 0);
+  const want = { d: style('display').css.d['font-size'], t: style('display').css.t['font-size'], m: style('display').css.m['font-size'] };
   C.tsApply(h, 'display');
   C.tsUnlink(h);
   a.equal(h.props.ts, '');
@@ -544,8 +583,8 @@ test('detaching a style bakes its values in so nothing moves', () => {
 
 test('detaching keeps a local override in preference to the style value', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  const weight = C.findStyle('display').css.d['font-weight'];
+  const h = insert('heading', null, 0);
+  const weight = style('display').css.d['font-weight'];
   C.tsApply(h, 'display');
   h.css.d['font-size'] = '70px';
   C.tsUnlink(h);
@@ -555,14 +594,14 @@ test('detaching keeps a local override in preference to the style value', () => 
 
 test('updating a style from one element moves every user of it', () => {
   blank();
-  const one = C.insert('heading', null, 0);
-  const two = C.insert('heading', null, 1);
+  const one = insert('heading', null, 0);
+  const two = insert('heading', null, 1);
   C.tsApply(one, 'title');
   C.tsApply(two, 'title');
   a.equal(C.tsUsage('title'), 2);
   one.css.d['letter-spacing'] = '-.06em';
   C.tsUpdateFrom(one);
-  a.equal(C.findStyle('title').css.d['letter-spacing'], '-.06em');
+  a.equal(style('title').css.d['letter-spacing'], '-.06em');
   a.equal(one.css.d['letter-spacing'], undefined, 'the element stops carrying it locally');
   const css = C.treeCss([C.state.pages[0].tree], false);
   a.match(css, /\.ts-title\{[^}]*letter-spacing:-\.06em/);
@@ -571,28 +610,28 @@ test('updating a style from one element moves every user of it', () => {
 
 test('saving a new style from an element captures all three breakpoints', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.ts = '';
   h.css.d['font-size'] = '28px';
   h.css.m['font-size'] = '18px';
   const id = C.tsCreateFrom(h, 'Card heading');
   a.equal(id, 'card-heading');
   a.equal(h.props.ts, id);
-  a.equal(C.findStyle(id).css.d['font-size'], '28px');
-  a.equal(C.findStyle(id).css.m['font-size'], '18px');
+  a.equal(style(id).css.d['font-size'], '28px');
+  a.equal(style(id).css.m['font-size'], '18px');
   a.equal(h.css.d['font-size'], undefined);
 });
 
 test('style ids stay unique when names collide', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   a.equal(C.tsCreateFrom(h, 'Display'), 'display-2', 'display is taken by the default set');
 });
 
 test('deleting a style leaves its users looking identical', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  const size = C.findStyle('display').css.d['font-size'];
+  const h = insert('heading', null, 0);
+  const size = style('display').css.d['font-size'];
   C.tsApply(h, 'display');
   C.styleDelete('display');
   a.equal(C.findStyle('display'), null);
@@ -602,21 +641,21 @@ test('deleting a style leaves its users looking identical', () => {
 
 test('deleting a colour inlines its literal everywhere', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   const id = C.colorAdd('Highlight', '#00ddaa');
   h.css.d.color = C.cvar(id);
-  C.findStyle('body').css.d.color = C.cvar(id);
+  style('body').css.d.color = C.cvar(id);
   a.equal(C.colorUsage(id), 2, 'counted in both elements and text styles');
   a.equal(C.colorDelete(id), true);
   a.equal(C.findColor(id), null);
   a.equal(h.css.d.color, '#00ddaa');
-  a.equal(C.findStyle('body').css.d.color, '#00ddaa');
+  a.equal(style('body').css.d.color, '#00ddaa');
 });
 
 test('the three reserved colours cannot be deleted', () => {
   C.RESERVED.forEach(id => {
     a.equal(C.colorDelete(id), false, id + ' must survive');
-    a.ok(C.findColor(id), id + ' still present');
+    a.ok(color(id), id + ' still present');
   });
 });
 
@@ -636,7 +675,7 @@ test('isRef and refId only accept the token syntax', () => {
 });
 
 test('resolveColor follows a reference and survives a dangling one', () => {
-  a.equal(C.resolveColor(C.cvar('brand')), C.findColor('brand').value);
+  a.equal(C.resolveColor(C.cvar('brand')), color('brand').value);
   a.equal(C.resolveColor('#123456'), '#123456');
   a.equal(C.resolveColor(C.cvar('nope')), '');
 });
@@ -644,9 +683,9 @@ test('resolveColor follows a reference and survives a dangling one', () => {
 test('migration v2 to v3 folds loose meta colours into tokens', () => {
   const d = C.migrate({ v: 2, meta: { color: '#111111', bg: '#fefefe', accent: '#00ff00' }, pages: [{ tree: [] }] });
   a.equal(d.v, C.SCHEMA);
-  a.equal(d.meta.tokens.colors.find(c => c.id === 'text').value, '#111111');
-  a.equal(d.meta.tokens.colors.find(c => c.id === 'bg').value, '#fefefe');
-  a.equal(d.meta.tokens.colors.find(c => c.id === 'brand').value, '#00ff00');
+  a.equal(d.meta.tokens.colors.find((c: ColorToken) => c.id === 'text').value, '#111111');
+  a.equal(d.meta.tokens.colors.find((c: ColorToken) => c.id === 'bg').value, '#fefefe');
+  a.equal(d.meta.tokens.colors.find((c: ColorToken) => c.id === 'brand').value, '#00ff00');
   a.equal(d.meta.accent, undefined, 'the old loose fields are removed');
   a.ok(d.meta.tokens.text.length, 'default text styles are provided');
 });
@@ -660,18 +699,18 @@ test('an existing token set is never overwritten by migration', () => {
 test('the demo project is built on tokens, not loose hex values', () => {
   const json = JSON.stringify([C.state.header, C.state.footer, ...C.state.pages.map(p => p.tree)]);
   a.ok((json.match(/var\(--c-/g) || []).length > 12, 'colours are token references');
-  const styled = [];
+  const styled: string[] = [];
   [C.state.header, C.state.footer, ...C.state.pages.map(p => p.tree)]
     .forEach(l => C.eachNode(l, n => { if (C.TS_TYPES.includes(n.type) && n.props.ts) styled.push(n.props.ts); }));
   a.ok(styled.length > 10, 'text elements use text styles');
-  styled.forEach(id => a.ok(C.findStyle(id), 'style ' + id + ' exists'));
+  styled.forEach(id => a.ok(style(id), 'style ' + id + ' exists'));
 });
 
 test('a token rebrand changes the export in one place', () => {
-  const was = C.findColor('brand').value;
+  const was = color('brand').value;
   const before = C.buildPage(C.state.pages[0]);
   a.match(before, new RegExp('--c-brand:' + was));
-  C.findColor('brand').value = '#e11d48';
+  color('brand').value = '#e11d48';
   const after = C.buildPage(C.state.pages[0]);
   a.match(after, /--c-brand:#e11d48/);
   a.equal(before.split(was).join('#e11d48'), after, 'nothing else in the document changed');
@@ -680,7 +719,7 @@ test('a token rebrand changes the export in one place', () => {
 test('every internal link in the demo resolves — including from global regions', () => {
   /* A global header or footer is inlined into every page, so a bare "#anchor"
      in one only works on the page that happens to own that anchor. */
-  const idsBySlug = {};
+  const idsBySlug: Record<string, Set<string>> = {};
   for (const pg of C.state.pages) {
     idsBySlug[pg.slug + '.html'] = new Set([...C.buildPage(pg).matchAll(/id="([\w-]+)"/g)].map(m => m[1]));
   }
@@ -698,8 +737,8 @@ test('every internal link in the demo resolves — including from global regions
 });
 
 /* --------------------------------------------------------- export review */
-const codes = f => f.map(x => x.code);
-const find = (f, code) => f.filter(x => x.code === code);
+const codes = (f: Finding[]) => f.map(x => x.code);
+const find = (f: Finding[], code: string) => f.filter(x => x.code === code);
 
 test('the demo project reviews clean apart from its placeholder image', () => {
   const f = C.lint();
@@ -710,7 +749,7 @@ test('the demo project reviews clean apart from its placeholder image', () => {
 
 test('a dead internal link is an error, a live one is silent', () => {
   blank();
-  const b = C.insert('button', null, 0);
+  const b = insert('button', null, 0);
   b.props.link = 'nope.html';
   a.equal(find(C.lint(), 'dead-link').length, 1);
   b.props.link = 'pricing.html';
@@ -719,7 +758,7 @@ test('a dead internal link is an error, a live one is silent', () => {
 
 test('a fragment link is checked against the page that owns it', () => {
   blank();
-  const b = C.insert('button', null, 0);
+  const b = insert('button', null, 0);
   b.props.link = '#nowhere';
   a.equal(find(C.lint(), 'dead-anchor').length, 1);
   const sec = C.state.pages[0].tree[0];
@@ -742,7 +781,7 @@ test('a bare fragment in a global region is flagged, since it travels', () => {
 
 test('missing alt is an error unless the image is marked decorative', () => {
   blank();
-  const img = C.insert('image', null, 0);
+  const img = insert('image', null, 0);
   img.props.src = 'a.png'; img.props.alt = ''; img.props.w = '10'; img.props.h = '10';
   a.equal(find(C.lint(), 'no-alt').length, 1);
   img.props.decorative = 1;
@@ -752,7 +791,7 @@ test('missing alt is an error unless the image is marked decorative', () => {
 
 test('images without intrinsic size are flagged for layout shift', () => {
   blank();
-  const img = C.insert('image', null, 0);
+  const img = insert('image', null, 0);
   img.props.src = 'a.png'; img.props.alt = 'A';
   a.equal(find(C.lint(), 'no-dimensions').length, 1);
   img.props.w = '800'; img.props.h = '600';
@@ -762,7 +801,7 @@ test('images without intrinsic size are flagged for layout shift', () => {
 
 test('heading order and h1 count are checked per page', () => {
   blank();
-  const mk = lvl => { const h = C.insert('heading', null, 0); h.props.level = lvl; return h; };
+  const mk = (lvl: string) => { const h = insert('heading', null, 0); h.props.level = lvl; return h; };
   mk('h3'); mk('h1');                       // inserted at 0, so document order is h1 then h3
   const f = C.lint();
   a.equal(find(f, 'heading-skip').length, 1, 'H1 followed by H3 skips a level');
@@ -774,9 +813,9 @@ test('heading order and h1 count are checked per page', () => {
 
 test('duplicate anchor ids on one page are an error', () => {
   blank();
-  const one = C.insert('heading', null, 0), two = C.insert('heading', null, 1);
-  C.locate(one.id).parent.adv.htmlId = 'dup';
-  C.locate(two.id).parent.adv.htmlId = 'dup';
+  const one = insert('heading', null, 0), two = insert('heading', null, 1);
+  holderOf(one.id).adv.htmlId = 'dup';
+  holderOf(two.id).adv.htmlId = 'dup';
   a.equal(find(C.lint(), 'duplicate-id').length, 1);
 });
 
@@ -794,10 +833,10 @@ test('contrast is measured against the element own background first', () => {
 });
 
 test('contrast uses the larger-text threshold where it applies', () => {
-  a.ok(C.contrast('#6f7771', '#f8f6ef') < 4.5, 'brand Slate fails AA for body copy on Paper');
-  a.ok(C.contrast('#6f7771', '#f8f6ef') > 3, 'but clears the large-text bar');
+  a.ok(must(C.contrast('#6f7771', '#f8f6ef'), 'contrast') < 4.5, 'brand Slate fails AA for body copy on Paper');
+  a.ok(must(C.contrast('#6f7771', '#f8f6ef'), 'contrast') > 3, 'but clears the large-text bar');
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.ts = ''; h.css.d.color = '#6f7771';
   h.css.d['font-size'] = '14px';
   a.equal(find(C.lint(), 'contrast').length, 1, 'small text is held to 4.5:1');
@@ -806,16 +845,16 @@ test('contrast uses the larger-text threshold where it applies', () => {
 });
 
 test('the default palette gives secondary text an accessible home', () => {
-  const v = id => C.findColor(id).value;
-  a.ok(C.contrast(v('muted'), v('bg')) >= 4.5, 'Slate (on Paper) clears AA on Paper');
-  a.ok(C.contrast(v('muted-i'), v('ink')) >= 4.5, 'Slate (on Ink) clears AA on Ink');
+  const v = (id: string) => color(id).value;
+  a.ok(must(C.contrast(v('muted'), v('bg')), 'contrast') >= 4.5, 'Slate (on Paper) clears AA on Paper');
+  a.ok(must(C.contrast(v('muted-i'), v('ink')), 'contrast') >= 4.5, 'Slate (on Ink) clears AA on Ink');
   a.equal(v('slate'), '#6f7771', 'the brand Slate is still available for fills and large text');
 });
 
 /* --------------------------------------------------- deferred media + SEO */
 test('an embedded player is deferred behind a facade by default', () => {
   blank();
-  const v = C.insert('video', null, 0);
+  const v = insert('video', null, 0);
   const html = C.buildPage(C.state.pages[0]);
   a.equal(/<iframe/.test(html), false, 'no player iframe on load');
   a.match(html, /data-facade/);
@@ -831,7 +870,7 @@ test('an embedded player is deferred behind a facade by default', () => {
 
 test('autoplay bypasses the facade, since a click is no longer the trigger', () => {
   blank();
-  const v = C.insert('video', null, 0);
+  const v = insert('video', null, 0);
   v.props.autoplay = 1;
   a.equal(C.canFacade(v.props), false);
   a.match(C.buildPage(C.state.pages[0]), /<iframe/);
@@ -839,7 +878,7 @@ test('autoplay bypasses the facade, since a click is no longer the trigger', () 
 
 test('a self-hosted file is never facaded', () => {
   blank();
-  const v = C.insert('video', null, 0);
+  const v = insert('video', null, 0);
   v.props.src = 'https://cdn.example.com/clip.mp4';
   a.equal(C.canFacade(v.props), false);
   a.match(C.buildPage(C.state.pages[0]), /<video src="https:\/\/cdn\.example\.com\/clip\.mp4"/);
@@ -887,7 +926,7 @@ test('sitemap lists every page against the site URL', () => {
 /* ---------------------------------------------------- reusable style classes */
 test('a class is emitted once and shared by every element using it', () => {
   blank();
-  const a1 = C.insert('heading', null, 0), a2 = C.insert('heading', null, 1);
+  const a1 = insert('heading', null, 0), a2 = insert('heading', null, 1);
   const id = C.classAdd('Card', { d: { 'border-radius': '16px', 'padding-top': '28px' } });
   C.classApply(a1, id); C.classApply(a2, id);
   const { base } = blocks(C.treeCss([C.state.pages[0].tree], false));
@@ -899,7 +938,7 @@ test('a class is emitted once and shared by every element using it', () => {
 
 test('precedence runs text style, then class, then the element', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   C.tsApply(h, 'title');
   const id = C.classAdd('Loud', { d: { 'font-size': '80px' } });
   C.classApply(h, id);
@@ -912,7 +951,7 @@ test('precedence runs text style, then class, then the element', () => {
 
 test('list order decides which of two classes wins', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   const first = C.classAdd('First', { d: { color: '#111111' } });
   const second = C.classAdd('Second', { d: { color: '#222222' } });
   C.classApply(h, first); C.classApply(h, second);
@@ -925,12 +964,12 @@ test('list order decides which of two classes wins', () => {
 
 test('saving a class from an element moves the styling off the element', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.css.d['border-radius'] = '12px';
   h.css.m['border-radius'] = '6px';
   const id = C.classFrom(h, 'Rounded');
-  a.equal(C.findClass(id).css.d['border-radius'], '12px');
-  a.equal(C.findClass(id).css.m['border-radius'], '6px', 'breakpoints come along');
+  a.equal(klass(id).css.d['border-radius'], '12px');
+  a.equal(klass(id).css.m['border-radius'], '6px', 'breakpoints come along');
   a.deepEqual(h.css, { d: {}, t: {}, m: {} }, 'the element no longer carries it');
   a.ok((h.cls || []).includes(id));
   /* and the rendered result is unchanged */
@@ -939,7 +978,7 @@ test('saving a class from an element moves the styling off the element', () => {
 
 test('deleting a class bakes it into its users so nothing moves', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   const id = C.classAdd('Pad', { d: { 'padding-top': '40px' }, m: { 'padding-top': '20px' } });
   C.classApply(h, id);
   h.css.d['padding-top'] = '50px';                 // a local override must survive
@@ -952,12 +991,12 @@ test('deleting a class bakes it into its users so nothing moves', () => {
 
 test('removing a class from one element leaves the others alone', () => {
   blank();
-  const a1 = C.insert('heading', null, 0), a2 = C.insert('heading', null, 1);
+  const a1 = insert('heading', null, 0), a2 = insert('heading', null, 1);
   const id = C.classAdd('Shared', { d: { color: '#333333' } });
   C.classApply(a1, id); C.classApply(a2, id);
   C.classRemove(a1, id);
   a.equal(C.classUsage(id), 1);
-  a.ok(C.findClass(id), 'the class itself survives');
+  a.ok(klass(id), 'the class itself survives');
   a.equal(/c-shared/.test(C.renderNode(a1, { edit: false })), false);
   a.match(C.renderNode(a2, { edit: false }), /c-shared/);
 });
@@ -966,7 +1005,7 @@ test('class ids stay unique and a dangling reference is ignored', () => {
   blank();
   a.equal(C.classAdd('Card'), 'card');
   a.equal(C.classAdd('Card'), 'card-2');
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.cls = ['card', 'ghost'];
   a.deepEqual(C.nodeClasses(h).map(c => c.id), ['card'], 'the unknown id is dropped');
   a.equal(/c-ghost/.test(C.renderNode(h, { edit: false })), false);
@@ -974,7 +1013,7 @@ test('class ids stay unique and a dangling reference is ignored', () => {
 
 test('a class can carry breakpoint overrides of its own', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   const id = C.classAdd('Stack', { d: { 'flex-direction': 'row' }, m: { 'flex-direction': 'column' } });
   C.classApply(h, id);
   const { base, mobile } = blocks(C.treeCss([C.state.pages[0].tree], false));
@@ -1002,7 +1041,7 @@ test('migration brings an older project all the way forward', () => {
   const old = C.migrate({ v: 2, meta: { accent: '#00ff00' }, pages: [{ tree: [] }] });
   a.equal(old.v, C.SCHEMA);
   a.ok(Array.isArray(old.meta.tokens.classes));
-  a.equal(old.meta.tokens.colors.find(c => c.id === 'brand').value, '#00ff00');
+  a.equal(old.meta.tokens.colors.find((c: ColorToken) => c.id === 'brand').value, '#00ff00');
 });
 
 test('v4 → v5 backfills the HTML tag onto the stock text styles', () => {
@@ -1011,25 +1050,25 @@ test('v4 → v5 backfills the HTML tag onto the stock text styles', () => {
     meta: { tokens: { colors: [], classes: [], text: [{ id: 'display', name: 'D', css: { d: {}, t: {}, m: {} } }, { id: 'mine', name: 'Mine', css: { d: {}, t: {}, m: {} } }] } },
     pages: [{ tree: [] }]
   });
-  a.equal(d.meta.tokens.text.find(t => t.id === 'display').tag, 'h1');
-  a.equal(d.meta.tokens.text.find(t => t.id === 'mine').tag, undefined, 'a custom style is left alone');
+  a.equal(d.meta.tokens.text.find((t: TextStyle) => t.id === 'display').tag, 'h1');
+  a.equal(d.meta.tokens.text.find((t: TextStyle) => t.id === 'mine').tag, undefined, 'a custom style is left alone');
 });
 
 test('applying a text style also takes the tag that belongs with it', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.level = 'h4';
   C.tsApply(h, 'display');
   a.equal(h.props.level, 'h1', 'one choice, not two');
   C.tsApply(h, 'subtitle');
   a.equal(h.props.level, 'h3');
   /* a style with no tag leaves the tag alone */
-  C.findStyle('subtitle').tag = '';
+  style('subtitle').tag = '';
   h.props.level = 'h5';
   C.tsApply(h, 'subtitle');
   a.equal(h.props.level, 'h5');
   /* and it only applies to headings */
-  const t = C.insert('text', null, 1);
+  const t = insert('text', null, 1);
   t.props.level = undefined;
   C.tsApply(t, 'display');
   a.equal(t.props.level, undefined);
@@ -1040,20 +1079,20 @@ test('pages can be reordered, and the current page follows', () => {
   const names = () => C.state.pages.map(p => p.name);
   a.deepEqual(names(), ['Home', 'Pricing']);
   C.state.cur = 0;
-  a.equal(C.pageMove(0, 1), true);
+  a.equal(pageMove(0, 1), true);
   a.deepEqual(names(), ['Pricing', 'Home']);
   a.equal(C.page().name, 'Home', 'the page you were editing is still the current one');
-  a.equal(C.pageMove(1, 1), false, 'already last');
-  a.equal(C.pageMove(0, -1), false, 'already first');
+  a.equal(pageMove(1, 1), false, 'already last');
+  a.equal(pageMove(0, -1), false, 'already first');
 });
 
 test('page order drives the sitemap order', () => {
   fresh();
   C.state.meta.baseUrl = 'https://x.dev';
   const before = C.sitemapXml().match(/<loc>[^<]+<\/loc>/g);
-  C.pageMove(0, 1);
+  pageMove(0, 1);
   const after = C.sitemapXml().match(/<loc>[^<]+<\/loc>/g);
-  a.deepEqual(after, [before[1], before[0]]);
+  a.deepEqual(after, [must(before, 'sitemap')[1], must(before, 'sitemap')[0]]);
 });
 
 test('the demo shares one Card class across its three feature cards', () => {
@@ -1069,27 +1108,27 @@ test('the demo shares one Card class across its three feature cards', () => {
 /* ------------------------------------------------------ clipboard + keys */
 test('a copied element pastes as a sibling with fresh ids', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.text = 'Original';
   C.copyNode(h.id);
-  const made = C.pasteNode(h.id);
+  const made = paste(h.id);
   a.ok(made);
   a.equal(made.props.text, 'Original');
   a.notEqual(made.id, h.id, 'the copy gets its own id');
-  const col = C.locate(h.id).parent;
+  const col = holderOf(h.id);
   a.deepEqual(col.children.map(c => c.type), ['heading', 'heading']);
   a.equal(col.children[1].id, made.id, 'it lands directly after the original');
 });
 
 test('pasting a subtree reissues every descendant id', () => {
   blank();
-  C.insert('heading', null, 0);
+  insert('heading', null, 0);
   const sec = C.state.pages[0].tree[0];
-  const before = [];
+  const before: string[] = [];
   C.eachNode([sec], n => before.push(n.id));
   C.copyNode(sec.id);
-  const made = C.pasteNode(sec.id);
-  const after = [];
+  const made = paste(sec.id);
+  const after: string[] = [];
   C.eachNode([made], n => after.push(n.id));
   a.equal(after.length, before.length);
   a.equal(after.some(id => before.includes(id)), false);
@@ -1097,58 +1136,59 @@ test('pasting a subtree reissues every descendant id', () => {
 
 test('the clipboard survives a page change, so copies cross pages', () => {
   fresh();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.text = 'Travelling';
   C.copyNode(h.id);
   C.state.cur = 1;                                  // a different page
   const target = C.state.pages[1].tree[0];
-  const landed = C.pasteNode(target.id);
+  const landed = paste(target.id);
   a.ok(landed, 'it fits inside a section on the other page');
   a.equal(landed.props.text, 'Travelling');
-  a.ok(C.locate(landed.id), 'and it is now part of page two');
+  a.ok(at(landed.id), 'and it is now part of page two');
 });
 
 test('paste builds the wrappers a drag would, rather than refusing', () => {
   blank();
-  const h = C.insert('heading', null, 0);          // section > row > column > heading
+  const h = insert('heading', null, 0);          // section > row > column > heading
   C.copyNode(h.id);
-  const row = C.locate(C.locate(h.id).parent.id).parent;
-  const made = C.pasteNode(row.id);                // a row holds columns, not headings
+  const row = holderOf(holderOf(h.id).id);
+  const made = paste(row.id);                // a row holds columns, not headings
   a.ok(made, 'it still lands somewhere sensible');
-  a.equal(C.locate(made.id).parent.type, 'column', 'a column was created for it');
+  a.equal(holderOf(made.id).type, 'column', 'a column was created for it');
 
   /* and at the root it grows the full section > row > column chain */
   blank();
-  const leaf = C.insert('heading', null, 0);
+  const leaf = insert('heading', null, 0);
   C.copyNode(leaf.id);
   C.state.pages[0].tree = [];
-  const atRoot = C.pasteNode(null);
+  const atRoot = paste(null);
   a.ok(atRoot);
   const chain = [];
-  let cur = C.locate(atRoot.id);
-  while (cur) { chain.unshift(cur.node.type); cur = cur.parent ? C.locate(cur.parent.id) : null; }
+  let cur = at(atRoot.id);
+  let up: Handle | null = cur;
+  while (up) { chain.unshift(up.node.type); up = up.parent ? at(up.parent.id) : null; }
   a.deepEqual(chain, ['section', 'row', 'column', 'heading']);
 });
 
 test('a copied class reference keeps following the class', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   const id = C.classAdd('Shared', { d: { color: '#333333' } });
   C.classApply(h, id);
   C.copyNode(h.id);
-  const made = C.pasteNode(h.id);
+  const made = paste(h.id);
   a.deepEqual(made.cls, [id], 'the copy shares the class, not a snapshot of it');
   a.equal(C.classUsage(id), 2);
-  C.findClass(id).css.d.color = '#444444';
+  klass(id).css.d.color = '#444444';
   a.match(C.treeCss([C.state.pages[0].tree], false), /\.c-shared\{[^}]*color:#444444/);
 });
 
 test('arrow traversal walks the tree in reading order', () => {
   blank();
-  C.insert('heading', null, 0);
+  insert('heading', null, 0);
   const flat = C.flatten(C.state.pages[0].tree).map(n => n.type);
   a.deepEqual(flat, ['section', 'row', 'column', 'heading']);
-  const first = flat[0];
+
   const sec = C.state.pages[0].tree[0];
   a.equal(C.step(null, 1), sec.id, 'with nothing selected it starts at the top');
   const row = sec.children[0];
@@ -1160,7 +1200,7 @@ test('arrow traversal walks the tree in reading order', () => {
 
 test('left and right move by depth', () => {
   blank();
-  C.insert('heading', null, 0);
+  insert('heading', null, 0);
   const sec = C.state.pages[0].tree[0];
   const row = sec.children[0];
   a.equal(C.firstChildOf(sec.id), row.id);
@@ -1207,7 +1247,7 @@ test('a link to a page that no longer exists degrades to a plain URL', () => {
 
 test('building a link round-trips every mode', () => {
   fresh();
-  const trip = h => C.buildLink(C.parseLink(h, 'index'));
+  const trip = (h: string) => C.buildLink(C.parseLink(h, 'index'));
   ['pricing.html', 'index.html#craft', 'https://example.com/a?b=c', 'mailto:a@b.c', 'tel:+15550100', '']
     .forEach(h => a.equal(trip(h), h, h + ' survives a round trip'));
   a.equal(C.buildLink({ mode: 'page', page: '' }), '', 'an incomplete destination yields no href');
@@ -1227,7 +1267,7 @@ test('the anchor list offers what the target page really has', () => {
 
 test('every link a picker can build passes the export review', () => {
   fresh();
-  const btn = C.insert('button', null, 0);
+  const btn = insert('button', null, 0);
   [['page', { mode: 'page', page: 'pricing', frag: '' }],
   ['page+anchor', { mode: 'page', page: 'index', frag: 'craft' }],
   ['url', { mode: 'url', value: 'https://example.com' }],
@@ -1252,7 +1292,7 @@ test('the language list is offered as codes with names', () => {
 /* -------------------------------------------------------------------- forms */
 test('a form renders labelled, named fields and a submit button', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   fm.props.action = 'https://formspree.io/f/abc';
   const html = C.renderNode(fm, { edit: false });
   a.match(html, /^<form /);
@@ -1268,7 +1308,7 @@ test('a form renders labelled, named fields and a submit button', () => {
 
 test('each field type renders the right control', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   fm.props.action = 'https://x.dev/f';
   fm.props.fields = [
     { type: 'email', label: 'Email', name: 'email' },
@@ -1286,7 +1326,7 @@ test('each field type renders the right control', () => {
 
 test('a form with nowhere to submit is an error, not a shrug', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   a.equal(find(C.lint(), 'form-no-action').length, 1);
   a.match(C.renderNode(fm, { edit: false }), /^<form [^>]*>(?!.*action=)/s, 'and no action attribute is emitted');
   fm.props.action = 'https://formspree.io/f/abc';
@@ -1298,7 +1338,7 @@ test('a form with nowhere to submit is an error, not a shrug', () => {
 
 test('an unlabelled field and a duplicate name are both reported', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   fm.props.action = 'https://x.dev/f';
   fm.props.fields = [{ type: 'text', label: '', name: 'a' }, { type: 'text', label: 'Two', name: 'a' }];
   const f = C.lint();
@@ -1309,7 +1349,7 @@ test('an unlabelled field and a duplicate name are both reported', () => {
 
 test('a field with no name falls back to its label', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   fm.props.action = 'https://x.dev/f';
   fm.props.fields = [{ type: 'text', label: 'Company name', name: '' }];
   a.match(C.renderNode(fm, { edit: false }), /name="company-name"/);
@@ -1318,7 +1358,7 @@ test('a field with no name falls back to its label', () => {
 
 test('a javascript: action is refused like any other link', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   fm.props.action = 'javascript:alert(1)';
   const html = C.renderNode(fm, { edit: false });
   a.equal(/javascript:/i.test(html), false);
@@ -1327,13 +1367,13 @@ test('a javascript: action is refused like any other link', () => {
 
 test('the form takes its colours from tokens so a rebrand reaches it', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   const css = C.treeCss([C.state.pages[0].tree], false);
   const rule = css.slice(css.indexOf('.' + C.nodeClass(fm) + '{'));
   const decls = rule.slice(0, rule.indexOf('}'));
   a.ok(decls.includes('--f-btn-bg:var(--c-brand)'), 'button colour is a token reference');
   a.ok(decls.includes('--f-bg:var(--c-surface)'), 'field background is a token reference');
-  a.ok(C.contrast(fm.css.d['--f-btn-fg'], fm.css.d['--f-btn-bg']) > 4.5, 'and its button is readable');
+  a.ok(must(C.contrast(fm.css.d['--f-btn-fg'], fm.css.d['--f-btn-bg']), 'contrast') > 4.5, 'and its button is readable');
 });
 
 test('a form on a dark section is told its labels have gone unreadable', () => {
@@ -1354,7 +1394,7 @@ test('a form on a dark section is told its labels have gone unreadable', () => {
 
 test('the submit button and field text are checked against their own grounds', () => {
   blank();
-  const fm = C.insert('form', null, 0);
+  const fm = insert('form', null, 0);
   fm.props.action = 'https://x.dev/f';
   a.equal(find(C.lint(), 'form-contrast').length, 0, 'the defaults are readable on Paper');
   fm.css.d['--f-btn-fg'] = C.cvar('bg');            // Paper on Craft Green — 1.22:1
@@ -1369,13 +1409,13 @@ test('a saved block places a fresh copy that still follows its classes', () => {
   const craft = C.state.pages[0].tree[1];
   const originalIds = new Set();
   C.eachNode([craft], n => originalIds.add(n.id));
-  const id = C.blockSave(craft.id, 'Feature trio');
+  const id = blockSave(craft.id, 'Feature trio');
   a.equal(id, 'feature-trio');
   a.equal(C.blocks().length, 1);
 
   C.state.cur = 1;                                    // a different page
   const before = C.classUsage('card');
-  const made = C.blockInsert(id, null, 0);
+  const made = blockInsert(id, null, 0);
   a.ok(made);
   a.equal(made.type, 'section');
   a.equal(C.classUsage('card'), before + 3, 'the copy shares the class, not a snapshot');
@@ -1386,33 +1426,33 @@ test('a saved block places a fresh copy that still follows its classes', () => {
 
 test('a block finds a legal home when dropped somewhere it cannot sit', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  const id = C.blockSave(h.id, 'Just a heading');
-  const row = C.locate(C.locate(h.id).parent.id).parent;
-  const made = C.blockInsert(id, row, 0);            // a row holds columns
+  const h = insert('heading', null, 0);
+  const id = blockSave(h.id, 'Just a heading');
+  const row = holderOf(holderOf(h.id).id);
+  const made = blockInsert(id, row, 0);            // a row holds columns
   a.ok(made);
-  a.equal(C.locate(made.id).parent.type, 'column', 'a column was created for it');
+  a.equal(holderOf(made.id).type, 'column', 'a column was created for it');
 });
 
 test('forgetting a block leaves the copies already placed alone', () => {
   fresh();
-  const id = C.blockSave(C.state.pages[0].tree[1].id, 'Trio');
-  const made = C.blockInsert(id, null, 0);
+  const id = blockSave(C.state.pages[0].tree[1].id, 'Trio');
+  const made = blockInsert(id, null, 0);
   C.blockDelete(id);
   a.equal(C.findBlock(id), null);
-  a.ok(C.locate(made.id), 'the copy on the page survives');
+  a.ok(at(made.id), 'the copy on the page survives');
 });
 
 test('every template builds real structure from the project tokens', () => {
   fresh();
   C.TEMPLATES.forEach(t => {
-    const pg = C.pageFromTemplate(t.id, t.name);
+    const pg = pageFromTemplate(t.id, t.name);
     let n = 0;
     C.eachNode(pg.tree, () => n++);
     if (t.id === 'blank') { a.equal(n, 0); return; }
     a.ok(n > 5, t.id + ' has structure');
     /* it must be valid: sections at the root, rows in sections, and so on */
-    pg.tree.forEach(node => a.equal(node.type, 'section', t.id + ' puts sections at the root'));
+    pg.tree.forEach((node: PcNode) => a.equal(node.type, 'section', t.id + ' puts sections at the root'));
     C.state.pages.push(pg);
     const html = C.buildPage(pg);
     a.match(html, /^<!doctype html>/);
@@ -1423,16 +1463,16 @@ test('every template builds real structure from the project tokens', () => {
 
 test('a template page gets a unique slug', () => {
   fresh();
-  const a1 = C.pageFromTemplate('contact', 'Contact');
+  const a1 = pageFromTemplate('contact', 'Contact');
   C.state.pages.push(a1);
-  const a2 = C.pageFromTemplate('contact', 'Contact');
+  const a2 = pageFromTemplate('contact', 'Contact');
   a.equal(a1.slug, 'contact');
   a.equal(a2.slug, 'contact-2');
 });
 
 test('the contact template ships a form that the review then asks you to wire up', () => {
   fresh();
-  const pg = C.pageFromTemplate('contact', 'Contact');
+  const pg = pageFromTemplate('contact', 'Contact');
   C.state.pages.push(pg);
   C.state.cur = C.state.pages.length - 1;
   let hasForm = false;
@@ -1470,7 +1510,7 @@ test('the class names come from the widget names', () => {
 
 test('the auto id is readable, stable and namespaced', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   a.match(C.autoId(h), /^pagecraft-heading-[a-z0-9]+$/);
   a.equal(C.autoId(h), C.autoId(h), 'stable across calls');
   a.equal(C.domIdOf(h), C.autoId(h));
@@ -1479,7 +1519,7 @@ test('the auto id is readable, stable and namespaced', () => {
 
 test('an Advanced anchor overrides the auto id verbatim', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.adv.htmlId = 'pricing-table';
   a.equal(C.domIdOf(h), 'pricing-table');
   a.match(C.renderNode(h, { edit: false }), /id="pricing-table"/);
@@ -1492,14 +1532,14 @@ test('an Advanced anchor overrides the auto id verbatim', () => {
 
 test('the editor addresses elements by node id, the export by the readable one', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   a.match(C.renderNode(h, { edit: true }), new RegExp('id="' + h.id + '"'));
   a.match(C.renderNode(h, { edit: false }), new RegExp('id="' + C.autoId(h) + '"'));
 });
 
 test('an auto id can be used as a link target', () => {
   fresh();
-  const btn = C.insert('button', null, 0);
+  const btn = insert('button', null, 0);
   const target = C.state.pages[0].tree[0];
   btn.props.link = 'index.html#' + C.autoId(target);
   a.equal(find(C.lint(), 'dead-anchor').length, 0, 'the review resolves it');
@@ -1514,10 +1554,10 @@ test('an auto id can be used as a link target', () => {
 /* three headings in one column — the shape behind "styling three cards" */
 const trio = () => {
   blank();
-  const h1 = C.insert('heading', null, 0);
-  const col = C.locate(h1.id).parent;
-  const h2 = C.insert('heading', col, 1);
-  const h3 = C.insert('heading', col, 2);
+  const h1 = insert('heading', null, 0);
+  const col = holderOf(h1.id);
+  const h2 = insert('heading', col, 1);
+  const h3 = insert('heading', col, 2);
   return { col, ids: [h1.id, h2.id, h3.id] };
 };
 
@@ -1565,8 +1605,8 @@ test('a range never reaches inside a collapsed row', () => {
 
 test('a member that sits inside another member is not counted twice', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  const col = C.locate(h.id).parent, sec = C.state.pages[0].tree[0];
+  const h = insert('heading', null, 0);
+  const col = holderOf(h.id), sec = C.state.pages[0].tree[0];
   a.deepEqual(C.topMost([sec.id, col.id, h.id]), [sec.id], 'the section already contains the other two');
   a.deepEqual(C.topMost([col.id, h.id]), [col.id]);
 });
@@ -1582,8 +1622,8 @@ test('deleting a set takes every member and leaves a live selection', () => {
 
 test('deleting a parent and its child does not delete twice', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  const col = C.locate(h.id).parent, sec = C.state.pages[0].tree[0];
+  const h = insert('heading', null, 0);
+  const col = holderOf(h.id), sec = C.state.pages[0].tree[0];
   a.equal(C.delMany([sec.id, col.id, h.id]), 1, 'one act, on the outermost');
   a.equal(C.state.pages[0].tree.length, 0);
   a.equal(C.state.ui.sel, null, 'nothing is left to select');
@@ -1612,22 +1652,22 @@ test('a set reorders as a block and stops at the end', () => {
 
 test('a style edit reaches every member, a content field only those that have it', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  const col = C.locate(h.id).parent;
-  const b = C.insert('button', col, 1);
+  const h = insert('heading', null, 0);
+  const col = holderOf(h.id);
+  const b = insert('button', col, 1);
   const ids = [h.id, b.id];
   C.selSet(ids);
 
-  const css = C.fanTargets({ t: 'unit', c: 'padding' }, ids);
+  const css = C.fanTargets({ c: 'padding' }, ids);
   a.deepEqual(css.map(n => n.type), ['heading', 'button'], 'a CSS property is universal');
 
-  const shared = C.fanTargets({ t: 'text', k: 'text' }, ids);
+  const shared = C.fanTargets({ k: 'text' }, ids);
   a.deepEqual(shared.map(n => n.type), ['heading', 'button'], 'both declare a text field');
 
-  const only = C.fanTargets({ t: 'select', k: 'level' }, ids);
+  const only = C.fanTargets({ k: 'level' }, ids);
   a.deepEqual(only.map(n => n.type), ['heading'], 'a button has no heading level to set');
 
-  const id = C.fanTargets({ t: 'text', k: '_id' }, ids);
+  const id = C.fanTargets({ k: '_id' }, ids);
   a.deepEqual(id.map(n => n.type), ['heading'], 'two elements cannot share one HTML id');
 });
 
@@ -1649,14 +1689,14 @@ test('undo retires members whose node it removed', () => {
    asked what that structure said. These ask. */
 
 /* what a user actually does: add the template as a new page on a real project */
-const asPage = tid => {
+const asPage = (tid: string) => {
   fresh();
-  C.state.pages.push(C.pageFromTemplate(tid, 'T'));
+  C.state.pages.push(pageFromTemplate(tid, 'T'));
   C.state.cur = C.state.pages.length - 1;
   return C.state.pages[C.state.cur];
 };
-const outline = tree => {
-  const out = [];
+const outline = (tree: PcNode[]) => {
+  const out: number[] = [];
   C.eachNode(tree, n => { if (n.type === 'heading' && /^h[1-6]$/.test(n.props.level)) out.push(+n.props.level[1]); });
   return out;
 };
@@ -1698,7 +1738,7 @@ test('no page template lands with a problem of its own making', () => {
 test('no section pattern lands with a problem of its own making', () => {
   for (const p of C.PATTERNS) {
     fresh();
-    const made = C.patternInsert(p.id, null, C.state.pages[0].tree.length);
+    const made = patternInsert(p.id, null, C.state.pages[0].tree.length);
     a.ok(made, `“${p.name}” built nothing`);
     const mine = C.lint().filter(f => !THEIRS.includes(f.code) && f.code !== 'many-h1');
     a.deepEqual(mine.map(f => f.code), [], `“${p.name}” reports ${mine.map(f => f.code).join(', ')}`);
@@ -1707,10 +1747,10 @@ test('no section pattern lands with a problem of its own making', () => {
 
 test('a heading takes its outline level from its text style', () => {
   blank();
-  const sec = C.PATTERNS.find(p => p.id === 'hero-split').build();
+  const sec = must(C.PATTERNS.find(p => p.id === 'hero-split'), 'hero-split pattern').build();
   C.state.pages[0].tree.push(sec);
   a.deepEqual(outline([sec]), [1], 'a display headline is the H1');
-  a.match(C.renderNode(C.locate(C.state.pages[0].tree[0].id).node, { edit: false }), /<section/);
+  a.match(C.renderNode(at(C.state.pages[0].tree[0].id).node, { edit: false }), /<section/);
 });
 
 test('a sourced image with the untouched default is reported', () => {
@@ -1719,9 +1759,9 @@ test('a sourced image with the untouched default is reported', () => {
      and the review stayed silent. The guidance lives in the field placeholder
      instead, where it cannot become content. */
   blank();
-  const img = C.insert('image', null, 0);
+  const img = insert('image', null, 0);
   a.equal(img.props.alt, '', 'nothing is pre-filled that could pass for a description');
-  const ctl = C.DEF.image.controls.content.find(c => c.k === 'alt');
+  const ctl = must(C.DEF.image.controls.content.find(c => c.k === 'alt'), 'alt control');
   a.ok(ctl.ph, 'the prompt is still there, as the placeholder');
   img.props.src = 'p.jpg';
   a.equal(find(C.lint(), 'no-alt').length, 1, 'a real image with no description is an error');
@@ -1731,7 +1771,7 @@ test('a sourced image with the untouched default is reported', () => {
 
 test('an image placeholder is not reported as an undescribed image', () => {
   blank();
-  const img = C.insert('image', null, 0);
+  const img = insert('image', null, 0);
   img.props.alt = '';                          // as a template ships one: nothing described yet
   a.equal(find(C.lint(), 'no-alt').length, 0, 'nothing to describe until there is a source');
   a.equal(find(C.lint(), 'no-image').length, 1, 'the missing source is still reported');
@@ -1760,9 +1800,9 @@ test('patterns are grouped, and every group has a name', () => {
 
 test('templates and patterns are built from tokens, not literal colours', () => {
   /* a rebrand from Project has to reach them, so a raw hex is a bug */
-  const raw = [];
-  const scan = (label, tree) => C.eachNode(tree, n => {
-    for (const b of ['d', 't', 'm'])
+  const raw: string[] = [];
+  const scan = (label: string, tree: PcNode[]) => C.eachNode(tree, n => {
+    for (const b of ['d', 't', 'm'] as Bp[])
       for (const [k, v] of Object.entries(n.css[b] || {}))
         if (/^#[0-9a-f]{3,8}$/i.test(String(v))) raw.push(`${label}: ${k}=${v}`);
   });
@@ -1777,12 +1817,12 @@ test('a size override on a styled heading is pinned at every breakpoint', () => 
      font-size loses below 1024px, which is most of the editor canvas. A step
      number set to 19px was rendering at the Display style's 44px because of
      exactly this. */
-  const loose = [];
-  const scan = (label, tree) => C.eachNode(tree, n => {
+  const loose: string[] = [];
+  const scan = (label: string, tree: PcNode[]) => C.eachNode(tree, n => {
     if (!n.props || !n.props.ts) return;                    // no text style, nothing to fight
     const style = C.findStyle(n.props.ts);
     if (!style) return;
-    const responsive = ['t', 'm'].filter(b => (style.css[b] || {})['font-size']);
+    const responsive = (['t', 'm'] as Bp[]).filter(b => (style.css[b] || {})['font-size']);
     if (!(n.css.d || {})['font-size'] || !responsive.length) return;
     for (const b of responsive)
       if (!(n.css[b] || {})['font-size'])
@@ -1796,7 +1836,7 @@ test('a size override on a styled heading is pinned at every breakpoint', () => 
 /* ------------------------------------------------------ column drag-resize */
 const row3 = () => {
   blank();
-  C.insert('columns', null, 0);
+  insert('columns', null, 0);
   const row = C.state.pages[0].tree[0].children[0];
   C.applyCols(row, [50, 30, 20]);
   return row;
@@ -1804,22 +1844,22 @@ const row3 = () => {
 
 test('dragging a gutter moves width between two neighbours only', () => {
   const row = row3();
-  const out = C.resizeCols(row, 0, 10);                 // grow the first by 10% of the row
+  const out = resizeCols(row, 0, 10);                 // grow the first by 10% of the row
   a.deepEqual(out, [60, 20, 20], 'the third column is untouched');
   a.equal(out.reduce((x, y) => x + y, 0), 100, 'and the row still totals 100');
 });
 
 test('a drag the other way is the same move, signed', () => {
   const row = row3();
-  a.deepEqual(C.resizeCols(row, 1, -10), [50, 20, 30]);
+  a.deepEqual(resizeCols(row, 1, -10), [50, 20, 30]);
 });
 
 test('a column stops at the minimum instead of collapsing', () => {
   const row = row3();
-  const out = C.resizeCols(row, 0, -999);               // shove the gutter far left
+  const out = resizeCols(row, 0, -999);               // shove the gutter far left
   a.equal(out[0], C.MIN_COL, 'clamped, not zero — a collapsed column cannot be grabbed back');
   a.equal(out[0] + out[1], 80, 'the pair still holds what it held');
-  const far = C.resizeCols(row, 0, 999);
+  const far = resizeCols(row, 0, 999);
   a.equal(far[1], C.MIN_COL, 'and the same at the other end');
 });
 
@@ -1833,7 +1873,7 @@ test('a resize reads and writes the breakpoint being edited', () => {
   /* the column width control is responsive, so dragging on tablet must not
      silently rewrite the desktop base */
   const row = row3();
-  const out = C.resizeCols(row, 0, 10, 't');
+  const out = resizeCols(row, 0, 10, 't');
   C.applyColsAt(row, out, 't');
   a.deepEqual(C.rowRatios(row), [50, 30, 20], 'desktop is left exactly as it was');
   a.deepEqual(C.rowRatiosAt(row, 't'), [60, 20, 20], 'the override carries the new split');
@@ -1850,47 +1890,47 @@ test('mobile overrides tablet, which overrides desktop', () => {
 
 test('resizing does not add or remove columns', () => {
   const row = row3();
-  C.applyColsAt(row, C.resizeCols(row, 0, 25), 'd');
+  C.applyColsAt(row, resizeCols(row, 0, 25), 'd');
   a.equal(row.children.length, 3);
   a.deepEqual(row.children.map(c => c.type), ['column', 'column', 'column']);
 });
 
 test('a two-column row still resizes, and an equal split survives a round trip', () => {
   blank();
-  C.insert('columns', null, 0);
+  insert('columns', null, 0);
   const row = C.state.pages[0].tree[0].children[0];
   a.equal(row.children.length, 2, 'Columns drops two');
-  const out = C.resizeCols(row, 0, 15);
+  const out = resizeCols(row, 0, 15);
   C.applyColsAt(row, out, 'd');
   a.deepEqual(C.rowRatios(row), [65, 35]);
-  C.applyColsAt(row, C.resizeCols(row, 0, -15), 'd');
+  C.applyColsAt(row, resizeCols(row, 0, -15), 'd');
   a.deepEqual(C.rowRatios(row), [50, 50], 'back where it started');
 });
 
 /* -------------------------------------------------------------- global blocks
    A plain block places independent copies. A global one tags each copy so that
    one of them can push its content back to the block and out to the rest. */
-const savedFrom = (sync) => {
+const savedFrom = (sync: boolean) => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.text = 'Original';
   const sec = C.state.pages[0].tree[0];
-  return { id: C.blockSave(sec.id, 'Promo', sync), sec };
+  return { id: blockSave(sec.id, 'Promo', sync), sec };
 };
 
 test('a plain block places copies that owe each other nothing', () => {
   const { id } = savedFrom(false);
-  const first = C.blockInsert(id, null, 1);
-  C.blockInsert(id, null, 2);
-  a.equal(C.findBlock(id).sync, false);
+  const first = blockInsert(id, null, 1);
+  blockInsert(id, null, 2);
+  a.equal(block(id).sync, false);
   a.equal(!!(first.adv || {}).block, false, 'no link is recorded');
   a.equal(C.blockUsage(id), 0, 'so there is nothing to keep in sync');
 });
 
 test('a global block tags every copy it places', () => {
   const { id } = savedFrom(true);
-  const one = C.blockInsert(id, null, 1), two = C.blockInsert(id, null, 2);
-  a.equal(C.findBlock(id).sync, true);
+  const one = blockInsert(id, null, 1), two = blockInsert(id, null, 2);
+  a.equal(block(id).sync, true);
   a.equal(one.adv.block, id);
   a.equal(two.adv.block, id);
   a.notEqual(one.id, two.id, 'they are still separate nodes');
@@ -1898,33 +1938,33 @@ test('a global block tags every copy it places', () => {
 });
 
 test('the source of a global block never carries its own link', () => {
-  const { id, sec } = savedFrom(true);
-  a.equal(!!(C.findBlock(id).node.adv || {}).block, false);
+  const { id } = savedFrom(true);
+  a.equal(!!(block(id).node.adv || {}).block, false);
   /* and saving an instance as a new block does not inherit the old link either */
-  const inst = C.blockInsert(id, null, 1);
-  const id2 = C.blockSave(inst.id, 'Promo two', true);
-  a.equal(!!(C.findBlock(id2).node.adv || {}).block, false);
+  const inst = blockInsert(id, null, 1);
+  const id2 = blockSave(inst.id, 'Promo two', true);
+  a.equal(!!(block(id2).node.adv || {}).block, false);
 });
 
 test('pushing one copy brings the block and every other copy into line', () => {
   const { id } = savedFrom(true);
-  const one = C.blockInsert(id, null, 1);
-  const two = C.blockInsert(id, null, 2);
-  const three = C.blockInsert(id, null, 3);
+  const one = blockInsert(id, null, 1);
+  const two = blockInsert(id, null, 2);
+  const three = blockInsert(id, null, 3);
   /* edit just one of them */
-  const headingIn = node => { let f = null; C.eachNode([node], x => { if (!f && x.type === 'heading') f = x; }); return f; };
+  const headingIn = (node: PcNode) => { const found: PcNode[] = []; C.eachNode([node], x => { if (x.type === 'heading') found.push(x); }); return must(found[0], 'a heading inside'); };
   headingIn(one).props.text = 'Edited';
   a.equal(headingIn(two).props.text, 'Original', 'untouched until pushed');
 
   a.equal(C.blockPush(one.id), 2, 'two other copies updated');
   a.equal(headingIn(two).props.text, 'Edited');
   a.equal(headingIn(three).props.text, 'Edited');
-  a.equal(headingIn(C.findBlock(id).node).props.text, 'Edited', 'and the block itself');
+  a.equal(headingIn(block(id).node).props.text, 'Edited', 'and the block itself');
 });
 
 test('a push keeps each copy its own element', () => {
   const { id } = savedFrom(true);
-  const one = C.blockInsert(id, null, 1), two = C.blockInsert(id, null, 2);
+  const one = blockInsert(id, null, 1), two = blockInsert(id, null, 2);
   const idBefore = two.id;
   two.adv.htmlId = 'promo-two';
   C.blockPush(one.id);
@@ -1935,19 +1975,19 @@ test('a push keeps each copy its own element', () => {
 
 test('pushing from something that is not a global copy does nothing', () => {
   const { id, sec } = savedFrom(false);
-  const plain = C.blockInsert(id, null, 1);
+  const plain = blockInsert(id, null, 1);
   a.equal(C.blockPush(plain.id), 0);
   a.equal(C.blockPush(sec.id), 0, 'the source section is not an instance either');
 });
 
 test('instances are found across pages and both global regions', () => {
   const { id } = savedFrom(true);
-  C.blockInsert(id, null, 1);
-  C.state.pages.push(C.pageFromTemplate('blank', 'Two'));
+  blockInsert(id, null, 1);
+  C.state.pages.push(pageFromTemplate('blank', 'Two'));
   C.state.cur = 1;
-  C.blockInsert(id, null, 0);
+  blockInsert(id, null, 0);
   C.state.ui.mode = 'header';
-  C.blockInsert(id, null, 0);
+  blockInsert(id, null, 0);
   C.state.ui.mode = 'page'; C.state.cur = 0;
   a.equal(C.blockUsage(id), 3);
   a.deepEqual([...new Set(C.blockInstances(id).map(x => x.where))].sort(), ['header', 'page:0', 'page:1']);
@@ -1955,10 +1995,10 @@ test('instances are found across pages and both global regions', () => {
 
 test('forgetting a global block leaves its copies in place', () => {
   const { id } = savedFrom(true);
-  const one = C.blockInsert(id, null, 1);
+  const one = blockInsert(id, null, 1);
   C.blockDelete(id);
   a.equal(C.findBlock(id), null);
-  a.ok(C.locate(one.id), 'the copy is still on the page');
+  a.ok(at(one.id), 'the copy is still on the page');
   a.equal(C.blockPush(one.id), 0, 'it just has nothing left to push to');
 });
 
@@ -1966,27 +2006,27 @@ test('a fresh copy never inherits a hand-set anchor', () => {
   /* every duplicate path runs through reid, and each of them used to produce a
      duplicate-id error the moment the source carried an anchor */
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.adv.htmlId = 'signup';
   const sec = C.state.pages[0].tree[0];
 
   C.dupNode(sec.id);
   a.equal(C.state.pages[0].tree.length, 2);
-  const copied = [];
+  const copied: string[] = [];
   C.eachNode([C.state.pages[0].tree[1]], n => { if (n.adv && n.adv.htmlId) copied.push(n.adv.htmlId); });
   a.deepEqual(copied, [], 'the duplicate carries no anchor');
   a.equal(h.adv.htmlId, 'signup', 'and the original keeps its own');
   a.equal(find(C.lint(), 'duplicate-id').length, 0);
 
   /* the same for a placed block, and for paste */
-  const id = C.blockSave(sec.id, 'With anchor', true);
-  const placed = C.blockInsert(id, null, 2);
-  const fromBlock = [];
+  const id = blockSave(sec.id, 'With anchor', true);
+  const placed = blockInsert(id, null, 2);
+  const fromBlock: string[] = [];
   C.eachNode([placed], n => { if (n.adv && n.adv.htmlId) fromBlock.push(n.adv.htmlId); });
   a.deepEqual(fromBlock, []);
   C.copyNode(sec.id);
-  const pasted = C.pasteNode(null);
-  const fromClip = [];
+  const pasted = paste(null);
+  const fromClip: string[] = [];
   C.eachNode([pasted], n => { if (n.adv && n.adv.htmlId) fromClip.push(n.adv.htmlId); });
   a.deepEqual(fromClip, []);
   a.equal(find(C.lint(), 'duplicate-id').length, 0, 'nothing collides anywhere');
@@ -1997,7 +2037,7 @@ test('every link mode round-trips through build and parse', () => {
      survive the trip out and back — three of them silently did not */
   fresh();
   const here = 'index';
-  const cases = [
+  const cases: [Record<string, string>, string][] = [
     [{ mode: 'none' }, ''],
     [{ mode: 'page', page: 'pricing', frag: '' }, 'pricing.html'],
     [{ mode: 'page', page: 'index', frag: 'craft' }, 'index.html#craft'],
@@ -2017,7 +2057,7 @@ test('every link mode round-trips through build and parse', () => {
 /* ------------------------------------------------------- content collections */
 const projects = () => {
   blank();
-  const col = C.collectionAdd('Projects');
+  const col = collectionAdd('Projects');
   C.fieldAdd(col.id, 'Summary', 'text');
   C.fieldAdd(col.id, 'Cover', 'image');
   return col;
@@ -2025,7 +2065,7 @@ const projects = () => {
 
 test('a new collection arrives usable, with an id you can put in a URL', () => {
   blank();
-  const col = C.collectionAdd('Case Studies');
+  const col = collectionAdd('Case Studies');
   a.equal(col.id, 'case-studies');
   a.equal(col.slug, 'case-studies');
   a.equal(col.fields.length, 1, 'one field to start, or there is nothing to fill in');
@@ -2035,13 +2075,13 @@ test('a new collection arrives usable, with an id you can put in a URL', () => {
 
 test('two collections of the same name do not collide', () => {
   blank();
-  a.equal(C.collectionAdd('Work').id, 'work');
-  a.equal(C.collectionAdd('Work').id, 'work-2');
+  a.equal(collectionAdd('Work').id, 'work');
+  a.equal(collectionAdd('Work').id, 'work-2');
 });
 
 test('an item names itself from the first text field, and slugs from that', () => {
   const col = projects();
-  const it = C.itemAdd(col.id);
+  const it = itemAdd(col.id);
   a.equal(C.itemTitle(col, it), 'Untitled');
   C.itemSet(col.id, it.id, 'title', 'Acme rebrand');
   a.equal(C.itemTitle(col, it), 'Acme rebrand');
@@ -2050,7 +2090,7 @@ test('an item names itself from the first text field, and slugs from that', () =
 
 test('two items with the same title get different slugs', () => {
   const col = projects();
-  const a1 = C.itemAdd(col.id), a2 = C.itemAdd(col.id);
+  const a1 = itemAdd(col.id), a2 = itemAdd(col.id);
   C.itemSet(col.id, a1.id, 'title', 'Rebrand');
   C.itemSet(col.id, a2.id, 'title', 'Rebrand');
   a.equal(a1.slug, 'rebrand');
@@ -2059,7 +2099,7 @@ test('two items with the same title get different slugs', () => {
 
 test('a hand-set slug stops following the title', () => {
   const col = projects();
-  const it = C.itemAdd(col.id);
+  const it = itemAdd(col.id);
   C.itemSet(col.id, it.id, 'title', 'First name');
   a.equal(it.slug, 'first-name');
   C.itemSetSlug(col.id, it.id, 'custom-url');
@@ -2070,7 +2110,7 @@ test('a hand-set slug stops following the title', () => {
 
 test('deleting a field takes its values with it', () => {
   const col = projects();
-  const it = C.itemAdd(col.id);
+  const it = itemAdd(col.id);
   C.itemSet(col.id, it.id, 'title', 'One');
   C.itemSet(col.id, it.id, 'summary', 'kept');
   C.itemSet(col.id, it.id, 'cover', 'asset:abc');
@@ -2081,7 +2121,7 @@ test('deleting a field takes its values with it', () => {
 
 test('the last field cannot be deleted', () => {
   blank();
-  const col = C.collectionAdd('Notes');
+  const col = collectionAdd('Notes');
   a.equal(C.fieldDelete(col.id, col.fields[0].id), 0);
   a.equal(col.fields.length, 1, 'a collection with no fields could hold nothing');
 });
@@ -2089,11 +2129,11 @@ test('the last field cannot be deleted', () => {
 test('fields and items reorder, and stop at the ends', () => {
   const col = projects();
   a.equal(C.fieldMove(col.id, 'cover', -1), true);
-  a.deepEqual(col.fields.map(f => f.id), ['title', 'cover', 'summary']);
+  a.deepEqual(col.fields.map((f: Field) => f.id), ['title', 'cover', 'summary']);
   a.equal(C.fieldMove(col.id, 'title', -1), false, 'already first');
-  const i1 = C.itemAdd(col.id), i2 = C.itemAdd(col.id);
+  const i1 = itemAdd(col.id), i2 = itemAdd(col.id);
   a.equal(C.itemMove(col.id, i2.id, -1), true);
-  a.deepEqual(col.items.map(i => i.id), [i2.id, i1.id]);
+  a.deepEqual(col.items.map((i: Item) => i.id), [i2.id, i1.id]);
   a.equal(C.itemMove(col.id, i1.id, 1), false, 'already last');
 });
 
@@ -2105,7 +2145,7 @@ test('an unknown field type falls back rather than storing nonsense', () => {
 
 test('deleting a collection leaves the others alone', () => {
   blank();
-  const a1 = C.collectionAdd('One'), a2 = C.collectionAdd('Two');
+  const a1 = collectionAdd('One'), a2 = collectionAdd('Two');
   C.collectionDelete(a1.id);
   a.deepEqual(C.collections().map(c => c.id), [a2.id]);
 });
@@ -2123,15 +2163,15 @@ test('migration v6 to v7 adds the collection list', () => {
 /* -------------------------------------------------------------------- binding */
 const bound = () => {
   blank();
-  const col = C.collectionAdd('Projects');
+  const col = collectionAdd('Projects');
   C.fieldAdd(col.id, 'Summary', 'text');
-  const i1 = C.itemAdd(col.id), i2 = C.itemAdd(col.id);
+  const i1 = itemAdd(col.id), i2 = itemAdd(col.id);
   C.itemSet(col.id, i1.id, 'title', 'Acme rebrand');
   C.itemSet(col.id, i1.id, 'summary', 'A full identity refresh');
   C.itemSet(col.id, i2.id, 'title', 'Northwind app');
   C.itemSet(col.id, i2.id, 'summary', 'Design system and product UI');
-  const h = C.insert('heading', null, 0);
-  const col_ = C.locate(h.id).parent;                 // the column that wraps it
+  const h = insert('heading', null, 0);
+  const col_ = holderOf(h.id);                 // the column that wraps it
   C.srcSet(col_, col.id);
   C.bindSet(h, 'text', 'title');
   return { col, i1, i2, h, holder: col_ };
@@ -2141,13 +2181,13 @@ test('a binding names a field, and takes its collection from the scope above', (
   const { h, holder, col } = bound();
   a.deepEqual(h.bind, { text: 'title' }, 'the node stores only the field');
   a.equal(h.src, undefined, 'no collection id on the bound node');
-  const sc = C.bindScope(h.id);
+  const sc = bindScope(h.id);
   a.equal(sc.col.id, col.id);
-  a.equal(sc.node.id, holder.id, 'resolved from the nearest ancestor with a source');
+  a.equal(must(sc.node, 'scope node').id, holder.id, 'resolved from the nearest ancestor with a source');
 });
 
 test('a bound property renders the item, not the placeholder', () => {
-  const { h, i1 } = bound();
+  bound();
   const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
   a.match(html, /Acme rebrand/);
   a.equal(/A headline that carries weight/.test(html), false, 'the default text is gone');
@@ -2163,13 +2203,13 @@ test('the canvas previews one item, and the switcher moves it', () => {
 test('a preview index past the end falls back rather than rendering nothing', () => {
   const { col } = bound();
   C.state.ui.item = { [col.id]: 99 };
-  a.equal(C.previewItem(col).values.title, 'Northwind app', 'clamped to the last item');
+  a.equal(must(C.previewItem(col), 'preview item').values.title, 'Northwind app', 'clamped to the last item');
   C.collections()[0].items = [];
   a.equal(C.previewItem(col), null, 'and an empty collection binds to nothing');
 });
 
 test('an empty field renders empty, not the placeholder it replaced', () => {
-  const { h, col, i1 } = bound();
+  const { col, i1 } = bound();
   C.itemSet(col.id, i1.id, 'title', '');
   const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
   a.equal(/A headline that carries weight/.test(html), false,
@@ -2196,7 +2236,7 @@ test('clearing a binding drops the map when it was the last one', () => {
 
 test('an unbound tree is left exactly as it was', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   a.equal(C.boundProps(h, null, null), h.props, 'the identity object, not a copy');
 });
 
@@ -2204,7 +2244,7 @@ test('a source only counts when the collection is real', () => {
   const { holder } = bound();
   C.srcSet(holder, 'ghost-collection');
   a.equal(holder.src, undefined);
-  const h2 = C.insert('heading', null, 0);
+  const h2 = insert('heading', null, 0);
   a.equal(C.bindScope(h2.id), null, 'nothing above it declares a source');
 });
 
@@ -2220,10 +2260,10 @@ test('which props may bind: content, but never the text style', () => {
 /* --------------------------------------------------------- collection list */
 const withList = () => {
   blank();
-  const col = C.collectionAdd('Projects');
+  const col = collectionAdd('Projects');
   C.fieldAdd(col.id, 'Year', 'number');
   [['Acme rebrand', '2025'], ['Northwind app', '2024'], ['Harbour print', '100']].forEach(([t, y]) => {
-    const it = C.itemAdd(col.id);
+    const it = itemAdd(col.id);
     C.itemSet(col.id, it.id, 'title', t);
     C.itemSet(col.id, it.id, 'year', y);
   });
@@ -2238,7 +2278,7 @@ const withList = () => {
 };
 
 test('a collection list renders its contents once per item', () => {
-  const { col } = withList();
+  withList();
   const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
   a.equal((html.match(/class="pagecraft-column/g) || []).length, 3, 'one card per item');
   for (const t of ['Acme rebrand', 'Northwind app', 'Harbour print']) a.match(html, new RegExp(t));
@@ -2281,7 +2321,7 @@ test('a limit caps the list, and a bad limit does not', () => {
 });
 
 test('an empty collection exports nothing rather than an empty shell', () => {
-  const { col } = withList();
+  withList();
   C.collections()[0].items = [];
   const shipped = C.renderNode(C.state.pages[0].tree[0], { edit: false });
   a.equal(/pagecraft-list/.test(shipped), false, 'no stray wrapper in the export');
@@ -2310,7 +2350,7 @@ test('a list sits where a row sits, and holds columns', () => {
 });
 
 test('every repeat ships a unique id, or the export is invalid markup', () => {
-  const { col } = withList();
+  withList();
   const html = C.renderNode(C.state.pages[0].tree[0], { edit: false });
   const ids = [...html.matchAll(/id="([^"]+)"/g)].map(m => m[1]);
   a.equal(ids.length, new Set(ids).size, 'no id appears twice: ' + ids.join(' '));
@@ -2327,7 +2367,7 @@ test('a hand-set anchor inside a card is made per-item too', () => {
 });
 
 test('in the editor the first repeat keeps the bare node id', () => {
-  const { col, card } = withList();
+  const { card } = withList();
   const html = C.renderNode(C.state.pages[0].tree[0], { edit: true });
   a.match(html, new RegExp('id="' + card.id + '"'), 'so selection and the HUD still find it');
   a.equal((html.match(new RegExp('data-id="' + card.id + '"', 'g')) || []).length, 3,
@@ -2337,17 +2377,17 @@ test('in the editor the first repeat keeps the bare node id', () => {
 /* ------------------------------------------------------------- detail pages */
 const detail = () => {
   blank();
-  const col = C.collectionAdd('Projects');
+  const col = collectionAdd('Projects');
   col.slug = 'work';
   C.fieldAdd(col.id, 'Body', 'rich');
   ['Acme rebrand', 'Northwind app'].forEach(t => {
-    const it = C.itemAdd(col.id);
+    const it = itemAdd(col.id);
     C.itemSet(col.id, it.id, 'title', t);
     C.itemSet(col.id, it.id, 'body', 'The story of ' + t);
   });
   /* a second ordinary page to link to */
-  C.state.pages.push(C.pageFromTemplate('blank', 'About'));
-  const tpl = C.pageFromTemplate('blank', 'Project');
+  C.state.pages.push(pageFromTemplate('blank', 'About'));
+  const tpl = pageFromTemplate('blank', 'Project');
   tpl.collection = col.id;
   tpl.bindTitle = 'title';
   C.state.pages.push(tpl);
@@ -2355,7 +2395,7 @@ const detail = () => {
 };
 
 test('a detail template emits one file per item, the rest one each', () => {
-  const { col } = detail();
+  detail();
   const t = C.exportTargets();
   a.deepEqual(t.map(x => x.path),
     ['index.html', 'pricing.html', 'about.html', 'work/acme-rebrand.html', 'work/northwind-app.html']);
@@ -2390,7 +2430,7 @@ test('cms:item resolves to the page of whichever item is rendering', () => {
 });
 
 test('a detail page renders the item it stands for', () => {
-  const { col, tpl } = detail();
+  const { tpl } = detail();
   const h = C.N('heading', { text: 'placeholder', ts: 'display' });
   C.bindSet(h, 'text', 'title');
   tpl.tree.push(C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [h])])]));
@@ -2402,7 +2442,7 @@ test('a detail page renders the item it stands for', () => {
 });
 
 test('the header on a nested page links back out', () => {
-  const { col } = detail();
+  detail();
   C.state.header.push(C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {},
     [C.N('nav', { items: [{ label: 'Home', href: 'index.html' }, { label: 'Out', href: 'https://x.com' }] })])])]));
   const root = C.exportTargets()[0], deep = C.exportTargets().find(x => x.item);
@@ -2421,7 +2461,7 @@ test('the sitemap lists every generated file', () => {
 });
 
 test('a detail template with an empty collection emits nothing for it', () => {
-  const { col } = detail();
+  detail();
   C.collections()[0].items = [];
   a.deepEqual(C.exportTargets().map(x => x.path), ['index.html', 'pricing.html', 'about.html']);
 });
@@ -2429,32 +2469,32 @@ test('a detail template with an empty collection emits nothing for it', () => {
 test('on a detail page the whole page is the binding scope', () => {
   const { tpl, col } = detail();
   C.state.cur = C.state.pages.indexOf(tpl);
-  const h = C.insert('heading', null, 0);
-  const sc = C.bindScope(h.id);
+  const h = insert('heading', null, 0);
+  const sc = bindScope(h.id);
   a.equal(sc.col.id, col.id);
   a.equal(sc.node, null, 'no src node needed — the page provides it');
 });
 
 /* -------------------------------------------------------------- content.json */
 test('content.json carries the schema, the items and their URLs', () => {
-  const { col } = detail();
+  detail();
   const j = JSON.parse(C.contentJson());
   a.equal(j.site.name, C.state.meta.name);
   a.equal(j.collections.length, 1);
   const c = j.collections[0];
   a.equal(c.id, 'projects');
   a.equal(c.slug, 'work');
-  a.deepEqual(c.fields.map(f => f.id), ['title', 'body']);
-  a.deepEqual(c.fields.map(f => f.type), ['text', 'rich']);
-  a.deepEqual(c.items.map(i => i.slug), ['acme-rebrand', 'northwind-app']);
+  a.deepEqual(c.fields.map((f: Field) => f.id), ['title', 'body']);
+  a.deepEqual(c.fields.map((f: Field) => f.type), ['text', 'rich']);
+  a.deepEqual(c.items.map((i: Item) => i.slug), ['acme-rebrand', 'northwind-app']);
   a.equal(c.items[0].url, 'work/acme-rebrand.html', 'so a consumer knows where the page is');
   a.equal(c.items[0].values.title, 'Acme rebrand');
 });
 
 test('an item with no detail page carries no url', () => {
   blank();
-  const col = C.collectionAdd('Notes');
-  const it = C.itemAdd(col.id);
+  const col = collectionAdd('Notes');
+  const it = itemAdd(col.id);
   C.itemSet(col.id, it.id, 'title', 'One');
   const c = JSON.parse(C.contentJson()).collections[0];
   a.equal('url' in c.items[0], false, 'rather than a link to a file that is not written');
@@ -2470,9 +2510,9 @@ test('every field appears on every item, even the ones never filled in', () => {
 
 test('image values go through the resolver the caller supplies', () => {
   blank();
-  const col = C.collectionAdd('Gallery');
+  const col = collectionAdd('Gallery');
   C.fieldAdd(col.id, 'Shot', 'image');
-  const it = C.itemAdd(col.id);
+  const it = itemAdd(col.id);
   C.itemSet(col.id, it.id, 'shot', 'asset:abc123');
   a.equal(JSON.parse(C.contentJson()).collections[0].items[0].values.shot, 'asset:abc123',
     'untouched by default, since core cannot see the asset store');
@@ -2496,7 +2536,7 @@ test('content.json is valid JSON and ends with a newline', () => {
    Native <details>, which is the whole reason this widget costs no JavaScript. */
 const acc = (props = {}) => {
   blank();
-  const n = C.insert('accordion', null, 0);
+  const n = insert('accordion', null, 0);
   Object.assign(n.props, props);
   return n;
 };
@@ -2550,14 +2590,14 @@ test('an accordion with no questions exports nothing but explains itself in the 
 /* =================================================================== embed */
 test('an embed exports its markup verbatim — that is the entire point', () => {
   blank();
-  const n = C.insert('embed', null, 0);
+  const n = insert('embed', null, 0);
   n.props.html = '<iframe src="https://example.com/x" title="Map"></iframe>';
   a.match(C.renderNode(n, { edit: false }), /<iframe src="https:\/\/example\.com\/x" title="Map"><\/iframe>/);
 });
 
 test('the canvas holds back scripts the export ships', () => {
   blank();
-  const n = C.insert('embed', null, 0);
+  const n = insert('embed', null, 0);
   n.props.html = '<div id="w"></div><script src="https://x.test/w.js"></script>';
   const shipped = C.renderNode(n, { edit: false });
   const drawn = C.renderNode(n, { edit: true });
@@ -2576,7 +2616,7 @@ test('stripScripts takes both forms and counts what it took', () => {
 
 test('an aspect ratio reaches the iframe through a class, not a style-attribute selector', () => {
   blank();
-  const n = C.insert('embed', null, 0);
+  const n = insert('embed', null, 0);
   n.props.html = '<iframe src="x"></iframe>';
   a.equal(/pagecraft-embed-ratio/.test(C.renderNode(n, { edit: false })), false, 'none chosen, none applied');
   n.props.ratio = '16 / 9';
@@ -2588,7 +2628,7 @@ test('an aspect ratio reaches the iframe through a class, not a style-attribute 
 
 test('an empty embed exports nothing', () => {
   blank();
-  const n = C.insert('embed', null, 0);
+  const n = insert('embed', null, 0);
   a.equal(C.renderNode(n, { edit: false }), '');
 });
 
@@ -2605,7 +2645,7 @@ test('every icon in the set has a path, and none is empty', () => {
 
 test('an icon always carries width and height — a viewBox alone collapses', () => {
   blank();
-  const n = C.insert('icon', null, 0);
+  const n = insert('icon', null, 0);
   const html = C.renderNode(n, { edit: false });
   a.match(html, /width="24"/);
   a.match(html, /height="24"/);
@@ -2615,7 +2655,7 @@ test('an icon always carries width and height — a viewBox alone collapses', ()
 
 test('a label makes an icon announced; without one it is hidden', () => {
   blank();
-  const n = C.insert('icon', null, 0);
+  const n = insert('icon', null, 0);
   a.match(C.renderNode(n, { edit: false }), /aria-hidden="true"/);
   n.props.label = 'Verified';
   const html = C.renderNode(n, { edit: false });
@@ -2626,7 +2666,7 @@ test('a label makes an icon announced; without one it is hidden', () => {
 
 test('a linked icon names the link, not the glyph', () => {
   blank();
-  const n = C.insert('icon', null, 0);
+  const n = insert('icon', null, 0);
   n.props.link = 'https://example.com';
   n.props.label = 'Our GitHub';
   const html = C.renderNode(n, { edit: false });
@@ -2637,15 +2677,15 @@ test('a linked icon names the link, not the glyph', () => {
 
 test('an unknown icon name falls back rather than drawing an empty box', () => {
   blank();
-  const n = C.insert('icon', null, 0);
+  const n = insert('icon', null, 0);
   n.props.name = 'no-such-glyph';
   a.match(C.renderNode(n, { edit: false }), new RegExp(C.ICON_PATHS.check.slice(1, 20).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
 /* ================================================================= gallery */
-const gal = (count, props = {}) => {
+const gal = (count: number, props: Record<string, any> = {}) => {
   blank();
-  const n = C.insert('gallery', null, 0);
+  const n = insert('gallery', null, 0);
   n.props.items = Array.from({ length: count }, (_, i) =>
     ({ src: 'asset:a' + i, alt: 'Shot ' + i, caption: 'Cap ' + i, w: '1200', h: '900' }));
   Object.assign(n.props, props);
@@ -2708,7 +2748,7 @@ test('the lightbox script ships only onto a page that has one', () => {
   gal(2);
   a.match(C.buildPage(C.page()), /HTMLDialogElement/);
   blank();
-  C.insert('heading', null, 0);
+  insert('heading', null, 0);
   a.equal(/HTMLDialogElement/.test(C.buildPage(C.page())), false, 'no gallery, no script');
   gal(2, { lightbox: 0 });
   a.equal(/data-lightbox/.test(C.buildPage(C.page())), false);
@@ -2764,7 +2804,7 @@ test('an accordion row with no question is an error, an empty answer a warning',
 
 test('an embed says what the review cannot check for it', () => {
   blank();
-  const n = C.insert('embed', null, 0);
+  const n = insert('embed', null, 0);
   a.equal(find(C.lint(), 'embed-empty').length, 1);
   n.props.html = '<iframe src="https://x.test"></iframe>';
   a.equal(codes(C.lint()).filter(x => x.startsWith('embed-')).length, 0);
@@ -2774,7 +2814,7 @@ test('an embed says what the review cannot check for it', () => {
 
 test('a linked icon with no label is an error — the link would have no name at all', () => {
   blank();
-  const n = C.insert('icon', null, 0);
+  const n = insert('icon', null, 0);
   a.equal(find(C.lint(), 'icon-link-no-label').length, 0, 'an unlinked glyph is allowed to be decorative');
   n.props.link = 'https://example.com';
   a.equal(find(C.lint(), 'icon-link-no-label').length, 1);
@@ -2919,17 +2959,17 @@ test('what you built survives it: colours, text styles, classes, blocks', () => 
   C.blankProject('Mine');
   a.deepEqual([C.colors().length, C.styles().length, C.classes().length, C.blocks().length], before,
     'a library is work, not content');
-  a.ok(C.findClass('card'), 'a class you made is still there');
+  a.ok(klass('card'), 'a class you made is still there');
 });
 
 test('a collection keeps its schema and loses its items', () => {
   fresh();
-  const col = C.collectionAdd('Projects');
+  const col = collectionAdd('Projects');
   C.fieldAdd(col.id, 'Summary', 'text');
-  C.itemAdd(col.id); C.itemAdd(col.id);
-  a.equal(C.findCollection(col.id).items.length, 2);
+  itemAdd(col.id); itemAdd(col.id);
+  a.equal(coll(col.id).items.length, 2);
   C.blankProject('Mine');
-  const after = C.findCollection(col.id);
+  const after = coll(col.id);
   a.ok(after, 'the content type is a library and stays');
   a.equal(after.fields.length, 2, 'with its fields');
   a.equal(after.items.length, 0, 'but the items were content, and content goes');
@@ -2972,8 +3012,8 @@ test('a brand-new empty site is not told off for having no H1', () => {
    destructuring a node called `a` shadowed it and every case here failed at once. */
 const styled = () => {
   blank();
-  const src = C.insert('heading', null, 0);
-  const dst = C.insert('heading', null, 1);
+  const src = insert('heading', null, 0);
+  const dst = insert('heading', null, 1);
   src.css.d = { color: '#a8402f', 'letter-spacing': '.06em' };
   src.css.t = { 'font-size': '30px' };
   src.css.m = { 'font-size': '22px' };
@@ -2987,9 +3027,10 @@ test('a copied look carries every breakpoint, its classes and its text style', (
   C.classApply(src, 'card');
   src.adv.css = '&:hover{opacity:.8}';
   C.copyStyles(src.id);
-  a.equal(C.styleClip.css.d.color, '#a8402f');
-  a.equal(C.styleClip.css.t['font-size'], '30px', 'a look is not a look if it falls apart on mobile');
-  a.equal(C.styleClip.css.m['font-size'], '22px');
+  const sc = must(C.styleClip.css, 'copied styles');
+  a.equal(sc.d.color, '#a8402f');
+  a.equal(sc.t['font-size'], '30px', 'a look is not a look if it falls apart on mobile');
+  a.equal(sc.m['font-size'], '22px');
   a.deepEqual(C.styleClip.cls, ['card']);
   a.equal(C.styleClip.ts, 'subtitle');
   a.equal(C.styleClip.adv, '&:hover{opacity:.8}');
@@ -3011,8 +3052,8 @@ test('pasting replaces rather than merges', () => {
 test('a text style travels only where the target has one to set', () => {
   const { src } = styled();
   C.copyStyles(src.id);
-  const h = C.insert('heading', null, 1);
-  const img = C.insert('image', null, 2);
+  const h = insert('heading', null, 1);
+  const img = insert('image', null, 2);
   C.pasteStyles(h.id);
   C.pasteStyles(img.id);
   a.equal(h.props.ts, 'subtitle', 'a Heading declares a text style');
@@ -3035,15 +3076,15 @@ test('the two clipboards are independent', () => {
   const { src, dst } = styled();
   C.copyNode(src.id);
   C.copyStyles(dst.id);
-  a.equal(C.clip.node.id, src.id, 'copying a look did not throw away the copied element');
+  a.equal(must(C.clip.node, 'clipboard node').id, src.id, 'copying a look did not throw away the copied element');
   C.copyNode(dst.id);
   a.ok(C.styleClip.css, 'and copying an element did not throw away the look');
 });
 
 test('pasting onto a set counts what it changed, and does nothing with an empty clipboard', () => {
   const { src } = styled();
-  const one = C.insert('heading', null, 1);
-  const two = C.insert('heading', null, 2);
+  const one = insert('heading', null, 1);
+  const two = insert('heading', null, 2);
   C.copyStyles(src.id);
   a.equal(C.pasteStylesMany([one.id, two.id]), 2);
   a.equal(one.css.d.color, '#a8402f');
@@ -3078,7 +3119,7 @@ test('a search finds nothing for nothing', () => {
 
 test('case sensitivity is a choice', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   h.props.text = 'Harbour harbour HARBOUR';
   a.equal(C.searchCount(C.searchAll('harbour')), 3, 'insensitive by default');
   a.equal(C.searchCount(C.searchAll('harbour', { caseSensitive: true })), 1);
@@ -3087,7 +3128,7 @@ test('case sensitivity is a choice', () => {
 
 test('rich text is searched as text, never as markup', () => {
   blank();
-  const t = C.insert('text', null, 0);
+  const t = insert('text', null, 0);
   t.props.html = '<div class="wrap"><p>a wrapper of words</p></div>';
   /* looking for "div" must not report every tag, and "class" must not match an attribute */
   a.equal(C.searchCount(C.searchAll('div')), 0);
@@ -3098,7 +3139,7 @@ test('rich text is searched as text, never as markup', () => {
 
 test('a replace stays out of the tags too', () => {
   blank();
-  const t = C.insert('text', null, 0);
+  const t = insert('text', null, 0);
   t.props.html = '<div class="wrap"><p>wrap it</p></div>';
   a.equal(C.replaceAll('wrap', 'fold'), 1);
   a.equal(t.props.html, '<div class="wrap"><p>fold it</p></div>', 'the class attribute is untouched');
@@ -3107,16 +3148,16 @@ test('a replace stays out of the tags too', () => {
 test('outsideTags only transforms what sits between tags', () => {
   a.equal(C.outsideTags('<b title="a">a</b>', s => s.toUpperCase()), '<b title="a">A</b>');
   a.equal(C.outsideTags('plain', s => s.toUpperCase()), 'PLAIN');
-  a.equal(C.outsideTags('', s => 'x'), 'x');
+  a.equal(C.outsideTags('', () => 'x'), 'x');
 });
 
 test('a replace reaches nested props: accordion rows, nav links, form fields', () => {
   blank();
-  const acc = C.insert('accordion', null, 0);
+  const acc = insert('accordion', null, 0);
   acc.props.items = [{ q: 'Is Acme good?', a: 'Acme is fine.' }];
-  const nav = C.insert('nav', null, 1);
+  const nav = insert('nav', null, 1);
   nav.props.items = [{ label: 'Acme', href: '#acme' }];
-  const form = C.insert('form', null, 2);
+  const form = insert('form', null, 2);
   form.props.fields = [{ type: 'text', label: 'Acme name', name: 'n', ph: 'Your Acme id' }];
   a.equal(C.searchCount(C.searchAll('Acme')), 5, 'both accordion keys, the nav label and href, both form strings');
   C.replaceAll('Acme', 'Beta');
@@ -3149,23 +3190,23 @@ test('a replace is one undo step for the whole project', () => {
 
 test('CMS item values are searched and replaced', () => {
   blank();
-  const col = C.collectionAdd('Projects');
-  const it = C.itemAdd(col.id);
+  const col = collectionAdd('Projects');
+  const it = itemAdd(col.id);
   C.itemSet(col.id, it.id, 'title', 'Acme rebrand');
   const hits = C.searchAll('Acme');
   a.equal(hits.length, 1);
   a.equal(hits[0].where, 'cms');
   a.equal(hits[0].pageName, 'Projects');
   C.replaceAll('Acme', 'Beta');
-  a.equal(C.findCollection(col.id).items[0].values.title, 'Beta rebrand');
+  a.equal(coll(col.id).items[0].values.title, 'Beta rebrand');
   /* and it can be told not to */
   C.replaceAll('Beta', 'Gamma', { cms: false });
-  a.equal(C.findCollection(col.id).items[0].values.title, 'Beta rebrand');
+  a.equal(coll(col.id).items[0].values.title, 'Beta rebrand');
 });
 
 test('a text slot is declared once and every walker agrees', () => {
   blank();
-  const g = C.insert('gallery', null, 0);
+  const g = insert('gallery', null, 0);
   g.props.items = [{ src: 'asset:a', alt: 'A plate', caption: 'Plate one' }];
   const slots = C.textSlots(g);
   a.equal(slots.length, 2, 'alt and caption, not src');
@@ -3179,7 +3220,7 @@ test('every widget that carries text declares it', () => {
   /* the walker is the only place this is written down, so a widget missing from it is
      a widget find-and-replace silently cannot reach */
   ['heading', 'text', 'button', 'image', 'icon', 'embed', 'accordion', 'gallery', 'nav', 'form']
-    .forEach(t => a.ok(C.TEXT_SLOTS[t], t + ' names its text props'));
+    .forEach(t => a.ok(C.TEXT_SLOTS[t as keyof typeof C.TEXT_SLOTS], t + ' names its text props'));
   Object.keys(C.TEXT_SLOTS).forEach(t => a.ok(C.DEF[t], t + ' is a real widget'));
 });
 
@@ -3189,7 +3230,7 @@ test('every widget that carries text declares it', () => {
    see the mapping as a whole. */
 const cardIn = () => {
   blank();
-  const col = C.collectionAdd('Projects');
+  const col = collectionAdd('Projects');
   C.fieldAdd(col.id, 'Summary', 'rich');
   C.fieldAdd(col.id, 'Cover', 'image');
   C.fieldAdd(col.id, 'Year', 'number');
@@ -3221,12 +3262,12 @@ test('the first guess gets a normal card right', () => {
   const { col, list } = cardIn();
   const slots = C.bindSlots(list.id);
   const g = C.guessBindings(slots, col);
-  const at = (type, key) => g[slots.find(s => s.type === type && s.key === key).nodeId + '|' + key];
-  a.equal(at('heading', 'text'), 'title');
-  a.equal(at('text', 'html'), 'summary');
-  a.equal(at('image', 'src'), 'cover');
-  a.equal(at('button', 'link'), 'read-more', 'the button gets the link field, not the heading');
-  a.equal(at('heading', 'link'), '', 'and the heading is left alone rather than guessed at');
+  const bindOf = (type: string, key: string) => g[must(slots.find(s => s.type === type && s.key === key), `slot ${type}.${key}`).nodeId + '|' + key];
+  a.equal(bindOf('heading', 'text'), 'title');
+  a.equal(bindOf('text', 'html'), 'summary');
+  a.equal(bindOf('image', 'src'), 'cover');
+  a.equal(bindOf('button', 'link'), 'read-more', 'the button gets the link field, not the heading');
+  a.equal(bindOf('heading', 'link'), '', 'and the heading is left alone rather than guessed at');
 });
 
 test('a field is used once, so a second heading does not also take the title', () => {
@@ -3244,7 +3285,7 @@ test('a field is used once, so a second heading does not also take the title', (
 
 test('a name match beats the shape of the control', () => {
   blank();
-  const col = C.collectionAdd('Things');
+  const col = collectionAdd('Things');
   C.fieldAdd(col.id, 'Caption', 'text');
   const img = C.N('image');
   const list = C.N('list', {}, {}, [C.N('column', {}, {}, [img])]);
@@ -3257,7 +3298,7 @@ test('a name match beats the shape of the control', () => {
 
 test('an existing binding is never guessed over', () => {
   const { col, list } = cardIn();
-  const h = C.locate(C.bindSlots(list.id)[0].nodeId).node;
+  const h = at(C.bindSlots(list.id)[0].nodeId).node;
   C.bindSet(h, 'text', 'year');
   const slots = C.bindSlots(list.id);
   const g = C.guessBindings(slots, col);
@@ -3270,7 +3311,7 @@ test('applyBindings writes the map and counts only what changed', () => {
   const g = C.guessBindings(slots, col);
   a.equal(C.applyBindings(g), 4);
   a.equal(C.applyBindings(g), 0, 'writing the same map again changes nothing');
-  const h = C.locate(slots.find(s => s.key === 'text').nodeId).node;
+  const h = at(slots.find(s => s.key === 'text').nodeId).node;
   a.equal(C.bindGet(h, 'text'), 'title');
   /* clearing is a write too */
   slots.forEach(s => { g[s.nodeId + '|' + s.key] = ''; });
@@ -3281,9 +3322,9 @@ test('applyBindings writes the map and counts only what changed', () => {
 test('a bound card renders one per item, with the bound values', () => {
   const { col, list } = cardIn();
   C.applyBindings(C.guessBindings(C.bindSlots(list.id), col));
-  const a1 = C.itemAdd(col.id); C.itemSet(col.id, a1.id, 'title', 'Acme rebrand');
-  const a2 = C.itemAdd(col.id); C.itemSet(col.id, a2.id, 'title', 'Northwind app');
-  const html = C.renderNode(C.locate(list.id).node, { edit: false });
+  const a1 = itemAdd(col.id); C.itemSet(col.id, a1.id, 'title', 'Acme rebrand');
+  const a2 = itemAdd(col.id); C.itemSet(col.id, a2.id, 'title', 'Northwind app');
+  const html = C.renderNode(at(list.id).node, { edit: false });
   a.match(html, /Acme rebrand/);
   a.match(html, /Northwind app/);
   /* the class *and* the auto id both contain the widget slug, so count the class */
@@ -3292,7 +3333,7 @@ test('a bound card renders one per item, with the bound values', () => {
 
 test('a scope with nothing bindable in it gives an empty sheet', () => {
   blank();
-  const col = C.collectionAdd('Things');
+  const col = collectionAdd('Things');
   const list = C.N('list', {}, {}, [C.N('column', {}, {}, [C.N('divider'), C.N('spacer')])]);
   C.srcSet(list, col.id);
   C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
@@ -3311,7 +3352,7 @@ const fourSections = () => {
     const sec = C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [C.N('heading', { text: k })])])]);
     t.push(sec);
   });
-  const label = n => { let v = ''; C.eachNode([n], x => { if (!v && x.props && x.props.text) v = x.props.text; }); return v; };
+  const label = (n: PcNode) => { let v = ''; C.eachNode([n], x => { if (!v && x.props && x.props.text) v = x.props.text; }); return v; };
   return { t, order: () => t.map(label) };
 };
 
@@ -3345,8 +3386,8 @@ test('a parent and its own child in one set move once, as the parent', () => {
 
 test('a Navigator drop reads the thirds of a row', () => {
   const { t } = fourSections();
-  const before = C.layerTarget(t[2].id, 'before', 'section', []);
-  const after = C.layerTarget(t[2].id, 'after', 'section', []);
+  const before = layerTarget(t[2].id, 'before', 'section', []);
+  const after = layerTarget(t[2].id, 'after', 'section', []);
   a.equal(before.container, null, 'a section sits at the root');
   a.equal(before.index, 2);
   a.equal(after.index, 3);
@@ -3355,8 +3396,8 @@ test('a Navigator drop reads the thirds of a row', () => {
 test('the middle of a row drops inside it, when it can hold the thing', () => {
   const { t } = fourSections();
   const col = t[0].children[0].children[0];
-  const inside = C.layerTarget(col.id, 'inside', 'heading', []);
-  a.equal(inside.container.id, col.id);
+  const inside = layerTarget(col.id, 'inside', 'heading', []);
+  a.equal(must(inside.container, 'container').id, col.id);
   a.equal(inside.index, 0, 'first inside — the only way a list can reach an empty container');
   a.equal(C.layerTarget(col.id, 'inside', 'section', []), null, 'a column cannot hold a section');
 });
@@ -3367,7 +3408,7 @@ test('a row that is the dragged node, or under it, is refused', () => {
   a.equal(C.layerTarget(t[0].id, 'inside', 'section', [t[0].id]), null, 'not inside itself');
   a.equal(C.layerTarget(inner.id, 'inside', 'row', [t[0].id]), null,
     'and not inside its own descendant — that detaches the tree');
-  a.ok(C.layerTarget(t[1].id, 'after', 'section', [t[0].id]), 'a different branch is fine');
+  a.ok(layerTarget(t[1].id, 'after', 'section', [t[0].id]), 'a different branch is fine');
 });
 
 test('a Navigator drop onto a missing row is nothing, not a throw', () => {
@@ -3410,11 +3451,11 @@ test('whitespace is collapsed after slicing, never before', () => {
    bar, the Navigator row, the inspector footer — each offering a different subset of
    the same verbs, and none offering copy/paste styles. `menuFor` is the single answer
    to "what applies here", and `runAct` in the UI is the single place that does it. */
-const acts = ids => C.menuFor(ids).map(i => i.act);
+const acts = (ids: string[]) => C.menuFor(ids).map(i => i.act);
 
 test('the menu offers what the element can actually do', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   const a1 = acts([h.id]);
   a.ok(a1.includes('edit'), 'a heading has content to edit in place');
   a.ok(a1.includes('up'), 'and a parent to select — insert built the wrappers');
@@ -3424,15 +3465,15 @@ test('the menu offers what the element can actually do', () => {
 
 test('a type with nothing to edit in place is not offered it', () => {
   blank();
-  const d = C.insert('divider', null, 0);
+  const d = insert('divider', null, 0);
   a.equal(acts([d.id]).includes('edit'), false);
-  const img = C.insert('image', null, 1);
+  const img = insert('image', null, 1);
   a.equal(acts([img.id]).includes('edit'), false, 'an image is edited through its fields');
 });
 
 test('paste appears only when there is something to paste', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   C.clip.node = null;
   C.styleClip.css = null;
   a.equal(acts([h.id]).includes('paste'), false);
@@ -3442,17 +3483,17 @@ test('paste appears only when there is something to paste', () => {
   C.copyStyles(h.id);
   a.ok(acts([h.id]).includes('paste'));
   a.ok(acts([h.id]).includes('stpaste'));
-  a.match(C.menuFor([h.id]).find(i => i.act === 'paste').label, /^Paste Heading$/,
+  a.match(must(C.menuFor([h.id]).find(i => i.act === 'paste'), 'paste').label, /^Paste Heading$/,
     'and it names what would land');
 });
 
 test('a multi-selection says how many, and which verbs cannot fan out', () => {
   blank();
-  const one = C.insert('heading', null, 0);
-  const two = C.insert('heading', null, 1);
+  const one = insert('heading', null, 0);
+  const two = insert('heading', null, 1);
   C.copyStyles(one.id);
   const m = C.menuFor([one.id, two.id]);
-  const label = act => m.find(i => i.act === act).label;
+  const label = (act: string) => must(m.find(i => i.act === act), act).label;
   a.match(label('dup'), /Duplicate all 2/);
   a.match(label('del'), /Delete all 2/);
   a.match(label('stpaste'), /Paste styles to 2/);
@@ -3465,20 +3506,20 @@ test('a multi-selection says how many, and which verbs cannot fan out', () => {
 
 test('hide names the breakpoint it applies to, and reads the current state', () => {
   blank();
-  const h = C.insert('heading', null, 0);
-  a.match(C.menuFor([h.id]).find(i => i.act === 'hide').label, /^Hide on Desktop$/);
+  const h = insert('heading', null, 0);
+  a.match(must(C.menuFor([h.id]).find(i => i.act === 'hide'), 'hide').label, /^Hide on Desktop$/);
   h.hide = { d: true };
-  a.match(C.menuFor([h.id]).find(i => i.act === 'hide').label, /^Show on Desktop$/);
+  a.match(must(C.menuFor([h.id]).find(i => i.act === 'hide'), 'hide').label, /^Show on Desktop$/);
   C.state.ui.dev = 'mobile';
-  a.match(C.menuFor([h.id]).find(i => i.act === 'hide').label, /on Mobile$/);
+  a.match(must(C.menuFor([h.id]).find(i => i.act === 'hide'), 'hide').label, /on Mobile$/);
   C.state.ui.dev = 'desktop';
 });
 
 test('pushing a block copy is offered only on a copy of a global block', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   a.equal(acts([h.id]).includes('push'), false);
-  const bid = C.blockSave(h.id, 'Hero', 1);
+  const bid = blockSave(h.id, 'Hero', 1);
   h.adv.block = bid;
   a.ok(acts([h.id]).includes('push'), 'this one is linked to a block');
   h.adv.block = 'gone';
@@ -3487,7 +3528,7 @@ test('pushing a block copy is offered only on a copy of a global block', () => {
 
 test('the menu is grouped, and delete is last and marked', () => {
   blank();
-  const h = C.insert('heading', null, 0);
+  const h = insert('heading', null, 0);
   const m = C.menuFor([h.id]);
   a.ok(m.filter(i => i.sep).length >= 3, 'hairlines, not one long list');
   a.equal(m[m.length - 1].act, 'del', 'the destructive one is last');

@@ -43,24 +43,33 @@ throws for any path reaching them before `load()`. The readers already returned 
 null; `ensureTokens()` now handles the writers once, lazily, so a path that used to throw
 works instead.
 
-**`noImplicitAny` is off for the flat core** — turning it on there is 424 unannotated
-parameters, each a type decision rather than a mechanical fix. Spraying `: any` across them
-would satisfy the compiler and deliver nothing.
-
-So it moves per module instead, and it is **enforced rather than claimed**:
+**Full strictness is on, everywhere.** `strict`, `noImplicitAny`, `noUnusedLocals` and
+`noUnusedParameters` apply to every file, and `npm test` typechecks the whole project:
 
 ```bash
-npm run typecheck:strict   # tsconfig.strict.json — full strictness, split modules only
+npm test        # build → tsc --noEmit (all files, full strictness) → 325 tests
 ```
 
-`tsconfig.strict.json` lists every module split out of the core. Adding a file to that list
-is the *last step* of splitting it; if it will not pass, it is not finished. `npm test` runs
-it, so the ratchet cannot slip.
+There used to be a `tsconfig.strict.json` listing the files allowed to be strict, because
+`noImplicitAny` on the flat core meant 421 unannotated parameters. That ratchet is gone —
+its whole purpose was to be retired, and it was: 421 → 0 across eight batches, with the
+tests green after each one. Spraying `: any` would have satisfied the compiler and delivered
+nothing, so each one is a real annotation.
 
-One catch worth knowing: `include` does not stop TypeScript following an import, so only
-files that do not import the still-loose `index.ts` can be listed. Adding `main.tsx`
-dragged index.ts in and produced 400 errors from the very file the list exists to exclude.
-`main.tsx` joins when index.ts is clean, which is also when the flag moves for good.
+The last four came out of the *tests* rather than the core, and are worth naming because
+each was a signature claiming something the body did not:
+
+- `classAdd(name, css)` and `blockSave(id, name, sync)` required arguments their bodies
+  already handled as absent (`(css && css.d) || {}`, `!!sync`).
+- `fanTargets` asked for a whole `Control` and reads two fields of it, so every caller had
+  to invent a `label` for a function that never shows one. It takes `Pick<Control,'k'|'c'>`.
+- `pageHref` asked for a whole `RenderOpts` and reads three fields. `edit` stays required
+  on `RenderOpts` itself — rendering in edit mode by accident would leak `data-id` into
+  published HTML — but `pageHref` has no opinion about it.
+
+And one divergence only the checker could have found: the tests built `state.ui` as a hand-
+written literal that had drifted **five fields behind** the app's. Every test ran against a
+`ui` shape the app never has. There is now one `initUi()` and nothing to drift from.
 
 **Split so far:** `icons.ts` (6 declarations). It went first because it is a true leaf —
 nothing in it calls anything outside it — and the rest of the core has real cycles waiting.

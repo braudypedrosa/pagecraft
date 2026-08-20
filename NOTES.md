@@ -93,11 +93,19 @@ first two lost are worth keeping:
    for any number of modules. Note esbuild emits `var` rather than `const` there; a grep for
    `^const svg` reported it missing when it was not.
 
-Strictness moves per module, and is enforced by `tsconfig.strict.json` +
-`npm run typecheck:strict`, which `npm test` runs. Adding a file to that list is the last
-step of splitting it. `include` does not stop TypeScript following an import, so only files
-that do not import the loose core can be listed — adding `main.tsx` pulled index.ts in and
-produced 400 errors from the file the list exists to exclude.
+Strictness is now on for every file and `npm test` checks all of them, so the per-module
+`tsconfig.strict.json` ratchet has been deleted. It did what it existed to do. While it was
+alive, one catch was worth knowing and is worth recording: `include` does not stop TypeScript
+following an import, so only files that did not import the loose core could be listed —
+adding `main.tsx` pulled index.ts in and produced 400 errors from the file the list existed
+to exclude.
+
+Converting the test file was its own lesson, learned three times in a row. Each bulk rewrite
+(`C.locate(` → `at(`, `at(x).parent` → `holderOf(x)`) also rewrote the *helper's own
+definition*, giving `const at = (id) => must(at(id))` — infinite recursion, 228 tests down at
+once. Rewrite the call sites first and add the helpers afterwards, or the pass eats its own
+tail. The third variant slipped past a guard that looked for `name(` because a declaration
+reads `name = (`.
 
 ## Two rules the build enforces
 

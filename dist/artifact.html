@@ -1865,6 +1865,23 @@ function canvasWidth(dev, maxWidth) {
 var fitZoom = (target, avail) => !target || !(avail > 0) ? 1 : Math.min(1, avail / target);
 var ZOOMS = [["fit", "Fit"], ["1", "100%"], ["0.75", "75%"], ["0.5", "50%"], ["0.25", "25%"]];
 var zoomFor = (z, target, avail) => z == null || z === "fit" ? fitZoom(target, avail) : parseFloat(z) || 1;
+function initUi() {
+  return {
+    mode: "page",
+    dev: "desktop",
+    sel: null,
+    multi: [],
+    tab: "add",
+    atab: "widgets",
+    stab: "content",
+    target: "",
+    lmode: null,
+    open: {},
+    collapsed: {},
+    custom: {},
+    zoom: "fit"
+  };
+}
 var state = {
   v: 1,
   meta: {
@@ -1887,21 +1904,7 @@ var state = {
   footer: [],
   pages: [],
   cur: 0,
-  ui: {
-    mode: "page",
-    dev: "desktop",
-    sel: null,
-    multi: [],
-    tab: "add",
-    atab: "widgets",
-    stab: "content",
-    target: "",
-    lmode: null,
-    open: {},
-    collapsed: {},
-    custom: {},
-    zoom: "fit"
-  }
+  ui: initUi()
 };
 var doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
 var page = () => state.pages[state.cur] || state.pages[0];
@@ -2936,7 +2939,8 @@ function replaceAll(q, to, o = {}) {
   scan(state.header);
   state.pages.forEach((p) => {
     PAGE_TEXT.forEach(([k]) => {
-      if (typeof p[k] === "string") p[k] = swap2(p[k]);
+      const q2 = p;
+      if (typeof q2[k] === "string") q2[k] = swap2(q2[k]);
     });
     scan(p.tree);
   });
@@ -3219,7 +3223,7 @@ function guessBindings(slots, col) {
   const first = (pred) => slots.filter(free).find(pred);
   const rules = [
     [(s) => s.key === "src", () => byType("image")],
-    [(s) => s.key === "text" && s.type === "heading", () => left.includes(title) ? title : null],
+    [(s) => s.key === "text" && s.type === "heading", () => title && left.includes(title) ? title : null],
     [(s) => s.key === "html", () => byType("rich") || left.find((f) => f.type === "text" && f !== title)],
     [(s) => s.key === "link" && s.type === "button", () => byType("link")],
     [(s) => s.key === "text" && s.type === "button", () => left.find((f) => f.type === "text" && f !== title)]
@@ -3433,7 +3437,8 @@ function migrate(d) {
   if (v < 5) {
     const TAGS = { display: "h1", title: "h2", subtitle: "h3", lead: "p", body: "p", small: "p", eyebrow: "div" };
     ((d.meta.tokens || {}).text || []).forEach((t) => {
-      if (!t.tag && TAGS[t.id]) t.tag = TAGS[t.id];
+      const tg = TAGS;
+      if (!t.tag && tg[t.id]) t.tag = tg[t.id];
     });
   }
   if (v < 6) {
@@ -3894,7 +3899,7 @@ function patternInsert(pid, parentNode, index) {
 var TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
 var T_H = (text, ts, css, level) => N("heading", { text, ts, level: level || TS_LEVEL[ts] || "h3" }, css);
 var T_T = (html, ts, css) => N("text", { html, ts }, css);
-var T_SEC = (css, kids, m) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
+var T_SEC = (css, kids) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
 var T_B = (text, css) => N(
   "button",
   { text, ts: "btn" },
@@ -4851,7 +4856,7 @@ function renderNode(n, o) {
   const sc = n.src ? findCollection(n.src) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
   const kids = n.type === "list" ? "" : (n.children || []).map((c) => renderNode(c, o2)).join("");
-  const p = boundProps(n, o2.col, o2.item);
+  const p = boundProps(n, o2.col || null, o2.item || null);
   switch (n.type) {
     case "section": {
       const tag = SEC_TAGS.includes(p.tag) ? p.tag : "section";

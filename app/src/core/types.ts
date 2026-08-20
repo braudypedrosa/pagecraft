@@ -39,8 +39,18 @@ export interface Css { d: Decls; t: Decls; m: Decls }
 
 /* ---- nodes ------------------------------------------------------------ */
 
-/** Anything a widget stores that is not styling. Shapes vary by type. */
-export type Props = Record<string, unknown>;
+/**
+ * Anything a widget stores that is not styling. Shapes vary by type.
+ *
+ * `any`, deliberately and temporarily. `unknown` is the honest type here and it was
+ * tried first — it forces a cast at roughly twenty call sites and buys nothing,
+ * because the guarantee people want is "a heading has `text`, an image has `src`",
+ * which a cast cannot express. The real fix is a discriminated union of per-widget
+ * prop shapes keyed on `Node['type']`, so `renderNode`'s switch narrows for free.
+ * That is the next tightening target, and it is worth more than every remaining
+ * annotation in the core put together.
+ */
+export type Props = Record<string, any>;
 
 /** Advanced, per-node escape hatches. All three reach the export verbatim. */
 export interface Adv {
