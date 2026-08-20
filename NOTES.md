@@ -207,6 +207,25 @@ Escape now *consumes* the event when it dismisses a menu and only then — with 
 it is left alone and Escape means what it always meant. One policy, shared by both
 documents, instead of two listeners that each did half the job.
 
+## The box control's override badge never worked
+
+The first component test run found this, and it predates the Preact port.
+
+A responsive control shows a badge saying whether *this* breakpoint owns the value, and
+clicking it clears the override. The check was `css[dev][c.c] !== undefined`. For a `box`
+control `c.c` is `padding`, but a box writes `padding-top`, `padding-right`,
+`padding-bottom` and `padding-left` — there is no `padding` key, ever. So for Padding and
+Margin the badge never lit up, and `clearOverride`'s four-side branch, which exists and is
+correct, was unreachable.
+
+The string version had the identical test, so this shipped for a long time: a mobile
+padding override you could set but could not see or clear. The demo project had one.
+
+Worth noting *how* it surfaced. Reading the code, the badge logic looks right — it reads a
+property and compares it. Driving the browser by hand, I checked the badge on a `unit`
+control and moved on. It took writing `a.deepEqual(n.css.m, {})` after a badge click for
+the gap between "reads a property" and "reads the right property" to show.
+
 ## Two rules the build enforces
 
 1. **Core/UI split.** Pure logic lives between `/*<core>*/` … `/*</core>*/` markers and is

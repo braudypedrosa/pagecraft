@@ -23,7 +23,7 @@ both builds work, and neither has to break for the other to progress.
 | `app/index.html` + `main.tsx` | the Preact successor. `npm run build:next` → one self-contained file in `dist/next/` |
 
 ```bash
-npm test        # build + tsc --noEmit (everything, full strictness) + 365 cases
+npm test        # build + tsc --noEmit (everything, full strictness) + 387 cases
 npm run build       # the shipping single-file artifact (legacy chrome, TS core)
 npm run build:next  # the Preact/TS successor, also one self-contained file
 npm run typecheck   # tsc --noEmit
@@ -385,9 +385,14 @@ that the browser failed.
 3. ~~Canvas zoom~~ — done, and it was the most important thing in the tool rather than
    the cosmetic item this list had it down as. Still open from that line: custom layer
    names, an Assets item in the rail
-4. **Test the UI layer** — 4,400 lines have no unit tests, which is where the one real
-   regression came from. Either extract more into core or add a DOM-shimmed layer. The three
-   controls added this session (`qa`, `icon`, `imgs`) are all in that untested half
+4. **Test the UI layer** — started. `tests/ui.test.tsx` runs the components under jsdom
+   (a `@vitest-environment` docblock, so the core's cases stay in node and pay nothing for a
+   DOM they never touch), with the rig in `tests/ui.setup.tsx`. The seam is what makes it
+   cheap: a panel reaches the old world only through `Legacy`, so a recording stub turns
+   "did the button do the right thing?" into an assertion about an array. 16 cases so far,
+   each one previously only checked by driving the browser by hand — and the first run found
+   a bug that had been there since before the port. Still uncovered: the dialogs, and the
+   canvas/HUD/drag half, which is imperative and needs a different approach
 5. **The obvious next components**, now that the escape hatch exists: **Tabs** (needs a small
    script, and follows the `NAV_JS`/`LB_JS` pattern of emitting only when `data-tabs` is in
    the body), **Blockquote** as a real widget (the Pull quote pattern still exports a `<p>`

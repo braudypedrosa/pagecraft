@@ -6728,10 +6728,11 @@ var PC_UI = (() => {
 
   // app/src/ui/inspector/Field.tsx
   var DEV_ICON = { d: "desktop", t: "tablet", m: "mobile" };
+  var BOX_SIDES = ["top", "right", "bottom", "left"];
   function ResponsiveBadge({ n: n2, c: c3 }) {
     const dev = C2.dk();
     const o3 = C2.tgtObj(n2);
-    const owns = !!(c3.c && o3.css[dev] && o3.css[dev][c3.c] !== void 0);
+    const owns = !!(c3.c && o3.css[dev] && (c3.t === "box" ? BOX_SIDES.some((s3) => o3.css[dev][c3.c + "-" + s3] !== void 0) : o3.css[dev][c3.c] !== void 0));
     const clearable = owns && dev !== "d";
     const w3 = writer(n2, c3);
     return /* @__PURE__ */ u2(

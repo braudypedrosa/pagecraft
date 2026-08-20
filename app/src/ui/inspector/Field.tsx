@@ -13,10 +13,18 @@ import type { Control, Node as PcNode } from '../../core/types';
 
 const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile' };
 
+const BOX_SIDES = ['top', 'right', 'bottom', 'left'];
+
 function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
   const dev = C.dk();
   const o = C.tgtObj(n);
-  const owns = !!(c.c && o.css[dev] && o.css[dev][c.c] !== undefined);
+  /* A box control writes `padding-top` and friends, never `padding`, so checking its own
+     `c` found nothing: the badge never lit up for Padding or Margin, and `clearOverride`'s
+     four-side branch was unreachable code. Carried over from the string version, which had
+     the same test — a component test is what finally showed it. */
+  const owns = !!(c.c && o.css[dev] && (c.t === 'box'
+    ? BOX_SIDES.some(s => o.css[dev][c.c + '-' + s] !== undefined)
+    : o.css[dev][c.c] !== undefined));
   const clearable = owns && dev !== 'd';
   const w = writer(n, c);
   return (
