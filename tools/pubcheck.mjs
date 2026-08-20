@@ -87,10 +87,15 @@ export function stamp(url) {
     sha256: sha(ARTIFACT),
     /* The commit that last touched whatever actually feeds the artifact — not HEAD,
        so "published from X" stays true even when the stamp lands in a later commit
-       of its own. That used to be builder.html alone; since the core moved to
-       TypeScript it is both, and tracking only builder.html made this record name
-       the wrong commit the first time a core-only change shipped. */
-    commit: git('log', '-1', '--format=%h', '--', 'builder.html', 'app/src/core') || null,
+       of its own.
+
+       This list has been wrong twice, the same way each time: it was builder.html
+       alone until the core moved to TypeScript, and builder.html plus the core until
+       the panels moved to app/src/ui. Both times a change shipped and the record named
+       an older commit. Anything build.mjs reads belongs here — if a fourth source
+       appears, add it the day it appears. */
+    commit: git('log', '-1', '--format=%h', '--',
+      'builder.html', 'app/src/core', 'app/src/ui', 'build.mjs') || null,
     publishedAt: new Date().toISOString().slice(0, 10),
     favicon: rec.favicon || '📐',
     contract: rec.contract || '0.2.4',
