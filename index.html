@@ -288,7 +288,7 @@ body.preview .left,body.preview .right{display:none}
 .hint b{color:var(--text-2);font-weight:600}
 
 /* ---- navigator --------------------------------------------------------- */
-.layers{padding:6px}
+.layers{padding:6px;position:relative}
 .lrow{
   display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:var(--r-sm);
   cursor:pointer;font-size:13.5px;color:var(--text-2);position:relative;
@@ -322,7 +322,6 @@ body.preview .left,body.preview .right{display:none}
 .lrow .gr svg{width:11px;height:11px}
 body.dragging .lrow{cursor:grabbing}
 /* where it would land: a line between rows, or a ring round the row it goes inside */
-.layers{position:relative}
 #l-drop{position:absolute;left:0;right:0;height:2px;background:var(--green);border-radius:2px;pointer-events:none;z-index:5}
 #l-drop.in{height:auto;background:none;border:1.5px solid var(--green);border-radius:var(--r-sm)}
 .empty{padding:26px 16px;text-align:center;color:var(--text-3);font-size:13px;line-height:1.65}
