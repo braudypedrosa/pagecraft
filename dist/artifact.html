@@ -679,6 +679,29 @@ select.ctl{
 .tsedit .row2{gap:9px}
 
 /* ---------------------------------------------------------------- drag --- */
+/* The context menu. In the outer document, so it is never clipped by the canvas
+   iframe and never scaled with it. */
+#ctx{
+  position:fixed;z-index:9600;min-width:212px;padding:5px;
+  background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-md);
+  box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:1px;
+}
+#ctx button{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:7px 9px;border-radius:var(--r-sm);text-align:left;
+  font-size:13.5px;font-weight:500;color:var(--text-2);
+}
+#ctx button:hover{background:var(--field);color:var(--text)}
+#ctx button em{font-family:var(--label);font-size:11.5px;font-style:normal;color:var(--text-3)}
+#ctx button:hover em{color:var(--text-2)}
+#ctx button.danger{color:var(--danger)}
+#ctx button.danger:hover{background:var(--danger-soft);color:var(--danger)}
+/* a hairline after the last item of a group, rather than an empty element per rule */
+#ctx button[data-sep]{margin-bottom:5px;border-bottom:1px solid var(--line);padding-bottom:9px}
+#ctx button[data-sep]:last-child{margin-bottom:0;border-bottom:0;padding-bottom:7px}
+/* the bar's "everything else" glyph is the drag dots turned on their side */
+#s-hud .bar button.rot svg,#s-hud .bar button svg.rot{transform:rotate(90deg)}
+
 #ghost{
   position:fixed;z-index:9999;pointer-events:none;padding:7px 12px;border-radius:var(--r-md);
   background:var(--ink);color:var(--paper);font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);
@@ -1962,6 +1985,51 @@ function moveNode(id, parentNode, index) {
   const packed = (parentNode && parentNode.type === 'column' && h.node.type === 'row') ? h.node : wrap(h.node.type, pl, h.node);
   list.splice(k, 0, packed);
 }
+/* ---- what can be done to the selection --------------------------------
+   Three places grew their own copy of "duplicate this, delete this": the canvas HUD
+   bar, the Navigator row, and the inspector footer. Each offered a different subset
+   of the same verbs, and none of them offered copy/paste styles — which is how a
+   style clipboard ended up at the bottom of a targeting group with nowhere better
+   to go. There was also no context menu anywhere, which is where a paste verb
+   belongs.
+
+   `menuFor` is the single answer to "what applies here". Pure, so the menu, the HUD
+   and anything else read the same list; `sep` marks a group boundary. */
+function menuFor(ids) {
+  const list = (ids || []).filter(id => locate(id));
+  if (!list.length) return [];
+  const many = list.length > 1;
+  const h = locate(list[0]);
+  const n = h.node;
+  const d = DEF[n.type];
+  const dev = DEV_LABEL[dk()];
+  const hidden = !!(n.hide && n.hide[dk()]);
+  const out = [];
+
+  if (!many && d.edit) out.push({ act: 'edit', label: 'Edit content', key: '↵' });
+  if (!many && h.parent) out.push({ act: 'up', label: 'Select parent', key: 'esc' });
+  if (out.length) out[out.length - 1].sep = true;
+
+  out.push({ act: 'copy', label: many ? 'Copy the first' : 'Copy', key: '⌘C' });
+  out.push({ act: 'cut', label: many ? 'Cut the first' : 'Cut', key: '⌘X' });
+  if (clip.node) out.push({ act: 'paste', label: 'Paste ' + DEF[clip.node.type].label, key: '⌘V' });
+  out.push({ act: 'dup', label: many ? 'Duplicate all ' + list.length : 'Duplicate', key: '⌘D', sep: true });
+
+  out.push({ act: 'stcopy', label: 'Copy styles', key: '⌘⇧C' });
+  /* offered only when there is something to paste — a permanently dead row reads as
+     a broken menu, and this is the same reason the clipboard strip comes and goes */
+  if (styleClip.css) out.push({ act: 'stpaste', label: many ? 'Paste styles to ' + list.length : 'Paste styles', key: '⌘⇧V' });
+  out[out.length - 1].sep = true;
+
+  out.push({ act: 'hide', label: (hidden ? 'Show on ' : 'Hide on ') + dev });
+  if (!many) out.push({ act: 'block', label: 'Save as a block' });
+  if (!many && n.adv && n.adv.block && findBlock(n.adv.block)) out.push({ act: 'push', label: 'Push to the other copies' });
+  out[out.length - 1].sep = true;
+
+  out.push({ act: 'del', label: many ? 'Delete all ' + list.length : 'Delete', key: '⌫', danger: true });
+  return out;
+}
+
 /* Move a whole set as a group, keeping their document order and landing them
    together. Dragging with several selected used to be impossible — the HUD simply
    hid its handle, because moving a set was left out of the multi-select pass.
@@ -5338,13 +5406,8 @@ function positionHud() {
      <div class="bar" style="top:${flip ? top + r.height : top}px;left:${left}px;${flip ? 'transform:none' : ''}">
       <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
-      ${!many && s.parent ? `<button data-act="up" title="Select parent">${svg('caret', 12)}</button>` : ''}
       ${!many && d.edit ? `<button data-act="edit" title="Edit content">${svg('edit', 12)}</button>` : ''}
-      ${!many ? `<button data-act="block" title="Save as a block">${svg('plus', 12)}</button>` : ''}
-      ${!many && s.node.adv && s.node.adv.block && findBlock(s.node.adv.block)
-        ? `<button data-act="push" title="Global block — push this copy out to the others">${svg('globe', 12)}</button>` : ''}
-      <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 12)}</button>
-      <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 12)}</button>
+      <button data-act="more" title="Everything else — or right-click the element">${svg('drag', 12, 'rot')}</button>
     </div>`
     + (many ? '' : gripsHtml(s));
 }
@@ -5418,6 +5481,86 @@ function paintSel() {
   positionHud();
 }
 
+/* ---- one dispatcher for every element verb -----------------------------
+   The HUD bar, the Navigator row, the inspector footer and the context menu all call
+   this. Before it, duplicate and delete existed three times over, each with its own
+   idea of whether it applied to the selection or to one node. */
+function runAct(act, ids) {
+  const list = (ids && ids.length ? ids : selIds()).filter(id => locate(id));
+  if (!list.length) return;
+  const id = list[0], many = list.length > 1;
+  switch (act) {
+    case 'edit': enterEdit(id); break;
+    case 'up': { const h = locate(id); select(h.parent ? h.parent.id : null); break; }
+    case 'copy':
+      if (copyNode(id)) toast(DEF[locate(id).node.type].label + ' copied'
+        + (many ? ' — the clipboard holds one element at a time' : ''));
+      break;
+    case 'cut': {
+      if (!copyNode(id)) break;
+      const label = DEF[locate(id).node.type].label;
+      edit(() => delNode(id));
+      toast(label + ' cut' + (many ? ' — the clipboard holds one element at a time' : ''));
+      break;
+    }
+    case 'paste': {
+      if (!clip.node) break;
+      let made = null;
+      edit(() => { made = pasteNode(id); if (made) selSet([made.id]); });
+      toast(made ? DEF[made.type].label + ' pasted' : 'A ' + DEF[clip.node.type].label + ' cannot go there');
+      break;
+    }
+    case 'dup': edit(() => (many ? dupMany(list) : dupNode(id))); break;
+    case 'del': edit(() => (many ? delMany(list) : delNode(id))); break;
+    case 'stcopy': copyStyles(id); toast('Styles copied from ' + styleClip.from); renderRight(); break;
+    case 'stpaste': {
+      if (!styleClip.css) { toast('No styles copied yet'); break; }
+      let k = 0;
+      edit(() => { k = pasteStylesMany(list); });
+      toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
+      break;
+    }
+    case 'hide': edit(() => list.forEach(x => {
+      const nd = locate(x).node;
+      nd.hide = nd.hide || {};
+      nd.hide[dk()] = !nd.hide[dk()];
+    })); break;
+    case 'block': saveBlockFlow(id); break;
+    case 'push': pushBlockFlow(id); break;
+  }
+}
+
+/* ---- the context menu -------------------------------------------------
+   Right-click is where a paste verb belongs, and there was none anywhere in the app.
+   It is also what lets the HUD bar stop growing: seven buttons floating over the
+   element became a name, a drag handle and one more. */
+function closeCtx() { const c = $('#ctx'); if (c) c.remove(); }
+function openCtx(x, y, ids) {
+  closeCtx();
+  const items = menuFor(ids);
+  if (!items.length) return;
+  const m = document.createElement('div');
+  m.id = 'ctx';
+  m.innerHTML = items.map(i =>
+    `<button data-a="${i.act}"${i.danger ? ' class="danger"' : ''}${i.sep ? ' data-sep="1"' : ''}>`
+    + `<span>${esc(i.label)}</span>${i.key ? `<em>${esc(i.key)}</em>` : ''}</button>`).join('');
+  document.body.appendChild(m);
+  /* place it at the pointer, then pull it back inside the window rather than letting
+     a menu near the right or bottom edge run off */
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
+  m.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+  $$('button', m).forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.a;
+    closeCtx();
+    runAct(a, ids);
+  }));
+}
+/* one closer for every way out: another click, Escape, a scroll, a resize */
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#ctx')) closeCtx(); }, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCtx(); });
+window.addEventListener('resize', closeCtx);
+
 /* ========================================================= canvas events */
 function bindCanvas() {
   cdoc.addEventListener('pointerdown', e => {
@@ -5428,19 +5571,16 @@ function bindCanvas() {
       const act = hudBtn.dataset.act, id = state.ui.sel, ids = selIds();
       if (act === 'drag') {
         /* dragging any member of a selection drags the whole set */
-        const set = selIds();
-        const many = set.length > 1 && set.includes(id);
+        const many = ids.length > 1 && ids.includes(id);
         startDrag(e, {
-          kind: 'move', id, ids: many ? set : [id],
-          label: many ? set.length + ' elements' : DEF[locate(id).node.type].label
+          kind: 'move', id, ids: many ? ids : [id],
+          label: many ? ids.length + ' elements' : DEF[locate(id).node.type].label
         }, true);
-      }
-      else if (act === 'up') select(locate(id).parent ? locate(id).parent.id : null);
-      else if (act === 'edit') enterEdit(id);
-      else if (act === 'block') saveBlockFlow(id);
-      else if (act === 'push') pushBlockFlow(id);
-      else if (act === 'dup') edit(() => ids.length > 1 ? dupMany(ids) : dupNode(id));
-      else if (act === 'del') edit(() => ids.length > 1 ? delMany(ids) : delNode(id));
+      } else if (act === 'more') {
+        /* the bar lives inside the scaled iframe, so its coordinates need the factor */
+        const fr = frameRect();
+        openCtx(toScreen(e.clientX, fr.left), toScreen(e.clientY, fr.top), ids);
+      } else runAct(act, ids);
       return;
     }
     const grip = e.target.closest && e.target.closest('[data-grip]');
@@ -5515,6 +5655,19 @@ function bindCanvas() {
   });
   cwin.addEventListener('scroll', () => { positionHud(); if (editing.on) placeRT(); }, { passive: true });
   cwin.addEventListener('resize', () => { positionHud(); if (editing.on) placeRT(); });
+  /* Right-click selects what is under the pointer if it is not already selected — a
+     menu that acts on something you cannot see selected is how you delete the wrong
+     thing — then opens on the element, in outer-document coordinates. */
+  cdoc.addEventListener('contextmenu', e => {
+    if (document.body.classList.contains('preview')) return;
+    const el = e.target.closest && e.target.closest('[data-id]');
+    if (!el) return;
+    e.preventDefault();
+    const id = el.dataset.id;
+    if (!selIds().includes(id)) { select(id); }
+    const fr = frameRect();
+    openCtx(toScreen(e.clientX, fr.left), toScreen(e.clientY, fr.top), selIds());
+  });
   cdoc.addEventListener('keydown', e => {
     if (editing.on) {
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
@@ -6150,16 +6303,19 @@ function bindLayers(p) {
       const b = e.target.closest('button[data-act]');
       if (b) {
         e.stopPropagation();
-        const a = b.dataset.act;
-        if (a === 'dup') edit(() => dupNode(id));
-        else if (a === 'del') edit(() => delNode(id));
-        else if (a === 'hide') edit(() => { const n = locate(id).node; n.hide = n.hide || {}; n.hide[dk()] = !n.hide[dk()]; });
+        /* a row's own actions apply to that row, not to whatever is selected */
+        runAct(b.dataset.act, [id]);
         return;
       }
       select(id, { scroll: true, add: e.metaKey || e.ctrlKey, range: e.shiftKey });
     });
     const gr = r.querySelector('[data-gr]');
     if (gr) gr.addEventListener('pointerdown', e => startLayerDrag(e, id));
+    r.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (!selIds().includes(id)) select(id);
+      openCtx(e.clientX, e.clientY, selIds());
+    });
   });
 }
 
@@ -7131,12 +7287,8 @@ function bindRight(n) {
     renderRight();                                  // so the strip goes away
     toast('Style clipboard cleared');
   });
-  const sd = $('#sDup'); if (sd) sd.addEventListener('click', () => {
-    const ids = selIds(); edit(() => ids.length > 1 ? dupMany(ids) : dupNode(n.id));
-  });
-  const sx = $('#sDel'); if (sx) sx.addEventListener('click', () => {
-    const ids = selIds(); edit(() => ids.length > 1 ? delMany(ids) : delNode(n.id));
-  });
+  const sd = $('#sDup'); if (sd) sd.addEventListener('click', () => runAct('dup', selIds()));
+  const sx = $('#sDel'); if (sx) sx.addEventListener('click', () => runAct('del', selIds()));
   $$('[data-tg]', box).forEach(b => b.addEventListener('click', () => {
     state.ui.target = b.dataset.tg;
     renderRight();

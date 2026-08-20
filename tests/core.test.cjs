@@ -3403,3 +3403,100 @@ test('whitespace is collapsed after slicing, never before', () => {
   const h = C.slotHits('<p>a</p><p>needle</p><p>b</p>', 'needle', true, true);
   a.match(C.snippet(t, h.at, 6, 20), /a needle b/, 'readable, and still the right match');
 });
+
+/* ================================================= what applies to a selection
+   Three places grew their own copy of "duplicate this, delete this" — the canvas HUD
+   bar, the Navigator row, the inspector footer — each offering a different subset of
+   the same verbs, and none offering copy/paste styles. `menuFor` is the single answer
+   to "what applies here", and `runAct` in the UI is the single place that does it. */
+const acts = ids => C.menuFor(ids).map(i => i.act);
+
+test('the menu offers what the element can actually do', () => {
+  blank();
+  const h = C.insert('heading', null, 0);
+  const a1 = acts([h.id]);
+  a.ok(a1.includes('edit'), 'a heading has content to edit in place');
+  a.ok(a1.includes('up'), 'and a parent to select — insert built the wrappers');
+  a.ok(a1.includes('block'));
+  a.ok(a1.includes('del'));
+});
+
+test('a type with nothing to edit in place is not offered it', () => {
+  blank();
+  const d = C.insert('divider', null, 0);
+  a.equal(acts([d.id]).includes('edit'), false);
+  const img = C.insert('image', null, 1);
+  a.equal(acts([img.id]).includes('edit'), false, 'an image is edited through its fields');
+});
+
+test('paste appears only when there is something to paste', () => {
+  blank();
+  const h = C.insert('heading', null, 0);
+  C.clip.node = null;
+  C.styleClip.css = null;
+  a.equal(acts([h.id]).includes('paste'), false);
+  a.equal(acts([h.id]).includes('stpaste'), false,
+    'a permanently dead row reads as a broken menu');
+  C.copyNode(h.id);
+  C.copyStyles(h.id);
+  a.ok(acts([h.id]).includes('paste'));
+  a.ok(acts([h.id]).includes('stpaste'));
+  a.match(C.menuFor([h.id]).find(i => i.act === 'paste').label, /^Paste Heading$/,
+    'and it names what would land');
+});
+
+test('a multi-selection says how many, and which verbs cannot fan out', () => {
+  blank();
+  const one = C.insert('heading', null, 0);
+  const two = C.insert('heading', null, 1);
+  C.copyStyles(one.id);
+  const m = C.menuFor([one.id, two.id]);
+  const label = act => m.find(i => i.act === act).label;
+  a.match(label('dup'), /Duplicate all 2/);
+  a.match(label('del'), /Delete all 2/);
+  a.match(label('stpaste'), /Paste styles to 2/);
+  /* the node clipboard holds one element, so copy and cut say which one they take */
+  a.match(label('copy'), /Copy the first/);
+  a.match(label('cut'), /Cut the first/);
+  a.equal(m.map(i => i.act).includes('edit'), false, 'no in-place edit for a set');
+  a.equal(m.map(i => i.act).includes('block'), false, 'and a block is one element');
+});
+
+test('hide names the breakpoint it applies to, and reads the current state', () => {
+  blank();
+  const h = C.insert('heading', null, 0);
+  a.match(C.menuFor([h.id]).find(i => i.act === 'hide').label, /^Hide on Desktop$/);
+  h.hide = { d: true };
+  a.match(C.menuFor([h.id]).find(i => i.act === 'hide').label, /^Show on Desktop$/);
+  C.state.ui.dev = 'mobile';
+  a.match(C.menuFor([h.id]).find(i => i.act === 'hide').label, /on Mobile$/);
+  C.state.ui.dev = 'desktop';
+});
+
+test('pushing a block copy is offered only on a copy of a global block', () => {
+  blank();
+  const h = C.insert('heading', null, 0);
+  a.equal(acts([h.id]).includes('push'), false);
+  const bid = C.blockSave(h.id, 'Hero', 1);
+  h.adv.block = bid;
+  a.ok(acts([h.id]).includes('push'), 'this one is linked to a block');
+  h.adv.block = 'gone';
+  a.equal(acts([h.id]).includes('push'), false, 'a dangling link offers nothing');
+});
+
+test('the menu is grouped, and delete is last and marked', () => {
+  blank();
+  const h = C.insert('heading', null, 0);
+  const m = C.menuFor([h.id]);
+  a.ok(m.filter(i => i.sep).length >= 3, 'hairlines, not one long list');
+  a.equal(m[m.length - 1].act, 'del', 'the destructive one is last');
+  a.equal(m[m.length - 1].danger, true, 'and says so');
+  a.equal(m[m.length - 1].sep, undefined, 'nothing follows it to separate from');
+});
+
+test('nothing selected offers nothing, and a stale id is skipped', () => {
+  blank();
+  a.deepEqual(C.menuFor([]), []);
+  a.deepEqual(C.menuFor(null), []);
+  a.deepEqual(C.menuFor(['no-such-node']), [], 'a deleted node has no menu');
+});

@@ -295,6 +295,20 @@ upload control. A social image needs an absolute URL for crawlers, so that one w
 **Site URL** is set and the page is exported with *images as separate files* — the field says
 so rather than leaving you to discover it.
 
+## Right-click
+
+Everything you can do to an element is in one menu: **right-click it on the canvas or in the
+Navigator**, or use the **⋯** button on the selection toolbar. Edit content, select parent,
+copy/cut/paste, duplicate, copy/paste styles, hide on this breakpoint, save as a block, push a
+global block to its copies, delete — each shown only when it applies, with its keyboard
+shortcut beside it.
+
+Right-clicking something that is not selected selects it first, so the menu always acts on
+what you can see highlighted.
+
+Because of this the selection toolbar on the canvas carries just three things: the element's
+name, the drag handle, and **⋯**.
+
 ## Keyboard
 
 The canvas is fully navigable without the mouse.
