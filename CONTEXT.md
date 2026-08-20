@@ -23,7 +23,7 @@ both builds work, and neither has to break for the other to progress.
 | `app/index.html` + `main.tsx` | the Preact successor. `npm run build:next` → one self-contained file in `dist/next/` |
 
 ```bash
-npm test        # build + tsc --noEmit (everything, full strictness) + 387 cases
+npm test        # build + tsc --noEmit (everything, full strictness) + 400 cases
 npm run build       # the shipping single-file artifact (legacy chrome, TS core)
 npm run build:next  # the Preact/TS successor, also one self-contained file
 npm run typecheck   # tsc --noEmit
@@ -422,8 +422,13 @@ that the browser failed.
    type, so nothing relates a post to an author; `content.json` goes out but nothing comes
    back **in**; and no **pagination** or **draft flag** that `exportTargets()` honours
 7. **Export quality still open**: `srcset` (downscale via canvas at export — the biggest
-   Lighthouse win and the biggest job), **JSON-LD** (Organization/WebSite per page, Article
-   per item — a pure core function, easily tested), a **404 page** convention, and a
+   Lighthouse win and the biggest job), ~~JSON-LD~~ — done: `jsonLdGraph()` returns the
+   graph and `jsonLd()` wraps it in the script tag, so the 13 tests read an object rather
+   than a string. Organization + WebSite on every page, Article on a detail page, nothing
+   at all without a Site URL since a relative `url` in structured data is worse than none.
+   `Organization.logo` is deliberately absent: a favicon is not a logo and neither is a
+   share image, so emitting one would be a guess a consumer acts on. Add it the day a logo
+   field exists. Still open here: a **404 page** convention, and a
    **self-hosted fonts** option, since `gfontsLink()` is a third-party request and an EU
    privacy problem while `brand/fonts/` already proves the machinery
 8. **Keep new form markup on the variables.** `--gap-1/2/3` and `--h-ctl/--h-row` in `:root`

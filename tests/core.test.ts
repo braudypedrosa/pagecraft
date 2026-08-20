@@ -4175,3 +4175,174 @@ test('tsCreateFrom shares the same id rule', () => {
   const id = C.tsCreateFrom(h, 'Feature');
   a.equal(id, 'feature-2', 'it sees the style styleAdd made, and steps around it');
 });
+
+/* ---------------------------------------------------------------- JSON-LD
+   Structured data, so a search engine can tell a project page from an article without
+   inferring it from the markup. The tests read the graph object rather than the script
+   tag, because asserting against a graph is worth more than asserting against a string. */
+
+const withBase = () => { C.state.meta.baseUrl = 'https://example.com'; };
+
+/** A collection with one item, so the Article tests do not depend on demo content that
+    an earlier `blank()` may have cleared. */
+const detailFixture = () => {
+  const col = must(C.collectionAdd('Projects'), 'collection');
+  const field = must(C.titleField(col), 'title field');
+  const item = must(C.itemAdd(col.id), 'item');
+  C.itemSet(col.id, item.id, field.id, 'Northwind app');
+  return { col: must(C.findCollection(col.id), 'collection'), item };
+};
+
+test('no Site URL means no structured data at all', () => {
+  fresh();
+  C.state.meta.baseUrl = '';
+  /* a relative `url` in JSON-LD is worse than none — a consumer resolves it against its
+     own host — which is the rule the canonical tag and the sitemap already follow */
+  a.equal(C.jsonLdGraph(C.page()), null);
+  a.equal(C.jsonLd(C.page()), '');
+});
+
+test('a trailing slash on the Site URL does not double up', () => {
+  fresh();
+  C.state.meta.baseUrl = 'https://example.com///';
+  const g = must(C.jsonLdGraph(C.page()), 'graph');
+  const site = g['@graph'].find((x: any) => x['@type'] === 'WebSite') as any;
+  a.equal(site.url, 'https://example.com/');
+  a.equal(site['@id'], 'https://example.com/#site');
+});
+
+test('an ordinary page is a WebPage, tied to the site', () => {
+  fresh(); withBase();
+  const pg = C.page();
+  pg.slug = 'about'; pg.title = 'About us'; pg.desc = 'Who we are.';
+  const g = must(C.jsonLdGraph(pg), 'graph');
+  a.equal(g['@context'], 'https://schema.org');
+
+  const types = g['@graph'].map((x: any) => x['@type']);
+  a.deepEqual(types, ['Organization', 'WebSite', 'WebPage'], 'three nodes, in that order');
+
+  const page = g['@graph'][2] as any;
+  a.equal(page.name, 'About us');
+  a.equal(page.description, 'Who we are.');
+  a.equal(page.url, 'https://example.com/about.html');
+  a.deepEqual(page.isPartOf, { '@id': 'https://example.com/#site' }, 'by reference, not by copy');
+  a.equal('publisher' in page, false, 'a page has no publisher — its article would');
+});
+
+test('the WebSite names the Organization as its publisher, by id', () => {
+  fresh(); withBase();
+  C.state.meta.name = 'Pagecraft Studio';
+  const g = must(C.jsonLdGraph(C.page()), 'graph');
+  const [org, site] = g['@graph'] as any[];
+  a.equal(org['@type'], 'Organization');
+  a.equal(org.name, 'Pagecraft Studio');
+  a.equal(org.url, 'https://example.com/');
+  a.deepEqual(site.publisher, { '@id': org['@id'] }, 'one Organization node, referenced');
+});
+
+test('Organization carries no logo, because nothing in the project is one', () => {
+  fresh(); withBase();
+  C.state.meta.favicon = 'asset:abc';
+  C.state.meta.ogImage = 'share.png';
+  const g = must(C.jsonLdGraph(C.page()), 'graph');
+  const org = g['@graph'][0] as any;
+  /* a favicon is not a logo and a share image is not a logo; emitting either would be a
+     guess a consumer acts on */
+  a.equal('logo' in org, false);
+});
+
+test('a detail page is an Article with a publisher', () => {
+  fresh(); withBase();
+  const { col, item } = detailFixture();
+  const pg = C.page();
+  pg.slug = col.slug + '/' + item.slug;
+  pg.title = 'Northwind app';
+  pg.desc = 'A rebrand.';
+  const g = must(C.jsonLdGraph(pg, { col, item }), 'graph');
+
+  const node = g['@graph'][2] as any;
+  a.equal(node['@type'], 'Article');
+  a.equal(node.headline, 'Northwind app', 'an Article has a headline, not a name');
+  a.equal('name' in node, false);
+  a.equal(node.url, `https://example.com/${col.slug}/${item.slug}.html`);
+  a.equal(node['@id'], node.url + '#article', 'its own id, distinct from the page url');
+  a.deepEqual(node.publisher, { '@id': 'https://example.com/#org' });
+});
+
+test('the page image is absolute, and a full URL is left alone', () => {
+  fresh(); withBase();
+  const pg = C.page();
+  pg.ogImage = 'img/cover.png';
+  a.equal((must(C.jsonLdGraph(pg), 'g')['@graph'][2] as any).image, 'https://example.com/img/cover.png');
+
+  pg.ogImage = 'https://cdn.example.net/cover.png';
+  a.equal((must(C.jsonLdGraph(pg), 'g')['@graph'][2] as any).image,
+    'https://cdn.example.net/cover.png', 'already absolute');
+});
+
+test('the page image falls back to the project image, and is omitted when neither is set', () => {
+  fresh(); withBase();
+  const pg = C.page();
+  pg.ogImage = '';
+  C.state.meta.ogImage = 'default.png';
+  a.equal((must(C.jsonLdGraph(pg), 'g')['@graph'][2] as any).image, 'https://example.com/default.png');
+
+  C.state.meta.ogImage = '';
+  const node = must(C.jsonLdGraph(pg), 'g')['@graph'][2] as any;
+  a.equal('image' in node, false, 'an empty image key is worse than no key');
+});
+
+test('an empty description is omitted rather than sent as an empty string', () => {
+  fresh(); withBase();
+  const pg = C.page();
+  pg.desc = '';
+  a.equal('description' in (must(C.jsonLdGraph(pg), 'g')['@graph'][2] as any), false);
+});
+
+test('the script tag cannot be closed early by a value', () => {
+  fresh(); withBase();
+  const pg = C.page();
+  /* the one injection route a JSON island has: a value containing the closing tag */
+  pg.title = 'Sneaky </script><script>alert(1)</script>';
+  const out = C.jsonLd(pg);
+  a.equal(/<\/script>\s*<script>alert/.test(out), false, 'no second script element');
+  a.equal(out.match(/<\/script>/g)!.length, 1, 'exactly one closing tag — the real one');
+  a.match(out, /\\u003c\/script/, 'the value survives, escaped');
+  /* and it is still valid JSON that parses back to the title */
+  const json = out.replace(/^<script[^>]*>\n/, '').replace(/\n<\/script>\n$/, '');
+  a.equal((JSON.parse(json)['@graph'][2] as any).name, pg.title);
+});
+
+test('buildPage embeds the graph, and og:type follows it', () => {
+  fresh(); withBase();
+  const html = C.buildPage(C.page());
+  a.match(html, /<script type="application\/ld\+json">/);
+  a.match(html, /"@type": "WebPage"/);
+  a.match(html, /og:type" content="website"/);
+
+  const { col, item } = detailFixture();
+  const detail = C.buildPage(C.page(), { col, item });
+  a.match(detail, /"@type": "Article"/);
+  a.match(detail, /og:type" content="article"/, 'an article page says so to Open Graph too');
+});
+
+test('buildPage emits no JSON-LD block without a Site URL', () => {
+  fresh();
+  C.state.meta.baseUrl = '';
+  const html = C.buildPage(C.page());
+  a.equal(/ld\+json/.test(html), false);
+  a.match(html, /og:type" content="website"/, 'Open Graph still goes out — it needs no domain');
+});
+
+test('every exported target produces a graph naming its own URL', () => {
+  fresh(); withBase();
+  /* the real shape of an export: ordinary pages plus one file per item */
+  const targets = C.exportTargets();
+  a.ok(targets.length > 1);
+  targets.forEach((t: any) => {
+    const g = must(C.jsonLdGraph(t.pg, { col: t.col, item: t.item }), 'graph for ' + t.path);
+    const node = g['@graph'][2] as any;
+    a.equal(node.url, 'https://example.com/' + t.path, t.path + ' names itself');
+    a.equal(node['@type'], t.item ? 'Article' : 'WebPage');
+  });
+});

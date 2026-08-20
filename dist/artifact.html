@@ -5233,6 +5233,37 @@ at=i;show();dlg.showModal();
 <\/script>
 `;
 var tidy = (css) => css.replace(/\}/g, "}\n").replace(/\n{2,}/g, "\n").replace(/^\s+|\s+$/g, "");
+function jsonLdGraph(pg2, ctx = {}) {
+  const m = state.meta;
+  const base = String(m.baseUrl || "").replace(/\/+$/, "");
+  if (!base) return null;
+  const abs = (u) => !u ? "" : /^https?:/i.test(u) ? u : base + "/" + String(u).replace(/^\/+/, "");
+  const url = `${base}/${pg2.slug}.html`;
+  const org = `${base}/#org`;
+  const site = `${base}/#site`;
+  const image = abs(pg2.ogImage || m.ogImage || "");
+  const graph = [
+    { "@type": "Organization", "@id": org, name: m.name, url: base + "/" },
+    { "@type": "WebSite", "@id": site, name: m.name, url: base + "/", publisher: { "@id": org } }
+  ];
+  const isItem = !!(ctx.item && ctx.col);
+  const node = isItem ? { "@type": "Article", "@id": url + "#article", headline: pg2.title || pg2.name, url } : { "@type": "WebPage", "@id": url, name: pg2.title || pg2.name, url };
+  if (pg2.desc) node.description = pg2.desc;
+  if (image) node.image = image;
+  node.isPartOf = { "@id": site };
+  if (isItem) node.publisher = { "@id": org };
+  graph.push(node);
+  return { "@context": "https://schema.org", "@graph": graph };
+}
+function jsonLd(pg2, ctx = {}) {
+  const g = jsonLdGraph(pg2, ctx);
+  if (!g) return "";
+  const json = JSON.stringify(g, null, 2).replace(/</g, "\\u003c");
+  return `<script type="application/ld+json">
+${json}
+<\/script>
+`;
+}
 function buildPage(pg2, ctx = {}) {
   const m = state.meta;
   const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || "" };
@@ -5252,13 +5283,13 @@ function buildPage(pg2, ctx = {}) {
 ${pg2.desc ? `<meta name="description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<link rel="canonical" href="${esc(canon)}">
 ` : ""}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">
-` : ""}${gfontsLink()}<meta property="og:type" content="website">
+` : ""}${gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? "article" : "website"}">
 <meta property="og:title" content="${esc(title)}">
 ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<meta property="og:url" content="${esc(canon)}">
 ` : ""}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">
 <meta name="twitter:card" content="summary_large_image">
-` : ""}<style>
+` : ""}${jsonLd(pg2, ctx)}<style>
 ${tidy(css)}
 </style>
 ${m.headHtml || ""}
@@ -5425,6 +5456,8 @@ var __CORE = {
   itemSetSlug,
   itemSlug,
   itemTitle,
+  jsonLd,
+  jsonLdGraph,
   kb,
   labelOf,
   layerTarget,
