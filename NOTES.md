@@ -6,10 +6,15 @@ transcript is never required to pick this up.
 
 ## Layout
 
+Mid-migration to TypeScript + Preact + Vite, run as a strangler: both builds work.
+
 | path | role |
 |---|---|
-| `builder.html` | source of truth — markup, styles, logic in one file |
-| `build.mjs` | generates the three outputs below, and guards two invariants |
+| `app/src/core/*.ts` | **source of truth for core logic** — edit here, not in builder.html |
+| `app/src/core/types.ts` | the domain, typed |
+| `app/index.html`, `app/src/main.tsx` | the Preact successor, built by `vite build` |
+| `builder.html` | the legacy chrome. Its `/*<core>*/` regions are stripped at build time |
+| `build.mjs` | type-strips the core into builder.html, generates the outputs, guards two invariants |
 | `index.html` | generated: standalone page, doctype + brand fonts inlined |
 | `dist/artifact.html` | generated: same fragment with fonts inlined, for publishing |
 | `dist/core.cjs` | generated: the DOM-free regions, for `node --test` |
@@ -25,6 +30,32 @@ npm test          # rebuild, then run the suite (325 cases)
 npm run build     # regenerate outputs
 npm run serve     # static server on :4877
 ```
+
+## The migration, and the two mistakes it made
+
+Vanilla JS stopped scaling, and the numbers said so before anyone did: **104 manual
+repaint calls** across eleven paint functions, **22 control kinds × 17 widget types** wired
+by hand, and a *build-time guard* whose only job was catching "rendered but never wired" —
+a framework-shaped problem solved with a custom check. Three bugs in one session came
+straight out of it, all three of them compile errors in TypeScript.
+
+What was deliberately **not** changed: the product is one HTML file you can open with no
+build step, running in a CSP-locked iframe. `vite-plugin-singlefile` keeps that — the new
+build is a single 95 KB file that fetches nothing (verified: zero resource tags, zero
+`script src`). And the 3,600 tested core lines were never the problem, so they moved rather
+than being rewritten.
+
+Two things went wrong on the way, both worth remembering:
+
+- **The outputs embedded the raw fragment, not the assembled script.** The TypeScript
+  compiled cleanly, the build reported success, and the artifact quietly kept running its
+  own inline copy of the core. Caught only by grepping the output for the compiled-core
+  marker. A build that says "written" is not a build that shipped what you think.
+- **Binding EXPORTS back to globals died on `svg is not defined`.** The first approach
+  bundled the core as an IIFE and generated `var x = __PC.x` for each name in `EXPORTS` —
+  but `EXPORTS` is the *test* surface, not everything the UI touches. Type-stripping
+  instead leaves every top-level declaration where it was, which makes this a move rather
+  than a rewrite. Fewer moving parts, and the output keeps its original shape.
 
 ## Two rules the build enforces
 

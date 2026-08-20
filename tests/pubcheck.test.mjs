@@ -10,7 +10,7 @@
    for the missing-file and unparseable-record paths. Reaching those means either
    moving the real dist/ aside or making the paths injectable, and neither is worth
    it for two branches whose messages are asserted below anyway. */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import a from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';

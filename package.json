@@ -4,11 +4,25 @@
   "private": true,
   "description": "Visual page builder that exports static HTML",
   "scripts": {
+    "dev": "vite",
     "build": "node build.mjs",
-    "test": "node build.mjs && node --test tests/*.test.cjs tests/*.test.mjs",
+    "build:next": "vite build",
+    "test": "node build.mjs && vitest run",
+    "typecheck": "tsc --noEmit",
     "serve": "python3 -m http.server 4877",
     "publish:check": "node tools/pubcheck.mjs",
     "publish:stamp": "node tools/pubcheck.mjs stamp",
     "hooks": "node tools/install-hooks.mjs"
-  }
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^4.1.11"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "type": "module"
 }

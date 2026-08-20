@@ -8,6 +8,42 @@ user), `NOTES.md` (how it is built and why the decisions went that way).
 
 ---
 
+## The stack is mid-migration — read this first
+
+Pagecraft is moving off vanilla JS onto **TypeScript + Preact + Vite**, as a strangler:
+both builds work, and neither has to break for the other to progress.
+
+| | |
+|---|---|
+| `app/src/core/*.ts` | **the source of truth for all core logic.** Edit here. |
+| `app/src/core/types.ts` | the domain, typed. The point of the migration. |
+| `builder.html` | the legacy chrome. Its `/*<core>*/` regions are **stripped at build time** and replaced by the compiled TypeScript, so there is only ever one copy. |
+| `build.mjs` | type-strips the core with esbuild and splices it in; still produces the shipping artifact |
+| `app/index.html` + `main.tsx` | the Preact successor. `npm run build:next` → one self-contained file in `dist/next/` |
+
+```bash
+npm test        # build + 325 cases, in Vitest, against the TypeScript
+npm run build       # the shipping single-file artifact (legacy chrome, TS core)
+npm run build:next  # the Preact/TS successor, also one self-contained file
+npm run typecheck   # tsc --noEmit
+```
+
+**Why the core is one 4,150-line file and not modules yet.** It is one flat scope with
+around 180 cross-references and real cycles — `menuFor` needs `clip`, whose module would
+need `DEF`. Splitting it in one move is how a working system breaks. Split one boundary at
+a time, suite green after each.
+
+**Type errors, deliberately not zero yet:** 53 in the ported core, 199 in the test file.
+None block anything — esbuild strips types without checking, and all 325 tests pass. The
+core's 53 include **7 real findings**: `state.meta.tokens` is dereferenced in 7 places
+without a null check, and it is typed `Tokens | null` because `defaultTokens()` fills it at
+boot. Those are latent throws that nothing had ever noticed. `noImplicitAny` is off for the
+port; turning it on is the tightening work, a function at a time.
+
+**One thing the types already found:** the text styles are stored under `tokens.text` while
+the accessor is called `styles()`. The key and the name have never agreed, and only writing
+the type down made it visible.
+
 ## What this is
 
 A visual page builder that exports static HTML, built on the **Pagecraft** brand system.
@@ -74,7 +110,7 @@ something does.
 
 | | |
 |---|---|
-| Tests | **325**, `npm test` |
+| Tests | **325**, `npm test` (Vitest, against the TypeScript core) |
 | Widgets | 17 |
 | Icon set | 35 stroke glyphs in 4 groups (`ICONS` in core) |
 | Rail | Add · Navigator · Pages · CMS, then Media and Project as dialogs |

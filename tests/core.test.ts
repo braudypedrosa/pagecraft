@@ -1,10 +1,11 @@
-/* Tests run against dist/core.cjs, which build.mjs extracts verbatim from the
-   regions of builder.html marked as DOM-free — so this exercises shipped code,
-   not a copy of it. */
-'use strict';
-const { test, beforeEach } = require('node:test');
-const a = require('node:assert/strict');
-const C = require('../dist/core.cjs');
+/* Tests run against app/src/core/index.ts — the TypeScript core, which is now the
+   source of truth. build.mjs compiles it back into the legacy single-file build, so
+   this still exercises shipped code rather than a copy of it.
+   Every assertion below is unchanged from the node:test version; only the three
+   import lines moved. That is what makes the port verifiable rather than hopeful. */
+import { test, beforeEach } from 'vitest';
+import a from 'node:assert/strict';
+import * as C from '../app/src/core/index';
 
 const fresh = () => {
   C.seed();
