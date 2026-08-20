@@ -5529,7 +5529,7 @@ var PC_UI = (() => {
     return l.vnode && l.vnode(l2), l2;
   }
 
-  // app/src/ui/Layers.tsx
+  // app/src/ui/Icon.tsx
   function Icon({ name, size = 14, cls }) {
     return /* @__PURE__ */ u2(
       "svg",
@@ -5545,6 +5545,8 @@ var PC_UI = (() => {
       }
     );
   }
+
+  // app/src/ui/Layers.tsx
   function RegionRow({ kind, label }) {
     const live = kind === L2.scopeOf();
     return /* @__PURE__ */ u2(
@@ -5644,6 +5646,68 @@ var PC_UI = (() => {
     paintLayers = fn;
   };
 
+  // app/src/ui/Cms.tsx
+  function CollectionRow({ col }) {
+    const n2 = (k2, word) => `${k2} ${word}${k2 === 1 ? "" : "s"}`;
+    const remove = async (e2) => {
+      e2.stopPropagation();
+      const ok = await L2.askConfirm(
+        "Delete this collection?",
+        `<b>${esc(col.name)}</b> and its ${n2(col.items.length, "item")}. Anything bound to its fields falls back to placeholder text.`,
+        { ok: "Delete collection" }
+      );
+      if (!ok) return;
+      C2.edit(() => C2.collectionDelete(col.id));
+    };
+    return /* @__PURE__ */ u2("div", { class: "brow", title: "Edit " + col.name, onClick: () => L2.cmsModal(col.id), children: [
+      /* @__PURE__ */ u2(Icon, { name: "page", size: 14 }),
+      /* @__PURE__ */ u2("span", { class: "bn", children: [
+        /* @__PURE__ */ u2("b", { children: col.name }),
+        /* @__PURE__ */ u2("small", { children: [
+          n2(col.fields.length, "field"),
+          " \xB7 ",
+          n2(col.items.length, "item")
+        ] })
+      ] }),
+      /* @__PURE__ */ u2("button", { class: "bx", title: "Delete this collection", onClick: remove, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+    ] });
+  }
+  function Cms() {
+    const list = C2.collections();
+    const add = async () => {
+      const name = await L2.askText(
+        "New collection",
+        "Name",
+        "Projects",
+        { ok: "Create", note: "Plural reads best \u2014 Projects, Posts, Team." }
+      );
+      if (!name) return;
+      let made = null;
+      C2.edit(() => {
+        made = C2.collectionAdd(name);
+      });
+      if (made) L2.cmsModal(made.id);
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { style: { padding: "12px 14px 0" }, children: [
+        /* @__PURE__ */ u2("button", { class: "btn primary", style: { width: "100%", justifyContent: "center" }, onClick: add, children: [
+          /* @__PURE__ */ u2(Icon, { name: "plus", size: 13 }),
+          " New collection"
+        ] }),
+        /* @__PURE__ */ u2("div", { class: "note", children: "A collection is a content type \u2014 a set of fields, and the items that fill them. Bind a widget to a field and it shows real content." })
+      ] }),
+      list.length ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px" }, children: list.map((c2) => /* @__PURE__ */ u2(CollectionRow, { col: c2 }, c2.id)) }) : /* @__PURE__ */ u2("div", { class: "empty", children: [
+        "No collections yet.",
+        /* @__PURE__ */ u2("br", {}),
+        /* @__PURE__ */ u2("br", {}),
+        "A ",
+        /* @__PURE__ */ u2("b", { children: "Projects" }),
+        " collection with a title, a cover and a summary is enough to drive a work grid and a page for every project."
+      ] })
+    ] });
+  }
+  var esc = (s2) => String(s2 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
@@ -5652,7 +5716,11 @@ var PC_UI = (() => {
       if (host) R(/* @__PURE__ */ u2(Layers, {}), host);
     };
     setPainter(paint);
-    return { renderLayers: paint };
+    const paintCms = () => {
+      const host = document.getElementById("paneCms");
+      if (host && !host.hidden) R(/* @__PURE__ */ u2(Cms, {}), host);
+    };
+    return { renderLayers: paint, renderCms: paintCms };
   }
   return __toCommonJS(index_exports);
 })();
@@ -6865,8 +6933,10 @@ function appendSmart(key) {
    ported panel is still borrowing from this file. */
 let UI = null;
 const ui = () => UI || (UI = PC_UI.mount(
-  { IC, DEF, DEV_LABEL, state, dk, tree, selIds, nameOf },
-  { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor }
+  { IC, DEF, DEV_LABEL, state, dk, tree, selIds, nameOf,
+    edit, collections, findCollection, collectionAdd, collectionDelete },
+  { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor,
+    askText, askConfirm, cmsModal }
 ));
 function renderLayers() { ui().renderLayers(); }
 
@@ -7030,46 +7100,8 @@ function mediaModal() {
 /* ================================================================ content
    The sidebar lists collections; the data itself is edited in a wide dialog,
    because a field schema and a table of items do not fit 272px. */
-function renderCms() {
-  const p = $('#paneCms');
-  if (!p || p.hidden) return;
-  const list = collections();
-  p.innerHTML = `
-    <div style="padding:12px 14px 0">
-      <button class="btn primary" id="cmsAdd" style="width:100%;justify-content:center">${svg('plus', 13)} New collection</button>
-      <div class="note">A collection is a content type — a set of fields, and the items that fill them. Bind a widget to a field and it shows real content.</div>
-    </div>
-    ${list.length ? `<div style="padding:12px 14px">${list.map(c => `
-      <div class="brow" data-col="${c.id}" title="Edit ${esc(c.name)}">
-        ${svg('page', 14)}
-        <span class="bn"><b>${esc(c.name)}</b><small>${c.fields.length} field${c.fields.length === 1 ? '' : 's'} · ${c.items.length} item${c.items.length === 1 ? '' : 's'}</small></span>
-        <button class="bx" data-coldel="${c.id}" title="Delete this collection">${svg('trash', 11)}</button>
-      </div>`).join('')}</div>`
-    : `<div class="empty">No collections yet.<br><br>
-        A <b>Projects</b> collection with a title, a cover and a summary is enough to drive a
-        work grid and a page for every project.</div>`}`;
-
-  $('#cmsAdd').addEventListener('click', async () => {
-    const name = await askText('New collection', 'Name', 'Projects',
-      { ok: 'Create', note: 'Plural reads best — Projects, Posts, Team.' });
-    if (!name) return;
-    let made = null;
-    edit(() => { made = collectionAdd(name); });
-    cmsModal(made.id);
-  });
-  $$('[data-col]', p).forEach(row => row.addEventListener('click', e => {
-    if (e.target.closest('[data-coldel]')) return;
-    cmsModal(row.dataset.col);
-  }));
-  $$('[data-coldel]', p).forEach(b => b.addEventListener('click', async e => {
-    e.stopPropagation();
-    const col = findCollection(b.dataset.coldel); if (!col) return;
-    if (!await askConfirm('Delete this collection?',
-      `<b>${esc(col.name)}</b> and its ${col.items.length} item${col.items.length === 1 ? '' : 's'}. Anything bound to its fields falls back to placeholder text.`,
-      { ok: 'Delete collection' })) return;
-    edit(() => collectionDelete(col.id));
-  }));
-}
+/* The Content panel lives in app/src/ui/Cms.tsx now. */
+function renderCms() { ui().renderCms(); }
 
 /* The content editor: schema on the left, items on the right. */
 let cmsTab = 'items';

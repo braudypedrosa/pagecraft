@@ -9,16 +9,7 @@
    could drift apart, and did. Here a row's handler is three lines below its markup and
    cannot be forgotten separately. */
 import { C, L } from './ctx';
-
-/** The icon set is our own constant markup, not user content, so injecting it is safe
-    and it keeps one definition of every glyph. */
-function Icon({ name, size = 14, cls }: { name: string; size?: number; cls?: string }) {
-  return (
-    <svg class={cls || ''} width={size} height={size} viewBox="0 0 16 16"
-      fill="none" stroke="currentColor" stroke-width="1.4"
-      dangerouslySetInnerHTML={{ __html: C.IC[name] || '' }} />
-  );
-}
+import { Icon } from './Icon';
 
 function RegionRow({ kind, label }: { kind: string; label: string }) {
   const live = kind === L.scopeOf();

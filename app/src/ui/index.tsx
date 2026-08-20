@@ -7,6 +7,7 @@
 import { render } from 'preact';
 import { install, type Core, type Legacy } from './ctx';
 import { Layers, setPainter } from './Layers';
+import { Cms } from './Cms';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
@@ -20,5 +21,12 @@ export function mount(core: Core, legacy: Legacy) {
   };
   setPainter(paint);
 
-  return { renderLayers: paint };
+  /* The old renderCms bailed out when the panel was hidden, so keep that: a hidden
+     panel has nothing to show and rendering it would be work for nobody. */
+  const paintCms = () => {
+    const host = document.getElementById('paneCms');
+    if (host && !(host as HTMLElement).hidden) render(<Cms />, host);
+  };
+
+  return { renderLayers: paint, renderCms: paintCms };
 }

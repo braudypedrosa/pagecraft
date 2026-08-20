@@ -21,7 +21,8 @@ import type * as CoreNs from '../core/index';
  * attempt to describe the whole core.
  */
 export type Core = Pick<typeof CoreNs,
-  | 'IC' | 'DEF' | 'DEV_LABEL' | 'state' | 'dk' | 'tree' | 'selIds' | 'nameOf'>;
+  | 'IC' | 'DEF' | 'DEV_LABEL' | 'state' | 'dk' | 'tree' | 'selIds' | 'nameOf'
+  | 'edit' | 'collections' | 'findCollection' | 'collectionAdd' | 'collectionDelete'>;
 
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {
@@ -41,6 +42,16 @@ export interface Legacy {
   scopeOf(): string;
   /** the `ui.mode` value that edits a given region kind */
   modeFor(kind: string): string;
+
+  /* The dialogs. Each resolves when the person answers and rejects nothing — a
+     cancel is a falsy resolution, which is why every caller reads the result rather
+     than catching. */
+  askText(title: string, label: string, value?: string,
+    opts?: { ok?: string; note?: string; placeholder?: string }): Promise<string | null>;
+  askConfirm(title: string, msgHtml: string,
+    opts?: { ok?: string; danger?: boolean }): Promise<boolean>;
+  /** the full-screen content editor for one collection */
+  cmsModal(collectionId: string): void;
 }
 
 /* Assigned once by mount(). Live bindings, so the components below see them. */

@@ -2227,8 +2227,10 @@ function appendSmart(key) {
    ported panel is still borrowing from this file. */
 let UI = null;
 const ui = () => UI || (UI = PC_UI.mount(
-  { IC, DEF, DEV_LABEL, state, dk, tree, selIds, nameOf },
-  { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor }
+  { IC, DEF, DEV_LABEL, state, dk, tree, selIds, nameOf,
+    edit, collections, findCollection, collectionAdd, collectionDelete },
+  { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor,
+    askText, askConfirm, cmsModal }
 ));
 function renderLayers() { ui().renderLayers(); }
 
@@ -2392,46 +2394,8 @@ function mediaModal() {
 /* ================================================================ content
    The sidebar lists collections; the data itself is edited in a wide dialog,
    because a field schema and a table of items do not fit 272px. */
-function renderCms() {
-  const p = $('#paneCms');
-  if (!p || p.hidden) return;
-  const list = collections();
-  p.innerHTML = `
-    <div style="padding:12px 14px 0">
-      <button class="btn primary" id="cmsAdd" style="width:100%;justify-content:center">${svg('plus', 13)} New collection</button>
-      <div class="note">A collection is a content type — a set of fields, and the items that fill them. Bind a widget to a field and it shows real content.</div>
-    </div>
-    ${list.length ? `<div style="padding:12px 14px">${list.map(c => `
-      <div class="brow" data-col="${c.id}" title="Edit ${esc(c.name)}">
-        ${svg('page', 14)}
-        <span class="bn"><b>${esc(c.name)}</b><small>${c.fields.length} field${c.fields.length === 1 ? '' : 's'} · ${c.items.length} item${c.items.length === 1 ? '' : 's'}</small></span>
-        <button class="bx" data-coldel="${c.id}" title="Delete this collection">${svg('trash', 11)}</button>
-      </div>`).join('')}</div>`
-    : `<div class="empty">No collections yet.<br><br>
-        A <b>Projects</b> collection with a title, a cover and a summary is enough to drive a
-        work grid and a page for every project.</div>`}`;
-
-  $('#cmsAdd').addEventListener('click', async () => {
-    const name = await askText('New collection', 'Name', 'Projects',
-      { ok: 'Create', note: 'Plural reads best — Projects, Posts, Team.' });
-    if (!name) return;
-    let made = null;
-    edit(() => { made = collectionAdd(name); });
-    cmsModal(made.id);
-  });
-  $$('[data-col]', p).forEach(row => row.addEventListener('click', e => {
-    if (e.target.closest('[data-coldel]')) return;
-    cmsModal(row.dataset.col);
-  }));
-  $$('[data-coldel]', p).forEach(b => b.addEventListener('click', async e => {
-    e.stopPropagation();
-    const col = findCollection(b.dataset.coldel); if (!col) return;
-    if (!await askConfirm('Delete this collection?',
-      `<b>${esc(col.name)}</b> and its ${col.items.length} item${col.items.length === 1 ? '' : 's'}. Anything bound to its fields falls back to placeholder text.`,
-      { ok: 'Delete collection' })) return;
-    edit(() => collectionDelete(col.id));
-  }));
-}
+/* The Content panel lives in app/src/ui/Cms.tsx now. */
+function renderCms() { ui().renderCms(); }
 
 /* The content editor: schema on the left, items on the right. */
 let cmsTab = 'items';
