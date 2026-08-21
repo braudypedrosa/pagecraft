@@ -14,6 +14,7 @@ import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
 import { Ctl } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
+import { Add } from '../app/src/ui/Add';
 import { act } from 'preact/test-utils';
 import { rig, type Rig } from './ui.setup';
 import type { Control, NavItem } from '../app/src/core/types';
@@ -27,6 +28,70 @@ const heading = () => C.insert('heading', null, 0)!;
 /* A repeater's rows, typed. `items` is a different shape per widget, so the test that
    built the node says which it has. */
 const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
+
+/* ------------------------------------------------------------ templates */
+
+test('every template group is offered from the page, header and footer alike', () => {
+  /* The first version filtered the list by the current region, which meant the Header and
+     Footer groups did not exist until you had already switched to editing that region —
+     so the templates were unfindable from the one view everybody starts in. */
+  ['page', 'header', 'footer'].forEach(mode => {
+    C.state.ui.mode = mode as 'page' | 'header' | 'footer';
+    C.state.ui.atab = 'templates';
+    r.draw(<Add />);
+    const groups = r.$$('.plabel').map(e => e.textContent);
+    a.ok(groups.includes('Header'), `Header offered in ${mode} mode`);
+    a.ok(groups.includes('Footer'), `Footer offered in ${mode} mode`);
+    a.ok(groups.includes('Hero'), `page sections offered in ${mode} mode`);
+    a.equal(r.$$('.pvcard').length, C.PATTERNS.length, `all ${C.PATTERNS.length} cards in ${mode} mode`);
+  });
+});
+
+test('clicking a header template switches to the header and builds it there', () => {
+  C.state.ui.mode = 'page';
+  C.state.ui.atab = 'templates';
+  r.draw(<Add />);
+  const card = r.$$('.pvcard').find(c => /Logo and links/.test(c.textContent!))!;
+  r.click(card);
+
+  a.deepEqual(r.arg('setMode'), ['header'], 'asks to switch region first — tree() reads the mode');
+  a.equal(C.state.header.length, 1, 'the header now has it');
+  a.equal(C.state.header[0].props.tag, 'header', 'as a landmark');
+  a.equal(C.state.pages[0].tree.length, 0, 'and the page was left alone');
+  /* the jump is announced, because a header replacing the view you had open otherwise
+     reads as the template having gone wrong */
+  a.match(String(r.arg('toast')![0]), /now editing the global header/);
+});
+
+test('a page template still goes to the page, and says nothing about regions', () => {
+  C.state.ui.mode = 'page';
+  C.state.ui.atab = 'templates';
+  r.draw(<Add />);
+  r.click(r.$$('.pvcard').find(c => /Split hero/.test(c.textContent!))!);
+
+  a.equal(r.arg('setMode'), null, 'already in the right place, so no switch');
+  a.equal(C.state.pages[0].tree.length, 1);
+  a.equal(C.state.header.length, 0);
+  a.equal(String(r.arg('toast')![0]), 'Split hero added');
+});
+
+test('a region template cannot be dragged, because a drop would land in the page', () => {
+  /* A dropped pattern goes into whatever container the drop target names, which in page
+     mode is page content — the one placement this must not allow. There is also nowhere
+     meaningful to aim a global header. */
+  C.state.ui.mode = 'page';
+  C.state.ui.atab = 'templates';
+  r.draw(<Add />);
+  const down = (label: RegExp) => {
+    const card = r.$$('.pvcard').find(c => label.test(c.textContent!))!;
+    card.dispatchEvent(new window.PointerEvent('pointerdown', { bubbles: true }));
+  };
+  down(/Logo and links/);
+  down(/Sitemap columns/);
+  a.equal(r.arg('startDrag'), null, 'no drag offered for a header or a footer');
+  down(/Split hero/);
+  a.ok(r.arg('startDrag'), 'but a page section is still draggable');
+});
 
 /* --------------------------------------------------------------- colour */
 /* The picker is the one control whose visible state lives in a hook rather than in the

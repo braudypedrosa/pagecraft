@@ -1942,9 +1942,11 @@ test('every region pattern is scoped, tagged and offered only in its region', ()
   });
 });
 
-test('a region pattern is never offered for a page body', () => {
-  /* The filter the Add panel applies, asserted here so the core stays the source of truth
-     for which patterns belong where. */
+test('a page pattern is never a landmark, so the two sets stay disjoint', () => {
+  /* `scope` is what the Add panel routes on: every pattern is offered from every region and
+     the click goes where the scope says. So the property that matters is that the sets do
+     not overlap — a pattern with no scope must never build a `<header>` or `<footer>`, or it
+     would land in a page body as a duplicate landmark. */
   const forPage = C.PATTERNS.filter(p => !p.scope);
   a.equal(forPage.length, C.PATTERNS.length - 8);
   a.equal(forPage.some(p => ['Header', 'Footer'].includes(p.cat)), false);

@@ -6576,32 +6576,37 @@ var PC_UI = (() => {
     ] })) });
   }
   function Templates() {
-    const region = C2.state.ui.mode === "header" ? "header" : C2.state.ui.mode === "footer" ? "footer" : null;
-    const offered = C2.PATTERNS.filter((t3) => (t3.scope || null) === region);
     const cats = [];
-    offered.forEach((t3) => {
+    C2.PATTERNS.forEach((t3) => {
       if (!cats.includes(t3.cat)) cats.push(t3.cat);
     });
     const place = (id) => {
       if (L2.consumeDragMoved()) return;
+      const pat = C2.PATTERNS.find((x2) => x2.id === id);
+      const want = pat.scope || "page";
+      const jumped = C2.state.ui.mode !== want;
+      if (jumped) L2.setMode(want);
       let made = null;
       C2.edit(() => {
         made = C2.patternInsert(id, void 0);
         if (made) C2.selSet([made.id]);
       });
-      const name = C2.PATTERNS.find((x2) => x2.id === id).name;
-      L2.toast(made ? name + " added" : "That does not fit there");
+      if (!made) {
+        L2.toast("That does not fit there");
+        return;
+      }
+      L2.toast(pat.scope && jumped ? `${pat.name} added \u2014 now editing the global ${pat.scope}` : `${pat.name} added`);
     };
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2("div", { class: "hint", style: { paddingBottom: "12px" }, children: region ? `Ready-made ${region}s, built from this project's colours and text styles.` : "Ready-made sections, built from this project's colours and text styles." }),
+      /* @__PURE__ */ u2("div", { class: "hint", style: { paddingBottom: "12px" }, children: "Ready-made sections, built from this project's colours and text styles." }),
       cats.map((cat) => /* @__PURE__ */ u2(S, { children: [
         /* @__PURE__ */ u2("div", { class: "plabel", children: cat }),
-        /* @__PURE__ */ u2("div", { class: "pvgrid", children: offered.filter((t3) => t3.cat === cat).map((t3) => /* @__PURE__ */ u2(
+        /* @__PURE__ */ u2("div", { class: "pvgrid", children: C2.PATTERNS.filter((t3) => t3.cat === cat).map((t3) => /* @__PURE__ */ u2(
           "button",
           {
             class: "pvcard",
-            title: t3.desc + " \u2014 drag onto the canvas, or click to append",
-            onPointerDown: (e3) => L2.startDrag(
+            title: t3.scope ? `${t3.desc} \u2014 click to add it to the global ${t3.scope}, shared by every page` : `${t3.desc} \u2014 drag onto the canvas, or click to append`,
+            onPointerDown: t3.scope ? void 0 : (e3) => L2.startDrag(
               e3,
               { kind: "pattern", patId: t3.id, label: t3.name, icon: "section" },
               false

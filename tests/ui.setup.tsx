@@ -18,7 +18,10 @@ export function stubLegacy(calls: Call[]): Legacy {
   const rec = (name: string) => (...args: any[]) => { calls.push([name, ...args]); };
   return {
     select: rec('select'),
-    setMode: rec('setMode'),
+    /* records *and* switches, because the real one does: `tree()` reads the mode, so a
+       panel that asks to change region before inserting can only be checked against
+       where the node actually landed if the stub honours the request. */
+    setMode: (mode: string) => { calls.push(['setMode', mode]); C.state.ui.mode = mode as any; },
     runAct: rec('runAct'),
     openCtx: rec('openCtx'),
     startLayerDrag: rec('startLayerDrag'),

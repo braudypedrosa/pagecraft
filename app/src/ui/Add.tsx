@@ -68,37 +68,60 @@ function Widgets() {
 }
 
 function Templates() {
-  /* Which region is being edited decides what is worth offering. `tree()` already sends
-     an insert to `state.header` or `state.footer` when the mode says so, so the only
-     thing missing was not offering a Hero while editing the footer — and, more sharply,
-     not offering a `<header>` landmark for the middle of an article. */
-  const region = C.state.ui.mode === 'header' ? 'header' : C.state.ui.mode === 'footer' ? 'footer' : null;
-  const offered = C.PATTERNS.filter(t => (t.scope || null) === region);
+  /* Every group, always, whatever region is being edited — and the click puts each one
+     where it belongs.
+
+     Filtering the list by the current region was the first attempt and it was half a
+     design: it did stop a `<header>` landmark being offered for the middle of an article,
+     but it also meant the Header and Footer groups did not exist until you had already
+     switched to editing that region. Someone looking for a header template opens this tab,
+     sees the same twenty-six page sections as before, and concludes there aren't any. Being
+     unfindable is not better than being misplaced.
+
+     So the region a pattern belongs to is a property of the pattern, not of the moment.
+     Clicking one switches to its region and inserts there; `tree()` follows the mode, so
+     the insert lands correctly for the same reason it did before. */
   const cats: string[] = [];
-  offered.forEach(t => { if (!cats.includes(t.cat)) cats.push(t.cat); });
+  C.PATTERNS.forEach(t => { if (!cats.includes(t.cat)) cats.push(t.cat); });
 
   const place = (id: string) => {
     if (L.consumeDragMoved()) return;
+    const pat = C.PATTERNS.find(x => x.id === id)!;
+    const want = pat.scope || 'page';
+    const jumped = C.state.ui.mode !== want;
+    /* before the insert, because `patternInsert` reads `tree()` and `tree()` reads the
+       mode. Mode is UI state and is not in the undo snapshot, so it sits outside the
+       transaction on purpose — undoing the insert should not also move you. */
+    if (jumped) L.setMode(want);
+
     let made: { id: string } | null = null;
     C.edit(() => { made = C.patternInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
-    const name = C.PATTERNS.find(x => x.id === id)!.name;
-    L.toast(made ? name + ' added' : 'That does not fit there');
+    if (!made) { L.toast('That does not fit there'); return; }
+    /* say where it went when that is not where you were looking, or a header appearing to
+       replace the page you had open reads as the template having gone wrong */
+    L.toast(pat.scope && jumped
+      ? `${pat.name} added — now editing the global ${pat.scope}`
+      : `${pat.name} added`);
   };
 
   return (
     <>
       <div class="hint" style={{ paddingBottom: '12px' }}>
-        {region
-          ? `Ready-made ${region}s, built from this project's colours and text styles.`
-          : "Ready-made sections, built from this project's colours and text styles."}
+        Ready-made sections, built from this project's colours and text styles.
       </div>
       {cats.map(cat => (
         <>
           <div class="plabel">{cat}</div>
           <div class="pvgrid">
-            {offered.filter(t => t.cat === cat).map(t => (
-              <button class="pvcard" key={t.id} title={t.desc + ' — drag onto the canvas, or click to append'}
-                onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
+            {C.PATTERNS.filter(t => t.cat === cat).map(t => (
+              <button class="pvcard" key={t.id}
+                title={t.scope
+                  ? `${t.desc} — click to add it to the global ${t.scope}, shared by every page`
+                  : `${t.desc} — drag onto the canvas, or click to append`}
+                /* No drag for a region pattern. A drop lands wherever the drop target says,
+                   which in page mode is page content — the one placement this must not
+                   allow. There is also nowhere meaningful to aim a global header. */
+                onPointerDown={t.scope ? undefined : e => L.startDrag(e as unknown as PointerEvent,
                   { kind: 'pattern', patId: t.id, label: t.name, icon: 'section' }, false)}
                 onClick={() => place(t.id)}>
                 {/* A div, not a span: `.pvcard span` styles the label with a border-top
