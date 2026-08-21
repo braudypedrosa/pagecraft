@@ -520,11 +520,12 @@ carries across.
    the body), **Table**, **Code block**, **Breadcrumb** (which pairs with CMS detail pages
    and would drive BreadcrumbList structured data), and a **scroll-snap slider** for logos
    and testimonials
-6. **The CMS's missing verbs.** ~~filter~~ and ~~draft flag~~ are done: a list takes a field,
-   one of five operators and a value, and an item held back leaves every published surface at
-   once through `published()`. Still open: a **reference** field type, so nothing relates a
-   post to an author; `content.json` goes out but nothing comes back **in**; and
-   **pagination**, which is the last thing between this and a real blog
+6. **The CMS's missing verbs.** ~~filter~~, ~~draft flag~~ and ~~pagination~~ are done: a list
+   takes a field, one of five operators and a value; an item held back leaves every published
+   surface at once through `published()`; and `per` turns a page into one file per slice, with
+   `paginatorOf` picking the list that decides how many. Still open: a **reference** field
+   type, so nothing relates a post to an author, and `content.json` goes out but nothing comes
+   back **in** — those two are what is left between this and a real blog
 7. **Export quality.** ~~`srcset`~~ — done, and it was the biggest page-weight win: the
    ladder and the `sizes` computation are in core, the canvas work is in the export, and both
    read `imageWidths` so the markup and the files cannot disagree. Separate-files mode only,
