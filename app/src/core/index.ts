@@ -299,7 +299,6 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', k: 'dir', label: 'Direction', opts: [['asc', 'A–Z'], ['desc', 'Z–A']] },
         {
           t: 'select', k: 'where', label: 'Only show items where',
-          note: 'A category or tag page is this control: point it at a field and give the value that page is about.',
           opts: n => [['', 'Every item'],
             ...((n.src && findCollection(n.src) ? findCollection(n.src)!.fields : []).map((f: Field) => [f.id, f.name]))]
         },
@@ -316,11 +315,11 @@ const DEF: Record<string, WidgetDef> = {
         },
         {
           t: 'unit', k: 'per', label: 'Items per page', units: [''], ph: 'all on one page',
-          note: 'Set this and the page becomes several files, with links between them. Page one keeps this page’s address; the rest sit in a folder beside it.'
+          note: 'Turns this page into one file per page of results.'
         },
         {
           t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all',
-          note: 'A hard ceiling on the whole list. Items per page wins where both are set.',
+          note: 'Items per page wins where both are set.',
           when: n => !(parseInt(String((n.props as PropBag).per || ''), 10) > 0)
         },
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space },
@@ -431,11 +430,11 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'area', k: 'text', label: 'Quotation', rows: 3, mono: 0,
-          note: 'Type it without quotation marks — the marks are drawn by the style, so they stay out of the text a screen reader reads.' },
+          note: 'No quotation marks — the style draws them.' },
         { t: 'text', k: 'by', label: 'Attribution', ph: 'Name, Role at Company',
-          note: 'Empty, this exports as a bare blockquote. Named, the quote becomes a figure and this becomes its caption.' },
+          note: 'Empty exports a bare blockquote; named adds a caption.' },
         { t: 'text', k: 'source', label: 'Source URL', ph: 'https://…',
-          note: 'Where the quote came from. Recorded on the blockquote for machines, and turns the attribution into a link.' },
+          note: 'Links the attribution, and records the source.' },
         { t: 'tstyle', k: 'ts', label: 'Text style' },
         { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
       ],
@@ -448,7 +447,7 @@ const DEF: Record<string, WidgetDef> = {
            whose list omits the stored unit falls back to its first entry — which would
            quietly rewrite 34ch as 34px the moment anyone touched the field. */
         { t: 'unit', c: 'max-width', label: 'Measure', r: 1, units: ['ch', 'px', 'rem', '%'],
-          note: 'How wide the lines are allowed to run. Around 34ch keeps a quote readable at display sizes.' },
+          note: 'How wide the lines may run. 34ch reads well.' },
         { t: 'pick', c: 'text-align', label: 'Text alignment', r: 1, opts: [['left', 'alignL'], ['center', 'alignC'], ['right', 'alignR']] },
         { t: 'color', c: 'border-left-color', label: 'Rule colour' },
         { t: 'unit', c: 'border-left-width', label: 'Rule width', r: 1, units: U.border },
@@ -472,7 +471,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'img', k: 'src', label: 'Image source' },
         { t: 'text', k: 'alt', label: 'Alt text', ph: 'Describe the image' },
         { t: 'toggle', k: 'decorative', label: 'Decorative — export an empty alt' },
-        { t: 'dims', label: 'Intrinsic size', note: 'Exported as width/height so the page does not shift while loading.' },
+        { t: 'dims', label: 'Intrinsic size', note: 'Stops the page shifting as it loads.' },
         { t: 'text', k: 'caption', label: 'Caption', ph: 'Optional' },
         { t: 'link', k: 'link', label: 'Link' },
         { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
@@ -611,7 +610,7 @@ const DEF: Record<string, WidgetDef> = {
       content: [
         { t: 'fields', k: 'fields', label: 'Fields' },
         { t: 'text', k: 'submit', label: 'Submit button label' },
-        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'https://formspree.io/f/…', note: 'A static page cannot receive a POST itself. Paste the endpoint from a form service, or a mailto: address.' },
+        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'https://formspree.io/f/…', note: 'A static page can’t receive a POST — paste an endpoint.' },
         { t: 'select', k: 'method', label: 'Method', opts: [['post', 'POST'], ['get', 'GET']] },
         { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Contact form' }
       ],
@@ -705,7 +704,7 @@ const DEF: Record<string, WidgetDef> = {
       content: [
         {
           t: 'area', k: 'html', label: 'HTML', rows: 8, mono: 1, ph: '<iframe src="…" …></iframe>',
-          note: 'Pasted straight into the page. Scripts run on the exported site but not in this canvas — an embed that needs one shows a placeholder here.'
+          note: 'Runs on the exported site, not in this canvas.'
         },
         {
           t: 'select', k: 'ratio', label: 'Aspect ratio',
@@ -733,7 +732,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'icon', k: 'name', label: 'Icon' },
         {
           t: 'text', k: 'label', label: 'Accessible label', ph: 'Leave empty if decorative',
-          note: 'Named, a screen reader reads it. Empty, it is hidden — right for an icon beside text that already says it.'
+          note: 'Empty is hidden from screen readers.'
         },
         { t: 'link', k: 'link', label: 'Link' },
         { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }

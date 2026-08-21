@@ -358,13 +358,11 @@ function RichCtl({ n, c }: P) {
   const f = fid && scope ? C.findField(scope.col, fid) : null;
   return <Field n={n} c={c}>
     {fid
-      ? <div class="note">This block's content comes from <b>{(f || { name: 'a missing field' }).name}</b>.
-        Unbind it to edit the text here.</div>
+      ? <div class="note">Bound to <b>{(f || { name: 'a missing field' }).name}</b>. Unbind to edit here.</div>
       : <>
         <button class="btn" style={{ width: '100%', justifyContent: 'center' }}
           onClick={() => L.enterEdit(n.id)}><Icon name="edit" size={13} /> Edit on canvas</button>
-        <div class="note">Or double-click the block directly. Toolbar: bold, italic, links,
-          lists, headings.</div>
+        <div class="note">Or double-click on the canvas.</div>
       </>}
   </Field>;
 }
@@ -414,8 +412,8 @@ function TstyleCtl({ n, c }: P) {
           onClick={create}><Icon name="plus" size={12} /> Save as text style</button>}
     </div>
     <div class="note">{cur
-      ? `Used by ${used} element${used === 1 ? '' : 's'}. Anything you set below overrides the style for this element only.`
-      : 'Typography lives on this element. Save it as a style to reuse it and restyle everything at once.'}</div>
+        ? `${used} use${used === 1 ? '' : 's'}. Below overrides this element only.`
+        : 'Save it as a style to reuse it.'}</div>
   </Field>;
 }
 
@@ -502,8 +500,7 @@ function LinkCtl({ n, c }: P) {
           ? <option value={link.frag}>#{link.frag} — missing</option> : null}
       </select>
       {anchors.length ? null : (
-        <div class="note">That page has no anchors yet. Give an element an HTML anchor id
-          under Advanced.</div>
+        <div class="note">No anchors on that page yet.</div>
       )}
     </> : null}
 
@@ -619,8 +616,8 @@ function ColsCtl({ n, c }: P) {
       </div>
     </> : null}
     <div class="note">{count > top
-      ? `${count} columns — more than the presets cover. Set each column's width individually.`
-      : 'Drag a gutter on the canvas to change the split. Reducing the count moves content into the last column.'}</div>
+        ? `${count} columns — set each width individually.`
+        : 'Drag a gutter on the canvas to change the split.'}</div>
   </div>;
 }
 

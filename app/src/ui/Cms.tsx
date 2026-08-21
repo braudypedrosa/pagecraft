@@ -52,10 +52,7 @@ export function Cms() {
         <button class="btn primary" style={{ width: '100%', justifyContent: 'center' }} onClick={add}>
           <Icon name="plus" size={13} /> New collection
         </button>
-        <div class="note">
-          A collection is a content type — a set of fields, and the items that fill them.
-          Bind a widget to a field and it shows real content.
-        </div>
+        <div class="note">Fields, and the items that fill them.</div>
       </div>
       {list.length
         ? <div style={{ padding: '12px 14px' }}>

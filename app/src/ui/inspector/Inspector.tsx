@@ -151,11 +151,8 @@ function StylingTarget({ n }: { n: PcNode }) {
         <option value="__new">＋ New class from this element…</option>
       </select>
       <div class="note">{target
-        ? <>Editing <b>.{target}</b> — every change here reaches all {C.classUsage(target)} element
-          {C.classUsage(target) === 1 ? '' : 's'} using it.</>
-        : applied.length
-          ? 'Editing this element only. Its classes are listed above; pick one to edit it instead.'
-          : 'Editing this element only. Save its styling as a class to reuse it elsewhere.'}</div>
+        ? <>Reaches all {C.classUsage(target)} element{C.classUsage(target) === 1 ? '' : 's'} using it.</>
+        : 'This element only.'}</div>
     </Panel>
   );
 }
@@ -189,11 +186,8 @@ function StatePick() {
           <button key={k} class={cur === k ? 'on' : ''} onClick={() => set(k)}>{label}</button>
         ))}
       </div>
-      <div class="note">{cur
-        ? <>Every control below writes to the <b>{cur === 'hover' ? 'hover' : 'keyboard-focus'}</b>{' '}
-          state. Only what you set changes; everything else stays as it rests. Give it a{' '}
-          <b>Transition</b> under <b>Motion</b> to animate.</>
-        : 'How the element normally looks. Switch to Hover or Focus to style those instead.'}</div>
+      {/* No note. It had one of 245 characters restating what the lit segment says — and a
+          paragraph under every control is what makes a panel read as padding. */}
     </div>
   );
 }
@@ -215,7 +209,7 @@ function StatePick() {
    a function for the same reason; this one wanted to be a constant and could not be. */
 const transitionCtl = (): Control => ({
   t: 'opt', c: 'transition', label: 'Transition', opts: C.TRANSITIONS, ph: 'all .25s ease',
-  note: 'How a change to this element animates — a hover, a focus, or a class being applied.'
+  note: 'Animates a hover, a focus, or a class change.'
 });
 
 function Motion({ n }: { n: PcNode }) {
@@ -249,9 +243,7 @@ function Motion({ n }: { n: PcNode }) {
             <option key={x} value={x}>{x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
           ))}
         </select>
-        <div class="note">{a.name
-          ? 'Runs when this element scrolls into view. The canvas holds still — use Preview to watch it.'
-          : 'Nothing moves until you pick one, and a page with no animation ships no animation code.'}</div>
+        {a.name ? <div class="note">The canvas holds still — use Preview.</div> : null}
       </div>
       {a.name ? (
         <>
@@ -274,7 +266,7 @@ function Motion({ n }: { n: PcNode }) {
 /* The Advanced tab's fixed control list. It is not part of any widget definition
    because every widget gets the same one. */
 const advControls = (n: PcNode): Control[] => [
-  { t: 'text', k: '_id', label: 'HTML id', ph: C.autoId(n), note: 'Auto-generated unless you set one. This is what a link anchor targets.' },
+  { t: 'text', k: '_id', label: 'HTML id', ph: C.autoId(n), note: 'What a link anchor targets. Auto unless you set one.' },
   { t: 'text', k: '_cls', label: 'CSS classes', ph: 'hero card--dark' },
   { t: 'select', c: 'position', label: 'Position', opts: [['', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
   { t: 'unit', c: 'top', label: 'Top', r: 1, units: ['px', '%', 'rem'] },
@@ -307,12 +299,9 @@ function ContentSource({ n }: { n: PcNode }) {
           onClick={() => L.bindModal(n.id)}><Icon name="cms" size={13} /> Bind the fields inside…</button>
       ) : null}
       <div class="note">{col
-        ? <>Nothing on the canvas changes yet — this only opens the scope. Select something
-          inside and click the badge beside a field to take its value from <b>{col.name}</b>.
-          The bar above shows which item is previewed; to repeat the whole set instead,
-          use a <b>Collection list</b>.</>
+        ? 'Select something inside, then bind a field to it.'
         : C.collections().length
-          ? 'Point this at a collection and everything inside it can bind to a field.'
+          ? 'Point this at a collection to bind fields inside it.'
           : <>No collections yet — make one in <b>CMS</b>.</>}</div>
     </Panel>
   );

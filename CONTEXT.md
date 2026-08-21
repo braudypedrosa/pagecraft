@@ -344,7 +344,14 @@ that would have caught it.
    `.mb`, `.mf` and `#askBody` all read it, and `.tabs.flush` derives its edge-to-edge cancel
    and its label inset from it. Do not hard-code 18px in a dialog again — four copies of it
    plus an inline `padding:0 12px` gave the CMS dialog four different left edges.
-7. **The export stylesheet carries no comments.** The first half of `baseCss` ships to every
+7. **A note is one clause.** Under about sixty characters, saying only what the control cannot
+   say for itself. The inspector grew a grey paragraph under most of its controls and in
+   aggregate read as padding — four different jobs, a mode indicator and a live readout and a
+   rule and a tutorial, all wearing the same styling permanently. A readout is a fragment
+   (`3 uses`), a rule is a clause (`Items per page wins where both are set`), a mode says
+   nothing because the control shows it, and a tutorial belongs in the `?` dialog. Anything
+   that needs a paragraph is a sign the control needs a better label.
+8. **The export stylesheet carries no comments.** The first half of `baseCss` ships to every
    page; the reasoning for each block lives in `NOTES.md` and in the preamble above the
    function. Seven comments leaked into every export before this was noticed.
 

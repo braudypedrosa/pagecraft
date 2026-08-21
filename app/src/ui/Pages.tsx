@@ -84,12 +84,8 @@ function DetailBindings({ colId }: { colId: string }) {
         {pick('bindTitle', 'Title from', '— The page title —')}
         {pick('bindDesc', 'Description from', '— The page description —')}
       </div>
-      <div class="note">
-        One page per item at <b>/{dc.slug}/&lt;slug&gt;</b> — {C.published(dc).length} of
-        them{dc.items.length !== C.published(dc).length
-          ? `, with ${dc.items.length - C.published(dc).length} held back as a draft`
-          : ''} from this one page. Everything on it binds to <b>{dc.name}</b>.
-      </div>
+      <div class="note">One file per item, at <b>/{dc.slug}/&lt;slug&gt;</b>
+        {C.published(dc).length === dc.items.length ? '' : ` — ${dc.items.length - C.published(dc).length} held back`}.</div>
     </>
   );
 }
@@ -152,16 +148,10 @@ export function Pages() {
               }
               repaint('pages'); L.renderModebar();
             }} />
-          <div class="note">
-            {C.isFront(pg)
-              ? <>This is the <b>front page</b> — a host serves it at the root, so its slug is
-                fixed at <code>index</code>. Make another page the front page to free it.</>
-              : <>The page's address: <b>/{pg.slug || '…'}</b>. Exporting static HTML writes it
-                as <code>{pg.slug || '…'}.html</code>.</>}
-            {C.isNotFound(pg)
-              ? ' Slugged 404, so it is your not-found page: it stays out of the sitemap and asks not to be indexed.'
-              : C.isFront(pg) ? '' : ' Slug a page 404 to make it your not-found page.'}
-          </div>
+          <div class="note">{C.isFront(pg)
+              ? <>Fixed at <code>index</code> — a host serves it at the root.</>
+              : <>Exports as <code>{pg.slug || '…'}.html</code>.</>}
+            {C.isNotFound(pg) ? ' Your not-found page: out of the sitemap, and noindex.' : ''}</div>
           {C.isFront(pg) ? null : (
             <button class="btn" style={{ marginTop: 'var(--gap-1)', width: '100%', justifyContent: 'center' }}
               onClick={async () => {
@@ -199,7 +189,7 @@ export function Pages() {
             style={{ minHeight: '56px', fontFamily: 'var(--mono)', fontSize: '11.5px' }}
             placeholder="&lt;meta name=&quot;robots&quot; content=&quot;noindex&quot;&gt;"
             {...field(v => { C.page().headHtml = v; })} />
-          <div class="note">Written into this page only, after the project's own block.</div></div>
+          <div class="note">This page only, after the project's block.</div></div>
 
         <div class="f">
           <label>Detail template <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>
@@ -216,8 +206,7 @@ export function Pages() {
           {pg.collection && C.findCollection(pg.collection)
             ? <DetailBindings colId={pg.collection} />
             : cols.length
-              ? <div class="note">Point this at a collection and the page becomes a
-                template: one static file per item.</div>
+              ? <div class="note">Becomes a template: one file per item.</div>
               : null}
         </div>
       </div></div>

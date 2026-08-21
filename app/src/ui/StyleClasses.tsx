@@ -60,8 +60,7 @@ export function StyleClasses() {
           </div>
         );
       })}
-      <div class="note">Precedence runs top to bottom: a class lower in this list
-        overrides one above it. An element's own styling always wins.</div>
+      <div class="note">Lower overrides higher. Element styling wins.</div>
     </>
   );
 }

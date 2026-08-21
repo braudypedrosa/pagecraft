@@ -185,7 +185,6 @@ export function ImgsCtl({ n, c }: P) {
           }}><Icon name="copy" size={13} /> Library</button>
       ) : null}
     </div>
-    <div class="note">Upload takes several files at once. Alt text is what a screen
-      reader reads — the review asks for it.</div>
+    <div class="note">Alt text is what a screen reader reads.</div>
   </Field>;
 }

@@ -2166,7 +2166,6 @@ var DEF = {
           t: "select",
           k: "where",
           label: "Only show items where",
-          note: "A category or tag page is this control: point it at a field and give the value that page is about.",
           opts: (n) => [
             ["", "Every item"],
             ...(n.src && findCollection(n.src) ? findCollection(n.src).fields : []).map((f) => [f.id, f.name])
@@ -2193,7 +2192,7 @@ var DEF = {
           label: "Items per page",
           units: [""],
           ph: "all on one page",
-          note: "Set this and the page becomes several files, with links between them. Page one keeps this page\u2019s address; the rest sit in a folder beside it."
+          note: "Turns this page into one file per page of results."
         },
         {
           t: "unit",
@@ -2201,7 +2200,7 @@ var DEF = {
           label: "Show at most",
           units: [""],
           ph: "all",
-          note: "A hard ceiling on the whole list. Items per page wins where both are set.",
+          note: "Items per page wins where both are set.",
           when: (n) => !(parseInt(String(n.props.per || ""), 10) > 0)
         },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
@@ -2331,21 +2330,21 @@ var DEF = {
           label: "Quotation",
           rows: 3,
           mono: 0,
-          note: "Type it without quotation marks \u2014 the marks are drawn by the style, so they stay out of the text a screen reader reads."
+          note: "No quotation marks \u2014 the style draws them."
         },
         {
           t: "text",
           k: "by",
           label: "Attribution",
           ph: "Name, Role at Company",
-          note: "Empty, this exports as a bare blockquote. Named, the quote becomes a figure and this becomes its caption."
+          note: "Empty exports a bare blockquote; named adds a caption."
         },
         {
           t: "text",
           k: "source",
           label: "Source URL",
           ph: "https://\u2026",
-          note: "Where the quote came from. Recorded on the blockquote for machines, and turns the attribution into a link."
+          note: "Links the attribution, and records the source."
         },
         { t: "tstyle", k: "ts", label: "Text style" },
         { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
@@ -2364,7 +2363,7 @@ var DEF = {
           label: "Measure",
           r: 1,
           units: ["ch", "px", "rem", "%"],
-          note: "How wide the lines are allowed to run. Around 34ch keeps a quote readable at display sizes."
+          note: "How wide the lines may run. 34ch reads well."
         },
         { t: "pick", c: "text-align", label: "Text alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
         { t: "color", c: "border-left-color", label: "Rule colour" },
@@ -2390,7 +2389,7 @@ var DEF = {
         { t: "img", k: "src", label: "Image source" },
         { t: "text", k: "alt", label: "Alt text", ph: "Describe the image" },
         { t: "toggle", k: "decorative", label: "Decorative \u2014 export an empty alt" },
-        { t: "dims", label: "Intrinsic size", note: "Exported as width/height so the page does not shift while loading." },
+        { t: "dims", label: "Intrinsic size", note: "Stops the page shifting as it loads." },
         { t: "text", k: "caption", label: "Caption", ph: "Optional" },
         { t: "link", k: "link", label: "Link" },
         { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
@@ -2563,7 +2562,7 @@ var DEF = {
       content: [
         { t: "fields", k: "fields", label: "Fields" },
         { t: "text", k: "submit", label: "Submit button label" },
-        { t: "text", k: "action", label: "Where submissions go", ph: "https://formspree.io/f/\u2026", note: "A static page cannot receive a POST itself. Paste the endpoint from a form service, or a mailto: address." },
+        { t: "text", k: "action", label: "Where submissions go", ph: "https://formspree.io/f/\u2026", note: "A static page can\u2019t receive a POST \u2014 paste an endpoint." },
         { t: "select", k: "method", label: "Method", opts: [["post", "POST"], ["get", "GET"]] },
         { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
       ],
@@ -2678,7 +2677,7 @@ var DEF = {
           rows: 8,
           mono: 1,
           ph: '<iframe src="\u2026" \u2026></iframe>',
-          note: "Pasted straight into the page. Scripts run on the exported site but not in this canvas \u2014 an embed that needs one shows a placeholder here."
+          note: "Runs on the exported site, not in this canvas."
         },
         {
           t: "select",
@@ -2713,7 +2712,7 @@ var DEF = {
           k: "label",
           label: "Accessible label",
           ph: "Leave empty if decorative",
-          note: "Named, a screen reader reads it. Empty, it is hidden \u2014 right for an icon beside text that already says it."
+          note: "Empty is hidden from screen readers."
         },
         { t: "link", k: "link", label: "Link" },
         { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
@@ -7748,7 +7747,7 @@ var PC_UI = (() => {
           /* @__PURE__ */ u2(Icon, { name: "plus", size: 13 }),
           " New collection"
         ] }),
-        /* @__PURE__ */ u2("div", { class: "note", children: "A collection is a content type \u2014 a set of fields, and the items that fill them. Bind a widget to a field and it shows real content." })
+        /* @__PURE__ */ u2("div", { class: "note", children: "Fields, and the items that fill them." })
       ] }),
       list2.length ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px" }, children: list2.map((c3) => /* @__PURE__ */ u2(CollectionRow, { col: c3 }, c3.id)) }) : /* @__PURE__ */ u2("div", { class: "empty", children: [
         "No collections yet.",
@@ -8126,18 +8125,13 @@ var PC_UI = (() => {
         pick("bindDesc", "Description from", "\u2014 The page description \u2014")
       ] }),
       /* @__PURE__ */ u2("div", { class: "note", children: [
-        "One page per item at ",
+        "One file per item, at ",
         /* @__PURE__ */ u2("b", { children: [
           "/",
           dc.slug,
           "/<slug>"
         ] }),
-        " \u2014 ",
-        C2.published(dc).length,
-        " of them",
-        dc.items.length !== C2.published(dc).length ? `, with ${dc.items.length - C2.published(dc).length} held back as a draft` : "",
-        " from this one page. Everything on it binds to ",
-        /* @__PURE__ */ u2("b", { children: dc.name }),
+        C2.published(dc).length === dc.items.length ? "" : ` \u2014 ${dc.items.length - C2.published(dc).length} held back`,
         "."
       ] })
     ] });
@@ -8227,25 +8221,18 @@ var PC_UI = (() => {
             ),
             /* @__PURE__ */ u2("div", { class: "note", children: [
               C2.isFront(pg) ? /* @__PURE__ */ u2(S, { children: [
-                "This is the ",
-                /* @__PURE__ */ u2("b", { children: "front page" }),
-                " \u2014 a host serves it at the root, so its slug is fixed at ",
+                "Fixed at ",
                 /* @__PURE__ */ u2("code", { children: "index" }),
-                ". Make another page the front page to free it."
+                " \u2014 a host serves it at the root."
               ] }) : /* @__PURE__ */ u2(S, { children: [
-                "The page's address: ",
-                /* @__PURE__ */ u2("b", { children: [
-                  "/",
-                  pg.slug || "\u2026"
-                ] }),
-                ". Exporting static HTML writes it as ",
+                "Exports as ",
                 /* @__PURE__ */ u2("code", { children: [
                   pg.slug || "\u2026",
                   ".html"
                 ] }),
                 "."
               ] }),
-              C2.isNotFound(pg) ? " Slugged 404, so it is your not-found page: it stays out of the sitemap and asks not to be indexed." : C2.isFront(pg) ? "" : " Slug a page 404 to make it your not-found page."
+              C2.isNotFound(pg) ? " Your not-found page: out of the sitemap, and noindex." : ""
             ] }),
             C2.isFront(pg) ? null : /* @__PURE__ */ u2(
               "button",
@@ -8324,7 +8311,7 @@ var PC_UI = (() => {
                 })
               }
             ),
-            /* @__PURE__ */ u2("div", { class: "note", children: "Written into this page only, after the project's own block." })
+            /* @__PURE__ */ u2("div", { class: "note", children: "This page only, after the project's block." })
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { children: [
@@ -8349,7 +8336,7 @@ var PC_UI = (() => {
                 ]
               }
             ),
-            pg.collection && C2.findCollection(pg.collection) ? /* @__PURE__ */ u2(DetailBindings, { colId: pg.collection }) : cols.length ? /* @__PURE__ */ u2("div", { class: "note", children: "Point this at a collection and the page becomes a template: one static file per item." }) : null
+            pg.collection && C2.findCollection(pg.collection) ? /* @__PURE__ */ u2(DetailBindings, { colId: pg.collection }) : cols.length ? /* @__PURE__ */ u2("div", { class: "note", children: "Becomes a template: one file per item." }) : null
           ] })
         ] })
       ] })
@@ -9046,7 +9033,7 @@ var PC_UI = (() => {
           }
         ) : null
       ] }),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Upload takes several files at once. Alt text is what a screen reader reads \u2014 the review asks for it." })
+      /* @__PURE__ */ u2("div", { class: "note", children: "Alt text is what a screen reader reads." })
     ] });
   }
 
@@ -9501,9 +9488,9 @@ var PC_UI = (() => {
     const { scope, fid } = bound(n2, c3);
     const f4 = fid && scope ? C2.findField(scope.col, fid) : null;
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: fid ? /* @__PURE__ */ u2("div", { class: "note", children: [
-      "This block's content comes from ",
+      "Bound to ",
       /* @__PURE__ */ u2("b", { children: (f4 || { name: "a missing field" }).name }),
-      ". Unbind it to edit the text here."
+      ". Unbind to edit here."
     ] }) : /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(
         "button",
@@ -9517,7 +9504,7 @@ var PC_UI = (() => {
           ]
         }
       ),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Or double-click the block directly. Toolbar: bold, italic, links, lists, headings." })
+      /* @__PURE__ */ u2("div", { class: "note", children: "Or double-click on the canvas." })
     ] }) });
   }
   function TstyleCtl({ n: n2, c: c3 }) {
@@ -9603,7 +9590,7 @@ var PC_UI = (() => {
           ]
         }
       ) }),
-      /* @__PURE__ */ u2("div", { class: "note", children: cur ? `Used by ${used} element${used === 1 ? "" : "s"}. Anything you set below overrides the style for this element only.` : "Typography lives on this element. Save it as a style to reuse it and restyle everything at once." })
+      /* @__PURE__ */ u2("div", { class: "note", children: cur ? `${used} use${used === 1 ? "" : "s"}. Below overrides this element only.` : "Save it as a style to reuse it." })
     ] });
   }
   function OptCtl({ n: n2, c: c3 }) {
@@ -9727,7 +9714,7 @@ var PC_UI = (() => {
             ]
           }
         ),
-        anchors.length ? null : /* @__PURE__ */ u2("div", { class: "note", children: "That page has no anchors yet. Give an element an HTML anchor id under Advanced." })
+        anchors.length ? null : /* @__PURE__ */ u2("div", { class: "note", children: "No anchors on that page yet." })
       ] }) : null,
       ["url", "email", "phone"].includes(link.mode) ? /* @__PURE__ */ u2(
         "input",
@@ -9889,7 +9876,7 @@ var PC_UI = (() => {
           k3
         )) })
       ] }) : null,
-      /* @__PURE__ */ u2("div", { class: "note", children: count > top ? `${count} columns \u2014 more than the presets cover. Set each column's width individually.` : "Drag a gutter on the canvas to change the split. Reducing the count moves content into the last column." })
+      /* @__PURE__ */ u2("div", { class: "note", children: count > top ? `${count} columns \u2014 set each width individually.` : "Drag a gutter on the canvas to change the split." })
     ] });
   }
   var KINDS = {
@@ -10117,17 +10104,12 @@ var PC_UI = (() => {
         }
       ),
       /* @__PURE__ */ u2("div", { class: "note", children: target ? /* @__PURE__ */ u2(S, { children: [
-        "Editing ",
-        /* @__PURE__ */ u2("b", { children: [
-          ".",
-          target
-        ] }),
-        " \u2014 every change here reaches all ",
+        "Reaches all ",
         C2.classUsage(target),
         " element",
         C2.classUsage(target) === 1 ? "" : "s",
         " using it."
-      ] }) : applied.length ? "Editing this element only. Its classes are listed above; pick one to edit it instead." : "Editing this element only. Save its styling as a class to reuse it elsewhere." })
+      ] }) : "This element only." })
     ] });
   }
   function StatePick() {
@@ -10141,18 +10123,7 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2("div", { class: "pick", children: [
         /* @__PURE__ */ u2("button", { class: cur ? "" : "on", onClick: () => set(""), children: "Resting" }),
         C2.STATES.map(([k3, label]) => /* @__PURE__ */ u2("button", { class: cur === k3 ? "on" : "", onClick: () => set(k3), children: label }, k3))
-      ] }),
-      /* @__PURE__ */ u2("div", { class: "note", children: cur ? /* @__PURE__ */ u2(S, { children: [
-        "Every control below writes to the ",
-        /* @__PURE__ */ u2("b", { children: cur === "hover" ? "hover" : "keyboard-focus" }),
-        " ",
-        "state. Only what you set changes; everything else stays as it rests. Give it a",
-        " ",
-        /* @__PURE__ */ u2("b", { children: "Transition" }),
-        " under ",
-        /* @__PURE__ */ u2("b", { children: "Motion" }),
-        " to animate."
-      ] }) : "How the element normally looks. Switch to Hover or Focus to style those instead." })
+      ] })
     ] });
   }
   var transitionCtl = () => ({
@@ -10161,7 +10132,7 @@ var PC_UI = (() => {
     label: "Transition",
     opts: C2.TRANSITIONS,
     ph: "all .25s ease",
-    note: "How a change to this element animates \u2014 a hover, a focus, or a class being applied."
+    note: "Animates a hover, a focus, or a class change."
   });
   function Motion({ n: n2 }) {
     const a3 = n2.anim || {};
@@ -10203,7 +10174,7 @@ var PC_UI = (() => {
             ]
           }
         ),
-        /* @__PURE__ */ u2("div", { class: "note", children: a3.name ? "Runs when this element scrolls into view. The canvas holds still \u2014 use Preview to watch it." : "Nothing moves until you pick one, and a page with no animation ships no animation code." })
+        a3.name ? /* @__PURE__ */ u2("div", { class: "note", children: "The canvas holds still \u2014 use Preview." }) : null
       ] }),
       a3.name ? /* @__PURE__ */ u2(S, { children: [
         time("dur", "Duration", "0.6s"),
@@ -10235,7 +10206,7 @@ var PC_UI = (() => {
     ] });
   }
   var advControls = (n2) => [
-    { t: "text", k: "_id", label: "HTML id", ph: C2.autoId(n2), note: "Auto-generated unless you set one. This is what a link anchor targets." },
+    { t: "text", k: "_id", label: "HTML id", ph: C2.autoId(n2), note: "What a link anchor targets. Auto unless you set one." },
     { t: "text", k: "_cls", label: "CSS classes", ph: "hero card--dark" },
     { t: "select", c: "position", label: "Position", opts: [["", "Static"], ["relative", "Relative"], ["absolute", "Absolute"], ["sticky", "Sticky"], ["fixed", "Fixed"]] },
     { t: "unit", c: "top", label: "Top", r: 1, units: ["px", "%", "rem"] },
@@ -10281,13 +10252,7 @@ var PC_UI = (() => {
           ]
         }
       ) : null,
-      /* @__PURE__ */ u2("div", { class: "note", children: col ? /* @__PURE__ */ u2(S, { children: [
-        "Nothing on the canvas changes yet \u2014 this only opens the scope. Select something inside and click the badge beside a field to take its value from ",
-        /* @__PURE__ */ u2("b", { children: col.name }),
-        ". The bar above shows which item is previewed; to repeat the whole set instead, use a ",
-        /* @__PURE__ */ u2("b", { children: "Collection list" }),
-        "."
-      ] }) : C2.collections().length ? "Point this at a collection and everything inside it can bind to a field." : /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "note", children: col ? "Select something inside, then bind a field to it." : C2.collections().length ? "Point this at a collection to bind fields inside it." : /* @__PURE__ */ u2(S, { children: [
         "No collections yet \u2014 make one in ",
         /* @__PURE__ */ u2("b", { children: "CMS" }),
         "."
@@ -10560,7 +10525,7 @@ var PC_UI = (() => {
           )
         ] }, c3.id);
       }),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Precedence runs top to bottom: a class lower in this list overrides one above it. An element's own styling always wins." })
+      /* @__PURE__ */ u2("div", { class: "note", children: "Lower overrides higher. Element styling wins." })
     ] });
   }
   var esc6 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
