@@ -73,6 +73,7 @@ __export(index_exports, {
   applyCols: () => applyCols,
   applyColsAt: () => applyColsAt,
   applyOne: () => applyOne,
+  atEdge: () => atEdge,
   autoId: () => autoId,
   baseCss: () => baseCss,
   bindGet: () => bindGet,
@@ -262,6 +263,7 @@ __export(index_exports, {
   selRange: () => selRange,
   selSet: () => selSet,
   selToggle: () => selToggle,
+  sendEdge: () => sendEdge,
   setCss: () => setCss,
   sitePlan: () => sitePlan,
   sitemapXml: () => sitemapXml,
@@ -355,6 +357,9 @@ var IC = {
   vTop: '<path d="M2 2.5h12" stroke-linecap="round"/><rect x="5" y="5" width="6" height="8" rx="1"/>',
   vMid: '<path d="M2 8h12" stroke-linecap="round" opacity=".5"/><rect x="5" y="4" width="6" height="8" rx="1"/>',
   vBot: '<path d="M2 13.5h12" stroke-linecap="round"/><rect x="5" y="3" width="6" height="8" rx="1"/>',
+  save: '<path d="M4.5 2.5h7v11l-3.5-2.9-3.5 2.9z" stroke-linecap="round" stroke-linejoin="round"/>',
+  toTop: '<path d="M3 2.8h10M8 13.2V6M5 8.9L8 5.9l3 3" stroke-linecap="round" stroke-linejoin="round"/>',
+  toBottom: '<path d="M3 13.2h10M8 2.8V10M5 7.1L8 10.1l3-3" stroke-linecap="round" stroke-linejoin="round"/>',
   plus: '<path d="M8 3v10M3 8h10" stroke-linecap="round"/>',
   edit: '<path d="M11.2 2.6l2.2 2.2-8 8L3 13.5l.7-2.4z" stroke-linejoin="round"/>',
   arrow: '<path d="M6 3.5L10.5 8 6 12.5" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1538,6 +1543,11 @@ function menuFor(ids) {
   out.push({ act: "stcopy", label: "Copy styles", key: "\u2318\u21E7C" });
   if (styleClip.css) out.push({ act: "stpaste", label: many ? "Paste styles to " + list.length : "Paste styles", key: "\u2318\u21E7V" });
   out[out.length - 1].sep = true;
+  const sibs = h.parent ? h.parent.children : tree();
+  if (sibs.length > 1) {
+    out.push({ act: "first", label: many ? "Move all to the top" : "Move to the top", key: "\u2318\u21E7\u2191" });
+    out.push({ act: "last", label: many ? "Move all to the bottom" : "Move to the bottom", key: "\u2318\u21E7\u2193", sep: true });
+  }
   out.push({ act: "hide", label: (hidden ? "Show on " : "Hide on ") + dev });
   if (!many) out.push({ act: "block", label: "Save as a block" });
   if (!many && n.adv && n.adv.block && findBlock(n.adv.block)) out.push({ act: "push", label: "Push to the other copies" });
@@ -3222,6 +3232,30 @@ function nudge(id, dir) {
   if (j < 0 || j >= h.list.length) return false;
   [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
   return true;
+}
+function edgeState(ids, dir) {
+  const order = topMost(selOrder(ids));
+  if (!order.length) return null;
+  const first = locate(order[0]);
+  if (!first) return null;
+  const pid = first.parent ? first.parent.id : null;
+  if (!order.every((id) => {
+    const g = locate(id);
+    return !!g && (g.parent ? g.parent.id : null) === pid;
+  })) return null;
+  const list = first.parent ? first.parent.children : tree();
+  const idx = order.map((id) => list.findIndex((c) => c.id === id));
+  const flush = dir < 0 ? idx.every((v, k) => v === k) : idx.every((v, k) => v === list.length - order.length + k);
+  return { order, parent: first.parent, list, flush };
+}
+var atEdge = (ids, dir) => {
+  const st = edgeState(ids, dir);
+  return !st || st.flush;
+};
+function sendEdge(ids, dir) {
+  const st = edgeState(ids, dir);
+  if (!st || st.flush) return false;
+  return moveMany(st.order, st.parent, dir < 0 ? 0 : st.list.length) > 0;
 }
 function nudgeMany(ids, dir) {
   const set = new Set(ids);
@@ -5327,6 +5361,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   applyCols,
   applyColsAt,
   applyOne,
+  atEdge,
   autoId,
   baseCss,
   bindGet,
@@ -5516,6 +5551,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   selRange,
   selSet,
   selToggle,
+  sendEdge,
   setCss,
   sitePlan,
   sitemapXml,

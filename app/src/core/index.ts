@@ -1036,6 +1036,13 @@ function menuFor(ids: string[] | null) {
   if (styleClip.css) out.push({ act: 'stpaste', label: many ? 'Paste styles to ' + list.length : 'Paste styles', key: '⌘⇧V' });
   out[out.length - 1].sep = true;
 
+  /* Offered only where there is somewhere to go: a lone child has no list to be at the top
+     of, and a row of dead entries reads as a broken menu. */
+  const sibs = h.parent ? h.parent.children : tree();
+  if (sibs.length > 1) {
+    out.push({ act: 'first', label: many ? 'Move all to the top' : 'Move to the top', key: '⌘⇧↑' });
+    out.push({ act: 'last', label: many ? 'Move all to the bottom' : 'Move to the bottom', key: '⌘⇧↓', sep: true });
+  }
   out.push({ act: 'hide', label: (hidden ? 'Show on ' : 'Hide on ') + dev });
   if (!many) out.push({ act: 'block', label: 'Save as a block' });
   if (!many && n.adv && n.adv.block && findBlock(n.adv.block)) out.push({ act: 'push', label: 'Push to the other copies' });
@@ -3030,6 +3037,48 @@ function nudge(id: string, dir: number) {
   [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
   return true;
 }
+/** Move a selection to the start or end of the list it is already in. `nudge` walks one step;
+    this is the end of that walk, which is what is actually wanted when a section belongs at the
+    top of a page and is currently seventh.
+
+    Every member has to share a parent, or "the start of its list" names more than one list and
+    the result depends on which one you meant. Returns false when the selection is already
+    flush, so a caller does not open an undo step for a move that did not happen. */
+/* The geometry, worked out once. `atEdge` asks whether there is anything to do and `sendEdge`
+   does it — and the caller needs the question separately, because `edit()` pushes an undo
+   snapshot and clears the redo stack before its body runs. A move that turns out to be a
+   no-op would leave a junk entry to undo and a redo that could no longer be reached. */
+function edgeState(ids: string[], dir: number) {
+  const order = topMost(selOrder(ids));
+  if (!order.length) return null;
+  const first = locate(order[0]);
+  if (!first) return null;
+  const pid = first.parent ? first.parent.id : null;
+  /* every member must share a parent, or "the start of its list" names more than one list
+     and the answer depends on which was meant */
+  if (!order.every(id => {
+    const g = locate(id);
+    return !!g && (g.parent ? g.parent.id : null) === pid;
+  })) return null;
+
+  const list = first.parent ? first.parent.children : tree();
+  const idx = order.map(id => list.findIndex(c => c.id === id));
+  const flush = dir < 0
+    ? idx.every((v, k) => v === k)
+    : idx.every((v, k) => v === list.length - order.length + k);
+  return { order, parent: first.parent, list, flush };
+}
+/** Nothing to do: already flush against that end, or a selection spanning two lists. */
+const atEdge = (ids: string[], dir: number) => { const st = edgeState(ids, dir); return !st || st.flush; };
+
+function sendEdge(ids: string[], dir: number) {
+  const st = edgeState(ids, dir);
+  if (!st || st.flush) return false;
+  /* moveMany already re-reads the index on every step and adjusts for a member that was
+     ahead of the target, which is exactly what moving several to one end needs. */
+  return moveMany(st.order, st.parent, dir < 0 ? 0 : st.list.length) > 0;
+}
+
 /* Nudging a set: each member swaps with its neighbour, taking the members
    nearest the destination first so a swap cannot land on one that has yet to
    move. A neighbour already in the set is skipped — those two would only trade
@@ -5129,5 +5178,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

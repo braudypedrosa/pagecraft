@@ -1567,8 +1567,15 @@ function positionHud() {
       <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
       ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caret', 12)}</button>` : ''}
+      ${/* only where there is a list to be at the end of, so the bar does not carry two
+             buttons that cannot do anything */''}
+      ${(s.parent ? s.parent.children : tree()).length > 1 ? `
+        <button data-act="first" title="Move to the top (⌘⇧↑)">${svg('toTop', 12)}</button>
+        <button data-act="last" title="Move to the bottom (⌘⇧↓)">${svg('toBottom', 12)}</button>` : ''}
       ${!many && d.edit ? `<button data-act="edit" title="Edit content">${svg('edit', 12)}</button>` : ''}
-      ${!many ? `<button data-act="block" title="Save as a block">${svg('plus', 12)}</button>` : ''}
+      ${/* a bookmark, not a plus: a plus reads as "add one of these", and this is the
+             opposite — it takes what is selected and keeps it for reuse */''}
+      ${!many ? `<button data-act="block" title="Save as a block">${svg('save', 12)}</button>` : ''}
       ${!many && s.node.adv && s.node.adv.block && findBlock(s.node.adv.block)
         ? `<button data-act="push" title="Global block — push this copy out to the others">${svg('globe', 12)}</button>` : ''}
       <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 12)}</button>
@@ -1714,6 +1721,14 @@ function runAct(act, ids) {
       let made = null;
       edit(() => { made = pasteNode(id); if (made) selSet([made.id]); });
       toast(made ? DEF[made.type].label + ' pasted' : 'A ' + DEF[clip.node.type].label + ' cannot go there');
+      break;
+    }
+    case 'first': case 'last': {
+      const dir = act === 'first' ? -1 : 1;
+      /* asked before the edit, not after: `edit` snapshots and clears the redo stack before
+         its body runs, so finding out afterwards that nothing moved is already too late */
+      if (atEdge(list, dir)) { toast(dir < 0 ? 'Already at the top' : 'Already at the bottom'); break; }
+      edit(() => sendEdge(list, dir));
       break;
     }
     case 'dup': edit(() => (many ? dupMany(list) : dupNode(id))); break;
@@ -3757,7 +3772,11 @@ function hotkey(e) {
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
     if (e.shiftKey && state.ui.sel && (k === 'arrowup' || k === 'arrowdown')) {
       e.preventDefault();
-      const ids = selIds(), dir = k === 'arrowup' ? -1 : 1;
+      const dir = k === 'arrowup' ? -1 : 1;
+      /* with meta as well, all the way — the same pair of keys, one step or the whole way,
+         which is how every list in every editor behaves */
+      if (meta) { runAct(dir < 0 ? 'first' : 'last', selIds()); return; }
+      const ids = selIds();
       edit(() => ids.length > 1 ? nudgeMany(ids, dir) : nudge(ids[0], dir));
       return;
     }

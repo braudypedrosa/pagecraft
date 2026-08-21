@@ -332,6 +332,107 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- moving to the ends -------------------------------------------------
+   `nudge` walks one step. This is the end of that walk, which is what is wanted when a
+   section belongs at the top of a page and is currently seventh. Uses the `fourSections`
+   fixture declared with the move-a-set tests below — it labels them a to d, which reads. */
+
+test('a section moves to the top and to the bottom of its own list', () => {
+  const { t, order } = fourSections();
+  const c = t[2].id;
+  a.deepEqual(order(), ['a', 'b', 'c', 'd']);
+
+  a.equal(C.atEdge([c], -1), false, 'there is somewhere to go');
+  a.ok(C.sendEdge([c], -1));
+  a.deepEqual(order(), ['c', 'a', 'b', 'd']);
+
+  a.ok(C.sendEdge([c], 1));
+  a.deepEqual(order(), ['a', 'b', 'd', 'c'], 'and all the way back down');
+});
+
+test('already flush is a no-op, and the tree is untouched', () => {
+  const { t, order } = fourSections();
+  a.equal(C.atEdge([t[0].id], -1), true, 'a is already at the top');
+  a.equal(C.sendEdge([t[0].id], -1), false);
+  a.deepEqual(order(), ['a', 'b', 'c', 'd']);
+
+  a.equal(C.atEdge([t[3].id], 1), true, 'and d at the bottom');
+  a.equal(C.sendEdge([t[3].id], 1), false);
+  a.deepEqual(order(), ['a', 'b', 'c', 'd']);
+
+  /* the other direction is still available from either end */
+  a.equal(C.atEdge([t[0].id], 1), false);
+  a.equal(C.atEdge([t[3].id], -1), false);
+});
+
+test('a set moves to an end together and keeps its document order', () => {
+  const { t, order } = fourSections();
+  const pair = [t[1].id, t[3].id];                      // b and d
+
+  a.ok(C.sendEdge(pair, -1));
+  a.deepEqual(order(), ['b', 'd', 'a', 'c'], 'both to the top, in order');
+
+  a.ok(C.sendEdge(pair, 1));
+  a.deepEqual(order(), ['a', 'c', 'b', 'd'], 'both to the bottom, in order');
+
+  a.equal(C.atEdge(pair, 1), true, 'a set already flush is flush');
+  a.equal(C.sendEdge(pair, 1), false);
+});
+
+test('a selection spanning two lists has no single answer, so it does nothing', () => {
+  const { t, order } = fourSections();
+  /* one heading from section a, one from section b: different columns, different lists */
+  const pick = (sec: PcNode): PcNode => {
+    const found: PcNode[] = [];
+    C.eachNode([sec], x => { if (!found.length && x.type === 'heading') found.push(x); });
+    return must(found[0], 'heading');
+  };
+  const h1 = pick(t[0]), h2 = pick(t[1]);
+  a.notEqual(holderOf(h1.id).id, holderOf(h2.id).id);
+
+  const before = JSON.stringify(C.state.pages[0].tree);
+  a.equal(C.atEdge([h1.id, h2.id], -1), true, 'nothing to do rather than something arbitrary');
+  a.equal(C.sendEdge([h1.id, h2.id], -1), false);
+  a.equal(JSON.stringify(C.state.pages[0].tree), before);
+  a.deepEqual(order(), ['a', 'b', 'c', 'd']);
+});
+
+test('a lone child has no list to be at the end of', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  a.equal(holderOf(h.id).children.length, 1);
+  [-1, 1].forEach(dir => {
+    a.equal(C.atEdge([h.id], dir), true);
+    a.equal(C.sendEdge([h.id], dir), false);
+  });
+});
+
+test('the menu offers both ends only where there is a list, and names the keys', () => {
+  const { t } = fourSections();
+  const acts = (id: string) => C.menuFor([id]).map(m => m.act);
+  a.ok(acts(t[1].id).includes('first'));
+  a.ok(acts(t[1].id).includes('last'));
+  const menu = C.menuFor([t[1].id]);
+  a.equal(must(menu.find(x => x.act === 'first'), 'first').key, '⌘⇧↑');
+  a.equal(must(menu.find(x => x.act === 'last'), 'last').key, '⌘⇧↓');
+
+  blank();
+  const lone = insert('heading', null, 0);
+  a.equal(acts(lone.id).includes('first'), false, 'not offered with nowhere to go');
+  a.equal(acts(lone.id).includes('last'), false);
+});
+
+test('the block button has a save glyph, not a plus', () => {
+  /* a plus reads as "add one of these"; saving a block is the opposite — it takes what is
+     selected and keeps it for reuse */
+  a.ok(C.IC.save, 'there is a save glyph to use');
+  a.ok(C.IC.toTop && C.IC.toBottom, 'and one for each end');
+  [C.IC.save, C.IC.toTop, C.IC.toBottom].forEach(d => {
+    a.equal(/fill="(?!none)/.test(d), false, 'stroke only, like every other icon');
+    a.match(d, /^<path /);
+  });
+});
+
 /* ---- content back in ---------------------------------------------------
    `contentJson` went out and nothing came back, so export-edit-reimport had no second half.
    An upsert, never a delete: a file holding part of the content must not be able to remove
