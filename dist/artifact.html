@@ -6570,10 +6570,12 @@ var PC_UI = (() => {
     ] })) });
   }
   function Templates() {
-    const cats = [];
+    const seen = [];
     C2.PATTERNS.forEach((t3) => {
-      if (!cats.includes(t3.cat)) cats.push(t3.cat);
+      if (!seen.includes(t3.cat)) seen.push(t3.cat);
     });
+    const LEAD = ["Header", "Footer"];
+    const cats = [...LEAD.filter((c3) => seen.includes(c3)), ...seen.filter((c3) => !LEAD.includes(c3))];
     const place = (id) => {
       if (L2.consumeDragMoved()) return;
       const pat = C2.PATTERNS.find((x2) => x2.id === id);

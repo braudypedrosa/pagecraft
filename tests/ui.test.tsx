@@ -47,6 +47,18 @@ test('every template group is offered from the page, header and footer alike', (
   });
 });
 
+test('the Header and Footer groups lead the list', () => {
+  /* Two groups against twelve: in declaration order they sat at the bottom of a long
+     scroll, which is close to where they were when they did not appear at all. */
+  C.state.ui.mode = 'page';
+  C.state.ui.atab = 'templates';
+  r.draw(<Add />);
+  const groups = r.$$('.plabel').map(e => e.textContent);
+  a.deepEqual(groups.slice(0, 2), ['Header', 'Footer']);
+  a.equal(groups[2], 'Hero', 'and the page sections keep their own order behind them');
+  a.equal(new Set(groups).size, groups.length, 'no group listed twice');
+});
+
 test('clicking a header template switches to the header and builds it there', () => {
   C.state.ui.mode = 'page';
   C.state.ui.atab = 'templates';

@@ -81,8 +81,15 @@ function Templates() {
      So the region a pattern belongs to is a property of the pattern, not of the moment.
      Clicking one switches to its region and inserts there; `tree()` follows the mode, so
      the insert lands correctly for the same reason it did before. */
-  const cats: string[] = [];
-  C.PATTERNS.forEach(t => { if (!cats.includes(t.cat)) cats.push(t.cat); });
+  const seen: string[] = [];
+  C.PATTERNS.forEach(t => { if (!seen.includes(t.cat)) seen.push(t.cat); });
+  /* Header first, then Footer, then the page sections in the order the library declares
+     them. The two regions are what you set once and set first, and they are two groups
+     against twelve — left in declaration order they sat at the bottom of a long scroll,
+     which is close to where they were when they did not appear at all. Kept as a display
+     rule rather than by reordering PATTERNS, because it is a display rule. */
+  const LEAD = ['Header', 'Footer'];
+  const cats = [...LEAD.filter(c => seen.includes(c)), ...seen.filter(c => !LEAD.includes(c))];
 
   const place = (id: string) => {
     if (L.consumeDragMoved()) return;
