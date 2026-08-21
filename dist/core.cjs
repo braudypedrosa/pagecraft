@@ -71,6 +71,7 @@ __export(index_exports, {
   STATES: () => STATES,
   TEMPLATES: () => TEMPLATES,
   TEXT_SLOTS: () => TEXT_SLOTS,
+  TRANSITIONS: () => TRANSITIONS,
   TS_TYPES: () => TS_TYPES,
   TYPO_KEYS: () => TYPO_KEYS,
   U: () => U,
@@ -2015,11 +2016,14 @@ var COMMON_STYLE = [
     ]
   },
   {
+    /* Opacity and Transform are how a thing looks, which is what this group is for — and both
+       are what a hover usually changes. Transition moved to Motion: its only job is to animate
+       a change, so it belongs with the other motion rather than beside the properties it
+       happens to animate. */
     g: "Effects",
     items: [
       { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-      { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" },
-      { t: "opt", c: "transition", label: "Transition", opts: TRANSITIONS, ph: "all .25s ease" }
+      { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" }
     ]
   }
 ];
@@ -6236,6 +6240,7 @@ ${ANIM_JS}
   STATES,
   TEMPLATES,
   TEXT_SLOTS,
+  TRANSITIONS,
   TS_TYPES,
   TYPO_KEYS,
   U,

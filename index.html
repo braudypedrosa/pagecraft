@@ -2784,11 +2784,14 @@ var COMMON_STYLE = [
     ]
   },
   {
+    /* Opacity and Transform are how a thing looks, which is what this group is for — and both
+       are what a hover usually changes. Transition moved to Motion: its only job is to animate
+       a change, so it belongs with the other motion rather than beside the properties it
+       happens to animate. */
     g: "Effects",
     items: [
       { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-      { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" },
-      { t: "opt", c: "transition", label: "Transition", opts: TRANSITIONS, ph: "all .25s ease" }
+      { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" }
     ]
   }
 ];
@@ -7005,6 +7008,7 @@ var __CORE = {
   STATES,
   TEMPLATES,
   TEXT_SLOTS,
+  TRANSITIONS,
   TS_TYPES,
   TYPO_KEYS,
   U,
@@ -10139,12 +10143,22 @@ var PC_UI = (() => {
         /* @__PURE__ */ u2("b", { children: cur === "hover" ? "hover" : "keyboard-focus" }),
         " state. Only what you set here changes on ",
         cur === "hover" ? "hover" : "focus",
-        "; everything else stays as it rests. Give it a ",
+        "; everything else stays as it rests. To animate the change, set a ",
         /* @__PURE__ */ u2("b", { children: "Transition" }),
-        " on the Advanced tab and it animates."
+        " under ",
+        /* @__PURE__ */ u2("b", { children: "Motion" }),
+        " below."
       ] }) : null
     ] });
   }
+  var transitionCtl = () => ({
+    t: "opt",
+    c: "transition",
+    label: "Transition",
+    opts: C2.TRANSITIONS,
+    ph: "all .25s ease",
+    note: "How a change to this element animates \u2014 a hover, a focus, or a class being applied."
+  });
   function Motion({ n: n2 }) {
     const a3 = n2.anim || {};
     const set = (patch) => {
@@ -10168,8 +10182,11 @@ var PC_UI = (() => {
       )
     ] });
     return /* @__PURE__ */ u2(Panel, { title: "Motion", n: n2, gk: n2.type + ":Motion", children: [
+      /* @__PURE__ */ u2("div", { class: "plabel", children: "When it changes" }),
+      /* @__PURE__ */ u2(Ctl, { n: n2, c: transitionCtl() }),
+      /* @__PURE__ */ u2("div", { class: "plabel", children: "When it enters the view" }),
       /* @__PURE__ */ u2("div", { class: "f", children: [
-        /* @__PURE__ */ u2("label", { children: "Animate into view" }),
+        /* @__PURE__ */ u2("label", { children: "Animation" }),
         /* @__PURE__ */ u2(
           "select",
           {

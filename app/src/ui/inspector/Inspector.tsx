@@ -183,20 +183,33 @@ function StatePick() {
         <div class="note">
           Editing the <b>{cur === 'hover' ? 'hover' : 'keyboard-focus'}</b> state. Only what you
           set here changes on {cur === 'hover' ? 'hover' : 'focus'}; everything else stays as it
-          rests. Give it a <b>Transition</b> on the Advanced tab and it animates.
+          rests. To animate the change, set a <b>Transition</b> under <b>Motion</b> below.
         </div>
       ) : null}
     </>
   );
 }
 
-/* Scroll-triggered motion. Its own group rather than controls in a widget definition, because
-   every element gets it — the same reason the Advanced tab's list lives out here.
+/* Everything that moves, in one group. It held only the scroll animation, while Transition sat
+   two groups up under Effects and the state switcher told you to go and find it — three places
+   for one subject, and the state switcher and this group both read as "motion" from their names
+   alone. They are two different questions and now they are two labelled halves of one group:
+   how a change is animated, and how the element arrives.
 
-   Not a `Control` either: the values are on `n.anim` rather than in `props` or CSS, and bending
-   `applyC` to write a fourth kind of destination to gain four rows of markup would have been
-   the wrong trade. The timing fields appear once an animation is chosen, for the reason the
-   collection filter's do. */
+   Its own group rather than controls in a widget definition, because every element gets it —
+   the same reason the Advanced tab's list lives out here. The scroll settings are not `Control`s
+   either: they live on `n.anim` rather than in `props` or CSS, and bending `applyC` to write a
+   fourth kind of destination to gain four rows of markup would have been the wrong trade. The
+   timing fields appear once an animation is chosen, for the reason the collection filter's do. */
+/* A function, not a constant. `C` is null until `install()` runs, and a module-level constant
+   that reaches into it is evaluated when the bundle loads — which threw, took the whole UI
+   bundle with it, and left the app rendering no pages at all. Every other control list here is
+   a function for the same reason; this one wanted to be a constant and could not be. */
+const transitionCtl = (): Control => ({
+  t: 'opt', c: 'transition', label: 'Transition', opts: C.TRANSITIONS, ph: 'all .25s ease',
+  note: 'How a change to this element animates — a hover, a focus, or a class being applied.'
+});
+
 function Motion({ n }: { n: PcNode }) {
   const a = n.anim || {};
   const set = (patch: Record<string, unknown>) => {
@@ -216,7 +229,11 @@ function Motion({ n }: { n: PcNode }) {
 
   return (
     <Panel title="Motion" n={n} gk={n.type + ':Motion'}>
-      <div class="f"><label>Animate into view</label>
+      <div class="plabel">When it changes</div>
+      <Ctl n={n} c={transitionCtl()} />
+
+      <div class="plabel">When it enters the view</div>
+      <div class="f"><label>Animation</label>
         <select class="ctl" value={a.name || ''}
           onChange={e => set({ name: (e.target as HTMLSelectElement).value })}>
           <option value="">— none —</option>

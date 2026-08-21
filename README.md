@@ -369,9 +369,12 @@ one without saying so.
 
 ## Motion
 
-The Style tab ends with a **Motion** group: pick one of 27 scroll-triggered animations, and set
-its duration, delay, easing, and whether it runs every time or only the first. The element
-animates when a visitor scrolls it into view.
+The Style tab ends with a **Motion** group, which holds everything that moves, in two halves:
+
+- **When it changes** — a **Transition**, which is how a hover, a focus, or a class being applied
+  animates rather than snapping.
+- **When it enters the view** — one of 27 scroll-triggered animations, with its duration, delay,
+  easing, and whether it runs every time or only the first.
 
 The canvas holds still — an editor where everything fades as you scroll is unusable — so use
 **Preview** to watch it.
