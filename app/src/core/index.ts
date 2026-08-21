@@ -1567,6 +1567,70 @@ const colorUsage = (id: string) => {
    The exported file is the product, and its failures are silent: a dead link,
    a missing alt, an unreadable colour pair. This walks the whole project and
    reports them before anyone publishes.                                     */
+/* ---- responsive images ------------------------------------------------
+   A page shipped whatever was uploaded. A 3000px photo went to a phone at 3000px, which is
+   most of the weight of a typical page and the one export-quality gap worth closing first.
+
+   The decision lives here, in core, and the pixel-pushing lives in the export where the
+   canvas is. Both read `imageWidths`, so the ladder the markup promises and the files the
+   export writes cannot disagree — the alternative was two lists, which is how the publish
+   record went stale twice.
+
+   Only in the separate-files export. Inlining means one self-contained file, and inlining
+   five variants of every image to save bandwidth on one of them is worse than not trying. */
+const SRCSET_W = [480, 768, 1024, 1440, 1920];
+
+/** The widths to write for an image whose natural width is `natural`. Ladder entries that
+    are genuinely smaller, then the original — never an upscale, and nothing at all when the
+    image is already small enough that a second copy would not pay for itself. */
+function imageWidths(natural: unknown): number[] {
+  const w = Math.round(parseFloat(String(natural || '')) || 0);
+  if (!(w > 0)) return [];
+  const under = SRCSET_W.filter(x => x <= w - MIN_STEP);
+  return under.length ? [...under, w] : [];
+}
+/* Below this, a variant is not worth a request: the smallest ladder step is 480, so an
+   image only just above it would gain a few kilobytes and cost a round trip. */
+const MIN_STEP = 160;
+
+/** The `sizes` attribute for one image, from the layout it actually sits in.
+
+    Without this the browser assumes the image fills the viewport and picks the largest
+    candidate, which throws away most of the benefit in any multi-column layout. The chain
+    gives the real answer: the container's max width, less the section's padding, times this
+    column's share of the row, less the gaps it does not get.
+
+    Two stops, because there are two things worth saying: below the mobile breakpoint the
+    columns go full width, and above it the image is capped at a computed pixel width.
+    `min()` keeps that honest on a viewport narrower than the container. */
+function sizesFor(id: string): string {
+  const chain = chainTo(id);
+  const sec = chain.find(n => n.type === 'section');
+  const row = [...chain].reverse().find(n => n.type === 'row' || n.type === 'list');
+  const col = [...chain].reverse().find(n => n.type === 'column');
+
+  const full = sec && (sec.props as PropBag).width === 'full';
+  let box = full ? 0 : parseFloat(String(state.meta.maxWidth || '1200')) || 1200;
+  if (box && sec) {
+    box -= (parseFloat(String((sec.css.d || {})['padding-left'] || '0')) || 0)
+         + (parseFloat(String((sec.css.d || {})['padding-right'] || '0')) || 0);
+  }
+  if (!box) return '100vw';                      // a full-bleed section is the viewport
+
+  if (row && col) {
+    const kids = row.children || [];
+    const share = (n: PcNode) => parseFloat(String((n.css.d || {})['flex-grow'] || '')) || 0;
+    const total = kids.reduce((t, k) => t + share(k), 0);
+    const mine = share(col);
+    if (total > 0 && mine > 0) {
+      const gap = parseFloat(String((row.css.d || {})['gap'] || '0')) || 0;
+      box = (box - gap * Math.max(0, kids.length - 1)) * (mine / total);
+    }
+  }
+  const px = Math.max(1, Math.round(box));
+  return `(max-width: 767px) 100vw, min(100vw, ${px}px)`;
+}
+
 /* ---- colour, as numbers ----------------------------------------------
    One parser. `hex2rgb` was the only one for a long time and it drops alpha on the
    floor, which is right for a contrast ratio and useless for a picker — so a picker
@@ -4386,12 +4450,20 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const dim = (p.w && p.h) ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : '';
       const alt = ` alt="${p.decorative ? '' : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
+      /* `asset:<id>@<w>` is a variant of the same asset. The export rewrites every asset
+         token to a path once the whole page is rendered, so a width marker rides along in
+         the token rather than needing the renderer to know where files land. Only for a
+         stored asset: a data URI or a remote URL has no variants to point at. */
+      const set = (o.variants && !o.edit && /^asset:\w+$/.test(String(p.src || '')))
+        ? imageWidths(p.w).map(w => `${p.src}@${w} ${w}w`) : [];
+      const ss = set.length
+        ? ` srcset="${esc(set.join(', '))}" sizes="${esc(sizesFor(n.id))}"` : '';
       if (p.caption) {
-        const img = `<img src="${src}"${alt}${dim}${lz} class="pagecraft-image">`;
+        const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
         return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}><img src="${src}"${alt}${dim}${lz} class="pagecraft-image"></a>`;
-      return `<img ${at} src="${src}"${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
+      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
     }
     case 'video': {
       const box = `${at} ${cx('pagecraft-video')} style="aspect-ratio:${esc(p.ratio || '16 / 9')}"`;
@@ -4709,9 +4781,12 @@ function jsonLd(pg: Page, ctx: { col?: Collection | null; item?: Item | null } =
   return `<script type="application/ld+json">\n${json}\n</script>\n`;
 }
 
-function buildPage(pg: Page, ctx: { col?: Collection | null; item?: Item | null; rel?: string } = {}) {
+function buildPage(pg: Page, ctx: { col?: Collection | null; item?: Item | null; rel?: string; variants?: boolean } = {}) {
   const m = state.meta;
-  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '' };
+  /* `variants` has to be carried through rather than defaulted here: only the caller knows
+     whether the export it is running writes separate files, and it is the one flag on this
+     object that the renderer cannot infer for itself. */
+  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '', variants: !!ctx.variants };
   const css = treeCss([state.header, pg.tree, state.footer], false);
   const body = renderList(state.header, o) + renderList(pg.tree, o) + renderList(state.footer, o);
   const title = pg.title || `${pg.name} — ${m.name}`;
@@ -4741,5 +4816,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

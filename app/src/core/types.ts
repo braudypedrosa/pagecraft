@@ -380,6 +380,10 @@ export interface RenderOpts {
   /** set while a Collection list repeats its contents */
   repeat?: boolean;
   repIndex?: number;
+  /** the separate-files export, which is the only mode that can carry image variants —
+      inlining five copies of every image to save bandwidth on one of them is worse than
+      not trying. Off means a single `src` and no `srcset`. */
+  variants?: boolean;
 }
 
 /** One file the export will write. */

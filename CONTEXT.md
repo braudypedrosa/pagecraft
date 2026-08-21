@@ -524,8 +524,12 @@ carries across.
    **filter**, which is what category and tag pages need; there is no **reference** field
    type, so nothing relates a post to an author; `content.json` goes out but nothing comes
    back **in**; and no **pagination** or **draft flag** that `exportTargets()` honours
-7. **Export quality still open**: `srcset` (downscale via canvas at export — the biggest
-   Lighthouse win and the biggest job), ~~JSON-LD~~ — done: `jsonLdGraph()` returns the
+7. **Export quality.** ~~`srcset`~~ — done, and it was the biggest page-weight win: the
+   ladder and the `sizes` computation are in core, the canvas work is in the export, and both
+   read `imageWidths` so the markup and the files cannot disagree. Separate-files mode only,
+   since inlining five variants of every image defeats the point of one self-contained file.
+   Measured on a 2400px photo: a 480px screen fetches 4.5 KB where it used to fetch 44 KB.
+   ~~JSON-LD~~ — done: `jsonLdGraph()` returns the
    graph and `jsonLd()` wraps it in the script tag, so the 13 tests read an object rather
    than a string. Organization + WebSite on every page, Article on a detail page, nothing
    at all without a Site URL since a relative `url` in structured data is worse than none.

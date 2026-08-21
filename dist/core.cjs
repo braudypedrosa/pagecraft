@@ -59,6 +59,7 @@ __export(index_exports, {
   SCHEMA: () => SCHEMA,
   SEC_TAGS: () => SEC_TAGS,
   SLOT_LABEL: () => SLOT_LABEL,
+  SRCSET_W: () => SRCSET_W,
   TEMPLATES: () => TEMPLATES,
   TEXT_SLOTS: () => TEXT_SLOTS,
   TS_TYPES: () => TS_TYPES,
@@ -168,6 +169,7 @@ __export(index_exports, {
   hsv2rgb: () => hsv2rgb,
   iconOf: () => iconOf,
   iconSvg: () => iconSvg,
+  imageWidths: () => imageWidths,
   initUi: () => initUi,
   insert: () => insert,
   isGoogle: () => isGoogle,
@@ -252,6 +254,7 @@ __export(index_exports, {
   setCss: () => setCss,
   sitePlan: () => sitePlan,
   sitemapXml: () => sitemapXml,
+  sizesFor: () => sizesFor,
   slotGet: () => slotGet,
   slotHits: () => slotHits,
   slotName: () => slotName,
@@ -1961,6 +1964,38 @@ var colorUsage = (id) => {
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
   return k;
 };
+var SRCSET_W = [480, 768, 1024, 1440, 1920];
+function imageWidths(natural) {
+  const w = Math.round(parseFloat(String(natural || "")) || 0);
+  if (!(w > 0)) return [];
+  const under = SRCSET_W.filter((x) => x <= w - MIN_STEP);
+  return under.length ? [...under, w] : [];
+}
+var MIN_STEP = 160;
+function sizesFor(id) {
+  const chain = chainTo(id);
+  const sec = chain.find((n) => n.type === "section");
+  const row = [...chain].reverse().find((n) => n.type === "row" || n.type === "list");
+  const col = [...chain].reverse().find((n) => n.type === "column");
+  const full = sec && sec.props.width === "full";
+  let box = full ? 0 : parseFloat(String(state.meta.maxWidth || "1200")) || 1200;
+  if (box && sec) {
+    box -= (parseFloat(String((sec.css.d || {})["padding-left"] || "0")) || 0) + (parseFloat(String((sec.css.d || {})["padding-right"] || "0")) || 0);
+  }
+  if (!box) return "100vw";
+  if (row && col) {
+    const kids = row.children || [];
+    const share = (n) => parseFloat(String((n.css.d || {})["flex-grow"] || "")) || 0;
+    const total = kids.reduce((t, k) => t + share(k), 0);
+    const mine = share(col);
+    if (total > 0 && mine > 0) {
+      const gap = parseFloat(String((row.css.d || {})["gap"] || "0")) || 0;
+      box = (box - gap * Math.max(0, kids.length - 1)) * (mine / total);
+    }
+  }
+  const px = Math.max(1, Math.round(box));
+  return `(max-width: 767px) 100vw, min(100vw, ${px}px)`;
+}
 var clamp = (n, lo, hi) => n < lo ? lo : n > hi ? hi : n;
 var parseColor = (v) => {
   const h = String(v == null ? "" : v).trim();
@@ -4725,12 +4760,14 @@ function renderNode(n, o) {
       const dim = p.w && p.h ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : "";
       const alt = ` alt="${p.decorative ? "" : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
+      const set = o.variants && !o.edit && /^asset:\w+$/.test(String(p.src || "")) ? imageWidths(p.w).map((w) => `${p.src}@${w} ${w}w`) : [];
+      const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
-        const img = `<img src="${src}"${alt}${dim}${lz} class="pagecraft-image">`;
+        const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
         return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}><img src="${src}"${alt}${dim}${lz} class="pagecraft-image"></a>`;
-      return `<img ${at} src="${src}"${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
+      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
     }
     case "video": {
       const box = `${at} ${cx("pagecraft-video")} style="aspect-ratio:${esc(p.ratio || "16 / 9")}"`;
@@ -4960,7 +4997,7 @@ ${json}
 }
 function buildPage(pg2, ctx = {}) {
   const m = state.meta;
-  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || "" };
+  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || "", variants: !!ctx.variants };
   const css = treeCss([state.header, pg2.tree, state.footer], false);
   const body = renderList(state.header, o) + renderList(pg2.tree, o) + renderList(state.footer, o);
   const title = pg2.title || `${pg2.name} \u2014 ${m.name}`;
@@ -5034,6 +5071,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   SCHEMA,
   SEC_TAGS,
   SLOT_LABEL,
+  SRCSET_W,
   TEMPLATES,
   TEXT_SLOTS,
   TS_TYPES,
@@ -5143,6 +5181,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   hsv2rgb,
   iconOf,
   iconSvg,
+  imageWidths,
   initUi,
   insert,
   isGoogle,
@@ -5227,6 +5266,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   setCss,
   sitePlan,
   sitemapXml,
+  sizesFor,
   slotGet,
   slotHits,
   slotName,

@@ -2749,6 +2749,38 @@ var colorUsage = (id) => {
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
   return k;
 };
+var SRCSET_W = [480, 768, 1024, 1440, 1920];
+function imageWidths(natural) {
+  const w = Math.round(parseFloat(String(natural || "")) || 0);
+  if (!(w > 0)) return [];
+  const under = SRCSET_W.filter((x) => x <= w - MIN_STEP);
+  return under.length ? [...under, w] : [];
+}
+var MIN_STEP = 160;
+function sizesFor(id) {
+  const chain = chainTo(id);
+  const sec = chain.find((n) => n.type === "section");
+  const row = [...chain].reverse().find((n) => n.type === "row" || n.type === "list");
+  const col = [...chain].reverse().find((n) => n.type === "column");
+  const full = sec && sec.props.width === "full";
+  let box = full ? 0 : parseFloat(String(state.meta.maxWidth || "1200")) || 1200;
+  if (box && sec) {
+    box -= (parseFloat(String((sec.css.d || {})["padding-left"] || "0")) || 0) + (parseFloat(String((sec.css.d || {})["padding-right"] || "0")) || 0);
+  }
+  if (!box) return "100vw";
+  if (row && col) {
+    const kids = row.children || [];
+    const share = (n) => parseFloat(String((n.css.d || {})["flex-grow"] || "")) || 0;
+    const total = kids.reduce((t, k) => t + share(k), 0);
+    const mine = share(col);
+    if (total > 0 && mine > 0) {
+      const gap = parseFloat(String((row.css.d || {})["gap"] || "0")) || 0;
+      box = (box - gap * Math.max(0, kids.length - 1)) * (mine / total);
+    }
+  }
+  const px = Math.max(1, Math.round(box));
+  return `(max-width: 767px) 100vw, min(100vw, ${px}px)`;
+}
 var clamp = (n, lo, hi) => n < lo ? lo : n > hi ? hi : n;
 var parseColor = (v) => {
   const h = String(v == null ? "" : v).trim();
@@ -5513,12 +5545,14 @@ function renderNode(n, o) {
       const dim = p.w && p.h ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : "";
       const alt = ` alt="${p.decorative ? "" : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
+      const set = o.variants && !o.edit && /^asset:\w+$/.test(String(p.src || "")) ? imageWidths(p.w).map((w) => `${p.src}@${w} ${w}w`) : [];
+      const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
-        const img = `<img src="${src}"${alt}${dim}${lz} class="pagecraft-image">`;
+        const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
         return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}><img src="${src}"${alt}${dim}${lz} class="pagecraft-image"></a>`;
-      return `<img ${at} src="${src}"${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
+      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
     }
     case "video": {
       const box = `${at} ${cx("pagecraft-video")} style="aspect-ratio:${esc(p.ratio || "16 / 9")}"`;
@@ -5748,7 +5782,7 @@ ${json}
 }
 function buildPage(pg2, ctx = {}) {
   const m = state.meta;
-  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || "" };
+  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || "", variants: !!ctx.variants };
   const css = treeCss([state.header, pg2.tree, state.footer], false);
   const body = renderList(state.header, o) + renderList(pg2.tree, o) + renderList(state.footer, o);
   const title = pg2.title || `${pg2.name} \u2014 ${m.name}`;
@@ -5822,6 +5856,7 @@ var __CORE = {
   SCHEMA,
   SEC_TAGS,
   SLOT_LABEL,
+  SRCSET_W,
   TEMPLATES,
   TEXT_SLOTS,
   TS_TYPES,
@@ -5931,6 +5966,7 @@ var __CORE = {
   hsv2rgb,
   iconOf,
   iconSvg,
+  imageWidths,
   initUi,
   insert,
   isGoogle,
@@ -6015,6 +6051,7 @@ var __CORE = {
   setCss,
   sitePlan,
   sitemapXml,
+  sizesFor,
   slotGet,
   slotHits,
   slotName,
@@ -9770,7 +9807,12 @@ function load() {
    A project references them as `asset:<id>`, resolved to a blob URL on the
    canvas and to a data URI (or a file path) at export time.               */
 const AS = { db: null, mem: new Map(), ok: false };
-const A_RE = /asset:([a-z0-9]+)/g;
+/* `asset:<id>` optionally carries `@<width>`, which names a downscaled variant of the same
+   asset. Five consumers read this regex and all of them want m[1], the id; only the path
+   rewriter cares about m[2]. Variant tokens are produced solely by the separate-files
+   export, so the editor and the inline export never meet one — the regex tolerates them
+   anyway, so a leak resolves to the full-size image rather than to a broken src. */
+const A_RE = /asset:([a-z0-9]+)(?:@(\d+))?/g;
 
 const idbReq = rq => new Promise((res, rej) => { rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); });
 
@@ -9866,10 +9908,61 @@ const assetPath = v => {
   const a = m && AS.mem.get(m[1]);
   return a ? assetFile(a) : String(v == null ? '' : v);
 };
-const assetsToPaths = (str, rel = '') => str.replace(A_RE, (m, id) => {
+/* A variant is named by the width it was written at, and by the type it came out as rather
+   than the type it went in as — a WebP downscaled through a canvas comes out JPEG, and a
+   file called .webp holding JPEG bytes is the kind of thing that works until it doesn't. */
+const variantType = a => a.type === 'image/png' ? 'image/png' : 'image/jpeg';
+const assetVariantFile = (a, w) => {
+  const base = assetFile(a).replace(/\.[^./]+$/, '');
+  return `${base}-${w}.${variantType(a) === 'image/png' ? 'png' : 'jpg'}`;
+};
+/* An SVG is already resolution-independent, so rasterising it to five sizes would trade a
+   scalable file for five worse ones. Its variant tokens resolve back to the original and no
+   variant files are written: the srcset then offers one file at several widths, which is
+   valid and fetched once. */
+const rasterable = a => !!a && !/svg/i.test(a.type || '');
+
+const assetsToPaths = (str, rel = '') => str.replace(A_RE, (m, id, w) => {
   const a = AS.mem.get(id);
-  return a ? rel + assetFile(a) : PH;
+  if (!a) return PH;
+  return rel + (w && rasterable(a) ? assetVariantFile(a, +w) : assetFile(a));
 });
+
+/* Every (asset, width) pair a rendered page asks for, so the writer emits exactly the files
+   the markup promises and no others. */
+const assetVariantsIn = str => {
+  const out = new Map();
+  for (const m of str.matchAll(A_RE)) {
+    const a = AS.mem.get(m[1]);
+    if (!m[2] || !a || !a.blob || !rasterable(a)) continue;
+    out.set(m[1] + '@' + m[2], { a, w: +m[2] });
+  }
+  return [...out.values()];
+};
+
+/* Downscaled once per asset and width, however many pages reference it. The promise itself
+   is cached rather than the blob, so two pages asking at the same moment share one decode
+   instead of racing. */
+const VAR = new Map();
+function variantBlob(a, w) {
+  const key = a.id + '@' + w;
+  if (VAR.has(key)) return VAR.get(key);
+  const job = (async () => {
+    let bmp = null;
+    try { bmp = await createImageBitmap(a.blob); } catch { return null; }
+    if (bmp.width <= w) { bmp.close?.(); return a.blob; }   // never upscale
+    const h = Math.max(1, Math.round(bmp.height * (w / bmp.width)));
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const cx = cv.getContext('2d');
+    cx.imageSmoothingQuality = 'high';
+    cx.drawImage(bmp, 0, 0, w, h);
+    bmp.close?.();
+    return await new Promise(res => cv.toBlob(res, variantType(a), 0.82));
+  })();
+  VAR.set(key, job);
+  return job;
+}
 /* ---- zip -----------------------------------------------------------------
    Written by hand rather than pulled in: a whole site is a handful of files, and
    the format is a local header per entry, then a central directory, then a
@@ -11290,9 +11383,30 @@ function togglePreview() {
 
 /* =============================================================== export */
 
+/* One decision, in one place: whether a build carries image variants. The page that
+   promises a srcset and the writer that satisfies it both go through here, so they cannot
+   disagree about which files exist. Inlining is excluded on purpose — five copies of every
+   image inside a single self-contained file is worse than not trying. */
+const withVariants = (ctx, mode) => ({ ...ctx, variants: mode === 'files' });
+
 async function exportPage(pg, mode, ctx = {}) {
-  const raw = buildPage(pg, ctx);
+  const raw = buildPage(pg, withVariants(ctx, mode));
   return mode === 'files' ? assetsToPaths(raw, ctx.rel || '') : await assetsToData(raw);
+}
+
+/* Hand over an asset and every downscaled variant a page asked for. Shared by the two
+   single-page download buttons, which used to write only the originals. */
+async function writeAssetsFor(html, download) {
+  for (const a of assetsUsedIn(html)) {
+    if (!a.blob) continue;
+    if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return false;
+  }
+  for (const { a, w } of assetVariantsIn(html)) {
+    const b = await variantBlob(a, w);
+    if (!b) continue;
+    if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return false;
+  }
+  return true;
 }
 
 
@@ -11507,14 +11621,33 @@ function exportModal() {
   const target = () => targets[+pick.value] || targets[0];
   const cur = () => { const t = target(); return exportPage(t.pg, mode.value, t); };
 
+  /* Two builds can be in flight at once — change the page or the mode while one is
+     running — and the slower one used to win, whichever it was. Inlining awaits base64 for
+     every image while writing paths is near-instant, so switching to separate files showed
+     the inline output a moment later and looked like the mode had not taken. A sequence
+     number is enough: a build that is no longer the latest drops its result. */
+  let seq = 0;
   const draw = async () => {
+    const mine = ++seq;
     code.textContent = 'Building…';
     const html = await cur();
+    if (mine !== seq) return;
     code.textContent = html;
     $('#exSize').textContent = (html.length / 1024).toFixed(1) + ' KB';
+    /* Counted from the html that was just built rather than from the asset store, because
+       what a download hands over is one file per token in *this* page — and with variants
+       that is several files per image, not one. The note used to promise "one confirmation
+       each" against a count of originals, which was several times short. */
+    /* Counted from the rendered page, not from `html`: by here every asset token has been
+       rewritten to a path or a data URI, so counting tokens in it always found none. */
+    const tk = buildPage(target().pg, withVariants(target(), mode.value));
+    const nVar = assetVariantsIn(tk).length;
+    const nFiles = assetsUsedIn(tk).length + nVar;
     $('#exNote').innerHTML = mode.value === 'files'
       ? `Image tags point at <code>assets/…</code>, so keep the downloaded <b>assets</b> folder beside the HTML.
-         Downloading a page also saves the ${nAssets ? nAssets + ' image' + (nAssets === 1 ? '' : 's') + ' it uses' : 'images it uses'} — one confirmation each.
+         ${nVar ? `Each photo is written at several widths with a <code>srcset</code>, so a phone fetches a small
+         one and a desktop a large one. ` : ''}Downloading this page hands over
+         ${nFiles ? `<b>${nFiles}</b> image file${nFiles === 1 ? '' : 's'}` : 'the images it uses'} — one confirmation each.
          Best for real hosting: browsers cache the images across pages.`
       : `One self-contained file: semantic markup, a single inline stylesheet, and every image embedded.
          Nothing to upload alongside it. The global header and footer are inlined into every page.`;
@@ -11524,14 +11657,10 @@ function exportModal() {
   draw();
 
   /* in files mode a page download also hands over the images it references */
-  const saveAssetsFor = async html => {
-    const t = target();
-    for (const a of assetsUsedIn(buildPage(t.pg, t))) {
-      if (!a.blob) continue;
-      if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return false;
-    }
-    return true;
-  };
+  /* Reads the html that was actually exported rather than rebuilding the page, which is
+     what makes the srcset and the files agree: the tokens in that string are exactly the
+     ones the writer has to satisfy. */
+  const saveAssetsFor = html => writeAssetsFor(html, download);
 
   $('#exOne').addEventListener('click', async () => {
     const t = target();
@@ -11549,9 +11678,17 @@ function exportModal() {
       if (await download(t.path.replace(/\//g, '-'), html) === false) return;
     }
     if (mode.value === 'files') {
+      /* every page's worth of tokens, so a variant used on one page only is still written */
+      let all = '';
+      for (const t of targets) all += buildPage(t.pg, withVariants(t, 'files'));
       for (const a of AS.mem.values()) {
         if (!a.blob) continue;
         if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return;
+      }
+      for (const { a, w } of assetVariantsIn(all)) {
+        const b = await variantBlob(a, w);
+        if (!b) continue;
+        if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return;
       }
     }
   });
@@ -11581,14 +11718,21 @@ function exportModal() {
   const buildSite = async () => {
     const files = [];
     for (const step of sitePlan()) {
-      if (step.kind === 'page') files.push({ path: step.path, data: assetsToPaths(buildPage(step.target.pg, step.target), step.target.rel) });
+      /* a zip is separate files by definition, so it always carries variants */
+      if (step.kind === 'page') files.push({ path: step.path, data: assetsToPaths(buildPage(step.target.pg, withVariants(step.target, 'files')), step.target.rel) });
       else if (step.kind === 'content') files.push({ path: step.path, data: contentJson(assetPath) });
       else if (step.kind === 'sitemap') files.push({ path: step.path, data: sitemapXml() });
       else if (step.kind === 'robots') files.push({ path: step.path, data: robotsTxt() });
     }
     /* every image any page references, once, at the path those pages point to */
     const seen = new Set();
-    for (const t of exportTargets()) for (const a of assetsUsedIn(buildPage(t.pg, t))) seen.add(a.id);
+    let every = '';
+    for (const t of exportTargets()) every += buildPage(t.pg, withVariants(t, 'files'));
+    for (const a of assetsUsedIn(every)) seen.add(a.id);
+    for (const { a, w } of assetVariantsIn(every)) {
+      const b = await variantBlob(a, w);
+      if (b) files.push({ path: assetVariantFile(a, w), data: b });
+    }
     for (const id of seen) {
       const a = AS.mem.get(id);
       if (a && a.blob) files.push({ path: assetFile(a), data: a.blob });
@@ -11617,10 +11761,16 @@ function exportModal() {
   if (foot) {
     const n = sitePlan().length;
     const imgs = new Set();
-    for (const t of exportTargets()) for (const a of assetsUsedIn(buildPage(t.pg, t))) imgs.add(a.id);
-    foot.innerHTML = `The archive holds <b>${n + imgs.size}</b> file${n + imgs.size === 1 ? '' : 's'}`
+    /* the archive is separate files by definition, so it carries the variants too and the
+       count has to include them — it said "1 image" for an archive holding seven */
+    let every = '';
+    for (const t of exportTargets()) every += buildPage(t.pg, withVariants(t, 'files'));
+    for (const a of assetsUsedIn(every)) imgs.add(a.id);
+    const nv = assetVariantsIn(every).length;
+    const nImg = imgs.size + nv;
+    foot.innerHTML = `The archive holds <b>${n + nImg}</b> file${n + nImg === 1 ? '' : 's'}`
       + ` — ${targets.length} page${targets.length === 1 ? '' : 's'}`
-      + `${imgs.size ? `, ${imgs.size} image${imgs.size === 1 ? '' : 's'}` : ''}`
+      + `${nImg ? `, ${nImg} image file${nImg === 1 ? '' : 's'}` : ''}`
       + `${collections().length ? ', content.json' : ''}`
       + `${state.meta.baseUrl ? ', sitemap and robots' : ''}.`;
   }

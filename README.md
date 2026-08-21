@@ -538,7 +538,10 @@ Two modes in the Export dialog:
 
 - **Images inlined** — one self-contained `.html` per page, nothing to upload alongside it.
 - **Images as separate files** — markup points at `assets/…` and the images download
-  beside the HTML, so browsers can cache them across pages.
+  beside the HTML, so browsers can cache them across pages. Each photo is also written at
+  several widths with a `srcset`, so a phone fetches a small copy and a desktop a large one.
+  A `sizes` attribute is computed from the layout the image actually sits in, so a picture in
+  a three-column row is not treated as though it filled the screen.
 
 Either way the output is semantic markup plus a single inline stylesheet with two breakpoint
 media queries and one for reduced motion.

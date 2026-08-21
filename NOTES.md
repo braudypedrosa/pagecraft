@@ -1271,8 +1271,8 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
    body
 8. **The CMS's missing verbs**: a Collection List cannot **filter**, there is no **reference**
    field type, `content.json` has no way back in, and no **pagination** or **draft flag**
-9. **Export quality**: `srcset` by downscaling through a canvas at export time; **JSON-LD**,
-   which is a pure core function and cheap to test; a **404** convention; self-hosted fonts,
-   because `gfontsLink()` is a third-party request `brand/fonts/` shows how to avoid
+9. **Export quality**: ~~`srcset`~~ and ~~JSON-LD~~ are both done. Still open: a **404**
+   convention; self-hosted fonts, because `gfontsLink()` is a third-party request and
+   `brand/fonts/` already shows how to avoid it
 10. Decide whether this becomes the editor for `~/Documents/Braudy/pagecraft` or stays
    standalone. It changes whether CMS, accounts and cloud persistence are next

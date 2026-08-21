@@ -332,6 +332,124 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- responsive images ------------------------------------------------
+   The ladder and the `sizes` computation are the whole decision; the export only does the
+   pixel-pushing. Both read `imageWidths`, so what the markup promises and what the export
+   writes cannot drift apart. */
+
+test('the width ladder never upscales, and skips a variant that would not pay for itself', () => {
+  a.deepEqual(C.imageWidths(3000), [480, 768, 1024, 1440, 1920, 3000], 'ladder, then the original');
+  a.deepEqual(C.imageWidths(1200), [480, 768, 1024, 1200], 'nothing above the original');
+  /* 768 is dropped at 800: a variant within 160px of the original saves a few kilobytes
+     and costs a round trip, so the rule is "at least MIN_STEP smaller", applied to every
+     rung rather than only to the top one */
+  a.deepEqual(C.imageWidths(800), [480, 800]);
+
+  /* which puts the floor at 640 — the first width with any rung far enough below it */
+  a.deepEqual(C.imageWidths(640), [480, 640]);
+  a.deepEqual(C.imageWidths(639), [], 'one pixel under the floor: a single file is right');
+  a.deepEqual(C.imageWidths(600), []);
+  a.deepEqual(C.imageWidths(480), [], 'already at the smallest rung');
+  a.deepEqual(C.imageWidths(320), [], 'smaller than any rung');
+
+  /* junk in, nothing out — never a fabricated width */
+  [0, -1, '', null, undefined, 'wide', NaN].forEach(v => a.deepEqual(C.imageWidths(v), [], String(v)));
+  a.deepEqual(C.imageWidths('1200'), C.imageWidths(1200), 'props store numbers as strings');
+  a.ok(C.imageWidths(3000).every((w, i, arr) => !i || w > arr[i - 1]), 'ascending, as srcset wants');
+});
+
+test('sizes is computed from the layout, not assumed to be the viewport', () => {
+  blank();
+  /* one image alone in a boxed section: the container less its padding */
+  const solo = insert('image', null, 0);
+  const sec = C.chainTo(solo.id).find(n => n.type === 'section')!;
+  a.equal(String(C.state.meta.maxWidth), '1200px');
+  const pad = parseFloat(sec.css.d['padding-left']) + parseFloat(sec.css.d['padding-right']);
+  a.match(C.sizesFor(solo.id), new RegExp(`min\\(100vw, ${1200 - pad}px\\)`));
+  a.match(C.sizesFor(solo.id), /^\(max-width: 767px\) 100vw,/, 'full width below the breakpoint');
+
+  /* a full-bleed section really is the viewport, and says so */
+  sec.props.width = 'full';
+  a.equal(C.sizesFor(solo.id), '100vw');
+});
+
+test('a column in a three-up row gets a third of the room, less the gaps it does not get', () => {
+  blank();
+  const row = C.cols(3, [[], [], []], { d: { gap: '24px' } });
+  const sec = C.N('section', {}, { d: { 'padding-left': '28px', 'padding-right': '28px' } }, [row]);
+  C.state.pages[0].tree.push(sec);
+  const img = C.N('image', { w: '3000', h: '2000' });
+  row.children[1].children.push(img);
+
+  /* 1200 container − 56 padding = 1144; − 2 gaps of 24 = 1096; ÷ 3 ≈ 365 */
+  a.match(C.sizesFor(img.id), /min\(100vw, 365px\)/);
+
+  /* widen that column and its share grows with it */
+  row.children[1].css.d['flex-grow'] = '50';
+  row.children[0].css.d['flex-grow'] = '25';
+  row.children[2].css.d['flex-grow'] = '25';
+  a.match(C.sizesFor(img.id), /min\(100vw, 548px\)/, 'half of 1096');
+});
+
+test('srcset is the separate-files export only, and only for a stored asset', () => {
+  blank();
+  const img = insert('image', null, 0);
+  img.props.w = '3000'; img.props.h = '2000';
+  img.props.src = 'asset:abc123';
+
+  /* inlining five variants to save bandwidth on one is worse than not trying */
+  a.equal(/srcset/.test(C.renderNode(img, { edit: false })), false, 'no variants by default');
+  a.equal(/srcset/.test(C.renderNode(img, { edit: true, variants: true })), false, 'never in the editor');
+
+  const out = C.renderNode(img, { edit: false, variants: true });
+  a.match(out, /srcset="asset:abc123@480 480w, asset:abc123@768 768w, asset:abc123@1024 1024w, asset:abc123@1440 1440w, asset:abc123@1920 1920w, asset:abc123@3000 3000w"/);
+  a.match(out, /sizes="\(max-width: 767px\) 100vw, min\(100vw, \d+px\)"/);
+  a.match(out, /src="asset:abc123"/, 'and a plain src for anything that ignores srcset');
+
+  /* a remote URL or a data URI has no variants to point at */
+  img.props.src = 'https://example.com/a.png';
+  a.equal(/srcset/.test(C.renderNode(img, { edit: false, variants: true })), false);
+  img.props.src = 'data:image/png;base64,AAAA';
+  a.equal(/srcset/.test(C.renderNode(img, { edit: false, variants: true })), false);
+
+  /* and an image too small for the ladder gets none either */
+  img.props.src = 'asset:abc123'; img.props.w = '400';
+  a.equal(/srcset/.test(C.renderNode(img, { edit: false, variants: true })), false);
+});
+
+test('buildPage carries the variants flag through to the markup', () => {
+  /* This is the test that was missing. Every case above calls `renderNode` directly, so all
+     of them passed while `buildPage` was quietly dropping the flag and no exported page had
+     a srcset at all — the feature was broken end to end and the suite was green. An option
+     that only one caller knows about has to be asserted at the boundary that caller uses. */
+  blank();
+  const img = insert('image', null, 0);
+  Object.assign(img.props, { src: 'asset:zz9', alt: 'A picture', w: '2400', h: '1600' });
+  const pg = C.state.pages[0];
+
+  a.equal(/srcset/.test(C.buildPage(pg)), false, 'no options: a single src');
+  a.equal(/srcset/.test(C.buildPage(pg, { variants: false })), false);
+  const out = C.buildPage(pg, { variants: true });
+  a.match(out, /srcset="asset:zz9@480 480w/, 'and the flag survives the trip');
+  a.match(out, /sizes="\(max-width: 767px\) 100vw,/);
+  /* the widths in the markup are exactly what the export writer will be asked for */
+  a.deepEqual([...out.matchAll(/asset:zz9@(\d+)/g)].map(m => +m[1]), C.imageWidths(2400));
+});
+
+test('every shape of the image widget carries the srcset, not just the bare one', () => {
+  blank();
+  const img = insert('image', null, 0);
+  Object.assign(img.props, { src: 'asset:abc123', w: '2400', h: '1600' });
+  const o = { edit: false, variants: true };
+
+  a.match(C.renderNode(img, o), /^<img [^>]*srcset=/, 'bare');
+  img.props.caption = 'A caption';
+  a.match(C.renderNode(img, o), /<img [^>]*srcset=/, 'inside a figure');
+  a.match(C.renderNode(img, o), /^<figure/);
+  img.props.caption = ''; img.props.link = 'index.html';
+  a.match(C.renderNode(img, o), /<a [^>]*><img [^>]*srcset=/, 'wrapped in a link');
+});
+
 /* ---- colour, as numbers ----------------------------------------------
    `hex2rgb` is now a caller of `parseColor` rather than a second parser, so these pin
    down both: the accepted set must not have widened (it feeds `contrast`, where a
