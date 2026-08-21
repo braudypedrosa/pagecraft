@@ -1,20 +1,15 @@
-# Pagecraft Builder
+# Pagecraft
 
-> Picking this up fresh, or in a new conversation? Read **[CONTEXT.md](CONTEXT.md)** first —
-> it carries the current state, the conventions, and what is next. `NOTES.md` has the
-> engineering detail.
-
-A dependency-free visual page builder that exports static HTML — built on the Pagecraft
-brand system. Paper is the working surface, Ink carries the structure, and Craft Green is
-reserved for action, focus, selection, and status.
+Build a website visually and export real, static HTML — no accounts, no build step, no
+dependencies.
 
 ## Run it
 
 ```bash
-open page-builder/index.html
+open index.html
 ```
 
-One file, no install. Everything — including autosave — runs in the browser.
+One file, no install. Everything, autosave included, runs in your browser.
 
 ## Components
 
@@ -480,9 +475,6 @@ Every image field — an Image element, a Background, the favicon, the social sh
 Choosing an image also fills in its intrinsic width and height, so the page does not shift while
 it loads.
 
-Uploads are stored as blobs in IndexedDB and referenced as `asset:<id>`, so the project JSON
-stays small and there is no 5 MB localStorage ceiling.
-
 ## Find and replace
 
 **⌘F** searches every page, both global regions, each page's own browser title, meta
@@ -588,55 +580,12 @@ exactly what the archive will contain. Below the preview, two labelled groups ho
 
 ## Saving
 
-Autosaves to `localStorage`. If a write ever fails — quota, private browsing, blocked
-cookies — the top bar turns red and a dialog offers an immediate JSON backup rather than
-letting you keep working against a dead store. Editing the same project in two tabs is
-detected and you choose which copy wins.
-
-## Brand
-
-`brand/` vendors what the build needs from the Pagecraft brand kit: Manrope (variable) and
-DM Sans (400/500/600) with their OFL licenses, the symbol and favicon SVGs, and the
-canonical `pagecraft-tokens.css` / `.json`. The fonts are embedded as data URIs at build
-time — Manrope for product UI and body, DM Sans for labels, metadata and numerics — so the
-tool renders in the brand faces offline, with no font CDN involved. The same faces are
-injected into the canvas iframe so WYSIWYG matches the real type.
-
-Palette: Ink `#111311` · Craft Green `#b7f34a` · Paper `#f8f6ef` · Slate `#6f7771` ·
-White `#ffffff`. These are also the default colour tokens for a new project.
-
-One deviation, forced by the contrast check: brand Slate scores **4.27:1 on Paper** and
-**4.05:1 on Ink**, so it fails WCAG AA for body copy on either ground (it clears the 3:1
-large-text bar). The default tokens therefore ship three Slates — `muted` **#5f6660** for
-secondary text on Paper (5.46:1), `muted-i` **#b0b7b1** for secondary text on Ink (9.11:1),
-and `slate` at the exact brand **#6f7771** for fills, borders and large text. Worth
-resolving in the brand kit itself.
-
-Chrome type runs on a seven-step scale — `10.5` badges · `11.5` rail · `12` labels and
-metadata · `12.5` small UI · `13.5` base (rows, controls, buttons) · `15` panel and section
-heads · `17` modal titles. Keep new UI on those steps rather than adding in-between values.
-
-Keep new pure logic (model, tree operations, CSS generation, markup, export) inside those
-markers; anything touching the DOM stays outside them.
-
-`build.mjs` also asserts that every inspector control which is *rendered* is also *wired*,
-by comparing the `case` branches of `ctlHtml` and `bindRight`. A slice-based edit once removed
-four wiring branches while leaving their markup intact, producing controls that looked correct
-and did nothing; the build now fails and names them.
+Your work saves itself as you go, in this browser. If saving ever fails — private
+browsing, or a full browser store — the top bar turns red and offers an immediate backup
+file rather than letting you keep working against a save that is not happening. Open the
+same project in two tabs and Pagecraft notices, then asks which copy to keep.
 
 ## Browser support
 
-`tools/compat.html` probes the 28 browser features this builder depends on — pointer capture,
-`srcdoc` iframes, `execCommand`, IndexedDB blobs, `blob:` URLs, `aspect-ratio`, flex `gap`,
-custom properties, `:focus-visible`, `backdrop-filter` and the rest — and reports results back
-to a small local server.
-
-```bash
-node tools/probe-server.mjs      # then open http://localhost:4899/ in each browser
-```
-
-Results are appended to `tools/compat-results.jsonl`. **Safari 26, Firefox 153 and Chrome
-each pass all 28**, including `execCommand('bold')` genuinely producing markup rather than
-merely existing, and a Blob surviving IndexedDB → `blob:` URL → `<img>` with its dimensions
-intact. The page also carries one manual drag target, because whether pointer capture holds
-*over* an iframe cannot be settled by feature detection.
+Current Safari, Firefox and Chrome, on desktop. Pagecraft is a desktop tool — building a
+page needs the room — but everything it exports is responsive and works everywhere.
