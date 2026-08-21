@@ -68,8 +68,14 @@ function Widgets() {
 }
 
 function Templates() {
+  /* Which region is being edited decides what is worth offering. `tree()` already sends
+     an insert to `state.header` or `state.footer` when the mode says so, so the only
+     thing missing was not offering a Hero while editing the footer — and, more sharply,
+     not offering a `<header>` landmark for the middle of an article. */
+  const region = C.state.ui.mode === 'header' ? 'header' : C.state.ui.mode === 'footer' ? 'footer' : null;
+  const offered = C.PATTERNS.filter(t => (t.scope || null) === region);
   const cats: string[] = [];
-  C.PATTERNS.forEach(t => { if (!cats.includes(t.cat)) cats.push(t.cat); });
+  offered.forEach(t => { if (!cats.includes(t.cat)) cats.push(t.cat); });
 
   const place = (id: string) => {
     if (L.consumeDragMoved()) return;
@@ -82,13 +88,15 @@ function Templates() {
   return (
     <>
       <div class="hint" style={{ paddingBottom: '12px' }}>
-        Ready-made sections, built from this project's colours and text styles.
+        {region
+          ? `Ready-made ${region}s, built from this project's colours and text styles.`
+          : "Ready-made sections, built from this project's colours and text styles."}
       </div>
       {cats.map(cat => (
         <>
           <div class="plabel">{cat}</div>
           <div class="pvgrid">
-            {C.PATTERNS.filter(t => t.cat === cat).map(t => (
+            {offered.filter(t => t.cat === cat).map(t => (
               <button class="pvcard" key={t.id} title={t.desc + ' — drag onto the canvas, or click to append'}
                 onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
                   { kind: 'pattern', patId: t.id, label: t.name, icon: 'section' }, false)}

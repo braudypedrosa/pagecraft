@@ -3389,6 +3389,206 @@ var PATTERNS = [
         N("image", { src: "", alt: "" }, { d: { "border-radius": "16px", height: "320px", "object-fit": "cover" }, m: { height: "220px" } })
       ]), { d: { gap: "24px" } })
     ])
+  },
+  /* ---- headers ------------------------------------------------------------
+     All four are one row that does not wrap, because a header that reflows to two
+     lines at 900px is the failure everybody has seen. The nav widget's own burger
+     handles narrow instead. */
+  {
+    id: "header-bar",
+    cat: "Header",
+    scope: "header",
+    preview: () => PV(ph(8, 9, 20) + pl(52, 10, 10) + pl(66, 10, 10) + pl(80, 10, 8) + pRule(20) + pPage(21, 37)),
+    name: "Logo and links",
+    desc: "A wordmark left, menu right, hairline under. The default.",
+    build: () => T_BAR("header", "18px", {
+      "background-color": cvar("bg"),
+      ...HAIRLINE("bottom"),
+      ...STICKY
+    }, [
+      cols(
+        2,
+        [[T_MARK("Your name")], [T_NAV()]],
+        { d: { gap: "16px", "align-items": "center", "flex-wrap": "nowrap" }, m: { gap: "20px" } }
+      )
+    ])
+  },
+  {
+    id: "header-cta",
+    cat: "Header",
+    scope: "header",
+    preview: () => PV(ph(8, 9, 18) + pl(38, 10, 9) + pl(50, 10, 9) + pl(62, 10, 7) + pg(74, 8, 14) + pRule(20) + pPage(21, 37)),
+    name: "Links and a button",
+    desc: "Wordmark, centred menu, one action on the right.",
+    build: () => T_BAR("header", "16px", {
+      "background-color": cvar("bg"),
+      ...HAIRLINE("bottom"),
+      ...STICKY
+    }, [
+      cols(3, [
+        [T_MARK("Your name")],
+        /* Centred on desktop, but pushed right below the burger threshold so the collapsed
+           menu and the action read as one group at the right edge rather than leaving the
+           burger stranded in the middle of the bar. */
+        [T_NAV({ d: { "justify-content": "center" }, m: { "justify-content": "flex-end" } })],
+        /* nowrap and a tighter mobile box: three equal columns give this one about 110px at
+           414px, which broke “Get started” across two lines and made the bar 79px tall. */
+        [N("button", { text: "Get started", ts: "btn" }, {
+          d: {
+            "background-color": cvar("brand"),
+            color: cvar("ink"),
+            "align-self": "flex-end",
+            "white-space": "nowrap",
+            "border-radius": "8px",
+            ...BOX("9px", "16px", "9px", "16px")
+          },
+          m: { ...BOX("8px", "12px", "8px", "12px"), "font-size": "14px" }
+        })]
+      ], { d: { gap: "16px", "align-items": "center", "flex-wrap": "nowrap" }, m: { gap: "14px" } })
+    ])
+  },
+  {
+    id: "header-centred",
+    cat: "Header",
+    scope: "header",
+    preview: () => PV(ph(36, 7, 24) + pl(28, 18, 12) + pl(43, 18, 12) + pl(58, 18, 10) + pRule(26) + pPage(27, 31)),
+    name: "Centred wordmark",
+    desc: "Name over the menu, both centred. Reads as editorial.",
+    build: () => T_BAR("header", "22px", {
+      "background-color": cvar("bg"),
+      ...HAIRLINE("bottom")
+    }, [
+      cols(1, [[T_MARK("Your name")]], { d: { "margin-bottom": "12px" } }),
+      cols(1, [[T_NAV({ d: { "justify-content": "center" } })]])
+    ])
+  },
+  {
+    id: "header-ink",
+    cat: "Header",
+    scope: "header",
+    preview: () => PV(pInk(0, 20) + pil(8, 9, 20) + pil(52, 10, 10) + pil(66, 10, 10) + pil(80, 10, 8) + pPage(21, 37)),
+    name: "Dark bar",
+    desc: "The same row on ink, for a light page that wants a strong top.",
+    build: () => T_BAR("header", "18px", {
+      "background-color": cvar("ink"),
+      ...STICKY
+    }, [
+      cols(2, [
+        [T_MARK("Your name", cvar("surface"))],
+        [T_NAV({ d: { color: cvar("muted-i"), "--nav-hover": cvar("surface"), "--nav-panel": cvar("ink") } })]
+      ], { d: { gap: "16px", "align-items": "center", "flex-wrap": "nowrap" }, m: { gap: "20px" } })
+    ])
+  },
+  /* ---- footers ------------------------------------------------------------
+     The link lists are WYSIWYG rather than a nav widget on purpose: a footer sitemap is
+     prose-with-links, it does not collapse to a burger, and it is the one place a project
+     wants a dozen links without a menu's alignment and gap machinery. */
+  {
+    id: "footer-columns",
+    cat: "Footer",
+    scope: "footer",
+    preview: () => PV(pPage(0, 5) + pRule(6) + ph(8, 12, 20) + pl(8, 20, 24) + pl(40, 12, 14) + pl(40, 18, 12) + pl(40, 24, 12) + pl(64, 12, 14) + pl(64, 18, 12) + pl(64, 24, 12) + pRule(38) + pl(8, 44, 20)),
+    name: "Sitemap columns",
+    desc: "A line about the site, two link lists, then fine print.",
+    build: () => T_BAR("footer", "64px", {
+      "background-color": cvar("bg"),
+      ...HAIRLINE("top")
+    }, [
+      cols(3, [
+        [T_MARK("Your name"), T_T("<p>One line on what the site is for.</p>", "small", { d: { "margin-top": "10px" } })],
+        [
+          T_H("Sitemap", "eyebrow", { d: { "margin-bottom": "12px" } }),
+          T_LINKS([["Home", HOME], ["Work", HOME], ["Contact", HOME]])
+        ],
+        [
+          T_H("Elsewhere", "eyebrow", { d: { "margin-bottom": "12px" } }),
+          T_LINKS([["Instagram", "https://instagram.com"], ["LinkedIn", "https://linkedin.com"], ["Email", "mailto:hello@example.com"]])
+        ]
+      ], { d: { gap: "32px" }, m: { gap: "28px" } }),
+      N("divider", {}, { d: { "margin-top": "40px", "margin-bottom": "20px", "border-top-color": cvar("line") } }),
+      cols(1, [[T_T("<p>&copy; 2026 Your name. All rights reserved.</p>", "small")]])
+    ])
+  },
+  {
+    id: "footer-slim",
+    cat: "Footer",
+    scope: "footer",
+    preview: () => PV(pPage(0, 23) + pRule(24) + ph(8, 32, 18) + pl(58, 33, 30)),
+    name: "One line",
+    desc: "Name and copyright on a single row. Nothing else.",
+    build: () => T_BAR("footer", "28px", {
+      "background-color": cvar("bg"),
+      ...HAIRLINE("top")
+    }, [
+      cols(2, [
+        [T_MARK("Your name")],
+        [T_T("<p>&copy; 2026 Your name</p>", "small", { d: { "text-align": "right" }, m: { "text-align": "left" } })]
+      ], { d: { gap: "16px", "align-items": "center" } })
+    ])
+  },
+  {
+    id: "footer-signup",
+    cat: "Footer",
+    scope: "footer",
+    preview: () => PV(pPage(0, 3) + pRule(4) + ph(8, 10, 26) + pb(8, 19, 44, 8, 2) + pg(56, 19, 16) + pRule(33) + pl(8, 40, 14) + pl(30, 40, 14) + pl(52, 40, 14) + pl(74, 40, 12)),
+    name: "Signup and links",
+    desc: "An email capture above the links, for a list that matters.",
+    build: () => T_BAR("footer", "56px", {
+      "background-color": cvar("surface"),
+      ...HAIRLINE("top")
+    }, [
+      cols(2, [
+        /* h2, not the h3 the subtitle style implies: this is the only real heading in the
+           footer, so after a page's h1 an h3 is an outline skip. The look and the tag are
+           independent, which is what T_H's level argument is for. */
+        [
+          T_H("Occasional letters, no noise.", "subtitle", { d: { "margin-bottom": "8px" } }, "h2"),
+          T_T("<p>One email a month. Unsubscribe whenever.</p>", "small")
+        ],
+        [N("form", {
+          submit: "Subscribe",
+          aria: "Newsletter signup",
+          fields: [{ type: "email", label: "Email", name: "email", required: 1, ph: "you@example.com" }]
+        }, { d: { "align-self": "center" } })]
+      ], { d: { gap: "40px", "align-items": "center" }, m: { gap: "24px" } }),
+      N("divider", {}, { d: { "margin-top": "40px", "margin-bottom": "24px", "border-top-color": cvar("line") } }),
+      cols(2, [
+        [T_LINKS([["Home", HOME], ["Work", HOME], ["Contact", HOME]])],
+        [T_T("<p>&copy; 2026 Your name</p>", "small", { d: { "text-align": "right" }, m: { "text-align": "left" } })]
+      ], { d: { gap: "24px", "align-items": "flex-end" } })
+    ])
+  },
+  {
+    id: "footer-ink",
+    cat: "Footer",
+    scope: "footer",
+    preview: () => PV(pPage(0, 5) + pInk(6, 52) + pil(8, 14, 20) + pil(8, 22, 24) + pil(44, 14, 14) + pil(44, 20, 12) + pil(44, 26, 12) + pil(70, 14, 14) + pil(70, 20, 12) + pil(70, 26, 12) + pil(8, 46, 22)),
+    name: "Dark sitemap",
+    desc: "The columns on ink, to close a light page firmly.",
+    build: () => T_BAR("footer", "64px", { "background-color": cvar("ink") }, [
+      cols(3, [
+        [
+          T_MARK("Your name", cvar("surface")),
+          T_T("<p>One line on what the site is for.</p>", "small", { d: { color: cvar("muted-i"), "margin-top": "10px" } })
+        ],
+        [
+          T_H("Sitemap", "eyebrow", { d: { color: cvar("muted-i"), "margin-bottom": "12px" } }),
+          T_LINKS(
+            [["Home", HOME], ["Work", HOME], ["Contact", HOME]],
+            { d: { color: cvar("muted-i"), "--link": cvar("surface") } }
+          )
+        ],
+        [
+          T_H("Elsewhere", "eyebrow", { d: { color: cvar("muted-i"), "margin-bottom": "12px" } }),
+          T_LINKS(
+            [["Instagram", "https://instagram.com"], ["LinkedIn", "https://linkedin.com"], ["Email", "mailto:hello@example.com"]],
+            { d: { color: cvar("muted-i"), "--link": cvar("surface") } }
+          )
+        ]
+      ], { d: { gap: "32px" }, m: { gap: "28px" } }),
+      N("divider", {}, { d: { "margin-top": "40px", "margin-bottom": "20px", "border-top-color": cvar("slate") } }),
+      cols(1, [[T_T("<p>&copy; 2026 Your name. All rights reserved.</p>", "small", { d: { color: cvar("muted-i") } })]])
+    ])
   }
 ];
 function patternInsert(pid, parentNode, index = 0) {
@@ -3405,6 +3605,36 @@ function patternInsert(pid, parentNode, index = 0) {
 var TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
 var T_H = (text, ts, css, level) => N("heading", { text, ts, level: level || TS_LEVEL[ts] || "h3" }, css);
 var T_T = (html, ts, css) => N("text", { html, ts }, css);
+var T_BAR = (tag, pad, css, kids) => N(
+  "section",
+  { tag },
+  {
+    d: { ...BOX(pad, "28px", pad, "28px"), ...css || {} },
+    m: { ...BOX(String(Math.round(parseInt(pad, 10) * 0.78)) + "px", "20px", String(Math.round(parseInt(pad, 10) * 0.78)) + "px", "20px") }
+  },
+  kids
+);
+var T_MARK = (text, ink) => T_H(text, "", sized("19px", {
+  "font-weight": "600",
+  "letter-spacing": "-.03em",
+  color: ink || cvar("ink"),
+  "margin-bottom": "0px"
+}), "div");
+var HOME = "index.html";
+var T_NAV = (css) => N("nav", {
+  items: [{ label: "Work", href: HOME }, { label: "About", href: HOME }, { label: "Contact", href: HOME }]
+}, css || {});
+var T_LINKS = (rows, css) => T_T("<p>" + rows.map(([label, href]) => `<a href="${href}">${label}</a>`).join("<br>") + "</p>", "small", css);
+var STICKY = { position: "sticky", top: "0px", "z-index": "50" };
+var HAIRLINE = (side, colour) => ({
+  [`border-${side}-width`]: "1px",
+  [`border-${side}-style`]: "solid",
+  [`border-${side}-color`]: colour || cvar("line")
+});
+var pRule = (y) => `<rect x="0" y="${y}" width="96" height="1" class="pv-l"/>`;
+var pPage = (y, h) => `<rect x="0" y="${y}" width="96" height="${h}" class="pv-b" opacity=".45"/>`;
+var pInk = (y, h) => `<rect x="0" y="${y}" width="96" height="${h}" class="pv-i"/>`;
+var pil = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-b"/>`;
 var T_Q = (text, by, css) => N("quote", { text, by, source: "", ts: "lead" }, css);
 var T_SEC = (css, kids) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
 var T_B = (text, css) => N(

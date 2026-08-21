@@ -1831,13 +1831,58 @@ test('no page template lands with a problem of its own making', () => {
 });
 
 test('no section pattern lands with a problem of its own making', () => {
+  /* A scoped pattern is linted where it actually goes. Inserting a header into a page body
+     is a context the Templates tab no longer offers, and linting it there asks the wrong
+     question — a `<header>` in an article and a `<header>` as the site header have different
+     rules, `global-fragment` among them. */
   for (const p of C.PATTERNS) {
     fresh();
-    const made = patternInsert(p.id, null, C.state.pages[0].tree.length);
+    C.state.ui.mode = p.scope || 'page';
+    const into = p.scope === 'header' ? C.state.header : p.scope === 'footer' ? C.state.footer : C.state.pages[0].tree;
+    if (p.scope) into.length = 0;
+    const made = patternInsert(p.id, null, into.length);
     a.ok(made, `“${p.name}” built nothing`);
     const mine = C.lint().filter(f => !THEIRS.includes(f.code) && f.code !== 'many-h1');
     a.deepEqual(mine.map(f => f.code), [], `“${p.name}” reports ${mine.map(f => f.code).join(', ')}`);
   }
+});
+
+test('every region pattern is scoped, tagged and offered only in its region', () => {
+  const region = C.PATTERNS.filter(p => p.scope);
+  a.equal(region.filter(p => p.scope === 'header').length, 4, 'four headers');
+  a.equal(region.filter(p => p.scope === 'footer').length, 4, 'four footers');
+
+  region.forEach(p => {
+    fresh();
+    C.state.ui.mode = p.scope!;
+    const into = p.scope === 'header' ? C.state.header : C.state.footer;
+    into.length = 0;
+    const node = patternInsert(p.id, null, 0);
+    /* the landmark tag is the whole point: a region template that stayed a <section>
+       would look right in the canvas and export without a landmark */
+    a.equal(node.type, 'section', `${p.name} builds a section`);
+    a.equal(node.props.tag, p.scope, `${p.name} sets tag=${p.scope}`);
+    a.equal(p.cat, p.scope === 'header' ? 'Header' : 'Footer');
+
+    const html = C.buildPage(C.state.pages[0]);
+    a.equal((html.match(new RegExp('<' + p.scope + '[ >]', 'g')) || []).length, 1,
+      `${p.name} exports exactly one <${p.scope}>`);
+    a.equal(/href="#"/.test(html), false, `${p.name} exports no placeholder-# link`);
+  });
+});
+
+test('a region pattern is never offered for a page body', () => {
+  /* The filter the Add panel applies, asserted here so the core stays the source of truth
+     for which patterns belong where. */
+  const forPage = C.PATTERNS.filter(p => !p.scope);
+  a.equal(forPage.length, C.PATTERNS.length - 8);
+  a.equal(forPage.some(p => ['Header', 'Footer'].includes(p.cat)), false);
+  /* and a page pattern is never a landmark, which is what makes the two sets disjoint */
+  forPage.forEach(p => {
+    fresh();
+    const n = patternInsert(p.id, null, 0);
+    a.equal(['header', 'footer'].includes(String(n.props.tag || '')), false, p.name);
+  });
 });
 
 test('a heading takes its outline level from its text style', () => {
