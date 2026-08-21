@@ -322,6 +322,9 @@ export interface Page {
   collection?: string;
   bindTitle?: string;
   bindDesc?: string;
+  /** extra markup for this page's `<head>`, after the project-wide block. A page-specific
+      meta tag, a schema block or a one-page script has nowhere else to go. */
+  headHtml?: string;
 }
 
 export interface SavedBlock {

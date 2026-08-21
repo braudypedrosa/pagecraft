@@ -52,6 +52,7 @@ __export(index_exports, {
   MQ: () => MQ,
   N: () => N,
   NAV_JS: () => NAV_JS,
+  NOT_FOUND: () => NOT_FOUND,
   PAGE_TEXT: () => PAGE_TEXT,
   PATTERNS: () => PATTERNS,
   PFX: () => PFX,
@@ -176,6 +177,7 @@ __export(index_exports, {
   initUi: () => initUi,
   insert: () => insert,
   isGoogle: () => isGoogle,
+  isNotFound: () => isNotFound,
   isRef: () => isRef,
   itemAdd: () => itemAdd,
   itemDelete: () => itemDelete,
@@ -2824,6 +2826,8 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+var NOT_FOUND = "404";
+var isNotFound = (pg2) => pg2.slug === NOT_FOUND;
 function contentImport(raw) {
   const d = raw;
   if (!d || typeof d !== "object" || !Array.isArray(d.collections)) return null;
@@ -5149,7 +5153,7 @@ function matchLayout(row) {
 function sitemapXml() {
   const base = String(state.meta.baseUrl || "").replace(/\/+$/, "");
   if (!base) return "";
-  const urls = exportTargets().map((t) => `${base}/${t.path}`);
+  const urls = exportTargets().filter((t) => !isNotFound(t.pg)).map((t) => `${base}/${t.path}`);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url><loc>${esc(u)}</loc></url>`).join("\n")}
@@ -5278,7 +5282,7 @@ function buildPage(pg2, ctx = {}) {
   const title = pg2.title || `${pg2.name} \u2014 ${m.name}`;
   const base = String(m.baseUrl || "").replace(/\/+$/, "");
   const abs = (u) => !u ? "" : /^https?:/i.test(u) ? u : base ? base + "/" + String(u).replace(/^\/+/, "") : u;
-  const canon = base ? `${base}/${pagedPath(pg2.slug, o.pageNo)}` : "";
+  const canon = base && !isNotFound(pg2) ? `${base}/${pagedPath(pg2.slug, o.pageNo)}` : "";
   const ogImg = abs(pg2.ogImage || m.ogImage || "");
   return `<!doctype html>
 <html lang="${esc(m.lang || "en")}">
@@ -5298,7 +5302,7 @@ ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${jsonLd(pg2, ctx)}<style>
 ${tidy(css)}
 </style>
-${m.headHtml || ""}
+${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${m.headHtml || ""}${pg2.headHtml || ""}
 </head>
 <body>
 ${body}
@@ -5339,6 +5343,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   MQ,
   N,
   NAV_JS,
+  NOT_FOUND,
   PAGE_TEXT,
   PATTERNS,
   PFX,
@@ -5463,6 +5468,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   initUi,
   insert,
   isGoogle,
+  isNotFound,
   isRef,
   itemAdd,
   itemDelete,

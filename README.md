@@ -367,6 +367,19 @@ Before this the canvas was simply whatever width was left over, so selecting an 
 which opens the inspector — could flip the canvas from your desktop layout to your mobile
 one without saying so.
 
+## Per-page head markup
+
+Each page has its own **Extra &lt;head&gt; HTML** field in *Pages*, written into that page only,
+after the project-wide block from *Project settings*. It is where a page-specific meta tag, a
+schema block, or a script that belongs to one page goes.
+
+## The not-found page
+
+Slug a page **404** and it becomes your not-found page: the export writes `404.html`, which is
+what static hosts look for. It also stops behaving like a destination — it stays out of
+`sitemap.xml`, claims no canonical URL, and carries `<meta name="robots" content="noindex">`,
+because inviting a crawler to index your error page is the one thing a 404 must not do.
+
 ## Preview
 
 `⌘P` hides the panels and gives the canvas the whole window. It is a preview of the *site*,

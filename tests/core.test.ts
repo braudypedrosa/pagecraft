@@ -64,6 +64,12 @@ const blank = () => {
      assets, not page content — so a test that wants a clean slate says so */
   C.state.meta.blocks = [];
   C.state.meta.collections = [];
+  /* Cleared because it changes what every page emits — a canonical tag and a JSON-LD script
+     appear only once one is set. Two tests have now set it and leaked it into suites that
+     assert those are absent, and the second time was me repeating the first. A test that
+     needs one sets it; nothing should inherit one. */
+  C.state.meta.baseUrl = '';
+  C.state.meta.headHtml = '';
 };
 const types = (l: PcNode[]) => l.map(n => n.type);
 /* the two media blocks, either of which may be absent when nothing overrides */
@@ -330,6 +336,69 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: 'https://vimeo.com/123456' }), /player\.vimeo\.com\/video\/123456/);
   a.match(C.vid({ src: 'https://cdn.example.com/clip.mp4', controls: 1 }), /^<video src="https:\/\/cdn\.example\.com\/clip\.mp4" controls/);
   a.match(C.vid({ src: '' }), /Add a video URL/);
+});
+
+/* ---- the not-found page, and per-page head ------------------------------ */
+
+test('a page slugged 404 exports as 404.html and behaves like a not-found page', () => {
+  blank();
+  const pg = C.state.pages[0];
+  C.state.meta.baseUrl = 'https://example.com';
+
+  pg.slug = 'index';
+  a.equal(C.isNotFound(pg), false);
+  a.match(C.buildPage(pg), /rel="canonical" href="https:\/\/example\.com\/index\.html"/);
+  a.equal(/name="robots"/.test(C.buildPage(pg)), false);
+  a.match(C.sitemapXml(), /index\.html/);
+
+  pg.slug = C.NOT_FOUND;
+  a.equal(C.isNotFound(pg), true);
+  a.equal(must(C.exportTargets().find(t => t.pg === pg), 'target').path, '404.html');
+  /* not a destination: no canonical, and it asks not to be indexed */
+  a.equal(/rel="canonical"/.test(C.buildPage(pg)), false);
+  a.match(C.buildPage(pg), /<meta name="robots" content="noindex">/);
+  /* and offering a crawler a list with the error page on it invites it to index the error page */
+  a.equal(/404\.html/.test(C.sitemapXml()), false);
+});
+
+test('a page carries its own head block, after the project-wide one', () => {
+  blank();
+  const pg = C.state.pages[0];
+  C.state.meta.headHtml = '<meta name="site" content="yes">';
+  pg.headHtml = '<meta name="page" content="also">';
+  const html = C.buildPage(pg);
+  a.match(html, /content="yes"/);
+  a.match(html, /content="also"/);
+  a.ok(html.indexOf('content="yes"') < html.indexOf('content="also"'), 'project first, page second');
+  a.ok(html.indexOf('content="also"') < html.indexOf('</head>'), 'and both inside the head');
+
+  /* a page with none adds nothing */
+  pg.headHtml = '';
+  a.equal(/content="also"/.test(C.buildPage(pg)), false);
+  C.state.meta.headHtml = '';
+});
+
+/* ---- the export carries no comments ------------------------------------
+   Convention 7 in CONTEXT.md, and I put a comment in the quote widget's rules that would have
+   shipped in every exported page. The editor-only tail is a different matter and keeps its
+   seven: it styles the canvas and never reaches a customer, which is why this asks
+   `baseCss(false)` rather than both. A convention that relies on remembering it is a
+   convention with a test missing. */
+
+test('the exported stylesheet carries no comments', () => {
+  const css = C.baseCss(false);
+  a.equal(css.includes('/*'), false, 'baseCss(false) ships a comment');
+  a.equal(css.includes('*/'), false);
+  /* the editor half is allowed them, and has them — asserting otherwise would be asserting
+     the wrong contract, and would fail the day someone documents a canvas rule */
+  a.ok(C.baseCss(true).includes('/*'), 'the canvas half is exempt, and uses that');
+
+  /* and no comment reaches the page by way of a node's own rules, a text style or a class */
+  fresh();
+  const page = C.buildPage(C.state.pages[0]);
+  const style = must(page.match(/<style>([\s\S]*?)<\/style>/), 'the stylesheet')[1];
+  a.equal(style.includes('/*'), false, 'a built page ships a comment');
+  a.ok(style.length > 2000, 'and there was a real stylesheet to check');
 });
 
 /* ---- moving to the ends -------------------------------------------------
@@ -677,18 +746,13 @@ test('only the first paginated list slices, and the review says the others do no
 
 test('the sitemap and the canonical name the file, not the slug', () => {
   const { pg } = paged('4', 10);
-  /* restored at the end: `blank()` leaves `meta` alone, so a Site URL set here otherwise
-     followed every later test into its own assertions — JSON-LD and the canonical tag both
-     appear only once one is set, which broke two suites downstream */
-  const was = C.state.meta.baseUrl;
-  C.state.meta.baseUrl = 'https://example.com';
+  C.state.meta.baseUrl = 'https://example.com';   /* `blank()` clears it again next test */
   const map = C.sitemapXml();
   a.match(map, /https:\/\/example\.com\/journal\.html/);
   a.match(map, /https:\/\/example\.com\/journal\/page-2\.html/);
   a.equal((map.match(/journal\.html/g) || []).length, 1, 'page one listed once, not three times');
   /* and each file points at itself */
   a.match(C.buildPage(pg, { pageNo: 2 }), /rel="canonical" href="https:\/\/example\.com\/journal\/page-2\.html"/);
-  C.state.meta.baseUrl = was;
 });
 
 test('preview can follow a pager link', () => {

@@ -3600,6 +3600,8 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+var NOT_FOUND = "404";
+var isNotFound = (pg2) => pg2.slug === NOT_FOUND;
 function contentImport(raw) {
   const d = raw;
   if (!d || typeof d !== "object" || !Array.isArray(d.collections)) return null;
@@ -5925,7 +5927,7 @@ function matchLayout(row) {
 function sitemapXml() {
   const base = String(state.meta.baseUrl || "").replace(/\/+$/, "");
   if (!base) return "";
-  const urls = exportTargets().map((t) => `${base}/${t.path}`);
+  const urls = exportTargets().filter((t) => !isNotFound(t.pg)).map((t) => `${base}/${t.path}`);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url><loc>${esc(u)}</loc></url>`).join("\n")}
@@ -6054,7 +6056,7 @@ function buildPage(pg2, ctx = {}) {
   const title = pg2.title || `${pg2.name} \u2014 ${m.name}`;
   const base = String(m.baseUrl || "").replace(/\/+$/, "");
   const abs = (u) => !u ? "" : /^https?:/i.test(u) ? u : base ? base + "/" + String(u).replace(/^\/+/, "") : u;
-  const canon = base ? `${base}/${pagedPath(pg2.slug, o.pageNo)}` : "";
+  const canon = base && !isNotFound(pg2) ? `${base}/${pagedPath(pg2.slug, o.pageNo)}` : "";
   const ogImg = abs(pg2.ogImage || m.ogImage || "");
   return `<!doctype html>
 <html lang="${esc(m.lang || "en")}">
@@ -6074,7 +6076,7 @@ ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${jsonLd(pg2, ctx)}<style>
 ${tidy(css)}
 </style>
-${m.headHtml || ""}
+${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${m.headHtml || ""}${pg2.headHtml || ""}
 </head>
 <body>
 ${body}
@@ -6115,6 +6117,7 @@ var __CORE = {
   MQ,
   N,
   NAV_JS,
+  NOT_FOUND,
   PAGE_TEXT,
   PATTERNS,
   PFX,
@@ -6239,6 +6242,7 @@ var __CORE = {
   initUi,
   insert,
   isGoogle,
+  isNotFound,
   isRef,
   itemAdd,
   itemDelete,
@@ -7317,7 +7321,8 @@ var PC_UI = (() => {
                 pg.slug || "\u2026",
                 ".html"
               ] }),
-              "."
+              ".",
+              C2.isNotFound(pg) ? " Slugged 404, so it is your not-found page: it stays out of the sitemap and asks not to be indexed." : " Slug a page 404 to make it your not-found page."
             ] })
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
@@ -7361,6 +7366,22 @@ var PC_UI = (() => {
                 }
               }
             )
+          ] }),
+          /* @__PURE__ */ u2("div", { class: "f", children: [
+            /* @__PURE__ */ u2("label", { children: "Extra <head> HTML" }),
+            /* @__PURE__ */ u2(
+              "textarea",
+              {
+                class: "ctl",
+                value: pg.headHtml || "",
+                style: { minHeight: "56px", fontFamily: "var(--mono)", fontSize: "11.5px" },
+                placeholder: '<meta name="robots" content="noindex">',
+                ...field((v3) => {
+                  C2.page().headHtml = v3;
+                })
+              }
+            ),
+            /* @__PURE__ */ u2("div", { class: "note", children: "Written into this page only, after the project's own block." })
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { children: [
