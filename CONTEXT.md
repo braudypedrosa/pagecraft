@@ -311,9 +311,11 @@ npm run hooks           # one-time: post-commit repeats that warning
 1. **Core/UI split.** Pure logic goes between `/*<core>*/` … `/*</core>*/`; it is extracted
    verbatim into `dist/core.cjs` for the tests. New core symbols also go in the `EXPORTS`
    list in `build.mjs`. Anything touching the DOM stays outside the markers.
-2. **Control parity.** Every `case` in `ctlHtml` needs a matching `case` in `bindRight`. The
-   build fails by name otherwise. This exists because a slice-based edit once deleted four
-   wiring branches and left the markup, giving controls that rendered and did nothing.
+2. **Control parity.** Every member of the `ControlKind` union in `types.ts` needs an entry
+   in the `KINDS` map in `Controls.tsx`, and the build fails by name otherwise. It replaced a
+   guard over `ctlHtml`/`bindRight` when the inspector was ported, and it exists for the same
+   reason: a slice-based edit once deleted four wiring branches and left the markup, giving
+   controls that rendered and did nothing.
 3. **Green is reserved** for action, focus, selection and status. Publish is the only green
    fill in the chrome.
 4. **Namespacing.** Class `pagecraft-<widget-slug>` plus styling hook `pagecraft-<nodeid>`;

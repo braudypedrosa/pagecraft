@@ -42,6 +42,11 @@ const slugify = (s: unknown) => String(s).toLowerCase().trim().replace(/[^a-z0-9
 const dbounce = (fn: (...a: any[]) => void, ms: number) => { let t: any; return (...a: any[]) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
 
+/* The one page every project has: `blankProject` makes it, and it cannot be deleted while
+   it is the only one. So it is the only href a *default* can point at and still resolve —
+   which is the whole reason this is a named constant rather than a string in two places. */
+const HOME = 'index.html';
+
 /* --------------------------------------------------- element definitions
    level: 0 root · 1 section · 2 row · 3 column · 4 leaf                 */
 const BOX = (t: string, r: string, b: string, l: string) => ({ 'padding-top': t, 'padding-right': r, 'padding-bottom': b, 'padding-left': l });
@@ -192,7 +197,12 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space },
-        { t: 'pick', c: 'align-items', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['stretch', 'Fill']] },
+        /* Baseline is here because the header templates use it — text beside text in a bar
+           is read on the baseline, not on the box. Without the option the control had no
+           button lit for a row it was looking at, and touching any other one threw the
+           value away with no way back through the UI. Same defect as a unit control whose
+           list omits the stored unit. */
+        { t: 'pick', c: 'align-items', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['baseline', 'Base'], ['stretch', 'Fill']] },
         { t: 'select', c: 'justify-content', label: 'Horizontal distribute', r: 1, opts: [['flex-start', 'Start'], ['center', 'Center'], ['flex-end', 'End'], ['space-between', 'Space between'], ['space-around', 'Space around']] },
         { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, opts: [['wrap', 'Wrap'], ['nowrap', 'No wrap']] },
         { t: 'cols', label: 'Columns' }
@@ -221,7 +231,12 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', k: 'dir', label: 'Direction', opts: [['asc', 'A–Z'], ['desc', 'Z–A']] },
         { t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all' },
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space },
-        { t: 'pick', c: 'align-items', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['stretch', 'Fill']] },
+        /* Baseline is here because the header templates use it — text beside text in a bar
+           is read on the baseline, not on the box. Without the option the control had no
+           button lit for a row it was looking at, and touching any other one threw the
+           value away with no way back through the UI. Same defect as a unit control whose
+           list omits the stored unit. */
+        { t: 'pick', c: 'align-items', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['baseline', 'Base'], ['stretch', 'Fill']] },
         { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, opts: [['wrap', 'Wrap'], ['nowrap', 'No wrap']] }
       ],
       style: []
@@ -443,7 +458,12 @@ const DEF: Record<string, WidgetDef> = {
     label: 'Nav menu', icon: 'nav', level: 4,
     make: () => ({
       props: {
-        items: [{ label: 'Work', href: '#work' }, { label: 'Pricing', href: 'pricing.html' }, { label: 'Contact', href: '#contact' }],
+        /* All three point at the home page, and none of them used to resolve: `#work` and
+           `#contact` are anchors nothing defines and `pricing.html` is a page a new project
+           does not have, so dropping a Nav into a fresh site opened the review on three
+           errors the author had not caused. Repeated destinations read as placeholders; a
+           dead link reads as working markup. */
+        items: [{ label: 'Work', href: HOME }, { label: 'About', href: HOME }, { label: 'Contact', href: HOME }],
         collapse: 'mobile', aria: 'Main'
       },
       css: {
@@ -1626,6 +1646,27 @@ function contrast(fg: string, bg: string) {
   const l1 = lum(a), l2 = lum(b);
   return (Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05);
 }
+/* `effective` needs an ancestor chain, which the review already has because it walks the
+   tree building one. Anything asking about a single node by id does not, and rebuilding the
+   walk at each call site is how two answers to the same question start to disagree — so the
+   chain is assembled here once. Root first, the node's own parent last, which is the order
+   `effective` reads it in. */
+function chainTo(id: string): PcNode[] {
+  const up: PcNode[] = [];
+  for (let pid = parentOf(id); pid; pid = parentOf(pid)) {
+    const h = locate(pid);
+    if (!h) break;
+    up.push(h.node);
+  }
+  return up.reverse();
+}
+/** What a property actually resolves to for one node: its own value, then its classes, its
+    text style, then inherited from above. Empty when nothing in the chain says. */
+const effectiveAt = (id: string, prop: string) => {
+  const h = locate(id);
+  return h ? effective(h.node, prop, chainTo(id)) : '';
+};
+
 /* the effective value of a css prop, following text styles then ancestors */
 function effective(node: PcNode, prop: string, chain: PcNode[]) {
   const own = (node.css.d || {})[prop];
@@ -3261,15 +3302,14 @@ const T_BAR = (tag: string, pad: string, css?: any, kids?: any) => N('section', 
 const T_MARK = (text: string, ink?: string) => T_H(text, '', sized('19px', {
   'font-weight': '600', 'letter-spacing': '-.03em', color: ink || cvar('ink'), 'margin-bottom': '0px'
 }), 'div');
-/* Every link in a region template points at `index.html`, the one page a project is
-   guaranteed to have. The nav widget's own defaults are `#work` and `#contact`, which are
-   dead the moment a header is dropped into a fresh project — and an empty href is worse,
-   because the export silently becomes `href="#"` while the review stays quiet about it.
-   Repeated destinations are visibly placeholders; a dead link looks like working markup. */
-const HOME = 'index.html';
-const T_NAV = (css?: any) => N('nav', {
-  items: [{ label: 'Work', href: HOME }, { label: 'About', href: HOME }, { label: 'Contact', href: HOME }]
-}, css || {});
+/* Every link in a region template points at HOME for the same reason the Nav widget's own
+   default does, and an empty href is worse than a repeated one: the export silently becomes
+   `href="#"` while the review stays quiet about it.
+
+   No items here any more. This used to restate the menu because the widget's default was
+   three dead links; now that the default resolves, restating it would be a second copy to
+   drift from the first. */
+const T_NAV = (css?: any) => N('nav', {}, css || {});
 const T_LINKS = (rows: [string, string][], css?: any) =>
   T_T('<p>' + rows.map(([label, href]) => `<a href="${href}">${label}</a>`).join('<br>') + '</p>', 'small', css);
 /* Sticky is what a header is for, and the z-index has to clear the canvas overlays. */
@@ -4701,5 +4741,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

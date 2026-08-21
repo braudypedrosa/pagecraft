@@ -138,8 +138,17 @@ function ColorCtl({ n, c }: P) {
       </button>
       {pop ? (
         /* picking a literal breaks any token link, which is why this writes through the
-           same path as typing a hex rather than a special one */
-        <ColorPop start={lit} anchor={pop}
+           same path as typing a hex rather than a special one.
+
+           `start` falls back to what the property actually resolves to, so opening the
+           picker on a field reading `inherit` begins at the colour on screen rather than at
+           black. Nothing is written until you move something — this only decides where the
+           pointer starts.
+
+           Through `resolveColor`, because what it inherits is usually a token reference and
+           `var(--c-muted)` is not a colour any parser can read — without it the fallback
+           landed back on black, which is the thing it was meant to fix. */
+        <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} anchor={pop}
           onLive={w.live}
           onDone={val => { w.hard(val); }}
           onClose={() => { w.done(); setPop(null); if (C.isRef(cur())) repaint('right'); }} />

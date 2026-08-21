@@ -37,52 +37,6 @@ const FONT_SLOT = '<!--PAGECRAFT-FONTS-->';
 
 const rawScript = frag.slice(frag.indexOf('<script>') + 8, frag.lastIndexOf('</script>'));
 
-const EXPORTS = [
-  // primitives
-  'esc', 'safeUrl', 'uid', 'clone', 'slugify', 'dbounce',
-  // registry
-  'DEF', 'IC', 'ICONS', 'ICON_PATHS', 'ICON_NAMES', 'iconSvg', 'COMMON_STYLE', 'GF', 'stackFor', 'familyOf', 'isGoogle', 'usedFamilies', 'gfontsHref', 'gfontsLink', 'fontGroups', 'FONT_BASE', 'LAYOUTS', 'COUNTS', 'DEFAULT_COLS', 'BASE', 'makeFor', 'labelOf', 'iconOf', 'rowRatios', 'matchLayout',
-  // model + tree
-  'N', 'cols', 'BOX', 'state', 'doc', 'page', 'tree', 'dk', 'DEV_KEY', 'DEV_LABEL',
-  'DEV_W', 'canvasWidth', 'fitZoom', 'ZOOMS', 'zoomFor',
-  'locate', 'locateAny', 'eachNode', 'nameOf', 'lvl', 'holds', 'wrap',
-  'insert', 'moveNode', 'reid', 'pageMove', 'dupNode', 'delNode', 'applyCols', 'seed', 'blankProject',
-  'MIN_COL', 'BP_CHAIN', 'rowRatiosAt', 'resizeCols', 'applyColsAt',
-  // the selection set
-  'selIds', 'selNodes', 'multiOn', 'selSet', 'selToggle', 'selOrder', 'selRange', 'topMost',
-  'dupMany', 'delMany', 'moveMany', 'layerTarget', 'menuFor', 'ADV_SHARED', 'ctlKeys', 'fanTargets',
-  // design tokens
-  'RESERVED', 'TYPO_KEYS', 'TS_TYPES', 'tokenId', 'cvar', 'isRef', 'refId', 'colors', 'styles', 'classes', 'findColor', 'findStyle', 'findClass', 'nodeClasses',
-  'classAdd', 'classApply', 'classRemove', 'classFrom', 'classUsage', 'classDelete', 'classMove', 'resolveColor', 'defaultTokens', 'tokenVars', 'tokenCss', 'stripTypo', 'grabTypo', 'tsApply', 'tsUnlink', 'tsUpdateFrom', 'tsCreateFrom', 'tsUsage', 'styleDelete', 'colorDelete', 'colorAdd', 'colorUsage',
-  // clipboard + traversal
-  'clip', 'copyNode', 'pasteNode', 'dropTree',
-  'styleClip', 'copyStyles', 'pasteStyles', 'pasteStylesMany',
-  'TEXT_SLOTS', 'SLOT_LABEL', 'PAGE_TEXT', 'textSlots', 'slotGet', 'slotSet', 'slotName',
-  'outsideTags', 'searchText', 'slotHits', 'snippet', 'searchAll', 'searchCount', 'replaceAll',
-  'blocks', 'findBlock', 'blockRootType', 'blockSave', 'blockInsert', 'blockDelete',
-  // content collections
-  'FIELD_TYPES', 'collections', 'findCollection', 'findField', 'findItem', 'uniqueId',
-  'collectionAdd', 'collectionDelete', 'collectionRename',
-  'fieldAdd', 'fieldDelete', 'fieldMove', 'titleField', 'itemTitle', 'itemSlug',
-  'itemAdd', 'itemDelete', 'itemMove', 'itemSet', 'itemSetSlug',
-  'listItems', 'pageHref', 'exportTargets', 'contentJson', 'sitePlan',
-  'bindableKeys', 'COLL_CTL', 'bindGet', 'bindSet', 'srcSet', 'bindScope',
-  'BIND_CTL', 'bindSlots', 'guessBindings', 'applyBindings',
-  'previewIndex', 'previewItem', 'fieldValue', 'boundProps',
-  'blockInstances', 'blockUsage', 'blockPush',
-  'TEMPLATES', 'pageFromTemplate', 'PATTERNS', 'patternInsert', 'flatten', 'step', 'parentOf', 'firstChildOf', 'nudge', 'nudgeMany',
-  // history
-  'HOOKS', 'hist', 'edit', 'restore', 'undo', 'redo',
-  // export review
-  'LANGS', 'anchorsOf', 'parseLink', 'buildLink',
-  'lint', 'lintCounts', 'sitemapXml', 'robotsTxt', 'contrast', 'hex2rgb', 'effective',
-  // storage contract
-  'SCHEMA', 'migrate',
-  // rendering + export
-  'PH', 'MQ', 'decl', 'selOf', 'PFX', 'widgetSlug', 'nodeClass', 'autoId', 'domIdOf', 'bucket', 'nodeCss', 'treeCss', 'baseCss', 'navCollapse',
-  'vid', 'vidSrc', 'vidPoster', 'embedUrl', 'canFacade', 'SEC_TAGS', 'FACADE_JS', 'LB_JS', 'para', 'stripScripts', 'renderNode', 'renderList', 'tidy', 'NAV_JS', 'buildPage'
-];
-
 /* ---- 0b. the core comes from TypeScript now -----------------------------
    app/src/core/ is the source of truth. The legacy single-file build compiles it
    back in, so the port never leaves two copies of four thousand lines drifting
@@ -100,7 +54,7 @@ const UI_TS = join(here, 'app', 'src', 'ui', 'index.tsx');
 
    Three approaches, and the reasons the first two lost:
      - an IIFE with `var x = __PC.x` bindings died on `svg is not defined`, because
-       the binding list came from EXPORTS, which is the *test* surface rather than
+       the binding list was hand-written and covered the *test* surface rather than
        everything the UI touches.
      - a plain type-strip worked while the core was one file, but cannot follow an
        `import` — and the whole point now is to split it into modules.
@@ -120,8 +74,8 @@ const { coreBundle, coreObject } = (() => {
   /* The cut export block, turned into an object rather than thrown away.
      The sealed UI bundle cannot see the core by bare name — that is the whole point of
      sealing it — so it has to be handed one object. Hand-listing 265 names was the
-     first idea and it is the EXPORTS mistake again: a second list to drift from the
-     first. This is the first list, reshaped. `export { a, b };` becomes
+     first idea, and a hand-written list is exactly what went stale before: a second
+     copy to drift from the first. This is the first list, reshaped. `export { a, b };` becomes
      `var __CORE = { a, b };` and nothing can fall out of step.
 
      A rename would break the shorthand, so it fails loudly instead of silently

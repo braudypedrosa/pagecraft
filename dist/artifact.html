@@ -1212,6 +1212,7 @@ var dbounce = (fn, ms) => {
     t = setTimeout(() => fn(...a), ms);
   };
 };
+var HOME = "index.html";
 var BOX = (t, r, b, l) => ({ "padding-top": t, "padding-right": r, "padding-bottom": b, "padding-left": l });
 var U = {
   size: ["px", "rem", "em", "vw"],
@@ -1381,7 +1382,12 @@ var DEF = {
     controls: {
       content: [
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
-        { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["stretch", "Fill"]] },
+        /* Baseline is here because the header templates use it — text beside text in a bar
+           is read on the baseline, not on the box. Without the option the control had no
+           button lit for a row it was looking at, and touching any other one threw the
+           value away with no way back through the UI. Same defect as a unit control whose
+           list omits the stored unit. */
+        { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["baseline", "Base"], ["stretch", "Fill"]] },
         { t: "select", c: "justify-content", label: "Horizontal distribute", r: 1, opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
         { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] },
         { t: "cols", label: "Columns" }
@@ -1416,7 +1422,12 @@ var DEF = {
         { t: "pick", k: "dir", label: "Direction", opts: [["asc", "A\u2013Z"], ["desc", "Z\u2013A"]] },
         { t: "unit", k: "limit", label: "Show at most", units: [""], ph: "all" },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
-        { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["stretch", "Fill"]] },
+        /* Baseline is here because the header templates use it — text beside text in a bar
+           is read on the baseline, not on the box. Without the option the control had no
+           button lit for a row it was looking at, and touching any other one threw the
+           value away with no way back through the UI. Same defect as a unit control whose
+           list omits the stored unit. */
+        { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["baseline", "Base"], ["stretch", "Fill"]] },
         { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] }
       ],
       style: []
@@ -1687,7 +1698,12 @@ var DEF = {
     level: 4,
     make: () => ({
       props: {
-        items: [{ label: "Work", href: "#work" }, { label: "Pricing", href: "pricing.html" }, { label: "Contact", href: "#contact" }],
+        /* All three point at the home page, and none of them used to resolve: `#work` and
+           `#contact` are anchors nothing defines and `pricing.html` is a page a new project
+           does not have, so dropping a Nav into a fresh site opened the review on three
+           errors the author had not caused. Repeated destinations read as placeholders; a
+           dead link reads as working markup. */
+        items: [{ label: "Work", href: HOME }, { label: "About", href: HOME }, { label: "Contact", href: HOME }],
         collapse: "mobile",
         aria: "Main"
       },
@@ -2789,6 +2805,19 @@ function contrast(fg, bg) {
   const l1 = lum(a), l2 = lum(b);
   return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 }
+function chainTo(id) {
+  const up = [];
+  for (let pid = parentOf(id); pid; pid = parentOf(pid)) {
+    const h = locate(pid);
+    if (!h) break;
+    up.push(h.node);
+  }
+  return up.reverse();
+}
+var effectiveAt = (id, prop) => {
+  const h = locate(id);
+  return h ? effective(h.node, prop, chainTo(id)) : "";
+};
 function effective(node, prop, chain) {
   const own = (node.css.d || {})[prop];
   if (own) return own;
@@ -4448,10 +4477,7 @@ var T_MARK = (text, ink) => T_H(text, "", sized("19px", {
   color: ink || cvar("ink"),
   "margin-bottom": "0px"
 }), "div");
-var HOME = "index.html";
-var T_NAV = (css) => N("nav", {
-  items: [{ label: "Work", href: HOME }, { label: "About", href: HOME }, { label: "Contact", href: HOME }]
-}, css || {});
+var T_NAV = (css) => N("nav", {}, css || {});
 var T_LINKS = (rows, css) => T_T("<p>" + rows.map(([label, href]) => `<a href="${href}">${label}</a>`).join("<br>") + "</p>", "small", css);
 var STICKY = { position: "sticky", top: "0px", "z-index": "50" };
 var BASELINE = { "align-items": "baseline" };
@@ -5824,6 +5850,7 @@ var __CORE = {
   buildPage,
   canFacade,
   canvasWidth,
+  chainTo,
   classAdd,
   classApply,
   classDelete,
@@ -5865,6 +5892,7 @@ var __CORE = {
   eachNode,
   edit,
   effective,
+  effectiveAt,
   embedUrl,
   ensureTokens,
   esc,
@@ -7886,11 +7914,20 @@ var PC_UI = (() => {
         ),
         pop ? (
           /* picking a literal breaks any token link, which is why this writes through the
-             same path as typing a hex rather than a special one */
+                     same path as typing a hex rather than a special one.
+          
+                     `start` falls back to what the property actually resolves to, so opening the
+                     picker on a field reading `inherit` begins at the colour on screen rather than at
+                     black. Nothing is written until you move something — this only decides where the
+                     pointer starts.
+          
+                     Through `resolveColor`, because what it inherits is usually a token reference and
+                     `var(--c-muted)` is not a colour any parser can read — without it the fallback
+                     landed back on black, which is the thing it was meant to fix. */
           /* @__PURE__ */ u2(
             ColorPop,
             {
-              start: lit,
+              start: lit || (c3.c ? C2.resolveColor(C2.effectiveAt(n2.id, c3.c)) : ""),
               anchor: pop,
               onLive: w3.live,
               onDone: (val) => {

@@ -337,6 +337,49 @@ test('video URLs resolve to the right embed', () => {
    down both: the accepted set must not have widened (it feeds `contrast`, where a
    wrong answer is worse than no answer) and alpha must survive a round trip. */
 
+test('effectiveAt follows the same order the review does, without a walk at the call site', () => {
+  blank();
+  const sec = insert('section', null, 0);
+  const h = at(sec.id);
+  /* section > row > column > heading, which insert() builds when given a leaf */
+  const head = insert('heading', null, 1);
+  const col = holderOf(head.id);
+  a.equal(col.type, 'column');
+
+  /* nothing anywhere: empty, not a guess. A fresh heading carries ts:'title', and that
+     style sets a colour — so the text style has to go too for there to be nothing. */
+  delete head.css.d['color'];
+  head.props.ts = '';
+  a.equal(C.effectiveAt(head.id, 'color'), '');
+
+  /* inherited from an ancestor */
+  const row = holderOf(col.id);
+  row.css.d['color'] = 'rgb(1, 2, 3)';
+  a.equal(C.effectiveAt(head.id, 'color'), 'rgb(1, 2, 3)');
+
+  /* a text style beats an ancestor */
+  head.props.ts = 'title';
+  a.equal(C.effectiveAt(head.id, 'color'), style('title').css.d['color']);
+
+  /* the node's own value beats everything */
+  head.css.d['color'] = '#abcdef';
+  a.equal(C.effectiveAt(head.id, 'color'), '#abcdef');
+
+  /* and it agrees with effective() given a hand-built chain, which is the point of it */
+  a.equal(C.effectiveAt(head.id, 'color'), C.effective(head, 'color', C.chainTo(head.id)));
+  a.equal(C.effectiveAt('no-such-node', 'color'), '');
+  a.ok(h);
+});
+
+test('chainTo is root-first, which is the order effective() reads', () => {
+  blank();
+  const head = insert('heading', null, 0);
+  const chain = C.chainTo(head.id);
+  a.deepEqual(chain.map(n => n.type), ['section', 'row', 'column'],
+    'outermost first, the node’s own parent last');
+  a.deepEqual(C.chainTo(chain[0].id), [], 'a top-level node has nothing above it');
+});
+
 test('parseColor takes every hex length that is a colour, and refuses the ones that are not', () => {
   a.deepEqual(C.parseColor('#abc'), { r: 170, g: 187, b: 204, a: 1 });
   a.deepEqual(C.parseColor('#aabbcc'), { r: 170, g: 187, b: 204, a: 1 });
