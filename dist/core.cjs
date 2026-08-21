@@ -3449,7 +3449,7 @@ var PATTERNS = [
       cols(
         2,
         [[T_MARK("Your name")], [T_NAV()]],
-        { d: { gap: "16px", "align-items": "center", "flex-wrap": "nowrap" }, m: { gap: "20px" } }
+        { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, m: { gap: "20px", ...BURGER } }
       )
     ])
   },
@@ -3465,7 +3465,11 @@ var PATTERNS = [
       ...HAIRLINE("bottom"),
       ...STICKY
     }, [
-      cols(3, [
+      /* The row is baseline-aligned for the wordmark and the menu, and the button's column
+         opts back out to centre — a padded box wants its box centred, while text beside
+         text wants a shared baseline. Both in one flex line, because `align-self` on an
+         item beats the container's `align-items`. */
+      btnCentred(cols(3, [
         [T_MARK("Your name")],
         /* Centred on desktop, but pushed right below the burger threshold so the collapsed
            menu and the action read as one group at the right edge rather than leaving the
@@ -3484,7 +3488,7 @@ var PATTERNS = [
           },
           m: { ...BOX("8px", "12px", "8px", "12px"), "font-size": "14px" }
         })]
-      ], { d: { gap: "16px", "align-items": "center", "flex-wrap": "nowrap" }, m: { gap: "14px" } })
+      ], { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, m: { gap: "14px", ...BURGER } }))
     ])
   },
   {
@@ -3516,7 +3520,7 @@ var PATTERNS = [
       cols(2, [
         [T_MARK("Your name", cvar("surface"))],
         [T_NAV({ d: { color: cvar("muted-i"), "--nav-hover": cvar("surface"), "--nav-panel": cvar("ink") } })]
-      ], { d: { gap: "16px", "align-items": "center", "flex-wrap": "nowrap" }, m: { gap: "20px" } })
+      ], { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, m: { gap: "20px", ...BURGER } })
     ])
   },
   /* ---- footers ------------------------------------------------------------
@@ -3563,7 +3567,7 @@ var PATTERNS = [
       cols(2, [
         [T_MARK("Your name")],
         [T_T("<p>&copy; 2026 Your name</p>", "small", { d: { "text-align": "right" }, m: { "text-align": "left" } })]
-      ], { d: { gap: "16px", "align-items": "center" } })
+      ], { d: { gap: "16px", ...BASELINE } })
     ])
   },
   {
@@ -3666,6 +3670,13 @@ var T_NAV = (css) => N("nav", {
 }, css || {});
 var T_LINKS = (rows, css) => T_T("<p>" + rows.map(([label, href]) => `<a href="${href}">${label}</a>`).join("<br>") + "</p>", "small", css);
 var STICKY = { position: "sticky", top: "0px", "z-index": "50" };
+var BASELINE = { "align-items": "baseline" };
+var BURGER = { "align-items": "center" };
+var btnCentred = (row) => {
+  const last = row.children[row.children.length - 1];
+  if (last) last.css.d["align-self"] = "center";
+  return row;
+};
 var HAIRLINE = (side, colour) => ({
   [`border-${side}-width`]: "1px",
   [`border-${side}-style`]: "solid",

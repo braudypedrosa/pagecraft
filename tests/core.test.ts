@@ -1942,6 +1942,48 @@ test('every region pattern is scoped, tagged and offered only in its region', ()
   });
 });
 
+test('a bar aligns its text on the baseline, and re-centres once the menu is an icon', () => {
+  /* `align-items:center` centred the line boxes exactly — both at 33.2px, measured — and
+     still read as wrong: a 19px wordmark and a 15px menu centred in their own boxes end up
+     with baselines 2px apart, and the eye follows the baseline. Equal line-heights do not
+     help, because the offset comes from the ascent scaling with the font size rather than
+     from the leading. Baseline alignment brings it to 0.2px.
+
+     There is no layout in this environment, so what is asserted is the structure that
+     produces it. The numbers above came from measuring the real thing in a browser. */
+  const rowOf = (id: string) => {
+    fresh();
+    C.state.ui.mode = (C.PATTERNS.find(p => p.id === id)!.scope || 'page') as any;
+    const into = C.state.ui.mode === 'header' ? C.state.header : C.state.footer;
+    into.length = 0;
+    return must(patternInsert(id, null, 0), id).children[0];
+  };
+
+  ['header-bar', 'header-cta', 'header-ink'].forEach(id => {
+    const row = rowOf(id);
+    a.equal(row.css.d['align-items'], 'baseline', id + ': text beside text shares a baseline');
+    /* once the menu collapses to a burger there is no baseline worth sharing, and an icon
+       reads as centred or not — this left it 4.3px low at 414px. `m` is the same
+       max-width:767px that `collapse:'mobile'` emits into, so the switch lands exactly
+       where the menu stops being words. */
+    a.equal(row.css.m['align-items'], 'center', id + ': centred once the menu is a burger');
+    a.equal(row.css.d['flex-wrap'], 'nowrap', id + ': a header must not reflow to two lines');
+  });
+
+  /* a padded box among the text wants its box centred, not its baseline shared */
+  const cta = rowOf('header-cta');
+  const last = cta.children[cta.children.length - 1];
+  a.equal(last.css.d['align-self'], 'center', 'the button column opts back out');
+  a.equal(must(last.children[0], 'button').type, 'button');
+
+  /* the slim footer has the same 19px-against-14px pairing and no menu, so it stays
+     baseline at every width — and it never declared nowrap, so it must not have gained one */
+  const slim = rowOf('footer-slim');
+  a.equal(slim.css.d['align-items'], 'baseline');
+  a.equal(slim.css.d['flex-wrap'], undefined, 'the row base class already wraps; do not override it');
+  a.equal(slim.css.m['align-items'], undefined, 'nothing collapses, so nothing to re-centre');
+});
+
 test('a page pattern is never a landmark, so the two sets stay disjoint', () => {
   /* `scope` is what the Add panel routes on: every pattern is offered from every region and
      the click goes where the scope says. So the property that matters is that the sets do

@@ -3082,7 +3082,7 @@ const PATTERNS: Pattern[] = [
       'background-color': cvar('bg'), ...HAIRLINE('bottom'), ...STICKY
     }, [
       cols(2, [[T_MARK('Your name')], [T_NAV()]],
-        { d: { gap: '16px', 'align-items': 'center', 'flex-wrap': 'nowrap' }, m: { gap: '20px' } })
+        { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '20px', ...BURGER } })
     ])
   },
   {
@@ -3092,7 +3092,11 @@ const PATTERNS: Pattern[] = [
     build: () => T_BAR('header', '16px', {
       'background-color': cvar('bg'), ...HAIRLINE('bottom'), ...STICKY
     }, [
-      cols(3, [
+      /* The row is baseline-aligned for the wordmark and the menu, and the button's column
+         opts back out to centre — a padded box wants its box centred, while text beside
+         text wants a shared baseline. Both in one flex line, because `align-self` on an
+         item beats the container's `align-items`. */
+      btnCentred(cols(3, [
         [T_MARK('Your name')],
         /* Centred on desktop, but pushed right below the burger threshold so the collapsed
            menu and the action read as one group at the right edge rather than leaving the
@@ -3107,7 +3111,7 @@ const PATTERNS: Pattern[] = [
           },
           m: { ...BOX('8px', '12px', '8px', '12px'), 'font-size': '14px' }
         })]
-      ], { d: { gap: '16px', 'align-items': 'center', 'flex-wrap': 'nowrap' }, m: { gap: '14px' } })
+      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '14px', ...BURGER } }))
     ])
   },
   {
@@ -3131,7 +3135,7 @@ const PATTERNS: Pattern[] = [
       cols(2, [
         [T_MARK('Your name', cvar('surface'))],
         [T_NAV({ d: { color: cvar('muted-i'), '--nav-hover': cvar('surface'), '--nav-panel': cvar('ink') } })]
-      ], { d: { gap: '16px', 'align-items': 'center', 'flex-wrap': 'nowrap' }, m: { gap: '20px' } })
+      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '20px', ...BURGER } })
     ])
   },
 
@@ -3167,7 +3171,7 @@ const PATTERNS: Pattern[] = [
       cols(2, [
         [T_MARK('Your name')],
         [T_T('<p>&copy; 2026 Your name</p>', 'small', { d: { 'text-align': 'right' }, m: { 'text-align': 'left' } })]
-      ], { d: { gap: '16px', 'align-items': 'center' } })
+      ], { d: { gap: '16px', ...BASELINE } })
     ])
   },
   {
@@ -3270,6 +3274,32 @@ const T_LINKS = (rows: [string, string][], css?: any) =>
   T_T('<p>' + rows.map(([label, href]) => `<a href="${href}">${label}</a>`).join('<br>') + '</p>', 'small', css);
 /* Sticky is what a header is for, and the z-index has to clear the canvas overlays. */
 const STICKY = { position: 'sticky', top: '0px', 'z-index': '50' };
+/* Text beside text in a bar aligns on the baseline, not on the box.
+   `align-items:center` centres the line boxes exactly — measured, both at 33.2px — and
+   still reads as wrong, because a 19px wordmark and a 15px menu centred in their own boxes
+   end up with baselines 2px apart and the eye follows the baseline. Equal line-heights do
+   not fix it: the offset comes from the ascent scaling with the font size, not from the
+   leading, and setting both to line-height 1 leaves the same 2px. Baseline alignment brings
+   it to 0.2px.
+
+   A box among the text still wants its box centred — see the button in header-cta, which
+   overrides this on its own column.
+
+   And it only holds while the menu *is* text. Once it collapses to a burger there is no
+   baseline worth sharing and an icon reads as centred or not: baseline alignment left the
+   burger 4.3px low at 414px. `BURGER` goes on `m`, which is the same `max-width:767px` the
+   default `collapse:'mobile'` emits into — so the switch happens exactly where the menu
+   stops being words. A nav set to collapse at tablet would want this on `t` as well. */
+const BASELINE = { 'align-items': 'baseline' };
+const BURGER = { 'align-items': 'center' };
+/* Opt one column back out of the row's baseline alignment. `cols()` only gives each
+   column its flex-grow, so reaching in afterwards is how a per-column value gets set —
+   the same move `carded()` makes. */
+const btnCentred = (row: any) => {
+  const last = row.children[row.children.length - 1];
+  if (last) last.css.d['align-self'] = 'center';
+  return row;
+};
 const HAIRLINE = (side: string, colour?: string) => ({
   [`border-${side}-width`]: '1px', [`border-${side}-style`]: 'solid',
   [`border-${side}-color`]: colour || cvar('line')
