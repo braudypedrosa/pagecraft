@@ -452,9 +452,17 @@ Three things you can do with one:
   to *see* what is bound to what.
 - **Repeat with a Collection list.** Drop one from *Add → Layout*, put a single Column inside, and
   that card renders once per item — with sort, direction and a limit.
+- **Show only some of them.** *Only show items where* takes a field, a test and a value, so one
+  card layout serves a category page, a tag page, or "just the ones with a photo". The tests are
+  *is*, *is not*, *contains*, *has any value* and *is empty*; numbers compare as numbers and text
+  ignores case, since the value usually comes from a URL.
 - **Generate a page per item.** Mark a page as a collection's detail template in *Pages*, and the
   export writes `<collection>/<slug>.html` for every item, each with its own title and meta
   description taken from fields you choose. A card can link to *this item's own page*.
+
+Tick **Draft** on an item to hold it back. It stays in the CMS and stays editable, but it gets no
+page of its own, appears in no list, and is left out of `content.json` and the sitemap — so a
+half-written post can live beside the published ones without reaching the site.
 
 Everything resolves at export: what ships is plain static HTML with the content baked in, so it
 needs no JavaScript and crawlers see all of it. **content.json** in the export dialog writes the
