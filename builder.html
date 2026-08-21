@@ -200,7 +200,14 @@ body.preview .left,body.preview .right{display:none}
 .pane[hidden]{display:none}
 
 /* ---- inspector tabs ---------------------------------------------------- */
-.tabs{--tabpad:10px;display:flex;flex:0 0 44px;border-bottom:1px solid var(--line);padding:0 6px;gap:2px}
+/* The row's padding is the panel inset less the label's own, so the first label lines up
+   with the content below it — `.palette` and `.gb` are both on 14px. It was 6px, which put
+   the label 2px to the right of everything it heads. */
+.tabs{
+  --tabpad:10px;--panelpad:14px;
+  display:flex;flex:0 0 44px;gap:2px;
+  border-bottom:1px solid var(--line);padding:0 calc(var(--panelpad) - var(--tabpad));
+}
 .tabs button{
   padding:0 var(--tabpad);font-size:13.5px;font-weight:500;color:var(--text-3);
   border-bottom:2px solid transparent;margin-bottom:-1px;
@@ -237,8 +244,10 @@ body.preview .left,body.preview .right{display:none}
 .brow .bn{flex:1;min-width:0;overflow:hidden}
 .brow .bn b{display:block;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brow .bn small{display:block;font-family:var(--label);font-size:11px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.atabs{height:42px;flex:none;padding:0 4px}
-.atabs button{font-size:12.5px}
+/* The Add panel scrolls as a block, so `flex` cannot give the row its height — the same
+   reason `.tabs.flush` states its own. The height, inset and label size it used to override
+   were a second opinion about how big a tab is; there is only the one kind. */
+.atabs{flex:none;height:44px}
 .brow .bx{width:22px;height:22px;border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;opacity:0}
 .brow:hover .bx{opacity:1}
 .brow .bx:hover{color:var(--danger);background:var(--danger-soft)}
