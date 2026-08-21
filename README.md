@@ -589,3 +589,9 @@ same project in two tabs and Pagecraft notices, then asks which copy to keep.
 
 Current Safari, Firefox and Chrome, on desktop. Pagecraft is a desktop tool — building a
 page needs the room — but everything it exports is responsive and works everywhere.
+
+## Fonts
+
+Pagecraft's interface uses Manrope and DM Sans, both embedded in the file so it renders
+correctly offline. They are licensed under the SIL Open Font License; the full licences are
+in `brand/licenses/`.
