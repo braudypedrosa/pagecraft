@@ -31,6 +31,7 @@ __export(index_exports, {
   BP_CHAIN: () => BP_CHAIN,
   COLL_CTL: () => COLL_CTL,
   COMMON_STYLE: () => COMMON_STYLE,
+  CONTENT_TYPES: () => CONTENT_TYPES,
   COUNTS: () => COUNTS,
   CRC_T: () => CRC_T,
   DEF: () => DEF,
@@ -182,6 +183,8 @@ __export(index_exports, {
   gfontsLink: () => gfontsLink,
   grabTypo: () => grabTypo,
   guessBindings: () => guessBindings,
+  hasBackdrop: () => hasBackdrop,
+  hasBorder: () => hasBorder,
   hex2rgb: () => hex2rgb,
   hist: () => hist,
   holds: () => holds,
@@ -308,7 +311,9 @@ __export(index_exports, {
   styleAdd: () => styleAdd,
   styleClip: () => styleClip,
   styleDelete: () => styleDelete,
+  styleSeen: () => styleSeen,
   styles: () => styles,
+  takesBackdrop: () => takesBackdrop,
   textSlots: () => textSlots,
   tgtIsClass: () => tgtIsClass,
   tgtObj: () => tgtObj,
@@ -2050,29 +2055,49 @@ var DEF = {
     }
   }
 };
+function styleSeen(n, prop) {
+  const bags = [];
+  const push = (o) => {
+    if (!o) return;
+    ["d", "t", "m"].forEach((b) => bags.push(o.css && o.css[b]));
+    const st = o.st || {};
+    Object.keys(st).forEach((k) => ["d", "t", "m"].forEach((b) => bags.push(st[k] && st[k][b])));
+  };
+  push(tgtObj(n));
+  nodeClasses(n).forEach((c) => push(c));
+  for (const bag of bags) if (bag && bag[prop]) return String(bag[prop]);
+  return "";
+}
+var CONTENT_TYPES = ["heading", "text", "quote", "button", "icon", "image", "gallery", "video", "embed"];
+var takesBackdrop = (n) => !CONTENT_TYPES.includes(n.type);
+var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
+var hasBorder = (n) => {
+  const v = styleSeen(n, "border-style");
+  return !!v && v !== "none";
+};
 var COMMON_STYLE = [
   { g: "Spacing", items: [{ t: "box", c: "padding", label: "Padding", r: 1 }, { t: "box", c: "margin", label: "Margin", r: 1, neg: 1 }] },
   {
     g: "Background",
     items: [
       { t: "color", c: "background-color", label: "Colour" },
-      { t: "img", c: "background-image", label: "Image", bg: 1 },
-      { t: "select", c: "background-size", label: "Size", opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
+      { t: "img", c: "background-image", label: "Image", bg: 1, when: takesBackdrop },
+      { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
-      { t: "pick", c: "background-position", label: "Position", opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-      { t: "select", c: "background-repeat", label: "Repeat", opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
+      { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
+      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
       { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
     ]
   },
   {
     g: "Border & shadow",
     items: [
-      { t: "unit", c: "border-width", label: "Border width", units: U.border },
       { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
-      { t: "color", c: "border-color", label: "Border colour" },
+      { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
+      { t: "color", c: "border-color", label: "Border colour", when: hasBorder },
       { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
       { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
@@ -6316,6 +6341,7 @@ ${ANIM_JS}
   BP_CHAIN,
   COLL_CTL,
   COMMON_STYLE,
+  CONTENT_TYPES,
   COUNTS,
   CRC_T,
   DEF,
@@ -6467,6 +6493,8 @@ ${ANIM_JS}
   gfontsLink,
   grabTypo,
   guessBindings,
+  hasBackdrop,
+  hasBorder,
   hex2rgb,
   hist,
   holds,
@@ -6593,7 +6621,9 @@ ${ANIM_JS}
   styleAdd,
   styleClip,
   styleDelete,
+  styleSeen,
   styles,
+  takesBackdrop,
   textSlots,
   tgtIsClass,
   tgtObj,

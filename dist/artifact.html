@@ -2876,29 +2876,49 @@ var DEF = {
     }
   }
 };
+function styleSeen(n, prop) {
+  const bags = [];
+  const push = (o) => {
+    if (!o) return;
+    ["d", "t", "m"].forEach((b) => bags.push(o.css && o.css[b]));
+    const st = o.st || {};
+    Object.keys(st).forEach((k) => ["d", "t", "m"].forEach((b) => bags.push(st[k] && st[k][b])));
+  };
+  push(tgtObj(n));
+  nodeClasses(n).forEach((c) => push(c));
+  for (const bag of bags) if (bag && bag[prop]) return String(bag[prop]);
+  return "";
+}
+var CONTENT_TYPES = ["heading", "text", "quote", "button", "icon", "image", "gallery", "video", "embed"];
+var takesBackdrop = (n) => !CONTENT_TYPES.includes(n.type);
+var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
+var hasBorder = (n) => {
+  const v = styleSeen(n, "border-style");
+  return !!v && v !== "none";
+};
 var COMMON_STYLE = [
   { g: "Spacing", items: [{ t: "box", c: "padding", label: "Padding", r: 1 }, { t: "box", c: "margin", label: "Margin", r: 1, neg: 1 }] },
   {
     g: "Background",
     items: [
       { t: "color", c: "background-color", label: "Colour" },
-      { t: "img", c: "background-image", label: "Image", bg: 1 },
-      { t: "select", c: "background-size", label: "Size", opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
+      { t: "img", c: "background-image", label: "Image", bg: 1, when: takesBackdrop },
+      { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
-      { t: "pick", c: "background-position", label: "Position", opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-      { t: "select", c: "background-repeat", label: "Repeat", opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
+      { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
+      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
       { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
     ]
   },
   {
     g: "Border & shadow",
     items: [
-      { t: "unit", c: "border-width", label: "Border width", units: U.border },
       { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
-      { t: "color", c: "border-color", label: "Border colour" },
+      { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
+      { t: "color", c: "border-color", label: "Border colour", when: hasBorder },
       { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
       { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
@@ -7142,6 +7162,7 @@ var __CORE = {
   BP_CHAIN,
   COLL_CTL,
   COMMON_STYLE,
+  CONTENT_TYPES,
   COUNTS,
   CRC_T,
   DEF,
@@ -7293,6 +7314,8 @@ var __CORE = {
   gfontsLink,
   grabTypo,
   guessBindings,
+  hasBackdrop,
+  hasBorder,
   hex2rgb,
   hist,
   holds,
@@ -7419,7 +7442,9 @@ var __CORE = {
   styleAdd,
   styleClip,
   styleDelete,
+  styleSeen,
   styles,
+  takesBackdrop,
   textSlots,
   tgtIsClass,
   tgtObj,
@@ -10098,6 +10123,8 @@ var PC_UI = (() => {
   function Group({ title, n: n2, items, gk }) {
     const key = gk || n2.type + ":" + title;
     const closed = C2.state.ui.open[key] === false;
+    const shown2 = items ? items.filter((c3) => !c3.when || c3.when(n2)) : null;
+    if (shown2 && !shown2.length) return null;
     return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
       /* @__PURE__ */ u2("div", { class: "gh", onClick: () => {
         C2.state.ui.open[key] = closed;
@@ -10107,7 +10134,7 @@ var PC_UI = (() => {
         " ",
         title
       ] }),
-      /* @__PURE__ */ u2("div", { class: "gb", children: items ? items.filter((c3) => !c3.when || c3.when(n2)).map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
+      /* @__PURE__ */ u2("div", { class: "gb", children: shown2 ? shown2.map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
     ] });
   }
   function Panel({ title, n: n2, gk, children }) {

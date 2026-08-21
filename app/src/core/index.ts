@@ -828,27 +828,73 @@ const DEF: Record<string, WidgetDef> = {
 /* Annotated rather than inferred: without it every `t` widens to `string`, so the
    inspector could not tell these apart from any other object and a typo in a kind name
    would reach the panel as a silently blank field. */
+/* ------------------------------------------------------- which controls apply
+
+   COMMON_STYLE is offered on every widget, which is how a heading came to carry the
+   same five background controls a section does. Two kinds of rule narrow it, and
+   `when` on the control is where both live.
+
+   Relevance — a background image belongs on the thing other things sit on, not on the
+   ones that are the content. Behind an image, a video or a glyph it sits behind an
+   opaque thing; behind a run of text it belongs on the box around the text, which is
+   the column that text is already in.
+
+   Dependency — where a background sits, whether it repeats and how it is sized say
+   nothing until there is one. A border's width and colour say nothing until it has a
+   style, because CSS defaults `border-style` to `none`: a width on its own renders
+   exactly nothing and gives no hint why. So the style comes first in the group now,
+   and the other two follow it.
+
+   Both hide a control, never a capability. The Advanced tab still takes any
+   declaration by hand, and a class can carry whatever it likes. */
+
+/** The first declared value for `prop` on the thing being styled — any breakpoint, any
+    state, then any class the node wears. Deliberately broad: a background set on
+    desktop still needs its position editable while the mobile breakpoint is showing,
+    and a border that only appears on hover still needs a width to appear with. */
+function styleSeen(n: PcNode, prop: string): string {
+  const bags: (Decls | undefined)[] = [];
+  const push = (o?: { css?: Css; st?: States }) => {
+    if (!o) return;
+    (['d', 't', 'm'] as Bp[]).forEach(b => bags.push(o.css && o.css[b]));
+    const st = o.st || {};
+    (Object.keys(st) as StateKey[]).forEach(k =>
+      (['d', 't', 'm'] as Bp[]).forEach(b => bags.push(st[k] && st[k]![b])));
+  };
+  push(tgtObj(n) as { css?: Css; st?: States });
+  nodeClasses(n).forEach(c => push(c as { css?: Css; st?: States }));
+  for (const bag of bags) if (bag && bag[prop]) return String(bag[prop]);
+  return '';
+}
+
+/** The widgets that are the content rather than a surface for it. */
+const CONTENT_TYPES = ['heading', 'text', 'quote', 'button', 'icon', 'image', 'gallery', 'video', 'embed'];
+const takesBackdrop = (n: PcNode) => !CONTENT_TYPES.includes(n.type);
+/** A gradient counts: it is a background image as far as size and position are concerned. */
+const hasBackdrop = (n: PcNode) => !!(styleSeen(n, 'background-image') || styleSeen(n, 'background'));
+const hasBorder = (n: PcNode) => { const v = styleSeen(n, 'border-style'); return !!v && v !== 'none'; };
+
 const COMMON_STYLE: { g: string; items: Control[] }[] = [
   { g: 'Spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
   {
     g: 'Background', items: [
       { t: 'color', c: 'background-color', label: 'Colour' },
-      { t: 'img', c: 'background-image', label: 'Image', bg: 1 },
-      { t: 'select', c: 'background-size', label: 'Size', opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
+      { t: 'img', c: 'background-image', label: 'Image', bg: 1, when: takesBackdrop },
+      { t: 'select', c: 'background-size', label: 'Size', when: hasBackdrop, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
-      { t: 'pick', c: 'background-position', label: 'Position', opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
-      { t: 'select', c: 'background-repeat', label: 'Repeat', opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] },
+      { t: 'pick', c: 'background-position', label: 'Position', when: hasBackdrop, opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
+      { t: 'select', c: 'background-repeat', label: 'Repeat', when: hasBackdrop, opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] },
       { t: 'text', c: 'background', label: 'Gradient / shorthand', ph: 'linear-gradient(...)' }
     ]
   },
   {
     g: 'Border & shadow', items: [
-      { t: 'unit', c: 'border-width', label: 'Border width', units: U.border },
       { t: 'select', c: 'border-style', label: 'Border style', opts: [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted'], ['none', 'None']] },
-      { t: 'color', c: 'border-color', label: 'Border colour' },
+      { t: 'unit', c: 'border-width', label: 'Border width', units: U.border, when: hasBorder },
+      { t: 'color', c: 'border-color', label: 'Border colour', when: hasBorder },
       { t: 'unit', c: 'border-radius', label: 'Radius', r: 1, units: U.radius },
       { t: 'opt', c: 'box-shadow', label: 'Shadow', opts: SHADOWS, ph: '0 20px 40px -12px rgba(17,19,17,.2)' }
     ]
@@ -5589,5 +5635,5 @@ ${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, CONTENT_TYPES, takesBackdrop, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

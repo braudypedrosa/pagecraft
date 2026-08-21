@@ -4163,6 +4163,79 @@ test('an accordion with no questions exports nothing but explains itself in the 
   a.match(C.renderNode(n, { edit: true }), /s-empty/);
 });
 
+/* ================================================ which controls apply
+   Every widget used to be offered every common style control, so a heading carried
+   the five background controls a section carries. */
+const commonCtl = (c: string) => {
+  for (const g of C.COMMON_STYLE) for (const it of g.items) if (it.c === c) return it;
+  throw new Error('no common control for ' + c);
+};
+const offered = (n: any, c: string) => { const it = commonCtl(c); return !it.when || it.when(n); };
+const one = (type: string) => { blank(); return insert(type, null, 0); };
+
+test('a background image is offered on what things sit on, not on what is the content', () => {
+  for (const t of ['section', 'row', 'column', 'spacer', 'divider', 'accordion', 'tabs', 'form', 'nav'])
+    a.equal(offered(one(t), 'background-image'), true, t + ' is a surface');
+  for (const t of ['heading', 'text', 'quote', 'button', 'icon', 'image', 'video', 'gallery', 'embed'])
+    a.equal(offered(one(t), 'background-image'), false, t + ' is the content');
+});
+
+test('a heading keeps the colour and the shorthand, so nothing is actually taken away', () => {
+  const h = one('heading');
+  a.equal(offered(h, 'background-color'), true, 'a highlight behind text is ordinary');
+  a.equal(offered(h, 'background'), true, 'and the shorthand takes a gradient');
+  a.equal(offered(h, 'padding'), true);
+  a.equal(offered(h, 'border-radius'), true);
+});
+
+test('size, position and repeat wait until there is a background to size', () => {
+  const sec = one('section');
+  for (const c of ['background-size', 'background-position', 'background-repeat'])
+    a.equal(offered(sec, c), false, c + ' has nothing to act on yet');
+  C.setCss(sec, 'background-image', 'url(a.jpg)');
+  for (const c of ['background-size', 'background-position', 'background-repeat'])
+    a.equal(offered(sec, c), true, c + ' follows the image');
+});
+
+test('a gradient counts as a background, since it is one', () => {
+  const sec = one('section');
+  C.setCss(sec, 'background', 'linear-gradient(#fff,#000)');
+  a.equal(offered(sec, 'background-position'), true);
+});
+
+test('a border width waits for a style, because a width alone renders nothing', () => {
+  const sec = one('section');
+  a.equal(offered(sec, 'border-style'), true, 'the gate is always there');
+  a.equal(offered(sec, 'border-width'), false);
+  a.equal(offered(sec, 'border-color'), false);
+  C.setCss(sec, 'border-style', 'solid');
+  a.equal(offered(sec, 'border-width'), true);
+  a.equal(offered(sec, 'border-color'), true);
+  C.setCss(sec, 'border-style', 'none');
+  a.equal(offered(sec, 'border-width'), false, '“none” is a border that will not draw');
+});
+
+test('the style group reads in the order it has to be filled in', () => {
+  const items = must(C.COMMON_STYLE.find((g: any) => g.g === 'Border & shadow'), 'the border group').items.map((i: any) => i.c);
+  a.ok(items.indexOf('border-style') < items.indexOf('border-width'), 'the gate comes first');
+  a.ok(items.indexOf('border-style') < items.indexOf('border-color'));
+});
+
+test('a declaration counts wherever it was made — another breakpoint, a state, a class', () => {
+  const sec = one('section');
+  sec.css.m['background-image'] = 'url(m.jpg)';
+  a.equal(offered(sec, 'background-position'), true, 'set on mobile, still editable on desktop');
+  blank();
+  const b = insert('section', null, 0);
+  b.st = { hover: { d: { 'border-style': 'dashed' }, t: {}, m: {} } };
+  a.equal(offered(b, 'border-width'), true, 'a border that only appears on hover still needs a width');
+  blank();
+  const c = insert('section', null, 0);
+  const id = C.classAdd('framed', { d: { 'border-style': 'solid' } });
+  C.classApply(c, id);
+  a.equal(offered(c, 'border-width'), true, 'the class it wears declared it');
+});
+
 /* ==================================================================== tabs
    The mirror image of the accordion: <details> works without JavaScript, a tab strip
    does not, so every panel is rendered and the script takes them away. */

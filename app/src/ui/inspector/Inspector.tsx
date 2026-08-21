@@ -20,16 +20,19 @@ import type { Control, Node as PcNode } from '../../core/types';
 function Group({ title, n, items, gk }: { title: string; n: PcNode; items?: Control[]; gk?: string; children?: any }) {
   const key = gk || (n.type + ':' + title);
   const closed = C.state.ui.open[key] === false;
+  /* `when` lets a control depend on the node: a background's position appears once
+     there is a background, the collection filter's operator once a field is chosen. */
+  const shown = items ? items.filter(c => !c.when || c.when(n)) : null;
+  /* A group whose every control is out of scope for this widget is not an empty group,
+     it is no group — a heading has no Background section to collapse. */
+  if (shown && !shown.length) return null;
   return (
     <div class={'group' + (closed ? ' closed' : '')}>
       <div class="gh" onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
         <Icon name="caret" size={10} /> {title}
       </div>
       <div class="gb">
-        {/* `when` lets a control depend on the node: the collection filter's operator and
-            value appear once a field is chosen and not before. */}
-        {items ? items.filter(c => !c.when || c.when(n))
-          .map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
+        {shown ? shown.map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
       </div>
     </div>
   );
