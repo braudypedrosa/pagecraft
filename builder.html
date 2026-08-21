@@ -1573,9 +1573,10 @@ function positionHud() {
         <button data-act="first" title="Move to the top (⌘⇧↑)">${svg('toTop', 12)}</button>
         <button data-act="last" title="Move to the bottom (⌘⇧↓)">${svg('toBottom', 12)}</button>` : ''}
       ${!many && d.edit ? `<button data-act="edit" title="Edit content">${svg('edit', 12)}</button>` : ''}
-      ${/* a bookmark, not a plus: a plus reads as "add one of these", and this is the
-             opposite — it takes what is selected and keeps it for reuse */''}
-      ${!many ? `<button data-act="block" title="Save as a block">${svg('save', 12)}</button>` : ''}
+      ${/* Save as a block is in the ⋯ menu and not on the bar. It is a thing you do once to
+             an element you have finished, where everything else here is a thing you do while
+             working — and the bar had grown to nine buttons. `runAct` handles the verb the
+             same either way, so nothing moved except where it is offered. */''}
       ${!many && s.node.adv && s.node.adv.block && findBlock(s.node.adv.block)
         ? `<button data-act="push" title="Global block — push this copy out to the others">${svg('globe', 12)}</button>` : ''}
       <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 12)}</button>

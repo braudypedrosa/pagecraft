@@ -422,12 +422,17 @@ test('the menu offers both ends only where there is a list, and names the keys',
   a.equal(acts(lone.id).includes('last'), false);
 });
 
-test('the block button has a save glyph, not a plus', () => {
-  /* a plus reads as "add one of these"; saving a block is the opposite — it takes what is
-     selected and keeps it for reuse */
-  a.ok(C.IC.save, 'there is a save glyph to use');
-  a.ok(C.IC.toTop && C.IC.toBottom, 'and one for each end');
-  [C.IC.save, C.IC.toTop, C.IC.toBottom].forEach(d => {
+test('Save as a block is offered in the menu and not on the bar', () => {
+  /* It is something you do once to an element you have finished, where everything else on the
+     bar is something you do while working — and the bar had reached nine buttons. The plus it
+     used to wear was misleading on top of that: a plus reads as "add one of these", and this
+     takes what is selected and keeps it for reuse. */
+  const { t } = fourSections();
+  a.ok(C.menuFor([t[1].id]).some(m => m.act === 'block'), 'the menu still offers it');
+  /* the glyph it briefly had is gone with the button, since the menu draws labels not icons */
+  a.equal(C.IC.save, undefined);
+  a.ok(C.IC.toTop && C.IC.toBottom, 'the two that are on the bar have theirs');
+  [C.IC.toTop, C.IC.toBottom].forEach(d => {
     a.equal(/fill="(?!none)/.test(d), false, 'stroke only, like every other icon');
     a.match(d, /^<path /);
   });

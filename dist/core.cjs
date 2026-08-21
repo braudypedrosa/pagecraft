@@ -357,7 +357,6 @@ var IC = {
   vTop: '<path d="M2 2.5h12" stroke-linecap="round"/><rect x="5" y="5" width="6" height="8" rx="1"/>',
   vMid: '<path d="M2 8h12" stroke-linecap="round" opacity=".5"/><rect x="5" y="4" width="6" height="8" rx="1"/>',
   vBot: '<path d="M2 13.5h12" stroke-linecap="round"/><rect x="5" y="3" width="6" height="8" rx="1"/>',
-  save: '<path d="M4.5 2.5h7v11l-3.5-2.9-3.5 2.9z" stroke-linecap="round" stroke-linejoin="round"/>',
   toTop: '<path d="M3 2.8h10M8 13.2V6M5 8.9L8 5.9l3 3" stroke-linecap="round" stroke-linejoin="round"/>',
   toBottom: '<path d="M3 13.2h10M8 2.8V10M5 7.1L8 10.1l3-3" stroke-linecap="round" stroke-linejoin="round"/>',
   plus: '<path d="M8 3v10M3 8h10" stroke-linecap="round"/>',
