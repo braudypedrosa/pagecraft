@@ -39,6 +39,7 @@ __export(index_exports, {
   FIELD_TYPES: () => FIELD_TYPES,
   FILTER_OPS: () => FILTER_OPS,
   FONT_BASE: () => FONT_BASE,
+  FONT_SUBSETS: () => FONT_SUBSETS,
   GF: () => GF,
   HOOKS: () => HOOKS,
   IC: () => IC,
@@ -162,6 +163,8 @@ __export(index_exports, {
   fitZoom: () => fitZoom,
   flatten: () => flatten,
   fmtColor: () => fmtColor,
+  fontFaceCss: () => fontFaceCss,
+  fontFile: () => fontFile,
   fontGroups: () => fontGroups,
   gfontsHref: () => gfontsHref,
   gfontsLink: () => gfontsLink,
@@ -230,6 +233,7 @@ __export(index_exports, {
   para: () => para,
   parentOf: () => parentOf,
   parseColor: () => parseColor,
+  parseFontCss: () => parseFontCss,
   parseLink: () => parseLink,
   parseU: () => parseU,
   pasteNode: () => pasteNode,
@@ -557,6 +561,41 @@ function gfontsHref() {
   const q = fams.map((f) => `family=${f.replace(/ /g, "+")}:wght@${gfIndex[f.toLowerCase()].w}`).join("&");
   return `https://fonts.googleapis.com/css2?${q}&display=swap`;
 }
+var FONT_SUBSETS = ["latin", "latin-ext"];
+function parseFontCss(css, subsets = FONT_SUBSETS) {
+  const out = [];
+  const parts = String(css || "").split(/\/\*\s*([a-z0-9-]+)\s*\*\//i);
+  for (let i = 1; i < parts.length; i += 2) {
+    const subset = parts[i].toLowerCase();
+    if (subsets.length && !subsets.includes(subset)) continue;
+    const block = parts[i + 1] || "";
+    for (const m of block.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
+      const b = m[1];
+      const pick = (k) => {
+        const h = b.match(new RegExp(k + "\\s*:\\s*([^;]+)"));
+        return h ? h[1].trim() : "";
+      };
+      const url = (b.match(/url\(([^)]+)\)/) || [, ""])[1].replace(/['"]/g, "");
+      const family = pick("font-family").replace(/['"]/g, "");
+      if (!url || !family) continue;
+      out.push({
+        family,
+        weight: pick("font-weight") || "400",
+        style: pick("font-style") || "normal",
+        subset,
+        url,
+        range: pick("unicode-range")
+      });
+    }
+  }
+  return out;
+}
+function fontFaceCss(faces, path) {
+  return faces.map(
+    (f) => `@font-face{font-family:'${f.family}';font-style:${f.style};font-weight:${f.weight};font-display:swap;src:url('${path(f)}') format('woff2')${f.range ? `;unicode-range:${f.range}` : ""}}`
+  ).join("\n");
+}
+var fontFile = (f) => `fonts/${slugify(f.family)}-${f.weight}${f.style === "italic" ? "i" : ""}-${f.subset}.woff2`;
 function gfontsLink() {
   const href = gfontsHref();
   if (!href) return "";
@@ -5293,7 +5332,10 @@ function buildPage(pg2, ctx = {}) {
 ${pg2.desc ? `<meta name="description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<link rel="canonical" href="${esc(canon)}">
 ` : ""}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">
-` : ""}${gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? "article" : "website"}">
+` : ""}${ctx.fontCss ? `<style>
+${ctx.fontCss}
+</style>
+` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? "article" : "website"}">
 <meta property="og:title" content="${esc(title)}">
 ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<meta property="og:url" content="${esc(canon)}">
@@ -5330,6 +5372,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   FIELD_TYPES,
   FILTER_OPS,
   FONT_BASE,
+  FONT_SUBSETS,
   GF,
   HOOKS,
   IC,
@@ -5453,6 +5496,8 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   fitZoom,
   flatten,
   fmtColor,
+  fontFaceCss,
+  fontFile,
   fontGroups,
   gfontsHref,
   gfontsLink,
@@ -5521,6 +5566,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   para,
   parentOf,
   parseColor,
+  parseFontCss,
   parseLink,
   parseU,
   pasteNode,

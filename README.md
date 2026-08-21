@@ -367,6 +367,17 @@ Before this the canvas was simply whatever width was left over, so selecting an 
 which opens the inspector — could flip the canvas from your desktop layout to your mobile
 one without saying so.
 
+## Webfonts
+
+By default an exported page links `fonts.googleapis.com`. **Project settings → Webfonts → Ship
+the font files with the site** turns that off: the archive carries the `.woff2` files under
+`fonts/` and each page declares them itself, so a published site makes no third-party request —
+one less round trip before text renders, and no transfer of your visitor's IP address to Google.
+
+Latin and Latin Extended only, and each face keeps its `unicode-range`, so a browser fetches
+just the subsets it actually needs. This applies to the **separate files** export and the
+archive; one self-contained file has nowhere to put a font, so it still links.
+
 ## Per-page head markup
 
 Each page has its own **Extra &lt;head&gt; HTML** field in *Pages*, written into that page only,

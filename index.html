@@ -438,6 +438,10 @@ body.preview .dim{display:none}
 .gb{padding:0 14px 14px}
 .f{margin-bottom:var(--gap-2)}
 .f:last-child{margin-bottom:2px}
+/* a checkbox and its label on one line. Dialogs had no such row until the webfont
+   setting needed one — the CMS table's checkboxes sit in cells and carry no label. */
+.swrow{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--text)}
+.swrow input{margin:0;flex:0 0 auto}
 .f>label{
   display:flex;align-items:center;gap:6px;font-family:var(--label);font-size:12px;font-weight:500;
   color:var(--text-3);margin-bottom:var(--gap-1);
@@ -1331,6 +1335,41 @@ function gfontsHref() {
   const q = fams.map((f) => `family=${f.replace(/ /g, "+")}:wght@${gfIndex[f.toLowerCase()].w}`).join("&");
   return `https://fonts.googleapis.com/css2?${q}&display=swap`;
 }
+var FONT_SUBSETS = ["latin", "latin-ext"];
+function parseFontCss(css, subsets = FONT_SUBSETS) {
+  const out = [];
+  const parts = String(css || "").split(/\/\*\s*([a-z0-9-]+)\s*\*\//i);
+  for (let i = 1; i < parts.length; i += 2) {
+    const subset = parts[i].toLowerCase();
+    if (subsets.length && !subsets.includes(subset)) continue;
+    const block = parts[i + 1] || "";
+    for (const m of block.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
+      const b = m[1];
+      const pick = (k) => {
+        const h = b.match(new RegExp(k + "\\s*:\\s*([^;]+)"));
+        return h ? h[1].trim() : "";
+      };
+      const url = (b.match(/url\(([^)]+)\)/) || [, ""])[1].replace(/['"]/g, "");
+      const family = pick("font-family").replace(/['"]/g, "");
+      if (!url || !family) continue;
+      out.push({
+        family,
+        weight: pick("font-weight") || "400",
+        style: pick("font-style") || "normal",
+        subset,
+        url,
+        range: pick("unicode-range")
+      });
+    }
+  }
+  return out;
+}
+function fontFaceCss(faces, path) {
+  return faces.map(
+    (f) => `@font-face{font-family:'${f.family}';font-style:${f.style};font-weight:${f.weight};font-display:swap;src:url('${path(f)}') format('woff2')${f.range ? `;unicode-range:${f.range}` : ""}}`
+  ).join("\n");
+}
+var fontFile = (f) => `fonts/${slugify(f.family)}-${f.weight}${f.style === "italic" ? "i" : ""}-${f.subset}.woff2`;
 function gfontsLink() {
   const href = gfontsHref();
   if (!href) return "";
@@ -6067,7 +6106,10 @@ function buildPage(pg2, ctx = {}) {
 ${pg2.desc ? `<meta name="description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<link rel="canonical" href="${esc(canon)}">
 ` : ""}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">
-` : ""}${gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? "article" : "website"}">
+` : ""}${ctx.fontCss ? `<style>
+${ctx.fontCss}
+</style>
+` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? "article" : "website"}">
 <meta property="og:title" content="${esc(title)}">
 ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<meta property="og:url" content="${esc(canon)}">
@@ -6104,6 +6146,7 @@ var __CORE = {
   FIELD_TYPES,
   FILTER_OPS,
   FONT_BASE,
+  FONT_SUBSETS,
   GF,
   HOOKS,
   IC,
@@ -6227,6 +6270,8 @@ var __CORE = {
   fitZoom,
   flatten,
   fmtColor,
+  fontFaceCss,
+  fontFile,
   fontGroups,
   gfontsHref,
   gfontsLink,
@@ -6295,6 +6340,7 @@ var __CORE = {
   para,
   parentOf,
   parseColor,
+  parseFontCss,
   parseLink,
   parseU,
   pasteNode,
@@ -11811,8 +11857,38 @@ function togglePreview() {
    image inside a single self-contained file is worse than not trying. */
 const withVariants = (ctx, mode) => ({ ...ctx, variants: mode === 'files' });
 
+/* Fetch the faces once per export run and keep them: several pages want the same files, and
+   a zip of twelve pages should not ask Google twelve times. `null` means it could not be done
+   — offline, or a request refused — and the caller falls back to linking, because a page that
+   silently ships no font at all is worse than a page with a third-party request.
+
+   `fonts.gstatic.com` serves woff2 with a permissive CORS header, so this works from the
+   browser; the css2 endpoint does too. Both are checked at runtime rather than assumed. */
+let fontPack = undefined;
+async function selfHostedFonts() {
+  if (fontPack !== undefined) return fontPack;
+  const href = gfontsHref();
+  if (!href) return (fontPack = null);            // nothing but system fonts in use
+  try {
+    const css = await (await fetch(href)).text();
+    const faces = parseFontCss(css);
+    if (!faces.length) return (fontPack = null);
+    const files = [];
+    for (const f of faces) {
+      const r = await fetch(f.url);
+      if (!r.ok) return (fontPack = null);
+      files.push({ path: fontFile(f), blob: await r.blob() });
+    }
+    fontPack = { css: fontFaceCss(faces, fontFile), files };
+  } catch { fontPack = null; }
+  return fontPack;
+}
+
 async function exportPage(pg, mode, ctx = {}) {
-  const raw = buildPage(pg, withVariants(ctx, mode));
+  /* only the separate-files export: a single self-contained file has nowhere to put a woff2,
+     and inlining four of them as base64 is a worse trade than one request to Google */
+  const pack = mode === 'files' && state.meta.selfHostFonts ? await selfHostedFonts() : null;
+  const raw = buildPage(pg, { ...withVariants(ctx, mode), fontCss: pack ? pack.css : '' });
   return mode === 'files' ? assetsToPaths(raw, ctx.rel || '') : await assetsToData(raw);
 }
 
@@ -12141,9 +12217,13 @@ function exportModal() {
      since a browser download saves flat. */
   const buildSite = async () => {
     const files = [];
+    /* fetched once for the whole archive, and null when it could not be — offline, or a
+       request refused — in which case every page links Google as it always did */
+    const pack = state.meta.selfHostFonts ? await selfHostedFonts() : null;
+    if (pack) pack.files.forEach(f => files.push({ path: f.path, data: f.blob }));
     for (const step of sitePlan()) {
       /* a zip is separate files by definition, so it always carries variants */
-      if (step.kind === 'page') files.push({ path: step.path, data: assetsToPaths(buildPage(step.target.pg, withVariants(step.target, 'files')), step.target.rel) });
+      if (step.kind === 'page') files.push({ path: step.path, data: assetsToPaths(buildPage(step.target.pg, { ...withVariants(step.target, 'files'), fontCss: pack ? pack.css : '' }), step.target.rel) });
       else if (step.kind === 'content') files.push({ path: step.path, data: contentJson(assetPath) });
       else if (step.kind === 'sitemap') files.push({ path: step.path, data: sitemapXml() });
       else if (step.kind === 'robots') files.push({ path: step.path, data: robotsTxt() });
@@ -12338,7 +12418,15 @@ function projectModal() {
     <div class="f"><label>Global CSS — injected into every exported page</label>
       <textarea class="ctl" id="mCss" style="min-height:88px">${esc(m.css)}</textarea></div>
     <div class="f"><label>Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
-      <textarea class="ctl" id="mHeadHtml" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>`, `
+      <textarea class="ctl" id="mHeadHtml" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>
+    <div class="f"><label>Webfonts</label>
+      <label class="swrow"><input type="checkbox" id="mSelfHost"${m.selfHostFonts ? ' checked' : ''}>
+        <span>Ship the font files with the site</span></label>
+      <div class="note">On, the archive carries the woff2 files and each page declares them itself —
+        no request to <code>fonts.googleapis.com</code>, which is a round trip before any text
+        renders and, in the EU, a transfer of your visitor's IP address. Latin and Latin Extended
+        only. Applies to the <b>separate files</b> export and the archive; one self-contained file
+        has nowhere to put them.</div></div>`, `
     <button class="btn" id="mBlank" title="Clear the pages and global regions, keep your colours and styles">Start an empty site</button>
     <button class="btn danger" id="mReset">Reset to demo content</button>
     <span style="flex:1"></span>
@@ -12377,6 +12465,14 @@ function projectModal() {
   });
   wire('mCss', v => { m.css = v; });
   wire('mHeadHtml', v => { m.headHtml = v; });
+  {
+    const cb = $('#mSelfHost');
+    if (cb) cb.addEventListener('change', () => {
+      m.selfHostFonts = cb.checked ? 1 : 0;
+      fontPack = undefined;              // ask again next export rather than reusing a stale answer
+      save();
+    });
+  }
 
   /* app/src/ui/ColorTokens.tsx owns #mColors. It repaints itself on add and delete,
      and pokes its own row while you type — a full redraw would take the caret out of

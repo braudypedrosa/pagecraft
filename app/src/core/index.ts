@@ -138,6 +138,63 @@ function gfontsHref() {
   const q = fams.map(f => `family=${f.replace(/ /g, '+')}:wght@${gfIndex[f.toLowerCase()].w}`).join('&');
   return `https://fonts.googleapis.com/css2?${q}&display=swap`;
 }
+/* ---- self-hosting the webfonts ---------------------------------------
+   An export links `fonts.googleapis.com`, which is a third-party request on every page of
+   someone's site: a round trip before any text can render, and in the EU a transfer of the
+   visitor's IP to Google that a cookie banner does not cover. `brand/fonts/` already proves
+   the builder can carry its own faces; this does the same for what it exports.
+
+   The split is deliberate. Parsing the stylesheet Google returns, and writing the
+   `@font-face` rules that replace it, are decisions — they live here and have tests. Fetching
+   the files and putting them in the archive is plumbing that needs a network and a zip, and
+   stays in the export where those are. */
+
+/** One face from a Google `css2` stylesheet. Their response is one `@font-face` per weight
+    per subset, each preceded by a comment naming the subset. */
+interface FontFace { family: string; weight: string; style: string; subset: string; url: string; range: string }
+
+/* latin and latin-ext only, by default. A full response carries Cyrillic, Greek and
+   Vietnamese too, which for most sites is several times the bytes of the text they will ever
+   render. The set is a parameter so a site that needs one can ask for it. */
+const FONT_SUBSETS = ['latin', 'latin-ext'];
+
+function parseFontCss(css: string, subsets: string[] = FONT_SUBSETS): FontFace[] {
+  const out: FontFace[] = [];
+  /* the subset comment sits before its block, so the split keeps each block with its own name */
+  const parts = String(css || '').split(/\/\*\s*([a-z0-9-]+)\s*\*\//i);
+  for (let i = 1; i < parts.length; i += 2) {
+    const subset = parts[i].toLowerCase();
+    if (subsets.length && !subsets.includes(subset)) continue;
+    const block = parts[i + 1] || '';
+    for (const m of block.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
+      const b = m[1];
+      const pick = (k: string) => { const h = b.match(new RegExp(k + '\\s*:\\s*([^;]+)')); return h ? h[1].trim() : ''; };
+      const url = (b.match(/url\(([^)]+)\)/) || [, ''])[1].replace(/['"]/g, '');
+      const family = pick('font-family').replace(/['"]/g, '');
+      if (!url || !family) continue;
+      out.push({
+        family, weight: pick('font-weight') || '400', style: pick('font-style') || 'normal',
+        subset, url, range: pick('unicode-range')
+      });
+    }
+  }
+  return out;
+}
+
+/** The `@font-face` rules to ship in place of the Google stylesheet. `path` names the file
+    each face was written to, so the caller decides the layout and this stays testable. */
+function fontFaceCss(faces: FontFace[], path: (f: FontFace) => string) {
+  return faces.map(f =>
+    `@font-face{font-family:'${f.family}';font-style:${f.style};font-weight:${f.weight};`
+    + `font-display:swap;src:url('${path(f)}') format('woff2')`
+    + `${f.range ? `;unicode-range:${f.range}` : ''}}`
+  ).join('\n');
+}
+
+/** A stable filename for one face: family, weight, style and subset are what make it unique. */
+const fontFile = (f: FontFace) =>
+  `fonts/${slugify(f.family)}-${f.weight}${f.style === 'italic' ? 'i' : ''}-${f.subset}.woff2`;
+
 function gfontsLink() {
   const href = gfontsHref();
   if (!href) return '';
@@ -5147,6 +5204,9 @@ function jsonLd(pg: Page, ctx: { col?: Collection | null; item?: Item | null } =
 function buildPage(pg: Page, ctx: {
   col?: Collection | null; item?: Item | null; rel?: string; variants?: boolean;
   pageNo?: number; pages?: number;
+  /** `@font-face` rules to ship instead of the Google stylesheet link. Empty means link it,
+      which is what a single self-contained file has to do — it has nowhere to put the files. */
+  fontCss?: string;
 } = {}) {
   const m = state.meta;
   /* `variants` has to be carried through rather than defaulted here: only the caller knows
@@ -5172,7 +5232,7 @@ function buildPage(pg: Page, ctx: {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
+${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${ctx.fontCss}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
 <meta property="og:title" content="${esc(title)}">
 ${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, ctx)}<style>
 ${tidy(css)}
@@ -5188,5 +5248,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

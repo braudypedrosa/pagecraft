@@ -338,6 +338,102 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- self-hosted webfonts ----------------------------------------------
+   An export links fonts.googleapis.com, which is a round trip before any text renders and, in
+   the EU, a transfer of the visitor's IP that no cookie banner covers. Parsing what Google
+   returns and writing the rules that replace it are decisions, so they are here; fetching the
+   files needs a network and a zip and stays in the export. */
+
+/* a trimmed-down shape of a real css2 response: two subsets, two weights */
+const GOOGLE_CSS = `
+/* cyrillic */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/manrope/v1/cyr400.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/manrope/v1/lat-ext400.woff2) format('woff2');
+  unicode-range: U+0100-02AF;
+}
+/* latin */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/manrope/v1/lat400.woff2) format('woff2');
+  unicode-range: U+0000-00FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/manrope/v1/lat700.woff2) format('woff2');
+  unicode-range: U+0000-00FF;
+}
+`;
+
+test('parsing a Google stylesheet keeps latin, drops the subsets a site will not render', () => {
+  const faces = C.parseFontCss(GOOGLE_CSS);
+  a.equal(faces.length, 3, 'two latin weights and one latin-ext; cyrillic dropped');
+  a.equal(faces.some(f => f.subset === 'cyrillic'), false, 'several times the bytes of the text');
+  a.deepEqual(faces.map(f => f.subset + '/' + f.weight).sort(), ['latin-ext/400', 'latin/400', 'latin/700']);
+  const one = must(faces.find(f => f.subset === 'latin' && f.weight === '700'), 'latin 700');
+  a.equal(one.family, 'Manrope', 'quotes stripped');
+  a.equal(one.style, 'normal');
+  a.equal(one.url, 'https://fonts.gstatic.com/s/manrope/v1/lat700.woff2');
+  a.match(one.range, /U\+0000-00FF/);
+
+  /* the set is a parameter, so a site that needs Cyrillic can ask */
+  a.equal(C.parseFontCss(GOOGLE_CSS, ['cyrillic']).length, 1);
+  a.equal(C.parseFontCss(GOOGLE_CSS, []).length, 4, 'no filter means every face');
+});
+
+test('parsing refuses to invent a face out of nothing', () => {
+  [ '', 'not css at all', '/* latin */ @font-face { font-family: X; }',      // no url
+    '/* latin */ @font-face { src: url(a.woff2); }' ]                        // no family
+    .forEach(v => a.deepEqual(C.parseFontCss(v), [], JSON.stringify(v).slice(0, 40)));
+});
+
+test('the rules that replace the link name local files and keep the ranges', () => {
+  const faces = C.parseFontCss(GOOGLE_CSS);
+  const css = C.fontFaceCss(faces, C.fontFile);
+  a.equal((css.match(/@font-face\{/g) || []).length, 3);
+  a.match(css, /font-family:'Manrope'/);
+  a.match(css, /font-weight:700/);
+  a.match(css, /font-display:swap/, 'text shows in a fallback rather than not at all');
+  a.match(css, /url\('fonts\/manrope-700-latin\.woff2'\) format\('woff2'\)/);
+  a.match(css, /unicode-range:U\+0000-00FF/, 'so the browser only fetches what it needs');
+  a.equal(/gstatic|googleapis/.test(css), false, 'and nothing points at Google any more');
+
+  /* one file per family, weight, style and subset — the four things that make a face */
+  const names = faces.map(C.fontFile);
+  a.equal(new Set(names).size, names.length, 'no two faces share a filename');
+  a.match(C.fontFile({ family: 'DM Sans', weight: '500', style: 'italic', subset: 'latin', url: '', range: '' }),
+    /^fonts\/dm-sans-500i-latin\.woff2$/);
+});
+
+test('a page ships the rules when it is given them, and the Google link when it is not', () => {
+  blank();
+  const pg = C.state.pages[0];
+  insert('heading', null, 0);
+  const linked = C.buildPage(pg);
+  a.match(linked, /fonts\.googleapis\.com/, 'no files to point at, so it links');
+
+  const css = C.fontFaceCss(C.parseFontCss(GOOGLE_CSS), C.fontFile);
+  const hosted = C.buildPage(pg, { fontCss: css });
+  a.equal(/googleapis|gstatic/.test(hosted), false, 'no third-party request left');
+  a.match(hosted, /<style>\n@font-face\{/);
+  a.ok(hosted.indexOf('@font-face') < hosted.indexOf('</head>'), 'in the head, before the body');
+});
+
 /* ---- the not-found page, and per-page head ------------------------------ */
 
 test('a page slugged 404 exports as 404.html and behaves like a not-found page', () => {

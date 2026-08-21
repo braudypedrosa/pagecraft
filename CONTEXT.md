@@ -539,9 +539,10 @@ carries across.
    at all without a Site URL since a relative `url` in structured data is worse than none.
    `Organization.logo` is deliberately absent: a favicon is not a logo and neither is a
    share image, so emitting one would be a guess a consumer acts on. Add it the day a logo
-   field exists. Still open here: a **404 page** convention, and a
-   **self-hosted fonts** option, since `gfontsLink()` is a third-party request and an EU
-   privacy problem while `brand/fonts/` already proves the machinery
+   field exists. ~~404 page~~ and ~~self-hosted fonts~~ are done: a page slugged 404 stays out of
+   the sitemap and carries noindex, and `parseFontCss`/`fontFaceCss` turn Google's stylesheet
+   into local `@font-face` rules with the woff2 files in the archive. Both decidable halves are
+   in core with tests; only the fetch is in the export, where the network is
 8. **Keep new form markup on the variables.** `--gap-1/2/3` and `--h-ctl/--h-row` in `:root`
    own every form measurement; there are no hard-coded vertical margins left in the markup.
    Anything sitting in a field row takes `--h-ctl` or it will be the one thing out of line

@@ -350,6 +350,9 @@ export interface Meta {
   blocks: SavedBlock[];
   /** added by migration v6→v7, so absent on a freshly-declared literal */
   collections?: Collection[];
+  /** ship the webfonts with the site instead of linking Google. Separate-files exports and
+      the archive only — one self-contained file has nowhere to put a woff2. */
+  selfHostFonts?: 0 | 1;
   tokens: Tokens | null;
 }
 
