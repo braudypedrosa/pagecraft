@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'column'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
-  | 'tabs'
+  | 'tabs' | 'table'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
 
@@ -117,6 +117,20 @@ export interface FormField {
   type?: string; label?: string; name?: string; ph?: string; opts?: string; required?: 0 | 1;
 }
 export interface TabsProps { items?: TabPanel[] }
+/** A table's body is one string, because that is how tabular data arrives: pasted from a
+    spreadsheet. `tableGrid` splits it — on tabs when the paste has them, else on pipes,
+    which is what a person types by hand. Never on commas: prose is full of them. */
+export interface TableProps {
+  body?: string;
+  /** the first row is a column header */
+  head?: 0 | 1;
+  /** the first cell of every row is that row's header, for a comparison table */
+  rowhead?: 0 | 1;
+  caption?: string;
+  /** 'all' | 'rows' | 'none' */
+  rules?: string;
+  zebra?: 0 | 1;
+}
 export interface TabPanel { label?: string; panel?: string }
 export interface AccordionProps {
   items?: QaItem[]; open?: string; single?: 0 | 1 | boolean; marker?: string;
@@ -131,7 +145,7 @@ export interface PropsByType {
   section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
   heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
   video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
-  form: FormProps; accordion: AccordionProps; tabs: TabsProps; embed: EmbedProps;
+  form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; embed: EmbedProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 
@@ -291,6 +305,11 @@ export interface WidgetDef {
   accepts?: Level[];
   /** how its content is edited in place, if at all */
   edit?: 'text' | 'rich';
+  /** What to call the group holding this widget's own style controls. The Style tab used
+      one hardcoded title, "Typography & fill", for every widget — true of a heading, and
+      not of a table's cell padding or an image's object-fit. Absent means the widget's own
+      label, the way the Content tab already names its group. */
+  styleLabel?: string;
   make: () => { props: Props; css: Partial<Css> };
   controls: { content: Control[]; style: Control[] };
 }

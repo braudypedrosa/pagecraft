@@ -27,8 +27,8 @@ const PAL: { g: string; items: [string, string][] }[] = [
   },
   {
     g: 'Content', items: [
-      ['heading', 'Heading'], ['text', 'WYSIWYG'], ['quote', 'Quote'], ['image', 'Image'],
-      ['gallery', 'Gallery'], ['video', 'Video'], ['icon', 'Icon']
+      ['heading', 'Heading'], ['text', 'WYSIWYG'], ['quote', 'Quote'], ['table', 'Table'],
+      ['image', 'Image'], ['gallery', 'Gallery'], ['video', 'Video'], ['icon', 'Icon']
     ]
   },
   {

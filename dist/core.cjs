@@ -313,6 +313,7 @@ __export(index_exports, {
   styleDelete: () => styleDelete,
   styleSeen: () => styleSeen,
   styles: () => styles,
+  tableGrid: () => tableGrid,
   takesBackdrop: () => takesBackdrop,
   textSlots: () => textSlots,
   tgtIsClass: () => tgtIsClass,
@@ -348,6 +349,7 @@ var IC = {
   cms: '<ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/>',
   section: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 5.5h8M4 8h8M4 10.5h5"/>',
   row: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M8 3.5v9"/>',
+  table: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6h13M6.5 6v7.5"/>',
   column: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
   columns: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
   heading: '<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',
@@ -1472,6 +1474,7 @@ var DEF = {
     icon: "heading",
     level: 4,
     edit: "text",
+    styleLabel: "Typography & fill",
     make: () => ({
       props: { text: "A headline that carries weight", level: "h2", link: "", target: "", ts: "title" },
       css: { d: { "text-align": "left", "margin-bottom": "0px" }, t: {}, m: {} }
@@ -1500,6 +1503,7 @@ var DEF = {
     icon: "text",
     level: 4,
     edit: "rich",
+    styleLabel: "Typography & fill",
     make: () => ({
       props: { html: "<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings \u2014 everything exports as clean semantic HTML.</p>", ts: "body" },
       css: { d: { "text-align": "left" }, t: {}, m: {} }
@@ -1538,6 +1542,7 @@ var DEF = {
     icon: "quote",
     level: 4,
     edit: "text",
+    styleLabel: "Typography & fill",
     make: () => ({
       props: {
         text: "A sentence in their words that a prospect would recognise as their own problem, solved.",
@@ -1846,6 +1851,70 @@ var DEF = {
      the markup renders every panel visible and the script hides all but one — a reader with no
      script gets the whole content stacked, which is the honest failure. Hiding them in CSS and
      revealing with script fails the other way, into a page with the content missing. */
+  table: {
+    label: "Table",
+    icon: "table",
+    level: 4,
+    make: () => ({
+      props: {
+        body: "Plan|Monthly|Seats\nStarter|\xA39|1\nStudio|\xA329|5\nHouse|\xA379|20",
+        head: 1,
+        rules: "rows",
+        zebra: 0
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--tbl-size": "15px",
+          "--tbl-pad": "10px 12px",
+          "--tbl-line": cvar("line"),
+          "--tbl-text": cvar("text"),
+          "--tbl-head-bg": "transparent",
+          "--tbl-head-text": cvar("ink"),
+          "--tbl-head-weight": "600",
+          "--tbl-zebra": cvar("bg"),
+          "--tbl-caption-size": "13px",
+          "--tbl-caption-color": cvar("muted")
+        },
+        t: {},
+        m: { "--tbl-size": "14px", "--tbl-pad": "8px 10px" }
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "area",
+          k: "body",
+          label: "Rows",
+          rows: 7,
+          mono: 1,
+          ph: "Plan|Monthly|Seats\nStarter|\xA39|1",
+          note: "One row per line. Paste from a spreadsheet, or separate cells with |"
+        },
+        { t: "text", k: "caption", label: "Caption", ph: "What this table shows" },
+        { t: "toggle", k: "head", label: "First row is a heading" },
+        { t: "toggle", k: "rowhead", label: "First column is a heading" },
+        {
+          t: "select",
+          k: "rules",
+          label: "Lines",
+          set: 1,
+          opts: [["rows", "Between rows"], ["all", "Full grid"], ["none", "None"]]
+        },
+        { t: "toggle", k: "zebra", label: "Shade alternate rows" }
+      ],
+      style: [
+        { t: "unit", c: "--tbl-size", label: "Text size", r: 1, units: U.size },
+        { t: "color", c: "--tbl-text", label: "Text colour" },
+        { t: "unit", c: "--tbl-pad", label: "Cell padding", r: 1, units: U.space },
+        { t: "color", c: "--tbl-line", label: "Line colour" },
+        { t: "color", c: "--tbl-head-bg", label: "Heading background" },
+        { t: "color", c: "--tbl-head-text", label: "Heading colour" },
+        { t: "color", c: "--tbl-zebra", label: "Shading", when: (n) => !!n.props.zebra },
+        { t: "color", c: "--tbl-caption-color", label: "Caption colour", when: (n) => !!String(n.props.caption || "").trim() }
+      ]
+    }
+  },
   tabs: {
     label: "Tabs",
     icon: "tabs",
@@ -2055,6 +2124,15 @@ var DEF = {
     }
   }
 };
+function tableGrid(body) {
+  const text = String(body == null ? "" : body).replace(/\r/g, "");
+  const lines = text.split("\n").filter((l) => l.trim() !== "");
+  if (!lines.length) return [];
+  const sep = text.includes("	") ? "	" : "|";
+  const rows = lines.map((l) => l.split(sep).map((c) => c.trim()));
+  const w = rows.reduce((m, r) => Math.max(m, r.length), 0);
+  return rows.map((r) => r.concat(Array(w - r.length).fill("")));
+}
 function styleSeen(n, prop) {
   const bags = [];
   const push = (o) => {
@@ -3094,6 +3172,19 @@ function lint() {
       }
       if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
+      if (n.type === "table") {
+        const grid = tableGrid(n.props.body);
+        if (!grid.length) add("warn", "table-empty", `A table in the ${region} has no rows, so it exports nothing.`, w, n.id);
+        const raw = String(n.props.body == null ? "" : n.props.body).replace(/\r/g, "");
+        const lines = raw.split("\n").filter((l) => l.trim() !== "");
+        const sep = raw.includes("	") ? "	" : "|";
+        const widths = lines.map((l) => l.split(sep).length);
+        const wide = widths.length ? Math.max(...widths) : 0;
+        const short = widths.filter((x) => x < wide).length;
+        if (short) add("warn", "table-ragged", `${short} row${short === 1 ? "" : "s"} of a table in the ${region} have fewer cells than the widest, so they export padded with blanks.`, w, n.id);
+        if (grid.length > 1 && !n.props.head && !n.props.rowhead)
+          add("warn", "table-no-heading", `A table in the ${region} marks no heading row or column, so a screen reader cannot say what a cell means.`, w, n.id);
+      }
       if (n.type === "tabs") {
         const rows = Array.isArray(n.props.items) ? n.props.items : [];
         if (!rows.length) add("warn", "tabs-empty", `A tab strip in the ${region} has no tabs, so it exports nothing.`, w, n.id);
@@ -3257,6 +3348,7 @@ var TEXT_SLOTS = {
   text: ["html"],
   embed: ["html"],
   quote: ["text", "by"],
+  table: ["body", "caption"],
   tabs: [["items", "label", "panel"]],
   image: ["alt", "caption"],
   accordion: [["items", "q", "a"]],
@@ -3275,7 +3367,8 @@ var SLOT_LABEL = {
   a: "Answer",
   ph: "Placeholder",
   by: "Attribution",
-  panel: "Panel"
+  panel: "Panel",
+  body: "Rows"
 };
 function textSlots(n) {
   const out = [];
@@ -5588,6 +5681,24 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-table-wrap{width:100%;overflow-x:auto}
+.pagecraft-table{
+  width:100%;border-collapse:collapse;font-size:var(--tbl-size,15px);
+  color:var(--tbl-text,#111311);text-align:left;
+}
+.pagecraft-table caption{
+  caption-side:bottom;padding-top:.7em;text-align:left;
+  font-size:var(--tbl-caption-size,13px);color:var(--tbl-caption-color,#5f6660);
+}
+.pagecraft-table th,.pagecraft-table td{padding:var(--tbl-pad,10px 12px);vertical-align:top}
+.pagecraft-table thead th{
+  background:var(--tbl-head-bg,transparent);color:var(--tbl-head-text,#111311);
+  font-weight:var(--tbl-head-weight,600);border-bottom:2px solid var(--tbl-line,#e5e1d6);
+}
+.pagecraft-table tbody th{font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
+.pagecraft-table[data-rules=rows] tbody tr+tr>*{border-top:1px solid var(--tbl-line,#e5e1d6)}
+.pagecraft-table[data-rules=all] th,.pagecraft-table[data-rules=all] td{border:1px solid var(--tbl-line,#e5e1d6)}
+.pagecraft-table[data-zebra] tbody tr:nth-child(even)>*{background:var(--tbl-zebra,#f8f6ef)}
 .pagecraft-tabs{width:100%}
 .pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
 .pagecraft-tab{
@@ -6053,6 +6164,17 @@ function renderNode(n, o) {
       }).join("");
       const act = safeUrl(p.action) || (/^mailto:/i.test(String(p.action || "")) ? p.action : "");
       return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}"${act ? ` action="${esc(act)}" method="${p.method === "get" ? "get" : "post"}"` : ""}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
+    }
+    case "table": {
+      const grid = tableGrid(p.body);
+      if (!grid.length) return o.edit ? `<div ${at} ${cx("pagecraft-table-wrap")}><div class="s-empty">${svg("plus", 12)} Paste or type the rows in the panel</div></div>` : "";
+      const cap = String(p.caption == null ? "" : p.caption).trim();
+      const head = p.head && grid.length > 1 ? grid[0] : null;
+      const rows = head ? grid.slice(1) : grid;
+      const cell = (v, k) => p.rowhead && k === 0 ? `<th scope="row">${esc(v)}</th>` : `<td>${esc(v)}</td>`;
+      const thead = head ? `<thead><tr>${head.map((v) => `<th scope="col">${esc(v)}</th>`).join("")}</tr></thead>` : "";
+      const tbody = `<tbody>${rows.map((r) => `<tr>${r.map(cell).join("")}</tr>`).join("")}</tbody>`;
+      return `<div ${at} ${cx("pagecraft-table-wrap")}><table class="pagecraft-table" data-rules="${esc(String(p.rules || "rows"))}"${p.zebra ? " data-zebra" : ""}>` + (cap ? `<caption>${esc(cap)}</caption>` : "") + thead + tbody + "</table></div>";
     }
     case "tabs": {
       const rows = Array.isArray(p.items) ? p.items : [];
@@ -6623,6 +6745,7 @@ ${ANIM_JS}
   styleDelete,
   styleSeen,
   styles,
+  tableGrid,
   takesBackdrop,
   textSlots,
   tgtIsClass,

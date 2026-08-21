@@ -373,7 +373,7 @@ export function Inspector() {
         ) : tab === 'style' ? (
           <>
             <StylingTarget n={n} />
-            {style.length ? <Group title="Typography & fill" n={n} items={style} /> : null}
+            {style.length ? <Group title={d.styleLabel || d.label} n={n} items={style} /> : null}
             {C.COMMON_STYLE.map(g => <Group key={g.g} title={g.g} n={n} items={g.items} />)}
             {/* last, and only for a single selection: motion is one value per element and a
                 group that wrote to several at once would be lying about what it edits */}

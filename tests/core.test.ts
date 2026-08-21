@@ -4236,6 +4236,132 @@ test('a declaration counts wherever it was made — another breakpoint, a state,
   a.equal(offered(c, 'border-width'), true, 'the class it wears declared it');
 });
 
+test('a widget\u2019s own style group is called what those controls actually are', () => {
+  /* one hardcoded "Typography & fill" covered every widget, which was true of a heading
+     and not of a table's cell padding or an image's object-fit */
+  const title = (t: string) => C.DEF[t].styleLabel || C.DEF[t].label;
+  a.equal(title('heading'), 'Typography & fill');
+  a.equal(title('text'), 'Typography & fill');
+  a.equal(title('quote'), 'Typography & fill');
+  for (const t of ['table', 'image', 'video', 'tabs', 'accordion', 'nav', 'form', 'gallery'])
+    a.equal(title(t), C.DEF[t].label, t + ' names its own group');
+  /* and every widget that has style controls has a name for them */
+  Object.keys(C.DEF).forEach(t => {
+    if (C.DEF[t].controls.style.length) a.ok(title(t), t + ' has no style group title');
+  });
+});
+
+/* =================================================================== table
+   The body is one string, because tabular data arrives by paste. */
+const table = (props = {}) => {
+  blank();
+  const n = insert('table', null, 0);
+  Object.assign(n.props, props);
+  return n;
+};
+
+test('a spreadsheet paste splits on tabs, a typed one on pipes, and never on commas', () => {
+  a.deepEqual(C.tableGrid('a\tb\nc\td'), [['a', 'b'], ['c', 'd']]);
+  a.deepEqual(C.tableGrid('a|b\nc|d'), [['a', 'b'], ['c', 'd']]);
+  a.deepEqual(C.tableGrid('Smith, Jane|Editor'), [['Smith, Jane', 'Editor']],
+    'a comma inside a cell is part of the cell');
+  a.deepEqual(C.tableGrid('a\tb|c'), [['a', 'b|c']],
+    'one separator for the whole body, so a table cannot split two ways down its height');
+  a.deepEqual(C.tableGrid('  a | b  '), [['a', 'b']], 'cells are trimmed');
+  a.deepEqual(C.tableGrid('a|b\n\n\nc|d'), [['a', 'b'], ['c', 'd']], 'blank lines are not rows');
+  a.deepEqual(C.tableGrid(''), []);
+  a.deepEqual(C.tableGrid(undefined), []);
+});
+
+test('a short row is padded, so the cells after it stay under their own headings', () => {
+  a.deepEqual(C.tableGrid('a|b|c\nd|e'), [['a', 'b', 'c'], ['d', 'e', '']]);
+});
+
+test('a heading row is <th scope=col>, because scope is what makes it a heading', () => {
+  const html = C.renderNode(table({ body: 'Plan|Cost\nFree|0' }), { edit: false });
+  a.equal((html.match(/<th scope="col">/g) || []).length, 2);
+  a.match(html, /<thead><tr><th scope="col">Plan<\/th><th scope="col">Cost<\/th><\/tr><\/thead>/);
+  a.match(html, /<tbody><tr><td>Free<\/td><td>0<\/td><\/tr><\/tbody>/);
+});
+
+test('the first column can be a heading too, which is what a comparison table needs', () => {
+  const html = C.renderNode(table({ body: 'Plan|Cost\nFree|0', rowhead: 1 }), { edit: false });
+  a.match(html, /<tr><th scope="row">Free<\/th><td>0<\/td><\/tr>/);
+});
+
+test('turning the heading row off makes every row a body row', () => {
+  const html = C.renderNode(table({ body: 'Plan|Cost\nFree|0', head: 0 }), { edit: false });
+  a.equal(/<thead/.test(html), false);
+  a.equal((html.match(/<tr>/g) || []).length, 2, 'the first row is data now');
+});
+
+test('a single row is data, not a lone heading with nothing under it', () => {
+  const html = C.renderNode(table({ body: 'Only|Row', head: 1 }), { edit: false });
+  a.equal(/<thead/.test(html), false);
+  a.match(html, /<td>Only<\/td>/);
+});
+
+test('a table ships no script, the way the accordion does not', () => {
+  blank();
+  const pg = C.state.pages[0];
+  insert('table', null, 0);
+  a.equal(/<script/i.test(C.buildPage(pg)), false, 'markup and CSS are the whole widget');
+});
+
+test('the wrapper is what scrolls, because a table cannot', () => {
+  const html = C.renderNode(table(), { edit: false });
+  a.match(html, /class="pagecraft-table-wrap/);
+  a.match(C.baseCss(false), /\.pagecraft-table-wrap\{width:100%;overflow-x:auto\}/);
+});
+
+test('a caption is a caption element, and sits after the table for a reader', () => {
+  const html = C.renderNode(table({ caption: 'Prices from April' }), { edit: false });
+  a.match(html, /<caption>Prices from April<\/caption>/);
+  a.match(C.baseCss(false), /caption-side:bottom/);
+  a.equal(/<caption>/.test(C.renderNode(table({ caption: '   ' }), { edit: false })), false,
+    'whitespace is not a caption');
+});
+
+test('cell text is text, not markup', () => {
+  a.match(C.renderNode(table({ body: '<b>x</b>|y' }), { edit: false }), /&lt;b&gt;x&lt;\/b&gt;/);
+});
+
+test('the line and shading choices reach the markup, so CSS can act on them', () => {
+  a.match(C.renderNode(table({ rules: 'all' }), { edit: false }), /data-rules="all"/);
+  a.match(C.renderNode(table({ zebra: 1 }), { edit: false }), / data-zebra/);
+  a.equal(/data-zebra/.test(C.renderNode(table({ zebra: 0 }), { edit: false })), false);
+  a.match(C.renderNode(table({ rules: undefined }), { edit: false }), /data-rules="rows"/, 'a default in the markup, not only in the CSS');
+});
+
+test('an empty table exports nothing but explains itself in the editor', () => {
+  const n = table({ body: '' });
+  a.equal(C.renderNode(n, { edit: false }), '');
+  a.match(C.renderNode(n, { edit: true }), /s-empty/);
+});
+
+test('the review counts ragged rows and an unlabelled grid', () => {
+  table({ body: 'a|b|c\nd|e\nf' });
+  let f = C.lint();
+  a.equal(find(f, 'table-ragged').length, 1, 'counted per table, not per row');
+  a.match(find(f, 'table-ragged')[0].msg, /^2 rows /);
+  table({ body: 'a|b\nc|d', head: 0 });
+  f = C.lint();
+  a.equal(find(f, 'table-no-heading').length, 1);
+  a.equal(find(f, 'table-ragged').length, 0);
+  table({ body: '' });
+  a.equal(find(C.lint(), 'table-empty').length, 1);
+});
+
+test('the rows and the caption are text the search can reach', () => {
+  const n = table({ body: 'Acme|9', caption: 'Acme prices' });
+  const hits = C.searchAll('Acme');
+  a.equal(C.searchCount(hits), 2);
+  a.deepEqual(hits.map((h: { field: string }) => h.field), ['Rows', 'Caption']);
+  C.replaceAll('Acme', 'Beta');
+  a.equal(n.props.body, 'Beta|9');
+  a.equal(n.props.caption, 'Beta prices');
+});
+
 /* ==================================================================== tabs
    The mirror image of the accordion: <details> works without JavaScript, a tab strip
    does not, so every panel is rendered and the script takes them away. */
