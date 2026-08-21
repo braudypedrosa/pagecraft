@@ -197,8 +197,8 @@ function Blocks() {
           on any page.
         </div>
       )}
-      <button class="btn" disabled={!sel}
-        style={{ width: '100%', justifyContent: 'center', marginTop: 'var(--gap-1)', fontSize: '12px' }}
+      <button class="btn block" disabled={!sel}
+        style={{ marginTop: 'var(--gap-1)', fontSize: 'var(--fs-2)' }}
         onClick={() => sel && L.saveBlockFlow(sel.node.id)}>
         <Icon name="plus" size={12} />
         {sel ? ' Save ' + C.DEF[sel.node.type].label + ' as block' : ' Select something to save'}

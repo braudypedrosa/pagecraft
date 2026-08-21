@@ -295,7 +295,7 @@ function ContentSource({ n }: { n: PcNode }) {
         ))}
       </select>
       {col ? (
-        <button class="btn" style={{ width: '100%', justifyContent: 'center', marginTop: 'var(--gap-1)' }}
+        <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
           onClick={() => L.bindModal(n.id)}><Icon name="cms" size={13} /> Bind the fields inside…</button>
       ) : null}
       <div class="note">{col

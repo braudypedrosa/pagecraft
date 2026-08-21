@@ -197,7 +197,7 @@ function Row({ t }: { t: TextStyle }) {
           fontWeight: d['font-weight'] || 500, fontSize: previewSize + 'px'
         }}>Aa</span>
         <span class="an">
-          <input class="ctl" value={t.name} style={{ fontSize: '12.5px', fontWeight: 600 }}
+          <input class="ctl" value={t.name} style={{ fontSize: 'var(--fs-2)', fontWeight: 600 }}
             onInput={e => {
               L.tx('tsname:' + t.id);
               const s = C.findStyle(t.id);
@@ -206,11 +206,11 @@ function Row({ t }: { t: TextStyle }) {
         </span>
         <input class="ctl" value={d['font-size'] || ''} placeholder="auto"
           title="Base size — expand the row to set a Tablet or Mobile override"
-          style={{ width: '74px', flex: '0 0 74px', fontFamily: 'var(--mono)', fontSize: '11px' }}
+          style={{ width: '74px', flex: '0 0 74px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
           onInput={e => setSize((e.target as HTMLInputElement).value)}
           onBlur={() => { L.endTx(); repaint('styles'); }} />
         <select class="ctl" title="Base weight"
-          style={{ width: '118px', flex: '0 0 118px', fontSize: '11.5px' }}
+          style={{ width: '118px', flex: '0 0 118px', fontSize: 'var(--fs-1)' }}
           value={d['font-weight'] || ''}
           onChange={e => {
             L.tx('tsweight:' + t.id);
@@ -247,7 +247,7 @@ export function TextStyles() {
   return (
     <>
       {C.styles().map(t => <Row key={t.id} t={t} />)}
-      <button class="btn" style={{ width: '100%', justifyContent: 'center' }} onClick={add}>
+      <button class="btn block" onClick={add}>
         <Icon name="plus" size={12} /> Add text style
       </button>
     </>

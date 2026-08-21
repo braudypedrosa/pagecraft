@@ -49,7 +49,7 @@ export function Cms() {
   return (
     <>
       <div style={{ padding: '12px 14px 0' }}>
-        <button class="btn primary" style={{ width: '100%', justifyContent: 'center' }} onClick={add}>
+        <button class="btn primary block" onClick={add}>
           <Icon name="plus" size={13} /> New collection
         </button>
         <div class="note">Fields, and the items that fill them.</div>

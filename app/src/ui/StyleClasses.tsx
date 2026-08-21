@@ -39,10 +39,10 @@ export function StyleClasses() {
           <div class="arow" key={c.id}>
             <span style={{
               flex: '0 0 34px', textAlign: 'center', fontFamily: 'var(--label)',
-              fontSize: '11px', color: 'var(--text-3)'
+              fontSize: 'var(--fs-1)', color: 'var(--text-3)'
             }}>.{c.id.slice(0, 4)}</span>
             <span class="an">
-              <input class="ctl" value={c.name} style={{ fontSize: '12.5px', fontWeight: 600 }}
+              <input class="ctl" value={c.name} style={{ fontSize: 'var(--fs-2)', fontWeight: 600 }}
                 onInput={e => {
                   L.tx('clsname:' + c.id);
                   const cls = C.findClass(c.id);

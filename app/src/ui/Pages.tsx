@@ -113,7 +113,7 @@ export function Pages() {
     <>
       <div class="pagelist">
         {C.state.pages.map((p, i) => <PageRow key={p.id} i={i} />)}
-        <button class="btn" style={{ width: '100%', justifyContent: 'center' }}
+        <button class="btn block"
           onClick={() => L.newPageModal()}>
           <Icon name="plus" size={13} /> New page
         </button>
@@ -153,7 +153,7 @@ export function Pages() {
               : <>Exports as <code>{pg.slug || '…'}.html</code>.</>}
             {C.isNotFound(pg) ? ' Your not-found page: out of the sitemap, and noindex.' : ''}</div>
           {C.isFront(pg) ? null : (
-            <button class="btn" style={{ marginTop: 'var(--gap-1)', width: '100%', justifyContent: 'center' }}
+            <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
               onClick={async () => {
                 const front = C.state.pages.find(C.isFront);
                 if (!await L.askConfirm('Make this the front page?',
@@ -174,7 +174,7 @@ export function Pages() {
 
         <div class="f"><label>Meta description</label>
           <textarea class="ctl" value={pg.desc || ''}
-            style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: '12.5px' }}
+            style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: 'var(--fs-2)' }}
             {...field(v => { C.page().desc = v; })} /></div>
 
         <div class="f"><label>Social share image</label>
@@ -186,7 +186,7 @@ export function Pages() {
             was nowhere for those before, only the project-wide block. */}
         <div class="f"><label>Extra &lt;head&gt; HTML</label>
           <textarea class="ctl" value={pg.headHtml || ''}
-            style={{ minHeight: '56px', fontFamily: 'var(--mono)', fontSize: '11.5px' }}
+            style={{ minHeight: '56px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
             placeholder="&lt;meta name=&quot;robots&quot; content=&quot;noindex&quot;&gt;"
             {...field(v => { C.page().headHtml = v; })} />
           <div class="note">This page only, after the project's block.</div></div>

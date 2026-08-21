@@ -60,11 +60,11 @@ export function AssetField({ value, note, onChange }: {
         </div>}
 
       <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
-        <button class="btn" style={{ flex: 1, justifyContent: 'center' }} onClick={choose}>
+        <button class="btn grow" onClick={choose}>
           <Icon name="image" size={13} /> {a ? 'Replace' : 'Upload'}
         </button>
         {L.assetCount() ? (
-          <button class="btn" style={{ flex: 1, justifyContent: 'center' }}
+          <button class="btn grow"
             title="Pick from the Media library"
             onClick={async () => { const id = await L.mediaPicker(); if (id) commit('asset:' + id); }}>
             <Icon name="copy" size={13} /> Library

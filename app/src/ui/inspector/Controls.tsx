@@ -43,7 +43,7 @@ function AreaCtl({ n, c }: P) {
       value={shown(n, c)}
       style={{
         fontFamily: c.mono ? 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace' : 'var(--sans)',
-        fontSize: '12px', minHeight: '52px', lineHeight: 1.5
+        fontSize: 'var(--fs-2)', minHeight: '52px', lineHeight: 1.5
       }}
       onInput={e => w.live((e.target as HTMLTextAreaElement).value)} onBlur={w.done} />
   </Field>;
@@ -247,7 +247,7 @@ function BoxCtl({ n, c }: P) {
       ))}
     </div>
     <div class="row4u">
-      <select class="ctl" value={u} style={{ width: '58px', padding: '2px 4px', fontSize: '10px' }}
+      <select class="ctl" value={u} style={{ width: '58px', padding: '2px 4px', fontSize: 'var(--fs-1)' }}
         onChange={e => { push((e.target as HTMLElement).closest('.f')!); L.endTx(); }}>
         {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
       </select>
@@ -307,11 +307,11 @@ function ImgCtl({ n, c }: P) {
         </div>
         : <Dropzone onFiles={choose} />}
     <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
-      <button class="btn" style={{ flex: 1, justifyContent: 'center' }} onClick={choose}>
+      <button class="btn grow" onClick={choose}>
         <Icon name="image" size={13} /> {a ? 'Replace' : 'Upload'}
       </button>
       {L.assetCount() ? (
-        <button class="btn" style={{ flex: 1, justifyContent: 'center' }} title="Pick from the Media library"
+        <button class="btn grow" title="Pick from the Media library"
           onClick={async () => { const id = await L.mediaPicker(); if (id) use(id); }}>
           <Icon name="copy" size={13} /> Library
         </button>
@@ -353,7 +353,7 @@ function SourceCtl({ n, c }: P) {
       ))}
     </select>
     {cur ? (
-      <button class="btn" style={{ width: '100%', justifyContent: 'center', marginTop: 'var(--gap-1)' }}
+      <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
         onClick={() => L.bindModal(n.id)}><Icon name="cms" size={13} /> Bind the fields inside…</button>
     ) : null}
     {C.collections().length ? null : <div class="note">No collections yet — make one in <b>CMS</b>.</div>}
@@ -367,7 +367,7 @@ function RichCtl({ n, c }: P) {
     {fid
       ? <div class="note">Bound to <b>{(f || { name: 'a missing field' }).name}</b>. Unbind to edit here.</div>
       : <>
-        <button class="btn" style={{ width: '100%', justifyContent: 'center' }}
+        <button class="btn block"
           onClick={() => L.enterEdit(n.id)}><Icon name="edit" size={13} /> Edit on canvas</button>
         <div class="note">Or double-click on the canvas.</div>
       </>}
@@ -407,15 +407,15 @@ function TstyleCtl({ n, c }: P) {
     <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
       {cur
         ? <>
-          <button class="btn ghost" style={{ flex: 1, justifyContent: 'center', fontSize: '12px' }}
+          <button class="btn ghost grow" style={{ fontSize: 'var(--fs-2)' }}
             title="Copy this element's typography into the style, everywhere it is used"
             onClick={push}>Update style{used > 1 ? ` · ${used} uses` : ''}</button>
-          <button class="btn ghost" style={{ fontSize: '12px' }}
+          <button class="btn ghost" style={{ fontSize: 'var(--fs-2)' }}
             title="Keep the look, stop following the style"
             onClick={() => { C.edit(() => C.tsUnlink(n)); L.toast('Detached — the look is now local'); }}>
             Detach</button>
         </>
-        : <button class="btn" style={{ flex: 1, justifyContent: 'center', fontSize: '11px' }}
+        : <button class="btn grow" style={{ fontSize: 'var(--fs-1)' }}
           onClick={create}><Icon name="plus" size={12} /> Save as text style</button>}
     </div>
     <div class="note">{cur
@@ -452,7 +452,7 @@ function OptCtl({ n, c }: P) {
     </select>
     {custom ? (
       <input class="ctl" value={cur} placeholder={c.ph || ''}
-        style={{ marginTop: 'var(--gap-1)', fontFamily: 'var(--label)', fontSize: '12px' }}
+        style={{ marginTop: 'var(--gap-1)', fontFamily: 'var(--label)', fontSize: 'var(--fs-2)' }}
         onInput={e => w.live((e.target as HTMLInputElement).value.trim())} onBlur={w.done} />
     ) : null}
   </Field>;
@@ -561,7 +561,7 @@ function DimsCtl({ n, c }: P) {
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={L.endTx} />
       <input class="ctl" type="number" min="0" value={n.props.h || ''} placeholder="height"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={L.endTx} />
-      <button class="btn" style={{ flex: '0 0 auto', fontSize: '12px' }}
+      <button class="btn" style={{ flex: '0 0 auto', fontSize: 'var(--fs-2)' }}
         title="Read the real dimensions from the image" onClick={detect}>Detect</button>
     </div>
   </Field>;

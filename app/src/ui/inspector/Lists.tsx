@@ -41,8 +41,8 @@ function RowActs({ n, c, k }: P & { k: number }) {
 }
 
 function AddButton({ label, onClick, gap, small }: { label: string; onClick: () => void; gap: boolean; small?: boolean }) {
-  return <button class="btn" onClick={onClick}
-    style={{ width: '100%', justifyContent: 'center', marginTop: gap ? '6px' : '0', fontSize: small ? '11px' : '12px' }}>
+  return <button class="btn block" onClick={onClick}
+    style={{ marginTop: gap ? 'var(--gap-1)' : '0', fontSize: small ? 'var(--fs-1)' : 'var(--fs-2)' }}>
     <Icon name="plus" size={12} /> {label}
   </button>;
 }
@@ -180,11 +180,11 @@ export function ImgsCtl({ n, c }: P) {
       );
     })}
     <div style={{ display: 'flex', gap: '6px', marginTop: arr.length ? '6px' : '0' }}>
-      <button class="btn" style={{ flex: 1, justifyContent: 'center', fontSize: '12px' }} onClick={upload}>
+      <button class="btn grow" style={{ fontSize: 'var(--fs-2)' }} onClick={upload}>
         <Icon name="image" size={13} /> Upload
       </button>
       {L.assetCount() ? (
-        <button class="btn" style={{ flex: 1, justifyContent: 'center', fontSize: '12px' }}
+        <button class="btn grow" style={{ fontSize: 'var(--fs-2)' }}
           title="Pick from the Media library"
           onClick={async () => {
             const id = await L.mediaPicker();

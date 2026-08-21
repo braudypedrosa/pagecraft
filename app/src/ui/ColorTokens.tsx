@@ -51,7 +51,7 @@ function Row({ id }: { id: string }) {
         <input type="color" value={hexish} onInput={e => set(row(e), (e.target as HTMLInputElement).value)} />
       </span>
       <span class="an">
-        <input class="ctl" value={t.name} style={{ fontSize: '12.5px', fontWeight: 600 }}
+        <input class="ctl" value={t.name} style={{ fontSize: 'var(--fs-2)', fontWeight: 600 }}
           onInput={e => {
             L.tx('tokname:' + id);
             const tok = C.findColor(id);
@@ -59,7 +59,7 @@ function Row({ id }: { id: string }) {
           }} />
       </span>
       <input class="ctl hexval" value={t.value}
-        style={{ width: '92px', flex: '0 0 92px', fontFamily: 'var(--mono)', fontSize: '11px' }}
+        style={{ width: '92px', flex: '0 0 92px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
         onInput={e => set(row(e), (e.target as HTMLInputElement).value.trim())} />
       {locked
         ? <span class="rowlock" title="Built in — part of the brand, so it cannot be deleted">
@@ -80,7 +80,7 @@ export function ColorTokens() {
   return (
     <>
       {C.colors().map(t => <Row key={t.id} id={t.id} />)}
-      <button class="btn" style={{ width: '100%', justifyContent: 'center', fontSize: '11px' }}
+      <button class="btn block" style={{ fontSize: 'var(--fs-1)' }}
         onClick={add}><Icon name="plus" size={12} /> Add colour</button>
     </>
   );
