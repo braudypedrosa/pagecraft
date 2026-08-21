@@ -804,6 +804,10 @@ body.dragging{cursor:grabbing !important;user-select:none}
    A header sits directly over the field it names: `td` has no left padding, so
    `th` must not either, or every column label is 8px right of its own input. */
 .cmst{width:100%;border-collapse:collapse;table-layout:fixed}
+/* A held-back row reads as inactive without hiding it: you still edit a draft here, and
+   the table is the one place that has to show both what is live and what is not. */
+.cmst tr.isdraft td{opacity:.5}
+.cmst tr.isdraft td:has(input[type="checkbox"]){opacity:1}
 .cmst th{
   text-align:left;padding:0 8px 8px 0;font-family:var(--label);font-size:11px;font-weight:600;
   color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -2475,11 +2479,12 @@ function cmsModal(colId) {
         <div class="note">The first <b>Text</b> field names each item and gives it its URL.</div>`
       : col.items.length ? `
         <table class="cmst"><thead><tr>
-          ${col.fields.map(f => `<th${CMS_COL_W[f.type] ? ` style="width:${CMS_COL_W[f.type]}"` : ''}>${esc(f.name)}</th>`).join('')}<th style="width:96px">Slug</th><th style="width:74px"></th>
+          ${col.fields.map(f => `<th${CMS_COL_W[f.type] ? ` style="width:${CMS_COL_W[f.type]}"` : ''}>${esc(f.name)}</th>`).join('')}<th style="width:96px">Slug</th><th style="width:58px" title="A draft has no page, appears in no list, and is left out of content.json">Draft</th><th style="width:74px"></th>
         </tr></thead><tbody>
-        ${col.items.map((it, i) => `<tr data-i="${it.id}">
+        ${col.items.map((it, i) => `<tr data-i="${it.id}"${it.draft ? ' class="isdraft"' : ''}>
           ${col.fields.map(f => `<td>${cmsCell(col, it, f)}</td>`).join('')}
           <td><input class="ctl" data-islug="${it.id}" value="${esc(it.slug)}" style="font-family:var(--mono);font-size:11px"></td>
+          <td><input type="checkbox" data-idraft="${it.id}"${it.draft ? ' checked' : ''} title="Hold this item back from the published site"></td>
           <td style="white-space:nowrap;display:flex;gap:2px;align-items:center">
             <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
             <button class="iconbtn" data-idel="${it.id}" title="Delete item">${svg('trash', 13)}</button>
@@ -2487,7 +2492,9 @@ function cmsModal(colId) {
         </tbody></table>`
         : `<div class="empty">No items yet. Add one and fill in its fields.</div>`}`,
       `<span class="note" style="margin:0;flex:1;text-align:left">${cmsTab === 'items'
-        ? `${col.items.length} item${col.items.length === 1 ? '' : 's'} · URLs will be <b>${esc(col.slug)}/&lt;slug&gt;.html</b>`
+        ? `${(() => { const d = col.items.filter(i => i.draft).length;
+             return `${col.items.length} item${col.items.length === 1 ? '' : 's'}`
+               + `${d ? `, ${d} held back` : ''}`; })()} · URLs will be <b>${esc(col.slug)}/&lt;slug&gt;.html</b>`
         : 'Deleting a field clears its values on every item'}</span>
        <button class="btn" id="cmsNew">${svg('plus', 13)} ${cmsTab === 'items' ? 'Add item' : 'Add field'}</button>
        <button class="btn primary" id="cmsDone">Done</button>`, 'lg');
@@ -2530,6 +2537,13 @@ function cmsModal(colId) {
     $$('[data-islug]', box).forEach(el => el.addEventListener('blur', () => {
       edit(() => itemSetSlug(colId, el.dataset.islug, el.value.trim()));
       draw();
+    }));
+    /* Redraws the canvas as well as the table: holding an item back changes what every
+       Collection List shows and whether a detail page exists at all, so the page behind
+       the dialog is stale the moment this is ticked. */
+    $$('[data-idraft]', box).forEach(el => el.addEventListener('change', () => {
+      edit(() => itemDraft(colId, el.dataset.idraft, el.checked));
+      draw(); render();
     }));
     $$('[data-v]', box).forEach(el => {
       const [iid, fid] = el.dataset.v.split('|');

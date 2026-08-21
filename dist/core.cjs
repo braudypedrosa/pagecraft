@@ -37,6 +37,7 @@ __export(index_exports, {
   DEV_W: () => DEV_W,
   FACADE_JS: () => FACADE_JS,
   FIELD_TYPES: () => FIELD_TYPES,
+  FILTER_OPS: () => FILTER_OPS,
   FONT_BASE: () => FONT_BASE,
   GF: () => GF,
   HOOKS: () => HOOKS,
@@ -176,6 +177,7 @@ __export(index_exports, {
   isRef: () => isRef,
   itemAdd: () => itemAdd,
   itemDelete: () => itemDelete,
+  itemDraft: () => itemDraft,
   itemMove: () => itemMove,
   itemSet: () => itemSet,
   itemSetSlug: () => itemSetSlug,
@@ -195,6 +197,7 @@ __export(index_exports, {
   lvl: () => lvl,
   makeFor: () => makeFor,
   matchLayout: () => matchLayout,
+  matches: () => matches,
   menuFor: () => menuFor,
   migrate: () => migrate,
   moveMany: () => moveMany,
@@ -226,6 +229,7 @@ __export(index_exports, {
   previewIndex: () => previewIndex,
   previewItem: () => previewItem,
   propVal: () => propVal,
+  published: () => published,
   redo: () => redo,
   refId: () => refId,
   reid: () => reid,
@@ -434,6 +438,13 @@ var dbounce = (fn, ms) => {
   };
 };
 var HOME = "index.html";
+var FILTER_OPS = [
+  ["is", "is"],
+  ["not", "is not"],
+  ["has", "contains"],
+  ["set", "has any value"],
+  ["unset", "is empty"]
+];
 var BOX = (t, r, b, l) => ({ "padding-top": t, "padding-right": r, "padding-bottom": b, "padding-left": l });
 var U = {
   size: ["px", "rem", "em", "vw"],
@@ -641,6 +652,31 @@ var DEF = {
           ]
         },
         { t: "pick", k: "dir", label: "Direction", opts: [["asc", "A\u2013Z"], ["desc", "Z\u2013A"]] },
+        {
+          t: "select",
+          k: "where",
+          label: "Only show items where",
+          note: "A category or tag page is this control: point it at a field and give the value that page is about.",
+          opts: (n) => [
+            ["", "Every item"],
+            ...(n.src && findCollection(n.src) ? findCollection(n.src).fields : []).map((f) => [f.id, f.name])
+          ]
+        },
+        /* Both hidden until a field is chosen: an operator and a value with nothing to
+           test are two controls that cannot do anything, and a panel that shows every
+           control it has regardless is how the inspector got long in the first place. */
+        { t: "select", k: "op", label: "Test", opts: FILTER_OPS, when: (n) => !!n.props.where },
+        {
+          t: "text",
+          k: "val",
+          label: "Value",
+          ph: "e.g. Journal",
+          set: 1,
+          when: (n) => {
+            const p = n.props;
+            return !!p.where && p.op !== "set" && p.op !== "unset";
+          }
+        },
         { t: "unit", k: "limit", label: "Show at most", units: [""], ph: "all" },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
         /* Baseline is here because the header templates use it — text beside text in a bar
@@ -2713,8 +2749,22 @@ function itemSet(colId, iid, fid, value) {
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
+var published = (col) => (col && col.items || []).filter((i) => !i.draft);
+function matches(col, item, where, op, val) {
+  const f = where ? findField(col, where) : null;
+  if (!f) return true;
+  const raw = String(item.values[f.id] ?? "").trim();
+  const want = String(val ?? "").trim();
+  if (op === "set") return raw !== "";
+  if (op === "unset") return raw === "";
+  if (want === "") return true;
+  if (op === "has") return raw.toLowerCase().includes(want.toLowerCase());
+  const same = f.type === "number" ? parseFloat(raw) === parseFloat(want) : raw.toLowerCase() === want.toLowerCase();
+  return op === "not" ? !same : same;
+}
 function listItems(n, col) {
-  let out = (col.items || []).slice();
+  const p = n.props;
+  let out = published(col).filter((i) => matches(col, i, p.where, p.op, p.val));
   const f = n.props.sort ? findField(col, n.props.sort) : null;
   if (f) out.sort((a, b) => {
     const av = a.values[f.id] ?? "", bv = b.values[f.id] ?? "";
@@ -2742,7 +2792,7 @@ function exportTargets() {
       out.push({ pg: pg2, path: pg2.slug + ".html", rel: "", col: null, item: null });
       continue;
     }
-    for (const it of col.items) {
+    for (const it of published(col)) {
       const t = pg2.bindTitle ? String(fieldValue(col, it, pg2.bindTitle) || "").trim() : "";
       const d = pg2.bindDesc ? String(fieldValue(col, it, pg2.bindDesc) || "").trim() : "";
       out.push({
@@ -2766,7 +2816,7 @@ function contentJson(imgPath = (v) => v == null ? "" : String(v)) {
       name: c.name,
       slug: c.slug,
       fields: c.fields.map((f) => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
-      items: c.items.map((it) => {
+      items: published(c).map((it) => {
         const values = {};
         for (const f of c.fields) {
           const v = it.values[f.id];
@@ -2787,7 +2837,7 @@ function sitePlan() {
 var COLL_CTL = ["items", "fields", "qa", "imgs"];
 var bindableKeys = (type) => {
   const c = (DEF[type] || {}).controls || {};
-  return (c.content || []).filter((x) => x.k && x.k !== "ts" && !COLL_CTL.includes(x.t)).map((x) => x.k);
+  return (c.content || []).filter((x) => x.k && !x.set && x.k !== "ts" && !COLL_CTL.includes(x.t)).map((x) => x.k);
 };
 var BIND_CTL = ["text", "area", "rich", "img", "link"];
 function bindSlots(rootId) {
@@ -2891,7 +2941,9 @@ function bindScope(id) {
 var previewIndex = (colId) => (state.ui.item || (state.ui.item = {}))[colId] || 0;
 function previewItem(col) {
   if (!col || !col.items.length) return null;
-  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
+  const live = published(col);
+  const pool = live.length ? live : col.items;
+  return pool[Math.min(previewIndex(col.id), pool.length - 1)];
 }
 var fieldValue = (col, item, fid) => {
   if (!col || !item || !findField(col, fid)) return "";
@@ -2911,6 +2963,13 @@ function itemSetSlug(colId, iid, slug) {
   if (!it) return;
   it.slugLocked = 1;
   it.slug = uniqueId(slug || itemTitle(col, it), col.items.filter((x) => x.id !== it.id).map((x) => x.slug));
+}
+function itemDraft(colId, iid, on) {
+  const it = findItem(findCollection(colId), iid);
+  if (!it) return false;
+  if (on) it.draft = 1;
+  else delete it.draft;
+  return true;
 }
 var blockRootType = (id) => {
   const b = findBlock(id);
@@ -5049,6 +5108,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   DEV_W,
   FACADE_JS,
   FIELD_TYPES,
+  FILTER_OPS,
   FONT_BASE,
   GF,
   HOOKS,
@@ -5188,6 +5248,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   isRef,
   itemAdd,
   itemDelete,
+  itemDraft,
   itemMove,
   itemSet,
   itemSetSlug,
@@ -5207,6 +5268,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   lvl,
   makeFor,
   matchLayout,
+  matches,
   menuFor,
   migrate,
   moveMany,
@@ -5238,6 +5300,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   previewIndex,
   previewItem,
   propVal,
+  published,
   redo,
   refId,
   reid,

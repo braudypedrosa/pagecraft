@@ -804,6 +804,10 @@ body.dragging{cursor:grabbing !important;user-select:none}
    A header sits directly over the field it names: `td` has no left padding, so
    `th` must not either, or every column label is 8px right of its own input. */
 .cmst{width:100%;border-collapse:collapse;table-layout:fixed}
+/* A held-back row reads as inactive without hiding it: you still edit a draft here, and
+   the table is the one place that has to show both what is live and what is not. */
+.cmst tr.isdraft td{opacity:.5}
+.cmst tr.isdraft td:has(input[type="checkbox"]){opacity:1}
 .cmst th{
   text-align:left;padding:0 8px 8px 0;font-family:var(--label);font-size:11px;font-weight:600;
   color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -1213,6 +1217,13 @@ var dbounce = (fn, ms) => {
   };
 };
 var HOME = "index.html";
+var FILTER_OPS = [
+  ["is", "is"],
+  ["not", "is not"],
+  ["has", "contains"],
+  ["set", "has any value"],
+  ["unset", "is empty"]
+];
 var BOX = (t, r, b, l) => ({ "padding-top": t, "padding-right": r, "padding-bottom": b, "padding-left": l });
 var U = {
   size: ["px", "rem", "em", "vw"],
@@ -1420,6 +1431,31 @@ var DEF = {
           ]
         },
         { t: "pick", k: "dir", label: "Direction", opts: [["asc", "A\u2013Z"], ["desc", "Z\u2013A"]] },
+        {
+          t: "select",
+          k: "where",
+          label: "Only show items where",
+          note: "A category or tag page is this control: point it at a field and give the value that page is about.",
+          opts: (n) => [
+            ["", "Every item"],
+            ...(n.src && findCollection(n.src) ? findCollection(n.src).fields : []).map((f) => [f.id, f.name])
+          ]
+        },
+        /* Both hidden until a field is chosen: an operator and a value with nothing to
+           test are two controls that cannot do anything, and a panel that shows every
+           control it has regardless is how the inspector got long in the first place. */
+        { t: "select", k: "op", label: "Test", opts: FILTER_OPS, when: (n) => !!n.props.where },
+        {
+          t: "text",
+          k: "val",
+          label: "Value",
+          ph: "e.g. Journal",
+          set: 1,
+          when: (n) => {
+            const p = n.props;
+            return !!p.where && p.op !== "set" && p.op !== "unset";
+          }
+        },
         { t: "unit", k: "limit", label: "Show at most", units: [""], ph: "all" },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
         /* Baseline is here because the header templates use it — text beside text in a bar
@@ -3492,8 +3528,22 @@ function itemSet(colId, iid, fid, value) {
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
+var published = (col) => (col && col.items || []).filter((i) => !i.draft);
+function matches(col, item, where, op, val) {
+  const f = where ? findField(col, where) : null;
+  if (!f) return true;
+  const raw = String(item.values[f.id] ?? "").trim();
+  const want = String(val ?? "").trim();
+  if (op === "set") return raw !== "";
+  if (op === "unset") return raw === "";
+  if (want === "") return true;
+  if (op === "has") return raw.toLowerCase().includes(want.toLowerCase());
+  const same = f.type === "number" ? parseFloat(raw) === parseFloat(want) : raw.toLowerCase() === want.toLowerCase();
+  return op === "not" ? !same : same;
+}
 function listItems(n, col) {
-  let out = (col.items || []).slice();
+  const p = n.props;
+  let out = published(col).filter((i) => matches(col, i, p.where, p.op, p.val));
   const f = n.props.sort ? findField(col, n.props.sort) : null;
   if (f) out.sort((a, b) => {
     const av = a.values[f.id] ?? "", bv = b.values[f.id] ?? "";
@@ -3521,7 +3571,7 @@ function exportTargets() {
       out.push({ pg: pg2, path: pg2.slug + ".html", rel: "", col: null, item: null });
       continue;
     }
-    for (const it of col.items) {
+    for (const it of published(col)) {
       const t = pg2.bindTitle ? String(fieldValue(col, it, pg2.bindTitle) || "").trim() : "";
       const d = pg2.bindDesc ? String(fieldValue(col, it, pg2.bindDesc) || "").trim() : "";
       out.push({
@@ -3545,7 +3595,7 @@ function contentJson(imgPath = (v) => v == null ? "" : String(v)) {
       name: c.name,
       slug: c.slug,
       fields: c.fields.map((f) => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
-      items: c.items.map((it) => {
+      items: published(c).map((it) => {
         const values = {};
         for (const f of c.fields) {
           const v = it.values[f.id];
@@ -3566,7 +3616,7 @@ function sitePlan() {
 var COLL_CTL = ["items", "fields", "qa", "imgs"];
 var bindableKeys = (type) => {
   const c = (DEF[type] || {}).controls || {};
-  return (c.content || []).filter((x) => x.k && x.k !== "ts" && !COLL_CTL.includes(x.t)).map((x) => x.k);
+  return (c.content || []).filter((x) => x.k && !x.set && x.k !== "ts" && !COLL_CTL.includes(x.t)).map((x) => x.k);
 };
 var BIND_CTL = ["text", "area", "rich", "img", "link"];
 function bindSlots(rootId) {
@@ -3670,7 +3720,9 @@ function bindScope(id) {
 var previewIndex = (colId) => (state.ui.item || (state.ui.item = {}))[colId] || 0;
 function previewItem(col) {
   if (!col || !col.items.length) return null;
-  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
+  const live = published(col);
+  const pool = live.length ? live : col.items;
+  return pool[Math.min(previewIndex(col.id), pool.length - 1)];
 }
 var fieldValue = (col, item, fid) => {
   if (!col || !item || !findField(col, fid)) return "";
@@ -3690,6 +3742,13 @@ function itemSetSlug(colId, iid, slug) {
   if (!it) return;
   it.slugLocked = 1;
   it.slug = uniqueId(slug || itemTitle(col, it), col.items.filter((x) => x.id !== it.id).map((x) => x.slug));
+}
+function itemDraft(colId, iid, on) {
+  const it = findItem(findCollection(colId), iid);
+  if (!it) return false;
+  if (on) it.draft = 1;
+  else delete it.draft;
+  return true;
 }
 var blockRootType = (id) => {
   const b = findBlock(id);
@@ -5828,6 +5887,7 @@ var __CORE = {
   DEV_W,
   FACADE_JS,
   FIELD_TYPES,
+  FILTER_OPS,
   FONT_BASE,
   GF,
   HOOKS,
@@ -5967,6 +6027,7 @@ var __CORE = {
   isRef,
   itemAdd,
   itemDelete,
+  itemDraft,
   itemMove,
   itemSet,
   itemSetSlug,
@@ -5986,6 +6047,7 @@ var __CORE = {
   lvl,
   makeFor,
   matchLayout,
+  matches,
   menuFor,
   migrate,
   moveMany,
@@ -6017,6 +6079,7 @@ var __CORE = {
   previewIndex,
   previewItem,
   propVal,
+  published,
   redo,
   refId,
   reid,
@@ -8675,7 +8738,7 @@ var PC_UI = (() => {
         " ",
         title
       ] }),
-      /* @__PURE__ */ u2("div", { class: "gb", children: items ? items.map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
+      /* @__PURE__ */ u2("div", { class: "gb", children: items ? items.filter((c3) => !c3.when || c3.when(n2)).map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
     ] });
   }
   function Panel({ title, n: n2, gk, children }) {
@@ -11068,11 +11131,12 @@ function cmsModal(colId) {
         <div class="note">The first <b>Text</b> field names each item and gives it its URL.</div>`
       : col.items.length ? `
         <table class="cmst"><thead><tr>
-          ${col.fields.map(f => `<th${CMS_COL_W[f.type] ? ` style="width:${CMS_COL_W[f.type]}"` : ''}>${esc(f.name)}</th>`).join('')}<th style="width:96px">Slug</th><th style="width:74px"></th>
+          ${col.fields.map(f => `<th${CMS_COL_W[f.type] ? ` style="width:${CMS_COL_W[f.type]}"` : ''}>${esc(f.name)}</th>`).join('')}<th style="width:96px">Slug</th><th style="width:58px" title="A draft has no page, appears in no list, and is left out of content.json">Draft</th><th style="width:74px"></th>
         </tr></thead><tbody>
-        ${col.items.map((it, i) => `<tr data-i="${it.id}">
+        ${col.items.map((it, i) => `<tr data-i="${it.id}"${it.draft ? ' class="isdraft"' : ''}>
           ${col.fields.map(f => `<td>${cmsCell(col, it, f)}</td>`).join('')}
           <td><input class="ctl" data-islug="${it.id}" value="${esc(it.slug)}" style="font-family:var(--mono);font-size:11px"></td>
+          <td><input type="checkbox" data-idraft="${it.id}"${it.draft ? ' checked' : ''} title="Hold this item back from the published site"></td>
           <td style="white-space:nowrap;display:flex;gap:2px;align-items:center">
             <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
             <button class="iconbtn" data-idel="${it.id}" title="Delete item">${svg('trash', 13)}</button>
@@ -11080,7 +11144,9 @@ function cmsModal(colId) {
         </tbody></table>`
         : `<div class="empty">No items yet. Add one and fill in its fields.</div>`}`,
       `<span class="note" style="margin:0;flex:1;text-align:left">${cmsTab === 'items'
-        ? `${col.items.length} item${col.items.length === 1 ? '' : 's'} · URLs will be <b>${esc(col.slug)}/&lt;slug&gt;.html</b>`
+        ? `${(() => { const d = col.items.filter(i => i.draft).length;
+             return `${col.items.length} item${col.items.length === 1 ? '' : 's'}`
+               + `${d ? `, ${d} held back` : ''}`; })()} · URLs will be <b>${esc(col.slug)}/&lt;slug&gt;.html</b>`
         : 'Deleting a field clears its values on every item'}</span>
        <button class="btn" id="cmsNew">${svg('plus', 13)} ${cmsTab === 'items' ? 'Add item' : 'Add field'}</button>
        <button class="btn primary" id="cmsDone">Done</button>`, 'lg');
@@ -11123,6 +11189,13 @@ function cmsModal(colId) {
     $$('[data-islug]', box).forEach(el => el.addEventListener('blur', () => {
       edit(() => itemSetSlug(colId, el.dataset.islug, el.value.trim()));
       draw();
+    }));
+    /* Redraws the canvas as well as the table: holding an item back changes what every
+       Collection List shows and whether a detail page exists at all, so the page behind
+       the dialog is stale the moment this is ticked. */
+    $$('[data-idraft]', box).forEach(el => el.addEventListener('change', () => {
+      edit(() => itemDraft(colId, el.dataset.idraft, el.checked));
+      draw(); render();
     }));
     $$('[data-v]', box).forEach(el => {
       const [iid, fid] = el.dataset.v.split('|');

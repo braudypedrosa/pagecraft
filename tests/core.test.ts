@@ -332,6 +332,148 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- drafts and filters ------------------------------------------------
+   The two verbs a Collection List was missing. Sorting, directing and limiting are enough
+   for "the five newest" and nothing else: a category page asks for a subset, and a blog
+   needs somewhere to keep a post that is not ready. */
+
+const cmsFixture = () => {
+  blank();
+  const col = collectionAdd('Journal');
+  C.fieldAdd(col.id, 'Title', 'text');
+  C.fieldAdd(col.id, 'Category', 'text');
+  C.fieldAdd(col.id, 'Rank', 'number');
+  const [title, cat, rank] = col.fields.map((f: Field) => f.id);
+  const add = (t: string, c: string, r: string) => {
+    const it = itemAdd(col.id);
+    C.itemSet(col.id, it.id, title, t);
+    C.itemSet(col.id, it.id, cat, c);
+    C.itemSet(col.id, it.id, rank, r);
+    return it;
+  };
+  return { col, fields: { title, cat, rank }, add };
+};
+
+test('a draft leaves every published surface and stays editable in the CMS', () => {
+  const { col, add } = cmsFixture();
+  const live = add('Shipped', 'Journal', '1');
+  const held = add('Half written', 'Journal', '2');
+
+  a.equal(C.published(col).length, 2, 'nothing is a draft to begin with');
+  a.ok(C.itemDraft(col.id, held.id, true));
+
+  a.deepEqual(C.published(col).map(i => i.id), [live.id], 'gone from the published set');
+  a.equal(col.items.length, 2, 'but still in the collection, because you still edit it');
+  a.equal(held.draft, 1);
+
+  /* no detail page, so no entry in the sitemap or the archive either */
+  const pg = C.state.pages[0];
+  pg.collection = col.id;
+  /* only this collection's targets: `blank()` empties page 0's tree but leaves the
+     project's other pages alone, and those are not what this is about */
+  const detail = () => C.exportTargets().filter(t => t.col).map(t => t.path);
+  a.deepEqual(detail(), [col.slug + '/' + live.slug + '.html'], 'one detail page, not two');
+  a.equal(/half-written/.test(C.contentJson()), false, 'and absent from content.json');
+
+  /* and back again */
+  a.ok(C.itemDraft(col.id, held.id, false));
+  a.equal(held.draft, undefined, 'the flag is removed, not set to zero');
+  a.equal(detail().length, 2, 'and the page comes back');
+});
+
+test('a Collection List shows published items only', () => {
+  const { col, add } = cmsFixture();
+  add('One', 'Journal', '1');
+  const held = add('Two', 'Journal', '2');
+  const list = C.N('list', {});
+  list.src = col.id;
+  C.itemDraft(col.id, held.id, true);
+  a.deepEqual(C.listItems(list, col).map(i => i.id).includes(held.id), false);
+  a.equal(C.listItems(list, col).length, 1);
+});
+
+test('the filter is what a category page is made of', () => {
+  const { col, fields, add } = cmsFixture();
+  add('A', 'Journal', '10');
+  add('B', 'Notes', '9');
+  add('C', 'journal', '8');            // deliberately different case
+  const list = C.N('list', {});
+  list.src = col.id;
+  const titles = () => C.listItems(list, col).map(i => i.values[fields.title]);
+
+  a.deepEqual(titles(), ['A', 'B', 'C'], 'no filter, every item');
+
+  Object.assign(list.props, { where: fields.cat, op: 'is', val: 'Journal' });
+  a.deepEqual(titles(), ['A', 'C'], 'case-insensitive, which is what a URL slug needs');
+
+  list.props.op = 'not';
+  a.deepEqual(titles(), ['B']);
+
+  list.props.op = 'has'; list.props.val = 'urn';
+  a.deepEqual(titles(), ['A', 'C'], 'contains, for a tag inside a longer value');
+});
+
+test('the filter reads numbers as numbers, and empties as empties', () => {
+  const { col, fields, add } = cmsFixture();
+  add('nine', 'x', '9');
+  add('ten', 'x', '10');
+  const blankRank = add('none', 'x', '');
+  const list = C.N('list', {});
+  list.src = col.id;
+  const titles = () => C.listItems(list, col).map(i => i.values[fields.title]);
+
+  Object.assign(list.props, { where: fields.rank, op: 'is', val: '9' });
+  a.deepEqual(titles(), ['nine'], '9 is not 10, and not a string comparison');
+
+  list.props.op = 'set';
+  a.deepEqual(titles(), ['nine', 'ten'], 'only items with a value');
+  list.props.op = 'unset';
+  a.deepEqual(titles(), ['none']);
+  a.equal(blankRank.values[fields.rank], '');
+});
+
+test('a filter that cannot yet do anything hides nothing', () => {
+  /* Typing a value one character at a time must not blank the list on the way, and a field
+     deleted from under a list must not silently empty every page that used it. */
+  const { col, fields, add } = cmsFixture();
+  add('A', 'Journal', '1');
+  add('B', 'Notes', '2');
+  const list = C.N('list', {});
+  list.src = col.id;
+
+  Object.assign(list.props, { where: fields.cat, op: 'is', val: '' });
+  a.equal(C.listItems(list, col).length, 2, 'no value yet, so no filter yet');
+
+  list.props.where = 'a-field-that-was-deleted';
+  list.props.val = 'Journal';
+  a.equal(C.listItems(list, col).length, 2, 'a missing field is not a filter that matches nothing');
+
+  /* the operators that need no value still work with none */
+  Object.assign(list.props, { where: fields.cat, op: 'set', val: '' });
+  a.equal(C.listItems(list, col).length, 2);
+});
+
+test('filter, sort and limit compose in that order', () => {
+  const { col, fields, add } = cmsFixture();
+  ['5', '1', '9', '3'].forEach((r, i) => add('i' + i, i < 3 ? 'Journal' : 'Notes', r));
+  const list = C.N('list', {});
+  list.src = col.id;
+  Object.assign(list.props, { where: fields.cat, op: 'is', val: 'Journal', sort: fields.rank, dir: 'asc', limit: '2' });
+  /* Journal holds 5, 1, 9 → sorted 1, 5, 9 → first two */
+  a.deepEqual(C.listItems(list, col).map(i => i.values[fields.rank]), ['1', '5']);
+  a.equal(C.FILTER_OPS.length, 5, 'and the operator list the control offers is the one tested here');
+});
+
+test('the canvas previews a published item, and falls back rather than showing nothing', () => {
+  const { col, add } = cmsFixture();
+  const a1 = add('One', 'x', '1');
+  const a2 = add('Two', 'x', '2');
+  C.itemDraft(col.id, a1.id, true);
+  a.equal(must(C.previewItem(col), 'preview').id, a2.id, 'skips the draft');
+  C.itemDraft(col.id, a2.id, true);
+  a.equal(must(C.previewItem(col), 'preview').id, a1.id, 'all drafts: show one anyway');
+});
+
 /* ---- responsive images ------------------------------------------------
    The ladder and the `sizes` computation are the whole decision; the export only does the
    pixel-pushing. Both read `imageWidths`, so what the markup promises and what the export

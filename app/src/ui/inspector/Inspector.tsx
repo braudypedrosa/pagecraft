@@ -26,7 +26,10 @@ function Group({ title, n, items, gk }: { title: string; n: PcNode; items?: Cont
         <Icon name="caret" size={10} /> {title}
       </div>
       <div class="gb">
-        {items ? items.map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
+        {/* `when` lets a control depend on the node: the collection filter's operator and
+            value appear once a field is chosen and not before. */}
+        {items ? items.filter(c => !c.when || c.when(n))
+          .map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
       </div>
     </div>
   );

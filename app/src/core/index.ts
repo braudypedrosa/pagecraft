@@ -47,6 +47,15 @@ const dbounce = (fn: (...a: any[]) => void, ms: number) => { let t: any; return 
    which is the whole reason this is a named constant rather than a string in two places. */
 const HOME = 'index.html';
 
+/* Five operators, chosen to cover what people actually build: `is` for a category page,
+   `has` for a tag that lives in a comma-separated field, `set` for "only items with an
+   image", and the two negatives. Anything richer wants a query language, and a page builder
+   is not the place to invent one. */
+const FILTER_OPS: [string, string][] = [
+  ['is', 'is'], ['not', 'is not'], ['has', 'contains'],
+  ['set', 'has any value'], ['unset', 'is empty']
+];
+
 /* --------------------------------------------------- element definitions
    level: 0 root · 1 section · 2 row · 3 column · 4 leaf                 */
 const BOX = (t: string, r: string, b: string, l: string) => ({ 'padding-top': t, 'padding-right': r, 'padding-bottom': b, 'padding-left': l });
@@ -229,6 +238,23 @@ const DEF: Record<string, WidgetDef> = {
             ...((n.src && findCollection(n.src) ? findCollection(n.src)!.fields : []).map((f: Field) => [f.id, f.name]))]
         },
         { t: 'pick', k: 'dir', label: 'Direction', opts: [['asc', 'A–Z'], ['desc', 'Z–A']] },
+        {
+          t: 'select', k: 'where', label: 'Only show items where',
+          note: 'A category or tag page is this control: point it at a field and give the value that page is about.',
+          opts: n => [['', 'Every item'],
+            ...((n.src && findCollection(n.src) ? findCollection(n.src)!.fields : []).map((f: Field) => [f.id, f.name]))]
+        },
+        /* Both hidden until a field is chosen: an operator and a value with nothing to
+           test are two controls that cannot do anything, and a panel that shows every
+           control it has regardless is how the inspector got long in the first place. */
+        { t: 'select', k: 'op', label: 'Test', opts: FILTER_OPS, when: n => !!(n.props as PropBag).where },
+        {
+          t: 'text', k: 'val', label: 'Value', ph: 'e.g. Journal', set: 1,
+          when: n => {
+            const p = n.props as PropBag;
+            return !!p.where && p.op !== 'set' && p.op !== 'unset';
+          }
+        },
         { t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all' },
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space },
         /* Baseline is here because the header templates use it — text beside text in a bar
@@ -2410,7 +2436,9 @@ function itemSlug(col: Collection, it: Item) {
 }
 function itemAdd(colId: string) {
   const col = findCollection(colId); if (!col) return null;
-  const it = { id: uid(), slug: '', values: {} };
+  /* annotated, so the return type is `Item | null` rather than the shape of this literal —
+     without it every caller got `values: {}` and could not read a field off a new item */
+  const it: Item = { id: uid(), slug: '', values: {} };
   col.items.push(it);
   it.slug = itemSlug(col, it);
   return it;
@@ -2434,8 +2462,38 @@ function itemSet(colId: string, iid: string, fid: string, value: string) {
 }
 /* The items a Collection List renders, in order. Sorting on a number field
    compares numerically — sorting a year as text puts 100 before 99. */
+/* ---- drafts and filters ----------------------------------------------
+   The two verbs a Collection List was missing. Sorting, directing and limiting were there,
+   which is enough for "the five newest" and nothing else: a category page needs to ask for
+   a subset, and a blog needs somewhere to keep a post that is not ready.
+
+   A draft is a property of the item rather than a field the author has to add, because
+   "is this published" is not content — every collection needs it and none should have to
+   model it. One place decides, and everything that describes the public site reads it. */
+const published = (col: Collection | null) => (col && col.items || []).filter(i => !i.draft);
+
+/** Does one item pass a list's filter? A list with no `where` passes everything. */
+function matches(col: Collection, item: Item, where?: string, op?: string, val?: string) {
+  const f = where ? findField(col, where) : null;
+  if (!f) return true;                                  // no field, or a field since deleted
+  const raw = String(item.values[f.id] ?? '').trim();
+  const want = String(val ?? '').trim();
+  if (op === 'set') return raw !== '';
+  if (op === 'unset') return raw === '';
+  /* a comparison against nothing is not a filter — it would hide everything on the way to
+     being typed, so it passes until there is something to compare */
+  if (want === '') return true;
+  if (op === 'has') return raw.toLowerCase().includes(want.toLowerCase());
+  /* numbers numerically, so 9 does not sort or compare above 10 */
+  const same = f.type === 'number'
+    ? parseFloat(raw) === parseFloat(want)
+    : raw.toLowerCase() === want.toLowerCase();
+  return op === 'not' ? !same : same;
+}
+
 function listItems(n: PcNode, col: Collection) {
-  let out = (col.items || []).slice();
+  const p = n.props as PropBag;
+  let out = published(col).filter(i => matches(col, i, p.where as string, p.op as string, p.val as string));
   const f = n.props.sort ? findField(col, n.props.sort) : null;
   if (f) out.sort((a, b) => {
     const av = a.values[f.id] ?? '', bv = b.values[f.id] ?? '';
@@ -2471,7 +2529,7 @@ function exportTargets() {
   for (const pg of state.pages) {
     const col = pg.collection ? findCollection(pg.collection) : null;
     if (!col) { out.push({ pg, path: pg.slug + '.html', rel: '', col: null, item: null }); continue; }
-    for (const it of col.items) {
+    for (const it of published(col)) {
       const t = pg.bindTitle ? String(fieldValue(col, it, pg.bindTitle) || '').trim() : '';
       const d = pg.bindDesc ? String(fieldValue(col, it, pg.bindDesc) || '').trim() : '';
       out.push({
@@ -2495,7 +2553,7 @@ function contentJson(imgPath: (v: unknown) => string = v => (v == null ? '' : St
     collections: collections().map(c => ({
       id: c.id, name: c.name, slug: c.slug,
       fields: c.fields.map(f => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
-      items: c.items.map(it => {
+      items: published(c).map(it => {
         const values: Record<string, string> = {};
         for (const f of c.fields) {
           const v = it.values[f.id];
@@ -2530,8 +2588,10 @@ function sitePlan(): any[] {
 const COLL_CTL = ['items', 'fields', 'qa', 'imgs'];
 const bindableKeys = (type: string) => {
   const c = (DEF[type] || {}).controls || {};
-  /* content props only: a text style is a design choice, not content */
-  return (c.content || []).filter(x => x.k && x.k !== 'ts' && !COLL_CTL.includes(x.t)).map(x => x.k);
+  /* content props only. A text style is a design choice and a filter value configures the
+     list rather than appearing in it — `ts` was excluded by name, which worked until a
+     second setting arrived, so both go through the `set` flag now. */
+  return (c.content || []).filter(x => x.k && !x.set && x.k !== 'ts' && !COLL_CTL.includes(x.t)).map(x => x.k);
 };
 /* ---- binding a whole card at once -----------------------------------
    Binding was one control at a time: select the element, open Content, click the
@@ -2647,9 +2707,14 @@ function bindScope(id: string): { node: PcNode | null; col: Collection } | null 
 }
 /* which item the canvas is previewing, per collection */
 const previewIndex = (colId: string) => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
+/* The canvas stands in for the published page, so it previews a published item. A project
+   whose every item is a draft falls back to the first one rather than rendering an empty
+   template — there is nothing else to show, and showing nothing looks like a bug. */
 function previewItem(col: Collection | null) {
   if (!col || !col.items.length) return null;
-  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
+  const live = published(col);
+  const pool = live.length ? live : col.items;
+  return pool[Math.min(previewIndex(col.id), pool.length - 1)];
 }
 const fieldValue = (col: Collection | null, item: Item | null, fid: string) => {
   if (!col || !item || !findField(col, fid)) return '';
@@ -2672,6 +2737,16 @@ function itemSetSlug(colId: string, iid: string, slug: string) {
   const it = findItem(col, iid); if (!it) return;
   it.slugLocked = 1;
   it.slug = uniqueId(slug || itemTitle(col, it), col.items.filter(x => x.id !== it.id).map(x => x.slug));
+}
+
+/** Hold an item back from the published site, or let it out. A separate verb rather than a
+    field write because `draft` is not one of the item's values — it decides whether those
+    values are published at all. */
+function itemDraft(colId: string, iid: string, on: boolean) {
+  const it = findItem(findCollection(colId), iid);
+  if (!it) return false;
+  if (on) it.draft = 1; else delete it.draft;
+  return true;
 }
 const blockRootType = (id: string) => { const b = findBlock(id); return b ? b.node.type : null; };
 /* A block is saved content. A **global** block additionally tags every copy it
@@ -4816,5 +4891,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

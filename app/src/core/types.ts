@@ -52,7 +52,15 @@ interface Styled { ts?: string }
 export interface SectionProps { tag?: string; width?: string; inner?: string }
 export interface RowProps { }
 export interface ColumnProps { }
-export interface ListProps { sort?: string; dir?: string; limit?: string }
+export interface ListProps {
+  sort?: string; dir?: string; limit?: string;
+  /** the field a filter tests, empty for no filter */
+  where?: string;
+  /** which test — see `FILTER_OPS` */
+  op?: string;
+  /** what to test against; unused by the `set` and `unset` operators */
+  val?: string;
+}
 export interface HeadingProps extends Linkable, Styled { text?: string; level?: string }
 export interface TextProps extends Styled { html?: string }
 export interface QuoteProps extends Styled { text?: string; by?: string; source?: string }
@@ -204,6 +212,14 @@ export interface Control {
   c?: string;
   /** responsive: writes at the breakpoint being edited rather than the base */
   r?: 0 | 1;
+  /** a setting rather than content, so it never appears as bindable. `BIND_CTL` decides by
+      control kind, which is right until the same kind means both things: a filter's value is
+      a text field that configures the list, not text the list displays. */
+  set?: 1;
+  /** show this control only when the node says so. A filter's operator and value have
+      nothing to test until a field is chosen, and two controls that cannot do anything are
+      how a panel gets long. Absent means always shown, which is every other control. */
+  when?: (n: Node) => boolean;
   /** pairs of value and label. Built with `.map` in places, so string[][] rather
       than a tuple type — describing what the code does, not what would be tidier. */
   opts?: string[][] | ((n: Node) => string[][]);
@@ -272,6 +288,9 @@ export interface Item {
   values: Record<string, string>;
   /** a hand-set slug stops following the title */
   slugLocked?: 1;
+  /** held back from the published site: no detail page, no place in any list, absent from
+      content.json and the sitemap. Still fully editable in the CMS, which is the point. */
+  draft?: 1;
 }
 
 export interface Collection {
