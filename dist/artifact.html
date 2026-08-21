@@ -467,9 +467,16 @@ select.ctl{
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 /* Paired fields in a dialog. The grid owns the vertical spacing and the fields
    inside give theirs up — the two used to add together, so fields in a grid sat
-   25px apart while the same fields in a plain stack sat 11px apart. */
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-2) var(--gap-3)}
+   25px apart while the same fields in a plain stack sat 11px apart.
+
+   Owning it means all of it. `gap` only separates the grid's own rows, so taking the
+   children's margin away and not replacing it left the grid with no space beneath it at
+   all: in Project settings the Site URL row butted straight into the Favicon row, and
+   the Favicon row into the Colours field — 0px where every plain field pair sits 12px
+   apart. The `:last-child` value matches `.f` for the same reason it exists there. */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-2) var(--gap-3);margin-bottom:var(--gap-2)}
 .fgrid>.f{margin-bottom:0}
+.fgrid:last-child{margin-bottom:2px}
 .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
 .unit{display:flex;gap:5px}
 .unit input{flex:1;min-width:0}
