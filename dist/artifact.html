@@ -1028,6 +1028,7 @@ var IC = {
   columns: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
   heading: '<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',
   text: '<path d="M2.5 3.5h11M2.5 6.6h11M2.5 9.7h11M2.5 12.8h6" stroke-linecap="round"/>',
+  quote: '<path d="M6.6 4.3C4.5 5.3 3.3 7 3.3 8.9c0 1.4.9 2.4 2.2 2.4 1.1 0 1.9-.8 1.9-1.8s-.7-1.7-1.7-1.7M13.6 4.3c-2.1 1-3.3 2.7-3.3 4.6 0 1.4.9 2.4 2.2 2.4 1.1 0 1.9-.8 1.9-1.8s-.7-1.7-1.7-1.7" stroke-linecap="round" stroke-linejoin="round"/>',
   image: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.6" cy="6.4" r="1.2"/><path d="M1.8 11.6l3.4-3 3 2.6 2.3-2 3.7 3.3"/>',
   video: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M6.6 5.9l4 2.1-4 2.1z" fill="currentColor" stroke="none"/>',
   button: '<rect x="1.5" y="4.5" width="13" height="7" rx="3.5"/><path d="M5 8h6" stroke-linecap="round"/>',
@@ -1426,6 +1427,94 @@ var DEF = {
         { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
         { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
         { t: "color", c: "--link", label: "Link colour" }
+      ]
+    }
+  },
+  /* A quotation, as a quotation. Both testimonial patterns used to build this out of
+       two WYSIWYG blocks holding `<p>&ldquo;…&rdquo;</p>`, so the most quotable thing on
+       a marketing page exported as an anonymous paragraph with decorative curly braces
+       in the text. A reader on a screen reader heard prose; a search engine saw prose.
+  
+       The shape follows the image widget's figure rule, for the same reason: an
+       attribution is a caption, and a caption is what makes an element a `<figure>`.
+       Unattributed, a bare `<blockquote>` says everything there is to say — wrapping it
+       in a figure with an empty figcaption would say less, not more.
+  
+       The attribution is sized in rem rather than the em the image caption uses. A quote's
+       own size lands on the figure and ranges from 16px in a card to 40px in a pull quote,
+       so an em attribution rendered at 10px in the first and 25px in the second; an
+       attribution should read the same wherever the quote appears. */
+  quote: {
+    label: "Quote",
+    icon: "quote",
+    level: 4,
+    edit: "text",
+    make: () => ({
+      props: {
+        text: "A sentence in their words that a prospect would recognise as their own problem, solved.",
+        by: "Name, Role at Company",
+        source: "",
+        ts: "lead"
+      },
+      css: {
+        d: {
+          "font-size": "24px",
+          "line-height": "1.45",
+          color: cvar("ink"),
+          "max-width": "34ch",
+          "align-self": "flex-start"
+        },
+        t: {},
+        m: { "font-size": "20px" }
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "area",
+          k: "text",
+          label: "Quotation",
+          rows: 3,
+          mono: 0,
+          note: "Type it without quotation marks \u2014 the marks are drawn by the style, so they stay out of the text a screen reader reads."
+        },
+        {
+          t: "text",
+          k: "by",
+          label: "Attribution",
+          ph: "Name, Role at Company",
+          note: "Empty, this exports as a bare blockquote. Named, the quote becomes a figure and this becomes its caption."
+        },
+        {
+          t: "text",
+          k: "source",
+          label: "Source URL",
+          ph: "https://\u2026",
+          note: "Where the quote came from. Recorded on the blockquote for machines, and turns the attribution into a link."
+        },
+        { t: "tstyle", k: "ts", label: "Text style" },
+        { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
+      ],
+      style: [
+        { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
+        { t: "color", c: "color", label: "Colour" },
+        { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
+        { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
+        /* ch first, and not U.len: the default measure is in ch, and a unit control
+           whose list omits the stored unit falls back to its first entry — which would
+           quietly rewrite 34ch as 34px the moment anyone touched the field. */
+        {
+          t: "unit",
+          c: "max-width",
+          label: "Measure",
+          r: 1,
+          units: ["ch", "px", "rem", "%"],
+          note: "How wide the lines are allowed to run. Around 34ch keeps a quote readable at display sizes."
+        },
+        { t: "pick", c: "text-align", label: "Text alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
+        { t: "color", c: "border-left-color", label: "Rule colour" },
+        { t: "unit", c: "border-left-width", label: "Rule width", r: 1, units: U.border },
+        { t: "box", c: "padding", label: "Padding", r: 1 }
       ]
     }
   },
@@ -1943,6 +2032,7 @@ var nameOf = (n) => {
   if (n.type === "heading") return (n.props.text || "").slice(0, 26) || d.label;
   if (n.type === "button") return n.props.text || d.label;
   if (n.type === "text") return (n.props.html || "").replace(/<[^>]*>/g, " ").trim().slice(0, 24) || d.label;
+  if (n.type === "quote") return (n.props.text || "").trim().slice(0, 24) || d.label;
   if (n.type === "row") return `Row \xB7 ${n.children.length} col`;
   if (n.type === "image") return n.props.alt ? "Image \xB7 " + n.props.alt.slice(0, 18) : "Image";
   return d.label;
@@ -2271,7 +2361,7 @@ var TYPO_KEYS = [
   "text-transform",
   "color"
 ];
-var TS_TYPES = ["heading", "text", "button"];
+var TS_TYPES = ["heading", "text", "quote", "button"];
 var tokenId = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24);
 var cvar = (id) => `var(--c-${id})`;
 var isRef = (v) => /^var\(--c-[\w-]+\)$/.test(String(v || "").trim());
@@ -2854,6 +2944,7 @@ var TEXT_SLOTS = {
   icon: ["label"],
   text: ["html"],
   embed: ["html"],
+  quote: ["text", "by"],
   image: ["alt", "caption"],
   accordion: [["items", "q", "a"]],
   gallery: [["items", "alt", "caption"]],
@@ -2869,7 +2960,8 @@ var SLOT_LABEL = {
   caption: "Caption",
   q: "Question",
   a: "Answer",
-  ph: "Placeholder"
+  ph: "Placeholder",
+  by: "Attribution"
 };
 function textSlots(n) {
   const out = [];
@@ -3771,12 +3863,11 @@ var PATTERNS = [
     desc: "A single testimonial, given room.",
     build: () => T_SEC({ "background-color": cvar("bg") }, [
       cols(1, [[
-        T_T(
-          "<p>&ldquo;A sentence in their words that a prospect would recognise as their own problem, solved.&rdquo;</p>",
-          "lead",
+        T_Q(
+          "A sentence in their words that a prospect would recognise as their own problem, solved.",
+          "Name, Role at Company",
           sized("26px", { "line-height": "1.4", color: cvar("ink"), "text-align": "center", "max-width": "34ch", "align-self": "center" }, "20px")
-        ),
-        T_T("<p>Name, Role at Company</p>", "small", { d: { "text-align": "center" } })
+        )
       ]])
     ])
   },
@@ -3866,8 +3957,11 @@ var PATTERNS = [
     build: () => T_SEC({ "background-color": cvar("surface") }, [
       cols(1, [[T_H("In their words", "title", { d: { "text-align": "center" } })]], { d: { "margin-bottom": "40px" } }),
       carded(cols(3, [1, 2, 3].map(() => [
-        T_T("<p>&ldquo;One sentence a prospect would recognise as their own problem, solved.&rdquo;</p>", "body", { d: { "margin-bottom": "14px" } }),
-        T_T("<p>Name, Role at Company</p>", "small")
+        T_Q(
+          "One sentence a prospect would recognise as their own problem, solved.",
+          "Name, Role at Company",
+          { d: { "font-size": "16px", "line-height": "1.7", color: cvar("text"), "max-width": "none" }, t: {}, m: {} }
+        )
       ]), { d: { gap: "24px" } }))
     ])
   },
@@ -4038,6 +4132,7 @@ function patternInsert(pid, parentNode, index = 0) {
 var TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
 var T_H = (text, ts, css, level) => N("heading", { text, ts, level: level || TS_LEVEL[ts] || "h3" }, css);
 var T_T = (html, ts, css) => N("text", { html, ts }, css);
+var T_Q = (text, by, css) => N("quote", { text, by, source: "", ts: "lead" }, css);
 var T_SEC = (css, kids) => N("section", {}, { d: { ...BOX("88px", "28px", "88px", "28px"), ...css || {} }, m: { ...BOX("56px", "20px", "56px", "20px") } }, kids);
 var T_B = (text, css) => N(
   "button",
@@ -4663,6 +4758,14 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-quote{margin:0;display:flex;flex-direction:column;border-left:0 solid transparent}
+.pagecraft-quote blockquote{margin:0}
+.pagecraft-quote p{margin:0}
+.pagecraft-quote p+p{margin-top:.6em}
+.pagecraft-quote p:first-of-type::before{content:"\\201C"}
+.pagecraft-quote p:last-of-type::after{content:"\\201D"}
+.pagecraft-attrib{font-size:.875rem;line-height:1.5;opacity:.72;margin-top:1em}
+.pagecraft-attrib a{color:inherit}
 .pagecraft-video{position:relative;width:100%;overflow:hidden}
 .pagecraft-video-play{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;cursor:pointer;background:var(--c-ink);display:block}
 .pagecraft-video-play img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -5025,6 +5128,15 @@ function renderNode(n, o) {
     }
     case "text":
       return `<div ${at} ${cx("pagecraft-wysiwyg")}>${p.html || (o.edit ? "<p></p>" : "")}</div>`;
+    case "quote": {
+      const said = `<p>${esc(p.text).replace(/\n/g, "<br>")}</p>`;
+      const url = safeUrl(p.source);
+      const from = url ? ` cite="${esc(url)}"` : "";
+      const who = String(p.by || "").trim();
+      if (!who) return `<blockquote ${at}${from} ${cx("pagecraft-quote")}>${said}</blockquote>`;
+      const named = url ? `<a href="${esc(url)}">${esc(who)}</a>` : esc(who);
+      return `<figure ${at} ${cx("pagecraft-quote")}><blockquote${from}>${said}</blockquote><figcaption class="pagecraft-attrib">${named}</figcaption></figure>`;
+    }
     case "image": {
       const src = esc(p.src || PH);
       const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : "";
@@ -6078,6 +6190,7 @@ var PC_UI = (() => {
       items: [
         ["heading", "Heading"],
         ["text", "WYSIWYG"],
+        ["quote", "Quote"],
         ["image", "Image"],
         ["gallery", "Gallery"],
         ["video", "Video"],
@@ -9908,6 +10021,19 @@ $('#rt').addEventListener('mousedown', async e => {
   syncEdit();
 });
 
+/* Where a widget's editable text actually lives, when it is not the whole element.
+   A button keeps its label in a span so the icon beside it stays out of the way, and a
+   quote keeps its words in a paragraph so the attribution does not get typed into the
+   quotation. Both enterEdit and syncEdit need the same answer, and while only the button
+   needed one they each hard-coded it — a second widget would have meant a second pair of
+   special cases free to disagree.
+
+   'p' covers both quote shapes on purpose: attributed, the paragraph sits inside the
+   blockquote inside the figure; unattributed, the host is the blockquote and the
+   paragraph is its own child. */
+const EDIT_IN = { button: 'span', quote: 'p' };
+const editTarget = (n, host) => (EDIT_IN[n.type] && host.querySelector(EDIT_IN[n.type])) || host;
+
 function enterEdit(id) {
   const h = locate(id); if (!h) return;
   const n = h.node, d = DEF[n.type];
@@ -9916,7 +10042,7 @@ function enterEdit(id) {
   if (state.ui.sel !== id || multiOn()) { selSet([id]); paintSel(); renderRight(); renderLayers(); }
 
   const host = cdoc.getElementById(id); if (!host) return;
-  const target = n.type === 'button' ? host.querySelector('span') : host;
+  const target = editTarget(n, host);
 
   hist.u.push(clone(doc())); hist.r.length = 0;
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
@@ -9958,8 +10084,8 @@ function syncEdit() {
   const h = locate(editing.id); if (!h) return;
   const n = h.node, host = editing.el;
   if (n.type === 'text') n.props.html = host.innerHTML.trim();
-  else if (n.type === 'button') n.props.text = (host.querySelector('span') || host).innerText.replace(/\n+/g, ' ').trim();
-  else n.props.text = host.innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+  else if (n.type === 'button') n.props.text = editTarget(n, host).innerText.replace(/\n+/g, ' ').trim();
+  else n.props.text = editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
   /* keep the inspector honest while typing on the canvas — a full re-render
      would steal focus, so the bound field is updated in place */
   const field = $('#right [data-x="v"]');

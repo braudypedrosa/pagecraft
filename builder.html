@@ -2007,6 +2007,19 @@ $('#rt').addEventListener('mousedown', async e => {
   syncEdit();
 });
 
+/* Where a widget's editable text actually lives, when it is not the whole element.
+   A button keeps its label in a span so the icon beside it stays out of the way, and a
+   quote keeps its words in a paragraph so the attribution does not get typed into the
+   quotation. Both enterEdit and syncEdit need the same answer, and while only the button
+   needed one they each hard-coded it — a second widget would have meant a second pair of
+   special cases free to disagree.
+
+   'p' covers both quote shapes on purpose: attributed, the paragraph sits inside the
+   blockquote inside the figure; unattributed, the host is the blockquote and the
+   paragraph is its own child. */
+const EDIT_IN = { button: 'span', quote: 'p' };
+const editTarget = (n, host) => (EDIT_IN[n.type] && host.querySelector(EDIT_IN[n.type])) || host;
+
 function enterEdit(id) {
   const h = locate(id); if (!h) return;
   const n = h.node, d = DEF[n.type];
@@ -2015,7 +2028,7 @@ function enterEdit(id) {
   if (state.ui.sel !== id || multiOn()) { selSet([id]); paintSel(); renderRight(); renderLayers(); }
 
   const host = cdoc.getElementById(id); if (!host) return;
-  const target = n.type === 'button' ? host.querySelector('span') : host;
+  const target = editTarget(n, host);
 
   hist.u.push(clone(doc())); hist.r.length = 0;
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
@@ -2057,8 +2070,8 @@ function syncEdit() {
   const h = locate(editing.id); if (!h) return;
   const n = h.node, host = editing.el;
   if (n.type === 'text') n.props.html = host.innerHTML.trim();
-  else if (n.type === 'button') n.props.text = (host.querySelector('span') || host).innerText.replace(/\n+/g, ' ').trim();
-  else n.props.text = host.innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+  else if (n.type === 'button') n.props.text = editTarget(n, host).innerText.replace(/\n+/g, ' ').trim();
+  else n.props.text = editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
   /* keep the inspector honest while typing on the canvas — a full re-render
      would steal focus, so the bound field is updated in place */
   const field = $('#right [data-x="v"]');

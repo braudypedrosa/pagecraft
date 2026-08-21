@@ -343,6 +343,97 @@ test('a captioned image becomes a figure, a plain one stays an img', () => {
   a.match(fig, /<figcaption class="pagecraft-caption">A caption<\/figcaption>/);
 });
 
+/* ---- the quote widget ------------------------------------------------
+   Both testimonial patterns used to build a quote out of two WYSIWYG blocks holding
+   `<p>&ldquo;…&rdquo;</p>`, so the most quotable thing on a marketing page exported as
+   an anonymous paragraph. These pin the semantics down so it cannot regress to that. */
+
+test('an attributed quote is a figure, an unattributed one is a bare blockquote', () => {
+  blank();
+  const q = insert('quote', null, 0);
+  q.props.text = 'They shipped in a week.';
+  q.props.by = '';
+  const bare = C.renderNode(q, { edit: false });
+  a.match(bare, /^<blockquote /);
+  a.match(bare, /<p>They shipped in a week\.<\/p>/);
+  a.equal(/figure|figcaption/.test(bare), false, 'no caption, so no wrapper to hold one');
+
+  q.props.by = 'Jane Doe, CTO at Acme';
+  const fig = C.renderNode(q, { edit: false });
+  a.match(fig, /^<figure /);
+  a.match(fig, /<blockquote><p>They shipped in a week\.<\/p><\/blockquote>/);
+  a.match(fig, /<figcaption class="pagecraft-attrib">Jane Doe, CTO at Acme<\/figcaption>/);
+});
+
+test('a source URL is recorded for machines and links the attribution', () => {
+  blank();
+  const q = insert('quote', null, 0);
+  q.props.text = 'Quoted.';
+  q.props.by = 'The Times';
+  q.props.source = 'https://example.com/review';
+  const html = C.renderNode(q, { edit: false });
+  a.match(html, /<blockquote cite="https:\/\/example\.com\/review">/);
+  a.match(html, /<figcaption class="pagecraft-attrib"><a href="https:\/\/example\.com\/review">The Times<\/a>/);
+
+  /* unattributed, the attribute lands on the element that carries the id */
+  q.props.by = '';
+  a.match(C.renderNode(q, { edit: false }), /^<blockquote id="[^"]*" cite="https:\/\/example\.com\/review"/);
+
+  /* and a source that is not a URL is dropped rather than emitted */
+  q.props.source = 'javascript:alert(1)';
+  const unsafe = C.renderNode(q, { edit: false });
+  a.equal(/cite=|javascript:/.test(unsafe), false);
+});
+
+test('quote text is escaped, and the quotation marks are not in it', () => {
+  blank();
+  const q = insert('quote', null, 0);
+  q.props.text = '5 > 3 & <b>bold</b>';
+  q.props.by = 'A & B <script>';
+  const html = C.renderNode(q, { edit: false });
+  a.match(html, /5 &gt; 3 &amp; &lt;b&gt;bold&lt;\/b&gt;/);
+  a.match(html, /A &amp; B &lt;script&gt;/);
+  /* the marks are drawn by CSS, so nothing a screen reader reads contains them */
+  a.equal(/[\u201C\u201D]|&ldquo;|&rdquo;/.test(html), false);
+  a.match(C.baseCss(false), /pagecraft-quote p:first-of-type::before\{content:"\\201C"\}/);
+});
+
+test('a newline in a quote breaks the line rather than closing the paragraph', () => {
+  blank();
+  const q = insert('quote', null, 0);
+  q.props.text = 'One line.\nAnother.';
+  q.props.by = '';
+  const html = C.renderNode(q, { edit: false });
+  a.equal((html.match(/<p>/g) || []).length, 1);
+  a.match(html, /One line\.<br>Another\./);
+});
+
+test('a quote joins find and replace under its own labels', () => {
+  blank();
+  const q = insert('quote', null, 0);
+  q.props.text = 'Findable sentence.';
+  q.props.by = 'Findable person.';
+  const slots = C.textSlots(q);
+  a.deepEqual(slots.map(x => x.prop), ['text', 'by']);
+  a.deepEqual(slots.map(x => C.slotName(x)), ['Text', 'Attribution']);
+  a.equal(C.searchCount(C.searchAll('Findable')), 2);
+  C.replaceAll('Findable', 'Found');
+  a.equal(q.props.text, 'Found sentence.');
+  a.equal(q.props.by, 'Found person.');
+});
+
+test('both testimonial patterns export a real blockquote', () => {
+  ['quote', 'quotes-3'].forEach(id => {
+    blank();
+    patternInsert(id, null, 0);
+    const html = C.buildPage(C.state.pages[0]);
+    const want = id === 'quotes-3' ? 3 : 1;
+    a.equal((html.match(/<blockquote/g) || []).length, want, id + ': one blockquote per quote');
+    a.equal((html.match(/&ldquo;|&rdquo;/g) || []).length, 0, id + ': no typed quotation marks');
+    a.match(html, /<figcaption class="pagecraft-attrib">Name, Role at Company<\/figcaption>/);
+  });
+});
+
 test('lazy loading is an export-only attribute', () => {
   blank();
   const img = insert('image', null, 0);

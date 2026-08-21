@@ -21,6 +21,7 @@ const IC: Record<string, string> = {
   columns:'<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
   heading:'<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',
   text:'<path d="M2.5 3.5h11M2.5 6.6h11M2.5 9.7h11M2.5 12.8h6" stroke-linecap="round"/>',
+  quote:'<path d="M6.6 4.3C4.5 5.3 3.3 7 3.3 8.9c0 1.4.9 2.4 2.2 2.4 1.1 0 1.9-.8 1.9-1.8s-.7-1.7-1.7-1.7M13.6 4.3c-2.1 1-3.3 2.7-3.3 4.6 0 1.4.9 2.4 2.2 2.4 1.1 0 1.9-.8 1.9-1.8s-.7-1.7-1.7-1.7" stroke-linecap="round" stroke-linejoin="round"/>',
   image:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.6" cy="6.4" r="1.2"/><path d="M1.8 11.6l3.4-3 3 2.6 2.3-2 3.7 3.3"/>',
   video:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M6.6 5.9l4 2.1-4 2.1z" fill="currentColor" stroke="none"/>',
   button:'<rect x="1.5" y="4.5" width="13" height="7" rx="3.5"/><path d="M5 8h6" stroke-linecap="round"/>',

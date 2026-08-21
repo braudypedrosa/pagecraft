@@ -23,7 +23,7 @@ export type ParentType = WidgetType | null;
 
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'column'
-  | 'heading' | 'text' | 'image' | 'gallery' | 'video' | 'icon'
+  | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
 
@@ -55,6 +55,7 @@ export interface ColumnProps { }
 export interface ListProps { sort?: string; dir?: string; limit?: string }
 export interface HeadingProps extends Linkable, Styled { text?: string; level?: string }
 export interface TextProps extends Styled { html?: string }
+export interface QuoteProps extends Styled { text?: string; by?: string; source?: string }
 export interface ImageProps extends Linkable {
   src?: string; alt?: string; caption?: string; decorative?: 0 | 1 | boolean;
   w?: string; h?: string; lazy?: 0 | 1 | boolean;
@@ -92,7 +93,7 @@ export interface DividerProps { }
 /** Which prop shape belongs to which widget. */
 export interface PropsByType {
   section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
-  heading: HeadingProps; text: TextProps; image: ImageProps; gallery: GalleryProps;
+  heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
   video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; embed: EmbedProps;
   spacer: SpacerProps; divider: DividerProps;

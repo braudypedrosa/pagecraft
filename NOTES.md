@@ -1268,8 +1268,7 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
    DOM-shimmed layer. `qa`, `icon` and `imgs` are all in the untested half
 7. **Tabs** next among the components — it needs a script, and it is the exact shape
    `NAV_JS`/`FACADE_JS`/`LB_JS` already establish: emit only when the data attribute is in the
-   body. Then **Blockquote** as a real widget, since the Pull quote pattern still exports a
-   `<p>` where it means `<blockquote>` + `<cite>`
+   body
 8. **The CMS's missing verbs**: a Collection List cannot **filter**, there is no **reference**
    field type, `content.json` has no way back in, and no **pagination** or **draft flag**
 9. **Export quality**: `srcset` by downscaling through a canvas at export time; **JSON-LD**,

@@ -331,6 +331,40 @@ npm run hooks           # one-time: post-commit repeats that warning
    page; the reasoning for each block lives in `NOTES.md` and in the preamble above the
    function. Seven comments leaked into every export before this was noticed.
 
+## What a new widget touches
+
+Ten places, from adding the Quote widget. Only one of them is enforced, so this is the
+list. Measured, not assumed: adding `'quote'` to `WidgetType` and then omitting each edit
+in turn, `tsc` objected only to the missing `PropsByType` entry — and even then it reported
+`implicitly has an 'any' type` on unrelated lines rather than naming the cause, because
+`Props` is derived from `PropsByType` and collapses when a key is missing. A missing `DEF`
+entry and a missing `renderNode` case are both **silent**: the widget appears in the palette
+and exports nothing.
+
+| Where | What |
+|---|---|
+| `types.ts` `WidgetType` | the literal |
+| `types.ts` `<Name>Props` + `PropsByType` | the props — the one edit `tsc` insists on |
+| `icons.ts` `IC` | the palette glyph, 16×16, stroke only, no fill |
+| `index.ts` `DEF` | label, `icon`, `level`, `edit`, `make()`, and the two control lists |
+| `index.ts` `renderNode` | the export markup |
+| `index.ts` `baseCss` | the rules — **and no comment, see convention 7** |
+| `index.ts` `TEXT_SLOTS` + `SLOT_LABEL` | joins project-wide find and replace |
+| `index.ts` `nameOf` | what the Navigator shows instead of the bare label |
+| `index.ts` `TS_TYPES` | only if it carries `ts` |
+| `Add.tsx` `PAL` | which group it is offered in |
+
+Two traps, both hit while adding Quote:
+
+- **A `unit` control whose `units` list omits the stored unit rewrites the value.** The
+  measure defaults to `34ch` and `U.len` has no `ch`, so the field would have shown `34px`
+  and written it back on first touch. Either the default uses a listed unit or the control
+  declares its own list.
+- **`edit: 'text'` commits from the wrong element** when the widget's markup is more than a
+  single tag. `syncEdit` used to hard-code the button's `span`; that answer now lives once,
+  in `EDIT_IN` / `editTarget`, and a widget with nested markup names its text element there
+  or has the attribution typed into the quotation.
+
 ## How to work on it well
 
 Three failure modes cost real time in this project. They are worth knowing in advance:
@@ -481,10 +515,9 @@ carries across.
    canvas/HUD/drag half, which is imperative and needs a different approach
 5. **The obvious next components**, now that the escape hatch exists: **Tabs** (needs a small
    script, and follows the `NAV_JS`/`LB_JS` pattern of emitting only when `data-tabs` is in
-   the body), **Blockquote** as a real widget (the Pull quote pattern still exports a `<p>`
-   where it wants `<blockquote>` + `<cite>`), **Table**, **Code block**, **Breadcrumb**
-   (which pairs with CMS detail pages and would drive BreadcrumbList structured data), and a
-   **scroll-snap slider** for logos and testimonials
+   the body), **Table**, **Code block**, **Breadcrumb** (which pairs with CMS detail pages
+   and would drive BreadcrumbList structured data), and a **scroll-snap slider** for logos
+   and testimonials
 6. **The CMS's missing verbs**: a Collection List sorts, directs and limits but cannot
    **filter**, which is what category and tag pages need; there is no **reference** field
    type, so nothing relates a post to an author; `content.json` goes out but nothing comes
