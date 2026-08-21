@@ -182,9 +182,9 @@ The project-level body and heading fonts use the same picker.
 
 Manrope and DM Sans are also embedded in the builder itself, being the brand faces, so they
 render on the canvas with no network at all. Other Google families load over the network for
-the canvas preview — which the Artifact viewer's CSP blocks, so in the hosted copy they fall
-back to their stack while the **export still links them correctly**. Run `index.html`
-locally to preview them for real.
+the canvas preview, so anywhere the builder runs without network access they fall back to
+their stack while the **export still links them correctly**. Run `index.html` locally to
+preview them for real.
 
 ## Add panel
 
@@ -593,43 +593,14 @@ cookies — the top bar turns red and a dialog offers an immediate JSON backup r
 letting you keep working against a dead store. Editing the same project in two tabs is
 detected and you choose which copy wins.
 
-## Development
-
-```bash
-npm test        # rebuilds, then runs the core suite
-npm run build   # regenerate index.html and dist/core.cjs
-npm run serve   # static server on :4877
-```
-
-`builder.html` is the source of truth — markup, styles and logic in one file. `build.mjs`
-generates:
-
-- `index.html` — standalone page, doctype and brand fonts inlined
-- `dist/artifact.html` — the same fragment with fonts inlined, for publishing
-- `dist/core.cjs` — the DOM-free regions of the script, extracted verbatim between
-  `/*<core>*/` markers, so `tests/core.test.cjs` exercises the code that actually ships
-
-The build is **byte-deterministic** — the same source and the same vendored fonts give the
-same output, with no timestamps anywhere. That is what lets the last line of every build tell
-you whether the published copy is still the one this repo would produce:
-
-```bash
-npm run publish:check          # exits 1 when the published Artifact is behind
-npm run publish:stamp -- <url> # run immediately after a real publish
-npm run hooks                  # one-time: post-commit repeats the warning
-```
-
-`dist/PUBLISHED.json` holds the hash of what was published. Publishing is a manual step with
-no CLI, so nothing can do it for you — but nothing has to remember it either.
-
 ## Brand
 
 `brand/` vendors what the build needs from the Pagecraft brand kit: Manrope (variable) and
 DM Sans (400/500/600) with their OFL licenses, the symbol and favicon SVGs, and the
 canonical `pagecraft-tokens.css` / `.json`. The fonts are embedded as data URIs at build
 time — Manrope for product UI and body, DM Sans for labels, metadata and numerics — so the
-tool renders in the brand faces offline and inside the Artifact CSP, which blocks font
-CDNs. The same faces are injected into the canvas iframe so WYSIWYG matches the real type.
+tool renders in the brand faces offline, with no font CDN involved. The same faces are
+injected into the canvas iframe so WYSIWYG matches the real type.
 
 Palette: Ink `#111311` · Craft Green `#b7f34a` · Paper `#f8f6ef` · Slate `#6f7771` ·
 White `#ffffff`. These are also the default colour tokens for a new project.
