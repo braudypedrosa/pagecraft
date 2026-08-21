@@ -37,6 +37,14 @@ export type Decls = Record<string, string>;
 /** Per-breakpoint CSS on a node, a text style or a class. */
 export interface Css { d: Decls; t: Decls; m: Decls }
 
+/** An interactive state, which is a second axis over the breakpoints. `hover` and
+    `focus-visible` are the two worth authoring: one is what a pointer does and the other is
+    what a keyboard does, and a rule for the second is the difference between a site that can
+    be operated without a mouse and one that cannot. */
+export type StateKey = 'hover' | 'focus';
+/** Present only once something is set, so a project carries no empty blocks. */
+export type States = Partial<Record<StateKey, Css>>;
+
 /* ---- nodes ------------------------------------------------------------ */
 
 /* ---- per-widget props ---------------------------------------------------
@@ -177,6 +185,8 @@ export interface Node {
   type: WidgetType;
   props: Props;
   css: Css;
+  /** hover and focus rules, each with its own three breakpoints */
+  st?: States;
   /** per-breakpoint visibility; `true` means hidden at that breakpoint */
   hide: Partial<Record<Bp, boolean>>;
   /** ids of applied style classes, in no particular order */
@@ -262,7 +272,7 @@ export interface WidgetDef {
 
 export interface ColorToken { id: string; name: string; value: string }
 export interface TextStyle { id: string; name: string; tag?: string; css: Css }
-export interface StyleClass { id: string; name: string; css: Css }
+export interface StyleClass { id: string; name: string; css: Css; st?: States }
 
 export interface Tokens {
   colors: ColorToken[];
@@ -377,6 +387,9 @@ export interface Ui {
   /** which page of a paginated list the canvas is showing, 1-based. Clamped on read, so
       deleting items cannot leave it parked past the end. */
   pno?: number;
+  /** the interactive state the Style tab is editing. Empty is the resting state, which is
+      what every control wrote before there was a choice. */
+  st?: '' | StateKey;
 }
 
 export interface State {

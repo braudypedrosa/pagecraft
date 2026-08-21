@@ -367,6 +367,20 @@ Before this the canvas was simply whatever width was left over, so selecting an 
 which opens the inspector — could flip the canvas from your desktop layout to your mobile
 one without saying so.
 
+## Hover and focus
+
+The Style tab has a **Resting · Hover · Focus** row under the class picker, and the two pickers
+compose. Point at `.card`, switch to Hover, and one change restyles every card's hover at once;
+switch back to *This element* for a hover on that one alone.
+
+Only what you set in a state changes — everything else stays as it rests — so a hover is a
+short list rather than a second copy of the element. Add a **Transition** on the Advanced tab
+and it animates.
+
+**Focus** writes `:focus-visible`, which is what a keyboard user sees and what a mouse click
+does not trigger. A site that can be operated without a mouse needs it; Pagecraft ships default
+focus rings, and this is how you replace them.
+
 ## Webfonts
 
 By default an exported page links `fonts.googleapis.com`. **Project settings → Webfonts → Ship

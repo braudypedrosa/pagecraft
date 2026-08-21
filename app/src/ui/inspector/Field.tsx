@@ -22,9 +22,13 @@ function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
      `c` found nothing: the badge never lit up for Padding or Margin, and `clearOverride`'s
      four-side branch was unreachable code. Carried over from the string version, which had
      the same test — a component test is what finally showed it. */
-  const owns = !!(c.c && o.css[dev] && (c.t === 'box'
-    ? BOX_SIDES.some(s => o.css[dev][c.c + '-' + s] !== undefined)
-    : o.css[dev][c.c] !== undefined));
+  /* the block being edited, which is the resting one or a state's — `stRead` is the same
+     resolver `cssVal` uses, so the badge and the field can never disagree about which
+     declaration they are talking about */
+  const src = C.stRead(o);
+  const owns = !!(c.c && src[dev] && (c.t === 'box'
+    ? BOX_SIDES.some(s => src[dev][c.c + '-' + s] !== undefined)
+    : src[dev][c.c] !== undefined));
   const clearable = owns && dev !== 'd';
   const w = writer(n, c);
   return (

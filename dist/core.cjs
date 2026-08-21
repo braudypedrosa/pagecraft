@@ -63,6 +63,7 @@ __export(index_exports, {
   SEC_TAGS: () => SEC_TAGS,
   SLOT_LABEL: () => SLOT_LABEL,
   SRCSET_W: () => SRCSET_W,
+  STATES: () => STATES,
   TEMPLATES: () => TEMPLATES,
   TEXT_SLOTS: () => TEXT_SLOTS,
   TS_TYPES: () => TS_TYPES,
@@ -282,6 +283,8 @@ __export(index_exports, {
   smartTarget: () => smartTarget,
   snippet: () => snippet,
   srcSet: () => srcSet,
+  stRead: () => stRead,
+  stWrite: () => stWrite,
   stackFor: () => stackFor,
   state: () => state,
   step: () => step,
@@ -1374,7 +1377,8 @@ function initUi() {
     collapsed: {},
     custom: {},
     zoom: "fit",
-    pno: 1
+    pno: 1,
+    st: ""
   };
 }
 var state = {
@@ -1450,8 +1454,10 @@ var selNodes = () => selIds().map((id) => locate(id)).filter(Boolean).map((h) =>
 var multiOn = () => selIds().length > 1;
 function selSet(ids) {
   const live = ids.filter((id) => locate(id));
+  const was = state.ui.sel;
   state.ui.sel = live.length ? live[0] : null;
   state.ui.multi = live.slice(1);
+  if (state.ui.sel !== was) state.ui.st = "";
 }
 function selToggle(id) {
   if (!id || !locate(id)) return;
@@ -1833,6 +1839,10 @@ function tokenCss() {
   classes().forEach((c) => ["d", "t", "m"].forEach((b) => {
     const decls = decl(c.css && c.css[b] || {});
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    STATES.forEach(([k, , sel]) => {
+      const d = decl(c.st && c.st[k] && c.st[k][b] || {});
+      if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
+    });
   }));
   return acc;
 }
@@ -2007,19 +2017,37 @@ function parseU(v) {
   const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
   return m ? { n: m[1], u: m[2] || "" } : { n: "", u: "" };
 }
+var STATES = [
+  ["hover", "Hover", ":hover"],
+  ["focus", "Focus", ":focus-visible"]
+];
+var EMPTY_CSS = { d: {}, t: {}, m: {} };
+function stRead(o) {
+  const k = state.ui.st;
+  if (!k) return o.css;
+  return o.st && o.st[k] || EMPTY_CSS;
+}
+function stWrite(o) {
+  const k = state.ui.st;
+  if (!k) return o.css;
+  o.st = o.st || {};
+  return o.st[k] = o.st[k] || { d: {}, t: {}, m: {} };
+}
 function cssVal(n, c, resp) {
+  const src = stRead(n);
   const b = resp ? dk() : "d";
-  const own = n.css[b] ? n.css[b][c] : void 0;
+  const own = src[b] ? src[b][c] : void 0;
   if (own !== void 0 && own !== "") return { v: own, own: true };
-  if (b === "m" && n.css.t && n.css.t[c]) return { v: n.css.t[c], own: false };
-  const d = n.css.d ? n.css.d[c] : "";
+  if (b === "m" && src.t && src.t[c]) return { v: src.t[c], own: false };
+  const d = src.d ? src.d[c] : "";
   return { v: d == null ? "" : d, own: false };
 }
 function setCss(n, c, val, resp) {
+  const dest = stWrite(n);
   const b = resp ? dk() : "d";
-  n.css[b] = n.css[b] || {};
-  if (val === "" || val == null) delete n.css[b][c];
-  else n.css[b][c] = val;
+  dest[b] = dest[b] || {};
+  if (val === "" || val == null) delete dest[b][c];
+  else dest[b][c] = val;
 }
 function tgtObj(n) {
   const id = state.ui.target;
@@ -2410,12 +2438,13 @@ var lintCounts = (findings) => ({
   error: findings.filter((f) => f.level === "error").length,
   warn: findings.filter((f) => f.level === "warn").length
 });
-var styleClip = { css: null, cls: null, ts: "", adv: "", from: "" };
+var styleClip = { css: null, st: null, cls: null, ts: "", adv: "", from: "" };
 function copyStyles(id) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
   styleClip.css = clone(n.css);
+  styleClip.st = n.st ? clone(n.st) : null;
   styleClip.cls = [...Array.isArray(n.cls) ? n.cls : []];
   styleClip.ts = String(n.props && n.props.ts || "");
   styleClip.adv = n.adv && n.adv.css || "";
@@ -2428,6 +2457,8 @@ function pasteStyles(id) {
   if (!h) return false;
   const n = h.node;
   n.css = clone(styleClip.css);
+  if (styleClip.st) n.st = clone(styleClip.st);
+  else delete n.st;
   n.cls = (styleClip.cls || []).filter(findClass);
   if (n.adv) n.adv.css = styleClip.adv;
   if (ctlKeys(n.type).has("ts")) n.props.ts = styleClip.ts;
@@ -4608,6 +4639,10 @@ function bucket(n, b, editing) {
   const body = decl(map) + extra;
   const rules = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  STATES.forEach(([k, , sel]) => {
+    const d = decl(n.st && n.st[k] && n.st[k][b] || {});
+    if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+  });
   if (n.type === "button") {
     const hb = map["--hover-bg"], hf = map["--hover-fg"];
     if (hb || hf) rules.push(`${selOf(n)}:hover{${hb ? `background-color:${hb};` : ""}${hf ? `color:${hf};border-color:${hf};` : ""}}`);
@@ -5396,6 +5431,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   SEC_TAGS,
   SLOT_LABEL,
   SRCSET_W,
+  STATES,
   TEMPLATES,
   TEXT_SLOTS,
   TS_TYPES,
@@ -5615,6 +5651,8 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   smartTarget,
   snippet,
   srcSet,
+  stRead,
+  stWrite,
   stackFor,
   state,
   step,

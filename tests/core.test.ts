@@ -14,7 +14,10 @@ import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field,
    say that once instead of two hundred `!`s, and they throw naming what was missing —
    a broken fixture then fails as "no node abc" rather than as a TypeError three
    assertions further down. */
-function must<T>(x: T | null | undefined, what: string): T {
+/* `NonNullable<T>` rather than `T`, and the parameter is bare `T`: written as
+   `T | null | undefined` the inference can satisfy itself with `T = X | undefined`, so it
+   handed the undefined straight back and every nested `must` needed a `!` anyway. */
+function must<T>(x: T, what: string): NonNullable<T> {
   if (x == null) throw new Error(`test fixture: no ${what}`);
   return x;
 }
@@ -336,6 +339,134 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: 'https://vimeo.com/123456' }), /player\.vimeo\.com\/video\/123456/);
   a.match(C.vid({ src: 'https://cdn.example.com/clip.mp4', controls: 1 }), /^<video src="https:\/\/cdn\.example\.com\/clip\.mp4" controls/);
   a.match(C.vid({ src: '' }), /Add a video URL/);
+});
+
+/* the node class is a literal in these patterns, and it holds no regex metacharacters
+   today — escaping it anyway so a future prefix change cannot turn a test green by accident */
+const rx = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/* read through a function rather than off the node: asserting `n.st` is undefined earlier in
+   a test narrows it for the rest of the body, and then the read below is a type error rather
+   than the assertion it looks like */
+const stOf = (n: PcNode, k: 'hover' | 'focus') => must(must(n.st, 'st')[k], k);
+
+/* ---- interactive states -------------------------------------------------
+   A second axis over the breakpoints. Hover existed on buttons alone as two custom properties,
+   and `:focus` could not be authored at all — so a card could not lift, a link could not
+   change, and the Transform and Transition controls had nothing to trigger them. */
+
+test('a state block is made only when something is written to it', () => {
+  blank();
+  const n = insert('section', null, 0);
+  C.state.ui.st = '';
+  C.setCss(n, 'background-color', '#fff');
+  a.equal(n.st, undefined, 'resting writes go where they always did');
+  a.equal(n.css.d['background-color'], '#fff');
+
+  C.state.ui.st = 'hover';
+  a.equal(C.cssVal(n, 'background-color').v, '', 'a state with nothing set reads empty');
+  C.setCss(n, 'background-color', '#eee');
+  a.equal(stOf(n, 'hover').d['background-color'], '#eee');
+  a.equal(n.css.d['background-color'], '#fff', 'and the resting value is untouched');
+  C.state.ui.st = '';
+});
+
+test('a state reads and writes its own breakpoints', () => {
+  blank();
+  const n = insert('section', null, 0);
+  C.state.ui.st = 'hover';
+  C.state.ui.dev = 'desktop';
+  C.setCss(n, 'color', '#111', true);
+  C.state.ui.dev = 'mobile';
+  a.equal(C.cssVal(n, 'color', true).v, '#111', 'mobile falls back to the desktop base');
+  a.equal(C.cssVal(n, 'color', true).own, false, 'and says it does not own it');
+  C.setCss(n, 'color', '#222', true);
+  a.equal(C.cssVal(n, 'color', true).own, true);
+  a.equal(stOf(n, 'hover').m['color'], '#222');
+  a.equal(stOf(n, 'hover').d['color'], '#111', 'the base override stands');
+  C.state.ui.dev = 'desktop'; C.state.ui.st = '';
+});
+
+test('states reach the stylesheet as :hover and :focus-visible, after the base rule', () => {
+  blank();
+  const n = insert('section', null, 0);
+  n.css.d['background-color'] = '#fff';
+  n.st = { hover: { d: { 'background-color': '#eee' }, t: {}, m: {} },
+           focus: { d: { outline: '2px solid red' }, t: {}, m: {} } };
+  const css = C.treeCss([[n]], false);
+  const sel = '.' + C.nodeClass(n);
+
+  /* the base rule also carries the section's own default padding, so this checks the
+     declaration is in that rule rather than that the rule holds nothing else */
+  a.match(css, new RegExp(rx(sel) + '\\{[^}]*background-color:#fff;'));
+  a.match(css, new RegExp(rx(sel) + ':hover\\{background-color:#eee;\\}'));
+  /* :focus-visible, not :focus — a mouse click should not leave a ring behind */
+  a.match(css, new RegExp(rx(sel) + ':focus-visible\\{outline:2px solid red;\\}'));
+  a.equal(new RegExp(rx(sel) + ':focus\\{').test(css), false);
+  a.ok(css.indexOf(sel + '{') < css.indexOf(sel + ':hover'), 'the state rule comes after');
+});
+
+test('a state override lands in its own media block', () => {
+  blank();
+  const n = insert('section', null, 0);
+  n.st = { hover: { d: { color: '#111' }, t: {}, m: { color: '#222' } } };
+  const b = blocks(C.treeCss([[n]], false));
+  a.match(b.base, /:hover\{color:#111;\}/);
+  a.equal(/:hover/.test(b.tablet), false, 'nothing set at tablet, nothing emitted');
+  a.match(b.mobile, /:hover\{color:#222;\}/);
+});
+
+test('a class carries states too, and an element still beats it', () => {
+  blank();
+  const n = insert('section', null, 0);
+  C.classAdd('Card', { d: { 'border-radius': '16px' } });
+  const cls = must(C.findClass('card'), 'card');
+  cls.st = { hover: { d: { 'border-color': 'red' }, t: {}, m: {} } };
+  C.classApply(n, cls.id);
+  n.st = { hover: { d: { 'border-color': 'blue' }, t: {}, m: {} } };
+
+  const css = C.treeCss([[n]], false);
+  a.match(css, /\.c-card:hover\{border-color:red;\}/, 'restyle every card hover at once');
+  a.match(css, new RegExp(rx('.' + C.nodeClass(n)) + ':hover\\{border-color:blue;\\}'));
+  /* same specificity, so source order decides — and the class is emitted first, on purpose */
+  a.ok(css.indexOf('.c-card:hover') < css.indexOf('.' + C.nodeClass(n) + ':hover'),
+    'the element wins its own hover');
+});
+
+test('a new selection starts from resting rather than a state you cannot see', () => {
+  blank();
+  const a1 = insert('section', null, 0);
+  const a2 = insert('section', null, 1);
+  C.selSet([a1.id]);
+  C.state.ui.st = 'hover';
+  C.selSet([a2.id]);
+  a.equal(C.state.ui.st, '', 'reselecting resets it');
+
+  /* reselecting the same element leaves it alone, so a click on the canvas that lands on what
+     is already selected does not throw away the state you were editing */
+  C.state.ui.st = 'hover';
+  C.selSet([a2.id]);
+  a.equal(C.state.ui.st, 'hover');
+  C.state.ui.st = '';
+});
+
+test('copy styles carries the states, and paste replaces rather than merges', () => {
+  blank();
+  const src = insert('section', null, 0);
+  const dst = insert('section', null, 1);
+  src.css.d['background-color'] = '#fff';
+  src.st = { hover: { d: { 'background-color': '#eee' }, t: {}, m: {} } };
+  dst.st = { focus: { d: { outline: '1px solid red' }, t: {}, m: {} } };
+
+  a.ok(C.copyStyles(src.id));
+  a.ok(C.pasteStyles(dst.id));
+  a.equal(stOf(dst, 'hover').d['background-color'], '#eee', 'the hover came too');
+  a.equal(must(dst.st, 'st').focus, undefined, 'and the focus it had is gone, not merged');
+
+  /* a source with no states clears the target's, so a paste cannot leave one behind */
+  delete src.st;
+  a.ok(C.copyStyles(src.id));
+  a.ok(C.pasteStyles(dst.id));
+  a.equal(dst.st, undefined);
 });
 
 /* ---- self-hosted webfonts ----------------------------------------------

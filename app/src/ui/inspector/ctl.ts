@@ -58,10 +58,13 @@ export function writer(n: PcNode, c: Control): Writer {
       /* both a node and a class carry `css: Css`, and dk() is a Bp, so this indexes
          without a cast — the union is enough */
       const o = C.tgtObj(n);
+      /* the block being edited, not always `css` — clearing a hover override has to clear it
+         from the hover block, and `stWrite` is what the writer used to put it there */
+      const dest = C.stWrite(o);
       /* a box control writes four declarations, so clearing it has to clear all four
          or three sides survive as a phantom override */
-      if (c.t === 'box') ['top', 'right', 'bottom', 'left'].forEach(s => { delete o.css[C.dk()][c.c + '-' + s]; });
-      else delete o.css[C.dk()][c.c!];
+      if (c.t === 'box') ['top', 'right', 'bottom', 'left'].forEach(s => { delete dest[C.dk()][c.c + '-' + s]; });
+      else delete dest[C.dk()][c.c!];
       L.endTx(); L.paintCss(); L.save();
       repaint('right');
     }

@@ -16,6 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
+  StateKey, States,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
@@ -861,7 +862,7 @@ const zoomFor = (z: string | null | undefined, target: number, avail: number) =>
 function initUi(): Ui {
   return {
     mode: 'page', dev: 'desktop', sel: null, multi: [], tab: 'add', atab: 'widgets', stab: 'content', target: '', lmode: null,
-    open: {}, collapsed: {}, custom: {}, zoom: 'fit', pno: 1
+    open: {}, collapsed: {}, custom: {}, zoom: 'fit', pno: 1, st: ''
   };
 }
 const state: State = {
@@ -931,8 +932,14 @@ const selNodes = () => selIds().map(id => locate(id)).filter(Boolean).map(h => h
 const multiOn = () => selIds().length > 1;
 function selSet(ids: string[]) {
   const live = ids.filter(id => locate(id));
+  const was = state.ui.sel;
   state.ui.sel = live.length ? live[0] : null;
   state.ui.multi = live.slice(1);
+  /* A new selection starts from the resting state. Carrying the hover state across would be
+     a mode you cannot see from the canvas: every field in the Style tab would be showing and
+     writing hover values for an element you just clicked. Keeping the class target is
+     different — that one is listed in the panel with the element's own classes. */
+  if (state.ui.sel !== was) state.ui.st = '';
 }
 /* Add or remove one member. Dropping the primary promotes the next in line,
    so the inspector always has a key object while anything is selected. */
@@ -1392,6 +1399,12 @@ function tokenCss() {
   classes().forEach(c => (['d', 't', 'm'] as Bp[]).forEach(b => {
     const decls = decl((c.css && c.css[b]) || {});
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    /* a class hover is the one people actually want — restyle every card's hover once. It
+       still loses to an element's own hover, which has the same specificity and comes later. */
+    STATES.forEach(([k, , sel]) => {
+      const d = decl((c.st && c.st[k] && c.st[k]![b]) || {});
+      if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
+    });
   }));
   return acc;
 }
@@ -1586,22 +1599,56 @@ function parseU(v: unknown): { n: string; u: string } {
  * actually cascade. Getting this wrong is what made the canvas show desktop styling
  * at a mobile width.
  */
-function cssVal(n: { css: Css }, c: string, resp?: boolean): { v: string; own: boolean } {
+/* ---- interactive states ----------------------------------------------
+   A second axis over the breakpoints. Hover existed on buttons alone, as two custom
+   properties, and `:focus` could not be authored anywhere — so a card could not lift, a link
+   could not change, and the Transform and Transition controls on the Advanced tab had nothing
+   to trigger them.
+
+   `st` sits beside `css` rather than nesting inside it, which keeps `Css` the shape every
+   existing reader expects and means a project carries no state block until something is in
+   one. Two states, deliberately: what a pointer does, and what a keyboard does. `:focus-visible`
+   rather than `:focus`, so a mouse click does not leave a ring behind — the same reason
+   `baseCss` uses it for the built-in rings. */
+const STATES: [StateKey, string, string][] = [
+  ['hover', 'Hover', ':hover'],
+  ['focus', 'Focus', ':focus-visible']
+];
+const EMPTY_CSS: Css = { d: {}, t: {}, m: {} };
+
+/** The block a control reads right now. A state with nothing set reads empty rather than
+    reading the resting value — showing the base there would say hover already had it. */
+function stRead(o: { css: Css; st?: States }): Css {
+  const k = state.ui.st;
+  if (!k) return o.css;
+  return (o.st && o.st[k]) || EMPTY_CSS;
+}
+/** The same block, made on demand, for writing. */
+function stWrite(o: { css: Css; st?: States }): Css {
+  const k = state.ui.st;
+  if (!k) return o.css;
+  o.st = o.st || {};
+  return (o.st[k] = o.st[k] || { d: {}, t: {}, m: {} });
+}
+
+function cssVal(n: { css: Css; st?: States }, c: string, resp?: boolean): { v: string; own: boolean } {
+  const src = stRead(n);
   const b: Bp = resp ? dk() : 'd';
-  const own = n.css[b] ? n.css[b][c] : undefined;
+  const own = src[b] ? src[b][c] : undefined;
   if (own !== undefined && own !== '') return { v: own, own: true };
-  if (b === 'm' && n.css.t && n.css.t[c]) return { v: n.css.t[c], own: false };
-  const d = n.css.d ? n.css.d[c] : '';
+  if (b === 'm' && src.t && src.t[c]) return { v: src.t[c], own: false };
+  const d = src.d ? src.d[c] : '';
   return { v: d == null ? '' : d, own: false };
 }
 
 /** Write one CSS property at the breakpoint being edited. An empty value deletes the
     declaration rather than storing `""`, so the value below it in the cascade shows
     through — which is what clearing a field is supposed to do. */
-function setCss(n: { css: Css }, c: string, val: string | null | undefined, resp?: boolean) {
+function setCss(n: { css: Css; st?: States }, c: string, val: string | null | undefined, resp?: boolean) {
+  const dest = stWrite(n);
   const b: Bp = resp ? dk() : 'd';
-  n.css[b] = n.css[b] || {};
-  if (val === '' || val == null) delete n.css[b][c]; else n.css[b][c] = val;
+  dest[b] = dest[b] || {};
+  if (val === '' || val == null) delete dest[b][c]; else dest[b][c] = val;
 }
 
 /** What styling edits land on: the selected class if this node carries it, else the
@@ -2092,14 +2139,17 @@ const lintCounts = (findings: Finding[]) => ({
 
    A text style saves the reusable case; this is the one-off. Before it, the only way
    to make one element look like another was to rebuild it control by control. */
-const styleClip: { css: Css | null; cls: string[] | null; ts: string; adv: string; from: string } =
-  { css: null, cls: null, ts: '', adv: '', from: '' };
+const styleClip: { css: Css | null; st: States | null; cls: string[] | null; ts: string; adv: string; from: string } =
+  { css: null, st: null, cls: null, ts: '', adv: '', from: '' };
 
 function copyStyles(id: string) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
   styleClip.css = clone(n.css);
+  /* the states travel with the styling. "Make this look like that" that drops the hover is
+     not what anyone means, and the omission would only show up on the live site. */
+  styleClip.st = n.st ? clone(n.st) : null;
   styleClip.cls = [...(Array.isArray(n.cls) ? n.cls : [])];
   styleClip.ts = String((n.props && n.props.ts) || '');
   styleClip.adv = (n.adv && n.adv.css) || '';
@@ -2123,6 +2173,9 @@ function pasteStyles(id: string) {
   if (!h) return false;
   const n = h.node;
   n.css = clone(styleClip.css) as Css;
+  /* replaced, not merged, like `css` — and deleted outright when the source had none, so a
+     paste cannot leave a hover behind that the thing being copied did not have */
+  if (styleClip.st) n.st = clone(styleClip.st) as States; else delete n.st;
   /* a class deleted between the copy and the paste is dropped rather than carried
      as a dangling id */
   n.cls = (styleClip.cls || []).filter(findClass);
@@ -4327,6 +4380,12 @@ function bucket(n: PcNode, b: Bp, editing: boolean) {
   const body = decl(map) + extra;
   const rules: string[] = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  /* after the base rule, and `:hover` outranks the bare class anyway, so a state wins on
+     specificity as well as on order */
+  STATES.forEach(([k, , sel]) => {
+    const d = decl((n.st && n.st[k] && n.st[k]![b]) || {});
+    if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+  });
   if (n.type === 'button') {
     const hb = map['--hover-bg'], hf = map['--hover-fg'];
     if (hb || hf) rules.push(`${selOf(n)}:hover{${hb ? `background-color:${hb};` : ''}${hf ? `color:${hf};border-color:${hf};` : ''}}`);
@@ -5248,5 +5307,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

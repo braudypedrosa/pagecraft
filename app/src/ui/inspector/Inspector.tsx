@@ -156,7 +156,37 @@ function StylingTarget({ n }: { n: PcNode }) {
         : applied.length
           ? 'Editing this element only. Its classes are listed above; pick one to edit it instead.'
           : 'Editing this element only. Save its styling as a class to reuse it elsewhere.'}</div>
+
+      <StatePick />
     </Panel>
+  );
+}
+
+/* Which interactive state the Style tab writes to. It sits inside Styling, under the class
+   picker, because it is the same kind of question: not *what* the value is but *where* it
+   goes. Both pickers compose — a hover on a class restyles every card's hover at once.
+
+   Resting is not a state, it is the absence of one, which is why it is the empty string and
+   why every control wrote there before this existed. */
+function StatePick() {
+  const cur = C.state.ui.st || '';
+  const set = (k: string) => { C.state.ui.st = k as '' | 'hover' | 'focus'; repaint('right'); };
+  return (
+    <>
+      <div class="tabs" style={{ marginTop: 'var(--gap-2)' }}>
+        <button class={cur ? '' : 'on'} onClick={() => set('')}>Resting</button>
+        {C.STATES.map(([k, label]) => (
+          <button key={k} class={cur === k ? 'on' : ''} onClick={() => set(k)}>{label}</button>
+        ))}
+      </div>
+      {cur ? (
+        <div class="note">
+          Editing the <b>{cur === 'hover' ? 'hover' : 'keyboard-focus'}</b> state. Only what you
+          set here changes on {cur === 'hover' ? 'hover' : 'focus'}; everything else stays as it
+          rests. Give it a <b>Transition</b> on the Advanced tab and it animates.
+        </div>
+      ) : null}
+    </>
   );
 }
 
