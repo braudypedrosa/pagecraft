@@ -101,3 +101,30 @@ test('selecting an element draws an inspector', async () => {
   a.ok(doc.querySelectorAll('#right .group').length >= 2, 'the Style tab drew no groups');
   a.ok(doc.querySelector('#right .statepick'), 'the state picker is missing');
 });
+
+/* Every custom property the built page reads is one the built page defines.
+
+   The inline text toolbar painted itself with `--panel-3` and `--border-2`, which exist
+   nowhere in the repo. CSS does not complain: an undefined colour makes the whole `border`
+   shorthand invalid, so the toolbar had no border, no background and no separator — it
+   floated over the canvas on a shadow alone, and had done for as long as it existed.
+
+   Nothing could have caught that. A stylesheet has no compiler, and the test suite reads
+   the core, not the chrome. So this reads every `var(--x)` in the built file and asks
+   whether x is declared anywhere in it. */
+test('no stylesheet reads a custom property that was never declared', () => {
+  const html = readFileSync(BUILT, 'utf8');
+  const declared = new Set([...html.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+  const read = new Map();
+  for (const m of html.matchAll(/var\(\s*(--[\w-]+)\s*([,)])/g)) {
+    /* `var(--x, fallback)` is a deliberate default and stands on its own */
+    if (m[2] === ',') continue;
+    read.set(m[1], (read.get(m[1]) || 0) + 1);
+  }
+  /* `--c-*` is the exported page's own design tokens. The core writes `var(--c-ink)`
+     into a widget's CSS and `tokenCss()` declares it from the project at render time,
+     so the pair is completed in the page, not in this file. */
+  const missing = [...read].filter(([k]) => !declared.has(k) && !k.startsWith('--c-'));
+  a.deepEqual(missing, [], 'these are read but never declared: ' + JSON.stringify(missing));
+  a.ok(read.size > 40, `only ${read.size} tokens read — the scan is not seeing the stylesheet`);
+});

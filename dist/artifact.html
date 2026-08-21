@@ -22,6 +22,20 @@
   --text:#111311; --text-2:#4b504b; --text-3:#6f7771;
   --stage:#ebe8dd;
 
+  /* The four interaction recipes. Each was written out five to seven times across
+     components with nothing else in common — and in either property order, which is
+     why grepping for one of them found half the sites. The values live here now.
+
+     The rules themselves stay where they are. Hoisting them into shared selector lists
+     would move them through a 900-line cascade, and this sheet has been bitten by that
+     twice already: see the note at `.topbar .btn.ghost:hover`, where a tie on three
+     classes put near-black text on the ink bar at 1.19:1. Naming the values gets the
+     one source of truth; moving the rules would only get a shorter file. */
+  --lift-bg:var(--field);       --lift-line:var(--text-3);   /* a card or button under the pointer */
+  --wake-bg:var(--field-2);     --wake-fg:var(--text);       /* a quiet control waking up */
+  --risk-bg:var(--danger-soft); --risk-fg:var(--danger);     /* a destructive action */
+  --dim:.3;                                                  /* anything disabled */
+
   /* functional, deliberately subdued */
   --danger:#a8402f; --danger-soft:#a8402f14; --warn:#8a6413;
 
@@ -131,8 +145,8 @@ input,select,textarea{font:inherit;color:inherit}
   width:var(--ic-lg);height:var(--ic-lg);border-radius:var(--r-sm);display:grid;place-items:center;
   color:var(--text-3);
 }
-.iconbtn:hover{background:var(--field-2);color:var(--text)}
-.iconbtn:disabled{opacity:.3;cursor:default}
+.iconbtn:hover{background:var(--wake-bg);color:var(--wake-fg)}
+.iconbtn:disabled{opacity:var(--dim);cursor:default}
 .iconbtn:disabled:hover{background:none}
 .topbar .iconbtn{color:var(--rail-text-2)}
 .topbar .iconbtn:hover{background:#ffffff0f;color:var(--rail-text)}
@@ -150,11 +164,11 @@ input,select,textarea{font:inherit;color:inherit}
    be told explicitly — the picker hides its commit button and it rendered as an
    empty green square. Same trap as `.right[hidden]`. */
 .btn[hidden]{display:none}
-.btn:hover{background:var(--field);border-color:var(--text-3)}
+.btn:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .btn.primary{background:var(--green);border-color:var(--green);color:var(--on-green);font-weight:600}
 .btn.primary:hover{background:var(--green-hi);border-color:var(--green-hi)}
 .btn.ghost{background:transparent;border-color:transparent;color:var(--text-2)}
-.btn.ghost:hover{background:var(--field-2);color:var(--text)}
+.btn.ghost:hover{background:var(--wake-bg);color:var(--wake-fg)}
 /* Two shapes a button takes in a panel: filling it, or sharing a row with its siblings.
    Both were written inline instead — ten times and six times over — and every one of
    those sixteen also restated the `justify-content:center` .btn already sets. */
@@ -267,7 +281,7 @@ body.preview .left,body.preview .right{display:none}
   border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);
   cursor:grab;user-select:none;
 }
-.brow:hover{background:var(--field);border-color:var(--text-3)}
+.brow:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .brow:active{cursor:grabbing}
 .brow svg{color:var(--text-2);flex:0 0 auto}
 .brow .bn{flex:1;min-width:0;overflow:hidden}
@@ -279,14 +293,14 @@ body.preview .left,body.preview .right{display:none}
 .atabs{flex:none;height:44px}
 .brow .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;opacity:0}
 .brow:hover .bx{opacity:1}
-.brow .bx:hover{color:var(--danger);background:var(--danger-soft)}
+.brow .bx:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .pvgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
 .pvcard{
   display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;cursor:grab;
   border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);
   transition:border-color .14s,background .14s,transform .07s;user-select:none;
 }
-.pvcard:hover{border-color:var(--text-3);background:var(--field)}
+.pvcard:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .pvcard:active{cursor:grabbing;transform:scale(.98)}
 .pvcard span{
   padding:7px 8px;font-size:var(--fs-1);font-weight:500;color:var(--text-2);text-align:left;
@@ -313,7 +327,7 @@ body.preview .left,body.preview .right{display:none}
   padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:var(--sp-4);
   cursor:grab;user-select:none;transition:border-color .14s,background .14s,transform .07s;
 }
-.pitem:hover{background:var(--field);border-color:var(--text-3)}
+.pitem:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .pitem:active{cursor:grabbing;transform:scale(.975)}
 .pitem svg{width:19px;height:19px;color:var(--text-2)}
 .pitem span{font-size:var(--fs-2);font-weight:500;color:var(--text-2);text-align:center;line-height:1.25}
@@ -328,12 +342,12 @@ body.preview .left,body.preview .right{display:none}
   cursor:pointer;font-size:var(--fs-3);color:var(--text-2);position:relative;
 }
 .lrow:hover{background:var(--field)}
-.lrow.sel{background:var(--field-2);color:var(--text);font-weight:500;box-shadow:inset 2px 0 0 var(--green)}
+.lrow.sel{background:var(--wake-bg);color:var(--wake-fg);font-weight:500;box-shadow:inset 2px 0 0 var(--green)}
 .lrow.sel2{background:var(--field);color:var(--text);box-shadow:inset 2px 0 0 var(--line-2)}
 .lrow.region{font-weight:500;color:var(--text-2)}
 .lrow.region.locked{color:var(--text-3)}
 .lrow.region:hover{background:var(--field)}
-.lrow.region.live{color:var(--text);background:var(--field-2)}
+.lrow.region.live{background:var(--wake-bg);color:var(--wake-fg)}
 .lrow .badge{
   font-family:var(--label);font-size:var(--fs-1);font-weight:600;letter-spacing:.04em;
   text-transform:uppercase;background:var(--green);color:var(--ink);
@@ -427,7 +441,7 @@ body.preview .modebar{display:none}
 .pill.g svg{color:var(--green)}
 #itemBar button{padding:0 4px;color:var(--text-3);font-size:var(--fs-3);line-height:1}
 #itemBar button:hover{color:var(--text)}
-#itemBar button:disabled{opacity:.3;cursor:default}
+#itemBar button:disabled{opacity:var(--dim);cursor:default}
 /* dimension readout, kept close to the working surface */
 .dim{
   position:absolute;left:16px;bottom:12px;z-index:12;display:flex;align-items:center;gap:var(--sp-4);
@@ -461,7 +475,7 @@ body.preview .dim{display:none}
   width:var(--ic-md);height:var(--ic-md);flex:0 0 var(--ic-md);border-radius:var(--r-sm);color:var(--text-3);
   display:grid;place-items:center;
 }
-.stclip .x:hover{color:var(--danger);background:var(--danger-soft)}
+.stclip .x:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .group{border-bottom:1px solid var(--line)}
 .gh{display:flex;align-items:center;gap:var(--sp-4);padding:11px 14px;cursor:pointer;font-size:var(--fs-3);font-weight:600;color:var(--text)}
 .gh:hover{color:var(--text)}
@@ -561,7 +575,6 @@ select.ctl{
   background-size:8px 8px;background-position:0 0,4px 4px;
 }
 .sw i{position:absolute;inset:0;display:block}
-.sw:focus-visible{outline:2px solid var(--green);outline-offset:1px}
 
 /* ---- the colour picker ------------------------------------------------
    Fixed, because the inspector scrolls inside an ancestor with overflow:auto and an
@@ -611,7 +624,7 @@ select.ctl{
   width:var(--ic-md);height:var(--ic-md);flex:0 0 var(--ic-md);border-radius:var(--r-sm);border:1px solid var(--line);
   background:var(--field);color:var(--text-3);display:grid;place-items:center;cursor:pointer;
 }
-.cp-eye:hover{color:var(--text);background:var(--field-2)}
+.cp-eye:hover{background:var(--wake-bg);color:var(--wake-fg)}
 .cp-foot{display:flex;align-items:center;gap:var(--sp-3)}
 .cp-val{flex:1;min-width:0;height:26px;font-family:var(--label);font-size:var(--fs-2)}
 .cp-pc{font-family:var(--label);font-size:var(--fs-1);color:var(--text-3);min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
@@ -623,7 +636,7 @@ select.ctl{
    a hit target a third the size of the field beside it */
 /* the clear button that sits at the end of a full-height control — .tgx is the same button */
 .clr .x,.tgx{width:var(--ic-md);flex:0 0 var(--ic-md);height:var(--h-ctl);color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
-.clr .x:hover{color:var(--danger);background:var(--danger-soft)}
+.clr .x:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .pick{display:flex;gap:var(--sp-2);background:var(--field);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px}
 .pick button{flex:1;padding:6px 2px;border-radius:3px;color:var(--text-3);display:grid;place-items:center;font-size:var(--fs-2);font-weight:500}
 .pick button svg{width:13px;height:13px}
@@ -655,10 +668,10 @@ select.ctl{
   border:1px solid var(--line-2);background:var(--panel);font-size:var(--fs-2);font-weight:500;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.tg:hover{background:var(--field);border-color:var(--text-3)}
+.tg:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .tg.on{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
 .tgrow small{font-family:var(--label);font-size:var(--fs-1);color:var(--text-3);flex:0 0 auto}
-.tgx:hover{color:var(--danger);background:var(--danger-soft)}
+.tgx:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .lay{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin-top:var(--gap-1)}
 .lay button{display:flex;gap:var(--sp-1);padding:4px;height:28px;border-radius:var(--r-sm);background:var(--field);border:1px solid var(--line)}
 .lay button i{background:var(--line-2);border-radius:2px;flex-basis:0;min-width:2px;transition:background .12s}
@@ -706,7 +719,7 @@ select.ctl{
 .imgset.missing{border-color:#a8402f55;background:#a8402f0a}
 .imgset.missing .an b{color:var(--danger)}
 .imgset .x{width:var(--ic-md);height:var(--ic-md);flex:0 0 var(--ic-md);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center}
-.imgset .x:hover{color:var(--danger);background:var(--danger-soft)}
+.imgset .x:hover{background:var(--risk-bg);color:var(--risk-fg)}
 /* ---- one repeatable row ------------------------------------------------
    Four lists use it — fields, question/answer, gallery, links — and all four are
    rendered by the same module. The chrome, the inner control and the action buttons
@@ -723,13 +736,13 @@ select.ctl{
   width:var(--ic-md);height:var(--ic-md);color:var(--text-3);
   border-radius:var(--r-sm);display:grid;place-items:center;
 }
-.frow .x[disabled],.qarow .x[disabled],.gtile .x[disabled],.irow .x[disabled]{opacity:.3;cursor:default}
+.frow .x[disabled],.qarow .x[disabled],.gtile .x[disabled],.irow .x[disabled]{opacity:var(--dim);cursor:default}
 .frow .x[disabled]:hover,.qarow .x[disabled]:hover,
 .gtile .x[disabled]:hover,.irow .x[disabled]:hover{background:none;color:var(--text-3)}
 /* The hover is one step off the row's own ground, so it cannot be one colour: three of
    the rows sit on --field, and .irow sits bare on the panel, where --panel is invisible. */
 .frow .x:hover,.qarow .x:hover,.gtile .x:hover{color:var(--text);background:var(--panel)}
-.irow .x:hover{color:var(--text);background:var(--field-2)}
+.irow .x:hover{background:var(--wake-bg);color:var(--wake-fg)}
 /* the up arrow is the down arrow, turned over */
 .frow .x[data-x=fu] svg,.qarow .x[data-x=qu] svg,
 .gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
@@ -757,7 +770,7 @@ select.ctl{
 }
 .ipgrid button svg{width:17px;height:17px;stroke-width:1.7}
 .ipgrid button:hover{background:var(--panel);color:var(--text)}
-.ipgrid button.on{background:var(--ink);border-color:var(--ink);color:var(--brand)}
+.ipgrid button.on{background:var(--ink);border-color:var(--ink);color:var(--green)}
 
 /* one gallery image: thumb, the two strings that belong to it, the row actions */
 .gtile{
@@ -824,7 +837,7 @@ select.ctl{
 #ctx button em{font-family:var(--label);font-size:var(--fs-1);font-style:normal;color:var(--text-3)}
 #ctx button:hover em{color:var(--text-2)}
 #ctx button.danger{color:var(--danger)}
-#ctx button.danger:hover{background:var(--danger-soft);color:var(--danger)}
+#ctx button.danger:hover{background:var(--risk-bg);color:var(--risk-fg)}
 /* a hairline after the last item of a group, rather than an empty element per rule */
 #ctx button[data-sep]{margin-bottom:5px;border-bottom:1px solid var(--line);padding-bottom:9px}
 #ctx button[data-sep]:last-child{margin-bottom:0;border-bottom:0;padding-bottom:7px}
@@ -860,7 +873,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
   text-align:left;padding:9px 11px;border-radius:var(--r-sm);border:1px solid var(--line);
   background:var(--panel);font-size:var(--fs-3);color:var(--text-2);
 }
-.pickrow:hover{border-color:var(--text-3);background:var(--field);color:var(--text)}
+.pickrow:hover{background:var(--lift-bg);border-color:var(--lift-line);color:var(--text)}
 .pickrow.on{border-color:var(--ink);background:var(--field);color:var(--text);font-weight:600}
 /* The items table — one row per item, one column per field.
    This existed twice, ~20 lines apart, and the live styling was a *merge*: the later
@@ -905,7 +918,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
   border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);cursor:pointer;
   transition:border-color .12s,background .12s;min-width:0;
 }
-.mcard:hover{border-color:var(--text-3);background:var(--field)}
+.mcard:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .mcard.on{border-color:var(--ink);box-shadow:0 0 0 2px #b7f34a55}
 .mthumb{
   display:block;aspect-ratio:4/3;border-radius:var(--r-sm);overflow:hidden;background:var(--field-2);
@@ -923,7 +936,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 }
 .mitem{position:relative}
 .mitem:hover .mdel{opacity:1}
-.mitem .mdel:hover{color:var(--danger);border-color:var(--danger);background:var(--danger-soft)}
+.mitem .mdel:hover{color:var(--danger);border-background:var(--risk-bg);color:var(--risk-fg)}
 .mh{display:flex;align-items:center;gap:var(--sp-5);padding:16px var(--mpad);border-bottom:1px solid var(--line)}
 .mh b{font-size:var(--fs-5);font-weight:600;flex:1;letter-spacing:-.02em}
 .mb{padding:var(--mpad);overflow:auto;flex:1;min-height:0}
@@ -986,7 +999,7 @@ pre.code{
 .review .msg{flex:1;color:var(--text-2);line-height:1.5}
 .review .msg em{color:var(--text-3);font-style:normal;font-family:var(--label);font-size:var(--fs-1);display:block;margin-top:2px}
 .review .go{flex:0 0 auto;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--line-2);font-size:var(--fs-2);background:var(--panel)}
-.review .go:hover{background:var(--field);border-color:var(--text-3)}
+.review .go:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .alert{display:flex;flex-direction:column;gap:var(--sp-3);padding:13px 15px;border-radius:var(--r-md);background:#a8402f0f;border:1px solid #a8402f40}
 .alert b{font-size:var(--fs-4);color:var(--danger);font-weight:600}
 .alert span{font-size:var(--fs-3);color:var(--text-2);line-height:1.55}
@@ -999,7 +1012,6 @@ pre.code{
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* ------------------------------------------------------- accessibility --- */
-.pitem:focus-visible{outline:2px solid var(--green);outline-offset:1px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
   .frameWrap{transition:none}
