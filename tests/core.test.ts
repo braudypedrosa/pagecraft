@@ -4163,6 +4163,94 @@ test('an accordion with no questions exports nothing but explains itself in the 
   a.match(C.renderNode(n, { edit: true }), /s-empty/);
 });
 
+/* ==================================================================== tabs
+   The mirror image of the accordion: <details> works without JavaScript, a tab strip
+   does not, so every panel is rendered and the script takes them away. */
+const tabs = (props = {}) => {
+  blank();
+  const n = insert('tabs', null, 0);
+  Object.assign(n.props, props);
+  return n;
+};
+
+test('every panel is in the exported markup, so a page served without JS reads whole', () => {
+  const n = tabs();
+  const html = C.renderNode(n, { edit: false });
+  a.equal((html.match(/role="tabpanel"/g) || []).length, 3);
+  a.equal((html.match(/data-tab-idle/g) || []).length, 2, 'all but the first are marked, not removed');
+  a.equal(/data-tabs-ready/.test(html), false, 'and nothing is hidden until the script says so');
+  a.match(C.baseCss(false), /\.pagecraft-tabs\[data-tabs-ready\] \[data-tab-idle\]\{display:none\}/);
+});
+
+test('the tab script ships on the pages that have a strip and no others', () => {
+  blank();
+  const pg = C.state.pages[0];
+  /* the stylesheet names `data-tabs-ready` on every page; the script's own selector is what
+     tells the two apart, which is why this asserts on that and not on the marker */
+  const driver = /querySelectorAll\('\[data-tabs\]'\)/;
+  a.equal(driver.test(C.buildPage(pg)), false, 'nothing to drive');
+  insert('tabs', null, 0);
+  const one = C.buildPage(pg);
+  a.match(one, /data-tabs>/, 'buildPage keeps the marker the emitter reads');
+  a.match(one, driver);
+  /* the header is on every page, so a strip there counts as well */
+  blank();
+  C.state.header.push(C.N('tabs', { items: [{ label: 'A', panel: 'x' }] }, {}, []));
+  a.match(C.buildPage(C.state.pages[0]), driver);
+});
+
+test('each tab points at its own panel, and the panel names the tab back', () => {
+  const html = C.renderNode(tabs(), { edit: false });
+  const ctl = [...html.matchAll(/aria-controls="([^"]+)"/g)].map(m => m[1]);
+  const pan = [...html.matchAll(/role="tabpanel" id="([^"]+)"/g)].map(m => m[1]);
+  a.deepEqual(ctl, pan, 'a tab that controls nothing is an unexplained button');
+  const tid = [...html.matchAll(/role="tab" id="([^"]+)"/g)].map(m => m[1]);
+  a.deepEqual([...html.matchAll(/aria-labelledby="([^"]+)"/g)].map(m => m[1]), tid);
+  a.equal((html.match(/aria-selected="true"/g) || []).length, 1);
+  a.equal((html.match(/tabindex="0"/g) || []).length, 1, 'one stop in the strip, arrows for the rest');
+});
+
+test('two strips on one page do not share ids', () => {
+  blank();
+  insert('tabs', null, 0);
+  insert('tabs', null, 1);
+  const ids = [...C.buildPage(C.state.pages[0]).matchAll(/ id="([^"]+)"/g)].map(m => m[1]);
+  a.equal(new Set(ids).size, ids.length);
+});
+
+test('a selected strip shows every panel in the editor, so they can be styled', () => {
+  const n = tabs();
+  C.state.ui.sel = n.id;
+  a.equal(/data-tab-idle/.test(C.renderNode(n, { edit: true })), false);
+  C.state.ui.sel = null;
+  a.equal((C.renderNode(n, { edit: true }).match(/data-tab-idle/g) || []).length, 2);
+  /* the canvas runs no export script, so the hiding rule cannot wait for one: it is
+     unconditional in the editor, and being selected is what removes the attribute */
+  a.match(C.baseCss(true), /\[data-t=tabs\] \[data-tab-idle\]\{display:none\}/);
+  a.equal(/\[data-t=tabs\]/.test(C.baseCss(false)), false, 'and it is editor-only');
+});
+
+test('a label is text, not markup, and an unnamed tab still has something to click', () => {
+  a.match(C.renderNode(tabs({ items: [{ label: '<b>Hi</b>', panel: 'x' }] }), { edit: false }), /&lt;b&gt;/);
+  a.match(C.renderNode(tabs({ items: [{ label: '', panel: 'x' }] }), { edit: false }), />Tab 1</);
+});
+
+test('both tab keys are text the search can reach, and each is named in the panel', () => {
+  const n = tabs({ items: [{ label: 'Acme plan', panel: 'What Acme costs.' }] });
+  const hits = C.searchAll('Acme');
+  a.equal(C.searchCount(hits), 2, 'a label and a panel, or the slot list is short');
+  a.deepEqual(hits.map((h: { field: string }) => h.field), ['Label', 'Panel'],
+    'and each hit says which field it is in, in the reader\u2019s words');
+  C.replaceAll('Acme', 'Beta');
+  a.deepEqual(n.props.items, [{ label: 'Beta plan', panel: 'What Beta costs.' }]);
+});
+
+test('a strip with no tabs exports nothing but explains itself in the editor', () => {
+  const n = tabs({ items: [] });
+  a.equal(C.renderNode(n, { edit: false }), '');
+  a.match(C.renderNode(n, { edit: true }), /s-empty/);
+});
+
 /* =================================================================== embed */
 test('an embed exports its markup verbatim — that is the entire point', () => {
   blank();
@@ -4376,6 +4464,17 @@ test('an accordion row with no question is an error, an empty answer a warning',
   a.equal(find(f, 'accordion-empty').length, 0);
   n.props.items = [];
   a.equal(find(C.lint(), 'accordion-empty').length, 1);
+});
+
+test('a tab with no label is an error, an empty panel a warning', () => {
+  tabs({ items: [{ label: '', panel: 'x' }, { label: 'Real', panel: '' }, { label: 'Fine', panel: 'Yes' }] });
+  const f = C.lint();
+  a.equal(find(f, 'tabs-no-label').length, 1, 'counted per strip, not per tab');
+  a.match(find(f, 'tabs-no-label')[0].msg, /^1 tab /);
+  a.equal(find(f, 'tabs-no-panel').length, 1);
+  a.equal(find(f, 'tabs-empty').length, 0);
+  tabs({ items: [] });
+  a.equal(find(C.lint(), 'tabs-empty').length, 1);
 });
 
 test('an embed says what the review cannot check for it', () => {

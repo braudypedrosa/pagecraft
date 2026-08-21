@@ -16,7 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  StateKey, States, Anim,
+  StateKey, States, Anim, TabPanel,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
@@ -652,6 +652,52 @@ const DEF: Record<string, WidgetDef> = {
      shared `name` attribute, which is what makes one-open-at-a-time native too;
      where a browser has not caught up the panels stay independent, which is a
      lesser accordion rather than a broken one. */
+  /* Panels one at a time. The accordion's shape, with one difference that decides everything
+     else: an accordion works without JavaScript because `<details>` does, and tabs do not. So
+     the markup renders every panel visible and the script hides all but one — a reader with no
+     script gets the whole content stacked, which is the honest failure. Hiding them in CSS and
+     revealing with script fails the other way, into a page with the content missing. */
+  tabs: {
+    label: 'Tabs', icon: 'tabs', level: 4,
+    make: () => ({
+      props: {
+        items: [
+          { label: 'Overview', panel: 'What this is, in a sentence or two.' },
+          { label: 'Details', panel: 'The part someone came looking for.' },
+          { label: 'Pricing', panel: 'The number, plainly.' }
+        ]
+      },
+      css: {
+        d: {
+          width: '100%', '--tb-align': 'flex-start', '--tb-line': cvar('line'), '--tb-on': cvar('ink'),
+          '--tb-off': cvar('muted'), '--tb-size': '15px', '--tb-weight': '500',
+          '--tb-pad': '10px 2px', '--tb-gap': '22px',
+          '--tb-body-size': '16px', '--tb-body-color': cvar('text'), '--tb-body-pad': '20px'
+        }, t: {}, m: { '--tb-gap': '16px', '--tb-size': '14px' }
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'qa', k: 'items', label: 'Tabs',
+          rowKeys: ['label', 'panel'], rowPhs: ['Tab label', 'What this tab says'],
+          rowNew: ['New tab', ''], addLabel: 'Add tab'
+        },
+        { t: 'pick', c: '--tb-align', label: 'Tabs sit', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
+      ],
+      style: [
+        { t: 'color', c: '--tb-on', label: 'Selected label' },
+        { t: 'color', c: '--tb-off', label: 'Other labels' },
+        { t: 'color', c: '--tb-line', label: 'Rule' },
+        { t: 'unit', c: '--tb-size', label: 'Label size', r: 1, units: U.size },
+        { t: 'unit', c: '--tb-gap', label: 'Label spacing', r: 1, units: U.space },
+        { t: 'unit', c: '--tb-body-size', label: 'Body size', r: 1, units: U.size },
+        { t: 'color', c: '--tb-body-color', label: 'Body colour' },
+        { t: 'unit', c: '--tb-body-pad', label: 'Body padding', r: 1, units: U.space }
+      ]
+    }
+  },
+
   accordion: {
     label: 'Accordion', icon: 'accordion', level: 4,
     make: () => ({
@@ -674,7 +720,7 @@ const DEF: Record<string, WidgetDef> = {
     }),
     controls: {
       content: [
-        { t: 'qa', k: 'items', label: 'Questions' },
+        { t: 'qa', k: 'items', label: 'Questions', rowNew: ['A new question', ''] },
         { t: 'select', k: 'open', label: 'Open on load', opts: [['none', 'All closed'], ['first', 'The first one'], ['all', 'All open']] },
         { t: 'toggle', k: 'single', label: 'One open at a time' },
         { t: 'select', k: 'marker', label: 'Marker', opts: [['plus', 'Plus / minus'], ['caret', 'Caret'], ['none', 'None']] }
@@ -2002,6 +2048,15 @@ function lint() {
       if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add('warn', 'eager-video', `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`, w, n.id);
 
+      if (n.type === 'tabs') {
+        const rows = (Array.isArray(n.props.items) ? n.props.items : []) as TabPanel[];
+        if (!rows.length) add('warn', 'tabs-empty', `A tab strip in the ${region} has no tabs, so it exports nothing.`, w, n.id);
+        const noL = rows.filter(r => !String(r && r.label || '').trim()).length;
+        const noP = rows.filter(r => String(r && r.label || '').trim() && !String(r && r.panel || '').trim()).length;
+        if (noL) add('error', 'tabs-no-label', `${noL} tab${noL === 1 ? '' : 's'} in the ${region} have no label, so there is nothing to click.`, w, n.id);
+        if (noP) add('warn', 'tabs-no-panel', `${noP} tab${noP === 1 ? '' : 's'} in the ${region} open onto an empty panel.`, w, n.id);
+      }
+
       /* accordion — the two ways a row can be a dead end */
       if (n.type === 'accordion') {
         const rows = Array.isArray(n.props.items) ? n.props.items : [];
@@ -2205,6 +2260,7 @@ const TEXT_SLOTS = {
   heading: ['text'], button: ['text'], icon: ['label'],
   text: ['html'], embed: ['html'],
   quote: ['text', 'by'],
+  tabs: [['items', 'label', 'panel']],
   image: ['alt', 'caption'],
   accordion: [['items', 'q', 'a']],
   gallery: [['items', 'alt', 'caption']],
@@ -2215,7 +2271,7 @@ const TEXT_SLOTS = {
 const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['name', 'Page name']];
 const SLOT_LABEL = {
   text: 'Text', html: 'Rich text', label: 'Label', alt: 'Alt text', caption: 'Caption',
-  q: 'Question', a: 'Answer', ph: 'Placeholder', by: 'Attribution'
+  q: 'Question', a: 'Answer', ph: 'Placeholder', by: 'Attribution', panel: 'Panel'
 };
 
 function textSlots(n: PcNode) {
@@ -4631,6 +4687,19 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-tabs{width:100%}
+.pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
+.pagecraft-tab{
+  background:none;border:0;cursor:pointer;padding:var(--tb-pad,10px 2px);margin-bottom:-1px;
+  font:inherit;font-size:var(--tb-size,15px);font-weight:var(--tb-weight,500);
+  color:var(--tb-off,#5f6660);border-bottom:2px solid transparent;transition:color .16s,border-color .16s;
+}
+.pagecraft-tab.on{color:var(--tb-on,#111311);border-bottom-color:var(--tb-on,#111311)}
+.pagecraft-tab:focus-visible{outline:3px solid currentColor;outline-offset:2px}
+.pagecraft-tabpanel{padding-top:var(--tb-body-pad,20px);font-size:var(--tb-body-size,16px);color:var(--tb-body-color,#111311)}
+.pagecraft-tabpanel>:first-child{margin-top:0}
+.pagecraft-tabpanel>:last-child{margin-bottom:0}
+.pagecraft-tabs[data-tabs-ready] [data-tab-idle]{display:none}
 .pagecraft-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;margin-top:2.2em}
 .pagecraft-page{
   display:inline-flex;align-items:center;justify-content:center;min-width:2.4em;padding:.5em .7em;
@@ -4797,6 +4866,7 @@ ${m.css || ''}
 [data-t=nav][data-sel] .pagecraft-nav-icon{background-color:transparent}
 [data-t=nav][data-sel] .pagecraft-nav-icon::before{transform:rotate(45deg)}
 [data-t=nav][data-sel] .pagecraft-nav-icon::after{transform:rotate(-45deg)}
+[data-t=tabs] [data-tab-idle]{display:none}
 .pagecraft-video>iframe,.pagecraft-video>video{pointer-events:none}
 .pagecraft-button,.pagecraft-heading a,.pagecraft-wysiwyg a{cursor:default}
 .s-empty{
@@ -5161,6 +5231,29 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
         + `</form>`;
     }
+    case 'tabs': {
+      const rows = Array.isArray(p.items) ? p.items as TabPanel[] : [];
+      if (!rows.length) return o.edit
+        ? `<div ${at} ${cx('pagecraft-tabs')}><div class="s-empty">${svg('plus', 12)} Add a tab in the panel</div></div>` : '';
+      /* While the widget is selected every panel shows, so all of them can be read and
+         restyled — the same reason the accordion opens and the burger unfolds. */
+      const all = o.edit && state.ui.sel === n.id;
+      const tid = (k: number) => `${domId}-t${k}`;
+      const pid = (k: number) => `${domId}-p${k}`;
+      /* `role=tab` with aria-selected and aria-controls, and the panels labelled back: a tab
+         strip a screen reader cannot follow is a row of unexplained links. */
+      const strip = rows.map((it, k) =>
+        `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}"`
+        + ` aria-selected="${k === 0 ? 'true' : 'false'}" tabindex="${k === 0 ? '0' : '-1'}"`
+        + ` class="pagecraft-tab${k === 0 ? ' on' : ''}">${esc(it.label || 'Tab ' + (k + 1))}</button>`
+      ).join('');
+      const panels = rows.map((it, k) =>
+        `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"`
+        + `${(k === 0 || all) ? '' : ' data-tab-idle'} class="pagecraft-tabpanel">${para(it.panel)}</div>`
+      ).join('');
+      return `<div ${at} ${cx('pagecraft-tabs')} data-tabs>`
+        + `<div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
+    }
     case 'accordion': {
       const items = Array.isArray(p.items) ? p.items : [];
       if (!items.length) return o.edit
@@ -5294,6 +5387,26 @@ function robotsTxt() {
 
 /* The only JavaScript Slate ever emits, and only onto pages that use a Nav:
    an accessible burger toggle (aria-expanded, Escape, click-outside). */
+/* Emitted only when a page has a tab strip. It sets `data-tabs-ready`, which is what turns the
+   `display:none` on: the panels are only hidden once something exists to show them again, so a
+   page served without JS reads as the whole content stacked rather than one tab's worth. */
+const TABS_JS = `<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
+var t=[].slice.call(w.querySelectorAll('[role=tab]')),p=[].slice.call(w.querySelectorAll('[role=tabpanel]'));
+if(!t.length)return;w.setAttribute('data-tabs-ready','');
+function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on);
+b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
+if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
+show(0);
+t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
+b.addEventListener('keydown',function(e){
+var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
+if(!d)return;e.preventDefault();
+var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus();});});
+});})();
+<\/script>
+`;
+
 const NAV_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
 var b=w.querySelector('[data-nav-t]');if(!b)return;
@@ -5469,12 +5582,12 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${m.headHtml 
 </head>
 <body>
 ${body}
-${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

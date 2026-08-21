@@ -24,6 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'column'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
+  | 'tabs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
 
@@ -115,6 +116,8 @@ export interface FormProps {
 export interface FormField {
   type?: string; label?: string; name?: string; ph?: string; opts?: string; required?: 0 | 1;
 }
+export interface TabsProps { items?: TabPanel[] }
+export interface TabPanel { label?: string; panel?: string }
 export interface AccordionProps {
   items?: QaItem[]; open?: string; single?: 0 | 1 | boolean; marker?: string;
 }
@@ -128,7 +131,7 @@ export interface PropsByType {
   section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
   heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
   video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
-  form: FormProps; accordion: AccordionProps; embed: EmbedProps;
+  form: FormProps; accordion: AccordionProps; tabs: TabsProps; embed: EmbedProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 
@@ -241,6 +244,15 @@ export interface Control {
   c?: string;
   /** responsive: writes at the breakpoint being edited rather than the base */
   r?: 0 | 1;
+  /** for a `qa` control: the two row props it edits, their placeholders, and what the add
+      button says. Defaults to a question and an answer, which is what the accordion wants —
+      tabs want a label and a panel, and the shape is otherwise identical. */
+  rowKeys?: [string, string];
+  rowPhs?: [string, string];
+  /** what a freshly added row holds. A tab with no label has nothing to click, so it cannot
+      start empty the way an unanswered question can. */
+  rowNew?: [string, string];
+  addLabel?: string;
   /** a setting rather than content, so it never appears as bindable. `BIND_CTL` decides by
       control kind, which is right until the same kind means both things: a filter's value is
       a text field that configures the list, not text the list displays. */

@@ -1171,6 +1171,7 @@ var IC = {
   check: '<path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/>',
   page: '<rect x="2.5" y="1.5" width="11" height="13" rx="1.5"/><path d="M5 5h6M5 8h6M5 11h4"/>',
   code: '<path d="M5.5 5L2.5 8l3 3M10.5 5l3 3-3 3M9.3 3.2l-2.6 9.6" stroke-linecap="round"/>',
+  tabs: '<path d="M1.8 6.2h12.4v7.6a.9.9 0 01-.9.9H2.7a.9.9 0 01-.9-.9z" stroke-linejoin="round"/><path d="M1.8 6.2l1.4-3.4h3.6l.7 3.4" stroke-linecap="round" stroke-linejoin="round"/>',
   accordion: '<rect x="1.5" y="2.2" width="13" height="3.6" rx="1"/><rect x="1.5" y="7.4" width="13" height="6.4" rx="1"/><path d="M4 9.9h6M4 11.9h4" opacity=".5"/>',
   gallery: '<rect x="1.5" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="9.1" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="1.5" y="9.6" width="5.4" height="3.9" rx="1"/><rect x="9.1" y="9.6" width="5.4" height="3.9" rx="1"/>',
   pipette: '<path d="M9.6 2.4l4 4" stroke-linecap="round"/><path d="M12.3 5.1L6.2 11.2l-2.9.9.9-2.9 6.1-6.1z" stroke-linecap="round" stroke-linejoin="round"/>'
@@ -2612,6 +2613,67 @@ var DEF = {
      shared `name` attribute, which is what makes one-open-at-a-time native too;
      where a browser has not caught up the panels stay independent, which is a
      lesser accordion rather than a broken one. */
+  /* Panels one at a time. The accordion's shape, with one difference that decides everything
+     else: an accordion works without JavaScript because `<details>` does, and tabs do not. So
+     the markup renders every panel visible and the script hides all but one — a reader with no
+     script gets the whole content stacked, which is the honest failure. Hiding them in CSS and
+     revealing with script fails the other way, into a page with the content missing. */
+  tabs: {
+    label: "Tabs",
+    icon: "tabs",
+    level: 4,
+    make: () => ({
+      props: {
+        items: [
+          { label: "Overview", panel: "What this is, in a sentence or two." },
+          { label: "Details", panel: "The part someone came looking for." },
+          { label: "Pricing", panel: "The number, plainly." }
+        ]
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--tb-align": "flex-start",
+          "--tb-line": cvar("line"),
+          "--tb-on": cvar("ink"),
+          "--tb-off": cvar("muted"),
+          "--tb-size": "15px",
+          "--tb-weight": "500",
+          "--tb-pad": "10px 2px",
+          "--tb-gap": "22px",
+          "--tb-body-size": "16px",
+          "--tb-body-color": cvar("text"),
+          "--tb-body-pad": "20px"
+        },
+        t: {},
+        m: { "--tb-gap": "16px", "--tb-size": "14px" }
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "qa",
+          k: "items",
+          label: "Tabs",
+          rowKeys: ["label", "panel"],
+          rowPhs: ["Tab label", "What this tab says"],
+          rowNew: ["New tab", ""],
+          addLabel: "Add tab"
+        },
+        { t: "pick", c: "--tb-align", label: "Tabs sit", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
+      ],
+      style: [
+        { t: "color", c: "--tb-on", label: "Selected label" },
+        { t: "color", c: "--tb-off", label: "Other labels" },
+        { t: "color", c: "--tb-line", label: "Rule" },
+        { t: "unit", c: "--tb-size", label: "Label size", r: 1, units: U.size },
+        { t: "unit", c: "--tb-gap", label: "Label spacing", r: 1, units: U.space },
+        { t: "unit", c: "--tb-body-size", label: "Body size", r: 1, units: U.size },
+        { t: "color", c: "--tb-body-color", label: "Body colour" },
+        { t: "unit", c: "--tb-body-pad", label: "Body padding", r: 1, units: U.space }
+      ]
+    }
+  },
   accordion: {
     label: "Accordion",
     icon: "accordion",
@@ -2647,7 +2709,7 @@ var DEF = {
     }),
     controls: {
       content: [
-        { t: "qa", k: "items", label: "Questions" },
+        { t: "qa", k: "items", label: "Questions", rowNew: ["A new question", ""] },
         { t: "select", k: "open", label: "Open on load", opts: [["none", "All closed"], ["first", "The first one"], ["all", "All open"]] },
         { t: "toggle", k: "single", label: "One open at a time" },
         { t: "select", k: "marker", label: "Marker", opts: [["plus", "Plus / minus"], ["caret", "Caret"], ["none", "None"]] }
@@ -3784,6 +3846,14 @@ function lint() {
       }
       if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
+      if (n.type === "tabs") {
+        const rows = Array.isArray(n.props.items) ? n.props.items : [];
+        if (!rows.length) add("warn", "tabs-empty", `A tab strip in the ${region} has no tabs, so it exports nothing.`, w, n.id);
+        const noL = rows.filter((r) => !String(r && r.label || "").trim()).length;
+        const noP = rows.filter((r) => String(r && r.label || "").trim() && !String(r && r.panel || "").trim()).length;
+        if (noL) add("error", "tabs-no-label", `${noL} tab${noL === 1 ? "" : "s"} in the ${region} have no label, so there is nothing to click.`, w, n.id);
+        if (noP) add("warn", "tabs-no-panel", `${noP} tab${noP === 1 ? "" : "s"} in the ${region} open onto an empty panel.`, w, n.id);
+      }
       if (n.type === "accordion") {
         const rows = Array.isArray(n.props.items) ? n.props.items : [];
         if (!rows.length) add("warn", "accordion-empty", `An accordion in the ${region} has no questions, so it exports nothing.`, w, n.id);
@@ -3939,6 +4009,7 @@ var TEXT_SLOTS = {
   text: ["html"],
   embed: ["html"],
   quote: ["text", "by"],
+  tabs: [["items", "label", "panel"]],
   image: ["alt", "caption"],
   accordion: [["items", "q", "a"]],
   gallery: [["items", "alt", "caption"]],
@@ -3955,7 +4026,8 @@ var SLOT_LABEL = {
   q: "Question",
   a: "Answer",
   ph: "Placeholder",
-  by: "Attribution"
+  by: "Attribution",
+  panel: "Panel"
 };
 function textSlots(n) {
   const out = [];
@@ -6268,6 +6340,19 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-tabs{width:100%}
+.pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
+.pagecraft-tab{
+  background:none;border:0;cursor:pointer;padding:var(--tb-pad,10px 2px);margin-bottom:-1px;
+  font:inherit;font-size:var(--tb-size,15px);font-weight:var(--tb-weight,500);
+  color:var(--tb-off,#5f6660);border-bottom:2px solid transparent;transition:color .16s,border-color .16s;
+}
+.pagecraft-tab.on{color:var(--tb-on,#111311);border-bottom-color:var(--tb-on,#111311)}
+.pagecraft-tab:focus-visible{outline:3px solid currentColor;outline-offset:2px}
+.pagecraft-tabpanel{padding-top:var(--tb-body-pad,20px);font-size:var(--tb-body-size,16px);color:var(--tb-body-color,#111311)}
+.pagecraft-tabpanel>:first-child{margin-top:0}
+.pagecraft-tabpanel>:last-child{margin-bottom:0}
+.pagecraft-tabs[data-tabs-ready] [data-tab-idle]{display:none}
 .pagecraft-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;margin-top:2.2em}
 .pagecraft-page{
   display:inline-flex;align-items:center;justify-content:center;min-width:2.4em;padding:.5em .7em;
@@ -6434,6 +6519,7 @@ ${m.css || ""}
 [data-t=nav][data-sel] .pagecraft-nav-icon{background-color:transparent}
 [data-t=nav][data-sel] .pagecraft-nav-icon::before{transform:rotate(45deg)}
 [data-t=nav][data-sel] .pagecraft-nav-icon::after{transform:rotate(-45deg)}
+[data-t=tabs] [data-tab-idle]{display:none}
 .pagecraft-video>iframe,.pagecraft-video>video{pointer-events:none}
 .pagecraft-button,.pagecraft-heading a,.pagecraft-wysiwyg a{cursor:default}
 .s-empty{
@@ -6720,6 +6806,20 @@ function renderNode(n, o) {
       const act = safeUrl(p.action) || (/^mailto:/i.test(String(p.action || "")) ? p.action : "");
       return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}"${act ? ` action="${esc(act)}" method="${p.method === "get" ? "get" : "post"}"` : ""}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
     }
+    case "tabs": {
+      const rows = Array.isArray(p.items) ? p.items : [];
+      if (!rows.length) return o.edit ? `<div ${at} ${cx("pagecraft-tabs")}><div class="s-empty">${svg("plus", 12)} Add a tab in the panel</div></div>` : "";
+      const all = o.edit && state.ui.sel === n.id;
+      const tid = (k) => `${domId}-t${k}`;
+      const pid = (k) => `${domId}-p${k}`;
+      const strip = rows.map(
+        (it, k) => `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}" aria-selected="${k === 0 ? "true" : "false"}" tabindex="${k === 0 ? "0" : "-1"}" class="pagecraft-tab${k === 0 ? " on" : ""}">${esc(it.label || "Tab " + (k + 1))}</button>`
+      ).join("");
+      const panels = rows.map(
+        (it, k) => `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"${k === 0 || all ? "" : " data-tab-idle"} class="pagecraft-tabpanel">${para(it.panel)}</div>`
+      ).join("");
+      return `<div ${at} ${cx("pagecraft-tabs")} data-tabs><div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
+    }
     case "accordion": {
       const items = Array.isArray(p.items) ? p.items : [];
       if (!items.length) return o.edit ? `<div ${at} ${cx("pagecraft-accordion")}><div class="s-empty">${svg("plus", 12)} Add a question in the panel</div></div>` : "";
@@ -6813,6 +6913,22 @@ Allow: /
 ` + (base ? `Sitemap: ${base}/sitemap.xml
 ` : "");
 }
+var TABS_JS = `<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
+var t=[].slice.call(w.querySelectorAll('[role=tab]')),p=[].slice.call(w.querySelectorAll('[role=tabpanel]'));
+if(!t.length)return;w.setAttribute('data-tabs-ready','');
+function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on);
+b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
+if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
+show(0);
+t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
+b.addEventListener('keydown',function(e){
+var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
+if(!d)return;e.preventDefault();
+var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus();});});
+});})();
+<\/script>
+`;
 var NAV_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
 var b=w.querySelector('[data-nav-t]');if(!b)return;
@@ -6958,7 +7074,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${m.headHtml
 </head>
 <body>
 ${body}
-${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
+${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -7015,6 +7131,7 @@ var __CORE = {
   SLOT_LABEL,
   SRCSET_W,
   STATES,
+  TABS_JS,
   TEMPLATES,
   TEXT_SLOTS,
   TRANSITIONS,
@@ -7804,6 +7921,7 @@ var PC_UI = (() => {
         ["nav", "Nav menu"],
         ["form", "Form"],
         ["accordion", "Accordion"],
+        ["tabs", "Tabs"],
         ["embed", "Embed"]
       ]
     },
@@ -8947,10 +9065,12 @@ var PC_UI = (() => {
   function QaCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
     const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const [kA, kB] = c3.rowKeys || ["q", "a"];
+    const [phA, phB] = c3.rowPhs || ["Question", "Answer \u2014 leave a blank line to start a new paragraph"];
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       arr.map((it, k3) => /* @__PURE__ */ u2("div", { class: "qarow", children: [
         /* @__PURE__ */ u2("div", { class: "qarow-a", children: [
-          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "q", placeholder: "Question" }),
+          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: kA, placeholder: phA }),
           /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 })
         ] }),
         /* @__PURE__ */ u2(
@@ -8958,11 +9078,11 @@ var PC_UI = (() => {
           {
             class: "ctl",
             rows: 2,
-            value: it.a || "",
-            placeholder: "Answer \u2014 leave a blank line to start a new paragraph",
+            value: it[kB] || "",
+            placeholder: phB,
             onInput: (e3) => {
               L2.tx(key);
-              rows(n2, c3)[k3].a = e3.target.value;
+              rows(n2, c3)[k3][kB] = e3.target.value;
               L2.repaint();
             },
             onBlur: L2.endTx
@@ -8972,9 +9092,12 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2(
         AddButton,
         {
-          label: "Add question",
+          label: c3.addLabel || "Add question",
           gap: !!arr.length,
-          onClick: () => C2.edit(() => rows(n2, c3).push({ q: "A new question", a: "" }))
+          onClick: () => C2.edit(() => {
+            const [vA, vB] = c3.rowNew || ["A new question", ""];
+            rows(n2, c3).push({ [kA]: vA, [kB]: vB });
+          })
         }
       )
     ] });
@@ -9287,13 +9410,22 @@ var PC_UI = (() => {
       "button",
       {
         class: val === String(v3) ? "on" : "",
-        title: l3,
+        title: C2.IC[l3] ? PICK_TIP[l3] || l3 : l3,
         onClick: () => w3.hard(v3),
         children: C2.IC[l3] ? /* @__PURE__ */ u2(Icon, { name: l3, size: 13 }) : l3
       },
       v3
     )) }) });
   }
+  var PICK_TIP = {
+    alignL: "Left",
+    alignC: "Centre",
+    alignR: "Right",
+    alignJ: "Justified",
+    vTop: "Top",
+    vMid: "Middle",
+    vBot: "Bottom"
+  };
   function ToggleCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const on = !!valueOf(n2, c3);

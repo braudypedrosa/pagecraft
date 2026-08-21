@@ -106,27 +106,34 @@ export function FieldsCtl({ n, c }: P) {
   </Field>;
 }
 
+/* A list of two-field rows: a line and a block. The accordion's questions and answers, and the
+   tabs' labels and panels, are the same control with different words on it — so the prop names
+   and the wording come off the control rather than being written in here twice. */
 export function QaCtl({ n, c }: P) {
   const arr = list(n, c);
   const key = n.id + '|' + (c.c || c.k || c.t);
+  const [kA, kB] = c.rowKeys || ['q', 'a'];
+  const [phA, phB] = c.rowPhs || ['Question', 'Answer — leave a blank line to start a new paragraph'];
   return <Field n={n} c={c}>
     {arr.map((it, k) => (
       <div class="qarow" key={k}>
         <div class="qarow-a">
-          <RowInput n={n} c={c} k={k} prop="q" placeholder="Question" />
+          <RowInput n={n} c={c} k={k} prop={kA} placeholder={phA} />
           <RowActs n={n} c={c} k={k} />
         </div>
-        <textarea class="ctl" rows={2} value={it.a || ''}
-          placeholder="Answer — leave a blank line to start a new paragraph"
+        <textarea class="ctl" rows={2} value={it[kB] || ''} placeholder={phB}
           onInput={e => {
             L.tx(key);
-            rows(n, c)[k].a = (e.target as HTMLTextAreaElement).value;
+            rows(n, c)[k][kB] = (e.target as HTMLTextAreaElement).value;
             L.repaint();
           }} onBlur={L.endTx} />
       </div>
     ))}
-    <AddButton label="Add question" gap={!!arr.length}
-      onClick={() => C.edit(() => rows(n, c).push({ q: 'A new question', a: '' }))} />
+    <AddButton label={c.addLabel || 'Add question'} gap={!!arr.length}
+      onClick={() => C.edit(() => {
+        const [vA, vB] = c.rowNew || ['A new question', ''];
+        rows(n, c).push({ [kA]: vA, [kB]: vB });
+      })} />
   </Field>;
 }
 

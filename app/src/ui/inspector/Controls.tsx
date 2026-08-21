@@ -186,12 +186,19 @@ function PickCtl({ n, c }: P) {
   return <Field n={n} c={c}>
     <div class="pick">
       {opts.map(([v, l]) => (
-        <button key={v} class={val === String(v) ? 'on' : ''} title={l}
+        <button key={v} class={val === String(v) ? 'on' : ''} title={C.IC[l] ? (PICK_TIP[l] || l) : l}
           onClick={() => w.hard(v)}>{C.IC[l] ? <Icon name={l} size={13} /> : l}</button>
       ))}
     </div>
   </Field>;
 }
+
+/* A text option is its own tooltip. An icon one has nothing to read, and hovering it
+   said `alignL` — the glyph's name, which is ours and not the reader's. */
+const PICK_TIP: Record<string, string> = {
+  alignL: 'Left', alignC: 'Centre', alignR: 'Right', alignJ: 'Justified',
+  vTop: 'Top', vMid: 'Middle', vBot: 'Bottom',
+};
 
 /* A toggle carries its label inside the row, so it is the one control that does not
    use Field — there is no separate <label> to hang the badges off. */
