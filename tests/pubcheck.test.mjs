@@ -25,7 +25,7 @@ const plain = s => s.replace(/\x1b\[\d+m/g, '');
 const say = s => plain(report(s));
 
 const BASE = {
-  url: 'https://claude.ai/code/artifact/abc',
+  url: 'https://example.com/hosted/abc',
   sha256: 'a'.repeat(64),
   commit: 'deadbee',
   publishedAt: '2026-08-20',
@@ -45,7 +45,7 @@ test('up to date says so in one line, and names what it was published from', () 
 test('stale carries the distance, the URL, the fix and the things that live only on the artifact', () => {
   const out = say({ ...BASE, state: 'stale', behind: '3' });
   a.match(out, /Artifact is STALE — 3 commits behind \(published from deadbee\)/);
-  a.match(out, /https:\/\/claude\.ai\/code\/artifact\/abc/);
+  a.match(out, /https:\/\/example\.com\/hosted\/abc/);
   a.match(out, /npm run publish:stamp/);
   /* favicon, contract and capabilities exist nowhere in the repo, so the one moment
      they are needed is the moment you are about to republish */
@@ -105,7 +105,9 @@ test('status() hashes the file that is actually on disk', () => {
   const s = status();
   const onDisk = createHash('sha256').update(readFileSync(join(here, 'dist', 'artifact.html'))).digest('hex');
   a.equal(s.now, onDisk, 'no stale cache, no second implementation of the hash');
-  a.match(s.url, /^https:\/\/claude\.ai\/code\/artifact\//, 'the record carries the URL');
+  /* an absolute URL is the invariant; pinning the host would make the suite fail the
+     day the copy is published somewhere else */
+  a.match(s.url, /^https:\/\/\S+$/, 'the record carries an absolute URL');
 });
 
 test('the state is exactly whether the record matches the file', () => {

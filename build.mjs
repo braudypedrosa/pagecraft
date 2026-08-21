@@ -265,7 +265,7 @@ writeFileSync(join(here, 'dist', 'core.cjs'),
 console.log(`index.html + dist/artifact.html written (fonts ${Math.round(FONT_CSS.length / 1024)} KB) · core compiled from TypeScript (${Math.round(coreBundle.length / 1024)} KB bundled)`);
 
 /* ---- 4. is the published Artifact still the copy we just built? ---------
-   Publishing is an agent action with no CLI, so this cannot be automated — but the
+   Publishing is a manual step with no CLI, so this cannot be automated — but the
    live copy has gone stale twice, once by six commits, on the strength of a note in
    CONTEXT.md. Reporting it on every build is the part that can be. `--check` makes
    it gateable; see tools/pubcheck.mjs. */

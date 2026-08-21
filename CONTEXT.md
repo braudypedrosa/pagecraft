@@ -162,12 +162,11 @@ nothing fights the DOM value.
 
 A visual page builder that exports static HTML, built on the **Pagecraft** brand system.
 Dependency-free: one HTML file, no framework, no build step for the user, autosaves in the
-browser. Lives at `~/Projects/braudyp.dev/page-builder/`.
+browser. Lives at `~/Documents/Braudy/pagecraft-singlefile/`.
 
-Published (private) at
-<https://claude.ai/code/artifact/16d1f437-f2ca-44df-aff7-02875acdd2c2> — to update it,
-publish `dist/artifact.html` and pass that URL, or the link changes.
-**Republish after any session that changes `builder.html`.**
+Published privately to a hosted copy. `dist/PUBLISHED.json` holds the URL — to update it,
+publish `dist/artifact.html` and pass that same URL, or the link changes.
+**Republish after any change to `builder.html`.**
 
 **You no longer have to remember any of this.** `dist/PUBLISHED.json` records the sha256 of
 the copy that was actually published, and every `npm run build` / `npm test` ends with one
@@ -176,7 +175,7 @@ line saying whether the live artifact matches what the repo would produce:
 ```
 Artifact: up to date — published 2026-08-19 from ad1eeff
 Artifact is STALE — 3 commits behind (published from ad1eeff).
-  live   https://claude.ai/code/artifact/16d1f437-…
+  live   https://…  (the URL from PUBLISHED.json)
   fix    republish dist/artifact.html to that URL, then: npm run publish:stamp
   keep   capabilities ["downloads"] · contract 0.2.4 · favicon 📐
 ```
@@ -199,10 +198,10 @@ Three things the stale message carries because they are not recoverable from the
 - **Favicon 📐**, title from the fragment's own `<title>Pagecraft Builder</title>`. Keep both
   stable; a changed tab icon reads as a different page.
 - **`capabilities: {downloads}` on contract `0.2.4`.** Publishing without an explicit
-  `capabilities` argument carries it forward, which is what you want — the sandbox blocks a
+  `capabilities` argument carries it forward, which is what you want — the viewer blocks a
   page-initiated download otherwise, and every export button here is one. `capabilities: {}`
   would break all of them silently.
-- **A republish 409s** until that session has read the live copy. `WebFetch` the URL and look
+- **A republish 409s** until the live copy has been read. Fetch the URL and look
   at what is on it *before* publishing. Do not reach for `force` first: it discards whatever
   is live, and only checking made it safe last time.
 

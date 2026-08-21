@@ -238,9 +238,9 @@ the gap between "reads a property" and "reads the right property" to show.
 ## Knowing whether the Artifact is stale
 
 The published copy went stale twice, the second time by six commits — it predated the entire
-CMS while the repo was well past it. The cause was not carelessness. **Republishing is an
-agent action with no CLI, so it cannot be automated, and nothing connected it to committing.**
-"Republish after any session that changes `builder.html`" lived only in a note, and a note is
+CMS while the repo was well past it. The cause was not carelessness. **Republishing is a
+manual step with no CLI, so it cannot be automated, and nothing connected it to committing.**
+"Republish after any change to `builder.html`" lived only in a note, and a note is
 exactly as reliable as whoever reads it.
 
 What *can* be automated is knowing. `dist/PUBLISHED.json` holds the sha256 of the
@@ -279,7 +279,7 @@ on disk now.
   the existing path and `.git/hooks` first and prints the manual one-liner if either is taken.
 - **The stale message carries the three unrecoverable facts** — favicon, contract,
   capabilities — because they live only on the published artifact. `capabilities: {}` on a
-  republish would silently break every export button, since the sandbox blocks a
+  republish would silently break every export button, since the viewer blocks a
   page-initiated download without it.
 
 ## Storage
@@ -608,7 +608,7 @@ one only because the later block never restated them.
 
 Collapsed into one block carrying what the merge actually resolved to, then corrected. A sweep
 of every top-level selector in the chrome stylesheet found no other duplicate — worth re-running
-after any session that adds CSS, because nothing in the build catches this:
+after any change that adds CSS, because nothing in the build catches this:
 
 ```js
 const css = html.slice(0, html.indexOf('<script>'));

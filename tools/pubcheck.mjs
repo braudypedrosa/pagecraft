@@ -1,6 +1,6 @@
 /* Is the published Artifact the copy this repo would produce?
 
-   Publishing is an agent action with no CLI, so nothing can automate it. What can
+   Publishing is a manual step with no CLI, so nothing can automate it. What can
    be automated is *knowing* — the live copy went stale twice, once by six commits,
    because "republish after changing builder.html" lived only in a note. This turns
    that note into a fact the build reports and a hook repeats.
