@@ -26,7 +26,7 @@
   --danger:#a8402f; --danger-soft:#a8402f14; --warn:#8a6413;
 
   /* shape + type, straight from the token file */
-  --r-sm:4px; --r-md:8px; --r-lg:16px; --u:4px;
+  --r-sm:4px; --r-md:8px; --r-lg:16px; --r-pill:99px; --u:4px;
 
   /* Form rhythm and control heights, declared once so a panel and a dialog cannot
      drift apart. Before this there were nine inline margin values in the markup
@@ -131,7 +131,7 @@ input,select,textarea{font:inherit;color:inherit}
 .btn.primary:hover{background:#c3f75f;border-color:#c3f75f}
 .btn.ghost{background:transparent;border-color:transparent;color:var(--text-2)}
 .btn.ghost:hover{background:var(--field-2);color:var(--text)}
-.btn.tiny{padding:4px 11px;font-size:13.5px;border-radius:99px}
+.btn.tiny{padding:4px 11px;font-size:13.5px;border-radius:var(--r-pill)}
 .btn.danger{color:var(--danger);border-color:var(--line-2)}
 .btn.danger:hover{background:var(--danger-soft);border-color:var(--danger)}
 .topbar .btn{background:transparent;border-color:var(--rail-line);color:var(--rail-text)}
@@ -232,7 +232,7 @@ body.preview .left,body.preview .right{display:none}
 .palette{padding:12px 14px 20px}
 .plabel{font-size:12.5px;font-weight:600;color:var(--text-3);padding:14px 0 8px;letter-spacing:-.005em}
 .plabel:first-child{padding-top:2px}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+
 .brow{
   display:flex;align-items:center;gap:8px;padding:8px 9px;margin-bottom:5px;
   border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);
@@ -308,7 +308,7 @@ body.preview .left,body.preview .right{display:none}
 .lrow .badge{
   font-family:var(--label);font-size:10.5px;font-weight:600;letter-spacing:.04em;
   text-transform:uppercase;background:var(--green);color:var(--ink);
-  padding:2px 6px;border-radius:99px;
+  padding:2px 6px;border-radius:var(--r-pill);
 }
 .lrow .tw{width:14px;flex:0 0 14px;display:grid;place-items:center;color:var(--text-3)}
 .lrow .tw svg{width:9px;height:9px;transition:transform .12s}
@@ -391,7 +391,7 @@ body.preview .frameWrap{border-radius:0;box-shadow:none;width:100% !important}
 body.preview .modebar{display:none}
 .modebar .crumb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--label)}
 .pill{
-  display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:99px;
+  display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:var(--r-pill);
   background:var(--panel);border:1px solid var(--line);color:var(--text-2);font-weight:500;font-size:12.5px;
 }
 .pill.g{border-color:var(--ink);background:var(--ink);color:var(--paper)}
@@ -402,7 +402,7 @@ body.preview .modebar{display:none}
 /* dimension readout, kept close to the working surface */
 .dim{
   position:absolute;left:16px;bottom:12px;z-index:12;display:flex;align-items:center;gap:8px;
-  padding:5px 10px;border-radius:99px;background:var(--panel);border:1px solid var(--line);
+  padding:5px 10px;border-radius:var(--r-pill);background:var(--panel);border:1px solid var(--line);
   box-shadow:var(--shadow);font-family:var(--label);font-size:12px;font-weight:500;color:var(--text-2);
 }
 .dim b{color:var(--text);font-weight:600}
@@ -487,7 +487,8 @@ select.ctl{
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5L6 8.5l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat:no-repeat;background-position:right 9px center;background-size:11px 11px;
 }
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+/* two equal columns, wherever they appear — .pgrid was the same rule under another name */
+.row2,.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-1)}
 /* Paired fields in a dialog. The grid owns the vertical spacing and the fields
    inside give theirs up — the two used to add together, so fields in a grid sat
    25px apart while the same fields in a plain stack sat 11px apart.
@@ -556,7 +557,7 @@ select.ctl{
 }
 .cp-rows{display:flex;align-items:center;gap:8px}
 .cp-strips{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
-.cp-hue,.cp-alpha{position:relative;height:11px;border-radius:99px;cursor:pointer;touch-action:none}
+.cp-hue,.cp-alpha{position:relative;height:11px;border-radius:var(--r-pill);cursor:pointer;touch-action:none}
 .cp-hue:focus-visible,.cp-alpha:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .cp-hue{background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
 /* the checkerboard shows through the colour ramp, which is the only way an alpha strip
@@ -591,7 +592,8 @@ select.ctl{
 .clr .hex{flex:1;height:var(--h-ctl);font-family:var(--label);font-size:12.5px}
 /* had no height at all, so it collapsed to its 13px glyph — a misaligned box and
    a hit target a third the size of the field beside it */
-.clr .x{width:26px;flex:0 0 26px;height:var(--h-ctl);color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
+/* the clear button that sits at the end of a full-height control — .tgx is the same button */
+.clr .x,.tgx{width:26px;flex:0 0 26px;height:var(--h-ctl);color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
 .clr .x:hover{color:var(--danger);background:var(--danger-soft)}
 .pick{display:flex;gap:3px;background:var(--field);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px}
 .pick button{flex:1;padding:6px 2px;border-radius:3px;color:var(--text-3);display:grid;place-items:center;font-size:12.5px;font-weight:500}
@@ -599,7 +601,7 @@ select.ctl{
 .pick button:hover{color:var(--text);background:var(--panel)}
 .pick button.on{background:var(--ink);color:var(--paper)}
 .sw-tog{
-  width:36px;height:20px;flex:0 0 36px;border-radius:99px;background:var(--line-2);
+  width:36px;height:20px;flex:0 0 36px;border-radius:var(--r-pill);background:var(--line-2);
   border:none;position:relative;transition:background .16s;
 }
 .sw-tog i{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--white);transition:.16s;box-shadow:0 1px 2px #1113112e}
@@ -627,7 +629,6 @@ select.ctl{
 .tg:hover{background:var(--field);border-color:var(--text-3)}
 .tg.on{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
 .tgrow small{font-family:var(--label);font-size:11px;color:var(--text-3);flex:0 0 auto}
-.tgx{width:26px;height:var(--h-ctl);flex:0 0 26px;border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center}
 .tgx:hover{color:var(--danger);background:var(--danger-soft)}
 .lay{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:var(--gap-1)}
 .lay button{display:flex;gap:2px;padding:4px;height:28px;border-radius:var(--r-sm);background:var(--field);border:1px solid var(--line)}
@@ -677,30 +678,43 @@ select.ctl{
 .imgset.missing .an b{color:var(--danger)}
 .imgset .x{width:26px;height:26px;flex:0 0 26px;border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center}
 .imgset .x:hover{color:var(--danger);background:var(--danger-soft)}
-.frow{border:1px solid var(--line);border-radius:var(--r-sm);padding:6px;margin-bottom:var(--gap-1);background:var(--field)}
+/* ---- one repeatable row ------------------------------------------------
+   Four lists use it — fields, question/answer, gallery, links — and all four are
+   rendered by the same module. The chrome, the inner control and the action buttons
+   used to be restated under each name, which is how .irow's control ended up half a
+   pixel larger than the other three and .frow the only one of the four whose disabled
+   button still lit up on hover. Anything genuinely per-list stays with that list, and
+   says why. */
+.frow,.qarow,.gtile{
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:6px;margin-bottom:var(--gap-1);background:var(--field);
+}
+.frow .ctl,.qarow .ctl,.gtile .ctl,.irow .ctl{padding:5px 7px;font-size:12px;min-width:0}
+.frow .x,.qarow .x,.gtile .x,.irow .x{
+  width:24px;height:26px;color:var(--text-3);
+  border-radius:var(--r-sm);display:grid;place-items:center;
+}
+.frow .x[disabled],.qarow .x[disabled],.gtile .x[disabled],.irow .x[disabled]{opacity:.3;cursor:default}
+.frow .x[disabled]:hover,.qarow .x[disabled]:hover,
+.gtile .x[disabled]:hover,.irow .x[disabled]:hover{background:none;color:var(--text-3)}
+/* The hover is one step off the row's own ground, so it cannot be one colour: three of
+   the rows sit on --field, and .irow sits bare on the panel, where --panel is invisible. */
+.frow .x:hover,.qarow .x:hover,.gtile .x:hover{color:var(--text);background:var(--panel)}
+.irow .x:hover{color:var(--text);background:var(--field-2)}
+/* the up arrow is the down arrow, turned over */
+.frow .x[data-x=fu] svg,.qarow .x[data-x=qu] svg,
+.gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
+.irow .x[data-x=ix] svg{transform:none}
+
 .frow-a{display:grid;grid-template-columns:1fr 96px 24px 24px;gap:4px;align-items:center}
 .frow-b{display:grid;grid-template-columns:1fr 1fr 44px;gap:4px;align-items:center;margin-top:4px}
-.frow .ctl{padding:5px 7px;font-size:12px;min-width:0}
-.frow .x{width:24px;height:26px;color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
-.frow .x:hover{color:var(--text);background:var(--panel)}
-.frow .x[disabled]{opacity:.3;cursor:default}
-.frow .x[data-x=fu] svg{transform:rotate(180deg)}
 .freq{
   height:26px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--panel);
   font-family:var(--label);font-size:11px;font-weight:500;color:var(--text-3);
 }
 .freq.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-/* a question and its answer, on the .frow chrome so a repeatable row looks the
-   same wherever one appears */
-.qarow{border:1px solid var(--line);border-radius:var(--r-sm);padding:6px;margin-bottom:var(--gap-1);background:var(--field)}
 .qarow-a{display:grid;grid-template-columns:1fr 24px 24px;gap:4px;align-items:center}
-.qarow .ctl{padding:5px 7px;font-size:12px;min-width:0}
 .qarow textarea.ctl{margin-top:4px;width:100%;min-height:44px;resize:vertical;line-height:1.5}
-.qarow .x{width:24px;height:26px;color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
-.qarow .x:hover{color:var(--text);background:var(--panel)}
-.qarow .x[disabled]{opacity:.3;cursor:default}
-.qarow .x[disabled]:hover{background:none;color:var(--text-3)}
-.qarow .x[data-x=qu] svg{transform:rotate(180deg)}
 
 /* the icon picker: grouped, because thirty glyphs in one wall is not a set you
    can read. Size comes from CSS, never from the svg's own attributes. */
@@ -725,21 +739,12 @@ select.ctl{
 .gthumb img{width:100%;height:100%;object-fit:cover;display:block}
 .gthumb span{font-family:var(--label);font-size:10px;color:var(--text-3);text-align:center;line-height:1.2;padding:2px}
 .gtile .gmeta{display:flex;flex-direction:column;gap:4px;min-width:0}
-.gtile .ctl{padding:5px 7px;font-size:12px;min-width:0}
 .gtile .gacts{display:flex;flex-direction:column;gap:2px}
-.gtile .x{width:24px;height:21px;color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
-.gtile .x:hover{color:var(--text);background:var(--panel)}
-.gtile .x[disabled]{opacity:.3;cursor:default}
-.gtile .x[disabled]:hover{background:none;color:var(--text-3)}
-.gtile .x[data-x=gu] svg{transform:rotate(180deg)}
+/* the one row whose buttons are not 26px: two of them stacked with the 2px gap come to
+   exactly the 44px of the thumb beside them, which is the alignment the tile is built on */
+.gtile .x{height:21px}
 .irow{display:grid;grid-template-columns:1fr 1fr 26px 26px;gap:4px;margin-bottom:var(--gap-1);align-items:center}
-.irow .ctl{padding:6px 7px;font-size:12.5px;min-width:0}
-.irow .x{width:24px;height:26px;flex:0 0 24px;color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
-.irow .x:hover{color:var(--text);background:var(--field-2)}
-.irow .x[disabled]{opacity:.3;cursor:default}
-.irow .x[disabled]:hover{background:none;color:var(--text-3)}
-.irow .x svg{transform:rotate(180deg)}
-.irow .x[data-x=ix] svg{transform:none}
+
 
 /* asset + token rows */
 .arow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--line);margin-bottom:var(--gap-1);background:var(--panel)}
@@ -923,7 +928,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .hitrow .hs{font-size:12.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hitrow .hc{
   font-family:var(--label);font-size:11px;font-weight:600;color:var(--text-2);
-  background:var(--field-2);border-radius:99px;padding:2px 7px;white-space:nowrap;
+  background:var(--field-2);border-radius:var(--r-pill);padding:2px 7px;white-space:nowrap;
 }
 pre.code{
   background:var(--ink);border-radius:var(--r-md);padding:14px;
@@ -951,14 +956,14 @@ pre.code{
 .review .lv.warn{background:var(--warn)}
 .review .msg{flex:1;color:var(--text-2);line-height:1.5}
 .review .msg em{color:var(--text-3);font-style:normal;font-family:var(--label);font-size:11.5px;display:block;margin-top:2px}
-.review .go{flex:0 0 auto;padding:3px 10px;border-radius:99px;border:1px solid var(--line-2);font-size:12px;background:var(--panel)}
+.review .go{flex:0 0 auto;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--line-2);font-size:12px;background:var(--panel)}
 .review .go:hover{background:var(--field);border-color:var(--text-3)}
 .alert{display:flex;flex-direction:column;gap:5px;padding:13px 15px;border-radius:var(--r-md);background:#a8402f0f;border:1px solid #a8402f40}
 .alert b{font-size:14.5px;color:var(--danger);font-weight:600}
 .alert span{font-size:13.5px;color:var(--text-2);line-height:1.55}
 .toast{
   position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
-  background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:99px;
+  background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:var(--r-pill);
   font-size:13.5px;font-weight:500;box-shadow:var(--shadow-lg);
   z-index:9000;opacity:0;transition:.24s cubic-bezier(.4,0,.2,1);pointer-events:none;
 }
