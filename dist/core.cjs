@@ -4845,7 +4845,7 @@ ${m.css || ""}
 #s-hud .bar{
   position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f8f6ef;
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
-  transform:scale(calc(1 / var(--z,1))) translateY(-100%);transform-origin:0 100%;
+  transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;
   font:500 12px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar .nm{padding-right:6px}

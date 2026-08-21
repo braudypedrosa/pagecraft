@@ -5617,7 +5617,7 @@ ${m.css || ""}
 #s-hud .bar{
   position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f8f6ef;
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
-  transform:scale(calc(1 / var(--z,1))) translateY(-100%);transform-origin:0 100%;
+  transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;
   font:500 12px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar .nm{padding-right:6px}
@@ -10433,22 +10433,35 @@ function positionHud() {
      would change the height again. */
   const bar = hud.querySelector('.bar');
   if (!bar) return;
+  /* Measured, not assumed. The bar carries `scale(1 / --z)` so it stays legible at any canvas
+     zoom, which means its height in canvas pixels grows as you zoom out — 33px at 78%, 54px at
+     54%, and more again with a wider bar. Every constant here was wrong at some zoom.
+
+     The bar's own CSS no longer offsets it. It used to sit above its element with a
+     translateY(-100%) about a bottom-left origin, and that origin is on the *untranslated*
+     box — so scaling lifted the bar by its height times (scale - 1), leaving a gap above the
+     element that was nothing at 100% zoom and grew the further out you went. The position is
+     set here instead, from the height that was just measured, which is exact at every zoom and
+     is the same arithmetic that keeps the bar on screen. */
   const h = bar.getBoundingClientRect().height;
-  if (r.top >= h) return;                       // room above: leave it where it is
 
-  /* Down into the element rather than under it. Under it sounds right until the element is a
-     tall section: the bar then lands hundreds of pixels from the corner you just clicked,
-     which is worse than being clipped. Hanging from the element's own top edge keeps it
-     beside the selection and, since this only runs when the top edge is on screen, always
-     fully visible.
+  /* One clamp, and the position set outright rather than nudged by a transform. Above the
+     element is the preference, but the bar has to stay inside the part of the canvas you can
+     actually see — and the case that matters is scrolling down with a tall section selected:
+     its top edge goes off-screen, and both "above the top edge" and "hanging from the top
+     edge" go off-screen with it. Pinning to the top of the view keeps the bar with the
+     selection the whole way down a page.
 
-     The transform keeps the zoom compensation and drops only the translate. The old flip set
-     `transform:none`, which dropped the scale as well — a flipped bar then rendered at the
-     canvas's zoom instead of at screen size, so it was small as well as misplaced. */
-  bar.style.transform = 'scale(calc(1 / var(--z,1)))';
-  bar.style.transformOrigin = '0 0';
-  /* the radius turns over with it, so it still reads as attached to the edge it hangs from */
-  bar.style.borderRadius = '0 6px 6px 6px';
+       want  above the element, which is where it sits whenever there is room
+       0     the top of what is visible; never higher than this
+       hi    still over the element; never lower, so it cannot float free of what it labels */
+  const want = r.top - h;
+  const hi = Math.max(0, r.bottom - h);
+  const y = Math.min(Math.max(want, 0), hi);
+  bar.style.top = (y + cwin.scrollY) + 'px';
+  /* flush above gets the tab shape it always had; anything else is sitting over the element,
+     so it rounds on the side that is no longer touching an edge */
+  if (y > want + 0.5) bar.style.borderRadius = '0 6px 6px 6px';
 }
 
 /* A grip per gutter, on the row that is selected — or on the parent row when a
