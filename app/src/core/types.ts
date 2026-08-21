@@ -60,6 +60,10 @@ export interface ListProps {
   op?: string;
   /** what to test against; unused by the `set` and `unset` operators */
   val?: string;
+  /** items per exported page. Set, the page this list sits on becomes several files with
+      links between them; unset, the list renders everything it matched. Supersedes `limit`,
+      which means "never more than this" rather than "this many at a time". */
+  per?: string;
 }
 export interface HeadingProps extends Linkable, Styled { text?: string; level?: string }
 export interface TextProps extends Styled { html?: string }
@@ -364,6 +368,9 @@ export interface Ui {
   custom: Record<string, boolean>;
   zoom: string;
   item?: Record<string, number>;
+  /** which page of a paginated list the canvas is showing, 1-based. Clamped on read, so
+      deleting items cannot leave it parked past the end. */
+  pno?: number;
 }
 
 export interface State {
@@ -399,6 +406,13 @@ export interface RenderOpts {
   /** set while a Collection list repeats its contents */
   repeat?: boolean;
   repIndex?: number;
+  /** which page of a paginated list this file is, 1-based, and how many there are. The
+      paginator reads both to slice its items and to draw links to its neighbours. */
+  pageNo?: number;
+  pages?: number;
+  /** the Page being rendered. A paginator has to name its own next and previous files, and
+      those are built from the page's slug. */
+  pg?: Page | null;
   /** the separate-files export, which is the only mode that can carry image variants —
       inlining five copies of every image to save bandwidth on one of them is worse than
       not trying. Off means a single `src` and no `srcset`. */

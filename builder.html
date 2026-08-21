@@ -1469,9 +1469,17 @@ function paintCss() {
 
 /* On a detail template the whole page stands for one item, so the canvas needs
    that item threaded in from the top — there is no `src` node to open the scope. */
+/* What the canvas needs to render the current page the way its file will look. `pg` and the
+   page number are here because a paginated list renders a slice and draws links to its
+   neighbours, and neither is derivable from the node. The number is clamped on read rather
+   than on write, so deleting items cannot leave the canvas parked on a page that has gone. */
 function pageCtx() {
-  const col = page().collection ? findCollection(page().collection) : null;
-  return col ? { col, item: previewItem(col) } : {};
+  const pg = page();
+  const col = pg.collection ? findCollection(pg.collection) : null;
+  const pgn = paginatorOf(pg);
+  const pages = pgn ? listPageCount(pgn.node, pgn.col) : 1;
+  const pageNo = Math.min(Math.max(1, state.ui.pno || 1), pages);
+  return { pg, pageNo, pages, ...(col ? { col, item: previewItem(col) } : {}) };
 }
 
 function paint() {
@@ -1823,6 +1831,8 @@ function bindCanvas() {
       state.ui.item = state.ui.item || {};
       state.ui.item[to.col.id] = published(to.col).findIndex(i => i.id === to.item.id);
     }
+    /* a pager link names which page of results it wants; everything else means the first */
+    state.ui.pno = to.pageNo || 1;
     state.cur = to.at;
     state.ui.mode = 'page';
     selSet([]);
@@ -1834,7 +1844,8 @@ function bindCanvas() {
       else cwin.scrollTo(0, 0);
     });
     const pg = state.pages[to.at];
-    toast(to.item ? `${itemTitle(to.col, to.item)} — ${pg.name}` : pg.name);
+    toast(to.item ? `${itemTitle(to.col, to.item)} — ${pg.name}`
+      : (to.pageNo > 1 ? `${pg.name} — page ${to.pageNo}` : pg.name));
   });
   cdoc.addEventListener('dblclick', e => {
     if (document.body.classList.contains('preview')) return;

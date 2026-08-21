@@ -464,6 +464,11 @@ Three things you can do with one:
   to *see* what is bound to what.
 - **Repeat with a Collection list.** Drop one from *Add → Layout*, put a single Column inside, and
   that card renders once per item — with sort, direction and a limit.
+- **Break a long list across pages.** *Items per page* turns the page into several files:
+  page one keeps the page's own address, the rest sit in a folder beside it as `page-2`,
+  `page-3`, and each gets a pager with Previous, the numbers, and Next. Preview walks it, so
+  you can click through before exporting. One list per page paginates — if a second is set to,
+  the review says which one is deciding.
 - **Show only some of them.** *Only show items where* takes a field, a test and a value, so one
   card layout serves a category page, a tag page, or "just the ones with a photo". The tests are
   *is*, *is not*, *contains*, *has any value* and *is empty*; numbers compare as numbers and text

@@ -255,7 +255,15 @@ const DEF: Record<string, WidgetDef> = {
             return !!p.where && p.op !== 'set' && p.op !== 'unset';
           }
         },
-        { t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all' },
+        {
+          t: 'unit', k: 'per', label: 'Items per page', units: [''], ph: 'all on one page',
+          note: 'Set this and the page becomes several files, with links between them. Page one keeps this page’s address; the rest sit in a folder beside it.'
+        },
+        {
+          t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all',
+          note: 'A hard ceiling on the whole list. Items per page wins where both are set.',
+          when: n => !(parseInt(String((n.props as PropBag).per || ''), 10) > 0)
+        },
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space },
         /* Baseline is here because the header templates use it — text beside text in a bar
            is read on the baseline, not on the box. Without the option the control had no
@@ -796,7 +804,7 @@ const zoomFor = (z: string | null | undefined, target: number, avail: number) =>
 function initUi(): Ui {
   return {
     mode: 'page', dev: 'desktop', sel: null, multi: [], tab: 'add', atab: 'widgets', stab: 'content', target: '', lmode: null,
-    open: {}, collapsed: {}, custom: {}, zoom: 'fit'
+    open: {}, collapsed: {}, custom: {}, zoom: 'fit', pno: 1
   };
 }
 const state: State = {
@@ -1991,6 +1999,12 @@ function lint() {
        is the first thing a brand-new empty site would hear. */
     if (!h1s.length && pg.tree.length) add('warn', 'no-h1', `“${pg.name}” has no H1, so its main subject is unstated.`, scope);
     if (h1s.length > 1) add('warn', 'many-h1', `“${pg.name}” has ${h1s.length} H1 headings. Use one, then H2s beneath it.`, scope);
+    /* Two paginated lists on one page have no coherent answer: each would want to decide
+       how many files the page becomes. The first in document order does, and this says so
+       rather than leaving the others looking broken for no visible reason. */
+    const pgn = paginatorOf(pg);
+    if (pgn && pgn.extra) add('warn', 'many-paginators',
+      `“${pg.name}” has ${pgn.extra + 1} lists set to paginate. The first one decides how many pages there are; the ${pgn.extra === 1 ? 'other shows' : 'others show'} every item.`, scope);
     for (let i = 1; i < headings.length; i++) {
       const jump = headings[i].level - headings[i - 1].level;
       if (jump > 1) add('warn', 'heading-skip',
@@ -2521,6 +2535,45 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   return o.rel + v;
 }
 
+/* ---- pagination ------------------------------------------------------
+   A Collection List could show everything it matched or, with a limit, the first few. Forty
+   posts meant forty cards on one page, and the only way out was a limit that hid the rest
+   for good. Pagination is the missing verb.
+
+   Page one keeps the page's own address so nothing that links to it has to change; the rest
+   sit in a folder beside it. That is the shape detail pages already use, so `rel` and every
+   link that climbs out of a folder already work — and `page-2` inside the folder keeps clear
+   of an item slug, which a bare `2` would not.
+
+   One paginator per page. A second paginated list on the same page has no coherent answer:
+   two lists cannot each drive the file count. `paginatorOf` picks the first in document
+   order, and the review says so rather than letting the second one quietly not paginate. */
+const pagedPath = (slug: string, n: number) => n <= 1 ? slug + '.html' : `${slug}/page-${n}.html`;
+const pagedRel = (n: number) => n <= 1 ? '' : '../';
+
+/** How many exported pages a list needs. One when it does not paginate, so callers can
+    multiply by it without asking whether it does. */
+function listPageCount(n: PcNode, col: Collection) {
+  const per = parseInt(String((n.props as PropBag).per || ''), 10);
+  if (!(per > 0)) return 1;
+  return Math.max(1, Math.ceil(listItems(n, col).length / per));
+}
+
+/** The list that decides how many files a page becomes, and the collection it draws from.
+    First in document order; `extra` counts the paginated lists it passed over, which is what
+    the review reports. */
+function paginatorOf(pg: Page): { node: PcNode; col: Collection; extra: number } | null {
+  let hit: { node: PcNode; col: Collection; extra: number } | null = null;
+  eachNode(pg.tree, n => {
+    if (n.type !== 'list') return;
+    const per = parseInt(String((n.props as PropBag).per || ''), 10);
+    const col = n.src ? findCollection(n.src) : null;
+    if (!(per > 0) || !col) return;
+    if (hit) hit.extra++; else hit = { node: n, col, extra: 0 };
+  });
+  return hit;
+}
+
 /* ---- where a link points, inside this project -------------------------
    `parseLink` answers "what kind of link is this" for the inspector, in slugs. This answers
    a different question — "which page of this project does it land on" — and it has to cope
@@ -2530,25 +2583,36 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
    `.html` lives in the stored href because that is what an HTML export needs. It is not the
    identity of a page; the slug is. So this is the one place that knows the extension is a
    file-naming detail, which is what lets Preview follow a link the way a browser would. */
-function pageAt(href: unknown): { at: number; col: Collection | null; item: Item | null; frag: string } | null {
+function pageAt(href: unknown): { at: number; col: Collection | null; item: Item | null; frag: string; pageNo: number } | null {
   let v = String(href == null ? '' : href).trim();
   if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;     // a scheme, or protocol-relative
   const hash = v.indexOf('#');
   const frag = hash >= 0 ? v.slice(hash + 1) : '';
   v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, '').replace(/^\//, '');
-  if (!v) return frag ? { at: state.cur, col: null, item: null, frag } : null;   // a bare fragment
+  if (!v) return frag ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;   // a bare fragment
 
   const bits = v.replace(/\.html?$/i, '').split('/');
   if (bits.length === 1) {
     const at = state.pages.findIndex(p => p.slug === bits[0]);
-    return at < 0 ? null : { at, col: null, item: null, frag };
+    return at < 0 ? null : { at, col: null, item: null, frag, pageNo: 1 };
   }
   if (bits.length !== 2) return null;
+
+  /* `<slug>/page-2` before the collection reading, and deliberately: a page slugged
+     `journal` and a collection slugged `journal` are both plausible at the same time, so
+     without this a pager link went looking for an item called `page-2`. Anchoring on a real
+     page slug makes it unambiguous. */
+  const pn = bits[1].match(/^page-(\d+)$/);
+  if (pn) {
+    const at = state.pages.findIndex(p => p.slug === bits[0]);
+    if (at >= 0) return { at, col: null, item: null, frag, pageNo: Math.max(1, +pn[1]) };
+  }
+
   const col = collections().find(c => c.slug === bits[0]) || null;
   if (!col) return null;
   const item = published(col).find(i => i.slug === bits[1]) || null;
   const at = state.pages.findIndex(p => p.collection === col.id);
-  return (item && at >= 0) ? { at, col, item, frag } : null;
+  return (item && at >= 0) ? { at, col, item, frag, pageNo: 1 } : null;
 }
 
 /* Every file the project exports: one per ordinary page, and one per item for a
@@ -2558,7 +2622,19 @@ function exportTargets() {
   const out: any[] = [];
   for (const pg of state.pages) {
     const col = pg.collection ? findCollection(pg.collection) : null;
-    if (!col) { out.push({ pg, path: pg.slug + '.html', rel: '', col: null, item: null }); continue; }
+    if (!col) {
+      /* a paginated list turns one page into several, each carrying which slice it is */
+      const pgn = paginatorOf(pg);
+      const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
+      for (let i = 1; i <= n; i++) {
+        out.push({
+          pg: i > 1 ? { ...pg, title: `${pg.title || pg.name} — page ${i}` } : pg,
+          path: pagedPath(pg.slug, i), rel: pagedRel(i),
+          col: null, item: null, pageNo: i, pages: n
+        });
+      }
+      continue;
+    }
     for (const it of published(col)) {
       const t = pg.bindTitle ? String(fieldValue(col, it, pg.bindTitle) || '').trim() : '';
       const d = pg.bindDesc ? String(fieldValue(col, it, pg.bindDesc) || '').trim() : '';
@@ -4133,6 +4209,14 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;margin-top:2.2em}
+.pagecraft-page{
+  display:inline-flex;align-items:center;justify-content:center;min-width:2.4em;padding:.5em .7em;
+  border:1px solid var(--c-line);border-radius:6px;text-decoration:none;color:inherit;font-size:.9em;line-height:1;
+}
+.pagecraft-page.on{background:var(--c-ink);color:var(--c-bg);border-color:var(--c-ink)}
+.pagecraft-page.off{opacity:.35}
+.pagecraft-page:focus-visible{outline:3px solid var(--c-brand);outline-offset:2px}
 .pagecraft-quote{margin:0;display:flex;flex-direction:column;border-left:0 solid transparent}
 .pagecraft-quote blockquote{margin:0}
 .pagecraft-quote p{margin:0}
@@ -4473,6 +4557,23 @@ function stripScripts(html: unknown) {
 }
 
 const BICON: Record<string, string> = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
+/* Prev, the numbers, next. A `<nav>` because it is a set of navigation links, with
+   aria-current on the page you are on so a screen reader is told where it is rather than
+   left to infer it from the styling. The current page is not a link — linking to where you
+   already are is a dead control that looks live. */
+function pager(pg: Page, at: number, total: number, o: RenderOpts) {
+  const to = (i: number) => esc((o.rel || '') + pagedPath(pg.slug, i));
+  const cell = (i: number) => i === at
+    ? `<span class="pagecraft-page on" aria-current="page">${i}</span>`
+    : `<a class="pagecraft-page" href="${to(i)}">${i}</a>`;
+  const step = (i: number, label: string, cls: string) => i >= 1 && i <= total
+    ? `<a class="pagecraft-page ${cls}" href="${to(i)}" rel="${cls}">${label}</a>`
+    : `<span class="pagecraft-page ${cls} off" aria-hidden="true">${label}</span>`;
+  const nums = Array.from({ length: total }, (_, k) => cell(k + 1)).join('');
+  return `<nav class="pagecraft-pager" aria-label="Pages">`
+    + step(at - 1, 'Previous', 'prev') + nums + step(at + 1, 'Next', 'next') + `</nav>`;
+}
+
 const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'aside', 'nav'];
 
 function renderNode(n: PcNode, o: RenderOpts): string {
@@ -4515,14 +4616,25 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Pick a collection for this list</div></div>` : '';
       if (!kidz.length) return o.edit
         ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
-      const rows = listItems(n, lc);
+      const all = listItems(n, lc);
       /* An empty collection exports nothing rather than an empty shell; the editor
          still says so, or the list would look broken. */
-      if (!rows.length) return o.edit
+      if (!all.length) return o.edit
         ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : '';
+
+      /* Only the paginator on this page slices. A second paginated list would otherwise
+         show its own page 3 next to the first list's page 3, which means nothing. */
+      const per = parseInt(String(p.per || ''), 10);
+      const drives = per > 0 && o.pg ? paginatorOf(o.pg) : null;
+      const mine = !!drives && drives.node.id === n.id;
+      const total = mine ? listPageCount(n, lc) : 1;
+      const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
+      const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
+
       const reps = rows.map((it, k) =>
         kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join('')).join('');
-      return `<div ${at} ${cx('pagecraft-list')}>${reps}</div>`;
+      const body = `<div ${at} ${cx('pagecraft-list')}>${reps}</div>`;
+      return mine && total > 1 ? body + pager(o.pg!, at1, total, o) : body;
     }
     case 'column':
       return `<div ${at} ${cx('pagecraft-column')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a component</div>` : '')}</div>`;
@@ -4738,8 +4850,11 @@ function matchLayout(row: PcNode) {
 function sitemapXml() {
   const base = String(state.meta.baseUrl || '').replace(/\/+$/, '');
   if (!base) return '';
-  /* every file, which for a detail template is one per item */
-  const urls = exportTargets().map(t => `${base}/${t.pg.slug}.html`);
+  /* `t.path` rather than the slug: it is what the writer names every file, so it is right
+     for a detail page and for page two of a paginated one. Building the URL from the slug
+     worked only because a detail target rewrites its slug, and a paginated one does not —
+     it listed page one's address once per page. */
+  const urls = exportTargets().map(t => `${base}/${t.path}`);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(u => `  <url><loc>${esc(u)}</loc></url>`).join('\n')}
@@ -4886,18 +5001,26 @@ function jsonLd(pg: Page, ctx: { col?: Collection | null; item?: Item | null } =
   return `<script type="application/ld+json">\n${json}\n</script>\n`;
 }
 
-function buildPage(pg: Page, ctx: { col?: Collection | null; item?: Item | null; rel?: string; variants?: boolean } = {}) {
+function buildPage(pg: Page, ctx: {
+  col?: Collection | null; item?: Item | null; rel?: string; variants?: boolean;
+  pageNo?: number; pages?: number;
+} = {}) {
   const m = state.meta;
   /* `variants` has to be carried through rather than defaulted here: only the caller knows
      whether the export it is running writes separate files, and it is the one flag on this
      object that the renderer cannot infer for itself. */
-  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '', variants: !!ctx.variants };
+  /* `pg` is passed rather than inferred: a paginator names its own neighbouring files from
+     the page's slug, and the export renders pages other than the one being edited. */
+  const o = {
+    edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '',
+    variants: !!ctx.variants, pageNo: ctx.pageNo || 1, pages: ctx.pages || 1, pg
+  };
   const css = treeCss([state.header, pg.tree, state.footer], false);
   const body = renderList(state.header, o) + renderList(pg.tree, o) + renderList(state.footer, o);
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
   const abs = (u: string) => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
-  const canon = base ? `${base}/${pg.slug}.html` : '';
+  const canon = base ? `${base}/${pagedPath(pg.slug, o.pageNo)}` : '';
   const ogImg = abs(pg.ogImage || m.ogImage || '');
   return `<!doctype html>
 <html lang="${esc(m.lang || 'en')}">
@@ -4921,5 +5044,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pageAt, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

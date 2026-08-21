@@ -1462,7 +1462,23 @@ var DEF = {
             return !!p.where && p.op !== "set" && p.op !== "unset";
           }
         },
-        { t: "unit", k: "limit", label: "Show at most", units: [""], ph: "all" },
+        {
+          t: "unit",
+          k: "per",
+          label: "Items per page",
+          units: [""],
+          ph: "all on one page",
+          note: "Set this and the page becomes several files, with links between them. Page one keeps this page\u2019s address; the rest sit in a folder beside it."
+        },
+        {
+          t: "unit",
+          k: "limit",
+          label: "Show at most",
+          units: [""],
+          ph: "all",
+          note: "A hard ceiling on the whole list. Items per page wins where both are set.",
+          when: (n) => !(parseInt(String(n.props.per || ""), 10) > 0)
+        },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
         /* Baseline is here because the header templates use it — text beside text in a bar
            is read on the baseline, not on the box. Without the option the control had no
@@ -2090,7 +2106,8 @@ function initUi() {
     open: {},
     collapsed: {},
     custom: {},
-    zoom: "fit"
+    zoom: "fit",
+    pno: 1
   };
 }
 var state = {
@@ -3096,6 +3113,13 @@ function lint() {
     const h1s = headings.filter((h) => h.level === 1);
     if (!h1s.length && pg2.tree.length) add("warn", "no-h1", `\u201C${pg2.name}\u201D has no H1, so its main subject is unstated.`, scope);
     if (h1s.length > 1) add("warn", "many-h1", `\u201C${pg2.name}\u201D has ${h1s.length} H1 headings. Use one, then H2s beneath it.`, scope);
+    const pgn = paginatorOf(pg2);
+    if (pgn && pgn.extra) add(
+      "warn",
+      "many-paginators",
+      `\u201C${pg2.name}\u201D has ${pgn.extra + 1} lists set to paginate. The first one decides how many pages there are; the ${pgn.extra === 1 ? "other shows" : "others show"} every item.`,
+      scope
+    );
     for (let i = 1; i < headings.length; i++) {
       const jump = headings[i].level - headings[i - 1].level;
       if (jump > 1) add(
@@ -3569,31 +3593,67 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+var pagedPath = (slug, n) => n <= 1 ? slug + ".html" : `${slug}/page-${n}.html`;
+var pagedRel = (n) => n <= 1 ? "" : "../";
+function listPageCount(n, col) {
+  const per = parseInt(String(n.props.per || ""), 10);
+  if (!(per > 0)) return 1;
+  return Math.max(1, Math.ceil(listItems(n, col).length / per));
+}
+function paginatorOf(pg2) {
+  let hit = null;
+  eachNode(pg2.tree, (n) => {
+    if (n.type !== "list") return;
+    const per = parseInt(String(n.props.per || ""), 10);
+    const col = n.src ? findCollection(n.src) : null;
+    if (!(per > 0) || !col) return;
+    if (hit) hit.extra++;
+    else hit = { node: n, col, extra: 0 };
+  });
+  return hit;
+}
 function pageAt(href) {
   let v = String(href == null ? "" : href).trim();
   if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;
   const hash = v.indexOf("#");
   const frag = hash >= 0 ? v.slice(hash + 1) : "";
   v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, "").replace(/^\//, "");
-  if (!v) return frag ? { at: state.cur, col: null, item: null, frag } : null;
+  if (!v) return frag ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;
   const bits = v.replace(/\.html?$/i, "").split("/");
   if (bits.length === 1) {
     const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
-    return at2 < 0 ? null : { at: at2, col: null, item: null, frag };
+    return at2 < 0 ? null : { at: at2, col: null, item: null, frag, pageNo: 1 };
   }
   if (bits.length !== 2) return null;
+  const pn = bits[1].match(/^page-(\d+)$/);
+  if (pn) {
+    const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
+    if (at2 >= 0) return { at: at2, col: null, item: null, frag, pageNo: Math.max(1, +pn[1]) };
+  }
   const col = collections().find((c) => c.slug === bits[0]) || null;
   if (!col) return null;
   const item = published(col).find((i) => i.slug === bits[1]) || null;
   const at = state.pages.findIndex((p) => p.collection === col.id);
-  return item && at >= 0 ? { at, col, item, frag } : null;
+  return item && at >= 0 ? { at, col, item, frag, pageNo: 1 } : null;
 }
 function exportTargets() {
   const out = [];
   for (const pg2 of state.pages) {
     const col = pg2.collection ? findCollection(pg2.collection) : null;
     if (!col) {
-      out.push({ pg: pg2, path: pg2.slug + ".html", rel: "", col: null, item: null });
+      const pgn = paginatorOf(pg2);
+      const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
+      for (let i = 1; i <= n; i++) {
+        out.push({
+          pg: i > 1 ? { ...pg2, title: `${pg2.title || pg2.name} \u2014 page ${i}` } : pg2,
+          path: pagedPath(pg2.slug, i),
+          rel: pagedRel(i),
+          col: null,
+          item: null,
+          pageNo: i,
+          pages: n
+        });
+      }
       continue;
     }
     for (const it of published(col)) {
@@ -5238,6 +5298,14 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;margin-top:2.2em}
+.pagecraft-page{
+  display:inline-flex;align-items:center;justify-content:center;min-width:2.4em;padding:.5em .7em;
+  border:1px solid var(--c-line);border-radius:6px;text-decoration:none;color:inherit;font-size:.9em;line-height:1;
+}
+.pagecraft-page.on{background:var(--c-ink);color:var(--c-bg);border-color:var(--c-ink)}
+.pagecraft-page.off{opacity:.35}
+.pagecraft-page:focus-visible{outline:3px solid var(--c-brand);outline-offset:2px}
 .pagecraft-quote{margin:0;display:flex;flex-direction:column;border-left:0 solid transparent}
 .pagecraft-quote blockquote{margin:0}
 .pagecraft-quote p{margin:0}
@@ -5565,6 +5633,13 @@ function stripScripts(html) {
   return { html: out, stripped };
 }
 var BICON = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
+function pager(pg2, at, total, o) {
+  const to = (i) => esc((o.rel || "") + pagedPath(pg2.slug, i));
+  const cell = (i) => i === at ? `<span class="pagecraft-page on" aria-current="page">${i}</span>` : `<a class="pagecraft-page" href="${to(i)}">${i}</a>`;
+  const step2 = (i, label, cls) => i >= 1 && i <= total ? `<a class="pagecraft-page ${cls}" href="${to(i)}" rel="${cls}">${label}</a>` : `<span class="pagecraft-page ${cls} off" aria-hidden="true">${label}</span>`;
+  const nums = Array.from({ length: total }, (_, k) => cell(k + 1)).join("");
+  return `<nav class="pagecraft-pager" aria-label="Pages">` + step2(at - 1, "Previous", "prev") + nums + step2(at + 1, "Next", "next") + `</nav>`;
+}
 var SEC_TAGS = ["section", "div", "header", "footer", "main", "article", "aside", "nav"];
 function renderNode(n, o) {
   const d = DEF[n.type];
@@ -5592,10 +5667,17 @@ function renderNode(n, o) {
       const kidz = n.children || [];
       if (!lc) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Pick a collection for this list</div></div>` : "";
       if (!kidz.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes the card</div></div>` : "";
-      const rows = listItems(n, lc);
-      if (!rows.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : "";
+      const all = listItems(n, lc);
+      if (!all.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : "";
+      const per = parseInt(String(p.per || ""), 10);
+      const drives = per > 0 && o.pg ? paginatorOf(o.pg) : null;
+      const mine = !!drives && drives.node.id === n.id;
+      const total = mine ? listPageCount(n, lc) : 1;
+      const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
+      const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
       const reps = rows.map((it, k) => kidz.map((c) => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join("")).join("");
-      return `<div ${at} ${cx("pagecraft-list")}>${reps}</div>`;
+      const body = `<div ${at} ${cx("pagecraft-list")}>${reps}</div>`;
+      return mine && total > 1 ? body + pager(o.pg, at1, total, o) : body;
     }
     case "column":
       return `<div ${at} ${cx("pagecraft-column")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a component</div>` : "")}</div>`;
@@ -5746,7 +5828,7 @@ function matchLayout(row) {
 function sitemapXml() {
   const base = String(state.meta.baseUrl || "").replace(/\/+$/, "");
   if (!base) return "";
-  const urls = exportTargets().map((t) => `${base}/${t.pg.slug}.html`);
+  const urls = exportTargets().map((t) => `${base}/${t.path}`);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url><loc>${esc(u)}</loc></url>`).join("\n")}
@@ -5860,13 +5942,22 @@ ${json}
 }
 function buildPage(pg2, ctx = {}) {
   const m = state.meta;
-  const o = { edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || "", variants: !!ctx.variants };
+  const o = {
+    edit: false,
+    col: ctx.col || null,
+    item: ctx.item || null,
+    rel: ctx.rel || "",
+    variants: !!ctx.variants,
+    pageNo: ctx.pageNo || 1,
+    pages: ctx.pages || 1,
+    pg: pg2
+  };
   const css = treeCss([state.header, pg2.tree, state.footer], false);
   const body = renderList(state.header, o) + renderList(pg2.tree, o) + renderList(state.footer, o);
   const title = pg2.title || `${pg2.name} \u2014 ${m.name}`;
   const base = String(m.baseUrl || "").replace(/\/+$/, "");
   const abs = (u) => !u ? "" : /^https?:/i.test(u) ? u : base ? base + "/" + String(u).replace(/^\/+/, "") : u;
-  const canon = base ? `${base}/${pg2.slug}.html` : "";
+  const canon = base ? `${base}/${pagedPath(pg2.slug, o.pageNo)}` : "";
   const ogImg = abs(pg2.ogImage || m.ogImage || "");
   return `<!doctype html>
 <html lang="${esc(m.lang || "en")}">
@@ -6067,6 +6158,7 @@ var __CORE = {
   lint,
   lintCounts,
   listItems,
+  listPageCount,
   locate,
   locateAny,
   lvl,
@@ -6093,6 +6185,10 @@ var __CORE = {
   pageFromTemplate,
   pageHref,
   pageMove,
+  pagedPath,
+  pagedRel,
+  pager,
+  paginatorOf,
   para,
   parentOf,
   parseColor,
@@ -6980,6 +7076,7 @@ var PC_UI = (() => {
     const go = () => {
       if (i3 === C2.state.cur) return;
       C2.state.cur = i3;
+      C2.state.ui.pno = 1;
       C2.selSet([]);
       C2.state.ui.mode = "page";
       L2.appRender();
@@ -10157,9 +10254,17 @@ function paintCss() {
 
 /* On a detail template the whole page stands for one item, so the canvas needs
    that item threaded in from the top — there is no `src` node to open the scope. */
+/* What the canvas needs to render the current page the way its file will look. `pg` and the
+   page number are here because a paginated list renders a slice and draws links to its
+   neighbours, and neither is derivable from the node. The number is clamped on read rather
+   than on write, so deleting items cannot leave the canvas parked on a page that has gone. */
 function pageCtx() {
-  const col = page().collection ? findCollection(page().collection) : null;
-  return col ? { col, item: previewItem(col) } : {};
+  const pg = page();
+  const col = pg.collection ? findCollection(pg.collection) : null;
+  const pgn = paginatorOf(pg);
+  const pages = pgn ? listPageCount(pgn.node, pgn.col) : 1;
+  const pageNo = Math.min(Math.max(1, state.ui.pno || 1), pages);
+  return { pg, pageNo, pages, ...(col ? { col, item: previewItem(col) } : {}) };
 }
 
 function paint() {
@@ -10511,6 +10616,8 @@ function bindCanvas() {
       state.ui.item = state.ui.item || {};
       state.ui.item[to.col.id] = published(to.col).findIndex(i => i.id === to.item.id);
     }
+    /* a pager link names which page of results it wants; everything else means the first */
+    state.ui.pno = to.pageNo || 1;
     state.cur = to.at;
     state.ui.mode = 'page';
     selSet([]);
@@ -10522,7 +10629,8 @@ function bindCanvas() {
       else cwin.scrollTo(0, 0);
     });
     const pg = state.pages[to.at];
-    toast(to.item ? `${itemTitle(to.col, to.item)} — ${pg.name}` : pg.name);
+    toast(to.item ? `${itemTitle(to.col, to.item)} — ${pg.name}`
+      : (to.pageNo > 1 ? `${pg.name} — page ${to.pageNo}` : pg.name));
   });
   cdoc.addEventListener('dblclick', e => {
     if (document.body.classList.contains('preview')) return;

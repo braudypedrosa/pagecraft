@@ -29,6 +29,7 @@ function PageRow({ i }: { i: number }) {
   const go = () => {
     if (i === C.state.cur) return;
     C.state.cur = i;
+    C.state.ui.pno = 1;                 // a different page starts at its first page of results
     C.selSet([]);
     C.state.ui.mode = 'page';
     L.appRender();

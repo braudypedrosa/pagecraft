@@ -332,6 +332,140 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- pagination --------------------------------------------------------
+   Forty posts meant forty cards, and the only way out was a limit that hid the rest for
+   good. Page one keeps the page's own address so nothing linking to it has to change; the
+   rest sit in a folder beside it, which is the shape detail pages already use. */
+
+const paged = (per: string, howMany: number) => {
+  const { col, fields, add } = cmsFixture();
+  for (let i = 1; i <= howMany; i++) add('Post ' + i, 'Journal', String(i));
+  const list = C.N('list', { per, sort: fields.rank, dir: 'asc' });
+  list.src = col.id;
+  list.children.push(C.N('column', {}, {}, [C.N('heading', { text: 'card', ts: 'subtitle' })]));
+  const pg = C.state.pages[0];
+  pg.slug = 'journal';
+  pg.tree.push(C.N('section', {}, {}, [list]));
+  return { col, fields, list, pg };
+};
+
+test('a page count is items over per-page, rounded up, and one when it does not paginate', () => {
+  const { col, list } = paged('4', 10);
+  a.equal(C.listPageCount(list, col), 3, '10 over 4 is 3 pages');
+  list.props.per = '10';
+  a.equal(C.listPageCount(list, col), 1, 'exactly one page is one page');
+  list.props.per = '';
+  a.equal(C.listPageCount(list, col), 1, 'and so is not paginating at all');
+  list.props.per = '0';
+  a.equal(C.listPageCount(list, col), 1);
+  list.props.per = 'lots';
+  a.equal(C.listPageCount(list, col), 1, 'junk paginates nothing rather than crashing');
+});
+
+test('page one keeps the page address and the rest sit in a folder', () => {
+  a.equal(C.pagedPath('journal', 1), 'journal.html', 'nothing linking to it has to change');
+  a.equal(C.pagedPath('journal', 2), 'journal/page-2.html');
+  a.equal(C.pagedRel(1), '', 'page one is at the root');
+  a.equal(C.pagedRel(2), '../', 'the rest climb out to reach a sibling');
+  /* `page-2` rather than a bare `2`, which could collide with an item of that slug */
+  a.equal(/\/2\.html$/.test(C.pagedPath('journal', 2)), false);
+});
+
+test('a paginated page exports one file per page, each knowing which it is', () => {
+  paged('4', 10);
+  const t = C.exportTargets().filter(x => x.path.startsWith('journal'));
+  a.deepEqual(t.map(x => x.path), ['journal.html', 'journal/page-2.html', 'journal/page-3.html']);
+  a.deepEqual(t.map(x => x.pageNo), [1, 2, 3]);
+  a.deepEqual(t.map(x => x.rel), ['', '../', '../']);
+  a.deepEqual(t.map(x => x.pages), [3, 3, 3]);
+  /* pages after the first say so in the title, so search results are not three identical rows */
+  a.equal(/page 2/.test(String(t[1].pg.title)), true);
+  a.equal(/page/.test(String(t[0].pg.title || '')), false, 'but page one is left alone');
+});
+
+test('each exported page carries its own slice, and the pager points at its neighbours', () => {
+  const { pg } = paged('4', 10);
+  const html = (n: number) => C.buildPage(pg, { pageNo: n, pages: 3, rel: C.pagedRel(n) });
+  /* counts rendered cards: each card's heading holds the literal "card", where matching on
+     the text-style class also counted the `.ts-subtitle` rule in the stylesheet */
+  const cards = (h: string) => (h.match(/>card</g) || []).length;
+
+  a.equal(cards(html(1)), 4);
+  a.equal(cards(html(2)), 4);
+  a.equal(cards(html(3)), 2, 'the last page holds the remainder');
+
+  /* page one: no previous to go to, and a next that does */
+  const one = html(1);
+  a.match(one, /<nav class="pagecraft-pager" aria-label="Pages">/);
+  a.match(one, /<span class="pagecraft-page prev off" aria-hidden="true">Previous<\/span>/);
+  a.match(one, /<a class="pagecraft-page next" href="journal\/page-2\.html" rel="next">Next<\/a>/);
+  a.match(one, /<span class="pagecraft-page on" aria-current="page">1<\/span>/, 'where you are is not a link');
+
+  /* page two climbs out of the folder to reach page one */
+  const two = html(2);
+  a.match(two, /<a class="pagecraft-page prev" href="\.\.\/journal\.html" rel="prev">/);
+  a.match(two, /<a class="pagecraft-page next" href="\.\.\/journal\/page-3\.html"/);
+  a.match(two, /aria-current="page">2</);
+
+  /* and page three has nowhere further to go */
+  a.match(html(3), /<span class="pagecraft-page next off" aria-hidden="true">Next<\/span>/);
+});
+
+test('an unpaginated list still shows everything, and grows no pager', () => {
+  const { pg, list } = paged('', 10);
+  const html = C.buildPage(pg);
+  a.equal((html.match(/>card</g) || []).length, 10);
+  /* the element, not the class: `.pagecraft-pager` is also a rule in the stylesheet, which
+     every page carries — matched loosely this assertion could never fail */
+  const hasPager = (h: string) => /<nav class="pagecraft-pager"/.test(h);
+  a.equal(hasPager(html), false);
+  /* and a single page of results needs no navigation either */
+  list.props.per = '20';
+  a.equal(hasPager(C.buildPage(pg)), false, 'one page is not a set of pages');
+});
+
+test('only the first paginated list slices, and the review says the others do not', () => {
+  const { col, pg, list } = paged('4', 10);
+  const second = C.N('list', { per: '2' });
+  second.src = col.id;
+  second.children.push(C.N('column', {}, {}, [C.N('heading', { text: 'b', ts: 'body' })]));
+  pg.tree.push(C.N('section', {}, {}, [second]));
+
+  a.equal(must(C.paginatorOf(pg), 'paginator').node.id, list.id, 'first in document order');
+  a.equal(must(C.paginatorOf(pg), 'paginator').extra, 1);
+
+  const html = C.buildPage(pg, { pageNo: 1, pages: 3 });
+  a.equal((html.match(/>card</g) || []).length, 4, 'the paginator slices');
+  a.equal((html.match(/>b</g) || []).length, 10, 'the other shows everything');
+  a.equal((html.match(/<nav class="pagecraft-pager"/g) || []).length, 1, 'one pager, not two');
+
+  a.ok(C.lint().some(f => f.code === 'many-paginators'), 'the review reports it');
+});
+
+test('the sitemap and the canonical name the file, not the slug', () => {
+  const { pg } = paged('4', 10);
+  /* restored at the end: `blank()` leaves `meta` alone, so a Site URL set here otherwise
+     followed every later test into its own assertions — JSON-LD and the canonical tag both
+     appear only once one is set, which broke two suites downstream */
+  const was = C.state.meta.baseUrl;
+  C.state.meta.baseUrl = 'https://example.com';
+  const map = C.sitemapXml();
+  a.match(map, /https:\/\/example\.com\/journal\.html/);
+  a.match(map, /https:\/\/example\.com\/journal\/page-2\.html/);
+  a.equal((map.match(/journal\.html/g) || []).length, 1, 'page one listed once, not three times');
+  /* and each file points at itself */
+  a.match(C.buildPage(pg, { pageNo: 2 }), /rel="canonical" href="https:\/\/example\.com\/journal\/page-2\.html"/);
+  C.state.meta.baseUrl = was;
+});
+
+test('preview can follow a pager link', () => {
+  /* the whole point of `page-2` living in a folder is that `pageAt` already climbs out of
+     one, so Preview follows a pager the same way it follows a nav */
+  const { pg } = paged('4', 10);
+  a.equal(must(C.pageAt('journal.html'), 'page one').at, C.state.pages.indexOf(pg));
+  a.equal(must(C.pageAt('../journal.html'), 'from the folder').at, C.state.pages.indexOf(pg));
+});
+
 /* ---- where a link points -----------------------------------------------
    `.html` is in the stored href because that is what an HTML export needs; the slug is the
    page's identity. `pageAt` is the one place that knows the difference, which is what lets
