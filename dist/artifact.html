@@ -10387,7 +10387,6 @@ function positionHud() {
   if (!el) { hud.innerHTML = ''; return; }
   const r = el.getBoundingClientRect();
   const top = r.top + cwin.scrollY, left = r.left + cwin.scrollX;
-  const flip = r.top < 26;
   const d = DEF[s.node.type];
   const ids = selIds(), many = ids.length > 1;
   /* Extra members get an outline and nothing else: one bar, on the primary, so there is
@@ -10410,7 +10409,7 @@ function positionHud() {
       <i class="nw"></i><i class="n"></i><i class="ne"></i><i class="e"></i>
       <i class="se"></i><i class="s"></i><i class="sw"></i><i class="w"></i>
      </div>
-     <div class="bar" style="top:${flip ? top + r.height : top}px;left:${left}px;${flip ? 'transform:none' : ''}">
+     <div class="bar" style="top:${top}px;left:${left}px">
       <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
       ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caret', 12)}</button>` : ''}
@@ -10423,6 +10422,33 @@ function positionHud() {
       <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
     </div>`
     + (many ? '' : gripsHtml(s));
+
+  /* Above the element, unless there is not room — and the room is measured rather than
+     guessed. The bar carries `scale(1 / --z)` so it stays the same size on screen at any
+     canvas zoom, which means its height *in canvas pixels* grows as you zoom out: at 76% a
+     26px bar occupies 34, so a fixed 26px threshold clipped it at every zoom below 100%.
+
+     Measuring after the write costs one layout read and is exact whatever the bar contains —
+     a multi-select bar and a single-element bar are different widths, and a future button
+     would change the height again. */
+  const bar = hud.querySelector('.bar');
+  if (!bar) return;
+  const h = bar.getBoundingClientRect().height;
+  if (r.top >= h) return;                       // room above: leave it where it is
+
+  /* Down into the element rather than under it. Under it sounds right until the element is a
+     tall section: the bar then lands hundreds of pixels from the corner you just clicked,
+     which is worse than being clipped. Hanging from the element's own top edge keeps it
+     beside the selection and, since this only runs when the top edge is on screen, always
+     fully visible.
+
+     The transform keeps the zoom compensation and drops only the translate. The old flip set
+     `transform:none`, which dropped the scale as well — a flipped bar then rendered at the
+     canvas's zoom instead of at screen size, so it was small as well as misplaced. */
+  bar.style.transform = 'scale(calc(1 / var(--z,1)))';
+  bar.style.transformOrigin = '0 0';
+  /* the radius turns over with it, so it still reads as attached to the edge it hangs from */
+  bar.style.borderRadius = '0 6px 6px 6px';
 }
 
 /* A grip per gutter, on the row that is selected — or on the parent row when a
