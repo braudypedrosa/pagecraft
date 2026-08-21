@@ -529,7 +529,15 @@ carries across.
 3. ~~Canvas zoom~~ — done, and it was the most important thing in the tool rather than
    the cosmetic item this list had it down as. Still open from that line: custom layer
    names, an Assets item in the rail
-4. **Test the UI layer** — started. `tests/ui.test.tsx` runs the components under jsdom
+4. **Test the UI layer** — `tests/boot.test.mjs` loads the built `index.html` in jsdom and asks
+   the four questions a person asks in the first second: did anything throw, is there a project,
+   did the chrome draw, does selecting something show an inspector. It exists because three
+   regressions in one day went out past a green suite — the clipped element bar, preview
+   rendering a detail template unbound, and a module-level constant reading `C` before
+   `install()` ran, which killed the whole UI bundle while 496 tests passed. Verified against
+   that last one by putting it back: three of the four boot cases fail and name the cause.
+   Deliberately shallow; what was missing was breadth, not depth. `tests/ui.test.tsx` runs the
+   components under jsdom
    (a `@vitest-environment` docblock, so the core's cases stay in node and pay nothing for a
    DOM they never touch), with the rig in `tests/ui.setup.tsx`. The seam is what makes it
    cheap: a panel reaches the old world only through `Legacy`, so a recording stub turns
