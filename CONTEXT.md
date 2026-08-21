@@ -392,6 +392,75 @@ Scroll to the bottom, drag the green square across the grey frame, release. It a
 `tools/compat-results.jsonl`. A result of `0 over frame` means the drag missed the frame, not
 that the browser failed.
 
+## What this repo is for now — the harvest map
+
+**The decision, so nobody re-litigates it from this file alone.** `~/Documents/Braudy/pagecraft`
+(remote: `no-code-site-builder`) is the product. Its document model has already won: Zod-validated,
+with style *states* (hover / focus-visible / active / disabled), *conditions*, *bindings* with
+fallbacks, accessibility in the schema, and a real component system with `component-instance` and
+`slot` across 31 element types — 4,477 lines in `src/domain`. Replacing that with `Node` from
+`app/src/core` would be a downgrade.
+
+This repo is a **reference implementation and a proving ground**: the fastest place to try an
+idea, and the only place the export contract is proven against real bytes. What follows is what
+transfers, so the reasoning is next to the code rather than in a chat log.
+
+Every row is a **port, not a copy** — the logic moves, the node shape changes. The schema deltas
+that make it so are listed after the table.
+
+| What | Where it lives here | Feeds |
+|---|---|---|
+| Document head and SEO | `buildPage` (title, description, canonical, OG, favicon) | Phase 5 |
+| Structured data | `jsonLdGraph` / `jsonLd` | Phase 5 |
+| Multi-file output | `exportTargets` — one file per page, one per CMS item, with folders | Phase 5 |
+| SEO files | `sitemapXml`, `robotsTxt` | Phase 5 |
+| CSS emission | `treeCss`, `tokenCss`, `nodeCss` | Phase 5 |
+| Link resolution | `pageHref` — page, fragment, item, external, relative-to-depth | Phase 5 |
+| Asset bundling | `makeZip`, `assetsToPaths`, `assetsToData` — **in `builder.html`, not the core** | Phase 5 |
+| Content as data | `contentJson`, `sitePlan` | Phase 5 / 7 |
+| 22 control kinds | `app/src/ui/inspector/Controls.tsx` + `Lists.tsx` | Phase 2 |
+| Control *rules* | `Field.tsx` (the two badges), `ctl.ts` (`writer`, `clearOverride`) | Phase 2 |
+| 26 patterns, 12 templates | `PATTERNS`, `TEMPLATES`, `patternInsert`, `pageFromTemplate` | Phase 4 / 7 |
+| Token semantics | `classUsage`, `tsUsage`, `colorUsage`, `tsUpdateFrom`, `tsUnlink`, `tsCreateFrom`, `classFrom` | Phase 4 |
+| Pre-publish review | `lint`, `lintCounts` — 20+ rules, pure functions over the document | any phase |
+| CMS binding | `bindSlots`, `guessBindings`, `applyBindings`, `bindScope` | deferred — see below |
+
+**Three of the publishing functions are deliberately not in the core.** `makeZip`,
+`assetsToPaths` and `assetsToData` need `Blob`, `CompressionStream` and the IndexedDB-backed asset
+map, so they stay in `builder.html`. In the product they become server-side, which is easier
+rather than harder — but it means the zip logic is the one piece with no DOM-free version to lift.
+
+**Schema deltas to expect when porting.** These are why it is a translation:
+
+- **Style states.** Here a node has `css.d/t/m` and nothing else; a button's hover is a special
+  case in `nodeCss`. The product has hover, focus-visible, active and disabled as first-class, so
+  anything ported has to stop treating hover as an exception.
+- **Conditions and bindings.** Absent here. `bindGet`/`bindSet` bind a prop to a CMS field and
+  that is all; the product's bindings carry a source, a path and a fallback, and conditions can
+  hide an element outright. Ported controls need UI for both.
+- **Blocks are copies, not instances.** A global block here tags its copies with `adv.block` and
+  pushes changes out. The product has real instances with slots — better, and not the same model.
+- **Widget count.** 17 types here against 31 element types there, and the split differs
+  (`stack`, `grid`, `block` have no equivalent here; `gallery` and `accordion` have none there).
+- **Props.** Typed and flat here (45 named props derived from `PropsByType`). There they are a
+  validated record per element type. The per-widget interfaces in `types.ts` are the useful
+  artefact — they are the extracted truth of what each widget stores.
+
+**The CMS conflict, stated so it gets decided rather than drifting.** The product roadmap lists
+CMS collections under *Explicitly deferred*: "should not influence the MVP schema until real
+customer demand and security constraints are understood." This repo shipped them — collections,
+fields, items, detail-page templates, `content.json`. That is evidence they are tractable, **not**
+permission to un-defer. It does mean the schema question is now answerable from a working
+implementation instead of a guess, which is the strongest argument available for revisiting that
+line — deliberately, and with the roadmap's own warning in view.
+
+**What is no longer worth building here.** Anything that does not transfer: porting the remaining
+dialogs to Preact, a state library for the 105 manual repaint calls, splitting the core into
+modules, performance work (measured: 15.8 ms for a full render at 428 nodes). All of it is
+consistency inside a codebase whose future is to be read and translated. What *is* still worth
+building: export quality, more patterns, more lint rules, CMS semantics — things the map above
+carries across.
+
 ## Next, in priority order
 
 1. ~~Drag-to-reorder in the Navigator, and multi-element drag~~ — both done. `moveMany` in
