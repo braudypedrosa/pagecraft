@@ -442,6 +442,13 @@ body.preview .dim{display:none}
    setting needed one — the CMS table's checkboxes sit in cells and carry no label. */
 .swrow{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--text)}
 .swrow input{margin:0;flex:0 0 auto}
+/* The state picker sits above the style groups rather than in one of them, so it needs the
+   panel inset the groups provide for themselves, and a rule under it to read as governing
+   what follows rather than floating over it. Tinted while a state is live: every field below
+   is then writing somewhere other than the resting value, and that should be hard to miss. */
+.statepick{padding:10px 14px 12px;margin-bottom:0;border-bottom:1px solid var(--line)}
+.statepick.on{background:var(--field)}
+.statepick.on .pick button.on{background:var(--green);color:var(--on-green)}
 .f>label{
   display:flex;align-items:center;gap:6px;font-family:var(--label);font-size:12px;font-weight:500;
   color:var(--text-3);margin-bottom:var(--gap-1);
@@ -10123,8 +10130,7 @@ var PC_UI = (() => {
         " element",
         C2.classUsage(target) === 1 ? "" : "s",
         " using it."
-      ] }) : applied.length ? "Editing this element only. Its classes are listed above; pick one to edit it instead." : "Editing this element only. Save its styling as a class to reuse it elsewhere." }),
-      /* @__PURE__ */ u2(StatePick, {})
+      ] }) : applied.length ? "Editing this element only. Its classes are listed above; pick one to edit it instead." : "Editing this element only. Save its styling as a class to reuse it elsewhere." })
     ] });
   }
   function StatePick() {
@@ -10133,22 +10139,23 @@ var PC_UI = (() => {
       C2.state.ui.st = k3;
       repaint("right");
     };
-    return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2("div", { class: "tabs", style: { marginTop: "var(--gap-2)" }, children: [
+    return /* @__PURE__ */ u2("div", { class: "f statepick" + (cur ? " on" : ""), children: [
+      /* @__PURE__ */ u2("label", { children: "State" }),
+      /* @__PURE__ */ u2("div", { class: "pick", children: [
         /* @__PURE__ */ u2("button", { class: cur ? "" : "on", onClick: () => set(""), children: "Resting" }),
         C2.STATES.map(([k3, label]) => /* @__PURE__ */ u2("button", { class: cur === k3 ? "on" : "", onClick: () => set(k3), children: label }, k3))
       ] }),
-      cur ? /* @__PURE__ */ u2("div", { class: "note", children: [
-        "Editing the ",
+      /* @__PURE__ */ u2("div", { class: "note", children: cur ? /* @__PURE__ */ u2(S, { children: [
+        "Every control below writes to the ",
         /* @__PURE__ */ u2("b", { children: cur === "hover" ? "hover" : "keyboard-focus" }),
-        " state. Only what you set here changes on ",
-        cur === "hover" ? "hover" : "focus",
-        "; everything else stays as it rests. To animate the change, set a ",
+        " ",
+        "state. Only what you set changes; everything else stays as it rests. Give it a",
+        " ",
         /* @__PURE__ */ u2("b", { children: "Transition" }),
         " under ",
         /* @__PURE__ */ u2("b", { children: "Motion" }),
-        " below."
-      ] }) : null
+        " to animate."
+      ] }) : "How the element normally looks. Switch to Hover or Focus to style those instead." })
     ] });
   }
   var transitionCtl = () => ({
@@ -10348,16 +10355,19 @@ var PC_UI = (() => {
         },
         k3
       )) }),
-      /* @__PURE__ */ u2("div", { class: "pane", children: tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: d3.label, n: n2, children: /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
-        /* @__PURE__ */ u2(StylingTarget, { n: n2 }),
-        style.length ? /* @__PURE__ */ u2(Group, { title: "Typography & fill", n: n2, items: style }) : null,
-        C2.COMMON_STYLE.map((g2) => /* @__PURE__ */ u2(Group, { title: g2.g, n: n2, items: g2.items }, g2.g)),
-        many ? null : /* @__PURE__ */ u2(Motion, { n: n2 })
-      ] }) : /* @__PURE__ */ u2(S, { children: [
-        /* @__PURE__ */ u2(Group, { title: "Identity & layout", n: n2, items: advControls(n2) }),
-        d3.level < 4 ? /* @__PURE__ */ u2(ContentSource, { n: n2 }) : null,
-        /* @__PURE__ */ u2(Visibility, { n: n2 })
-      ] }) }),
+      /* @__PURE__ */ u2("div", { class: "pane", children: [
+        tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
+        tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: d3.label, n: n2, children: /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
+          /* @__PURE__ */ u2(StylingTarget, { n: n2 }),
+          style.length ? /* @__PURE__ */ u2(Group, { title: "Typography & fill", n: n2, items: style }) : null,
+          C2.COMMON_STYLE.map((g2) => /* @__PURE__ */ u2(Group, { title: g2.g, n: n2, items: g2.items }, g2.g)),
+          many ? null : /* @__PURE__ */ u2(Motion, { n: n2 })
+        ] }) : /* @__PURE__ */ u2(S, { children: [
+          /* @__PURE__ */ u2(Group, { title: "Identity & layout", n: n2, items: advControls(n2) }),
+          d3.level < 4 ? /* @__PURE__ */ u2(ContentSource, { n: n2 }) : null,
+          /* @__PURE__ */ u2(Visibility, { n: n2 })
+        ] })
+      ] }),
       /* @__PURE__ */ u2("div", { class: "sFoot", children: [
         /* @__PURE__ */ u2("button", { class: "btn", onClick: () => L2.runAct("dup", C2.selIds()), children: [
           /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),

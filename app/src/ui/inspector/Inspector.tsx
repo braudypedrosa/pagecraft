@@ -156,8 +156,6 @@ function StylingTarget({ n }: { n: PcNode }) {
         : applied.length
           ? 'Editing this element only. Its classes are listed above; pick one to edit it instead.'
           : 'Editing this element only. Save its styling as a class to reuse it elsewhere.'}</div>
-
-      <StatePick />
     </Panel>
   );
 }
@@ -168,25 +166,35 @@ function StylingTarget({ n }: { n: PcNode }) {
 
    Resting is not a state, it is the absence of one, which is why it is the empty string and
    why every control wrote there before this existed. */
+/* Above every group, because that is what it governs: every control on the tab writes to
+   whichever state is picked here. It spent a version at the foot of the Styling group, under a
+   note, where it read as a footnote to the class picker rather than as the mode for everything
+   below it.
+
+   A `.pick` rather than a `.tabs`, too. Tabs are how this panel navigates — Content, Style,
+   Advanced — and a second row of them directly beneath the first read as more navigation. A
+   segmented control with a label is what the panel uses for a setting, which is what this is.
+
+   Shown on Advanced as well as Style, since both tabs write CSS. Hiding it on one while it was
+   still in force is the hidden mode this is meant to avoid. */
 function StatePick() {
   const cur = C.state.ui.st || '';
   const set = (k: string) => { C.state.ui.st = k as '' | 'hover' | 'focus'; repaint('right'); };
   return (
-    <>
-      <div class="tabs" style={{ marginTop: 'var(--gap-2)' }}>
+    <div class={'f statepick' + (cur ? ' on' : '')}>
+      <label>State</label>
+      <div class="pick">
         <button class={cur ? '' : 'on'} onClick={() => set('')}>Resting</button>
         {C.STATES.map(([k, label]) => (
           <button key={k} class={cur === k ? 'on' : ''} onClick={() => set(k)}>{label}</button>
         ))}
       </div>
-      {cur ? (
-        <div class="note">
-          Editing the <b>{cur === 'hover' ? 'hover' : 'keyboard-focus'}</b> state. Only what you
-          set here changes on {cur === 'hover' ? 'hover' : 'focus'}; everything else stays as it
-          rests. To animate the change, set a <b>Transition</b> under <b>Motion</b> below.
-        </div>
-      ) : null}
-    </>
+      <div class="note">{cur
+        ? <>Every control below writes to the <b>{cur === 'hover' ? 'hover' : 'keyboard-focus'}</b>{' '}
+          state. Only what you set changes; everything else stays as it rests. Give it a{' '}
+          <b>Transition</b> under <b>Motion</b> to animate.</>
+        : 'How the element normally looks. Switch to Hover or Focus to style those instead.'}</div>
+    </div>
   );
 }
 
@@ -363,6 +371,7 @@ export function Inspector() {
         ))}
       </div>
       <div class="pane">
+        {tab === 'content' || many ? null : <StatePick />}
         {tab === 'content' ? (
           content.length
             ? <Group title={d.label} n={n} items={content} />
