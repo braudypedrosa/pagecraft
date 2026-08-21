@@ -789,7 +789,11 @@ const COMMON_STYLE: { g: string; items: Control[] }[] = [
       { t: 'color', c: 'background-color', label: 'Colour' },
       { t: 'img', c: 'background-image', label: 'Image', bg: 1 },
       { t: 'select', c: 'background-size', label: 'Size', opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
-      { t: 'select', c: 'background-position', label: 'Position', opts: [['center center', 'Center'], ['top center', 'Top'], ['bottom center', 'Bottom'], ['left center', 'Left'], ['right center', 'Right']] },
+      /* A pick, not a select: where an image sits is a spatial choice, and five words in a
+         dropdown make you read to find the one you could have pointed at. The glyphs are the
+         alignment ones already in the set, which is what the same question looks like
+         everywhere else in this panel. */
+      { t: 'pick', c: 'background-position', label: 'Position', opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
       { t: 'select', c: 'background-repeat', label: 'Repeat', opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] },
       { t: 'text', c: 'background', label: 'Gradient / shorthand', ph: 'linear-gradient(...)' }
     ]
@@ -2651,6 +2655,83 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
+}
+
+/* ---- renaming a page, and choosing the front one --------------------
+   A host serves `index.html` at the root, so the front page is not a flag — it is whichever
+   page is slugged `index`. Setting one therefore moves two slugs: this page takes `index` and
+   the page that had it takes one derived from its name.
+
+   Which means renaming has to carry the links with it. Editing the Slug field by hand has
+   always broken every href pointing at the old name and left the review to report it
+   afterwards; a one-click action that renames two pages at once would be twice as bad. The
+   three places a link can live are the three the review already walks — a `link` prop, a nav
+   item's `href`, and an `href` inside rich text — so this rewrites exactly what that reads. */
+function relink(from: string, to: string) {
+  if (!from || from === to) return 0;
+  let n = 0;
+  const swap = (h: unknown) => {
+    const v = String(h == null ? '' : h);
+    const m = v.match(/^([\w-]+)\.html(#.*)?$/);
+    if (!m || m[1] !== from) return v;
+    n++;
+    return `${to}.html${m[2] || ''}`;
+  };
+  allTrees().forEach(list => eachNode(list, node => {
+    const p = node.props as PropBag;
+    if (p.link !== undefined) p.link = swap(p.link);
+    if (node.type === 'nav' && Array.isArray(p.items)) {
+      (p.items as NavItem[]).forEach(it => { it.href = swap(it.href); });
+    }
+    if (node.type === 'text' && typeof p.html === 'string') {
+      p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
+        const next = swap(h);
+        return next === h ? whole : `href="${next}"`;
+      });
+    }
+  }));
+  return n;
+}
+
+/** Rename a page and follow every link that pointed at it. Returns how many it moved, or
+    null when the slug was refused — taken by another page, or empty. */
+function pageSlugSet(i: number, slug: string): number | null {
+  const pg = state.pages[i];
+  if (!pg) return null;
+  /* the raw input, before `slugify` — it falls back to 'page' for anything with no letters in
+     it, so clearing the field would otherwise rename the page to "page" without being asked */
+  if (!String(slug == null ? '' : slug).trim()) return null;
+  const want = slugify(slug);
+  if (!want) return null;
+  if (want === pg.slug) return 0;
+  if (state.pages.some((p, k) => k !== i && p.slug === want)) return null;
+  const was = pg.slug;
+  pg.slug = want;
+  return relink(was, want);
+}
+
+/** Make this the page a host serves at the root. The one that was there takes a slug from its
+    own name, because two pages cannot both be `index` and the alternative is refusing. */
+const FRONT = 'index';
+const isFront = (pg: Page) => pg.slug === FRONT;
+function pageFront(i: number) {
+  const pg = state.pages[i];
+  if (!pg || isFront(pg)) return false;
+  const old = state.pages.findIndex(p => isFront(p));
+  if (old >= 0) {
+    /* out of the way first, or the new one cannot take the name. From its own name, and
+       de-duplicated against every other page including the one about to be renamed. */
+    const base = slugify(state.pages[old].name) || 'page';
+    const taken = state.pages.filter((_, k) => k !== old).map(p => p.slug);
+    const to = uniqueId(base === FRONT ? 'page' : base, taken);
+    const was = state.pages[old].slug;
+    state.pages[old].slug = to;
+    relink(was, to);
+  }
+  const was = pg.slug;
+  pg.slug = FRONT;
+  relink(was, FRONT);
+  return true;
 }
 
 /* ---- the not-found page ----------------------------------------------
@@ -5347,5 +5428,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

@@ -677,6 +677,83 @@ test('a page ships the rules when it is given them, and the Google link when it 
   a.ok(hosted.indexOf('@font-face') < hosted.indexOf('</head>'), 'in the head, before the body');
 });
 
+/* ---- the front page, and renaming with the links ------------------------
+   A host serves `index.html` at the root, so the front page is not a flag — it is whichever
+   page is slugged `index`. Setting one moves two slugs, and both have to carry their links. */
+
+const twoPages = () => {
+  blank();
+  const home = C.state.pages[0];
+  home.slug = 'index'; home.name = 'Home';
+  C.state.pages.length = 1;
+  C.state.pages.push({ id: 'p2', name: 'Our Pricing', slug: 'pricing', title: '', desc: '', ogImage: '', tree: [] } as any);
+  return { home, other: C.state.pages[1] };
+};
+
+test('renaming a page takes every link that pointed at it', () => {
+  const { home } = twoPages();
+  /* one of each place a link can live: a prop, a nav item, and rich text */
+  const btn = C.N('button', { text: 'Go', link: 'pricing.html' });
+  const nav = C.N('nav', { items: [{ label: 'A', href: 'pricing.html' }, { label: 'B', href: 'index.html' }] });
+  const txt = C.N('text', { html: '<p><a href="pricing.html#plans">plans</a> and <a href="https://x.test">out</a></p>' });
+  home.tree.push(C.N('section', {}, {}, [C.cols(1, [[btn, nav, txt]])]));
+
+  a.equal(C.pageSlugSet(1, 'plans-and-prices'), 3, 'three links followed');
+  a.equal(C.state.pages[1].slug, 'plans-and-prices');
+  a.equal(btn.props.link, 'plans-and-prices.html');
+  a.equal((nav.props.items as any[])[0].href, 'plans-and-prices.html');
+  a.equal((nav.props.items as any[])[1].href, 'index.html', 'a link to another page is left alone');
+  a.match(String(txt.props.html), /href="plans-and-prices\.html#plans"/, 'the fragment survives');
+  a.match(String(txt.props.html), /href="https:\/\/x\.test"/, 'and an external link is untouched');
+});
+
+test('a rename is refused rather than allowed to collide', () => {
+  const { } = twoPages();
+  a.equal(C.pageSlugSet(1, 'index'), null, 'taken by the front page');
+  a.equal(C.state.pages[1].slug, 'pricing', 'and nothing moved');
+  a.equal(C.pageSlugSet(1, ''), null, 'a page with no address is not a page');
+  a.equal(C.pageSlugSet(1, 'pricing'), 0, 'renaming to what it already is does nothing');
+  a.equal(C.pageSlugSet(9, 'x'), null, 'no such page');
+});
+
+test('making a page the front page moves the one that was there', () => {
+  const { home, other } = twoPages();
+  const btn = C.N('button', { text: 'Home', link: 'index.html' });
+  const btn2 = C.N('button', { text: 'Prices', link: 'pricing.html' });
+  home.tree.push(C.N('section', {}, {}, [C.cols(1, [[btn, btn2]])]));
+
+  a.equal(C.isFront(home), true);
+  a.ok(C.pageFront(1));
+  a.equal(other.slug, 'index', 'the new one is served at the root');
+  a.equal(home.slug, 'our-pricing'.replace('our-pricing', 'home'), 'the old one takes a slug from its name');
+  /* and both sets of links followed */
+  a.equal(btn.props.link, 'home.html');
+  a.equal(btn2.props.link, 'index.html');
+  a.equal(C.isFront(other), true);
+  a.equal(C.isFront(home), false);
+});
+
+test('making the front page the front page is a no-op', () => {
+  const { home } = twoPages();
+  a.equal(C.pageFront(0), false);
+  a.equal(home.slug, 'index');
+  a.equal(C.pageFront(9), false, 'no such page');
+});
+
+test('a name that would collide, or that is index itself, still lands somewhere usable', () => {
+  blank();
+  C.state.pages.length = 1;
+  const a1 = C.state.pages[0];
+  a1.slug = 'index'; a1.name = 'index';           // a page literally called index
+  C.state.pages.push({ id: 'b', name: 'B', slug: 'b', title: '', desc: '', ogImage: '', tree: [] } as any);
+  C.state.pages.push({ id: 'c', name: 'B', slug: 'page', title: '', desc: '', ogImage: '', tree: [] } as any);
+
+  a.ok(C.pageFront(1));
+  a.equal(C.state.pages[1].slug, 'index');
+  a.equal(a1.slug, 'page-2', 'not index, and not the taken page');
+  a.equal(new Set(C.state.pages.map(p => p.slug)).size, 3, 'every slug still unique');
+});
+
 /* ---- the not-found page, and per-page head ------------------------------ */
 
 test('a page slugged 404 exports as 404.html and behaves like a not-found page', () => {

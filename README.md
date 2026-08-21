@@ -398,6 +398,16 @@ Each page has its own **Extra &lt;head&gt; HTML** field in *Pages*, written into
 after the project-wide block from *Project settings*. It is where a page-specific meta tag, a
 schema block, or a script that belongs to one page goes.
 
+## The front page
+
+A host serves `index.html` at the root, so the front page is not a setting — it is whichever
+page is slugged `index`. **Make this the front page** in *Pages* does the swap: this page takes
+`index`, and the page that had it takes a slug from its own name.
+
+Either way, **renaming a page carries its links.** Every href pointing at the old slug follows
+it, in link props, nav menus and rich text alike, so changing an address does not quietly break
+the menu that points at it.
+
 ## The not-found page
 
 Slug a page **404** and it becomes your not-found page: the export writes `404.html`, which is

@@ -54,7 +54,7 @@ export function StyleClasses() {
             </span>
             <button class="iconbtn" title="Raise precedence" disabled={i === 0}
               onClick={() => { C.edit(() => C.classMove(c.id, -1)); repaint('classes'); }}>
-              <Icon name="caret" size={12} /></button>
+              <Icon name="caretUp" size={12} /></button>
             <button class="iconbtn" title="Delete — elements keep the look"
               onClick={() => remove(c.id)}><Icon name="trash" size={13} /></button>
           </div>

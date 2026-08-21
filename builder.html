@@ -1581,7 +1581,7 @@ function positionHud() {
      <div class="bar" style="top:${top}px;left:${left}px">
       <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
-      ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caret', 12)}</button>` : ''}
+      ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caretUp', 12)}</button>` : ''}
       ${/* only where there is a list to be at the end of, so the bar does not carry two
              buttons that cannot do anything */''}
       ${(s.parent ? s.parent.children : tree()).length > 1 ? `
@@ -2593,7 +2593,7 @@ function cmsModal(colId) {
             <option value="">— pick one —</option>
             ${collections().filter(c => c.id !== col.id).map(c => `<option value="${esc(c.id)}"${c.id === f.ref ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}
           </select>` : ''}
-          <button class="iconbtn" data-fup="${f.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
+          <button class="iconbtn" data-fup="${f.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caretUp', 12)}</button>
           <button class="iconbtn" data-fdel="${f.id}" title="Delete field"${col.fields.length < 2 ? ' disabled' : ''}>${svg('trash', 13)}</button>
         </div>`).join('')}
         <div class="note">The first <b>Text</b> field names each item and gives it its URL.</div>`
@@ -2606,7 +2606,7 @@ function cmsModal(colId) {
           <td><input class="ctl" data-islug="${it.id}" value="${esc(it.slug)}" style="font-family:var(--mono);font-size:11px"></td>
           <td><input type="checkbox" data-idraft="${it.id}"${it.draft ? ' checked' : ''} title="Hold this item back from the published site"></td>
           <td style="white-space:nowrap;display:flex;gap:2px;align-items:center">
-            <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
+            <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caretUp', 12)}</button>
             <button class="iconbtn" data-idel="${it.id}" title="Delete item">${svg('trash', 13)}</button>
           </td></tr>`).join('')}
         </tbody></table>`

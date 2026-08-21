@@ -39,10 +39,13 @@ function PageRow({ i }: { i: number }) {
   return (
     <div class={'pagerow' + (i === C.state.cur ? ' on' : '')} onClick={go}>
       <Icon name="page" size={14} />
-      <span class="pn"><b>{p.name}</b><small>/{p.slug}</small></span>
+      <span class="pn">
+        <b>{p.name}</b>
+        <small>{C.isFront(p) ? 'the front page' : '/' + p.slug}</small>
+      </span>
       <span class="act">
         <button title="Move up" disabled={i === 0} onClick={e => act(e, 'up')}>
-          <Icon name="caret" size={12} /></button>
+          <Icon name="caretUp" size={12} /></button>
         <button title="Move down" disabled={last} onClick={e => act(e, 'down')}>
           <Icon name="caret" size={12} /></button>
         <button title="Duplicate page" onClick={e => act(e, 'dup')}>
@@ -128,15 +131,52 @@ export function Pages() {
         {/* A slug, not a filename. `.html` is what an HTML export happens to name the file
             and it lives in the note, not in the field — the page's identity is its slug, and
             Preview follows links by slug for the same reason. */}
+        {/* through `pageSlugSet`, so every href pointing at the old slug follows. Writing
+            `page().slug` directly is what left the review to report the breakage afterwards. */}
         <div class="f"><label>Slug</label>
-          <input class="ctl" value={pg.slug} {...field(v => { C.page().slug = C.slugify(v); })} />
+          {/* on change, not on input. Renaming rewrites every href that pointed at the old
+              slug, and `field` commits on every keystroke — which would relink once per letter
+              and refuse half of them as taken. The DOM holds the half-typed text; this reads it
+              when the field is left, and puts the real slug back if the rename was refused. */}
+          <input class="ctl" value={pg.slug} disabled={C.isFront(pg)}
+            onChange={e => {
+              const el = e.target as HTMLInputElement;
+              const at = C.state.cur;
+              let moved: number | null = 0;
+              C.edit(() => { moved = C.pageSlugSet(at, el.value); });
+              if (moved === null) {
+                el.value = C.state.pages[at].slug;
+                L.toast('That slug is taken by another page');
+              } else if (moved) {
+                L.toast(`${moved} link${moved === 1 ? '' : 's'} followed it`);
+              }
+              repaint('pages'); L.renderModebar();
+            }} />
           <div class="note">
-            The page's address: <b>/{pg.slug || '…'}</b>. Exporting static HTML writes it
-            as <code>{pg.slug || '…'}.html</code>.
+            {C.isFront(pg)
+              ? <>This is the <b>front page</b> — a host serves it at the root, so its slug is
+                fixed at <code>index</code>. Make another page the front page to free it.</>
+              : <>The page's address: <b>/{pg.slug || '…'}</b>. Exporting static HTML writes it
+                as <code>{pg.slug || '…'}.html</code>.</>}
             {C.isNotFound(pg)
               ? ' Slugged 404, so it is your not-found page: it stays out of the sitemap and asks not to be indexed.'
-              : ' Slug a page 404 to make it your not-found page.'}
-          </div></div>
+              : C.isFront(pg) ? '' : ' Slug a page 404 to make it your not-found page.'}
+          </div>
+          {C.isFront(pg) ? null : (
+            <button class="btn" style={{ marginTop: 'var(--gap-1)', width: '100%', justifyContent: 'center' }}
+              onClick={async () => {
+                const front = C.state.pages.find(C.isFront);
+                if (!await L.askConfirm('Make this the front page?',
+                  `<b>${C.esc(pg.name)}</b> becomes <code>index.html</code>, which a host serves at the root.`
+                  + (front ? ` <b>${C.esc(front.name)}</b> takes a slug from its own name.` : '')
+                  + ' Links pointing at either page follow the change.',
+                  { ok: 'Make it the front page', danger: false })) return;
+                C.edit(() => C.pageFront(C.state.cur));
+                L.renderModebar();
+                repaint('pages');
+                L.toast(pg.name + ' is the front page');
+              }}>Make this the front page</button>
+          )}</div>
 
         <div class="f"><label>Browser title</label>
           <input class="ctl" value={pg.title || ''} placeholder={pg.name}

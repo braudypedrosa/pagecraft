@@ -34,7 +34,7 @@ function RowInput({ n, c, k, prop, ...rest }: P & { k: number; prop: string } & 
 function RowActs({ n, c, k }: P & { k: number }) {
   return <>
     <button class="x" title="Move up" disabled={k === 0} onClick={() => liftRow(n, c, k)}>
-      <Icon name="caret" size={11} /></button>
+      <Icon name="caretUp" size={11} /></button>
     <button class="x" title="Remove" onClick={() => dropRow(n, c, k)}>
       <Icon name="trash" size={11} /></button>
   </>;

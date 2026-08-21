@@ -71,7 +71,7 @@ function Head({ h }: { h: NonNullable<ReturnType<typeof C.locate>> }) {
       {!many && h.parent ? (
         <button class="iconbtn" title="Select parent (esc)"
           onClick={() => { const at = C.locate(n.id); L.select(at && at.parent ? at.parent.id : null); }}>
-          <Icon name="caret" size={13} />
+          <Icon name="caretUp" size={13} />
         </button>
       ) : null}
     </div>

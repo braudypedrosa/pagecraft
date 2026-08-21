@@ -40,6 +40,7 @@ __export(index_exports, {
   FILTER_OPS: () => FILTER_OPS,
   FONT_BASE: () => FONT_BASE,
   FONT_SUBSETS: () => FONT_SUBSETS,
+  FRONT: () => FRONT,
   GF: () => GF,
   HOOKS: () => HOOKS,
   IC: () => IC,
@@ -182,6 +183,7 @@ __export(index_exports, {
   imageWidths: () => imageWidths,
   initUi: () => initUi,
   insert: () => insert,
+  isFront: () => isFront,
   isGoogle: () => isGoogle,
   isNotFound: () => isNotFound,
   isRef: () => isRef,
@@ -227,8 +229,10 @@ __export(index_exports, {
   pageDelete: () => pageDelete,
   pageDup: () => pageDup,
   pageFromTemplate: () => pageFromTemplate,
+  pageFront: () => pageFront,
   pageHref: () => pageHref,
   pageMove: () => pageMove,
+  pageSlugSet: () => pageSlugSet,
   pagedPath: () => pagedPath,
   pagedRel: () => pagedRel,
   pager: () => pager,
@@ -250,6 +254,7 @@ __export(index_exports, {
   redo: () => redo,
   refId: () => refId,
   reid: () => reid,
+  relink: () => relink,
   renderList: () => renderList,
   renderNode: () => renderNode,
   replaceAll: () => replaceAll,
@@ -349,6 +354,11 @@ var IC = {
   unlink: '<path d="M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/><path d="M2.5 2.5l11 11" stroke-linecap="round" opacity=".7"/>',
   icon: '<path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.7 4.1 13.7l.8-4.3-3.1-3 4.3-.6z"/>',
   caret: '<path d="M3.5 5.5L8 10l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  /* the same chevron the other way up. A down caret was standing in for both directions, so
+     Move up and Move down were the same glyph — and Select parent pointed downwards. Drawn
+     rather than rotated, for the reason the `more` icon was: a rotated glyph needs a class on
+     the element that carries it, which is a second thing to remember at every call site. */
+  caretUp: '<path d="M3.5 10.5L8 6l4.5 4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   trash: '<path d="M2.8 4.5h10.4M6.2 4.5V2.8h3.6v1.7M4.2 4.5l.6 8.2c0 .5.5.8 1 .8h4.4c.5 0 1-.3 1-.8l.6-8.2" stroke-linecap="round"/>',
   copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.4"/><path d="M10.5 5.5v-2A1 1 0 009.5 2.5h-6a1 1 0 00-1 1v6a1 1 0 001 1h2"/>',
   /* Three dots in a row. It exists because the overflow button used to be `drag`
@@ -1315,7 +1325,11 @@ var COMMON_STYLE = [
       { t: "color", c: "background-color", label: "Colour" },
       { t: "img", c: "background-image", label: "Image", bg: 1 },
       { t: "select", c: "background-size", label: "Size", opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
-      { t: "select", c: "background-position", label: "Position", opts: [["center center", "Center"], ["top center", "Top"], ["bottom center", "Bottom"], ["left center", "Left"], ["right center", "Right"]] },
+      /* A pick, not a select: where an image sits is a spatial choice, and five words in a
+         dropdown make you read to find the one you could have pointed at. The glyphs are the
+         alignment ones already in the set, which is what the same question looks like
+         everywhere else in this panel. */
+      { t: "pick", c: "background-position", label: "Position", opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
       { t: "select", c: "background-repeat", label: "Repeat", opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
       { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
     ]
@@ -2898,6 +2912,64 @@ function pageHref(link, o) {
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
+}
+function relink(from, to) {
+  if (!from || from === to) return 0;
+  let n = 0;
+  const swap2 = (h) => {
+    const v = String(h == null ? "" : h);
+    const m = v.match(/^([\w-]+)\.html(#.*)?$/);
+    if (!m || m[1] !== from) return v;
+    n++;
+    return `${to}.html${m[2] || ""}`;
+  };
+  allTrees().forEach((list) => eachNode(list, (node) => {
+    const p = node.props;
+    if (p.link !== void 0) p.link = swap2(p.link);
+    if (node.type === "nav" && Array.isArray(p.items)) {
+      p.items.forEach((it) => {
+        it.href = swap2(it.href);
+      });
+    }
+    if (node.type === "text" && typeof p.html === "string") {
+      p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
+        const next = swap2(h);
+        return next === h ? whole : `href="${next}"`;
+      });
+    }
+  }));
+  return n;
+}
+function pageSlugSet(i, slug) {
+  const pg2 = state.pages[i];
+  if (!pg2) return null;
+  if (!String(slug == null ? "" : slug).trim()) return null;
+  const want = slugify(slug);
+  if (!want) return null;
+  if (want === pg2.slug) return 0;
+  if (state.pages.some((p, k) => k !== i && p.slug === want)) return null;
+  const was = pg2.slug;
+  pg2.slug = want;
+  return relink(was, want);
+}
+var FRONT = "index";
+var isFront = (pg2) => pg2.slug === FRONT;
+function pageFront(i) {
+  const pg2 = state.pages[i];
+  if (!pg2 || isFront(pg2)) return false;
+  const old = state.pages.findIndex((p) => isFront(p));
+  if (old >= 0) {
+    const base = slugify(state.pages[old].name) || "page";
+    const taken = state.pages.filter((_, k) => k !== old).map((p) => p.slug);
+    const to = uniqueId(base === FRONT ? "page" : base, taken);
+    const was2 = state.pages[old].slug;
+    state.pages[old].slug = to;
+    relink(was2, to);
+  }
+  const was = pg2.slug;
+  pg2.slug = FRONT;
+  relink(was, FRONT);
+  return true;
 }
 var NOT_FOUND = "404";
 var isNotFound = (pg2) => pg2.slug === NOT_FOUND;
@@ -5435,6 +5507,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   FILTER_OPS,
   FONT_BASE,
   FONT_SUBSETS,
+  FRONT,
   GF,
   HOOKS,
   IC,
@@ -5577,6 +5650,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   imageWidths,
   initUi,
   insert,
+  isFront,
   isGoogle,
   isNotFound,
   isRef,
@@ -5622,8 +5696,10 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   pageDelete,
   pageDup,
   pageFromTemplate,
+  pageFront,
   pageHref,
   pageMove,
+  pageSlugSet,
   pagedPath,
   pagedRel,
   pager,
@@ -5645,6 +5721,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   redo,
   refId,
   reid,
+  relink,
   renderList,
   renderNode,
   replaceAll,

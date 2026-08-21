@@ -1129,6 +1129,11 @@ var IC = {
   unlink: '<path d="M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/><path d="M2.5 2.5l11 11" stroke-linecap="round" opacity=".7"/>',
   icon: '<path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.7 4.1 13.7l.8-4.3-3.1-3 4.3-.6z"/>',
   caret: '<path d="M3.5 5.5L8 10l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  /* the same chevron the other way up. A down caret was standing in for both directions, so
+     Move up and Move down were the same glyph — and Select parent pointed downwards. Drawn
+     rather than rotated, for the reason the `more` icon was: a rotated glyph needs a class on
+     the element that carries it, which is a second thing to remember at every call site. */
+  caretUp: '<path d="M3.5 10.5L8 6l4.5 4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   trash: '<path d="M2.8 4.5h10.4M6.2 4.5V2.8h3.6v1.7M4.2 4.5l.6 8.2c0 .5.5.8 1 .8h4.4c.5 0 1-.3 1-.8l.6-8.2" stroke-linecap="round"/>',
   copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.4"/><path d="M10.5 5.5v-2A1 1 0 009.5 2.5h-6a1 1 0 00-1 1v6a1 1 0 001 1h2"/>',
   /* Three dots in a row. It exists because the overflow button used to be `drag`
@@ -2095,7 +2100,11 @@ var COMMON_STYLE = [
       { t: "color", c: "background-color", label: "Colour" },
       { t: "img", c: "background-image", label: "Image", bg: 1 },
       { t: "select", c: "background-size", label: "Size", opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
-      { t: "select", c: "background-position", label: "Position", opts: [["center center", "Center"], ["top center", "Top"], ["bottom center", "Bottom"], ["left center", "Left"], ["right center", "Right"]] },
+      /* A pick, not a select: where an image sits is a spatial choice, and five words in a
+         dropdown make you read to find the one you could have pointed at. The glyphs are the
+         alignment ones already in the set, which is what the same question looks like
+         everywhere else in this panel. */
+      { t: "pick", c: "background-position", label: "Position", opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
       { t: "select", c: "background-repeat", label: "Repeat", opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
       { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
     ]
@@ -3678,6 +3687,64 @@ function pageHref(link, o) {
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
+}
+function relink(from, to) {
+  if (!from || from === to) return 0;
+  let n = 0;
+  const swap2 = (h) => {
+    const v = String(h == null ? "" : h);
+    const m = v.match(/^([\w-]+)\.html(#.*)?$/);
+    if (!m || m[1] !== from) return v;
+    n++;
+    return `${to}.html${m[2] || ""}`;
+  };
+  allTrees().forEach((list) => eachNode(list, (node) => {
+    const p = node.props;
+    if (p.link !== void 0) p.link = swap2(p.link);
+    if (node.type === "nav" && Array.isArray(p.items)) {
+      p.items.forEach((it) => {
+        it.href = swap2(it.href);
+      });
+    }
+    if (node.type === "text" && typeof p.html === "string") {
+      p.html = p.html.replace(/href="([^"]*)"/g, (whole, h) => {
+        const next = swap2(h);
+        return next === h ? whole : `href="${next}"`;
+      });
+    }
+  }));
+  return n;
+}
+function pageSlugSet(i, slug) {
+  const pg2 = state.pages[i];
+  if (!pg2) return null;
+  if (!String(slug == null ? "" : slug).trim()) return null;
+  const want = slugify(slug);
+  if (!want) return null;
+  if (want === pg2.slug) return 0;
+  if (state.pages.some((p, k) => k !== i && p.slug === want)) return null;
+  const was = pg2.slug;
+  pg2.slug = want;
+  return relink(was, want);
+}
+var FRONT = "index";
+var isFront = (pg2) => pg2.slug === FRONT;
+function pageFront(i) {
+  const pg2 = state.pages[i];
+  if (!pg2 || isFront(pg2)) return false;
+  const old = state.pages.findIndex((p) => isFront(p));
+  if (old >= 0) {
+    const base = slugify(state.pages[old].name) || "page";
+    const taken = state.pages.filter((_, k) => k !== old).map((p) => p.slug);
+    const to = uniqueId(base === FRONT ? "page" : base, taken);
+    const was2 = state.pages[old].slug;
+    state.pages[old].slug = to;
+    relink(was2, to);
+  }
+  const was = pg2.slug;
+  pg2.slug = FRONT;
+  relink(was, FRONT);
+  return true;
 }
 var NOT_FOUND = "404";
 var isNotFound = (pg2) => pg2.slug === NOT_FOUND;
@@ -6215,6 +6282,7 @@ var __CORE = {
   FILTER_OPS,
   FONT_BASE,
   FONT_SUBSETS,
+  FRONT,
   GF,
   HOOKS,
   IC,
@@ -6357,6 +6425,7 @@ var __CORE = {
   imageWidths,
   initUi,
   insert,
+  isFront,
   isGoogle,
   isNotFound,
   isRef,
@@ -6402,8 +6471,10 @@ var __CORE = {
   pageDelete,
   pageDup,
   pageFromTemplate,
+  pageFront,
   pageHref,
   pageMove,
+  pageSlugSet,
   pagedPath,
   pagedRel,
   pager,
@@ -6425,6 +6496,7 @@ var __CORE = {
   redo,
   refId,
   reid,
+  relink,
   renderList,
   renderNode,
   replaceAll,
@@ -7309,13 +7381,10 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2(Icon, { name: "page", size: 14 }),
       /* @__PURE__ */ u2("span", { class: "pn", children: [
         /* @__PURE__ */ u2("b", { children: p3.name }),
-        /* @__PURE__ */ u2("small", { children: [
-          "/",
-          p3.slug
-        ] })
+        /* @__PURE__ */ u2("small", { children: C2.isFront(p3) ? "the front page" : "/" + p3.slug })
       ] }),
       /* @__PURE__ */ u2("span", { class: "act", children: [
-        /* @__PURE__ */ u2("button", { title: "Move up", disabled: i3 === 0, onClick: (e3) => act(e3, "up"), children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 12 }) }),
+        /* @__PURE__ */ u2("button", { title: "Move up", disabled: i3 === 0, onClick: (e3) => act(e3, "up"), children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 12 }) }),
         /* @__PURE__ */ u2("button", { title: "Move down", disabled: last, onClick: (e3) => act(e3, "down"), children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 12 }) }),
         /* @__PURE__ */ u2("button", { title: "Duplicate page", onClick: (e3) => act(e3, "dup"), children: /* @__PURE__ */ u2(Icon, { name: "copy", size: 12 }) }),
         C2.state.pages.length > 1 && /* @__PURE__ */ u2("button", { title: "Delete page", onClick: (e3) => act(e3, "del"), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
@@ -7426,23 +7495,72 @@ var PC_UI = (() => {
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { children: "Slug" }),
-            /* @__PURE__ */ u2("input", { class: "ctl", value: pg.slug, ...field((v3) => {
-              C2.page().slug = C2.slugify(v3);
-            }) }),
+            /* @__PURE__ */ u2(
+              "input",
+              {
+                class: "ctl",
+                value: pg.slug,
+                disabled: C2.isFront(pg),
+                onChange: (e3) => {
+                  const el = e3.target;
+                  const at = C2.state.cur;
+                  let moved = 0;
+                  C2.edit(() => {
+                    moved = C2.pageSlugSet(at, el.value);
+                  });
+                  if (moved === null) {
+                    el.value = C2.state.pages[at].slug;
+                    L2.toast("That slug is taken by another page");
+                  } else if (moved) {
+                    L2.toast(`${moved} link${moved === 1 ? "" : "s"} followed it`);
+                  }
+                  repaint("pages");
+                  L2.renderModebar();
+                }
+              }
+            ),
             /* @__PURE__ */ u2("div", { class: "note", children: [
-              "The page's address: ",
-              /* @__PURE__ */ u2("b", { children: [
-                "/",
-                pg.slug || "\u2026"
+              C2.isFront(pg) ? /* @__PURE__ */ u2(S, { children: [
+                "This is the ",
+                /* @__PURE__ */ u2("b", { children: "front page" }),
+                " \u2014 a host serves it at the root, so its slug is fixed at ",
+                /* @__PURE__ */ u2("code", { children: "index" }),
+                ". Make another page the front page to free it."
+              ] }) : /* @__PURE__ */ u2(S, { children: [
+                "The page's address: ",
+                /* @__PURE__ */ u2("b", { children: [
+                  "/",
+                  pg.slug || "\u2026"
+                ] }),
+                ". Exporting static HTML writes it as ",
+                /* @__PURE__ */ u2("code", { children: [
+                  pg.slug || "\u2026",
+                  ".html"
+                ] }),
+                "."
               ] }),
-              ". Exporting static HTML writes it as ",
-              /* @__PURE__ */ u2("code", { children: [
-                pg.slug || "\u2026",
-                ".html"
-              ] }),
-              ".",
-              C2.isNotFound(pg) ? " Slugged 404, so it is your not-found page: it stays out of the sitemap and asks not to be indexed." : " Slug a page 404 to make it your not-found page."
-            ] })
+              C2.isNotFound(pg) ? " Slugged 404, so it is your not-found page: it stays out of the sitemap and asks not to be indexed." : C2.isFront(pg) ? "" : " Slug a page 404 to make it your not-found page."
+            ] }),
+            C2.isFront(pg) ? null : /* @__PURE__ */ u2(
+              "button",
+              {
+                class: "btn",
+                style: { marginTop: "var(--gap-1)", width: "100%", justifyContent: "center" },
+                onClick: async () => {
+                  const front = C2.state.pages.find(C2.isFront);
+                  if (!await L2.askConfirm(
+                    "Make this the front page?",
+                    `<b>${C2.esc(pg.name)}</b> becomes <code>index.html</code>, which a host serves at the root.` + (front ? ` <b>${C2.esc(front.name)}</b> takes a slug from its own name.` : "") + " Links pointing at either page follow the change.",
+                    { ok: "Make it the front page", danger: false }
+                  )) return;
+                  C2.edit(() => C2.pageFront(C2.state.cur));
+                  L2.renderModebar();
+                  repaint("pages");
+                  L2.toast(pg.name + " is the front page");
+                },
+                children: "Make this the front page"
+              }
+            )
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { children: "Browser title" }),
@@ -8018,7 +8136,7 @@ var PC_UI = (() => {
   }
   function RowActs({ n: n2, c: c3, k: k3 }) {
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2("button", { class: "x", title: "Move up", disabled: k3 === 0, onClick: () => liftRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 11 }) }),
+      /* @__PURE__ */ u2("button", { class: "x", title: "Move up", disabled: k3 === 0, onClick: () => liftRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 11 }) }),
       /* @__PURE__ */ u2("button", { class: "x", title: "Remove", onClick: () => dropRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
     ] });
   }
@@ -9163,7 +9281,7 @@ var PC_UI = (() => {
             const at = C2.locate(n2.id);
             L2.select(at && at.parent ? at.parent.id : null);
           },
-          children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 13 })
+          children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 13 })
         }
       ) : null
     ] });
@@ -9637,7 +9755,7 @@ var PC_UI = (() => {
                 C2.edit(() => C2.classMove(c3.id, -1));
                 repaint("classes");
               },
-              children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 12 })
+              children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 12 })
             }
           ),
           /* @__PURE__ */ u2(
@@ -10616,7 +10734,7 @@ function positionHud() {
      <div class="bar" style="top:${top}px;left:${left}px">
       <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
-      ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caret', 12)}</button>` : ''}
+      ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caretUp', 12)}</button>` : ''}
       ${/* only where there is a list to be at the end of, so the bar does not carry two
              buttons that cannot do anything */''}
       ${(s.parent ? s.parent.children : tree()).length > 1 ? `
@@ -11628,7 +11746,7 @@ function cmsModal(colId) {
             <option value="">— pick one —</option>
             ${collections().filter(c => c.id !== col.id).map(c => `<option value="${esc(c.id)}"${c.id === f.ref ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}
           </select>` : ''}
-          <button class="iconbtn" data-fup="${f.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
+          <button class="iconbtn" data-fup="${f.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caretUp', 12)}</button>
           <button class="iconbtn" data-fdel="${f.id}" title="Delete field"${col.fields.length < 2 ? ' disabled' : ''}>${svg('trash', 13)}</button>
         </div>`).join('')}
         <div class="note">The first <b>Text</b> field names each item and gives it its URL.</div>`
@@ -11641,7 +11759,7 @@ function cmsModal(colId) {
           <td><input class="ctl" data-islug="${it.id}" value="${esc(it.slug)}" style="font-family:var(--mono);font-size:11px"></td>
           <td><input type="checkbox" data-idraft="${it.id}"${it.draft ? ' checked' : ''} title="Hold this item back from the published site"></td>
           <td style="white-space:nowrap;display:flex;gap:2px;align-items:center">
-            <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
+            <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caretUp', 12)}</button>
             <button class="iconbtn" data-idel="${it.id}" title="Delete item">${svg('trash', 13)}</button>
           </td></tr>`).join('')}
         </tbody></table>`
