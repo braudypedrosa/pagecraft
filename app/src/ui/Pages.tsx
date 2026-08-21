@@ -38,7 +38,7 @@ function PageRow({ i }: { i: number }) {
   return (
     <div class={'pagerow' + (i === C.state.cur ? ' on' : '')} onClick={go}>
       <Icon name="page" size={14} />
-      <span class="pn"><b>{p.name}</b><small>/{p.slug}.html</small></span>
+      <span class="pn"><b>{p.name}</b><small>/{p.slug}</small></span>
       <span class="act">
         <button title="Move up" disabled={i === 0} onClick={e => act(e, 'up')}>
           <Icon name="caret" size={12} /></button>
@@ -81,9 +81,10 @@ function DetailBindings({ colId }: { colId: string }) {
         {pick('bindDesc', 'Description from', '— The page description —')}
       </div>
       <div class="note">
-        Exports <b>{dc.slug}/&lt;slug&gt;.html</b> — {dc.items.length} file
-        {dc.items.length === 1 ? '' : 's'} from this one page. Everything on it binds
-        to <b>{dc.name}</b>.
+        One page per item at <b>/{dc.slug}/&lt;slug&gt;</b> — {C.published(dc).length} of
+        them{dc.items.length !== C.published(dc).length
+          ? `, with ${dc.items.length - C.published(dc).length} held back as a draft`
+          : ''} from this one page. Everything on it binds to <b>{dc.name}</b>.
       </div>
     </>
   );
@@ -123,10 +124,14 @@ export function Pages() {
           <input class="ctl" value={pg.name}
             {...field(v => { C.page().name = v; L.renderModebar(); })} /></div>
 
-        <div class="f"><label>File slug</label>
-          <div class="unit">
-            <input class="ctl" value={pg.slug} {...field(v => { C.page().slug = C.slugify(v); })} />
-            <span style={{ alignSelf: 'center', color: 'var(--text-3)', fontSize: '11px' }}>.html</span>
+        {/* A slug, not a filename. `.html` is what an HTML export happens to name the file
+            and it lives in the note, not in the field — the page's identity is its slug, and
+            Preview follows links by slug for the same reason. */}
+        <div class="f"><label>Slug</label>
+          <input class="ctl" value={pg.slug} {...field(v => { C.page().slug = C.slugify(v); })} />
+          <div class="note">
+            The page's address: <b>/{pg.slug || '…'}</b>. Exporting static HTML writes it
+            as <code>{pg.slug || '…'}.html</code>.
           </div></div>
 
         <div class="f"><label>Browser title</label>

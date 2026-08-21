@@ -2521,6 +2521,36 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   return o.rel + v;
 }
 
+/* ---- where a link points, inside this project -------------------------
+   `parseLink` answers "what kind of link is this" for the inspector, in slugs. This answers
+   a different question — "which page of this project does it land on" — and it has to cope
+   with the shape `parseLink` cannot: a detail page is `<collection>/<item>.html`, and a link
+   from one climbs back out with `../`.
+
+   `.html` lives in the stored href because that is what an HTML export needs. It is not the
+   identity of a page; the slug is. So this is the one place that knows the extension is a
+   file-naming detail, which is what lets Preview follow a link the way a browser would. */
+function pageAt(href: unknown): { at: number; col: Collection | null; item: Item | null; frag: string } | null {
+  let v = String(href == null ? '' : href).trim();
+  if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;     // a scheme, or protocol-relative
+  const hash = v.indexOf('#');
+  const frag = hash >= 0 ? v.slice(hash + 1) : '';
+  v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, '').replace(/^\//, '');
+  if (!v) return frag ? { at: state.cur, col: null, item: null, frag } : null;   // a bare fragment
+
+  const bits = v.replace(/\.html?$/i, '').split('/');
+  if (bits.length === 1) {
+    const at = state.pages.findIndex(p => p.slug === bits[0]);
+    return at < 0 ? null : { at, col: null, item: null, frag };
+  }
+  if (bits.length !== 2) return null;
+  const col = collections().find(c => c.slug === bits[0]) || null;
+  if (!col) return null;
+  const item = published(col).find(i => i.slug === bits[1]) || null;
+  const at = state.pages.findIndex(p => p.collection === col.id);
+  return (item && at >= 0) ? { at, col, item, frag } : null;
+}
+
 /* Every file the project exports: one per ordinary page, and one per item for a
    page marked as a collection's detail template. `rel` is how far that file sits
    from the root, which is what every internal link and asset path needs. */
@@ -4891,5 +4921,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pageAt, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

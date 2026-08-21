@@ -3569,6 +3569,25 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+function pageAt(href) {
+  let v = String(href == null ? "" : href).trim();
+  if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;
+  const hash = v.indexOf("#");
+  const frag = hash >= 0 ? v.slice(hash + 1) : "";
+  v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, "").replace(/^\//, "");
+  if (!v) return frag ? { at: state.cur, col: null, item: null, frag } : null;
+  const bits = v.replace(/\.html?$/i, "").split("/");
+  if (bits.length === 1) {
+    const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
+    return at2 < 0 ? null : { at: at2, col: null, item: null, frag };
+  }
+  if (bits.length !== 2) return null;
+  const col = collections().find((c) => c.slug === bits[0]) || null;
+  if (!col) return null;
+  const item = published(col).find((i) => i.slug === bits[1]) || null;
+  const at = state.pages.findIndex((p) => p.collection === col.id);
+  return item && at >= 0 ? { at, col, item, frag } : null;
+}
 function exportTargets() {
   const out = [];
   for (const pg2 of state.pages) {
@@ -6068,6 +6087,7 @@ var __CORE = {
   nudgeMany,
   outsideTags,
   page,
+  pageAt,
   pageDelete,
   pageDup,
   pageFromTemplate,
@@ -6971,8 +6991,7 @@ var PC_UI = (() => {
         /* @__PURE__ */ u2("b", { children: p3.name }),
         /* @__PURE__ */ u2("small", { children: [
           "/",
-          p3.slug,
-          ".html"
+          p3.slug
         ] })
       ] }),
       /* @__PURE__ */ u2("span", { class: "act", children: [
@@ -7012,15 +7031,16 @@ var PC_UI = (() => {
         pick("bindDesc", "Description from", "\u2014 The page description \u2014")
       ] }),
       /* @__PURE__ */ u2("div", { class: "note", children: [
-        "Exports ",
+        "One page per item at ",
         /* @__PURE__ */ u2("b", { children: [
+          "/",
           dc.slug,
-          "/<slug>.html"
+          "/<slug>"
         ] }),
         " \u2014 ",
-        dc.items.length,
-        " file",
-        dc.items.length === 1 ? "" : "s",
+        C2.published(dc).length,
+        " of them",
+        dc.items.length !== C2.published(dc).length ? `, with ${dc.items.length - C2.published(dc).length} held back as a draft` : "",
         " from this one page. Everything on it binds to ",
         /* @__PURE__ */ u2("b", { children: dc.name }),
         "."
@@ -7085,12 +7105,22 @@ var PC_UI = (() => {
             )
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
-            /* @__PURE__ */ u2("label", { children: "File slug" }),
-            /* @__PURE__ */ u2("div", { class: "unit", children: [
-              /* @__PURE__ */ u2("input", { class: "ctl", value: pg.slug, ...field((v3) => {
-                C2.page().slug = C2.slugify(v3);
-              }) }),
-              /* @__PURE__ */ u2("span", { style: { alignSelf: "center", color: "var(--text-3)", fontSize: "11px" }, children: ".html" })
+            /* @__PURE__ */ u2("label", { children: "Slug" }),
+            /* @__PURE__ */ u2("input", { class: "ctl", value: pg.slug, ...field((v3) => {
+              C2.page().slug = C2.slugify(v3);
+            }) }),
+            /* @__PURE__ */ u2("div", { class: "note", children: [
+              "The page's address: ",
+              /* @__PURE__ */ u2("b", { children: [
+                "/",
+                pg.slug || "\u2026"
+              ] }),
+              ". Exporting static HTML writes it as ",
+              /* @__PURE__ */ u2("code", { children: [
+                pg.slug || "\u2026",
+                ".html"
+              ] }),
+              "."
             ] })
           ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
@@ -10142,7 +10172,11 @@ function paint() {
   for (const R of REGIONS) {
     const nodes = R.get();
     const live = R.kind === scope;
-    if (!editing) { html += renderList(nodes, { edit: false }); continue; }
+    /* `pageCtx()` in preview too. Without it a detail template previewed with its
+       bindings unresolved — every bound heading showing the literal it stands in for —
+       which is the one page where the preview matters most. Edit mode passed it all
+       along; preview was the branch that forgot. */
+    if (!editing) { html += renderList(nodes, { edit: false, ...pageCtx() }); continue; }
     if (!nodes.length && !live) continue;                 // nothing to show as context
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })
@@ -10453,11 +10487,42 @@ function bindCanvas() {
     e.preventDefault();
     if (!document.body.classList.contains('preview')) return;
     const href = a.getAttribute('href') || '';
+    if (!href) return;
+    /* A fragment on this page is a scroll, and always was. */
     if (href.startsWith('#') && href.length > 1) {
       const t = cdoc.getElementById(href.slice(1));
       if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-      toast('No element with the anchor ' + href + ' on this page');
-    } else if (href) toast('Links follow through in the exported file');
+      return toast('No element with the anchor ' + href + ' on this page');
+    }
+    /* Anything else that lands inside this project is followed, which is what makes Preview
+       a preview of a site rather than of one page. It used to say "links follow through in
+       the exported file" and stay put — true, and no use to anyone checking their nav.
+
+       `pageAt` does the resolving because the slug is the page's identity and the `.html` in
+       the stored href is a file-naming detail. A detail-page link carries its item too, so
+       the template renders the post that was actually clicked. */
+    const to = pageAt(href);
+    if (!to) {
+      return toast(/^([a-z][\w+.-]*:|\/\/)/i.test(href)
+        ? 'External links open in the exported site, not here'
+        : `Nothing in this project answers to ${href}`);
+    }
+    if (to.col && to.item) {
+      state.ui.item = state.ui.item || {};
+      state.ui.item[to.col.id] = published(to.col).findIndex(i => i.id === to.item.id);
+    }
+    state.cur = to.at;
+    state.ui.mode = 'page';
+    selSet([]);
+    render();
+    /* after the new page is on screen, not before */
+    requestAnimationFrame(() => {
+      const t = to.frag && cdoc.getElementById(to.frag);
+      if (t) t.scrollIntoView({ block: 'start' });
+      else cwin.scrollTo(0, 0);
+    });
+    const pg = state.pages[to.at];
+    toast(to.item ? `${itemTitle(to.col, to.item)} — ${pg.name}` : pg.name);
   });
   cdoc.addEventListener('dblclick', e => {
     if (document.body.classList.contains('preview')) return;

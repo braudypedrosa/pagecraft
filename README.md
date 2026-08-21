@@ -367,6 +367,18 @@ Before this the canvas was simply whatever width was left over, so selecting an 
 which opens the inspector — could flip the canvas from your desktop layout to your mobile
 one without saying so.
 
+## Preview
+
+`⌘P` hides the panels and gives the canvas the whole window. It is a preview of the *site*,
+not of the page: **internal links follow through**, so clicking a nav item moves to that page,
+a link with a fragment lands on that page scrolled to the anchor, and a card linking to *this
+item's own page* opens the detail template rendered with the item you clicked. External links
+say so rather than going anywhere, and a link to nothing in the project tells you which
+address failed — which is a faster way to find a broken nav than reading the review.
+
+Pages are addressed by slug throughout. `.html` appears only when you export static HTML,
+which is a detail of how the files are named rather than what a page is called.
+
 ## Responsive
 
 Pick Tablet or Mobile in the top bar and any value you change is written as a

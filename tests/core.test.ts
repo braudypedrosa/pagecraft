@@ -332,6 +332,79 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- where a link points -----------------------------------------------
+   `.html` is in the stored href because that is what an HTML export needs; the slug is the
+   page's identity. `pageAt` is the one place that knows the difference, which is what lets
+   Preview follow a link the way a browser would instead of shrugging at it. */
+
+test('pageAt finds an ordinary page by its slug, extension or not', () => {
+  blank();
+  const home = C.state.pages[0];
+  home.slug = 'index';
+  C.state.pages.push({ id: 'p2', name: 'Pricing', slug: 'pricing', title: '', desc: '', ogImage: '', tree: [] } as any);
+
+  a.equal(must(C.pageAt('pricing.html'), 'pricing').at, 1);
+  a.equal(must(C.pageAt('pricing'), 'no extension').at, 1, 'the slug is the identity');
+  a.equal(must(C.pageAt('index.html'), 'home').at, 0);
+  a.equal(must(C.pageAt('./pricing.html'), 'relative').at, 1);
+  a.equal(must(C.pageAt('../pricing.html'), 'from a folder').at, 1, 'a detail page climbs out');
+  a.equal(must(C.pageAt('/pricing.html'), 'rooted').at, 1);
+
+  /* the fragment comes along so the arrival can scroll */
+  const f = must(C.pageAt('pricing.html#plans'), 'with a fragment');
+  a.equal(f.at, 1); a.equal(f.frag, 'plans');
+
+  /* a bare fragment is this page */
+  C.state.cur = 1;
+  a.deepEqual([must(C.pageAt('#top'), 'bare').at, must(C.pageAt('#top'), 'bare').frag], [1, 'top']);
+});
+
+test('pageAt refuses what is not in this project, rather than guessing', () => {
+  blank();
+  ['https://example.com', '//example.com/x', 'mailto:a@b.c', 'tel:123', 'nope.html',
+   '', '#', 'a/b/c.html', 'data:text/html,x'].forEach(v =>
+    a.equal(C.pageAt(v), null, JSON.stringify(v)));
+});
+
+test('pageAt resolves a detail page to its template and its item', () => {
+  const { col, add } = cmsFixture();
+  const first = add('On craft', 'Journal', '1');
+  const held = add('Unfinished', 'Journal', '2');
+  C.state.pages[0].collection = col.id;
+
+  const hit = must(C.pageAt(col.slug + '/' + first.slug + '.html'), 'detail');
+  a.equal(hit.at, 0, 'the page that templates the collection');
+  a.equal(must(hit.col, 'col').id, col.id);
+  a.equal(must(hit.item, 'item').id, first.id, 'and the item that was clicked');
+
+  /* a draft has no page, so a link to one resolves to nothing rather than to the template */
+  C.itemDraft(col.id, held.id, true);
+  a.equal(C.pageAt(col.slug + '/' + held.slug + '.html'), null);
+
+  /* and a collection nothing templates has nowhere to land */
+  C.state.pages[0].collection = '';
+  a.equal(C.pageAt(col.slug + '/' + first.slug + '.html'), null);
+});
+
+test('every link a template writes resolves through pageAt', () => {
+  /* the region templates all point at HOME, and this is what makes that meaningful:
+     Preview can follow them, so a header dropped into a project is checkable */
+  ['header-bar', 'header-cta', 'header-centred', 'header-ink',
+   'footer-columns', 'footer-slim', 'footer-signup', 'footer-ink'].forEach(id => {
+    fresh();
+    const p = C.PATTERNS.find(x => x.id === id)!;
+    C.state.ui.mode = p.scope!;
+    const into = p.scope === 'header' ? C.state.header : C.state.footer;
+    into.length = 0;
+    patternInsert(id, null, 0);
+    const html = C.buildPage(C.state.pages[0]);
+    const internal = [...html.matchAll(/href="([^"]+)"/g)].map(m => m[1])
+      .filter(h => !/^(https?:|mailto:|tel:|#)/i.test(h));
+    a.ok(internal.length, id + ' has internal links to check');
+    internal.forEach(h => a.ok(C.pageAt(h), `${id}: ${h} resolves`));
+  });
+});
+
 /* ---- drafts and filters ------------------------------------------------
    The two verbs a Collection List was missing. Sorting, directing and limiting are enough
    for "the five newest" and nothing else: a category page asks for a subset, and a blog

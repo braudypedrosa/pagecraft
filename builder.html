@@ -1484,7 +1484,11 @@ function paint() {
   for (const R of REGIONS) {
     const nodes = R.get();
     const live = R.kind === scope;
-    if (!editing) { html += renderList(nodes, { edit: false }); continue; }
+    /* `pageCtx()` in preview too. Without it a detail template previewed with its
+       bindings unresolved — every bound heading showing the literal it stands in for —
+       which is the one page where the preview matters most. Edit mode passed it all
+       along; preview was the branch that forgot. */
+    if (!editing) { html += renderList(nodes, { edit: false, ...pageCtx() }); continue; }
     if (!nodes.length && !live) continue;                 // nothing to show as context
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })
@@ -1795,11 +1799,42 @@ function bindCanvas() {
     e.preventDefault();
     if (!document.body.classList.contains('preview')) return;
     const href = a.getAttribute('href') || '';
+    if (!href) return;
+    /* A fragment on this page is a scroll, and always was. */
     if (href.startsWith('#') && href.length > 1) {
       const t = cdoc.getElementById(href.slice(1));
       if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-      toast('No element with the anchor ' + href + ' on this page');
-    } else if (href) toast('Links follow through in the exported file');
+      return toast('No element with the anchor ' + href + ' on this page');
+    }
+    /* Anything else that lands inside this project is followed, which is what makes Preview
+       a preview of a site rather than of one page. It used to say "links follow through in
+       the exported file" and stay put — true, and no use to anyone checking their nav.
+
+       `pageAt` does the resolving because the slug is the page's identity and the `.html` in
+       the stored href is a file-naming detail. A detail-page link carries its item too, so
+       the template renders the post that was actually clicked. */
+    const to = pageAt(href);
+    if (!to) {
+      return toast(/^([a-z][\w+.-]*:|\/\/)/i.test(href)
+        ? 'External links open in the exported site, not here'
+        : `Nothing in this project answers to ${href}`);
+    }
+    if (to.col && to.item) {
+      state.ui.item = state.ui.item || {};
+      state.ui.item[to.col.id] = published(to.col).findIndex(i => i.id === to.item.id);
+    }
+    state.cur = to.at;
+    state.ui.mode = 'page';
+    selSet([]);
+    render();
+    /* after the new page is on screen, not before */
+    requestAnimationFrame(() => {
+      const t = to.frag && cdoc.getElementById(to.frag);
+      if (t) t.scrollIntoView({ block: 'start' });
+      else cwin.scrollTo(0, 0);
+    });
+    const pg = state.pages[to.at];
+    toast(to.item ? `${itemTitle(to.col, to.item)} — ${pg.name}` : pg.name);
   });
   cdoc.addEventListener('dblclick', e => {
     if (document.body.classList.contains('preview')) return;

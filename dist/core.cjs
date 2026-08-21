@@ -212,6 +212,7 @@ __export(index_exports, {
   nudgeMany: () => nudgeMany,
   outsideTags: () => outsideTags,
   page: () => page,
+  pageAt: () => pageAt,
   pageDelete: () => pageDelete,
   pageDup: () => pageDup,
   pageFromTemplate: () => pageFromTemplate,
@@ -2784,6 +2785,25 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+function pageAt(href) {
+  let v = String(href == null ? "" : href).trim();
+  if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;
+  const hash = v.indexOf("#");
+  const frag = hash >= 0 ? v.slice(hash + 1) : "";
+  v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, "").replace(/^\//, "");
+  if (!v) return frag ? { at: state.cur, col: null, item: null, frag } : null;
+  const bits = v.replace(/\.html?$/i, "").split("/");
+  if (bits.length === 1) {
+    const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
+    return at2 < 0 ? null : { at: at2, col: null, item: null, frag };
+  }
+  if (bits.length !== 2) return null;
+  const col = collections().find((c) => c.slug === bits[0]) || null;
+  if (!col) return null;
+  const item = published(col).find((i) => i.slug === bits[1]) || null;
+  const at = state.pages.findIndex((p) => p.collection === col.id);
+  return item && at >= 0 ? { at, col, item, frag } : null;
+}
 function exportTargets() {
   const out = [];
   for (const pg2 of state.pages) {
@@ -5283,6 +5303,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   nudgeMany,
   outsideTags,
   page,
+  pageAt,
   pageDelete,
   pageDup,
   pageFromTemplate,
