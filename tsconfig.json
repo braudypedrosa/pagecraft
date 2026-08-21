@@ -6,7 +6,10 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "types": ["vite/client"],
+    /* `node` is not optional: build.mjs, tools/ and both test files import node: builtins,
+       and an explicit `types` array means @types/node is otherwise never loaded. This was
+       resolving from an unrelated parent repo's node_modules until this became its own. */
+    "types": ["vite/client", "node"],
 
     "strict": true,
     "noImplicitAny": true,
