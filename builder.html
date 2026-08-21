@@ -482,6 +482,17 @@ select.ctl{
 .fgrid>.f{margin-bottom:0}
 .fgrid:last-child{margin-bottom:2px}
 .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+/* Side names above the four boxes rather than as one run of text under them. The same
+   grid and the same gap, so each name sits over its own box, and a 10px inset to match
+   `.ctl`'s own padding so the name lines up with the number inside rather than with the
+   edge of the field. */
+.row4lab{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:3px}
+.row4lab span{
+  font-family:var(--label);font-size:10px;letter-spacing:.02em;color:var(--text-3);
+  padding-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* the unit sits under the boxes on its own, pushed right, now that the names are above */
+.row4u{display:flex;justify-content:flex-end;margin-top:4px}
 .unit{display:flex;gap:5px}
 .unit input{flex:1;min-width:0}
 .unit select{
@@ -2578,6 +2589,10 @@ function cmsModal(colId) {
           <select class="ctl" data-ftype="${f.id}" style="width:132px;flex:0 0 132px;font-size:11.5px">
             ${FIELD_TYPES.map(([t, l]) => `<option value="${t}"${f.type === t ? ' selected' : ''}>${l}</option>`).join('')}
           </select>
+          ${f.type === 'ref' ? `<select class="ctl" data-fref="${f.id}" style="width:132px;flex:0 0 132px;font-size:11.5px" title="The collection this points into">
+            <option value="">— pick one —</option>
+            ${collections().filter(c => c.id !== col.id).map(c => `<option value="${esc(c.id)}"${c.id === f.ref ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}
+          </select>` : ''}
           <button class="iconbtn" data-fup="${f.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
           <button class="iconbtn" data-fdel="${f.id}" title="Delete field"${col.fields.length < 2 ? ' disabled' : ''}>${svg('trash', 13)}</button>
         </div>`).join('')}
@@ -2646,6 +2661,13 @@ function cmsModal(colId) {
     /* Redraws the canvas as well as the table: holding an item back changes what every
        Collection List shows and whether a detail page exists at all, so the page behind
        the dialog is stale the moment this is ticked. */
+    $$('[data-fref]', box).forEach(el => el.addEventListener('change', () => {
+      edit(() => {
+        const f = findField(findCollection(colId), el.dataset.fref);
+        if (f) f.ref = el.value;
+      });
+      draw(); render();
+    }));
     $$('[data-idraft]', box).forEach(el => el.addEventListener('change', () => {
       edit(() => itemDraft(colId, el.dataset.idraft, el.checked));
       draw(); render();
@@ -2682,6 +2704,16 @@ function cmsCell(col, it, f) {
       ${a ? `<img src="${a.url}" alt="">` : `<span>Choose…</span>`}</button>`;
   }
   if (f.type === 'bool') return `<input type="checkbox" data-v="${k}"${v ? ' checked' : ''}>`;
+  if (f.type === 'ref') {
+    const to = f.ref ? findCollection(f.ref) : null;
+    if (!to) return `<span class="rowmeta">Pick a collection for this field</span>`;
+    /* by title, because an item id is not something anyone recognises. Drafts are listed:
+       you relate a post to an author while the author is still being written. */
+    return `<select class="ctl" data-v="${k}" style="font-size:12px">
+        <option value=""${v ? '' : ' selected'}>— none —</option>
+        ${to.items.map(x => `<option value="${esc(x.id)}"${x.id === v ? ' selected' : ''}>${esc(itemTitle(to, x) || x.slug)}</option>`).join('')}
+      </select>`;
+  }
   if (f.type === 'rich') return `<textarea class="ctl" data-v="${k}" rows="2" style="font-size:12px">${esc(v)}</textarea>`;
   const type = f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text';
   return `<input class="ctl" type="${type}" data-v="${k}" value="${esc(v)}" style="font-size:12.5px">`;
@@ -3604,7 +3636,10 @@ function bindModal(rootId) {
         <td>${esc(s.label)}</td>
         <td><select class="ctl" data-b="${i}">
           <option value="">— not bound —</option>
-          ${col.fields.map(f => `<option value="${f.id}"${map[key(s)] === f.id ? ' selected' : ''}>${esc(f.name)} · ${f.type}</option>`).join('')}
+          ${/* `fieldPaths`, so a reference can be read through here as well as in the badge —
+                 a sheet that could only offer this collection's own fields would make the
+                 whole-card flow the one place a reference was useless */''}
+          ${fieldPaths(col).map(f => `<option value="${esc(f.path)}"${map[key(s)] === f.path ? ' selected' : ''}>${esc(f.label)} · ${f.type}</option>`).join('')}
         </select></td>
       </tr>`).join('')}</tbody></table>`;
     $$('#bsBody select').forEach(el => el.addEventListener('change', () => {

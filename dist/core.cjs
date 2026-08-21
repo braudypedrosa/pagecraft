@@ -58,6 +58,7 @@ __export(index_exports, {
   PATTERNS: () => PATTERNS,
   PFX: () => PFX,
   PH: () => PH,
+  REF_DEPTH: () => REF_DEPTH,
   RESERVED: () => RESERVED,
   SCHEMA: () => SCHEMA,
   SEC_TAGS: () => SEC_TAGS,
@@ -152,6 +153,7 @@ __export(index_exports, {
   fieldAdd: () => fieldAdd,
   fieldDelete: () => fieldDelete,
   fieldMove: () => fieldMove,
+  fieldPaths: () => fieldPaths,
   fieldValue: () => fieldValue,
   findBlock: () => findBlock,
   findClass: () => findClass,
@@ -2754,7 +2756,8 @@ var FIELD_TYPES = [
   ["number", "Number"],
   ["date", "Date"],
   ["option", "Option"],
-  ["bool", "Yes / no"]
+  ["bool", "Yes / no"],
+  ["ref", "Reference"]
 ];
 var collections = () => state.meta.collections || (state.meta.collections = []);
 var findCollection = (id) => collections().find((c) => c.id === id) || null;
@@ -3180,11 +3183,35 @@ function previewItem(col) {
   const pool = live.length ? live : col.items;
   return pool[Math.min(previewIndex(col.id), pool.length - 1)];
 }
-var fieldValue = (col, item, fid) => {
-  if (!col || !item || !findField(col, fid)) return "";
-  const v = item.values[fid];
-  return v == null ? "" : v;
+var REF_DEPTH = 4;
+var fieldValue = (col, item, path, depth = 0) => {
+  if (!col || !item) return "";
+  const bits = String(path || "").split(".");
+  const f = findField(col, bits[0]);
+  if (!f) return "";
+  const raw = item.values[f.id];
+  const v = raw == null ? "" : raw;
+  if (bits.length === 1) return v;
+  if (f.type !== "ref" || !f.ref || depth >= REF_DEPTH) return "";
+  const to = findCollection(f.ref);
+  const hit = to ? findItem(to, v) : null;
+  return hit ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
 };
+function fieldPaths(col) {
+  if (!col) return [];
+  const out = [];
+  for (const f of col.fields || []) {
+    out.push({ path: f.id, label: f.name, type: f.type });
+    if (f.type !== "ref" || !f.ref) continue;
+    const to = findCollection(f.ref);
+    if (!to) continue;
+    for (const g of to.fields || []) {
+      if (g.type === "ref") continue;
+      out.push({ path: `${f.id}.${g.id}`, label: `${f.name} \u2192 ${g.name}`, type: g.type });
+    }
+  }
+  return out;
+}
 function boundProps(n, col, item) {
   if (!n.bind || !col || !item) return n.props;
   const out = { ...n.props };
@@ -5426,6 +5453,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   PATTERNS,
   PFX,
   PH,
+  REF_DEPTH,
   RESERVED,
   SCHEMA,
   SEC_TAGS,
@@ -5520,6 +5548,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   fieldAdd,
   fieldDelete,
   fieldMove,
+  fieldPaths,
   fieldValue,
   findBlock,
   findClass,

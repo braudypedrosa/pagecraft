@@ -46,20 +46,26 @@ function BindBadge({ n, c }: { n: PcNode; c: Control }) {
   const scope = C.bindScope(n.id);
   if (!scope) return null;
   const fid = C.bindGet(n, c.k!);
-  const f = fid ? C.findField(scope.col, fid) : null;
+  /* `fieldPaths` rather than the field list: a reference is only worth having if you can read
+     through it, so the picker offers `Author → Name` beside the collection's own fields. The
+     label of whatever is bound comes from the same list, so a two-hop binding reads back as
+     the path it is rather than as a field id that does not exist here. */
+  const paths = C.fieldPaths(scope.col);
+  const shown = paths.find(x => x.path === fid);
 
   const pick = async () => {
     const chosen = await L.askPick(`Bind to ${scope.col.name}`,
       [['', '— No binding, use the value typed here —'],
-        ...scope.col.fields.map(x => [x.id, `${x.name} · ${x.type}`])], fid);
+        ...paths.map(x => [x.path, `${x.label} · ${x.type}`])], fid);
     if (chosen === null) return;
     C.edit(() => C.bindSet(n, c.k!, chosen));
-    L.toast(chosen ? 'Bound to ' + (C.findField(scope.col, chosen) || { name: '' }).name : 'Binding cleared');
+    const to = paths.find(x => x.path === chosen);
+    L.toast(chosen ? 'Bound to ' + (to ? to.label : chosen) : 'Binding cleared');
   };
 
   return (
     <span class={'bnd' + (fid ? ' on' : '')} onClick={pick}
-      title={fid ? (f ? `Bound to ${f.name} — click to change` : 'Bound to a field that no longer exists')
+      title={fid ? (shown ? `Bound to ${shown.label} — click to change` : 'Bound to a field that no longer exists')
         : `Bind to a field in ${scope.col.name}`}>
       <Icon name="cms" size={9} />
     </span>

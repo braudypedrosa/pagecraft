@@ -1269,9 +1269,9 @@ duplicate act twice on the same subtree, and the second delete acts on a node th
 7. **Tabs** next among the components — it needs a script, and it is the exact shape
    `NAV_JS`/`FACADE_JS`/`LB_JS` already establish: emit only when the data attribute is in the
    body
-8. **The CMS's missing verbs**: ~~filter~~, ~~draft flag~~, ~~pagination~~ and
-   ~~`content.json` import~~ done; only the **reference** field type is left, and it needs a
-   two-hop binding to be worth anything
+8. ~~**The CMS's missing verbs**~~ — filter, draft flag, pagination, `content.json` import and
+   reference fields are all in. A reference reads through a dotted path (`author.name`), which
+   needed no new storage because a binding was already a string
 9. **Export quality**: ~~`srcset`~~ and ~~JSON-LD~~ are both done. Still open: a **404**
    convention; self-hosted fonts, because `gfontsLink()` is a third-party request and
    `brand/fonts/` already shows how to avoid it

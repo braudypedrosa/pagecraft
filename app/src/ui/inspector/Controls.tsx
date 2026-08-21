@@ -227,14 +227,19 @@ function BoxCtl({ n, c }: P) {
   };
 
   return <Field n={n} c={c}>
+    {/* The side names go above their own boxes. As one run of text underneath they named four
+        fields collectively and lined up with none of them, so which box was `right` was
+        something you worked out by counting. */}
+    <div class="row4lab" aria-hidden="true">
+      {SIDES.map(s => <span key={s}>{s}</span>)}
+    </div>
     <div class="row4">
       {SIDES.map((s, k) => (
         <input class="ctl" key={s} type="number" value={vals[k].n} placeholder="0" title={s}
           onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={L.endTx} />
       ))}
     </div>
-    <div class="note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span>top · right · bottom · left</span>
+    <div class="row4u">
       <select class="ctl" value={u} style={{ width: '58px', padding: '2px 4px', fontSize: '10px' }}
         onChange={e => { push((e.target as HTMLElement).closest('.f')!); L.endTx(); }}>
         {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}

@@ -487,6 +487,17 @@ select.ctl{
 .fgrid>.f{margin-bottom:0}
 .fgrid:last-child{margin-bottom:2px}
 .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+/* Side names above the four boxes rather than as one run of text under them. The same
+   grid and the same gap, so each name sits over its own box, and a 10px inset to match
+   `.ctl`'s own padding so the name lines up with the number inside rather than with the
+   edge of the field. */
+.row4lab{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:3px}
+.row4lab span{
+  font-family:var(--label);font-size:10px;letter-spacing:.02em;color:var(--text-3);
+  padding-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* the unit sits under the boxes on its own, pushed right, now that the names are above */
+.row4u{display:flex;justify-content:flex-end;margin-top:4px}
 .unit{display:flex;gap:5px}
 .unit input{flex:1;min-width:0}
 .unit select{
@@ -3525,7 +3536,8 @@ var FIELD_TYPES = [
   ["number", "Number"],
   ["date", "Date"],
   ["option", "Option"],
-  ["bool", "Yes / no"]
+  ["bool", "Yes / no"],
+  ["ref", "Reference"]
 ];
 var collections = () => state.meta.collections || (state.meta.collections = []);
 var findCollection = (id) => collections().find((c) => c.id === id) || null;
@@ -3951,11 +3963,35 @@ function previewItem(col) {
   const pool = live.length ? live : col.items;
   return pool[Math.min(previewIndex(col.id), pool.length - 1)];
 }
-var fieldValue = (col, item, fid) => {
-  if (!col || !item || !findField(col, fid)) return "";
-  const v = item.values[fid];
-  return v == null ? "" : v;
+var REF_DEPTH = 4;
+var fieldValue = (col, item, path, depth = 0) => {
+  if (!col || !item) return "";
+  const bits = String(path || "").split(".");
+  const f = findField(col, bits[0]);
+  if (!f) return "";
+  const raw = item.values[f.id];
+  const v = raw == null ? "" : raw;
+  if (bits.length === 1) return v;
+  if (f.type !== "ref" || !f.ref || depth >= REF_DEPTH) return "";
+  const to = findCollection(f.ref);
+  const hit = to ? findItem(to, v) : null;
+  return hit ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
 };
+function fieldPaths(col) {
+  if (!col) return [];
+  const out = [];
+  for (const f of col.fields || []) {
+    out.push({ path: f.id, label: f.name, type: f.type });
+    if (f.type !== "ref" || !f.ref) continue;
+    const to = findCollection(f.ref);
+    if (!to) continue;
+    for (const g of to.fields || []) {
+      if (g.type === "ref") continue;
+      out.push({ path: `${f.id}.${g.id}`, label: `${f.name} \u2192 ${g.name}`, type: g.type });
+    }
+  }
+  return out;
+}
 function boundProps(n, col, item) {
   if (!n.bind || !col || !item) return n.props;
   const out = { ...n.props };
@@ -6197,6 +6233,7 @@ var __CORE = {
   PATTERNS,
   PFX,
   PH,
+  REF_DEPTH,
   RESERVED,
   SCHEMA,
   SEC_TAGS,
@@ -6291,6 +6328,7 @@ var __CORE = {
   fieldAdd,
   fieldDelete,
   fieldMove,
+  fieldPaths,
   fieldValue,
   findBlock,
   findClass,
@@ -7721,26 +7759,28 @@ var PC_UI = (() => {
     const scope = C2.bindScope(n2.id);
     if (!scope) return null;
     const fid = C2.bindGet(n2, c3.k);
-    const f4 = fid ? C2.findField(scope.col, fid) : null;
+    const paths = C2.fieldPaths(scope.col);
+    const shown2 = paths.find((x2) => x2.path === fid);
     const pick = async () => {
       const chosen = await L2.askPick(
         `Bind to ${scope.col.name}`,
         [
           ["", "\u2014 No binding, use the value typed here \u2014"],
-          ...scope.col.fields.map((x2) => [x2.id, `${x2.name} \xB7 ${x2.type}`])
+          ...paths.map((x2) => [x2.path, `${x2.label} \xB7 ${x2.type}`])
         ],
         fid
       );
       if (chosen === null) return;
       C2.edit(() => C2.bindSet(n2, c3.k, chosen));
-      L2.toast(chosen ? "Bound to " + (C2.findField(scope.col, chosen) || { name: "" }).name : "Binding cleared");
+      const to = paths.find((x2) => x2.path === chosen);
+      L2.toast(chosen ? "Bound to " + (to ? to.label : chosen) : "Binding cleared");
     };
     return /* @__PURE__ */ u2(
       "span",
       {
         class: "bnd" + (fid ? " on" : ""),
         onClick: pick,
-        title: fid ? f4 ? `Bound to ${f4.name} \u2014 click to change` : "Bound to a field that no longer exists" : `Bind to a field in ${scope.col.name}`,
+        title: fid ? shown2 ? `Bound to ${shown2.label} \u2014 click to change` : "Bound to a field that no longer exists" : `Bind to a field in ${scope.col.name}`,
         children: /* @__PURE__ */ u2(Icon, { name: "cms", size: 9 })
       }
     );
@@ -8461,6 +8501,7 @@ var PC_UI = (() => {
       L2.repaintCss();
     };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2("div", { class: "row4lab", "aria-hidden": "true", children: SIDES.map((s3) => /* @__PURE__ */ u2("span", { children: s3 }, s3)) }),
       /* @__PURE__ */ u2("div", { class: "row4", children: SIDES.map((s3, k3) => /* @__PURE__ */ u2(
         "input",
         {
@@ -8474,22 +8515,19 @@ var PC_UI = (() => {
         },
         s3
       )) }),
-      /* @__PURE__ */ u2("div", { class: "note", style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [
-        /* @__PURE__ */ u2("span", { children: "top \xB7 right \xB7 bottom \xB7 left" }),
-        /* @__PURE__ */ u2(
-          "select",
-          {
-            class: "ctl",
-            value: u4,
-            style: { width: "58px", padding: "2px 4px", fontSize: "10px" },
-            onChange: (e3) => {
-              push(e3.target.closest(".f"));
-              L2.endTx();
-            },
-            children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
-          }
-        )
-      ] })
+      /* @__PURE__ */ u2("div", { class: "row4u", children: /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: u4,
+          style: { width: "58px", padding: "2px 4px", fontSize: "10px" },
+          onChange: (e3) => {
+            push(e3.target.closest(".f"));
+            L2.endTx();
+          },
+          children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
+        }
+      ) })
     ] });
   }
   function useFilePicker(take, multiple = false) {
@@ -11586,6 +11624,10 @@ function cmsModal(colId) {
           <select class="ctl" data-ftype="${f.id}" style="width:132px;flex:0 0 132px;font-size:11.5px">
             ${FIELD_TYPES.map(([t, l]) => `<option value="${t}"${f.type === t ? ' selected' : ''}>${l}</option>`).join('')}
           </select>
+          ${f.type === 'ref' ? `<select class="ctl" data-fref="${f.id}" style="width:132px;flex:0 0 132px;font-size:11.5px" title="The collection this points into">
+            <option value="">— pick one —</option>
+            ${collections().filter(c => c.id !== col.id).map(c => `<option value="${esc(c.id)}"${c.id === f.ref ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}
+          </select>` : ''}
           <button class="iconbtn" data-fup="${f.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caret', 12)}</button>
           <button class="iconbtn" data-fdel="${f.id}" title="Delete field"${col.fields.length < 2 ? ' disabled' : ''}>${svg('trash', 13)}</button>
         </div>`).join('')}
@@ -11654,6 +11696,13 @@ function cmsModal(colId) {
     /* Redraws the canvas as well as the table: holding an item back changes what every
        Collection List shows and whether a detail page exists at all, so the page behind
        the dialog is stale the moment this is ticked. */
+    $$('[data-fref]', box).forEach(el => el.addEventListener('change', () => {
+      edit(() => {
+        const f = findField(findCollection(colId), el.dataset.fref);
+        if (f) f.ref = el.value;
+      });
+      draw(); render();
+    }));
     $$('[data-idraft]', box).forEach(el => el.addEventListener('change', () => {
       edit(() => itemDraft(colId, el.dataset.idraft, el.checked));
       draw(); render();
@@ -11690,6 +11739,16 @@ function cmsCell(col, it, f) {
       ${a ? `<img src="${a.url}" alt="">` : `<span>Choose…</span>`}</button>`;
   }
   if (f.type === 'bool') return `<input type="checkbox" data-v="${k}"${v ? ' checked' : ''}>`;
+  if (f.type === 'ref') {
+    const to = f.ref ? findCollection(f.ref) : null;
+    if (!to) return `<span class="rowmeta">Pick a collection for this field</span>`;
+    /* by title, because an item id is not something anyone recognises. Drafts are listed:
+       you relate a post to an author while the author is still being written. */
+    return `<select class="ctl" data-v="${k}" style="font-size:12px">
+        <option value=""${v ? '' : ' selected'}>— none —</option>
+        ${to.items.map(x => `<option value="${esc(x.id)}"${x.id === v ? ' selected' : ''}>${esc(itemTitle(to, x) || x.slug)}</option>`).join('')}
+      </select>`;
+  }
   if (f.type === 'rich') return `<textarea class="ctl" data-v="${k}" rows="2" style="font-size:12px">${esc(v)}</textarea>`;
   const type = f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text';
   return `<input class="ctl" type="${type}" data-v="${k}" value="${esc(v)}" style="font-size:12.5px">`;
@@ -12612,7 +12671,10 @@ function bindModal(rootId) {
         <td>${esc(s.label)}</td>
         <td><select class="ctl" data-b="${i}">
           <option value="">— not bound —</option>
-          ${col.fields.map(f => `<option value="${f.id}"${map[key(s)] === f.id ? ' selected' : ''}>${esc(f.name)} · ${f.type}</option>`).join('')}
+          ${/* `fieldPaths`, so a reference can be read through here as well as in the badge —
+                 a sheet that could only offer this collection's own fields would make the
+                 whole-card flow the one place a reference was useless */''}
+          ${fieldPaths(col).map(f => `<option value="${esc(f.path)}"${map[key(s)] === f.path ? ' selected' : ''}>${esc(f.label)} · ${f.type}</option>`).join('')}
         </select></td>
       </tr>`).join('')}</tbody></table>`;
     $$('#bsBody select').forEach(el => el.addEventListener('change', () => {

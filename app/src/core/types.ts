@@ -285,7 +285,7 @@ export interface Tokens {
 /* ---- content ---------------------------------------------------------- */
 
 export type FieldType =
-  | 'text' | 'rich' | 'image' | 'link' | 'number' | 'date' | 'option' | 'bool';
+  | 'text' | 'rich' | 'image' | 'link' | 'number' | 'date' | 'option' | 'bool' | 'ref';
 
 export interface Field {
   id: string;
@@ -293,6 +293,8 @@ export interface Field {
   type: FieldType;
   required?: 0 | 1;
   opts?: string;
+  /** for a `ref` field: the collection it points into. Its value is an item id there. */
+  ref?: string;
 }
 
 export interface Item {

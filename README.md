@@ -487,7 +487,12 @@ first, so the page never moves — local overrides still win on the way out.
 ## Content collections
 
 **CMS** in the tool rail holds your content types. A collection is a field schema plus the items
-that fill it — text, rich text, image, link, number, date, option, yes/no.
+that fill it — text, rich text, image, link, number, date, option, yes/no, and **reference**.
+
+A reference field points into another collection: give a Post an *Author* field pointing at
+Authors, and each post picks one by name. Anywhere you bind a value you can then read *through*
+it — the picker offers **Author → Name** beside the post's own fields — so a card can show the
+author's name and role without copying either.
 
 Three things you can do with one:
 

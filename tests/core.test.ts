@@ -349,6 +349,118 @@ const rx = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
    than the assertion it looks like */
 const stOf = (n: PcNode, k: 'hover' | 'focus') => must(must(n.st, 'st')[k], k);
 
+/* ---- reference fields --------------------------------------------------
+   A reference holds an item id in another collection, so displaying anything from it takes two
+   hops. Every binding before this was one, and a reference you cannot read through relates two
+   things without letting you say anything about the relation. */
+
+const refFixture = () => {
+  blank();
+  const authors = collectionAdd('Authors');
+  const AT = authors.fields[0].id;
+  C.fieldAdd(authors.id, 'Role', 'text');
+  const AR = authors.fields[1].id;
+  const ada = itemAdd(authors.id);
+  C.itemSet(authors.id, ada.id, AT, 'Ada Lovelace');
+  C.itemSet(authors.id, ada.id, AR, 'Mathematician');
+
+  const posts = collectionAdd('Posts');
+  const PT = posts.fields[0].id;
+  const ref = must(C.fieldAdd(posts.id, 'Author', 'ref'), 'ref field');
+  ref.ref = authors.id;
+  const post = itemAdd(posts.id);
+  C.itemSet(posts.id, post.id, PT, 'On craft');
+  C.itemSet(posts.id, post.id, ref.id, ada.id);
+  return { authors, posts, ada, post, AT, AR, PT, ref };
+};
+
+test('a dotted path follows a reference into the other collection', () => {
+  const { posts, post, ref, PT, AT, AR } = refFixture();
+  a.equal(C.fieldValue(posts, post, PT), 'On craft', 'one hop is what it always was');
+  a.equal(C.fieldValue(posts, post, `${ref.id}.${AT}`), 'Ada Lovelace');
+  a.equal(C.fieldValue(posts, post, `${ref.id}.${AR}`), 'Mathematician');
+  /* the raw value is the id, which is what the CMS stores and content.json carries */
+  a.match(C.fieldValue(posts, post, ref.id), /^n[a-z0-9]+$/);
+});
+
+test('a path that cannot be followed is empty, not a guess', () => {
+  const { posts, post, ref, PT, AT } = refFixture();
+  a.equal(C.fieldValue(posts, post, `${ref.id}.nope`), '', 'no such field on the target');
+  a.equal(C.fieldValue(posts, post, `${PT}.${AT}`), '', 'a text field is not a reference');
+  a.equal(C.fieldValue(posts, post, 'nope'), '');
+  a.equal(C.fieldValue(posts, post, ''), '');
+  /* a reference pointing at nothing, and one whose item has gone */
+  C.itemSet(posts.id, post.id, ref.id, '');
+  a.equal(C.fieldValue(posts, post, `${ref.id}.${AT}`), '');
+  C.itemSet(posts.id, post.id, ref.id, 'deleted-long-ago');
+  a.equal(C.fieldValue(posts, post, `${ref.id}.${AT}`), '');
+  /* and a field whose target collection has been deleted */
+  ref.ref = 'gone';
+  a.equal(C.fieldValue(posts, post, `${ref.id}.${AT}`), '');
+});
+
+test('a cycle stops rather than recursing until the stack gives out', () => {
+  /* a schema is allowed one: an author whose editor is the author */
+  blank();
+  const a1 = collectionAdd('A');
+  const b1 = collectionAdd('B');
+  const toB = must(C.fieldAdd(a1.id, 'To B', 'ref'), 'toB'); toB.ref = b1.id;
+  const toA = must(C.fieldAdd(b1.id, 'To A', 'ref'), 'toA'); toA.ref = a1.id;
+  const ia = itemAdd(a1.id), ib = itemAdd(b1.id);
+  C.itemSet(a1.id, ia.id, toB.id, ib.id);
+  C.itemSet(b1.id, ib.id, toA.id, ia.id);
+
+  const deep = Array.from({ length: 12 }, (_, k) => k % 2 ? toA.id : toB.id).join('.');
+  a.equal(C.fieldValue(a1, ia, deep), '', 'the depth cap answers rather than the stack');
+  a.equal(C.REF_DEPTH, 4);
+});
+
+test('the offered paths are the collection own fields plus one hop each', () => {
+  const { posts, ref, PT, AT, AR } = refFixture();
+  a.deepEqual(C.fieldPaths(posts).map(p => p.path),
+    [PT, ref.id, `${ref.id}.${AT}`, `${ref.id}.${AR}`]);
+  /* the label reads as the path rather than as a bare field name */
+  a.equal(must(C.fieldPaths(posts).find(p => p.path === `${ref.id}.${AT}`), 'path').label, 'Author → Title');
+  /* the second hop stops there: two hops through three references is a list nobody scans */
+  const authors = must(C.findCollection('authors'), 'authors');
+  const back = must(C.fieldAdd(authors.id, 'Editor', 'ref'), 'editor'); back.ref = posts.id;
+  a.equal(C.fieldPaths(posts).some(p => p.path.split('.').length > 2), false);
+  a.equal(C.fieldPaths(posts).some(p => p.path === `${ref.id}.${back.id}`), false, 'nor a ref of a ref');
+  a.deepEqual(C.fieldPaths(null), []);
+});
+
+test('a card bound through a reference renders and exports the target value', () => {
+  const { posts, ref, PT, AT } = refFixture();
+  const list = C.N('list', {});
+  list.src = posts.id;
+  const title = C.N('heading', { text: 'x', ts: 'subtitle' });
+  const who = C.N('heading', { text: 'y', ts: 'small' });
+  C.bindSet(title, 'text', PT);
+  C.bindSet(who, 'text', `${ref.id}.${AT}`);
+  list.children.push(C.N('column', {}, {}, [title, who]));
+  C.state.pages[0].tree.push(C.N('section', {}, {}, [list]));
+
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, />On craft</);
+  a.match(html, />Ada Lovelace</, 'read through the reference');
+  a.equal(/>y</.test(html), false, 'and the placeholder is gone');
+  /* the id is a key, not content — it must not reach the markup */
+  a.equal(html.includes(must(C.findItem(must(C.findCollection('authors'), 'authors'), C.collections()[0].items[0].id), 'ada').id), false);
+});
+
+test('a reference round-trips through content.json as the id it is', () => {
+  const { posts, post, ref } = refFixture();
+  const id = post.values[ref.id];
+  const file = JSON.parse(C.contentJson());
+  const pc = must(file.collections.find((c: any) => c.slug === posts.slug), 'posts');
+  a.equal(pc.items[0].values[ref.id], id, 'exported as the id');
+  a.equal(must(pc.fields.find((f: any) => f.id === ref.id), 'field').type, 'ref');
+
+  must(C.contentImport(file), 'report');
+  a.equal(must(C.findItem(must(C.findCollection(posts.id), 'posts'), post.id), 'post').values[ref.id], id,
+    'and still pointing at the same author after a round trip');
+});
+
 /* ---- interactive states -------------------------------------------------
    A second axis over the breakpoints. Hover existed on buttons alone as two custom properties,
    and `:focus` could not be authored at all — so a card could not lift, a link could not
