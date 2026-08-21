@@ -1,0 +1,13 @@
+Pagecraft
+Copyright 2026 Braudy Pedrosa
+
+This product is licensed under the Apache License, Version 2.0. See LICENSE.
+
+The CSS, JavaScript and HTML that Pagecraft writes into an exported page are licensed
+separately and more permissively, under MIT No Attribution. See LICENSE-OUTPUT. A site
+built with Pagecraft carries no obligation to this project.
+
+Pagecraft's own interface embeds the Manrope and DM Sans typefaces, which are licensed
+under the SIL Open Font License 1.1. Those licences are in brand/licenses/. Exported
+pages link webfonts rather than embedding them, so the OFL does not travel with a site
+you publish.

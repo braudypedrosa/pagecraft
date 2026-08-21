@@ -595,3 +595,15 @@ page needs the room — but everything it exports is responsive and works everyw
 Pagecraft's interface uses Manrope and DM Sans, both embedded in the file so it renders
 correctly offline. They are licensed under the SIL Open Font License; the full licences are
 in `brand/licenses/`.
+
+## Licence
+
+Pagecraft is licensed under the **Apache License 2.0** — use it, change it, ship it, sell
+what you build with it. The full text is in `LICENSE`.
+
+**Sites you export are yours outright.** The stylesheet and the small scripts Pagecraft
+writes into a page are licensed separately under **MIT No Attribution**, which means there
+is no notice to keep and no condition to meet — nothing in a published site points back
+here unless you want it to. See `LICENSE-OUTPUT`.
+
+Your content was never covered by either.
