@@ -367,6 +367,23 @@ Before this the canvas was simply whatever width was left over, so selecting an 
 which opens the inspector — could flip the canvas from your desktop layout to your mobile
 one without saying so.
 
+## Motion
+
+The Style tab ends with a **Motion** group: pick one of 27 scroll-triggered animations, and set
+its duration, delay, easing, and whether it runs every time or only the first. The element
+animates when a visitor scrolls it into view.
+
+The canvas holds still — an editor where everything fades as you scroll is unusable — so use
+**Preview** to watch it.
+
+A page with no animation on it ships no animation code at all. A page with one carries about
+34 KB of stylesheet and script, vendored into the file rather than fetched from a CDN, so a
+published site still makes no third-party request. Visitors who ask their system for less motion
+see every animated element in its finished state rather than a blank space.
+
+Powered by [bp-animate](https://github.com/braudypedrosa/bp-animate) (MIT), pinned to a commit
+in `vendor/bp-animate/`.
+
 ## Hover and focus
 
 The Style tab has a **Resting · Hover · Focus** row under the class picker, and the two pickers

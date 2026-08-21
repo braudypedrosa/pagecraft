@@ -306,6 +306,21 @@ npm run hooks           # one-time: post-commit repeats that warning
 `npm run build` regenerates `index.html`, `dist/artifact.html` and `dist/core.cjs` from
 `builder.html`. **Only edit `builder.html`** — the other three are generated.
 
+## Vendored code
+
+`vendor/bp-animate/` holds exactly what was downloaded, pinned by commit in `PINNED.json`, and
+`tools/vendor-anim.mjs` generates `app/src/core/anim.ts` from it. Re-runnable on purpose: the
+alternative is pasting 34 KB into a TypeScript file, which makes an upgrade an archaeology
+exercise and hides our edits from what upstream shipped.
+
+The one edit is a `pc-` prefix on the animation class names, because upstream ships them bare
+(`.fade-in`, `.spin`) and an exported page is somebody's whole site. **It has to be applied to
+both files**: the script carries its own map from class name to keyframe name, so prefixing only
+the stylesheet leaves it searching for a class that no longer exists — the element gets
+`bp-is-hidden` and never animates, silently. That is how the first version shipped. The script
+now asserts the map's keys and the stylesheet's classes are the same set, which is the check
+that would have caught it.
+
 ## Conventions that must hold
 
 1. **Core/UI split.** Pure logic goes between `/*<core>*/` … `/*</core>*/`; it is extracted

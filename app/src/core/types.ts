@@ -37,6 +37,19 @@ export type Decls = Record<string, string>;
 /** Per-breakpoint CSS on a node, a text style or a class. */
 export interface Css { d: Decls; t: Decls; m: Decls }
 
+/** Scroll-triggered motion on one element. Absent until an animation is chosen, so a project
+    carries nothing for the elements that do not move. */
+export interface Anim {
+  /** one of `ANIM_NAMES`; empty or absent means no animation */
+  name?: string;
+  /** CSS times, e.g. `0.6s`. Empty means the library's own default. */
+  dur?: string;
+  delay?: string;
+  ease?: string;
+  /** animate on the first scroll into view only, rather than every time */
+  once?: 0 | 1;
+}
+
 /** An interactive state, which is a second axis over the breakpoints. `hover` and
     `focus-visible` are the two worth authoring: one is what a pointer does and the other is
     what a keyboard does, and a rule for the second is the difference between a site that can
@@ -187,6 +200,8 @@ export interface Node {
   css: Css;
   /** hover and focus rules, each with its own three breakpoints */
   st?: States;
+  /** scroll-triggered motion */
+  anim?: Anim;
   /** per-breakpoint visibility; `true` means hidden at that breakpoint */
   hide: Partial<Record<Bp, boolean>>;
   /** ids of applied style classes, in no particular order */

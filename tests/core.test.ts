@@ -677,6 +677,104 @@ test('a page ships the rules when it is given them, and the Google link when it 
   a.ok(hosted.indexOf('@font-face') < hosted.indexOf('</head>'), 'in the head, before the body');
 });
 
+/* ---- scroll-triggered motion --------------------------------------------
+   bp-animate, vendored and pinned. Its contract is a class and four attributes, so nothing here
+   knows how an animation works — but three things about it are ours to guarantee: it ships only
+   where it is used, its class names cannot collide with a customer's own CSS, and a visitor who
+   asked for less motion is not left looking at a blank page. */
+
+test('an animation puts a prefixed class and its attributes on the element', () => {
+  blank();
+  const n = insert('section', null, 0);
+  a.equal(/bp-animate/.test(C.renderNode(n, { edit: false })), false, 'nothing until one is chosen');
+
+  n.anim = { name: 'fade-up', dur: '1.2s', delay: '0.2s', ease: 'ease-out', once: 1 };
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, new RegExp(`bp-animate ${C.ANIM_PFX}fade-up`));
+  a.match(html, /bp-duration="1\.2s"/);
+  a.match(html, /bp-delay="0\.2s"/);
+  a.match(html, /bp-easing="ease-out"/);
+  a.match(html, /bp-animation-once="true"/);
+
+  /* the timings are optional, and an empty one is absent rather than empty */
+  n.anim = { name: 'fade-up' };
+  const bare = C.renderNode(n, { edit: false });
+  a.match(bare, new RegExp(`${C.ANIM_PFX}fade-up`));
+  a.equal(/bp-duration|bp-delay|bp-easing|bp-animation-once/.test(bare), false);
+
+  /* and the canvas holds still: an editor where everything fades on scroll is unusable */
+  a.equal(/bp-animate/.test(C.renderNode(n, { edit: true })), false);
+});
+
+test('an animation this build does not have is not emitted', () => {
+  /* `ANIM_NAMES` is read out of the vendored stylesheet, so the list cannot claim one the CSS
+     has no rule for — and a project made by a later build cannot smuggle one in either */
+  blank();
+  const n = insert('section', null, 0);
+  n.anim = { name: 'teleport' };
+  a.equal(C.animOf(n), null);
+  a.equal(/bp-animate/.test(C.renderNode(n, { edit: false })), false);
+  n.anim = { name: '' };
+  a.equal(C.animOf(n), null);
+  a.ok(C.ANIM_NAMES.includes('fade-up') && C.ANIM_NAMES.length > 20);
+});
+
+test('the library ships on the pages that use it and no others', () => {
+  blank();
+  const pg = C.state.pages[0];
+  const n = insert('section', null, 0);
+
+  const plain = C.buildPage(pg);
+  a.equal(/bp-is-animating/.test(plain), false, 'no stylesheet');
+  a.equal(/IntersectionObserver/.test(plain), false, 'no script');
+
+  n.anim = { name: 'fade-up' };
+  const moving = C.buildPage(pg);
+  a.match(moving, /bp-is-animating/);
+  a.match(moving, /IntersectionObserver/);
+  a.ok(moving.length > plain.length + 20000, 'and it is a real payload, hence only on demand');
+
+  /* the header counts too, since it is on every page */
+  delete n.anim;
+  a.equal(C.animUsed([C.state.header, pg.tree, C.state.footer]), false);
+  const h = C.N('section', {}, {}, []);
+  h.anim = { name: 'fade-in' };
+  C.state.header.push(h);
+  a.equal(C.animUsed([C.state.header, pg.tree, C.state.footer]), true);
+});
+
+test('the animation classes are prefixed, so a customer CSS cannot collide', () => {
+  /* upstream ships `.fade-in`, `.bounce`, `.spin`, `.elastic` bare, and an exported page is
+     somebody's whole site — a `.fade-in` of their own in Global CSS would collide silently */
+  blank();
+  const n = insert('section', null, 0);
+  n.anim = { name: 'fade-in' };
+  const html = C.buildPage(C.state.pages[0]);
+  const sheet = must(html.match(/<style>([\s\S]*?)<\/style>/), 'stylesheet')[1];
+  a.match(sheet, /\.pc-fade-in\{/);
+  a.equal(/(^|[},])\.fade-in[.{]/.test(sheet), false, 'nothing bare survived the vendoring');
+  C.ANIM_NAMES.forEach(x => a.equal(new RegExp(`(^|[},])\\.${x}[.{]`).test(sheet), false, x));
+});
+
+test('reduced motion shows the element rather than freezing it hidden', () => {
+  /* the library starts its elements hidden, so neutralising the animation alone would leave a
+     blank page for a visitor who asked for less motion — the trailing block in baseCss flattens
+     durations and would have done exactly that */
+  blank();
+  const n = insert('section', null, 0);
+  n.anim = { name: 'fade-up' };
+  const html = C.buildPage(C.state.pages[0]);
+  const guard = must(html.match(/@media \(prefers-reduced-motion:reduce\)\{\.bp-animate[^}]*\}/), 'guard')[0];
+  a.match(guard, /opacity:1 !important/);
+  a.match(guard, /transform:none !important/);
+  a.match(guard, /animation:none !important/);
+});
+
+test('the vendored library is pinned, so what ships is known', () => {
+  a.match(C.ANIM_SHA, /^[0-9a-f]{40}$/);
+  a.equal(C.ANIM_PFX, 'pc-');
+});
+
 /* ---- the front page, and renaming with the links ------------------------
    A host serves `index.html` at the root, so the front page is not a flag — it is whichever
    page is slugged `index`. Setting one moves two slugs, and both have to carry their links. */

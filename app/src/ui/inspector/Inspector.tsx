@@ -190,6 +190,62 @@ function StatePick() {
   );
 }
 
+/* Scroll-triggered motion. Its own group rather than controls in a widget definition, because
+   every element gets it — the same reason the Advanced tab's list lives out here.
+
+   Not a `Control` either: the values are on `n.anim` rather than in `props` or CSS, and bending
+   `applyC` to write a fourth kind of destination to gain four rows of markup would have been
+   the wrong trade. The timing fields appear once an animation is chosen, for the reason the
+   collection filter's do. */
+function Motion({ n }: { n: PcNode }) {
+  const a = n.anim || {};
+  const set = (patch: Record<string, unknown>) => {
+    C.edit(() => {
+      const next = { ...(n.anim || {}), ...patch };
+      /* dropped outright when there is nothing left in it, so a project carries no empty blocks
+         and `animUsed` cannot be fooled by one */
+      if (!next.name) delete n.anim; else n.anim = next as typeof n.anim;
+    });
+    repaint('right');
+  };
+  const time = (k: 'dur' | 'delay', label: string, ph: string) => (
+    <div class="f"><label>{label}</label>
+      <input class="ctl" value={(a as Record<string, string>)[k] || ''} placeholder={ph}
+        onChange={e => set({ [k]: (e.target as HTMLInputElement).value.trim() })} /></div>
+  );
+
+  return (
+    <Panel title="Motion" n={n} gk={n.type + ':Motion'}>
+      <div class="f"><label>Animate into view</label>
+        <select class="ctl" value={a.name || ''}
+          onChange={e => set({ name: (e.target as HTMLSelectElement).value })}>
+          <option value="">— none —</option>
+          {C.ANIM_NAMES.map(x => (
+            <option key={x} value={x}>{x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
+          ))}
+        </select>
+        <div class="note">{a.name
+          ? 'Runs when this element scrolls into view. The canvas holds still — use Preview to watch it.'
+          : 'Nothing moves until you pick one, and a page with no animation ships no animation code.'}</div>
+      </div>
+      {a.name ? (
+        <>
+          {time('dur', 'Duration', '0.6s')}
+          {time('delay', 'Delay', '0s')}
+          <div class="f"><label>Easing</label>
+            <input class="ctl" value={a.ease || ''} placeholder="ease-in-out"
+              onChange={e => set({ ease: (e.target as HTMLInputElement).value.trim() })} /></div>
+          <label class="swrow" style={{ marginTop: 'var(--gap-1)' }}>
+            <input type="checkbox" checked={!!a.once}
+              onChange={e => set({ once: (e.target as HTMLInputElement).checked ? 1 : 0 })} />
+            <span>Only the first time it comes into view</span>
+          </label>
+        </>
+      ) : null}
+    </Panel>
+  );
+}
+
 /* The Advanced tab's fixed control list. It is not part of any widget definition
    because every widget gets the same one. */
 const advControls = (n: PcNode): Control[] => [
@@ -301,6 +357,9 @@ export function Inspector() {
             <StylingTarget n={n} />
             {style.length ? <Group title="Typography & fill" n={n} items={style} /> : null}
             {C.COMMON_STYLE.map(g => <Group key={g.g} title={g.g} n={n} items={g.items} />)}
+            {/* last, and only for a single selection: motion is one value per element and a
+                group that wrote to several at once would be lying about what it edits */}
+            {many ? null : <Motion n={n} />}
           </>
         ) : (
           <>

@@ -22,6 +22,9 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   ADV_SHARED: () => ADV_SHARED,
+  ANIM_NAMES: () => ANIM_NAMES,
+  ANIM_PFX: () => ANIM_PFX,
+  ANIM_SHA: () => ANIM_SHA,
   BASE: () => BASE,
   BIND_CTL: () => BIND_CTL,
   BOX: () => BOX,
@@ -73,6 +76,9 @@ __export(index_exports, {
   U: () => U,
   ZOOMS: () => ZOOMS,
   anchorsOf: () => anchorsOf,
+  animAttrs: () => animAttrs,
+  animOf: () => animOf,
+  animUsed: () => animUsed,
   applyBindings: () => applyBindings,
   applyC: () => applyC,
   applyCols: () => applyCols,
@@ -447,6 +453,670 @@ var ICON_PATHS = ICONS.reduce(
 );
 var ICON_NAMES = Object.keys(ICON_PATHS);
 var iconSvg = (name, attrs = "") => `<svg ${attrs} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name] || ICON_PATHS.check}</svg>`;
+
+// app/src/core/anim.ts
+var ANIM_SHA = "57ea9d90ca358f192ff17d705e82ef378afb8e0e";
+var ANIM_PFX = "pc-";
+var ANIM_NAMES = ["bounce", "bounce-down", "bounce-in", "bounce-up", "elastic", "fade-down", "fade-in", "fade-out", "fade-up", "flip-x", "flip-y", "rotate-in", "rotate-in-left", "rotate-in-right", "scale-down", "scale-up", "slide-down", "slide-fade-down", "slide-fade-left", "slide-fade-right", "slide-fade-up", "slide-left", "slide-right", "slide-up", "spin", "zoom-in", "zoom-out"];
+var ANIM_CSS = `@keyframes bpFadeIn{from{opacity:0}to{opacity:1}}@keyframes bpSlideLeft{from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:translateX(0)}}@keyframes bpSlideRight{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}@keyframes bpScaleUp{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}@keyframes bpFadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes bpFadeDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}@keyframes bpCard{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes bpDoneDemo{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes bpFadeOut{from{opacity:1}to{opacity:0}}@keyframes bpSlideUp{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:translateY(0)}}@keyframes bpSlideDown{from{opacity:0;transform:translateY(-50px)}to{opacity:1;transform:translateY(0)}}@keyframes bpScaleDown{from{opacity:0;transform:scale(1.2)}to{opacity:1;transform:scale(1)}}@keyframes bpZoomIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}@keyframes bpZoomOut{from{opacity:0;transform:scale(1.5)}to{opacity:1;transform:scale(1)}}@keyframes bpRotateIn{from{opacity:0;transform:rotate(-180deg)}to{opacity:1;transform:rotate(0deg)}}@keyframes bpRotateInLeft{from{opacity:0;transform:rotate(-90deg) translateX(-50px)}to{opacity:1;transform:rotate(0deg) translateX(0)}}@keyframes bpRotateInRight{from{opacity:0;transform:rotate(90deg) translateX(50px)}to{opacity:1;transform:rotate(0deg) translateX(0)}}@keyframes bpBounce{0%,20%,50%,80%,100%{opacity:1;transform:translateY(0)}40%{opacity:1;transform:translateY(-30px)}60%{opacity:1;transform:translateY(-15px)}}@keyframes bpBounceIn{0%{opacity:0;transform:scale(0.3)}50%{opacity:1;transform:scale(1.05)}70%{transform:scale(0.9)}100%{opacity:1;transform:scale(1)}}@keyframes bpBounceUp{0%{opacity:0;transform:translateY(50px)}60%{opacity:1;transform:translateY(-10px)}80%{transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}@keyframes bpBounceDown{0%{opacity:0;transform:translateY(-50px)}60%{opacity:1;transform:translateY(10px)}80%{transform:translateY(-5px)}100%{opacity:1;transform:translateY(0)}}@keyframes bpFlipX{from{opacity:0;transform:perspective(400px) rotateX(90deg)}to{opacity:1;transform:perspective(400px) rotateX(0deg)}}@keyframes bpFlipY{from{opacity:0;transform:perspective(400px) rotateY(90deg)}to{opacity:1;transform:perspective(400px) rotateY(0deg)}}@keyframes bpSpin{from{opacity:0;transform:rotate(0deg) scale(0.8)}to{opacity:1;transform:rotate(360deg) scale(1)}}@keyframes bpElastic{0%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1.1)}70%{transform:scale(0.95)}100%{opacity:1;transform:scale(1)}}@keyframes bpSlideFadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}@keyframes bpSlideFadeDown{from{opacity:0;transform:translateY(-40px)}to{opacity:1;transform:translateY(0)}}@keyframes bpSlideFadeLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}@keyframes bpSlideFadeRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}.pc-fade-in{opacity:0}.pc-fade-in.bp-is-animating{animation:bpFadeIn .6s ease-in-out forwards}.pc-slide-left{opacity:0;transform:translateX(-50px)}.pc-slide-left.bp-is-animating{animation:bpSlideLeft .6s ease-in-out forwards}.pc-slide-right{opacity:0;transform:translateX(50px)}.pc-slide-right.bp-is-animating{animation:bpSlideRight .6s ease-in-out forwards}.pc-scale-up{opacity:0;transform:scale(0.8)}.pc-scale-up.bp-is-animating{animation:bpScaleUp .6s ease-in-out forwards}.pc-fade-up{opacity:0;transform:translateY(30px)}.pc-fade-up.bp-is-animating{animation:bpFadeUp .6s ease-in-out forwards}.pc-fade-down{opacity:0;transform:translateY(-30px)}.pc-fade-down.bp-is-animating{animation:bpFadeDown .6s ease-in-out forwards}.pc-fade-out{opacity:1}.pc-fade-out.bp-is-animating{animation:bpFadeOut .6s ease-in-out forwards}.pc-slide-up{opacity:0;transform:translateY(50px)}.pc-slide-up.bp-is-animating{animation:bpSlideUp .6s ease-in-out forwards}.pc-slide-down{opacity:0;transform:translateY(-50px)}.pc-slide-down.bp-is-animating{animation:bpSlideDown .6s ease-in-out forwards}.pc-scale-down{opacity:0;transform:scale(1.2)}.pc-scale-down.bp-is-animating{animation:bpScaleDown .6s ease-in-out forwards}.pc-zoom-in{opacity:0;transform:scale(0.5)}.pc-zoom-in.bp-is-animating{animation:bpZoomIn .6s ease-in-out forwards}.pc-zoom-out{opacity:0;transform:scale(1.5)}.pc-zoom-out.bp-is-animating{animation:bpZoomOut .6s ease-in-out forwards}.pc-rotate-in{opacity:0;transform:rotate(-180deg)}.pc-rotate-in.bp-is-animating{animation:bpRotateIn .8s ease-in-out forwards}.pc-rotate-in-left{opacity:0;transform:rotate(-90deg) translateX(-50px)}.pc-rotate-in-left.bp-is-animating{animation:bpRotateInLeft .8s ease-in-out forwards}.pc-rotate-in-right{opacity:0;transform:rotate(90deg) translateX(50px)}.pc-rotate-in-right.bp-is-animating{animation:bpRotateInRight .8s ease-in-out forwards}.pc-bounce{opacity:0}.pc-bounce.bp-is-animating{animation:bpBounce 1s ease-in-out forwards}.pc-bounce-in{opacity:0;transform:scale(0.3)}.pc-bounce-in.bp-is-animating{animation:bpBounceIn .8s ease-in-out forwards}.pc-bounce-up{opacity:0;transform:translateY(50px)}.pc-bounce-up.bp-is-animating{animation:bpBounceUp .8s ease-in-out forwards}.pc-bounce-down{opacity:0;transform:translateY(-50px)}.pc-bounce-down.bp-is-animating{animation:bpBounceDown .8s ease-in-out forwards}.pc-flip-x{opacity:0;transform:perspective(400px) rotateX(90deg)}.pc-flip-x.bp-is-animating{animation:bpFlipX .8s ease-in-out forwards}.pc-flip-y{opacity:0;transform:perspective(400px) rotateY(90deg)}.pc-flip-y.bp-is-animating{animation:bpFlipY .8s ease-in-out forwards}.pc-spin{opacity:0;transform:rotate(0deg) scale(0.8)}.pc-spin.bp-is-animating{animation:bpSpin .8s ease-in-out forwards}.pc-elastic{opacity:0;transform:scale(0)}.pc-elastic.bp-is-animating{animation:bpElastic .8s ease-in-out forwards}.pc-slide-fade-up{opacity:0;transform:translateY(40px)}.pc-slide-fade-up.bp-is-animating{animation:bpSlideFadeUp .6s ease-in-out forwards}.pc-slide-fade-down{opacity:0;transform:translateY(-40px)}.pc-slide-fade-down.bp-is-animating{animation:bpSlideFadeDown .6s ease-in-out forwards}.pc-slide-fade-left{opacity:0;transform:translateX(-40px)}.pc-slide-fade-left.bp-is-animating{animation:bpSlideFadeLeft .6s ease-in-out forwards}.pc-slide-fade-right{opacity:0;transform:translateX(40px)}.pc-slide-fade-right.bp-is-animating{animation:bpSlideFadeRight .6s ease-in-out forwards}
+`;
+var ANIM_JS = `/**
+ * BP Animate Library
+ * 
+ * A lightweight animation library that adds animation triggers when elements
+ * come into view. The base class "bp-animate" doesn't start animations itself,
+ * but triggers the "bp-is-animating" class when elements enter the viewport.
+ * When the animation completes, it adds the "bp-is-done-animating" class.
+ * 
+ * @version 1.2.2
+ */
+
+(function() {
+    'use strict';
+
+    /**
+     * Get animation attributes from element
+     * 
+     * Reads custom animation attributes (bp-duration, bp-delay, bp-easing)
+     * from the element. Returns null if no custom attributes are provided.
+     * 
+     * @param {HTMLElement} element - The element to read attributes from
+     * @returns {Object|null} Object containing duration, delay, and easing values, or null
+     * @since 1.0.0
+     */
+    function getAnimationAttributes(element) {
+        // Check if any custom attributes are provided
+        const hasDuration = element.hasAttribute('bp-duration');
+        const hasDelay = element.hasAttribute('bp-delay');
+        const hasEasing = element.hasAttribute('bp-easing');
+        
+        // If no custom attributes, return null to use CSS defaults
+        if (!hasDuration && !hasDelay && !hasEasing) {
+            return null;
+        }
+        
+        // Get duration (default: 0.6s if attribute exists but is empty)
+        const duration = hasDuration ? (element.getAttribute('bp-duration') || '0.6s') : '0.6s';
+        
+        // Get delay (default: 0s if attribute exists but is empty)
+        const delay = hasDelay ? (element.getAttribute('bp-delay') || '0s') : '0s';
+        
+        // Get easing (default: ease-in-out if attribute exists but is empty)
+        const easing = hasEasing ? (element.getAttribute('bp-easing') || 'ease-in-out') : 'ease-in-out';
+        
+        return {
+            duration: duration,
+            delay: delay,
+            easing: easing
+        };
+    }
+
+    /**
+     * Get keyframe name from animation class
+     * 
+     * Maps animation class names to their corresponding keyframe names.
+     * 
+     * @param {HTMLElement} element - The element to check for animation classes
+     * @returns {string|null} The keyframe name or null if no animation class found
+     * @since 1.0.0
+     */
+    function getKeyframeName(element) {
+        // Map of animation classes to their keyframe names
+        const animationMap = {
+            'pc-fade-in': 'bpFadeIn',
+            'pc-fade-out': 'bpFadeOut',
+            'pc-fade-up': 'bpFadeUp',
+            'pc-fade-down': 'bpFadeDown',
+            'pc-slide-left': 'bpSlideLeft',
+            'pc-slide-right': 'bpSlideRight',
+            'pc-slide-up': 'bpSlideUp',
+            'pc-slide-down': 'bpSlideDown',
+            'pc-scale-up': 'bpScaleUp',
+            'pc-scale-down': 'bpScaleDown',
+            'pc-zoom-in': 'bpZoomIn',
+            'pc-zoom-out': 'bpZoomOut',
+            'pc-rotate-in': 'bpRotateIn',
+            'pc-rotate-in-left': 'bpRotateInLeft',
+            'pc-rotate-in-right': 'bpRotateInRight',
+            'pc-bounce': 'bpBounce',
+            'pc-bounce-in': 'bpBounceIn',
+            'pc-bounce-up': 'bpBounceUp',
+            'pc-bounce-down': 'bpBounceDown',
+            'pc-flip-x': 'bpFlipX',
+            'pc-flip-y': 'bpFlipY',
+            'pc-spin': 'bpSpin',
+            'pc-elastic': 'bpElastic',
+            'pc-slide-fade-up': 'bpSlideFadeUp',
+            'pc-slide-fade-down': 'bpSlideFadeDown',
+            'pc-slide-fade-left': 'bpSlideFadeLeft',
+            'pc-slide-fade-right': 'bpSlideFadeRight',
+            'pc-card': 'bpCard',
+            'pc-done-demo': 'bpDoneDemo'
+        };
+
+        // Check each class on the element to find a matching animation class
+        for (let className of element.classList) {
+            if (animationMap.hasOwnProperty(className)) {
+                return animationMap[className];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Apply animation styles to element
+     * 
+     * Applies custom duration, delay, and easing to the element
+     * by setting the animation property directly via inline styles.
+     * 
+     * @param {HTMLElement} element - The element to apply styles to
+     * @param {Object} attributes - Animation attributes object
+     * @since 1.0.0
+     */
+    function applyAnimationStyles(element, attributes) {
+        // Get the keyframe name for this element's animation class
+        const keyframeName = getKeyframeName(element);
+        
+        if (keyframeName) {
+            // Build the animation property: name duration easing delay fill-mode
+            // Using 'forwards' to keep the final state after animation completes
+            const animationValue = \`\${keyframeName} \${attributes.duration} \${attributes.easing} \${attributes.delay} forwards\`;
+            element.style.animation = animationValue;
+        }
+    }
+
+    /**
+     * Check if element is actually visible
+     * 
+     * Checks if an element is truly visible, not just in the viewport.
+     * An element is considered visible if:
+     * - It has dimensions (width and height > 0)
+     * - It's not display: none
+     * - It's not visibility: hidden
+     * - It has opacity > 0 OR has animation classes AND is not intentionally hidden
+     * 
+     * This prevents triggering animations on elements that are intentionally hidden
+     * via opacity: 0 but are not part of an animation sequence.
+     * 
+     * @param {HTMLElement} element - The element to check
+     * @returns {boolean} True if element is visible, false otherwise
+     * @since 1.0.0
+     */
+    function isElementVisible(element) {
+        // Get computed styles
+        const style = window.getComputedStyle(element);
+        
+        // Check if element is hidden via display
+        if (style.display === 'none') {
+            return false;
+        }
+        
+        // Check if element is hidden via visibility
+        if (style.visibility === 'hidden') {
+            return false;
+        }
+        
+        // Check if element has dimensions
+        const rect = element.getBoundingClientRect();
+        
+        // Check if element has a valid animation class (predefined or custom)
+        // Custom animation classes often start with "animation-" prefix
+        const hasAnimationClass = getKeyframeName(element) !== null;
+        const hasCustomAnimationClass = Array.from(element.classList).some(className => 
+            className.startsWith('animation-') || 
+            className.includes('animate') ||
+            className.includes('grow') ||
+            className.includes('slide') ||
+            className.includes('fade') ||
+            className.includes('scale') ||
+            className.includes('rotate') ||
+            className.includes('bounce') ||
+            className.includes('flip')
+        );
+        
+        // If element has zero dimensions, check if it has an animation class
+        // Animations like growWidth, scale-up, etc. may intentionally start from zero
+        if (rect.width === 0 && rect.height === 0) {
+            // Allow zero dimensions if element has an animation class (predefined or custom)
+            // The animation will handle making it visible
+            if (hasAnimationClass || hasCustomAnimationClass) {
+                // Element has animation class and zero dimensions - this is likely intentional
+                // (e.g., animation-growWidth starts from width: 0)
+                // Continue with visibility check
+            } else {
+                // No animation class and zero dimensions - element is truly hidden
+                return false;
+            }
+        }
+        
+        // Check opacity
+        const opacity = parseFloat(style.opacity);
+        
+        // If opacity is 0, we need to be more careful
+        if (opacity === 0) {
+            // Check if element has a valid animation class
+            const hasAnimationClass = getKeyframeName(element) !== null;
+            
+            // If it doesn't have a valid animation class, it's intentionally hidden
+            if (!hasAnimationClass) {
+                return false;
+            }
+            
+            // Element has opacity 0 and an animation class
+            // Check if opacity is set via inline style (intentional hiding)
+            const inlineOpacity = element.style.opacity;
+            if (inlineOpacity === '0' || inlineOpacity === '0px') {
+                // Opacity is explicitly set to 0 via inline style - this is intentional hiding
+                // Even if it has an animation class, don't trigger if opacity is explicitly 0
+                return false;
+            }
+            
+            // Check if element has position fixed/absolute
+            // Fixed/absolute elements with opacity 0 are often intentionally hidden (like menus)
+            // Only trigger if explicitly allowed via data attribute
+            const position = style.position;
+            if ((position === 'fixed' || position === 'absolute') && opacity === 0) {
+                // For fixed/absolute elements with opacity 0, require explicit permission
+                // This prevents menus and other hidden fixed elements from auto-triggering
+                if (!element.hasAttribute('data-bp-allow-hidden-animate')) {
+                    return false;
+                }
+            }
+            
+            // Element has opacity 0 but has a valid animation class and passes other checks
+            // Opacity 0 is the initial state for fade-in, slide, etc. animations
+            return true;
+        }
+        
+        // Element has opacity > 0, so it's visible
+        return true;
+    }
+
+    /**
+     * Handle animation completion
+     * 
+     * This function listens for transitionend and animationend events
+     * to detect when CSS animations/transitions are complete.
+     * When complete, it adds the "bp-is-done-animating" class.
+     * 
+     * @param {HTMLElement} element - The element that is animating
+     * @since 1.0.0
+     */
+    function handleAnimationComplete(element) {
+        // Track if we've already added the done class for this animation cycle
+        // This prevents multiple triggers if there are multiple transitions
+        let isDone = false;
+
+        /**
+         * Function to add the done class (only once per animation cycle)
+         */
+        function addDoneClass() {
+            if (!isDone) {
+                isDone = true;
+                element.classList.add('bp-is-done-animating');
+            }
+        }
+
+        // Listen for CSS transition end events
+        // This fires when any CSS transition property finishes animating
+        element.addEventListener('transitionend', function(event) {
+            // Only handle transitions on the element itself, not child elements
+            if (event.target === element) {
+                addDoneClass();
+            }
+        }, { once: true }); // { once: true } removes listener after first trigger
+
+        // Listen for CSS animation end events
+        // This fires when any CSS animation finishes
+        element.addEventListener('animationend', function(event) {
+            // Only handle animations on the element itself, not child elements
+            if (event.target === element) {
+                addDoneClass();
+            }
+        }, { once: true }); // { once: true } removes listener after first trigger
+    }
+
+    /**
+     * Initialize the BP Animate library
+     * 
+     * This function sets up an Intersection Observer to watch for elements
+     * with the "bp-animate" class. When these elements come into view,
+     * it adds the "bp-is-animating" class to trigger animations.
+     * When animations complete, it adds the "bp-is-done-animating" class.
+     * 
+     * @since 1.0.0
+     */
+    function initBPAnimate() {
+        // Get all elements with the bp-animate class
+        const animateElements = document.querySelectorAll('.bp-animate');
+
+        // If no elements found, exit early
+        if (animateElements.length === 0) {
+            return;
+        }
+
+        /**
+         * Intersection Observer options
+         * 
+         * root: null means we're observing relative to the viewport
+         * rootMargin: '0px' means no offset (you can adjust this to trigger earlier/later)
+         * threshold: 0 means trigger when any part of the element enters the viewport
+         */
+        const observerOptions = {
+            root: null,           // Viewport is the root
+            rootMargin: '0px',    // No margin offset
+            threshold: 0          // Trigger when element is 0% visible
+        };
+
+        /**
+         * Callback function that runs when observed elements intersect with the viewport
+         * 
+         * @param {IntersectionObserverEntry[]} entries - Array of intersection entries
+         * @param {IntersectionObserver} observer - The observer instance
+         */
+        function handleIntersection(entries, observer) {
+            entries.forEach(entry => {
+                // Check if the element is currently intersecting (visible in viewport)
+                if (entry.isIntersecting) {
+                    const element = entry.target;
+                    
+                    // Check if element is actually visible
+                    const isVisible = isElementVisible(element);
+                    
+                    if (isVisible) {
+                        // Element is in viewport AND actually visible
+                        // Remove hidden class if it exists
+                        element.classList.remove('bp-is-hidden');
+                        
+                        // Always add bp-is-visible class when element is in viewport and visible
+                        // This works for elements with or without animation classes
+                        element.classList.add('bp-is-visible');
+                        
+                        // Check if element has an animation class
+                        // Only trigger animation if element has a valid animation class
+                        const hasAnimationClass = getKeyframeName(element) !== null;
+                        
+                        if (hasAnimationClass) {
+                            // Get animation attributes (duration, delay, easing)
+                            // Returns null if no custom attributes are provided
+                            const attributes = getAnimationAttributes(element);
+                            
+                            // Apply animation styles only if custom attributes are provided
+                            if (attributes !== null) {
+                                applyAnimationStyles(element, attributes);
+                            }
+                            
+                            // Remove done class if it exists (for re-animations)
+                            element.classList.remove('bp-is-done-animating');
+                            
+                            // Add the bp-is-animating class to trigger the animation
+                            element.classList.add('bp-is-animating');
+                            
+                            // Set up listeners to detect when animation completes
+                            handleAnimationComplete(element);
+                            
+                            // Check if animation should only run once
+                            const animationOnce = element.getAttribute('bp-animation-once');
+                            if (animationOnce === 'true') {
+                                // Unobserve the element to prevent re-triggering
+                                observer.unobserve(element);
+                            }
+                        }
+                    } else {
+                        // Element is in viewport but NOT actually visible (hidden via CSS)
+                        // Remove visible class if it exists
+                        element.classList.remove('bp-is-visible');
+                        
+                        // Add bp-is-hidden class to indicate element is in viewport but hidden
+                        element.classList.add('bp-is-hidden');
+                    }
+                } else {
+                    const element = entry.target;
+                    // Remove all state classes when element leaves viewport
+                    element.classList.remove('bp-is-animating');
+                    element.classList.remove('bp-is-visible');
+                    element.classList.remove('bp-is-hidden');
+                    // Clear inline animation style when element leaves view
+                    // This allows CSS defaults to work if element re-enters without custom attributes
+                    element.style.animation = '';
+                }
+            });
+        }
+
+        // Create a new Intersection Observer instance
+        const observer = new IntersectionObserver(handleIntersection, observerOptions);
+
+        // Start observing each element with the bp-animate class
+        animateElements.forEach(element => {
+            observer.observe(element);
+        });
+        
+        // Store observer globally so we can add new elements to it later
+        window._bpAnimateObserver = observer;
+        
+        return observer;
+    }
+    
+    /**
+     * Observe a new element that was dynamically added to the DOM
+     * 
+     * This function adds a new element to the Intersection Observer
+     * and sets up visibility change watching for dynamically added elements.
+     * 
+     * @param {HTMLElement} element - The element to observe
+     * @since 1.2.1
+     */
+    function observeNewElement(element) {
+        // Check if element has bp-animate class
+        if (!element.classList.contains('bp-animate')) {
+            return;
+        }
+        
+        // Check if element is already being observed
+        if (element.dataset.bpObserved === 'true') {
+            return;
+        }
+        
+        // Mark as observed
+        element.dataset.bpObserved = 'true';
+        
+        // Get or create the observer
+        let observer = window._bpAnimateObserver;
+        
+        if (!observer) {
+            // Observer doesn't exist yet, initialize it
+            initBPAnimate();
+            observer = window._bpAnimateObserver;
+        }
+        
+        if (observer) {
+            // Add element to Intersection Observer
+            observer.observe(element);
+            
+            // Set up visibility change watching
+            watchForVisibilityChanges([element]);
+            
+            // If element is already in viewport, trigger check immediately
+            const rect = element.getBoundingClientRect();
+            const isInViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) &&
+                                rect.bottom > 0 &&
+                                rect.left < (window.innerWidth || document.documentElement.clientWidth) &&
+                                rect.right > 0;
+            
+            if (isInViewport) {
+                // Small delay to ensure CSS is applied
+                setTimeout(function() {
+                    triggerAnimation(element);
+                }, 50);
+            }
+        }
+    }
+    
+    /**
+     * Watch for dynamically added elements with bp-animate class
+     * 
+     * Sets up a MutationObserver to watch the entire document for new elements
+     * being added that have the bp-animate class.
+     * 
+     * @since 1.2.1
+     */
+    function watchForNewElements() {
+        // Create a MutationObserver to watch for new elements
+        const domObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                // Check for newly added nodes
+                mutation.addedNodes.forEach(function(node) {
+                    // Only process element nodes
+                    if (node.nodeType === 1) { // Element node
+                        // Check if the node itself has bp-animate class
+                        if (node.classList && node.classList.contains('bp-animate')) {
+                            observeNewElement(node);
+                        }
+                        
+                        // Also check for bp-animate elements within the added node
+                        const bpAnimateElements = node.querySelectorAll && node.querySelectorAll('.bp-animate');
+                        if (bpAnimateElements) {
+                            bpAnimateElements.forEach(function(element) {
+                                observeNewElement(element);
+                            });
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Start observing the document body for child additions
+        domObserver.observe(document.body, {
+            childList: true,    // Watch for added/removed children
+            subtree: true       // Watch all descendants, not just direct children
+        });
+        
+        // Store observer so it persists
+        window._bpAnimateDOMObserver = domObserver;
+    }
+
+    /**
+     * Manually trigger animation for an element
+     * 
+     * This function allows you to manually trigger an animation on an element,
+     * useful when elements become visible dynamically via class or CSS changes.
+     * 
+     * @param {HTMLElement|string} element - The element or selector to trigger animation on
+     * @returns {boolean} True if animation was triggered, false otherwise
+     * @since 1.1.0
+     */
+    function triggerAnimation(element) {
+        // Get element if selector string provided
+        if (typeof element === 'string') {
+            element = document.querySelector(element);
+        }
+        
+        // Check if element exists and has bp-animate class
+        if (!element || !element.classList.contains('bp-animate')) {
+            return false;
+        }
+        
+        // Check if element is actually visible now
+        const isVisible = isElementVisible(element);
+        
+        if (isVisible) {
+            // Element is visible - add bp-is-visible, remove bp-is-hidden
+            element.classList.remove('bp-is-hidden');
+            element.classList.add('bp-is-visible');
+            
+            // Check if element has an animation class
+            const hasAnimationClass = getKeyframeName(element) !== null;
+            
+            if (hasAnimationClass) {
+                // Get animation attributes
+                const attributes = getAnimationAttributes(element);
+                
+                // Apply animation styles if custom attributes provided
+                if (attributes !== null) {
+                    applyAnimationStyles(element, attributes);
+                }
+                
+                // Remove done class if it exists (for re-animations)
+                element.classList.remove('bp-is-done-animating');
+                
+                // Add the bp-is-animating class to trigger the animation
+                element.classList.add('bp-is-animating');
+                
+                // Set up listeners to detect when animation completes
+                handleAnimationComplete(element);
+            }
+            
+            return true;
+        } else {
+            // Element is in viewport but not visible - add bp-is-hidden
+            element.classList.remove('bp-is-visible');
+            element.classList.add('bp-is-hidden');
+            return false;
+        }
+    }
+
+    /**
+     * Watch for dynamic visibility changes
+     * 
+     * Sets up a MutationObserver to watch for class and style changes
+     * that might make elements visible, and triggers animations accordingly.
+     * 
+     * @param {HTMLElement[]} elements - Array of elements to watch
+     * @since 1.1.0
+     */
+    function watchForVisibilityChanges(elements) {
+        elements.forEach(element => {
+            // Only watch elements that haven't been observed yet
+            if (element.dataset.bpWatched === 'true') {
+                return;
+            }
+            
+            element.dataset.bpWatched = 'true';
+            
+            // Watch for class and style attribute changes
+            const observer = new MutationObserver(function(mutations) {
+                let shouldCheck = false;
+                
+                mutations.forEach(function(mutation) {
+                    // Check if class or style changed
+                    if (mutation.type === 'attributes' && 
+                        (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+                        shouldCheck = true;
+                    }
+                });
+                
+                // If relevant changes occurred, check if element is now visible
+                if (shouldCheck) {
+                    // Small delay to allow CSS to update
+                    setTimeout(function() {
+                        // Only trigger if element is not already animating
+                        if (!element.classList.contains('bp-is-animating') && 
+                            !element.classList.contains('bp-is-done-animating')) {
+                            
+                            // Check if element is now visible
+                            if (isElementVisible(element)) {
+                                // Check if element is in viewport
+                                const rect = element.getBoundingClientRect();
+                                const isInViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) &&
+                                                    rect.bottom > 0 &&
+                                                    rect.left < (window.innerWidth || document.documentElement.clientWidth) &&
+                                                    rect.right > 0;
+                                
+                                if (isInViewport) {
+                                    // Trigger animation/visibility detection
+                                    // This will add bp-is-visible or bp-is-hidden as appropriate
+                                    triggerAnimation(element);
+                                }
+                            }
+                        }
+                    }, 50);
+                }
+            });
+            
+            observer.observe(element, {
+                attributes: true,
+                attributeFilter: ['class', 'style']
+            });
+        });
+    }
+
+    /**
+     * Initialize when DOM is ready
+     * 
+     * We wait for the DOM to be fully loaded before initializing.
+     * This ensures all elements with .bp-animate are available.
+     */
+    if (document.readyState === 'loading') {
+        // DOM is still loading, wait for DOMContentLoaded event
+        document.addEventListener('DOMContentLoaded', function() {
+            initBPAnimate();
+            // Watch for dynamic visibility changes
+            const animateElements = document.querySelectorAll('.bp-animate');
+            watchForVisibilityChanges(Array.from(animateElements));
+            // Watch for dynamically added elements
+            watchForNewElements();
+        });
+    } else {
+        // DOM is already loaded, initialize immediately
+        initBPAnimate();
+        // Watch for dynamic visibility changes
+        const animateElements = document.querySelectorAll('.bp-animate');
+        watchForVisibilityChanges(Array.from(animateElements));
+        // Watch for dynamically added elements
+        watchForNewElements();
+    }
+
+    // Expose public API
+    window.bpAnimate = {
+        trigger: triggerAnimation,
+        init: initBPAnimate,
+        observe: observeNewElement
+    };
+
+})();
+
+`;
 
 // app/src/core/index.ts
 var _seq = 0;
@@ -2913,6 +3583,27 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+var animOf = (n) => {
+  const a = n.anim;
+  return a && a.name && ANIM_NAMES.includes(a.name) ? a : null;
+};
+function animAttrs(n) {
+  const a = animOf(n);
+  if (!a) return { cls: "", at: "" };
+  const bit = (k, v) => v ? ` ${k}="${esc(v)}"` : "";
+  return {
+    cls: ` bp-animate ${ANIM_PFX}${a.name}`,
+    at: bit("bp-duration", a.dur) + bit("bp-delay", a.delay) + bit("bp-easing", a.ease) + (a.once ? ' bp-animation-once="true"' : "")
+  };
+}
+var animUsed = (lists) => {
+  let hit = false;
+  lists.forEach((l) => eachNode(l, (n) => {
+    if (!hit && animOf(n)) hit = true;
+  }));
+  return hit;
+};
+var ANIM_CALM = `@media (prefers-reduced-motion:reduce){.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}`;
 function relink(from, to) {
   if (!from || from === to) return 0;
   let n = 0;
@@ -5144,10 +5835,11 @@ function renderNode(n, o) {
   if (!d) return "";
   const ts = n.props.ts && findStyle(n.props.ts) ? " ts-" + n.props.ts : "";
   const managed = nodeClasses(n).map((c) => " c-" + c.id).join("");
-  const cx = (c) => `class="${c} ${nodeClass(n)}${ts}${managed}${n.adv && n.adv.cls ? " " + esc(n.adv.cls) : ""}"`;
+  const anim = o.edit ? { cls: "", at: "" } : animAttrs(n);
+  const cx = (c) => `class="${c} ${nodeClass(n)}${ts}${managed}${anim.cls}${n.adv && n.adv.cls ? " " + esc(n.adv.cls) : ""}"`;
   const rep = o.repeat && o.item ? "-" + o.item.slug : "";
   const domId = o.edit ? o.repIndex ? n.id + rep : n.id : esc(domIdOf(n) + rep);
-  const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? " data-sel" : ""}` : ""}`;
+  const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? " data-sel" : ""}` : ""}${anim.at}`;
   const sc = n.src ? findCollection(n.src) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
   const kids = n.type === "list" ? "" : (n.children || []).map((c) => renderNode(c, o2)).join("");
@@ -5451,6 +6143,7 @@ function buildPage(pg2, ctx = {}) {
     pg: pg2
   };
   const css = treeCss([state.header, pg2.tree, state.footer], false);
+  const moves = animUsed([state.header, pg2.tree, state.footer]);
   const body = renderList(state.header, o) + renderList(pg2.tree, o) + renderList(state.footer, o);
   const title = pg2.title || `${pg2.name} \u2014 ${m.name}`;
   const base = String(m.baseUrl || "").replace(/\/+$/, "");
@@ -5476,19 +6169,27 @@ ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">
 <meta name="twitter:card" content="summary_large_image">
 ` : ""}${jsonLd(pg2, ctx)}<style>
-${tidy(css)}
+${tidy(css)}${moves ? `
+${ANIM_CSS}
+${ANIM_CALM}` : ""}
 </style>
 ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${m.headHtml || ""}${pg2.headHtml || ""}
 </head>
 <body>
 ${body}
-${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}</body>
+${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
+${ANIM_JS}
+</script>
+` : ""}</body>
 </html>
 `;
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   ADV_SHARED,
+  ANIM_NAMES,
+  ANIM_PFX,
+  ANIM_SHA,
   BASE,
   BIND_CTL,
   BOX,
@@ -5540,6 +6241,9 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   U,
   ZOOMS,
   anchorsOf,
+  animAttrs,
+  animOf,
+  animUsed,
   applyBindings,
   applyC,
   applyCols,

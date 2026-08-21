@@ -16,11 +16,12 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  StateKey, States,
+  StateKey, States, Anim,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons';
+import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
@@ -2657,6 +2658,45 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   return o.rel + v;
 }
 
+/* ---- scroll-triggered motion ------------------------------------------
+   bp-animate, vendored. The library's contract is a class and four attributes, which is why it
+   fits: a widget already has somewhere to put classes and attributes, and nothing here needs to
+   know how an animation works.
+
+   It ships only on a page that uses one, the way `NAV_JS` and `LB_JS` already do — 34 KB is
+   most of a page's weight, and a page with nothing moving should carry nothing. Which is also
+   why `animUsed` walks the tree rather than checking a project-wide flag: two pages of a site
+   can differ.
+
+   Reduced motion is handled here rather than left to the trailing block in `baseCss`. That
+   block flattens every animation to .01ms and would neutralise these too, but by way of an
+   `!important` that happens to come last — for motion this deliberate, saying so outright is
+   worth four lines. The library has no reduced-motion handling of its own; I checked. */
+const animOf = (n: PcNode): Anim | null => {
+  const a = n.anim;
+  return (a && a.name && ANIM_NAMES.includes(a.name)) ? a : null;
+};
+/** The class and attributes one element needs, or ''. */
+function animAttrs(n: PcNode) {
+  const a = animOf(n);
+  if (!a) return { cls: '', at: '' };
+  const bit = (k: string, v?: string) => (v ? ` ${k}="${esc(v)}"` : '');
+  return {
+    cls: ` bp-animate ${ANIM_PFX}${a.name}`,
+    at: bit('bp-duration', a.dur) + bit('bp-delay', a.delay) + bit('bp-easing', a.ease)
+      + (a.once ? ' bp-animation-once="true"' : '')
+  };
+}
+const animUsed = (lists: PcNode[][]) => {
+  let hit = false;
+  lists.forEach(l => eachNode(l, n => { if (!hit && animOf(n)) hit = true; }));
+  return hit;
+};
+/* `bp-animate` starts its elements hidden, so a visitor who has asked for less motion would be
+   left with a blank page if the library were simply neutralised. Shown outright, unanimated. */
+const ANIM_CALM = `@media (prefers-reduced-motion:reduce){`
+  + `.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}`;
+
 /* ---- renaming a page, and choosing the front one --------------------
    A host serves `index.html` at the root, so the front page is not a flag — it is whichever
    page is slugged `index`. Setting one therefore moves two slugs: this page takes `index` and
@@ -4961,7 +5001,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
   if (!d) return '';
   const ts = n.props.ts && findStyle(n.props.ts) ? ' ts-' + n.props.ts : '';
   const managed = nodeClasses(n).map(c => ' c-' + c.id).join('');
-  const cx = (c: string) => `class="${c} ${nodeClass(n)}${ts}${managed}${n.adv && n.adv.cls ? ' ' + esc(n.adv.cls) : ''}"`;
+  /* `cx` and `at` are what every widget's markup goes through, so motion rides along without a
+     single render case needing to know about it — the same trick the styling hook class uses. */
+  const anim = o.edit ? { cls: '', at: '' } : animAttrs(n);
+  const cx = (c: string) => `class="${c} ${nodeClass(n)}${ts}${managed}${anim.cls}${n.adv && n.adv.cls ? ' ' + esc(n.adv.cls) : ''}"`;
   /* The editor addresses elements by node id; the export uses the readable one.
      A repeat is the same node rendered many times, so both need a per-item suffix
      or every card in a Collection List ships the same id — invalid markup, and it
@@ -4973,7 +5016,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
   const domId = o.edit
     ? (o.repIndex ? n.id + rep : n.id)
     : esc(domIdOf(n) + rep);
-  const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? ' data-sel' : ''}` : ''}`;
+  const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? ' data-sel' : ''}` : ''}${anim.at}`;
   /* a node that declares a source opens a scope for itself and everything under
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
   const sc = n.src ? findCollection(n.src) : null;
@@ -5399,6 +5442,9 @@ function buildPage(pg: Page, ctx: {
     variants: !!ctx.variants, pageNo: ctx.pageNo || 1, pages: ctx.pages || 1, pg
   };
   const css = treeCss([state.header, pg.tree, state.footer], false);
+  /* per page, not per project: two pages of a site can differ, and 34 KB is most of the weight
+     of a page that has nothing moving on it */
+  const moves = animUsed([state.header, pg.tree, state.footer]);
   const body = renderList(state.header, o) + renderList(pg.tree, o) + renderList(state.footer, o);
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
@@ -5415,18 +5461,18 @@ function buildPage(pg: Page, ctx: {
 ${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${ctx.fontCss}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
 <meta property="og:title" content="${esc(title)}">
 ${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, ctx)}<style>
-${tidy(css)}
+${tidy(css)}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
 </style>
 ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${m.headHtml || ''}${pg.headHtml || ''}
 </head>
 <body>
 ${body}
-${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}</body>
+${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };
