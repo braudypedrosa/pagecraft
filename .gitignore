@@ -1,0 +1,11 @@
+# The ignore rules used to live in the parent repo's .gitignore with `page-builder/`
+# prefixes, which stopped applying when this became its own repo. Same rules, own paths.
+
+node_modules
+
+# dist/ is tracked on purpose: artifact.html is what gets published and PUBLISHED.json
+# records its hash, so both belong in history. Only the Vite output is generated.
+dist/next
+
+.DS_Store
+*.tsbuildinfo
