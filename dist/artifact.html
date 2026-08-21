@@ -3587,6 +3587,72 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+function contentImport(raw) {
+  const d = raw;
+  if (!d || typeof d !== "object" || !Array.isArray(d.collections)) return null;
+  const rep = {
+    collections: { added: 0, matched: 0 },
+    fields: { added: 0 },
+    items: { added: 0, updated: 0 },
+    notes: []
+  };
+  for (const fc of d.collections) {
+    if (!fc || typeof fc !== "object") continue;
+    const fid = String(fc.id || ""), fslug = String(fc.slug || "");
+    let col = fid && collections().find((c) => c.id === fid) || fslug && collections().find((c) => c.slug === fslug) || null;
+    if (col) rep.collections.matched++;
+    else {
+      col = collectionAdd(String(fc.name || fslug || fid || "Collection"));
+      rep.collections.added++;
+    }
+    if (!col) continue;
+    const map = {};
+    for (const ff of Array.isArray(fc.fields) ? fc.fields : []) {
+      if (!ff) continue;
+      const key = String(ff.id || ff.name || "");
+      if (!key) continue;
+      const hit = col.fields.find((x) => x.id === key) || col.fields.find((x) => x.name === String(ff.name || ""));
+      if (hit) {
+        map[key] = hit.id;
+        continue;
+      }
+      const made = fieldAdd(col.id, String(ff.name || key), String(ff.type || "text"));
+      if (!made) continue;
+      map[key] = made.id;
+      rep.fields.added++;
+      if (ff.type && made.type !== ff.type) {
+        rep.notes.push(`\u201C${made.name}\u201D came in as text: this build has no \u201C${ff.type}\u201D field type.`);
+      }
+    }
+    const unknown = /* @__PURE__ */ new Set();
+    for (const fi of Array.isArray(fc.items) ? fc.items : []) {
+      if (!fi || typeof fi !== "object") continue;
+      const iid = String(fi.id || ""), islug = String(fi.slug || "");
+      let it = iid && findItem(col, iid) || islug && col.items.find((x) => x.slug === islug) || null;
+      if (it) rep.items.updated++;
+      else {
+        it = itemAdd(col.id);
+        if (!it) continue;
+        rep.items.added++;
+      }
+      const vals = fi.values && typeof fi.values === "object" ? fi.values : {};
+      for (const k of Object.keys(vals)) {
+        const to = map[k] || (findField(col, k) ? k : "");
+        if (!to) {
+          unknown.add(k);
+          continue;
+        }
+        const v = vals[k];
+        itemSet(col.id, it.id, to, v == null ? "" : String(v));
+      }
+      if (islug) itemSetSlug(col.id, it.id, islug);
+    }
+    if (unknown.size) {
+      rep.notes.push(`${col.name}: ${[...unknown].join(", ")} ${unknown.size === 1 ? "is not a field" : "are not fields"} in this collection, so ${unknown.size === 1 ? "it was" : "they were"} skipped.`);
+    }
+  }
+  return rep;
+}
 var pagedPath = (slug, n) => n <= 1 ? slug + ".html" : `${slug}/page-${n}.html`;
 var pagedRel = (n) => n <= 1 ? "" : "../";
 function listPageCount(n, col) {
@@ -6075,6 +6141,7 @@ var __CORE = {
   colorUsage,
   colors,
   cols,
+  contentImport,
   contentJson,
   contrast,
   copyNode,
@@ -11830,10 +11897,12 @@ function exportModal() {
         <button class="btn" id="exAll">Download all ${targets.length} page${targets.length === 1 ? '' : 's'}</button>
         <button class="btn" id="exSeo"${state.meta.baseUrl ? '' : ' disabled title="Needs a Site URL in Project settings — a sitemap has to know its own domain"'}>sitemap.xml + robots.txt</button>
         ${collections().length ? `<button class="btn" id="exContent" title="Every collection and item as data">content.json</button>` : ''}
+        ${collections().length ? `<button class="btn" id="exContentIn" title="Read a content.json back into this project">Import content.json…</button>` : ''}
         <button class="btn" id="exCopy">Copy this page's HTML</button>
       </div>
       <div class="note">The archive already contains every one of these, with folders intact. Reach for
-        these when a browser blocks the .zip${targets.some(t => t.rel) ? ', but note that a browser saves downloads flat — a page in a folder arrives with its path in the filename' : ''}.</div>
+        these when a browser blocks the .zip${targets.some(t => t.rel) ? ', but note that a browser saves downloads flat — a page in a folder arrives with its path in the filename' : ''}.
+        ${collections().length ? 'Importing a <b>content.json</b> adds and updates items — it never deletes one, so a file holding part of your content is safe to open.' : ''}</div>
     </div>
 
     <div class="xtra">
@@ -12017,6 +12086,40 @@ function exportModal() {
   const exc = $('#exContent');
   if (exc) exc.addEventListener('click', () => download('content.json', contentJson(assetPath), 'application/json'));
   $('#exJson').addEventListener('click', backupJson);
+  const inContent = $('#exContentIn');
+  if (inContent) inContent.addEventListener('click', () => {
+    const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json';
+    fi.onchange = () => {
+      const f = fi.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        let rep = null;
+        /* inside `edit` so the whole file is one undo step: an import that landed forty
+           items should come back out in one press, not forty */
+        try { edit(() => { rep = contentImport(JSON.parse(rd.result)); }); } catch (e) { rep = null; }
+        if (!rep) { toast('That file has no collections in it — expected a content.json'); return; }
+        render();
+        /* the counts, because an upsert is invisible otherwise: nothing was deleted and you
+           cannot tell what landed by looking at the CMS */
+        const bits = [];
+        if (rep.collections.added) bits.push(`${rep.collections.added} new collection${rep.collections.added === 1 ? '' : 's'}`);
+        if (rep.fields.added) bits.push(`${rep.fields.added} new field${rep.fields.added === 1 ? '' : 's'}`);
+        if (rep.items.added) bits.push(`${rep.items.added} item${rep.items.added === 1 ? '' : 's'} added`);
+        if (rep.items.updated) bits.push(`${rep.items.updated} updated`);
+        toast(bits.length ? bits.join(' · ') : 'Nothing in that file was new');
+        /* a note is something the author has to act on, so it gets a dialog rather than a
+           toast that disappears */
+        if (rep.notes.length) {
+          askConfirm('Imported, with notes',
+            '<ul style="margin:0;padding-left:18px">' + rep.notes.map(n => `<li>${esc(n)}</li>`).join('') + '</ul>',
+            { ok: 'Got it', danger: false });
+        }
+      };
+      rd.readAsText(f);
+    };
+    fi.click();
+  });
+
   $('#exImport').addEventListener('click', () => {
     const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json';
     fi.onchange = () => {
@@ -12025,7 +12128,7 @@ function exportModal() {
       rd.onload = () => {
         let d = null;
         try { d = migrate(JSON.parse(rd.result)); } catch (e) { d = null; }
-        if (!d) { toast('That file is not a Slate project this build can open'); return; }
+        if (!d) { toast('That file is not a Pagecraft project this build can open'); return; }
         hist.u.push(clone(doc()));
         state.meta = { ...state.meta, ...d.meta }; state.header = d.header || []; state.footer = d.footer || [];
         state.pages = d.pages; state.cur = 0; selSet([]);

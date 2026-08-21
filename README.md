@@ -485,6 +485,12 @@ Everything resolves at export: what ships is plain static HTML with the content 
 needs no JavaScript and crawlers see all of it. **content.json** in the export dialog writes the
 same data as a portable file — the site never fetches it.
 
+**Import content.json…** reads one back. Edit forty rows in a spreadsheet, bring them in, and
+matching items are updated in place while new ones are added. It never deletes: an item in your
+project but missing from the file stays exactly where it is, so a file holding only part of your
+content is safe to open. New columns become new fields, a field type this build does not know
+comes in as text and tells you, and the whole file is one undo step.
+
 ## Image storage
 
 **Media** in the tool rail opens the library as a grid. Everything you upload anywhere in the

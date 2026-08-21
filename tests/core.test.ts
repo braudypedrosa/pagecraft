@@ -332,6 +332,133 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- content back in ---------------------------------------------------
+   `contentJson` went out and nothing came back, so export-edit-reimport had no second half.
+   An upsert, never a delete: a file holding part of the content must not be able to remove
+   the rest. */
+
+test('a content.json round-trips: export, import, nothing changed and nothing lost', () => {
+  const { col, fields, add } = cmsFixture();
+  add('On craft', 'Journal', '1');
+  add('Field notes', 'Notes', '2');
+  const before = C.contentJson();
+
+  const rep = must(C.contentImport(JSON.parse(before)), 'report');
+  a.deepEqual(rep.collections, { added: 0, matched: 1 }, 'matched by id, not duplicated');
+  a.deepEqual(rep.fields, { added: 0 });
+  a.deepEqual(rep.items, { added: 0, updated: 2 });
+  a.deepEqual(rep.notes, []);
+  a.equal(C.collections().length, 1, 'no second Journal');
+  a.equal(col.items.length, 2);
+  a.equal(C.contentJson(), before, 'and the data is byte-identical');
+  a.ok(fields.title);
+});
+
+test('an edited file updates by id and adds what is new', () => {
+  const { col, fields, add } = cmsFixture();
+  const one = add('Old title', 'Journal', '1');
+  const file = JSON.parse(C.contentJson());
+
+  file.collections[0].items[0].values[fields.title] = 'New title';
+  file.collections[0].items.push({ id: 'brand-new', slug: 'brand-new', values: { [fields.title]: 'Fresh' } });
+
+  const rep = must(C.contentImport(file), 'report');
+  a.deepEqual(rep.items, { added: 1, updated: 1 });
+  a.equal(one.values[fields.title], 'New title', 'the existing item was edited in place');
+  a.equal(col.items.length, 2);
+  a.equal(col.items[1].values[fields.title], 'Fresh');
+});
+
+test('import never deletes, however little the file holds', () => {
+  /* the property that makes opening a file safe */
+  const { col, add } = cmsFixture();
+  add('Keep me', 'Journal', '1');
+  add('Keep me too', 'Journal', '2');
+  const file = JSON.parse(C.contentJson());
+  file.collections[0].items = [file.collections[0].items[0]];      // a file with one of two
+
+  must(C.contentImport(file), 'report');
+  a.equal(col.items.length, 2, 'the item absent from the file is still here');
+
+  file.collections = [];                                          // and a file with none
+  must(C.contentImport(file), 'report');
+  a.equal(C.collections().length, 1);
+  a.equal(col.items.length, 2);
+});
+
+test('a file that lost its ids still matches, by slug and by field name', () => {
+  /* which is what a spreadsheet round-trip does to a file */
+  const { col, fields, add } = cmsFixture();
+  const it = add('On craft', 'Journal', '1');
+  const file = JSON.parse(C.contentJson());
+  const fc = file.collections[0];
+  delete fc.id;
+  fc.items.forEach((x: any) => { delete x.id; });
+
+  const rep = must(C.contentImport(file), 'report');
+  a.deepEqual(rep.collections, { added: 0, matched: 1 }, 'matched on slug');
+  a.deepEqual(rep.items, { added: 0, updated: 1 }, 'matched on slug too');
+  a.equal(C.collections().length, 1, 'no duplicate collection');
+  a.equal(col.items.length, 1, 'and no duplicate item');
+  a.equal(it.values[fields.title], 'On craft');
+});
+
+test('a new collection, a new field, and a field type this build does not know', () => {
+  blank();
+  const rep = must(C.contentImport({
+    collections: [{
+      id: 'people', name: 'People', slug: 'people',
+      fields: [{ id: 'title', name: 'Title', type: 'text' }, { id: 'joined', name: 'Joined', type: 'quantum' }],
+      items: [{ id: 'a', slug: 'ada', values: { title: 'Ada', joined: '1843' } }]
+    }]
+  }), 'report');
+
+  a.deepEqual(rep.collections, { added: 1, matched: 0 });
+  a.equal(rep.fields.added, 1, 'Title already exists on a new collection, so only Joined is new');
+  a.deepEqual(rep.items, { added: 1, updated: 0 });
+  const col = must(C.collections().find(c => c.slug === 'people'), 'People');
+  a.equal(must(C.findField(col, 'joined'), 'joined').type, 'text', 'an unknown type lands as text');
+  a.match(rep.notes.join(' '), /no “quantum” field type/, 'and says so rather than silently');
+  a.equal(col.items[0].values['title'], 'Ada');
+  a.equal(col.items[0].slug, 'ada', 'the slug from the file survives being set after the title');
+});
+
+test('values for fields that do not exist are skipped, and named once', () => {
+  const { col } = cmsFixture();
+  const rep = must(C.contentImport({
+    collections: [{ id: col.id, slug: col.slug, fields: [],
+      items: [
+        { id: 'x1', slug: 'x1', values: { nope: 'a', alsonope: 'b' } },
+        { id: 'x2', slug: 'x2', values: { nope: 'c' } }
+      ] }]
+  }), 'report');
+  a.equal(rep.items.added, 2);
+  a.equal(rep.notes.length, 1, 'one note for the collection, not one per item');
+  a.match(rep.notes[0], /nope, alsonope/);
+});
+
+test('anything that is not a content file is refused rather than half-applied', () => {
+  const { col } = cmsFixture();
+  const items = col.items.length;
+  [null, undefined, 0, '', 'a string', [], {}, { collections: null }, { collections: {} },
+   { pages: [], meta: {} }].forEach(v =>
+    a.equal(C.contentImport(v), null, JSON.stringify(v) + ' is not a content.json'));
+  a.equal(col.items.length, items, 'and nothing was touched on the way to saying no');
+});
+
+test('the site block is read and ignored', () => {
+  /* it describes the project, not its content — rewriting someone's site name from a data
+     file is not what "import content" says on the button */
+  const { col } = cmsFixture();
+  C.state.meta.name = 'Mine';
+  const was = C.state.meta.baseUrl;
+  must(C.contentImport({ site: { name: 'Theirs', lang: 'fr', baseUrl: 'https://elsewhere.test' },
+    collections: [{ id: col.id, slug: col.slug, fields: [], items: [] }] }), 'report');
+  a.equal(C.state.meta.name, 'Mine');
+  a.equal(C.state.meta.lang, 'en');
+  a.equal(C.state.meta.baseUrl, was);
+});
+
 /* ---- pagination --------------------------------------------------------
    Forty posts meant forty cards, and the only way out was a limit that hid the rest for
    good. Page one keeps the page's own address so nothing linking to it has to change; the

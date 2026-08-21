@@ -3051,10 +3051,12 @@ function exportModal() {
         <button class="btn" id="exAll">Download all ${targets.length} page${targets.length === 1 ? '' : 's'}</button>
         <button class="btn" id="exSeo"${state.meta.baseUrl ? '' : ' disabled title="Needs a Site URL in Project settings — a sitemap has to know its own domain"'}>sitemap.xml + robots.txt</button>
         ${collections().length ? `<button class="btn" id="exContent" title="Every collection and item as data">content.json</button>` : ''}
+        ${collections().length ? `<button class="btn" id="exContentIn" title="Read a content.json back into this project">Import content.json…</button>` : ''}
         <button class="btn" id="exCopy">Copy this page's HTML</button>
       </div>
       <div class="note">The archive already contains every one of these, with folders intact. Reach for
-        these when a browser blocks the .zip${targets.some(t => t.rel) ? ', but note that a browser saves downloads flat — a page in a folder arrives with its path in the filename' : ''}.</div>
+        these when a browser blocks the .zip${targets.some(t => t.rel) ? ', but note that a browser saves downloads flat — a page in a folder arrives with its path in the filename' : ''}.
+        ${collections().length ? 'Importing a <b>content.json</b> adds and updates items — it never deletes one, so a file holding part of your content is safe to open.' : ''}</div>
     </div>
 
     <div class="xtra">
@@ -3238,6 +3240,40 @@ function exportModal() {
   const exc = $('#exContent');
   if (exc) exc.addEventListener('click', () => download('content.json', contentJson(assetPath), 'application/json'));
   $('#exJson').addEventListener('click', backupJson);
+  const inContent = $('#exContentIn');
+  if (inContent) inContent.addEventListener('click', () => {
+    const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json';
+    fi.onchange = () => {
+      const f = fi.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        let rep = null;
+        /* inside `edit` so the whole file is one undo step: an import that landed forty
+           items should come back out in one press, not forty */
+        try { edit(() => { rep = contentImport(JSON.parse(rd.result)); }); } catch (e) { rep = null; }
+        if (!rep) { toast('That file has no collections in it — expected a content.json'); return; }
+        render();
+        /* the counts, because an upsert is invisible otherwise: nothing was deleted and you
+           cannot tell what landed by looking at the CMS */
+        const bits = [];
+        if (rep.collections.added) bits.push(`${rep.collections.added} new collection${rep.collections.added === 1 ? '' : 's'}`);
+        if (rep.fields.added) bits.push(`${rep.fields.added} new field${rep.fields.added === 1 ? '' : 's'}`);
+        if (rep.items.added) bits.push(`${rep.items.added} item${rep.items.added === 1 ? '' : 's'} added`);
+        if (rep.items.updated) bits.push(`${rep.items.updated} updated`);
+        toast(bits.length ? bits.join(' · ') : 'Nothing in that file was new');
+        /* a note is something the author has to act on, so it gets a dialog rather than a
+           toast that disappears */
+        if (rep.notes.length) {
+          askConfirm('Imported, with notes',
+            '<ul style="margin:0;padding-left:18px">' + rep.notes.map(n => `<li>${esc(n)}</li>`).join('') + '</ul>',
+            { ok: 'Got it', danger: false });
+        }
+      };
+      rd.readAsText(f);
+    };
+    fi.click();
+  });
+
   $('#exImport').addEventListener('click', () => {
     const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json';
     fi.onchange = () => {
@@ -3246,7 +3282,7 @@ function exportModal() {
       rd.onload = () => {
         let d = null;
         try { d = migrate(JSON.parse(rd.result)); } catch (e) { d = null; }
-        if (!d) { toast('That file is not a Slate project this build can open'); return; }
+        if (!d) { toast('That file is not a Pagecraft project this build can open'); return; }
         hist.u.push(clone(doc()));
         state.meta = { ...state.meta, ...d.meta }; state.header = d.header || []; state.footer = d.footer || [];
         state.pages = d.pages; state.cur = 0; selSet([]);

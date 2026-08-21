@@ -2535,6 +2535,91 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   return o.rel + v;
 }
 
+/* ---- content back in -------------------------------------------------
+   `contentJson` went out and nothing came back. Which meant the obvious workflow — export,
+   edit forty rows in a spreadsheet, bring them back — had no second half, and the only import
+   that existed replaced the whole project.
+
+   This is an upsert and never a delete. An item in the project but not in the file is left
+   exactly where it is: a file that is a subset of the project, or one row pasted from another
+   export, must not be able to remove content. Deleting is a thing you do in the CMS, where you
+   are asked to confirm it, and not a side effect of opening a file.
+
+   Matching is by id and then by slug or name, because a hand-edited file loses ids first. The
+   `site` block is read and ignored on purpose: it describes the project rather than its
+   content, and quietly rewriting someone's site name and base URL from a data file is not what
+   "import content" says on the button. */
+interface ImportReport {
+  collections: { added: number; matched: number };
+  fields: { added: number };
+  items: { added: number; updated: number };
+  notes: string[];
+}
+function contentImport(raw: unknown): ImportReport | null {
+  const d = raw as any;
+  if (!d || typeof d !== 'object' || !Array.isArray(d.collections)) return null;
+  const rep: ImportReport = {
+    collections: { added: 0, matched: 0 }, fields: { added: 0 },
+    items: { added: 0, updated: 0 }, notes: []
+  };
+
+  for (const fc of d.collections) {
+    if (!fc || typeof fc !== 'object') continue;
+    const fid = String(fc.id || ''), fslug = String(fc.slug || '');
+    let col = (fid && collections().find(c => c.id === fid))
+      || (fslug && collections().find(c => c.slug === fslug)) || null;
+    if (col) rep.collections.matched++;
+    else { col = collectionAdd(String(fc.name || fslug || fid || 'Collection')); rep.collections.added++; }
+    if (!col) continue;                 // collectionAdd does not fail; this is what says so
+
+    /* field id in the file → field id here. They differ the moment a collection is created
+       locally, since ids are made unique against what is already there. */
+    const map: Record<string, string> = {};
+    for (const ff of (Array.isArray(fc.fields) ? fc.fields : [])) {
+      if (!ff) continue;
+      const key = String(ff.id || ff.name || '');
+      if (!key) continue;
+      const hit = col.fields.find((x: Field) => x.id === key)
+        || col.fields.find((x: Field) => x.name === String(ff.name || ''));
+      if (hit) { map[key] = hit.id; continue; }
+      const made = fieldAdd(col.id, String(ff.name || key), String(ff.type || 'text'));
+      if (!made) continue;
+      map[key] = made.id;
+      rep.fields.added++;
+      /* `fieldAdd` falls back to text for a type it does not know, which is right — but
+         silently would leave someone wondering why their dates are strings */
+      if (ff.type && made.type !== ff.type) {
+        rep.notes.push(`“${made.name}” came in as text: this build has no “${ff.type}” field type.`);
+      }
+    }
+
+    const unknown = new Set<string>();
+    for (const fi of (Array.isArray(fc.items) ? fc.items : [])) {
+      if (!fi || typeof fi !== 'object') continue;
+      const iid = String(fi.id || ''), islug = String(fi.slug || '');
+      let it = (iid && findItem(col, iid))
+        || (islug && col.items.find((x: Item) => x.slug === islug)) || null;
+      if (it) rep.items.updated++;
+      else { it = itemAdd(col.id); if (!it) continue; rep.items.added++; }
+
+      const vals = (fi.values && typeof fi.values === 'object') ? fi.values : {};
+      for (const k of Object.keys(vals)) {
+        const to = map[k] || (findField(col, k) ? k : '');
+        if (!to) { unknown.add(k); continue; }
+        const v = (vals as any)[k];
+        itemSet(col.id, it.id, to, v == null ? '' : String(v));
+      }
+      /* after the values, because setting the title field re-slugs an unlocked item and
+         would otherwise overwrite the slug the file asked for */
+      if (islug) itemSetSlug(col.id, it.id, islug);
+    }
+    if (unknown.size) {
+      rep.notes.push(`${col.name}: ${[...unknown].join(', ')} ${unknown.size === 1 ? 'is not a field' : 'are not fields'} in this collection, so ${unknown.size === 1 ? 'it was' : 'they were'} skipped.`);
+    }
+  }
+  return rep;
+}
+
 /* ---- pagination ------------------------------------------------------
    A Collection List could show everything it matched or, with a limit, the first few. Forty
    posts meant forty cards on one page, and the only way out was a limit that hid the rest
@@ -5044,5 +5129,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

@@ -523,9 +523,11 @@ carries across.
 6. **The CMS's missing verbs.** ~~filter~~, ~~draft flag~~ and ~~pagination~~ are done: a list
    takes a field, one of five operators and a value; an item held back leaves every published
    surface at once through `published()`; and `per` turns a page into one file per slice, with
-   `paginatorOf` picking the list that decides how many. Still open: a **reference** field
-   type, so nothing relates a post to an author, and `content.json` goes out but nothing comes
-   back **in** — those two are what is left between this and a real blog
+   `paginatorOf` picking the list that decides how many; and ~~`content.json` import~~, an
+   upsert that never deletes so opening a partial file cannot remove content. Still open: a
+   **reference** field type, so nothing relates a post to an author — the last CMS verb, and
+   the one with a real design problem in it, since displaying a reference means reaching a
+   field of another item and every binding today is one hop
 7. **Export quality.** ~~`srcset`~~ — done, and it was the biggest page-weight win: the
    ladder and the `sizes` computation are in core, the canvas work is in the export, and both
    read `imageWidths` so the markup and the files cannot disagree. Separate-files mode only,

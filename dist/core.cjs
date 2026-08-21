@@ -115,6 +115,7 @@ __export(index_exports, {
   colorUsage: () => colorUsage,
   colors: () => colors,
   cols: () => cols,
+  contentImport: () => contentImport,
   contentJson: () => contentJson,
   contrast: () => contrast,
   copyNode: () => copyNode,
@@ -2814,6 +2815,72 @@ function pageHref(link, o) {
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
 }
+function contentImport(raw) {
+  const d = raw;
+  if (!d || typeof d !== "object" || !Array.isArray(d.collections)) return null;
+  const rep = {
+    collections: { added: 0, matched: 0 },
+    fields: { added: 0 },
+    items: { added: 0, updated: 0 },
+    notes: []
+  };
+  for (const fc of d.collections) {
+    if (!fc || typeof fc !== "object") continue;
+    const fid = String(fc.id || ""), fslug = String(fc.slug || "");
+    let col = fid && collections().find((c) => c.id === fid) || fslug && collections().find((c) => c.slug === fslug) || null;
+    if (col) rep.collections.matched++;
+    else {
+      col = collectionAdd(String(fc.name || fslug || fid || "Collection"));
+      rep.collections.added++;
+    }
+    if (!col) continue;
+    const map = {};
+    for (const ff of Array.isArray(fc.fields) ? fc.fields : []) {
+      if (!ff) continue;
+      const key = String(ff.id || ff.name || "");
+      if (!key) continue;
+      const hit = col.fields.find((x) => x.id === key) || col.fields.find((x) => x.name === String(ff.name || ""));
+      if (hit) {
+        map[key] = hit.id;
+        continue;
+      }
+      const made = fieldAdd(col.id, String(ff.name || key), String(ff.type || "text"));
+      if (!made) continue;
+      map[key] = made.id;
+      rep.fields.added++;
+      if (ff.type && made.type !== ff.type) {
+        rep.notes.push(`\u201C${made.name}\u201D came in as text: this build has no \u201C${ff.type}\u201D field type.`);
+      }
+    }
+    const unknown = /* @__PURE__ */ new Set();
+    for (const fi of Array.isArray(fc.items) ? fc.items : []) {
+      if (!fi || typeof fi !== "object") continue;
+      const iid = String(fi.id || ""), islug = String(fi.slug || "");
+      let it = iid && findItem(col, iid) || islug && col.items.find((x) => x.slug === islug) || null;
+      if (it) rep.items.updated++;
+      else {
+        it = itemAdd(col.id);
+        if (!it) continue;
+        rep.items.added++;
+      }
+      const vals = fi.values && typeof fi.values === "object" ? fi.values : {};
+      for (const k of Object.keys(vals)) {
+        const to = map[k] || (findField(col, k) ? k : "");
+        if (!to) {
+          unknown.add(k);
+          continue;
+        }
+        const v = vals[k];
+        itemSet(col.id, it.id, to, v == null ? "" : String(v));
+      }
+      if (islug) itemSetSlug(col.id, it.id, islug);
+    }
+    if (unknown.size) {
+      rep.notes.push(`${col.name}: ${[...unknown].join(", ")} ${unknown.size === 1 ? "is not a field" : "are not fields"} in this collection, so ${unknown.size === 1 ? "it was" : "they were"} skipped.`);
+    }
+  }
+  return rep;
+}
 var pagedPath = (slug, n) => n <= 1 ? slug + ".html" : `${slug}/page-${n}.html`;
 var pagedRel = (n) => n <= 1 ? "" : "../";
 function listPageCount(n, col) {
@@ -5302,6 +5369,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   colorUsage,
   colors,
   cols,
+  contentImport,
   contentJson,
   contrast,
   copyNode,
