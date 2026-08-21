@@ -8,7 +8,9 @@
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Field } from './Field';
+import { useState } from 'preact/hooks';
 import { valueOf, bound, writer } from './ctl';
+import { ColorPop } from './ColorPop';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import type { Control, Node as PcNode, PropBag } from '../../core/types';
 
@@ -109,27 +111,39 @@ function ColorCtl({ n, c }: P) {
   const v = String(valueOf(n, c) || '');
   const tok = C.refId(v) ? C.findColor(C.refId(v)!) : null;
   const lit = tok ? tok.value : v;
-  const hexish = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(lit) ? lit : '#000000';
   const cur = () => (c.c ? C.cssVal(C.tgtObj(n), c.c, !!c.r).v : C.propVal(n, c.k));
+  /* The anchor rather than a boolean: the popover is positioned from the swatch's own
+     rect, and holding the element is what lets it also tell an outside pointerdown from
+     the click that opened it. */
+  const [pop, setPop] = useState<HTMLElement | null>(null);
 
   const addToken = async () => {
     const name = await L.askText('New colour token', 'Colour name', 'Accent',
       { ok: 'Create token', note: 'Every element using it changes with it.' });
     if (name === null) return;
-    C.edit(() => { const id = C.colorAdd(name, C.resolveColor(cur()) || hexish); C.applyC(n, c, C.cvar(id)); });
+    /* `hexish` stood here, which only ever evaluated to #000000 on this path: it fell
+       back to black unless `lit` was a plain hex, and `lit` is empty whenever
+       resolveColor finds nothing to resolve. */
+    C.edit(() => { const id = C.colorAdd(name, C.resolveColor(cur()) || '#000000'); C.applyC(n, c, C.cvar(id)); });
     L.toast('Colour token created');
   };
 
   return <Field n={n} c={c}>
     <div class="clr">
-      <span class="sw">
+      {/* A button, not `<input type="color">`. The native control brings the operating
+          system's dialog: no alpha, and a panel that looks like nothing else here. */}
+      <button class="sw" title="Pick a colour" aria-haspopup="dialog" aria-expanded={pop ? 'true' : 'false'}
+        onClick={e => setPop(pop ? null : e.currentTarget as HTMLElement)}>
         <i style={{ background: lit || 'transparent' }} />
-        {/* picking a literal breaks any token link, which is why this writes through
-            the same path as typing a hex rather than a special one */}
-        <input type="color" value={hexish}
-          onInput={e => w.live((e.target as HTMLInputElement).value)}
-          onChange={() => { w.done(); if (C.isRef(cur())) repaint('right'); }} />
-      </span>
+      </button>
+      {pop ? (
+        /* picking a literal breaks any token link, which is why this writes through the
+           same path as typing a hex rather than a special one */
+        <ColorPop start={lit} anchor={pop}
+          onLive={w.live}
+          onDone={val => { w.hard(val); }}
+          onClose={() => { w.done(); setPop(null); if (C.isRef(cur())) repaint('right'); }} />
+      ) : null}
       {tok
         ? <>
           <span class="tokchip" title={'Linked to the ' + tok.name + ' token'}>

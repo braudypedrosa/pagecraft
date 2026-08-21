@@ -14,6 +14,7 @@ import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
 import { Ctl } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
+import { act } from 'preact/test-utils';
 import { rig, type Rig } from './ui.setup';
 import type { Control, NavItem } from '../app/src/core/types';
 
@@ -26,6 +27,90 @@ const heading = () => C.insert('heading', null, 0)!;
 /* A repeater's rows, typed. `items` is a different shape per widget, so the test that
    built the node says which it has. */
 const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
+
+/* --------------------------------------------------------------- colour */
+/* The picker is the one control whose visible state lives in a hook rather than in the
+   document, so opening it is a Preact state change and the DOM it produces does not exist
+   until Preact flushes. `act` is that flush; without it these read the pre-click DOM and
+   report the popover as never opening. */
+const open = () => act(() => r.click(r.$('button.sw')));
+const typed = (el: Element, v: string) => act(() => r.type(el, v));
+
+
+test('the colour swatch is a button, not the operating system dialog', () => {
+  /* It was `<input type="color">`, which meant the OS panel: no alpha, and on macOS a
+     window bigger than the inspector it opened from. */
+  const n = heading();
+  C.selSet([n.id]);
+  const c: Control = { t: 'color', c: 'color', label: 'Colour' };
+  r.draw(<Ctl n={n} c={c} />);
+  a.equal(r.$('input[type="color"]'), null, 'no native picker left');
+  const sw = r.$('button.sw')!;
+  a.ok(sw, 'the swatch opens it');
+  a.equal(sw.getAttribute('aria-expanded'), 'false');
+  a.equal(r.$('.cp'), null, 'and it starts closed');
+});
+
+test('the picker opens on the swatch, carries every part, and closes again', () => {
+  const n = heading();
+  n.css.d.color = '#3366cc';
+  C.selSet([n.id]);
+  const c: Control = { t: 'color', c: 'color', label: 'Colour' };
+  r.draw(() => <Ctl n={n} c={c} />, 'right');
+  open();
+
+  a.ok(r.$('.cp'), 'open');
+  a.equal(r.$('button.sw')!.getAttribute('aria-expanded'), 'true');
+  /* the saturation square, the two strips, the preview chip and the value field */
+  ['.cp-sv', '.cp-hue', '.cp-alpha', '.cp-chip', '.cp-val'].forEach(sel =>
+    a.ok(r.$(sel), sel + ' is drawn'));
+  a.equal((r.$('.cp-val') as HTMLInputElement).value, '#3366cc', 'seeded from the current value');
+  /* the strips are sliders, so they announce themselves rather than being mystery boxes */
+  a.equal(r.$('.cp-hue')!.getAttribute('role'), 'slider');
+  a.equal(r.$('.cp-hue')!.getAttribute('aria-label'), 'Hue');
+  a.equal(r.$('.cp-alpha')!.getAttribute('aria-label'), 'Opacity');
+
+  open();
+  a.equal(r.$('.cp'), null, 'the swatch toggles it shut');
+});
+
+test('typing an rgba into the picker writes it through, and half-typed text is not an error', () => {
+  /* rgba already worked end to end — the css objects carry raw CSS and `parseColor` reads
+     it back — so the gap this closes is picking one, not storing one. */
+  const n = heading();
+  C.selSet([n.id]);
+  const c: Control = { t: 'color', c: 'color', label: 'Colour' };
+  r.draw(() => <Ctl n={n} c={c} />, 'right');
+  open();
+
+  const f = r.$('.cp-val') as HTMLInputElement;
+  typed(f, 'rgba(1, 2, 3, 0.4)');
+  a.equal(n.css.d.color, 'rgba(1, 2, 3, 0.4)');
+
+  /* a value on its way to being typed must not blank the colour */
+  typed(f, 'rgba(1, 2');
+  a.equal(n.css.d.color, 'rgba(1, 2, 3, 0.4)', 'still the last colour that parsed');
+});
+
+test('picking a literal breaks the token link, and a token swatch restores it', () => {
+  const n = heading();
+  n.css.d.color = C.cvar('ink');
+  C.selSet([n.id]);
+  const c: Control = { t: 'color', c: 'color', label: 'Colour' };
+  r.draw(() => <Ctl n={n} c={c} />, 'right');
+  /* linked, so the chip shows the token name instead of a hex field */
+  a.ok(r.$('.tokchip'), 'shows as linked');
+
+  open();
+  const f = r.$('.cp-val') as HTMLInputElement;
+  a.equal(f.value, C.findColor('ink')!.value, 'the picker opens on the token’s own colour');
+  typed(f, '#ff0000');
+  a.equal(n.css.d.color, '#ff0000', 'a literal replaces the reference');
+  a.equal(C.isRef(n.css.d.color), false);
+
+  act(() => r.click(r.$('.toks .tok')));
+  a.ok(C.isRef(n.css.d.color), 'and a token swatch links it again');
+});
 
 /* ------------------------------------------------------------------ unit */
 

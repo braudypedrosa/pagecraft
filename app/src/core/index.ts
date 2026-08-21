@@ -1547,15 +1547,73 @@ const colorUsage = (id: string) => {
    The exported file is the product, and its failures are silent: a dead link,
    a missing alt, an unreadable colour pair. This walks the whole project and
    reports them before anyone publishes.                                     */
+/* ---- colour, as numbers ----------------------------------------------
+   One parser. `hex2rgb` was the only one for a long time and it drops alpha on the
+   floor, which is right for a contrast ratio and useless for a picker — so a picker
+   would have meant a second parser, and two parsers that disagree about `#abcd` is
+   exactly the kind of drift that is impossible to notice.
+
+   `transparent` is deliberately not accepted. Adding it would make
+   `contrast('transparent', x)` return a ratio computed as if it were black instead of
+   the `null` that means "cannot say", and alpha 0 is already reachable by dragging the
+   slider to the end. The accepted set here is exactly what `hex2rgb` accepted before. */
+interface Rgba { r: number; g: number; b: number; a: number }
+const clamp = (n: number, lo: number, hi: number) => n < lo ? lo : n > hi ? hi : n;
+const parseColor = (v: unknown): Rgba | null => {
+  const h = String(v == null ? '' : v).trim();
+  const hex = h.match(/^#([0-9a-f]{3,8})$/i);
+  if (hex) {
+    const d = hex[1];
+    /* 3 and 4 digits are shorthand: each nibble doubles. 5, 7 and anything over 8 is
+       not a colour, so it falls through to null rather than being padded into one. */
+    const full = (d.length === 3 || d.length === 4) ? d.split('').map(x => x + x).join('') : d;
+    if (full.length !== 6 && full.length !== 8) return null;
+    const n = parseInt(full.slice(0, 6), 16);
+    const a = full.length === 8 ? parseInt(full.slice(6), 16) / 255 : 1;
+    return { r: n >> 16 & 255, g: n >> 8 & 255, b: n & 255, a };
+  }
+  const f = h.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+%?))?\s*\)?/i);
+  if (!f) return null;
+  const al = f[4] === undefined ? 1
+    : f[4].endsWith('%') ? parseFloat(f[4]) / 100 : parseFloat(f[4]);
+  return {
+    r: clamp(Math.round(+f[1]), 0, 255), g: clamp(Math.round(+f[2]), 0, 255),
+    b: clamp(Math.round(+f[3]), 0, 255), a: clamp(isNaN(al) ? 1 : al, 0, 1)
+  };
+};
+/* Hex while it is opaque, because that is what a designer reads and what the token
+   swatches hold; rgba() only once alpha earns it. Two decimals is enough for a slider
+   and keeps the exported stylesheet from carrying float noise. */
+const fmtColor = (c: Rgba) => {
+  const hx = (n: number) => clamp(Math.round(n), 0, 255).toString(16).padStart(2, '0');
+  if (c.a >= 1) return '#' + hx(c.r) + hx(c.g) + hx(c.b);
+  return `rgba(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)}, ${+c.a.toFixed(2)})`;
+};
+/* HSV, not HSL: the saturation/value square every picker draws is HSV, and going
+   through HSL to reach it costs a conversion and a rounding step each way. */
+const rgb2hsv = (c: { r: number; g: number; b: number }) => {
+  const r = c.r / 255, g = c.g / 255, b = c.b / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) {
+    if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (mx === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  return { h, s: mx ? d / mx : 0, v: mx };
+};
+const hsv2rgb = (c: { h: number; s: number; v: number }) => {
+  const h = ((c.h % 360) + 360) % 360 / 60, s = clamp(c.s, 0, 1), v = clamp(c.v, 0, 1);
+  const i = Math.floor(h), f = h - i;
+  const p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f));
+  const [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i % 6];
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+};
+/* Kept as the array-shaped, alpha-free view the contrast ratio wants. It is now a
+   caller rather than a second implementation. */
 const hex2rgb = (v: string) => {
-  let h = String(v || '').trim();
-  const m3 = h.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
-  if (m3) h = '#' + m3[1] + m3[1] + m3[2] + m3[2] + m3[3] + m3[3];
-  const m = h.match(/^#([0-9a-f]{6})$/i);
-  if (m) { const n = parseInt(m[1], 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
-  const rgb = h.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
-  if (rgb) return [+rgb[1], +rgb[2], +rgb[3]];
-  return null;
+  const c = parseColor(v);
+  return c ? [c.r, c.g, c.b] : null;
 };
 const lum = (c: number[]) => {
   const f = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
@@ -4613,5 +4671,5 @@ ${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : '
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, listItems, pageHref, exportTargets, contentJson, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

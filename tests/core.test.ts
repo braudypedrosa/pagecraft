@@ -332,6 +332,77 @@ test('video URLs resolve to the right embed', () => {
   a.match(C.vid({ src: '' }), /Add a video URL/);
 });
 
+/* ---- colour, as numbers ----------------------------------------------
+   `hex2rgb` is now a caller of `parseColor` rather than a second parser, so these pin
+   down both: the accepted set must not have widened (it feeds `contrast`, where a
+   wrong answer is worse than no answer) and alpha must survive a round trip. */
+
+test('parseColor takes every hex length that is a colour, and refuses the ones that are not', () => {
+  a.deepEqual(C.parseColor('#abc'), { r: 170, g: 187, b: 204, a: 1 });
+  a.deepEqual(C.parseColor('#aabbcc'), { r: 170, g: 187, b: 204, a: 1 });
+  a.deepEqual(C.parseColor('#ABC'), { r: 170, g: 187, b: 204, a: 1 }, 'case does not matter');
+  /* 4 and 8 digits carry alpha; ff is opaque, 80 is about half */
+  a.deepEqual(C.parseColor('#abcf'), { r: 170, g: 187, b: 204, a: 1 });
+  a.equal(C.parseColor('#aabbcc80')!.a, 128 / 255);
+  a.equal(C.parseColor('#aabbcc00')!.a, 0);
+  /* 5 and 7 digits are not shorthand for anything, and must not be padded into a colour */
+  ['#ab', '#abcde', '#abcdefa', '#abcdefabc', '#', '', 'red', 'var(--c-ink)', 'inherit', null, undefined]
+    .forEach(v => a.equal(C.parseColor(v), null, JSON.stringify(v) + ' is not a colour'));
+});
+
+test('parseColor reads both rgb syntaxes, clamps, and defaults alpha to opaque', () => {
+  a.deepEqual(C.parseColor('rgb(1,2,3)'), { r: 1, g: 2, b: 3, a: 1 });
+  a.deepEqual(C.parseColor('rgba(1, 2, 3, 0.5)'), { r: 1, g: 2, b: 3, a: 0.5 });
+  a.deepEqual(C.parseColor('rgb(1 2 3 / 50%)'), { r: 1, g: 2, b: 3, a: 0.5 }, 'space syntax and a percentage');
+  a.equal(C.parseColor('rgb(300, 20, 3)')!.r, 255, 'over 255 is clamped, not wrapped');
+  a.equal(C.parseColor('rgba(1,2,3,9)')!.a, 1, 'and so is alpha');
+  /* a negative component is not valid CSS, so it is not a colour rather than a clamped
+     one — the same answer the parser gave before it understood alpha */
+  a.equal(C.parseColor('rgb(-20, 20, 3)'), null);
+});
+
+test('fmtColor stays hex while it can, and round-trips through parseColor', () => {
+  a.equal(C.fmtColor({ r: 170, g: 187, b: 204, a: 1 }), '#aabbcc');
+  a.equal(C.fmtColor({ r: 0, g: 0, b: 0, a: 1 }), '#000000', 'padded, not #0');
+  a.equal(C.fmtColor({ r: 170, g: 187, b: 204, a: 0.5 }), 'rgba(170, 187, 204, 0.5)');
+  a.equal(C.fmtColor({ r: 1, g: 2, b: 3, a: 0.333333 }), 'rgba(1, 2, 3, 0.33)', 'two decimals, no float noise');
+  ['#aabbcc', 'rgba(1, 2, 3, 0.5)', 'rgba(0, 0, 0, 0)'].forEach(v =>
+    a.equal(C.fmtColor(C.parseColor(v)!), v, v + ' survives a round trip'));
+});
+
+test('hsv round-trips, and the grey and red edges do not drift', () => {
+  /* every 15° at full saturation must come back as the same rgb, which is the property
+     a saturation/value square depends on as the pointer moves */
+  for (let h = 0; h < 360; h += 15) {
+    const rgb = C.hsv2rgb({ h, s: 1, v: 1 });
+    a.equal(Math.round(C.rgb2hsv(rgb).h), h, h + '° round-trips');
+  }
+  a.deepEqual(C.hsv2rgb({ h: 0, s: 0, v: 1 }), { r: 255, g: 255, b: 255 });
+  a.deepEqual(C.hsv2rgb({ h: 0, s: 0, v: 0 }), { r: 0, g: 0, b: 0 });
+  a.equal(C.rgb2hsv({ r: 128, g: 128, b: 128 }).s, 0, 'grey has no hue to speak of');
+  a.equal(C.rgb2hsv({ r: 0, g: 0, b: 0 }).v, 0);
+  /* out-of-range hue wraps rather than clipping, so dragging past the end of the strip
+     does not stick on magenta */
+  a.deepEqual(C.hsv2rgb({ h: 360, s: 1, v: 1 }), C.hsv2rgb({ h: 0, s: 1, v: 1 }));
+  a.deepEqual(C.hsv2rgb({ h: -60, s: 1, v: 1 }), C.hsv2rgb({ h: 300, s: 1, v: 1 }));
+});
+
+test('hex2rgb accepts exactly what it always did, and contrast still refuses non-colours', () => {
+  /* it is a view onto parseColor now, so the risk is the accepted set widening under it —
+     contrast() returning a number where it used to return null is a silent wrong answer */
+  a.deepEqual(C.hex2rgb('#abc'), [170, 187, 204]);
+  a.deepEqual(C.hex2rgb('#aabbcc'), [170, 187, 204]);
+  a.deepEqual(C.hex2rgb('rgba(1,2,3,0.5)'), [1, 2, 3], 'alpha dropped, which is what a ratio wants');
+  ['transparent', 'red', 'currentColor', 'var(--c-ink)', ''].forEach(v =>
+    a.equal(C.hex2rgb(v), null, v + ' is not a literal colour'));
+  /* contrast resolves a token first, so a token reference is answerable and a keyword
+     is not — the distinction is the whole reason `resolveColor` sits in front of it */
+  ['transparent', 'red', 'currentColor', ''].forEach(v =>
+    a.equal(C.contrast(v, '#ffffff'), null, v + ': contrast says so rather than guessing'));
+  a.ok(C.contrast('var(--c-ink)', '#ffffff')! > 15, 'but a token resolves and is answerable');
+  a.ok(C.contrast('#000000', '#ffffff')! > 20, 'black on white is the maximum');
+});
+
 test('a captioned image becomes a figure, a plain one stays an img', () => {
   blank();
   const img = insert('image', null, 0);

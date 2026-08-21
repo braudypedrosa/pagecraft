@@ -154,6 +154,7 @@ __export(index_exports, {
   firstChildOf: () => firstChildOf,
   fitZoom: () => fitZoom,
   flatten: () => flatten,
+  fmtColor: () => fmtColor,
   fontGroups: () => fontGroups,
   gfontsHref: () => gfontsHref,
   gfontsLink: () => gfontsLink,
@@ -162,6 +163,7 @@ __export(index_exports, {
   hex2rgb: () => hex2rgb,
   hist: () => hist,
   holds: () => holds,
+  hsv2rgb: () => hsv2rgb,
   iconOf: () => iconOf,
   iconSvg: () => iconSvg,
   initUi: () => initUi,
@@ -210,6 +212,7 @@ __export(index_exports, {
   pageMove: () => pageMove,
   para: () => para,
   parentOf: () => parentOf,
+  parseColor: () => parseColor,
   parseLink: () => parseLink,
   parseU: () => parseU,
   pasteNode: () => pasteNode,
@@ -228,6 +231,7 @@ __export(index_exports, {
   resizeCols: () => resizeCols,
   resolveColor: () => resolveColor,
   restore: () => restore,
+  rgb2hsv: () => rgb2hsv,
   robotsTxt: () => robotsTxt,
   rowRatios: () => rowRatios,
   rowRatiosAt: () => rowRatiosAt,
@@ -1939,18 +1943,54 @@ var colorUsage = (id) => {
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
   return k;
 };
-var hex2rgb = (v) => {
-  let h = String(v || "").trim();
-  const m3 = h.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
-  if (m3) h = "#" + m3[1] + m3[1] + m3[2] + m3[2] + m3[3] + m3[3];
-  const m = h.match(/^#([0-9a-f]{6})$/i);
-  if (m) {
-    const n = parseInt(m[1], 16);
-    return [n >> 16 & 255, n >> 8 & 255, n & 255];
+var clamp = (n, lo, hi) => n < lo ? lo : n > hi ? hi : n;
+var parseColor = (v) => {
+  const h = String(v == null ? "" : v).trim();
+  const hex = h.match(/^#([0-9a-f]{3,8})$/i);
+  if (hex) {
+    const d = hex[1];
+    const full = d.length === 3 || d.length === 4 ? d.split("").map((x) => x + x).join("") : d;
+    if (full.length !== 6 && full.length !== 8) return null;
+    const n = parseInt(full.slice(0, 6), 16);
+    const a = full.length === 8 ? parseInt(full.slice(6), 16) / 255 : 1;
+    return { r: n >> 16 & 255, g: n >> 8 & 255, b: n & 255, a };
   }
-  const rgb = h.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
-  if (rgb) return [+rgb[1], +rgb[2], +rgb[3]];
-  return null;
+  const f = h.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+%?))?\s*\)?/i);
+  if (!f) return null;
+  const al = f[4] === void 0 ? 1 : f[4].endsWith("%") ? parseFloat(f[4]) / 100 : parseFloat(f[4]);
+  return {
+    r: clamp(Math.round(+f[1]), 0, 255),
+    g: clamp(Math.round(+f[2]), 0, 255),
+    b: clamp(Math.round(+f[3]), 0, 255),
+    a: clamp(isNaN(al) ? 1 : al, 0, 1)
+  };
+};
+var fmtColor = (c) => {
+  const hx = (n) => clamp(Math.round(n), 0, 255).toString(16).padStart(2, "0");
+  if (c.a >= 1) return "#" + hx(c.r) + hx(c.g) + hx(c.b);
+  return `rgba(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)}, ${+c.a.toFixed(2)})`;
+};
+var rgb2hsv = (c) => {
+  const r = c.r / 255, g = c.g / 255, b = c.b / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) {
+    if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (mx === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  return { h, s: mx ? d / mx : 0, v: mx };
+};
+var hsv2rgb = (c) => {
+  const h = (c.h % 360 + 360) % 360 / 60, s = clamp(c.s, 0, 1), v = clamp(c.v, 0, 1);
+  const i = Math.floor(h), f = h - i;
+  const p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f));
+  const [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i % 6];
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+};
+var hex2rgb = (v) => {
+  const c = parseColor(v);
+  return c ? [c.r, c.g, c.b] : null;
 };
 var lum = (c) => {
   const f = c.map((v) => {
@@ -5050,6 +5090,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   firstChildOf,
   fitZoom,
   flatten,
+  fmtColor,
   fontGroups,
   gfontsHref,
   gfontsLink,
@@ -5058,6 +5099,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   hex2rgb,
   hist,
   holds,
+  hsv2rgb,
   iconOf,
   iconSvg,
   initUi,
@@ -5106,6 +5148,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   pageMove,
   para,
   parentOf,
+  parseColor,
   parseLink,
   parseU,
   pasteNode,
@@ -5124,6 +5167,7 @@ ${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : "
   resizeCols,
   resolveColor,
   restore,
+  rgb2hsv,
   robotsTxt,
   rowRatios,
   rowRatiosAt,

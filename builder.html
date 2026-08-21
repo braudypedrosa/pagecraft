@@ -497,7 +497,60 @@ select.ctl{
   background-size:8px 8px;background-position:0 0,4px 4px;
 }
 .sw i{position:absolute;inset:0;display:block}
-.sw input{position:absolute;inset:-6px;width:150%;height:150%;opacity:0;cursor:pointer;border:0;padding:0}
+.sw:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+
+/* ---- the colour picker ------------------------------------------------
+   Fixed, because the inspector scrolls inside an ancestor with overflow:auto and an
+   absolutely-positioned popover would be clipped by it. The z-index clears the modal
+   scrim (100) so a colour field inside a dialog still works. */
+.cp{
+  position:fixed;z-index:220;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-md);box-shadow:0 12px 32px #11131126,0 2px 8px #1113111f;
+  padding:8px;display:flex;flex-direction:column;gap:8px;
+}
+.cp-sv{position:relative;height:132px;border-radius:var(--r-sm);overflow:hidden;cursor:crosshair;touch-action:none}
+.cp-sv:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+/* white→hue across, then black up from the bottom: the standard HSV square, built from
+   two gradients over the hue so no canvas or image is needed */
+.cp-svbg{position:absolute;inset:0}
+.cp-svbg::before,.cp-svbg::after{content:"";position:absolute;inset:0}
+.cp-svbg::before{background:linear-gradient(90deg,#fff,transparent)}
+.cp-svbg::after{background:linear-gradient(0deg,#000,transparent)}
+.cp-dot{
+  position:absolute;width:13px;height:13px;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 0 0 1px #11131159,0 1px 3px #11131159;transform:translate(-50%,-50%);pointer-events:none;
+}
+.cp-rows{display:flex;align-items:center;gap:8px}
+.cp-strips{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.cp-hue,.cp-alpha{position:relative;height:11px;border-radius:99px;cursor:pointer;touch-action:none}
+.cp-hue:focus-visible,.cp-alpha:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.cp-hue{background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+/* the checkerboard shows through the colour ramp, which is the only way an alpha strip
+   reads as opacity rather than as a second brightness control */
+.cp-alpha{
+  background-image:linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%),linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%);
+  background-size:8px 8px;background-position:0 0,4px 4px;overflow:hidden;
+}
+.cp-abg{position:absolute;inset:0}
+.cp-tick{
+  position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--white);
+  border:1px solid #11131140;box-shadow:0 1px 3px #11131140;transform:translate(-50%,-50%);pointer-events:none;
+}
+.cp-chip{
+  width:26px;height:26px;flex:0 0 26px;border-radius:var(--r-sm);border:1px solid var(--line-2);
+  overflow:hidden;position:relative;
+  background-image:linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%),linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%);
+  background-size:8px 8px;background-position:0 0,4px 4px;
+}
+.cp-chip i{position:absolute;inset:0;display:block}
+.cp-eye{
+  width:26px;height:26px;flex:0 0 26px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--field);color:var(--text-3);display:grid;place-items:center;cursor:pointer;
+}
+.cp-eye:hover{color:var(--text);background:var(--field-2)}
+.cp-foot{display:flex;align-items:center;gap:6px}
+.cp-val{flex:1;min-width:0;height:26px;font-family:var(--label);font-size:12px}
+.cp-pc{font-family:var(--label);font-size:11.5px;color:var(--text-3);min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
 /* both states of the colour field take --h-ctl outright. Their font sizes differ
    from a plain .ctl, so deriving the height from line metrics left them a pixel
    apart from each other and from the swatch. */

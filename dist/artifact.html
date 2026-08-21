@@ -497,7 +497,60 @@ select.ctl{
   background-size:8px 8px;background-position:0 0,4px 4px;
 }
 .sw i{position:absolute;inset:0;display:block}
-.sw input{position:absolute;inset:-6px;width:150%;height:150%;opacity:0;cursor:pointer;border:0;padding:0}
+.sw:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+
+/* ---- the colour picker ------------------------------------------------
+   Fixed, because the inspector scrolls inside an ancestor with overflow:auto and an
+   absolutely-positioned popover would be clipped by it. The z-index clears the modal
+   scrim (100) so a colour field inside a dialog still works. */
+.cp{
+  position:fixed;z-index:220;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-md);box-shadow:0 12px 32px #11131126,0 2px 8px #1113111f;
+  padding:8px;display:flex;flex-direction:column;gap:8px;
+}
+.cp-sv{position:relative;height:132px;border-radius:var(--r-sm);overflow:hidden;cursor:crosshair;touch-action:none}
+.cp-sv:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+/* white→hue across, then black up from the bottom: the standard HSV square, built from
+   two gradients over the hue so no canvas or image is needed */
+.cp-svbg{position:absolute;inset:0}
+.cp-svbg::before,.cp-svbg::after{content:"";position:absolute;inset:0}
+.cp-svbg::before{background:linear-gradient(90deg,#fff,transparent)}
+.cp-svbg::after{background:linear-gradient(0deg,#000,transparent)}
+.cp-dot{
+  position:absolute;width:13px;height:13px;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 0 0 1px #11131159,0 1px 3px #11131159;transform:translate(-50%,-50%);pointer-events:none;
+}
+.cp-rows{display:flex;align-items:center;gap:8px}
+.cp-strips{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.cp-hue,.cp-alpha{position:relative;height:11px;border-radius:99px;cursor:pointer;touch-action:none}
+.cp-hue:focus-visible,.cp-alpha:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.cp-hue{background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+/* the checkerboard shows through the colour ramp, which is the only way an alpha strip
+   reads as opacity rather than as a second brightness control */
+.cp-alpha{
+  background-image:linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%),linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%);
+  background-size:8px 8px;background-position:0 0,4px 4px;overflow:hidden;
+}
+.cp-abg{position:absolute;inset:0}
+.cp-tick{
+  position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--white);
+  border:1px solid #11131140;box-shadow:0 1px 3px #11131140;transform:translate(-50%,-50%);pointer-events:none;
+}
+.cp-chip{
+  width:26px;height:26px;flex:0 0 26px;border-radius:var(--r-sm);border:1px solid var(--line-2);
+  overflow:hidden;position:relative;
+  background-image:linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%),linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%);
+  background-size:8px 8px;background-position:0 0,4px 4px;
+}
+.cp-chip i{position:absolute;inset:0;display:block}
+.cp-eye{
+  width:26px;height:26px;flex:0 0 26px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--field);color:var(--text-3);display:grid;place-items:center;cursor:pointer;
+}
+.cp-eye:hover{color:var(--text);background:var(--field-2)}
+.cp-foot{display:flex;align-items:center;gap:6px}
+.cp-val{flex:1;min-width:0;height:26px;font-family:var(--label);font-size:12px}
+.cp-pc{font-family:var(--label);font-size:11.5px;color:var(--text-3);min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
 /* both states of the colour field take --h-ctl outright. Their font sizes differ
    from a plain .ctl, so deriving the height from line metrics left them a pixel
    apart from each other and from the swatch. */
@@ -2674,18 +2727,54 @@ var colorUsage = (id) => {
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
   return k;
 };
-var hex2rgb = (v) => {
-  let h = String(v || "").trim();
-  const m3 = h.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
-  if (m3) h = "#" + m3[1] + m3[1] + m3[2] + m3[2] + m3[3] + m3[3];
-  const m = h.match(/^#([0-9a-f]{6})$/i);
-  if (m) {
-    const n = parseInt(m[1], 16);
-    return [n >> 16 & 255, n >> 8 & 255, n & 255];
+var clamp = (n, lo, hi) => n < lo ? lo : n > hi ? hi : n;
+var parseColor = (v) => {
+  const h = String(v == null ? "" : v).trim();
+  const hex = h.match(/^#([0-9a-f]{3,8})$/i);
+  if (hex) {
+    const d = hex[1];
+    const full = d.length === 3 || d.length === 4 ? d.split("").map((x) => x + x).join("") : d;
+    if (full.length !== 6 && full.length !== 8) return null;
+    const n = parseInt(full.slice(0, 6), 16);
+    const a = full.length === 8 ? parseInt(full.slice(6), 16) / 255 : 1;
+    return { r: n >> 16 & 255, g: n >> 8 & 255, b: n & 255, a };
   }
-  const rgb = h.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
-  if (rgb) return [+rgb[1], +rgb[2], +rgb[3]];
-  return null;
+  const f = h.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+%?))?\s*\)?/i);
+  if (!f) return null;
+  const al = f[4] === void 0 ? 1 : f[4].endsWith("%") ? parseFloat(f[4]) / 100 : parseFloat(f[4]);
+  return {
+    r: clamp(Math.round(+f[1]), 0, 255),
+    g: clamp(Math.round(+f[2]), 0, 255),
+    b: clamp(Math.round(+f[3]), 0, 255),
+    a: clamp(isNaN(al) ? 1 : al, 0, 1)
+  };
+};
+var fmtColor = (c) => {
+  const hx = (n) => clamp(Math.round(n), 0, 255).toString(16).padStart(2, "0");
+  if (c.a >= 1) return "#" + hx(c.r) + hx(c.g) + hx(c.b);
+  return `rgba(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)}, ${+c.a.toFixed(2)})`;
+};
+var rgb2hsv = (c) => {
+  const r = c.r / 255, g = c.g / 255, b = c.b / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) {
+    if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (mx === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  return { h, s: mx ? d / mx : 0, v: mx };
+};
+var hsv2rgb = (c) => {
+  const h = (c.h % 360 + 360) % 360 / 60, s = clamp(c.s, 0, 1), v = clamp(c.v, 0, 1);
+  const i = Math.floor(h), f = h - i;
+  const p = v * (1 - s), q = v * (1 - s * f), t = v * (1 - s * (1 - f));
+  const [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i % 6];
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+};
+var hex2rgb = (v) => {
+  const c = parseColor(v);
+  return c ? [c.r, c.g, c.b] : null;
 };
 var lum = (c) => {
   const f = c.map((v) => {
@@ -5785,6 +5874,7 @@ var __CORE = {
   firstChildOf,
   fitZoom,
   flatten,
+  fmtColor,
   fontGroups,
   gfontsHref,
   gfontsLink,
@@ -5793,6 +5883,7 @@ var __CORE = {
   hex2rgb,
   hist,
   holds,
+  hsv2rgb,
   iconOf,
   iconSvg,
   initUi,
@@ -5841,6 +5932,7 @@ var __CORE = {
   pageMove,
   para,
   parentOf,
+  parseColor,
   parseLink,
   parseU,
   pasteNode,
@@ -5859,6 +5951,7 @@ var __CORE = {
   resizeCols,
   resolveColor,
   restore,
+  rgb2hsv,
   robotsTxt,
   rowRatios,
   rowRatiosAt,
@@ -6082,7 +6175,7 @@ var PC_UI = (() => {
     };
   }
   function q(n2, u4, t3, i3, r3, o3, e3, f4, c3, a3) {
-    var s3, h3, p3, v3, y3, d3, _2, k3, x2, M, I2, P2, A2, H2, T2, j3, F = u4.type;
+    var s3, h3, p3, v3, y3, d3, _2, k3, x2, M, I2, P2, A3, H2, T3, j3, F = u4.type;
     if (void 0 !== u4.constructor) return null;
     128 & t3.__u && (c3 = !!(32 & t3.__u), o3 = [f4 = u4.__e = t3.__e]), (s3 = l.__b) && s3(u4);
     n: if ("function" == typeof F) {
@@ -6100,11 +6193,11 @@ var PC_UI = (() => {
             p3.componentDidUpdate(y3, d3, _2);
           });
         }
-        if (p3.context = P2, p3.props = x2, p3.__P = n2, p3.__e = false, A2 = l.__r, H2 = 0, M) p3.state = p3.__s, p3.__d = false, A2 && A2(u4), s3 = p3.render(p3.props, p3.state, p3.context), w.push.apply(p3.__h, p3._sb), p3._sb = [];
+        if (p3.context = P2, p3.props = x2, p3.__P = n2, p3.__e = false, A3 = l.__r, H2 = 0, M) p3.state = p3.__s, p3.__d = false, A3 && A3(u4), s3 = p3.render(p3.props, p3.state, p3.context), w.push.apply(p3.__h, p3._sb), p3._sb = [];
         else do {
-          p3.__d = false, A2 && A2(u4), s3 = p3.render(p3.props, p3.state, p3.context), p3.state = p3.__s;
+          p3.__d = false, A3 && A3(u4), s3 = p3.render(p3.props, p3.state, p3.context), p3.state = p3.__s;
         } while (p3.__d && ++H2 < 25);
-        p3.state = p3.__s, null != p3.getChildContext && (i3 = m(m({}, i3), p3.getChildContext())), M && !v3 && null != p3.getSnapshotBeforeUpdate && (_2 = p3.getSnapshotBeforeUpdate(y3, d3)), T2 = null != s3 && s3.type === S && null == s3.key ? E(s3.props.children) : s3, f4 = L(n2, g(T2) ? T2 : [T2], u4, t3, i3, r3, o3, e3, f4, c3, a3), p3.base = u4.__e, u4.__u &= -161, p3.__h.length && e3.push(p3), k3 && (p3.__E = p3.__ = null);
+        p3.state = p3.__s, null != p3.getChildContext && (i3 = m(m({}, i3), p3.getChildContext())), M && !v3 && null != p3.getSnapshotBeforeUpdate && (_2 = p3.getSnapshotBeforeUpdate(y3, d3)), T3 = null != s3 && s3.type === S && null == s3.key ? E(s3.props.children) : s3, f4 = L(n2, g(T3) ? T3 : [T3], u4, t3, i3, r3, o3, e3, f4, c3, a3), p3.base = u4.__e, u4.__u &= -161, p3.__h.length && e3.push(p3), k3 && (p3.__E = p3.__ = null);
       } catch (n3) {
         if (e3.length = h3, u4.__v = null, c3 || null != o3) {
           if (n3.then) {
@@ -6980,6 +7073,15 @@ var PC_UI = (() => {
     var i3 = s2(t2++, 3);
     !c2.__s && C3(i3.__H, u4) && (i3.__ = n2, i3.u = u4, r2.__H.__h.push(i3));
   }
+  function A2(n2) {
+    return o2 = 5, T2(function() {
+      return { current: n2 };
+    }, []);
+  }
+  function T2(n2, r3) {
+    var u4 = s2(t2++, 7);
+    return C3(u4.__H, r3) && (u4.__ = n2(), u4.__H = r3, u4.__h = n2), u4.__;
+  }
   function j2() {
     for (var n2; n2 = f3.shift(); ) {
       var t3 = n2.__H;
@@ -7176,6 +7278,196 @@ var PC_UI = (() => {
         /* @__PURE__ */ u2("b", { children: (f4 || { name: "a missing field" }).name }),
         " on the item shown above."
       ] }) : c3.note ? /* @__PURE__ */ u2("div", { class: "note", children: c3.note }) : null
+    ] });
+  }
+
+  // app/src/ui/inspector/ColorPop.tsx
+  var EyeDropperApi = window.EyeDropper;
+  var BLACK = { r: 0, g: 0, b: 0, a: 1 };
+  function Surface({ cls, onPick, children, aria, value, onKey }) {
+    const el = A2(null);
+    const at = (e3) => {
+      const b2 = el.current.getBoundingClientRect();
+      onPick(
+        b2.width ? Math.min(1, Math.max(0, (e3.clientX - b2.left) / b2.width)) : 0,
+        b2.height ? Math.min(1, Math.max(0, (e3.clientY - b2.top) / b2.height)) : 0
+      );
+    };
+    return /* @__PURE__ */ u2(
+      "div",
+      {
+        class: cls,
+        ref: el,
+        tabIndex: 0,
+        role: "slider",
+        "aria-label": aria,
+        "aria-valuetext": value,
+        onKeyDown: onKey,
+        onPointerDown: (e3) => {
+          e3.currentTarget.setPointerCapture(e3.pointerId);
+          at(e3);
+        },
+        onPointerMove: (e3) => {
+          if (e3.buttons) at(e3);
+        },
+        children
+      }
+    );
+  }
+  function ColorPop({ start, anchor, onLive, onDone, onClose }) {
+    const first = C2.parseColor(start) || BLACK;
+    const [hue, setHue] = d2(C2.rgb2hsv(first).h);
+    const [rgba, setRgba] = d2(first);
+    const box = A2(null);
+    const hsv = C2.rgb2hsv(rgba);
+    const css = C2.fmtColor(rgba);
+    const h3 = hsv.s > 4e-3 && hsv.v > 4e-3 ? hsv.h : hue;
+    const put = (next, commit) => {
+      setRgba(next);
+      (commit ? onDone : onLive)(C2.fmtColor(next));
+    };
+    const fromHsv = (s3, v3, hh = h3, a3 = rgba.a, commit) => put({ ...C2.hsv2rgb({ h: hh, s: s3, v: v3 }), a: a3 }, commit);
+    h2(() => {
+      const away = (e3) => {
+        const t3 = e3.target;
+        if (box.current?.contains(t3) || anchor.contains(t3)) return;
+        onClose();
+      };
+      const key = (e3) => {
+        if (e3.key === "Escape") {
+          e3.stopPropagation();
+          onClose();
+        }
+      };
+      document.addEventListener("pointerdown", away, true);
+      document.addEventListener("keydown", key, true);
+      window.addEventListener("resize", onClose);
+      window.addEventListener("scroll", onClose, true);
+      box.current?.querySelector(".cp-sv")?.focus();
+      return () => {
+        document.removeEventListener("pointerdown", away, true);
+        document.removeEventListener("keydown", key, true);
+        window.removeEventListener("resize", onClose);
+        window.removeEventListener("scroll", onClose, true);
+      };
+    }, [anchor, onClose]);
+    const r3 = anchor.getBoundingClientRect();
+    const W = 232, H2 = 244;
+    const below = window.innerHeight - r3.bottom > H2 + 12;
+    const style = {
+      left: Math.round(Math.min(Math.max(8, r3.left), window.innerWidth - W - 8)) + "px",
+      top: Math.round(below ? r3.bottom + 6 : Math.max(8, r3.top - H2 - 6)) + "px",
+      width: W + "px"
+    };
+    const nudge = (e3, dx, dy) => {
+      const step = e3.shiftKey ? 10 : 1;
+      const map = {
+        ArrowLeft: () => dx(-step),
+        ArrowRight: () => dx(step),
+        ArrowUp: () => (dy || dx)(dy ? -step : step),
+        ArrowDown: () => (dy || dx)(dy ? step : -step)
+      };
+      if (!map[e3.key]) return;
+      e3.preventDefault();
+      e3.stopPropagation();
+      map[e3.key]();
+    };
+    const pick = async () => {
+      if (!EyeDropperApi) return;
+      try {
+        const got = await new EyeDropperApi().open();
+        const c3 = C2.parseColor(got.sRGBHex);
+        if (c3) {
+          setHue(C2.rgb2hsv(c3).h);
+          put({ ...c3, a: rgba.a }, true);
+        }
+      } catch {
+      }
+    };
+    return /* @__PURE__ */ u2("div", { class: "cp", ref: box, style, onPointerDown: (e3) => e3.stopPropagation(), children: [
+      /* @__PURE__ */ u2(
+        Surface,
+        {
+          cls: "cp-sv",
+          aria: "Saturation and brightness",
+          value: Math.round(hsv.s * 100) + "% saturation, " + Math.round(hsv.v * 100) + "% brightness",
+          onPick: (fx, fy) => fromHsv(fx, 1 - fy),
+          onKey: (e3) => nudge(
+            e3,
+            (k3) => fromHsv(Math.min(1, Math.max(0, hsv.s + k3 / 100)), hsv.v, h3, rgba.a, true),
+            (k3) => fromHsv(hsv.s, Math.min(1, Math.max(0, hsv.v - k3 / 100)), h3, rgba.a, true)
+          ),
+          children: [
+            /* @__PURE__ */ u2("div", { class: "cp-svbg", style: { background: `hsl(${h3} 100% 50%)` } }),
+            /* @__PURE__ */ u2("i", { class: "cp-dot", style: {
+              left: hsv.s * 100 + "%",
+              top: (1 - hsv.v) * 100 + "%",
+              background: C2.fmtColor({ ...rgba, a: 1 })
+            } })
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2("div", { class: "cp-rows", children: [
+        /* @__PURE__ */ u2("span", { class: "cp-chip", children: /* @__PURE__ */ u2("i", { style: { background: css } }) }),
+        /* @__PURE__ */ u2("div", { class: "cp-strips", children: [
+          /* @__PURE__ */ u2(
+            Surface,
+            {
+              cls: "cp-hue",
+              aria: "Hue",
+              value: Math.round(h3) + " degrees",
+              onPick: (fx) => {
+                const nh = fx * 360;
+                setHue(nh);
+                fromHsv(hsv.s || 1, hsv.v || 1, nh);
+              },
+              onKey: (e3) => nudge(e3, (k3) => {
+                const nh = (h3 + k3 * 2 + 360) % 360;
+                setHue(nh);
+                fromHsv(hsv.s || 1, hsv.v || 1, nh, rgba.a, true);
+              }),
+              children: /* @__PURE__ */ u2("i", { class: "cp-tick", style: { left: h3 / 360 * 100 + "%" } })
+            }
+          ),
+          /* @__PURE__ */ u2(
+            Surface,
+            {
+              cls: "cp-alpha",
+              aria: "Opacity",
+              value: Math.round(rgba.a * 100) + "%",
+              onPick: (fx) => put({ ...rgba, a: fx }),
+              onKey: (e3) => nudge(e3, (k3) => put({ ...rgba, a: Math.min(1, Math.max(0, rgba.a + k3 / 100)) }, true)),
+              children: [
+                /* @__PURE__ */ u2("div", { class: "cp-abg", style: { background: `linear-gradient(90deg, transparent, ${C2.fmtColor({ ...rgba, a: 1 })})` } }),
+                /* @__PURE__ */ u2("i", { class: "cp-tick", style: { left: rgba.a * 100 + "%" } })
+              ]
+            }
+          )
+        ] }),
+        EyeDropperApi ? /* @__PURE__ */ u2("button", { class: "cp-eye", title: "Sample a colour from the screen", onClick: pick, children: /* @__PURE__ */ u2(Icon, { name: "pipette", size: 13 }) }) : null
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "cp-foot", children: [
+        /* @__PURE__ */ u2(
+          "input",
+          {
+            class: "ctl cp-val",
+            value: css,
+            spellcheck: false,
+            "aria-label": "Colour value",
+            onInput: (e3) => {
+              const c3 = C2.parseColor(e3.target.value);
+              if (!c3) return;
+              setHue(C2.rgb2hsv(c3).h);
+              put(c3);
+            },
+            onBlur: () => onDone(css)
+          }
+        ),
+        /* @__PURE__ */ u2("span", { class: "cp-pc", children: [
+          Math.round(rgba.a * 100),
+          "%"
+        ] })
+      ] })
     ] });
   }
 
@@ -7545,8 +7837,8 @@ var PC_UI = (() => {
     const v3 = String(valueOf(n2, c3) || "");
     const tok = C2.refId(v3) ? C2.findColor(C2.refId(v3)) : null;
     const lit = tok ? tok.value : v3;
-    const hexish = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(lit) ? lit : "#000000";
     const cur = () => c3.c ? C2.cssVal(C2.tgtObj(n2), c3.c, !!c3.r).v : C2.propVal(n2, c3.k);
+    const [pop, setPop] = d2(null);
     const addToken = async () => {
       const name = await L2.askText(
         "New colour token",
@@ -7556,28 +7848,44 @@ var PC_UI = (() => {
       );
       if (name === null) return;
       C2.edit(() => {
-        const id = C2.colorAdd(name, C2.resolveColor(cur()) || hexish);
+        const id = C2.colorAdd(name, C2.resolveColor(cur()) || "#000000");
         C2.applyC(n2, c3, C2.cvar(id));
       });
       L2.toast("Colour token created");
     };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       /* @__PURE__ */ u2("div", { class: "clr", children: [
-        /* @__PURE__ */ u2("span", { class: "sw", children: [
-          /* @__PURE__ */ u2("i", { style: { background: lit || "transparent" } }),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "sw",
+            title: "Pick a colour",
+            "aria-haspopup": "dialog",
+            "aria-expanded": pop ? "true" : "false",
+            onClick: (e3) => setPop(pop ? null : e3.currentTarget),
+            children: /* @__PURE__ */ u2("i", { style: { background: lit || "transparent" } })
+          }
+        ),
+        pop ? (
+          /* picking a literal breaks any token link, which is why this writes through the
+             same path as typing a hex rather than a special one */
           /* @__PURE__ */ u2(
-            "input",
+            ColorPop,
             {
-              type: "color",
-              value: hexish,
-              onInput: (e3) => w3.live(e3.target.value),
-              onChange: () => {
+              start: lit,
+              anchor: pop,
+              onLive: w3.live,
+              onDone: (val) => {
+                w3.hard(val);
+              },
+              onClose: () => {
                 w3.done();
+                setPop(null);
                 if (C2.isRef(cur())) repaint("right");
               }
             }
           )
-        ] }),
+        ) : null,
         tok ? /* @__PURE__ */ u2(S, { children: [
           /* @__PURE__ */ u2("span", { class: "tokchip", title: "Linked to the " + tok.name + " token", children: [
             /* @__PURE__ */ u2(Icon, { name: "link", size: 10 }),
