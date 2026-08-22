@@ -4251,6 +4251,150 @@ test('a widget\u2019s own style group is called what those controls actually are
   });
 });
 
+test('every script an exported page emits is a script the page can actually run', () => {
+  /* The code block's terminator was `<\/script>` where it needed to be `</script>`, so the
+     element never closed and the script ran on into the markup — a syntax error at the
+     first `<`. Nothing was checking, because the suite reads strings and a browser reads
+     tags. One page carrying every script-emitting widget, and each one parsed. */
+  blank();
+  const pg = C.state.pages[0];
+  const code = insert('code', null, 0);
+  code.props.body = 'x'; code.props.copy = 1;
+  insert('tabs', null, 1);
+  insert('nav', null, 2);
+  const vid = insert('video', null, 3);
+  vid.props.src = 'https://www.youtube.com/watch?v=abc'; vid.props.facade = 1;
+  const gal = insert('gallery', null, 4);
+  gal.props.items = [{ src: 'a.jpg', alt: 'a' }, { src: 'b.jpg', alt: 'b' }];
+  gal.props.lightbox = 1;
+  const html = C.buildPage(pg);
+
+  const blocks = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+  a.ok(blocks.length >= 4, `only ${blocks.length} scripts closed properly — one did not close`);
+  blocks.forEach((src, i) => {
+    if (!src.trim()) return;
+    a.doesNotThrow(() => new Function(src), `script ${i} does not parse: ${src.slice(0, 70)}`);
+  });
+  /* and nothing is left over: text after the last closing tag means one never closed */
+  a.equal(/<script/.test(html.split(/<\/script>/).pop() || ''), false, 'an unclosed script tag');
+});
+
+/* ==================================================================== code
+   Highlighted in the builder and shipped as spans, so the page runs no highlighter. */
+const code = (props = {}) => {
+  blank();
+  const n = insert('code', null, 0);
+  Object.assign(n.props, props);
+  return n;
+};
+/** what the spans wrap, with the spans taken off again */
+const bare = (html: string) => html.replace(/<span class="pc-c-[a-z]+">/g, '').replace(/<\/span>/g, '');
+
+test('the highlighter never loses a character — strip its spans and the input is back', () => {
+  const samples = [
+    'const a = "x";\n// done\n',
+    'a /* b */ c // d\n"str with // inside"\n',
+    '{ "key": 12, "n": null }',
+    '<a href="/x" class=\'y\'>text</a><!-- note -->\n<!DOCTYPE html>',
+    'body { color: #fff; /* why */ }\n.a::before{content:"<>"}',
+    'if x > 3 and y < 2: print("hi")   # note',
+    'echo "$HOME" # go\nif [ -f a ]; then cd /tmp; fi',
+    '',
+    'a\n\n\nb',
+    'unterminated "string',
+    'unterminated /* comment',
+    '<a href="unclosed',
+    'tabs\tand\ttrailing   ',
+    '<>&"\'',
+    'emoji 🎉 and — dashes'
+  ];
+  for (const lang of Object.keys(C.CODE_LANGS)) {
+    for (const src of samples) {
+      const out = C.codeSpans(src, lang);
+      a.equal(bare(out), C.esc(src), `${lang} mangled: ${JSON.stringify(src)}`);
+    }
+  }
+});
+
+test('no token straddles a newline, which is what makes numbering the lines safe', () => {
+  const out = C.codeSpans('/* one\ntwo\nthree */', 'js');
+  a.equal(out.split('\n').length, 3);
+  for (const line of out.split('\n')) {
+    a.equal((line.match(/<span/g) || []).length, (line.match(/<\/span>/g) || []).length,
+      'a line closed a span it did not open: ' + line);
+  }
+});
+
+test('it finds the things a lexer can actually know', () => {
+  a.match(C.codeSpans('// hi', 'js'), /pc-c-com">\/\/ hi/);
+  a.match(C.codeSpans('const x', 'js'), /pc-c-kw">const/);
+  a.match(C.codeSpans('"s"', 'js'), /pc-c-str">&quot;s&quot;/);
+  a.match(C.codeSpans('42', 'js'), /pc-c-num">42/);
+  a.match(C.codeSpans('run(1)', 'js'), /pc-c-fn">run/);
+  a.match(C.codeSpans('{"a":1}', 'json'), /pc-c-key">/, 'a JSON key and a CSS property are the same shape');
+  a.match(C.codeSpans('a{color:red}', 'css'), /pc-c-key">color/);
+  a.match(C.codeSpans('<b id="x">', 'html'), /pc-c-kw">b/);
+  a.match(C.codeSpans('<b id="x">', 'html'), /pc-c-key">id/);
+  a.equal(/pc-c-/.test(C.codeSpans('const x = 1', 'text')), false, 'plain text is left alone');
+});
+
+test('a comment marker inside a string is part of the string', () => {
+  const out = C.codeSpans('"http://x // y"', 'js');
+  a.equal((out.match(/pc-c-com/g) || []).length, 0);
+  a.equal((out.match(/pc-c-str/g) || []).length, 1);
+});
+
+test('the block is a figure with pre and code, and says its language', () => {
+  const html = C.renderNode(code({ body: 'let a = 1;', lang: 'ts' }), { edit: false });
+  a.match(html, /<figure /);
+  a.match(html, /<pre><code class="language-ts">/);
+  a.equal(/<script/i.test(html), false, 'the colour is in the CSS, not a library');
+});
+
+test('a copy button ships hidden and its script only where one exists', () => {
+  blank();
+  const pg = C.state.pages[0];
+  const n = insert('code', null, 0);
+  n.props.body = 'x';
+  n.props.copy = 1;
+  const on = C.buildPage(pg);
+  a.match(on, /data-copy hidden/, 'a button that cannot copy is worse than no button');
+  a.match(on, /navigator\.clipboard/);
+  n.props.copy = 0;
+  const off = C.buildPage(pg);
+  a.equal(/data-copy/.test(off), false);
+  a.equal(/navigator\.clipboard/.test(off), false, 'and no script for a button that is not there');
+});
+
+test('numbering wraps each line, and only when asked', () => {
+  const plain = C.renderNode(code({ body: 'a\nb\nc' }), { edit: false });
+  a.equal(/pagecraft-code-line/.test(plain), false, 'not paid for unless wanted');
+  const numbered = C.renderNode(code({ body: 'a\nb\nc', numbers: 1 }), { edit: false });
+  a.equal((numbered.match(/pagecraft-code-line/g) || []).length, 3);
+  a.match(C.baseCss(false), /counter-increment:pcline/);
+});
+
+test('wrapping and the file name reach the markup', () => {
+  a.match(C.renderNode(code({ softwrap: 1 }), { edit: false }), / data-wrap/);
+  a.equal(/data-wrap/.test(C.renderNode(code({ softwrap: 0 }), { edit: false })), false);
+  a.match(C.renderNode(code({ title: 'index.js' }), { edit: false }), /<span>index\.js<\/span>/);
+});
+
+test('an empty block exports nothing, explains itself, and is a finding', () => {
+  const n = code({ body: '   ' });
+  a.equal(C.renderNode(n, { edit: false }), '');
+  a.match(C.renderNode(n, { edit: true }), /s-empty/);
+  a.equal(find(C.lint(), 'code-empty').length, 1);
+});
+
+test('the code and the file name are text the search can reach', () => {
+  const n = code({ body: 'const acme = 1;', title: 'acme.js' });
+  a.equal(C.searchCount(C.searchAll('acme')), 2);
+  C.replaceAll('acme', 'beta');
+  a.equal(n.props.body, 'const beta = 1;');
+  a.equal(n.props.title, 'beta.js');
+});
+
 /* =================================================================== table
    The body is one string, because tabular data arrives by paste. */
 const table = (props = {}) => {

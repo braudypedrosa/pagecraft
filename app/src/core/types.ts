@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'column'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
-  | 'tabs' | 'table'
+  | 'tabs' | 'table' | 'code'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
 
@@ -120,6 +120,20 @@ export interface TabsProps { items?: TabPanel[] }
 /** A table's body is one string, because that is how tabular data arrives: pasted from a
     spreadsheet. `tableGrid` splits it — on tabs when the paste has them, else on pipes,
     which is what a person types by hand. Never on commas: prose is full of them. */
+/** A code block. `lang` picks the lexer, not a runtime library — the spans are in the
+    exported HTML and the page ships no highlighter. */
+export interface CodeProps {
+  body?: string;
+  /** a key of CODE_LANGS */
+  lang?: string;
+  /** shown above the code — a filename, usually */
+  title?: string;
+  numbers?: 0 | 1;
+  /** wrap long lines instead of scrolling them. Not `wrap`: the button already has one,
+      and `Props` is every widget's shape flattened into a single interface. */
+  softwrap?: 0 | 1;
+  copy?: 0 | 1;
+}
 export interface TableProps {
   body?: string;
   /** the first row is a column header */
@@ -145,7 +159,7 @@ export interface PropsByType {
   section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
   heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
   video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
-  form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; embed: EmbedProps;
+  form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; embed: EmbedProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

@@ -29,6 +29,8 @@ __export(index_exports, {
   BIND_CTL: () => BIND_CTL,
   BOX: () => BOX,
   BP_CHAIN: () => BP_CHAIN,
+  CODE_JS: () => CODE_JS,
+  CODE_LANGS: () => CODE_LANGS,
   COLL_CTL: () => COLL_CTL,
   COMMON_STYLE: () => COMMON_STYLE,
   CONTENT_TYPES: () => CONTENT_TYPES,
@@ -121,6 +123,7 @@ __export(index_exports, {
   classes: () => classes,
   clip: () => clip,
   clone: () => clone,
+  codeSpans: () => codeSpans,
   collectionAdd: () => collectionAdd,
   collectionDelete: () => collectionDelete,
   collectionRename: () => collectionRename,
@@ -350,6 +353,7 @@ var IC = {
   section: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 5.5h8M4 8h8M4 10.5h5"/>',
   row: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M8 3.5v9"/>',
   table: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6h13M6.5 6v7.5"/>',
+  codeblock: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M5 7l-1.6 1.6L5 10.2M9.2 7l1.6 1.6-1.6 1.6" stroke-linecap="round"/>',
   column: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
   columns: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
   heading: '<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',
@@ -1851,6 +1855,71 @@ var DEF = {
      the markup renders every panel visible and the script hides all but one — a reader with no
      script gets the whole content stacked, which is the honest failure. Hiding them in CSS and
      revealing with script fails the other way, into a page with the content missing. */
+  code: {
+    label: "Code",
+    icon: "codeblock",
+    level: 4,
+    make: () => ({
+      props: {
+        body: "const site = build({\n  pages: 12,\n  scripts: 0   // nothing to run\n});",
+        lang: "js",
+        numbers: 0,
+        softwrap: 0,
+        copy: 1
+      },
+      css: {
+        d: {
+          width: "100%",
+          "--cd-bg": cvar("bg"),
+          "--cd-text": cvar("text"),
+          "--cd-size": "14px",
+          "--cd-pad": "16px 18px",
+          "--cd-radius": "10px",
+          "--cd-line": cvar("line"),
+          "--cd-com": cvar("muted"),
+          "--cd-str": "#2f6f5e",
+          "--cd-kw": "#8a4b2a",
+          "--cd-num": "#3a5a9a",
+          "--cd-key": "#5b4a8a"
+        },
+        t: {},
+        m: { "--cd-size": "13px", "--cd-pad": "12px 13px" }
+      }
+    }),
+    controls: {
+      content: [
+        { t: "area", k: "body", label: "Code", rows: 9, mono: 1, ph: "const x = 1;" },
+        {
+          t: "select",
+          k: "lang",
+          label: "Language",
+          set: 1,
+          opts: () => Object.keys(CODE_LANGS).map((k) => [k, CODE_LANGS[k].label])
+        },
+        { t: "text", k: "title", label: "File name", ph: "index.js" },
+        { t: "toggle", k: "numbers", label: "Number the lines" },
+        { t: "toggle", k: "softwrap", label: "Wrap long lines" },
+        {
+          t: "toggle",
+          k: "copy",
+          label: "Copy button",
+          note: "Hidden unless the browser can copy, so it is never a button that does nothing"
+        }
+      ],
+      style: [
+        { t: "color", c: "--cd-bg", label: "Background" },
+        { t: "color", c: "--cd-text", label: "Text colour" },
+        { t: "unit", c: "--cd-size", label: "Text size", r: 1, units: U.size },
+        { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
+        { t: "unit", c: "--cd-radius", label: "Radius", r: 1, units: U.radius },
+        { t: "color", c: "--cd-com", label: "Comments", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-str", label: "Strings", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-kw", label: "Keywords", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-num", label: "Numbers", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-key", label: "Names", when: (n) => n.props.lang !== "text" }
+      ]
+    }
+  },
   table: {
     label: "Table",
     icon: "table",
@@ -2124,6 +2193,156 @@ var DEF = {
     }
   }
 };
+var CODE_LANGS = {
+  text: { label: "Plain text" },
+  html: { label: "HTML", markup: 1 },
+  css: { label: "CSS", block: ["/*", "*/"], keys: 1, calls: 1 },
+  js: {
+    label: "JavaScript",
+    line: "//",
+    block: ["/*", "*/"],
+    calls: 1,
+    words: "const let var function return if else for while of in new class extends super import export from default await async try catch finally throw typeof instanceof delete void yield switch case break continue do this null undefined true false"
+  },
+  ts: {
+    label: "TypeScript",
+    line: "//",
+    block: ["/*", "*/"],
+    calls: 1,
+    words: "const let var function return if else for while of in new class extends super import export from default await async try catch finally throw typeof instanceof delete void yield switch case break continue do this null undefined true false interface type enum implements readonly public private protected as satisfies keyof namespace declare"
+  },
+  json: { label: "JSON", keys: 1, words: "true false null" },
+  sh: {
+    label: "Shell",
+    line: "#",
+    words: "if then elif else fi for in do done while until case esac function return export local readonly cd echo printf set unset source exit sudo"
+  },
+  py: {
+    label: "Python",
+    line: "#",
+    calls: 1,
+    words: "def class return if elif else for while in not and or is None True False import from as with try except finally raise lambda yield pass break continue global nonlocal assert del await async match"
+  }
+};
+function codeTok(cls, text) {
+  return text.split("\n").map((part) => part === "" ? "" : `<span class="pc-c-${cls}">${esc(part)}</span>`).join("\n");
+}
+function codeTag(t) {
+  const m = /^(<\/?)([A-Za-z][\w:-]*)([\s\S]*?)(\/?>)$/.exec(t);
+  if (!m) return esc(t);
+  const body = m[3];
+  let inner = "", last = 0, a;
+  const re = /([A-Za-z_:][\w:.-]*)(\s*=\s*)("[^"]*"|'[^']*'|[^\s>]+)?/g;
+  while (a = re.exec(body)) {
+    if (a.index > last) inner += esc(body.slice(last, a.index));
+    inner += codeTok("key", a[1]) + esc(a[2] || "");
+    if (a[3]) inner += codeTok("str", a[3]);
+    last = a.index + a[0].length;
+  }
+  return esc(m[1]) + codeTok("kw", m[2]) + inner + esc(body.slice(last)) + esc(m[4]);
+}
+function codeMarkup(src) {
+  const out = [];
+  const re = /<!\x2D\x2D[\s\S]*?\x2D\x2D>|<![A-Za-z][^>]*>|<\/?[A-Za-z][\w:-]*(?:"[^"]*"|'[^']*'|[^>"'])*\/?>/g;
+  let last = 0, m;
+  while (m = re.exec(src)) {
+    if (m.index > last) out.push(esc(src.slice(last, m.index)));
+    const t = m[0];
+    out.push(t.startsWith("<!-") ? codeTok("com", t) : t.startsWith("<!") ? codeTok("kw", t) : codeTag(t));
+    last = m.index + t.length;
+  }
+  out.push(esc(src.slice(last)));
+  return out.join("");
+}
+function codeSpans(src, lang) {
+  const text = String(src == null ? "" : src).replace(/\r/g, "");
+  const L = CODE_LANGS[String(lang || "text")] || CODE_LANGS.text;
+  if (L.markup) return codeMarkup(text);
+  if (!L.line && !L.block && !L.words && !L.keys) return esc(text);
+  const kw = new Set((L.words || "").split(/\s+/).filter(Boolean));
+  const out = [];
+  let i = 0;
+  while (i < text.length) {
+    const rest = text.slice(i);
+    if (L.block && rest.startsWith(L.block[0])) {
+      const end = text.indexOf(L.block[1], i + L.block[0].length);
+      const stop = end < 0 ? text.length : end + L.block[1].length;
+      out.push(codeTok("com", text.slice(i, stop)));
+      i = stop;
+      continue;
+    }
+    if (L.line && rest.startsWith(L.line)) {
+      const nl = text.indexOf("\n", i);
+      const stop = nl < 0 ? text.length : nl;
+      out.push(codeTok("com", text.slice(i, stop)));
+      i = stop;
+      continue;
+    }
+    const q = rest[0];
+    if (q === '"' || q === "'" || q === "`") {
+      let j = i + 1;
+      while (j < text.length) {
+        if (text[j] === "\\") {
+          j += 2;
+          continue;
+        }
+        if (text[j] === q) {
+          j++;
+          break;
+        }
+        j++;
+      }
+      const stop = Math.min(j, text.length);
+      const isKey = L.keys && /^\s*:/.test(text.slice(stop));
+      out.push(codeTok(isKey ? "key" : "str", text.slice(i, stop)));
+      i = stop;
+      continue;
+    }
+    const num = /^\d[\w.]*/.exec(rest);
+    if (num) {
+      out.push(codeTok("num", num[0]));
+      i += num[0].length;
+      continue;
+    }
+    const word = /^[A-Za-z_$@][\w$-]*/.exec(rest);
+    if (word) {
+      const w = word[0], after = rest.slice(w.length);
+      if (kw.has(w)) out.push(codeTok("kw", w));
+      else if (L.keys && /^\s*:/.test(after)) out.push(codeTok("key", w));
+      else if (L.calls && /^\s*\(/.test(after)) out.push(codeTok("fn", w));
+      else out.push(esc(w));
+      i += w.length;
+      continue;
+    }
+    const run = /^[^\w$@'"`]+/.exec(rest);
+    let take = run ? run[0] : rest[0];
+    if (run && L.block) {
+      const c = take.indexOf(L.block[0]);
+      if (c > 0) take = take.slice(0, c);
+    }
+    if (run && L.line) {
+      const c = take.indexOf(L.line);
+      if (c > 0) take = take.slice(0, c);
+    }
+    out.push(esc(take));
+    i += take.length;
+  }
+  return out.join("");
+}
+var CODE_JS = `<script>
+(function(){var c=navigator.clipboard;if(!c)return;
+Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'),function(b){
+var box=b.closest('.pagecraft-code');if(!box)return;var pre=box.querySelector('code');if(!pre)return;
+b.removeAttribute('hidden');
+b.addEventListener('click',function(){var was=b.textContent;
+function say(t){b.textContent=t;b.disabled=true;
+setTimeout(function(){b.textContent=was;b.disabled=false;},1400);}
+c.writeText(pre.textContent||'').then(function(){say('Copied');},function(){
+/* refused \u2014 a sandboxed frame, no permission. Select it so the reader can copy it. */
+try{var r=document.createRange();r.selectNodeContents(pre);var sel=getSelection();
+sel.removeAllRanges();sel.addRange(r);say('Selected');}catch(e){say('Press \u2318C');}});});});})();
+</script>
+`;
 function tableGrid(body) {
   const text = String(body == null ? "" : body).replace(/\r/g, "");
   const lines = text.split("\n").filter((l) => l.trim() !== "");
@@ -3172,6 +3391,8 @@ function lint() {
       }
       if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
+      if (n.type === "code" && !String(n.props.body || "").trim())
+        add("warn", "code-empty", `A code block in the ${region} is empty, so it exports nothing.`, w, n.id);
       if (n.type === "table") {
         const grid = tableGrid(n.props.body);
         if (!grid.length) add("warn", "table-empty", `A table in the ${region} has no rows, so it exports nothing.`, w, n.id);
@@ -3348,6 +3569,7 @@ var TEXT_SLOTS = {
   text: ["html"],
   embed: ["html"],
   quote: ["text", "by"],
+  code: ["body", "title"],
   table: ["body", "caption"],
   tabs: [["items", "label", "panel"]],
   image: ["alt", "caption"],
@@ -3368,7 +3590,8 @@ var SLOT_LABEL = {
   ph: "Placeholder",
   by: "Attribution",
   panel: "Panel",
-  body: "Rows"
+  body: "Rows",
+  title: "File name"
 };
 function textSlots(n) {
   const out = [];
@@ -5681,6 +5904,38 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-code{
+  width:100%;margin:0;background:var(--cd-bg,#f4f2ea);color:var(--cd-text,#111311);
+  border-radius:var(--cd-radius,10px);overflow:hidden;
+}
+.pagecraft-code-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:.55em var(--cd-pad-x,18px);border-bottom:1px solid var(--cd-line,#e5e1d6);
+  font-family:var(--cd-ui,system-ui,sans-serif);font-size:.8em;opacity:.75;
+}
+.pagecraft-code-copy{
+  font:inherit;cursor:pointer;background:none;border:1px solid var(--cd-line,#e5e1d6);
+  border-radius:5px;padding:.2em .6em;color:inherit;
+}
+.pagecraft-code-copy:hover{background:#1113110d}
+.pagecraft-code-copy[hidden]{display:none}
+.pagecraft-code pre{
+  margin:0;padding:var(--cd-pad,16px 18px);overflow-x:auto;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:var(--cd-size,14px);line-height:1.55;tab-size:2;
+}
+.pagecraft-code[data-wrap] pre{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}
+.pagecraft-code[data-numbers] pre{counter-reset:pcline}
+.pagecraft-code-line{display:block;counter-increment:pcline}
+.pagecraft-code-line::before{
+  content:counter(pcline);display:inline-block;width:2.2em;margin-right:1.1em;
+  text-align:right;opacity:.4;user-select:none;
+}
+.pc-c-com{color:var(--cd-com,#5f6660);font-style:italic}
+.pc-c-str{color:var(--cd-str,#2f6f5e)}
+.pc-c-kw{color:var(--cd-kw,#8a4b2a)}
+.pc-c-num{color:var(--cd-num,#3a5a9a)}
+.pc-c-key,.pc-c-fn{color:var(--cd-key,#5b4a8a)}
 .pagecraft-table-wrap{width:100%;overflow-x:auto}
 .pagecraft-table{
   width:100%;border-collapse:collapse;font-size:var(--tbl-size,15px);
@@ -6165,6 +6420,16 @@ function renderNode(n, o) {
       const act = safeUrl(p.action) || (/^mailto:/i.test(String(p.action || "")) ? p.action : "");
       return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}"${act ? ` action="${esc(act)}" method="${p.method === "get" ? "get" : "post"}"` : ""}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
     }
+    case "code": {
+      const src = String(p.body == null ? "" : p.body);
+      if (!src.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-code")}><div class="s-empty">${svg("codeblock", 12)} Paste the code in the panel</div></div>` : "";
+      const lang = String(p.lang || "text");
+      let inner = codeSpans(src, lang);
+      if (p.numbers) inner = inner.split("\n").map((l) => `<span class="pagecraft-code-line">${l}</span>`).join("\n");
+      const name = String(p.title == null ? "" : p.title).trim();
+      const head = name || p.copy ? `<figcaption class="pagecraft-code-head">${name ? `<span>${esc(name)}</span>` : "<span></span>"}` + (p.copy ? '<button type="button" class="pagecraft-code-copy" data-copy hidden>Copy</button>' : "") + "</figcaption>" : "";
+      return `<figure ${at} ${cx("pagecraft-code")}${p.softwrap ? " data-wrap" : ""}${p.numbers ? " data-numbers" : ""}>` + head + `<pre><code class="language-${esc(lang)}">${inner}</code></pre></figure>`;
+    }
     case "table": {
       const grid = tableGrid(p.body);
       if (!grid.length) return o.edit ? `<div ${at} ${cx("pagecraft-table-wrap")}><div class="s-empty">${svg("plus", 12)} Paste or type the rows in the panel</div></div>` : "";
@@ -6444,7 +6709,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${m.headHtml
 </head>
 <body>
 ${body}
-${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
+${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 </script>
 ` : ""}</body>
@@ -6461,6 +6726,8 @@ ${ANIM_JS}
   BIND_CTL,
   BOX,
   BP_CHAIN,
+  CODE_JS,
+  CODE_LANGS,
   COLL_CTL,
   COMMON_STYLE,
   CONTENT_TYPES,
@@ -6553,6 +6820,7 @@ ${ANIM_JS}
   classes,
   clip,
   clone,
+  codeSpans,
   collectionAdd,
   collectionDelete,
   collectionRename,

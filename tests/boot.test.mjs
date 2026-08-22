@@ -128,3 +128,25 @@ test('no stylesheet reads a custom property that was never declared', () => {
   a.deepEqual(missing, [], 'these are read but never declared: ' + JSON.stringify(missing));
   a.ok(read.size > 40, `only ${read.size} tokens read — the scan is not seeing the stylesheet`);
 });
+
+/* The inlined bundle may not contain `<!--` or `</script`.
+
+   Both end the script element early, and the second one obviously. The first is the
+   subtle one: a literal `<!--` anywhere inside a <script> puts the HTML tokenizer into
+   its escaped state, and a later `<script` — this app ships several, in the scripts it
+   emits into exported pages — puts it into the double-escaped state, where `</script>`
+   no longer closes the element. Everything after it parses as script text, and the app
+   is a syntax error with no line number.
+
+   The highlighter's HTML lexer wanted `<!--` in a regex and cost an afternoon. The test
+   above catches this as "the page threw"; this one says what to look for. */
+test('the inlined bundle contains nothing that ends its own script element', () => {
+  const html = readFileSync(BUILT, 'utf8');
+  const open = html.indexOf('<script>');
+  const close = html.lastIndexOf('</script>');
+  a.ok(open > 0 && close > open, 'no inline script found — this test is looking at the wrong thing');
+  const body = html.slice(open + 8, close);
+  a.equal(body.includes('</script'), false, 'a literal </script closes the element early');
+  a.equal(body.includes('<!' + '--'), false,
+    'a literal <!-- puts the tokenizer in escaped state and </script> stops closing');
+});
