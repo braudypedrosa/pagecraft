@@ -24,7 +24,7 @@ export type ParentType = WidgetType | null;
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'column'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
-  | 'tabs' | 'table' | 'code'
+  | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
 
@@ -120,6 +120,20 @@ export interface TabsProps { items?: TabPanel[] }
 /** A table's body is one string, because that is how tabular data arrives: pasted from a
     spreadsheet. `tableGrid` splits it — on tabs when the paste has them, else on pipes,
     which is what a person types by hand. Never on commas: prose is full of them. */
+/** A breadcrumb. In `auto` it is derived from where the page sits — a trail you type by
+    hand is a nav menu with a different separator. `manual` is the escape hatch for a
+    structure the page tree does not describe. */
+export interface CrumbsProps {
+  /** 'auto' | 'manual' */
+  mode?: string;
+  /** what to call the front page */
+  home?: string;
+  /** 'chevron' | 'slash' | 'dot' | 'dash' — a CSS marker, so it is never read aloud */
+  sep?: string;
+  /** manual mode only */
+  items?: NavItem[];
+}
+
 /** A code block. `lang` picks the lexer, not a runtime library — the spans are in the
     exported HTML and the page ships no highlighter. */
 export interface CodeProps {
@@ -159,7 +173,7 @@ export interface PropsByType {
   section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
   heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
   video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
-  form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; embed: EmbedProps;
+  form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; embed: EmbedProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

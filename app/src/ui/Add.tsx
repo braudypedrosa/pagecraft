@@ -35,7 +35,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
     /* Grouped by what they do rather than by how they are built, which is why the
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
-      ['button', 'Button'], ['nav', 'Nav menu'], ['form', 'Form'], ['accordion', 'Accordion'],
+      ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
       ['tabs', 'Tabs'], ['embed', 'Embed']
     ]
   },

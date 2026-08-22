@@ -126,6 +126,7 @@ __export(index_exports, {
   codeSpans: () => codeSpans,
   collectionAdd: () => collectionAdd,
   collectionDelete: () => collectionDelete,
+  collectionIndex: () => collectionIndex,
   collectionRename: () => collectionRename,
   collections: () => collections,
   colorAdd: () => colorAdd,
@@ -139,6 +140,8 @@ __export(index_exports, {
   copyNode: () => copyNode,
   copyStyles: () => copyStyles,
   crc32: () => crc32,
+  crumbTrail: () => crumbTrail,
+  crumbsShown: () => crumbsShown,
   cssVal: () => cssVal,
   ctlKeys: () => ctlKeys,
   cvar: () => cvar,
@@ -354,6 +357,7 @@ var IC = {
   row: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M8 3.5v9"/>',
   table: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6h13M6.5 6v7.5"/>',
   codeblock: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M5 7l-1.6 1.6L5 10.2M9.2 7l1.6 1.6-1.6 1.6" stroke-linecap="round"/>',
+  crumbs: '<path d="M1.5 8h3.2M7.2 8h3.2M12.9 8h1.6" stroke-linecap="round"/><path d="M5.6 6.4L7 8 5.6 9.6M11.3 6.4L12.7 8l-1.4 1.6" stroke-linecap="round"/>',
   column: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
   columns: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
   heading: '<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',
@@ -1855,6 +1859,58 @@ var DEF = {
      the markup renders every panel visible and the script hides all but one — a reader with no
      script gets the whole content stacked, which is the honest failure. Hiding them in CSS and
      revealing with script fails the other way, into a page with the content missing. */
+  crumbs: {
+    label: "Breadcrumb",
+    icon: "crumbs",
+    level: 4,
+    make: () => ({
+      props: { mode: "auto", home: "Home", sep: "chevron" },
+      css: {
+        d: {
+          "--cb-size": "13px",
+          "--cb-color": cvar("muted"),
+          "--cb-current": cvar("text"),
+          "--cb-gap": "8px",
+          "--cb-weight": "500"
+        },
+        t: {},
+        m: {}
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "pick",
+          k: "mode",
+          label: "Trail",
+          set: 1,
+          r: 0,
+          opts: [["auto", "From the page"], ["manual", "Written here"]]
+        },
+        {
+          t: "text",
+          k: "home",
+          label: "Front page is called",
+          ph: "Home",
+          when: (n) => n.props.mode !== "manual"
+        },
+        { t: "items", k: "items", label: "Crumbs", when: (n) => n.props.mode === "manual" },
+        {
+          t: "select",
+          k: "sep",
+          label: "Separator",
+          set: 1,
+          opts: [["chevron", "\u203A"], ["slash", "/"], ["dot", "\xB7"], ["dash", "\u2014"]]
+        }
+      ],
+      style: [
+        { t: "unit", c: "--cb-size", label: "Text size", r: 1, units: U.size },
+        { t: "color", c: "--cb-color", label: "Link colour" },
+        { t: "color", c: "--cb-current", label: "Current page colour" },
+        { t: "unit", c: "--cb-gap", label: "Spacing", r: 1, units: U.space }
+      ]
+    }
+  },
   code: {
     label: "Code",
     icon: "codeblock",
@@ -2193,6 +2249,45 @@ var DEF = {
     }
   }
 };
+function collectionIndex(colId) {
+  for (const pg2 of state.pages) {
+    if (pg2.collection) continue;
+    let hit = false;
+    eachNode(pg2.tree, (n) => {
+      if (n.type === "list" && n.src === colId) hit = true;
+    });
+    if (hit) return pg2;
+  }
+  return null;
+}
+function crumbTrail(pg2, o = {}, home = "Home") {
+  if (!pg2) return [];
+  const front = state.pages.find(isFront) || null;
+  const out = [];
+  if (front && !isFront(pg2)) out.push({ label: home || front.name, href: FRONT + ".html" });
+  if (o.col && o.item) {
+    const idx = collectionIndex(o.col.id);
+    if (idx) out.push({ label: idx.name, href: idx.slug + ".html" });
+    out.push({ label: itemTitle(o.col, o.item) || o.item.slug, href: "" });
+    return out;
+  }
+  const no = o.pageNo || 1;
+  if (no > 1) {
+    out.push({ label: pg2.name, href: pg2.slug + ".html" });
+    out.push({ label: `Page ${no}`, href: "" });
+    return out;
+  }
+  if (!isFront(pg2)) out.push({ label: pg2.name, href: "" });
+  else out.push({ label: home || pg2.name, href: "" });
+  return out;
+}
+function crumbsShown(lists) {
+  let hit = false;
+  lists.forEach((l) => eachNode(l, (n) => {
+    if (n.type === "crumbs" && n.props.mode !== "manual") hit = true;
+  }));
+  return hit;
+}
 var CODE_LANGS = {
   text: { label: "Plain text" },
   html: { label: "HTML", markup: 1 },
@@ -3391,6 +3486,8 @@ function lint() {
       }
       if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
+      if (n.type === "crumbs" && n.props.mode === "manual" && !(Array.isArray(n.props.items) ? n.props.items : []).length)
+        add("warn", "crumbs-empty", `A breadcrumb in the ${region} is set to a written trail but has no crumbs.`, w, n.id);
       if (n.type === "code" && !String(n.props.body || "").trim())
         add("warn", "code-empty", `A code block in the ${region} is empty, so it exports nothing.`, w, n.id);
       if (n.type === "table") {
@@ -3570,6 +3667,7 @@ var TEXT_SLOTS = {
   embed: ["html"],
   quote: ["text", "by"],
   code: ["body", "title"],
+  crumbs: ["home", ["items", "label"]],
   table: ["body", "caption"],
   tabs: [["items", "label", "panel"]],
   image: ["alt", "caption"],
@@ -3591,7 +3689,8 @@ var SLOT_LABEL = {
   by: "Attribution",
   panel: "Panel",
   body: "Rows",
-  title: "File name"
+  title: "File name",
+  home: "Front page name"
 };
 function textSlots(n) {
   const out = [];
@@ -5904,6 +6003,19 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-crumbs ol{
+  display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
+  list-style:none;margin:0;padding:0;
+  font-size:var(--cb-size,13px);font-weight:var(--cb-weight,500);
+}
+.pagecraft-crumbs li{display:flex;align-items:center;gap:var(--cb-gap,8px)}
+.pagecraft-crumbs a{color:var(--cb-color,#5f6660);text-decoration:none}
+.pagecraft-crumbs a:hover{text-decoration:underline}
+.pagecraft-crumbs [aria-current]{color:var(--cb-current,#111311)}
+.pagecraft-crumbs li+li::before{content:"\u203A";color:var(--cb-color,#5f6660);opacity:.6}
+.pagecraft-crumbs[data-sep=slash] li+li::before{content:"/"}
+.pagecraft-crumbs[data-sep=dot] li+li::before{content:"\xB7"}
+.pagecraft-crumbs[data-sep=dash] li+li::before{content:"\u2014"}
 .pagecraft-code{
   width:100%;margin:0;background:var(--cd-bg,#f4f2ea);color:var(--cd-text,#111311);
   border-radius:var(--cd-radius,10px);overflow:hidden;
@@ -6420,6 +6532,18 @@ function renderNode(n, o) {
       const act = safeUrl(p.action) || (/^mailto:/i.test(String(p.action || "")) ? p.action : "");
       return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}"${act ? ` action="${esc(act)}" method="${p.method === "get" ? "get" : "post"}"` : ""}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
     }
+    case "crumbs": {
+      const manual = p.mode === "manual";
+      const trail = manual ? (Array.isArray(p.items) ? p.items : []).map((it, i, all) => ({ label: String(it.label || ""), href: i === all.length - 1 ? "" : String(it.href || "") })) : crumbTrail(o.pg, o, String(p.home == null ? "Home" : p.home));
+      if (!trail.length || !manual && o.pg && isFront(o.pg) && trail.length < 2) return o.edit ? `<nav ${at} ${cx("pagecraft-crumbs")}><div class="s-empty">${svg("crumbs", 12)}` + (manual ? " Add a crumb in the panel" : " The front page shows no trail") + "</div></nav>" : "";
+      const li = trail.map((c, i) => {
+        const last = i === trail.length - 1;
+        const label = esc(c.label);
+        const href = last ? "" : pageHref(c.href, o);
+        return "<li>" + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${href}">${label}</a>`) + "</li>";
+      }).join("");
+      return `<nav ${at} ${cx("pagecraft-crumbs")} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || "chevron"))}"><ol>${li}</ol></nav>`;
+    }
     case "code": {
       const src = String(p.body == null ? "" : p.body);
       if (!src.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-code")}><div class="s-empty">${svg("codeblock", 12)} Paste the code in the panel</div></div>` : "";
@@ -6644,6 +6768,18 @@ function jsonLdGraph(pg2, ctx = {}) {
     { "@type": "Organization", "@id": org, name: m.name, url: base + "/" },
     { "@type": "WebSite", "@id": site, name: m.name, url: base + "/", publisher: { "@id": org } }
   ];
+  if (crumbsShown([state.header, pg2.tree, state.footer])) {
+    const trail = crumbTrail(pg2, ctx);
+    if (trail.length > 1) graph.push({
+      "@type": "BreadcrumbList",
+      "@id": url + "#crumbs",
+      itemListElement: trail.map((c, i) => {
+        const el = { "@type": "ListItem", position: i + 1, name: c.label };
+        if (c.href) el.item = base + "/" + String(c.href).replace(/^\/+/, "");
+        return el;
+      })
+    });
+  }
   const isItem = !!(ctx.item && ctx.col);
   const node = isItem ? { "@type": "Article", "@id": url + "#article", headline: pg2.title || pg2.name, url } : { "@type": "WebPage", "@id": url, name: pg2.title || pg2.name, url };
   if (pg2.desc) node.description = pg2.desc;
@@ -6823,6 +6959,7 @@ ${ANIM_JS}
   codeSpans,
   collectionAdd,
   collectionDelete,
+  collectionIndex,
   collectionRename,
   collections,
   colorAdd,
@@ -6836,6 +6973,8 @@ ${ANIM_JS}
   copyNode,
   copyStyles,
   crc32,
+  crumbTrail,
+  crumbsShown,
   cssVal,
   ctlKeys,
   cvar,

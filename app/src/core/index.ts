@@ -657,6 +657,35 @@ const DEF: Record<string, WidgetDef> = {
      the markup renders every panel visible and the script hides all but one — a reader with no
      script gets the whole content stacked, which is the honest failure. Hiding them in CSS and
      revealing with script fails the other way, into a page with the content missing. */
+  crumbs: {
+    label: 'Breadcrumb', icon: 'crumbs', level: 4,
+    make: () => ({
+      props: { mode: 'auto', home: 'Home', sep: 'chevron' },
+      css: {
+        d: {
+          '--cb-size': '13px', '--cb-color': cvar('muted'), '--cb-current': cvar('text'),
+          '--cb-gap': '8px', '--cb-weight': '500'
+        }, t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'pick', k: 'mode', label: 'Trail', set: 1, r: 0,
+          opts: [['auto', 'From the page'], ['manual', 'Written here']] },
+        { t: 'text', k: 'home', label: 'Front page is called', ph: 'Home',
+          when: n => (n.props as PropBag).mode !== 'manual' },
+        { t: 'items', k: 'items', label: 'Crumbs', when: n => (n.props as PropBag).mode === 'manual' },
+        { t: 'select', k: 'sep', label: 'Separator', set: 1,
+          opts: [['chevron', '\u203a'], ['slash', '/'], ['dot', '\u00b7'], ['dash', '\u2014']] }
+      ],
+      style: [
+        { t: 'unit', c: '--cb-size', label: 'Text size', r: 1, units: U.size },
+        { t: 'color', c: '--cb-color', label: 'Link colour' },
+        { t: 'color', c: '--cb-current', label: 'Current page colour' },
+        { t: 'unit', c: '--cb-gap', label: 'Spacing', r: 1, units: U.space }
+      ]
+    }
+  },
   code: {
     label: 'Code', icon: 'codeblock', level: 4,
     make: () => ({
@@ -912,6 +941,67 @@ const DEF: Record<string, WidgetDef> = {
 /* Annotated rather than inferred: without it every `t` widens to `string`, so the
    inspector could not tell these apart from any other object and a typo in a kind name
    would reach the panel as a silently blank field. */
+/* -------------------------------------------------------------- breadcrumbs
+
+   Derived, not typed. A trail you write by hand is a nav menu with a different
+   separator; the point of the widget is that it knows where the page sits.
+
+   The last crumb carries no href, because a link to the page you are already on is a
+   link that does nothing — it is marked `aria-current="page"` instead. */
+
+/** The page that lists a collection: the first ordinary page holding a Collection List
+    bound to it. That is the page a reader would expect the item's parent crumb to reach,
+    and nothing else in the project claims to be a collection's index. */
+function collectionIndex(colId: string): Page | null {
+  for (const pg of state.pages) {
+    if (pg.collection) continue;
+    let hit = false;
+    eachNode(pg.tree, n => { if (n.type === 'list' && n.src === colId) hit = true; });
+    if (hit) return pg;
+  }
+  return null;
+}
+
+function crumbTrail(
+  pg: Page | null | undefined,
+  o: { col?: Collection | null; item?: Item | null; pageNo?: number } = {},
+  home = 'Home'
+): { label: string; href: string }[] {
+  if (!pg) return [];
+  const front = state.pages.find(isFront) || null;
+  const out: { label: string; href: string }[] = [];
+  if (front && !isFront(pg)) out.push({ label: home || front.name, href: FRONT + '.html' });
+
+  /* a detail page: the collection's index sits between the front page and the item */
+  if (o.col && o.item) {
+    const idx = collectionIndex(o.col.id);
+    if (idx) out.push({ label: idx.name, href: idx.slug + '.html' });
+    out.push({ label: itemTitle(o.col, o.item) || o.item.slug, href: '' });
+    return out;
+  }
+
+  /* a later slice of a paginated list: the page itself becomes a link back to slice one */
+  const no = o.pageNo || 1;
+  if (no > 1) {
+    out.push({ label: pg.name, href: pg.slug + '.html' });
+    out.push({ label: `Page ${no}`, href: '' });
+    return out;
+  }
+
+  if (!isFront(pg)) out.push({ label: pg.name, href: '' });
+  else out.push({ label: home || pg.name, href: '' });
+  return out;
+}
+
+/** Does anything in these trees show a breadcrumb? The BreadcrumbList in the page's
+    structured data has to describe a trail the page actually displays — claiming one that
+    is not there is the kind of mismatch a search engine is entitled to distrust. */
+function crumbsShown(lists: PcNode[][]): boolean {
+  let hit = false;
+  lists.forEach(l => eachNode(l, n => { if (n.type === 'crumbs' && (n.props as PropBag).mode !== 'manual') hit = true; }));
+  return hit;
+}
+
 /* ------------------------------------------------------------- code blocks
 
    Highlighting happens here, while you edit, and ships as spans.
@@ -2358,6 +2448,10 @@ function lint() {
       if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add('warn', 'eager-video', `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`, w, n.id);
 
+      if (n.type === 'crumbs' && n.props.mode === 'manual'
+        && !(Array.isArray(n.props.items) ? n.props.items : []).length)
+        add('warn', 'crumbs-empty', `A breadcrumb in the ${region} is set to a written trail but has no crumbs.`, w, n.id);
+
       if (n.type === 'code' && !String(n.props.body || '').trim())
         add('warn', 'code-empty', `A code block in the ${region} is empty, so it exports nothing.`, w, n.id);
 
@@ -2589,6 +2683,7 @@ const TEXT_SLOTS = {
   text: ['html'], embed: ['html'],
   quote: ['text', 'by'],
   code: ['body', 'title'],
+  crumbs: ['home', ['items', 'label']],
   table: ['body', 'caption'],
   tabs: [['items', 'label', 'panel']],
   image: ['alt', 'caption'],
@@ -2602,7 +2697,7 @@ const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['n
 const SLOT_LABEL = {
   text: 'Text', html: 'Rich text', label: 'Label', alt: 'Alt text', caption: 'Caption',
   q: 'Question', a: 'Answer', ph: 'Placeholder', by: 'Attribution', panel: 'Panel',
-  body: 'Rows', title: 'File name'
+  body: 'Rows', title: 'File name', home: 'Front page name'
 };
 
 function textSlots(n: PcNode) {
@@ -5018,6 +5113,19 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-crumbs ol{
+  display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
+  list-style:none;margin:0;padding:0;
+  font-size:var(--cb-size,13px);font-weight:var(--cb-weight,500);
+}
+.pagecraft-crumbs li{display:flex;align-items:center;gap:var(--cb-gap,8px)}
+.pagecraft-crumbs a{color:var(--cb-color,#5f6660);text-decoration:none}
+.pagecraft-crumbs a:hover{text-decoration:underline}
+.pagecraft-crumbs [aria-current]{color:var(--cb-current,#111311)}
+.pagecraft-crumbs li+li::before{content:"›";color:var(--cb-color,#5f6660);opacity:.6}
+.pagecraft-crumbs[data-sep=slash] li+li::before{content:"/"}
+.pagecraft-crumbs[data-sep=dot] li+li::before{content:"·"}
+.pagecraft-crumbs[data-sep=dash] li+li::before{content:"—"}
 .pagecraft-code{
   width:100%;margin:0;background:var(--cd-bg,#f4f2ea);color:var(--cd-text,#111311);
   border-radius:var(--cd-radius,10px);overflow:hidden;
@@ -5612,6 +5720,30 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
         + `</form>`;
     }
+    case 'crumbs': {
+      const manual = p.mode === 'manual';
+      const trail = manual
+        ? (Array.isArray(p.items) ? p.items as NavItem[] : []).map((it, i, all) =>
+            ({ label: String(it.label || ''), href: i === all.length - 1 ? '' : String(it.href || '') }))
+        : crumbTrail(o.pg, o, String(p.home == null ? 'Home' : p.home));
+      /* Nothing on the front page. A breadcrumb there points at the page it is on, which
+         is what "you are here" already says — and search engines ask for it to be left off. */
+      if (!trail.length || (!manual && o.pg && isFront(o.pg) && trail.length < 2)) return o.edit
+        ? `<nav ${at} ${cx('pagecraft-crumbs')}><div class="s-empty">${svg('crumbs', 12)}`
+          + (manual ? ' Add a crumb in the panel' : ' The front page shows no trail') + '</div></nav>' : '';
+      const li = trail.map((c, i) => {
+        const last = i === trail.length - 1;
+        const label = esc(c.label);
+        const href = last ? '' : pageHref(c.href, o);
+        return '<li>' + (last || !href
+          ? `<span aria-current="page">${label}</span>`
+          : `<a href="${href}">${label}</a>`) + '</li>';
+      }).join('');
+      /* The separator is a `data-sep` for CSS to draw, never a character in the markup: a
+         screen reader should read the trail, not the punctuation between it. */
+      return `<nav ${at} ${cx('pagecraft-crumbs')} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || 'chevron'))}">`
+        + `<ol>${li}</ol></nav>`;
+    }
     case 'code': {
       const src = String(p.body == null ? '' : p.body);
       if (!src.trim()) return o.edit
@@ -5938,6 +6070,21 @@ function jsonLdGraph(pg: Page, ctx: { col?: Collection | null; item?: Item | nul
 
   /* A detail page is one item of a collection, so it is an Article rather than a page
      that happens to be about something. */
+  /* A BreadcrumbList only when the page shows one, and built from the same trail the
+     widget renders — a claimed trail that is not on the page is worth less than none. */
+  if (crumbsShown([state.header, pg.tree, state.footer])) {
+    const trail = crumbTrail(pg, ctx);
+    if (trail.length > 1) graph.push({
+      '@type': 'BreadcrumbList',
+      '@id': url + '#crumbs',
+      itemListElement: trail.map((c, i) => {
+        const el: Record<string, unknown> = { '@type': 'ListItem', position: i + 1, name: c.label };
+        if (c.href) el.item = base + '/' + String(c.href).replace(/^\/+/, '');
+        return el;
+      })
+    });
+  }
+
   const isItem = !!(ctx.item && ctx.col);
   const node: Record<string, unknown> = isItem
     ? { '@type': 'Article', '@id': url + '#article', headline: pg.title || pg.name, url }
@@ -6011,5 +6158,5 @@ ${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, CONTENT_TYPES, takesBackdrop, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, CONTENT_TYPES, takesBackdrop, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

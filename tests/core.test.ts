@@ -6,7 +6,7 @@
 import { test, beforeEach } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
-import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field, Item, GalleryTile } from '../app/src/core/types';
+import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field, Item, GalleryTile, Page } from '../app/src/core/types';
 
 /* The core's finders return `T | null` because in the running app a stale id is a
    real possibility worth handling. In a test the id always comes from something the
@@ -4277,6 +4277,125 @@ test('every script an exported page emits is a script the page can actually run'
   });
   /* and nothing is left over: text after the last closing tag means one never closed */
   a.equal(/<script/.test(html.split(/<\/script>/).pop() || ''), false, 'an unclosed script tag');
+});
+
+/* ============================================================= breadcrumbs
+   Derived from where the page sits, because a trail you type is a nav menu. */
+/** `insert` puts a node on the current page; these tests care which page it is on. */
+const onPage = (pg: Page, type: string, props: Record<string, unknown> = {}) => {
+  const n = C.N(type, props, {}, []);
+  pg.tree.push(n);
+  return n;
+};
+test('the front page shows no trail, since it would point at itself', () => {
+  blank();
+  const pg = C.state.pages[0];
+  a.equal(C.isFront(pg), true);
+  const n = insert('crumbs', null, 0);
+  a.equal(C.renderNode(n, { edit: false, pg }), '');
+  a.match(C.renderNode(n, { edit: true, pg }), /front page shows no trail/);
+});
+
+test('an ordinary page is Home then itself, and itself is not a link', () => {
+  blank();
+  const pg = C.state.pages[1];
+  const n = onPage(pg, 'crumbs');
+  const html = C.renderNode(n, { edit: false, pg });
+  a.deepEqual(C.crumbTrail(pg).map((c: { label: string }) => c.label), ['Home', pg.name]);
+  a.match(html, /<a href="index\.html">Home<\/a>/);
+  a.match(html, new RegExp(`<span aria-current="page">${pg.name}</span>`));
+  a.equal((html.match(/<a /g) || []).length, 1, 'the page you are on is not a link to itself');
+});
+
+test('a detail page names the collection’s index in the middle, and the item last', () => {
+  const { col, tpl } = detail();
+  /* the page that holds the list is what a reader expects the parent crumb to reach */
+  const listPage = C.state.pages.find((p: Page) => p.name === 'About');
+  must(listPage, 'the About page').tree.push(C.N('list', {}, {}, []));
+  const list = must(listPage, 'the About page').tree.slice(-1)[0];
+  list.src = col.id;
+  const item = col.items[0];
+  const trail = C.crumbTrail({ ...tpl, slug: col.slug + '/' + item.slug }, { col, item });
+  a.deepEqual(trail.map((c: { label: string }) => c.label), ['Home', 'About', 'Acme rebrand']);
+  a.deepEqual(trail.map((c: { href: string }) => c.href), ['index.html', 'about.html', '']);
+  /* and the hrefs come back out relative to a file one directory down */
+  const n = onPage(tpl, 'crumbs');
+  const html = C.renderNode(n, { edit: false, pg: tpl, col, item, rel: '../' });
+  a.match(html, /href="\.\.\/index\.html"/);
+  a.match(html, /href="\.\.\/about\.html"/);
+});
+
+test('with no page listing the collection the middle crumb is left out, not invented', () => {
+  const { col, tpl } = detail();
+  const trail = C.crumbTrail(tpl, { col, item: col.items[0] });
+  a.deepEqual(trail.map((c: { label: string }) => c.label), ['Home', 'Acme rebrand']);
+});
+
+test('a later slice of a paginated list links back to the first', () => {
+  blank();
+  const pg = C.state.pages[1];
+  a.deepEqual(C.crumbTrail(pg, { pageNo: 3 }).map((c: { label: string; href: string }) => [c.label, c.href]),
+    [['Home', 'index.html'], [pg.name, pg.slug + '.html'], ['Page 3', '']]);
+  a.deepEqual(C.crumbTrail(pg, { pageNo: 1 }).map((c: { label: string }) => c.label), ['Home', pg.name]);
+});
+
+test('what the front page is called is the author’s to set', () => {
+  blank();
+  const pg = C.state.pages[1];
+  a.equal(C.crumbTrail(pg, {}, 'Start')[0].label, 'Start');
+});
+
+test('a written trail is taken as written, and its last crumb is still current', () => {
+  blank();
+  const pg = C.state.pages[1];
+  const n = onPage(pg, 'crumbs');
+  n.props.mode = 'manual';
+  n.props.items = [{ label: 'Shop', href: 'index.html' }, { label: 'Shoes', href: 'pricing.html' }, { label: 'Boots', href: 'x.html' }];
+  const html = C.renderNode(n, { edit: false, pg });
+  a.equal((html.match(/<a /g) || []).length, 2, 'the last one drops its href even though it has one');
+  a.match(html, /<span aria-current="page">Boots<\/span>/);
+  n.props.items = [];
+  a.equal(C.renderNode(n, { edit: false, pg }), '');
+  a.equal(find(C.lint(), 'crumbs-empty').length, 1);
+});
+
+test('the separator is CSS, never a character in the trail', () => {
+  blank();
+  const pg = C.state.pages[1];
+  const n = onPage(pg, 'crumbs');
+  n.props.sep = 'slash';
+  const html = C.renderNode(n, { edit: false, pg });
+  a.match(html, /data-sep="slash"/);
+  a.equal(/[›·—]/.test(html), false, 'a screen reader reads the trail, not the punctuation');
+  a.match(C.baseCss(false), /\[data-sep=slash\] li\+li::before\{content:"\/"\}/);
+  a.match(html, /aria-label="Breadcrumb"/);
+  a.match(html, /<ol>/, 'an ordered list, because the order is the meaning');
+});
+
+test('the structured data describes the trail the page shows, and only then', () => {
+  blank();
+  C.state.meta.baseUrl = 'https://example.com';
+  const pg = C.state.pages[1];
+  const types = () => (C.jsonLdGraph(pg) || { '@graph': [] })['@graph'].map((x: any) => x['@type']);
+  a.equal(types().includes('BreadcrumbList'), false, 'no widget, no claim');
+  const n = onPage(pg, 'crumbs');
+  a.equal(types().includes('BreadcrumbList'), true);
+  const bl = must((C.jsonLdGraph(pg) || { '@graph': [] })['@graph']
+    .find((x: any) => x['@type'] === 'BreadcrumbList'), 'a BreadcrumbList') as any;
+  a.deepEqual(bl.itemListElement.map((e: any) => [e.position, e.name, e.item]),
+    [[1, 'Home', 'https://example.com/index.html'], [2, pg.name, undefined]],
+    'the current page is a position with no item, the way the markup has no href');
+  /* a written trail is not derived, so the derived list would be a different claim */
+  n.props.mode = 'manual';
+  a.equal(types().includes('BreadcrumbList'), false);
+});
+
+test('a breadcrumb in the global header counts for every page', () => {
+  blank();
+  C.state.meta.baseUrl = 'https://example.com';
+  C.state.header.push(C.N('crumbs', { mode: 'auto', home: 'Home' }, {}, []));
+  const g = C.jsonLdGraph(C.state.pages[1]);
+  a.ok(must(g, 'a graph')['@graph'].some((x: any) => x['@type'] === 'BreadcrumbList'));
 });
 
 /* ==================================================================== code
