@@ -635,9 +635,13 @@ carries across.
 
    What it does change: the boundary that a file cannot cross becomes the point of the new
    thing. Letting someone edit content without re-exporting is the reason a server exists
-   here, and it is the feature to design first, not last. Nothing has been built yet, and
-   the next step is a plan rather than code — scope, what carries over unchanged, and what
-   the server is actually for beyond "not a file".
+   here, and it is the feature to design first, not last.
+
+   **The plan is `PLAN-SERVER.md`.** Two answers shape it — for me and my clients now, a
+   product later; and port the editor rather than rewrite it. It is grounded in
+   `~/Documents/Braudy/SITE_BUILDER_COMPONENT_SPEC.md`, which survived the deletion, and
+   the first milestone is the one that crosses the boundary: a client edits content and the
+   live page changes with nobody exporting anything. No code yet.
 
 - **A variant rule leaks the properties its context override forgets to restate.** The dark
   top bar and the `.btn.ghost` variant have equal specificity, so the bar won only on source
