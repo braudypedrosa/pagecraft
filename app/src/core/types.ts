@@ -22,7 +22,7 @@ export type Level = 0 | 1 | 2 | 3 | 4;
 export type ParentType = WidgetType | null;
 
 export type WidgetType =
-  | 'section' | 'row' | 'list' | 'column'
+  | 'section' | 'row' | 'list' | 'slider' | 'column'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
@@ -120,6 +120,14 @@ export interface TabsProps { items?: TabPanel[] }
 /** A table's body is one string, because that is how tabular data arrives: pasted from a
     spreadsheet. `tableGrid` splits it — on tabs when the paste has them, else on pipes,
     which is what a person types by hand. Never on commas: prose is full of them. */
+/** A slider. The scrolling and the snapping are CSS — the only thing needing a script is
+    the pair of arrow buttons, and a page without one still swipes and scrolls. */
+export interface SliderProps {
+  arrows?: 0 | 1;
+  /** what a screen reader calls the scrollable region */
+  aria?: string;
+}
+
 /** A breadcrumb. In `auto` it is derived from where the page sits — a trail you type by
     hand is a nav menu with a different separator. `manual` is the escape hatch for a
     structure the page tree does not describe. */
@@ -173,7 +181,7 @@ export interface PropsByType {
   section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
   heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
   video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
-  form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; embed: EmbedProps;
+  form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

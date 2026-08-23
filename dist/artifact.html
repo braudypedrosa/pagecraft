@@ -1172,6 +1172,7 @@ var IC = {
   table: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6h13M6.5 6v7.5"/>',
   codeblock: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M5 7l-1.6 1.6L5 10.2M9.2 7l1.6 1.6-1.6 1.6" stroke-linecap="round"/>',
   crumbs: '<path d="M1.5 8h3.2M7.2 8h3.2M12.9 8h1.6" stroke-linecap="round"/><path d="M5.6 6.4L7 8 5.6 9.6M11.3 6.4L12.7 8l-1.4 1.6" stroke-linecap="round"/>',
+  slider: '<rect x="1.5" y="3.5" width="8" height="9" rx="1.5"/><path d="M12 5.2v5.6M14.3 6.6v2.8"/>',
   column: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
   columns: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
   heading: '<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',
@@ -2196,6 +2197,63 @@ var DEF = {
       style: []
     }
   },
+  /* A Slider is a Row that scrolls and snaps. Not to be confused with the `slider` control
+       kind, which is a range input — one is a widget type, the other a control type, and the two
+       never meet., so a slide is a Column and anything can
+       go in one. The scrolling, the snapping and the sizing are CSS — a page ships no
+       script for it and still swipes on a phone, scrolls with a trackpad and reaches every
+       slide from the keyboard. Only the arrow buttons need JavaScript, which is why they
+       are optional and why they arrive hidden.
+  
+       Slides do not carry flex-grow the way a row's columns do: their width comes from
+       `--sl-w`, so "three per view" is one declaration rather than a ratio per slide. */
+  slider: {
+    label: "Slider",
+    icon: "slider",
+    level: 2,
+    accepts: [3],
+    make: () => ({
+      props: { arrows: 1, aria: "Slides" },
+      css: {
+        d: { "--sl-gap": "24px", "--sl-w": "calc((100% - 2 * var(--sl-gap,24px)) / 3)" },
+        t: { "--sl-w": "calc((100% - var(--sl-gap,24px)) / 2)" },
+        m: { "--sl-gap": "16px", "--sl-w": "86%" }
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: "select",
+          c: "--sl-w",
+          label: "Slides in view",
+          r: 1,
+          opts: [
+            ["100%", "One"],
+            ["calc((100% - var(--sl-gap,24px)) / 2)", "Two"],
+            ["calc((100% - 2 * var(--sl-gap,24px)) / 3)", "Three"],
+            ["calc((100% - 3 * var(--sl-gap,24px)) / 4)", "Four"],
+            ["86%", "One and a peek"],
+            ["auto", "As wide as their contents"]
+          ]
+        },
+        { t: "unit", c: "--sl-gap", label: "Gap", r: 1, units: U.space },
+        {
+          t: "toggle",
+          k: "arrows",
+          label: "Arrow buttons",
+          note: "Hidden without JavaScript, where swiping and scrolling still work"
+        },
+        {
+          t: "text",
+          k: "aria",
+          label: "Region name",
+          ph: "Slides",
+          note: "What a screen reader calls the scrollable area"
+        }
+      ],
+      style: []
+    }
+  },
   /* A Collection List is a Row whose contents repeat — put one Column inside and
      you get a grid of cards. The collection lives on `node.src`, the same field
      phase 2 uses, so anything inside binds with no extra plumbing. */
@@ -2282,8 +2340,11 @@ var DEF = {
     make: () => ({ props: {}, css: { d: { "flex-grow": "100", "justify-content": "flex-start", "align-items": "stretch", gap: "16px" }, t: {}, m: { "flex-basis": "100%" } } }),
     controls: {
       content: [
-        { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1 },
-        { t: "unit", c: "flex-basis", label: "Min basis", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack." },
+        /* Neither of these is a slide's business. Inside a slider a column's width comes from
+           the slider's own "Slides in view" — the strip sets `flex` on its children with two
+           classes, so a share or a basis set here is a control that does nothing. */
+        { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1, when: notASlide },
+        { t: "unit", c: "flex-basis", label: "Min basis", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
         { t: "pick", c: "justify-content", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"]] },
         { t: "pick", c: "align-items", label: "Horizontal align", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space }
@@ -3238,6 +3299,18 @@ function codeSpans(src, lang) {
   }
   return out.join("");
 }
+var SLIDE_JS = `<script>
+(function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
+Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
+var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]');
+if(!t||!p||!n)return;p.removeAttribute('hidden');n.removeAttribute('hidden');
+function go(d){t.scrollBy({left:d*t.clientWidth*0.9,behavior:rm.matches?'auto':'smooth'});}
+p.addEventListener('click',function(){go(-1);});n.addEventListener('click',function(){go(1);});
+function ends(){var max=t.scrollWidth-t.clientWidth-2;
+p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;}
+ends();t.addEventListener('scroll',ends,{passive:true});addEventListener('resize',ends);});})();
+<\/script>
+`;
 var CODE_JS = `<script>
 (function(){var c=navigator.clipboard;if(!c)return;
 Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'),function(b){
@@ -3281,6 +3354,11 @@ var hasBorder = (n) => {
   const v = styleSeen(n, "border-style");
   return !!v && v !== "none";
 };
+function notASlide(n) {
+  const pid = parentOf(n.id);
+  const h = pid ? locate(pid) : null;
+  return !h || h.node.type !== "slider";
+}
 var COMMON_STYLE = [
   { g: "Spacing", items: [{ t: "box", c: "padding", label: "Padding", r: 1 }, { t: "box", c: "margin", label: "Margin", r: 1, neg: 1 }] },
   {
@@ -3424,6 +3502,7 @@ var nameOf = (n) => {
   if (n.type === "text") return (n.props.html || "").replace(/<[^>]*>/g, " ").trim().slice(0, 24) || d.label;
   if (n.type === "quote") return (n.props.text || "").trim().slice(0, 24) || d.label;
   if (n.type === "row") return `Row \xB7 ${n.children.length} col`;
+  if (n.type === "slider") return `Slider \xB7 ${n.children.length} slide${n.children.length === 1 ? "" : "s"}`;
   if (n.type === "image") return n.props.alt ? "Image \xB7 " + n.props.alt.slice(0, 18) : "Image";
   return d.label;
 };
@@ -3531,7 +3610,7 @@ function wrap(type, pl2, node) {
 }
 var holds = (pt, t) => {
   const b = BASE[t] || t;
-  return lvl(b) > lvl(pt) || pt === "column" && b === "row";
+  return lvl(b) > lvl(pt) || pt === "column" && (b === "row" || b === "slider");
 };
 function insert(type, parentNode, index) {
   const leaf = makeFor(type);
@@ -4300,6 +4379,8 @@ function lint() {
       }
       if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
+      if (n.type === "slider" && (n.children || []).length < 2)
+        add("warn", "slider-thin", `A slider in the ${region} holds ${(n.children || []).length} slide${(n.children || []).length === 1 ? "" : "s"}, so there is nothing to scroll to.`, w, n.id);
       if (n.type === "crumbs" && n.props.mode === "manual" && !(Array.isArray(n.props.items) ? n.props.items : []).length)
         add("warn", "crumbs-empty", `A breadcrumb in the ${region} is set to a written trail but has no crumbs.`, w, n.id);
       if (n.type === "code" && !String(n.props.body || "").trim())
@@ -6817,6 +6898,26 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-slider-box{position:relative;width:100%}
+.pagecraft-slider{
+  display:flex;gap:var(--sl-gap,24px);width:100%;
+  overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;padding-bottom:2px;
+}
+.pagecraft-slider>[class]{flex:0 0 var(--sl-w,100%);scroll-snap-align:start;min-width:0}
+.pagecraft-slider>*{scroll-snap-align:start;min-width:0}
+.pagecraft-slider:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-slide-btn{
+  position:absolute;top:50%;translate:0 -50%;z-index:2;
+  width:36px;height:36px;display:grid;place-items:center;cursor:pointer;
+  border:1px solid var(--c-line,#e5e1d6);border-radius:99px;
+  background:var(--c-bg,#fff);color:inherit;
+}
+.pagecraft-slide-btn.p{left:-8px;rotate:90deg}
+.pagecraft-slide-btn.n{right:-8px;rotate:-90deg}
+.pagecraft-slide-btn[hidden]{display:none}
+.pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
 .pagecraft-crumbs ol{
   display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
   list-style:none;margin:0;padding:0;
@@ -7259,6 +7360,12 @@ function renderNode(n, o) {
     }
     case "row":
       return `<div ${at} ${cx("pagecraft-row")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column</div>` : "")}</div>`;
+    case "slider": {
+      const track = `<div ${at} ${cx("pagecraft-slider")} data-slides role="group" aria-label="${esc(String(p.aria || "Slides"))}" tabindex="0">` + (kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes a slide</div>` : "")) + "</div>";
+      if (!p.arrows) return track;
+      const btn = (dir, label) => `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>${svg("caret", 15)}</button>`;
+      return `<div class="pagecraft-slider-box" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + "</div>";
+    }
     case "list": {
       const lc = n.src ? findCollection(n.src) : null;
       const kidz = n.children || [];
@@ -7460,6 +7567,16 @@ var BASE = { columns: "row" };
 var labelOf = (k) => k === "columns" ? "Columns" : DEF[k].label;
 var iconOf = (k) => k === "columns" ? "columns" : DEF[k].icon;
 function makeFor(key) {
+  if (key === "slider") {
+    const made = DEF.slider.make();
+    const slide = () => {
+      const c = N("column");
+      delete c.css.d["flex-grow"];
+      delete c.css.m["flex-basis"];
+      return c;
+    };
+    return N("slider", made.props, made.css, [slide(), slide(), slide()]);
+  }
   if (key !== "columns") return N(key);
   return N("row", {}, {}, LAYOUTS[DEFAULT_COLS][0].map((w) => N("column", {}, { d: { "flex-grow": String(+w.toFixed(4)) } })));
 }
@@ -7659,7 +7776,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${m.headHtml
 </head>
 <body>
 ${body}
-${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -7716,6 +7833,7 @@ var __CORE = {
   RESERVED,
   SCHEMA,
   SEC_TAGS,
+  SLIDE_JS,
   SLOT_LABEL,
   SRCSET_W,
   STATES,
@@ -8494,6 +8612,7 @@ var PC_UI = (() => {
         ["section", "Section"],
         ["columns", "Columns"],
         ["row", "Row"],
+        ["slider", "Slider"],
         ["list", "Collection"]
       ]
     },

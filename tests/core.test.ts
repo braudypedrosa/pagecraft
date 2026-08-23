@@ -6,7 +6,7 @@
 import { test, beforeEach } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
-import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field, Item, GalleryTile, Page } from '../app/src/core/types';
+import type { Node as PcNode, Handle, Bp, Finding, ColorToken, TextStyle, Field, Item, GalleryTile, Page, Control } from '../app/src/core/types';
 
 /* The core's finders return `T | null` because in the running app a stale id is a
    real possibility worth handling. In a test the id always comes from something the
@@ -4277,6 +4277,114 @@ test('every script an exported page emits is a script the page can actually run'
   });
   /* and nothing is left over: text after the last closing tag means one never closed */
   a.equal(/<script/.test(html.split(/<\/script>/).pop() || ''), false, 'an unclosed script tag');
+});
+
+/* ================================================================= slider
+   A Row that scrolls and snaps. The scrolling is CSS; only the arrows need a script. */
+test('a slider arrives with slides, because an empty strip is not a slider', () => {
+  blank();
+  const n = insert('slider', null, 0);
+  a.equal(n.type, 'slider');
+  a.equal(n.children.length, 3);
+  a.deepEqual(n.children.map((c: PcNode) => c.type), ['column', 'column', 'column']);
+  a.equal(C.nameOf(n), 'Slider · 3 slides');
+  /* and its slides carry no ratio: the width is one declaration on the slider */
+  a.deepEqual(n.children.map((c: PcNode) => (c.css.d || {})['flex-grow']), [undefined, undefined, undefined]);
+  a.deepEqual(n.children.map((c: PcNode) => (c.css.m || {})['flex-basis']), [undefined, undefined, undefined],
+    'nor a mobile full-width, which would fight --sl-w on the breakpoint that needs it most');
+  /* and the control that would have shown a share of nothing is not offered */
+  /* both of the controls that would compete with the slider's own sizing */
+  const ctl = (c: string) => must(C.DEF.column.controls.content.find((x: Control) => x.c === c), c);
+  for (const c of ['flex-grow', 'flex-basis'])
+    a.equal(ctl(c).when!(n.children[0]), false, `a slide is offered ${c}, which the strip overrides`);
+  blank();
+  const row = insert('columns', null, 0);
+  for (const c of ['flex-grow', 'flex-basis'])
+    a.equal(ctl(c).when!(row.children[0]), true, `a column in a row still sets ${c}`);
+});
+
+test('a slide is a column, so anything can go in one', () => {
+  blank();
+  const n = insert('slider', null, 0);
+  a.equal(C.holds(n.type, 'column'), true);
+  a.equal(C.holds('column', 'slider'), true, 'and a slider fits in a column, the way a row does');
+  a.equal(C.holds('column', 'list'), false, 'which is not a licence for every level-2 type');
+  /* a widget dropped on the strip is wrapped, so it lands as a slide rather than beside one */
+  const dropped = insert('heading', n, 3);
+  a.equal(n.children.length, 4);
+  a.equal(n.children[3].type, 'column');
+  a.equal(n.children[3].children[0].id, dropped.id);
+});
+
+test('the scrolling and the snapping are CSS, with no script in sight', () => {
+  blank();
+  const pg = C.state.pages[0];
+  const n = insert('slider', null, 0);
+  n.props.arrows = 0;
+  const html = C.buildPage(pg);
+  a.equal(/<script/i.test(html), false, 'a slider with no arrows ships nothing to run');
+  const css = C.baseCss(false);
+  a.match(css, /\.pagecraft-slider\{[^}]*scroll-snap-type:x mandatory/);
+  /* `[class]` rather than `*`: a slide is a column, and a column's own rule is one class.
+     A tie on specificity would be settled by source order, and the node's CSS comes last. */
+  a.match(css, /\.pagecraft-slider>\[class\]\{flex:0 0 var\(--sl-w,100%\)/);
+});
+
+test('the track is reachable from a keyboard and says what it is', () => {
+  blank();
+  const n = insert('slider', null, 0);
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, /tabindex="0"/, 'a scroll region a keyboard cannot reach cannot be read');
+  a.match(html, /role="group"/);
+  a.match(html, /aria-label="Slides"/);
+  n.props.aria = 'Customer stories';
+  a.match(C.renderNode(n, { edit: false }), /aria-label="Customer stories"/);
+});
+
+test('the arrows arrive hidden, and their script only where they are', () => {
+  blank();
+  const pg = C.state.pages[0];
+  const n = insert('slider', null, 0);
+  const on = C.buildPage(pg);
+  /* counted in the markup, not in the script that also names them */
+  a.equal((on.match(/class="pagecraft-slide-btn /g) || []).length, 2);
+  a.match(on, /class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden/);
+  a.match(on, /data-slides/);
+  a.match(on, /scrollBy/, 'the script that reveals them');
+  n.props.arrows = 0;
+  const off = C.buildPage(pg);
+  a.equal(/data-slide-/.test(off), false);
+  a.equal(/scrollBy/.test(off), false);
+  /* the class name is in the stylesheet on every page, so this asks about the markup */
+  a.equal(/<div class="pagecraft-slider-box"/.test(off), false, 'no wrapper for buttons that are not there');
+  a.match(on, /<div class="pagecraft-slider-box" data-slider>/);
+});
+
+test('the arrows respect a reader who asked for less motion', () => {
+  a.match(C.SLIDE_JS, /prefers-reduced-motion/);
+  a.match(C.SLIDE_JS, /rm\.matches\?'auto':'smooth'/);
+});
+
+test('“slides in view” is one declaration, and it is responsive', () => {
+  blank();
+  const n = insert('slider', null, 0);
+  a.equal(n.css.d['--sl-w'], 'calc((100% - 2 * var(--sl-gap,24px)) / 3)');
+  a.equal(n.css.m['--sl-w'], '86%', 'a phone shows one and a hint of the next');
+  const ctl = must(C.DEF.slider.controls.content.find((c: Control) => c.c === '--sl-w'), 'the width control');
+  a.equal(ctl.r, 1, 'or it could not differ per breakpoint');
+  const opts = (ctl.opts as string[][]).map(o => o[0]);
+  a.ok(opts.every(v => !/var\(--sl-gap\)/.test(v)),
+    'every calc carries the gap fallback, so clearing the gap cannot break the width');
+});
+
+test('a slider with one slide has nothing to scroll to, and says so', () => {
+  blank();
+  const n = insert('slider', null, 0);
+  a.equal(find(C.lint(), 'slider-thin').length, 0);
+  n.children.length = 1;
+  const f = find(C.lint(), 'slider-thin');
+  a.equal(f.length, 1);
+  a.match(f[0].msg, /1 slide,/);
 });
 
 /* ============================================================= breadcrumbs

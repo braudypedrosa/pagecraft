@@ -279,6 +279,48 @@ const DEF: Record<string, WidgetDef> = {
     }
   },
 
+  /* A Slider is a Row that scrolls and snaps. Not to be confused with the `slider` control
+     kind, which is a range input — one is a widget type, the other a control type, and the two
+     never meet., so a slide is a Column and anything can
+     go in one. The scrolling, the snapping and the sizing are CSS — a page ships no
+     script for it and still swipes on a phone, scrolls with a trackpad and reaches every
+     slide from the keyboard. Only the arrow buttons need JavaScript, which is why they
+     are optional and why they arrive hidden.
+
+     Slides do not carry flex-grow the way a row's columns do: their width comes from
+     `--sl-w`, so "three per view" is one declaration rather than a ratio per slide. */
+  slider: {
+    label: 'Slider', icon: 'slider', level: 2, accepts: [3],
+    make: () => ({
+      props: { arrows: 1, aria: 'Slides' },
+      css: {
+        d: { '--sl-gap': '24px', '--sl-w': 'calc((100% - 2 * var(--sl-gap,24px)) / 3)' },
+        t: { '--sl-w': 'calc((100% - var(--sl-gap,24px)) / 2)' },
+        m: { '--sl-gap': '16px', '--sl-w': '86%' }
+      }
+    }),
+    controls: {
+      content: [
+        {
+          t: 'select', c: '--sl-w', label: 'Slides in view', r: 1, opts: [
+            ['100%', 'One'],
+            ['calc((100% - var(--sl-gap,24px)) / 2)', 'Two'],
+            ['calc((100% - 2 * var(--sl-gap,24px)) / 3)', 'Three'],
+            ['calc((100% - 3 * var(--sl-gap,24px)) / 4)', 'Four'],
+            ['86%', 'One and a peek'],
+            ['auto', 'As wide as their contents']
+          ]
+        },
+        { t: 'unit', c: '--sl-gap', label: 'Gap', r: 1, units: U.space },
+        { t: 'toggle', k: 'arrows', label: 'Arrow buttons',
+          note: 'Hidden without JavaScript, where swiping and scrolling still work' },
+        { t: 'text', k: 'aria', label: 'Region name', ph: 'Slides',
+          note: 'What a screen reader calls the scrollable area' }
+      ],
+      style: []
+    }
+  },
+
   /* A Collection List is a Row whose contents repeat — put one Column inside and
      you get a grid of cards. The collection lives on `node.src`, the same field
      phase 2 uses, so anything inside binds with no extra plumbing. */
@@ -340,8 +382,11 @@ const DEF: Record<string, WidgetDef> = {
     make: () => ({ props: {}, css: { d: { 'flex-grow': '100', 'justify-content': 'flex-start', 'align-items': 'stretch', gap: '16px' }, t: {}, m: { 'flex-basis': '100%' } } }),
     controls: {
       content: [
-        { t: 'slider', c: 'flex-grow', label: 'Width (share)', r: 1, min: 5, max: 100, step: .01, raw: 1 },
-        { t: 'unit', c: 'flex-basis', label: 'Min basis', r: 1, units: ['%', 'px', 'rem'], note: 'Set 100% to force a full-width stack.' },
+        /* Neither of these is a slide's business. Inside a slider a column's width comes from
+           the slider's own "Slides in view" — the strip sets `flex` on its children with two
+           classes, so a share or a basis set here is a control that does nothing. */
+        { t: 'slider', c: 'flex-grow', label: 'Width (share)', r: 1, min: 5, max: 100, step: .01, raw: 1, when: notASlide },
+        { t: 'unit', c: 'flex-basis', label: 'Min basis', r: 1, units: ['%', 'px', 'rem'], note: 'Set 100% to force a full-width stack.', when: notASlide },
         { t: 'pick', c: 'justify-content', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot']] },
         { t: 'pick', c: 'align-items', label: 'Horizontal align', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space }
@@ -1146,6 +1191,23 @@ function codeSpans(src: unknown, lang?: string): string {
 
 /** The copy button is rendered hidden and the script reveals it: a button that cannot
     copy is worse than no button, and a reader with no JavaScript should not see one. */
+/* The arrows, and nothing else about the slider. They arrive hidden so a reader without
+   JavaScript never sees a control that cannot work — swiping and scrolling still do.
+   A scroll of 90% of the visible width leaves a sliver of the old view on screen, which
+   is what tells you the strip moved rather than jumped. */
+const SLIDE_JS = `<script>
+(function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
+Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
+var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]');
+if(!t||!p||!n)return;p.removeAttribute('hidden');n.removeAttribute('hidden');
+function go(d){t.scrollBy({left:d*t.clientWidth*0.9,behavior:rm.matches?'auto':'smooth'});}
+p.addEventListener('click',function(){go(-1);});n.addEventListener('click',function(){go(1);});
+function ends(){var max=t.scrollWidth-t.clientWidth-2;
+p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;}
+ends();t.addEventListener('scroll',ends,{passive:true});addEventListener('resize',ends);});})();
+<\/script>
+`;
+
 const CODE_JS = `<script>
 (function(){var c=navigator.clipboard;if(!c)return;
 Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'),function(b){
@@ -1227,6 +1289,17 @@ const takesBackdrop = (n: PcNode) => !CONTENT_TYPES.includes(n.type);
 /** A gradient counts: it is a background image as far as size and position are concerned. */
 const hasBackdrop = (n: PcNode) => !!(styleSeen(n, 'background-image') || styleSeen(n, 'background'));
 const hasBorder = (n: PcNode) => { const v = styleSeen(n, 'border-style'); return !!v && v !== 'none'; };
+
+/** Is this column an ordinary one rather than a slide? A slider sizes its children itself,
+    so the controls that would compete with it are not offered inside one.
+
+    A declaration rather than a const: `DEF` is built above this line and reads it, and a
+    const would still be in its temporal dead zone there. */
+function notASlide(n: PcNode): boolean {
+  const pid = parentOf(n.id);
+  const h = pid ? locate(pid) : null;
+  return !h || h.node.type !== 'slider';
+}
 
 const COMMON_STYLE: { g: string; items: Control[] }[] = [
   { g: 'Spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
@@ -1364,6 +1437,7 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'text') return (n.props.html || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 24) || d.label;
   if (n.type === 'quote') return (n.props.text || '').trim().slice(0, 24) || d.label;
   if (n.type === 'row') return `Row · ${n.children.length} col`;
+  if (n.type === 'slider') return `Slider · ${n.children.length} slide${n.children.length === 1 ? '' : 's'}`;
   if (n.type === 'image') return n.props.alt ? 'Image · ' + n.props.alt.slice(0, 18) : 'Image';
   return d.label;
 };
@@ -1496,7 +1570,7 @@ function wrap(type: string, pl: number, node: any): any {
    `t` may be a palette key (e.g. `columns`), so normalise it first. */
 const holds = (pt: any, t: string) => {
   const b = BASE[t] || t;
-  return (lvl(b) > lvl(pt)) || (pt === 'column' && b === 'row');
+  return (lvl(b) > lvl(pt)) || (pt === 'column' && (b === 'row' || b === 'slider'));
 };
 
 function insert(type: string, parentNode: any, index: number) {
@@ -2447,6 +2521,9 @@ function lint() {
       /* video */
       if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add('warn', 'eager-video', `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`, w, n.id);
+
+      if (n.type === 'slider' && (n.children || []).length < 2)
+        add('warn', 'slider-thin', `A slider in the ${region} holds ${(n.children || []).length} slide${(n.children || []).length === 1 ? '' : 's'}, so there is nothing to scroll to.`, w, n.id);
 
       if (n.type === 'crumbs' && n.props.mode === 'manual'
         && !(Array.isArray(n.props.items) ? n.props.items : []).length)
@@ -5113,6 +5190,26 @@ img,video,svg{max-width:100%}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-image{display:block;width:100%}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-slider-box{position:relative;width:100%}
+.pagecraft-slider{
+  display:flex;gap:var(--sl-gap,24px);width:100%;
+  overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;padding-bottom:2px;
+}
+.pagecraft-slider>[class]{flex:0 0 var(--sl-w,100%);scroll-snap-align:start;min-width:0}
+.pagecraft-slider>*{scroll-snap-align:start;min-width:0}
+.pagecraft-slider:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-slide-btn{
+  position:absolute;top:50%;translate:0 -50%;z-index:2;
+  width:36px;height:36px;display:grid;place-items:center;cursor:pointer;
+  border:1px solid var(--c-line,#e5e1d6);border-radius:99px;
+  background:var(--c-bg,#fff);color:inherit;
+}
+.pagecraft-slide-btn.p{left:-8px;rotate:90deg}
+.pagecraft-slide-btn.n{right:-8px;rotate:-90deg}
+.pagecraft-slide-btn[hidden]{display:none}
+.pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
 .pagecraft-crumbs ol{
   display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
   list-style:none;margin:0;padding:0;
@@ -5593,6 +5690,21 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     }
     case 'row':
       return `<div ${at} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
+    case 'slider': {
+      /* `tabindex` on the track, because a scrollable region a keyboard cannot reach is a
+         region a keyboard user cannot read. It costs one tab stop, which is the trade the
+         guidance asks for. */
+      const track = `<div ${at} ${cx('pagecraft-slider')} data-slides role="group"`
+        + ` aria-label="${esc(String(p.aria || 'Slides'))}" tabindex="0">`
+        + (kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes a slide</div>` : ''))
+        + '</div>';
+      if (!p.arrows) return track;
+      const btn = (dir: string, label: string) =>
+        `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>`
+        + `${svg('caret', 15)}</button>`;
+      return `<div class="pagecraft-slider-box" data-slider>${track}`
+        + btn('p', 'Previous slides') + btn('n', 'Next slides') + '</div>';
+    }
     case 'list': {
       const lc = n.src ? findCollection(n.src) : null;
       const kidz = n.children || [];
@@ -5903,6 +6015,17 @@ const BASE: Record<string, string> = { columns: 'row' };
 const labelOf = (k: string) => k === 'columns' ? 'Columns' : DEF[k].label;
 const iconOf = (k: string) => k === 'columns' ? 'columns' : DEF[k].icon;
 function makeFor(key: string) {
+  /* A slider with no slides is an empty strip, so it arrives with three — the same
+     courtesy `columns` does, minus the ratios, since a slide's width is one declaration
+     on the slider rather than a share of the row. */
+  if (key === 'slider') {
+    const made = DEF.slider.make();
+    /* A slide is a column with no share of a row and no mobile full-width: both of those
+       fight `--sl-w`, and a "Width (share)" reading 100 on a slide is a control that does
+       nothing. The CSS holds the line for a column that arrives some other way. */
+    const slide = () => { const c = N('column'); delete c.css.d['flex-grow']; delete c.css.m['flex-basis']; return c; };
+    return N('slider', made.props, made.css, [slide(), slide(), slide()]);
+  }
   if (key !== 'columns') return N(key);
   return N('row', {}, {}, LAYOUTS[DEFAULT_COLS][0].map(w =>
     N('column', {}, { d: { 'flex-grow': String(+w.toFixed(4)) } })));
@@ -6151,12 +6274,12 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${m.headHtml 
 </head>
 <body>
 ${body}
-${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, CONTENT_TYPES, takesBackdrop, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, CONTENT_TYPES, takesBackdrop, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

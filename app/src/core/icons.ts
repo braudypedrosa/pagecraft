@@ -20,6 +20,7 @@ const IC: Record<string, string> = {
   table:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6h13M6.5 6v7.5"/>',
   codeblock:'<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M5 7l-1.6 1.6L5 10.2M9.2 7l1.6 1.6-1.6 1.6" stroke-linecap="round"/>',
   crumbs:'<path d="M1.5 8h3.2M7.2 8h3.2M12.9 8h1.6" stroke-linecap="round"/><path d="M5.6 6.4L7 8 5.6 9.6M11.3 6.4L12.7 8l-1.4 1.6" stroke-linecap="round"/>',
+  slider:'<rect x="1.5" y="3.5" width="8" height="9" rx="1.5"/><path d="M12 5.2v5.6M14.3 6.6v2.8"/>',
   column:'<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
   columns:'<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
   heading:'<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',

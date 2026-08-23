@@ -22,7 +22,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
        stays in DEF — cols(), wrap(), applyCols() and every template depend on it; it
        is just not something you add by hand. */
     g: 'Layout', items: [
-      ['section', 'Section'], ['columns', 'Columns'], ['row', 'Row'], ['list', 'Collection']
+      ['section', 'Section'], ['columns', 'Columns'], ['row', 'Row'], ['slider', 'Slider'], ['list', 'Collection']
     ]
   },
   {
