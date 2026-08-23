@@ -78,9 +78,10 @@ test('an address is one address however it is typed', () => {
   a.equal(normalEmail('  Client@Acme.TEST '), 'client@acme.test');
 });
 
-test('a content role may read and may not write', () => {
+test('a content role may read and write, and may not administer', () => {
   a.equal(roleAllows('content', 'read'), true);
-  a.equal(roleAllows('content', 'write'), false, 'until a content-only write can be checked');
+  /* whether the write is *content* is content.ts's question, not this one's */
+  a.equal(roleAllows('content', 'write'), true);
   a.equal(roleAllows('content', 'admin'), false);
   a.equal(roleAllows('owner', 'admin'), true);
   a.equal(roleAllows('owner', 'write'), true);
@@ -202,7 +203,7 @@ test('the site list holds only the sites you were granted', async () => {
   a.equal(list[0].role, 'content', 'and it says what you are');
 });
 
-test('a content role can open the document and cannot save it', async () => {
+test('a content role can open the document and save it back unchanged', async () => {
   const { login, follow, req, site, member } = await rig();
   await member('client@acme.test', 'content');
   const { cookie } = await follow(await login('client@acme.test'));
@@ -215,7 +216,8 @@ test('a content role can open the document and cannot save it', async () => {
   const write = await req(`/api/sites/${site.id}`, {
     method: 'PUT', body: JSON.stringify({ doc: body.doc, version: 1 })
   }, cookie);
-  a.equal(write.status, 403, 'refusing beats allowing a write and calling it content-only');
+  a.equal(write.status, 200);
+  /* what a content role may put in that document is content.test.ts's subject */
 });
 
 test('creating a site makes you its owner, and not of anything else', async () => {

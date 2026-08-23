@@ -70,6 +70,15 @@ if (OWNER) {
   console.warn('OWNER_EMAIL is not set — nobody can sign in. The sites still serve.');
 }
 
+/* A client, for trying the content role without a database or an invite flow. On a real box
+   this is what an invite would create; here it is one variable. */
+const CLIENT = process.env.CLIENT_EMAIL;
+if (CLIENT) {
+  const user = await auth.createUser(CLIENT, 'Client');
+  for (const s of await store.list()) await auth.grant(s.id, user.id, 'content');
+  console.log(`client   ${CLIENT} — content only`);
+}
+
 const app = createApp({
   store, auth, editorHtml, editorHost: EDITOR_HOST,
   secureCookies: process.env.NODE_ENV === 'production'

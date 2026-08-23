@@ -17,6 +17,7 @@ import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { Store } from './store.ts';
 import { renderSite, resolvePath } from './render.ts';
+import { contentOnly } from './content.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import {
   type AuthStore, type User, roleAllows, newToken, hashToken,
@@ -202,6 +203,19 @@ export function createApp(o: Options) {
     const body = await c.req.json().catch(() => null) as { doc?: Doc; version?: number } | null;
     if (!body || !body.doc || typeof body.version !== 'number') {
       return c.json({ error: 'doc and version are required' }, 400);
+    }
+
+    /* A content role may save, and only content. The check is against what is stored rather
+       than against what the editor thinks it loaded, so a stale client cannot smuggle a
+       structural change through by sending an old skeleton. */
+    if (gate.role === 'content') {
+      const check = contentOnly(site.doc, body.doc);
+      if (!check.ok) {
+        return c.json({
+          error: 'content only',
+          detail: 'This account can change text and CMS content. Layout, styling and page structure are not editable here.'
+        }, 403);
+      }
     }
 
     const res = await o.store.save(id, body.doc, body.version);

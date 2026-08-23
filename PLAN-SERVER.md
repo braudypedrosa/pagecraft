@@ -193,10 +193,46 @@ for assets.
   `app/src/core`, which is the first thing the port needed from the core and the smallest
   possible version of "prove the seam".
 
-**Not built yet, in the order it matters:** auth, so a client can log in rather than the API
-being open; the editor talking to `/api/sites/:id` instead of `localStorage`; assets; and a
-`store-pg.test.ts` run against a real database, because the SQL in `store-pg.ts` has never
-executed.
+## Auth and the content role — done
+
+`auth.ts` and `content.ts`, with 35 more tests. Magic links: nothing but SHA-256 digests is
+stored, so a stolen database yields no working login and no live session, and a link is spent
+by being presented rather than by succeeding.
+
+Two roles. `owner` does everything. `content` may save, and `content.ts` decides what the
+save may contain.
+
+**The content check is a projection, not a diff, and that is the whole design.** `skeleton()`
+blanks every value that counts as content and compares what is left; a change is content-only
+when the two skeletons are identical. Listing what may differ would have been the obvious
+way and is the wrong way round — anything the list forgot would be permitted, so a prop added
+to a widget next year would be silently writable by every client. This way an unknown field
+is structure until somebody says otherwise. There is a test that invents a field and requires
+a refusal.
+
+Building it that way immediately caught two cases where **presence is itself content**, both
+of which a field-by-field check would have got wrong in the other direction:
+
+- `textSlots(node)` enumerates the slots that *have* a value, so blanking through it left an
+  absent caption absent and a written one blanked. A client writing a caption for the first
+  time read as a new field appearing, and was refused. Read `TEXT_SLOTS` directly and delete
+  every declarable slot instead, present or not.
+- the same for a CMS item's `draft` flag: blanking the value but not the key made "held back"
+  differ from "never held back".
+
+Two things deliberately not content, with the reasoning in the file: **links**, because the
+one text field that can send a visitor anywhere deserves a conversation rather than a silent
+write; and **page names and slugs**, because a slug is an address.
+
+Verified against a running server. A content client signed in, saved a headline, and the live
+page changed; the same client sending one CSS declaration got
+`403 {"error":"content only"}`.
+
+**Not built yet, in the order it matters:** the editor talking to `/api/sites/:id` instead of
+`localStorage` — which is the last thing standing between this and being usable by a person
+rather than by curl; assets, which is what the persistent volume is actually for; an invite
+flow, since a client is currently an environment variable; and `store-pg.test.ts` against a
+real database, because the SQL in `store-pg.ts` has still never executed.
 
 ## Anti-patterns the spec names, worth repeating
 

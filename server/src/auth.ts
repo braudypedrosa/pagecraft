@@ -14,10 +14,11 @@
    ## What fails closed
 
    Every path that cannot answer "yes, this person, on this site, in this role" denies. A
-   token that is expired, already used, or unknown is the same answer as no token at all. A
-   `content` role cannot write a document at all yet — see `roleAllows` — because the check
-   that makes a content-only write safe is not built, and allowing the write while calling it
-   content-only would be worse than refusing it. */
+   token that is expired, already used, or unknown is the same answer as no token at all.
+
+   Roles answer whether you may save; `content.ts` answers whether what you sent is content.
+   Both, in that order, or a client could rewrite the layout of a site they were given a
+   text-editing account for. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 export type Role = 'owner' | 'content';
@@ -65,13 +66,14 @@ export interface AuthStore {
 /**
  * What a role may do. One place, so a new verb cannot quietly default to allowed.
  *
- * `write` is denied to `content` on purpose. A content-only write needs a check that the
- * incoming document differs from the stored one only inside text and CMS values, and that
- * check does not exist yet. Until it does, refusing is the honest answer.
+ * `content` may write, and `content.ts` decides what the write is allowed to contain. The
+ * split matters: this function answers "may you save at all", and the skeleton comparison
+ * answers "is this a content change". A role check alone would let a client rewrite the
+ * layout; a diff check alone would let a stranger try.
  */
 export function roleAllows(role: Role, verb: 'read' | 'write' | 'admin'): boolean {
   if (role === 'owner') return true;
-  if (role === 'content') return verb === 'read';
+  if (role === 'content') return verb === 'read' || verb === 'write';
   return false;
 }
 
