@@ -19,9 +19,9 @@ import type {
   StateKey, States, Anim, TabPanel,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
-} from './types';
-import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons';
-import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim';
+} from './types.ts';
+import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons.ts';
+import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim.ts';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;

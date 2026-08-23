@@ -1,0 +1,19 @@
+{
+  "name": "@pagecraft/server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Serves sites from stored documents, so content can be edited without re-exporting.",
+  "scripts": {
+    "dev": "node --experimental-strip-types src/index.ts",
+    "start": "node --experimental-strip-types src/index.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.0",
+    "hono": "^4.13.3",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10"
+  }
+}

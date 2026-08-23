@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['tests/**/*.test.{ts,tsx,mts,mjs}'],
+    include: ['tests/**/*.test.{ts,tsx,mts,mjs}', 'server/tests/**/*.test.ts'],
     /* the core is DOM-free, so node is the default; the component files opt into jsdom
        with a `@vitest-environment jsdom` docblock, so the 371 core cases keep running in
        node and pay nothing for a DOM they never touch */

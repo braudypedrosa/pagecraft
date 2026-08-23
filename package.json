@@ -28,5 +28,8 @@
   "dependencies": {
     "preact": "^10.29.8"
   },
-  "type": "module"
+  "type": "module",
+  "workspaces": [
+    "server"
+  ]
 }

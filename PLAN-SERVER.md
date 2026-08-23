@@ -80,7 +80,7 @@ Form fields as elements can wait. It is a real improvement and it changes nothin
 Each one ends with something that works, and the first one crosses the boundary a file
 cannot.
 
-### 1. Edit content without re-exporting
+### 1. Edit content without re-exporting — done
 
 The reason a server exists. Nothing else in this list matters if this does not land.
 
@@ -153,13 +153,50 @@ performance work — the canvas was measured at 4.7 ms for a full rebuild at 420
 What is still worth building here: export quality, patterns, lint rules, CMS semantics.
 The harvest map carries all of it across.
 
-## The stack question, left open on purpose
+## The stack, decided 2026-08-23
 
-The spec's own `PRODUCT.md` is gone, so there is no recorded stack decision to honour.
-What the milestones above constrain: a server that can run the core (any Node runtime),
-a Postgres, and a way to serve generated files. Everything else — framework, host,
-auth provider — is a decision for the first milestone and should be made against it
-rather than in the abstract.
+- **The server hosts the client sites.** Not publish-out. So it owns hosts, and eventually
+  custom domains and TLS.
+- **Plain Node and Hono**, the editor served as a static file. No framework the editor does
+  not use, and nothing that tempts a rewrite of a thing being ported.
+- **Magic-link email, sessions in Postgres.** Not built yet; `requireEditor` in `app.ts` is
+  the named seam it attaches to.
+- **A VPS or Fly/Railway, Postgres and a persistent volume.** The volume is for uploaded
+  assets rather than for rendered pages — see below.
+
+## Milestone 1 is done, and what it taught
+
+`server/` holds it: `render.ts`, `store.ts`, `store-pg.ts`, `app.ts`, `index.ts`, and 16
+tests. Proven against a running server, not only in-process: a document was saved over
+`PUT /api/sites/s1`, and the next request to the site returned the changed page. Nobody
+exported anything.
+
+**Rendered pages are held in memory, not written to the volume.** A site's files are
+tens of kilobytes and a render is about 5 ms, so a restart re-renders on first request
+and there is never a file that disagrees with the document. Writing them out becomes
+worth it when a front proxy should serve them without touching Node — and that wants an
+atomic swap, because the stale-file problem arrives with it. The volume is still needed,
+for assets.
+
+**Three things the build found, each of which had been quietly true:**
+
+- **The core is a singleton.** `restore()` loads a document into module-level `state` and
+  everything after reads it. That is safe only while a render is one synchronous run, so
+  `renderSite` is sync and says why at length. A test renders two documents in sequence and
+  checks neither leaks into the other.
+- **`tsc` was not checking the server.** `tsconfig.json`'s `include` listed `app/src`,
+  `tests` and `vite.config.ts`. A deliberate type error in `server/` produced no output at
+  all. Adding `server` to the list surfaced nine real errors immediately.
+- **Vitest resolved imports Node cannot.** Sixteen tests passed against a server that could
+  not boot: bundler resolution accepts `./app`, and Node's ESM resolver does not. The fix is
+  real `.ts` extensions and `allowImportingTsExtensions` — including three inside
+  `app/src/core`, which is the first thing the port needed from the core and the smallest
+  possible version of "prove the seam".
+
+**Not built yet, in the order it matters:** auth, so a client can log in rather than the API
+being open; the editor talking to `/api/sites/:id` instead of `localStorage`; assets; and a
+`store-pg.test.ts` run against a real database, because the SQL in `store-pg.ts` has never
+executed.
 
 ## Anti-patterns the spec names, worth repeating
 

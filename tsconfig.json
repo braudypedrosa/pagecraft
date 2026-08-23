@@ -11,6 +11,12 @@
        resolving from an unrelated parent repo's node_modules until this became its own. */
     "types": ["vite/client", "node"],
 
+    /* The server runs on Node's own type stripping, and Node's ESM resolver wants a real
+       specifier — `./app` is not a file. So its imports carry `.ts`, which TypeScript only
+       permits with this flag. Vitest resolved the extensionless form happily, which is how
+       a server that could not boot passed 16 tests. */
+    "allowImportingTsExtensions": true,
+
     "strict": true,
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": false,
@@ -24,5 +30,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["app/src", "tests", "vite.config.ts"]
+  "include": ["app/src", "server", "tests", "vite.config.ts"]
 }
