@@ -355,6 +355,19 @@ that would have caught it.
    page; the reasoning for each block lives in `NOTES.md` and in the preamble above the
    function. Seven comments leaked into every export before this was noticed.
 
+9. **Nothing inside a template literal may terminate it.** A backtick, a `${`, a literal
+   `</script`, or a literal `<!--` in generated output. This has cost four separate
+   debugging sessions and each one looked different: a CSS comment written with backticks
+   broke the build; the HTML lexer's `<!--` regex flipped the tokenizer into escaped state
+   so `</script>` stopped closing the element and the app became a syntax error with no line
+   number; an emitted script terminator written `<\/script>` instead of `</script>` let the
+   exported page's script run on into its own markup; and an SQL comment with backticks in
+   it broke `store-pg.ts`. The rule is mechanical: prose inside a generated string gets no
+   backticks, and a sequence that could end the host document is written broken —
+   `<\/script>` in source, `\x2D\x2D` for comment dashes in a regex. `tests/boot.test.mjs`
+   checks the built bundle for the last two by name, and `tests/core.test.ts` parses every
+   script an exported page emits.
+
 ## What a new widget touches
 
 Ten places, from adding the Quote widget. Only one of them is enforced, so this is the
