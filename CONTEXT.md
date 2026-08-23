@@ -610,10 +610,22 @@ carries across.
 8. **Keep new form markup on the variables.** `--gap-1/2/3` and `--h-ctl/--h-row` in `:root`
    own every form measurement; there are no hard-coded vertical margins left in the markup.
    Anything sitting in a field row takes `--h-ctl` or it will be the one thing out of line
-9. **Decide the product question**: does this become the editor for
-   `~/Documents/Braudy/pagecraft` (a Next.js app with its own `PRODUCT.md` and `ROADMAP.md`,
-   untouched so far), or stay standalone? The CMS now ships, so what a single HTML file cannot
-   do is the deciding factor: letting anyone edit content without re-exporting needs a server
+9. **Decided: a server-backed version, rebuilt.** The question this item used to ask —
+   editor for the Next.js app at `~/Documents/Braudy/pagecraft`, or standalone — has lost one
+   of its options. That directory is gone: deleted 2026-08-20, never pushed, unrecoverable.
+   So there is nothing to become the editor *for*, and the answer chosen is to build the
+   server-backed version again from scratch rather than to close the question.
+
+   What that does not change: this repo stays the reference implementation. Every decision
+   in it was made against the constraint of a single file with no server, and that is what
+   makes it worth harvesting — the CMS, the export, the widget definitions and the lint
+   rules are all portable, and the harvest map above says which parts move.
+
+   What it does change: the boundary that a file cannot cross becomes the point of the new
+   thing. Letting someone edit content without re-exporting is the reason a server exists
+   here, and it is the feature to design first, not last. Nothing has been built yet, and
+   the next step is a plan rather than code — scope, what carries over unchanged, and what
+   the server is actually for beyond "not a file".
 
 - **A variant rule leaks the properties its context override forgets to restate.** The dark
   top bar and the `.btn.ghost` variant have equal specificity, so the bar won only on source
