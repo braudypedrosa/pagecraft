@@ -523,9 +523,32 @@ carries across.
 1. ~~Drag-to-reorder in the Navigator, and multi-element drag~~ — both done. `moveMany` in
    core moves a set keeping its order; `layerTarget` resolves a Navigator drop from the
    thirds of a row. The HUD handle now shows for a multi-selection.
-2. **Measure before optimising** — the canvas rebuilds `innerHTML` on content edits and undo
-   keeps 80 full document clones. The demo is only 64 nodes; generate 300–500 and measure
-   before changing anything
+2. ~~**Measure before optimising**~~ — measured, and the answer is mostly "leave it alone".
+   Generated projects of 420, 840, 1680 and 4200 nodes in the browser and timed the real
+   paths. What the numbers say:
+
+   | | 420 nodes | 1680 | 4200 (10 pages) |
+   |---|---|---|---|
+   | `paint()` — full canvas rebuild, forced layout included | 4.7 ms | 9.5 ms | — |
+   | `paintCss()` — the CSS-only path | 0.5 ms | 0.7 ms | — |
+   | `edit()` — one edit, snapshot included | 6.7 ms | — | 7.4 ms |
+   | undo stack at its 80 cap | 10 MB | — | **95 MB** |
+
+   So the `innerHTML` rebuild was never the problem: a full canvas repaint is about 5 ms at a
+   realistic size and still inside a frame at four times that, and the CSS-only path is under
+   a millisecond regardless. Optimising it would have bought nothing anyone could perceive.
+   `edit()` is flat rather than linear because `clone` is a JSON round-trip, which is fast
+   enough that document size barely shows.
+
+   The one number that scales badly is the undo stack: 80 deep clones of the whole document,
+   so ~1.2 MB per snapshot at ten pages and 95 MB held. Nothing to do at today's sizes, and
+   the threshold to watch is a project past roughly 4000 nodes — cap the stack by bytes rather
+   than by count, or store what changed instead of the whole document. Not before then.
+
+   A note on method, because it wasted a pass: the first numbers were all 13.9 ms, including
+   an empty function. A double-`requestAnimationFrame` measurement cannot resolve anything
+   faster than a frame, so it reported one frame interval for everything. Force the layout and
+   time it synchronously instead — `f(); root.getBoundingClientRect()`.
 3. ~~Canvas zoom~~ — done, and it was the most important thing in the tool rather than
    the cosmetic item this list had it down as. Still open from that line: custom layer
    names, an Assets item in the rail
@@ -545,11 +568,22 @@ carries across.
    each one previously only checked by driving the browser by hand — and the first run found
    a bug that had been there since before the port. Still uncovered: the dialogs, and the
    canvas/HUD/drag half, which is imperative and needs a different approach
-5. **The obvious next components**, now that the escape hatch exists: **Tabs** (needs a small
-   script, and follows the `NAV_JS`/`LB_JS` pattern of emitting only when `data-tabs` is in
-   the body), **Table**, **Code block**, **Breadcrumb** (which pairs with CMS detail pages
-   and would drive BreadcrumbList structured data), and a **scroll-snap slider** for logos
-   and testimonials
+5. ~~**The obvious next components**~~ — all five shipped. **Tabs** renders every panel and
+   the script takes them away, so a page served without JavaScript reads whole rather than
+   showing one tab's worth. **Table** takes its body as one string, split on tabs when the
+   paste has them and `|` otherwise, because tabular data arrives by paste. **Code block**
+   highlights in the builder and ships spans, so the page runs no highlighter — the lexer's
+   one hard invariant is that stripping its spans returns the input, tested across every
+   language. **Breadcrumb** derives the trail from where the page sits and contributes a
+   BreadcrumbList built from that same trail, only when the page shows one. **Slider** is a
+   Row that scrolls and snaps, all CSS, with the arrows as the only optional script.
+
+   Two traps they cost, both now tested rather than remembered: a literal `<!--` inside the
+   inlined bundle flips the HTML tokenizer into its escaped state and `</script>` stops
+   closing the element; and an emitted script whose terminator is `<\/script>` rather than
+   `</script>` runs on into its own markup. `tests/core.test.ts` builds one page carrying
+   every script-emitting widget and parses each script; `tests/boot.test.mjs` checks the
+   bundle for both sequences by name.
 6. **The CMS's missing verbs.** ~~filter~~, ~~draft flag~~ and ~~pagination~~ are done: a list
    takes a field, one of five operators and a value; an item held back leaves every published
    surface at once through `published()`; and `per` turns a page into one file per slice, with
