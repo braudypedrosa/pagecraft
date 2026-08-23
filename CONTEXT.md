@@ -451,16 +451,28 @@ that the browser failed.
 
 ## What this repo is for now — the harvest map
 
-**The decision, so nobody re-litigates it from this file alone.** `~/Documents/Braudy/pagecraft`
-(remote: `no-code-site-builder`) is the product. Its document model has already won: Zod-validated,
-with style *states* (hover / focus-visible / active / disabled), *conditions*, *bindings* with
-fallbacks, accessibility in the schema, and a real component system with `component-instance` and
-`slot` across 31 element types — 4,477 lines in `src/domain`. Replacing that with `Node` from
-`app/src/core` would be a downgrade.
+**Corrected 2026-08-23 — the app this section was written against is gone.**
+`~/Documents/Braudy/pagecraft` was deleted on 2026-08-20 and never pushed: `no-code-site-builder`
+is a 404 on GitHub, there is no clone on this disk, and its own `PRODUCT.md` and `ROADMAP.md`
+went with the directory. The 4,477 lines in `src/domain` are not recoverable.
+
+**What survives is the design, which is the half that mattered.**
+`~/Documents/Braudy/SITE_BUILDER_COMPONENT_SPEC.md` — 785 lines — is the specification that
+model implemented: the element tree, the shared capability registry, the data model, the
+reusable-component model with properties and slots, an MVP list of 25 primitives, implementation
+priorities, anti-patterns and handoff notes. Everything below about the target model being
+richer than `Node` still holds; it is now a spec to implement rather than code to port into.
+
+The original claim, kept because the reasoning is still the reasoning: that model was
+Zod-validated, with style *states* (hover / focus-visible / active / disabled), *conditions*,
+*bindings* with fallbacks, accessibility in the schema, and `component-instance` with `slot`
+across 31 element types. `Node` from `app/src/core` is a smaller thing, and the deltas listed
+below are the distance between them.
 
 This repo is a **reference implementation and a proving ground**: the fastest place to try an
-idea, and the only place the export contract is proven against real bytes. What follows is what
-transfers, so the reasoning is next to the code rather than in a chat log.
+idea, and the only place the export contract is proven against real bytes. It is now also the
+only running code either project has. What follows is what transfers, so the reasoning is next
+to the code rather than in a chat log.
 
 Every row is a **port, not a copy** — the logic moves, the node shape changes. The schema deltas
 that make it so are listed after the table.
