@@ -8,6 +8,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from './app.ts';
 import { MemoryStore, type Store } from './store.ts';
+import { MemoryAuthStore, type AuthStore } from './auth.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..');
@@ -52,7 +53,27 @@ if (!process.env.DATABASE_URL && !(await store.list()).length) {
   console.log('seeded one demo site');
 }
 
-const app = createApp({ store, editorHtml, editorHost: EDITOR_HOST });
+/* One auth store for now. It is memory-backed like the site store when there is no
+   database, which means a restart signs everyone out — acceptable while the whole thing is
+   one machine and two people, and the note in the log says so. */
+const auth: AuthStore = new MemoryAuthStore();
+
+/* The first owner, so a fresh checkout has somebody who can sign in. Without it there is no
+   account and no way to make one, and `/auth/login` would answer 200 to an address it has
+   never heard of, which is correct and useless. */
+const OWNER = process.env.OWNER_EMAIL;
+if (OWNER) {
+  const user = await auth.createUser(OWNER, 'Owner');
+  for (const s of await store.list()) await auth.grant(s.id, user.id, 'owner');
+  console.log(`owner    ${OWNER} — POST /auth/login to get a link`);
+} else {
+  console.warn('OWNER_EMAIL is not set — nobody can sign in. The sites still serve.');
+}
+
+const app = createApp({
+  store, auth, editorHtml, editorHost: EDITOR_HOST,
+  secureCookies: process.env.NODE_ENV === 'production'
+});
 
 serve({ fetch: app.fetch, port: PORT }, info => {
   console.log(`editor   http://${EDITOR_HOST}:${info.port}/`);

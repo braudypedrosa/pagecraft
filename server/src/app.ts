@@ -8,23 +8,36 @@
      · **serve the editor** — the builder's own `index.html`, plus the two endpoints that
        replace `localStorage`: load a document, save a document.
 
-   Nothing here knows about authentication yet. `requireEditor` is the one place it will
-   attach, and it is a named function rather than an inline check so that the seam is visible
-   before there is anything behind it.
+   The site routes are public — a visitor is not asked who they are. Everything under `/api`
+   and `/auth` is not, and `who()` plus `allowed()` are the only two places that decide.
 
-   `app.ts` takes its store and its editor file as arguments. That is what makes it testable
+   `app.ts` takes its stores and its editor file as arguments. That is what makes it testable
    without a database or a build — `index.ts` is the part that reads the environment. */
 import { Hono, type Context } from 'hono';
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { Store } from './store.ts';
 import { renderSite, resolvePath } from './render.ts';
 import type { Doc } from '../../app/src/core/types.ts';
+import {
+  type AuthStore, type User, roleAllows, newToken, hashToken,
+  normalEmail, LINK_TTL_MS, SESSION_TTL_MS, logLink, type LinkSender
+} from './auth.ts';
+
+export const SESSION_COOKIE = 'pc_session';
 
 export interface Options {
   store: Store;
+  auth: AuthStore;
   /** the built builder, as a string. Absent in tests that only exercise the site routes. */
   editorHtml?: string;
   /** which host serves the editor. Every other host is a site. */
   editorHost?: string;
+  /** where a login link points. Needed because the link is built outside a request. */
+  editorOrigin?: string;
+  /** how the link reaches the person. Logged in development. */
+  sendLink?: LinkSender;
+  /** `Secure` on the session cookie. Off in tests and local http, on everywhere real. */
+  secureCookies?: boolean;
 }
 
 const TYPES: Record<string, string> = {
@@ -49,8 +62,86 @@ export function createApp(o: Options) {
     return out;
   };
 
-  /** Where auth attaches. Named now, empty now, so the seam is not invented later. */
-  const requireEditor = async (_siteId: string): Promise<boolean> => true;
+  /* ------------------------------------------------------------------- who, and what */
+
+  /** The person behind this request, or null. A bad cookie is the same as no cookie. */
+  const who = async (c: Context): Promise<User | null> => {
+    const token = getCookie(c, SESSION_COOKIE);
+    if (!token) return null;
+    const session = await o.auth.sessionByDigest(hashToken(token));
+    if (!session) return null;
+    return o.auth.userById(session.userId);
+  };
+
+  /**
+   * May this person do this to this site? Every answer comes from here, so a route cannot
+   * forget the membership half and check only that somebody is logged in.
+   */
+  const allowed = async (c: Context, siteId: string, verb: 'read' | 'write' | 'admin') => {
+    const user = await who(c);
+    if (!user) return { ok: false as const, status: 401 as const };
+    const m = await o.auth.membership(siteId, user.id);
+    if (!m) return { ok: false as const, status: 404 as const };   // not "403": do not confirm it exists
+    if (!roleAllows(m.role, verb)) return { ok: false as const, status: 403 as const };
+    return { ok: true as const, user, role: m.role };
+  };
+
+  const deny = (c: Context, status: 401 | 403 | 404) =>
+    c.json({ error: status === 401 ? 'sign in' : status === 403 ? 'not allowed' : 'no such site' }, status);
+
+  /* ----------------------------------------------------------------------------- auth */
+
+  /* Always 200, whether or not the address is known. Answering differently would turn this
+     into a way to ask which of someone's addresses has an account here. */
+  app.post('/auth/login', async c => {
+    const body = await c.req.json().catch(() => null) as { email?: string } | null;
+    const email = normalEmail(body?.email || '');
+    if (!email.includes('@')) return c.json({ error: 'an email address is required' }, 400);
+
+    if (await o.auth.userByEmail(email)) {
+      const token = newToken();
+      await o.auth.putLink(hashToken(token), email, Date.now() + LINK_TTL_MS);
+      const origin = o.editorOrigin || new URL(c.req.url).origin;
+      await (o.sendLink || logLink)(email, `${origin}/auth/callback?token=${token}`);
+    }
+    return c.json({ sent: true });
+  });
+
+  app.get('/auth/callback', async c => {
+    const token = c.req.query('token') || '';
+    const link = token ? await o.auth.useLink(hashToken(token)) : null;
+    if (!link) return c.text('That link has expired or has already been used.', 400);
+
+    const user = await o.auth.userByEmail(link.email);
+    if (!user) return c.text('That link has expired or has already been used.', 400);
+
+    const session = newToken();
+    await o.auth.putSession(hashToken(session), user.id, Date.now() + SESSION_TTL_MS);
+    setCookie(c, SESSION_COOKIE, session, {
+      httpOnly: true, sameSite: 'Lax', path: '/',
+      secure: !!o.secureCookies, maxAge: Math.floor(SESSION_TTL_MS / 1000)
+    });
+    return c.redirect('/');
+  });
+
+  app.post('/auth/logout', async c => {
+    const token = getCookie(c, SESSION_COOKIE);
+    if (token) await o.auth.dropSession(hashToken(token));
+    deleteCookie(c, SESSION_COOKIE, { path: '/' });
+    return c.json({ ok: true });
+  });
+
+  app.get('/auth/me', async c => {
+    const user = await who(c);
+    if (!user) return c.json({ user: null });
+    const sites = await o.store.list();
+    const mine = [];
+    for (const s of sites) {
+      const m = await o.auth.membership(s.id, user.id);
+      if (m) mine.push({ id: s.id, host: s.host, name: s.name, role: m.role });
+    }
+    return c.json({ user: { id: user.id, email: user.email, name: user.name }, sites: mine });
+  });
 
   /* ---------------------------------------------------------------- the editor */
 
@@ -60,24 +151,38 @@ export function createApp(o: Options) {
     return c.html(o.editorHtml);
   });
 
+  /* The list is per person: a site nobody granted you is a site you do not know exists. */
   app.get('/api/sites', async c => {
-    const sites = await o.store.list();
-    /* the list, without the documents — a picker does not need every page of every site */
-    return c.json(sites.map(s => ({ id: s.id, host: s.host, name: s.name, version: s.version, updatedAt: s.updatedAt })));
+    const user = await who(c);
+    if (!user) return deny(c, 401);
+    const out = [];
+    for (const s of await o.store.list()) {
+      const m = await o.auth.membership(s.id, user.id);
+      /* the list, without the documents — a picker does not need every page of every site */
+      if (m) out.push({ id: s.id, host: s.host, name: s.name, version: s.version, updatedAt: s.updatedAt, role: m.role });
+    }
+    return c.json(out);
   });
 
   app.get('/api/sites/:id', async c => {
-    const site = await o.store.byId(c.req.param('id'));
-    if (!site) return c.json({ error: 'no such site' }, 404);
-    if (!await requireEditor(site.id)) return c.json({ error: 'not allowed' }, 403);
-    return c.json({ id: site.id, host: site.host, name: site.name, version: site.version, doc: site.doc });
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'read');
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    return c.json({ id: site.id, host: site.host, name: site.name, version: site.version, role: gate.role, doc: site.doc });
   });
 
+  /* Creating a site is not something a client does, so it needs a signed-in person and
+     grants them ownership of what they made. */
   app.post('/api/sites', async c => {
+    const user = await who(c);
+    if (!user) return deny(c, 401);
     const body = await c.req.json().catch(() => null) as { host?: string; name?: string; doc?: Doc } | null;
     if (!body || !body.host || !body.doc) return c.json({ error: 'host and doc are required' }, 400);
     try {
       const site = await o.store.create({ host: body.host, name: body.name || body.host, doc: body.doc });
+      await o.auth.grant(site.id, user.id, 'owner');
       const out = build(site.id, site.doc);
       return c.json({ id: site.id, version: site.version, files: [...out.files.keys()] }, 201);
     } catch (e) {
@@ -89,9 +194,10 @@ export function createApp(o: Options) {
      `writeNow()` in the builder used to give localStorage. */
   app.put('/api/sites/:id', async c => {
     const id = c.req.param('id');
+    const gate = await allowed(c, id, 'write');
+    if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
-    if (!site) return c.json({ error: 'no such site' }, 404);
-    if (!await requireEditor(id)) return c.json({ error: 'not allowed' }, 403);
+    if (!site) return deny(c, 404);
 
     const body = await c.req.json().catch(() => null) as { doc?: Doc; version?: number } | null;
     if (!body || !body.doc || typeof body.version !== 'number') {

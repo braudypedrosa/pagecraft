@@ -21,6 +21,37 @@ create table if not exists sites (
   updated_at  timestamptz not null default now()
 );
 create index if not exists sites_host_idx on sites (host);
+
+create table if not exists users (
+  id          text primary key,
+  email       text not null unique,
+  name        text not null default '',
+  created_at  timestamptz not null default now()
+);
+
+/* Digests, never tokens — see the note at the top of auth.ts. Expiry is a column rather
+   than a policy, so a sweep is one delete and a check is one comparison. */
+create table if not exists login_links (
+  digest      text primary key,
+  email       text not null,
+  expires_at  timestamptz not null
+);
+create table if not exists sessions (
+  digest      text primary key,
+  user_id     text not null references users (id) on delete cascade,
+  expires_at  timestamptz not null
+);
+create index if not exists sessions_user_idx on sessions (user_id);
+
+/* The join that makes this multi-tenant without anything else changing: a person has a
+   role on a site, and no row means no access. Nothing is keyed on there being one site or
+   one owner. */
+create table if not exists site_users (
+  site_id     text not null references sites (id) on delete cascade,
+  user_id     text not null references users (id) on delete cascade,
+  role        text not null check (role in ('owner', 'content')),
+  primary key (site_id, user_id)
+);
 `;
 
 /* Just enough of `pg` to be typed without importing it at module scope — the memory store
