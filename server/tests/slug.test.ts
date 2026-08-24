@@ -30,6 +30,9 @@ const rig = async () => {
   let sent = '';
   const app = createApp({
     store, auth, editorHost: 'admin.test', editorOrigin: 'http://admin.test',
+    /* enough for `/edit/:id` to answer: without it the route 503s with "no editor build", which
+       is correct and not what these tests are about */
+    editorHtml: '<title>Builder</title>',
     sendLink: (_t, url) => { sent = url; }
   });
   const req = (path: string, init: RequestInit = {}, cookie?: string, host = 'admin.test') =>
@@ -212,4 +215,64 @@ test('every route the editor registers is a path a site cannot take', async () =
     a.equal(validSlug(top), null,
       `“${top}” is a route prefix, so it must be in RESERVED_PATHS — add it there`);
   }
+});
+
+/* ------------------------------------------------- the first five minutes
+
+   What a fresh deployment does before anybody has a site. This used to be a dead end: the empty
+   screen said "ask whoever set it up to grant you one" to the person who had just set it up, and
+   nothing in a browser could create a site at all. */
+
+test('a name is enough to make a site — no document, no domain', async () => {
+  const { req, signIn } = await rig();
+  const cookie = await signIn('owner@admin.test');
+
+  const res = await req('/api/sites', {
+    method: 'POST', body: JSON.stringify({ name: 'Acme Rebrand' })
+  }, cookie);
+  a.equal(res.status, 201, 'no doc in the body, which is the whole point');
+  const made = await res.json() as { id: string; slug: string; url: string };
+  a.equal(made.slug, 'acme-rebrand');
+  a.equal(made.url, 'http://admin.test/acme-rebrand/');
+
+  /* it serves immediately, and it is empty rather than somebody else's demo */
+  const live = await req('/acme-rebrand/');
+  a.equal(live.status, 200);
+  const html = await live.text();
+  a.equal(/Pagecraft — shape the web/.test(html), false, 'not the seeded demo');
+
+  /* and the editor opens on it with the design system in place */
+  const edit = await req(`/edit/${made.id}`, {}, cookie);
+  a.equal(edit.status, 200);
+  const cfg = JSON.parse(/window\.PC_SERVER=(\{.*?\});/.exec(await edit.text())![1]);
+  a.equal(cfg.name, 'Acme Rebrand');
+  a.equal(cfg.doc.pages.length, 1, 'one empty page to start on');
+  a.equal(cfg.doc.pages[0].tree.length, 0);
+  a.equal((cfg.doc.meta.tokens.colors || []).length > 0, true, 'with colours and text styles');
+  a.equal((cfg.doc.meta.tokens.text || []).length > 0, true);
+});
+
+test('an unnamed site still gets a name and a path', async () => {
+  const { req, signIn } = await rig();
+  const cookie = await signIn('owner@admin.test');
+  const res = await req('/api/sites', { method: 'POST', body: JSON.stringify({}) }, cookie);
+  a.equal(res.status, 201);
+  const made = await res.json() as { slug: string };
+  a.equal(made.slug, 'untitled-site', 'derived from the fallback name, not left blank');
+  a.equal((await req('/untitled-site/')).status, 200);
+});
+
+test('the picker says where a site is, not the placeholder host it has', async () => {
+  /* A site with no domain carries `unclaimed-<uuid>.invalid`, which never resolves. Printing it
+     under the site's name would be the picker lying about where the site is. */
+  const { req, signIn } = await rig();
+  const cookie = await signIn('owner@admin.test');
+  await req('/api/sites', { method: 'POST', body: JSON.stringify({ name: 'One' }) }, cookie);
+  await req('/api/sites', { method: 'POST', body: JSON.stringify({ name: 'Two' }) }, cookie);
+
+  const html = await (await req('/', {}, cookie)).text();
+  a.match(html, /\/one\//, 'the path it actually answers on');
+  a.match(html, /\/two\//);
+  a.equal(/unclaimed-/.test(html), false, 'and never the placeholder');
+  a.match(html, /<form id="new"/, 'plus a way to add another');
 });

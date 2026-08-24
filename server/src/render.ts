@@ -50,6 +50,29 @@ import type { Asset } from './assets.ts';
  */
 export const adopt = (doc: Doc): Doc | null => Core.migrate(doc) as Doc | null;
 
+/**
+ * A new, empty project — the document a site starts from.
+ *
+ * `seed()` then `blankProject()` is what the builder's own "Start an empty site" does, and the
+ * order matters: seed installs the colour tokens and text styles, and `blankProject` clears the
+ * *content* while keeping those. So a new site arrives with a design system and no pages to
+ * argue with, rather than with somebody else's demo to delete.
+ *
+ * Synchronous, and for the same reason `renderSite` is: the core keeps its document in a
+ * module-level singleton, so anything that reads `state` has to finish before the next thing
+ * touches it. No `await` between the two calls and the clone.
+ */
+export function blankDoc(name: string): Doc {
+  Core.seed();
+  Core.blankProject(name);
+  return structuredClone({
+    meta: Core.state.meta,
+    header: Core.state.header,
+    footer: Core.state.footer,
+    pages: Core.state.pages
+  }) as Doc;
+}
+
 export interface RenderedSite {
   /** path relative to the site root, e.g. `index.html` or `work/acme.html` */
   files: Map<string, string>;

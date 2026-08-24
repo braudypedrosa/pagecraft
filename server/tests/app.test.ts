@@ -171,7 +171,7 @@ test('one site goes straight to it; several offer a choice', async () => {
   a.match(html, new RegExp(`/edit/${second.id}`));
 });
 
-test('a signed-in person with no sites is told so, not shown an editor', async () => {
+test('a signed-in person with no sites is offered one, not a dead end', async () => {
   const { auth, admin, linkUrl } = await rig();
   await auth.createUser('nobody@elsewhere.test');       // an account, no membership
   await admin('/auth/login', { method: 'POST', body: JSON.stringify({ email: 'nobody@elsewhere.test' }) });
@@ -182,7 +182,11 @@ test('a signed-in person with no sites is told so, not shown an editor', async (
   const res = await admin('/', {}, cookie);
   a.equal(res.status, 200);
   const html = await res.text();
-  a.match(html, /Nothing to edit yet/);
+  /* This screen used to read "ask whoever set it up to grant you one" — shown to the person who
+     had just set it up, on a server where nothing in a browser could create a site. */
+  a.match(html, /Make your first site/);
+  a.match(html, /<form id="new"/, 'and a way to make one');
+  a.match(html, /\/api\/sites/, 'pointed at the endpoint that was there all along');
   a.equal(/<title>Builder<\/title>/.test(html), false, 'and certainly not an editor');
 });
 

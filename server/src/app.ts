@@ -16,7 +16,7 @@
 import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { validHost, validSlug, type Site, type Store } from './store.ts';
-import { adopt, renderSite, resolvePath } from './render.ts';
+import { adopt, blankDoc, renderSite, resolvePath } from './render.ts';
 import { contentOnly } from './content.ts';
 import { throttle } from './mail.ts';
 import {
@@ -194,7 +194,13 @@ export function createApp(o: Options) {
     if (!mine.length) return c.html(emptyPage(user.email));
     /* one site is the common case, and a picker with one row on it is a click for nothing */
     if (mine.length === 1) return c.redirect(`/edit/${mine[0].site.id}`);
-    return c.html(pickerPage(user.email, mine.map(m => ({ id: m.site.id, name: m.site.name, host: m.site.host, role: m.role }))));
+    /* `where` rather than the host: a site with no domain has a placeholder one that never
+       resolves, and printing `unclaimed-3f2a….invalid` under its name would be the picker lying
+       about where the site is. */
+    return c.html(pickerPage(user.email, mine.map(m => ({
+      id: m.site.id, name: m.site.name, role: m.role,
+      where: /\.invalid$/.test(m.site.host) ? `/${m.site.slug}/` : m.site.host
+    }))));
   });
 
   /* The editor, with the document already in the page.
@@ -252,14 +258,20 @@ export function createApp(o: Options) {
     if (!user) return deny(c, 401);
     const body = await c.req.json().catch(() => null) as
       { host?: string; slug?: string; name?: string; doc?: Doc } | null;
-    if (!body || !body.doc) return c.json({ error: 'doc is required' }, 400);
+    if (!body) return c.json({ error: 'a JSON body is required' }, 400);
+    /* A document is optional. It used to be required, which meant the only way to make a site
+       was to already have one — so a fresh deployment's owner signed in, was told to ask whoever
+       set it up, and had nowhere to go. They *are* whoever set it up. A name is enough now, and
+       the server starts them where the builder's own "Start an empty site" does. */
+    const name = String(body.name || '').trim() || 'Untitled site';
+    const doc0 = body.doc || blankDoc(name);
     /* A host is no longer required to have a site. It used to be the only way to reach one, so
        making a site meant inventing a domain first; a slug is enough, and the host is what you
        add when the site earns a domain. The placeholder is unique and never resolves, which is
        the honest value for "no domain yet". */
     const host = String(body.host || '').trim() || `unclaimed-${crypto.randomUUID()}.invalid`;
     /* Stored at this build's schema, so the row starts where the save path expects it. */
-    const doc = adopt(body.doc);
+    const doc = adopt(doc0);
     if (!doc) {
       return c.json({
         error: 'newer', detail: 'This document was written by a newer version of the editor than this server runs. Reload the editor, or deploy the server.'
@@ -267,7 +279,7 @@ export function createApp(o: Options) {
     }
     try {
       const site = await o.store.create({
-        host, slug: body.slug, name: body.name || body.slug || 'Untitled site', doc
+        host, slug: body.slug, name, doc
       });
       await o.auth.grant(site.id, user.id, 'owner');
       const out = await rebuild(site.id, site.doc);
@@ -625,17 +637,50 @@ const signInPage = () => shell('Sign in — Pagecraft', `
     });
   <\/script>`);
 
-const emptyPage = (email: string) => shell('No sites — Pagecraft', `
-  <h1>Nothing to edit yet</h1>
-  <p>${escapeHtml(email)} has no sites on this server. Ask whoever set it up to grant you one.</p>`);
+/* The first screen of a new deployment, and it used to be a dead end: "ask whoever set it up to
+   grant you one", shown to the person who had just set it up. There was no way to make a site
+   from a browser at all — `POST /api/sites` existed and nothing called it.
 
-const pickerPage = (email: string, sites: { id: string; name: string; host: string; role: string }[]) =>
+   So this makes one. A name is the only question, because everything else about a site is a
+   decision better made once you can see it: the slug comes from the name, the design tokens come
+   with the blank project, and a domain is a thing you add later if the site earns one. */
+const newSiteForm = (label: string) => `
+  <form id="new"><label for="n">${label}</label>
+    <input id="n" name="name" type="text" placeholder="Acme Rebrand" required autocomplete="off">
+    <button type="submit">Create it</button></form>
+  <div id="err" class="ok" hidden></div>
+  <script>
+    document.getElementById('new').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const btn = ev.target.querySelector('button');
+      btn.disabled = true; btn.textContent = 'Creating…';
+      const res = await fetch('/api/sites', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: document.getElementById('n').value })
+      });
+      if (res.ok) { location.href = '/edit/' + (await res.json()).id; return; }
+      /* Said out loud rather than swallowed: a failure here with a spinner that never stops is
+         the worst version of this screen. */
+      const err = document.getElementById('err');
+      err.textContent = ((await res.json().catch(() => ({}))).error) || ('Failed: ' + res.status);
+      err.hidden = false;
+      btn.disabled = false; btn.textContent = 'Create it';
+    });
+  <\/script>`;
+
+const emptyPage = (email: string) => shell('No sites — Pagecraft', `
+  <h1>Make your first site</h1>
+  <p>Signed in as ${escapeHtml(email)}. Nothing here yet — name something and start.</p>
+  ${newSiteForm('Site name')}`);
+
+const pickerPage = (email: string, sites: { id: string; name: string; where: string; role: string }[]) =>
   shell('Your sites — Pagecraft', `
   <h1>Your sites</h1>
   <p>Signed in as ${escapeHtml(email)}</p>
   ${sites.map(s => `<a href="/edit/${encodeURIComponent(s.id)}">
-    <span>${escapeHtml(s.name)}<br><small>${escapeHtml(s.host)}</small></span>
-    <small>${escapeHtml(s.role)}</small></a>`).join('')}`);
+    <span>${escapeHtml(s.name)}<br><small>${escapeHtml(s.where)}</small></span>
+    <small>${escapeHtml(s.role)}</small></a>`).join('')}
+  ${newSiteForm('Another site')}`);
 
 const escapeHtml = (v: string) => String(v)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
