@@ -6739,3 +6739,285 @@ test('every exported target produces a graph naming its own URL', () => {
     a.equal(node['@type'], t.item ? 'Article' : 'WebPage');
   });
 });
+
+/* ------------------------------------------------------------- components
+   A definition and its instances. This is what replaces a global block: a block places
+   copies and pushes one copy's content over the others, so an edit to any copy is destroyed
+   by the next push, and there is nowhere to say that a card's heading varies while its layout
+   does not. An instance says exactly that. */
+
+const componentFromNode = (...a: Parameters<typeof C.componentFromNode>) =>
+  must(C.componentFromNode(...a), 'componentFromNode');
+const comp = (...a: Parameters<typeof C.findComponent>) => must(C.findComponent(...a), 'component');
+const propAdd = (...a: Parameters<typeof C.propAdd>) => must(C.propAdd(...a), 'propAdd');
+
+/** A card: a column holding a heading and a row that can be a slot. Built with `N` rather than
+    `insert`, because `insert` wraps a leaf in the chain it needs and the shape of the tree is
+    the thing these tests are about. */
+function card() {
+  blank();
+  const h = C.N('heading', { text: 'Standing in' });
+  const t = C.N('text', { html: '<p>Body copy.</p>' });
+  const hole = C.N('row', {}, {}, [C.N('column', {}, {}, [t])]);
+  const box = C.N('column', {}, {}, [h, hole]);
+  C.state.pages[0].tree.push(C.N('section', {}, {}, [C.N('row', {}, {}, [box])]));
+  return { box, h, t, hole };
+}
+
+test('saving a component leaves the page exactly as it was', () => {
+  /* The whole promise of the operation: nothing on screen moves. What was one tree is now a
+     definition with one instance pointing at it, and the page renders the same bytes. */
+  const { box } = card();
+  const before = C.buildPage(C.state.pages[0]);
+
+  const cid = componentFromNode(box.id, 'Feature card');
+  a.equal(C.componentUsage(cid), 1, 'the node it was made from is the first instance');
+  a.equal(at(box.id).node.use, cid);
+  a.deepEqual(at(box.id).node.children, [], 'the tree moved to the definition');
+
+  const after = C.buildPage(C.state.pages[0]);
+
+  /* Identical up to names. The definition's nodes are re-ided when it is made — they have to
+     be, or the definition and its first instance would share a class — and an inner element's
+     id carries the instance's suffix so three cards do not ship three of the same id. What has
+     to be untouched is everything a reader sees: the tags, the nesting and the words. */
+  const shape = (x: string) => x.slice(x.indexOf('<body')).replace(/ (id|class)="[^"]*"/g, '');
+  a.equal(shape(after), shape(before), 'the same tags, the same nesting, the same words');
+
+  /* And the stylesheet says the same things. Not in the same order — a definition's rules are
+     emitted before the document's, so an instance's own rules are the later ones and win. */
+  const decls = (x: string) => (x.slice(0, x.indexOf('<body')).match(/\{[^{}]*\}/g) || []).sort();
+  a.deepEqual(decls(after), decls(before), 'the same declarations, under different names');
+});
+
+test('a property is what varies; two instances differ by their values alone', () => {
+  const { box, h } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  const k = propAdd(cid, 'Title', 'text', 'Untitled');
+  /* the definition's heading reads the property */
+  C.bindSet(comp(cid).node.children[0], 'text', { src: 'prop', path: k });
+
+  const first = at(box.id).node;
+  C.instSet(first, k, 'One');
+  const second = must(C.instanceInsert(cid, null, 1), 'second instance');
+  C.instSet(second, k, 'Two');
+
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, />One</);
+  a.match(html, />Two</);
+  a.equal(/>Standing in</.test(html), false, 'the value in the definition is a default, not output');
+  void h;
+});
+
+test('an instance with no value of its own follows the default, and moves when it changes', () => {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  const k = propAdd(cid, 'Title', 'text', 'Untitled');
+  C.bindSet(comp(cid).node.children[0], 'text', { src: 'prop', path: k });
+
+  a.match(C.buildPage(C.state.pages[0]), />Untitled</);
+  comp(cid).props[0].def = 'Renamed';
+  a.match(C.buildPage(C.state.pages[0]), />Renamed</, 'the default reaches every instance that never set one');
+
+  /* and an empty string is a value somebody chose, not an absence */
+  C.instSet(at(box.id).node, k, '');
+  a.equal(/>Renamed</.test(C.buildPage(C.state.pages[0])), false);
+  C.instSet(at(box.id).node, k, undefined);
+  a.match(C.buildPage(C.state.pages[0]), />Renamed</, 'clearing it goes back to the default');
+});
+
+test('many instances, one set of rules — an instance reads its definition, it does not copy it', () => {
+  const { box } = card();
+  C.setCss(box, 'padding-top', '40px');
+  const cid = componentFromNode(box.id, 'Feature card');
+  const inner = comp(cid).node.children[0];
+  C.instanceInsert(cid, null, 1);
+  C.instanceInsert(cid, null, 2);
+
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const sel = new RegExp('\\.' + C.nodeClass(inner) + '\\{', 'g');
+  a.equal((css.match(sel) || []).length, 1, 'three instances, one rule for the definition’s heading');
+});
+
+test('an instance’s own styling wins over the definition’s', () => {
+  /* Two single-class selectors, so document order decides — which is why the definitions are
+     emitted before the document rather than after. */
+  const { box } = card();
+  C.setCss(box, 'background-color', '#111111');
+  const cid = componentFromNode(box.id, 'Feature card');
+  const mine = at(box.id).node;
+  C.setCss(mine, 'background-color', '#eeeeee');
+
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const di = css.indexOf('.' + C.nodeClass(comp(cid).node) + '{');
+  const ii = css.indexOf('.' + C.nodeClass(mine) + '{');
+  a.equal(di > -1 && ii > -1, true, 'both are in the sheet');
+  a.equal(di < ii, true, 'the definition first, so the instance’s rule is the later one');
+
+  const html = C.renderNode(mine, { edit: false });
+  a.match(html, new RegExp(C.nodeClass(comp(cid).node)), 'the element wears the definition’s class');
+  a.match(html, new RegExp(C.nodeClass(mine)), 'and its own');
+});
+
+test('every instance ships its own element ids, because a repeated id is invalid markup', () => {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  C.instanceInsert(cid, null, 1);
+  C.instanceInsert(cid, null, 2);
+
+  const html = C.buildPage(C.state.pages[0]);
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+  a.equal(ids.length, new Set(ids).size, `duplicate id in: ${ids.join(', ')}`);
+});
+
+test('inside an instance nothing else is selectable, so a click reaches the component', () => {
+  /* An instance's internals belong to the definition. Giving them their own `data-id` would
+     offer the author a panel that cannot change anything, on a node the page does not own. */
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  const html = C.renderNode(at(box.id).node, { edit: true });
+  const ids = [...html.matchAll(/data-id="([^"]+)"/g)].map(m => m[1]);
+  a.deepEqual(ids, [box.id], 'one addressable element: the instance');
+  void cid;
+});
+
+test('a slot renders what the page put in it, and its own content when the page put nothing', () => {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  /* the definition's inner row becomes the slot */
+  const inner = comp(cid).node.children[1];
+  a.equal(C.slotMark(cid, inner.id, 'body'), true);
+  a.deepEqual(C.slotsOf(comp(cid)).map(s => s.k), ['body']);
+  a.equal(C.slotMark(cid, comp(cid).node.children[0].id, 'nope'), false,
+    'a heading cannot be a slot — its markup has nowhere to put children');
+
+  /* nothing in the slot: the definition's own children stand in */
+  a.match(C.buildPage(C.state.pages[0]), /Body copy\./);
+
+  /* and now the page fills it */
+  const inst = at(box.id).node;
+  const q = insert('quote', inst, 0);
+  q.props.text = 'From the page';
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /From the page/);
+  a.equal(/Body copy\./.test(html), false, 'the default steps aside rather than doubling up');
+});
+
+test('slot content is the page’s, not the component’s — it binds to the page’s collection', () => {
+  const { box } = card();
+  const col = collectionAdd('Posts');
+  const fid = must(C.fieldAdd(col.id, 'Title', 'text'), 'field').id;
+  const it = itemAdd(col.id);
+  C.itemSet(col.id, it.id, fid, 'From the CMS');
+
+  const cid = componentFromNode(box.id, 'Feature card');
+  C.slotMark(cid, comp(cid).node.children[1].id, 'body');
+
+  const inst = at(box.id).node;
+  C.srcSet(inst, col.id);
+  const h = insert('heading', inst, 0);
+  C.bindSet(h, 'text', C.bindField(fid));
+  a.match(C.buildPage(C.state.pages[0]), />From the CMS</);
+});
+
+test('undeclaring a property unbinds what read it, rather than leaving it looking connected', () => {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  const k = propAdd(cid, 'Title', 'text', 'Untitled');
+  const inner = comp(cid).node.children[0];
+  C.bindSet(inner, 'text', { src: 'prop', path: k });
+  C.instSet(at(box.id).node, k, 'One');
+
+  a.equal(C.propDelete(cid, k), 1, 'one binding pointed at it');
+  a.equal(C.bindGet(inner, 'text'), null);
+  a.equal(at(box.id).node.vals, undefined, 'and no instance keeps a value for a property nobody declares');
+  /* the definition's own authored text is what shows now, which is the honest answer */
+  a.match(C.buildPage(C.state.pages[0]), />Standing in</);
+});
+
+test('deleting a definition puts every instance back to being an ordinary node', () => {
+  /* The alternative is nine pages quietly going blank, which is not a delete anybody meant. */
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  C.slotMark(cid, comp(cid).node.children[1].id, 'body');
+  const inst = at(box.id).node;
+  const q = insert('quote', inst, 0);
+  q.props.text = 'From the page';
+  C.instanceInsert(cid, null, 1);
+
+  a.equal(C.componentDelete(cid), 2, 'both instances were put back');
+  a.equal(C.findComponent(cid), null);
+  const back = at(box.id).node;
+  a.equal(back.use, undefined);
+  a.equal(back.children.length > 0, true, 'it has its own tree again');
+
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, />Standing in</, 'the content came back with it');
+  a.match(html, /From the page/, 'and what the page had put in the slot is still the page’s');
+});
+
+test('a component that contains itself is refused, not rendered until the stack runs out', () => {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  /* the definition places an instance of itself */
+  comp(cid).node.children.push({
+    ...C.clone(comp(cid).node), id: 'nself', use: cid, children: [],
+    css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
+  } as PcNode);
+
+  const html = C.buildPage(C.state.pages[0]);
+  a.ok(html.length > 0, 'the page still renders');
+  a.equal(/contains itself/.test(html), false, 'and says nothing about it in the export');
+  a.match(C.renderNode(at(box.id).node, { edit: true }), /contains itself/,
+    'the editor names it, because somebody has to fix it');
+});
+
+test('an instance of a component that is gone renders nothing, and says so in the editor', () => {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  state_removeComponent(cid);
+  a.equal(C.renderNode(at(box.id).node, { edit: false }), '');
+  a.match(C.renderNode(at(box.id).node, { edit: true }), /Missing component/);
+});
+function state_removeComponent(cid: string) {
+  C.state.meta.components = C.components().filter(c => c.id !== cid);
+}
+
+test('an instance is called by the name of what it is an instance of', () => {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Pricing card');
+  a.equal(C.nameOf(at(box.id).node), 'Pricing card');
+  C.componentRename(cid, 'Plan card');
+  a.equal(C.nameOf(at(box.id).node), 'Plan card');
+});
+
+test('a definition’s content is reviewed, because an instance puts it on the page', () => {
+  const { box } = card();
+  box.children.push(C.N('image', { src: 'x.png', alt: '' }));
+  const cid = componentFromNode(box.id, 'Feature card');
+  C.instanceInsert(cid, null, 1);
+
+  const alt = C.lint().filter((f: Finding) => f.code === 'no-alt');
+  a.equal(alt.length, 2, 'two instances, two places a screen reader says nothing');
+  a.match(String(alt[0].where.region), /in “Feature card”/);
+});
+
+test('a token used only inside a definition is a token in use', () => {
+  /* `allTrees` is what every project-wide walk reads. A definition renders, so a colour used
+     only in one is used on the page — and a usage count that said otherwise would offer to
+     delete it. */
+  const { box } = card();
+  const tok = must(C.colorAdd('Brand ink', '#123456'), 'colour');
+  C.setCss(box.children[0], 'color', C.cvar(tok));
+  const cid = componentFromNode(box.id, 'Feature card');
+  a.equal(C.colorUsage(tok), 1, 'the tree is the definition’s now, and the count follows it');
+  a.equal(C.colorUsage(tok) > 0, true, 'counted inside the definition');
+  void cid;
+});
+
+test('migration v9 to v10 gives a project its component list', () => {
+  const before = { v: 9, pages: [{ id: 'p', name: 'Home', slug: 'index', tree: [] }], meta: { blocks: [] } };
+  const after = C.migrate(before);
+  a.deepEqual(after.meta.components, []);
+  a.equal(after.v, C.SCHEMA);
+});

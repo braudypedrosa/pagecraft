@@ -265,6 +265,25 @@ export interface Node {
   src?: string;
   /** prop key to binding. A bound prop takes its value from somewhere else. */
   bind?: Record<string, Binding>;
+  /** A component id. This node is an *instance*: its markup comes from the definition's tree,
+      and its own type, css, classes and animation still describe this element on this page.
+
+      Not a `type: 'instance'` widget, deliberately. Every level rule in the editor is written
+      against a type string — `lvl`, `holds`, `wrap`, twenty call sites — so a new type would
+      have needed a level, and a component's level is whatever its definition's root is. A node
+      that *is* the root's type and carries a component id needs none of that changed. It is the
+      same shape as `adv.block`, which has tagged a copy since blocks existed. */
+  use?: string;
+  /** An instance's property values, by property key. Absent keys take the definition's
+      default, so changing a default moves every instance that never overrode it. */
+  vals?: Record<string, string>;
+  /** Which slot this node is. Read two ways, one meaning — "which slot":
+
+      · inside a *definition*, it marks this node as a slot, and an instance's matching children
+        render in place of its own children (which stay as the default when nothing matches).
+      · on an *instance's* child, it says which slot to render in. Absent means the first slot,
+        which is the whole story for a component with one. */
+  slot?: string;
 }
 
 
@@ -291,6 +310,38 @@ export type BindSource =
 export interface Binding {
   src: BindSource;
   path: string;
+}
+
+/* ---- components -------------------------------------------------------
+   A definition and its instances. Blocks were the first attempt at this: a saved tree, and a
+   copy placed on the page that could push its content back out to the other copies. Copies is
+   the problem — every copy is a whole tree, an edit to one is destroyed by the next push from
+   another, and there is nowhere to say "this part varies and that part does not".
+
+   An instance holds values, not markup. What varies is declared: a property per varying value,
+   with a default, and a binding inside the definition that says which element reads it. */
+
+/** What kind of value a property holds. The same kinds the controls already draw, so a
+    property's editor is a control the panel knows how to render rather than a new widget. */
+export type PropKind = 'text' | 'rich' | 'img' | 'link' | 'color' | 'select' | 'bool';
+
+export interface ComponentProp {
+  /** the key a `prop` binding's path names */
+  k: string;
+  label: string;
+  t: PropKind;
+  /** the value an instance shows until it sets its own */
+  def: string;
+  /** for `select`: value and label, as the controls take them */
+  opts?: [string, string][];
+}
+
+export interface ComponentDef {
+  id: string;
+  name: string;
+  /** the tree. Nodes inside it bind props to `{ src: 'prop' }` and may be slots. */
+  node: Node;
+  props: ComponentProp[];
 }
 
 /** Where a node sits: the node, its parent, the array holding it, and its index. */
@@ -495,6 +546,8 @@ export interface Meta {
   ogImage: string;
   favicon: string;
   blocks: SavedBlock[];
+  /** added by migration v9->v10, so absent on a freshly-declared literal */
+  components?: ComponentDef[];
   /** added by migration v6→v7, so absent on a freshly-declared literal */
   collections?: Collection[];
   /** ship the webfonts with the site instead of linking Google. Separate-files exports and
@@ -557,6 +610,15 @@ export interface RenderOpts {
   col?: Collection | null;
   /** the item being rendered, on a detail page or inside a repeater */
   item?: Item | null;
+  /** The instance being expanded, and the definition it points at. Set while a component's
+      tree renders: the root wears the instance's identity and styling, a `prop` binding
+      resolves against the instance's values, and a slot renders the instance's children. */
+  inst?: Node | null;
+  cdef?: ComponentDef | null;
+  /** The component ids being expanded, outermost first. A component that contains an instance
+      of itself would otherwise render until the stack runs out, and a page builder should not
+      be able to hang the tab it renders in. */
+  stack?: string[];
   /** how far this file sits from the root, e.g. '../' */
   rel?: string;
   /** set while a Collection list repeats its contents */

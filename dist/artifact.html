@@ -3538,6 +3538,10 @@ function eachNode(list, fn, parent = null, depth = 0) {
   });
 }
 var nameOf = (n) => {
+  if (n.use) {
+    const cd = findComponent(n.use);
+    if (cd) return cd.name;
+  }
   const d = DEF[n.type];
   if (n.type === "heading") return (n.props.text || "").slice(0, 26) || d.label;
   if (n.type === "button") return n.props.text || d.label;
@@ -4009,7 +4013,12 @@ function tsCreateFrom(n, name) {
   n.props.ts = id;
   return id;
 }
-var allTrees = () => [state.header, state.footer, ...state.pages.map((p) => p.tree)];
+var allTrees = () => [
+  state.header,
+  state.footer,
+  ...state.pages.map((p) => p.tree),
+  ...components().map((c) => [c.node])
+];
 var LANGS = [
   ["en", "English"],
   ["en-GB", "English (UK)"],
@@ -4370,6 +4379,7 @@ function lint() {
     if (!pg2.desc) add("warn", "no-desc", `\u201C${pg2.name}\u201D has no meta description, so search results pick their own snippet.`, scope);
     const seenIds = /* @__PURE__ */ new Set(), dupIds = /* @__PURE__ */ new Set();
     let headings = [];
+    const stack = [];
     const visit = (list, chain, region) => list.forEach((n) => {
       const w = { ...scope, region, node: DEF[n.type].label };
       const anchor = n.adv && n.adv.htmlId;
@@ -4541,6 +4551,14 @@ function lint() {
             w,
             n.id
           );
+        }
+      }
+      if (n.use) {
+        const cd = findComponent(n.use);
+        if (cd && !stack.includes(n.use)) {
+          stack.push(n.use);
+          visit([cd.node], chain.concat(n), `${region}, in \u201C${cd.name}\u201D`);
+          stack.pop();
         }
       }
       visit(n.children || [], chain.concat(n), region);
@@ -5453,11 +5471,15 @@ function fieldPaths(col) {
   }
   return out;
 }
-function boundProps(n, col, item) {
-  if (!n.bind || !col || !item) return n.props;
+function boundProps(n, col, item, inst, def) {
+  if (!n.bind) return n.props;
   const out = { ...n.props };
   for (const [k, b] of Object.entries(n.bind)) {
-    if (b.src !== "field") continue;
+    if (b.src === "prop") {
+      if (inst) out[k] = instValue(inst, def || null, b.path);
+      continue;
+    }
+    if (b.src !== "field" || !col || !item) continue;
     out[k] = fieldValue(col, item, b.path);
   }
   return out;
@@ -5545,6 +5567,192 @@ function blockInsert(id, parentNode, index = 0) {
 var blockDelete = (id) => {
   state.meta.blocks = blocks().filter((b) => b.id !== id);
 };
+var components = () => state.meta.components || (state.meta.components = []);
+var findComponent = (id) => id ? components().find((c) => c.id === id) || null : null;
+var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
+function instValue(inst, def, k) {
+  const own = inst.vals ? inst.vals[k] : void 0;
+  if (own !== void 0) return own;
+  const p = findProp(def, k);
+  return p ? p.def : "";
+}
+function instSet(inst, k, v) {
+  if (v === void 0) {
+    if (inst.vals) {
+      delete inst.vals[k];
+      if (!Object.keys(inst.vals).length) delete inst.vals;
+    }
+    return;
+  }
+  inst.vals = inst.vals || {};
+  inst.vals[k] = v;
+}
+function slotsOf(def) {
+  if (!def) return [];
+  const out = [];
+  eachNode([def.node], (n) => {
+    if (n.slot && DEF[n.type].level < 4) out.push({ k: n.slot, node: n });
+  });
+  return out;
+}
+function slotMark(cid, nodeId, key) {
+  const def = findComponent(cid);
+  if (!def) return false;
+  let hit = null;
+  eachNode([def.node], (n2) => {
+    if (n2.id === nodeId) hit = n2;
+  });
+  const n = hit;
+  if (!n) return false;
+  if (!key) {
+    delete n.slot;
+    return true;
+  }
+  if (DEF[n.type].level >= 4) return false;
+  if (slotsOf(def).some((s) => s.k === key && s.node.id !== nodeId)) return false;
+  n.slot = key;
+  return true;
+}
+function slotKids(inst, def, k) {
+  const slots = slotsOf(def);
+  const first = slots.length ? slots[0].k : "";
+  return (inst.children || []).filter((c) => (c.slot || first) === k);
+}
+var PROP_CTL = {
+  text: "text",
+  rich: "rich",
+  img: "img",
+  link: "link",
+  color: "color",
+  select: "select",
+  bool: "check"
+};
+function instControls(n) {
+  const def = findComponent(n.use);
+  if (!def) return [];
+  return (def.props || []).map((pr) => ({
+    t: PROP_CTL[pr.t],
+    k: "val:" + pr.k,
+    label: pr.label,
+    opts: pr.t === "select" ? pr.opts || [] : void 0
+  }));
+}
+var contentControls = (n) => n.use ? instControls(n) : DEF[n.type].controls.content || [];
+function componentFromNode(nodeId, name) {
+  const h = locate(nodeId);
+  if (!h) return null;
+  const base = tokenId(name) || "component";
+  let id = base, k = 2;
+  while (findComponent(id)) id = base + "-" + k++;
+  const node = reid(clone(h.node));
+  delete node.use;
+  delete node.vals;
+  delete node.slot;
+  if (node.adv) delete node.adv.block;
+  components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
+  h.node.use = id;
+  h.node.children = [];
+  h.node.css = { d: {}, t: {}, m: {} };
+  h.node.cls = [];
+  h.node.hide = {};
+  h.node.adv = { htmlId: "", cls: "", css: "" };
+  delete h.node.st;
+  delete h.node.anim;
+  delete h.node.bind;
+  delete h.node.src;
+  return id;
+}
+function instanceInsert(cid, parentNode, index = 0) {
+  const def = findComponent(cid);
+  if (!def) return null;
+  const root = def.node;
+  const fresh = {
+    ...clone(root),
+    id: uid(),
+    use: cid,
+    children: [],
+    /* an instance starts unstyled: the definition's own css is already on the element through
+       the definition's class, and copying it here would freeze today's definition into every
+       instance placed today */
+    css: { d: {}, t: {}, m: {} },
+    cls: [],
+    adv: { htmlId: "", cls: "", css: "" }
+  };
+  delete fresh.vals;
+  delete fresh.slot;
+  delete fresh.st;
+  delete fresh.anim;
+  if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
+  const pl2 = parentNode ? lvl(parentNode.type) : 0;
+  const nested = parentNode && parentNode.type === "column" && lvl(fresh.type) === 2;
+  if (lvl(fresh.type) <= pl2 && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const list = parentNode ? parentNode.children : tree();
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, nested ? fresh : wrap(fresh.type, pl2, fresh));
+  return fresh;
+}
+function instances(cid) {
+  const out = [];
+  const scan = (list, where) => eachNode(list, (n) => {
+    if (n.use === cid) out.push({ node: n, where });
+  });
+  scan(state.header, "header");
+  scan(state.footer, "footer");
+  state.pages.forEach((p, i) => scan(p.tree, "page:" + i));
+  return out;
+}
+var componentUsage = (cid) => instances(cid).length;
+function propAdd(cid, label, t, def = "") {
+  const c = findComponent(cid);
+  if (!c) return null;
+  const base = tokenId(label) || "prop";
+  let k = base, i = 2;
+  while (findProp(c, k)) k = base + "-" + i++;
+  c.props = c.props || [];
+  c.props.push({ k, label: String(label || "Property").slice(0, 40), t, def });
+  return k;
+}
+function propDelete(cid, k) {
+  const c = findComponent(cid);
+  if (!c) return 0;
+  c.props = (c.props || []).filter((x) => x.k !== k);
+  let n = 0;
+  eachNode([c.node], (x) => {
+    Object.entries(x.bind || {}).forEach(([key, b]) => {
+      if (b.src === "prop" && b.path === k) {
+        bindSet(x, key, null);
+        n++;
+      }
+    });
+  });
+  instances(cid).forEach(({ node }) => instSet(node, k, void 0));
+  return n;
+}
+function componentDelete(cid) {
+  const def = findComponent(cid);
+  if (!def) return 0;
+  let n = 0;
+  for (const { node } of instances(cid)) {
+    const copy = reid(clone(def.node));
+    const kept = node.children || [];
+    node.type = copy.type;
+    node.props = copy.props;
+    node.children = copy.children;
+    node.bind = copy.bind;
+    delete node.use;
+    delete node.vals;
+    if (kept.length) (node.children = node.children || []).push(...kept.map((c) => {
+      delete c.slot;
+      return c;
+    }));
+    n++;
+  }
+  state.meta.components = components().filter((c) => c.id !== cid);
+  return n;
+}
+var componentRename = (cid, name) => {
+  const c = findComponent(cid);
+  if (c) c.name = String(name || c.name).slice(0, 40);
+};
 var flatten = (list, out = []) => {
   list.forEach((n) => {
     out.push(n);
@@ -5616,7 +5824,7 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 9;
+var SCHEMA = 10;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -5685,6 +5893,10 @@ function migrate(d) {
         if (typeof val === "string") n.bind[k] = { src: "field", path: val };
       }
     });
+  }
+  if (v < 10) {
+    d.meta = d.meta || {};
+    if (!Array.isArray(d.meta.components)) d.meta.components = [];
   }
   d.v = SCHEMA;
   return d;
@@ -6969,8 +7181,23 @@ function nodeCss(n, editing, acc) {
   (n.children || []).forEach((c) => nodeCss(c, editing, acc));
   return acc;
 }
+function usedComponents(lists) {
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  const visit = (list) => eachNode(list, (n) => {
+    if (!n.use || seen.has(n.use)) return;
+    const cd = findComponent(n.use);
+    if (!cd) return;
+    seen.add(n.use);
+    out.push(cd);
+    visit([cd.node]);
+  });
+  lists.forEach(visit);
+  return out;
+}
 function treeCss(lists, editing) {
   const acc = { d: "", t: "", m: "" };
+  usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc));
   lists.forEach((l) => l.forEach((n) => nodeCss(n, editing, acc)));
   const tk = tokenCss();
   return baseCss(editing) + tk.d + acc.d + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : "") + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : "");
@@ -7445,22 +7672,40 @@ var SEC_TAGS = ["section", "div", "header", "footer", "main", "article", "aside"
 function renderNode(n, o) {
   const d = DEF[n.type];
   if (!d) return "";
-  const ts = n.props.ts && findStyle(n.props.ts) ? " ts-" + n.props.ts : "";
-  const managed = nodeClasses(n).map((c) => " c-" + c.id).join("");
-  const anim = o.edit ? { cls: "", at: "" } : animAttrs(n);
-  const cx = (c) => `class="${c} ${nodeClass(n)}${ts}${managed}${anim.cls}${n.adv && n.adv.cls ? " " + esc(n.adv.cls) : ""}"`;
+  if (n.use && !(o.inst && o.inst === n)) {
+    const cd = findComponent(n.use);
+    if (cd && (o.stack || []).includes(n.use)) {
+      return o.edit ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">${esc(cd.name)} contains itself</div>` : "";
+    }
+    if (!cd) {
+      return o.edit ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
+    }
+    return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...o.stack || [], n.use] });
+  }
+  const host = o.inst && o.cdef && n === o.cdef.node ? o.inst : null;
+  const inner = !!o.inst && !host;
+  const self = host || n;
+  const ts = self.props.ts && findStyle(self.props.ts) ? " ts-" + self.props.ts : n.props.ts && findStyle(n.props.ts) ? " ts-" + n.props.ts : "";
+  const managed = nodeClasses(self).map((c) => " c-" + c.id).join("") + (host ? nodeClasses(n).map((c) => " c-" + c.id).join("") : "");
+  const anim = o.edit ? { cls: "", at: "" } : animAttrs(self);
+  const cx = (c) => `class="${c} ${nodeClass(n)}${host ? " " + nodeClass(host) : ""}${ts}${managed}${anim.cls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
   const rep = o.repeat && o.item ? "-" + o.item.slug : "";
-  const domId = o.edit ? o.repIndex ? n.id + rep : n.id : esc(domIdOf(n) + rep);
-  const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? " data-sel" : ""}` : ""}${anim.at}`;
-  const sc = n.src ? findCollection(n.src) : null;
+  const ins = inner && o.inst ? "-" + String(o.inst.id).replace(/^n/, "") : "";
+  const domId = o.edit ? o.repIndex ? self.id + rep + ins : self.id + ins : esc(domIdOf(self) + rep + ins);
+  const hooks = inner ? "" : ` data-id="${self.id}" data-t="${self.type}"${state.ui.sel === self.id ? " data-sel" : ""}`;
+  const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
+  const sc = self.src ? findCollection(self.src) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
-  const kids = n.type === "list" ? "" : (n.children || []).map((c) => renderNode(c, o2)).join("");
-  const p = boundProps(n, o2.col || null, o2.item || null);
+  const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
+  const kidList = filled && filled.length ? filled : n.children || [];
+  const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
+  const kids = n.type === "list" ? "" : kidList.map((c) => renderNode(c, kidOpts)).join("");
+  const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
   switch (n.type) {
     case "section": {
       const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : "section";
-      const inner = kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Row or component here</div>` : "");
-      return `<${tag} ${at} ${cx("pagecraft-section")}><div class="pagecraft-container${p.width === "full" ? " full" : ""}">${inner}</div></${tag}>`;
+      const inner2 = kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Row or component here</div>` : "");
+      return `<${tag} ${at} ${cx("pagecraft-section")}><div class="pagecraft-container${p.width === "full" ? " full" : ""}">${inner2}</div></${tag}>`;
     }
     case "row":
       return `<div ${at} ${cx("pagecraft-row")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column</div>` : "")}</div>`;
@@ -7493,8 +7738,8 @@ function renderNode(n, o) {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : "h2";
       const body = esc(p.text).replace(/\n/g, "<br>");
       const href = pageHref(p.link, o);
-      const inner = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${body}</a>` : body;
-      return `<${tg} ${at} ${cx("pagecraft-heading")}>${inner}</${tg}>`;
+      const inner2 = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${body}</a>` : body;
+      return `<${tg} ${at} ${cx("pagecraft-heading")}>${inner2}</${tg}>`;
     }
     case "text":
       return `<div ${at} ${cx("pagecraft-wysiwyg")}>${p.html || (o.edit ? "<p></p>" : "")}</div>`;
@@ -7573,11 +7818,11 @@ function renderNode(n, o) {
       const src = String(p.body == null ? "" : p.body);
       if (!src.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-code")}><div class="s-empty">${svg("codeblock", 12)} Paste the code in the panel</div></div>` : "";
       const lang = String(p.lang || "text");
-      let inner = codeSpans(src, lang);
-      if (p.numbers) inner = inner.split("\n").map((l) => `<span class="pagecraft-code-line">${l}</span>`).join("\n");
+      let inner2 = codeSpans(src, lang);
+      if (p.numbers) inner2 = inner2.split("\n").map((l) => `<span class="pagecraft-code-line">${l}</span>`).join("\n");
       const name = String(p.title == null ? "" : p.title).trim();
       const head = name || p.copy ? `<figcaption class="pagecraft-code-head">${name ? `<span>${esc(name)}</span>` : "<span></span>"}` + (p.copy ? '<button type="button" class="pagecraft-code-copy" data-copy hidden>Copy</button>' : "") + "</figcaption>" : "";
-      return `<figure ${at} ${cx("pagecraft-code")}${p.softwrap ? " data-wrap" : ""}${p.numbers ? " data-numbers" : ""}>` + head + `<pre><code class="language-${esc(lang)}">${inner}</code></pre></figure>`;
+      return `<figure ${at} ${cx("pagecraft-code")}${p.softwrap ? " data-wrap" : ""}${p.numbers ? " data-numbers" : ""}>` + head + `<pre><code class="language-${esc(lang)}">${inner2}</code></pre></figure>`;
     }
     case "table": {
       const grid = tableGrid(p.body);
@@ -8009,6 +8254,12 @@ var __CORE = {
   colorUsage,
   colors,
   cols,
+  componentDelete,
+  componentFromNode,
+  componentRename,
+  componentUsage,
+  components,
+  contentControls,
   contentImport,
   contentJson,
   contentKeys,
@@ -8051,8 +8302,10 @@ var __CORE = {
   findClass,
   findCollection,
   findColor,
+  findComponent,
   findField,
   findItem,
+  findProp,
   findStyle,
   firstChildOf,
   fitZoom,
@@ -8076,6 +8329,11 @@ var __CORE = {
   imageWidths,
   initUi,
   insert,
+  instControls,
+  instSet,
+  instValue,
+  instanceInsert,
+  instances,
   isFront,
   isGoogle,
   isNotFound,
@@ -8142,6 +8400,8 @@ var __CORE = {
   patternInsert,
   previewIndex,
   previewItem,
+  propAdd,
+  propDelete,
   propVal,
   published,
   redo,
@@ -8177,8 +8437,11 @@ var __CORE = {
   sizesFor,
   slotGet,
   slotHits,
+  slotKids,
+  slotMark,
   slotName,
   slotSet,
+  slotsOf,
   slugify,
   smartTarget,
   snippet,

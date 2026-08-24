@@ -16,7 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  StateKey, States, Anim, TabPanel, Capability, Binding,
+  StateKey, States, Anim, TabPanel, Capability, Binding, ComponentDef, ComponentProp, PropKind,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types.ts';
@@ -1457,6 +1457,12 @@ function eachNode(list: PcNode[], fn: (n: PcNode, parent: PcNode | null, i: numb
   list.forEach((n, i) => { fn(n, parent, i, depth); eachNode(n.children || [], fn, n, depth + 1); });
 }
 const nameOf = (n: PcNode) => {
+  /* An instance is called by what it is an instance of. Reading "Section" in the layer tree for
+     something the author named "Pricing card" is the panel disagreeing with the page. */
+  if (n.use) {
+    const cd = findComponent(n.use);
+    if (cd) return cd.name;
+  }
   const d = DEF[n.type];
   if (n.type === 'heading') return (n.props.text || '').slice(0, 26) || d.label;
   if (n.type === 'button') return n.props.text || d.label;
@@ -2030,7 +2036,19 @@ function tsCreateFrom(n: PcNode, name: string) {
   n.props.ts = id;
   return id;
 }
-const allTrees = () => [state.header, state.footer, ...state.pages.map(p => p.tree)];
+/* Every tree whose content reaches a page. Component definitions are in here because an
+   instance renders one: a colour token, a text style, a class or a font used only inside a
+   definition is used on the page, and a walk that missed it would delete the token, ship no
+   font, or report the style as unused.
+
+   Saved blocks are not, and that is the pre-existing behaviour rather than a decision made
+   here — a block is not rendered until it is placed, and placing it copies the tree in. It
+   does mean `classDelete` leaves a dangling class id inside a saved block; noted in
+   PLAN-SERVER.md rather than fixed in a commit about components. */
+const allTrees = () => [
+  state.header, state.footer, ...state.pages.map(p => p.tree),
+  ...components().map(c => [c.node])
+];
 
 /* ---- structured values -------------------------------------------------
    A link is a destination, not a string. Picking a page and an anchor from what
@@ -2522,6 +2540,9 @@ function lint() {
 
     const seenIds = new Set(), dupIds = new Set();
     let headings: any[] = [];
+    /* the components being walked into, so one that contains itself is a finding-free stop
+       rather than a stack overflow in the review */
+    const stack: string[] = [];
 
     const visit = (list: PcNode[], chain: PcNode[], region: string): void => list.forEach((n: PcNode) => {
       const w = { ...scope, region, node: DEF[n.type].label };
@@ -2711,6 +2732,22 @@ function lint() {
           const need = large ? 3 : 4.5;
           if (ratio < need) add('warn', 'contrast',
             `Text in the ${region} sits at ${ratio.toFixed(2)}:1 against its background — WCAG AA wants ${need}:1 for this size.`, w, n.id);
+        }
+      }
+      /* An instance renders its definition, so the definition's content is on this page and the
+         review has to see it: an image with no alt text inside a component is a finding on every
+         page that places one. The region says which component, and the finding still carries the
+         *instance's* node id, because that is the thing on this page somebody can click.
+
+         Reported once per instance rather than once per definition. A component used four times
+         with a missing alt is four places a screen reader says nothing, and collapsing that to
+         one line would be the review deciding how much the author should care. */
+      if (n.use) {
+        const cd = findComponent(n.use);
+        if (cd && !stack.includes(n.use)) {
+          stack.push(n.use);
+          visit([cd.node], chain.concat(n), `${region}, in “${cd.name}”`);
+          stack.pop();
         }
       }
       visit(n.children || [], chain.concat(n), region);
@@ -3869,14 +3906,19 @@ function fieldPaths(col: Collection | null): { path: string; label: string; type
    empty — the canvas should show what the export will, not a placeholder that
    quietly disappears at build time. Returns the identity object when nothing is
    bound, so an unbound tree costs nothing to render. */
-function boundProps(n: PcNode, col: Collection | null, item: Item | null) {
-  if (!n.bind || !col || !item) return n.props;
+function boundProps(n: PcNode, col: Collection | null, item: Item | null,
+  inst?: PcNode | null, def?: ComponentDef | null) {
+  if (!n.bind) return n.props;
   const out = { ...n.props };
   for (const [k, b] of Object.entries(n.bind)) {
-    /* Only the CMS resolves here. A `prop` binding is resolved when its instance expands, and
-       one that reaches this point is a node being edited outside any instance — where the
-       authored value standing in the definition is exactly what should be on screen. */
-    if (b.src !== 'field') continue;
+    /* A property, when this node is being rendered inside an instance. Outside one there is no
+       instance to ask, and the value authored in the definition is exactly what belongs on
+       screen — not an empty string, and not a field lookup that would find nothing. */
+    if (b.src === 'prop') {
+      if (inst) (out as PropBag)[k] = instValue(inst, def || null, b.path);
+      continue;
+    }
+    if (b.src !== 'field' || !col || !item) continue;
     (out as PropBag)[k] = fieldValue(col, item, b.path);
   }
   return out;
@@ -3967,6 +4009,218 @@ function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
 }
 const blockDelete = (id: string) => { state.meta.blocks = blocks().filter(b => b.id !== id); };
 
+/* ---- components -------------------------------------------------------
+   A definition, and instances that hold values rather than markup.
+
+   `blockPush` above is what this replaces. A global block places copies and pushes one copy's
+   content over the others, which means an edit to any copy is destroyed by the next push from
+   somewhere else, and there is nowhere to say that a card's heading varies while its layout
+   does not. An instance says exactly that: the definition owns the tree, declared properties
+   own what varies, and slots own what the page puts inside.
+
+   An instance is a node with `use` set — not a widget type of its own. Every level rule in the
+   editor reads a type string, so a new type would have needed a level, and a component's level
+   is whatever its definition's root is. A node that already *is* that type, carrying a
+   component id, changes none of it. */
+const components = () => (state.meta.components || (state.meta.components = []));
+const findComponent = (id?: string | null) => (id ? components().find(c => c.id === id) || null : null);
+
+/** The declared property, or null. */
+const findProp = (def: ComponentDef | null, k: string) =>
+  (def && (def.props || []).find((x: ComponentProp) => x.k === k)) || null;
+
+/** What an instance shows for one property. An absent value takes the definition's default —
+    so changing a default moves every instance that never set its own — while an empty string
+    is a value somebody chose, and stays empty. */
+function instValue(inst: PcNode, def: ComponentDef | null, k: string): string {
+  const own = inst.vals ? inst.vals[k] : undefined;
+  if (own !== undefined) return own;
+  const p = findProp(def, k);
+  return p ? p.def : '';
+}
+/** Set one property on an instance. `undefined` clears it back to the definition's default,
+    which is a different state from an empty string and reads differently on the panel. */
+function instSet(inst: PcNode, k: string, v: string | undefined) {
+  if (v === undefined) {
+    if (inst.vals) { delete inst.vals[k]; if (!Object.keys(inst.vals).length) delete inst.vals; }
+    return;
+  }
+  inst.vals = inst.vals || {};
+  inst.vals[k] = v;
+}
+
+/** Every slot a definition declares, in document order. */
+function slotsOf(def: ComponentDef | null): { k: string; node: PcNode }[] {
+  if (!def) return [];
+  const out: { k: string; node: PcNode }[] = [];
+  /* Containers only. A slot is a place children render, and a leaf's markup has nowhere to put
+     them — marking a heading as a slot would make a slot the panel offers and nothing fills. */
+  eachNode([def.node], n => { if (n.slot && DEF[n.type].level < 4) out.push({ k: n.slot, node: n }); });
+  return out;
+}
+/** Mark a node inside a definition as a slot, or clear it. Refuses a leaf, for the reason
+    above, and refuses a key another slot already has. */
+function slotMark(cid: string, nodeId: string, key: string) {
+  const def = findComponent(cid);
+  if (!def) return false;
+  let hit: PcNode | null = null;
+  eachNode([def.node], n => { if (n.id === nodeId) hit = n; });
+  const n = hit as PcNode | null;
+  if (!n) return false;
+  if (!key) { delete n.slot; return true; }
+  if (DEF[n.type].level >= 4) return false;
+  if (slotsOf(def).some(s => s.k === key && s.node.id !== nodeId)) return false;
+  n.slot = key;
+  return true;
+}
+/** An instance's children for one slot. Absent `slot` on a child means the first one, which is
+    the whole story for a component with a single slot — and typing a key nobody has to type is
+    how a feature reads as bureaucracy. */
+function slotKids(inst: PcNode, def: ComponentDef | null, k: string): PcNode[] {
+  const slots = slotsOf(def);
+  const first = slots.length ? slots[0].k : '';
+  return (inst.children || []).filter(c => (c.slot || first) === k);
+}
+
+/** The controls for an instance's properties, built from the declaration. A property is edited
+    by the control its kind names, so nothing here draws anything the panel could not already
+    draw. `set` marks these as writing values rather than props — see `propVal`. */
+const PROP_CTL: Record<string, string> = {
+  text: 'text', rich: 'rich', img: 'img', link: 'link', color: 'color', select: 'select', bool: 'check'
+};
+function instControls(n: PcNode): Control[] {
+  const def = findComponent(n.use);
+  if (!def) return [];
+  return (def.props || []).map(pr => ({
+    t: PROP_CTL[pr.t] as Control['t'], k: 'val:' + pr.k, label: pr.label,
+    opts: pr.t === 'select' ? (pr.opts || []) : undefined
+  })) as Control[];
+}
+/** The content controls for a node: an instance's properties, or the widget's own. One reader
+    so the panel, the content role and the search cannot disagree about what a node holds. */
+const contentControls = (n: PcNode): Control[] =>
+  (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
+
+/** Make a definition out of a node, and turn that node into the first instance. Saving a
+    component that leaves the page unchanged is the point: nothing on screen moves, and what
+    was one tree is now a definition with one instance pointing at it. */
+function componentFromNode(nodeId: string, name: string) {
+  const h = locate(nodeId);
+  if (!h) return null;
+  const base = tokenId(name) || 'component';
+  let id = base, k = 2;
+  while (findComponent(id)) id = base + '-' + k++;
+  /* `reid`, not a bare clone: a definition's node ids become class names in the stylesheet, and
+     a clone keeps the ids it copied — so the definition and the instance it was made from would
+     have shared a selector, and every rule either of them owned would have been written twice
+     under the same name. */
+  const node = reid(clone(h.node));
+  delete node.use; delete node.vals; delete node.slot;
+  if (node.adv) delete node.adv.block;
+  components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
+  /* The node stays where it is and becomes an instance of what it just defined. Its styling
+     goes with the tree: the definition carries it now, it reaches the page through the
+     definition's class, and leaving a copy on the instance would freeze today's definition into
+     this one element — the same reason `instanceInsert` starts an instance unstyled. */
+  h.node.use = id;
+  h.node.children = [];
+  h.node.css = { d: {}, t: {}, m: {} };
+  h.node.cls = [];
+  h.node.hide = {};
+  h.node.adv = { htmlId: '', cls: '', css: '' };
+  delete h.node.st; delete h.node.anim; delete h.node.bind; delete h.node.src;
+  return id;
+}
+/** Place an instance. Levels come from the definition's root, the way a block's do. */
+function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
+  const def = findComponent(cid);
+  if (!def) return null;
+  const root = def.node;
+  const fresh: PcNode = {
+    ...clone(root), id: uid(), use: cid, children: [],
+    /* an instance starts unstyled: the definition's own css is already on the element through
+       the definition's class, and copying it here would freeze today's definition into every
+       instance placed today */
+    css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
+  };
+  delete fresh.vals; delete fresh.slot; delete fresh.st; delete fresh.anim;
+  if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
+  const pl = parentNode ? lvl(parentNode.type) : 0;
+  const nested = parentNode && parentNode.type === 'column' && lvl(fresh.type) === 2;
+  if (lvl(fresh.type) <= pl && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const list = parentNode ? parentNode.children : tree();
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, nested ? fresh : wrap(fresh.type, pl, fresh));
+  return fresh;
+}
+/** Every instance of a definition, across every page and both global regions. */
+function instances(cid: string) {
+  const out: { node: PcNode; where: string }[] = [];
+  const scan = (list: PcNode[], where: string) => eachNode(list, n => {
+    if (n.use === cid) out.push({ node: n, where });
+  });
+  scan(state.header, 'header');
+  scan(state.footer, 'footer');
+  state.pages.forEach((p, i) => scan(p.tree, 'page:' + i));
+  return out;
+}
+const componentUsage = (cid: string) => instances(cid).length;
+
+/** Declare a property. The key is derived from the label and made unique, so nobody types an
+    identifier — the binding picker offers labels and stores keys. */
+function propAdd(cid: string, label: string, t: PropKind, def = '') {
+  const c = findComponent(cid);
+  if (!c) return null;
+  const base = tokenId(label) || 'prop';
+  let k = base, i = 2;
+  while (findProp(c, k)) k = base + '-' + i++;
+  c.props = c.props || [];
+  c.props.push({ k, label: String(label || 'Property').slice(0, 40), t, def });
+  return k;
+}
+/** Undeclare it, and unbind everything that read it — a binding pointing at a property that no
+    longer exists would render the value authored in the definition, which looks like the
+    property still works. */
+function propDelete(cid: string, k: string) {
+  const c = findComponent(cid);
+  if (!c) return 0;
+  c.props = (c.props || []).filter(x => x.k !== k);
+  let n = 0;
+  eachNode([c.node], x => {
+    Object.entries(x.bind || {}).forEach(([key, b]) => {
+      if (b.src === 'prop' && b.path === k) { bindSet(x, key, null); n++; }
+    });
+  });
+  instances(cid).forEach(({ node }) => instSet(node, k, undefined));
+  return n;
+}
+/** Delete a definition, and put every instance back to being an ordinary node — its own tree,
+    copied from the definition as it stood. Leaving instances pointing at nothing would empty
+    them, and a delete that silently blanks nine pages is not a delete anybody meant. */
+function componentDelete(cid: string) {
+  const def = findComponent(cid);
+  if (!def) return 0;
+  let n = 0;
+  for (const { node } of instances(cid)) {
+    const copy = reid(clone(def.node));
+    const kept = node.children || [];                 // slot content stays with the page
+    node.type = copy.type;
+    node.props = copy.props;
+    node.children = copy.children;
+    node.bind = copy.bind;
+    delete node.use; delete node.vals;
+    /* the slot's own content, appended where it can be: an instance's children were the page's
+       nodes and dropping them is the one thing worse than a flattened component */
+    if (kept.length) (node.children = node.children || []).push(...kept.map(c => { delete c.slot; return c; }));
+    n++;
+  }
+  state.meta.components = components().filter(c => c.id !== cid);
+  return n;
+}
+const componentRename = (cid: string, name: string) => {
+  const c = findComponent(cid);
+  if (c) c.name = String(name || c.name).slice(0, 40);
+};
+
 /* Arrow-key traversal of the tree as it reads on screen */
 const flatten = (list: any[], out: any[] = []): any[] => { list.forEach(n => { out.push(n); flatten(n.children || [], out); }); return out; };
 function step(id: string | null, dir: number) {
@@ -4053,7 +4307,7 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 9;                       // bump when the stored shape changes
+const SCHEMA = 10;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -4139,6 +4393,12 @@ function migrate(d: any) {
         if (typeof val === 'string') n.bind[k] = { src: 'field', path: val };
       }
     });
+  }
+  /* v9 -> v10: component definitions live on the project. Nothing existing is an instance, so
+     an empty list is the whole step — the same shape as the one that introduced collections. */
+  if (v < 10) {
+    d.meta = d.meta || {};
+    if (!Array.isArray(d.meta.components)) d.meta.components = [];
   }
   d.v = SCHEMA;
   return d;
@@ -5292,9 +5552,31 @@ function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: st
   (n.children || []).forEach(c => nodeCss(c, editing, acc));
   return acc;
 }
+/* Which definitions these trees actually render, following instances inside definitions. A
+   page ships the rules for the components it uses and not for the ones it does not — the same
+   reason a page's stylesheet is built from the page rather than from the project. */
+function usedComponents(lists: PcNode[][]): ComponentDef[] {
+  const seen = new Set<string>();
+  const out: ComponentDef[] = [];
+  const visit = (list: PcNode[]) => eachNode(list, n => {
+    if (!n.use || seen.has(n.use)) return;
+    const cd = findComponent(n.use);
+    if (!cd) return;
+    seen.add(n.use);
+    out.push(cd);
+    visit([cd.node]);                              // a component may place another
+  });
+  lists.forEach(visit);
+  return out;
+}
 /* one stylesheet for a set of trees: base + all desktop rules + two media blocks */
 function treeCss(lists: PcNode[][], editing: boolean) {
   const acc = { d: '', t: '', m: '' };
+  /* Definitions first, and only once each however many instances there are: an instance reads
+     its definition rather than copying it, so one set of rules dresses all of them. First
+     because an instance's own rules have to win, and two single-class selectors are decided by
+     document order. */
+  usedComponents(lists).forEach(cd => nodeCss(cd.node, editing, acc));
   lists.forEach(l => l.forEach(n => nodeCss(n, editing, acc)));
   const tk = tokenCss();
   return baseCss(editing) + tk.d + acc.d
@@ -5812,12 +6094,48 @@ const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'asid
 function renderNode(n: PcNode, o: RenderOpts): string {
   const d = DEF[n.type];
   if (!d) return '';
-  const ts = n.props.ts && findStyle(n.props.ts) ? ' ts-' + n.props.ts : '';
-  const managed = nodeClasses(n).map(c => ' c-' + c.id).join('');
+  /* An instance renders its definition's tree. `o.inst` carries the instance down that render
+     so three things can happen: the definition's root wears the instance's identity, a `prop`
+     binding resolves against the instance's values, and a slot renders the instance's own
+     children. Nothing is cloned — the definition is read, not copied, which is what makes one
+     set of rules in the stylesheet serve every instance. */
+  if (n.use && !(o.inst && o.inst === n)) {
+    const cd = findComponent(n.use);
+    if (cd && (o.stack || []).includes(n.use)) {
+      /* A component that contains itself. Refused at the second turn rather than the
+         thousandth, because the alternative is a page builder that can hang the tab it renders
+         in — and the author needs to be told, not left with a blank space. */
+      return o.edit
+        ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">${esc(cd.name)} contains itself</div>`
+        : '';
+    }
+    if (!cd) {
+      /* A definition that is not there. Silent in the export — an empty element is better than
+         a broken one — and named in the editor, because a component nobody can find is a thing
+         somebody has to fix. */
+      return o.edit
+        ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">Missing component: ${esc(n.use)}</div>`
+        : '';
+    }
+    return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...(o.stack || []), n.use] });
+  }
+  /* This node is the definition's root, rendering inside an instance: the element on the page
+     is the instance's, so its id, its styling hook, its classes and its motion are the ones
+     that belong on it. The definition's own class rides along, which is how one stylesheet
+     rule serves every instance and the instance's own rules still win — they are emitted after
+     the definition's. */
+  const host = (o.inst && o.cdef && n === o.cdef.node) ? o.inst : null;
+  /* an inner node of a definition: real markup, but not a thing the page owns */
+  const inner = !!o.inst && !host;
+  const self = host || n;
+  const ts = self.props.ts && findStyle(self.props.ts) ? ' ts-' + self.props.ts
+    : (n.props.ts && findStyle(n.props.ts) ? ' ts-' + n.props.ts : '');
+  const managed = nodeClasses(self).map(c => ' c-' + c.id).join('')
+    + (host ? nodeClasses(n).map(c => ' c-' + c.id).join('') : '');
   /* `cx` and `at` are what every widget's markup goes through, so motion rides along without a
      single render case needing to know about it — the same trick the styling hook class uses. */
-  const anim = o.edit ? { cls: '', at: '' } : animAttrs(n);
-  const cx = (c: string) => `class="${c} ${nodeClass(n)}${ts}${managed}${anim.cls}${n.adv && n.adv.cls ? ' ' + esc(n.adv.cls) : ''}"`;
+  const anim = o.edit ? { cls: '', at: '' } : animAttrs(self);
+  const cx = (c: string) => `class="${c} ${nodeClass(n)}${host ? ' ' + nodeClass(host) : ''}${ts}${managed}${anim.cls}${self.adv && self.adv.cls ? ' ' + esc(self.adv.cls) : ''}"`;
   /* The editor addresses elements by node id; the export uses the readable one.
      A repeat is the same node rendered many times, so both need a per-item suffix
      or every card in a Collection List ships the same id — invalid markup, and it
@@ -5826,16 +6144,33 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      In the editor the first repeat keeps the bare node id, so selection painting,
      the HUD and the column grips still resolve it with getElementById. */
   const rep = o.repeat && o.item ? '-' + o.item.slug : '';
+  /* An instance is the same definition rendered many times, so its inner elements need a
+     per-instance suffix for exactly the reason a repeat does: without one, three cards on a
+     page ship three elements with the same id, which is invalid markup and breaks every anchor
+     pointing at one. */
+  const ins = inner && o.inst ? '-' + String(o.inst.id).replace(/^n/, '') : '';
   const domId = o.edit
-    ? (o.repIndex ? n.id + rep : n.id)
-    : esc(domIdOf(n) + rep);
-  const at = `id="${domId}"${o.edit ? ` data-id="${n.id}" data-t="${n.type}"${state.ui.sel === n.id ? ' data-sel' : ''}` : ''}${anim.at}`;
+    ? (o.repIndex ? self.id + rep + ins : self.id + ins)
+    : esc(domIdOf(self) + rep + ins);
+  /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
+     on the nearest ancestor that has one — the instance — which is the element whose panel can
+     actually change anything. Its internals belong to the definition. */
+  const hooks = inner ? '' : ` data-id="${self.id}" data-t="${self.type}"${state.ui.sel === self.id ? ' data-sel' : ''}`;
+  const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
   /* a node that declares a source opens a scope for itself and everything under
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
-  const sc = n.src ? findCollection(n.src) : null;
+  const sc = self.src ? findCollection(self.src) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
-  const kids = n.type === 'list' ? '' : (n.children || []).map(c => renderNode(c, o2)).join('');
-  const p = boundProps(n, o2.col || null, o2.item || null);
+  /* A slot renders the instance's children in place of its own, and its own when the instance
+     put nothing there — a default, the way a slot has always worked. Those children are the
+     page's nodes, so they render outside the instance's scope: their bindings are the page's
+     bindings, and a `prop` binding inside them would be reading a component they are merely
+     sitting in. */
+  const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
+  const kidList = filled && filled.length ? filled : (n.children || []);
+  const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
+  const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
+  const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
 
   switch (n.type) {
     case 'section': {
@@ -6436,5 +6771,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, instControls, contentControls, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };
