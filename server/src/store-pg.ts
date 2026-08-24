@@ -89,6 +89,19 @@ export class PgStore implements Store {
     return toSite(rows[0]);
   }
 
+  async setHost(id: string, host: string) {
+    /* The unique index is what decides, not a read beforehand: two sites claiming one domain
+       is exactly the race a check-then-write leaves open. */
+    try {
+      const { rows } = await this.db.query<Row>(
+        'update sites set host = $1, updated_at = now() where id = $2 returning *', [host, id]);
+      return rows[0] ? toSite(rows[0]) : null;
+    } catch (e) {
+      if (/unique|duplicate/i.test(String((e as Error).message))) return null;
+      throw e;
+    }
+  }
+
   async save(id: string, doc: Doc, version: number): Promise<SaveResult> {
     /* The version is in the WHERE clause, so the check and the write are one statement and
        two saves cannot both believe they were first. Doing it as a read then a write would

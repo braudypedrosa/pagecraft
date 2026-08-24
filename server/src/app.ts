@@ -15,7 +15,7 @@
    without a database or a build — `index.ts` is the part that reads the environment. */
 import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
-import type { Store } from './store.ts';
+import { validHost, type Store } from './store.ts';
 import { renderSite, resolvePath } from './render.ts';
 import { contentOnly } from './content.ts';
 import { throttle } from './mail.ts';
@@ -290,6 +290,65 @@ export function createApp(o: Options) {
       /* the same review the builder shows, so a save can say what it noticed */
       findings: out.findings.map(f => ({ level: f.level, code: f.code, msg: f.msg }))
     });
+  });
+
+  /* ------------------------------------------------------------- the domain
+
+     Changing where a site answers. The routing already worked — a request is matched on its
+     Host header — so this is the missing half: a way to say which host that is, without
+     editing a database by hand.
+
+     Owner only. A domain is not content: moving it takes the site off the address people have
+     and puts it on one they do not, and every link anybody has saved stops working. */
+
+  app.put('/api/sites/:id/host', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+
+    const body = await c.req.json().catch(() => null) as { host?: string } | null;
+    const host = validHost(body?.host || '');
+    if (!host) {
+      return c.json({
+        error: 'that is not a domain',
+        detail: 'A hostname on its own — acme.com or www.acme.com. No scheme, no port, no path.'
+      }, 400);
+    }
+
+    const moved = await o.store.setHost(id, host);
+    if (!moved) return c.json({ error: 'another site already answers on that domain' }, 409);
+    /* The rendered files do not change, but the base URL in them might, so the cache for this
+       site is dropped rather than left to serve pages that name the old address. */
+    built.delete(id);
+    return c.json({ id: moved.id, host: moved.host });
+  });
+
+  /* --------------------------------------------------------- certificates
+
+     What a reverse proxy asks before it fetches a certificate for a domain.
+
+     On-demand TLS means the first request for `acme.com` triggers an issuance, and a proxy
+     that will do that for *any* name pointed at this box is a proxy that can be made to ask
+     Let's Encrypt for thousands of certificates — which ends in a rate limit at best. So the
+     proxy asks here first, and here is the only place that knows whether a domain is one of
+     ours.
+
+     Deliberately not under `/api`: it carries no session, because the proxy has none. Reaching
+     it is instead restricted to the loopback interface, which is where the proxy runs. Binding
+     the app to 127.0.0.1 in production would do the same job at the socket, and both together
+     is the belt and the braces. */
+
+  app.get('/internal/tls-check', async c => {
+    const via = c.req.header('x-forwarded-for');
+    /* A `X-Forwarded-For` means somebody outside reached this, because the proxy does not set
+       one on its own `ask`. That is enough to refuse, and cheaper than parsing addresses. */
+    if (via) return c.text('no', 403);
+
+    const domain = validHost(c.req.query('domain') || '');
+    if (!domain) return c.text('no', 400);
+    const site = await o.store.byHost(domain);
+    /* 200 is "yes, get a certificate for this". Anything else is "do not". */
+    return site ? c.text('ok', 200) : c.text('no', 404);
   });
 
   /* ---------------------------------------------------------------- the people

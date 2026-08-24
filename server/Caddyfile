@@ -1,0 +1,90 @@
+# TLS for domains that are not mine.
+#
+# UNVALIDATED. `caddy:2-alpine` would not pull on the machine this was written on, so this file
+# has never been through `caddy validate`. Everything on the app side of the fence is tested —
+# `server/tests/host.test.ts` covers the domain endpoint and the certificate ask — but the
+# syntax and directive names below are from the documentation rather than from a run. Do this
+# before trusting it:
+#
+#   docker run --rm -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" \
+#     -e ACME_EMAIL=you@example.com -e EDITOR_HOST=admin.example.com \
+#     caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile
+#
+# The Node server speaks plain HTTP and matches a request on its Host header, which is all it
+# needs to serve many sites. What it cannot do is hold a certificate for somebody else's
+# domain, and that is this file's whole job.
+#
+# ## Why a proxy rather than an ACME client in the app
+#
+# Issuance is not the hard part. Renewal is, and so is what happens at 3am when a renewal
+# fails, and remembering that a certificate has to be reloaded without dropping connections,
+# and OCSP, and the four challenge types. Caddy does all of it and has done for years. Writing
+# it again inside a page builder would be choosing the least interesting possible place to have
+# a security bug.
+#
+# ## How a client's domain arrives here
+#
+# 1. The client points their domain at this box: an A record, or a CNAME to it.
+# 2. The first HTTPS request for that name reaches Caddy, which has no certificate for it.
+# 3. `on_demand_tls` makes Caddy ask the app — `/internal/tls-check?domain=…` — whether this
+#    is a domain it serves. Without that question, anybody who points a DNS record at this
+#    address can make this server request a certificate on their behalf, and a few thousand of
+#    those is a Let's Encrypt rate limit and a broken box.
+# 4. On a 200, Caddy gets the certificate and proxies the request through. On anything else it
+#    declines and no certificate is requested.
+#
+# So `PUT /api/sites/:id/host` is what actually enables a domain: until a site claims it, the
+# ask says no.
+#
+# ## What is deliberately here rather than in the app
+#
+# The `www` redirect. A site that answers on `acme.com` should not 404 on `www.acme.com`, and
+# the alternatives were a list of aliases per site — a second thing to keep in step with the
+# host — or one rule in the proxy. This is one rule in the proxy. The app keeps exactly one
+# host per site, which is what makes `byHost` a lookup rather than a search.
+
+{
+	# A real address, so a failed renewal reaches somebody.
+	email {$ACME_EMAIL}
+
+	on_demand_tls {
+		# The app decides. Nothing is issued for a domain no site has claimed.
+		ask http://127.0.0.1:8787/internal/tls-check
+		# A ceiling as well as a gate: even with the ask, a burst of new domains should not
+		# turn into a burst of issuance.
+		interval 2m
+		burst 5
+	}
+}
+
+# The editor and the API, on a name I control.
+{$EDITOR_HOST} {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8787
+
+	# The one endpoint that must never be reachable from outside. The app refuses a request
+	# carrying X-Forwarded-For as well; this is the other half of the same fence.
+	@internal path /internal/*
+	respond @internal 404
+}
+
+# Every client domain. `https://` with no name means "any host, on demand".
+https:// {
+	tls {
+		on_demand
+	}
+
+	encode zstd gzip
+
+	# www to apex, so one host per site stays true and nobody gets a 404 for typing what
+	# they have typed for twenty years.
+	@www header_regexp host Host ^www\.(.+)$
+	redir @www https://{re.host.1}{uri} permanent
+
+	reverse_proxy 127.0.0.1:8787 {
+		header_up X-Forwarded-Host {host}
+	}
+
+	@internal path /internal/*
+	respond @internal 404
+}

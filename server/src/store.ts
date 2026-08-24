@@ -38,6 +38,32 @@ export interface Store {
   create(input: { host: string; name: string; doc: Doc }): Promise<Site>;
   /** `version` is the version the editor loaded. See `Site.version`. */
   save(id: string, doc: Doc, version: number): Promise<SaveResult>;
+  /** Move a site to a different domain. Null when the domain is taken. */
+  setHost(id: string, host: string): Promise<Site | null>;
+}
+
+/**
+ * Is this a domain this server can serve, and is it spelt like one?
+ *
+ * Checked because a host is not only a label: it is what a request is matched against, what a
+ * certificate is issued for, and what gets asked of Let's Encrypt. A malformed one is a site
+ * nobody can reach; a wildcard or a bare IP is a request that cannot be certified.
+ */
+export function validHost(raw: string): string | null {
+  const host = String(raw || '').trim().toLowerCase().replace(/\.$/, '');
+  if (!host || host.length > 253) return null;
+  /* No scheme, no port, no path — a host, not a URL. Somebody pasting `https://acme.com/`
+     should be told, not silently given a site at a domain with slashes in it. */
+  if (/[:/\\?#@\s]/.test(host)) return null;
+  /* An address is not a name, and a certificate cannot be had for one this way. */
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.includes('[')) return null;
+  const labels = host.split('.');
+  if (labels.length < 2 && host !== 'localhost' && !host.endsWith('.localhost')) return null;
+  for (const l of labels) {
+    if (!l || l.length > 63) return null;
+    if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(l)) return null;
+  }
+  return host;
 }
 
 export class MemoryStore implements Store {
@@ -69,6 +95,16 @@ export class MemoryStore implements Store {
     };
     this.sites.set(site.id, site);
     return this.copy(site);
+  }
+  async setHost(id: string, host: string) {
+    const s = this.sites.get(id);
+    if (!s) return null;
+    for (const other of this.sites.values()) {
+      if (other.id !== id && other.host === host) return null;
+    }
+    s.host = host;
+    s.updatedAt = new Date().toISOString();
+    return this.copy(s);
   }
   async save(id: string, doc: Doc, version: number): Promise<SaveResult> {
     const s = this.sites.get(id);

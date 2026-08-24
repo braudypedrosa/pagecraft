@@ -469,12 +469,46 @@ exactly five emails.
 test suite talks to a mail server — a suite that can send email is a suite that can email
 somebody by accident.
 
+## Custom domains — the app's half done, the proxy's half written but unverified
+
+Routing already matched a request on its Host header, so what was missing was a way to say
+which host that is. `PUT /api/sites/:id/host`, owner only: moving a domain takes a site off the
+address people have and puts it on one they do not, and every saved link stops working. That is
+not content however little markup it changes.
+
+`validHost` is stricter than it looks necessary to be, because a host is not a label — it is
+what a request is matched on, what a certificate is issued for, and what gets asked of Let's
+Encrypt. A scheme, a port, a path, a wildcard or a bare address is refused, and a pasted
+`https://acme.com/` is explained rather than accepted.
+
+**The part that stops this becoming somebody else's problem.** On-demand TLS means the first
+request for a name triggers an issuance, so a proxy that will do that for *any* name pointed at
+this box can be made to ask Let's Encrypt for thousands of certificates — a rate limit, and
+then no certificates for anybody. `GET /internal/tls-check?domain=…` is the question the proxy
+asks first, and the app is the only thing that knows the answer. It is not under `/api` because
+the proxy carries no session; instead it refuses anything arriving with an `X-Forwarded-For`,
+which the proxy does not set on its own ask, and the Caddyfile refuses `/internal/*` at the edge
+as well.
+
+Verified over real HTTP: the ask says 200 for a claimed domain, 404 for a stranger's, 400 for a
+wildcard, and 403 when it arrives from outside. Moving a site to `acme.localhost` made it answer
+there, stop answering on the old host, and flipped both answers from the ask.
+
+**The Caddyfile is not verified.** `caddy:2-alpine` would not pull here, so it has never been
+through `caddy validate` — its syntax and directive names come from documentation rather than
+from a run, and the file says so at the top along with the command. Caddy rather than an ACME
+client in the app because issuance is the easy part: renewal, reload without dropping
+connections, and what happens at 3am when a renewal fails are the rest of it, and a page builder
+is the least interesting place to keep a security bug.
+
+The `www` redirect lives in the proxy rather than as an alias list per site, so the app keeps
+exactly one host per site and `byHost` stays a lookup rather than a search.
+
 ## What is left
 
-- **Hosting.** Custom domains and TLS, which is what "the server hosts them" commits to. The
-  host column and the routing exist; a certificate for somebody else's domain does not.
-- **Milestones 3, 4 and 5** from the list above: the capability registry made explicit, the
-  reusable component model, and multi-tenancy when there is a second customer.
+**Milestones 3, 4 and 5** from the list above: the capability registry made explicit, the
+reusable component model, and multi-tenancy when there is a second customer. Nothing before
+them is outstanding — the first two milestones and everything the plan called a gap are done.
 
 ## Anti-patterns the spec names, worth repeating
 
