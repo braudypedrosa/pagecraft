@@ -392,7 +392,7 @@ test('a bound control goes inert and shows the item value, not the literal', () 
 
   /* the section above it declares the scope */
   C.srcSet(C.state.pages[0].tree[0], col.id);
-  C.bindSet(n, 'text', field.id);
+  C.bindSet(n, 'text', C.bindField(field.id));
 
   r.draw(<Ctl n={n} c={{ t: 'text', k: 'text', label: 'Heading text' }} />);
   const input = r.$('input.ctl') as HTMLInputElement;

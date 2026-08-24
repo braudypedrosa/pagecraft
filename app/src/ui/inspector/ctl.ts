@@ -13,7 +13,7 @@ import type { Control, Node as PcNode, PropBag } from '../../core/types';
     literal standing in for it, or the panel and the canvas disagree. */
 export function bound(n: PcNode, c: Control) {
   const scope = c.k ? C.bindScope(n.id) : null;
-  const fid = scope ? C.bindGet(n, c.k!) : '';
+  const fid = scope ? C.boundField(n, c.k!) : '';
   return { scope, fid };
 }
 

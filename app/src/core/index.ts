@@ -16,7 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  StateKey, States, Anim, TabPanel, Capability,
+  StateKey, States, Anim, TabPanel, Capability, Binding,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types.ts';
@@ -3709,7 +3709,7 @@ function bindSlots(rootId: string) {
       if (!c.k || !keys.includes(c.k) || !BIND_CTL.includes(c.t)) return;
       out.push({
         nodeId: n.id, type: n.type, key: c.k, ctl: c.t,
-        element: nameOf(n), label: c.label || c.k, current: bindGet(n, c.k)
+        element: nameOf(n), label: c.label || c.k, current: boundField(n, c.k)
       });
     });
   });
@@ -3767,22 +3767,34 @@ function applyBindings(map: Record<string, string> | null) {
     const h = locate(k.slice(0, i));
     if (!h) return;
     const prop = k.slice(i + 1);
-    if (bindGet(h.node, prop) === (fieldId || '')) return;
-    bindSet(h.node, prop, fieldId);
+    /* the sheet is the CMS's, so every binding it writes is a field binding */
+    if (boundField(h.node, prop) === (fieldId || '')) return;
+    bindSet(h.node, prop, bindField(fieldId));
     n++;
   });
   return n;
 }
 
-const bindGet = (n: PcNode, key: string) => (n.bind || {})[key] || '';
-function bindSet(n: PcNode, key: string, fieldId: string) {
-  if (!fieldId) {
+/** The binding on one prop, or null. Null and "bound to nothing" are the same state: a
+    binding is present only while it points at something. */
+const bindGet = (n: PcNode, key: string): Binding | null => (n.bind || {})[key] || null;
+function bindSet(n: PcNode, key: string, b: Binding | null) {
+  if (!b || !b.path) {
     if (n.bind) { delete n.bind[key]; if (!Object.keys(n.bind).length) delete n.bind; }
     return;
   }
   n.bind = n.bind || {};
-  n.bind[key] = fieldId;
+  n.bind[key] = { src: b.src, path: b.path };
 }
+/** The CMS's own binding, spelled once. Every caller that binds to a collection field says
+    this instead of the object literal, so the source is named at the point it is chosen. */
+const bindField = (path: string): Binding | null => (path ? { src: 'field', path } : null);
+/** The field path a prop is bound to, or `''` — what a CMS control needs, and what the old
+    `bindGet` returned. A prop-sourced binding is not a field and answers empty here. */
+const boundField = (n: PcNode, key: string): string => {
+  const b = bindGet(n, key);
+  return b && b.src === 'field' ? b.path : '';
+};
 function srcSet(n: PcNode, colId: string) {
   if (colId && findCollection(colId)) n.src = colId; else delete n.src;
 }
@@ -3860,7 +3872,13 @@ function fieldPaths(col: Collection | null): { path: string; label: string; type
 function boundProps(n: PcNode, col: Collection | null, item: Item | null) {
   if (!n.bind || !col || !item) return n.props;
   const out = { ...n.props };
-  for (const [k, fid] of Object.entries(n.bind)) (out as PropBag)[k] = fieldValue(col, item, fid);
+  for (const [k, b] of Object.entries(n.bind)) {
+    /* Only the CMS resolves here. A `prop` binding is resolved when its instance expands, and
+       one that reaches this point is a node being edited outside any instance — where the
+       authored value standing in the definition is exactly what should be on screen. */
+    if (b.src !== 'field') continue;
+    (out as PropBag)[k] = fieldValue(col, item, b.path);
+  }
   return out;
 }
 
@@ -4035,11 +4053,21 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 8;                       // bump when the stored shape changes
+const SCHEMA = 9;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
   if (v > SCHEMA) return null;          // written by a newer build — refuse rather than corrupt
+  /* Every node the document owns, for the steps that rewrite nodes rather than meta. Saved
+     blocks are in here on purpose: a block is a detached tree, and a step that skips them
+     leaves a node that renders one way on the page and another way out of the Blocks list. */
+  const everyNode = (fn: (n: any) => void) => {
+    const walk = (n: any) => { fn(n); (n.children || []).forEach(walk); };
+    (d.header || []).forEach(walk);
+    (d.footer || []).forEach(walk);
+    (d.pages || []).forEach((pg: any) => (pg.tree || []).forEach(walk));
+    (((d.meta || {}).blocks) || []).forEach((bl: any) => { if (bl.node) walk(bl.node); });
+  };
   /* v1 → v2: images were inline data URIs. They still render as-is, so that
      step is a stamp only; new uploads go to the asset store as asset:<id>. */
   /* v2 → v3: design tokens arrive. The three colours that used to live loose on
@@ -4087,27 +4115,30 @@ function migrate(d: any) {
      the custom property is what the author actually saw. Migrating to the value that was not
      on screen would be a redesign wearing a migration's clothes. */
   if (v < 8) {
-    const fold = (n: any) => {
-      (['d', 't', 'm'] as const).forEach(b => {
-        const map = n.css && n.css[b];
-        if (!map) return;
-        const bg = map['--hover-bg'], fg = map['--hover-fg'];
-        delete map['--hover-bg']; delete map['--hover-fg'];
-        if (!bg && !fg) return;
-        n.st = n.st || {};
-        const h = n.st.hover = n.st.hover || { d: {}, t: {}, m: {} };
-        h[b] = h[b] || {};
-        if (bg) h[b]['background-color'] = bg;
-        if (fg) { h[b].color = fg; h[b]['border-color'] = fg; }
-      });
-      (n.children || []).forEach(fold);
-    };
-    /* Every tree the document has, saved blocks included: a block is a detached node and a
-       button inside one would otherwise keep a property nothing reads any more. */
-    (d.header || []).forEach(fold);
-    (d.footer || []).forEach(fold);
-    (d.pages || []).forEach((pg: any) => (pg.tree || []).forEach(fold));
-    (((d.meta || {}).blocks) || []).forEach((bl: any) => { if (bl.node) fold(bl.node); });
+    everyNode(n => (['d', 't', 'm'] as const).forEach(b => {
+      const map = n.css && n.css[b];
+      if (!map) return;
+      const bg = map['--hover-bg'], fg = map['--hover-fg'];
+      delete map['--hover-bg']; delete map['--hover-fg'];
+      if (!bg && !fg) return;
+      n.st = n.st || {};
+      const h = n.st.hover = n.st.hover || { d: {}, t: {}, m: {} };
+      h[b] = h[b] || {};
+      if (bg) h[b]['background-color'] = bg;
+      if (fg) { h[b].color = fg; h[b]['border-color'] = fg; }
+    }));
+  }
+  /* v8 -> v9: a binding names where its value comes from. It was a bare field id, because a
+     CMS field was the only answer there could be; a component property is a second answer, and
+     a second map beside `bind` would have been the same mistake as a hover that lived in two
+     places. Every existing binding is a field binding — there was nothing else to be. */
+  if (v < 9) {
+    everyNode(n => {
+      if (!n.bind) return;
+      for (const [k, val] of Object.entries(n.bind)) {
+        if (typeof val === 'string') n.bind[k] = { src: 'field', path: val };
+      }
+    });
   }
   d.v = SCHEMA;
   return d;
@@ -6405,5 +6436,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

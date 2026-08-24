@@ -330,6 +330,50 @@ test('a v7 button keeps the hover it had, in the state block instead of two prop
   a.match(css, new RegExp('@media[^{]*max-width[^{]*\\{[^@]*' + sel + '\\{[^}]*background-color:#00ff00'));
 });
 
+test('a v8 binding is a field binding, because there was nothing else to be', () => {
+  /* Bindings were a bare field id for as long as a CMS field was the only place a value could
+     come from. Naming the source is what lets a component property be the second place. */
+  blank();
+  const h = insert('heading', null, 0);
+  const doc: any = {
+    v: 8, meta: structuredClone(C.state.meta), header: [], footer: [],
+    pages: [{ ...C.state.pages[0], tree: structuredClone([h]) }]
+  };
+  doc.pages[0].tree[0].bind = { text: 'f_title', link: 'author.f_url' };
+
+  const m = C.migrate(doc).pages[0].tree[0];
+  a.deepEqual(m.bind, {
+    text: { src: 'field', path: 'f_title' },
+    link: { src: 'field', path: 'author.f_url' }
+  }, 'the dotted path through a reference is a path, and survives as one');
+});
+
+test('a prop binding is not a field, and renders what the definition says', () => {
+  /* A `prop` binding is resolved when its component instance expands. One that reaches the
+     renderer is a node being looked at outside any instance, where the authored value standing
+     in the definition is exactly what belongs on screen — not an empty string, and not a
+     field lookup that would find nothing. */
+  blank();
+  const col = collectionAdd('Posts');
+  C.fieldAdd(col.id, 'Title', 'text');
+  const sec = insert('section', null, 0);
+  C.srcSet(sec, col.id);
+  const it = itemAdd(col.id);
+  C.itemSet(col.id, it.id, C.collections()[0].fields[0].id, 'From the CMS');
+
+  const h = insert('heading', sec, 0);
+  h.props.text = 'Standing in';
+  const live = { edit: false, col: C.collections()[0], item: C.collections()[0].items[0] };
+
+  C.bindSet(h, 'text', { src: 'prop', path: 'title' });
+  a.equal(C.boundField(h, 'text'), '', 'and the CMS badge does not claim it');
+  a.match(C.renderNode(h, live), />Standing in</, 'the authored value, with an item right there');
+
+  /* the same node, bound to the field instead, does resolve */
+  C.bindSet(h, 'text', C.bindField(C.collections()[0].fields[0].id));
+  a.match(C.renderNode(h, live), />From the CMS</);
+});
+
 test('a saved block is migrated too, being a tree the document owns', () => {
   /* A block is a detached node. Missing it would leave a button that renders one way on the
      page and another way when dragged out of the Blocks list. */
@@ -486,8 +530,8 @@ test('a card bound through a reference renders and exports the target value', ()
   list.src = posts.id;
   const title = C.N('heading', { text: 'x', ts: 'subtitle' });
   const who = C.N('heading', { text: 'y', ts: 'small' });
-  C.bindSet(title, 'text', PT);
-  C.bindSet(who, 'text', `${ref.id}.${AT}`);
+  C.bindSet(title, 'text', C.bindField(PT));
+  C.bindSet(who, 'text', C.bindField(`${ref.id}.${AT}`));
   list.children.push(C.N('column', {}, {}, [title, who]));
   C.state.pages[0].tree.push(C.N('section', {}, {}, [list]));
 
@@ -3800,13 +3844,14 @@ const bound = () => {
   const h = insert('heading', null, 0);
   const col_ = holderOf(h.id);                 // the column that wraps it
   C.srcSet(col_, col.id);
-  C.bindSet(h, 'text', 'title');
+  C.bindSet(h, 'text', C.bindField('title'));
   return { col, i1, i2, h, holder: col_ };
 };
 
 test('a binding names a field, and takes its collection from the scope above', () => {
   const { h, holder, col } = bound();
-  a.deepEqual(h.bind, { text: 'title' }, 'the node stores only the field');
+  a.deepEqual(h.bind, { text: { src: 'field', path: 'title' } },
+    'the node stores the source and the path, and nothing about the collection');
   a.equal(h.src, undefined, 'no collection id on the bound node');
   const sc = bindScope(h.id);
   a.equal(sc.col.id, col.id);
@@ -3846,19 +3891,19 @@ test('an empty field renders empty, not the placeholder it replaced', () => {
 test('binding to a field that no longer exists yields empty, not a crash', () => {
   const { h, col } = bound();
   C.fieldDelete(col.id, 'summary');
-  C.bindSet(h, 'text', 'summary');
+  C.bindSet(h, 'text', C.bindField('summary'));
   a.equal(C.boundProps(h, col, col.items[0]).text, '');
   a.doesNotThrow(() => C.renderNode(C.state.pages[0].tree[0], { edit: false }));
 });
 
 test('clearing a binding drops the map when it was the last one', () => {
   const { h } = bound();
-  C.bindSet(h, 'text', '');
+  C.bindSet(h, 'text', C.bindField(''));
   a.equal(h.bind, undefined, 'no empty object left behind');
-  C.bindSet(h, 'text', 'title');
-  C.bindSet(h, 'link', 'title');
-  C.bindSet(h, 'link', '');
-  a.deepEqual(h.bind, { text: 'title' });
+  C.bindSet(h, 'text', C.bindField('title'));
+  C.bindSet(h, 'link', C.bindField('title'));
+  C.bindSet(h, 'link', C.bindField(''));
+  a.deepEqual(h.bind, { text: { src: 'field', path: 'title' } });
 });
 
 test('an unbound tree is left exactly as it was', () => {
@@ -3900,7 +3945,7 @@ const withList = () => {
   list.children.push(card);
   C.state.pages[0].tree.push(C.N('section', {}, {}, [list]));
   const heading = card.children[0];
-  C.bindSet(heading, 'text', 'title');
+  C.bindSet(heading, 'text', C.bindField('title'));
   return { col, list, card, heading };
 };
 
@@ -4059,7 +4104,7 @@ test('cms:item resolves to the page of whichever item is rendering', () => {
 test('a detail page renders the item it stands for', () => {
   const { tpl } = detail();
   const h = C.N('heading', { text: 'placeholder', ts: 'display' });
-  C.bindSet(h, 'text', 'title');
+  C.bindSet(h, 'text', C.bindField('title'));
   tpl.tree.push(C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [h])])]));
   const t = C.exportTargets().find(x => x.item && x.item.slug === 'acme-rebrand');
   const html = C.buildPage(t.pg, t);
@@ -5651,7 +5696,7 @@ test('a name match beats the shape of the control', () => {
 test('an existing binding is never guessed over', () => {
   const { col, list } = cardIn();
   const h = at(C.bindSlots(list.id)[0].nodeId).node;
-  C.bindSet(h, 'text', 'year');
+  C.bindSet(h, 'text', C.bindField('year'));
   const slots = C.bindSlots(list.id);
   const g = C.guessBindings(slots, col);
   a.equal(g[h.id + '|text'], 'year', 'a decision already made stays made');
@@ -5664,11 +5709,11 @@ test('applyBindings writes the map and counts only what changed', () => {
   a.equal(C.applyBindings(g), 4);
   a.equal(C.applyBindings(g), 0, 'writing the same map again changes nothing');
   const h = at(slots.find(s => s.key === 'text').nodeId).node;
-  a.equal(C.bindGet(h, 'text'), 'title');
+  a.equal(C.boundField(h, 'text'), 'title');
   /* clearing is a write too */
   slots.forEach(s => { g[s.nodeId + '|' + s.key] = ''; });
   a.equal(C.applyBindings(g), 4);
-  a.equal(C.bindGet(h, 'text'), '');
+  a.equal(C.bindGet(h, 'text'), null, 'and cleared means no binding, not an empty one');
 });
 
 test('a bound card renders one per item, with the bound values', () => {

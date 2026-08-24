@@ -45,7 +45,8 @@ function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
 function BindBadge({ n, c }: { n: PcNode; c: Control }) {
   const scope = C.bindScope(n.id);
   if (!scope) return null;
-  const fid = C.bindGet(n, c.k!);
+  /* the CMS's own badge, so a prop-sourced binding is not its business */
+  const fid = C.boundField(n, c.k!);
   /* `fieldPaths` rather than the field list: a reference is only worth having if you can read
      through it, so the picker offers `Author → Name` beside the collection's own fields. The
      label of whatever is bound comes from the same list, so a two-hop binding reads back as
@@ -58,7 +59,7 @@ function BindBadge({ n, c }: { n: PcNode; c: Control }) {
       [['', '— No binding, use the value typed here —'],
         ...paths.map(x => [x.path, `${x.label} · ${x.type}`])], fid);
     if (chosen === null) return;
-    C.edit(() => C.bindSet(n, c.k!, chosen));
+    C.edit(() => C.bindSet(n, c.k!, C.bindField(chosen)));
     const to = paths.find(x => x.path === chosen);
     L.toast(chosen ? 'Bound to ' + (to ? to.label : chosen) : 'Binding cleared');
   };

@@ -96,6 +96,7 @@ __export(index_exports, {
   atEdge: () => atEdge,
   autoId: () => autoId,
   baseCss: () => baseCss,
+  bindField: () => bindField,
   bindGet: () => bindGet,
   bindScope: () => bindScope,
   bindSet: () => bindSet,
@@ -110,6 +111,7 @@ __export(index_exports, {
   blockSave: () => blockSave,
   blockUsage: () => blockUsage,
   blocks: () => blocks,
+  boundField: () => boundField,
   boundProps: () => boundProps,
   bucket: () => bucket,
   buildLink: () => buildLink,
@@ -4501,7 +4503,7 @@ function bindSlots(rootId) {
         ctl: c.t,
         element: nameOf(n),
         label: c.label || c.k,
-        current: bindGet(n, c.k)
+        current: boundField(n, c.k)
       });
     });
   });
@@ -4552,15 +4554,15 @@ function applyBindings(map) {
     const h = locate(k.slice(0, i));
     if (!h) return;
     const prop = k.slice(i + 1);
-    if (bindGet(h.node, prop) === (fieldId || "")) return;
-    bindSet(h.node, prop, fieldId);
+    if (boundField(h.node, prop) === (fieldId || "")) return;
+    bindSet(h.node, prop, bindField(fieldId));
     n++;
   });
   return n;
 }
-var bindGet = (n, key) => (n.bind || {})[key] || "";
-function bindSet(n, key, fieldId) {
-  if (!fieldId) {
+var bindGet = (n, key) => (n.bind || {})[key] || null;
+function bindSet(n, key, b) {
+  if (!b || !b.path) {
     if (n.bind) {
       delete n.bind[key];
       if (!Object.keys(n.bind).length) delete n.bind;
@@ -4568,8 +4570,13 @@ function bindSet(n, key, fieldId) {
     return;
   }
   n.bind = n.bind || {};
-  n.bind[key] = fieldId;
+  n.bind[key] = { src: b.src, path: b.path };
 }
+var bindField = (path) => path ? { src: "field", path } : null;
+var boundField = (n, key) => {
+  const b = bindGet(n, key);
+  return b && b.src === "field" ? b.path : "";
+};
 function srcSet(n, colId) {
   if (colId && findCollection(colId)) n.src = colId;
   else delete n.src;
@@ -4623,7 +4630,10 @@ function fieldPaths(col) {
 function boundProps(n, col, item) {
   if (!n.bind || !col || !item) return n.props;
   const out = { ...n.props };
-  for (const [k, fid] of Object.entries(n.bind)) out[k] = fieldValue(col, item, fid);
+  for (const [k, b] of Object.entries(n.bind)) {
+    if (b.src !== "field") continue;
+    out[k] = fieldValue(col, item, b.path);
+  }
   return out;
 }
 function itemSetSlug(colId, iid, slug) {
@@ -4780,11 +4790,23 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 8;
+var SCHEMA = 9;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
   if (v > SCHEMA) return null;
+  const everyNode = (fn) => {
+    const walk = (n) => {
+      fn(n);
+      (n.children || []).forEach(walk);
+    };
+    (d.header || []).forEach(walk);
+    (d.footer || []).forEach(walk);
+    (d.pages || []).forEach((pg2) => (pg2.tree || []).forEach(walk));
+    ((d.meta || {}).blocks || []).forEach((bl) => {
+      if (bl.node) walk(bl.node);
+    });
+  };
   if (v < 3) {
     d.meta = d.meta || {};
     if (!d.meta.tokens) d.meta.tokens = defaultTokens(d.meta);
@@ -4813,30 +4835,29 @@ function migrate(d) {
     if (!Array.isArray(d.meta.collections)) d.meta.collections = [];
   }
   if (v < 8) {
-    const fold = (n) => {
-      ["d", "t", "m"].forEach((b) => {
-        const map = n.css && n.css[b];
-        if (!map) return;
-        const bg = map["--hover-bg"], fg = map["--hover-fg"];
-        delete map["--hover-bg"];
-        delete map["--hover-fg"];
-        if (!bg && !fg) return;
-        n.st = n.st || {};
-        const h = n.st.hover = n.st.hover || { d: {}, t: {}, m: {} };
-        h[b] = h[b] || {};
-        if (bg) h[b]["background-color"] = bg;
-        if (fg) {
-          h[b].color = fg;
-          h[b]["border-color"] = fg;
-        }
-      });
-      (n.children || []).forEach(fold);
-    };
-    (d.header || []).forEach(fold);
-    (d.footer || []).forEach(fold);
-    (d.pages || []).forEach((pg2) => (pg2.tree || []).forEach(fold));
-    ((d.meta || {}).blocks || []).forEach((bl) => {
-      if (bl.node) fold(bl.node);
+    everyNode((n) => ["d", "t", "m"].forEach((b) => {
+      const map = n.css && n.css[b];
+      if (!map) return;
+      const bg = map["--hover-bg"], fg = map["--hover-fg"];
+      delete map["--hover-bg"];
+      delete map["--hover-fg"];
+      if (!bg && !fg) return;
+      n.st = n.st || {};
+      const h = n.st.hover = n.st.hover || { d: {}, t: {}, m: {} };
+      h[b] = h[b] || {};
+      if (bg) h[b]["background-color"] = bg;
+      if (fg) {
+        h[b].color = fg;
+        h[b]["border-color"] = fg;
+      }
+    }));
+  }
+  if (v < 9) {
+    everyNode((n) => {
+      if (!n.bind) return;
+      for (const [k, val] of Object.entries(n.bind)) {
+        if (typeof val === "string") n.bind[k] = { src: "field", path: val };
+      }
     });
   }
   d.v = SCHEMA;
@@ -7117,6 +7138,7 @@ ${ANIM_JS}
   atEdge,
   autoId,
   baseCss,
+  bindField,
   bindGet,
   bindScope,
   bindSet,
@@ -7131,6 +7153,7 @@ ${ANIM_JS}
   blockSave,
   blockUsage,
   blocks,
+  boundField,
   boundProps,
   bucket,
   buildLink,

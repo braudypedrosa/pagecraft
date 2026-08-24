@@ -263,10 +263,35 @@ export interface Node {
   children: Node[];
   /** a content source: this node and its subtree bind against this collection */
   src?: string;
-  /** prop key to field id. A bound prop takes its value from the item being shown. */
-  bind?: Record<string, string>;
+  /** prop key to binding. A bound prop takes its value from somewhere else. */
+  bind?: Record<string, Binding>;
 }
 
+
+/* ---- bindings ---------------------------------------------------------
+   A binding used to be a field id and nothing else: `bind.text = 'f_title'`, resolved against
+   the collection in scope. That was the only place a value could come from, so the shape did
+   not have to say which place it was.
+
+   A component property is a second place. Rather than a second map beside `bind` — the shape
+   of mistake that put `--hover-bg` next to a hover state and `takesBackdrop` next to a
+   capability list — a binding now names its source. There is one migration for that, v8 -> v9,
+   and it happens whether or not the second source exists yet, which is the argument for
+   widening the shape before the feature that needs it rather than after.
+
+   No `fallback` key. The spec lists one, and a component property already carries its default
+   on the declaration, which is the only case that wanted one. Adding it here would be a field
+   nothing reads. */
+export type BindSource =
+  /** a field on the CMS item in scope, by `fieldId` or `refFieldId.attrId` */
+  'field'
+  /** a property of the component instance this node was expanded inside */
+  | 'prop';
+
+export interface Binding {
+  src: BindSource;
+  path: string;
+}
 
 /** Where a node sits: the node, its parent, the array holding it, and its index. */
 export interface Handle {
