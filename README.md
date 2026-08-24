@@ -11,18 +11,29 @@ open index.html
 
 One file, no install. Everything, autosave included, runs in your browser.
 
-## Components
+## Elements
 
-| Component | Notes |
+Renamed from "Components", which now means something specific in this builder — see
+**Components** further down for the reusable kind.
+
+| Element | Notes |
 |---|---|
 | **Section** | Boxed or full-width inner container, tag from a whitelist |
 | **Columns** | A row of columns — pick the count (1–6) and the split in its settings |
 | **Row** | Bare flex container: gap, wrap, vertical align, distribution |
+| **Flex**, **Grid**, **Box** | One container, three layouts. Grid says how many across; Flex asks the four questions flexbox asks; Box just stacks. Any tag from `div` to `ul` |
+| **Link block** | The same container as a link — a whole card that is one anchor |
+| **Slider** | A row that scrolls and snaps. CSS only; the arrows are the one optional script |
+| **Collection list** | Repeats its contents once per item in a collection |
 | **Heading** | h1–h6/p/div, optional link, text style or direct typography |
 | **WYSIWYG** | Inline rich text: bold, italic, links, lists, headings, quotes |
 | **Image** | Upload or reuse a stored image; alt, caption, link, fit, filters, intrinsic size |
 | **Video** | YouTube, Vimeo or self-hosted file; ratio, autoplay/loop/mute |
-| **Button** | Solid/outline/ghost/link, hover colours, trailing icon |
+| **Button** | Solid/outline/ghost/link, trailing icon. Its hover is the State control, the same as everything else |
+| **Tabs** | A tab strip with panels. Keyboard-navigable, and it degrades to headings with no script |
+| **Table** | Rows and columns with a header row, from a grid you edit in place |
+| **Code** | Syntax-highlighted source, highlighted at export rather than in the browser |
+| **Breadcrumb** | The trail to this page, worked out from the page tree or written by hand |
 | **Nav menu** | Link list that collapses to an accessible burger menu |
 | **Form** | Labelled fields (text, email, phone, number, long text, dropdown, checkbox), required flags, a submit endpoint |
 | **Accordion** | Question and answer rows that fold. Native `<details>`, so it ships no JavaScript |
@@ -183,10 +194,11 @@ preview them for real.
 
 ## Add panel
 
-Three tabs. **Widgets** are the components, in four groups — Layout, Content, Interactive,
+Four tabs. **Widgets** are the elements, in four groups — Layout, Content, Interactive,
 Spacing — grouped by what a thing does rather than by how it is built, which is why the
-Accordion sits beside the Form. **Blocks** are what you have saved from your own
-pages. **Templates** are twenty-six ready-made sections, grouped by what they are for:
+Accordion sits beside the Form. **Components** are the ones you have made, each staying
+connected everywhere you place it. **Blocks** are saved starting points you paste and then own.
+**Templates** are twenty-six ready-made sections, grouped by what they are for:
 
 | category | sections |
 |---|---|
@@ -253,19 +265,64 @@ automatically. Headings get a real outline — one H1 and no skipped levels — 
 run of the same tag. The Contact, FAQ and Coming soon templates ship a form, and the review
 then tells you its endpoint is missing, which is the honest sequence.
 
-**Saved blocks** live in the Add panel beside the components. Select anything and press the
-**block icon on the canvas bar** — or *Save … as block* in the Blocks tab — to name it and choose
-whether it is **global**:
-
-- **Plain** places an independent copy each time: a starting point you can diverge from.
-- **Global** links every copy. Edit one, then press the globe on its canvas bar to push that
-  content to the block and to every other copy, on every page. You are told how many will move
-  before it happens, and it is a single ⌘Z.
-
-Either way it is available on every page — drag it onto the canvas or click to
+**Saved blocks** live in the Add panel beside the components. Select anything and *Save … as
+block* in the Blocks tab to name it. A block places an independent copy each time: a starting
+point you can diverge from. It is available on every page — drag it onto the canvas or click to
 place it. A placed copy gets fresh ids but keeps *referencing* the classes and text styles it
-used, so restyling the class still reaches it. Forgetting a block leaves the copies already
-on your pages alone. Blocks are stored on the project, so they travel with the project JSON.
+used, so restyling the class still reaches it. Forgetting a block leaves the copies already on
+your pages alone. Blocks are stored on the project, so they travel with the project JSON.
+
+For the other behaviour — copies that stay connected — see **Components** below. Blocks used to
+offer it too, as a "global" block whose copies could be pushed over each other, and the flaw was
+inside the feature: an edit to any copy was destroyed by the next push from somewhere else.
+Existing global blocks were converted to components when you next open the project.
+
+## Components
+
+A component is one definition and any number of instances. Where a block gives you a copy you
+then own, an instance stays connected: change the definition and every place it sits changes
+with it.
+
+**Making one.** Select anything and *Save … as component* in the Components tab. Nothing on the
+page moves — what was one tree is now a definition, and the element you selected is its first
+instance.
+
+**What varies.** Open the component from the Components tab and the canvas shows the definition
+on its own: no header above it, no footer below it, and the mode bar tells you how many places
+your edit will change. Every control that holds a value now has a second badge beside the CMS
+one. Press it and choose *New property from this value* — the property is declared, the value in
+front of you becomes its default, and this control reads it from now on. Back on the page, an
+instance's Content tab shows those properties and nothing else: its internals belong to the
+definition, so clicking inside one selects the instance.
+
+An instance with no value of its own follows the default, so changing a default moves every
+instance that never overrode it. An empty value is a choice and stays empty.
+
+**Variants.** Set a few properties on an instance, then *Save as variant* to name what you are
+looking at. Any instance can be that variant with one pick, and can still differ from it — the
+panel says how many values it has of its own, and offers to put them back. Deleting a variant
+leaves every instance showing exactly what it showed.
+
+**Slots.** Mark a container inside a definition as a slot and instances can put their own
+content there. What the page puts in a slot is the page's — it binds to the page's collection,
+not the component's properties — and the slot's own children stay as the default for instances
+that put nothing in it.
+
+**Deleting.** A definition can go, and every instance keeps what it was showing as an ordinary
+element. Nothing empties.
+
+## Show only if
+
+An element can depend on a value instead of on you. In **Advanced → Visibility**, *Show only if*
+takes a CMS field or a component property and asks one of four questions: has a value, is empty,
+is, is not.
+
+The case it is for: a Collection List card with a "Read more" button shows that button for every
+item, including the ones with nothing to read. Point the condition at the link field, ask *has a
+value*, and the button appears only on the cards that have somewhere to go.
+
+On the canvas the element stays visible and selectable, dashed in blue — amber is *hidden at
+this breakpoint*, blue is *not for this item*. The exported page leaves it out entirely.
 
 ## Links
 
@@ -294,9 +351,8 @@ so rather than leaving you to discover it.
 
 Everything you can do to an element is in one menu: **right-click it on the canvas or in the
 Navigator**, or use the **⋯** button on the selection toolbar. Edit content, select parent,
-copy/cut/paste, duplicate, copy/paste styles, hide on this breakpoint, save as a block, push a
-global block to its copies, delete — each shown only when it applies, with its keyboard
-shortcut beside it.
+copy/cut/paste, duplicate, copy/paste styles, hide on this breakpoint, save as a block,
+delete — each shown only when it applies, with its keyboard shortcut beside it.
 
 Right-clicking something that is not selected selects it first, so the menu always acts on
 what you can see highlighted.
@@ -389,9 +445,15 @@ in `vendor/bp-animate/`.
 
 ## Hover and focus
 
-The Style tab has a **Resting · Hover · Focus** row under the class picker, and the two pickers
-compose. Point at `.card`, switch to Hover, and one change restyles every card's hover at once;
-switch back to *This element* for a hover on that one alone.
+A **State** row — Resting · Hover · Focus — sits at the top of the Style tab, above the class
+picker, and on Advanced as well, since both tabs write CSS. The two pickers compose: point at
+`.card`, switch to Hover, and one change restyles every card's hover at once; switch back to
+*This element* for a hover on that one alone.
+
+Every element has this. A button's hover was once two colour pickers of its own — the only
+element that could have one at all — and those are gone: a section can lift, a card can change
+its border, and a button's hover is set the same way as everything else's. Projects saved before
+that carry their button hovers over automatically.
 
 Only what you set in a state changes — everything else stays as it rests — so a hover is a
 short list rather than a second copy of the element. Add a **Transition** on the Advanced tab
