@@ -428,6 +428,54 @@ immediately 404 on the site and still signed in with an empty list.
 `CLIENT_EMAIL` survives as a development shortcut and says so: on a database it is the one
 thing that would re-grant after a revoke on the next boot.
 
+## The link actually arrives — done
+
+**SMTP, because every provider speaks it.** Resend, Postmark, SES, Fastmail, a WordPress
+host's mail server: an HTTP API would have meant writing one vendor's name into the code for
+no reason. Credentials live in the environment and whoever runs this decides whose server
+carries the mail. Nodemailer rather than a hand-rolled client, because an SMTP client is a
+hundred lines and six ways to be subtly wrong, and this is one email.
+
+**Making sending real made the throttle necessary**, which is why it arrived in the same
+change rather than as a nicety. An endpoint that answers 200 to any address and emails it each
+time is a way to have this server mail-bomb a stranger. Five links per address per fifteen
+minutes, and **being over the limit answers exactly what being under it answers** — a
+different reply would hand back the account enumeration the 200 exists to prevent. It is in
+memory on purpose: a rate limit is not a record, and putting it in Postgres would mean a write
+for every attempt, including all the ones that are the attack.
+
+Two decisions worth naming:
+
+- **A refused attempt does not extend the block.** Otherwise hammering the endpoint keeps an
+  address locked out indefinitely, turning a protection for that person into a denial of
+  service against them.
+- **Loopback may speak plaintext; nothing else may.** `requireTLS` turns STARTTLS from an offer
+  into a condition, without which a server that declines the upgrade gets the password in the
+  clear. A local mail sink speaks plain SMTP and there is no wire between a process and
+  itself — so the exception is a hostname check rather than an `SMTP_ALLOW_PLAINTEXT` variable,
+  because a variable can be set on a real box by somebody in a hurry and a hostname cannot.
+
+A mail server that refuses now returns 502 rather than "check your email", because a person
+staring at that sentence is owed the truth.
+
+Verified against a real SMTP server — Mailpit in Docker, which has an API to read back what
+arrived, so the assertion is about the message a person would open rather than the object
+handed to a library. Then the whole loop in a browser: typed an address into the sign-in form,
+read the link out of the inbox, followed it, and landed in the editor. Nothing was printed to
+the console, which is the point. And the throttle live: eight requests, all answered 200,
+exactly five emails.
+
+`tools/realmail.mjs` keeps that check with its docker command in the header. Nothing in the
+test suite talks to a mail server — a suite that can send email is a suite that can email
+somebody by accident.
+
+## What is left
+
+- **Hosting.** Custom domains and TLS, which is what "the server hosts them" commits to. The
+  host column and the routing exist; a certificate for somebody else's domain does not.
+- **Milestones 3, 4 and 5** from the list above: the capability registry made explicit, the
+  reusable component model, and multi-tenancy when there is a second customer.
+
 ## Anti-patterns the spec names, worth repeating
 
 Section 20 is short and this project has already violated one of them and recovered:

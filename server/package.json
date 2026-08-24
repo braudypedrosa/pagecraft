@@ -11,9 +11,11 @@
   "dependencies": {
     "@hono/node-server": "^1.14.0",
     "hono": "^4.13.3",
+    "nodemailer": "^9.0.5",
     "pg": "^8.13.0"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.11.10"
   }
 }

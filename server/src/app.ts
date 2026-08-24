@@ -18,6 +18,7 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { Store } from './store.ts';
 import { renderSite, resolvePath } from './render.ts';
 import { contentOnly } from './content.ts';
+import { throttle } from './mail.ts';
 import {
   type AssetStore, type Asset, metaOf, sniff, dimensions, MAX_BYTES, ALLOWED
 } from './assets.ts';
@@ -42,6 +43,8 @@ export interface Options {
   editorOrigin?: string;
   /** how the link reaches the person. Logged in development. */
   sendLink?: LinkSender;
+  /** at most so many links per address per window. Absent means the default. */
+  loginLimit?: { take(key: string): boolean };
   /** `Secure` on the session cookie. Off in tests and local http, on everywhere real. */
   secureCookies?: boolean;
 }
@@ -103,17 +106,28 @@ export function createApp(o: Options) {
   /* ----------------------------------------------------------------------------- auth */
 
   /* Always 200, whether or not the address is known. Answering differently would turn this
-     into a way to ask which of someone's addresses has an account here. */
+     into a way to ask which of someone's addresses has an account here — and the same is true
+     of the throttle, which is why being over the limit also answers 200. Somebody hammering
+     this endpoint learns nothing either way; the person whose address it is stops receiving
+     mail, which is the point. */
+  const limit = o.loginLimit || throttle();
   app.post('/auth/login', async c => {
     const body = await c.req.json().catch(() => null) as { email?: string } | null;
     const email = normalEmail(body?.email || '');
     if (!email.includes('@')) return c.json({ error: 'an email address is required' }, 400);
 
-    if (await o.auth.userByEmail(email)) {
+    if (limit.take(email) && await o.auth.userByEmail(email)) {
       const token = newToken();
       await o.auth.putLink(hashToken(token), email, Date.now() + LINK_TTL_MS);
       const origin = o.editorOrigin || new URL(c.req.url).origin;
-      await (o.sendLink || logLink)(email, `${origin}/auth/callback?token=${token}`);
+      /* Awaited, so a mail server that is refusing is a 500 here rather than a silent
+         nothing — a person staring at "check your email" is owed the truth. */
+      try {
+        await (o.sendLink || logLink)(email, `${origin}/auth/callback?token=${token}`);
+      } catch (e) {
+        console.error('the login link could not be sent:', (e as Error).message);
+        return c.json({ error: 'the link could not be sent — try again shortly' }, 502);
+      }
     }
     return c.json({ sent: true });
   });

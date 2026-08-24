@@ -10,6 +10,7 @@ import { createApp } from './app.ts';
 import { MemoryStore, type Store } from './store.ts';
 import { MemoryAuthStore, type AuthStore } from './auth.ts';
 import { MemoryAssetStore, type AssetStore } from './assets.ts';
+import { mailConfig, smtpSender } from './mail.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..');
@@ -89,8 +90,21 @@ if (CLIENT) {
   console.log(`client   ${CLIENT} — content only (a shortcut; invite instead)`);
 }
 
+/* Real mail when it is configured, the console when it is not. Said out loud either way,
+   because "the link was sent" and "the link was printed in a log you are not reading" look
+   identical from the sign-in form. */
+const mail = mailConfig(process.env);
+if (mail) {
+  const who = mail.user ? ` as ${mail.user}` : ' with no credentials';
+  console.log(`mail     ${mail.host}:${mail.port}${who}, from ${mail.from}`);
+} else {
+  console.warn('SMTP is not configured — login links are printed here instead of emailed.');
+  console.warn('Set SMTP_HOST, SMTP_USER, SMTP_PASS and MAIL_FROM to send them.');
+}
+
 const app = createApp({
   store, auth, assets, editorHtml, editorHost: EDITOR_HOST,
+  sendLink: mail ? smtpSender(mail) : undefined,
   secureCookies: process.env.NODE_ENV === 'production'
 });
 
