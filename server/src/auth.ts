@@ -61,7 +61,40 @@ export interface AuthStore {
 
   membership(siteId: string, userId: string): Promise<Membership | null>;
   grant(siteId: string, userId: string, role: Role): Promise<Membership>;
+  /** Everyone with a role on this site, with the addresses an owner needs to read. */
+  members(siteId: string): Promise<(Membership & { email: string; name: string })[]>;
+  revoke(siteId: string, userId: string): Promise<boolean>;
 }
+
+/** The auth half of the schema, beside the site half in `store-pg.ts`. */
+export const AUTH_SCHEMA = `
+create table if not exists users (
+  id          text primary key,
+  email       text not null unique,
+  name        text not null default '',
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists login_links (
+  digest      text primary key,
+  email       text not null,
+  expires_at  timestamptz not null
+);
+
+create table if not exists sessions (
+  digest      text primary key,
+  user_id     text not null references users (id) on delete cascade,
+  expires_at  timestamptz not null
+);
+create index if not exists sessions_user_idx on sessions (user_id);
+
+create table if not exists site_users (
+  site_id     text not null references sites (id) on delete cascade,
+  user_id     text not null references users (id) on delete cascade,
+  role        text not null check (role in ('owner', 'content')),
+  primary key (site_id, user_id)
+);
+`;
 
 /**
  * What a role may do. One place, so a new verb cannot quietly default to allowed.
@@ -81,7 +114,7 @@ export class MemoryAuthStore implements AuthStore {
   private users = new Map<string, User>();
   private links = new Map<string, { email: string; expiresAt: number }>();
   private sessions = new Map<string, Session>();
-  private members = new Map<string, Membership>();
+  private memberships = new Map<string, Membership>();
   private seq = 0;
 
   async userByEmail(email: string) {
@@ -123,13 +156,25 @@ export class MemoryAuthStore implements AuthStore {
   async dropSession(digest: string) { this.sessions.delete(digest); }
 
   async membership(siteId: string, userId: string) {
-    const m = this.members.get(siteId + '|' + userId);
+    const m = this.memberships.get(siteId + '|' + userId);
     return m ? { ...m } : null;
   }
   async grant(siteId: string, userId: string, role: Role) {
     const m: Membership = { siteId, userId, role };
-    this.members.set(siteId + '|' + userId, m);
+    this.memberships.set(siteId + '|' + userId, m);
     return { ...m };
+  }
+  async members(siteId: string) {
+    const out = [];
+    for (const m of this.memberships.values()) {
+      if (m.siteId !== siteId) continue;
+      const u = this.users.get(m.userId);
+      out.push({ ...m, email: u ? u.email : '', name: u ? u.name : '' });
+    }
+    return out.sort((x, y) => x.email.localeCompare(y.email));
+  }
+  async revoke(siteId: string, userId: string) {
+    return this.memberships.delete(siteId + '|' + userId);
   }
 }
 

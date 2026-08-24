@@ -23,7 +23,7 @@ import {
 } from './assets.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import {
-  type AuthStore, type User, roleAllows, newToken, hashToken,
+  type AuthStore, type User, type Role, roleAllows, newToken, hashToken,
   normalEmail, LINK_TTL_MS, SESSION_TTL_MS, logLink, type LinkSender
 } from './auth.ts';
 
@@ -276,6 +276,64 @@ export function createApp(o: Options) {
       /* the same review the builder shows, so a save can say what it noticed */
       findings: out.findings.map(f => ({ level: f.level, code: f.code, msg: f.msg }))
     });
+  });
+
+  /* ---------------------------------------------------------------- the people
+
+     Inviting somebody is a grant, not a token. Creating an account for an address hands over
+     nothing on its own — they still have to receive a magic link at that address to sign in —
+     so there is no invite to expire, resend or leak, and one fewer lifecycle to get wrong.
+
+     Only an owner may do any of this: `admin` is the verb, and `roleAllows` gives it to owners
+     alone. */
+
+  app.get('/api/sites/:id/people', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    const list = await o.auth.members(id);
+    return c.json(list.map(m => ({ userId: m.userId, email: m.email, name: m.name, role: m.role })));
+  });
+
+  app.post('/api/sites/:id/people', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+
+    const body = await c.req.json().catch(() => null) as { email?: string; role?: Role } | null;
+    const email = normalEmail(body?.email || '');
+    const role: Role = body?.role === 'owner' ? 'owner' : 'content';
+    if (!email.includes('@')) return c.json({ error: 'an email address is required' }, 400);
+
+    /* An owner changing their own role is how a site ends up with nobody who can manage it. */
+    const existing = await o.auth.userByEmail(email);
+    if (existing && existing.id === gate.user.id && role !== 'owner') {
+      return c.json({ error: 'you would be giving up your own ownership — ask another owner to do it' }, 409);
+    }
+
+    const user = existing || await o.auth.createUser(email);
+    const m = await o.auth.grant(id, user.id, role);
+    return c.json({ userId: user.id, email: user.email, name: user.name, role: m.role }, 201);
+  });
+
+  app.delete('/api/sites/:id/people/:userId', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+
+    const target = c.req.param('userId');
+    /* A site with no owner is a site nobody can manage, and there is no route back — no
+       superuser, and the API is the only way in. So the last owner does not leave. */
+    const owners = (await o.auth.members(id)).filter(m => m.role === 'owner');
+    if (owners.length === 1 && owners[0].userId === target) {
+      return c.json({ error: 'the last owner cannot be removed — a site with no owner cannot be managed' }, 409);
+    }
+
+    const gone = await o.auth.revoke(id, target);
+    if (!gone) return c.json({ error: 'they had no access to remove' }, 404);
+    /* Their sessions stay valid and are harmless: access is checked per request against the
+       membership, so a membership that is gone is access that is gone. */
+    return c.json({ removed: target });
   });
 
   /* ---------------------------------------------------------------- the assets */

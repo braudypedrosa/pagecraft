@@ -389,8 +389,44 @@ The guard found one more thing on its own first run — it flagged `store-pg.ts`
 comment explaining why parameter properties are banned contains the words. A checker that
 reads prose reports prose, so it strips comments first.
 
-**Not built yet:** an invite flow, since a client is still an environment variable, which
-means adding one needs a restart.
+## Inviting somebody — done, and the store under it
+
+The invite flow needed something first: **there was no Postgres auth store at all.** Users,
+sessions and memberships were memory-only, so even with a database a restart signed everyone
+out and forgot every grant. An invite that does not survive a restart is worse than the
+environment variable it replaces, so `PgAuthStore` came first — written against the PGlite rig
+that already existed, so its SQL was exercised from its first line.
+
+Two statements in it are worth naming, both for the same reason — the database settles the
+question rather than this code:
+
+- `useLink` deletes and reads in one statement, so a link presented twice at once is consumed
+  once. A read then a delete leaves exactly the gap a single-use token exists to close.
+- `createUser` upserts on the address, so two invitations to the same person arriving together
+  make one account.
+
+**Inviting is a grant, not a token.** Creating an account for an address hands over nothing by
+itself: signing in still needs a magic link delivered to that address. So there is no invite
+to expire, resend or leak, and one fewer lifecycle to get wrong. `POST /api/sites/:id/people`
+with an address and a role, `GET` to see who has access, `DELETE` to take it away — all three
+behind the `admin` verb, which only an owner has.
+
+Two ways a site could have ended up with nobody able to manage it, and both are closed: the
+last owner cannot be removed, and an owner cannot demote themselves. There is no superuser and
+the API is the only way in, so there would have been no route back. Another owner may demote
+you, which is how it is meant to work.
+
+Revoking takes effect on the next request without touching sessions, because access is checked
+per request against the membership — a membership that is gone is access that is gone. The
+revoked person stays signed in, with no sites, which is the honest state.
+
+Verified against a real Postgres, including the part that matters: invited a client, **restarted
+the server**, and signed them in — same id, same role, site still serving. Then the last owner
+tried to leave (409), tried to demote themselves (409), and revoked the client, who was
+immediately 404 on the site and still signed in with an empty list.
+
+`CLIENT_EMAIL` survives as a development shortcut and says so: on a database it is the one
+thing that would re-grant after a revoke on the next boot.
 
 ## Anti-patterns the spec names, worth repeating
 

@@ -23,27 +23,31 @@ const editorPath = join(repo, 'index.html');
 const editorHtml = existsSync(editorPath) ? readFileSync(editorPath, 'utf8') : undefined;
 if (!editorHtml) console.warn(`no editor at ${editorPath} — run \`node build.mjs\``);
 
-/* Sites and assets share one connection, because they share one database and a second pool
-   would only be a second thing to run out of. */
-async function pickStores(): Promise<{ store: Store; assets: AssetStore }> {
+/* One connection for all three, because they are one database and a second pool would only be
+   a second thing to run out of. Order matters on first run: the auth and asset tables
+   reference `sites`, and a foreign key to a table that is not there yet is an error. */
+async function pickStores(): Promise<{ store: Store; assets: AssetStore; auth: AuthStore }> {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    console.warn('DATABASE_URL is not set — using the in-memory stores. Nothing survives a restart.');
-    return { store: new MemoryStore(), assets: new MemoryAssetStore() };
+    console.warn('DATABASE_URL is not set — using the in-memory stores. Nothing survives a restart,');
+    console.warn('including who is signed in and who has been invited.');
+    return { store: new MemoryStore(), assets: new MemoryAssetStore(), auth: new MemoryAuthStore() };
   }
   /* Imported here rather than at the top so a run without a database needs no driver. */
   const { Pool } = await import('pg');
-  const { PgStore, PgAssetStore } = await import('./store-pg.ts');
+  const { PgStore, PgAssetStore, PgAuthStore } = await import('./store-pg.ts');
   const pool = new Pool({ connectionString: url });
   const store = new PgStore(pool);
+  const auth = new PgAuthStore(pool);
   const assets = new PgAssetStore(pool);
   await store.init();
+  await auth.init();
   await assets.init();
   console.log('store: postgres');
-  return { store, assets };
+  return { store, assets, auth };
 }
 
-const { store, assets } = await pickStores();
+const { store, assets, auth } = await pickStores();
 
 /* One site, seeded, when the store is empty and we are running on memory. Without it the
    first thing a new checkout shows is "No site for host localhost", which reads as broken
@@ -59,30 +63,30 @@ if (!process.env.DATABASE_URL && !(await store.list()).length) {
   console.log('seeded one demo site');
 }
 
-/* One auth store for now. It is memory-backed like the site store when there is no
-   database, which means a restart signs everyone out — acceptable while the whole thing is
-   one machine and two people, and the note in the log says so. */
-const auth: AuthStore = new MemoryAuthStore();
+/* The first owner. Somebody has to be able to sign in before anybody can be invited, and
+   there is no route into an empty database otherwise — `/auth/login` answers 200 to an address
+   it has never heard of, which is correct and useless.
 
-/* The first owner, so a fresh checkout has somebody who can sign in. Without it there is no
-   account and no way to make one, and `/auth/login` would answer 200 to an address it has
-   never heard of, which is correct and useless. */
+   Idempotent, so setting it on every boot is harmless: `createUser` upserts on the address and
+   `grant` upserts on the pair. Once there is an owner, everybody else arrives through
+   `POST /api/sites/:id/people`, which is the flow this replaced. */
 const OWNER = process.env.OWNER_EMAIL;
 if (OWNER) {
   const user = await auth.createUser(OWNER, 'Owner');
   for (const s of await store.list()) await auth.grant(s.id, user.id, 'owner');
-  console.log(`owner    ${OWNER} — POST /auth/login to get a link`);
+  console.log(`owner    ${OWNER} — POST /auth/login for a link`);
 } else {
   console.warn('OWNER_EMAIL is not set — nobody can sign in. The sites still serve.');
 }
 
-/* A client, for trying the content role without a database or an invite flow. On a real box
-   this is what an invite would create; here it is one variable. */
+/* Kept for trying the content role on a throwaway run. Inviting is the real route now, and on
+   a database this is the one thing here that a restart would re-grant after a revoke — so it
+   is a development convenience and says so. */
 const CLIENT = process.env.CLIENT_EMAIL;
 if (CLIENT) {
   const user = await auth.createUser(CLIENT, 'Client');
   for (const s of await store.list()) await auth.grant(s.id, user.id, 'content');
-  console.log(`client   ${CLIENT} — content only`);
+  console.log(`client   ${CLIENT} — content only (a shortcut; invite instead)`);
 }
 
 const app = createApp({

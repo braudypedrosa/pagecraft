@@ -16,6 +16,9 @@
 import type { Doc } from '../../app/src/core/types.ts';
 import type { Site, SaveResult, Store } from './store.ts';
 import { ASSET_SCHEMA, type Asset, type AssetStore } from './assets.ts';
+import {
+  AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session
+} from './auth.ts';
 import { assetFile as assetFilePath } from '../../app/src/core/index.ts';
 
 /** Run once. `IF NOT EXISTS` so a restart is not a special case. */
@@ -29,37 +32,6 @@ create table if not exists sites (
   updated_at  timestamptz not null default now()
 );
 create index if not exists sites_host_idx on sites (host);
-
-create table if not exists users (
-  id          text primary key,
-  email       text not null unique,
-  name        text not null default '',
-  created_at  timestamptz not null default now()
-);
-
-/* Digests, never tokens — see the note at the top of auth.ts. Expiry is a column rather
-   than a policy, so a sweep is one delete and a check is one comparison. */
-create table if not exists login_links (
-  digest      text primary key,
-  email       text not null,
-  expires_at  timestamptz not null
-);
-create table if not exists sessions (
-  digest      text primary key,
-  user_id     text not null references users (id) on delete cascade,
-  expires_at  timestamptz not null
-);
-create index if not exists sessions_user_idx on sessions (user_id);
-
-/* The join that makes this multi-tenant without anything else changing: a person has a
-   role on a site, and no row means no access. Nothing is keyed on there being one site or
-   one owner. */
-create table if not exists site_users (
-  site_id     text not null references sites (id) on delete cascade,
-  user_id     text not null references users (id) on delete cascade,
-  role        text not null check (role in ('owner', 'content')),
-  primary key (site_id, user_id)
-);
 `;
 
 /* Just enough of `pg` to be typed without importing it at module scope — and narrow enough
@@ -204,5 +176,118 @@ export class PgAssetStore implements AssetStore {
     const { rows } = await this.db.query<{ id: string }>(
       'delete from assets where site_id = $1 and id = $2 returning id', [siteId, id]);
     return rows.length > 0;
+  }
+}
+
+
+/* --------------------------------------------------------------------- auth */
+
+interface UserRow { id: string; email: string; name: string }
+interface SessionRow { digest: string; user_id: string; expires_at: Date | string }
+interface MemberRow { site_id: string; user_id: string; role: Role }
+
+const ms = (v: Date | string) => (typeof v === 'string' ? new Date(v) : v).getTime();
+
+export class PgAuthStore implements AuthStore {
+  private db: Queryable;
+  constructor(db: Queryable) { this.db = db; }
+
+  async init() {
+    for (const stmt of statements(AUTH_SCHEMA)) await this.db.query(stmt);
+  }
+
+  async userByEmail(email: string) {
+    const { rows } = await this.db.query<UserRow>('select * from users where email = $1', [normalEmail(email)]);
+    return rows[0] || null;
+  }
+  async userById(id: string) {
+    const { rows } = await this.db.query<UserRow>('select * from users where id = $1', [id]);
+    return rows[0] || null;
+  }
+  async createUser(email: string, name = '') {
+    /* `on conflict` rather than a read-then-write: two invitations to the same address arriving
+       together should produce one account, and the database is the only thing that can say so. */
+    const { rows } = await this.db.query<UserRow>(
+      `insert into users (id, email, name) values ($1, $2, $3)
+       on conflict (email) do update set name = coalesce(nullif(excluded.name, ''), users.name)
+       returning *`,
+      [crypto.randomUUID(), normalEmail(email), name]
+    );
+    return rows[0];
+  }
+
+  async putLink(digest: string, email: string, expiresAt: number) {
+    await this.db.query(
+      `insert into login_links (digest, email, expires_at) values ($1, $2, $3)
+       on conflict (digest) do update set email = excluded.email, expires_at = excluded.expires_at`,
+      [digest, normalEmail(email), new Date(expiresAt).toISOString()]
+    );
+  }
+  async useLink(digest: string) {
+    /* Deleted and read in one statement, so a link presented twice at once is consumed once —
+       which is the whole point of a single-use token and cannot be done with a read then a
+       delete. Expiry is checked after, because a token is spent by being presented. */
+    const { rows } = await this.db.query<{ email: string; expires_at: Date | string }>(
+      'delete from login_links where digest = $1 returning email, expires_at', [digest]);
+    const row = rows[0];
+    if (!row) return null;
+    return ms(row.expires_at) > Date.now() ? { email: row.email } : null;
+  }
+
+  async putSession(digest: string, userId: string, expiresAt: number) {
+    await this.db.query(
+      'insert into sessions (digest, user_id, expires_at) values ($1, $2, $3)',
+      [digest, userId, new Date(expiresAt).toISOString()]
+    );
+  }
+  async sessionByDigest(digest: string) {
+    const { rows } = await this.db.query<SessionRow>('select * from sessions where digest = $1', [digest]);
+    const row = rows[0];
+    if (!row) return null;
+    if (ms(row.expires_at) <= Date.now()) {
+      await this.dropSession(digest);
+      return null;
+    }
+    const out: Session = { token: row.digest, userId: row.user_id, expiresAt: ms(row.expires_at) };
+    return out;
+  }
+  async dropSession(digest: string) {
+    await this.db.query('delete from sessions where digest = $1', [digest]);
+  }
+
+  async membership(siteId: string, userId: string) {
+    const { rows } = await this.db.query<MemberRow>(
+      'select * from site_users where site_id = $1 and user_id = $2', [siteId, userId]);
+    return rows[0] ? { siteId: rows[0].site_id, userId: rows[0].user_id, role: rows[0].role } : null;
+  }
+  async grant(siteId: string, userId: string, role: Role) {
+    const { rows } = await this.db.query<MemberRow>(
+      `insert into site_users (site_id, user_id, role) values ($1, $2, $3)
+       on conflict (site_id, user_id) do update set role = excluded.role
+       returning *`,
+      [siteId, userId, role]
+    );
+    return { siteId: rows[0].site_id, userId: rows[0].user_id, role: rows[0].role };
+  }
+  async members(siteId: string) {
+    const { rows } = await this.db.query<MemberRow & UserRow>(
+      `select m.site_id, m.user_id, m.role, u.email, u.name
+       from site_users m join users u on u.id = m.user_id
+       where m.site_id = $1 order by u.email`, [siteId]);
+    return rows.map(r => ({
+      siteId: r.site_id, userId: r.user_id, role: r.role, email: r.email, name: r.name
+    }));
+  }
+  async revoke(siteId: string, userId: string) {
+    const { rows } = await this.db.query<{ user_id: string }>(
+      'delete from site_users where site_id = $1 and user_id = $2 returning user_id', [siteId, userId]);
+    return rows.length > 0;
+  }
+  /** Sessions a revoked person still holds are harmless — access is checked per request
+      against `site_users`, so a membership that is gone is access that is gone. */
+  async sessionsOf(userId: string) {
+    const { rows } = await this.db.query<{ digest: string }>(
+      'select digest from sessions where user_id = $1', [userId]);
+    return rows.map(r => r.digest);
   }
 }
