@@ -184,7 +184,7 @@ function Blocks() {
             <Icon name={def ? def.icon : 'section'} size={14} />
             <span class="bn">
               <b>{b.name}</b>
-              <small>{def ? def.label : 'Block'}{b.sync ? ` · global · ${C.blockUsage(b.id)} placed` : ''}</small>
+              <small>{def ? def.label : 'Block'}</small>
             </span>
             <button class="bx" title="Forget this block" onClick={e => forget(e, b.id)}>
               <Icon name="trash" size={11} />
@@ -193,8 +193,9 @@ function Blocks() {
         );
       }) : (
         <div class="hint">
-          Nothing saved yet. Select something on the canvas and save it here to reuse it
-          on any page.
+          Nothing saved yet. Select something on the canvas and save it here to start from
+          again on any page — a copy you then own. For something that stays connected
+          everywhere you put it, use <b>Components</b>.
         </div>
       )}
       <button class="btn block" disabled={!sel}

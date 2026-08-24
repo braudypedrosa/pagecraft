@@ -108,11 +108,8 @@ __export(index_exports, {
   blankProject: () => blankProject,
   blockDelete: () => blockDelete,
   blockInsert: () => blockInsert,
-  blockInstances: () => blockInstances,
-  blockPush: () => blockPush,
   blockRootType: () => blockRootType,
   blockSave: () => blockSave,
-  blockUsage: () => blockUsage,
   blocks: () => blocks,
   boundField: () => boundField,
   boundProps: () => boundProps,
@@ -2921,7 +2918,6 @@ function menuFor(ids) {
   }
   out.push({ act: "hide", label: (hidden ? "Show on " : "Hide on ") + dev });
   if (!many) out.push({ act: "block", label: "Save as a block" });
-  if (!many && n.adv && n.adv.block && findBlock(n.adv.block)) out.push({ act: "push", label: "Push to the other copies" });
   out[out.length - 1].sep = true;
   out.push({ act: "del", label: many ? "Delete all " + list.length : "Delete", key: "\u232B", danger: true });
   return out;
@@ -4726,59 +4722,20 @@ var blockRootType = (id) => {
   const b = findBlock(id);
   return b ? b.node.type : null;
 };
-function blockSave(nodeId, name, sync) {
+function blockSave(nodeId, name) {
   const h = locate(nodeId);
   if (!h) return null;
   const base = tokenId(name) || "block";
   let id = base, k = 2;
   while (findBlock(id)) id = base + "-" + k++;
   const node = clone(h.node);
-  if (node.adv) delete node.adv.block;
-  blocks().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, sync: !!sync });
+  blocks().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node });
   return id;
-}
-function blockInstances(id) {
-  const out = [];
-  const scan = (list, where) => eachNode(list, (n) => {
-    if (n.adv && n.adv.block === id) out.push({ node: n, where });
-  });
-  scan(state.header, "header");
-  scan(state.footer, "footer");
-  state.pages.forEach((p, i) => scan(p.tree, "page:" + i));
-  return out;
-}
-var blockUsage = (id) => blockInstances(id).length;
-function blockPush(nodeId) {
-  const h = locate(nodeId);
-  if (!h || !h.node.adv || !h.node.adv.block) return 0;
-  const b = findBlock(h.node.adv.block);
-  if (!b) return 0;
-  const source = clone(h.node);
-  delete source.adv.block;
-  b.node = source;
-  let n = 0;
-  for (const { node } of blockInstances(b.id)) {
-    if (node.id === nodeId) continue;
-    const copy = reid(clone(source));
-    node.type = copy.type;
-    node.props = copy.props;
-    node.css = copy.css;
-    node.cls = copy.cls;
-    node.hide = copy.hide;
-    node.children = copy.children;
-    node.adv = { ...copy.adv, block: b.id };
-    n++;
-  }
-  return n;
 }
 function blockInsert(id, parentNode, index = 0) {
   const b = findBlock(id);
   if (!b) return null;
   const fresh = reid(clone(b.node));
-  if (b.sync) {
-    fresh.adv = fresh.adv || {};
-    fresh.adv.block = b.id;
-  }
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
   const pl2 = parentNode ? lvl(parentNode.type) : 0;
   const nested = parentNode && parentNode.type === "column" && lvl(fresh.type) === 2;
@@ -4963,7 +4920,6 @@ function componentFromNode(nodeId, name) {
   delete node.vals;
   delete node.variant;
   delete node.slot;
-  if (node.adv) delete node.adv.block;
   components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
   h.node.use = id;
   h.node.children = [];
@@ -5155,7 +5111,7 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 10;
+var SCHEMA = 11;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -5228,6 +5184,45 @@ function migrate(d) {
   if (v < 10) {
     d.meta = d.meta || {};
     if (!Array.isArray(d.meta.components)) d.meta.components = [];
+  }
+  if (v < 11) {
+    const bl = (d.meta || {}).blocks || [];
+    const global = bl.filter((b) => b && b.sync && b.node);
+    if (global.length) {
+      d.meta.components = Array.isArray(d.meta.components) ? d.meta.components : [];
+      const shape = (n) => JSON.stringify(n, (key, val) => {
+        if (key === "id") return void 0;
+        if (key === "adv" && val) {
+          const { block, ...rest } = val;
+          return rest;
+        }
+        return val;
+      });
+      for (const b of global) {
+        const def = { id: b.id, name: b.name, node: reid(clone(b.node)), props: [] };
+        d.meta.components.push(def);
+        const want = shape(b.node);
+        everyNode((n) => {
+          if (!n.adv || n.adv.block !== b.id) return;
+          delete n.adv.block;
+          if (shape(n) !== want) return;
+          n.use = b.id;
+          n.children = [];
+          n.css = { d: {}, t: {}, m: {} };
+          n.cls = [];
+          n.hide = {};
+          n.adv = { htmlId: "", cls: "", css: "" };
+          delete n.st;
+          delete n.anim;
+          delete n.bind;
+          delete n.src;
+        });
+      }
+      d.meta.blocks = bl.filter((b) => !(b && b.sync));
+    }
+    ((d.meta || {}).blocks || []).forEach((b) => {
+      if (b) delete b.sync;
+    });
   }
   d.v = SCHEMA;
   return d;
@@ -7552,11 +7547,8 @@ ${ANIM_JS}
   blankProject,
   blockDelete,
   blockInsert,
-  blockInstances,
-  blockPush,
   blockRootType,
   blockSave,
-  blockUsage,
   blocks,
   boundField,
   boundProps,

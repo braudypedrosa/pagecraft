@@ -49,7 +49,6 @@ const resizeCols = (...a: Parameters<typeof C.resizeCols>) => must(C.resizeCols(
 const layerTarget = (...a: Parameters<typeof C.layerTarget>) => must(C.layerTarget(...a), 'layerTarget');
 const bindScope = (...a: Parameters<typeof C.bindScope>) => must(C.bindScope(...a), 'bindScope');
 const coll = (...a: Parameters<typeof C.findCollection>) => must(C.findCollection(...a), 'findCollection');
-const block = (...a: Parameters<typeof C.findBlock>) => must(C.findBlock(...a), 'findBlock');
 const blockSave = (...a: Parameters<typeof C.blockSave>) => must(C.blockSave(...a), 'blockSave');
 const pageMove = (...a: Parameters<typeof C.pageMove>) => must(C.pageMove(...a), 'pageMove');
 
@@ -3578,99 +3577,118 @@ test('a two-column row still resizes, and an equal split survives a round trip',
   a.deepEqual(C.rowRatios(row), [50, 50], 'back where it started');
 });
 
-/* -------------------------------------------------------------- global blocks
-   A plain block places independent copies. A global one tags each copy so that
-   one of them can push its content back to the block and out to the rest. */
-const savedFrom = (sync: boolean) => {
+/* -------------------------------------------------------------------- blocks
+   A block places independent copies: paste it and it is yours. There used to be a second kind,
+   a global block, whose copies were tagged so one could push its content over the others —
+   which is what components replaced, and v10 -> v11 converted. */
+const savedFrom = () => {
   blank();
   const h = insert('heading', null, 0);
   h.props.text = 'Original';
   const sec = C.state.pages[0].tree[0];
-  return { id: blockSave(sec.id, 'Promo', sync), sec };
+  return { id: blockSave(sec.id, 'Promo'), sec };
 };
 
-test('a plain block places copies that owe each other nothing', () => {
-  const { id } = savedFrom(false);
+test('a block places copies that owe each other nothing', () => {
+  const { id } = savedFrom();
   const first = blockInsert(id, null, 1);
-  blockInsert(id, null, 2);
-  a.equal(block(id).sync, false);
-  a.equal(!!(first.adv || {}).block, false, 'no link is recorded');
-  a.equal(C.blockUsage(id), 0, 'so there is nothing to keep in sync');
+  const second = blockInsert(id, null, 2);
+  a.notEqual(first.id, second.id);
+  a.equal(first.use, undefined, 'a copy, not an instance — that is the other feature');
+  const headingIn = (node: PcNode) => {
+    const found: PcNode[] = [];
+    C.eachNode([node], x => { if (x.type === 'heading') found.push(x); });
+    return must(found[0], 'a heading inside');
+  };
+  headingIn(first).props.text = 'Edited';
+  a.equal(headingIn(second).props.text, 'Original', 'and editing one leaves the other alone');
 });
 
-test('a global block tags every copy it places', () => {
-  const { id } = savedFrom(true);
-  const one = blockInsert(id, null, 1), two = blockInsert(id, null, 2);
-  a.equal(block(id).sync, true);
-  a.equal(one.adv.block, id);
-  a.equal(two.adv.block, id);
-  a.notEqual(one.id, two.id, 'they are still separate nodes');
-  a.equal(C.blockUsage(id), 2);
-});
-
-test('the source of a global block never carries its own link', () => {
-  const { id } = savedFrom(true);
-  a.equal(!!(block(id).node.adv || {}).block, false);
-  /* and saving an instance as a new block does not inherit the old link either */
-  const inst = blockInsert(id, null, 1);
-  const id2 = blockSave(inst.id, 'Promo two', true);
-  a.equal(!!(block(id2).node.adv || {}).block, false);
-});
-
-test('pushing one copy brings the block and every other copy into line', () => {
-  const { id } = savedFrom(true);
-  const one = blockInsert(id, null, 1);
-  const two = blockInsert(id, null, 2);
-  const three = blockInsert(id, null, 3);
-  /* edit just one of them */
-  const headingIn = (node: PcNode) => { const found: PcNode[] = []; C.eachNode([node], x => { if (x.type === 'heading') found.push(x); }); return must(found[0], 'a heading inside'); };
-  headingIn(one).props.text = 'Edited';
-  a.equal(headingIn(two).props.text, 'Original', 'untouched until pushed');
-
-  a.equal(C.blockPush(one.id), 2, 'two other copies updated');
-  a.equal(headingIn(two).props.text, 'Edited');
-  a.equal(headingIn(three).props.text, 'Edited');
-  a.equal(headingIn(block(id).node).props.text, 'Edited', 'and the block itself');
-});
-
-test('a push keeps each copy its own element', () => {
-  const { id } = savedFrom(true);
-  const one = blockInsert(id, null, 1), two = blockInsert(id, null, 2);
-  const idBefore = two.id;
-  two.adv.htmlId = 'promo-two';
-  C.blockPush(one.id);
-  a.equal(two.id, idBefore, 'the node id survives, so a selection is not lost');
-  a.equal(two.adv.block, id, 'and so does the link');
-  a.equal(two.adv.htmlId, '', 'but a per-copy anchor is cleared — two elements cannot share one id');
-});
-
-test('pushing from something that is not a global copy does nothing', () => {
-  const { id, sec } = savedFrom(false);
-  const plain = blockInsert(id, null, 1);
-  a.equal(C.blockPush(plain.id), 0);
-  a.equal(C.blockPush(sec.id), 0, 'the source section is not an instance either');
-});
-
-test('instances are found across pages and both global regions', () => {
-  const { id } = savedFrom(true);
-  blockInsert(id, null, 1);
-  C.state.pages.push(pageFromTemplate('blank', 'Two'));
-  C.state.cur = 1;
-  blockInsert(id, null, 0);
-  C.state.ui.mode = 'header';
-  blockInsert(id, null, 0);
-  C.state.ui.mode = 'page'; C.state.cur = 0;
-  a.equal(C.blockUsage(id), 3);
-  a.deepEqual([...new Set(C.blockInstances(id).map(x => x.where))].sort(), ['header', 'page:0', 'page:1']);
-});
-
-test('forgetting a global block leaves its copies in place', () => {
-  const { id } = savedFrom(true);
+test('forgetting a block leaves its copies in place', () => {
+  const { id } = savedFrom();
   const one = blockInsert(id, null, 1);
   C.blockDelete(id);
   a.equal(C.findBlock(id), null);
   a.ok(at(one.id), 'the copy is still on the page');
-  a.equal(C.blockPush(one.id), 0, 'it just has nothing left to push to');
+});
+
+test('migration v10 to v11: a global block becomes a component', () => {
+  /* Two ways to do one thing was the mistake. A global block placed copies and pushed one
+     copy's content over the others; an instance keeps the link and declares what varies. */
+  blank();
+  const h = insert('heading', null, 0);
+  h.props.text = 'Promo words';
+  const sec = C.state.pages[0].tree[0];
+
+  const node = structuredClone(sec) as any;
+  const copy = structuredClone(sec) as any;
+  copy.id = 'ncopy';
+  copy.adv.block = 'promo';
+  const diverged = structuredClone(sec) as any;
+  diverged.id = 'ndiverged';
+  diverged.adv.block = 'promo';
+  diverged.children[0].props.text = 'Edited locally';
+
+  const doc: any = {
+    v: 10, header: [], footer: [],
+    pages: [{ ...C.state.pages[0], tree: [copy, diverged] }],
+    meta: {
+      ...structuredClone(C.state.meta),
+      blocks: [
+        { id: 'promo', name: 'Promo', node, sync: 1 },
+        { id: 'snippet', name: 'Snippet', node: structuredClone(sec), sync: 0 }
+      ]
+    }
+  };
+  const out = C.migrate(doc);
+
+  a.deepEqual(out.meta.components.map((c: { id: string; name: string }) => [c.id, c.name]),
+    [['promo', 'Promo']], 'the global block is a component');
+  a.deepEqual(out.meta.blocks.map((b: { id: string }) => b.id), ['snippet'],
+    'and is no longer also a block — one tree under two names is what this removes');
+  a.equal('sync' in out.meta.blocks[0], false, 'nothing is global any more');
+
+  const [asInst, asPlain] = out.pages[0].tree;
+  a.equal(asInst.use, 'promo', 'a copy that still matched is an instance');
+  a.deepEqual(asInst.children, []);
+  a.equal(asPlain.use, undefined, 'a copy that had been edited keeps what it shows');
+  a.equal(asPlain.children[0].props.text, 'Edited locally');
+  a.equal((asPlain.adv || {}).block, undefined, 'and stops being linked, which it already was');
+});
+
+test('the v11 migration does not move the page', () => {
+  /* The rule a migration lives by, and the reason a diverged copy is left alone: what it
+     shows now is what it showed before, whichever branch it took. */
+  blank();
+  const h = insert('heading', null, 0);
+  h.props.text = 'Promo words';
+  const sec = C.state.pages[0].tree[0];
+  const node = structuredClone(sec) as any;
+  const copy = structuredClone(sec) as any; copy.id = 'ncopy'; copy.adv.block = 'promo';
+  const diverged = structuredClone(sec) as any;
+  diverged.id = 'ndiv'; diverged.adv.block = 'promo';
+  diverged.children[0].props.text = 'Edited locally';
+
+  const build = (d: any) => {
+    C.restore(structuredClone(d));
+    return C.buildPage(C.state.pages[0]);
+  };
+  const doc: any = {
+    v: 10, header: [], footer: [],
+    pages: [{ ...C.state.pages[0], tree: [copy, diverged] }],
+    meta: { ...structuredClone(C.state.meta), blocks: [{ id: 'promo', name: 'Promo', node, sync: 1 }] }
+  };
+  /* stamped to the current schema, so it renders without being converted */
+  const before = build({ ...structuredClone(doc), v: C.SCHEMA });
+  const after = build(C.migrate(structuredClone(doc)));
+
+  /* Identical up to names, for the reason saving a component is: a definition's nodes are
+     re-ided, so their class names change and the rules move to the front of the sheet. What
+     has to be untouched is what a reader sees. */
+  const shape = (x: string) => x.slice(x.indexOf('<body')).replace(/ (id|class)="[^"]*"/g, '');
+  a.equal(shape(after), shape(before), 'the same tags, the same nesting, the same words');
+  const decls = (x: string) => (x.slice(0, x.indexOf('<body')).match(/\{[^{}]*\}/g) || []).sort();
+  a.deepEqual(decls(after), decls(before), 'and the same declarations');
 });
 
 test('a fresh copy never inherits a hand-set anchor', () => {
@@ -3690,7 +3708,7 @@ test('a fresh copy never inherits a hand-set anchor', () => {
   a.equal(find(C.lint(), 'duplicate-id').length, 0);
 
   /* the same for a placed block, and for paste */
-  const id = blockSave(sec.id, 'With anchor', true);
+  const id = blockSave(sec.id, 'With anchor');
   const placed = blockInsert(id, null, 2);
   const fromBlock: string[] = [];
   C.eachNode([placed], n => { if (n.adv && n.adv.htmlId) fromBlock.push(n.adv.htmlId); });
@@ -5351,7 +5369,7 @@ test('what you built survives it: colours, text styles, classes, blocks', () => 
   fresh();
   C.classAdd('Card', { d: { padding: '20px' } });
   C.colorAdd('Brand teal', '#0aa');
-  C.state.meta.blocks = [{ id: 'hero', name: 'Hero', node: C.N('heading'), sync: 0 }];
+  C.state.meta.blocks = [{ id: 'hero', name: 'Hero', node: C.N('heading') }];
   const before = [C.colors().length, C.styles().length, C.classes().length, C.blocks().length];
   C.blankProject('Mine');
   a.deepEqual([C.colors().length, C.styles().length, C.classes().length, C.blocks().length], before,
@@ -5912,15 +5930,15 @@ test('hide names the breakpoint it applies to, and reads the current state', () 
   C.state.ui.dev = 'desktop';
 });
 
-test('pushing a block copy is offered only on a copy of a global block', () => {
+test('there is no push verb, because there are no copies to push to', () => {
+  /* It was the global block's one verb: take this copy's content and overwrite the others.
+     Components replaced the idea and the migration converted the data, so the menu entry went
+     with it rather than lingering as a thing that can never apply. */
   blank();
   const h = insert('heading', null, 0);
-  a.equal(acts([h.id]).includes('push'), false);
-  const bid = blockSave(h.id, 'Hero', 1);
-  h.adv.block = bid;
-  a.ok(acts([h.id]).includes('push'), 'this one is linked to a block');
-  h.adv.block = 'gone';
-  a.equal(acts([h.id]).includes('push'), false, 'a dangling link offers nothing');
+  const bid = blockSave(h.id, 'Hero');
+  blockInsert(bid, null, 1);
+  a.equal(C.menuFor([h.id]).some(i => i.act === 'push'), false);
 });
 
 test('the menu is grouped, and delete is last and marked', () => {

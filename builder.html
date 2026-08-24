@@ -1872,8 +1872,6 @@ function positionHud() {
              an element you have finished, where everything else here is a thing you do while
              working — and the bar had grown to nine buttons. `runAct` handles the verb the
              same either way, so nothing moved except where it is offered. */''}
-      ${!many && s.node.adv && s.node.adv.block && findBlock(s.node.adv.block)
-        ? `<button data-act="push" title="Global block — push this copy out to the others">${svg('globe', 12)}</button>` : ''}
       <button data-act="dup" title="Duplicate ${many ? 'all ' : ''}(⌘D)">${svg('copy', 12)}</button>
       <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 12)}</button>
       <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
@@ -2043,7 +2041,6 @@ function runAct(act, ids) {
       nd.hide[dk()] = !nd.hide[dk()];
     })); break;
     case 'block': saveBlockFlow(id); break;
-    case 'push': pushBlockFlow(id); break;
   }
 }
 
@@ -2641,24 +2638,10 @@ function drawBlocks() { ui().renderAdd(); }
 /* Shared by the canvas bar and the Blocks tab, so both offer the same choices. */
 async function saveBlockFlow(nodeId) {
   const h = locate(nodeId); if (!h) return;
-  const got = await askBlock(nameOf(h.node));
-  if (!got || !got.name) return;
-  edit(() => blockSave(nodeId, got.name, got.sync));
-  toast(got.sync ? `“${got.name}” saved as a global block` : `“${got.name}” saved — find it in Add`);
-}
-
-/* Sending one copy's content to the block and the rest. The same shape as updating
-   a text style from an element: say how many others move, then do it in one step. */
-async function pushBlockFlow(nodeId) {
-  const h = locate(nodeId); if (!h) return;
-  const b = findBlock((h.node.adv || {}).block); if (!b) return;
-  const others = blockUsage(b.id) - 1;
-  if (others > 0 && !await askConfirm('Update every copy?',
-    `${others} other cop${others === 1 ? 'y' : 'ies'} of <b>${esc(b.name)}</b> will be updated to match this one.`,
-    { ok: 'Push to all', danger: false })) return;
-  let n = 0;
-  edit(() => { n = blockPush(nodeId); });
-  toast(n ? `“${esc(b.name)}” updated — ${n} cop${n === 1 ? 'y' : 'ies'} matched` : `“${esc(b.name)}” updated`);
+  const name = await askText('Save as block', 'Name', nameOf(h.node));
+  if (!name) return;
+  edit(() => blockSave(nodeId, name));
+  toast(`“${name}” saved — find it in Add`);
 }
 
 
@@ -3417,28 +3400,6 @@ function mediaPicker(title = 'Choose from the library') {
   const p = askOpen(title, `<div class="mgrid">${mediaCards(list, assetUsage(), 'data-pick')}</div>`, null, false);
   $$('#askBody [data-pick]').forEach(b => b.addEventListener('click', () => askClose(b.dataset.pick)));
   return p;
-}
-
-/* Naming and the global choice belong in one step — the toggle changes what saving
-   means, so asking afterwards would be too late. Resolves {name, sync} or null. */
-function askBlock(defaultName) {
-  const p = askOpen('Save as a block', `
-    <div class="f"><label>Block name</label>
-      <input class="ctl" id="askIn" value="${esc(defaultName)}"></div>
-    <div class="tog-row" style="margin-top:var(--gap-2)">
-      <span>${svg('globe', 12)} Global — copies stay in step</span>
-      <button class="sw-tog" id="askSync"><i></i></button>
-    </div>
-    <div class="note" id="askSyncNote"></div>`, 'Save block', false);
-  const tog = $('#askSync'), note = $('#askSyncNote');
-  const paint = () => {
-    note.innerHTML = tog.classList.contains('on')
-      ? 'Copies stay linked. Edit one, then push to the rest.'
-      : 'Each copy is independent.';
-  };
-  tog.addEventListener('click', () => { tog.classList.toggle('on'); paint(); });
-  paint();
-  return p.then(v => v === null ? null : { name: v, sync: tog.classList.contains('on') });
 }
 
 $('#askX').addEventListener('click', () => askClose(null));

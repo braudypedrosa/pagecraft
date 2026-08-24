@@ -242,8 +242,6 @@ export interface Adv {
   cls: string;
   /** custom CSS; `&` is replaced by this node's own selector */
   css: string;
-  /** set on every placed copy of a global block, linking it back */
-  block?: string;
 }
 
 export interface Node {
@@ -272,7 +270,8 @@ export interface Node {
       against a type string — `lvl`, `holds`, `wrap`, twenty call sites — so a new type would
       have needed a level, and a component's level is whatever its definition's root is. A node
       that *is* the root's type and carries a component id needs none of that changed. It is the
-      same shape as `adv.block`, which has tagged a copy since blocks existed. */
+      same shape `adv.block` had, back when a global block tagged its copies — which is what
+      this replaced. */
   use?: string;
   /** An instance's property values, by property key. Absent keys take the variant's value if
       it names one, then the definition's default — so changing a default moves every instance
@@ -540,12 +539,14 @@ export interface Page {
   headHtml?: string;
 }
 
+/** A saved starting point. Paste it and it is yours — no link back, no pushing.
+
+    There used to be a second kind, a *global* block, whose copies could be pushed over each
+    other. Components replaced it, and v10 -> v11 converted them. */
 export interface SavedBlock {
   id: string;
   name: string;
   node: Node;
-  /** a global block tags its copies so one can push to the others */
-  sync: boolean | 0 | 1;
 }
 
 export interface Meta {

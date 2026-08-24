@@ -1678,7 +1678,6 @@ function menuFor(ids: string[] | null) {
   }
   out.push({ act: 'hide', label: (hidden ? 'Show on ' : 'Hide on ') + dev });
   if (!many) out.push({ act: 'block', label: 'Save as a block' });
-  if (!many && n.adv && n.adv.block && findBlock(n.adv.block)) out.push({ act: 'push', label: 'Push to the other copies' });
   out[out.length - 1].sep = true;
 
   out.push({ act: 'del', label: many ? 'Delete all ' + list.length : 'Delete', key: '⌫', danger: true });
@@ -3961,64 +3960,25 @@ function itemDraft(colId: string, iid: string, on: boolean) {
   return true;
 }
 const blockRootType = (id: string) => { const b = findBlock(id); return b ? b.node.type : null; };
-/* A block is saved content. A **global** block additionally tags every copy it
-   places with `adv.block`, which is what lets one copy push its content back to
-   the block and out to the others. Copies are still real nodes with their own ids —
-   nothing about this reaches the export, which only reads `adv.htmlId/cls/css`. */
-function blockSave(nodeId: string, name: string, sync?: boolean | 0 | 1) {
+/* A block is a saved starting point: paste it and it is yours, with no link back. There used
+   to be a second kind — a *global* block, which tagged every copy so one copy could push its
+   content over the others — and that is what components replaced. An instance keeps the link
+   and declares what varies, instead of destroying local edits on the next push. Migration
+   v10 -> v11 turned every global block into a component. */
+function blockSave(nodeId: string, name: string) {
   const h = locate(nodeId);
   if (!h) return null;
   const base = tokenId(name) || 'block';
   let id = base, k = 2;
   while (findBlock(id)) id = base + '-' + k++;
   const node = clone(h.node);
-  if (node.adv) delete node.adv.block;            // never save one instance's link into the source
-  blocks().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, sync: !!sync });
+  blocks().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node });
   return id;
-}
-/* Every placed copy of a global block, across every page and both global regions. */
-function blockInstances(id: string) {
-  const out: any[] = [];
-  const scan = (list: PcNode[], where: string) => eachNode(list, (n: PcNode) => {
-    if (n.adv && n.adv.block === id) out.push({ node: n, where });
-  });
-  scan(state.header, 'header');
-  scan(state.footer, 'footer');
-  state.pages.forEach((p, i) => scan(p.tree, 'page:' + i));
-  return out;
-}
-const blockUsage = (id: string) => blockInstances(id).length;
-/* Takes the content of one copy and makes it the block, then brings every other
-   copy into line. Each keeps its own node id and its own link, so selections and
-   styling hooks survive; only the content beneath is replaced. */
-function blockPush(nodeId: string) {
-  const h = locate(nodeId);
-  if (!h || !h.node.adv || !h.node.adv.block) return 0;
-  const b = findBlock(h.node.adv.block);
-  if (!b) return 0;
-  const source = clone(h.node);
-  delete source.adv.block;
-  b.node = source;
-  let n = 0;
-  for (const { node } of blockInstances(b.id)) {
-    if (node.id === nodeId) continue;
-    const copy = reid(clone(source));
-    node.type = copy.type;
-    node.props = copy.props;
-    node.css = copy.css;
-    node.cls = copy.cls;
-    node.hide = copy.hide;
-    node.children = copy.children;
-    node.adv = { ...copy.adv, block: b.id };      // reid already surrendered the anchor
-    n++;
-  }
-  return n;
 }
 function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
   const b = findBlock(id);
   if (!b) return null;
   const fresh = reid(clone(b.node));
-  if (b.sync) { fresh.adv = fresh.adv || {}; fresh.adv.block = b.id; }
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
   const pl = parentNode ? lvl(parentNode.type) : 0;
   const nested = parentNode && parentNode.type === 'column' && lvl(fresh.type) === 2;
@@ -4032,11 +3992,13 @@ const blockDelete = (id: string) => { state.meta.blocks = blocks().filter(b => b
 /* ---- components -------------------------------------------------------
    A definition, and instances that hold values rather than markup.
 
-   `blockPush` above is what this replaces. A global block places copies and pushes one copy's
-   content over the others, which means an edit to any copy is destroyed by the next push from
-   somewhere else, and there is nowhere to say that a card's heading varies while its layout
+   The global block is what this replaced, and it is gone: it placed copies and pushed one
+   copy's content over the others, so an edit to any copy was destroyed by the next push from
+   somewhere else, and there was nowhere to say that a card's heading varies while its layout
    does not. An instance says exactly that: the definition owns the tree, declared properties
-   own what varies, and slots own what the page puts inside.
+   own what varies, and slots own what the page puts inside. Migration v10 -> v11 converted
+   every global block that existed; what is still called a block is the other thing it was, a
+   saved starting point with no link back.
 
    An instance is a node with `use` set — not a widget type of its own. Every level rule in the
    editor reads a type string, so a new type would have needed a level, and a component's level
@@ -4260,7 +4222,6 @@ function componentFromNode(nodeId: string, name: string) {
      under the same name. */
   const node = reid(clone(h.node));
   delete node.use; delete node.vals; delete node.variant; delete node.slot;
-  if (node.adv) delete node.adv.block;
   components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
   /* The node stays where it is and becomes an instance of what it just defined. Its styling
      goes with the tree: the definition carries it now, it reaches the page through the
@@ -4469,7 +4430,7 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 10;                       // bump when the stored shape changes
+const SCHEMA = 11;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -4561,6 +4522,57 @@ function migrate(d: any) {
   if (v < 10) {
     d.meta = d.meta || {};
     if (!Array.isArray(d.meta.components)) d.meta.components = [];
+  }
+  /* v10 -> v11: a global block becomes a component.
+     ---------------------------------------------------------------------------------------
+     A global block placed copies and tagged each one so any copy could push its content over
+     the others. An instance is that idea done properly: the definition owns the tree, and what
+     varies between placements is declared rather than destroyed by the next push. Keeping both
+     would be a second way to do one thing, which is the mistake this project keeps finding in
+     its own past.
+
+     A block's copies could diverge — that is the flaw, not an edge case — so a copy is only
+     turned into an instance when its tree still matches the block's. A copy that had been
+     edited locally keeps exactly what it shows and simply stops being linked, which it
+     effectively already was. That way no page moves, which is the rule a migration lives by.
+
+     Blocks that were never global are untouched. They are a different idea and a useful one:
+     a saved starting point you paste and then own. */
+  if (v < 11) {
+    const bl = ((d.meta || {}).blocks || []) as any[];
+    const global = bl.filter(b => b && b.sync && b.node);
+    if (global.length) {
+      d.meta.components = Array.isArray(d.meta.components) ? d.meta.components : [];
+      /* the same tree, ignoring the things a copy is allowed to differ in: its node ids and
+         the tag that linked it back */
+      const shape = (n: any): string => JSON.stringify(n, (key, val) => {
+        if (key === 'id') return undefined;
+        if (key === 'adv' && val) { const { block, ...rest } = val; return rest; }
+        return val;
+      });
+      for (const b of global) {
+        const def = { id: b.id, name: b.name, node: reid(clone(b.node)), props: [] };
+        d.meta.components.push(def);
+        const want = shape(b.node);
+        everyNode(n => {
+          if (!n.adv || n.adv.block !== b.id) return;
+          delete n.adv.block;
+          if (shape(n) !== want) return;              // diverged: it keeps what it shows
+          n.use = b.id;
+          n.children = [];
+          n.css = { d: {}, t: {}, m: {} };
+          n.cls = [];
+          n.hide = {};
+          n.adv = { htmlId: '', cls: '', css: '' };
+          delete n.st; delete n.anim; delete n.bind; delete n.src;
+        });
+      }
+      /* the global ones are components now; a document holding both lists would be holding the
+         same tree twice under two names */
+      d.meta.blocks = bl.filter(b => !(b && b.sync));
+    }
+    /* and nothing is a global block any more, including the ones that never were */
+    ((d.meta || {}).blocks || []).forEach((b: any) => { if (b) delete b.sync; });
   }
   d.v = SCHEMA;
   return d;
@@ -6933,5 +6945,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };
