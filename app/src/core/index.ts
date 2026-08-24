@@ -429,7 +429,7 @@ const DEF: Record<string, WidgetDef> = {
      do it: a link lived on a heading, a button or an image, so a clickable card meant a
      transparent button stretched over it. */
   box: {
-    label: 'Box', icon: 'section', level: 2, alsoHolds: ['box', 'row', 'slider', 'column'],
+    label: 'Box', icon: 'section', level: 2, takes: 4, alsoHolds: ['box', 'row', 'slider', 'column'],
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: { layout: 'block', tag: 'div', link: '', target: '' }, css: { d: {}, t: {}, m: {} } }),
     controls: {
@@ -1659,12 +1659,22 @@ function redo() { if (!hist.r.length) return; hist.u.push(clone(doc())); restore
 const lvl = (t: string) => DEF[BASE[t] || t].level;
 const CHAIN: Record<number, string> = { 1: 'section', 2: 'row', 3: 'column' };
 
-/* Builds the wrapper chain needed to legally place `type` inside a parent
-   of level `pl`, e.g. a Heading (4) dropped on the root (0) becomes
-   Section > Row > Column > Heading. */
-function wrap(type: string, pl: number, node: any): any {
+/* The level a parent's children arrive at. Declared by the parent, defaulting to one deeper
+   than the parent is — which is what `wrap` inferred before anything declared it, and is right
+   for a section, a row and a column. A Box declares 4, because its children are whatever you
+   put in it. `null` is the root, whose children are sections. */
+const takes = (pt: string | null) => {
+  if (pt === null) return 1;
+  const d = DEF[BASE[pt] || pt];
+  return d && d.takes !== undefined ? d.takes : (lvl(pt) + 1);
+};
+
+/* Builds the wrapper chain needed to place `type` inside a parent that takes children at level
+   `t`, e.g. a Heading (4) dropped on the root (1) becomes Section > Row > Column > Heading.
+   Dropped into a Box, which takes 4, it goes in as it is. */
+function wrap(type: string, t: number, node: any): any {
   let out = node;
-  for (let l = lvl(type) - 1; l > pl; l--) out = N(CHAIN[l], {}, {}, [out]);
+  for (let l = lvl(type) - 1; l >= t; l--) out = N(CHAIN[l], {}, {}, [out]);
   return out;
 }
 /* Can a node of type `t` live inside a parent of type `pt`? Anything deeper in the hierarchy
@@ -1685,8 +1695,11 @@ const holds = (pt: any, t: string) => {
 
 function insert(type: string, parentNode: any, index: number) {
   const leaf = makeFor(type);
-  const pl = parentNode ? lvl(parentNode.type) : 0;
-  const packed = (parentNode && parentNode.type === 'column' && lvl(type) === 2) ? leaf : wrap(type, pl, leaf);
+  /* `takes`, not the parent's own level: a Box takes children at level 4, so a heading dropped
+     into a Grid goes in as it is rather than arriving inside a Column nothing asked for. The
+     row-in-a-column case needs no exception any more — a column takes 4, so `wrap` returns the
+     row untouched. */
+  const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();
   list.splice(Math.max(0, Math.min(index, list.length)), 0, packed);
   return leaf;
@@ -1697,8 +1710,7 @@ function moveNode(id: string, parentNode: any, index: number) {
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
   let k = Math.max(0, Math.min(index, list.length));
-  const pl = parentNode ? lvl(parentNode.type) : 0;
-  const packed = (parentNode && parentNode.type === 'column' && h.node.type === 'row') ? h.node : wrap(h.node.type, pl, h.node);
+  const packed = wrap(h.node.type, takes(parentNode ? parentNode.type : null), h.node);
   list.splice(k, 0, packed);
 }
 /* ---- what can be done to the selection --------------------------------
@@ -3196,7 +3208,7 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
     const pl = parentType === null ? 0 : lvl(parentType);
     const nested = parentType === 'column' && lvl(fresh.type) === 2;
     if (lvl(fresh.type) <= pl && !nested) return false;
-    list.splice(index, 0, nested ? fresh : wrap(fresh.type, pl, fresh));
+    list.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
@@ -4109,7 +4121,8 @@ function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
   const nested = parentNode && parentNode.type === 'column' && lvl(fresh.type) === 2;
   if (lvl(fresh.type) <= pl && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(Math.max(0, Math.min(index, list.length)), 0, nested ? fresh : wrap(fresh.type, pl, fresh));
+  list.splice(Math.max(0, Math.min(index, list.length)), 0,
+    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh));
   return fresh;
 }
 const blockDelete = (id: string) => { state.meta.blocks = blocks().filter(b => b.id !== id); };
@@ -4379,7 +4392,8 @@ function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
   const nested = parentNode && parentNode.type === 'column' && lvl(fresh.type) === 2;
   if (lvl(fresh.type) <= pl && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(Math.max(0, Math.min(index, list.length)), 0, nested ? fresh : wrap(fresh.type, pl, fresh));
+  list.splice(Math.max(0, Math.min(index, list.length)), 0,
+    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh));
   return fresh;
 }
 /** Every instance of a definition, across every page and both global regions. */
@@ -5211,7 +5225,8 @@ function patternInsert(pid: string, parentNode?: PcNode | null, index = 0) {
   const pl = parentNode ? lvl(parentNode.type) : 0;
   if (lvl(node.type) <= pl) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(node.type, pl, node));
+  list.splice(Math.max(0, Math.min(index, list.length)), 0,
+    wrap(node.type, takes(parentNode ? parentNode.type : null), node));
   return node;
 }
 

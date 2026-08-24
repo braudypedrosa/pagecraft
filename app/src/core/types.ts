@@ -487,6 +487,18 @@ export interface WidgetDef {
   label: string;
   icon: string;
   level: Level;
+  /** The level a child arrives at when it is dropped straight into this one.
+
+      A heading dropped on a section becomes `row > column > heading`, because a section's
+      children are rows. Dropped on a column it goes in as it is. That chain was inferred from
+      the parent's own level — one deeper, every time — which is right for a section, a row and
+      a column and wrong for a Box, whose children are whatever you put in it. Dropping a
+      heading into a Grid wrapped it in a Column, and the layout then behaved in a way nothing
+      on screen explained.
+
+      So the parent says. Absent means `level + 1`, which is what was inferred before, so only
+      the widget that disagrees has to declare it. */
+  takes?: Level;
   /** Types this one may contain *besides* everything the level rule already allows.
 
       It was `accepts?: Level[]` — "which levels this type may contain" — declared on four

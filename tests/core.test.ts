@@ -7416,3 +7416,52 @@ test('a condition with nothing to test shows the element', () => {
   a.equal(h.showIf, undefined);
   a.equal(C.showsNode(h, null, null), true);
 });
+
+test('a Box takes its children as they are, and a Section wraps them', () => {
+  /* Found by building a real page. A heading dropped into a Grid arrived inside a Column,
+     because the wrapper chain was inferred from the parent's own level — one deeper, every
+     time. Right for a section, a row and a column; wrong for a Box, whose children are
+     whatever you put in it, and the layout then behaved in a way nothing on screen explained. */
+  blank();
+  const grid = insert('grid', null, 0);
+  const h = insert('heading', grid, 0);
+  a.equal(at(grid.id).node.children.length, 1);
+  a.equal(at(grid.id).node.children[0].id, h.id, 'straight in — no Column nobody asked for');
+
+  /* and the chain still happens where it is the right answer */
+  const sec = insert('section', null, 1);
+  const h2 = insert('heading', sec, 0);
+  a.equal(at(sec.id).node.children[0].type, 'row');
+  a.equal(at(sec.id).node.children[0].children[0].type, 'column');
+  a.equal(at(sec.id).node.children[0].children[0].children[0].id, h2.id);
+
+  /* on the root it is the full chain */
+  blank();
+  const loose = insert('heading', null, 0);
+  a.equal(C.state.pages[0].tree[0].type, 'section');
+  a.equal(at(loose.id).parent!.type, 'column');
+});
+
+test('takes defaults to one deeper, so only the widget that disagrees declares it', () => {
+  a.equal(C.DEF.box.takes, 4);
+  for (const t of ['section', 'row', 'column', 'slider', 'list']) {
+    a.equal(C.DEF[t].takes, undefined, `${t} infers it, and the inference is right`);
+  }
+  /* which is what keeps a row's children columns */
+  blank();
+  const row = insert('row', null, 0);
+  insert('heading', row, 0);
+  a.equal(at(row.id).node.children[0].type, 'column');
+});
+
+test('a row moved into a column needs no exception, because a column takes level 4', () => {
+  /* `nested ? fresh : wrap(...)` was that exception in four places. A column declares nothing,
+     so it takes 4, and `wrap` returns a level-2 row untouched — the declaration says what the
+     special case said. */
+  blank();
+  const cols = insert('columns', null, 0);
+  const col = at(cols.id).node.children[0];
+  const row = insert('row', col, 0);
+  a.equal(at(row.id).node.type, 'row');
+  a.equal(at(row.id).parent!.id, col.id, 'in the column, not wrapped in another one');
+});
