@@ -7568,3 +7568,114 @@ test('the tablet override is what a phone inherits, when it has none of its own'
   at(g.id).node.css.t = { 'grid-template-columns': 'repeat(2, minmax(0, 1fr))' };
   a.equal(found().length, 0, 'a tablet value of 2 is what the phone gets');
 });
+
+/* ------------------------------------------------- a whole site, end to end
+   Every test above checks one thing. This one builds a site the way a person does — a header
+   and footer from the templates, a hero, a grid of cards made into a component, a second page
+   reusing that component, and the export — and then asserts the things that only go wrong when
+   the pieces are combined.
+
+   It exists because four bugs were found this way and none of them by a unit test: a heading
+   wrapped in a Column inside a Grid, six instances scattered above the grid instead of in it,
+   an icon that could not be a property, and a three-column grid nobody warned about. */
+
+test('a whole site: templates, a component, two pages, and a clean export', () => {
+  fresh();
+  C.blankProject('Site');
+  C.state.meta.components = []; C.state.meta.blocks = [];
+  C.state.meta.baseUrl = 'https://example.test';
+
+  /* the global regions, from the templates */
+  C.state.ui.mode = 'header';
+  a.ok(C.patternInsert('header-cta', null, 0), 'a header template lands');
+  C.state.ui.mode = 'footer';
+  a.ok(C.patternInsert('footer-slim', null, 0), 'and a footer one');
+  C.state.ui.mode = 'page';
+
+  /* a hero, then a grid of cards built by hand */
+  C.state.pages[0].title = 'A site';
+  C.state.pages[0].desc = 'Built the way a person builds one.';
+  a.ok(C.patternInsert('hero-centre', null, 0));
+  /* An h2 above the cards. The cards are h3, and h1 straight to h3 skips a level — which the
+     review caught in this fixture twice before it was written down. */
+  const intro = insert('heading', null, 1);
+  intro.props.text = 'What it does'; intro.props.level = 'h2'; intro.props.ts = 'title';
+  const grid = insert('grid', null, 2);
+  C.setCss(at(grid.id).node, 'grid-template-columns', 'repeat(3, minmax(0, 1fr))');
+  at(grid.id).node.css.m = { 'grid-template-columns': 'repeat(auto-fit, minmax(240px, 1fr))' };
+
+  const card = insert('box', at(grid.id).node, 0);
+  at(card.id).node.props.layout = 'flex';
+  insert('icon', at(card.id).node, 0);
+  const ttl = insert('heading', at(card.id).node, 1);
+  ttl.props.text = 'First'; ttl.props.level = 'h3'; ttl.props.ts = 'subtitle';
+  const bdy = insert('text', at(card.id).node, 2);
+  bdy.props.html = '<p>Body copy.</p>';
+  a.deepEqual(at(card.id).node.children.map(c => c.type), ['icon', 'heading', 'text'],
+    'a Box takes its children as they are');
+
+  /* made into a component, with the three things that vary declared from the controls */
+  const cid = componentFromNode(card.id, 'Card');
+  const def = comp(cid);
+  const k: Record<string, string> = {};
+  for (const [type, key] of [['icon', 'name'], ['heading', 'text'], ['text', 'html']] as [string, string][]) {
+    let node: PcNode | null = null;
+    C.eachNode([def.node], x => { if (!node && x.type === type) node = x; });
+    const ctl = must(C.contentControls(node!).find(c => c.k === key), `${type}.${key} control`);
+    k[type] = must(C.propFromControl(cid, node!.id, ctl), `property from ${type}.${key}`);
+  }
+  a.deepEqual(def.props.map(pr => pr.t), ['icon', 'text', 'rich'],
+    'an icon is a property kind, which is the whole point of a feature card');
+
+  /* two more instances, at the indexes they were asked for */
+  const first = at(card.id).node;
+  C.instSet(first, k.icon, 'code');
+  const rows: [string, string][] = [['layers', 'Second'], ['users', 'Third']];
+  rows.forEach(([icon, title], i) => {
+    const inst = must(C.instanceInsert(cid, at(grid.id).node, i + 1), 'instance ' + i);
+    C.instSet(inst, k.icon, icon);
+    C.instSet(inst, k.heading, title);
+  });
+  a.equal(at(grid.id).node.children.length, 3, 'three cards, all in the grid');
+  a.equal(C.componentUsage(cid), 3);
+
+  /* a second page reusing the same component */
+  const two = pageFromTemplate('blank', 'Two');
+  C.state.pages.push(two);
+  two.slug = 'two'; two.title = 'Two'; two.desc = 'The second page.';
+  C.state.cur = 1;
+  /* An h1 before the cards, because the review is right to insist: a page whose first heading
+     is an h3 is a page a screen reader reads out of order. The fixture forgot it and the review
+     said so, which is the whole reason this assertion is a list rather than a count. */
+  const lead = insert('heading', null, 0);
+  lead.props.text = 'The second page'; lead.props.level = 'h1'; lead.props.ts = 'display';
+  const sub = insert('heading', null, 1);
+  sub.props.text = 'The same cards'; sub.props.level = 'h2'; sub.props.ts = 'title';
+  const grid2 = insert('grid', null, 2);
+  must(C.instanceInsert(cid, at(grid2.id).node, 0), 'reused across pages');
+  a.equal(C.componentUsage(cid), 4, 'a component is project-level, not page-level');
+  C.state.cur = 0;
+
+  /* the review has nothing to say */
+  a.deepEqual(C.lint().map((f: Finding) => f.code), [],
+    'a site built this way is clean, and if this list grows the message says what broke');
+
+  /* and the export */
+  const targets = C.exportTargets();
+  a.deepEqual(targets.map((t: { path: string }) => t.path), ['index.html', 'two.html']);
+  for (const t of targets) {
+    const html = C.buildPage(t.pg, t);
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+    a.equal(ids.length, new Set(ids).size, `${t.path} ships no duplicate id`);
+    a.equal((html.match(/<h1\b/g) || []).length, 1, `${t.path} has exactly one h1`);
+    a.equal(/\sstyle="/.test(html), false, `${t.path} carries no inline style attribute`);
+    a.equal((html.match(/<style/g) || []).length, 1, `${t.path} has one stylesheet`);
+    /* the definition's rules, once, however many instances the page holds */
+    const css = html.slice(0, html.indexOf('</style>'));
+    let inner: PcNode | null = null;
+    C.eachNode([comp(cid).node], x => { if (!inner && x.type === 'heading') inner = x; });
+    const rule = new RegExp('\\.' + C.nodeClass(inner!) + '\\{', 'g');
+    a.equal((css.match(rule) || []).length, 1, `${t.path} emits the definition's rule once`);
+  }
+  a.equal(C.sitemapXml().split('<loc>').length - 1, 2, 'and the sitemap has both pages');
+});
