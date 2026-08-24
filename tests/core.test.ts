@@ -7890,3 +7890,46 @@ test('a text style deleted takes its typography with it, into the definition', (
   a.equal(head!.props.ts, '', 'unlinked rather than left pointing at nothing');
   a.equal(head!.css.d['font-size'], '30px', 'and the typography it was showing is kept');
 });
+
+test('the lightbox finds a caption where the markup actually puts it', () => {
+  /* A coupling found by reading the script rather than the markup. `LB_JS` builds its list with
+     `x.parentNode.querySelector('.pagecraft-gallery-caption')` — the caption is looked up as a
+     *sibling of the link*, through the parent. So three things have to agree: the class name,
+     the nesting, and the fact that the caption is not inside the link.
+
+     Nothing tested that. Renaming the class or moving the caption inside the anchor would leave
+     the gallery working, the lightbox opening, and every caption in it silently empty — which is
+     the kind of break that ships. */
+  blank();
+  const g = insert('gallery', null, 0);
+  const gal = at(g.id).node;
+  gal.props.items = [
+    { src: 'asset:a1', alt: 'One', caption: 'The first', w: '800', h: '600' },
+    { src: 'asset:a2', alt: 'Two', caption: 'The second', w: '800', h: '600' }
+  ] as GalleryTile[];
+  gal.props.captions = 1;
+  gal.props.lightbox = 1;
+
+  const html = C.renderNode(gal, { edit: false });
+
+  /* the document-level hook the script looks for */
+  a.match(html, /data-lightbox/);
+
+  /* a tile is `<figure> <a class="pagecraft-gallery-frame" href> … </a> <figcaption
+     class="pagecraft-gallery-caption"> … ` — the caption after the link, inside the figure */
+  const tile = must(html.match(/<figure[^>]*>[\s\S]*?<\/figure>/), 'a tile')[0];
+  a.match(tile, /class="[^"]*pagecraft-gallery-frame[^"]*"[^>]*href=/,
+    'the link carries the class the script queries, and an href to intercept');
+  a.match(tile, /pagecraft-gallery-caption/);
+
+  const linkEnd = tile.indexOf('</a>');
+  const capAt = tile.indexOf('pagecraft-gallery-caption');
+  a.equal(linkEnd > -1 && capAt > linkEnd, true,
+    'the caption is a sibling after the link, not inside it — the script reads it via parentNode');
+
+  /* and the script names exactly these */
+  const script = must(C.LB_JS, 'the lightbox script');
+  for (const sel of ['[data-lightbox]', '.pagecraft-gallery-frame[href]', '.pagecraft-gallery-caption']) {
+    a.equal(script.includes(sel), true, `the script queries ${sel}, so the markup must provide it`);
+  }
+});
