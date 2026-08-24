@@ -3962,7 +3962,15 @@ var TYPO_KEYS = [
   "color"
 ];
 var TS_TYPES = ["heading", "text", "quote", "button"];
-var tokenId = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24);
+var TOKEN_MAX = 24;
+var tokenId = (s) => {
+  const full = String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  if (full.length <= TOKEN_MAX) return full;
+  const cut = full.slice(0, TOKEN_MAX);
+  if (full[TOKEN_MAX] === "-") return cut.replace(/-$/, "");
+  const at = cut.lastIndexOf("-");
+  return at >= 8 ? cut.slice(0, at) : cut;
+};
 var cvar = (id) => `var(--c-${id})`;
 var isRef = (v) => /^var\(--c-[\w-]+\)$/.test(String(v || "").trim());
 var refId = (v) => {

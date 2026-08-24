@@ -7679,3 +7679,32 @@ test('a whole site: templates, a component, two pages, and a clean export', () =
   }
   a.equal(C.sitemapXml().split('<loc>').length - 1, 2, 'and the sitemap has both pages');
 });
+
+test('a generated id stops at a word, because an item slug is a URL', () => {
+  /* Found by writing a changelog: "One way to author a hover" became `one-way-to-author-a-hove`,
+     and a URL ending in "hove" reads as a typo forever. */
+  a.equal(C.tokenId('One way to author a hover'), 'one-way-to-author-a');
+  a.equal(C.tokenId('Short enough'), 'short-enough', 'under the cap, untouched');
+  a.equal(C.tokenId('Components'), 'components');
+
+  /* exactly at the cap, and one past it on a boundary */
+  a.equal(C.tokenId('abcdefgh ijklmnop qrstuvw'), 'abcdefgh-ijklmnop', 'the cut fell mid-word');
+  a.equal(C.tokenId('aaaaaaaa bbbbbbbb cccccc'), 'aaaaaaaa-bbbbbbbb-cccccc', '24 exactly');
+
+  /* one very long word still gets cut: an empty id is worse than a truncated one */
+  a.equal(C.tokenId('Supercalifragilisticexpialidocious'), 'supercalifragilisticexpi');
+  a.equal(C.tokenId('ab cdefghijklmnopqrstuvwxyz'), 'ab-cdefghijklmnopqrstuvw',
+    'and backing up below eight characters is not an improvement');
+
+  a.equal(C.tokenId(''), '');
+  a.equal(C.tokenId('  Mixed — Punctuation!  '), 'mixed-punctuation');
+});
+
+test('an item slug reads as a URL somebody typed', () => {
+  blank();
+  const col = collectionAdd('Releases');
+  const title = must(col.fields[0], 'title field').id;
+  const it = itemAdd(col.id);
+  C.itemSet(col.id, it.id, title, 'One way to author a hover');
+  a.equal(must(C.findItem(coll(col.id), it.id), 'item').slug, 'one-way-to-author-a');
+});

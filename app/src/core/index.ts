@@ -2003,7 +2003,22 @@ const TYPO_KEYS = ['font-family', 'font-size', 'font-weight', 'font-style',
   'line-height', 'letter-spacing', 'text-transform', 'color'];
 const TS_TYPES = ['heading', 'text', 'quote', 'button'];    // elements that can carry a text style
 
-const tokenId = (s: unknown) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24);
+/* An identifier from a name: lowercase, hyphenated, and capped at 24 characters.
+
+   The cap backs up to a word boundary rather than cutting through a word, which matters because
+   this makes **item slugs** and an item slug is a URL somebody reads. A release called "One way
+   to author a hover" became `one-way-to-author-a-hove`, and a URL ending in "hove" reads as a
+   typo forever. It backs up only when the cut landed mid-word, and not below eight characters —
+   one very long word still gets truncated, because the alternative is an empty id. */
+const TOKEN_MAX = 24;
+const tokenId = (s: unknown) => {
+  const full = String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (full.length <= TOKEN_MAX) return full;
+  const cut = full.slice(0, TOKEN_MAX);
+  if (full[TOKEN_MAX] === '-') return cut.replace(/-$/, '');   // the cut fell on a boundary
+  const at = cut.lastIndexOf('-');
+  return at >= 8 ? cut.slice(0, at) : cut;
+};
 const cvar = (id: string) => `var(--c-${id})`;
 const isRef = (v: unknown) => /^var\(--c-[\w-]+\)$/.test(String(v || '').trim());
 const refId = (v: unknown) => { const m = String(v || '').trim().match(/^var\(--c-([\w-]+)\)$/); return m ? m[1] : null; };
