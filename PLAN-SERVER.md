@@ -665,14 +665,48 @@ Known and not fixed here: `allTrees()` includes component definitions, because t
 still not saved blocks — so `classDelete` can leave a dangling class id inside a block. That is
 pre-existing, and it is a cleanup rather than a bug anybody has hit.
 
+## The Box, and the end of milestone 3
+
+**The primitives.** One widget with a `layout` prop covers Div, Flex and Grid, because they
+differ by a single declaration; four palette entries build it, because "Box" plus a dropdown
+would hide two layouts this editor never had behind a control nobody would open. A Link block
+is the same widget with a link, and it is the only way anything here can make a whole card
+clickable — a link lived on a heading, a button or an image, so the alternative was a
+transparent button stretched over the card.
+
+`List` and form-fields-as-elements are **not** built, and this is the argument rather than an
+omission. A `ul` of `li`s is a Box with its tag set, and prose lists are what the rich text
+block already does — a List widget would be a third way to say the same thing, which is what
+the rest of this section is about removing. Form fields as elements is a real improvement that
+changes nothing else, which is where the plan put it and where it stays.
+
+The Box needed `alsoHolds`, and finding it was the third instance of one pattern: `accepts?:
+Level[]` was declared on four widgets and read by nothing, while the exception it described —
+a row nested in a column — was hardcoded in `holds` by name. It had also drifted from the rule
+it was describing. A declaration nothing reads is a wish; that is now written down three times
+in this file and once in CONTEXT.md, and the fix is the same every time.
+
+**Conditions** finish milestone 3, and they were cheap because the binding already names its
+source: a condition tests a bound value, and "bound" means a CMS field *or* a component
+property, so one shape covers both. In the editor the element stays visible and selectable,
+dimmed in blue where `hide` is amber — "not at this width" and "not for this item" are two
+statements, and an author who cannot tell them apart cannot debug either.
+
+`:active` and `[disabled]` came off milestone 3's list rather than onto it, for the same reason
+`positioning` and `interactions` are not capabilities: nothing in the widget set needs them
+that what exists does not cover, and naming them would make the registry a wish again.
+
 ## What is left
 
-- **The MVP primitives this plan flagged**: `Div`, `Flex`, `Grid`, `Link Block`, `List`, and
-  form fields as elements. The plan's own recommendation was "keep the widget set, add the
-  primitives that are load-bearing, and take the component-instance model early" — the model is
-  taken, so this is next. Without Flex and Grid a layout is only what `section > row > column`
-  can express.
-- **The rest of milestone 3**: conditions with richer bindings. `:active` and `[disabled]` were
+- **Milestone 5: multi-tenant, when there is a second customer.** Not before, which is the
+  plan's own line. What #1 must not preclude is already true: a site belongs to an owner, an
+  owner is not assumed to be one, and nothing is keyed on "the" site.
+- **Form fields as first-class elements.** A Form owns its fields as props; the spec wants
+  elements. A real improvement that changes nothing else.
+- **The ACME exchange is still untested**, because it needs a public name and a real
+  certificate authority. Everything either side of it is.
+- **`allTrees()` still excludes saved blocks**, so `classDelete` can leave a dangling class id
+  inside one. Pre-existing, small, and named here so it is a decision rather than a gap. `:active` and `[disabled]` were
   on this list and are off it — `:active` is a state nothing in the widget set needs that
   `:hover` does not cover, and `[disabled]` applies to form controls the form widget already
   styles. Declaring either would have made `STATES` a wish rather than a description, which is
