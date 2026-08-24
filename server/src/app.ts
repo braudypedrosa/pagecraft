@@ -15,7 +15,7 @@
    without a database or a build — `index.ts` is the part that reads the environment. */
 import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
-import { validHost, type Store } from './store.ts';
+import { validHost, validSlug, type Site, type Store } from './store.ts';
 import { adopt, renderSite, resolvePath } from './render.ts';
 import { contentOnly } from './content.ts';
 import { throttle } from './mail.ts';
@@ -166,7 +166,9 @@ export function createApp(o: Options) {
     const mine = [];
     for (const s of sites) {
       const m = await o.auth.membership(s.id, user.id);
-      if (m) mine.push({ id: s.id, host: s.host, name: s.name, role: m.role });
+      if (m) mine.push({
+        id: s.id, host: s.host, slug: s.slug, url: shareUrl(c, o, s), name: s.name, role: m.role
+      });
     }
     return c.json({ user: { id: user.id, email: user.email, name: user.name }, sites: mine });
   });
@@ -174,7 +176,12 @@ export function createApp(o: Options) {
   /* ---------------------------------------------------------------- the editor */
 
   app.get('/', async c => {
-    if (!isEditorHost(c.req.header('host'), o)) return serveSite(c, o, built, build, '/');
+    if (!isEditorHost(c.req.header('host'), o)) {
+      const host = (c.req.header('host') || '').split(':')[0];
+      const site = await o.store.byHost(host);
+      if (!site) return c.text(`No site for host ${host}`, 404);
+      return serveSite(c, o, built, build, '/', site);
+    }
     const user = await who(c);
     if (!user) return c.html(signInPage());
 
@@ -204,7 +211,10 @@ export function createApp(o: Options) {
     if (!o.editorHtml) return c.text('No editor build. Run `node build.mjs` first.', 503);
 
     const config = {
-      siteId: site.id, host: site.host, name: site.name,
+      siteId: site.id, host: site.host, slug: site.slug, name: site.name,
+      /* the link to send somebody, worked out once here rather than assembled in the editor:
+         only the server knows whether this site has a domain of its own yet */
+      url: shareUrl(c, o, site),
       version: site.version, role: gate.role, doc: site.doc
     };
     return c.html(inject(o.editorHtml, config));
@@ -229,7 +239,10 @@ export function createApp(o: Options) {
     if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
-    return c.json({ id: site.id, host: site.host, name: site.name, version: site.version, role: gate.role, doc: site.doc });
+    return c.json({
+      id: site.id, host: site.host, slug: site.slug, url: shareUrl(c, o, site),
+      name: site.name, version: site.version, role: gate.role, doc: site.doc
+    });
   });
 
   /* Creating a site is not something a client does, so it needs a signed-in person and
@@ -237,8 +250,14 @@ export function createApp(o: Options) {
   app.post('/api/sites', async c => {
     const user = await who(c);
     if (!user) return deny(c, 401);
-    const body = await c.req.json().catch(() => null) as { host?: string; name?: string; doc?: Doc } | null;
-    if (!body || !body.host || !body.doc) return c.json({ error: 'host and doc are required' }, 400);
+    const body = await c.req.json().catch(() => null) as
+      { host?: string; slug?: string; name?: string; doc?: Doc } | null;
+    if (!body || !body.doc) return c.json({ error: 'doc is required' }, 400);
+    /* A host is no longer required to have a site. It used to be the only way to reach one, so
+       making a site meant inventing a domain first; a slug is enough, and the host is what you
+       add when the site earns a domain. The placeholder is unique and never resolves, which is
+       the honest value for "no domain yet". */
+    const host = String(body.host || '').trim() || `unclaimed-${crypto.randomUUID()}.invalid`;
     /* Stored at this build's schema, so the row starts where the save path expects it. */
     const doc = adopt(body.doc);
     if (!doc) {
@@ -247,10 +266,18 @@ export function createApp(o: Options) {
       }, 409);
     }
     try {
-      const site = await o.store.create({ host: body.host, name: body.name || body.host, doc });
+      const site = await o.store.create({
+        host, slug: body.slug, name: body.name || body.slug || 'Untitled site', doc
+      });
       await o.auth.grant(site.id, user.id, 'owner');
       const out = await rebuild(site.id, site.doc);
-      return c.json({ id: site.id, version: site.version, files: [...out.files.keys()] }, 201);
+      return c.json({
+        id: site.id, slug: site.slug, version: site.version,
+        /* where to send somebody, said once by the server rather than assembled by every
+           caller that wants to show a link */
+        url: shareUrl(c, o, site),
+        files: [...out.files.keys()]
+      }, 201);
     } catch (e) {
       return c.json({ error: String((e as Error).message || e) }, 409);
     }
@@ -324,6 +351,28 @@ export function createApp(o: Options) {
 
      Owner only. A domain is not content: moving it takes the site off the address people have
      and puts it on one they do not, and every link anybody has saved stops working. */
+
+  /* Change where a site lives under the shared host. Admin, not write: the path is the URL
+     people have been given, and moving it breaks every link to it — the same argument the host
+     route makes, at a smaller scale. */
+  app.put('/api/sites/:id/slug', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+
+    const body = await c.req.json().catch(() => null) as { slug?: string } | null;
+    const want = validSlug(body?.slug || '');
+    if (!want) {
+      return c.json({
+        error: 'that is not a usable path',
+        detail: 'Lowercase letters, digits and hyphens, up to 40 characters — and not a name '
+          + 'this server already uses, like api or auth.'
+      }, 400);
+    }
+    const moved = await o.store.setSlug(id, want);
+    if (!moved) return c.json({ error: `/${want} already answers for another site` }, 409);
+    return c.json({ id: moved.id, slug: moved.slug, url: shareUrl(c, o, moved) });
+  });
 
   app.put('/api/sites/:id/host', async c => {
     const id = c.req.param('id');
@@ -487,7 +536,36 @@ export function createApp(o: Options) {
 
   /* ------------------------------------------------------------------ the sites */
 
-  app.get('*', c => serveSite(c, o, built, build, new URL(c.req.url).pathname));
+  /* Everything the editor did not claim. Two ways a request can name a site, tried in the order
+     that keeps each one unambiguous.
+
+     On the editor's own host the first path segment is a slug: `/acme/about` is the About page
+     of the site at `acme`. Nothing else can be, because `validSlug` refuses every prefix this
+     app registers — and `app.test.ts` checks that against Hono's own route table rather than
+     against a list somebody remembered to update.
+
+     On any other host it is a custom domain, matched the way it always was. A site can have
+     both; the slug is the one it gets for free. */
+  app.get('*', async c => {
+    const url = new URL(c.req.url);
+    if (isEditorHost(c.req.header('host'), o)) {
+      const [, first, ...rest] = url.pathname.split('/');
+      const slug = first ? validSlug(first) : null;
+      const site = slug ? await o.store.bySlug(slug) : null;
+      if (!site) {
+        return c.text(first
+          ? `No site at /${first}`
+          : 'No site here. Sign in to the editor to make one.', 404);
+      }
+      /* The path within the site. A bare `/acme` is that site's index, which is why the empty
+         remainder becomes `/` rather than falling through to a 404. */
+      return serveSite(c, o, built, build, '/' + rest.join('/'), site);
+    }
+    const host = (c.req.header('host') || '').split(':')[0];
+    const site = await o.store.byHost(host);
+    if (!site) return c.text(`No site for host ${host}`, 404);
+    return serveSite(c, o, built, build, url.pathname, site);
+  });
 
   return app;
 }
@@ -568,17 +646,38 @@ function isEditorHost(host: string | undefined, o: Options) {
   return (host || '').split(':')[0] === o.editorHost;
 }
 
+/**
+ * Serve one file of one site.
+ *
+ * The site is passed in rather than looked up here, because there are two ways to arrive at it
+ * and only the caller knows which happened: a request to a custom domain, matched on the Host
+ * header, or a request to `/<slug>/…` on the editor's own host. The second is what makes a site
+ * shareable the moment it is saved — no DNS, no certificate, no waiting for a client to change
+ * a record.
+ *
+ * `urlPath` is the path *within* the site, so the slug is already stripped when there was one.
+ * That is what lets the same rendered files serve from either, and it works because the export
+ * is internally relative: a page one directory down asks for `../assets/logo.png`, which
+ * resolves the same whether the site sits at a domain root or under a path.
+ */
+/** Where a site can be linked. Its own domain once it has one, the shared host and its path
+    until then — and the scheme comes from the request, so a local run says `http`. */
+function shareUrl(c: Context, o: Options, site: Site): string {
+  const proto = c.req.header('x-forwarded-proto') || new URL(c.req.url).protocol.replace(':', '');
+  const real = !/\.invalid$/.test(site.host);
+  if (real) return `${proto}://${site.host}/`;
+  const here = c.req.header('host') || o.editorHost || 'localhost';
+  return `${proto}://${here}/${site.slug}/`;
+}
+
 async function serveSite(
   c: Context,
   o: Options,
   built: Map<string, Map<string, string>>,
   build: (id: string, doc: Doc, assets?: Asset[]) => { files: Map<string, string> },
-  urlPath: string
+  urlPath: string,
+  site: Site
 ) {
-  const host = (c.req.header('host') || '').split(':')[0];
-  const site = await o.store.byHost(host);
-  if (!site) return c.text(`No site for host ${host}`, 404);
-
   /* A restart empties the cache, so the first request after one renders. Cheaper than
      writing files to the volume and keeping them in step with the document. */
   const path = resolvePath(urlPath);

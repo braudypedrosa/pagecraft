@@ -248,7 +248,13 @@ test('who you are is answerable, and says which sites and in what role', async (
   const me = await (await req('/auth/me', {}, cookie)).json() as
     { user: { email: string }; sites: { id: string; role: Role }[] };
   a.equal(me.user.email, 'client@acme.test');
-  a.deepEqual(me.sites, [{ id: site.id, host: 'acme.test', name: 'Acme', role: 'content' }]);
+  /* `slug` and `url` came with path-hosted sites: every site is reachable under the shared host
+     at `/<slug>/`, and `url` is the server saying where to send somebody rather than each caller
+     assembling it. A site with a real domain reports that instead. */
+  a.deepEqual(me.sites, [{
+    id: site.id, host: 'acme.test', slug: 'acme', url: 'http://acme.test/',
+    name: 'Acme', role: 'content'
+  }]);
 });
 
 test('the site itself stays public — a visitor is never asked who they are', async () => {

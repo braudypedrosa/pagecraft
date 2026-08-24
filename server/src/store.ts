@@ -15,6 +15,14 @@ export interface Site {
   id: string;
   /** the host this site answers on, e.g. `acme.example.com`. Unique. */
   host: string;
+  /** The path this site answers on under the editor's own host: `/acme/about`. Unique.
+
+      Why both. A host means DNS, a certificate, and a client who has to change a record before
+      they can see anything — worth it for a site that is somebody's front door, and absurd for
+      one you want to send a link to this afternoon. A slug is shareable the moment it is saved,
+      on the certificate this server already has. So every site gets one, and a host is the
+      thing you add later if the site earns a domain. */
+  slug: string;
   name: string;
   doc: Doc;
   /** bumped on every save. A save that carries a stale version is rejected rather than
@@ -33,13 +41,63 @@ export interface SaveResult {
 
 export interface Store {
   byHost(host: string): Promise<Site | null>;
+  /** the site answering under `/<slug>/…` on the editor's host */
+  bySlug(slug: string): Promise<Site | null>;
   byId(id: string): Promise<Site | null>;
   list(): Promise<Site[]>;
-  create(input: { host: string; name: string; doc: Doc }): Promise<Site>;
+  create(input: { host: string; slug?: string; name: string; doc: Doc }): Promise<Site>;
   /** `version` is the version the editor loaded. See `Site.version`. */
   save(id: string, doc: Doc, version: number): Promise<SaveResult>;
   /** Move a site to a different domain. Null when the domain is taken. */
   setHost(id: string, host: string): Promise<Site | null>;
+  /** Move a site to a different path. Null when the path is taken or reserved. */
+  setSlug(id: string, slug: string): Promise<Site | null>;
+}
+
+/* ---- slugs -------------------------------------------------------------
+   A site's path segment. Narrow on purpose: it appears in every URL the site has, it is typed
+   and read aloud, and it shares a namespace with this server's own routes.
+
+   The reserved list is the interesting part. It is not a hand-kept list of names that felt
+   risky — `RESERVED_PATHS` is the first segment of every route the editor registers, and
+   `app.test.ts` asserts that by reading Hono's own route table. Adding a route without adding
+   it here is caught rather than discovered the day a site called `api` stops loading. */
+export const RESERVED_PATHS = [
+  'api', 'auth', 'internal', 'edit',
+  /* not routes, but names a browser or a crawler asks for at the root */
+  'assets', 'favicon.ico', 'robots.txt', 'sitemap.xml', 'index.html', '.well-known'
+];
+
+/**
+ * Is this a path segment a site may live on?
+ *
+ * Lowercase letters, digits and hyphens; 1 to 40 characters; no leading or trailing hyphen and
+ * no run of two. No dots, which keeps `robots.txt` from ever being a site and keeps a slug
+ * distinguishable from a host at a glance. Returns the cleaned slug, or null.
+ */
+export function validSlug(raw: unknown): string | null {
+  const s = String(raw == null ? '' : raw).trim().toLowerCase();
+  if (!wellFormed(s)) return null;
+  if (RESERVED_PATHS.includes(s)) return null;
+  return s;
+}
+
+/** The shape half of `validSlug`, without the reserved list. Separate because deriving a slug
+    and accepting one want different answers for a *well-formed but reserved* name: a site
+    called "API" should land near its name as `api-2`, while a person typing `api` into the
+    field should be told no. */
+const wellFormed = (s: string) => !!s && s.length <= 40 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s);
+
+/** A slug from a name, made unique against `taken`. `site` when the name yields nothing usable
+    — which is a name like "!!!", not a name like "API". */
+export function slugFrom(name: string, taken: readonly string[]): string {
+  const base = String(name || '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-').slice(0, 40)
+    .replace(/-+$/, '');
+  const stem = wellFormed(base) ? base : 'site';
+  let out = stem, k = 2;
+  while (taken.includes(out) || RESERVED_PATHS.includes(out)) out = `${stem}-${k++}`;
+  return out;
 }
 
 /**
@@ -74,6 +132,10 @@ export class MemoryStore implements Store {
     for (const s of this.sites.values()) if (s.host === host) return this.copy(s);
     return null;
   }
+  async bySlug(slug: string) {
+    for (const s of this.sites.values()) if (s.slug === slug) return this.copy(s);
+    return null;
+  }
   async byId(id: string) {
     const s = this.sites.get(id);
     return s ? this.copy(s) : null;
@@ -81,13 +143,21 @@ export class MemoryStore implements Store {
   async list() {
     return [...this.sites.values()].map(s => this.copy(s));
   }
-  async create(input: { host: string; name: string; doc: Doc }) {
+  async create(input: { host: string; slug?: string; name: string; doc: Doc }) {
     for (const s of this.sites.values()) {
       if (s.host === input.host) throw new Error(`host already taken: ${input.host}`);
     }
+    /* A slug is not optional on a site, only on the *request*: every site is shareable by path
+       from the moment it exists, and asking a caller to invent a URL segment before it can have
+       one would make the common case the awkward one. */
+    const taken = [...this.sites.values()].map(s => s.slug);
+    const want = input.slug ? validSlug(input.slug) : null;
+    if (input.slug && !want) throw new Error(`not a usable path: ${input.slug}`);
+    if (want && taken.includes(want)) throw new Error(`path already taken: ${want}`);
     const site: Site = {
       id: 's' + ++this.seq,
       host: input.host,
+      slug: want || slugFrom(input.name || input.host, taken),
       name: input.name,
       doc: structuredClone(input.doc),
       version: 1,
@@ -95,6 +165,17 @@ export class MemoryStore implements Store {
     };
     this.sites.set(site.id, site);
     return this.copy(site);
+  }
+  async setSlug(id: string, slug: string) {
+    const s = this.sites.get(id);
+    const want = validSlug(slug);
+    if (!s || !want) return null;
+    for (const other of this.sites.values()) {
+      if (other.id !== id && other.slug === want) return null;
+    }
+    s.slug = want;
+    s.updatedAt = new Date().toISOString();
+    return this.copy(s);
   }
   async setHost(id: string, host: string) {
     const s = this.sites.get(id);

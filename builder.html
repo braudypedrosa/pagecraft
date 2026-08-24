@@ -1087,6 +1087,13 @@ pre.code{
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M12.6 3.4l-1.3 1.3M4.7 11.3l-1.3 1.3"/></svg>
       Project
     </button>
+    <!-- Server mode only, and hidden otherwise: the single-file build has nowhere to share
+         *to*. Beside Publish because it answers the same question — "how does somebody else
+         see this?" — and a live URL is the answer that needs no download. -->
+    <button class="btn ghost" id="shareBtn" title="Copy the link to this site" hidden>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
+      Share
+    </button>
     <button class="btn primary" id="exportBtn" title="Export HTML (⌘E)">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 10.5V2"/><path d="M4.8 5.2L8 2l3.2 3.2"/><path d="M2 10.5v2A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5v-2"/></svg>
       Publish
@@ -1205,6 +1212,30 @@ let saveWarned = false;
    is the one mutable field: every accepted save returns the next one, and sending a stale
    one is how the server knows two people are editing. */
 const SRV = window.PC_SERVER || null;
+
+/* The live URL, for sending to somebody.
+
+   Only in server mode, because the single-file build has nowhere to share to — the button is
+   hidden and this returns early. The URL comes from the server rather than being assembled
+   here: only it knows whether this site has a domain of its own yet or is answering under a
+   path on the shared host, and getting that wrong means handing somebody a link to nothing.
+
+   Copy, with the link shown as a fallback. `navigator.clipboard` needs a secure context, which
+   a local run over plain http is not, so the toast carries the URL either way. */
+function wireShare() {
+  const btn = $('#shareBtn');
+  if (!btn || !SRV || !SRV.url) return;
+  btn.hidden = false;
+  btn.title = `Copy ${SRV.url}`;
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(SRV.url);
+      toast(`Link copied — ${SRV.url}`);
+    } catch {
+      toast(SRV.url);
+    }
+  });
+}
 
 /* May this session change the shape of the site, as opposed to its words?
 
@@ -4174,6 +4205,7 @@ function bindTop() {
   $('#exportBtn').addEventListener('click', exportModal);
   $('#reviewBtn').addEventListener('click', exportModal);
   $('#projBtn').addEventListener('click', projectModal);
+  wireShare();
   $('#helpBtn').addEventListener('click', helpModal);
   /* Extracted so anything can open a panel, not only a click on the rail — starting
      an empty site sends you to Add, which is the only thing left to do. */

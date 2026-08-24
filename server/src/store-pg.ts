@@ -11,10 +11,13 @@
    reason the check is one statement is exactly so that the database settles it rather than
    this code.
 
-   The schema is here rather than in a migration tool because there is nothing to migrate yet.
-   When there is, that changes. */
+   The schema was here rather than in a migration tool because there was nothing to migrate.
+   There is now: `slug` arrives as an `alter table` with a backfill, which is a migration in all
+   but name. One more of those and it wants a real tool with an ordered list and a record of
+   what has run — this one is safe to re-run only because every statement in it says
+   `if not exists`. */
 import type { Doc } from '../../app/src/core/types.ts';
-import type { Site, SaveResult, Store } from './store.ts';
+import { validSlug, slugFrom, type Site, type SaveResult, type Store } from './store.ts';
 import { ASSET_SCHEMA, type Asset, type AssetStore } from './assets.ts';
 import {
   AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session
@@ -32,6 +35,15 @@ create table if not exists sites (
   updated_at  timestamptz not null default now()
 );
 create index if not exists sites_host_idx on sites (host);
+
+-- The path a site answers on under the editor's own host. Added after the table shipped, so it
+-- arrives as an alter: a column, a backfill from the host's first label, then the constraints.
+-- In that order, because NOT NULL on a table with rows and no values would fail.
+-- (No backticks in here: this is prose inside a template literal. Convention 9.)
+alter table sites add column if not exists slug text;
+update sites set slug = split_part(host, '.', 1) where slug is null;
+alter table sites alter column slug set not null;
+create unique index if not exists sites_slug_key on sites (slug);
 `;
 
 /* Just enough of `pg` to be typed without importing it at module scope — and narrow enough
@@ -42,12 +54,12 @@ export interface Queryable {
 }
 
 interface Row {
-  id: string; host: string; name: string; doc: Doc;
+  id: string; host: string; slug: string; name: string; doc: Doc;
   version: number; updated_at: Date | string;
 }
 
 const toSite = (r: Row): Site => ({
-  id: r.id, host: r.host, name: r.name, doc: r.doc, version: r.version,
+  id: r.id, host: r.host, slug: r.slug, name: r.name, doc: r.doc, version: r.version,
   updatedAt: typeof r.updated_at === 'string' ? r.updated_at : r.updated_at.toISOString()
 });
 
@@ -70,6 +82,11 @@ export class PgStore implements Store {
     return rows[0] ? toSite(rows[0]) : null;
   }
 
+  async bySlug(slug: string) {
+    const { rows } = await this.db.query<Row>('select * from sites where slug = $1', [slug]);
+    return rows[0] ? toSite(rows[0]) : null;
+  }
+
   async byId(id: string) {
     const { rows } = await this.db.query<Row>('select * from sites where id = $1', [id]);
     return rows[0] ? toSite(rows[0]) : null;
@@ -80,13 +97,43 @@ export class PgStore implements Store {
     return rows.map(toSite);
   }
 
-  async create(input: { host: string; name: string; doc: Doc }) {
+  async create(input: { host: string; slug?: string; name: string; doc: Doc }) {
     const id = crypto.randomUUID();
-    const { rows } = await this.db.query<Row>(
-      `insert into sites (id, host, name, doc) values ($1, $2, $3, $4) returning *`,
-      [id, input.host, input.name, JSON.stringify(input.doc)]
-    );
-    return toSite(rows[0]);
+    const want = input.slug ? validSlug(input.slug) : null;
+    if (input.slug && !want) throw new Error(`not a usable path: ${input.slug}`);
+    /* The taken list is read to *derive* a slug, not to guarantee it: the unique index decides,
+       and a collision on insert is retried with the next candidate. A check-then-insert would
+       leave the same race `setHost` avoids for the same reason. */
+    const taken = (await this.list()).map(s => s.slug);
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const slug = want || slugFrom(input.name || input.host, taken);
+      try {
+        const { rows } = await this.db.query<Row>(
+          `insert into sites (id, host, slug, name, doc) values ($1, $2, $3, $4, $5) returning *`,
+          [id, input.host, slug, input.name, JSON.stringify(input.doc)]
+        );
+        return toSite(rows[0]);
+      } catch (e) {
+        const msg = String((e as Error).message);
+        /* a slug clash is worth another try; a host clash is the caller's answer */
+        if (want || !/slug/i.test(msg) || !/unique|duplicate/i.test(msg)) throw e;
+        taken.push(slug);
+      }
+    }
+    throw new Error('could not find a free path for this site');
+  }
+
+  async setSlug(id: string, slug: string) {
+    const want = validSlug(slug);
+    if (!want) return null;
+    try {
+      const { rows } = await this.db.query<Row>(
+        'update sites set slug = $1, updated_at = now() where id = $2 returning *', [want, id]);
+      return rows[0] ? toSite(rows[0]) : null;
+    } catch (e) {
+      if (/unique|duplicate/i.test(String((e as Error).message))) return null;
+      throw e;
+    }
   }
 
   async setHost(id: string, host: string) {
