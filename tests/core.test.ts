@@ -7801,3 +7801,92 @@ test('an author who sets a height still gets one, and the crop that goes with it
   a.equal(base < own, true, 'the base rule first, so a later rule of equal weight wins');
   a.match(css.slice(own), /^[^}]*height:320px/);
 });
+
+/* ------------------------------------- the libraries reach inside a definition
+   `allTrees()` gained component definitions so that every project-wide walk sees them. The
+   count was tested; the walks that *rewrite* were not, and those are the ones that can leave a
+   definition holding a reference to something that no longer exists. */
+
+/** a component whose definition references a colour token, a text style and a class */
+function componentUsingLibraries() {
+  blank();
+  /* `blank()` keeps the libraries — that is the product's decision and the right one. A fixture
+     that calls this four times needs to say so, or the second call counts the first call's
+     definition as another user of the same class. Third time this has caught me. */
+  C.state.meta.components = [];
+  C.ensureTokens().classes = [];
+  const tok = must(C.colorAdd('Card ink', '#123456'), 'colour');
+  const cls = C.classAdd('Card', { d: { padding: '20px' } });
+  const box = C.N('column', {}, {}, [C.N('heading', { text: 'Title', ts: 'subtitle' })]);
+  C.state.pages[0].tree.push(C.N('section', {}, {}, [C.N('row', {}, {}, [box])]));
+  C.setCss(box, 'background-color', C.cvar(tok));
+  C.classApply(box, cls);
+  const cid = componentFromNode(box.id, 'Card');
+  const inst = at(box.id).node;
+  return { cid, tok, cls, inst, def: comp(cid) };
+}
+
+test('a colour token used only inside a definition is counted, restyled and deleted safely', () => {
+  const { cid, tok, def } = componentUsingLibraries();
+  a.equal(C.colorUsage(tok), 1, 'counted, so nothing offers to delete it as unused');
+
+  /* restyling reaches every instance, because an instance reads the definition */
+  must(C.findColor(tok), 'colour').value = '#654321';
+  a.match(C.treeCss([C.state.pages[0].tree], false), /--c-card-ink:#654321/);
+
+  /* and deleting swaps the literal in, inside the definition, so the page does not move */
+  const before = C.buildPage(C.state.pages[0]);
+  C.colorDelete(tok);
+  let bg: string | undefined;
+  C.eachNode([comp(cid).node], n => { if (n.type === 'column') bg = n.css.d['background-color']; });
+  a.equal(bg, '#654321', 'the value it had, written out');
+  a.equal(C.isRef(bg), false, 'and no reference to a token that has gone');
+
+  /* The claim is that the page does not move, not that the stylesheet says the same words: the
+     colour lived in the `:root` token block and now lives on the element, which is the whole
+     point of the swap. So: same markup, and the colour still in the sheet. */
+  const after = C.buildPage(C.state.pages[0]);
+  const body = (x: string) => x.slice(x.indexOf('<body'));
+  a.equal(body(after), body(before), 'the markup is untouched');
+  a.match(after, /#654321/, 'and the colour is still in the stylesheet');
+  a.equal(/--c-card-ink/.test(after), false, 'under no name, because the name is gone');
+  void def;
+});
+
+test('a text style used only inside a definition is counted and follows its edits', () => {
+  const { cid } = componentUsingLibraries();
+  a.equal(C.tsUsage('subtitle') >= 1, true, 'the definition’s heading counts');
+
+  must(C.findStyle('subtitle'), 'style').css.d['font-size'] = '21px';
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  a.match(css, /\.ts-subtitle\{[^}]*font-size:21px/);
+  /* the instance wears the class, so it moves with the style and stores nothing itself */
+  const html = C.renderNode(at(C.instances(cid)[0].node.id).node, { edit: false });
+  a.match(html, /ts-subtitle/);
+});
+
+test('deleting a class removes it from a definition too', () => {
+  /* The one that would rot silently: a class id left on a node inside a definition is a class
+     nothing defines, and the element quietly loses its padding on every instance. */
+  const { cid, cls } = componentUsingLibraries();
+  a.equal(C.classUsage(cls), 1);
+  C.classDelete(cls);
+  let left: string[] = [];
+  C.eachNode([comp(cid).node], n => { if ((n.cls || []).length) left = left.concat(n.cls); });
+  a.deepEqual(left, [], 'no dangling class id inside the definition');
+  a.equal(C.findClass(cls), null);
+});
+
+test('a text style deleted takes its typography with it, into the definition', () => {
+  const { cid } = componentUsingLibraries();
+  const id = C.styleAdd('Card head');
+  must(C.findStyle(id), 'style').css.d['font-size'] = '30px';
+  let head: PcNode | null = null;
+  C.eachNode([comp(cid).node], n => { if (!head && n.type === 'heading') head = n; });
+  head!.props.ts = id;
+  a.equal(C.tsUsage(id), 1);
+
+  C.styleDelete(id);
+  a.equal(head!.props.ts, '', 'unlinked rather than left pointing at nothing');
+  a.equal(head!.css.d['font-size'], '30px', 'and the typography it was showing is kept');
+});
