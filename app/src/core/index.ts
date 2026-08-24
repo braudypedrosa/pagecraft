@@ -2761,7 +2761,15 @@ function lint() {
         }
         const [path, frag] = h.split('#');
         const target = path === '' ? here : path;
-        if (path === '' && region !== 'page') {
+        /* A bare `#anchor` in a global region resolves only on the page that has it — unless
+           there is one page, where "every page" and "this page" are the same thing and the
+           warning is noise. A one-pager with an anchor nav is a normal site, and this fired
+           three times on one built with this very builder.
+
+           Not just quieter: the early return meant a single-page project never had the anchor
+           checked at all. Falling through sends it to the same `dead-anchor` check a page-local
+           link gets, so `#nope` in a one-pager is now an error rather than a shrug. */
+        if (path === '' && region !== 'page' && state.pages.length > 1) {
           add('warn', 'global-fragment', `The ${region} links to “${h}”. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor — name the page instead.`, w, n.id);
           return;
         }

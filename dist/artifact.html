@@ -4533,7 +4533,7 @@ function lint() {
         }
         const [path, frag] = h.split("#");
         const target = path === "" ? here : path;
-        if (path === "" && region !== "page") {
+        if (path === "" && region !== "page" && state.pages.length > 1) {
           add("warn", "global-fragment", `The ${region} links to \u201C${h}\u201D. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor \u2014 name the page instead.`, w, n.id);
           return;
         }

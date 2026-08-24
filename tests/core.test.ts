@@ -7933,3 +7933,47 @@ test('the lightbox finds a caption where the markup actually puts it', () => {
     a.equal(script.includes(sel), true, `the script queries ${sel}, so the markup must provide it`);
   }
 });
+
+test('a one-page site may use anchors in its global header', () => {
+  /* Found by building a one-pager with this builder: three `global-fragment` warnings on a site
+     where "every page" and "this page" are the same page. A one-pager with an anchor nav is a
+     normal site, not a mistake. */
+  /* `blankProject`, not `blank()`: the latter runs `seed()`, and the demo has two pages — it
+     clears the first one's tree and leaves the second standing. This test is about page count,
+     so it has to say which it wants. */
+  fresh();
+  C.blankProject('One');
+  const sec = insert('section', null, 0);
+  at(sec.id).node.adv.htmlId = 'what';
+  C.state.ui.mode = 'header';
+  const nav = insert('nav', null, 0);
+  nav.props.items = [{ label: 'What', href: '#what' }];
+  C.state.ui.mode = 'page';
+
+  a.equal(C.state.pages.length, 1, 'the premise');
+  a.equal(C.lint().filter((f: Finding) => f.code === 'global-fragment').length, 0,
+    'one page, so the anchor resolves everywhere it appears');
+
+  /* and the anchor is still checked, which the early return used to skip entirely */
+  nav.props.items = [{ label: 'Nope', href: '#nope' }];
+  const dead = C.lint().filter((f: Finding) => f.code === 'dead-anchor');
+  a.equal(dead.length, 1, 'a bare anchor pointing at nothing is an error, not a shrug');
+  a.match(dead[0].msg, /#nope/);
+});
+
+test('a second page brings the warning back, because now it means something', () => {
+  fresh();
+  C.blankProject('One');
+  const sec = insert('section', null, 0);
+  at(sec.id).node.adv.htmlId = 'what';
+  C.state.ui.mode = 'header';
+  const nav = insert('nav', null, 0);
+  nav.props.items = [{ label: 'What', href: '#what' }];
+  C.state.ui.mode = 'page';
+  a.equal(C.lint().filter((f: Finding) => f.code === 'global-fragment').length, 0);
+
+  C.state.pages.push(pageFromTemplate('blank', 'Two'));
+  const warned = C.lint().filter((f: Finding) => f.code === 'global-fragment');
+  a.equal(warned.length > 0, true, 'the second page has no #what, and the header is on it');
+  a.match(warned[0].msg, /name the page instead/);
+});
