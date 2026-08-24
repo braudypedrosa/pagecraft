@@ -15,6 +15,8 @@ import * as C from '../app/src/core/index';
 import { Ctl } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
 import { Add } from '../app/src/ui/Add';
+import { Inspector } from '../app/src/ui/inspector/Inspector';
+import { Pages } from '../app/src/ui/Pages';
 import { act } from 'preact/test-utils';
 import { rig, type Rig } from './ui.setup';
 import type { Control, NavItem } from '../app/src/core/types';
@@ -28,6 +30,96 @@ const heading = () => C.insert('heading', null, 0)!;
 /* A repeater's rows, typed. `items` is a different shape per widget, so the test that
    built the node says which it has. */
 const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
+
+/* ----------------------------------------------- scoped to a content account */
+
+test('a content account is offered the Content tab and no other', () => {
+  /* The server refuses CSS from a content account, so offering a tab full of colours is an
+     invitation to be refused. One tab is no tab, so the row goes entirely. */
+  const full = rig();
+  const n = C.insert('heading', null, 0)!;
+  C.state.ui.sel = n.id;
+  full.draw(<Inspector />);
+  a.deepEqual(full.$$('.tabs button').map(b => b.textContent), ['Content', 'Style', 'Advanced']);
+  full.host.remove();
+
+  const scoped = rig({ canStructure: false });
+  const m = C.insert('heading', null, 0)!;
+  C.state.ui.sel = m.id;
+  scoped.draw(<Inspector />);
+  a.deepEqual(scoped.$$('.tabs button').map(b => b.textContent), [], 'no tab row at all');
+  a.ok(scoped.$('.group'), 'and the content controls are still there');
+  scoped.host.remove();
+});
+
+test('a stale Style tab does not strand a content account on a pane it cannot leave', () => {
+  /* `stab` persists across sessions, so the role has to force the tab rather than default
+     it — otherwise the panel renders Style with no tab row to get back from. */
+  const r2 = rig({ canStructure: false });
+  C.state.ui.stab = 'style';
+  const n = C.insert('heading', null, 0)!;
+  C.state.ui.sel = n.id;
+  r2.draw(<Inspector />);
+  const labels = r2.$$('.gh').map(e => e.textContent!.trim());
+  a.ok(labels.some(l => l.includes('Heading')), `expected the Content group, got ${JSON.stringify(labels)}`);
+  a.equal(labels.some(l => l.includes('Background')), false, 'that is a Style group');
+  r2.host.remove();
+});
+
+test('a content account’s Pages panel offers the two fields that are words', () => {
+  const full = rig();
+  full.draw(<Pages />);
+  const all = full.$$('.gb label').map(e => e.textContent!.replace(/\s+/g, ' ').trim());
+  a.ok(all.includes('Page name'));
+  a.ok(all.includes('Slug'));
+  a.ok(all.some(l => l.startsWith('Extra')));
+  a.ok(full.$$('button').some(b => /New page/.test(b.textContent || '')));
+  full.host.remove();
+
+  const scoped = rig({ canStructure: false });
+  scoped.draw(<Pages />);
+  const some = scoped.$$('.gb label').map(e => e.textContent!.replace(/\s+/g, ' ').trim());
+  a.deepEqual(some, ['Browser title', 'Meta description']);
+  a.equal(scoped.$$('button').some(b => /New page/.test(b.textContent || '')), false,
+    'adding a page is not a content edit');
+  a.ok(scoped.$$('.pagerow').length >= 1, 'but the list stays — it is how you reach a page');
+  scoped.host.remove();
+});
+
+test('a content account is offered the words, not the settings beside them', () => {
+  /* The Content tab is not the line the server draws. A heading's tab holds its text — and
+     also its HTML tag, its text style and its alignment. A tag is structure and the other two
+     write CSS, so offering them is offering a refused save. */
+  const full = rig();
+  const n = C.insert('heading', null, 0)!;
+  C.state.ui.sel = n.id;
+  full.draw(<Inspector />);
+  const before = full.$$('.gb > .f label').map(e => e.textContent!.replace(/\s+/g, ' ').trim());
+  a.ok(before.includes('Heading text'));
+  a.ok(before.includes('HTML tag'), 'the owner sees the settings');
+  full.host.remove();
+
+  const scoped = rig({ canStructure: false });
+  const m = C.insert('heading', null, 0)!;
+  C.state.ui.sel = m.id;
+  scoped.draw(<Inspector />);
+  const after = scoped.$$('.gb > .f label').map(e => e.textContent!.replace(/\s+/g, ' ').trim());
+  a.deepEqual(after, ['Heading text']);
+  scoped.host.remove();
+});
+
+test('a list of words survives the filter, because the list is where the words are', () => {
+  /* An accordion's rows are a text slot named by its array: `['items', 'q', 'a']`. Filtering
+     on the bare key would have dropped the one control that edits its content. */
+  const r2 = rig({ canStructure: false });
+  const n = C.insert('accordion', null, 0)!;
+  C.state.ui.sel = n.id;
+  r2.draw(<Inspector />);
+  const labels = r2.$$('.gb > .f label').map(e => e.textContent!.replace(/\s+/g, ' ').trim());
+  a.ok(labels.includes('Questions'), `expected the rows control, got ${JSON.stringify(labels)}`);
+  a.equal(labels.includes('Open on load'), false, 'a setting, not content');
+  r2.host.remove();
+});
 
 /* ------------------------------------------------------------ templates */
 

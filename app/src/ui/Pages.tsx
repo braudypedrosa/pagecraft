@@ -113,13 +113,33 @@ export function Pages() {
     <>
       <div class="pagelist">
         {C.state.pages.map((p, i) => <PageRow key={p.id} i={i} />)}
-        <button class="btn block"
-          onClick={() => L.newPageModal()}>
-          <Icon name="plus" size={13} /> New page
-        </button>
+        {/* Adding a page is not a content edit — the server refuses it — so it is not offered
+            to an account that cannot make one. The list itself stays: switching between pages
+            is how you reach the words on them. */}
+        {L.canStructure() ? (
+          <button class="btn block"
+            onClick={() => L.newPageModal()}>
+            <Icon name="plus" size={13} /> New page
+          </button>
+        ) : null}
       </div>
 
       <div class="group"><div class="gh">Current page</div><div class="gb">
+        {/* Of everything a page holds, two things are words somebody writes: the browser
+            title and the meta description. A name and a slug are how the site is addressed,
+            the head block is a way to run anything, and a detail template is structure. So a
+            content account gets the two, in the order they matter, and none of the rest. */}
+        {!L.canStructure() ? (
+          <>
+            <div class="f"><label>Browser title</label>
+              <input class="ctl" value={pg.title || ''} placeholder={pg.name}
+                {...field(v => { C.page().title = v; })} /></div>
+            <div class="f"><label>Meta description</label>
+              <textarea class="ctl" value={pg.desc || ''}
+                style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: 'var(--fs-2)' }}
+                {...field(v => { C.page().desc = v; })} /></div>
+          </>
+        ) : <>
         <div class="f"><label>Page name</label>
           <input class="ctl" value={pg.name}
             {...field(v => { C.page().name = v; L.renderModebar(); })} /></div>
@@ -209,6 +229,7 @@ export function Pages() {
               ? <div class="note">Becomes a template: one file per item.</div>
               : null}
         </div>
+        </>}
       </div></div>
     </>
   );

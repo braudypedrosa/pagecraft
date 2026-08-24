@@ -113,6 +113,32 @@ test('CMS values and the draft flag are content', () => {
   a.equal(contentOnly(seeded, held).ok, true, 'holding a post back is a content decision');
 });
 
+test('reading the CMS does not become a change to the site', () => {
+  /* `collections()` in the core materialises `meta.collections` as a side effect of reading
+     it, so opening the CMS panel turned a document without collections into one with an empty
+     list — and a content account could then save nothing until it reloaded. Found by clicking
+     the tab in a browser, which is the only place a lazy getter like that shows up. */
+  const before = demo();
+  /* set explicitly rather than assumed: `state.meta` outlives a `seed()` inside one process,
+     so whether the key is there depends on which test ran first. In a fresh browser it is
+     not there, which is the case that broke. */
+  delete before.meta.collections;
+
+  const after = structuredClone(before);
+  Core.restore(after);
+  Core.collections();                       // exactly what opening the panel does
+  a.deepEqual(after.meta.collections, [], 'reading it created it');
+
+  a.equal(contentOnly(before, after).ok, true, 'and that must not count as a change');
+  a.equal(contentOnly(after, before).ok, true, 'in either direction');
+
+  /* a collection that actually exists is still structure */
+  const real = structuredClone(before);
+  Core.restore(real);
+  Core.collectionAdd('Journal');
+  a.equal(contentOnly(before, real).ok, false, 'declaring one is not content');
+});
+
 /* ------------------------------------------------------------------ refused */
 
 test('styling is not content', () => {

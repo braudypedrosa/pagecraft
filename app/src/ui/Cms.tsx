@@ -27,9 +27,13 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
         <b>{col.name}</b>
         <small>{n(col.fields.length, 'field')} · {n(col.items.length, 'item')}</small>
       </span>
-      <button class="bx" title="Delete this collection" onClick={remove}>
-        <Icon name="trash" size={11} />
-      </button>
+      {/* Deleting a collection takes its items with it. That is not a content edit however
+          much of the content it removes, and the server refuses it. */}
+      {L.canStructure() ? (
+        <button class="bx" title="Delete this collection" onClick={remove}>
+          <Icon name="trash" size={11} />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -48,12 +52,17 @@ export function Cms() {
 
   return (
     <>
-      <div style={{ padding: '12px 14px 0' }}>
-        <button class="btn primary block" onClick={add}>
-          <Icon name="plus" size={13} /> New collection
-        </button>
-        <div class="note">Fields, and the items that fill them.</div>
-      </div>
+      {/* A collection is a shape — fields, and what a detail page is built from. Filling one
+          is content; declaring one is not. So a content account edits the items inside and is
+          not offered a new collection. */}
+      {L.canStructure() ? (
+        <div style={{ padding: '12px 14px 0' }}>
+          <button class="btn primary block" onClick={add}>
+            <Icon name="plus" size={13} /> New collection
+          </button>
+          <div class="note">Fields, and the items that fill them.</div>
+        </div>
+      ) : null}
       {list.length
         ? <div style={{ padding: '12px 14px' }}>
           {list.map(c => <CollectionRow key={c.id} col={c} />)}

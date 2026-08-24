@@ -30,6 +30,11 @@ export type Core = typeof CoreNs;
 
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {
+  /** May this session change the shape of the site, or only its words? False for a
+      `content` account on the server; always true in the single-file build, which has no
+      accounts. The server refuses a structural save either way — this is so the panels do
+      not offer one. */
+  canStructure(): boolean;
   /** select an element on the canvas; `null` clears the selection */
   select(id: string | null, opts?: { scroll?: boolean; add?: boolean; range?: boolean }): void;
   /** switch the editing scope between the page and the global header/footer */

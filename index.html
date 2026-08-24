@@ -276,6 +276,25 @@ body.preview .left,body.preview .right{display:none}
 .tabs button:hover{color:var(--text)}
 .tabs button.on{color:var(--text);font-weight:600;border-bottom-color:var(--green)}
 
+/* ---- scoped to a content account ---------------------------------------
+   Set by `load()` when the server says the role is `content`. The server refuses these
+   changes regardless; hiding them is so the editor stops offering what cannot be done.
+   Structural verbs are gated in JS as well, because a shortcut does not need a button. */
+/* Pages and CMS stay: a page's title and description are words a client writes, and CMS
+   items are the whole point of a CMS. What goes is everything that changes the shape of the
+   site — adding elements, reordering the tree, project settings — and the Media library,
+   which is a dead end until assets are server-side. */
+body.content-only [data-t=add],
+body.content-only [data-t=layers],
+body.content-only [data-act=project],
+body.content-only [data-act=media],
+body.content-only #paneAdd,
+body.content-only #paneLayers,
+body.content-only .s-hud [data-x=dup],
+body.content-only .s-hud [data-x=del],
+body.content-only .s-hud [data-x=up],
+body.content-only .s-hud [data-x=down]{display:none}
+
 /* ---- add palette ------------------------------------------------------- */
 .palette{padding:12px 14px 20px}
 .plabel{font-size:var(--fs-2);font-weight:600;color:var(--text-3);padding:14px 0 8px;letter-spacing:-.005em}
@@ -4593,6 +4612,13 @@ var SLOT_LABEL = {
   title: "File name",
   home: "Front page name"
 };
+function contentKeys(type) {
+  const out = /* @__PURE__ */ new Set();
+  for (const spec of TEXT_SLOTS[type] || []) {
+    out.add(typeof spec === "string" ? spec : spec[0]);
+  }
+  return out;
+}
 function textSlots(n) {
   const out = [];
   for (const spec of TEXT_SLOTS[n.type] || []) {
@@ -7907,6 +7933,7 @@ var __CORE = {
   cols,
   contentImport,
   contentJson,
+  contentKeys,
   contrast,
   copyNode,
   copyStyles,
@@ -8566,7 +8593,7 @@ var PC_UI = (() => {
           n2(col.items.length, "item")
         ] })
       ] }),
-      /* @__PURE__ */ u2("button", { class: "bx", title: "Delete this collection", onClick: remove, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+      L2.canStructure() ? /* @__PURE__ */ u2("button", { class: "bx", title: "Delete this collection", onClick: remove, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) }) : null
     ] });
   }
   function Cms() {
@@ -8586,13 +8613,13 @@ var PC_UI = (() => {
       if (made) L2.cmsModal(made.id);
     };
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2("div", { style: { padding: "12px 14px 0" }, children: [
+      L2.canStructure() ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px 0" }, children: [
         /* @__PURE__ */ u2("button", { class: "btn primary block", onClick: add, children: [
           /* @__PURE__ */ u2(Icon, { name: "plus", size: 13 }),
           " New collection"
         ] }),
         /* @__PURE__ */ u2("div", { class: "note", children: "Fields, and the items that fill them." })
-      ] }),
+      ] }) : null,
       list2.length ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px" }, children: list2.map((c3) => /* @__PURE__ */ u2(CollectionRow, { col: c3 }, c3.id)) }) : /* @__PURE__ */ u2("div", { class: "empty", children: [
         "No collections yet.",
         /* @__PURE__ */ u2("br", {}),
@@ -9011,7 +9038,7 @@ var PC_UI = (() => {
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "pagelist", children: [
         C2.state.pages.map((p3, i3) => /* @__PURE__ */ u2(PageRow, { i: i3 }, p3.id)),
-        /* @__PURE__ */ u2(
+        L2.canStructure() ? /* @__PURE__ */ u2(
           "button",
           {
             class: "btn block",
@@ -9021,11 +9048,40 @@ var PC_UI = (() => {
               " New page"
             ]
           }
-        )
+        ) : null
       ] }),
       /* @__PURE__ */ u2("div", { class: "group", children: [
         /* @__PURE__ */ u2("div", { class: "gh", children: "Current page" }),
-        /* @__PURE__ */ u2("div", { class: "gb", children: [
+        /* @__PURE__ */ u2("div", { class: "gb", children: !L2.canStructure() ? /* @__PURE__ */ u2(S, { children: [
+          /* @__PURE__ */ u2("div", { class: "f", children: [
+            /* @__PURE__ */ u2("label", { children: "Browser title" }),
+            /* @__PURE__ */ u2(
+              "input",
+              {
+                class: "ctl",
+                value: pg.title || "",
+                placeholder: pg.name,
+                ...field((v3) => {
+                  C2.page().title = v3;
+                })
+              }
+            )
+          ] }),
+          /* @__PURE__ */ u2("div", { class: "f", children: [
+            /* @__PURE__ */ u2("label", { children: "Meta description" }),
+            /* @__PURE__ */ u2(
+              "textarea",
+              {
+                class: "ctl",
+                value: pg.desc || "",
+                style: { minHeight: "56px", fontFamily: "var(--sans)", fontSize: "var(--fs-2)" },
+                ...field((v3) => {
+                  C2.page().desc = v3;
+                })
+              }
+            )
+          ] })
+        ] }) : /* @__PURE__ */ u2(S, { children: [
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { children: "Page name" }),
             /* @__PURE__ */ u2(
@@ -9185,7 +9241,7 @@ var PC_UI = (() => {
             ),
             pg.collection && C2.findCollection(pg.collection) ? /* @__PURE__ */ u2(DetailBindings, { colId: pg.collection }) : cols.length ? /* @__PURE__ */ u2("div", { class: "note", children: "Becomes a template: one file per item." }) : null
           ] })
-        ] })
+        ] }) })
       ] })
     ] });
   }
@@ -11159,14 +11215,17 @@ var PC_UI = (() => {
       });
     });
     if (!h3) return null;
-    const n2 = h3.node, d3 = C2.DEF[n2.type], tab2 = C2.state.ui.stab;
-    const content = d3.controls.content || [];
+    const n2 = h3.node, d3 = C2.DEF[n2.type];
+    const tab2 = L2.canStructure() ? C2.state.ui.stab : "content";
     const style = d3.controls.style || [];
+    const all = d3.controls.content || [];
+    const keys = L2.canStructure() ? null : C2.contentKeys(n2.type);
+    const content = keys ? all.filter((c3) => !c3.c && !!c3.k && keys.has(c3.k)) : all;
     const many = C2.selIds().length > 1;
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(Head, { h: h3 }),
       /* @__PURE__ */ u2(ClipStrip, {}),
-      /* @__PURE__ */ u2("div", { class: "tabs", children: [["content", "Content"], ["style", "Style"], ["advanced", "Advanced"]].map(([k3, label]) => /* @__PURE__ */ u2(
+      L2.canStructure() ? /* @__PURE__ */ u2("div", { class: "tabs", children: [["content", "Content"], ["style", "Style"], ["advanced", "Advanced"]].map(([k3, label]) => /* @__PURE__ */ u2(
         "button",
         {
           class: tab2 === k3 ? "on" : "",
@@ -11177,7 +11236,7 @@ var PC_UI = (() => {
           children: label
         },
         k3
-      )) }),
+      )) }) : null,
       /* @__PURE__ */ u2("div", { class: "pane", children: [
         tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
         tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: d3.label, n: n2, children: /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
@@ -11892,6 +11951,20 @@ let saveWarned = false;
    one is how the server knows two people are editing. */
 const SRV = window.PC_SERVER || null;
 
+/* May this session change the shape of the site, as opposed to its words?
+
+   The server already refuses a structural save from a content account, and it is the
+   boundary — this is not a second one. It is so the editor stops offering what cannot be
+   done: a panel that adds elements, a tab full of colours, a keystroke that deletes a
+   section. Refusing a save somebody was invited to attempt is honest and unkind.
+
+   Absent `PC_SERVER` this is the single-file build, where there is no account and nothing to
+   scope. */
+const canStructure = () => !SRV || SRV.role !== 'content';
+
+/** Wrap a structural verb so it cannot fire from a shortcut, a menu or a drag. */
+const structural = (fn) => (...args) => { if (canStructure()) return fn(...args); };
+
 function stamp(txt, bad) {
   const t = $('#savedTag');
   t.textContent = txt;
@@ -12054,6 +12127,9 @@ window.addEventListener('storage', e => {
 
 
 function load() {
+  /* Before anything draws, so the panels never flash into view. The default panel is Add,
+     which a content account does not have — `boot()` sends it to Pages instead. */
+  if (SRV && !canStructure()) document.body.classList.add('content-only');
   /* The server put the document in the page, so there is nothing to read and nothing that
      can fail. `migrate` still runs: a stored document can be older than this build. */
   if (SRV) {
@@ -12612,7 +12688,7 @@ function runAct(act, ids) {
     case 'cut': {
       if (!copyNode(id)) break;
       const label = DEF[locate(id).node.type].label;
-      edit(() => delNode(id));
+      if (canStructure()) edit(() => delNode(id));
       toast(label + ' cut' + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
     }
@@ -12631,8 +12707,8 @@ function runAct(act, ids) {
       edit(() => sendEdge(list, dir));
       break;
     }
-    case 'dup': edit(() => (many ? dupMany(list) : dupNode(id))); break;
-    case 'del': edit(() => (many ? delMany(list) : delNode(id))); break;
+    case 'dup': if (canStructure()) edit(() => (many ? dupMany(list) : dupNode(id))); break;
+    case 'del': if (canStructure()) edit(() => (many ? delMany(list) : delNode(id))); break;
     case 'stcopy': copyStyles(id); toast('Styles copied from ' + styleClip.from); renderRight(); break;
     case 'stpaste': {
       if (!styleClip.css) { toast('No styles copied yet'); break; }
@@ -13283,7 +13359,7 @@ const ui = () => UI || (UI = PC_UI.mount(
   /* __CORE is generated by build.mjs from the core bundle's own export list, so it
      cannot drift from what the core actually exports. See the note there. */
   __CORE,
-  { select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor,
+  { canStructure, select, setMode, runAct, openCtx, startLayerDrag, regions: REGIONS, scopeOf, modeFor,
     askText, askConfirm, cmsModal, saveBlockFlow, toast, startDrag, appendSmart,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
@@ -14693,7 +14769,7 @@ function hotkey(e) {
   if (meta && k === 'd') {
     e.preventDefault();
     const ids = selIds();
-    if (ids.length) edit(() => ids.length > 1 ? dupMany(ids) : dupNode(ids[0]));
+    if (ids.length && canStructure()) edit(() => ids.length > 1 ? dupMany(ids) : dupNode(ids[0]));
     return;
   }
   /* Styles first: the ⌘C and ⌘V branches below never checked shift, so without this
@@ -14747,7 +14823,7 @@ function hotkey(e) {
   if (meta && k === 's') { e.preventDefault(); save(); toast('Saved locally'); return; }
   if (!meta && (k === 'backspace' || k === 'delete')) {
     const ids = selIds();
-    if (ids.length) { e.preventDefault(); edit(() => ids.length > 1 ? delMany(ids) : delNode(ids[0])); }
+    if (ids.length && canStructure()) { e.preventDefault(); edit(() => ids.length > 1 ? delMany(ids) : delNode(ids[0])); }
     return;
   }
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
@@ -14758,7 +14834,7 @@ function hotkey(e) {
          which is how every list in every editor behaves */
       if (meta) { runAct(dir < 0 ? 'first' : 'last', selIds()); return; }
       const ids = selIds();
-      edit(() => ids.length > 1 ? nudgeMany(ids, dir) : nudge(ids[0], dir));
+      if (canStructure()) edit(() => ids.length > 1 ? nudgeMany(ids, dir) : nudge(ids[0], dir));
       return;
     }
     if (meta) return;
@@ -14805,6 +14881,9 @@ function bindTop() {
     renderPanelHead();
     renderCms();
   };
+  /* Add is the default panel and a content account has no Add. Pages is the right landing
+     place: every site has one, and its title and description are content. */
+  if (SRV && !canStructure()) showPanel('pages');
   $$('#leftRail button').forEach(b => b.addEventListener('click', () => {
     /* Media and Project open dialogs rather than swapping the panel, so they set
        neither `state.ui.tab` nor the `on` treatment — the panel behind them has not

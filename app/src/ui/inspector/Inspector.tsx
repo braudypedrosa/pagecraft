@@ -347,21 +347,35 @@ export function Inspector() {
      lives in the ? dialog, which is always reachable. */
   if (!h) return null;
 
-  const n = h.node, d = C.DEF[n.type], tab = C.state.ui.stab;
-  const content = d.controls.content || [];
+  const n = h.node, d = C.DEF[n.type];
+  /* Forced, not merely defaulted: `stab` persists, so a session that was on Style before the
+     role was known would otherwise render a Style pane with no tab row to leave it by. */
+  const tab = L.canStructure() ? C.state.ui.stab : 'content';
   const style = d.controls.style || [];
+  /* The Content tab is not the same line the server draws. It holds a heading's text, and
+     also its HTML tag, its text style and its alignment — a tag is structure and the other
+     two write CSS, so a content account offered them would be offered a refused save. The
+     line that matches the server is `contentKeys`: a control writes content when it writes
+     a declared text slot and no CSS property. */
+  const all = d.controls.content || [];
+  const keys = L.canStructure() ? null : C.contentKeys(n.type);
+  const content = keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all;
   const many = C.selIds().length > 1;
 
   return (
     <>
       <Head h={h} />
       <ClipStrip />
-      <div class="tabs">
-        {[['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']].map(([k, label]) => (
-          <button key={k} class={tab === k ? 'on' : ''}
-            onClick={() => { C.state.ui.stab = k; repaint('right'); }}>{label}</button>
-        ))}
-      </div>
+      {/* A content account gets Content and nothing else: the other two tabs write CSS and
+          the server refuses CSS from them. One tab is no tab, so the row goes entirely. */}
+      {L.canStructure() ? (
+        <div class="tabs">
+          {[['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']].map(([k, label]) => (
+            <button key={k} class={tab === k ? 'on' : ''}
+              onClick={() => { C.state.ui.stab = k; repaint('right'); }}>{label}</button>
+          ))}
+        </div>
+      ) : null}
       <div class="pane">
         {tab === 'content' || many ? null : <StatePick />}
         {tab === 'content' ? (

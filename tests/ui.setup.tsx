@@ -14,9 +14,12 @@ export type Call = [string, ...any[]];
 
 /** Every Legacy entry, recording its name and arguments. Fields that must return a
     value return something harmless; the rest return undefined. */
-export function stubLegacy(calls: Call[]): Legacy {
+export function stubLegacy(calls: Call[], opts: { canStructure?: boolean } = {}): Legacy {
   const rec = (name: string) => (...args: any[]) => { calls.push([name, ...args]); };
   return {
+    /* True by default, because that is the single-file build and most cases are not about
+       roles. `stubLegacy(calls, { canStructure: false })` is how a case asks for the other. */
+    canStructure: () => opts.canStructure !== false,
     select: rec('select'),
     /* records *and* switches, because the real one does: `tree()` reads the mode, so a
        panel that asks to change region before inserting can only be checked against
@@ -89,9 +92,9 @@ export interface Rig {
 }
 
 /** A blank project plus a mounted container. Called from `beforeEach`. */
-export function rig(): Rig {
+export function rig(opts: { canStructure?: boolean } = {}): Rig {
   const calls: Call[] = [];
-  install(C, stubLegacy(calls));
+  install(C, stubLegacy(calls, opts));
 
   C.seed();
   C.state.ui = C.initUi();

@@ -137,6 +137,7 @@ __export(index_exports, {
   cols: () => cols,
   contentImport: () => contentImport,
   contentJson: () => contentJson,
+  contentKeys: () => contentKeys,
   contrast: () => contrast,
   copyNode: () => copyNode,
   copyStyles: () => copyStyles,
@@ -3774,6 +3775,13 @@ var SLOT_LABEL = {
   title: "File name",
   home: "Front page name"
 };
+function contentKeys(type) {
+  const out = /* @__PURE__ */ new Set();
+  for (const spec of TEXT_SLOTS[type] || []) {
+    out.add(typeof spec === "string" ? spec : spec[0]);
+  }
+  return out;
+}
 function textSlots(n) {
   const out = [];
   for (const spec of TEXT_SLOTS[n.type] || []) {
@@ -7088,6 +7096,7 @@ ${ANIM_JS}
   cols,
   contentImport,
   contentJson,
+  contentKeys,
   contrast,
   copyNode,
   copyStyles,

@@ -265,11 +265,40 @@ watched it stamp "Saved" and the live page change. Then, as a content client, ch
 headline (saved) and a colour (refused, with the modal). Then forced a stale version and got
 the conflict modal.
 
-**Not built yet, in the order it matters:** the editor still shows a content client the whole
-Style tab, which is the next real job — refusing a save they were allowed to attempt is
-honest but it is not kind. Then assets, which is what the persistent volume is actually for;
-an invite flow, since a client is currently an environment variable; and `store-pg.test.ts`
-against a real database, because the SQL in `store-pg.ts` has still never executed.
+## The editor, scoped to the role — done
+
+The server refuses a structural save from a content account and that is the boundary. This is
+the other half: the editor no longer *offers* what cannot be done. `canStructure()` in
+builder.html, through the `Legacy` seam so panels can ask, and false only for a `content`
+role on the server — the single-file build has no accounts and nothing to scope.
+
+What a content account gets: the Pages and CMS panels, the canvas, and an inspector with one
+group in it. What it does not: the Add panel, the Navigator, Project settings, the Media
+library (a dead end until assets are server-side), the Style and Advanced tabs, the
+structural HUD buttons, and the keystrokes for delete, duplicate and nudge — a shortcut does
+not need a button, so the verbs are gated in JS as well as hidden in CSS.
+
+**The Content tab was not the line the server draws, which was the interesting part.** A
+heading's Content tab holds its text — and also its HTML tag, its text style and its
+alignment. A tag is structure and the other two write CSS, so a content account offered them
+was being offered a refused save. The line that matches the server is `contentKeys(type)`,
+derived from the same `TEXT_SLOTS` the server reads: a control edits content when it writes a
+declared text slot and no CSS property. Both readers of that distinction now read one list, so
+a widget whose slots change is covered in both places at once.
+
+**And a bug that only a browser could find.** `collections()` in the core materialises
+`meta.collections` as a side effect of *reading* it, so merely opening the CMS panel turned a
+document with no collections into one with an empty list — a new key under `meta`, which the
+server correctly refused. A content account that clicked CMS could then save nothing at all
+until it reloaded. No test caught it because no test clicks a tab. An absent list and an
+empty one are the same document, so the skeleton normalises the empty case away; a collection
+that actually exists is still structure, and there is a case for that too.
+
+**Not built yet, in the order it matters:** assets, which is what the persistent volume is
+actually for — and until they exist a content client cannot swap an image, which is a normal
+content edit; an invite flow, since a client is currently an environment variable; and
+`store-pg.test.ts` against a real database, because the SQL in `store-pg.ts` has still never
+executed.
 
 ## Anti-patterns the spec names, worth repeating
 
