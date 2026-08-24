@@ -6713,7 +6713,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
 .pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
-.pagecraft-image{display:block;width:100%}
+.pagecraft-image{display:block;width:100%;height:auto}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
 .pagecraft-slider-box{position:relative;width:100%}
 .pagecraft-slider{

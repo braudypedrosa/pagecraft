@@ -7758,3 +7758,46 @@ test('a checkbox can be half width too, and keeps its own layout', () => {
   a.match(html, /class="pagecraft-field pagecraft-field-check half"/,
     'both classes: a checkbox lays its label out sideways whatever width it is');
 });
+
+test('an image wider than its container scales, and does not crop', () => {
+  /* Found by putting a 1600×900 hero into a 1200px section. `width`/`height` attributes give
+     the browser the intrinsic ratio so it can reserve space — and `max-width:100%` then shrank
+     the width to 1200 while the height attribute held it at 900. The ratio broke, and because
+     the widget defaults to `object-fit: cover` the result was a silent *crop* rather than an
+     obvious squash. A distorted image gets noticed; a cropped one looks deliberate.
+
+     `.pagecraft-gallery-img` had `width:100%;height:auto` all along, with a separate `fixed`
+     mode for cropping on purpose — which is what made this an oversight rather than a choice. */
+  blank();
+  const img = insert('image', null, 0);
+  img.props.src = 'asset:abc';
+  img.props.w = '1600'; img.props.h = '900';
+
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  a.match(css, /\.pagecraft-image\{[^}]*height:auto/,
+    'so a shrunk width takes the height with it');
+  a.match(css, /\.pagecraft-image\{[^}]*width:100%/);
+
+  /* the attributes still ship: they are how the browser reserves the space */
+  const html = C.renderNode(at(img.id).node, { edit: false });
+  a.match(html, /width="1600"/);
+  a.match(html, /height="900"/);
+});
+
+test('an author who sets a height still gets one, and the crop that goes with it', () => {
+  /* The base rule is `.pagecraft-image` and a node's own rule is `.pagecraft-<id>` — the same
+     specificity, and the base half of the stylesheet is emitted first, so the author wins.
+     That is the whole reason `height:auto` is safe to add: a fixed-height cover crop is a real
+     thing to want, and asking for it still works. */
+  blank();
+  const img = insert('image', null, 0);
+  img.props.src = 'asset:abc';
+  C.setCss(at(img.id).node, 'height', '320px');
+
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const base = css.indexOf('.pagecraft-image{');
+  const own = css.indexOf('.' + C.nodeClass(img) + '{');
+  a.equal(base > -1 && own > -1, true);
+  a.equal(base < own, true, 'the base rule first, so a later rule of equal weight wins');
+  a.match(css.slice(own), /^[^}]*height:320px/);
+});
