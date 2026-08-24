@@ -22,7 +22,7 @@ export type Level = 0 | 1 | 2 | 3 | 4;
 export type ParentType = WidgetType | null;
 
 export type WidgetType =
-  | 'section' | 'row' | 'list' | 'slider' | 'column'
+  | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
   | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
@@ -60,6 +60,15 @@ export type StateKey = 'hover' | 'focus';
 export type States = Partial<Record<StateKey, Css>>;
 
 /* ---- nodes ------------------------------------------------------------ */
+
+/** A Box: the general container. `layout` decides whether its children stack, flex or grid;
+    `link` makes the whole thing an anchor. Three palette entries build one of these. */
+export interface BoxProps {
+  layout?: 'block' | 'flex' | 'grid';
+  tag?: string;
+  link?: string;
+  target?: string;
+}
 
 /* ---- per-widget props ---------------------------------------------------
    Every prop each widget stores, named. Extracted from each `make()` and every
@@ -178,7 +187,7 @@ export interface DividerProps { }
 
 /** Which prop shape belongs to which widget. */
 export interface PropsByType {
-  section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps;
+  section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps; box: BoxProps;
   heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
   video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
@@ -448,8 +457,19 @@ export interface WidgetDef {
   label: string;
   icon: string;
   level: Level;
-  /** which levels this type may contain */
-  accepts?: Level[];
+  /** Types this one may contain *besides* everything the level rule already allows.
+
+      It was `accepts?: Level[]` — "which levels this type may contain" — declared on four
+      widgets and read by nothing, while the one exception it was describing, a row nested in a
+      column, was hardcoded in `holds` by name. Two things were wrong with that. A declaration
+      nothing reads is a wish, which this repo has now found three times. And the declaration
+      had drifted from the rule: `column: [2, 4]` says a column takes any level 2, which would
+      let a card contain the Collection List that repeats it.
+
+      So this names types, not levels, and `holds` reads it. Section, row and slider dropped
+      theirs entirely — the level rule already says a row goes in a section, and restating it
+      is how a declaration and a rule get to disagree. */
+  alsoHolds?: WidgetType[];
   /** how its content is edited in place, if at all */
   edit?: 'text' | 'rich';
   /** What to call the group holding this widget's own style controls. The Style tab used

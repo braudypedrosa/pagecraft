@@ -2182,12 +2182,20 @@ var FILTERS = [
   ["blur(6px)", "Blurred"],
   ["brightness(.85)", "Darker"]
 ];
+var GRID_COLS = [
+  ["repeat(2, minmax(0, 1fr))", "2 across"],
+  ["repeat(3, minmax(0, 1fr))", "3 across"],
+  ["repeat(4, minmax(0, 1fr))", "4 across"],
+  ["repeat(6, minmax(0, 1fr))", "6 across"],
+  ["repeat(auto-fit, minmax(240px, 1fr))", "As many as fit"],
+  ["2fr 1fr", "Wide then narrow"],
+  ["1fr 2fr", "Narrow then wide"]
+];
 var DEF = {
   section: {
     label: "Section",
     icon: "section",
     level: 1,
-    accepts: [2],
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: { tag: "section", width: "boxed", inner: "" }, css: { d: { ...BOX("72px", "24px", "72px", "24px") }, t: {}, m: { ...BOX("48px", "20px", "48px", "20px") } } }),
     controls: {
@@ -2203,7 +2211,6 @@ var DEF = {
     label: "Row",
     icon: "row",
     level: 2,
-    accepts: [3],
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: {}, css: { d: { gap: "24px", "align-items": "stretch", "justify-content": "flex-start" }, t: {}, m: { gap: "20px" } } }),
     controls: {
@@ -2236,7 +2243,6 @@ var DEF = {
     label: "Slider",
     icon: "slider",
     level: 2,
-    accepts: [3],
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: { arrows: 1, aria: "Slides" },
@@ -2287,7 +2293,6 @@ var DEF = {
     label: "Collection list",
     icon: "cms",
     level: 2,
-    accepts: [3],
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: { sort: "", dir: "asc", limit: "" },
@@ -2363,7 +2368,7 @@ var DEF = {
     label: "Column",
     icon: "column",
     level: 3,
-    accepts: [2, 4],
+    alsoHolds: ["row", "slider", "box"],
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: {}, css: { d: { "flex-grow": "100", "justify-content": "flex-start", "align-items": "stretch", gap: "16px" }, t: {}, m: { "flex-basis": "100%" } } }),
     controls: {
@@ -2376,6 +2381,48 @@ var DEF = {
         { t: "pick", c: "justify-content", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"]] },
         { t: "pick", c: "align-items", label: "Horizontal align", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space }
+      ],
+      style: []
+    }
+  },
+  /* ---- Box: the general container ------------------------------------------
+       The layout this editor could express was `section > row > column` and nothing else. A
+       three-across grid of cards that reflows to two, a toolbar whose items push apart, a whole
+       card that is one link — none of them were sayable. This is the primitive the plan called
+       load-bearing, and it is one widget rather than four because Div, Flex and Grid differ by a
+       single declaration. Three palette entries build it with a different `layout`, the way
+       `columns` builds a row; the panel then offers the controls that layout actually has.
+  
+       Level 2, so it sits where a row sits: a section holds one, a column holds one, and it
+       holds rows, columns, boxes and anything else. That is what `alsoHolds` is for.
+  
+       `link` makes the whole box an anchor — the Link Block. Nothing else in the widget set could
+       do it: a link lived on a heading, a button or an image, so a clickable card meant a
+       transparent button stretched over it. */
+  box: {
+    label: "Box",
+    icon: "section",
+    level: 2,
+    alsoHolds: ["box", "row", "slider", "column"],
+    caps: ["spacing", "decoration", "effects", "animation"],
+    make: () => ({ props: { layout: "block", tag: "div", link: "", target: "" }, css: { d: {}, t: {}, m: {} } }),
+    controls: {
+      content: [
+        { t: "select", k: "layout", label: "Layout", opts: [["block", "Stacked"], ["flex", "Flex"], ["grid", "Grid"]] },
+        /* Flex. The same four controls a row has, because they are the four questions flexbox
+           asks — and named the way the row names them, so learning one teaches the other. */
+        { t: "pick", c: "flex-direction", label: "Direction", r: 1, when: (n) => n.props.layout === "flex", opts: [["row", "Row"], ["column", "Column"]] },
+        { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space, when: (n) => n.props.layout !== "block" },
+        { t: "select", c: "justify-content", label: "Distribute", r: 1, when: (n) => n.props.layout !== "block", opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
+        { t: "pick", c: "align-items", label: "Align", r: 1, when: (n) => n.props.layout !== "block", opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["stretch", "Fill"]] },
+        { t: "select", c: "flex-wrap", label: "Wrap", r: 1, when: (n) => n.props.layout === "flex", opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] },
+        /* Grid. A count rather than a template string: `repeat(3, minmax(0, 1fr))` is the
+           answer to "three across" every time, and `minmax(0, 1fr)` rather than `1fr` because
+           a grid child with long content overflows its track otherwise — the single most
+           common CSS grid surprise, and not one an author should have to know. */
+        { t: "select", c: "grid-template-columns", label: "Columns", r: 1, when: (n) => n.props.layout === "grid", opts: GRID_COLS },
+        { t: "select", k: "tag", label: "HTML tag", when: (n) => !String(n.props.link || "").trim(), opts: [["div", "div"], ["article", "article"], ["aside", "aside"], ["nav", "nav"], ["header", "header"], ["footer", "footer"], ["main", "main"], ["section", "section"], ["ul", "ul"], ["ol", "ol"], ["li", "li"]] },
+        { t: "link", k: "link", label: "Link", note: "A whole box that is one link." }
       ],
       style: []
     }
@@ -3553,6 +3600,10 @@ var nameOf = (n) => {
     if (cd) return cd.name;
   }
   const d = DEF[n.type];
+  if (n.type === "box") {
+    if (String(n.props.link || "").trim()) return "Link block";
+    return n.props.layout === "grid" ? "Grid" : n.props.layout === "flex" ? "Flex" : "Box";
+  }
   if (n.type === "heading") return (n.props.text || "").slice(0, 26) || d.label;
   if (n.type === "button") return n.props.text || d.label;
   if (n.type === "text") return (n.props.html || "").replace(/<[^>]*>/g, " ").trim().slice(0, 24) || d.label;
@@ -3666,7 +3717,7 @@ function wrap(type, pl2, node) {
 }
 var holds = (pt, t) => {
   const b = BASE[t] || t;
-  return lvl(b) > lvl(pt) || pt === "column" && (b === "row" || b === "slider");
+  return lvl(b) > lvl(pt) || (DEF[pt] || {}).alsoHolds?.includes(b) === true;
 };
 function insert(type, parentNode, index) {
   const leaf = makeFor(type);
@@ -4400,6 +4451,19 @@ function lint() {
       if (anchor) {
         if (seenIds.has(anchor)) dupIds.add(anchor);
         seenIds.add(anchor);
+      }
+      const inLink = chain.some((x) => x.type === "box" && String(x.props.link || "").trim());
+      if (inLink) {
+        const own = n.type === "box" ? String(n.props.link || "").trim() : n.type === "button" || n.type === "heading" || n.type === "image" || n.type === "icon" ? String(n.props.link || "").trim() : "";
+        if (own || n.type === "nav" || n.type === "text" && /<a\s/i.test(String(n.props.html || ""))) {
+          add(
+            "error",
+            "nested-link",
+            `A ${DEF[n.type].label.toLowerCase()} inside a Link block is a link inside a link \u2014 browsers drop one of them, and it is not the one you would choose.`,
+            w,
+            n.id
+          );
+        }
       }
       const links = [];
       if (n.type === "nav") (n.props.items || []).forEach((it) => links.push(it.href));
@@ -7338,6 +7402,11 @@ img,video,svg{max-width:100%}
 .pagecraft-container.full{max-width:none}
 .pagecraft-row,.pagecraft-list{display:flex;flex-wrap:wrap;width:100%}
 .pagecraft-column{display:flex;flex-direction:column;min-width:0;flex-shrink:1;flex-basis:0%}
+.pagecraft-box{display:block;width:100%;min-width:0;position:relative}
+.pagecraft-box.l-flex{display:flex;flex-wrap:wrap}
+.pagecraft-box.l-grid{display:grid}
+.pagecraft-box>*{min-width:0}
+a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-heading{margin:0;font-family:${m.headFont || "inherit"}}
 .pagecraft-heading a{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg>:first-child{margin-top:0}
@@ -7791,6 +7860,7 @@ function pager(pg2, at, total, o) {
   return `<nav class="pagecraft-pager" aria-label="Pages">` + step2(at - 1, "Previous", "prev") + nums + step2(at + 1, "Next", "next") + `</nav>`;
 }
 var SEC_TAGS = ["section", "div", "header", "footer", "main", "article", "aside", "nav"];
+var BOX_TAGS = ["div", "article", "aside", "nav", "header", "footer", "main", "section", "ul", "ol", "li"];
 function renderNode(n, o) {
   const d = DEF[n.type];
   if (!d) return "";
@@ -7831,6 +7901,16 @@ function renderNode(n, o) {
     }
     case "row":
       return `<div ${at} ${cx("pagecraft-row")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column</div>` : "")}</div>`;
+    case "box": {
+      const mode = p.layout === "flex" || p.layout === "grid" ? " l-" + p.layout : "";
+      const href = pageHref(p.link, o);
+      const inner2 = kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
+      if (href) {
+        return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${inner2}</a>`;
+      }
+      const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : "div";
+      return `<${tag} ${at} ${cx("pagecraft-box" + mode)}>${inner2}</${tag}>`;
+    }
     case "slider": {
       const track = `<div ${at} ${cx("pagecraft-slider")} data-slides role="group" aria-label="${esc(String(p.aria || "Slides"))}" tabindex="0">` + (kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes a slide</div>` : "")) + "</div>";
       if (!p.arrows) return track;
@@ -8034,9 +8114,18 @@ var LAYOUTS = {
 };
 var COUNTS = Object.keys(LAYOUTS).map(Number);
 var DEFAULT_COLS = 2;
-var BASE = { columns: "row" };
-var labelOf = (k) => k === "columns" ? "Columns" : DEF[k].label;
-var iconOf = (k) => k === "columns" ? "columns" : DEF[k].icon;
+var KEYS = {
+  columns: { type: "row", label: "Columns", icon: "columns" },
+  box: { type: "box", label: "Box", icon: "section", props: { layout: "block" } },
+  flex: { type: "box", label: "Flex", icon: "row", props: { layout: "flex" } },
+  grid: { type: "box", label: "Grid", icon: "columns", props: { layout: "grid" } },
+  linkbox: { type: "box", label: "Link block", icon: "link", props: { layout: "block", link: "#" } }
+};
+var BASE = Object.fromEntries(
+  Object.entries(KEYS).map(([k, v]) => [k, v.type])
+);
+var labelOf = (k) => KEYS[k] ? KEYS[k].label : DEF[k].label;
+var iconOf = (k) => KEYS[k] ? KEYS[k].icon : DEF[k].icon;
 function makeFor(key) {
   if (key === "slider") {
     const made = DEF.slider.make();
@@ -8048,8 +8137,13 @@ function makeFor(key) {
     };
     return N("slider", made.props, made.css, [slide(), slide(), slide()]);
   }
-  if (key !== "columns") return N(key);
-  return N("row", {}, {}, LAYOUTS[DEFAULT_COLS][0].map((w) => N("column", {}, { d: { "flex-grow": String(+w.toFixed(4)) } })));
+  if (key === "columns") {
+    return N("row", {}, {}, LAYOUTS[DEFAULT_COLS][0].map((w) => N("column", {}, { d: { "flex-grow": String(+w.toFixed(4)) } })));
+  }
+  const k = KEYS[key];
+  if (!k) return N(key);
+  const css = k.props && k.props.layout !== "block" ? { d: { gap: "24px", ...k.props.layout === "grid" ? { "grid-template-columns": GRID_COLS[0][0] } : {} } } : {};
+  return N(k.type, k.props || {}, css);
 }
 var rowRatios = (row) => (row.children || []).map((c) => parseFloat((c.css.d || {})["flex-grow"]) || 0);
 function matchLayout(row) {
@@ -9119,6 +9213,13 @@ var PC_UI = (() => {
         ["section", "Section"],
         ["columns", "Columns"],
         ["row", "Row"],
+        /* Flex, Grid and Link block are one widget with a different Layout — but a palette that
+           offered "Box" and a dropdown would hide two layouts this editor never had behind a
+           control nobody would open. */
+        ["flex", "Flex"],
+        ["grid", "Grid"],
+        ["box", "Box"],
+        ["linkbox", "Link block"],
         ["slider", "Slider"],
         ["list", "Collection"]
       ]

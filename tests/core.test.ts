@@ -7144,3 +7144,170 @@ test('a variant on a component that is deleted goes with it', () => {
   a.equal(back.variant, undefined);
   a.equal(back.use, undefined);
 });
+
+/* ------------------------------------------------------------------- the Box
+   The layout this editor could express was `section > row > column` and nothing else. A grid
+   of cards, a toolbar whose items push apart, a whole card that is one link: none of them were
+   sayable. One widget with three layouts, and four palette keys that build it. */
+
+test('Flex, Grid, Box and Link block are one type with different props', () => {
+  blank();
+  for (const [key, layout] of [['box', 'block'], ['flex', 'flex'], ['grid', 'grid']] as [string, string][]) {
+    const n = insert(key, null, 0);
+    a.equal(n.type, 'box', `${key} builds a box`);
+    a.equal(n.props.layout, layout);
+  }
+  const link = insert('linkbox', null, 0);
+  a.equal(link.type, 'box');
+  a.equal(link.props.link, '#');
+  /* and the palette labels come from one table rather than three special cases */
+  a.deepEqual(['box', 'flex', 'grid', 'linkbox', 'columns'].map(C.labelOf),
+    ['Box', 'Flex', 'Grid', 'Link block', 'Columns']);
+});
+
+test('a box sits where a row sits, and holds anything', () => {
+  a.equal(C.lvl('box'), C.lvl('row'));
+  a.equal(C.holds('section', 'box'), true);
+  a.equal(C.holds('column', 'box'), true, 'so a card can hold a grid');
+  a.equal(C.holds('box', 'box'), true, 'and a grid can hold a card that is a box');
+  a.equal(C.holds('box', 'heading'), true);
+  a.equal(C.holds('box', 'row'), true);
+  a.equal(C.holds('box', 'list'), false, 'the same line a column draws: not the repeater');
+});
+
+test('alsoHolds is read, and says what the hardcoded pair used to', () => {
+  /* It was `accepts?: Level[]`, declared on four widgets and read by nothing, while the
+     exception it described — a row in a column — was hardcoded in `holds` by name. And the
+     declaration had drifted: `column: [2, 4]` says a column takes any level 2, which would let
+     a card contain the Collection List that repeats it. */
+  a.equal(C.holds('column', 'row'), true);
+  a.equal(C.holds('column', 'slider'), true);
+  a.equal(C.holds('column', 'list'), false);
+  a.equal(C.DEF.section.alsoHolds, undefined, 'a section restates nothing the level rule says');
+  a.deepEqual(C.DEF.column.alsoHolds, ['row', 'slider', 'box']);
+});
+
+test('the layout is a class, so an author cannot half-overwrite it', () => {
+  blank();
+  const g = insert('grid', null, 0);
+  const html = C.renderNode(at(g.id).node, { edit: false });
+  a.match(html, /class="pagecraft-box l-grid/);
+  a.equal(/display:grid/.test(html), false, 'nothing inline to break');
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  a.match(css, /\.pagecraft-box\.l-grid\{display:grid/);
+});
+
+test('a grid says how many across, not a template string', () => {
+  blank();
+  const g = insert('grid', null, 0);
+  const cols = must(C.DEF.box.controls.content.find(c => c.c === 'grid-template-columns'), 'the columns control');
+  const opts = cols.opts as [string, string][];
+  a.deepEqual(opts.map(o => o[1]).slice(0, 3), ['2 across', '3 across', '4 across']);
+  /* Every equal-track entry says `minmax(0, 1fr)` and not `1fr`: a long word in a `1fr` track
+     overflows it, which is the most common grid surprise and not one an author should have to
+     know about. */
+  const repeats = opts.map(o => o[0]).filter(v => v.startsWith('repeat('));
+  a.equal(repeats.length, 5);
+  a.deepEqual(repeats.filter(v => v.includes('minmax(')), repeats);
+  a.match(opts[1][0], /repeat\(3, minmax\(0, 1fr\)\)/);
+  a.equal(g.css.d.gap, '24px', 'and it arrives with a gap, because one with none reads as a bug');
+});
+
+test('the controls a box offers are the ones its layout has', () => {
+  blank();
+  const n = insert('box', null, 0);
+  const shown = () => C.DEF.box.controls.content
+    .filter(c => !c.when || c.when(at(n.id).node)).map(c => c.label);
+
+  a.equal(shown().includes('Wrap'), false, 'a stacked box has no flex questions');
+  a.equal(shown().includes('Columns'), false);
+  a.equal(shown().includes('Gap'), false, 'nor a gap — nothing to space');
+
+  at(n.id).node.props.layout = 'flex';
+  a.equal(shown().includes('Wrap'), true);
+  a.equal(shown().includes('Direction'), true);
+  a.equal(shown().includes('Columns'), false, 'a flex box has no grid tracks');
+
+  at(n.id).node.props.layout = 'grid';
+  a.equal(shown().includes('Columns'), true);
+  a.equal(shown().includes('Direction'), false);
+  a.equal(shown().includes('Gap'), true, 'a gap is both their question');
+});
+
+test('a link block is an anchor, and its tag control goes away', () => {
+  blank();
+  const n = insert('linkbox', null, 0);
+  const node = at(n.id).node;
+  node.props.link = 'index.html';
+  const html = C.renderNode(node, { edit: false });
+  a.match(html, /^<a /);
+  a.match(html, /href="index\.html"/);
+  a.match(C.treeCss([C.state.pages[0].tree], false), /a\.pagecraft-box\{color:inherit;text-decoration:none\}/);
+
+  const tag = must(C.DEF.box.controls.content.find(c => c.k === 'tag'), 'the tag control');
+  a.equal(!!tag.when && tag.when(node), false, 'an anchor has no HTML tag to choose');
+  node.props.link = '';
+  a.equal(!!tag.when && tag.when(node), true);
+});
+
+test('a box emits the tag it is given, and only from the list', () => {
+  blank();
+  const n = insert('box', null, 0);
+  const node = at(n.id).node;
+  node.props.tag = 'ul';
+  a.match(C.renderNode(node, { edit: false }), /^<ul /);
+  node.props.tag = 'script';
+  a.match(C.renderNode(node, { edit: false }), /^<div /, 'a prop is author input, so it is checked');
+});
+
+test('a link inside a link block is a finding, because a browser drops one of them', () => {
+  blank();
+  const box = insert('linkbox', null, 0);
+  const node = at(box.id).node;
+  node.props.link = 'index.html';
+  const btn = insert('button', node, 0);
+  btn.props.link = 'pricing.html';
+
+  const found = C.lint().filter((f: Finding) => f.code === 'nested-link');
+  a.equal(found.length, 1);
+  a.equal(found[0].level, 'error');
+  a.equal(found[0].nodeId, btn.id, 'and it points at the inner one, which is the one to remove');
+
+  /* a heading with no link of its own inside the same box is fine */
+  btn.props.link = '';
+  a.equal(C.lint().filter((f: Finding) => f.code === 'nested-link').length, 0);
+});
+
+test('a box is named by what it does, not by its type', () => {
+  blank();
+  a.equal(C.nameOf(insert('grid', null, 0)), 'Grid');
+  a.equal(C.nameOf(insert('flex', null, 0)), 'Flex');
+  a.equal(C.nameOf(insert('box', null, 0)), 'Box');
+  a.equal(C.nameOf(insert('linkbox', null, 0)), 'Link block');
+});
+
+test('a box declares its capabilities like everything else', () => {
+  blank();
+  const n = insert('grid', null, 0);
+  a.equal(C.canDo(n, 'decoration'), true, 'a grid can have a background');
+  a.equal(C.canDo(n, 'spacing'), true);
+  a.equal(C.canDo(n, 'typography'), false, 'it holds text, it is not text');
+});
+
+test('the Columns control wins, because a two-class default would outrank it', () => {
+  /* The bug this pins: `grid-template-columns` was a default in `baseCss` under
+     `.pagecraft-box.l-grid`, which is two classes. An author's own rule is `.pagecraft-<id>`,
+     one class — so setting Columns wrote the value, emitted the rule, and changed nothing on
+     the canvas. Anything an author can change belongs where their change can win. */
+  blank();
+  const g = insert('grid', null, 0);
+  a.equal(g.css.d['grid-template-columns'], 'repeat(2, minmax(0, 1fr))', 'the default is on the node');
+
+  const ctl = must(C.DEF.box.controls.content.find(c => c.c === 'grid-template-columns'), 'columns');
+  C.applyC(at(g.id).node, ctl, 'repeat(3, minmax(0, 1fr))');
+
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  a.match(css, new RegExp('\\.' + C.nodeClass(g) + '\\{[^}]*grid-template-columns:repeat\\(3'));
+  a.equal(/\.pagecraft-box\.l-grid\{[^}]*grid-template-columns/.test(css), false,
+    'and nothing with more specificity says otherwise');
+});

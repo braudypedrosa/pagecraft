@@ -22,7 +22,12 @@ const PAL: { g: string; items: [string, string][] }[] = [
        stays in DEF — cols(), wrap(), applyCols() and every template depend on it; it
        is just not something you add by hand. */
     g: 'Layout', items: [
-      ['section', 'Section'], ['columns', 'Columns'], ['row', 'Row'], ['slider', 'Slider'], ['list', 'Collection']
+      ['section', 'Section'], ['columns', 'Columns'], ['row', 'Row'],
+      /* Flex, Grid and Link block are one widget with a different Layout — but a palette that
+         offered "Box" and a dropdown would hide two layouts this editor never had behind a
+         control nobody would open. */
+      ['flex', 'Flex'], ['grid', 'Grid'], ['box', 'Box'], ['linkbox', 'Link block'],
+      ['slider', 'Slider'], ['list', 'Collection']
     ]
   },
   {

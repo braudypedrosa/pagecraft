@@ -244,10 +244,24 @@ const FILTERS = [
   ['brightness(.85)', 'Darker']
 ];
 
+/* Grid tracks as a count, not a template. `minmax(0, 1fr)` rather than `1fr` on purpose: a
+   grid child with a long word overflows a `1fr` track, which is the most common CSS grid
+   surprise and not one an author should have to know about. The `auto-fit` entry is the one
+   that needs no breakpoint work — it reflows on its own. */
+const GRID_COLS: [string, string][] = [
+  ['repeat(2, minmax(0, 1fr))', '2 across'],
+  ['repeat(3, minmax(0, 1fr))', '3 across'],
+  ['repeat(4, minmax(0, 1fr))', '4 across'],
+  ['repeat(6, minmax(0, 1fr))', '6 across'],
+  ['repeat(auto-fit, minmax(240px, 1fr))', 'As many as fit'],
+  ['2fr 1fr', 'Wide then narrow'],
+  ['1fr 2fr', 'Narrow then wide']
+];
+
 const DEF: Record<string, WidgetDef> = {
 
   section: {
-    label: 'Section', icon: 'section', level: 1, accepts: [2],
+    label: 'Section', icon: 'section', level: 1,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: { tag: 'section', width: 'boxed', inner: '' }, css: { d: { ...BOX('72px', '24px', '72px', '24px') }, t: {}, m: { ...BOX('48px', '20px', '48px', '20px') } } }),
     controls: {
@@ -261,7 +275,7 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   row: {
-    label: 'Row', icon: 'row', level: 2, accepts: [3],
+    label: 'Row', icon: 'row', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: {}, css: { d: { gap: '24px', 'align-items': 'stretch', 'justify-content': 'flex-start' }, t: {}, m: { gap: '20px' } } }),
     controls: {
@@ -292,7 +306,7 @@ const DEF: Record<string, WidgetDef> = {
      Slides do not carry flex-grow the way a row's columns do: their width comes from
      `--sl-w`, so "three per view" is one declaration rather than a ratio per slide. */
   slider: {
-    label: 'Slider', icon: 'slider', level: 2, accepts: [3],
+    label: 'Slider', icon: 'slider', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: { arrows: 1, aria: 'Slides' },
@@ -328,7 +342,7 @@ const DEF: Record<string, WidgetDef> = {
      you get a grid of cards. The collection lives on `node.src`, the same field
      phase 2 uses, so anything inside binds with no extra plumbing. */
   list: {
-    label: 'Collection list', icon: 'cms', level: 2, accepts: [3],
+    label: 'Collection list', icon: 'cms', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: { sort: '', dir: 'asc', limit: '' },
@@ -382,7 +396,7 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   column: {
-    label: 'Column', icon: 'column', level: 3, accepts: [2, 4],
+    label: 'Column', icon: 'column', level: 3, alsoHolds: ['row', 'slider', 'box'],
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: {}, css: { d: { 'flex-grow': '100', 'justify-content': 'flex-start', 'align-items': 'stretch', gap: '16px' }, t: {}, m: { 'flex-basis': '100%' } } }),
     controls: {
@@ -395,6 +409,46 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', c: 'justify-content', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot']] },
         { t: 'pick', c: 'align-items', label: 'Horizontal align', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space }
+      ],
+      style: []
+    }
+  },
+
+  /* ---- Box: the general container ------------------------------------------
+     The layout this editor could express was `section > row > column` and nothing else. A
+     three-across grid of cards that reflows to two, a toolbar whose items push apart, a whole
+     card that is one link — none of them were sayable. This is the primitive the plan called
+     load-bearing, and it is one widget rather than four because Div, Flex and Grid differ by a
+     single declaration. Three palette entries build it with a different `layout`, the way
+     `columns` builds a row; the panel then offers the controls that layout actually has.
+
+     Level 2, so it sits where a row sits: a section holds one, a column holds one, and it
+     holds rows, columns, boxes and anything else. That is what `alsoHolds` is for.
+
+     `link` makes the whole box an anchor — the Link Block. Nothing else in the widget set could
+     do it: a link lived on a heading, a button or an image, so a clickable card meant a
+     transparent button stretched over it. */
+  box: {
+    label: 'Box', icon: 'section', level: 2, alsoHolds: ['box', 'row', 'slider', 'column'],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({ props: { layout: 'block', tag: 'div', link: '', target: '' }, css: { d: {}, t: {}, m: {} } }),
+    controls: {
+      content: [
+        { t: 'select', k: 'layout', label: 'Layout', opts: [['block', 'Stacked'], ['flex', 'Flex'], ['grid', 'Grid']] },
+        /* Flex. The same four controls a row has, because they are the four questions flexbox
+           asks — and named the way the row names them, so learning one teaches the other. */
+        { t: 'pick', c: 'flex-direction', label: 'Direction', r: 1, when: n => n.props.layout === 'flex', opts: [['row', 'Row'], ['column', 'Column']] },
+        { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space, when: n => n.props.layout !== 'block' },
+        { t: 'select', c: 'justify-content', label: 'Distribute', r: 1, when: n => n.props.layout !== 'block', opts: [['flex-start', 'Start'], ['center', 'Center'], ['flex-end', 'End'], ['space-between', 'Space between'], ['space-around', 'Space around']] },
+        { t: 'pick', c: 'align-items', label: 'Align', r: 1, when: n => n.props.layout !== 'block', opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['stretch', 'Fill']] },
+        { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, when: n => n.props.layout === 'flex', opts: [['wrap', 'Wrap'], ['nowrap', 'No wrap']] },
+        /* Grid. A count rather than a template string: `repeat(3, minmax(0, 1fr))` is the
+           answer to "three across" every time, and `minmax(0, 1fr)` rather than `1fr` because
+           a grid child with long content overflows its track otherwise — the single most
+           common CSS grid surprise, and not one an author should have to know. */
+        { t: 'select', c: 'grid-template-columns', label: 'Columns', r: 1, when: n => n.props.layout === 'grid', opts: GRID_COLS },
+        { t: 'select', k: 'tag', label: 'HTML tag', when: n => !String(n.props.link || '').trim(), opts: [['div', 'div'], ['article', 'article'], ['aside', 'aside'], ['nav', 'nav'], ['header', 'header'], ['footer', 'footer'], ['main', 'main'], ['section', 'section'], ['ul', 'ul'], ['ol', 'ol'], ['li', 'li']] },
+        { t: 'link', k: 'link', label: 'Link', note: 'A whole box that is one link.' }
       ],
       style: []
     }
@@ -1474,6 +1528,12 @@ const nameOf = (n: PcNode) => {
     if (cd) return cd.name;
   }
   const d = DEF[n.type];
+  /* A Box is called by what it does. Three palette entries build one type, so a layer list of
+     five things all called "Box" would be the panel refusing to say which is the grid. */
+  if (n.type === 'box') {
+    if (String(n.props.link || '').trim()) return 'Link block';
+    return n.props.layout === 'grid' ? 'Grid' : n.props.layout === 'flex' ? 'Flex' : 'Box';
+  }
   if (n.type === 'heading') return (n.props.text || '').slice(0, 26) || d.label;
   if (n.type === 'button') return n.props.text || d.label;
   if (n.type === 'text') return (n.props.html || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 24) || d.label;
@@ -1607,12 +1667,20 @@ function wrap(type: string, pl: number, node: any): any {
   for (let l = lvl(type) - 1; l > pl; l--) out = N(CHAIN[l], {}, {}, [out]);
   return out;
 }
-/* Can a node of type `t` live inside a parent of type `pt`? Anything deeper in
-   the hierarchy can, plus the one special case of a row nested in a column.
-   `t` may be a palette key (e.g. `columns`), so normalise it first. */
+/* Can a node of type `t` live inside a parent of type `pt`? Anything deeper in the hierarchy
+   can, plus whatever the parent declares it `accepts`. `t` may be a palette key (e.g.
+   `columns`), so normalise it first.
+
+   `accepts?: Level[]` existed on four widgets and nothing read it, while the one exception it
+   was describing — a row nested in a column — was hardcoded here by name. A declaration
+   nothing reads is a wish, and this one had already drifted from the rule: it said a column
+   takes any level 2, which would let a card contain the Collection List that repeats it.
+
+   `alsoHolds` names types and this reads it. It adds to the level rule rather than replacing
+   it, so a heading dropped on a section still lands, wrapped in the chain it needs. */
 const holds = (pt: any, t: string) => {
   const b = BASE[t] || t;
-  return (lvl(b) > lvl(pt)) || (pt === 'column' && (b === 'row' || b === 'slider'));
+  return (lvl(b) > lvl(pt)) || (DEF[pt] || {}).alsoHolds?.includes(b as WidgetType) === true;
 };
 
 function insert(type: string, parentNode: any, index: number) {
@@ -2566,6 +2634,23 @@ function lint() {
       const w = { ...scope, region, node: DEF[n.type].label };
       const anchor = n.adv && n.adv.htmlId;
       if (anchor) { if (seenIds.has(anchor)) dupIds.add(anchor); seenIds.add(anchor); }
+
+      /* An anchor inside an anchor. A Link block makes a whole card clickable, and a button
+         or a link inside one is invalid markup that browsers silently unnest — so the card
+         stops being one link and nobody can tell why from looking at the panel. Reported
+         rather than prevented, because the fix is a decision: drop the inner link, or drop
+         the outer one. */
+      const inLink = chain.some(x => x.type === 'box' && String(x.props.link || '').trim());
+      if (inLink) {
+        const own = n.type === 'box' ? String(n.props.link || '').trim()
+          : (n.type === 'button' || n.type === 'heading' || n.type === 'image' || n.type === 'icon')
+            ? String(n.props.link || '').trim() : '';
+        if (own || n.type === 'nav' || (n.type === 'text' && /<a\s/i.test(String(n.props.html || '')))) {
+          add('error', 'nested-link',
+            `A ${DEF[n.type].label.toLowerCase()} inside a Link block is a link inside a link — browsers drop one of them, and it is not the one you would choose.`,
+            w, n.id);
+        }
+      }
 
       /* links */
       const links: any[] = [];
@@ -5788,6 +5873,11 @@ img,video,svg{max-width:100%}
 .pagecraft-container.full{max-width:none}
 .pagecraft-row,.pagecraft-list{display:flex;flex-wrap:wrap;width:100%}
 .pagecraft-column{display:flex;flex-direction:column;min-width:0;flex-shrink:1;flex-basis:0%}
+.pagecraft-box{display:block;width:100%;min-width:0;position:relative}
+.pagecraft-box.l-flex{display:flex;flex-wrap:wrap}
+.pagecraft-box.l-grid{display:grid}
+.pagecraft-box>*{min-width:0}
+a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-heading{margin:0;font-family:${m.headFont || 'inherit'}}
 .pagecraft-heading a{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg>:first-child{margin-top:0}
@@ -6264,6 +6354,10 @@ function pager(pg: Page, at: number, total: number, o: RenderOpts) {
 }
 
 const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'aside', 'nav'];
+/* A Box's tag. Wider than a section's, because a box is the thing you reach for when the
+   markup matters — a `ul` of `li`s, an `article`, a `nav`. Checked against the list rather
+   than emitted as typed, for the reason every other tag prop is: a prop is author input. */
+const BOX_TAGS = ['div', 'article', 'aside', 'nav', 'header', 'footer', 'main', 'section', 'ul', 'ol', 'li'];
 
 function renderNode(n: PcNode, o: RenderOpts): string {
   const d = DEF[n.type];
@@ -6354,6 +6448,21 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     }
     case 'row':
       return `<div ${at} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
+    case 'box': {
+      /* The layout is a class, not a declaration, so it cannot be half-overwritten by an
+         author editing CSS — the same reason `.pagecraft-row` carries `display:flex` rather
+         than every row storing it. */
+      const mode = p.layout === 'flex' || p.layout === 'grid' ? ' l-' + p.layout : '';
+      const href = pageHref(p.link, o);
+      const inner = kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop anything here</div>` : '');
+      if (href) {
+        /* An anchor, and never a nested one: an `<a>` inside an `<a>` is invalid markup that
+           browsers silently unnest, so the review flags it rather than this render guessing. */
+        return `<a ${at} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${inner}</a>`;
+      }
+      const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : 'div';
+      return `<${tag} ${at} ${cx('pagecraft-box' + mode)}>${inner}</${tag}>`;
+    }
     case 'slider': {
       /* `tabindex` on the track, because a scrollable region a keyboard cannot reach is a
          region a keyboard user cannot read. It costs one tab stop, which is the trade the
@@ -6674,10 +6783,29 @@ const LAYOUTS = {
 };
 const COUNTS = Object.keys(LAYOUTS).map(Number);
 const DEFAULT_COLS = 2;                       // what a fresh Columns drop gives you
-/* `columns` is a palette key, not a node type — it builds a row of columns */
-const BASE: Record<string, string> = { columns: 'row' };
-const labelOf = (k: string) => k === 'columns' ? 'Columns' : DEF[k].label;
-const iconOf = (k: string) => k === 'columns' ? 'columns' : DEF[k].icon;
+/* Palette keys that are not node types.
+
+   `columns` was the only one and it was three special cases — one in `BASE`, one in `labelOf`,
+   one in `iconOf` — plus a branch in `makeFor`. Box needed three more keys, so the special
+   cases became a table. A key names a type, a label, an icon and the props that make it that
+   thing; everything else reads the table.
+
+   Why three keys for one widget: Flex and Grid differ from a plain box by one declaration, and
+   a palette that offered "Box" with a Layout dropdown would hide two of the three layouts this
+   editor never had behind a control nobody would think to open. The panel then shows the
+   controls that layout actually has, which is the capability registry's argument at the level
+   of one widget. */
+const KEYS: Record<string, { type: string; label: string; icon: string; props?: Record<string, unknown> }> = {
+  columns: { type: 'row', label: 'Columns', icon: 'columns' },
+  box: { type: 'box', label: 'Box', icon: 'section', props: { layout: 'block' } },
+  flex: { type: 'box', label: 'Flex', icon: 'row', props: { layout: 'flex' } },
+  grid: { type: 'box', label: 'Grid', icon: 'columns', props: { layout: 'grid' } },
+  linkbox: { type: 'box', label: 'Link block', icon: 'link', props: { layout: 'block', link: '#' } }
+};
+const BASE: Record<string, string> = Object.fromEntries(
+  Object.entries(KEYS).map(([k, v]) => [k, v.type]));
+const labelOf = (k: string) => KEYS[k] ? KEYS[k].label : DEF[k].label;
+const iconOf = (k: string) => KEYS[k] ? KEYS[k].icon : DEF[k].icon;
 function makeFor(key: string) {
   /* A slider with no slides is an empty strip, so it arrives with three — the same
      courtesy `columns` does, minus the ratios, since a slide's width is one declaration
@@ -6690,9 +6818,23 @@ function makeFor(key: string) {
     const slide = () => { const c = N('column'); delete c.css.d['flex-grow']; delete c.css.m['flex-basis']; return c; };
     return N('slider', made.props, made.css, [slide(), slide(), slide()]);
   }
-  if (key !== 'columns') return N(key);
-  return N('row', {}, {}, LAYOUTS[DEFAULT_COLS][0].map(w =>
-    N('column', {}, { d: { 'flex-grow': String(+w.toFixed(4)) } })));
+  if (key === 'columns') {
+    return N('row', {}, {}, LAYOUTS[DEFAULT_COLS][0].map(w =>
+      N('column', {}, { d: { 'flex-grow': String(+w.toFixed(4)) } })));
+  }
+  const k = KEYS[key];
+  if (!k) return N(key);
+  /* A grid arrives with a gap and two tracks, because one with neither reads as a bug rather
+     than as a choice — the same courtesy `columns` does with its ratios.
+
+     On the node and not in `baseCss`, which is the whole reason this is here. `.pagecraft-box
+     .l-grid` is two classes, so a default sitting there outranks `.pagecraft-<id>` — the
+     author's own rule — and the Columns control silently did nothing. Anything an author can
+     change belongs where their change can win. */
+  const css = k.props && k.props.layout !== 'block'
+    ? { d: { gap: '24px', ...(k.props.layout === 'grid' ? { 'grid-template-columns': GRID_COLS[0][0] } : {}) } }
+    : {};
+  return N(k.type, k.props || {}, css);
 }
 /* which layout, if any, the row currently matches */
 const rowRatios = (row: PcNode) => (row.children || []).map(c => parseFloat((c.css.d || {})['flex-grow']) || 0);
