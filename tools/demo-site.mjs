@@ -6,6 +6,13 @@
  * export mode produces. That is the artifact published from this repo alongside the builder —
  * the builder is the tool, this is what the tool makes.
  *
+ *   builder   https://claude.ai/code/artifact/16d1f437-f2ca-44df-aff7-02875acdd2c2
+ *   this page https://claude.ai/code/artifact/adda4e09-131d-4c1c-84e3-393254a0fa72
+ *
+ * `npm run publish:check` guards the builder's copy only. This one needs no guard: it is one
+ * command to regenerate and the page is a demonstration rather than the product, so a stale
+ * copy costs a rebuild rather than a wrong answer.
+ *
  * ## Why a script and not a saved project
  *
  * A project JSON is 57 KB of unreadable nesting. This is the same site as a hundred lines you

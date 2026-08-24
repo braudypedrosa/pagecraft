@@ -11,6 +11,20 @@ open index.html
 
 One file, no install. Everything, autosave included, runs in your browser.
 
+## See what it makes
+
+```bash
+node --experimental-strip-types tools/demo-site.mjs
+```
+
+Builds Pagecraft's own page with Pagecraft and writes `dist/demo/index.html` — one
+self-contained file: a hero, a feature grid of six instances of one component, a changelog
+driven by a collection with a conditional field, the export table, a syntax-highlighted code
+block, and a contact form. It runs the review first and refuses to write the page on any error.
+
+It is also the widest integration exercise here. If any of that breaks, the script stops
+producing a page.
+
 ## Elements
 
 Renamed from "Components", which now means something specific in this builder — see
