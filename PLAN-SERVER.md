@@ -696,6 +696,38 @@ statements, and an author who cannot tell them apart cannot debug either.
 `positioning` and `interactions` are not capabilities: nothing in the widget set needs them
 that what exists does not cover, and naming them would make the registry a wish again.
 
+## Building a real site with it
+
+The most productive hour in this file. Three pages, Pagecraft's own: a hero, a grid of feature
+cards made into a component with icon, title and body properties, a second page reusing that
+component, a tab strip, a table, a code block, then the review and the export.
+
+Four bugs, none of which a unit test had found:
+
+- **A heading dropped into a Grid arrived inside a Column.** `wrap` inferred the wrapper chain
+  from the parent's own level, which is right for a section and wrong for a Box. `takes` is a
+  declaration now, and the row-in-a-column exception went with it.
+- **Six cards placed into a grid put one in it and five above it, in reverse order.** Four call
+  sites asked "does this fit" by comparing levels while `holds` answered by declaration. One
+  reader now, `fitsIn`, and `layerTarget` keeps its stricter question because the two genuinely
+  differ at the root.
+- **An icon could not be a property**, so the first component anybody would build — a feature
+  card whose instances each have their own glyph — was not expressible.
+- **Nothing listed a component's properties**, so they could not be renamed. The first component
+  built this way had properties called "Heading text" and "Rich text", named after the controls
+  they came from.
+
+And one thing the review should have said and now does: a three-column grid is still three
+columns on a phone unless somebody overrides it, which is 106 pixels a card. `minmax(0, 1fr)`
+stops it overflowing, so nothing looked broken — it was merely unreadable, and that is what a
+review is for rather than a stylesheet.
+
+Two of my own errors are worth recording, because both were the tool being right: I wrote the
+export page's file table from the README and it claimed an `assets/styles.css` that does not
+exist — the stylesheet is inlined per page, deliberately — and the review found three faults in
+the end-to-end test's fixture before it passed. The residue is that test, which builds the whole
+thing and asserts what only breaks when the pieces are combined.
+
 ## What is left
 
 - **Milestone 5: multi-tenant, when there is a second customer.** Not before, which is the
