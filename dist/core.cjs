@@ -25,6 +25,7 @@ __export(index_exports, {
   ANIM_NAMES: () => ANIM_NAMES,
   ANIM_PFX: () => ANIM_PFX,
   ANIM_SHA: () => ANIM_SHA,
+  ASSET_SLOTS: () => ASSET_SLOTS,
   A_RE: () => A_RE,
   BASE: () => BASE,
   BIND_CTL: () => BIND_CTL,
@@ -3786,11 +3787,16 @@ var SLOT_LABEL = {
   title: "File name",
   home: "Front page name"
 };
+var ASSET_SLOTS = {
+  image: ["src"],
+  video: ["src", "poster"],
+  gallery: [["items", "src"]]
+};
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
-  for (const spec of TEXT_SLOTS[type] || []) {
-    out.add(typeof spec === "string" ? spec : spec[0]);
-  }
+  const add = (specs) => specs.forEach((spec) => out.add(typeof spec === "string" ? spec : spec[0]));
+  add(TEXT_SLOTS[type] || []);
+  add(ASSET_SLOTS[type] || []);
   return out;
 }
 function textSlots(n) {
@@ -6995,6 +7001,7 @@ ${ANIM_JS}
   ANIM_NAMES,
   ANIM_PFX,
   ANIM_SHA,
+  ASSET_SLOTS,
   A_RE,
   BASE,
   BIND_CTL,

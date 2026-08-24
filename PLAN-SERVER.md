@@ -327,11 +327,36 @@ editor's own `assetAdd`, watched the canvas resolve it, the save land, and the l
 29-byte fake PNG earlier fetched with a 200 and decoded to 0×0, which is what a header without
 an image looks like and worth knowing when a fixture lies.
 
-**The gap, named rather than buried:** a content account may upload an image — swapping a
-photograph is a content edit in every sense that matters — but it may not point an element at
-the new one, because `src` is a prop and `contentOnly` refuses it. So the feature is half
-available to the account that needs it most. Fixing it means deciding that an asset reference
-on an image is content, which is a real decision and not a one-line change.
+### An image is content, narrowly — done
+
+That gap is closed, and the decision is: **an image may point at nothing, or at an upload of
+this site's own. Anything else is not content.** A client swaps between photographs they
+uploaded; they cannot point an `<img src>` at somebody else's server, which is the same
+objection that keeps links out, and they cannot reference an asset id belonging to another
+site.
+
+Two mistakes on the way there, both caught by driving the browser rather than by the suite:
+
+- **Comparing the pair rather than the destination.** The first rule allowed `token → token`
+  and refused everything else, including `empty → token` — which is the case that matters
+  most, because the demo's image has no `src` and a client setting one for the first time was
+  refused. What a value used to be is not the question; what it is now is.
+- **Checking every image rather than the ones that moved.** With the rule made directional, an
+  unchanged document started failing: an owner may point an image at a URL, and if that counts
+  against the client then every content save on that site is refused for a value the client
+  never touched. A content account answers for what it wrote, so the two documents are walked
+  in step and only differing values are checked — safe because the skeleton comparison has
+  already established the structure is identical.
+
+`ASSET_SLOTS` lives in the core beside `TEXT_SLOTS`, for the reason `assetFile` does: the
+server decides whether a save that moves an image is content, and the inspector decides
+whether to offer the control that moves it. Those two answers have to agree, and one
+declaration is the only thing that keeps them agreeing.
+
+Verified as a content client in a browser: uploaded a photograph, pointed the hero image at
+it, watched it save and the live site serve `assets/client-upload.png` — then pointed the same
+image at `https://elsewhere.test/tracker.png` and got the refusal, with the tracker absent
+from the served page.
 
 **Not built yet:** the above; an invite flow, since a client is still an environment variable;
 and `store-pg.test.ts` against a real database, because the SQL in `store-pg.ts` and

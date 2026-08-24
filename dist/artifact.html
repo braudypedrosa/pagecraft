@@ -4614,11 +4614,16 @@ var SLOT_LABEL = {
   title: "File name",
   home: "Front page name"
 };
+var ASSET_SLOTS = {
+  image: ["src"],
+  video: ["src", "poster"],
+  gallery: [["items", "src"]]
+};
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
-  for (const spec of TEXT_SLOTS[type] || []) {
-    out.add(typeof spec === "string" ? spec : spec[0]);
-  }
+  const add = (specs) => specs.forEach((spec) => out.add(typeof spec === "string" ? spec : spec[0]));
+  add(TEXT_SLOTS[type] || []);
+  add(ASSET_SLOTS[type] || []);
   return out;
 }
 function textSlots(n) {
@@ -7823,6 +7828,7 @@ var __CORE = {
   ANIM_NAMES,
   ANIM_PFX,
   ANIM_SHA,
+  ASSET_SLOTS,
   A_RE,
   BASE,
   BIND_CTL,

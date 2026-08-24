@@ -250,7 +250,10 @@ export function createApp(o: Options) {
        than against what the editor thinks it loaded, so a stale client cannot smuggle a
        structural change through by sending an old skeleton. */
     if (gate.role === 'content') {
-      const check = contentOnly(site.doc, body.doc);
+      /* the site's own asset ids, so an image may be swapped for another upload of theirs and
+         not for a URL or for somebody else's id */
+      const ids = new Set((await assetsOf(id)).map(x => x.id));
+      const check = contentOnly(site.doc, body.doc, ids);
       if (!check.ok) {
         return c.json({
           error: 'content only',

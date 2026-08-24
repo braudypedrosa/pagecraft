@@ -139,6 +139,101 @@ test('reading the CMS does not become a change to the site', () => {
   a.equal(contentOnly(before, real).ok, false, 'declaring one is not content');
 });
 
+/* --------------------------------------------------- images, the narrow way */
+
+const withImage = (src: string) => {
+  const doc = demo();
+  find(doc, 'image').props.src = src;
+  return doc;
+};
+const swap = (from: string, to: string, ids: string[]) => {
+  const before = withImage(from);
+  const after = structuredClone(before);
+  find(after, 'image').props.src = to;
+  return contentOnly(before, after, new Set(ids));
+};
+
+test('what matters is where the image now points, not what it used to be', () => {
+  /* The first version compared the pair, and refused the case that matters most: the demo's
+     image has no src, so a client setting one for the first time read as a change in kind.
+     What a value used to be is not the question. */
+  a.equal(swap('asset:a1', 'asset:a2', ['a1', 'a2']).ok, true, 'one upload for another');
+  a.equal(swap('', 'asset:a1', ['a1']).ok, true, 'setting one for the first time');
+  a.equal(swap('asset:a1', '', ['a1']).ok, true, 'and clearing it again');
+  a.equal(swap('https://elsewhere.test/x.png', 'asset:a1', ['a1']).ok, true,
+    'replacing somebody else’s image with their own upload');
+});
+
+test('an image may not be pointed at a URL, which is the whole reason the rule is narrow', () => {
+  a.equal(swap('asset:a1', 'https://elsewhere.test/x.png', ['a1']).ok, false);
+  a.equal(swap('', 'https://elsewhere.test/tracker.png', ['a1']).ok, false,
+    'an empty field is not an invitation to point anywhere');
+  a.equal(swap('https://a.test/x.png', 'https://b.test/y.png', ['a1']).ok, false,
+    'a URL left in place by an owner stays, but a content account may not move it');
+});
+
+test('an image may not be pointed at somebody else’s asset', () => {
+  a.equal(swap('asset:a1', 'asset:stolen', ['a1']).ok, false,
+    'an id this site does not own is not this site’s content');
+  a.equal(swap('asset:a1', 'asset:a2', ['a1']).ok, false, 'a2 is not in the set');
+});
+
+/** the demo has no gallery, so a test about one puts it there */
+const withGallery = (tiles: { src: string; alt: string }[]) => {
+  const doc = demo();
+  doc.pages[0].tree[0].children.push(Core.N('gallery', { items: tiles }, {}, []));
+  return doc;
+};
+
+test('a gallery tile and a page’s share image follow the same rule', () => {
+  const before = withGallery([{ src: 'asset:a1', alt: 'one' }, { src: 'asset:a2', alt: 'two' }]);
+  before.pages[0].ogImage = 'asset:a1';
+
+  const ok = structuredClone(before);
+  find(ok, 'gallery').props.items![0].src = 'asset:a2';
+  ok.pages[0].ogImage = 'asset:a2';
+  a.equal(contentOnly(before, ok, new Set(['a1', 'a2'])).ok, true);
+
+  const no = structuredClone(before);
+  find(no, 'gallery').props.items![0].src = 'https://elsewhere.test/x.png';
+  a.equal(contentOnly(before, no, new Set(['a1', 'a2'])).ok, false);
+});
+
+test('with no assets known, no image may be set', () => {
+  /* the default, and what a server with no asset store gives */
+  a.equal(swap('asset:a1', 'asset:a2', []).ok, false);
+  a.equal(swap('asset:a1', '', []).ok, true, 'though clearing one asks nothing of the store');
+});
+
+test('an image the owner left pointing at a URL does not block every content save', () => {
+  /* The second mistake here: checking every image in the document rather than the ones this
+     save moved. An owner may point an image wherever they like, and if that counts against
+     the client then every content save on that site is refused for a value the client never
+     touched. */
+  const before = withImage('https://owner-put-this-here.test/x.png');
+  const after = structuredClone(before);
+  find(after, 'heading').props.text = 'Only the words changed';
+  a.equal(contentOnly(before, after, new Set(['a1'])).ok, true);
+
+  /* and moving it is still refused */
+  const moved = structuredClone(before);
+  find(moved, 'image').props.src = 'https://somewhere-else.test/y.png';
+  a.equal(contentOnly(before, moved, new Set(['a1'])).ok, false);
+});
+
+test('a refusal says which image, because a document has many', () => {
+  const res = swap('', 'https://elsewhere.test/x.png', ['a1']);
+  a.equal(res.ok, false);
+  a.match(res.where!, /image\.src points somewhere this account may not/);
+});
+
+test('adding or removing a gallery tile is still structure, however the images move', () => {
+  const before = withGallery([{ src: 'asset:a1', alt: 'one' }]);
+  const after = structuredClone(before);
+  find(after, 'gallery').props.items!.push({ src: 'asset:a2', alt: 'two' });
+  a.equal(contentOnly(before, after, new Set(['a1', 'a2'])).ok, false);
+});
+
 /* ------------------------------------------------------------------ refused */
 
 test('styling is not content', () => {

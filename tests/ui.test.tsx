@@ -33,6 +33,22 @@ const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
 
 /* ----------------------------------------------- scoped to a content account */
 
+test('a content account is offered the image, because swapping one is content', () => {
+  /* The server allows an image to move between this site's own uploads, so the control that
+     moves it has to be on offer — otherwise the permission exists and the button does not.
+     Both sides read `ASSET_SLOTS` in the core, which is what keeps them agreeing. */
+  const r2 = rig({ canStructure: false });
+  const n = C.insert('image', null, 0)!;
+  C.state.ui.sel = n.id;
+  r2.draw(<Inspector />);
+  const labels = r2.$$('.gb > .f label').map(e => e.textContent!.replace(/\s+/g, ' ').trim());
+  a.ok(labels.some(l => /image|source/i.test(l)), `expected the image field, got ${JSON.stringify(labels)}`);
+  a.ok(labels.includes('Alt text'), 'and its description, which is words');
+  a.equal(labels.includes('Width'), false, 'not its dimensions, which are layout');
+  r2.host.remove();
+});
+
+
 test('a content account is offered the Content tab and no other', () => {
   /* The server refuses CSS from a content account, so offering a tab full of colours is an
      invitation to be refused. One tab is no tab, so the row goes entirely. */
