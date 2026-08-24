@@ -1432,7 +1432,17 @@ const state: State = {
 
 const doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
 const page = () => state.pages[state.cur] || state.pages[0];
-const tree = () => state.ui.mode === 'header' ? state.header : state.ui.mode === 'footer' ? state.footer : page().tree;
+/* Which tree is being edited. A component definition is one of them, and that single line is
+   most of what makes editing a component work: `locate`, `insert`, the drag targets, the
+   layer list and the inspector all read `tree()`, so none of them needed to learn what a
+   component is. The same trick the global header and footer have always used. */
+const tree = (): PcNode[] => {
+  if (state.ui.mode === 'component') {
+    const cd = findComponent(state.ui.cedit);
+    return cd ? [cd.node] : [];
+  }
+  return state.ui.mode === 'header' ? state.header : state.ui.mode === 'footer' ? state.footer : page().tree;
+};
 const dk = () => DEV_KEY[state.ui.dev];
 
 /* ---- tree traversal ------------------------------------------------- */
@@ -2233,7 +2243,16 @@ function tgtObj(n: PcNode): PcNode | StyleClass {
 }
 const tgtIsClass = (n: PcNode) => tgtObj(n) !== n;
 
-const propVal = (n: PcNode, k?: string) => (k == null ? undefined : (n.props as PropBag)[k]);
+/* A control's key is a prop key, except on an instance, where `val:<property>` is a value the
+   instance holds rather than a prop the widget has. Two functions know how a control reads and
+   writes — this one and `applyOne` — and both understand the prefix, which is the whole of what
+   makes a property editable by controls that were written years before components existed. */
+const VAL = 'val:';
+const propVal = (n: PcNode, k?: string) => {
+  if (k == null) return undefined;
+  if (k.startsWith(VAL)) return instValue(n, findComponent(n.use), k.slice(VAL.length));
+  return (n.props as PropBag)[k];
+};
 
 /** A link's mode is derived from the href it holds, so a mode picked but not yet
     filled in has nothing to derive from. `ui.lmode` remembers the choice for exactly
@@ -3158,6 +3177,7 @@ function applyOne(n: PcNode, c: Pick<Control, 'k' | 'c' | 'r'>, v: any) {
   if (c.k === '_cls') { n.adv.cls = v; return; }
   if (c.k === '_css') { n.adv.css = v; return; }
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
+  else if (c.k && c.k.startsWith(VAL)) instSet(n, c.k.slice(VAL.length), v == null ? '' : String(v));
   else if (c.k) (n.props as PropBag)[c.k] = v;
 }
 
@@ -4022,8 +4042,15 @@ const blockDelete = (id: string) => { state.meta.blocks = blocks().filter(b => b
    editor reads a type string, so a new type would have needed a level, and a component's level
    is whatever its definition's root is. A node that already *is* that type, carrying a
    component id, changes none of it. */
-const components = () => (state.meta.components || (state.meta.components = []));
-const findComponent = (id?: string | null) => (id ? components().find(c => c.id === id) || null : null);
+/* Declarations, not consts: `tree()` is defined a thousand lines above this and calls
+   `findComponent`. A const would be in its temporal dead zone for any call made while the
+   module is still evaluating — which is the exact bug `notASlide` has a comment about. */
+function components(): ComponentDef[] {
+  return (state.meta.components || (state.meta.components = []));
+}
+function findComponent(id?: string | null): ComponentDef | null {
+  return id ? components().find(c => c.id === id) || null : null;
+}
 
 /** The declared property, or null. */
 const findProp = (def: ComponentDef | null, k: string) =>
@@ -4092,7 +4119,7 @@ function instControls(n: PcNode): Control[] {
   const def = findComponent(n.use);
   if (!def) return [];
   return (def.props || []).map(pr => ({
-    t: PROP_CTL[pr.t] as Control['t'], k: 'val:' + pr.k, label: pr.label,
+    t: PROP_CTL[pr.t] as Control['t'], k: VAL + pr.k, label: pr.label,
     opts: pr.t === 'select' ? (pr.opts || []) : undefined
   })) as Control[];
 }
@@ -4100,6 +4127,54 @@ function instControls(n: PcNode): Control[] {
     so the panel, the content role and the search cannot disagree about what a node holds. */
 const contentControls = (n: PcNode): Control[] =>
   (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
+
+/** Which of a control's keys hold words rather than settings, for this node. The per-type
+    answer for an ordinary widget; for an instance, the properties whose kind is content. A
+    `select` or a `bool` property switches what the component does, which is the same kind of
+    decision as a heading's HTML tag — a setting, and not a content account's to make. */
+const CONTENT_PROP: PropKind[] = ['text', 'rich', 'img', 'link'];
+function contentKeysOf(n: PcNode): Set<string> {
+  if (!n.use) return contentKeys(n.type);
+  const out = new Set<string>();
+  (findComponent(n.use)?.props || []).forEach(pr => {
+    if (CONTENT_PROP.includes(pr.t)) out.add(VAL + pr.k);
+  });
+  return out;
+}
+
+/** Which property kind a control of this kind edits. The controls came first, so this reads
+    from them rather than the other way round. */
+const PROP_KIND: Record<string, PropKind> = {
+  text: 'text', area: 'text', rich: 'rich', img: 'img', link: 'link',
+  color: 'color', select: 'select', check: 'bool'
+};
+/** Turn what a node holds into a property of the component being edited, and bind it. One
+    verb, because it is one decision — "this varies" — and doing it in three steps (declare,
+    default, bind) is three chances to end up with a property nothing reads. */
+function propFromControl(cid: string, nodeId: string, c: Control) {
+  const def = findComponent(cid);
+  if (!def || !c.k || c.k.startsWith(VAL)) return null;
+  const kind = PROP_KIND[c.t];
+  if (!kind) return null;
+  let hit: PcNode | null = null;
+  eachNode([def.node], x => { if (x.id === nodeId) hit = x; });
+  const n = hit as PcNode | null;
+  if (!n) return null;
+  const cur = propVal(n, c.k);
+  const k = propAdd(cid, c.label || c.k, kind, cur == null ? '' : String(cur));
+  if (!k) return null;
+  if (kind === 'select') {
+    /* the control's own options become the property's, so an instance picking a variant is
+       choosing from what the widget actually accepts rather than typing a string */
+    const pr = findProp(def, k);
+    /* `opts` may be a function of the node — a link's page list is — and a property's options
+       are fixed once declared, so only a literal list carries over. */
+    const opts = typeof c.opts === 'function' ? null : c.opts;
+    if (pr && opts) pr.opts = opts.map(o => [String(o[0]), String(o[1])] as [string, string]);
+  }
+  bindSet(n, c.k, { src: 'prop', path: k });
+  return k;
+}
 
 /** Make a definition out of a node, and turn that node into the first instance. Saving a
     component that leaves the page unchanged is the point: nothing on screen moves, and what
@@ -4215,6 +4290,24 @@ function componentDelete(cid: string) {
   }
   state.meta.components = components().filter(c => c.id !== cid);
   return n;
+}
+/** Edit a definition: the canvas, the layer list and the inspector all point at its tree.
+    Returns false for a component that is not there, so a stale id leaves the editor where it
+    is rather than showing an empty canvas with no way back. */
+function componentOpen(cid: string) {
+  if (!findComponent(cid)) return false;
+  state.ui.mode = 'component';
+  state.ui.cedit = cid;
+  state.ui.sel = null;
+  state.ui.multi = [];
+  return true;
+}
+/** Back to the page. */
+function componentClose() {
+  state.ui.mode = 'page';
+  state.ui.cedit = null;
+  state.ui.sel = null;
+  state.ui.multi = [];
 }
 const componentRename = (cid: string, name: string) => {
   const c = findComponent(cid);
@@ -6771,5 +6864,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, instControls, contentControls, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, instControls, contentControls, contentKeysOf, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

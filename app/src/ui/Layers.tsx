@@ -86,7 +86,7 @@ export function Layers() {
   const list = C.tree();
   return (
     <div class="layers">
-      {L.regions.map(R => (
+      {L.regions().map(R => (
         <>
           <RegionRow key={'r-' + R.kind} kind={R.kind} label={R.label} />
           {R.kind !== scope ? null

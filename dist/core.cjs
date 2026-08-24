@@ -66,6 +66,7 @@ __export(index_exports, {
   PATTERNS: () => PATTERNS,
   PFX: () => PFX,
   PH: () => PH,
+  PROP_KIND: () => PROP_KIND,
   REF_DEPTH: () => REF_DEPTH,
   RESERVED: () => RESERVED,
   SCHEMA: () => SCHEMA,
@@ -81,6 +82,7 @@ __export(index_exports, {
   TS_TYPES: () => TS_TYPES,
   TYPO_KEYS: () => TYPO_KEYS,
   U: () => U,
+  VAL: () => VAL,
   ZOOMS: () => ZOOMS,
   anchorsOf: () => anchorsOf,
   animAttrs: () => animAttrs,
@@ -141,8 +143,10 @@ __export(index_exports, {
   colorUsage: () => colorUsage,
   colors: () => colors,
   cols: () => cols,
+  componentClose: () => componentClose,
   componentDelete: () => componentDelete,
   componentFromNode: () => componentFromNode,
+  componentOpen: () => componentOpen,
   componentRename: () => componentRename,
   componentUsage: () => componentUsage,
   components: () => components,
@@ -150,6 +154,7 @@ __export(index_exports, {
   contentImport: () => contentImport,
   contentJson: () => contentJson,
   contentKeys: () => contentKeys,
+  contentKeysOf: () => contentKeysOf,
   contrast: () => contrast,
   copyNode: () => copyNode,
   copyStyles: () => copyStyles,
@@ -289,6 +294,7 @@ __export(index_exports, {
   previewItem: () => previewItem,
   propAdd: () => propAdd,
   propDelete: () => propDelete,
+  propFromControl: () => propFromControl,
   propVal: () => propVal,
   published: () => published,
   redo: () => redo,
@@ -410,6 +416,10 @@ var IC = {
   caretUp: '<path d="M3.5 10.5L8 6l4.5 4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   trash: '<path d="M2.8 4.5h10.4M6.2 4.5V2.8h3.6v1.7M4.2 4.5l.6 8.2c0 .5.5.8 1 .8h4.4c.5 0 1-.3 1-.8l.6-8.2" stroke-linecap="round"/>',
   copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.4"/><path d="M10.5 5.5v-2A1 1 0 009.5 2.5h-6a1 1 0 00-1 1v6a1 1 0 001 1h2"/>',
+  /* A component: one outline, and a filled mark inside it that is the part that varies.
+     Deliberately not `copy` — two identical squares is what a component is *not*, and the
+     Blocks tab is the thing next to it in the panel. */
+  component: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><rect x="5.5" y="5.5" width="5" height="5" rx="1" fill="currentColor" stroke="none"/>',
   /* Three dots in a row. It exists because the overflow button used to be `drag`
      rotated 90 degrees, and a 3x2 dot grid beside a 2x3 dot grid is the same glyph
      twice at 12px — "drag to move" and "everything else" were indistinguishable. */
@@ -2702,7 +2712,13 @@ var state = {
 };
 var doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
 var page = () => state.pages[state.cur] || state.pages[0];
-var tree = () => state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
+var tree = () => {
+  if (state.ui.mode === "component") {
+    const cd = findComponent(state.ui.cedit);
+    return cd ? [cd.node] : [];
+  }
+  return state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
+};
 var dk = () => DEV_KEY[state.ui.dev];
 function locate(id, list = tree(), parent = null) {
   for (let i = 0; i < list.length; i++) {
@@ -3360,7 +3376,12 @@ function tgtObj(n) {
   return c && (n.cls || []).includes(id) ? c : n;
 }
 var tgtIsClass = (n) => tgtObj(n) !== n;
-var propVal = (n, k) => k == null ? void 0 : n.props[k];
+var VAL = "val:";
+var propVal = (n, k) => {
+  if (k == null) return void 0;
+  if (k.startsWith(VAL)) return instValue(n, findComponent(n.use), k.slice(VAL.length));
+  return n.props[k];
+};
 function linkOf(n, propKey, here) {
   const L = parseLink(propVal(n, propKey), here);
   if (L.mode === "none" && state.ui.lmode && state.ui.lmode.key === n.id + "|" + propKey) L.mode = state.ui.lmode.mode;
@@ -4103,6 +4124,7 @@ function applyOne(n, c, v) {
     return;
   }
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
+  else if (c.k && c.k.startsWith(VAL)) instSet(n, c.k.slice(VAL.length), v == null ? "" : String(v));
   else if (c.k) n.props[c.k] = v;
 }
 function applyC(n, c, v) {
@@ -4759,8 +4781,12 @@ function blockInsert(id, parentNode, index = 0) {
 var blockDelete = (id) => {
   state.meta.blocks = blocks().filter((b) => b.id !== id);
 };
-var components = () => state.meta.components || (state.meta.components = []);
-var findComponent = (id) => id ? components().find((c) => c.id === id) || null : null;
+function components() {
+  return state.meta.components || (state.meta.components = []);
+}
+function findComponent(id) {
+  return id ? components().find((c) => c.id === id) || null : null;
+}
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
 function instValue(inst, def, k) {
   const own = inst.vals ? inst.vals[k] : void 0;
@@ -4824,12 +4850,53 @@ function instControls(n) {
   if (!def) return [];
   return (def.props || []).map((pr) => ({
     t: PROP_CTL[pr.t],
-    k: "val:" + pr.k,
+    k: VAL + pr.k,
     label: pr.label,
     opts: pr.t === "select" ? pr.opts || [] : void 0
   }));
 }
 var contentControls = (n) => n.use ? instControls(n) : DEF[n.type].controls.content || [];
+var CONTENT_PROP = ["text", "rich", "img", "link"];
+function contentKeysOf(n) {
+  if (!n.use) return contentKeys(n.type);
+  const out = /* @__PURE__ */ new Set();
+  (findComponent(n.use)?.props || []).forEach((pr) => {
+    if (CONTENT_PROP.includes(pr.t)) out.add(VAL + pr.k);
+  });
+  return out;
+}
+var PROP_KIND = {
+  text: "text",
+  area: "text",
+  rich: "rich",
+  img: "img",
+  link: "link",
+  color: "color",
+  select: "select",
+  check: "bool"
+};
+function propFromControl(cid, nodeId, c) {
+  const def = findComponent(cid);
+  if (!def || !c.k || c.k.startsWith(VAL)) return null;
+  const kind = PROP_KIND[c.t];
+  if (!kind) return null;
+  let hit = null;
+  eachNode([def.node], (x) => {
+    if (x.id === nodeId) hit = x;
+  });
+  const n = hit;
+  if (!n) return null;
+  const cur = propVal(n, c.k);
+  const k = propAdd(cid, c.label || c.k, kind, cur == null ? "" : String(cur));
+  if (!k) return null;
+  if (kind === "select") {
+    const pr = findProp(def, k);
+    const opts = typeof c.opts === "function" ? null : c.opts;
+    if (pr && opts) pr.opts = opts.map((o) => [String(o[0]), String(o[1])]);
+  }
+  bindSet(n, c.k, { src: "prop", path: k });
+  return k;
+}
 function componentFromNode(nodeId, name) {
   const h = locate(nodeId);
   if (!h) return null;
@@ -4940,6 +5007,20 @@ function componentDelete(cid) {
   }
   state.meta.components = components().filter((c) => c.id !== cid);
   return n;
+}
+function componentOpen(cid) {
+  if (!findComponent(cid)) return false;
+  state.ui.mode = "component";
+  state.ui.cedit = cid;
+  state.ui.sel = null;
+  state.ui.multi = [];
+  return true;
+}
+function componentClose() {
+  state.ui.mode = "page";
+  state.ui.cedit = null;
+  state.ui.sel = null;
+  state.ui.multi = [];
 }
 var componentRename = (cid, name) => {
   const c = findComponent(cid);
@@ -7371,6 +7452,7 @@ ${ANIM_JS}
   PATTERNS,
   PFX,
   PH,
+  PROP_KIND,
   REF_DEPTH,
   RESERVED,
   SCHEMA,
@@ -7386,6 +7468,7 @@ ${ANIM_JS}
   TS_TYPES,
   TYPO_KEYS,
   U,
+  VAL,
   ZOOMS,
   anchorsOf,
   animAttrs,
@@ -7446,8 +7529,10 @@ ${ANIM_JS}
   colorUsage,
   colors,
   cols,
+  componentClose,
   componentDelete,
   componentFromNode,
+  componentOpen,
   componentRename,
   componentUsage,
   components,
@@ -7455,6 +7540,7 @@ ${ANIM_JS}
   contentImport,
   contentJson,
   contentKeys,
+  contentKeysOf,
   contrast,
   copyNode,
   copyStyles,
@@ -7594,6 +7680,7 @@ ${ANIM_JS}
   previewItem,
   propAdd,
   propDelete,
+  propFromControl,
   propVal,
   published,
   redo,

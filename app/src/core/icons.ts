@@ -47,6 +47,10 @@ const IC: Record<string, string> = {
   caretUp:'<path d="M3.5 10.5L8 6l4.5 4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   trash:'<path d="M2.8 4.5h10.4M6.2 4.5V2.8h3.6v1.7M4.2 4.5l.6 8.2c0 .5.5.8 1 .8h4.4c.5 0 1-.3 1-.8l.6-8.2" stroke-linecap="round"/>',
   copy:'<rect x="5.5" y="5.5" width="8" height="8" rx="1.4"/><path d="M10.5 5.5v-2A1 1 0 009.5 2.5h-6a1 1 0 00-1 1v6a1 1 0 001 1h2"/>',
+  /* A component: one outline, and a filled mark inside it that is the part that varies.
+     Deliberately not `copy` — two identical squares is what a component is *not*, and the
+     Blocks tab is the thing next to it in the panel. */
+  component:'<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><rect x="5.5" y="5.5" width="5" height="5" rx="1" fill="currentColor" stroke="none"/>',
   /* Three dots in a row. It exists because the overflow button used to be `drag`
      rotated 90 degrees, and a 3x2 dot grid beside a 2x3 dot grid is the same glyph
      twice at 12px — "drag to move" and "everything else" were indistinguishable. */

@@ -39,14 +39,19 @@ export interface Legacy {
   select(id: string | null, opts?: { scroll?: boolean; add?: boolean; range?: boolean }): void;
   /** switch the editing scope between the page and the global header/footer */
   setMode(mode: string): void;
+  /** Open a component definition for editing, or close it. Both go through the app's own
+      render cycle: the canvas, the layer list, the mode bar and the panels all change, and a
+      panel-level repaint would leave four of them showing the other thing. */
+  editComponent(cid: string | null): void;
   /** run a menu action against a set of ids — the one entry point for the verbs */
   runAct(act: string, ids: string[]): void;
   /** open the right-click menu at viewport coordinates */
   openCtx(x: number, y: number, ids: string[]): void;
   /** begin a drag-to-reorder from a row's grip */
   startLayerDrag(e: PointerEvent, id: string): void;
-  /** the page and the two global regions, in the order they are listed */
-  regions: readonly { kind: string; label: string }[];
+  /** The regions on the canvas, in order. A function rather than an array: editing a component
+      shows the component and nothing else, so the list depends on the mode. */
+  regions(): readonly { kind: string; label: string }[];
   /** which region is being edited, as a region `kind` */
   scopeOf(): string;
   /** the `ui.mode` value that edits a given region kind */
@@ -68,8 +73,8 @@ export interface Legacy {
 
   /** begin dragging something onto the canvas */
   startDrag(e: PointerEvent, payload: {
-    kind: 'new' | 'pattern' | 'block';
-    type?: string; patId?: string; blockId?: string;
+    kind: 'new' | 'pattern' | 'block' | 'component';
+    type?: string; patId?: string; blockId?: string; componentId?: string;
     label: string; icon: string;
   }, fromFrame: boolean): void;
   /**

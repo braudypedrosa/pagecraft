@@ -558,7 +558,12 @@ export interface Meta {
 
 /** Editor state. Never persisted — `doc()` deliberately omits it. */
 export interface Ui {
-  mode: 'page' | 'header' | 'footer';
+  /** Which tree the editor is editing. `component` is the definition named by `cedit`, and it
+      works for the same reason `header` and `footer` do: `tree()` returns it, so selection,
+      insertion, drag and the whole inspector operate on it without knowing what it is. */
+  mode: 'page' | 'header' | 'footer' | 'component';
+  /** the component being edited, while `mode` is `component` */
+  cedit?: string | null;
   dev: Device;
   /** the primary selection, whose controls the inspector draws */
   sel: string | null;

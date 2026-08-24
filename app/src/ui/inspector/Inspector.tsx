@@ -357,8 +357,11 @@ export function Inspector() {
      two write CSS, so a content account offered them would be offered a refused save. The
      line that matches the server is `contentKeys`: a control writes content when it writes
      a declared text slot and no CSS property. */
-  const all = d.controls.content || [];
-  const keys = L.canStructure() ? null : C.contentKeys(n.type);
+  /* `contentControls` rather than the widget's own list: an instance's content is the
+     properties its definition declares, and the widget it happens to be rooted on has nothing
+     to say about it. Same reader for the content-role filter, for the same reason. */
+  const all = C.contentControls(n);
+  const keys = L.canStructure() ? null : C.contentKeysOf(n);
   const content = keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all;
   const many = C.selIds().length > 1;
 
@@ -380,9 +383,17 @@ export function Inspector() {
         {tab === 'content' || many ? null : <StatePick />}
         {tab === 'content' ? (
           content.length
-            ? <Group title={d.label} n={n} items={content} />
-            : <Panel title={d.label} n={n}>
-              <div class="note">No content options — use the Style tab.</div>
+            ? <Group title={n.use ? C.nameOf(n) : d.label} n={n} items={content} />
+            : <Panel title={n.use ? C.nameOf(n) : d.label} n={n}>
+              {/* An instance with no properties is not a mistake — a component can be a fixed
+                  piece of layout somebody wanted in twelve places. It is worth saying where
+                  properties come from, because the answer is not on this panel. */}
+              {n.use
+                ? <div class="note">
+                  Nothing varies between instances yet. Open this component in the
+                  <b> Components</b> tab and mark what should.
+                </div>
+                : <div class="note">No content options — use the Style tab.</div>}
             </Panel>
         ) : tab === 'style' ? (
           <>

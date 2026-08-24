@@ -25,14 +25,24 @@ export function stubLegacy(calls: Call[], opts: { canStructure?: boolean } = {})
        panel that asks to change region before inserting can only be checked against
        where the node actually landed if the stub honours the request. */
     setMode: (mode: string) => { calls.push(['setMode', mode]); C.state.ui.mode = mode as any; },
+    /* Records, and honours: a test that opens a component then asserts on `C.tree()` is
+       asserting the thing the real app does. */
+    editComponent: (cid: string | null) => {
+      calls.push(['editComponent', String(cid)]);
+      if (cid) C.componentOpen(cid); else C.componentClose();
+    },
     runAct: rec('runAct'),
     openCtx: rec('openCtx'),
     startLayerDrag: rec('startLayerDrag'),
-    regions: [
-      { kind: 'header', label: 'Global header' },
-      { kind: 'main', label: 'Page content' },
-      { kind: 'footer', label: 'Global footer' }
-    ],
+    /* The real one is mode-dependent — editing a component shows one region — so the stub is a
+       function too, answering with the page's three. */
+    regions: () => (C.state.ui.mode === 'component'
+      ? [{ kind: 'component', label: 'Component' }]
+      : [
+        { kind: 'header', label: 'Global header' },
+        { kind: 'main', label: 'Page content' },
+        { kind: 'footer', label: 'Global footer' }
+      ]),
     scopeOf: () => 'main',
     modeFor: (kind: string) => kind === 'main' ? 'page' : kind,
     askText: async (...a: any[]) => { calls.push(['askText', ...a]); return 'Stub name'; },
