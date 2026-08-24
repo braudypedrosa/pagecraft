@@ -137,3 +137,120 @@ test('a document from a newer build is refused rather than half-understood', () 
   doc.v = Core.SCHEMA + 1;
   a.equal(adopt(doc), null);
 });
+
+/* --------------------------------------------------- a site with a collection
+
+   The claim is one static file per item. `renderSite` walks `exportTargets()`, so it holds by
+   construction — and nothing asserted it, which means a CMS site served from here could have
+   404ed on every item page without a test noticing. Built with the core rather than a fixture
+   file, so it exercises the same calls the editor makes. */
+
+/** A site with a collection, a page listing it, and a page templating one item. */
+function cmsSite(): { doc: Doc; slugs: string[] } {
+  Core.seed();
+  Core.blankProject('Notes');
+  /* `blankProject` keeps the libraries — colours, classes, blocks, components, and a
+     collection's *schema*. So a second call would add a second collection called Notes, get
+     the id `notes-2`, and put the detail pages somewhere this fixture is not looking. Cleared
+     here rather than worked around, because the fixture wants a clean slate and the product is
+     right to keep them. */
+  Core.state.meta.collections = [];
+  Core.state.meta.baseUrl = 'https://notes.test';
+
+  const col = Core.collectionAdd('Notes')!;
+  const title = col.fields[0].id;
+  const body = Core.fieldAdd(col.id, 'Body', 'rich')!.id;
+  const aside = Core.fieldAdd(col.id, 'Aside', 'text')!.id;
+
+  const rows: [string, string, string][] = [
+    ['First note', '<p>The first one.</p>', 'With an aside.'],
+    ['Second note', '<p>The second one.</p>', ''],
+    ['Third note', '<p>The third one.</p>', 'And another aside.']
+  ];
+  for (const [t, b, a2] of rows) {
+    const it = Core.itemAdd(col.id)!;
+    Core.itemSet(col.id, it.id, title, t);
+    Core.itemSet(col.id, it.id, body, b);
+    if (a2) Core.itemSet(col.id, it.id, aside, a2);
+  }
+
+  /* the index: a list repeating one card */
+  const h1 = Core.insert('heading', null, 0)!;
+  h1.props.text = 'Notes'; h1.props.level = 'h1'; h1.props.ts = 'display';
+  const list = Core.insert('list', null, 1)!;
+  list.src = col.id;
+  const cardRow = Core.insert('columns', list, 0)!;
+  const card = cardRow.children[0];
+  Core.applyCols(cardRow, [100]);
+  const cardTitle = Core.insert('heading', card, 0)!;
+  cardTitle.props.level = 'h2'; cardTitle.props.ts = 'subtitle';
+  Core.bindSet(cardTitle, 'text', Core.bindField(title));
+
+  /* the detail template: one file per item, with a conditional aside */
+  const det = Core.pageFromTemplate('blank', 'Note')!;
+  Core.state.pages.push(det);
+  det.slug = 'note';
+  det.collection = col.id;
+  det.title = 'A note'; det.desc = 'One note.';
+  Core.state.cur = Core.state.pages.length - 1;
+  const dh = Core.insert('heading', null, 0)!;
+  dh.props.level = 'h1'; dh.props.ts = 'display';
+  Core.bindSet(dh, 'text', Core.bindField(title));
+  const dbody = Core.insert('text', null, 1)!;
+  Core.bindSet(dbody, 'html', Core.bindField(body));
+  const dside = Core.insert('text', null, 2)!;
+  Core.bindSet(dside, 'html', Core.bindField(aside));
+  Core.condSet(dside, { bind: Core.bindField(aside)!, op: 'set' });
+  Core.state.cur = 0;
+
+  const doc = structuredClone({
+    meta: Core.state.meta, header: Core.state.header,
+    footer: Core.state.footer, pages: Core.state.pages
+  }) as Doc;
+  return { doc, slugs: (doc.meta.collections || [])[0].items.map(i => i.slug) };
+}
+
+test('a collection is one served file per item, each with its own content', () => {
+  const { doc, slugs } = cmsSite();
+  const out = renderSite(doc);
+
+  a.deepEqual(slugs, ['first-note', 'second-note', 'third-note']);
+  for (const s of slugs) {
+    a.ok(out.files.has(`notes/${s}.html`), `notes/${s}.html is served`);
+  }
+  a.ok(out.files.has('index.html'));
+  a.ok(out.files.has('sitemap.xml'), 'and the sitemap, since a base URL is set');
+
+  /* each detail page is about its own item, which is the whole point */
+  const first = out.files.get('notes/first-note.html')!;
+  a.match(first, /<h1[^>]*>First note</);
+  a.equal(/Second note/.test(first), false);
+  a.match(first, /The first one\./);
+
+  /* the conditional aside: on the two items that have one, and not on the third */
+  a.match(out.files.get('notes/first-note.html')!, /With an aside\./);
+  a.match(out.files.get('notes/third-note.html')!, /And another aside\./);
+  const second = out.files.get('notes/second-note.html')!;
+  a.equal(/aside/i.test(second.slice(second.indexOf('<body'))), false,
+    'an empty field means the element is not in the file at all');
+});
+
+test('a detail page asks for its assets one directory up', () => {
+  /* `rel` is why: the file sits in `notes/`, so a root-relative path would only resolve from
+     the root. Getting this wrong breaks every image on every detail page and nothing else. */
+  const { doc } = cmsSite();
+  const out = renderSite(doc);
+  const detail = out.files.get('notes/first-note.html')!;
+  const links = [...detail.matchAll(/(?:href|src)="([^"]*)"/g)].map(m => m[1]);
+  const local = links.filter(h => !/^(https?:|mailto:|tel:|data:|#)/.test(h));
+  for (const h of local) {
+    a.match(h, /^\.\.\/|^[a-z0-9-]+\.html$|^[a-z0-9-]+\/[a-z0-9-]+\.html$/i,
+      `${h} resolves from notes/`);
+  }
+});
+
+test('a request path finds a detail page the way a static host would', () => {
+  a.equal(resolvePath('/notes/first-note.html'), 'notes/first-note.html');
+  a.equal(resolvePath('/notes/first-note'), 'notes/first-note.html', 'extensionless works too');
+  a.equal(resolvePath('/notes/'), 'notes/index.html');
+});

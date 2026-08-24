@@ -569,3 +569,100 @@ test('a condition is structure, not content', () => {
     { bind: { src: 'prop', path: 'title' }, op: 'set' };
   a.equal(contentOnly(doc, after).ok, false);
 });
+
+/* ------------------------------------------- a client editing a real CMS site
+
+   The whole point of the server, exercised on a document that has the things a real one has: a
+   collection, a page listing it, a page templating one item, and a conditional element. */
+
+function notesSite(): Doc {
+  Core.seed();
+  Core.blankProject('Notes');
+  Core.state.meta.collections = [];        // schemas are a library — see render.test.ts
+  const col = Core.collectionAdd('Notes')!;
+  const title = col.fields[0].id;
+  const body = Core.fieldAdd(col.id, 'Body', 'rich')!.id;
+  for (const [t, b] of [['First note', '<p>One.</p>'], ['Second note', '<p>Two.</p>']]) {
+    const it = Core.itemAdd(col.id)!;
+    Core.itemSet(col.id, it.id, title, t);
+    Core.itemSet(col.id, it.id, body, b);
+  }
+  const h = Core.insert('heading', null, 0)!;
+  h.props.text = 'Notes'; h.props.level = 'h1'; h.props.ts = 'display';
+  const det = Core.pageFromTemplate('blank', 'Note')!;
+  Core.state.pages.push(det);
+  det.slug = 'note'; det.collection = col.id; det.title = 'A note'; det.desc = 'One note.';
+  Core.state.cur = 1;
+  const dh = Core.insert('heading', null, 0)!;
+  dh.props.level = 'h1'; dh.props.ts = 'display';
+  Core.bindSet(dh, 'text', Core.bindField(title));
+  Core.state.cur = 0;
+  return structuredClone({
+    meta: Core.state.meta, header: Core.state.header,
+    footer: Core.state.footer, pages: Core.state.pages
+  }) as Doc;
+}
+
+test('a client rewrites an item and the detail page it generates changes with it', async () => {
+  const store = new MemoryStore();
+  const auth = new MemoryAuthStore();
+  let sent = '';
+  const app = createApp({
+    store, auth, editorHost: 'admin.test', editorOrigin: 'http://admin.test',
+    sendLink: (_t, url) => { sent = url; }
+  });
+  const site = await store.create({ host: 'notes.test', name: 'Notes', doc: notesSite() });
+  const user = await auth.createUser('client@notes.test');
+  await auth.grant(site.id, user.id, 'content' as Role);
+
+  const req = (path: string, init: RequestInit = {}, cookie?: string, host = 'admin.test') =>
+    app.request(new Request(`http://${host}${path}`, {
+      ...init, headers: { host, 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }
+    }));
+  await req('/auth/login', { method: 'POST', body: JSON.stringify({ email: 'client@notes.test' }) });
+  const cb = await req(`/auth/callback?token=${new URL(sent).searchParams.get('token')}`);
+  const cookie = (cb.headers.get('set-cookie') || '').split(';')[0];
+
+  /* the detail page is served, before anything is edited */
+  const before = await req('/notes/first-note', {}, undefined, 'notes.test');
+  a.equal(before.status, 200, 'a per-item page is a page this server serves');
+  a.match(await before.text(), /<h1[^>]*>First note</);
+
+  /* the client rewrites it */
+  const loaded = await (await req(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc; version: number };
+  const edited = structuredClone(loaded.doc);
+  const col = (edited.meta.collections || [])[0];
+  const titleField = col.fields[0].id;
+  col.items[0].values[titleField] = 'The first note, renamed';
+  const res = await req(`/api/sites/${site.id}`, {
+    method: 'PUT', body: JSON.stringify({ doc: edited, version: loaded.version })
+  }, cookie);
+  a.equal(res.status, 200, 'words in a CMS item are content');
+
+  /* the page it generates says so, at the same URL — the slug is stable on purpose */
+  const after = await req('/notes/first-note', {}, undefined, 'notes.test');
+  a.equal(after.status, 200);
+  a.match(await after.text(), /<h1[^>]*>The first note, renamed</);
+});
+
+test('a client cannot add an item, delete one, or change the schema', async () => {
+  /* Words are content. How many things there are, and what fields they have, is the site. */
+  const base = notesSite();
+  const col = (d: Doc) => (d.meta.collections || [])[0];
+
+  const added = structuredClone(base);
+  col(added).items.push({ id: 'nnew', slug: 'third', values: {} });
+  a.equal(contentOnly(base, added).ok, false, 'adding an item is structure');
+
+  const removed = structuredClone(base);
+  col(removed).items.pop();
+  a.equal(contentOnly(base, removed).ok, false, 'and so is removing one');
+
+  const schema = structuredClone(base);
+  col(schema).fields.push({ id: 'extra', name: 'Extra', type: 'text', required: 0 });
+  a.equal(contentOnly(base, schema).ok, false, 'and so is a new field');
+
+  const held = structuredClone(base);
+  col(held).items[0].draft = 1;
+  a.equal(contentOnly(base, held).ok, true, 'holding one back is content — it is their words');
+});
