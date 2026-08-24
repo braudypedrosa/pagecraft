@@ -35,6 +35,7 @@ __export(index_exports, {
   CODE_LANGS: () => CODE_LANGS,
   COLL_CTL: () => COLL_CTL,
   COMMON_STYLE: () => COMMON_STYLE,
+  COND_OPS: () => COND_OPS,
   CONTENT_PROP: () => CONTENT_PROP,
   COUNTS: () => COUNTS,
   CRC_T: () => CRC_T,
@@ -148,6 +149,8 @@ __export(index_exports, {
   componentRename: () => componentRename,
   componentUsage: () => componentUsage,
   components: () => components,
+  condSet: () => condSet,
+  condValue: () => condValue,
   contentControls: () => contentControls,
   contentImport: () => contentImport,
   contentJson: () => contentJson,
@@ -325,6 +328,7 @@ __export(index_exports, {
   selToggle: () => selToggle,
   sendEdge: () => sendEdge,
   setCss: () => setCss,
+  showsNode: () => showsNode,
   sitePlan: () => sitePlan,
   sitemapXml: () => sitemapXml,
   sizesFor: () => sizesFor,
@@ -4767,6 +4771,40 @@ function boundProps(n, col, item, inst, def) {
   }
   return out;
 }
+var COND_OPS = [
+  ["set", "has a value"],
+  ["empty", "is empty"],
+  ["eq", "is"],
+  ["ne", "is not"]
+];
+function condValue(c, col, item, inst, def) {
+  if (c.bind.src === "prop") return inst ? instValue(inst, def || null, c.bind.path) : "";
+  if (!col || !item) return "";
+  const v = fieldValue(col, item, c.bind.path);
+  return v == null ? "" : String(v);
+}
+function showsNode(n, col, item, inst, def) {
+  const c = n.showIf;
+  if (!c || !c.bind || !c.bind.path) return true;
+  const v = condValue(c, col, item, inst, def).trim();
+  const want = String(c.value == null ? "" : c.value).trim();
+  if (c.op === "set") return v !== "";
+  if (c.op === "empty") return v === "";
+  if (c.op === "eq") return v === want;
+  if (c.op === "ne") return v !== want;
+  return true;
+}
+function condSet(n, c) {
+  if (!c || !c.bind || !c.bind.path) {
+    delete n.showIf;
+    return;
+  }
+  n.showIf = {
+    bind: { src: c.bind.src, path: c.bind.path },
+    op: c.op,
+    ...c.op === "eq" || c.op === "ne" ? { value: String(c.value == null ? "" : c.value) } : {}
+  };
+}
 function itemSetSlug(colId, iid, slug) {
   const col = findCollection(colId);
   if (!col) return;
@@ -6880,6 +6918,7 @@ ${m.css || ""}
 ` + (editing ? `
 [data-id]{position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
+.s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
 [data-t=column]{min-height:40px}
 [data-t=nav][data-sel] .pagecraft-nav-list{display:flex !important}
@@ -7084,7 +7123,8 @@ function renderNode(n, o) {
   const ts = self.props.ts && findStyle(self.props.ts) ? " ts-" + self.props.ts : n.props.ts && findStyle(n.props.ts) ? " ts-" + n.props.ts : "";
   const managed = nodeClasses(self).map((c) => " c-" + c.id).join("") + (host ? nodeClasses(n).map((c) => " c-" + c.id).join("") : "");
   const anim = o.edit ? { cls: "", at: "" } : animAttrs(self);
-  const cx = (c) => `class="${c} ${nodeClass(n)}${host ? " " + nodeClass(host) : ""}${ts}${managed}${anim.cls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
+  let condCls = "";
+  const cx = (c) => `class="${c} ${nodeClass(n)}${host ? " " + nodeClass(host) : ""}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
   const rep = o.repeat && o.item ? "-" + o.item.slug : "";
   const ins = inner && o.inst ? "-" + String(o.inst.id).replace(/^n/, "") : "";
   const domId = o.edit ? o.repIndex ? self.id + rep + ins : self.id + ins : esc(domIdOf(self) + rep + ins);
@@ -7097,6 +7137,10 @@ function renderNode(n, o) {
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
   const kids = n.type === "list" ? "" : kidList.map((c) => renderNode(c, kidOpts)).join("");
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
+  if (n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
+    if (!o.edit) return "";
+    condCls = " s-cond-off";
+  }
   switch (n.type) {
     case "section": {
       const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : "section";
@@ -7568,6 +7612,7 @@ ${ANIM_JS}
   CODE_LANGS,
   COLL_CTL,
   COMMON_STYLE,
+  COND_OPS,
   CONTENT_PROP,
   COUNTS,
   CRC_T,
@@ -7681,6 +7726,8 @@ ${ANIM_JS}
   componentRename,
   componentUsage,
   components,
+  condSet,
+  condValue,
   contentControls,
   contentImport,
   contentJson,
@@ -7858,6 +7905,7 @@ ${ANIM_JS}
   selToggle,
   sendEdge,
   setCss,
+  showsNode,
   sitePlan,
   sitemapXml,
   sizesFor,

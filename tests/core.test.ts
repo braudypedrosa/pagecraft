@@ -7311,3 +7311,108 @@ test('the Columns control wins, because a two-class default would outrank it', (
   a.equal(/\.pagecraft-box\.l-grid\{[^}]*grid-template-columns/.test(css), false,
     'and nothing with more specificity says otherwise');
 });
+
+/* ------------------------------------------------------------- conditions
+   Whether an element is on the page at all. The case that asked for it: a Collection List card
+   with a "Read more" button showed that button for every item, including the ones with nothing
+   to read — a dead link on a real page, and the only fix was not to have the button. */
+
+/** a card in a list bound to a collection, plus two items: one with a link, one without */
+function cards() {
+  blank();
+  const col = collectionAdd('Posts');
+  const title = must(C.fieldAdd(col.id, 'Title', 'text'), 'title').id;
+  const more = must(C.fieldAdd(col.id, 'Read more', 'link'), 'more').id;
+  const list = C.N('list', {});
+  list.src = col.id;
+  const h = C.N('heading', { text: 'x' });
+  const btn = C.N('button', { text: 'Read more', link: '' });
+  list.children.push(C.N('column', {}, {}, [h, btn]));
+  C.state.pages[0].tree.push(C.N('section', {}, {}, [list]));
+
+  const withLink = itemAdd(col.id);
+  C.itemSet(col.id, withLink.id, title, 'Has one');
+  C.itemSet(col.id, withLink.id, more, 'https://example.com');
+  const without = itemAdd(col.id);
+  C.itemSet(col.id, without.id, title, 'Has none');
+
+  C.bindSet(h, 'text', C.bindField(title));
+  C.bindSet(btn, 'link', C.bindField(more));
+  return { col, title, more, list, h, btn };
+}
+
+test('a button bound to an empty field can be left off that card', () => {
+  const { more, btn } = cards();
+  /* before: every card has the button, including the one with nowhere to go */
+  const both = C.renderNode(at(C.state.pages[0].tree[0].id).node, { edit: false });
+  a.equal((both.match(/Read more/g) || []).length, 2, 'the fixture shows the problem');
+
+  C.condSet(btn, { bind: C.bindField(more)!, op: 'set' });
+  const html = C.renderNode(at(C.state.pages[0].tree[0].id).node, { edit: false });
+  a.equal((html.match(/Read more/g) || []).length, 1, 'and now only where there is something to read');
+  a.match(html, /Has one/);
+  a.match(html, /Has none/, 'the card itself is still there');
+});
+
+test('the four operators are the four questions a value answers', () => {
+  const { more, btn } = cards();
+  const col = coll('posts');
+  const has = must(col.items[0], 'first item'), hasnt = must(col.items[1], 'second item');
+  const shows = (item: Item) => C.showsNode(btn, col, item);
+
+  C.condSet(btn, { bind: C.bindField(more)!, op: 'set' });
+  a.deepEqual([shows(has), shows(hasnt)], [true, false]);
+
+  C.condSet(btn, { bind: C.bindField(more)!, op: 'empty' });
+  a.deepEqual([shows(has), shows(hasnt)], [false, true]);
+
+  C.condSet(btn, { bind: C.bindField(more)!, op: 'eq', value: 'https://example.com' });
+  a.deepEqual([shows(has), shows(hasnt)], [true, false]);
+
+  C.condSet(btn, { bind: C.bindField(more)!, op: 'ne', value: 'https://example.com' });
+  a.deepEqual([shows(has), shows(hasnt)], [false, true]);
+});
+
+test('a condition stays visible and selectable in the editor', () => {
+  /* An element you cannot see is one you cannot fix, and a condition that hid its own element
+     would be a switch you could turn on and never off. */
+  const { more, btn } = cards();
+  C.condSet(btn, { bind: C.bindField(more)!, op: 'empty' });
+  const editing = C.renderNode(at(C.state.pages[0].tree[0].id).node, { edit: true });
+  a.match(editing, /s-cond-off/, 'marked, not removed');
+  a.match(editing, new RegExp('data-id="' + btn.id + '"'), 'and still addressable');
+  a.match(C.treeCss([C.state.pages[0].tree], true), /\.s-cond-off\{opacity:\.42/);
+  a.equal(/s-cond-off/.test(C.treeCss([C.state.pages[0].tree], false)), false,
+    'and the exported stylesheet says nothing about it');
+});
+
+test('a condition on a component property is the same condition', () => {
+  /* One shape for both sources, which is the reason the binding had to name its source before
+     this could exist. */
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  const badge = propAdd(cid, 'Badge', 'text', '');
+  const inner = comp(cid).node.children[0];
+  C.bindSet(inner, 'text', { src: 'prop', path: badge });
+  C.condSet(inner, { bind: { src: 'prop', path: badge }, op: 'set' });
+
+  const inst = at(box.id).node;
+  a.equal(/Standing in/.test(C.buildPage(C.state.pages[0])), false, 'no badge, no element');
+  C.instSet(inst, badge, 'New');
+  a.match(C.buildPage(C.state.pages[0]), />New</, 'a value, and it appears');
+});
+
+test('a condition with nothing to test shows the element', () => {
+  /* The honest default. An unresolvable value reads as empty, so `set` is false and `empty` is
+     true — and an element outside any scope keeps its condition rather than losing it. */
+  blank();
+  const h = insert('heading', null, 0);
+  C.condSet(h, { bind: C.bindField('nope')!, op: 'empty' });
+  a.equal(C.showsNode(h, null, null), true);
+  C.condSet(h, { bind: C.bindField('nope')!, op: 'set' });
+  a.equal(C.showsNode(h, null, null), false);
+  /* and clearing it removes the key rather than storing a dead condition */
+  C.condSet(h, null);
+  a.equal(h.showIf, undefined);
+  a.equal(C.showsNode(h, null, null), true);
+});

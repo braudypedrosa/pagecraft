@@ -16,7 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  StateKey, States, Anim, TabPanel, Capability, Binding, ComponentDef, ComponentProp, PropKind,
+  StateKey, States, Anim, TabPanel, Capability, Binding, Condition, CondOp, ComponentDef, ComponentProp, PropKind,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types.ts';
@@ -4028,6 +4028,46 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
   return out;
 }
 
+/* ---- conditions -------------------------------------------------------
+   Whether an element is on the page. One shape covers a CMS field and a component property,
+   because a binding says which it is — the reason the source had to exist first. */
+const COND_OPS: [CondOp, string][] = [
+  ['set', 'has a value'],
+  ['empty', 'is empty'],
+  ['eq', 'is'],
+  ['ne', 'is not']
+];
+/** The value a condition tests, as a string. Unresolvable — no item in scope, no instance —
+    reads as empty, which is the honest answer and the one that makes `set` mean what it says. */
+function condValue(c: Condition, col: Collection | null, item: Item | null,
+  inst?: PcNode | null, def?: ComponentDef | null): string {
+  if (c.bind.src === 'prop') return inst ? instValue(inst, def || null, c.bind.path) : '';
+  if (!col || !item) return '';
+  const v = fieldValue(col, item, c.bind.path);
+  return v == null ? '' : String(v);
+}
+/** Does this element show? Absent condition means yes, which is every element until somebody
+    decides otherwise. */
+function showsNode(n: PcNode, col: Collection | null, item: Item | null,
+  inst?: PcNode | null, def?: ComponentDef | null): boolean {
+  const c = n.showIf;
+  if (!c || !c.bind || !c.bind.path) return true;
+  const v = condValue(c, col, item, inst, def).trim();
+  const want = String(c.value == null ? '' : c.value).trim();
+  if (c.op === 'set') return v !== '';
+  if (c.op === 'empty') return v === '';
+  if (c.op === 'eq') return v === want;
+  if (c.op === 'ne') return v !== want;
+  return true;
+}
+/** Set or clear a condition. Clearing removes the key, so a document carries none until one is
+    written — the same rule `st` and `vals` follow. */
+function condSet(n: PcNode, c: Condition | null) {
+  if (!c || !c.bind || !c.bind.path) { delete n.showIf; return; }
+  n.showIf = { bind: { src: c.bind.src, path: c.bind.path }, op: c.op,
+    ...(c.op === 'eq' || c.op === 'ne' ? { value: String(c.value == null ? '' : c.value) } : {}) };
+}
+
 function itemSetSlug(colId: string, iid: string, slug: string) {
   const col = findCollection(colId); if (!col) return;
   const it = findItem(col, iid); if (!it) return;
@@ -6147,6 +6187,7 @@ ${m.css || ''}
 ` + (editing ? `
 [data-id]{position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
+.s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
 [data-t=column]{min-height:40px}
 [data-t=nav][data-sel] .pagecraft-nav-list{display:flex !important}
@@ -6403,7 +6444,12 @@ function renderNode(n: PcNode, o: RenderOpts): string {
   /* `cx` and `at` are what every widget's markup goes through, so motion rides along without a
      single render case needing to know about it — the same trick the styling hook class uses. */
   const anim = o.edit ? { cls: '', at: '' } : animAttrs(self);
-  const cx = (c: string) => `class="${c} ${nodeClass(n)}${host ? ' ' + nodeClass(host) : ''}${ts}${managed}${anim.cls}${self.adv && self.adv.cls ? ' ' + esc(self.adv.cls) : ''}"`;
+  /* Assigned below, once the scope is known, and read by `cx` through the closure. A condition
+     is answered from the item in scope, which is not resolved yet at this line — and the
+     stylesheet writer cannot answer it at all, which is why the marker is a class the render
+     adds rather than a declaration `bucket` emits. */
+  let condCls = '';
+  const cx = (c: string) => `class="${c} ${nodeClass(n)}${host ? ' ' + nodeClass(host) : ''}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? ' ' + esc(self.adv.cls) : ''}"`;
   /* The editor addresses elements by node id; the export uses the readable one.
      A repeat is the same node rendered many times, so both need a per-item suffix
      or every card in a Collection List ships the same id — invalid markup, and it
@@ -6439,6 +6485,19 @@ function renderNode(n: PcNode, o: RenderOpts): string {
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
   const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
+
+  /* A condition decides whether this element is on the page. Not in the editor, where it stays
+     visible and selectable and wears a marker instead — an element you cannot see is an element
+     you cannot fix, and a condition that hid its own element would be a control you could
+     switch on and never switch off. The same reasoning `hide` uses for a breakpoint, and the
+     same treatment. */
+  if (n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
+    if (!o.edit) return '';
+    /* `.s-cond-off` in the editing half of `baseCss`: dimmed and dashed in blue, where `hide`
+       is amber. Two different statements — "not at this width" and "not for this item" — and an
+       author who cannot tell them apart cannot debug either. */
+    condCls = ' s-cond-off';
+  }
 
   switch (n.type) {
     case 'section': {
@@ -7087,5 +7146,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

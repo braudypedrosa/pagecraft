@@ -288,6 +288,9 @@ export interface Node {
   vals?: Record<string, string>;
   /** which variant of the component this instance is, if any */
   variant?: string;
+  /** Show this element only when a value says so. Absent means always, which is every element
+      until somebody decides otherwise. */
+  showIf?: Condition;
   /** Which slot this node is. Read two ways, one meaning — "which slot":
 
       · inside a *definition*, it marks this node as a slot, and an instance's matching children
@@ -321,6 +324,33 @@ export type BindSource =
 export interface Binding {
   src: BindSource;
   path: string;
+}
+
+/* ---- conditions -------------------------------------------------------
+   Whether an element is on the page at all, decided by a value rather than by the author.
+
+   The case that asks for it: a Collection List card with a "Read more" button shows that button
+   for every item, including the ones with nothing to read — a dead link on a real page, and the
+   only fix available was not to have the button. The component version is the same shape: a
+   badge that should appear only when the Badge property is filled in.
+
+   It needed the binding source to exist first. A condition tests a bound value, and "bound" now
+   means a field on the item in scope *or* a property of the instance, so one condition shape
+   covers both without knowing which. */
+export type CondOp =
+  /** has a value */
+  'set'
+  /** has none */
+  | 'empty'
+  | 'eq'
+  | 'ne';
+
+export interface Condition {
+  /** where the value being tested comes from */
+  bind: Binding;
+  op: CondOp;
+  /** for `eq` and `ne`; compared as trimmed strings, because that is what a bound value is */
+  value?: string;
 }
 
 /* ---- components -------------------------------------------------------

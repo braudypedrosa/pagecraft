@@ -559,3 +559,13 @@ test('which variant an instance is is not content', () => {
   (instOf(after, instId) as unknown as { variant?: string }).variant = 'loud';
   a.equal(contentOnly(doc, after).ok, false);
 });
+
+test('a condition is structure, not content', () => {
+  /* Whether an element is on the page at all is not one page's words. Refused by the same
+     property as everything else: `showIf` is a field on the node and nothing blanks it. */
+  const { doc, instId } = withComponent();
+  const after = structuredClone(doc);
+  (instOf(after, instId) as unknown as { showIf?: unknown }).showIf =
+    { bind: { src: 'prop', path: 'title' }, op: 'set' };
+  a.equal(contentOnly(doc, after).ok, false);
+});

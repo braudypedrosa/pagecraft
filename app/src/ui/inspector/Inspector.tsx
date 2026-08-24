@@ -376,6 +376,75 @@ function ContentSource({ n }: { n: PcNode }) {
 
 const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile' };
 
+/* "Show only if" — a condition on a value rather than on a breakpoint.
+
+   It sits in Visibility because that is the question it answers, next to the three breakpoint
+   toggles: "not at this width" and "not for this item" are the two ways an element can be
+   absent, and an author looking for one will look where the other is.
+
+   The sources it offers are the two a binding can name — a field on the collection in scope,
+   and a property of the component being edited. Both, when both apply. Nothing to offer means
+   the control is not drawn: a condition with no value to test is a switch that does nothing. */
+function ShowIf({ n }: { n: PcNode }) {
+  const scope = C.bindScope(n.id);
+  const cd = C.state.ui.mode === 'component' ? C.findComponent(C.state.ui.cedit) : null;
+  const fields = scope ? C.fieldPaths(scope.col) : [];
+  const props = cd ? (cd.props || []) : [];
+  if (!fields.length && !props.length) return null;
+
+  const cur = n.showIf || null;
+  const key = cur ? cur.bind.src + ':' + cur.bind.path : '';
+  const sources: [string, string][] = [
+    ['', '— Always show —'],
+    ...fields.map(f => [`field:${f.path}`, `${f.label} · ${f.type}`] as [string, string]),
+    ...props.map(pr => [`prop:${pr.k}`, `${pr.label} · property`] as [string, string])
+  ];
+
+  const write = (k: string, op: string, value: string) => {
+    C.edit(() => {
+      if (!k) { C.condSet(n, null); return; }
+      const i = k.indexOf(':');
+      C.condSet(n, {
+        bind: { src: k.slice(0, i) as 'field' | 'prop', path: k.slice(i + 1) },
+        op: op as 'set' | 'empty' | 'eq' | 'ne',
+        value
+      });
+    });
+    L.paint(); L.save();
+    repaint('right');
+  };
+
+  return (
+    <>
+      <div class="f">
+        <label>Show only if</label>
+        <select value={key} onChange={e => write((e.target as HTMLSelectElement).value,
+          cur ? cur.op : 'set', cur && cur.value ? cur.value : '')}>
+          {sources.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+      </div>
+      {cur ? (
+        <div class="f">
+          <label>Condition</label>
+          <select value={cur.op} onChange={e => write(key, (e.target as HTMLSelectElement).value,
+            cur.value || '')}>
+            {C.COND_OPS.map(([op, label]) => <option key={op} value={op}>{label}</option>)}
+          </select>
+          {cur.op === 'eq' || cur.op === 'ne' ? (
+            <input class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={cur.value || ''}
+              placeholder="Value to compare"
+              onChange={e => write(key, cur.op, (e.target as HTMLInputElement).value)} />
+          ) : null}
+          <div class="note">
+            Dashed blue on the canvas when it is not showing for the item you are looking at.
+            Left out of the exported page entirely.
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 function Visibility({ n }: { n: PcNode }) {
   return (
     <Panel title="Visibility" n={n}>
@@ -387,6 +456,7 @@ function Visibility({ n }: { n: PcNode }) {
         </div>
       ))}
       <div class="note">Ghosted on the canvas, so you can still select them.</div>
+      <ShowIf n={n} />
     </Panel>
   );
 }
