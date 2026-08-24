@@ -1,14 +1,22 @@
 /* The Postgres store.
 
-   **Unexercised.** There is no database on the machine this was written on, so every test
-   runs against `MemoryStore` and the SQL below has never executed. That is a fact about this
-   file, not a style of writing it — the first thing to do with a real database is run
-   `server/tests/store-pg.test.ts`, which does not exist yet, against it.
+   Exercised now. `store-pg.test.ts` runs every method here against PGlite — Postgres compiled
+   to WASM — so the SQL executes on every `npm test` rather than only when somebody remembers
+   to start a container. That matters more than it sounds: this file was written blind, and
+   writing SQL blind is how a query that looks right ships wrong.
 
-   The schema is here rather than in a migration tool because there is one table and no
-   history to migrate. When there are two of either, that changes. */
+   What PGlite does not test is concurrency. It is a single connection, so the one claim below
+   that depends on two writers racing — the version in the `where` clause of `save` — is
+   argued rather than proven. A real Postgres and two clients is the way to prove it, and the
+   reason the check is one statement is exactly so that the database settles it rather than
+   this code.
+
+   The schema is here rather than in a migration tool because there is nothing to migrate yet.
+   When there is, that changes. */
 import type { Doc } from '../../app/src/core/types.ts';
 import type { Site, SaveResult, Store } from './store.ts';
+import { ASSET_SCHEMA, type Asset, type AssetStore } from './assets.ts';
+import { assetFile as assetFilePath } from '../../app/src/core/index.ts';
 
 /** Run once. `IF NOT EXISTS` so a restart is not a special case. */
 export const SCHEMA = `
@@ -54,10 +62,11 @@ create table if not exists site_users (
 );
 `;
 
-/* Just enough of `pg` to be typed without importing it at module scope — the memory store
-   is the one the tests load, and they should not need a driver on the path to do it. */
-interface Queryable {
-  query<R = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: R[]; rowCount: number | null }>;
+/* Just enough of `pg` to be typed without importing it at module scope — and narrow enough
+   that PGlite satisfies it too, which is what lets the tests run the real SQL with no daemon.
+   `rowCount` is optional because the two drivers disagree about it and nothing here reads it. */
+export interface Queryable {
+  query<R = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: R[]; rowCount?: number | null }>;
 }
 
 interface Row {
@@ -71,9 +80,18 @@ const toSite = (r: Row): Site => ({
 });
 
 export class PgStore implements Store {
-  constructor(private db: Queryable) { }
+  /* A field and an assignment, not `constructor(private db)`. A parameter property is one of
+     the few TypeScript constructs that cannot be erased — it generates an assignment — so
+     Node's strip-only mode refuses the whole module. Vitest transforms, which is why sixteen
+     tests passed against a file the server could never import. */
+  private db: Queryable;
+  constructor(db: Queryable) { this.db = db; }
 
-  async init() { await this.db.query(SCHEMA); }
+  async init() {
+    /* One statement per call: PGlite's `query` takes a single statement, and a driver that
+       tolerates several is not a reason to depend on it. */
+    for (const stmt of statements(SCHEMA)) await this.db.query(stmt);
+  }
 
   async byHost(host: string) {
     const { rows } = await this.db.query<Row>('select * from sites where host = $1', [host]);
@@ -115,5 +133,76 @@ export class PgStore implements Store {
     const current = await this.byId(id);
     if (!current) return { ok: false };
     return { ok: false, conflict: { yours: version, theirs: current.version } };
+  }
+}
+
+
+/** Split a schema into statements. Comments are stripped first, so a `;` inside one cannot
+    end a statement that has not finished. */
+export function statements(sql: string): string[] {
+  return sql
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split(';')
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+
+/* ------------------------------------------------------------------- assets */
+
+interface AssetRow {
+  id: string; site_id: string; name: string; type: string;
+  w: number; h: number; bytes: Uint8Array;
+}
+
+const toAsset = (r: AssetRow): Asset => ({
+  id: r.id, siteId: r.site_id, name: r.name, type: r.type,
+  w: r.w, h: r.h, bytes: r.bytes instanceof Uint8Array ? r.bytes : new Uint8Array(r.bytes)
+});
+
+export class PgAssetStore implements AssetStore {
+  private db: Queryable;
+  constructor(db: Queryable) { this.db = db; }
+
+  async init() {
+    for (const stmt of statements(ASSET_SCHEMA)) await this.db.query(stmt);
+  }
+
+  async list(siteId: string) {
+    const { rows } = await this.db.query<AssetRow>('select * from assets where site_id = $1 order by name', [siteId]);
+    return rows.map(toAsset);
+  }
+
+  async get(siteId: string, id: string) {
+    const { rows } = await this.db.query<AssetRow>('select * from assets where site_id = $1 and id = $2', [siteId, id]);
+    return rows[0] ? toAsset(rows[0]) : null;
+  }
+
+  /** By the path a rendered page asks for. The name is sanitised into the path by `assetFile`,
+      so the comparison has to happen on the sanitised form rather than in SQL. */
+  async byPath(siteId: string, path: string) {
+    for (const a of await this.list(siteId)) {
+      if (assetFilePath(a) === path) return a;
+    }
+    return null;
+  }
+
+  async put(a: Omit<Asset, 'id'> & { id?: string }) {
+    const id = a.id || 'a' + crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+    const { rows } = await this.db.query<AssetRow>(
+      `insert into assets (id, site_id, name, type, w, h, bytes)
+       values ($1, $2, $3, $4, $5, $6, $7)
+       on conflict (id) do update set
+         name = excluded.name, type = excluded.type,
+         w = excluded.w, h = excluded.h, bytes = excluded.bytes
+       returning *`,
+      [id, a.siteId, a.name, a.type, a.w, a.h, a.bytes]
+    );
+    return toAsset(rows[0]);
+  }
+
+  async remove(siteId: string, id: string) {
+    const { rows } = await this.db.query<{ id: string }>(
+      'delete from assets where site_id = $1 and id = $2 returning id', [siteId, id]);
+    return rows.length > 0;
   }
 }

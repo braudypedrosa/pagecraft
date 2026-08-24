@@ -16,6 +16,7 @@
     "hooks": "node tools/install-hooks.mjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.7",
     "@preact/preset-vite": "^2.10.6",
     "@types/node": "^26.2.0",
     "esbuild": "^0.28.2",

@@ -23,22 +23,27 @@ const editorPath = join(repo, 'index.html');
 const editorHtml = existsSync(editorPath) ? readFileSync(editorPath, 'utf8') : undefined;
 if (!editorHtml) console.warn(`no editor at ${editorPath} — run \`node build.mjs\``);
 
-async function pickStore(): Promise<Store> {
+/* Sites and assets share one connection, because they share one database and a second pool
+   would only be a second thing to run out of. */
+async function pickStores(): Promise<{ store: Store; assets: AssetStore }> {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    console.warn('DATABASE_URL is not set — using the in-memory store. Nothing will survive a restart.');
-    return new MemoryStore();
+    console.warn('DATABASE_URL is not set — using the in-memory stores. Nothing survives a restart.');
+    return { store: new MemoryStore(), assets: new MemoryAssetStore() };
   }
   /* Imported here rather than at the top so a run without a database needs no driver. */
   const { Pool } = await import('pg');
-  const { PgStore } = await import('./store-pg.ts');
-  const store = new PgStore(new Pool({ connectionString: url }));
+  const { PgStore, PgAssetStore } = await import('./store-pg.ts');
+  const pool = new Pool({ connectionString: url });
+  const store = new PgStore(pool);
+  const assets = new PgAssetStore(pool);
   await store.init();
+  await assets.init();
   console.log('store: postgres');
-  return store;
+  return { store, assets };
 }
 
-const store = await pickStore();
+const { store, assets } = await pickStores();
 
 /* One site, seeded, when the store is empty and we are running on memory. Without it the
    first thing a new checkout shows is "No site for host localhost", which reads as broken
@@ -79,11 +84,6 @@ if (CLIENT) {
   for (const s of await store.list()) await auth.grant(s.id, user.id, 'content');
   console.log(`client   ${CLIENT} — content only`);
 }
-
-/* Memory-backed like the rest when there is no database. On a real box this is the volume,
-   and losing it on restart would lose every image — which is exactly why the Postgres store
-   keeps the bytes rather than the filesystem keeping them behind its back. */
-const assets: AssetStore = new MemoryAssetStore();
 
 const app = createApp({
   store, auth, assets, editorHtml, editorHost: EDITOR_HOST,

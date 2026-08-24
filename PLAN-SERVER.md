@@ -358,9 +358,39 @@ it, watched it save and the live site serve `assets/client-upload.png` — then 
 image at `https://elsewhere.test/tracker.png` and got the refusal, with the tracker absent
 from the served page.
 
-**Not built yet:** the above; an invite flow, since a client is still an environment variable;
-and `store-pg.test.ts` against a real database, because the SQL in `store-pg.ts` and
-`ASSET_SCHEMA` has still never executed.
+## The SQL, actually executed — done
+
+`store-pg.ts` was written blind and stayed that way for four commits. It is exercised on every
+`npm test` now, against PGlite — Postgres compiled to WASM, so a real parser, planner and type
+system with no daemon and no container. `PgAssetStore` was written at the same time and was
+therefore tested from its first line rather than four commits later.
+
+Sixteen cases passed on the first run, which was not the interesting part. **Two things only
+the real server binary could find**, and `tools/realpg.mjs` is the command that finds them:
+
+- **The Postgres path could not be imported by the server at all.** `constructor(private db)`
+  is a TypeScript parameter property, which generates an assignment rather than erasing, so
+  Node's strip-only mode refuses the whole module. Vitest transforms, so sixteen tests passed
+  against a file the server could never load — and because the Postgres store is imported
+  dynamically only when `DATABASE_URL` is set, nothing would have noticed until the first
+  boot with a database. Third time this session that Vitest accepted what Node will not, so
+  there is now a guard: `loadable.test.ts` asks Node, in its own process, to import every
+  server module, and greps for the four TypeScript features that need a compiler.
+- **`bytea` comes back as a Buffer here and a Uint8Array under PGlite.** A Buffer is a
+  subclass, so `instanceof` holds and `constructor.name` does not — my assertion was the
+  latter, which is a test that passes in WASM and fails in production, precisely what that
+  file exists not to be.
+
+And the one claim PGlite cannot settle: two writers saving at the same version, on a real
+server, produce exactly one winner. That is what the version in the `where` clause of `save`
+buys, and it is now measured rather than argued.
+
+The guard found one more thing on its own first run — it flagged `store-pg.ts`, because the
+comment explaining why parameter properties are banned contains the words. A checker that
+reads prose reports prose, so it strips comments first.
+
+**Not built yet:** an invite flow, since a client is still an environment variable, which
+means adding one needs a restart.
 
 ## Anti-patterns the spec names, worth repeating
 
