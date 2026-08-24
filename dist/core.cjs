@@ -212,6 +212,7 @@ __export(index_exports, {
   gfontsHref: () => gfontsHref,
   gfontsLink: () => gfontsLink,
   grabTypo: () => grabTypo,
+  gridTracks: () => gridTracks,
   guessBindings: () => guessBindings,
   hasBackdrop: () => hasBackdrop,
   hasBorder: () => hasBorder,
@@ -1402,6 +1403,13 @@ var GRID_COLS = [
   ["2fr 1fr", "Wide then narrow"],
   ["1fr 2fr", "Narrow then wide"]
 ];
+function gridTracks(v) {
+  const raw = String(v || "").trim();
+  if (!raw || /auto-fi(t|ll)/.test(raw)) return 0;
+  const rep = /^repeat\(\s*(\d+)\s*,/.exec(raw);
+  if (rep) return Number(rep[1]);
+  return raw.replace(/\([^()]*\)/g, "x").split(/\s+/).filter(Boolean).length;
+}
 var DEF = {
   section: {
     label: "Section",
@@ -3667,6 +3675,21 @@ function lint() {
       if (anchor) {
         if (seenIds.has(anchor)) dupIds.add(anchor);
         seenIds.add(anchor);
+      }
+      if (n.type === "box" && n.props.layout === "grid") {
+        const m = (n.css.m || {})["grid-template-columns"];
+        const t = (n.css.t || {})["grid-template-columns"];
+        const val = m || t || (n.css.d || {})["grid-template-columns"] || "";
+        const tracks = gridTracks(val);
+        if (tracks >= 3) {
+          add(
+            "warn",
+            "grid-mobile",
+            `A grid in the ${region} is ${tracks} columns wide on a phone, which leaves about ${Math.floor(320 / tracks)}px a column. Switch to Mobile and set Columns to \u201CAs many as fit\u201D, or to fewer.`,
+            w,
+            n.id
+          );
+        }
       }
       const inLink = chain.some((x) => x.type === "box" && String(x.props.link || "").trim());
       if (inLink) {
@@ -7811,6 +7834,7 @@ ${ANIM_JS}
   gfontsHref,
   gfontsLink,
   grabTypo,
+  gridTracks,
   guessBindings,
   hasBackdrop,
   hasBorder,

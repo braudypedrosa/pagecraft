@@ -7521,3 +7521,50 @@ test('the root takes anything, and the Navigator’s root takes sections', () =>
   a.equal(C.fitsIn('heading', 'box'), false, 'a leaf holds nothing');
   a.equal(C.holds('column', 'heading'), true, 'direct containment is the other question');
 });
+
+test('a grid still three across on a phone is a finding', () => {
+  /* Found by building a real page: three cards, no mobile override, three 106-pixel columns on
+     a 359-pixel screen. `minmax(0, 1fr)` stops it overflowing, which is exactly why nothing
+     looked broken — it is unreadable rather than broken, and a stylesheet cannot notice that. */
+  blank();
+  const g = insert('grid', null, 0);
+  C.setCss(at(g.id).node, 'grid-template-columns', 'repeat(3, minmax(0, 1fr))');
+  const found = () => C.lint().filter((f: Finding) => f.code === 'grid-mobile');
+  a.equal(found().length, 1);
+  a.match(found()[0].msg, /3 columns wide on a phone/);
+  a.match(found()[0].msg, /As many as fit/, 'and it says what to do');
+  a.equal(found()[0].nodeId, g.id);
+
+  /* the two ways out, and neither is reported */
+  at(g.id).node.css.m = { 'grid-template-columns': 'repeat(auto-fit, minmax(240px, 1fr))' };
+  a.equal(found().length, 0, 'auto-fit reflows, so it is never the problem');
+  at(g.id).node.css.m = { 'grid-template-columns': 'repeat(1, minmax(0, 1fr))' };
+  a.equal(found().length, 0, 'nor is one column');
+
+  /* two is left alone — cramped is a judgement, three is a fact */
+  at(g.id).node.css.m = { 'grid-template-columns': 'repeat(2, minmax(0, 1fr))' };
+  a.equal(found().length, 0);
+});
+
+test('counting grid tracks, including the templates written out by hand', () => {
+  a.equal(C.gridTracks('repeat(3, minmax(0, 1fr))'), 3);
+  a.equal(C.gridTracks('repeat(6, minmax(0, 1fr))'), 6);
+  a.equal(C.gridTracks('2fr 1fr'), 2);
+  a.equal(C.gridTracks('1fr 2fr 1fr'), 3);
+  a.equal(C.gridTracks('minmax(10px, 1fr) 200px'), 2, 'brackets are not separators');
+  a.equal(C.gridTracks('repeat(auto-fit, minmax(240px, 1fr))'), 0, 'it reflows: not a count');
+  a.equal(C.gridTracks('repeat(auto-fill, 120px)'), 0);
+  a.equal(C.gridTracks(''), 0);
+});
+
+test('the tablet override is what a phone inherits, when it has none of its own', () => {
+  /* The cascade the export writes: mobile falls back to tablet, then to desktop. A check that
+     read only the mobile bucket would clear a grid whose tablet value is the one in force. */
+  blank();
+  const g = insert('grid', null, 0);
+  C.setCss(at(g.id).node, 'grid-template-columns', 'repeat(4, minmax(0, 1fr))');
+  const found = () => C.lint().filter((f: Finding) => f.code === 'grid-mobile');
+  a.equal(found().length, 1);
+  at(g.id).node.css.t = { 'grid-template-columns': 'repeat(2, minmax(0, 1fr))' };
+  a.equal(found().length, 0, 'a tablet value of 2 is what the phone gets');
+});
