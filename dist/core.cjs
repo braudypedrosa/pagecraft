@@ -1305,7 +1305,7 @@ function usedFamilies() {
   });
   styles().forEach((t) => scan(t.css));
   classes().forEach((c) => scan(c.css));
-  allTrees().forEach((l) => eachNode(l, (n) => scan(n.css)));
+  renderedTrees().forEach((l) => eachNode(l, (n) => scan(n.css)));
   return GF.map(([fam]) => fam).filter((f) => seen.has(f));
 }
 function gfontsHref() {
@@ -3305,12 +3305,17 @@ function tsCreateFrom(n, name) {
   n.props.ts = id;
   return id;
 }
-var allTrees = () => [
-  state.header,
-  state.footer,
-  ...state.pages.map((p) => p.tree),
-  ...components().map((c) => [c.node])
-];
+function renderedTrees() {
+  return [
+    state.header,
+    state.footer,
+    ...state.pages.map((p) => p.tree),
+    ...components().map((c) => [c.node])
+  ];
+}
+function allTrees() {
+  return [...renderedTrees(), ...blocks().map((b) => [b.node])];
+}
 var LANGS = [
   ["en", "English"],
   ["en-GB", "English (UK)"],

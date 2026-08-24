@@ -1,0 +1,55 @@
+# The suite, on every push.
+#
+# 178 commits and 800-odd tests before this file existed, which meant "the tests pass" was a
+# claim about one laptop. `npm test` is already the whole chain — it runs `build.mjs`, then
+# `tsc --noEmit`, then vitest — so this is that one command plus the two things a fresh clone
+# cannot assume.
+#
+# **Node 24, pinned.** The server runs TypeScript directly: `server/tests/loadable.test.ts`
+# spawns real Node and imports every server module, because Vitest is a compiler and resolves
+# things Node's own resolver refuses. That test is only worth what the Node running it is worth,
+# so the version is a decision rather than whatever the runner defaults to.
+#
+# **`npm ci`, not `npm install`.** The lockfile is the point: esbuild ships a platform binary
+# and a resolution that drifts is a build that differs from the one that was tested.
+#
+# What is deliberately *not* here: `publish:check`. Republishing the Artifact is a manual step
+# with no CLI, so gating a push on it would fail every commit until somebody clicked something.
+# The post-commit hook is where that belongs, and it says so at the moment it can be acted on.
+name: test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      # build.mjs → tsc --noEmit → vitest run
+      - run: npm test
+
+      # The widest integration exercise in the repo: two section patterns, a Box grid, a
+      # component with three properties and six instances, a collection with a conditional
+      # field, a table, a code block, a form, and the review — which it runs, and which makes
+      # it exit non-zero on any error. If any of that breaks, no page comes out.
+      - run: node --experimental-strip-types tools/demo-site.mjs
+
+      # A built page a browser can open is the product. Assert the two files exist and are not
+      # empty, because a build that writes nothing passes every test above.
+      - name: the build wrote something
+        run: |
+          for f in index.html dist/artifact.html dist/demo/index.html; do
+            test -s "$f" || { echo "missing or empty: $f"; exit 1; }
+            echo "$f — $(wc -c < "$f") bytes"
+          done

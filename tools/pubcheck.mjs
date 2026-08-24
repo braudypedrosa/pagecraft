@@ -119,7 +119,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(0);
   }
   const s = status();
-  console.log(report(s));
+  /* A hook that says "all good" after every commit is a hook people stop reading, and in this
+     repo almost every commit rebuilds the artifact. So under --hook it speaks only when there
+     is something to do; run `npm run publish:check` for the answer either way. */
+  if (arg !== '--hook' || s.state !== 'current') console.log(report(s));
   /* --hook never fails: a post-commit hook that exits non-zero is noise, and the
      commit has already happened by then anyway. */
   if (arg !== '--hook' && s.state !== 'current') process.exit(1);

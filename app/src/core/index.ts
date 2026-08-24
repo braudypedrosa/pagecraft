@@ -130,7 +130,7 @@ function usedFamilies() {
   const scan = (css: any) => (['d', 't', 'm'] as Bp[]).forEach(b => { const v = (css && css[b] || {})['font-family']; if (v) take(v); });
   styles().forEach(t => scan(t.css));
   classes().forEach(c => scan(c.css));
-  allTrees().forEach(l => eachNode(l, n => scan(n.css)));
+  renderedTrees().forEach(l => eachNode(l, n => scan(n.css)));
   return GF.map(([fam]) => fam).filter(f => seen.has(f));
 }
 /* one stylesheet request for every family in use */
@@ -2180,10 +2180,30 @@ function tsCreateFrom(n: PcNode, name: string) {
    here — a block is not rendered until it is placed, and placing it copies the tree in. It
    does mean `classDelete` leaves a dangling class id inside a saved block; noted in
    PLAN-SERVER.md rather than fixed in a commit about components. */
-const allTrees = () => [
-  state.header, state.footer, ...state.pages.map(p => p.tree),
-  ...components().map(c => [c.node])
-];
+/* What reaches a page. Component definitions are in here because an instance renders one, so a
+   colour token, a text style, a class or a font used only inside a definition is used on the
+   page — a walk that missed it would delete the token or ship no font. */
+function renderedTrees(): PcNode[][] {
+  return [
+    state.header, state.footer, ...state.pages.map(p => p.tree),
+    ...components().map(c => [c.node])
+  ];
+}
+/* Every tree the project *stores*, which adds saved blocks.
+
+   Blocks were left out for a long time on the reasoning that a block is not rendered until it
+   is placed — true, and the wrong line for seven of the eight walks that read this. A class, a
+   colour token or a text style referenced inside a block is a reference: deleting the thing
+   without cleaning the block leaves an id pointing at nothing, and the element quietly loses
+   its styling the next time somebody places it. Nobody would connect the two.
+
+   `usedFamilies` is the eighth and reads `renderedTrees` instead, because it decides which
+   webfonts an exported page links — and a font requested on every page for a block nobody has
+   placed is a real cost for no one's benefit. Declarations rather than consts: this is called
+   from `usedFamilies`, a thousand lines above. */
+function allTrees(): PcNode[][] {
+  return [...renderedTrees(), ...blocks().map(b => [b.node])];
+}
 
 /* ---- structured values -------------------------------------------------
    A link is a destination, not a string. Picking a page and an anchor from what

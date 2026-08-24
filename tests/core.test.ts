@@ -49,6 +49,7 @@ const resizeCols = (...a: Parameters<typeof C.resizeCols>) => must(C.resizeCols(
 const layerTarget = (...a: Parameters<typeof C.layerTarget>) => must(C.layerTarget(...a), 'layerTarget');
 const bindScope = (...a: Parameters<typeof C.bindScope>) => must(C.bindScope(...a), 'bindScope');
 const coll = (...a: Parameters<typeof C.findCollection>) => must(C.findCollection(...a), 'findCollection');
+const block = (...a: Parameters<typeof C.findBlock>) => must(C.findBlock(...a), 'findBlock');
 const blockSave = (...a: Parameters<typeof C.blockSave>) => must(C.blockSave(...a), 'blockSave');
 const pageMove = (...a: Parameters<typeof C.pageMove>) => must(C.pageMove(...a), 'pageMove');
 
@@ -7976,4 +7977,69 @@ test('a second page brings the warning back, because now it means something', ()
   const warned = C.lint().filter((f: Finding) => f.code === 'global-fragment');
   a.equal(warned.length > 0, true, 'the second page has no #what, and the header is on it');
   a.match(warned[0].msg, /name the page instead/);
+});
+
+/* ----------------------------------------------- and saved blocks, at last
+   `allTrees()` left blocks out for a long time, on the reasoning that a block is not rendered
+   until it is placed. True, and the wrong line for the walks that clean up: a reference inside a
+   block is a reference, and deleting its target left an id pointing at nothing. The element then
+   lost its styling the next time somebody placed the block, which nobody would connect. */
+
+/** a saved block whose node references a class, a colour token and a text style */
+function blockUsingLibraries() {
+  fresh();
+  C.blankProject('Blocks');
+  C.state.meta.blocks = [];
+  C.ensureTokens().classes = [];
+  const tok = must(C.colorAdd('Block ink', '#0a0b0a'), 'colour');
+  const cls = C.classAdd('Panel', { d: { padding: '18px' } });
+  const h = insert('heading', null, 0);
+  h.props.ts = 'subtitle';
+  C.setCss(h, 'color', C.cvar(tok));
+  C.classApply(h, cls);
+  const bid = blockSave(h.id, 'Panel');
+  /* the page keeps nothing: only the block references them now */
+  C.state.pages[0].tree = [];
+  return { bid, tok, cls, node: block(bid).node };
+}
+
+test('a class used only inside a saved block is counted and cleaned up', () => {
+  const { bid, cls } = blockUsingLibraries();
+  a.equal(C.classUsage(cls), 1, 'counted, so it is not offered up as unused');
+  C.classDelete(cls);
+  a.deepEqual(block(bid).node.cls, [],
+    'and gone from the block, rather than an id pointing at nothing');
+});
+
+test('a colour token used only inside a saved block keeps its value', () => {
+  const { bid, tok } = blockUsingLibraries();
+  a.equal(C.colorUsage(tok), 1);
+  C.colorDelete(tok);
+  const colour = block(bid).node.css.d.color;
+  a.equal(colour, '#0a0b0a', 'the literal it was showing');
+  a.equal(C.isRef(colour), false);
+});
+
+test('a text style used only inside a saved block is counted and unlinked', () => {
+  const { bid } = blockUsingLibraries();
+  const id = C.styleAdd('Panel head');
+  must(C.findStyle(id), 'style').css.d['font-size'] = '26px';
+  block(bid).node.props.ts = id;
+  a.equal(C.tsUsage(id), 1);
+  C.styleDelete(id);
+  a.equal(block(bid).node.props.ts, '');
+  a.equal(block(bid).node.css.d['font-size'], '26px', 'keeping what it was showing');
+});
+
+test('a font used only inside a saved block is not shipped to every page', () => {
+  /* The one walk that stays on rendered trees. A block nobody has placed is not on any page, and
+     a webfont requested on every page for it is a real cost for no one's benefit. */
+  const { bid } = blockUsingLibraries();
+  const before = C.usedFamilies();
+  block(bid).node.css.d['font-family'] = "'Playfair Display',serif";
+  a.deepEqual(C.usedFamilies(), before, 'the block’s font is not a page’s font');
+
+  /* place it, and now it is */
+  blockInsert(bid, null, 0);
+  a.equal(C.usedFamilies().some(f => /Playfair/.test(f)), true, 'placed, so it ships');
 });

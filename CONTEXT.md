@@ -381,10 +381,12 @@ that would have caught it.
     and every page's tree used to be all of them. Component definitions are trees too, and they
     render — so a colour token, a text style, a class or a font used only inside one is used on
     the page. `allTrees()` is what every project-wide walk reads, and adding definitions to it
-    wired up eight walkers at once. The ones that are *not* in it are saved blocks, because a
-    block is not rendered until it is placed; the cost is that `classDelete` leaves a dangling
-    id inside one. If a third store of nodes ever appears, `allTrees()` is the first thing to
-    change and `migrate`'s `everyNode` is the second.
+    wired up eight walkers at once. There are two lists now, and the split is the question each
+    walk is asking: `renderedTrees()` is what reaches a page — header, footer, pages, component
+    definitions — and feeds `usedFamilies`, which decides what webfonts an export links.
+    `allTrees()` adds saved blocks and feeds everything else, because a reference inside a block
+    is a reference and deleting its target has to clean it. If a third store of nodes ever
+    appears, those two are the first thing to change and `migrate`'s `everyNode` is the second.
 
 
 

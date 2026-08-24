@@ -1,11 +1,11 @@
 /* Points git at tools/hooks, which is tracked — .git/hooks is not, so a clone has
    no hooks until someone asks for them.
 
-   `core.hooksPath` is a whole-repository setting, and this builder shares its repo
-   with an unrelated Next.js app. So this refuses rather than clobbers: if a hooks
-   path is already configured, or .git/hooks holds anything real, it says what it
-   found and changes nothing. Losing someone else's pre-commit hook to a
-   convenience script would be a poor trade for a staleness warning. */
+   `core.hooksPath` is a whole-repository setting, so this refuses rather than clobbers: if a
+   hooks path is already configured, or .git/hooks holds anything real, it says what it found
+   and changes nothing. Losing someone's pre-commit hook to a convenience script would be a
+   poor trade for a staleness warning. (It used to share a repository with an unrelated Next.js
+   app, which is where that caution came from; the caution outlived the arrangement.) */
 import { readdirSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, relative } from 'node:path';

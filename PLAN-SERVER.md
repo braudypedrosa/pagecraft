@@ -743,8 +743,12 @@ thing and asserts what only breaks when the pieces are combined.
   render from a document that had been through the database). `server/README.md` is the
   operator's document: every environment variable, what happens when it is absent, and the
   custom-domain sequence.
-- **`allTrees()` still excludes saved blocks**, so `classDelete` can leave a dangling class id
-  inside one. Pre-existing, small, and named here so it is a decision rather than a gap. `:active` and `[disabled]` were
+- ~~`allTrees()` still excludes saved blocks~~ — closed. Blocks were left out on the reasoning
+  that one is not rendered until it is placed, which is true and was the wrong line for seven of
+  the eight walks reading it: a class, token or text style referenced inside a block is a
+  reference, and deleting its target left an id pointing at nothing. The eighth, `usedFamilies`,
+  now reads `renderedTrees` instead — it decides which webfonts a page links, and a font
+  requested on every page for an unplaced block is a cost for no one's benefit. `:active` and `[disabled]` were
   on this list and are off it — `:active` is a state nothing in the widget set needs that
   `:hover` does not cover, and `[disabled]` applies to form controls the form widget already
   styles. Declaring either would have made `STATES` a wish rather than a description, which is
