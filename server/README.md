@@ -1,0 +1,155 @@
+# The Pagecraft server
+
+Serves sites from stored documents, so a client can change words without anybody re-exporting
+anything.
+
+The single-file builder exports a zip and that is a complete answer for a site nobody but its
+author edits. This is the other case: the document lives in Postgres, the same core renders it,
+and the person who owns the words signs in and changes them. Same core, same `exportTargets`,
+same `buildPage` — `render.ts` has a test asserting that a page served from the store is
+**byte-identical** to the one the builder exports, because everything this repo has proved
+about its output has to keep covering the thing people actually visit.
+
+## Run it
+
+```bash
+node build.mjs && cd server && npm install && OWNER_EMAIL=you@example.com npm start
+```
+
+That is the whole development setup. With no `DATABASE_URL` it uses in-memory stores and seeds
+one demo site, so a fresh checkout shows a page rather than "No site for host localhost".
+Nothing survives a restart, including who is signed in.
+
+- editor: <http://localhost:8787/>
+- the demo site: <http://site.localhost:8787/>
+
+`node build.mjs` first, and separately: the server reads `index.html` as a file and does not
+build it. A server that runs a bundler on boot is a server that fails to boot for bundler
+reasons.
+
+## Sign in
+
+`POST /auth/login` with an email address sends a link. Without SMTP configured it is **printed
+in the server log** — which is said out loud on boot, because "the link was sent" and "the link
+was printed somewhere you are not looking" look identical from the form.
+
+Only an address the server already knows gets a link, and `/auth/login` answers 200 either
+way — an endpoint that says "no such user" is an endpoint that enumerates your users.
+
+So somebody has to exist first, and that is `OWNER_EMAIL`: on boot it is created and granted
+owner on every site. Idempotent, so leaving it set is harmless. Everybody after that arrives
+through `POST /api/sites/:id/people`, which is the flow it replaced.
+
+## Environment
+
+Nothing here has a default that pretends to be a configuration. Where one is absent the server
+says so on boot and carries on in the mode that absence implies.
+
+| | |
+|---|---|
+| `PORT` | default `8787` |
+| `EDITOR_HOST` | the name you sign in on. Default `localhost`. Requests for any other host are looked up as sites |
+| `OWNER_EMAIL` | the first owner. Absent: **nobody can sign in.** The sites still serve |
+| `DATABASE_URL` | Postgres. Absent: in-memory stores, and one seeded demo site |
+| `NODE_ENV` | `production` turns on `Secure` on the session cookie. Set it in production, or the cookie travels over plain HTTP |
+| `CLIENT_EMAIL` | granted the content role on every site, for trying that role on a throwaway run. A development shortcut — invite instead |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | how login links are sent. Port defaults to 587, which is submission with STARTTLS; name 465 for implicit TLS. A loopback host may have no credentials, and nothing else may |
+| `MAIL_FROM` | the From address. `Pagecraft <hello@example.com>` is allowed. **Required** for mail to be considered configured |
+| `MAIL_PRODUCT` | what the message calls the thing being signed into. Default `Pagecraft` |
+| `ACME_EMAIL` | Caddy's, not the server's — where a failed certificate renewal is reported |
+
+## Deploy
+
+```bash
+POSTGRES_PASSWORD=… EDITOR_HOST=admin.example.com OWNER_EMAIL=you@example.com \
+ACME_EMAIL=you@example.com docker compose -f server/compose.yml up -d --build
+```
+
+From the repository root, not from `server/`: the image's build context is the repo, because the
+first stage builds the editor from `builder.html` and `app/`.
+
+Three services. Caddy holds the certificates, the server holds the documents and renders them,
+Postgres holds everything that has to survive a restart. The database has no `ports:` — it is
+reachable by name from the other two services and from nothing else. The server binds
+`127.0.0.1:8787`, so `/internal/tls-check` cannot be reached from outside the box; the app
+refuses a request carrying `X-Forwarded-For` as well, and Caddy 404s `/internal/*` at the edge.
+Three fences round one endpoint, because what it protects is this server's ability to get
+certificates at all.
+
+**What was verified, and what was not.** The image builds, the stack comes up, and the whole
+flow was exercised against real Postgres in containers: sign in, create a site, serve it on its
+own host, load the document back at the current schema, save, and see a component instance
+render from a document that had been through the database. What is **not** tested is the ACME
+exchange itself — it needs a public name and a real certificate authority. Everything either
+side of it is: `caddy validate` accepts the Caddyfile, and the `ask` endpoint is tested from
+both sides.
+
+**Caddy runs with `network_mode: host`** so that `127.0.0.1:8787` in the Caddyfile means what it
+says. That does not work on Docker Desktop, so on a Mac bring up `db` and `server` only and put
+your own proxy in front. On Linux it is what you want.
+
+## Custom domains
+
+1. The client points their domain at the box — an A record, or a CNAME to it.
+2. `PUT /api/sites/:id/host` with `{"host":"acme.com"}` claims it. Until a site claims it, the
+   next step says no.
+3. The first HTTPS request arrives, Caddy has no certificate, and asks the app
+   (`/internal/tls-check?domain=…`) whether this is a domain it serves. Without that question
+   anybody who points a DNS record here can make this server request a certificate on their
+   behalf, and a few thousand of those is a rate limit and a box that can no longer get
+   certificates for its own clients.
+4. On a 200 Caddy issues and proxies. On anything else it declines and nothing is requested.
+
+`www` redirects to the apex in the proxy rather than as an alias per site, so the app keeps
+exactly one host per site — which is what makes looking a site up a lookup rather than a search.
+
+Read `Caddyfile`; it explains itself at length and is the file most likely to be lifted out of
+here and used on its own.
+
+## What a `content` account may do
+
+Change words, and only words. The check works backwards on purpose: `skeleton()` blanks every
+value that counts as content and compares what is left, so **anything nobody has thought about
+is refused rather than permitted**. A prop added to a widget next month is structure until
+somebody says otherwise.
+
+Content is every text slot the core declares, a page's own title and description, CMS item
+values and their draft flag, a component instance's text, rich-text, image and link properties,
+and an image *when it is one of this site's own uploads* — checked by value, because an
+arbitrary URL is not content and neither is somebody else's asset id.
+
+Not content: links, layout, styling, adding or removing anything, and everything under `meta`,
+which is where component definitions live — so a client can change what an instance says and
+not what the component is.
+
+`content.ts` has the full list and the reasoning for each line, including the three traps that
+only showed up in a browser.
+
+## Layout
+
+| | |
+|---|---|
+| `src/index.ts` | read the environment, pick a store, listen. Everything decidable is decided here so `app.ts` stays a function of its arguments |
+| `src/app.ts` | every route |
+| `src/render.ts` | a stored document to the files a browser asks for. **Synchronous, and must stay that way** — the core keeps its document in a module-level singleton, so an `await` in the middle of a render is how two sites start swapping pages under load |
+| `src/store.ts`, `src/store-pg.ts` | sites, in memory and in Postgres |
+| `src/auth.ts` | magic links, sessions, roles |
+| `src/content.ts` | what a `content` account may save |
+| `src/assets.ts` | uploads, sniffed rather than trusted |
+| `src/mail.ts` | SMTP, throttled per address |
+| `Caddyfile` | TLS for domains that are not mine |
+
+## Tests
+
+```bash
+npm test          # from the repository root — the whole suite, server included
+```
+
+`tests/loadable.test.ts` is worth knowing about: it imports every server module with **real
+Node**, in its own process. Vitest is a compiler and will resolve things Node's own resolver
+refuses — that has happened three times, and once it was a parameter property in `store-pg.ts`
+that meant the Postgres path could never load. Sixteen tests passed against a file the server
+could not import, and the first sign of it would have been a production boot.
+
+Two checks need a service and are therefore not in the suite: `tools/realpg.mjs` wants a real
+Postgres, and `tools/realmail.mjs` wants a real SMTP sink. Neither ever sends mail anywhere.

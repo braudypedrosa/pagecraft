@@ -1,0 +1,99 @@
+# The whole thing, on one box.
+#
+# Three services, and the split between them is the same split the code makes: Caddy holds the
+# certificates because renewal at 3am is not a page builder's problem, the server holds the
+# documents and renders them, and Postgres holds everything that has to survive a restart.
+#
+#   docker compose -f server/compose.yml up --build
+#
+# Run it from the repository root, not from `server/` — the image's build context is the repo,
+# because the editor is built from `builder.html` and `app/` in the first stage.
+#
+# ## What to set before it is more than a demo
+#
+# `.env` beside this file, or real environment variables:
+#
+#   POSTGRES_PASSWORD   the database password. There is no default here on purpose.
+#   EDITOR_HOST         the name you sign in on, e.g. admin.example.com
+#   OWNER_EMAIL         you. Without it nobody can sign in — see server/README.md.
+#   ACME_EMAIL          where a failed certificate renewal is reported
+#   SMTP_*, MAIL_FROM   how login links are sent. Without them they are printed in the log.
+#
+# ## Why Postgres is not exposed
+#
+# No `ports:` on the database. It is reachable by name from the other services on the compose
+# network and from nothing else, which is the whole of its security model and enough of one. If
+# you need a psql prompt: `docker compose -f server/compose.yml exec db psql -U pagecraft`.
+
+name: pagecraft
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pagecraft
+      POSTGRES_USER: pagecraft
+      # No default. A database that comes up with a known password because nobody read the
+      # README is worse than one that refuses to come up.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      # The server's first act is a connection and three `CREATE TABLE IF NOT EXISTS` runs, so
+      # it must not start before the database answers. `pg_isready` is that question.
+      test: ['CMD-SHELL', 'pg_isready -U pagecraft -d pagecraft']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  server:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://pagecraft:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/pagecraft
+      EDITOR_HOST: ${EDITOR_HOST:-localhost}
+      OWNER_EMAIL: ${OWNER_EMAIL:-}
+      NODE_ENV: production
+      PORT: '8787'
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_PRODUCT: ${MAIL_PRODUCT:-}
+    # Loopback only. Caddy is what the internet talks to, and `/internal/tls-check` must not be
+    # reachable from anywhere else — the app refuses a request carrying X-Forwarded-For as well,
+    # and this is the other half of that fence.
+    ports:
+      - '127.0.0.1:8787:8787'
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - server
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+      EDITOR_HOST: ${EDITOR_HOST:-localhost}
+    # `network_mode: host` so `127.0.0.1:8787` in the Caddyfile means what it says. The
+    # alternative is rewriting the Caddyfile's upstream to a service name, which would then be
+    # wrong for anybody running Caddy outside compose — and the Caddyfile is the artefact most
+    # likely to be lifted out of here and used on its own.
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  # The certificates. Losing this volume means re-issuing every certificate on the next
+  # request, which Let's Encrypt rate-limits — so it is a named volume, not a container layer.
+  caddy-data:
+  caddy-config:
+  db:

@@ -704,7 +704,13 @@ that what exists does not cover, and naming them would make the registry a wish 
 - **Form fields as first-class elements.** A Form owns its fields as props; the spec wants
   elements. A real improvement that changes nothing else.
 - **The ACME exchange is still untested**, because it needs a public name and a real
-  certificate authority. Everything either side of it is.
+  certificate authority. Everything either side of it is — including, now, the whole stack in
+  containers: `server/Dockerfile` and `server/compose.yml` were built and run against real
+  Postgres, and the flow was exercised end to end (sign in, create a site, serve it on its own
+  host, load the document back at the current schema, save, and watch a component instance
+  render from a document that had been through the database). `server/README.md` is the
+  operator's document: every environment variable, what happens when it is absent, and the
+  custom-domain sequence.
 - **`allTrees()` still excludes saved blocks**, so `classDelete` can leave a dangling class id
   inside one. Pre-existing, small, and named here so it is a decision rather than a gap. `:active` and `[disabled]` were
   on this list and are off it — `:active` is a state nothing in the widget set needs that

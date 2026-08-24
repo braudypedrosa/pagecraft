@@ -1,0 +1,10 @@
+# What the image never needs. `node_modules` most of all: the editor stage installs its own,
+# and copying a host build of esbuild into an alpine image is how you get a binary that will
+# not run.
+node_modules
+dist
+.git
+.claude
+tests
+server/tests
+*.log
