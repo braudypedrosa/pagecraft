@@ -48,7 +48,7 @@ says so on boot and carries on in the mode that absence implies.
 | | |
 |---|---|
 | `PORT` | default `8787` |
-| `EDITOR_HOST` | the name you sign in on. Default `localhost`. Requests for any other host are looked up as sites |
+| `EDITOR_HOST` | the name you sign in on, and the host sites are shared under as `/<slug>/`. Default `localhost`. Requests for any *other* host are looked up as custom domains |
 | `OWNER_EMAIL` | the first owner. Absent: **nobody can sign in.** The sites still serve |
 | `DATABASE_URL` | Postgres. Absent: in-memory stores, and one seeded demo site |
 | `NODE_ENV` | `production` turns on `Secure` on the session cookie. Set it in production, or the cookie travels over plain HTTP |
@@ -87,6 +87,62 @@ both sides.
 **Caddy runs with `network_mode: host`** so that `127.0.0.1:8787` in the Caddyfile means what it
 says. That does not work on Docker Desktop, so on a Mac bring up `db` and `server` only and put
 your own proxy in front. On Linux it is what you want.
+
+## How a site is addressed
+
+Two ways, and every site gets the first for free.
+
+**By path, under this server's own host.** A site has a `slug` and answers at
+`/<slug>/…` — `pagecraft.example.com/acme/about`. No DNS, no certificate, nothing for anybody
+to configure: it works the moment the site is saved, which is what makes a link sendable this
+afternoon. The slug comes from the site's name and is unique; `PUT /api/sites/:id/slug` moves
+it, which breaks existing links and is therefore an admin's call rather than a writer's.
+
+Sites share that namespace with this server's own routes, so a site called `api` would shadow
+one. `validSlug` refuses `RESERVED_PATHS`, and `slug.test.ts` checks that list against **Hono's
+own route table** — add a route without adding its prefix and the test fails by name. Do not
+hand-maintain that list against your memory; the test is there so you do not have to.
+
+**By domain**, matched on the Host header, for a site that has earned one. See below. A site can
+have both, and `shareUrl` reports the domain once there is one because that is the better
+address to give somebody.
+
+This works because the export is internally relative — a page one directory down asks for
+`../assets/logo.png`, and links are `pricing.html` rather than `/pricing.html` — so the same
+rendered files serve identically from a domain root or a path prefix. There is a test asserting
+that, because it is the property the whole scheme rests on.
+
+## Put it on a subdomain
+
+The case this was built for: one hostname of your own, sites shared by path under it.
+
+**1. A box.** This does not run on Cloudflare Workers, Vercel functions or anything
+edge-shaped — it uses `pg`, reads the editor off disk, sends SMTP, and wants a volume for
+Postgres. A small VPS, Fly or Railway. Two cores and a gigabyte is plenty.
+
+**2. DNS.** An `A` record for `pagecraft.example.com` at the box's address. If your DNS is at
+Cloudflare, the orange-cloud proxy is the one decision worth thinking about:
+
+| | |
+|---|---|
+| **DNS only** (grey cloud) | Caddy gets a Let's Encrypt certificate itself. Simplest, and what the Caddyfile here assumes. Recommended. |
+| **Proxied** (orange cloud) | Cloudflare terminates TLS and Caddy's certificate is redundant. Workable, and you are choosing to debug two TLS layers instead of one. |
+
+**3. Bring it up**, from the repository root:
+
+```bash
+POSTGRES_PASSWORD=… EDITOR_HOST=pagecraft.example.com OWNER_EMAIL=you@example.com ACME_EMAIL=you@example.com docker compose -f server/compose.yml up -d --build
+```
+
+**4. Sign in.** `POST /auth/login` with `OWNER_EMAIL`. Without SMTP configured the link is
+printed in `docker compose logs server`, which is fine for the first sign-in and not fine as a
+habit — set `SMTP_*` and `MAIL_FROM` before anybody else uses it.
+
+Note what is *not* needed for this shape. The Caddyfile's `on_demand_tls` and its
+`/internal/tls-check` gate exist to certify **clients'** domains on demand; with one hostname
+and sites on paths, that machinery sits unused until somebody adds a custom domain. It costs
+nothing to leave in place and it is the reason the file looks more complicated than this
+deployment is.
 
 ## Custom domains
 
