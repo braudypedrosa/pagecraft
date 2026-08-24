@@ -5590,12 +5590,58 @@ function findComponent(id) {
   return id ? components().find((c) => c.id === id) || null : null;
 }
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
+var variantsOf = (def) => def && def.variants || [];
+var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
 function instValue(inst, def, k) {
   const own = inst.vals ? inst.vals[k] : void 0;
   if (own !== void 0) return own;
+  const v = findVariant(def, inst.variant);
+  if (v && v.values[k] !== void 0) return v.values[k];
   const p = findProp(def, k);
   return p ? p.def : "";
 }
+var instOwn = (inst) => Object.keys(inst.vals || {});
+function variantSet(inst, vid2) {
+  const def = findComponent(inst.use);
+  if (vid2 && findVariant(def, vid2)) inst.variant = vid2;
+  else delete inst.variant;
+}
+function variantFromInstance(inst, name) {
+  const def = findComponent(inst.use);
+  if (!def) return null;
+  const base = tokenId(name) || "variant";
+  let id = base, k = 2;
+  while (findVariant(def, id)) id = base + "-" + k++;
+  const values = {};
+  const from = findVariant(def, inst.variant);
+  if (from) Object.assign(values, from.values);
+  Object.assign(values, inst.vals || {});
+  def.variants = def.variants || [];
+  def.variants.push({ id, name: String(name || "Variant").slice(0, 40), values });
+  delete inst.vals;
+  inst.variant = id;
+  return id;
+}
+var variantUsage = (cid, vid2) => instances(cid).filter((x) => x.node.variant === vid2).length;
+function variantDelete(cid, vid2) {
+  const def = findComponent(cid);
+  const v = findVariant(def, vid2);
+  if (!def || !v) return 0;
+  let n = 0;
+  for (const { node } of instances(cid)) {
+    if (node.variant !== vid2) continue;
+    node.vals = { ...v.values, ...node.vals || {} };
+    delete node.variant;
+    n++;
+  }
+  def.variants = variantsOf(def).filter((x) => x.id !== vid2);
+  if (!def.variants.length) delete def.variants;
+  return n;
+}
+var variantRename = (cid, vid2, name) => {
+  const v = findVariant(findComponent(cid), vid2);
+  if (v) v.name = String(name || v.name).slice(0, 40);
+};
 function instSet(inst, k, v) {
   if (v === void 0) {
     if (inst.vals) {
@@ -5708,6 +5754,7 @@ function componentFromNode(nodeId, name) {
   const node = reid(clone(h.node));
   delete node.use;
   delete node.vals;
+  delete node.variant;
   delete node.slot;
   if (node.adv) delete node.adv.block;
   components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
@@ -5740,6 +5787,7 @@ function instanceInsert(cid, parentNode, index = 0) {
     adv: { htmlId: "", cls: "", css: "" }
   };
   delete fresh.vals;
+  delete fresh.variant;
   delete fresh.slot;
   delete fresh.st;
   delete fresh.anim;
@@ -5801,6 +5849,7 @@ function componentDelete(cid) {
     node.bind = copy.bind;
     delete node.use;
     delete node.vals;
+    delete node.variant;
     if (kept.length) (node.children = node.children || []).push(...kept.map((c) => {
       delete c.slot;
       return c;
@@ -8388,6 +8437,7 @@ var __CORE = {
   findItem,
   findProp,
   findStyle,
+  findVariant,
   firstChildOf,
   fitZoom,
   flatten,
@@ -8411,6 +8461,7 @@ var __CORE = {
   initUi,
   insert,
   instControls,
+  instOwn,
   instSet,
   instValue,
   instanceInsert,
@@ -8561,6 +8612,12 @@ var __CORE = {
   undo,
   uniqueId,
   usedFamilies,
+  variantDelete,
+  variantFromInstance,
+  variantRename,
+  variantSet,
+  variantUsage,
+  variantsOf,
   vid,
   vidPoster,
   vidSrc,
@@ -11599,6 +11656,53 @@ var PC_UI = (() => {
       ] }) : "This element only." })
     ] });
   }
+  function VariantPick({ n: n2 }) {
+    const def = C2.findComponent(n2.use);
+    if (!def) return null;
+    const list2 = C2.variantsOf(def);
+    const own = C2.instOwn(n2).length;
+    if (!list2.length && !own) return null;
+    const set = (vid) => {
+      C2.edit(() => C2.variantSet(n2, vid || null));
+      L2.paint();
+      L2.save();
+      repaint("right");
+    };
+    const save = async () => {
+      const name = await L2.askText("Save as variant", "Name", "Variant " + (list2.length + 1));
+      if (!name) return;
+      let made = null;
+      C2.edit(() => {
+        made = C2.variantFromInstance(n2, name);
+      });
+      L2.paint();
+      L2.save();
+      L2.toast(made ? `\u201C${name}\u201D \u2014 every instance can be one now` : "Nothing to save yet");
+      repaint("right");
+    };
+    const reset = () => {
+      C2.edit(() => C2.instOwn(n2).forEach((k3) => C2.instSet(n2, k3, void 0)));
+      L2.paint();
+      L2.save();
+      repaint("right");
+    };
+    return /* @__PURE__ */ u2("div", { class: "f", children: [
+      /* @__PURE__ */ u2("label", { children: "Variant" }),
+      list2.length ? /* @__PURE__ */ u2("select", { value: n2.variant || "", onChange: (e3) => set(e3.target.value), children: [
+        /* @__PURE__ */ u2("option", { value: "", children: "Default" }),
+        list2.map((v3) => /* @__PURE__ */ u2("option", { value: v3.id, children: v3.name }, v3.id))
+      ] }) : null,
+      /* @__PURE__ */ u2("div", { class: "row", style: { marginTop: "var(--gap-1)" }, children: [
+        /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: save, disabled: !own && !n2.variant, children: "Save as variant" }),
+        own ? /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: reset, children: n2.variant ? "Back to the variant" : "Back to the defaults" }) : null
+      ] }),
+      own ? /* @__PURE__ */ u2("div", { class: "note", children: [
+        own === 1 ? "One value is" : own + " values are",
+        " set on this instance",
+        n2.variant ? ", overriding the variant." : "."
+      ] }) : null
+    ] });
+  }
   function StatePick() {
     const cur = C2.state.ui.st || "";
     const set = (k3) => {
@@ -11809,6 +11913,7 @@ var PC_UI = (() => {
       )) }) : null,
       /* @__PURE__ */ u2("div", { class: "pane", children: [
         tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
+        tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
         tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
           "Nothing varies between instances yet. Open this component in the",
           /* @__PURE__ */ u2("b", { children: " Components" }),

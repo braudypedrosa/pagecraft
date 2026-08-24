@@ -7021,3 +7021,108 @@ test('migration v9 to v10 gives a project its component list', () => {
   a.deepEqual(after.meta.components, []);
   a.equal(after.v, C.SCHEMA);
 });
+
+/* --------------------------------------------------------------- variants
+   A named set of property values. Nothing a variant does could not be done by setting each
+   property by hand — which is the point: "Primary" is one decision and four values. */
+
+/** a component with two properties and an instance holding its own values */
+function varied() {
+  const { box } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  const title = propAdd(cid, 'Title', 'text', 'Untitled');
+  const tone = propAdd(cid, 'Tone', 'select', 'quiet');
+  C.bindSet(comp(cid).node.children[0], 'text', { src: 'prop', path: title });
+  const inst = at(box.id).node;
+  return { cid, title, tone, inst };
+}
+
+test('a variant is captured from an instance that already looks right', () => {
+  const { cid, title, tone, inst } = varied();
+  C.instSet(inst, title, 'Loud and clear');
+  C.instSet(inst, tone, 'loud');
+
+  const vid = must(C.variantFromInstance(inst, 'Loud'), 'variant');
+  a.deepEqual(C.variantsOf(comp(cid))[0].values, { [title]: 'Loud and clear', [tone]: 'loud' });
+  a.equal(inst.variant, vid, 'and the instance is one');
+  a.equal(inst.vals, undefined,
+    'with no values of its own — an override of itself is something nothing could clear');
+  a.match(C.buildPage(C.state.pages[0]), />Loud and clear</);
+});
+
+test('a second instance picks the variant and shows it', () => {
+  const { cid, title, tone, inst } = varied();
+  C.instSet(inst, title, 'Loud and clear');
+  C.instSet(inst, tone, 'loud');
+  const vid = must(C.variantFromInstance(inst, 'Loud'), 'variant');
+
+  const other = must(C.instanceInsert(cid, null, 1), 'second');
+  a.equal(other.variant, undefined, 'placed plain');
+  a.match(C.buildPage(C.state.pages[0]), />Untitled</, 'so it shows the defaults');
+
+  C.variantSet(other, vid);
+  const html = C.buildPage(C.state.pages[0]);
+  a.equal((html.match(/>Loud and clear</g) || []).length, 2, 'both of them now');
+  a.equal(C.instValue(other, comp(cid), tone), 'loud', 'including the values nothing renders');
+});
+
+test('an instance can differ from its variant, and go back to it', () => {
+  const { title, inst } = varied();
+  C.instSet(inst, title, 'Loud and clear');
+  const vid = must(C.variantFromInstance(inst, 'Loud'), 'variant');
+
+  C.instSet(inst, title, 'Just this one');
+  a.deepEqual(C.instOwn(inst), [title], 'one value of its own, over the variant');
+  a.match(C.buildPage(C.state.pages[0]), />Just this one</);
+
+  C.instSet(inst, title, undefined);
+  a.deepEqual(C.instOwn(inst), []);
+  a.match(C.buildPage(C.state.pages[0]), />Loud and clear</, 'back to what the variant says');
+  a.equal(inst.variant, vid, 'and still on it');
+});
+
+test('the order is the instance, then its variant, then the default', () => {
+  const { cid, title, inst } = varied();
+  const vid = must(C.variantFromInstance(inst, 'Empty'), 'variant');
+  const def = comp(cid);
+  a.equal(C.instValue(inst, def, title), 'Untitled', 'nothing set anywhere: the default');
+
+  must(C.findVariant(def, vid), 'variant').values[title] = 'From the variant';
+  a.equal(C.instValue(inst, def, title), 'From the variant');
+
+  C.instSet(inst, title, 'From the instance');
+  a.equal(C.instValue(inst, def, title), 'From the instance');
+
+  C.instSet(inst, title, '');
+  a.equal(C.instValue(inst, def, title), '', 'and an empty string is a choice, not an absence');
+});
+
+test('deleting a variant leaves every instance showing what it showed', () => {
+  /* The alternative is a page reverting to defaults because somebody tidied up a list. */
+  const { cid, title, tone, inst } = varied();
+  C.instSet(inst, title, 'Loud and clear');
+  C.instSet(inst, tone, 'loud');
+  const vid = must(C.variantFromInstance(inst, 'Loud'), 'variant');
+  const other = must(C.instanceInsert(cid, null, 1), 'second');
+  C.variantSet(other, vid);
+  C.instSet(other, title, 'Its own words');
+  a.equal(C.variantUsage(cid, vid), 2);
+
+  const before = C.buildPage(C.state.pages[0]);
+  a.equal(C.variantDelete(cid, vid), 2);
+  a.equal(C.buildPage(C.state.pages[0]), before, 'the page does not move');
+  a.equal(C.variantsOf(comp(cid)).length, 0);
+  a.equal(at(inst.id).node.variant, undefined);
+  a.equal(C.instValue(other, comp(cid), title), 'Its own words',
+    'and an instance that overrode the variant keeps its own value, not the variant’s');
+});
+
+test('a variant on a component that is deleted goes with it', () => {
+  const { cid, title, inst } = varied();
+  C.instSet(inst, title, 'Loud and clear');
+  C.variantFromInstance(inst, 'Loud');
+  C.componentDelete(cid);
+  const back = at(inst.id).node;
+  a.equal(back.variant, undefined);
+  a.equal(back.use, undefined);
+});

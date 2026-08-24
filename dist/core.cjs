@@ -200,6 +200,7 @@ __export(index_exports, {
   findItem: () => findItem,
   findProp: () => findProp,
   findStyle: () => findStyle,
+  findVariant: () => findVariant,
   firstChildOf: () => firstChildOf,
   fitZoom: () => fitZoom,
   flatten: () => flatten,
@@ -223,6 +224,7 @@ __export(index_exports, {
   initUi: () => initUi,
   insert: () => insert,
   instControls: () => instControls,
+  instOwn: () => instOwn,
   instSet: () => instSet,
   instValue: () => instValue,
   instanceInsert: () => instanceInsert,
@@ -373,6 +375,12 @@ __export(index_exports, {
   undo: () => undo,
   uniqueId: () => uniqueId,
   usedFamilies: () => usedFamilies,
+  variantDelete: () => variantDelete,
+  variantFromInstance: () => variantFromInstance,
+  variantRename: () => variantRename,
+  variantSet: () => variantSet,
+  variantUsage: () => variantUsage,
+  variantsOf: () => variantsOf,
   vid: () => vid,
   vidPoster: () => vidPoster,
   vidSrc: () => vidSrc,
@@ -4789,12 +4797,58 @@ function findComponent(id) {
   return id ? components().find((c) => c.id === id) || null : null;
 }
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
+var variantsOf = (def) => def && def.variants || [];
+var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
 function instValue(inst, def, k) {
   const own = inst.vals ? inst.vals[k] : void 0;
   if (own !== void 0) return own;
+  const v = findVariant(def, inst.variant);
+  if (v && v.values[k] !== void 0) return v.values[k];
   const p = findProp(def, k);
   return p ? p.def : "";
 }
+var instOwn = (inst) => Object.keys(inst.vals || {});
+function variantSet(inst, vid2) {
+  const def = findComponent(inst.use);
+  if (vid2 && findVariant(def, vid2)) inst.variant = vid2;
+  else delete inst.variant;
+}
+function variantFromInstance(inst, name) {
+  const def = findComponent(inst.use);
+  if (!def) return null;
+  const base = tokenId(name) || "variant";
+  let id = base, k = 2;
+  while (findVariant(def, id)) id = base + "-" + k++;
+  const values = {};
+  const from = findVariant(def, inst.variant);
+  if (from) Object.assign(values, from.values);
+  Object.assign(values, inst.vals || {});
+  def.variants = def.variants || [];
+  def.variants.push({ id, name: String(name || "Variant").slice(0, 40), values });
+  delete inst.vals;
+  inst.variant = id;
+  return id;
+}
+var variantUsage = (cid, vid2) => instances(cid).filter((x) => x.node.variant === vid2).length;
+function variantDelete(cid, vid2) {
+  const def = findComponent(cid);
+  const v = findVariant(def, vid2);
+  if (!def || !v) return 0;
+  let n = 0;
+  for (const { node } of instances(cid)) {
+    if (node.variant !== vid2) continue;
+    node.vals = { ...v.values, ...node.vals || {} };
+    delete node.variant;
+    n++;
+  }
+  def.variants = variantsOf(def).filter((x) => x.id !== vid2);
+  if (!def.variants.length) delete def.variants;
+  return n;
+}
+var variantRename = (cid, vid2, name) => {
+  const v = findVariant(findComponent(cid), vid2);
+  if (v) v.name = String(name || v.name).slice(0, 40);
+};
 function instSet(inst, k, v) {
   if (v === void 0) {
     if (inst.vals) {
@@ -4907,6 +4961,7 @@ function componentFromNode(nodeId, name) {
   const node = reid(clone(h.node));
   delete node.use;
   delete node.vals;
+  delete node.variant;
   delete node.slot;
   if (node.adv) delete node.adv.block;
   components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
@@ -4939,6 +4994,7 @@ function instanceInsert(cid, parentNode, index = 0) {
     adv: { htmlId: "", cls: "", css: "" }
   };
   delete fresh.vals;
+  delete fresh.variant;
   delete fresh.slot;
   delete fresh.st;
   delete fresh.anim;
@@ -5000,6 +5056,7 @@ function componentDelete(cid) {
     node.bind = copy.bind;
     delete node.use;
     delete node.vals;
+    delete node.variant;
     if (kept.length) (node.children = node.children || []).push(...kept.map((c) => {
       delete c.slot;
       return c;
@@ -7587,6 +7644,7 @@ ${ANIM_JS}
   findItem,
   findProp,
   findStyle,
+  findVariant,
   firstChildOf,
   fitZoom,
   flatten,
@@ -7610,6 +7668,7 @@ ${ANIM_JS}
   initUi,
   insert,
   instControls,
+  instOwn,
   instSet,
   instValue,
   instanceInsert,
@@ -7760,6 +7819,12 @@ ${ANIM_JS}
   undo,
   uniqueId,
   usedFamilies,
+  variantDelete,
+  variantFromInstance,
+  variantRename,
+  variantSet,
+  variantUsage,
+  variantsOf,
   vid,
   vidPoster,
   vidSrc,

@@ -546,3 +546,16 @@ test('what a client puts in a slot is still structure', () => {
   instOf(after, instId).children.push(Core.N('heading', { text: 'Mine' }));
   a.equal(contentOnly(doc, after).ok, false);
 });
+
+test('which variant an instance is is not content', () => {
+  /* A variant decides several properties at once, including the ones that switch what the
+     component does. It is refused by falling out of the shape rather than by a rule: `variant`
+     is a field on the node and nothing blanks it, so it has to match. */
+  const { doc, instId } = withComponent();
+  const cid = (doc.meta.components || [])[0].id;
+  (doc.meta.components || [])[0].variants = [{ id: 'loud', name: 'Loud', values: {} }];
+  void cid;
+  const after = structuredClone(doc);
+  (instOf(after, instId) as unknown as { variant?: string }).variant = 'loud';
+  a.equal(contentOnly(doc, after).ok, false);
+});

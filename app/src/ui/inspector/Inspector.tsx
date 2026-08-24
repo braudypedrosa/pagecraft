@@ -177,6 +177,70 @@ function StylingTarget({ n }: { n: PcNode }) {
 
    Shown on Advanced as well as Style, since both tabs write CSS. Hiding it on one while it was
    still in force is the hidden mode this is meant to avoid. */
+/* Which variant an instance is. Only drawn when the definition declares one, and only on an
+   instance — a definition with no variants should not carry a control that says "Default" and
+   nothing else.
+
+   Above the properties rather than among them, because it decides several of them: a property
+   whose value comes from the variant reads differently once you know which variant is on. And
+   "Save as variant" lives here rather than in the Components tab for the reason a text style is
+   made from an element — the values are already in front of somebody who has just got them
+   right, and a dialog to retype them is how a variant ends up not quite matching the thing it
+   was meant to capture. */
+function VariantPick({ n }: { n: PcNode }) {
+  const def = C.findComponent(n.use);
+  if (!def) return null;
+  const list = C.variantsOf(def);
+  const own = C.instOwn(n).length;
+  if (!list.length && !own) return null;
+
+  const set = (vid: string) => {
+    C.edit(() => C.variantSet(n, vid || null));
+    L.paint(); L.save();
+    repaint('right');
+  };
+  const save = async () => {
+    const name = await L.askText('Save as variant', 'Name', 'Variant ' + (list.length + 1));
+    if (!name) return;
+    let made: string | null = null;
+    C.edit(() => { made = C.variantFromInstance(n, name); });
+    L.paint(); L.save();
+    L.toast(made ? `“${name}” — every instance can be one now` : 'Nothing to save yet');
+    repaint('right');
+  };
+  const reset = () => {
+    C.edit(() => C.instOwn(n).forEach(k => C.instSet(n, k, undefined)));
+    L.paint(); L.save();
+    repaint('right');
+  };
+
+  return (
+    <div class="f">
+      <label>Variant</label>
+      {list.length ? (
+        <select value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
+          <option value="">Default</option>
+          {list.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+        </select>
+      ) : null}
+      <div class="row" style={{ marginTop: 'var(--gap-1)' }}>
+        <button class="btn tiny" onClick={save} disabled={!own && !n.variant}>Save as variant</button>
+        {own
+          ? <button class="btn tiny" onClick={reset}>
+            {n.variant ? 'Back to the variant' : 'Back to the defaults'}
+          </button>
+          : null}
+      </div>
+      {own
+        ? <div class="note">
+          {own === 1 ? 'One value is' : own + ' values are'} set on this instance
+          {n.variant ? ', overriding the variant.' : '.'}
+        </div>
+        : null}
+    </div>
+  );
+}
+
 function StatePick() {
   const cur = C.state.ui.st || '';
   const set = (k: string) => { C.state.ui.st = k as '' | 'hover' | 'focus'; repaint('right'); };
@@ -381,6 +445,7 @@ export function Inspector() {
       ) : null}
       <div class="pane">
         {tab === 'content' || many ? null : <StatePick />}
+        {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
         {tab === 'content' ? (
           content.length
             ? <Group title={n.use ? C.nameOf(n) : d.label} n={n} items={content} />

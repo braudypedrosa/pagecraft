@@ -274,9 +274,12 @@ export interface Node {
       that *is* the root's type and carries a component id needs none of that changed. It is the
       same shape as `adv.block`, which has tagged a copy since blocks existed. */
   use?: string;
-  /** An instance's property values, by property key. Absent keys take the definition's
-      default, so changing a default moves every instance that never overrode it. */
+  /** An instance's property values, by property key. Absent keys take the variant's value if
+      it names one, then the definition's default — so changing a default moves every instance
+      that never overrode it. */
   vals?: Record<string, string>;
+  /** which variant of the component this instance is, if any */
+  variant?: string;
   /** Which slot this node is. Read two ways, one meaning — "which slot":
 
       · inside a *definition*, it marks this node as a slot, and an instance's matching children
@@ -336,12 +339,24 @@ export interface ComponentProp {
   opts?: [string, string][];
 }
 
+/** A named set of property values. Nothing a variant does could not be done by setting each
+    property by hand — which is the point: "Primary" is one decision and four values, and a
+    person choosing between two names is not choosing between eight fields. */
+export interface Variant {
+  id: string;
+  name: string;
+  /** only the properties this variant decides; the rest fall through to their defaults */
+  values: Record<string, string>;
+}
+
 export interface ComponentDef {
   id: string;
   name: string;
   /** the tree. Nodes inside it bind props to `{ src: 'prop' }` and may be slots. */
   node: Node;
   props: ComponentProp[];
+  /** absent on a definition that has none, which is most of them */
+  variants?: Variant[];
 }
 
 /** Where a node sits: the node, its parent, the array holding it, and its index. */

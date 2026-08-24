@@ -4056,15 +4056,84 @@ function findComponent(id?: string | null): ComponentDef | null {
 const findProp = (def: ComponentDef | null, k: string) =>
   (def && (def.props || []).find((x: ComponentProp) => x.k === k)) || null;
 
-/** What an instance shows for one property. An absent value takes the definition's default —
-    so changing a default moves every instance that never set its own — while an empty string
-    is a value somebody chose, and stays empty. */
+/** The variants a definition declares. */
+const variantsOf = (def: ComponentDef | null) => (def && def.variants) || [];
+const findVariant = (def: ComponentDef | null, id?: string | null) =>
+  (id ? variantsOf(def).find(v => v.id === id) || null : null);
+
+/** What an instance shows for one property, and the only place that question is answered.
+    Its own value, then its variant's, then the definition's default — so changing a default
+    moves every instance that never set its own, and an empty string is a value somebody chose
+    rather than an absence. */
 function instValue(inst: PcNode, def: ComponentDef | null, k: string): string {
   const own = inst.vals ? inst.vals[k] : undefined;
   if (own !== undefined) return own;
+  const v = findVariant(def, inst.variant);
+  if (v && v.values[k] !== undefined) return v.values[k];
   const p = findProp(def, k);
   return p ? p.def : '';
 }
+/** Which values this instance decides for itself, rather than taking from its variant or the
+    definition. What the panel's "back to the variant" affordance needs to know. */
+const instOwn = (inst: PcNode) => Object.keys(inst.vals || {});
+
+/** Put an instance on a variant, or take it off one. */
+function variantSet(inst: PcNode, vid: string | null) {
+  const def = findComponent(inst.use);
+  if (vid && findVariant(def, vid)) inst.variant = vid; else delete inst.variant;
+}
+/** Save what one instance is showing as a named variant, and put that instance on it.
+
+    From an instance rather than from an empty form, for the same reason a text style is made
+    from an element: the values are already in front of somebody who has just got them right,
+    and retyping them into a dialog is how a variant ends up subtly different from the thing
+    it was meant to capture. Only the values this instance decided for itself are captured —
+    the rest are the definition's defaults, and freezing today's default into a variant would
+    stop the default from ever moving it. */
+function variantFromInstance(inst: PcNode, name: string) {
+  const def = findComponent(inst.use);
+  if (!def) return null;
+  const base = tokenId(name) || 'variant';
+  let id = base, k = 2;
+  while (findVariant(def, id)) id = base + '-' + k++;
+  const values: Record<string, string> = {};
+  /* the variant it is on, then its own — so saving a tweak of "Primary" keeps what Primary
+     decided and adds what this instance changed */
+  const from = findVariant(def, inst.variant);
+  if (from) Object.assign(values, from.values);
+  Object.assign(values, inst.vals || {});
+  def.variants = def.variants || [];
+  def.variants.push({ id, name: String(name || 'Variant').slice(0, 40), values });
+  /* and this instance becomes an instance *of* it: its own values are the variant's now, so
+     keeping both would mean an override of itself that nothing could clear */
+  delete inst.vals;
+  inst.variant = id;
+  return id;
+}
+/** Every instance on a variant, so deleting one can say what it changes. */
+const variantUsage = (cid: string, vid: string) =>
+  instances(cid).filter(x => x.node.variant === vid).length;
+/** Delete a variant. Instances on it keep what they were showing, as their own values — the
+    alternative is a page silently reverting to defaults because somebody tidied up a list. */
+function variantDelete(cid: string, vid: string) {
+  const def = findComponent(cid);
+  const v = findVariant(def, vid);
+  if (!def || !v) return 0;
+  let n = 0;
+  for (const { node } of instances(cid)) {
+    if (node.variant !== vid) continue;
+    node.vals = { ...v.values, ...(node.vals || {}) };
+    delete node.variant;
+    n++;
+  }
+  def.variants = variantsOf(def).filter(x => x.id !== vid);
+  if (!def.variants.length) delete def.variants;
+  return n;
+}
+const variantRename = (cid: string, vid: string, name: string) => {
+  const v = findVariant(findComponent(cid), vid);
+  if (v) v.name = String(name || v.name).slice(0, 40);
+};
 /** Set one property on an instance. `undefined` clears it back to the definition's default,
     which is a different state from an empty string and reads differently on the panel. */
 function instSet(inst: PcNode, k: string, v: string | undefined) {
@@ -4190,7 +4259,7 @@ function componentFromNode(nodeId: string, name: string) {
      have shared a selector, and every rule either of them owned would have been written twice
      under the same name. */
   const node = reid(clone(h.node));
-  delete node.use; delete node.vals; delete node.slot;
+  delete node.use; delete node.vals; delete node.variant; delete node.slot;
   if (node.adv) delete node.adv.block;
   components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
   /* The node stays where it is and becomes an instance of what it just defined. Its styling
@@ -4218,7 +4287,7 @@ function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
        instance placed today */
     css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
   };
-  delete fresh.vals; delete fresh.slot; delete fresh.st; delete fresh.anim;
+  delete fresh.vals; delete fresh.variant; delete fresh.slot; delete fresh.st; delete fresh.anim;
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
   const pl = parentNode ? lvl(parentNode.type) : 0;
   const nested = parentNode && parentNode.type === 'column' && lvl(fresh.type) === 2;
@@ -4282,7 +4351,7 @@ function componentDelete(cid: string) {
     node.props = copy.props;
     node.children = copy.children;
     node.bind = copy.bind;
-    delete node.use; delete node.vals;
+    delete node.use; delete node.vals; delete node.variant;
     /* the slot's own content, appended where it can be: an instance's children were the page's
        nodes and dropping them is the one thing worse than a flattened component */
     if (kept.length) (node.children = node.children || []).push(...kept.map(c => { delete c.slot; return c; }));
@@ -6864,5 +6933,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };
