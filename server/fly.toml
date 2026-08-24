@@ -1,0 +1,73 @@
+# Pagecraft on Fly.
+#
+#   fly launch --no-deploy --copy-config --config server/fly.toml
+#   fly postgres create --name pagecraft-db
+#   fly postgres attach pagecraft-db            # sets DATABASE_URL for you
+#   fly secrets set OWNER_EMAIL=you@example.com
+#   fly deploy --config server/fly.toml --dockerfile server/Dockerfile
+#   fly certs add pagecraft.example.com         # then the CNAME it prints, at your DNS
+#
+# Run from the repository root: the image's build context is the repo, because the first stage
+# builds the editor from `builder.html` and `app/`.
+#
+# ## Why this and not the compose stack
+#
+# `server/compose.yml` runs three services because on a plain box somebody has to hold the
+# certificates, and that is Caddy. Fly's proxy already terminates TLS for a hostname you add
+# with `fly certs add`, so Caddy would be a second TLS layer to debug for no benefit. Two
+# things instead of four: this app, and a Postgres it attaches to.
+#
+# What that gives up is `on_demand_tls` — the Caddy machinery that certifies a *client's* own
+# domain the first time somebody visits it. On Fly each custom domain is a `fly certs add`
+# instead: fine for a handful, a chore for hundreds. Sites shared by path need none of it, which
+# is why this is the right trade for now and the Caddyfile is still there for when it is not.
+#
+# One consequence worth knowing. Fly's proxy sets `X-Forwarded-For` on every request, and the app
+# refuses `/internal/*` from anything that carries one. So the certificate-gating endpoint is
+# unreachable here — which is the safe direction, and the reason it is not a problem is that
+# nothing on Fly asks it anything.
+
+app = 'pagecraft'
+# A guess — change it. `fly platform regions` lists them; nearest to your readers wins.
+primary_region = 'lhr'
+
+# No [build] section on purpose. Whether `build.dockerfile` resolves against this file or against
+# the directory you run `fly` from has changed between versions, and a path that silently resolves
+# to the wrong place is worse than one you have to type. The deploy command above passes
+# `--dockerfile server/Dockerfile` explicitly, which is unambiguous from the repository root.
+
+[env]
+  # Matches the port the server listens on: `index.ts` reads PORT and falls back to 8787.
+  PORT = '8787'
+  # `Secure` on the session cookie. Fly terminates TLS, so the cookie never travels in clear —
+  # and without this it would be sent over plain HTTP the moment somebody tried.
+  NODE_ENV = 'production'
+  # The name you sign in on, and the host sites are shared under as `/<slug>/`. Change this to
+  # your own before the first deploy: a mismatch means every request is looked up as a custom
+  # domain and nothing is found.
+  EDITOR_HOST = 'pagecraft.example.com'
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  # A page builder that sleeps is a page builder that takes ten seconds to show somebody a site
+  # they were sent a link to. The sites are the public face here, not a dashboard.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[http_service.concurrency]
+  # Renders are held in memory per site and cost about five milliseconds after the first, so a
+  # single machine goes a long way. Raise the machine count before raising these.
+  type = 'requests'
+  soft_limit = 60
+  hard_limit = 120
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'
+
+# No [[mounts]]. Everything that has to survive a restart is in Postgres — documents, sessions,
+# invitations and uploaded images, which are `bytea` rather than files on disk. That is what makes
+# this deployable without a volume, and it was a deliberate choice in `assets.ts` rather than a
+# happy accident.

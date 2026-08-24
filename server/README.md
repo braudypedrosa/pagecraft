@@ -128,7 +128,39 @@ Cloudflare, the orange-cloud proxy is the one decision worth thinking about:
 | **DNS only** (grey cloud) | Caddy gets a Let's Encrypt certificate itself. Simplest, and what the Caddyfile here assumes. Recommended. |
 | **Proxied** (orange cloud) | Cloudflare terminates TLS and Caddy's certificate is redundant. Workable, and you are choosing to debug two TLS layers instead of one. |
 
-**3. Bring it up**, from the repository root:
+**3. Bring it up.** Two shapes, depending on what the box is.
+
+### On Fly
+
+`server/fly.toml`. Two things instead of four — this app and a Postgres it attaches to — because
+Fly's proxy terminates TLS for a hostname you add, so Caddy would be a second TLS layer to debug
+for no benefit.
+
+```bash
+fly launch --no-deploy --copy-config --config server/fly.toml
+fly postgres create --name pagecraft-db
+fly postgres attach pagecraft-db
+fly secrets set OWNER_EMAIL=you@example.com
+fly deploy --config server/fly.toml --dockerfile server/Dockerfile
+fly certs add pagecraft.example.com
+```
+
+Change `EDITOR_HOST` and `primary_region` in the toml before the first deploy. A wrong
+`EDITOR_HOST` means every request is looked up as a custom domain and nothing is found, which
+looks like a broken deployment rather than a wrong setting.
+
+No volume, and that is not an accident: documents, sessions, invitations and uploaded images all
+live in Postgres — images as `bytea` rather than files — so there is nothing on disk to lose.
+
+What this gives up is `on_demand_tls`. On Fly a client's custom domain is a `fly certs add` each
+time: fine for a handful, a chore for hundreds. Sites shared by path need none of it.
+
+**Verified as far as it can be from here:** the image builds, the toml parses, and the port in it
+matches the port the server listens on. The deploy itself needs an account, so it is untried —
+if it fails, `fly logs` and the boot lines this server prints will say which of the four
+environment values is wrong.
+
+### On a plain box, from the repository root:
 
 ```bash
 POSTGRES_PASSWORD=… EDITOR_HOST=pagecraft.example.com OWNER_EMAIL=you@example.com ACME_EMAIL=you@example.com docker compose -f server/compose.yml up -d --build
