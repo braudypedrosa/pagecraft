@@ -434,3 +434,115 @@ test('a document from a newer editor is refused with something a person can read
   a.notEqual(find(after!.doc, 'heading').props.text, 'From the future');
   a.equal(after!.version, loaded.version, 'and the version did not move');
 });
+
+/* ------------------------------------------------- component instances */
+
+/** A component with one property of each interesting kind, and an instance on page 1. */
+function withComponent() {
+  const doc = demo();
+  Core.restore(doc);
+  const box = find(doc, 'column');
+  const cid = Core.componentFromNode(box.id, 'Feature card')!;
+  const def = Core.findComponent(cid)!;
+  const words = Core.propAdd(cid, 'Title', 'text', 'Untitled')!;
+  const pic = Core.propAdd(cid, 'Photo', 'img', '')!;
+  const layout = Core.propAdd(cid, 'Layout', 'select', 'wide')!;
+  /* the definition's own heading reads the words property */
+  Core.bindSet(def.node.children[0], 'text', { src: 'prop', path: words });
+  const out = structuredClone({
+    meta: Core.state.meta, header: Core.state.header,
+    footer: Core.state.footer, pages: Core.state.pages
+  }) as Doc;
+  return { doc: out, cid, words, pic, layout, instId: box.id };
+}
+
+/** the instance in a document, by id */
+const instOf = (doc: Doc, id: string): PcNode => {
+  let hit: PcNode | null = null;
+  const walk = (ns: PcNode[]) => ns.forEach(n => { if (n.id === id) hit = n; walk(n.children || []); });
+  doc.pages.forEach(p => walk(p.tree));
+  if (!hit) throw new Error('no instance ' + id);
+  return hit;
+};
+
+test('the words on an instance are content', () => {
+  const { doc, words, instId } = withComponent();
+  const after = structuredClone(doc);
+  (instOf(after, instId) as unknown as { vals?: Record<string, string> }).vals = { [words]: 'A client wrote this' };
+  a.equal(contentOnly(doc, after).ok, true);
+});
+
+test('filling in a property that had no value is content, not a change in kind', () => {
+  /* The same trap the text slots had: comparing "absent" against "written" reads as
+     structure, and a client typing into an empty field is told they changed the layout. */
+  const { doc, words, instId } = withComponent();
+  a.equal((instOf(doc, instId) as unknown as { vals?: unknown }).vals, undefined, 'the fixture starts empty');
+  const after = structuredClone(doc);
+  (instOf(after, instId) as unknown as { vals: Record<string, string> }).vals = { [words]: 'First words' };
+  a.equal(contentOnly(doc, after).ok, true);
+
+  /* and clearing it again is content too */
+  a.equal(contentOnly(after, doc).ok, true);
+});
+
+test('switching what a component does is not content', () => {
+  /* A select property changes the component's behaviour. That is the same kind of decision as
+     a heading's HTML tag, which this account has never been able to make. */
+  const { doc, layout, instId } = withComponent();
+  const after = structuredClone(doc);
+  (instOf(after, instId) as unknown as { vals: Record<string, string> }).vals = { [layout]: 'narrow' };
+  a.equal(contentOnly(doc, after).ok, false);
+});
+
+test('a value for a property nobody declared is refused', () => {
+  /* It cannot come from the panel, so it came from a client writing JSON. Refused for the
+     same reason an invented prop key is: the check permits what is declared, not what is
+     plausible. */
+  const { doc, instId } = withComponent();
+  const after = structuredClone(doc);
+  (instOf(after, instId) as unknown as { vals: Record<string, string> }).vals = { invented: 'x' };
+  a.equal(contentOnly(doc, after).ok, false);
+});
+
+test('changing what a component is is not content, however small the change', () => {
+  const { doc, cid } = withComponent();
+  const words = structuredClone(doc);
+  const def = (words.meta.components || []).find(c => c.id === cid)!;
+  def.node.children[0].props.text = 'Rewritten in the definition';
+  a.equal(contentOnly(doc, words).ok, false, 'a definition is the site, not one page’s words');
+
+  const renamed = structuredClone(doc);
+  (renamed.meta.components || []).find(c => c.id === cid)!.name = 'Renamed';
+  a.equal(contentOnly(doc, renamed).ok, false);
+
+  const declared = structuredClone(doc);
+  (declared.meta.components || []).find(c => c.id === cid)!.props.push(
+    { k: 'extra', label: 'Extra', t: 'text', def: '' });
+  a.equal(contentOnly(doc, declared).ok, false, 'declaring a property is a change to the component');
+});
+
+test('an image property takes an upload of this site and nothing else', () => {
+  const { doc, pic, instId } = withComponent();
+  const mine = new Set(['abc123']);
+
+  const upload = structuredClone(doc);
+  (instOf(upload, instId) as unknown as { vals: Record<string, string> }).vals = { [pic]: 'asset:abc123' };
+  a.equal(contentOnly(doc, upload, mine).ok, true, 'an upload of theirs is content');
+
+  const url = structuredClone(doc);
+  (instOf(url, instId) as unknown as { vals: Record<string, string> }).vals = { [pic]: 'https://example.com/x.jpg' };
+  a.equal(contentOnly(doc, url, mine).ok, false, 'a URL is not');
+
+  const theirs = structuredClone(doc);
+  (instOf(theirs, instId) as unknown as { vals: Record<string, string> }).vals = { [pic]: 'asset:zzz999' };
+  a.equal(contentOnly(doc, theirs, mine).ok, false, 'nor is somebody else’s asset id');
+});
+
+test('what a client puts in a slot is still structure', () => {
+  /* A slot's content is the page's own nodes, so adding one is adding a node — which has never
+     been a content edit and is not one because a component is involved. */
+  const { doc, instId } = withComponent();
+  const after = structuredClone(doc);
+  instOf(after, instId).children.push(Core.N('heading', { text: 'Mine' }));
+  a.equal(contentOnly(doc, after).ok, false);
+});
