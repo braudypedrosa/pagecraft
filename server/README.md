@@ -166,7 +166,22 @@ environment values is wrong.
 POSTGRES_PASSWORD=… EDITOR_HOST=pagecraft.example.com OWNER_EMAIL=you@example.com ACME_EMAIL=you@example.com docker compose -f server/compose.yml up -d --build
 ```
 
-**4. Sign in.** `POST /auth/login` with `OWNER_EMAIL`. Without SMTP configured the link is
+**4. Check it.**
+
+```bash
+node tools/smoke.mjs https://pagecraft.example.com
+```
+
+Read-only — it signs nothing in and creates nothing. Six checks, each one a thing that breaks in
+a way the logs do not obviously explain, and each failure prints what to change. The exit code is
+the number of failures.
+
+The one that earns its keep is `EDITOR_HOST`. Set it wrong and every request is looked up as a
+custom domain, so the editor answers `No site for host …` — which reads as a broken box, wrong
+DNS or a bad proxy, and is one string in a config file. The check names it and prints the value
+to use.
+
+**5. Sign in.** `POST /auth/login` with `OWNER_EMAIL`. Without SMTP configured the link is
 printed in `docker compose logs server`, which is fine for the first sign-in and not fine as a
 habit — set `SMTP_*` and `MAIL_FROM` before anybody else uses it.
 
