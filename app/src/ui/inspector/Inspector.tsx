@@ -388,10 +388,19 @@ export function Inspector() {
           <>
             <StylingTarget n={n} />
             {style.length ? <Group title={d.styleLabel || d.label} n={n} items={style} /> : null}
-            {C.COMMON_STYLE.map(g => <Group key={g.g} title={g.g} n={n} items={g.items} />)}
-            {/* last, and only for a single selection: motion is one value per element and a
-                group that wrote to several at once would be lying about what it edits */}
-            {many ? null : <Motion n={n} />}
+            {/* A group appears because the widget declares the capability it belongs to, not
+                because a predicate excludes nine widget types by name. A heading has no
+                `decoration`, so there is no Background group to hide controls inside. */}
+            {C.COMMON_STYLE.filter(g => C.canDo(n, g.cap))
+              .map(g => <Group key={g.g} title={g.g} n={n} items={g.items} />)}
+            {/* Last, and only for a single selection: motion is one value per element and a
+                group that wrote to several at once would be lying about what it edits.
+
+                It asks the registry too. Every widget declares `animation` today, so this
+                changes nothing on screen — and a declared capability that nothing reads is a
+                wish rather than a description, which is the failure the registry exists to
+                avoid. The day a widget should not move, saying so will be enough. */}
+            {many || !C.canDo(n, 'animation') ? null : <Motion n={n} />}
           </>
         ) : (
           <>

@@ -35,7 +35,6 @@ __export(index_exports, {
   CODE_LANGS: () => CODE_LANGS,
   COLL_CTL: () => COLL_CTL,
   COMMON_STYLE: () => COMMON_STYLE,
-  CONTENT_TYPES: () => CONTENT_TYPES,
   COUNTS: () => COUNTS,
   CRC_T: () => CRC_T,
   DEF: () => DEF,
@@ -115,6 +114,7 @@ __export(index_exports, {
   bucket: () => bucket,
   buildLink: () => buildLink,
   buildPage: () => buildPage,
+  canDo: () => canDo,
   canFacade: () => canFacade,
   canvasWidth: () => canvasWidth,
   chainTo: () => chainTo,
@@ -326,7 +326,6 @@ __export(index_exports, {
   styleSeen: () => styleSeen,
   styles: () => styles,
   tableGrid: () => tableGrid,
-  takesBackdrop: () => takesBackdrop,
   textSlots: () => textSlots,
   tgtIsClass: () => tgtIsClass,
   tgtObj: () => tgtObj,
@@ -1357,6 +1356,7 @@ var DEF = {
     icon: "section",
     level: 1,
     accepts: [2],
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: { tag: "section", width: "boxed", inner: "" }, css: { d: { ...BOX("72px", "24px", "72px", "24px") }, t: {}, m: { ...BOX("48px", "20px", "48px", "20px") } } }),
     controls: {
       content: [
@@ -1372,6 +1372,7 @@ var DEF = {
     icon: "row",
     level: 2,
     accepts: [3],
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: {}, css: { d: { gap: "24px", "align-items": "stretch", "justify-content": "flex-start" }, t: {}, m: { gap: "20px" } } }),
     controls: {
       content: [
@@ -1404,6 +1405,7 @@ var DEF = {
     icon: "slider",
     level: 2,
     accepts: [3],
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: { arrows: 1, aria: "Slides" },
       css: {
@@ -1454,6 +1456,7 @@ var DEF = {
     icon: "cms",
     level: 2,
     accepts: [3],
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: { sort: "", dir: "asc", limit: "" },
       css: { d: { gap: "24px", "align-items": "stretch", "flex-wrap": "wrap" }, t: {}, m: { gap: "20px" } }
@@ -1529,6 +1532,7 @@ var DEF = {
     icon: "column",
     level: 3,
     accepts: [2, 4],
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: {}, css: { d: { "flex-grow": "100", "justify-content": "flex-start", "align-items": "stretch", gap: "16px" }, t: {}, m: { "flex-basis": "100%" } } }),
     controls: {
       content: [
@@ -1550,6 +1554,7 @@ var DEF = {
     level: 4,
     edit: "text",
     styleLabel: "Typography & fill",
+    caps: ["spacing", "effects", "typography", "animation"],
     make: () => ({
       props: { text: "A headline that carries weight", level: "h2", link: "", target: "", ts: "title" },
       css: { d: { "text-align": "left", "margin-bottom": "0px" }, t: {}, m: {} }
@@ -1579,6 +1584,7 @@ var DEF = {
     level: 4,
     edit: "rich",
     styleLabel: "Typography & fill",
+    caps: ["spacing", "effects", "typography", "animation"],
     make: () => ({
       props: { html: "<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings \u2014 everything exports as clean semantic HTML.</p>", ts: "body" },
       css: { d: { "text-align": "left" }, t: {}, m: {} }
@@ -1618,6 +1624,7 @@ var DEF = {
     level: 4,
     edit: "text",
     styleLabel: "Typography & fill",
+    caps: ["spacing", "decoration", "effects", "typography", "animation"],
     make: () => ({
       props: {
         text: "A sentence in their words that a prospect would recognise as their own problem, solved.",
@@ -1691,6 +1698,7 @@ var DEF = {
     label: "Image",
     icon: "image",
     level: 4,
+    caps: ["spacing", "effects", "animation"],
     make: () => ({
       /* alt starts empty on purpose. It used to default to the literal string
          'Descriptive alt text', which satisfied the review's alt check — so a
@@ -1724,6 +1732,7 @@ var DEF = {
     label: "Video",
     icon: "video",
     level: 4,
+    caps: ["spacing", "effects", "animation"],
     make: () => ({
       props: { src: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", ratio: "16 / 9", autoplay: 0, loop: 0, muted: 1, controls: 1, poster: "", facade: 1 },
       css: { d: { width: "100%", "border-radius": "10px", overflow: "hidden" }, t: {}, m: {} }
@@ -1750,6 +1759,7 @@ var DEF = {
     icon: "button",
     level: 4,
     edit: "text",
+    caps: ["spacing", "decoration", "effects", "typography", "animation"],
     make: () => ({
       props: { text: "Get started", link: "", target: "", variant: "solid", icon: "none", align: "flex-start", wrap: "inline-flex", ts: "btn" },
       css: {
@@ -1793,6 +1803,7 @@ var DEF = {
     label: "Nav menu",
     icon: "nav",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "typography", "animation"],
     make: () => ({
       props: {
         /* All three point at the home page, and none of them used to resolve: `#work` and
@@ -1843,6 +1854,7 @@ var DEF = {
     label: "Form",
     icon: "form",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "typography", "animation"],
     make: () => ({
       props: {
         action: "",
@@ -1898,6 +1910,7 @@ var DEF = {
     label: "Spacer",
     icon: "spacer",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: {}, css: { d: { height: "48px" }, t: {}, m: { height: "32px" } } }),
     controls: { content: [{ t: "unit", c: "height", label: "Height", r: 1, units: U.len }], style: [] }
   },
@@ -1905,6 +1918,7 @@ var DEF = {
     label: "Divider",
     icon: "divider",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: {}, css: { d: { "border-top-width": "1px", "border-top-style": "solid", "border-top-color": cvar("line"), width: "100%", "margin-top": "20px", "margin-bottom": "20px" }, t: {}, m: {} } }),
     controls: {
       content: [
@@ -1930,6 +1944,7 @@ var DEF = {
     label: "Breadcrumb",
     icon: "crumbs",
     level: 4,
+    caps: ["spacing", "effects", "typography", "animation"],
     make: () => ({
       props: { mode: "auto", home: "Home", sep: "chevron" },
       css: {
@@ -1982,6 +1997,7 @@ var DEF = {
     label: "Code",
     icon: "codeblock",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
         body: "const site = build({\n  pages: 12,\n  scripts: 0   // nothing to run\n});",
@@ -2047,6 +2063,7 @@ var DEF = {
     label: "Table",
     icon: "table",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
         body: "Plan|Monthly|Seats\nStarter|\xA39|1\nStudio|\xA329|5\nHouse|\xA379|20",
@@ -2111,6 +2128,7 @@ var DEF = {
     label: "Tabs",
     icon: "tabs",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
         items: [
@@ -2167,6 +2185,7 @@ var DEF = {
     label: "Accordion",
     icon: "accordion",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
         items: [
@@ -2224,6 +2243,7 @@ var DEF = {
     label: "Embed",
     icon: "code",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: { html: "", ratio: "" }, css: { d: { width: "100%" }, t: {}, m: {} } }),
     controls: {
       content: [
@@ -2253,6 +2273,7 @@ var DEF = {
     label: "Icon",
     icon: "icon",
     level: 4,
+    caps: ["spacing", "effects", "animation"],
     make: () => ({
       props: { name: "check", label: "", link: "", target: "" },
       css: {
@@ -2291,6 +2312,7 @@ var DEF = {
     label: "Gallery",
     icon: "gallery",
     level: 4,
+    caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: { items: [], ratio: "4 / 3", fit: "cover", lightbox: 1, lazy: 1, captions: 0 },
       css: {
@@ -2539,8 +2561,7 @@ function styleSeen(n, prop) {
   for (const bag of bags) if (bag && bag[prop]) return String(bag[prop]);
   return "";
 }
-var CONTENT_TYPES = ["heading", "text", "quote", "button", "icon", "image", "gallery", "video", "embed"];
-var takesBackdrop = (n) => !CONTENT_TYPES.includes(n.type);
+var canDo = (n, cap) => (DEF[n.type].caps || []).includes(cap);
 var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
 var hasBorder = (n) => {
   const v = styleSeen(n, "border-style");
@@ -2552,12 +2573,13 @@ function notASlide(n) {
   return !h || h.node.type !== "slider";
 }
 var COMMON_STYLE = [
-  { g: "Spacing", items: [{ t: "box", c: "padding", label: "Padding", r: 1 }, { t: "box", c: "margin", label: "Margin", r: 1, neg: 1 }] },
+  { g: "Spacing", cap: "spacing", items: [{ t: "box", c: "padding", label: "Padding", r: 1 }, { t: "box", c: "margin", label: "Margin", r: 1, neg: 1 }] },
   {
     g: "Background",
+    cap: "decoration",
     items: [
       { t: "color", c: "background-color", label: "Colour" },
-      { t: "img", c: "background-image", label: "Image", bg: 1, when: takesBackdrop },
+      { t: "img", c: "background-image", label: "Image", bg: 1 },
       { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
@@ -2570,6 +2592,7 @@ var COMMON_STYLE = [
   },
   {
     g: "Border & shadow",
+    cap: "decoration",
     items: [
       { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
       { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
@@ -2584,6 +2607,7 @@ var COMMON_STYLE = [
        a change, so it belongs with the other motion rather than beside the properties it
        happens to animate. */
     g: "Effects",
+    cap: "effects",
     items: [
       { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
       { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" }
@@ -7011,7 +7035,6 @@ ${ANIM_JS}
   CODE_LANGS,
   COLL_CTL,
   COMMON_STYLE,
-  CONTENT_TYPES,
   COUNTS,
   CRC_T,
   DEF,
@@ -7091,6 +7114,7 @@ ${ANIM_JS}
   bucket,
   buildLink,
   buildPage,
+  canDo,
   canFacade,
   canvasWidth,
   chainTo,
@@ -7302,7 +7326,6 @@ ${ANIM_JS}
   styleSeen,
   styles,
   tableGrid,
-  takesBackdrop,
   textSlots,
   tgtIsClass,
   tgtObj,

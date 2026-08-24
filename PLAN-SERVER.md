@@ -517,11 +517,48 @@ and a page builder is the least interesting place to keep a security bug.
 The `www` redirect lives in the proxy rather than as an alias list per site, so the app keeps
 exactly one host per site and `byHost` stays a lookup rather than a search.
 
+## Milestone 3, first part: the capability registry is explicit
+
+The spec's section 1 asks for shared capabilities attached only to the component types they
+suit. This repo did the first half — `COMMON_STYLE` holds them once — and faked the second with
+`takesBackdrop`, which was `!CONTENT_TYPES.includes(n.type)`: a list of nine names, and a
+background image for everything not on it.
+
+That list worked and was the wrong shape, for the same reason the content check was before it
+got turned inside out. **An exclusion list grants by default.** The widget added next year gets
+a background image by never having been considered — silently, and in the direction that gives
+away more rather than less.
+
+So each widget declares `caps` now, and `canDo(node, cap)` is the only answer. Five
+capabilities, and only the ones that exist: `spacing`, `decoration`, `effects`, `typography`,
+`animation`. The spec also lists `positioning`, `conditions` and `interactions`, and naming
+those here would have made the registry a wish rather than a description.
+
+What changed on screen: a heading's Style tab lost the Background and Border groups outright,
+rather than keeping a Background group with most of its controls predicated away. A section
+keeps everything. An image and an icon lose decoration. A button and a quote keep it, because
+they are text that is also a box — an exception the registry can state and a rule about
+"content" could not.
+
+Three things fell out of doing it:
+
+- **`every widget declares caps` is a test**, and it fails by name. Deleting one widget's
+  declaration produces `heading declares no caps`, which is the whole point of declaring.
+- **The Motion panel asks the registry too.** Every widget declares `animation`, so nothing
+  moved — but a capability nothing reads is exactly the wish-not-description failure the
+  registry exists to avoid, so it reads it.
+- **A divider can be faded.** I declared spacers and dividers without `effects`, reasoning that
+  a spacer has nothing to fade. A divider is styled almost entirely through the shared groups —
+  its colour is a background — and opacity is how somebody makes a rule quiet. Corrected, with
+  the reasoning in the test.
+
 ## What is left
 
-**Milestones 3, 4 and 5** from the list above: the capability registry made explicit, the
-reusable component model, and multi-tenancy when there is a second customer. Nothing before
-them is outstanding — the first two milestones and everything the plan called a gap are done.
+- **The rest of milestone 3**: style states as first class (hover, focus-visible, active,
+  disabled, uniformly — a button's hover is still a special case in `nodeCss`), and conditions
+  with richer bindings.
+- **Milestones 4 and 5**: the reusable component model, and multi-tenancy when there is a
+  second customer.
 
 ## Anti-patterns the spec names, worth repeating
 

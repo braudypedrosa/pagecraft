@@ -333,6 +333,27 @@ export interface Control {
   text?: 0 | 1;
 }
 
+/** A shared styling capability a widget can be given.
+
+    The spec's section 1 asks for exactly this: do not implement spacing, typography, borders or
+    animation separately inside every component — implement them once and attach them only to
+    the component types they suit. `COMMON_STYLE` is the once; `caps` is the attaching.
+
+    Only the capabilities this builder actually has are named. The spec lists `positioning`,
+    `conditions` and `interactions` as well, and inventing a name for something that does not
+    exist would make the registry a wish rather than a description. */
+export type Capability =
+  /** padding and margin */
+  | 'spacing'
+  /** background, border, radius, shadow — anything painted on the box itself */
+  | 'decoration'
+  /** opacity and transform */
+  | 'effects'
+  /** its own type controls: size, weight, colour, measure */
+  | 'typography'
+  /** scroll-triggered motion */
+  | 'animation';
+
 export interface WidgetDef {
   label: string;
   icon: string;
@@ -346,6 +367,13 @@ export interface WidgetDef {
       not of a table's cell padding or an image's object-fit. Absent means the widget's own
       label, the way the Content tab already names its group. */
   styleLabel?: string;
+  /** Which shared capabilities this widget has. Required, and there is a test for that.
+
+      An exclusion list was the first shape of this — `CONTENT_TYPES`, nine names, and a
+      backdrop for everything not on it. Which means a widget added next year gets a capability
+      nobody granted it, silently, by never having been thought about. Declaring is the other
+      direction: nothing arrives with anything it did not ask for. */
+  caps: Capability[];
   make: () => { props: Props; css: Partial<Css> };
   controls: { content: Control[]; style: Control[] };
 }

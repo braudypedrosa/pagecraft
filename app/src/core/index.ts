@@ -16,7 +16,7 @@
 /* eslint-disable */
 import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
-  StateKey, States, Anim, TabPanel,
+  StateKey, States, Anim, TabPanel, Capability,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types.ts';
@@ -248,6 +248,7 @@ const DEF: Record<string, WidgetDef> = {
 
   section: {
     label: 'Section', icon: 'section', level: 1, accepts: [2],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: { tag: 'section', width: 'boxed', inner: '' }, css: { d: { ...BOX('72px', '24px', '72px', '24px') }, t: {}, m: { ...BOX('48px', '20px', '48px', '20px') } } }),
     controls: {
       content: [
@@ -261,6 +262,7 @@ const DEF: Record<string, WidgetDef> = {
 
   row: {
     label: 'Row', icon: 'row', level: 2, accepts: [3],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: {}, css: { d: { gap: '24px', 'align-items': 'stretch', 'justify-content': 'flex-start' }, t: {}, m: { gap: '20px' } } }),
     controls: {
       content: [
@@ -291,6 +293,7 @@ const DEF: Record<string, WidgetDef> = {
      `--sl-w`, so "three per view" is one declaration rather than a ratio per slide. */
   slider: {
     label: 'Slider', icon: 'slider', level: 2, accepts: [3],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: { arrows: 1, aria: 'Slides' },
       css: {
@@ -326,6 +329,7 @@ const DEF: Record<string, WidgetDef> = {
      phase 2 uses, so anything inside binds with no extra plumbing. */
   list: {
     label: 'Collection list', icon: 'cms', level: 2, accepts: [3],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: { sort: '', dir: 'asc', limit: '' },
       css: { d: { gap: '24px', 'align-items': 'stretch', 'flex-wrap': 'wrap' }, t: {}, m: { gap: '20px' } }
@@ -379,6 +383,7 @@ const DEF: Record<string, WidgetDef> = {
 
   column: {
     label: 'Column', icon: 'column', level: 3, accepts: [2, 4],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: {}, css: { d: { 'flex-grow': '100', 'justify-content': 'flex-start', 'align-items': 'stretch', gap: '16px' }, t: {}, m: { 'flex-basis': '100%' } } }),
     controls: {
       content: [
@@ -397,6 +402,7 @@ const DEF: Record<string, WidgetDef> = {
 
   heading: {
     label: 'Heading', icon: 'heading', level: 4, edit: 'text', styleLabel: 'Typography & fill',
+    caps: ['spacing', 'effects', 'typography', 'animation'],
     make: () => ({
       props: { text: 'A headline that carries weight', level: 'h2', link: '', target: '', ts: 'title' },
       css: { d: { 'text-align': 'left', 'margin-bottom': '0px' }, t: {}, m: {} }
@@ -423,6 +429,7 @@ const DEF: Record<string, WidgetDef> = {
 
   text: {
     label: 'WYSIWYG', icon: 'text', level: 4, edit: 'rich', styleLabel: 'Typography & fill',
+    caps: ['spacing', 'effects', 'typography', 'animation'],
     make: () => ({
       props: { html: '<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings — everything exports as clean semantic HTML.</p>', ts: 'body' },
       css: { d: { 'text-align': 'left' }, t: {}, m: {} }
@@ -459,6 +466,7 @@ const DEF: Record<string, WidgetDef> = {
      attribution should read the same wherever the quote appears. */
   quote: {
     label: 'Quote', icon: 'quote', level: 4, edit: 'text', styleLabel: 'Typography & fill',
+    caps: ['spacing', 'decoration', 'effects', 'typography', 'animation'],
     make: () => ({
       props: {
         text: 'A sentence in their words that a prospect would recognise as their own problem, solved.',
@@ -503,6 +511,7 @@ const DEF: Record<string, WidgetDef> = {
 
   image: {
     label: 'Image', icon: 'image', level: 4,
+    caps: ['spacing', 'effects', 'animation'],
     make: () => ({
       /* alt starts empty on purpose. It used to default to the literal string
          'Descriptive alt text', which satisfied the review's alt check — so a
@@ -535,6 +544,7 @@ const DEF: Record<string, WidgetDef> = {
 
   video: {
     label: 'Video', icon: 'video', level: 4,
+    caps: ['spacing', 'effects', 'animation'],
     make: () => ({
       props: { src: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', ratio: '16 / 9', autoplay: 0, loop: 0, muted: 1, controls: 1, poster: '', facade: 1 },
       css: { d: { width: '100%', 'border-radius': '10px', overflow: 'hidden' }, t: {}, m: {} }
@@ -559,6 +569,7 @@ const DEF: Record<string, WidgetDef> = {
 
   button: {
     label: 'Button', icon: 'button', level: 4, edit: 'text',
+    caps: ['spacing', 'decoration', 'effects', 'typography', 'animation'],
     make: () => ({
       props: { text: 'Get started', link: '', target: '', variant: 'solid', icon: 'none', align: 'flex-start', wrap: 'inline-flex', ts: 'btn' },
       css: {
@@ -593,6 +604,7 @@ const DEF: Record<string, WidgetDef> = {
 
   nav: {
     label: 'Nav menu', icon: 'nav', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'typography', 'animation'],
     make: () => ({
       props: {
         /* All three point at the home page, and none of them used to resolve: `#work` and
@@ -633,6 +645,7 @@ const DEF: Record<string, WidgetDef> = {
 
   form: {
     label: 'Form', icon: 'form', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'typography', 'animation'],
     make: () => ({
       props: {
         action: '', method: 'post', submit: 'Send', aria: 'Contact form',
@@ -675,12 +688,14 @@ const DEF: Record<string, WidgetDef> = {
 
   spacer: {
     label: 'Spacer', icon: 'spacer', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: {}, css: { d: { height: '48px' }, t: {}, m: { height: '32px' } } }),
     controls: { content: [{ t: 'unit', c: 'height', label: 'Height', r: 1, units: U.len }], style: [] }
   },
 
   divider: {
     label: 'Divider', icon: 'divider', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: {}, css: { d: { 'border-top-width': '1px', 'border-top-style': 'solid', 'border-top-color': cvar('line'), width: '100%', 'margin-top': '20px', 'margin-bottom': '20px' }, t: {}, m: {} } }),
     controls: {
       content: [
@@ -704,6 +719,7 @@ const DEF: Record<string, WidgetDef> = {
      revealing with script fails the other way, into a page with the content missing. */
   crumbs: {
     label: 'Breadcrumb', icon: 'crumbs', level: 4,
+    caps: ['spacing', 'effects', 'typography', 'animation'],
     make: () => ({
       props: { mode: 'auto', home: 'Home', sep: 'chevron' },
       css: {
@@ -733,6 +749,7 @@ const DEF: Record<string, WidgetDef> = {
   },
   code: {
     label: 'Code', icon: 'codeblock', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
         body: 'const site = build({\n  pages: 12,\n  scripts: 0   // nothing to run\n});',
@@ -774,6 +791,7 @@ const DEF: Record<string, WidgetDef> = {
   },
   table: {
     label: 'Table', icon: 'table', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
         body: 'Plan|Monthly|Seats\nStarter|£9|1\nStudio|£29|5\nHouse|£79|20',
@@ -817,6 +835,7 @@ const DEF: Record<string, WidgetDef> = {
   },
   tabs: {
     label: 'Tabs', icon: 'tabs', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
         items: [
@@ -858,6 +877,7 @@ const DEF: Record<string, WidgetDef> = {
 
   accordion: {
     label: 'Accordion', icon: 'accordion', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
         items: [
@@ -903,6 +923,7 @@ const DEF: Record<string, WidgetDef> = {
      a booking widget, a payment button, an SVG the icon set does not carry. */
   embed: {
     label: 'Embed', icon: 'code', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: { html: '', ratio: '' }, css: { d: { width: '100%' }, t: {}, m: {} } }),
     controls: {
       content: [
@@ -924,6 +945,7 @@ const DEF: Record<string, WidgetDef> = {
      inherits colour the way text does and scales with a single control. */
   icon: {
     label: 'Icon', icon: 'icon', level: 4,
+    caps: ['spacing', 'effects', 'animation'],
     make: () => ({
       props: { name: 'check', label: '', link: '', target: '' },
       css: {
@@ -957,6 +979,7 @@ const DEF: Record<string, WidgetDef> = {
      only intercepts a click that would already have gone somewhere useful. */
   gallery: {
     label: 'Gallery', icon: 'gallery', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: { items: [], ratio: '4 / 3', fit: 'cover', lightbox: 1, lazy: 1, captions: 0 },
       css: {
@@ -1283,9 +1306,14 @@ function styleSeen(n: PcNode, prop: string): string {
   return '';
 }
 
-/** The widgets that are the content rather than a surface for it. */
-const CONTENT_TYPES = ['heading', 'text', 'quote', 'button', 'icon', 'image', 'gallery', 'video', 'embed'];
-const takesBackdrop = (n: PcNode) => !CONTENT_TYPES.includes(n.type);
+/** Does this widget have this capability? The registry answers, and it is the only answer.
+
+    This replaced `CONTENT_TYPES`, a list of nine names with a backdrop for everything not on
+    it. The list worked and was the wrong shape: an exclusion list grants by default, so the
+    next widget got a background image by not having been considered. `caps` on each widget
+    grants by declaration instead, and `every widget declares caps` is a test. */
+const canDo = (n: PcNode, cap: Capability) => (DEF[n.type].caps || []).includes(cap);
+
 /** A gradient counts: it is a background image as far as size and position are concerned. */
 const hasBackdrop = (n: PcNode) => !!(styleSeen(n, 'background-image') || styleSeen(n, 'background'));
 const hasBorder = (n: PcNode) => { const v = styleSeen(n, 'border-style'); return !!v && v !== 'none'; };
@@ -1301,12 +1329,12 @@ function notASlide(n: PcNode): boolean {
   return !h || h.node.type !== 'slider';
 }
 
-const COMMON_STYLE: { g: string; items: Control[] }[] = [
-  { g: 'Spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
+const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
+  { g: 'Spacing', cap: 'spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
   {
-    g: 'Background', items: [
+    g: 'Background', cap: 'decoration', items: [
       { t: 'color', c: 'background-color', label: 'Colour' },
-      { t: 'img', c: 'background-image', label: 'Image', bg: 1, when: takesBackdrop },
+      { t: 'img', c: 'background-image', label: 'Image', bg: 1 },
       { t: 'select', c: 'background-size', label: 'Size', when: hasBackdrop, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
@@ -1318,7 +1346,7 @@ const COMMON_STYLE: { g: string; items: Control[] }[] = [
     ]
   },
   {
-    g: 'Border & shadow', items: [
+    g: 'Border & shadow', cap: 'decoration', items: [
       { t: 'select', c: 'border-style', label: 'Border style', opts: [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted'], ['none', 'None']] },
       { t: 'unit', c: 'border-width', label: 'Border width', units: U.border, when: hasBorder },
       { t: 'color', c: 'border-color', label: 'Border colour', when: hasBorder },
@@ -1331,7 +1359,7 @@ const COMMON_STYLE: { g: string; items: Control[] }[] = [
        are what a hover usually changes. Transition moved to Motion: its only job is to animate
        a change, so it belongs with the other motion rather than beside the properties it
        happens to animate. */
-    g: 'Effects', items: [
+    g: 'Effects', cap: 'effects', items: [
       { t: 'slider', c: 'opacity', label: 'Opacity', min: 0, max: 1, step: .01, raw: 1 },
       { t: 'text', c: 'transform', label: 'Transform', ph: 'translateY(-4px) rotate(2deg)' }
     ]
@@ -6347,5 +6375,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, CONTENT_TYPES, takesBackdrop, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, blockInstances, blockUsage, blockPush, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

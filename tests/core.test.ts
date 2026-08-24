@@ -4173,19 +4173,75 @@ const commonCtl = (c: string) => {
 const offered = (n: any, c: string) => { const it = commonCtl(c); return !it.when || it.when(n); };
 const one = (type: string) => { blank(); return insert(type, null, 0); };
 
-test('a background image is offered on what things sit on, not on what is the content', () => {
-  for (const t of ['section', 'row', 'column', 'spacer', 'divider', 'accordion', 'tabs', 'form', 'nav'])
-    a.equal(offered(one(t), 'background-image'), true, t + ' is a surface');
-  for (const t of ['heading', 'text', 'quote', 'button', 'icon', 'image', 'video', 'gallery', 'embed'])
-    a.equal(offered(one(t), 'background-image'), false, t + ' is the content');
+test('every widget declares what it can do, so nothing arrives with a capability by accident', () => {
+  /* The point of the registry. An exclusion list grants by default: the widget added next year
+     gets a background image by never having been considered. This is the test that makes the
+     other direction true — a new `DEF` entry without `caps` fails here. */
+  const caps = new Set(['spacing', 'decoration', 'effects', 'typography', 'animation']);
+  for (const t of Object.keys(C.DEF)) {
+    const d = C.DEF[t];
+    a.ok(Array.isArray(d.caps), `${t} declares no caps`);
+    a.ok(d.caps.length, `${t} declares an empty caps list — say what it can do or say why not`);
+    d.caps.forEach((c: string) => a.ok(caps.has(c), `${t} claims '${c}', which is not a capability`));
+    a.equal(new Set(d.caps).size, d.caps.length, `${t} lists a capability twice`);
+  }
 });
 
-test('a heading keeps the colour and the shorthand, so nothing is actually taken away', () => {
+test('a decoration is for what things sit on, not for what is the content', () => {
+  for (const t of ['section', 'row', 'column', 'spacer', 'divider', 'accordion', 'tabs', 'form', 'nav'])
+    a.equal(C.canDo(one(t), 'decoration'), true, t + ' is a surface');
+  for (const t of ['heading', 'text', 'image', 'video', 'icon'])
+    a.equal(C.canDo(one(t), 'decoration'), false, t + ' is the content');
+  /* a quote and a button are text that is also a box — a rule they are exceptions to */
+  for (const t of ['quote', 'button'])
+    a.equal(C.canDo(one(t), 'decoration'), true, t + ' is both');
+});
+
+test('type controls go to the widgets that have type, and motion to everything', () => {
+  for (const t of ['heading', 'text', 'quote', 'button', 'nav', 'form', 'crumbs'])
+    a.equal(C.canDo(one(t), 'typography'), true, t);
+  for (const t of ['section', 'image', 'spacer', 'divider', 'gallery', 'table', 'code'])
+    a.equal(C.canDo(one(t), 'typography'), false, `${t} has no type of its own to set`);
+
+  for (const t of Object.keys(C.DEF))
+    a.equal(C.canDo(one(t), 'animation'), true, `${t} should be able to move`);
+  for (const t of Object.keys(C.DEF))
+    a.equal(C.canDo(one(t), 'spacing'), true, `${t} sits in a layout, so it takes space`);
+});
+
+test('the Motion panel asks the registry, so `animation` is read and not merely declared', () => {
+  /* Every widget declares it today, so this changes nothing on screen. It is here because a
+     capability nothing reads is a wish rather than a description. */
+  for (const t of Object.keys(C.DEF)) a.equal(C.canDo(one(t), 'animation'), true, t);
+});
+
+test('a divider can be faded, because a faint rule is a normal thing to want', () => {
+  /* Declared without `effects` at first, on the reasoning that a spacer has nothing to fade.
+     A divider is styled almost entirely through the shared groups — its colour is a
+     background — and opacity is how somebody makes it quiet. */
+  a.equal(C.canDo(one('divider'), 'effects'), true);
+  a.equal(C.canDo(one('spacer'), 'effects'), true);
+});
+
+test('every shared group names a capability, or it could never be attached', () => {
+  const caps = new Set(['spacing', 'decoration', 'effects', 'typography', 'animation']);
+  for (const g of C.COMMON_STYLE) {
+    a.ok(g.cap, `the ${g.g} group names no capability`);
+    a.ok(caps.has(g.cap), `the ${g.g} group claims '${g.cap}'`);
+  }
+});
+
+test('a heading keeps its spacing and its motion, and loses the whole decoration group', () => {
+  /* Under the predicate this widget kept a Background group holding a colour and a gradient.
+     Under the registry the group is not there at all, which is the honest version of the same
+     decision: a heading is not a surface, so it has no surface to style. A highlight behind
+     text is a job for the column it sits in. */
   const h = one('heading');
-  a.equal(offered(h, 'background-color'), true, 'a highlight behind text is ordinary');
-  a.equal(offered(h, 'background'), true, 'and the shorthand takes a gradient');
-  a.equal(offered(h, 'padding'), true);
-  a.equal(offered(h, 'border-radius'), true);
+  a.equal(C.canDo(h, 'spacing'), true);
+  a.equal(C.canDo(h, 'typography'), true);
+  a.equal(C.canDo(h, 'animation'), true);
+  a.equal(C.canDo(h, 'decoration'), false);
+  a.equal(offered(h, 'padding'), true, 'and the controls inside a group it has are unchanged');
 });
 
 test('size, position and repeat wait until there is a background to size', () => {
