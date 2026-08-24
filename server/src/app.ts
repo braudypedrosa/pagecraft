@@ -16,7 +16,7 @@
 import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { validHost, type Store } from './store.ts';
-import { renderSite, resolvePath } from './render.ts';
+import { adopt, renderSite, resolvePath } from './render.ts';
 import { contentOnly } from './content.ts';
 import { throttle } from './mail.ts';
 import {
@@ -69,7 +69,10 @@ export function createApp(o: Options) {
      not — so they are fetched first and handed in. `renderSite` stays synchronous, which is
      the property the singleton core depends on. */
   const build = (id: string, doc: Doc, assets: Asset[] = []) => {
-    const out = renderSite(doc, assets);
+    /* Every served byte comes through here, so this is where a document written by an older
+       editor is brought up to date. `adopt` returning null means a newer editor wrote it; it
+       is in the table already, so render it as it stands rather than take the site down. */
+    const out = renderSite(adopt(doc) || doc, assets);
     built.set(id, out.files);
     return out;
   };
@@ -236,8 +239,15 @@ export function createApp(o: Options) {
     if (!user) return deny(c, 401);
     const body = await c.req.json().catch(() => null) as { host?: string; name?: string; doc?: Doc } | null;
     if (!body || !body.host || !body.doc) return c.json({ error: 'host and doc are required' }, 400);
+    /* Stored at this build's schema, so the row starts where the save path expects it. */
+    const doc = adopt(body.doc);
+    if (!doc) {
+      return c.json({
+        error: 'newer', detail: 'This document was written by a newer version of the editor than this server runs. Reload the editor, or deploy the server.'
+      }, 409);
+    }
     try {
-      const site = await o.store.create({ host: body.host, name: body.name || body.host, doc: body.doc });
+      const site = await o.store.create({ host: body.host, name: body.name || body.host, doc });
       await o.auth.grant(site.id, user.id, 'owner');
       const out = await rebuild(site.id, site.doc);
       return c.json({ id: site.id, version: site.version, files: [...out.files.keys()] }, 201);
@@ -260,6 +270,20 @@ export function createApp(o: Options) {
       return c.json({ error: 'doc and version are required' }, 400);
     }
 
+    /* Both documents, brought to the same schema before anything compares them. The incoming
+       one because that is what gets stored, and the stored one because the editor migrated it
+       on load — so a legacy row plus a content account would otherwise be a save refused for a
+       structural change neither of them made. A refusal here means a newer editor is talking to
+       an older server, which is a deployment to finish rather than a document to store. */
+    const incoming = adopt(body.doc);
+    if (!incoming) {
+      return c.json({
+        error: 'newer', detail: 'This document was written by a newer version of the editor than this server runs. Reload the editor, or deploy the server.'
+      }, 409);
+    }
+    body.doc = incoming;
+    const stored = adopt(site.doc) || site.doc;
+
     /* A content role may save, and only content. The check is against what is stored rather
        than against what the editor thinks it loaded, so a stale client cannot smuggle a
        structural change through by sending an old skeleton. */
@@ -267,7 +291,7 @@ export function createApp(o: Options) {
       /* the site's own asset ids, so an image may be swapped for another upload of theirs and
          not for a URL or for somebody else's id */
       const ids = new Set((await assetsOf(id)).map(x => x.id));
-      const check = contentOnly(site.doc, body.doc, ids);
+      const check = contentOnly(stored, body.doc, ids);
       if (!check.ok) {
         return c.json({
           error: 'content only',

@@ -591,8 +591,6 @@ const DEF: Record<string, WidgetDef> = {
       style: [
         { t: 'color', c: 'background-color', label: 'Background' },
         { t: 'color', c: 'color', label: 'Text colour' },
-        { t: 'color', c: '--hover-bg', label: 'Hover background' },
-        { t: 'color', c: '--hover-fg', label: 'Hover text' },
         { t: 'unit', c: 'font-size', label: 'Size', r: 1, units: U.space },
         { t: 'select', c: 'font-weight', label: 'Weight', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
         { t: 'unit', c: 'border-radius', label: 'Radius', r: 1, units: U.radius },
@@ -2155,8 +2153,9 @@ function parseU(v: unknown): { n: string; u: string } {
  * at a mobile width.
  */
 /* ---- interactive states ----------------------------------------------
-   A second axis over the breakpoints. Hover existed on buttons alone, as two custom
-   properties, and `:focus` could not be authored anywhere — so a card could not lift, a link
+   A second axis over the breakpoints. Hover used to exist on buttons alone, as two custom
+   properties read by a branch in the stylesheet writer, and `:focus` could not be authored
+   anywhere — so a card could not lift, a link
    could not change, and the Transform and Transition controls on the Advanced tab had nothing
    to trigger them.
 
@@ -4036,7 +4035,7 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 7;                       // bump when the stored shape changes
+const SCHEMA = 8;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -4074,6 +4073,41 @@ function migrate(d: any) {
   if (v < 7) {
     d.meta = d.meta || {};
     if (!Array.isArray(d.meta.collections)) d.meta.collections = [];
+  }
+  /* v7 -> v8: a button's hover stops being a special case. Two custom properties on the
+     resting block, `--hover-bg` and `--hover-fg`, were read by one `if (n.type === 'button')`
+     in the stylesheet writer. That is how a button got a hover and nothing else could, and it
+     survived the arrival of states as a real axis, so there were two ways to author the same
+     rule on the one widget that had both.
+
+     `--hover-fg` wrote colour *and* border-colour together, so an outline button's edge
+     followed its text. The migration writes both, because that is what the page looked like
+     yesterday. For the same reason it overwrites whatever `st.hover` already holds for those
+     three properties: the old branch was emitted after the state rules and won on order, so
+     the custom property is what the author actually saw. Migrating to the value that was not
+     on screen would be a redesign wearing a migration's clothes. */
+  if (v < 8) {
+    const fold = (n: any) => {
+      (['d', 't', 'm'] as const).forEach(b => {
+        const map = n.css && n.css[b];
+        if (!map) return;
+        const bg = map['--hover-bg'], fg = map['--hover-fg'];
+        delete map['--hover-bg']; delete map['--hover-fg'];
+        if (!bg && !fg) return;
+        n.st = n.st || {};
+        const h = n.st.hover = n.st.hover || { d: {}, t: {}, m: {} };
+        h[b] = h[b] || {};
+        if (bg) h[b]['background-color'] = bg;
+        if (fg) { h[b].color = fg; h[b]['border-color'] = fg; }
+      });
+      (n.children || []).forEach(fold);
+    };
+    /* Every tree the document has, saved blocks included: a block is a detached node and a
+       button inside one would otherwise keep a property nothing reads any more. */
+    (d.header || []).forEach(fold);
+    (d.footer || []).forEach(fold);
+    (d.pages || []).forEach((pg: any) => (pg.tree || []).forEach(fold));
+    (((d.meta || {}).blocks) || []).forEach((bl: any) => { if (bl.node) fold(bl.node); });
   }
   d.v = SCHEMA;
   return d;
@@ -5202,10 +5236,6 @@ function bucket(n: PcNode, b: Bp, editing: boolean) {
     const d = decl((n.st && n.st[k] && n.st[k]![b]) || {});
     if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
   });
-  if (n.type === 'button') {
-    const hb = map['--hover-bg'], hf = map['--hover-fg'];
-    if (hb || hf) rules.push(`${selOf(n)}:hover{${hb ? `background-color:${hb};` : ''}${hf ? `color:${hf};border-color:${hf};` : ''}}`);
-  }
   if (n.type === 'text' && map['--link']) rules.push(`${selOf(n)} a{color:${map['--link']}}`);
   return rules.join('');
 }

@@ -25,6 +25,31 @@ import * as Core from '../../app/src/core/index.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import type { Asset } from './assets.ts';
 
+/**
+ * A stored document, brought up to the schema this build speaks.
+ *
+ * The editor has always migrated on load. The server did not, and served whatever JSON was in
+ * the column — which was invisible for as long as the schema never changed. The first change
+ * was v7 -> v8, folding a button's `--hover-bg` into its hover state block, and without this
+ * every stored button quietly lost its hover: the custom property is still emitted, and now
+ * nothing reads it.
+ *
+ * It mutates and returns the same object, which is what `Core.migrate` does, and it is
+ * idempotent — a document already at the current schema comes back untouched. So calling it on
+ * every render costs a tree walk on a document measured in kilobytes, and that is the trade:
+ * correct on a cold row, rather than fast and wrong.
+ *
+ * Null means a document this build cannot speak — written by a newer editor, and `Core.migrate`
+ * refuses rather than corrupt it. Callers decide what that is worth: the save path refuses with
+ * an error somebody can read, and the render path serves the document as it stands, because it
+ * is already in the table and a site going dark is worse than a site rendering one property
+ * this build does not know about.
+ *
+ * One function rather than an `adopt` and a `canAdopt`, because asking the question runs the
+ * migration — a predicate that quietly rewrote its argument would be a trap.
+ */
+export const adopt = (doc: Doc): Doc | null => Core.migrate(doc) as Doc | null;
+
 export interface RenderedSite {
   /** path relative to the site root, e.g. `index.html` or `work/acme.html` */
   files: Map<string, string>;

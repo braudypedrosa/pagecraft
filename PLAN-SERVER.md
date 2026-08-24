@@ -552,11 +552,56 @@ Three things fell out of doing it:
   its colour is a background — and opacity is how somebody makes a rule quiet. Corrected, with
   the reasoning in the test.
 
+## Milestone 3, second part: one way to author a hover
+
+States were already a real axis — `st` beside `css`, `:hover` and `:focus-visible`, a State
+segmented control on the Style and Advanced tabs. What survived alongside them was the thing
+they replaced: `--hover-bg` and `--hover-fg`, two colour pickers on a button's Style tab,
+written into the resting block and read by one `if (n.type === 'button')` in the stylesheet
+writer.
+
+So a button had two ways to say the same thing, and every other widget had one. Both are gone,
+and the general axis is the only answer. A section can now lift on hover, which is what the
+Transform control on the Advanced tab was always for.
+
+The interesting half was not deleting them. It was **v7 -> v8**, and what a migration owes:
+
+- `--hover-fg` set colour *and* border-colour, so an outline button's edge followed its text.
+  The migration writes both. Dropping the border would have silently redesigned every outline
+  button anybody ever made.
+- It overwrites whatever `st.hover` already holds for those properties, because the old branch
+  was emitted after the state rules and won on order. The custom property is what the author
+  saw, and migrating to the value that was *not* on screen is a redesign wearing a migration's
+  clothes.
+- Saved blocks are migrated too. A block is a detached node; missing it leaves a button that
+  renders one way on the page and another way when dragged out of the Blocks list.
+
+And then the part that was a real bug, found by making the schema move for the first time since
+the server existed: **the server never called `migrate`.** The editor always has, on load. The
+server served whatever JSON was in the column, which was invisible for exactly as long as the
+schema never changed. Without a fix, every stored button would have lost its hover — the custom
+property still emitted, and nothing left to read it.
+
+`adopt(doc)` in `render.ts` now covers it, at the points where a document's shape matters:
+everything served (one funnel, `build`), everything stored (create and save), and **both sides
+of the content check**. That last one is the one worth remembering: a v7 row loaded by a content
+account is migrated by the editor on the way in and sent back at v8, so comparing it against the
+unmigrated stored copy finds a difference in every folded property and calls it structure. The
+client would be told they changed the layout by opening the page. There is a test that fails
+without the stored-side adopt, and it says so.
+
+A document from a *newer* build is refused on save with a 409 somebody can read — an older
+server and a newer editor is a deployment to finish. On render it is served as it stands, since
+it is already in the table and a site going dark is worse than a site rendering one unknown
+property. This is convention 10 in CONTEXT.md now, because the next schema step will forget it.
+
 ## What is left
 
-- **The rest of milestone 3**: style states as first class (hover, focus-visible, active,
-  disabled, uniformly — a button's hover is still a special case in `nodeCss`), and conditions
-  with richer bindings.
+- **The rest of milestone 3**: conditions with richer bindings. `:active` and `[disabled]` were
+  on this list and are off it — `:active` is a state nothing in the widget set needs that
+  `:hover` does not cover, and `[disabled]` applies to form controls the form widget already
+  styles. Declaring either would have made `STATES` a wish rather than a description, which is
+  the mistake the capability registry above exists to stop repeating.
 - **Milestones 4 and 5**: the reusable component model, and multi-tenancy when there is a
   second customer.
 

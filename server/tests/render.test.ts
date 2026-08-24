@@ -4,7 +4,7 @@
 import { test } from 'vitest';
 import a from 'node:assert/strict';
 import * as Core from '../../app/src/core/index.ts';
-import { renderSite, resolvePath } from '../src/render.ts';
+import { adopt, renderSite, resolvePath } from '../src/render.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
 /* The demo project, not an empty one: it has a header, a footer, two pages and most of the
@@ -101,4 +101,39 @@ test('the review comes back with the render, so a save can report it without a s
   const out = renderSite(demo());
   a.ok(Array.isArray(out.findings));
   a.deepEqual(out.findings, Core.lint(), 'and it is the same review the builder shows');
+});
+
+/* ------------------------------------------------------------------- schema */
+
+/* The editor migrated on load from the first version. The server did not, and for as long as
+   the schema never changed nobody could tell. */
+
+test('a row written by an older editor is brought up to date before it is served', () => {
+  const doc = demo() as any;
+  /* v7: a button's hover was two custom properties read by a branch in the stylesheet writer */
+  doc.v = 7;
+  const btn = { id: 'nX', type: 'button', props: { text: 'Go' }, adv: {}, children: [],
+                css: { d: { '--hover-bg': '#ff0000', '--hover-fg': '#ffffff' }, t: {}, m: {} } };
+  doc.pages[0].tree.push(btn);
+
+  const bare = renderSite(structuredClone(doc)).files.get('index.html') || '';
+  a.equal(/--hover-bg:#ff0000/.test(bare), true, 'the property is still emitted...');
+  a.equal(/:hover\{[^}]*background-color:#ff0000/.test(bare), false, '...and nothing reads it');
+
+  const served = renderSite(adopt(structuredClone(doc)) as Doc).files.get('index.html') || '';
+  a.match(served, /:hover\{[^}]*background-color:#ff0000/, 'adopted, the hover is a rule again');
+  a.match(served, /:hover\{[^}]*border-color:#ffffff/, 'including the border that followed the text');
+});
+
+test('adopt is idempotent, which is what makes it safe on every render', () => {
+  const once = adopt(demo()) as Doc;
+  const twice = adopt(structuredClone(once)) as Doc;
+  a.deepEqual(twice, once);
+  a.equal(renderSite(twice).files.get('index.html'), renderSite(once).files.get('index.html'));
+});
+
+test('a document from a newer build is refused rather than half-understood', () => {
+  const doc = demo() as any;
+  doc.v = Core.SCHEMA + 1;
+  a.equal(adopt(doc), null);
 });

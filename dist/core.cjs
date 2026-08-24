@@ -1789,8 +1789,6 @@ var DEF = {
       style: [
         { t: "color", c: "background-color", label: "Background" },
         { t: "color", c: "color", label: "Text colour" },
-        { t: "color", c: "--hover-bg", label: "Hover background" },
-        { t: "color", c: "--hover-fg", label: "Hover text" },
         { t: "unit", c: "font-size", label: "Size", r: 1, units: U.space },
         { t: "select", c: "font-weight", label: "Weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
@@ -4782,7 +4780,7 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 7;
+var SCHEMA = 8;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const v = d.v || 1;
@@ -4813,6 +4811,33 @@ function migrate(d) {
   if (v < 7) {
     d.meta = d.meta || {};
     if (!Array.isArray(d.meta.collections)) d.meta.collections = [];
+  }
+  if (v < 8) {
+    const fold = (n) => {
+      ["d", "t", "m"].forEach((b) => {
+        const map = n.css && n.css[b];
+        if (!map) return;
+        const bg = map["--hover-bg"], fg = map["--hover-fg"];
+        delete map["--hover-bg"];
+        delete map["--hover-fg"];
+        if (!bg && !fg) return;
+        n.st = n.st || {};
+        const h = n.st.hover = n.st.hover || { d: {}, t: {}, m: {} };
+        h[b] = h[b] || {};
+        if (bg) h[b]["background-color"] = bg;
+        if (fg) {
+          h[b].color = fg;
+          h[b]["border-color"] = fg;
+        }
+      });
+      (n.children || []).forEach(fold);
+    };
+    (d.header || []).forEach(fold);
+    (d.footer || []).forEach(fold);
+    (d.pages || []).forEach((pg2) => (pg2.tree || []).forEach(fold));
+    ((d.meta || {}).blocks || []).forEach((bl) => {
+      if (bl.node) fold(bl.node);
+    });
   }
   d.v = SCHEMA;
   return d;
@@ -6080,10 +6105,6 @@ function bucket(n, b, editing) {
     const d = decl(n.st && n.st[k] && n.st[k][b] || {});
     if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
   });
-  if (n.type === "button") {
-    const hb = map["--hover-bg"], hf = map["--hover-fg"];
-    if (hb || hf) rules.push(`${selOf(n)}:hover{${hb ? `background-color:${hb};` : ""}${hf ? `color:${hf};border-color:${hf};` : ""}}`);
-  }
   if (n.type === "text" && map["--link"]) rules.push(`${selOf(n)} a{color:${map["--link"]}}`);
   return rules.join("");
 }

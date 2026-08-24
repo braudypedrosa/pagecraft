@@ -287,11 +287,62 @@ test('custom CSS substitutes & for the element selector', () => {
   a.match(css, new RegExp('\\.' + C.nodeClass(h) + ':hover'));
 });
 
-test('button hover colours become a :hover rule', () => {
+test('no widget authors a hover through a custom property any more', () => {
+  /* `--hover-bg` and `--hover-fg` on a button were read by a branch in the stylesheet writer,
+     so a button had a hover and nothing else could. States are the axis now, and a second way
+     to write the same rule on one widget is the thing this asserts is gone. */
+  for (const [type, def] of Object.entries(C.DEF)) {
+    for (const c of [...(def.controls.style || []), ...(def.controls.content || [])]) {
+      a.equal(/^--hover-/.test((c as { c?: string }).c || ''), false, `${type} still has ${(c as { c?: string }).c}`);
+    }
+  }
+});
+
+test('a v7 button keeps the hover it had, in the state block instead of two properties', () => {
+  /* Migration fidelity, and the reason it is worth a test: the old branch turned `--hover-fg`
+     into colour *and* border-colour, so an outline button's edge followed its text. A migration
+     that dropped the border would silently redesign every outline button ever made. */
   blank();
   const b = insert('button', null, 0);
-  b.css.d['--hover-bg'] = '#ff0000';
-  a.match(C.treeCss([C.state.pages[0].tree], false), new RegExp('\\.' + C.nodeClass(b) + ':hover\\{background-color:#ff0000'));
+  const doc: any = {
+    v: 7, meta: structuredClone(C.state.meta), header: [], footer: [],
+    pages: [{ ...C.state.pages[0], tree: structuredClone([b]) }]
+  };
+  const node = doc.pages[0].tree[0];
+  node.css.d['--hover-bg'] = '#ff0000';
+  node.css.d['--hover-fg'] = '#ffffff';
+  node.css.m['--hover-bg'] = '#00ff00';
+
+  const out = C.migrate(doc);
+  a.equal(out.v, C.SCHEMA);
+  const m = out.pages[0].tree[0];
+  a.deepEqual(m.st.hover.d, { 'background-color': '#ff0000', color: '#ffffff', 'border-color': '#ffffff' });
+  a.deepEqual(m.st.hover.m, { 'background-color': '#00ff00' });
+  a.equal('--hover-bg' in m.css.d, false, 'and the property it came from is gone');
+  a.equal('--hover-fg' in m.css.d, false);
+
+  /* the point of all of it: the same rules still reach the page */
+  C.edit(() => { C.state.pages[0].tree[0] = m; });
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const sel = '\\.' + C.nodeClass(m) + ':hover';
+  a.match(css, new RegExp(sel + '\\{[^}]*background-color:#ff0000'));
+  a.match(css, new RegExp(sel + '\\{[^}]*border-color:#ffffff'));
+  a.match(css, new RegExp('@media[^{]*max-width[^{]*\\{[^@]*' + sel + '\\{[^}]*background-color:#00ff00'));
+});
+
+test('a saved block is migrated too, being a tree the document owns', () => {
+  /* A block is a detached node. Missing it would leave a button that renders one way on the
+     page and another way when dragged out of the Blocks list. */
+  blank();
+  const b = insert('button', null, 0);
+  const node: any = structuredClone(b);
+  node.css.d['--hover-bg'] = '#123456';
+  const doc: any = {
+    v: 7, header: [], footer: [], pages: [{ ...C.state.pages[0], tree: [] }],
+    meta: { ...structuredClone(C.state.meta), blocks: [{ id: 'b1', name: 'CTA', node, sync: 0 }] }
+  };
+  const out = C.migrate(doc);
+  a.deepEqual(out.meta.blocks[0].node.st.hover.d, { 'background-color': '#123456' });
 });
 
 /* --------------------------------------------------------------- markup */
@@ -3730,7 +3781,7 @@ test('migration v6 to v7 adds the collection list', () => {
   const before = { v: 6, pages: [{ id: 'p', name: 'Home', slug: 'index', tree: [] }], meta: { blocks: [] } };
   const after = C.migrate(before);
   a.deepEqual(after.meta.collections, []);
-  a.equal(after.v, 7);
+  a.equal(after.v, C.SCHEMA, 'stamped to current, not to the number this step introduced');
   /* and a project already on 7 is left as it is */
   const kept = { v: 7, pages: before.pages, meta: { collections: [{ id: 'x', name: 'X', fields: [], items: [] }] } };
   a.equal(C.migrate(kept).meta.collections.length, 1);

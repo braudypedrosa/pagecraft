@@ -12,6 +12,7 @@ import { contentOnly } from '../src/content.ts';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, type Role } from '../src/auth.ts';
+import { adopt } from '../src/render.ts';
 import type { Doc, Node as PcNode } from '../../app/src/core/types.ts';
 
 const demo = (): Doc => {
@@ -344,4 +345,92 @@ test('the check is against what is stored, not against what the client claims it
   mine.pages[0].tree.pop();
   a.equal(contentOnly(site.doc, mine).ok, false);
   a.equal(contentOnly(mine, mine).ok, true, 'and it would pass if compared against itself');
+});
+
+test('a content client can still save against a row an older editor wrote', async () => {
+  /* The case that made the save path adopt both documents rather than one. A row stored at v7
+     is loaded, migrated by the editor on the way in, and sent back at v8 — so comparing what
+     arrived against what is stored finds a difference in every migrated property and calls it
+     structure. The client would be told they had changed the layout by opening the page. */
+  const legacy = demo() as any;
+  legacy.v = 7;
+  find(legacy, 'button').css.d['--hover-bg'] = '#ff0000';
+
+  const store = new MemoryStore();
+  const auth = new MemoryAuthStore();
+  let sent = '';
+  const app = createApp({
+    store, auth, editorHost: 'admin.test', editorOrigin: 'http://admin.test',
+    sendLink: (_t, url) => { sent = url; }
+  });
+  /* straight into the store, which is what "a row that is already there" means */
+  const site = await store.create({ host: 'acme.test', name: 'Acme', doc: structuredClone(legacy) });
+  const user = await auth.createUser('client@acme.test');
+  await auth.grant(site.id, user.id, 'content' as Role);
+
+  const req = (path: string, init: RequestInit = {}, cookie?: string) =>
+    app.request(new Request(`http://admin.test${path}`, {
+      ...init, headers: { host: 'admin.test', 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }
+    }));
+  await req('/auth/login', { method: 'POST', body: JSON.stringify({ email: 'client@acme.test' }) });
+  const cb = await req(`/auth/callback?token=${new URL(sent).searchParams.get('token')}`);
+  const cookie = (cb.headers.get('set-cookie') || '').split(';')[0];
+
+  const loaded = await (await req(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc; version: number };
+  /* the editor migrates on load — this is that step */
+  const edited = adopt(structuredClone(loaded.doc)) as Doc;
+  find(edited, 'heading').props.text = 'A client wrote this';
+
+  /* and this is why the route adopts the stored side too: the raw comparison refuses */
+  a.equal(contentOnly(loaded.doc, edited).ok, false, 'the test bites — unadopted, this is structure');
+
+  const res = await req(`/api/sites/${site.id}`, {
+    method: 'PUT', body: JSON.stringify({ doc: edited, version: loaded.version })
+  }, cookie);
+  a.equal(res.status, 200, 'a legacy row plus a content account is a save, not a refusal');
+
+  const live = await app.request(new Request('http://acme.test/', { headers: { host: 'acme.test' } }));
+  const html = await live.text();
+  a.match(html, /A client wrote this/);
+  a.match(html, /:hover\{[^}]*background-color:#ff0000/, 'and the hover survived the round trip');
+});
+
+test('a document from a newer editor is refused with something a person can read', async () => {
+  const store = new MemoryStore();
+  const auth = new MemoryAuthStore();
+  let sent = '';
+  const app = createApp({
+    store, auth, editorHost: 'admin.test', editorOrigin: 'http://admin.test',
+    sendLink: (_t, url) => { sent = url; }
+  });
+  const site = await store.create({ host: 'acme.test', name: 'Acme', doc: demo() });
+  const user = await auth.createUser('owner@acme.test');
+  await auth.grant(site.id, user.id, 'owner' as Role);
+
+  const req = (path: string, init: RequestInit = {}, cookie?: string) =>
+    app.request(new Request(`http://admin.test${path}`, {
+      ...init, headers: { host: 'admin.test', 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }
+    }));
+  await req('/auth/login', { method: 'POST', body: JSON.stringify({ email: 'owner@acme.test' }) });
+  const cb = await req(`/auth/callback?token=${new URL(sent).searchParams.get('token')}`);
+  const cookie = (cb.headers.get('set-cookie') || '').split(';')[0];
+
+  const loaded = await (await req(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc; version: number };
+  const future = structuredClone(loaded.doc) as any;
+  future.v = Core.SCHEMA + 1;
+  find(future, 'heading').props.text = 'From the future';
+
+  const res = await req(`/api/sites/${site.id}`, {
+    method: 'PUT', body: JSON.stringify({ doc: future, version: loaded.version })
+  }, cookie);
+  a.equal(res.status, 409);
+  const body = await res.json() as { error: string; detail: string };
+  a.equal(body.error, 'newer');
+  a.match(body.detail, /newer version of the editor|deploy the server/);
+
+  /* and it did not land — a refusal that still stored the document would be the worst of
+     both, since the point is not to write a shape this build cannot read back */
+  const after = await store.byId(site.id);
+  a.notEqual(find(after!.doc, 'heading').props.text, 'From the future');
+  a.equal(after!.version, loaded.version, 'and the version did not move');
 });

@@ -368,6 +368,16 @@ that would have caught it.
    checks the built bundle for the last two by name, and `tests/core.test.ts` parses every
    script an exported page emits.
 
+10. **A schema bump has two readers.** `migrate` is what makes an old project openable, and
+    until the server existed the editor was the only thing that called it. It is not any more:
+    `server/src/render.ts` has `adopt`, and every document the server renders or stores goes
+    through it. A migration step added without that is invisible in the editor and silent on
+    the served site — v7 -> v8 folded a button's `--hover-bg` into its hover state, and without
+    `adopt` every stored button would have lost its hover with nothing failing anywhere. The
+    save path adopts *both* sides before the content check compares them, or a client on a
+    legacy row is told they changed the layout by opening the page.
+
+
 ## What a new widget touches
 
 Ten places, from adding the Quote widget. Only one of them is enforced, so this is the
