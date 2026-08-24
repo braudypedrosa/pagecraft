@@ -377,6 +377,16 @@ that would have caught it.
     save path adopts *both* sides before the content check compares them, or a client on a
     legacy row is told they changed the layout by opening the page.
 
+11. **A new place trees live has to be declared, not just used.** `state.header`, `state.footer`
+    and every page's tree used to be all of them. Component definitions are trees too, and they
+    render — so a colour token, a text style, a class or a font used only inside one is used on
+    the page. `allTrees()` is what every project-wide walk reads, and adding definitions to it
+    wired up eight walkers at once. The ones that are *not* in it are saved blocks, because a
+    block is not rendered until it is placed; the cost is that `classDelete` leaves a dangling
+    id inside one. If a third store of nodes ever appears, `allTrees()` is the first thing to
+    change and `migrate`'s `everyNode` is the second.
+
+
 
 ## What a new widget touches
 

@@ -595,8 +595,83 @@ server and a newer editor is a deployment to finish. On render it is served as i
 it is already in the table and a site going dark is worse than a site rendering one unknown
 property. This is convention 10 in CONTEXT.md now, because the next schema step will forget it.
 
+## Milestone 4: components
+
+Taken here for the reason this plan gave for taking it early — it is the one thing expensive
+to retrofit, because every document written before it exists has to be migrated after.
+
+**What it replaces.** The global block: a saved tree, and copies placed on the page that could
+push one copy's content over the others. Copies is the flaw. An edit to any copy is destroyed
+by the next push from somewhere else, and there is nowhere to say that a card's heading varies
+while its layout does not. An instance says exactly that.
+
+**An instance is a node with `use` set, not a widget type of its own.** Every level rule in the
+editor reads a type string — `lvl`, `holds`, `wrap`, twenty call sites — so a new type would
+have needed a level, and a component's level is whatever its definition's root is. A node that
+already *is* that type, carrying a component id, changes none of it.
+
+**Nothing is cloned at render.** The definition is read. That is what makes one set of rules in
+the stylesheet dress every instance, emitted once and before the document so an instance's own
+rules are the later ones and win on order. Two things follow from sharing: inner elements take
+a per-instance id suffix — three cards must not ship three of the same id — and they carry no
+`data-id`, so a click lands on the instance, the element whose panel can change something.
+
+**Slots read one field two ways.** In a definition, `slot` marks the node; on an instance's
+child, it says which slot to render in. Absent means the first, which is the whole story for a
+component with one. A slot's own children are its default. The page's children render in the
+page's scope: their bindings are the page's, not the component's they happen to sit inside.
+Only containers may be slots — a heading's markup has nowhere to put children.
+
+**Bindings had to widen first.** A binding was a bare field id, because a CMS field was the
+only place a value could come from. A component property is the second place, and the choice
+was a second map beside `bind` or a source on the binding. A second map is the shape of mistake
+that put `--hover-bg` next to a hover state. So `Binding` is `{ src, path }`, and v8 → v9
+converted every existing binding to a field binding, which is all any of them could have been.
+The migration is the argument for widening before the feature rather than after.
+
+**Editing a definition is a mode, and that is one line in `tree()`.** `locate`, `insert`, the
+drag targets, the layer list and the whole inspector read `tree()`, so none of them had to
+learn what a component is — the same trick the global header and footer have always used. What
+did need saying is that a component is not part of a page: the region list has one entry in
+that mode rather than three with two dimmed, and the mode bar says how many places the edit
+would change.
+
+**Properties are edited by controls written years before components existed**, because two
+functions know how a control reads and writes — `propVal` and `applyOne` — and both understand
+a `val:<property>` key. Declaring one is a badge on the control that will read it, shown only
+while a definition is open: one click declares the property, takes the value in front of you as
+its default, carries the control's own options across for a select, and binds it. Three steps
+done separately is three chances to end up with a property nothing reads.
+
+**Variants cost almost nothing** because there was one place the question "what does this
+instance show" is answered. `instValue` reads the instance, then its variant, then the default.
+Made from an instance rather than an empty form, for the same reason a text style is made from
+an element. Deleting one leaves every instance showing what it showed, as its own values.
+
+**The content check** blanks an instance's content-property values — text, rich text, image and
+link — and leaves the settings kinds alone, so switching a variant or a select is refused. Two
+cases came free from checking it backwards: a value for a property nobody declared is refused,
+and a definition is under `meta`, so changing what a component *is* needs no rule of its own.
+The traps were the ones the text slots already taught, and are written up in `content.ts`.
+
+**And then the global block went.** v10 → v11 converts each one to a component and each copy to
+an instance, but only where the copy's tree still matches — compared ignoring node ids. A
+diverged copy is what the block model produced *by design*, so it keeps what it shows and stops
+being linked, which it effectively already was. A test asserts the rendered page is identical
+up to names and fails if that check is removed. What is still called a block is the other thing
+it always was: a saved starting point you paste and then own.
+
+Known and not fixed here: `allTrees()` includes component definitions, because they render, but
+still not saved blocks — so `classDelete` can leave a dangling class id inside a block. That is
+pre-existing, and it is a cleanup rather than a bug anybody has hit.
+
 ## What is left
 
+- **The MVP primitives this plan flagged**: `Div`, `Flex`, `Grid`, `Link Block`, `List`, and
+  form fields as elements. The plan's own recommendation was "keep the widget set, add the
+  primitives that are load-bearing, and take the component-instance model early" — the model is
+  taken, so this is next. Without Flex and Grid a layout is only what `section > row > column`
+  can express.
 - **The rest of milestone 3**: conditions with richer bindings. `:active` and `[disabled]` were
   on this list and are off it — `:active` is a state nothing in the widget set needs that
   `:hover` does not cover, and `[disabled]` applies to form controls the form widget already
