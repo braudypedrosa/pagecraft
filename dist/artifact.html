@@ -11868,12 +11868,23 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 
 
-/* ---- persistence ----------------------------------------------------- */
+/* ---- persistence -----------------------------------------------------
+
+   Two homes, one editor. Downloaded as a single file it saves to localStorage, which is
+   what makes the file self-contained. Served by the Pagecraft server it saves to that
+   server, and the server tells it so by injecting `window.PC_SERVER` — including the
+   document, so `load()` stays synchronous either way. The difference is where the bytes
+   go, and nothing above this line knows which it is. */
 const LS = 'pagecraft.project.v1';
 const LS_LEGACY = 'slate.project.v1';       // pre-rebrand key
 const TABID = Math.random().toString(36).slice(2, 10);
 let saveState = 'idle';                 // idle | ok | failed
 let saveWarned = false;
+
+/* Set by the server when it serves the editor; absent in the single-file build. `version`
+   is the one mutable field: every accepted save returns the next one, and sending a stale
+   one is how the server knows two people are editing. */
+const SRV = window.PC_SERVER || null;
 
 function stamp(txt, bad) {
   const t = $('#savedTag');
@@ -11882,6 +11893,7 @@ function stamp(txt, bad) {
 }
 
 function writeNow() {
+  if (SRV) return writeServer();
   try {
     localStorage.setItem(LS, JSON.stringify({ ...doc(), v: SCHEMA, cur: state.cur, tab: TABID }));
     saveState = 'ok';
@@ -11891,6 +11903,83 @@ function writeNow() {
     stamp('NOT SAVED', true);
     warnSaveFailed(e);
   }
+}
+
+/* One save in flight at a time, and one queued behind it. Without the guard a fast typist
+   sends the second PUT before the first returns, the second carries the version the first
+   is about to consume, and the server correctly calls it stale — so the editor would report
+   a conflict it caused itself. */
+let saving = false, saveAgain = false;
+
+async function writeServer() {
+  if (saving) { saveAgain = true; return; }
+  saving = true;
+  stamp('Saving…', false);
+  try {
+    const res = await fetch(`/api/sites/${SRV.siteId}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ doc: doc(), version: SRV.version })
+    });
+    if (res.status === 409) { saveState = 'failed'; stamp('NOT SAVED', true); warnStale(await res.json().catch(() => ({}))); return; }
+    if (res.status === 403) { saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(await res.json().catch(() => ({}))); return; }
+    if (!res.ok) throw new Error('The server refused the save (' + res.status + ')');
+    const body = await res.json();
+    SRV.version = body.version;
+    saveState = 'ok';
+    stamp('Saved ' + new Date().toTimeString().slice(0, 5), false);
+  } catch (e) {
+    saveState = 'failed';
+    stamp('NOT SAVED', true);
+    warnSaveFailed(e);
+  } finally {
+    saving = false;
+    if (saveAgain) { saveAgain = false; writeServer(); }
+  }
+}
+
+/* Somebody else saved between this editor loading and this editor saving. Reloading is the
+   only honest offer: merging two documents is not something this can do, and pretending
+   otherwise would lose one of them quietly. */
+function warnStale(info) {
+  if (saveWarned) return;
+  saveWarned = true;
+  const theirs = info && info.conflict ? info.conflict.theirs : '?';
+  openModal('Somebody else saved this site', `
+    <div class="alert">
+      <b>This site changed somewhere else while you were working.</b>
+      <span>Your version is ${SRV.version}, the server now has ${theirs}. Saving would overwrite their work, so nothing was saved.</span>
+    </div>
+    <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
+      Download a copy of what you have, then reload to get their version. There is no way to
+      merge the two, and guessing which parts to keep is not a guess worth making for you.
+    </div>`, `
+    <button class="btn" id="stBackup">Download my copy</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" id="stReload">Reload theirs</button>`);
+  $('#stBackup').addEventListener('click', () => backupJson());
+  $('#stReload').addEventListener('click', () => location.reload());
+}
+
+/* A content account tried to change something structural. Not an error on their part —
+   the editor let them, which is the thing worth fixing next. */
+function warnContentOnly(info) {
+  if (saveWarned) return;
+  saveWarned = true;
+  openModal('That change is not yours to make', `
+    <div class="alert">
+      <b>That change was not saved.</b>
+      <span>${(info && info.detail) || 'This account can change text and CMS content. Layout, styling and page structure are not editable here.'}</span>
+    </div>
+    <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
+      A save carries everything at once, so any text changed at the same time was not stored
+      either. Reload to get the site as it stands, then make the text changes on their own.
+    </div>`, `
+    <button class="btn" id="coBackup">Download my copy</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" id="coReload">Reload</button>`);
+  $('#coBackup').addEventListener('click', () => backupJson());
+  $('#coReload').addEventListener('click', () => location.reload());
 }
 const save = dbounce(writeNow, 500);
 
@@ -11926,9 +12015,12 @@ window.addEventListener('beforeunload', e => {
   if (saveState === 'failed') { e.preventDefault(); e.returnValue = ''; return ''; }
 });
 
-/* another tab wrote this project — never silently clobber it */
+/* Another tab wrote this project — never silently clobber it. localStorage only: on the
+   server the same situation arrives as a 409 on save, which is a better signal because it
+   cannot be missed by a tab that was not listening. */
 let tabWarned = false;
 window.addEventListener('storage', e => {
+  if (SRV) return;
   if (e.key !== LS || !e.newValue || tabWarned) return;
   let other = null;
   try { other = JSON.parse(e.newValue); } catch (_) { return; }
@@ -11956,6 +12048,28 @@ window.addEventListener('storage', e => {
 
 
 function load() {
+  /* The server put the document in the page, so there is nothing to read and nothing that
+     can fail. `migrate` still runs: a stored document can be older than this build. */
+  if (SRV) {
+    const d = migrate({ ...SRV.doc, v: SCHEMA });
+    if (d) {
+      state.meta = { ...state.meta, ...d.meta };
+      if (!state.meta.tokens) state.meta.tokens = defaultTokens(state.meta);
+      state.header = d.header || []; state.footer = d.footer || [];
+      state.pages = d.pages;
+      state.cur = 0;
+      return;
+    }
+    /* A document the server holds and this build cannot read is not a case to paper over
+       with the demo site — that would look like the site had been replaced. */
+    seed();
+    setTimeout(() => openModal('This site was saved by a newer build', `
+      <div class="alert"><b>The server holds a document this build cannot read.</b>
+      <span>You are looking at the demo site. Nothing has been saved and nothing has been lost.</span></div>
+      <div class="note" style="margin-top:var(--gap-2)">Update the server to a matching build.</div>`,
+      `<button class="btn primary" id="svOk">Understood</button>`) || $('#svOk').addEventListener('click', closeModal), 300);
+    return;
+  }
   let raw = null;
   try {
     raw = localStorage.getItem(LS);

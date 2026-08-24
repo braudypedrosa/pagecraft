@@ -228,11 +228,48 @@ Verified against a running server. A content client signed in, saved a headline,
 page changed; the same client sending one CSS declaration got
 `403 {"error":"content only"}`.
 
-**Not built yet, in the order it matters:** the editor talking to `/api/sites/:id` instead of
-`localStorage` — which is the last thing standing between this and being usable by a person
-rather than by curl; assets, which is what the persistent volume is actually for; an invite
-flow, since a client is currently an environment variable; and `store-pg.test.ts` against a
-real database, because the SQL in `store-pg.ts` has still never executed.
+## The editor on the server — done
+
+One build, two homes. Downloaded as a single file the editor saves to `localStorage`, which
+is what makes that file self-contained. Served by this server it saves to this server, and
+the server says so by injecting `window.PC_SERVER` — **including the document**, so `load()`
+stays synchronous exactly as it is in the single-file build. Nothing above the persistence
+seam knows which one it is in.
+
+Three screens the server needed and did not have: a sign-in form, a picker for somebody with
+more than one site, and a "nothing to edit yet" page for an account with no membership. One
+site redirects straight into the editor, because a picker with one row on it is a click for
+nothing.
+
+Two things worth having written down:
+
+- **`</script>` in a document would have closed the tag it was injected into.** The code
+  widget now exists, so a document containing that sequence is not hypothetical, and the
+  failure would have been the whole editor rather than one page. `<` is escaped to
+  `\u003c`; there is a test that puts the sequence in a document and another that fails when
+  the escape is removed. Convention 9, third time.
+- **One save in flight, one queued behind it.** Without that guard a fast typist sends the
+  second PUT before the first returns, the second carries the version the first is about to
+  consume, and the server correctly calls it stale — so the editor would report a conflict it
+  had caused itself.
+
+A refused save is never a whisper. A 409 explains that somebody else saved, shows both
+version numbers, and offers a download and a reload — not a merge, because merging two
+documents is not something this can do and pretending otherwise would lose one of them
+quietly. A 403 says the account edits text and CMS content, and that a save carries
+everything at once so text changed alongside was not stored either.
+
+Verified in a browser, as a person: typed an email into the sign-in form, followed the link
+from the log, landed in the editor with the document already loaded, changed a headline and
+watched it stamp "Saved" and the live page change. Then, as a content client, changed a
+headline (saved) and a colour (refused, with the modal). Then forced a stale version and got
+the conflict modal.
+
+**Not built yet, in the order it matters:** the editor still shows a content client the whole
+Style tab, which is the next real job — refusing a save they were allowed to attempt is
+honest but it is not kind. Then assets, which is what the persistent volume is actually for;
+an invite flow, since a client is currently an environment variable; and `store-pg.test.ts`
+against a real database, because the SQL in `store-pg.ts` has still never executed.
 
 ## Anti-patterns the spec names, worth repeating
 

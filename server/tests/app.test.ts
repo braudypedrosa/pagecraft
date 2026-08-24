@@ -144,11 +144,99 @@ test('an unknown host is not somebody else’s site', async () => {
   a.match(await res.text(), /No site for host stranger\.test/);
 });
 
-test('the editor host serves the editor, not a site', async () => {
-  const { app } = await rig();
-  const res = await app.request(new Request('http://admin.test/', { headers: { host: 'admin.test' } }));
+test('the editor host asks who you are before it shows you anything', async () => {
+  const { admin } = await rig();
+  const res = await admin('/');
   a.equal(res.status, 200);
-  a.match(await res.text(), /<title>Builder<\/title>/);
+  const html = await res.text();
+  a.match(html, /Send me a link/, 'a sign-in form, not the editor');
+  a.equal(/<title>Builder<\/title>/.test(html), false);
+});
+
+test('one site goes straight to it; several offer a choice', async () => {
+  const { store, auth, user, admin, signIn, site } = await rig();
+  const { cookie } = await signIn();
+
+  const one = await admin('/', {}, cookie);
+  a.equal(one.status, 302);
+  a.equal(one.headers.get('location'), `/edit/${site.id}`, 'a picker with one row is a click for nothing');
+
+  const second = await store.create({ host: 'beta.test', name: 'Beta', doc: demo() });
+  await auth.grant(second.id, user.id, 'owner');
+  const many = await admin('/', {}, cookie);
+  a.equal(many.status, 200);
+  const html = await many.text();
+  a.match(html, /Acme/);
+  a.match(html, /Beta/);
+  a.match(html, new RegExp(`/edit/${second.id}`));
+});
+
+test('a signed-in person with no sites is told so, not shown an editor', async () => {
+  const { auth, admin, linkUrl } = await rig();
+  await auth.createUser('nobody@elsewhere.test');       // an account, no membership
+  await admin('/auth/login', { method: 'POST', body: JSON.stringify({ email: 'nobody@elsewhere.test' }) });
+  const token = new URL(linkUrl()).searchParams.get('token')!;
+  const cb = await admin(`/auth/callback?token=${token}`);
+  const cookie = (cb.headers.get('set-cookie') || '').split(';')[0];
+
+  const res = await admin('/', {}, cookie);
+  a.equal(res.status, 200);
+  const html = await res.text();
+  a.match(html, /Nothing to edit yet/);
+  a.equal(/<title>Builder<\/title>/.test(html), false, 'and certainly not an editor');
+});
+
+test('the editor arrives with the document already in the page', async () => {
+  const { admin, signIn, site } = await rig();
+  const { cookie } = await signIn();
+  const res = await admin(`/edit/${site.id}`, {}, cookie);
+  a.equal(res.status, 200);
+  const html = await res.text();
+  a.match(html, /<title>Builder<\/title>/, 'and it is the editor');
+  a.match(html, /window\.PC_SERVER=/);
+
+  /* the config parses, and carries what the editor needs to save */
+  const from = html.indexOf('window.PC_SERVER=') + 'window.PC_SERVER='.length;
+  const to = html.indexOf('</script>', from);
+  a.ok(from > 17 && to > from, 'no config found in the served page');
+  const config = JSON.parse(html.slice(from, to).replace(/;\s*$/, '').replace(/\\u003c/g, '<'));
+  a.equal(config.siteId, site.id);
+  a.equal(config.version, 1);
+  a.equal(config.role, 'owner');
+  a.equal(config.host, 'acme.test');
+  a.ok(config.doc.pages.length >= 1, 'the document itself, so load() stays synchronous');
+});
+
+test('a document containing </script> cannot close the tag it is injected into', async () => {
+  /* Convention 9. The code widget exists now, so a document holding that sequence is not a
+     hypothetical — and the failure would be the whole editor, not one page. */
+  const { store, auth, user, admin, signIn } = await rig();
+  const doc = demo();
+  const host = doc.pages[0].tree[0];
+  host.children.push(Core.N('code', { body: 'const evil = "</scr' + 'ipt><script>alert(1)</scr' + 'ipt>";' }, {}, []));
+  const site = await store.create({ host: 'risky.test', name: 'Risky', doc });
+  await auth.grant(site.id, user.id, 'owner');
+
+  const { cookie } = await signIn();
+  const html = await (await admin(`/edit/${site.id}`, {}, cookie)).text();
+  const start = html.indexOf('window.PC_SERVER=');
+  const injected = html.slice(start, html.indexOf('</script>', start));
+  a.equal(/<\/script/i.test(injected), false, 'the sequence survived into the injected block');
+  a.match(injected, /\\u003c/, 'escaped rather than stripped, so the document is unchanged');
+});
+
+test('the editor is not served for a site you have no role on', async () => {
+  const { admin, signIn } = await rig();
+  const { cookie } = await signIn();
+  const res = await admin('/edit/does-not-exist', {}, cookie);
+  a.equal(res.status, 404);
+});
+
+test('the editor asks you to sign in rather than 401-ing at a browser', async () => {
+  const { admin, site } = await rig();
+  const res = await admin(`/edit/${site.id}`);
+  a.equal(res.status, 200, 'a person typing a URL gets a form, not JSON');
+  a.match(await res.text(), /Send me a link/);
 });
 
 test('two sites on one server stay their own', async () => {

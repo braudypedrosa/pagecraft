@@ -146,10 +146,41 @@ export function createApp(o: Options) {
 
   /* ---------------------------------------------------------------- the editor */
 
-  app.get('/', c => {
+  app.get('/', async c => {
     if (!isEditorHost(c.req.header('host'), o)) return serveSite(c, o, built, build, '/');
+    const user = await who(c);
+    if (!user) return c.html(signInPage());
+
+    const sites = await o.store.list();
+    const mine = [];
+    for (const s of sites) {
+      const m = await o.auth.membership(s.id, user.id);
+      if (m) mine.push({ site: s, role: m.role });
+    }
+    if (!mine.length) return c.html(emptyPage(user.email));
+    /* one site is the common case, and a picker with one row on it is a click for nothing */
+    if (mine.length === 1) return c.redirect(`/edit/${mine[0].site.id}`);
+    return c.html(pickerPage(user.email, mine.map(m => ({ id: m.site.id, name: m.site.name, host: m.site.host, role: m.role }))));
+  });
+
+  /* The editor, with the document already in the page.
+
+     Injecting it rather than having the editor fetch it keeps `load()` synchronous, which is
+     what it is in the single-file build — the editor boots from a document that is already
+     there, and the only difference is where the page got it. One build serves both. */
+  app.get('/edit/:id', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'read');
+    if (!gate.ok) return gate.status === 401 ? c.html(signInPage()) : deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
     if (!o.editorHtml) return c.text('No editor build. Run `node build.mjs` first.', 503);
-    return c.html(o.editorHtml);
+
+    const config = {
+      siteId: site.id, host: site.host, name: site.name,
+      version: site.version, role: gate.role, doc: site.doc
+    };
+    return c.html(inject(o.editorHtml, config));
   });
 
   /* The list is per person: a site nobody granted you is a site you do not know exists. */
@@ -240,6 +271,77 @@ export function createApp(o: Options) {
 
   return app;
 }
+
+/* `<` is escaped for the reason convention 9 exists: a document containing the characters
+   `</script>` — in a code block, say, which this builder now has a widget for — would
+   otherwise close the tag it is inside and the rest of the page would be script. */
+function inject(html: string, config: unknown) {
+  const json = JSON.stringify(config).replace(/</g, '\\u003c');
+  const tag = `<script>window.PC_SERVER=${json};<\/script>\n`;
+  const at = html.indexOf('<script');
+  return at < 0 ? tag + html : html.slice(0, at) + tag + html.slice(at);
+}
+
+const shell = (title: string, body: string) => `<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title}</title>
+<style>
+  :root{color-scheme:light dark}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#ebe8dd;color:#111311;
+       font:15px/1.5 "Manrope",system-ui,-apple-system,sans-serif}
+  .card{background:#fff;border:1px solid #e5e1d6;border-radius:16px;padding:28px;width:min(92vw,380px);
+        box-shadow:0 10px 30px -12px #1113111f}
+  h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
+  p{margin:0 0 18px;color:#5f6660;font-size:13.5px}
+  label{display:block;font-size:12px;color:#5f6660;margin-bottom:6px}
+  input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #d4cfc0;border-radius:4px;
+        font:inherit;margin-bottom:12px}
+  button{width:100%;padding:10px;border:0;border-radius:8px;background:#b7f34a;color:#111311;
+         font:600 14px inherit;cursor:pointer}
+  a{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:6px;
+    border:1px solid #e5e1d6;border-radius:8px;color:inherit;text-decoration:none}
+  a:hover{background:#f8f6ef;border-color:#5f6660}
+  small{color:#5f6660;font-size:12px}
+  .ok{padding:11px 12px;border-radius:8px;background:#f8f6ef;font-size:13.5px}
+</style></head><body><div class="card">${body}</div></body></html>`;
+
+/* No framework for four screens' worth of markup. If this grows past a form and a list it
+   should become part of the editor bundle rather than more strings in here. */
+const signInPage = () => shell('Sign in — Pagecraft', `
+  <h1>Pagecraft</h1>
+  <p>Enter your email and we will send a link that signs you in.</p>
+  <form id="f"><label for="e">Email</label>
+    <input id="e" name="email" type="email" autocomplete="email" required>
+    <button type="submit">Send me a link</button></form>
+  <div id="done" class="ok" hidden>Check your email for the link.</div>
+  <script>
+    document.getElementById('f').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      await fetch('/auth/login', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('e').value })
+      });
+      document.getElementById('f').hidden = true;
+      document.getElementById('done').hidden = false;
+    });
+  <\/script>`);
+
+const emptyPage = (email: string) => shell('No sites — Pagecraft', `
+  <h1>Nothing to edit yet</h1>
+  <p>${escapeHtml(email)} has no sites on this server. Ask whoever set it up to grant you one.</p>`);
+
+const pickerPage = (email: string, sites: { id: string; name: string; host: string; role: string }[]) =>
+  shell('Your sites — Pagecraft', `
+  <h1>Your sites</h1>
+  <p>Signed in as ${escapeHtml(email)}</p>
+  ${sites.map(s => `<a href="/edit/${encodeURIComponent(s.id)}">
+    <span>${escapeHtml(s.name)}<br><small>${escapeHtml(s.host)}</small></span>
+    <small>${escapeHtml(s.role)}</small></a>`).join('')}`);
+
+const escapeHtml = (v: string) => String(v)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 function isEditorHost(host: string | undefined, o: Options) {
   if (!o.editorHost) return true;                       // no split configured: everything is the editor
