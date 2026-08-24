@@ -294,11 +294,48 @@ until it reloaded. No test caught it because no test clicks a tab. An absent lis
 empty one are the same document, so the skeleton normalises the empty case away; a collection
 that actually exists is still structure, and there is a case for that too.
 
-**Not built yet, in the order it matters:** assets, which is what the persistent volume is
-actually for — and until they exist a content client cannot swap an image, which is a normal
-content edit; an invite flow, since a client is currently an environment variable; and
-`store-pg.test.ts` against a real database, because the SQL in `store-pg.ts` has still never
-executed.
+## Assets — done, with one gap named
+
+In the single-file editor an image is a blob in IndexedDB, which is what makes that file work
+with no server and also what makes it useless the moment two people share a site: a client on
+another machine sees every image as a placeholder, because the bytes only ever existed in
+somebody else's browser. So the server owns them.
+
+**The naming rule moved into the core first, and that was the point of the exercise.**
+`assetFile` and the `asset:` regex lived in builder.html, so a page served from the server and
+the same page in an exported zip could have named the same image differently — and nothing
+would have noticed until a link broke. They are `A_RE`, `assetFile` and `assetPaths` in the
+core now, and builder.html's copies are gone. Deleting them was not optional: the core is
+spliced into that file's scope, so keeping both is `Identifier 'A_RE' has already been
+declared` and a dead app. The boot test said so by name, immediately.
+
+**Type comes from the bytes.** A caller can put anything in `Content-Type`, and `image/png` on
+arbitrary bytes is a way to host arbitrary content on somebody's own domain — so uploads are
+sniffed by magic number, and anything that is not one of the five formats the server serves is
+refused with a 415. Dimensions are read from the bytes too, by hand rather than by pulling in
+an image library: the formats that matter keep their size in the first few bytes. An unread
+size stays zero, and the review already has a rule for an image with no dimensions, so an
+unknown format becomes a finding rather than a silent layout shift.
+
+Bytes never enter the document. It holds `asset:<id>`, which is what keeps a save small and a
+render synchronous. Rendered pages are strings; images are served straight from the store, on
+the path `assetFile` gives them, cached hard because a replaced image is a different path.
+
+Verified in a browser end to end: generated a real PNG on a canvas, uploaded it through the
+editor's own `assetAdd`, watched the canvas resolve it, the save land, and the live site serve
+`assets/real-photo.png` — 7,790 bytes, a valid PNG, 400×300 read back out of its IHDR. A
+29-byte fake PNG earlier fetched with a 200 and decoded to 0×0, which is what a header without
+an image looks like and worth knowing when a fixture lies.
+
+**The gap, named rather than buried:** a content account may upload an image — swapping a
+photograph is a content edit in every sense that matters — but it may not point an element at
+the new one, because `src` is a prop and `contentOnly` refuses it. So the feature is half
+available to the account that needs it most. Fixing it means deciding that an asset reference
+on an image is content, which is a real decision and not a one-line change.
+
+**Not built yet:** the above; an invite flow, since a client is still an environment variable;
+and `store-pg.test.ts` against a real database, because the SQL in `store-pg.ts` and
+`ASSET_SCHEMA` has still never executed.
 
 ## Anti-patterns the spec names, worth repeating
 

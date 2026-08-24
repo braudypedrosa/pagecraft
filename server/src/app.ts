@@ -18,6 +18,9 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { Store } from './store.ts';
 import { renderSite, resolvePath } from './render.ts';
 import { contentOnly } from './content.ts';
+import {
+  type AssetStore, type Asset, metaOf, sniff, dimensions, MAX_BYTES, ALLOWED
+} from './assets.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import {
   type AuthStore, type User, roleAllows, newToken, hashToken,
@@ -29,6 +32,8 @@ export const SESSION_COOKIE = 'pc_session';
 export interface Options {
   store: Store;
   auth: AuthStore;
+  /** where the images live. Absent means a site renders with placeholders. */
+  assets?: AssetStore;
   /** the built builder, as a string. Absent in tests that only exercise the site routes. */
   editorHtml?: string;
   /** which host serves the editor. Every other host is a site. */
@@ -57,11 +62,16 @@ export function createApp(o: Options) {
      little and means a visitor never waits for a render. */
   const built = new Map<string, Map<string, string>>();
 
-  const build = (id: string, doc: Doc) => {
-    const out = renderSite(doc);
+  /* A render needs the site's assets, and fetching them is asynchronous while the render is
+     not — so they are fetched first and handed in. `renderSite` stays synchronous, which is
+     the property the singleton core depends on. */
+  const build = (id: string, doc: Doc, assets: Asset[] = []) => {
+    const out = renderSite(doc, assets);
     built.set(id, out.files);
     return out;
   };
+  const assetsOf = async (id: string) => o.assets ? o.assets.list(id) : [];
+  const rebuild = async (id: string, doc: Doc) => build(id, doc, await assetsOf(id));
 
   /* ------------------------------------------------------------------- who, and what */
 
@@ -215,7 +225,7 @@ export function createApp(o: Options) {
     try {
       const site = await o.store.create({ host: body.host, name: body.name || body.host, doc: body.doc });
       await o.auth.grant(site.id, user.id, 'owner');
-      const out = build(site.id, site.doc);
+      const out = await rebuild(site.id, site.doc);
       return c.json({ id: site.id, version: site.version, files: [...out.files.keys()] }, 201);
     } catch (e) {
       return c.json({ error: String((e as Error).message || e) }, 409);
@@ -256,12 +266,64 @@ export function createApp(o: Options) {
       return c.json({ error: 'stale', conflict: res.conflict }, 409);
     }
 
-    const out = build(id, res.site!.doc);
+    const out = await rebuild(id, res.site!.doc);
     return c.json({
       version: res.site!.version,
       files: [...out.files.keys()],
       /* the same review the builder shows, so a save can say what it noticed */
       findings: out.findings.map(f => ({ level: f.level, code: f.code, msg: f.msg }))
+    });
+  });
+
+  /* ---------------------------------------------------------------- the assets */
+
+  app.get('/api/sites/:id/assets', async c => {
+    const gate = await allowed(c, c.req.param('id'), 'read');
+    if (!gate.ok) return deny(c, gate.status);
+    if (!o.assets) return c.json([]);
+    return c.json((await o.assets.list(c.req.param('id'))).map(metaOf));
+  });
+
+  /* Uploading is a write, so a content account may do it: swapping a photograph is a content
+     edit in every sense that matters. What it may not do is point an element at the new
+     image — that is a prop, and `contentOnly` refuses it. Worth naming as the next thing to
+     fix rather than a subtlety to enjoy. */
+  app.post('/api/sites/:id/assets', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'write');
+    if (!gate.ok) return deny(c, gate.status);
+    if (!o.assets) return c.json({ error: 'this server stores no assets' }, 501);
+
+    const form = await c.req.formData().catch(() => null);
+    const file = form?.get('file');
+    if (!(file instanceof File)) return c.json({ error: 'a file is required' }, 400);
+    if (file.size > MAX_BYTES) return c.json({ error: `too large — the limit is ${MAX_BYTES} bytes` }, 413);
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    /* Sniffed, not trusted. A caller can put anything in Content-Type, and `image/png` on
+       arbitrary bytes is a way to host arbitrary content on somebody else's domain. */
+    const type = sniff(bytes);
+    if (!type || !ALLOWED.has(type)) return c.json({ error: 'that is not an image this server serves' }, 415);
+
+    const saved = await o.assets.put({
+      siteId: id, name: file.name || 'image', type, bytes, ...dimensions(bytes, type)
+    });
+    /* the site is rebuilt so the new file is served immediately, not on the next save */
+    const site = await o.store.byId(id);
+    if (site) await rebuild(id, site.doc);
+    return c.json(metaOf(saved), 201);
+  });
+
+  /* The editor's view of an asset, by id. The site serves the same bytes at `assets/<name>`;
+     this exists because the editor holds ids and knows nothing about names. */
+  app.get('/api/sites/:id/assets/:aid', async c => {
+    const gate = await allowed(c, c.req.param('id'), 'read');
+    if (!gate.ok) return deny(c, gate.status);
+    if (!o.assets) return c.notFound();
+    const a = await o.assets.get(c.req.param('id'), c.req.param('aid'));
+    if (!a) return c.notFound();
+    return c.body(a.bytes as unknown as ArrayBuffer, 200, {
+      'content-type': a.type, 'cache-control': 'private, max-age=3600'
     });
   });
 
@@ -352,7 +414,7 @@ async function serveSite(
   c: Context,
   o: Options,
   built: Map<string, Map<string, string>>,
-  build: (id: string, doc: Doc) => { files: Map<string, string> },
+  build: (id: string, doc: Doc, assets?: Asset[]) => { files: Map<string, string> },
   urlPath: string
 ) {
   const host = (c.req.header('host') || '').split(':')[0];
@@ -361,10 +423,22 @@ async function serveSite(
 
   /* A restart empties the cache, so the first request after one renders. Cheaper than
      writing files to the volume and keeping them in step with the document. */
-  let files = built.get(site.id);
-  if (!files) files = build(site.id, site.doc).files;
-
   const path = resolvePath(urlPath);
+
+  /* Images come from the asset store rather than the rendered map: the map holds strings, and
+     putting megabytes of binary in it would make every render carry them. */
+  if (path.startsWith('assets/') && o.assets) {
+    const a = await o.assets.byPath(site.id, path);
+    if (a) return c.body(a.bytes as unknown as ArrayBuffer, 200, {
+      'content-type': a.type,
+      /* the path is the filename, and the filename changes when the image does, so this is
+         safe to cache hard — a replaced image is a different path */
+      'cache-control': 'public, max-age=31536000, immutable'
+    });
+  }
+
+  let files = built.get(site.id);
+  if (!files) files = build(site.id, site.doc, o.assets ? await o.assets.list(site.id) : []).files;
   const body = files.get(path);
   /* A site's own 404 page if it has one — the convention the builder already exports. */
   if (body === undefined) {

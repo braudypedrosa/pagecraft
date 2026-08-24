@@ -1442,12 +1442,10 @@ function load() {
    A project references them as `asset:<id>`, resolved to a blob URL on the
    canvas and to a data URI (or a file path) at export time.               */
 const AS = { db: null, mem: new Map(), ok: false };
-/* `asset:<id>` optionally carries `@<width>`, which names a downscaled variant of the same
-   asset. Five consumers read this regex and all of them want m[1], the id; only the path
-   rewriter cares about m[2]. Variant tokens are produced solely by the separate-files
-   export, so the editor and the inline export never meet one — the regex tolerates them
-   anyway, so a leak resolves to the full-size image rather than to a broken src. */
-const A_RE = /asset:([a-z0-9]+)(?:@(\d+))?/g;
+/* `A_RE` and `assetFile` are the core's now — the server has to name an asset the same way
+   this file does, and two copies of that rule is one copy too many. They arrive in scope with
+   the rest of the core, which is why declaring them here again is `Identifier 'A_RE' has
+   already been declared` and a dead app. The boot test says so by name. */
 
 const idbReq = rq => new Promise((res, rej) => { rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); });
 
@@ -1464,6 +1462,7 @@ function idbOpen() {
 const idbStore = (mode) => AS.db.transaction('a', mode).objectStore('a');
 
 async function assetsLoad() {
+  if (SRV) { AS.ok = true; return assetsLoadServer(); }
   AS.db = await idbOpen();
   AS.ok = !!AS.db;
   if (!AS.ok) return;
@@ -1476,7 +1475,51 @@ async function assetsLoad() {
    measured by each caller and set on the in-memory copy only, so a reload dropped
    it — and it is what the export writes as width/height and what the review's
    `no-dimensions` check reads. */
+/* On the server the bytes belong to the server, not to this browser: an image kept in one
+   person's IndexedDB is an image every other person sees as a placeholder. So the upload goes
+   over the wire and comes back as an id, and `AS.mem` records it with a URL pointing at the
+   server — which keeps every existing reader of `AS.mem` working unchanged. */
+async function assetAddServer(file) {
+  const form = new FormData();
+  form.set('file', file);
+  let res;
+  try {
+    res = await fetch(`/api/sites/${SRV.siteId}/assets`, { method: 'POST', body: form });
+  } catch (e) {
+    toast('The upload did not reach the server');
+    return null;
+  }
+  if (!res.ok) {
+    const why = await res.json().catch(() => ({}));
+    toast(why.error || `The server refused the image (${res.status})`);
+    return null;
+  }
+  const meta = await res.json();
+  AS.mem.set(meta.id, {
+    id: meta.id, name: meta.name, type: meta.type, size: file.size,
+    w: meta.w, h: meta.h,
+    /* served by the editor's own route, so it needs the session the page already has */
+    url: `/api/sites/${SRV.siteId}/assets/${meta.id}`
+  });
+  return meta.id;
+}
+
+/* Every asset the server holds, so the canvas can resolve tokens that were uploaded by
+   somebody else — which on a shared site is most of them. */
+async function assetsLoadServer() {
+  let list = [];
+  try {
+    const res = await fetch(`/api/sites/${SRV.siteId}/assets`);
+    if (res.ok) list = await res.json();
+  } catch (e) { }
+  list.forEach(m => AS.mem.set(m.id, {
+    id: m.id, name: m.name, type: m.type, size: 0, w: m.w, h: m.h,
+    url: `/api/sites/${SRV.siteId}/assets/${m.id}`
+  }));
+}
+
 async function assetAdd(file) {
+  if (SRV) return assetAddServer(file);
   const id = 'a' + uid().replace(/[^a-z0-9]/g, '');
   const url = URL.createObjectURL(file);
   const dim = (await imgSize(url)) || { w: 0, h: 0 };
@@ -1490,7 +1533,8 @@ async function assetAdd(file) {
 }
 async function assetDel(id) {
   const a = AS.mem.get(id);
-  if (a && a.url) URL.revokeObjectURL(a.url);
+  /* a server URL is a path, not a blob URL, and revoking one is a no-op that reads as a bug */
+  if (a && a.url && !SRV) URL.revokeObjectURL(a.url);
   AS.mem.delete(id);
   if (AS.ok) { try { await idbReq(idbStore('readwrite').delete(id)); } catch (e) { } }
 }
@@ -1535,7 +1579,6 @@ async function assetsToData(str) {
   }
   return str.replace(A_RE, (m, id) => map[id] || PH);
 }
-const assetFile = a => 'assets/' + (a.name || a.id).replace(/[^\w.-]+/g, '-').toLowerCase();
 /* `asset:<id>` → the path the exported HTML uses for it. Lives here because only
    the UI holds the asset store; core takes it as an argument so it stays testable. */
 const assetPath = v => {

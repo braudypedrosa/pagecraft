@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createApp } from './app.ts';
 import { MemoryStore, type Store } from './store.ts';
 import { MemoryAuthStore, type AuthStore } from './auth.ts';
+import { MemoryAssetStore, type AssetStore } from './assets.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..');
@@ -79,8 +80,13 @@ if (CLIENT) {
   console.log(`client   ${CLIENT} — content only`);
 }
 
+/* Memory-backed like the rest when there is no database. On a real box this is the volume,
+   and losing it on restart would lose every image — which is exactly why the Postgres store
+   keeps the bytes rather than the filesystem keeping them behind its back. */
+const assets: AssetStore = new MemoryAssetStore();
+
 const app = createApp({
-  store, auth, editorHtml, editorHost: EDITOR_HOST,
+  store, auth, assets, editorHtml, editorHost: EDITOR_HOST,
   secureCookies: process.env.NODE_ENV === 'production'
 });
 

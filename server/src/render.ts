@@ -23,6 +23,7 @@
    line. */
 import * as Core from '../../app/src/core/index.ts';
 import type { Doc } from '../../app/src/core/types.ts';
+import type { Asset } from './assets.ts';
 
 export interface RenderedSite {
   /** path relative to the site root, e.g. `index.html` or `work/acme.html` */
@@ -34,16 +35,25 @@ export interface RenderedSite {
 /**
  * Render every file a document produces. Synchronous on purpose — see the note above.
  *
- * `variants` is off: image variants need the separate-files export and its asset map, which
- * is the one part of publishing that never had a DOM-free version. Until the server owns
- * assets, a served page carries one `src` and no `srcset`.
+ * `assets` is the site's images, by id. Every `asset:<id>` in the output becomes the path
+ * `assetFile` gives it — the path the export writes and the path the site route serves, one
+ * naming rule in the core so the three cannot disagree. An id with nothing behind it becomes
+ * the placeholder rather than a broken `src`.
+ *
+ * `variants` is still off. A `srcset` needs downscaled copies, and making those needs an
+ * image library the server does not have; one `src` that works beats five that do not.
  */
-export function renderSite(doc: Doc): RenderedSite {
+export function renderSite(doc: Doc, assets: Asset[] = []): RenderedSite {
   Core.restore(structuredClone(doc));
+
+  const byId = new Map(assets.map(a => [a.id, a]));
+  const get = (id: string) => byId.get(id) || null;
 
   const files = new Map<string, string>();
   for (const t of Core.exportTargets()) {
-    files.set(t.path, Core.buildPage(t.pg, t));
+    /* `rel` is how deep the file sits, so a detail page one directory down asks for
+       `../assets/logo.png` rather than a path that only resolves at the root. */
+    files.set(t.path, Core.assetPaths(Core.buildPage(t.pg, t), get, t.rel || ''));
   }
 
   /* Both are empty without a base URL, and an empty sitemap is worse than none: it tells a

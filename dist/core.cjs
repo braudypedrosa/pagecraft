@@ -25,6 +25,7 @@ __export(index_exports, {
   ANIM_NAMES: () => ANIM_NAMES,
   ANIM_PFX: () => ANIM_PFX,
   ANIM_SHA: () => ANIM_SHA,
+  A_RE: () => A_RE,
   BASE: () => BASE,
   BIND_CTL: () => BIND_CTL,
   BOX: () => BOX,
@@ -90,6 +91,8 @@ __export(index_exports, {
   applyCols: () => applyCols,
   applyColsAt: () => applyColsAt,
   applyOne: () => applyOne,
+  assetFile: () => assetFile,
+  assetPaths: () => assetPaths,
   atEdge: () => atEdge,
   autoId: () => autoId,
   baseCss: () => baseCss,
@@ -3352,6 +3355,14 @@ var colorUsage = (id) => {
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
   return k;
 };
+var A_RE = /asset:([a-z0-9]+)(?:@(\d+))?/g;
+var assetFile = (a) => "assets/" + String(a.name || a.id).replace(/[^\w.-]+/g, "-").toLowerCase();
+function assetPaths(str, get, rel = "") {
+  return String(str).replace(A_RE, (_m, id) => {
+    const a = get(id);
+    return a ? rel + assetFile(a) : PH;
+  });
+}
 var SRCSET_W = [480, 768, 1024, 1440, 1920];
 function imageWidths(natural) {
   const w = Math.round(parseFloat(String(natural || "")) || 0);
@@ -6984,6 +6995,7 @@ ${ANIM_JS}
   ANIM_NAMES,
   ANIM_PFX,
   ANIM_SHA,
+  A_RE,
   BASE,
   BIND_CTL,
   BOX,
@@ -7049,6 +7061,8 @@ ${ANIM_JS}
   applyCols,
   applyColsAt,
   applyOne,
+  assetFile,
+  assetPaths,
   atEdge,
   autoId,
   baseCss,
