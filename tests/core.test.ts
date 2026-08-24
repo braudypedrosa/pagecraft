@@ -7708,3 +7708,53 @@ test('an item slug reads as a URL somebody typed', () => {
   C.itemSet(col.id, it.id, title, 'One way to author a hover');
   a.equal(must(C.findItem(coll(col.id), it.id), 'item').slug, 'one-way-to-author-a');
 });
+
+test('two form fields can share a row, and wrap when there is no room for two', () => {
+  /* What a contact form looks like: Name beside Email, Message across. The form was
+     `flex-direction: column`, so it was one field per row and no way to say otherwise —
+     found by putting a real contact section on a real page.
+
+     No media query: `min-width` means the pair wraps when the form is narrower than two of
+     them, which is the same answer `auto-fit` gives a grid and needs no breakpoint set by
+     hand. It also kept the stylesheet at one mobile block, which the tests rely on. */
+  blank();
+  const f = insert('form', null, 0);
+  const fields = must(at(f.id).node.props.fields, 'form fields');
+  fields[0].half = 1;
+  fields[1].half = 1;
+
+  const html = C.renderNode(at(f.id).node, { edit: false });
+  const classes = [...html.matchAll(/class="(pagecraft-field[^"]*)"/g)].map(m => m[1]);
+  a.deepEqual(classes, ['pagecraft-field half', 'pagecraft-field half', 'pagecraft-field'],
+    'the two marked halves, and the textarea left full width');
+
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  a.match(css, /\.pagecraft-form\{[^}]*flex-wrap:wrap/, 'the form wraps rather than stacking');
+  a.match(css, /\.pagecraft-field\{[^}]*flex:1 1 100%/, 'and a field is a full row by default');
+  a.match(css, /\.pagecraft-field\.half\{[^}]*min-width:12rem/,
+    'which is what makes a pair wrap without a breakpoint');
+});
+
+test('the stylesheet still has one block per breakpoint', () => {
+  /* The property the tests read the sheet by, and the first attempt at the half-width field
+     broke it by putting a second `max-width:767px` block inside baseCss. */
+  blank();
+  const h = insert('heading', null, 0);
+  h.css.t = { 'font-size': '30px' };
+  h.css.m = { 'font-size': '20px' };
+  insert('form', null, 1);
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  a.equal((css.match(/@media \(max-width:1024px\)/g) || []).length, 1);
+  a.equal((css.match(/@media \(max-width:767px\)/g) || []).length, 1);
+});
+
+test('a checkbox can be half width too, and keeps its own layout', () => {
+  blank();
+  const f = insert('form', null, 0);
+  const fields = must(at(f.id).node.props.fields, 'form fields');
+  fields[2].type = 'checkbox';
+  fields[2].half = 1;
+  const html = C.renderNode(at(f.id).node, { edit: false });
+  a.match(html, /class="pagecraft-field pagecraft-field-check half"/,
+    'both classes: a checkbox lays its label out sideways whatever width it is');
+});

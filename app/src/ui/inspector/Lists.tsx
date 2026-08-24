@@ -98,6 +98,14 @@ export function FieldsCtl({ n, c }: P) {
               const a = rows(n, c);
               a[k].required = a[k].required ? 0 : 1;
             })}>Req</button>
+          {/* Two fields on one row — Name beside Email, which is what a contact form looks like
+              and what this could not do. Beside `Req` because it is the same kind of switch on
+              the same field, and it collapses to a full row on a phone without being asked. */}
+          <button class={'freq' + (f.half ? ' on' : '')} title="Half width — shares a row"
+            onClick={() => C.edit(() => {
+              const a = rows(n, c);
+              a[k].half = a[k].half ? 0 : 1;
+            })}>½</button>
         </div>
       </div>
     ))}

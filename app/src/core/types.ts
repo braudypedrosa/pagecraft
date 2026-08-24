@@ -124,6 +124,9 @@ export interface FormProps {
 }
 export interface FormField {
   type?: string; label?: string; name?: string; ph?: string; opts?: string; required?: 0 | 1;
+  /** share a row with the next half-width field. Absent is a full row, which is every field
+      that existed before this. */
+  half?: 0 | 1;
 }
 export interface TabsProps { items?: TabPanel[] }
 /** A table's body is one string, because that is how tabular data arrives: pasted from a

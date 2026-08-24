@@ -6181,8 +6181,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 [data-nav].is-open .pagecraft-nav-icon{background-color:transparent}
 [data-nav].is-open .pagecraft-nav-icon::before{transform:rotate(45deg)}
 [data-nav].is-open .pagecraft-nav-icon::after{transform:rotate(-45deg)}
-.pagecraft-form{display:flex;flex-direction:column;gap:var(--f-gap,16px);width:100%}
-.pagecraft-field{display:flex;flex-direction:column;gap:5px}
+.pagecraft-form{display:flex;flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
+.pagecraft-field{display:flex;flex-direction:column;gap:5px;flex:1 1 100%;min-width:0}
+.pagecraft-field.half{flex:1 1 calc(50% - var(--f-gap,16px) / 2);min-width:12rem}
 .pagecraft-field label{font-size:.82em;font-weight:500;color:var(--f-label,inherit)}
 .pagecraft-field input,.pagecraft-field textarea,.pagecraft-field select{
   font:inherit;color:var(--f-text,inherit);background:var(--f-bg,#fff);
@@ -6195,7 +6196,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
-  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:flex-start;
+  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:flex-start;flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
 }
@@ -6755,18 +6756,22 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         const name = esc(f.name || slugify(f.label) || 'field-' + (i + 1));
         const req = f.required ? ' required' : '';
         const ph = f.ph ? ` placeholder="${esc(f.ph)}"` : '';
+        /* Half-width fields share a row. A class rather than a declaration, so the mobile rule
+           can put them back on their own line without an author having to think about it —
+           Name and Email beside each other is 170px each on a phone. */
+        const half = f.half ? ' half' : '';
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ''}</label>`;
-        if (f.type === 'checkbox') return `<div class="pagecraft-field pagecraft-field-check">`
+        if (f.type === 'checkbox') return `<div class="pagecraft-field pagecraft-field-check${half}">`
           + `<input id="${fid(i)}" name="${name}" type="checkbox"${req}>`
           + `<label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
-        if (f.type === 'textarea') return `<div class="pagecraft-field">${lab}`
+        if (f.type === 'textarea') return `<div class="pagecraft-field${half}">${lab}`
           + `<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph}></textarea></div>`;
-        if (f.type === 'select') return `<div class="pagecraft-field">${lab}`
+        if (f.type === 'select') return `<div class="pagecraft-field${half}">${lab}`
           + `<select id="${fid(i)}" name="${name}"${req}>`
           + String(f.opts || '').split(',').map(o => o.trim()).filter(Boolean)
             .map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')
           + `</select></div>`;
-        return `<div class="pagecraft-field">${lab}`
+        return `<div class="pagecraft-field${half}">${lab}`
           + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${req}${ph}></div>`;
       }).join('');
       const act = safeUrl(p.action) || (/^mailto:/i.test(String(p.action || '')) ? p.action : '');
