@@ -3725,6 +3725,7 @@ var holds = (pt, t) => {
   const b = BASE[t] || t;
   return lvl(b) > lvl(pt) || (DEF[pt] || {}).alsoHolds?.includes(b) === true;
 };
+var fitsIn = (pt, t) => pt === null || holds(pt, t);
 function insert(type, parentNode, index) {
   const leaf = makeFor(type);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
@@ -4932,9 +4933,7 @@ function pasteNode(intoId) {
 }
 function dropTree(fresh, intoId) {
   const place = (list2, index, parentType) => {
-    const pl2 = parentType === null ? 0 : lvl(parentType);
-    const nested = parentType === "column" && lvl(fresh.type) === 2;
-    if (lvl(fresh.type) <= pl2 && !nested) return false;
+    if (!fitsIn(parentType, fresh.type)) return false;
     list2.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
@@ -5635,15 +5634,10 @@ function blockInsert(id, parentNode, index = 0) {
   if (!b) return null;
   const fresh = reid(clone(b.node));
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
-  const pl2 = parentNode ? lvl(parentNode.type) : 0;
-  const nested = parentNode && parentNode.type === "column" && lvl(fresh.type) === 2;
-  if (lvl(fresh.type) <= pl2 && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(
-    Math.max(0, Math.min(index, list.length)),
-    0,
-    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh)
-  );
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
 var blockDelete = (id) => {
@@ -5757,7 +5751,8 @@ var PROP_CTL = {
   link: "link",
   color: "color",
   select: "select",
-  bool: "check"
+  bool: "toggle",
+  icon: "icon"
 };
 function instControls(n) {
   const def = findComponent(n.use);
@@ -5787,7 +5782,8 @@ var PROP_KIND = {
   link: "link",
   color: "color",
   select: "select",
-  check: "bool"
+  toggle: "bool",
+  icon: "icon"
 };
 function propFromControl(cid, nodeId, c) {
   const def = findComponent(cid);
@@ -5857,15 +5853,10 @@ function instanceInsert(cid, parentNode, index = 0) {
   delete fresh.st;
   delete fresh.anim;
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
-  const pl2 = parentNode ? lvl(parentNode.type) : 0;
-  const nested = parentNode && parentNode.type === "column" && lvl(fresh.type) === 2;
-  if (lvl(fresh.type) <= pl2 && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(
-    Math.max(0, Math.min(index, list.length)),
-    0,
-    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh)
-  );
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
 function instances(cid) {
@@ -5888,6 +5879,22 @@ function propAdd(cid, label, t, def = "") {
   c.props = c.props || [];
   c.props.push({ k, label: String(label || "Property").slice(0, 40), t, def });
   return k;
+}
+function propRename(cid, k, label) {
+  const pr = findProp(findComponent(cid), k);
+  if (!pr) return false;
+  pr.label = String(label || pr.label).slice(0, 40);
+  return true;
+}
+function propMove(cid, k, dir) {
+  const c = findComponent(cid);
+  if (!c) return false;
+  const list = c.props || [];
+  const i = list.findIndex((x) => x.k === k);
+  const j = i + (dir < 0 ? -1 : 1);
+  if (i < 0 || j < 0 || j >= list.length) return false;
+  [list[i], list[j]] = [list[j], list[i]];
+  return true;
 }
 function propDelete(cid, k) {
   const c = findComponent(cid);
@@ -6777,14 +6784,10 @@ function patternInsert(pid, parentNode, index = 0) {
   if (!p) return null;
   const node = p.build();
   if (parentNode === void 0) return dropTree(node, state.ui.sel);
-  const pl2 = parentNode ? lvl(parentNode.type) : 0;
-  if (lvl(node.type) <= pl2) return dropTree(node, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(
-    Math.max(0, Math.min(index, list.length)),
-    0,
-    wrap(node.type, takes(parentNode ? parentNode.type : null), node)
-  );
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(node.type, takes(pt), node));
   return node;
 }
 var TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
@@ -8588,6 +8591,7 @@ var __CORE = {
   findVariant,
   firstChildOf,
   fitZoom,
+  fitsIn,
   flatten,
   fmtColor,
   fontFaceCss,
@@ -8683,6 +8687,8 @@ var __CORE = {
   propAdd,
   propDelete,
   propFromControl,
+  propMove,
+  propRename,
   propVal,
   published,
   redo,
@@ -11611,6 +11617,7 @@ var PC_UI = (() => {
   var esc4 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/inspector/Inspector.tsx
+  var esc5 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   function Group({ title, n: n2, items, gk }) {
     const key = gk || n2.type + ":" + title;
     const closed = C2.state.ui.open[key] === false;
@@ -12008,6 +12015,87 @@ var PC_UI = (() => {
     ] });
   }
   var DEV_ICON2 = { d: "desktop", t: "tablet", m: "mobile" };
+  function ComponentProps({ n: n2 }) {
+    const cid = C2.state.ui.cedit;
+    if (C2.state.ui.mode !== "component" || !cid) return null;
+    const def = C2.findComponent(cid);
+    if (!def || def.node.id !== n2.id) return null;
+    const list2 = def.props || [];
+    const rename = async (k3, label) => {
+      const name = await L2.askText("Rename property", "Label", label);
+      if (!name) return;
+      C2.edit(() => C2.propRename(cid, k3, name));
+      repaint("right");
+    };
+    const move = (k3, dir) => {
+      C2.edit(() => C2.propMove(cid, k3, dir));
+      repaint("right");
+    };
+    const remove = async (k3, label) => {
+      const pr = C2.findProp(def, k3);
+      const used = C2.componentUsage(cid);
+      const ok = await L2.askConfirm(
+        "Remove this property?",
+        `<b>${esc5(label)}</b> stops varying between instances. Every element that reads it goes back to the value written in the definition` + (used ? `, on ${used === 1 ? "the one instance" : "all " + used + " instances"}.` : "."),
+        { ok: "Remove property" }
+      );
+      if (!ok) return;
+      C2.edit(() => C2.propDelete(cid, k3));
+      L2.paint();
+      L2.save();
+      repaint("right");
+      void pr;
+    };
+    return /* @__PURE__ */ u2(Panel, { title: "Properties", n: n2, children: list2.length ? list2.map((pr, i3) => /* @__PURE__ */ u2("div", { class: "lrow", style: { paddingLeft: 0, paddingRight: 0 }, children: [
+      /* @__PURE__ */ u2(
+        "span",
+        {
+          class: "nm",
+          style: { cursor: "pointer" },
+          onClick: () => rename(pr.k, pr.label),
+          title: "Rename",
+          children: [
+            /* @__PURE__ */ u2("b", { children: pr.label }),
+            " ",
+            /* @__PURE__ */ u2("small", { style: { opacity: 0.6 }, children: pr.t })
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "bx",
+          title: "Move up",
+          disabled: i3 === 0,
+          onClick: () => move(pr.k, -1),
+          children: /* @__PURE__ */ u2(Icon, { name: "toTop", size: 11 })
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "bx",
+          title: "Move down",
+          disabled: i3 === list2.length - 1,
+          onClick: () => move(pr.k, 1),
+          children: /* @__PURE__ */ u2(Icon, { name: "toBottom", size: 11 })
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "bx",
+          title: "Remove this property",
+          onClick: () => remove(pr.k, pr.label),
+          children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 })
+        }
+      )
+    ] }, pr.k)) : /* @__PURE__ */ u2("div", { class: "note", children: [
+      "Nothing varies between instances yet. Every control that holds a value has a",
+      /* @__PURE__ */ u2("b", { children: " component badge" }),
+      " beside its label \u2014 press it to make that value a property."
+    ] }) });
+  }
   function ShowIf({ n: n2 }) {
     const scope = C2.bindScope(n2.id);
     const cd = C2.state.ui.mode === "component" ? C2.findComponent(C2.state.ui.cedit) : null;
@@ -12132,6 +12220,7 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2("div", { class: "pane", children: [
         tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
         tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
+        tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
         tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
           "Nothing varies between instances yet. Open this component in the",
           /* @__PURE__ */ u2("b", { children: " Components" }),
@@ -12186,7 +12275,7 @@ var PC_UI = (() => {
       const used = C2.colorUsage(id);
       if (used && !await L2.askConfirm(
         "Delete this colour token?",
-        `<b>${esc5(t3.name)}</b> is used ${used}\xD7. Those elements keep the colour, as a literal value \u2014 they just stop following the token.`,
+        `<b>${esc6(t3.name)}</b> is used ${used}\xD7. Those elements keep the colour, as a literal value \u2014 they just stop following the token.`,
         { ok: "Delete token" }
       )) return;
       C2.edit(() => C2.colorDelete(id));
@@ -12258,7 +12347,7 @@ var PC_UI = (() => {
       )
     ] });
   }
-  var esc5 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc6 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/StyleClasses.tsx
   var declCount = (css) => ["d", "t", "m"].reduce((k3, b2) => k3 + Object.keys(css[b2] || {}).length, 0);
@@ -12277,7 +12366,7 @@ var PC_UI = (() => {
       const uses = C2.classUsage(id);
       if (uses && !await L2.askConfirm(
         "Delete this class?",
-        `<b>${esc6(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
+        `<b>${esc7(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
         { ok: "Delete class" }
       )) return;
       C2.edit(() => C2.classDelete(id));
@@ -12345,7 +12434,7 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2("div", { class: "note", children: "Lower overrides higher. Element styling wins." })
     ] });
   }
-  var esc6 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc7 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/FontSelect.tsx
   function FontSelect({ value, onChange }) {
@@ -12586,7 +12675,7 @@ var PC_UI = (() => {
       const used = C2.tsUsage(t3.id);
       if (used && !await L2.askConfirm(
         "Delete this text style?",
-        `<b>${esc7(t3.name)}</b> is used by ${used} element${used === 1 ? "" : "s"}. They keep their current look \u2014 they just stop following the style.`,
+        `<b>${esc8(t3.name)}</b> is used by ${used} element${used === 1 ? "" : "s"}. They keep their current look \u2014 they just stop following the style.`,
         { ok: "Delete style" }
       )) return;
       C2.edit(() => C2.styleDelete(t3.id));
@@ -12703,7 +12792,7 @@ var PC_UI = (() => {
       ] })
     ] });
   }
-  var esc7 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc8 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/ReviewList.tsx
   var REGION_MODE = {

@@ -5365,14 +5365,20 @@ test('an empty site is one empty page, and no global regions', () => {
   a.equal(pg.desc, '');
 });
 
-test('what you built survives it: colours, text styles, classes, blocks', () => {
+test('what you built survives it: colours, text styles, classes, blocks, components', () => {
   fresh();
   C.classAdd('Card', { d: { padding: '20px' } });
   C.colorAdd('Brand teal', '#0aa');
   C.state.meta.blocks = [{ id: 'hero', name: 'Hero', node: C.N('heading') }];
-  const before = [C.colors().length, C.styles().length, C.classes().length, C.blocks().length];
+  /* A component is a library too, on the same side of the line as a block — and the pages go,
+     so it is left with no instances. That is the state a block nobody has placed is in, and the
+     panel says so rather than pretending. */
+  C.state.meta.components = [{ id: 'card', name: 'Card', node: C.N('heading'), props: [] }];
+  const before = [C.colors().length, C.styles().length, C.classes().length, C.blocks().length,
+    C.components().length];
   C.blankProject('Mine');
-  a.deepEqual([C.colors().length, C.styles().length, C.classes().length, C.blocks().length], before,
+  a.deepEqual([C.colors().length, C.styles().length, C.classes().length, C.blocks().length,
+    C.components().length], before,
     'a library is work, not content');
   a.ok(klass('card'), 'a class you made is still there');
 });
@@ -7464,4 +7470,54 @@ test('a row moved into a column needs no exception, because a column takes level
   const row = insert('row', col, 0);
   a.equal(at(row.id).node.type, 'row');
   a.equal(at(row.id).parent!.id, col.id, 'in the column, not wrapped in another one');
+});
+
+test('a Box holds a Box, and every path that places one agrees', () => {
+  /* Found by putting six cards in a grid: one landed in it and five were scattered above it in
+     reverse order. `holds` said a Box holds a Box — via `alsoHolds` — while four call sites
+     asked the same question by comparing levels, which says no. The level comparison was right
+     for as long as the hierarchy was strictly by level, and `alsoHolds` ended that. */
+  blank();
+  const grid = insert('grid', null, 0);
+  a.equal(C.holds('box', 'box'), true, 'the declared answer');
+
+  const cards = [0, 1, 2].map(i => insert('box', at(grid.id).node, i));
+  a.equal(at(grid.id).node.children.length, 3, 'all three in the grid');
+  a.deepEqual(at(grid.id).node.children.map(c => c.id), cards.map(c => c.id), 'and in order');
+});
+
+test('every placement path puts a component instance at the index it was given', () => {
+  /* The index is what distinguishes "placed where I asked" from "appended by the fallback",
+     and the fallback lands in the same container — so a test that only appends cannot tell the
+     two apart. This one inserts into the middle. */
+  blank();
+  const grid = insert('grid', null, 0);
+  const one = insert('box', at(grid.id).node, 0);
+  const cid = componentFromNode(one.id, 'Card');
+  const last = must(C.instanceInsert(cid, at(grid.id).node, 1), 'last');
+  const mid = must(C.instanceInsert(cid, at(grid.id).node, 1), 'middle');
+
+  a.deepEqual(at(grid.id).node.children.map(c => c.id), [one.id, mid.id, last.id],
+    'the middle one went to index 1, not onto the end');
+  a.equal(C.componentUsage(cid), 3);
+});
+
+test('a block placed into a Box lands at its index too', () => {
+  blank();
+  const grid = insert('grid', null, 0);
+  const a1 = insert('box', at(grid.id).node, 0);
+  const a2 = insert('box', at(grid.id).node, 1);
+  const bid = blockSave(a1.id, 'Card');
+  const placed = must(C.blockInsert(bid, at(grid.id).node, 1), 'placed');
+  a.deepEqual(at(grid.id).node.children.map(c => c.id), [a1.id, placed.id, a2.id]);
+});
+
+test('the root takes anything, and the Navigator’s root takes sections', () => {
+  /* Two questions that only differ at the root, which is why they are two functions. Dropping
+     a heading on the canvas root builds the chain; dropping a row *at* a position in a flat
+     list should not silently grow one. */
+  a.equal(C.fitsIn(null, 'heading'), true, 'wrappers allowed');
+  a.equal(C.fitsIn('box', 'heading'), true);
+  a.equal(C.fitsIn('heading', 'box'), false, 'a leaf holds nothing');
+  a.equal(C.holds('column', 'heading'), true, 'direct containment is the other question');
 });

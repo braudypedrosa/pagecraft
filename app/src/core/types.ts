@@ -364,7 +364,7 @@ export interface Condition {
 
 /** What kind of value a property holds. The same kinds the controls already draw, so a
     property's editor is a control the panel knows how to render rather than a new widget. */
-export type PropKind = 'text' | 'rich' | 'img' | 'link' | 'color' | 'select' | 'bool';
+export type PropKind = 'text' | 'rich' | 'img' | 'link' | 'color' | 'select' | 'bool' | 'icon';
 
 export interface ComponentProp {
   /** the key a `prop` binding's path names */

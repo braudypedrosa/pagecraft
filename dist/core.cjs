@@ -203,6 +203,7 @@ __export(index_exports, {
   findVariant: () => findVariant,
   firstChildOf: () => firstChildOf,
   fitZoom: () => fitZoom,
+  fitsIn: () => fitsIn,
   flatten: () => flatten,
   fmtColor: () => fmtColor,
   fontFaceCss: () => fontFaceCss,
@@ -298,6 +299,8 @@ __export(index_exports, {
   propAdd: () => propAdd,
   propDelete: () => propDelete,
   propFromControl: () => propFromControl,
+  propMove: () => propMove,
+  propRename: () => propRename,
   propVal: () => propVal,
   published: () => published,
   redo: () => redo,
@@ -2933,6 +2936,7 @@ var holds = (pt, t) => {
   const b = BASE[t] || t;
   return lvl(b) > lvl(pt) || (DEF[pt] || {}).alsoHolds?.includes(b) === true;
 };
+var fitsIn = (pt, t) => pt === null || holds(pt, t);
 function insert(type, parentNode, index) {
   const leaf = makeFor(type);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
@@ -4140,9 +4144,7 @@ function pasteNode(intoId) {
 }
 function dropTree(fresh, intoId) {
   const place = (list2, index, parentType) => {
-    const pl2 = parentType === null ? 0 : lvl(parentType);
-    const nested = parentType === "column" && lvl(fresh.type) === 2;
-    if (lvl(fresh.type) <= pl2 && !nested) return false;
+    if (!fitsIn(parentType, fresh.type)) return false;
     list2.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
@@ -4843,15 +4845,10 @@ function blockInsert(id, parentNode, index = 0) {
   if (!b) return null;
   const fresh = reid(clone(b.node));
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
-  const pl2 = parentNode ? lvl(parentNode.type) : 0;
-  const nested = parentNode && parentNode.type === "column" && lvl(fresh.type) === 2;
-  if (lvl(fresh.type) <= pl2 && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(
-    Math.max(0, Math.min(index, list.length)),
-    0,
-    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh)
-  );
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
 var blockDelete = (id) => {
@@ -4965,7 +4962,8 @@ var PROP_CTL = {
   link: "link",
   color: "color",
   select: "select",
-  bool: "check"
+  bool: "toggle",
+  icon: "icon"
 };
 function instControls(n) {
   const def = findComponent(n.use);
@@ -4995,7 +4993,8 @@ var PROP_KIND = {
   link: "link",
   color: "color",
   select: "select",
-  check: "bool"
+  toggle: "bool",
+  icon: "icon"
 };
 function propFromControl(cid, nodeId, c) {
   const def = findComponent(cid);
@@ -5065,15 +5064,10 @@ function instanceInsert(cid, parentNode, index = 0) {
   delete fresh.st;
   delete fresh.anim;
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
-  const pl2 = parentNode ? lvl(parentNode.type) : 0;
-  const nested = parentNode && parentNode.type === "column" && lvl(fresh.type) === 2;
-  if (lvl(fresh.type) <= pl2 && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(
-    Math.max(0, Math.min(index, list.length)),
-    0,
-    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh)
-  );
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
 function instances(cid) {
@@ -5096,6 +5090,22 @@ function propAdd(cid, label, t, def = "") {
   c.props = c.props || [];
   c.props.push({ k, label: String(label || "Property").slice(0, 40), t, def });
   return k;
+}
+function propRename(cid, k, label) {
+  const pr = findProp(findComponent(cid), k);
+  if (!pr) return false;
+  pr.label = String(label || pr.label).slice(0, 40);
+  return true;
+}
+function propMove(cid, k, dir) {
+  const c = findComponent(cid);
+  if (!c) return false;
+  const list = c.props || [];
+  const i = list.findIndex((x) => x.k === k);
+  const j = i + (dir < 0 ? -1 : 1);
+  if (i < 0 || j < 0 || j >= list.length) return false;
+  [list[i], list[j]] = [list[j], list[i]];
+  return true;
 }
 function propDelete(cid, k) {
   const c = findComponent(cid);
@@ -5985,14 +5995,10 @@ function patternInsert(pid, parentNode, index = 0) {
   if (!p) return null;
   const node = p.build();
   if (parentNode === void 0) return dropTree(node, state.ui.sel);
-  const pl2 = parentNode ? lvl(parentNode.type) : 0;
-  if (lvl(node.type) <= pl2) return dropTree(node, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(
-    Math.max(0, Math.min(index, list.length)),
-    0,
-    wrap(node.type, takes(parentNode ? parentNode.type : null), node)
-  );
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(node.type, takes(pt), node));
   return node;
 }
 var TS_LEVEL = { display: "h1", title: "h2", subtitle: "h3", eyebrow: "div" };
@@ -7796,6 +7802,7 @@ ${ANIM_JS}
   findVariant,
   firstChildOf,
   fitZoom,
+  fitsIn,
   flatten,
   fmtColor,
   fontFaceCss,
@@ -7891,6 +7898,8 @@ ${ANIM_JS}
   propAdd,
   propDelete,
   propFromControl,
+  propMove,
+  propRename,
   propVal,
   published,
   redo,

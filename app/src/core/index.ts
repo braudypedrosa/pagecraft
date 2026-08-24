@@ -1692,6 +1692,20 @@ const holds = (pt: any, t: string) => {
   const b = BASE[t] || t;
   return (lvl(b) > lvl(pt)) || (DEF[pt] || {}).alsoHolds?.includes(b as WidgetType) === true;
 };
+/* Can `t` be *placed* inside `pt` — wrappers allowed? `null` is the document root, which takes
+   anything: a heading dropped there becomes Section > Row > Column > Heading, and `wrap` builds
+   that chain.
+
+   Distinct from `holds`, which is direct containment, and the distinction is the whole reason
+   this exists. Four places asked this question by comparing levels instead —
+   `lvl(fresh.type) <= lvl(parent.type)` — which was the same answer for as long as the
+   hierarchy was strictly by level, and stopped being so the moment anything declared
+   `alsoHolds`. A Box holds a Box: `holds` says yes and the level comparison says no. Six cards
+   placed into a grid ended up with one in it and five scattered above it, in reverse order.
+
+   A place that re-derives an answer somebody already declared is the shape of bug this file
+   keeps finding. */
+const fitsIn = (pt: string | null, t: string) => pt === null || holds(pt, t);
 
 function insert(type: string, parentNode: any, index: number) {
   const leaf = makeFor(type);
@@ -1812,7 +1826,12 @@ function layerTarget(rowId: string, zone: string, type: string, movingIds: strin
     eachNode([mh.node], x => { if (x.id === rowId) inside = true; });
     if (inside) return null;
   }
-  const canHold = (pt: string | null, t: string) => (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
+  /* A stricter question than `fitsIn`: the Navigator drops a row *at* a position, so at the
+     root only a section belongs there. `fitsIn` would say yes to a heading and the list would
+     grow a wrapper chain from a click on a flat list, which is not what the row you aimed at
+     said would happen. */
+  const canHold = (pt: string | null, t: string) =>
+    (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
   if (zone === 'inside') {
     if (!canHold(h.node.type, type)) return null;
     return { container: h.node, index: 0 };
@@ -3205,9 +3224,7 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
      because that is what it means — the first pass typed it `PcNode | null` and then
      changed the code to suit the annotation, which is backwards. */
   const place = (list: PcNode[], index: number, parentType: string | null): boolean => {
-    const pl = parentType === null ? 0 : lvl(parentType);
-    const nested = parentType === 'column' && lvl(fresh.type) === 2;
-    if (lvl(fresh.type) <= pl && !nested) return false;
+    if (!fitsIn(parentType, fresh.type)) return false;
     list.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
@@ -4117,12 +4134,10 @@ function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
   if (!b) return null;
   const fresh = reid(clone(b.node));
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
-  const pl = parentNode ? lvl(parentNode.type) : 0;
-  const nested = parentNode && parentNode.type === 'column' && lvl(fresh.type) === 2;
-  if (lvl(fresh.type) <= pl && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(Math.max(0, Math.min(index, list.length)), 0,
-    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh));
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
 const blockDelete = (id: string) => { state.meta.blocks = blocks().filter(b => b.id !== id); };
@@ -4282,7 +4297,8 @@ function slotKids(inst: PcNode, def: ComponentDef | null, k: string): PcNode[] {
     by the control its kind names, so nothing here draws anything the panel could not already
     draw. `set` marks these as writing values rather than props — see `propVal`. */
 const PROP_CTL: Record<string, string> = {
-  text: 'text', rich: 'rich', img: 'img', link: 'link', color: 'color', select: 'select', bool: 'check'
+  text: 'text', rich: 'rich', img: 'img', link: 'link', color: 'color', select: 'select',
+  bool: 'toggle', icon: 'icon'
 };
 function instControls(n: PcNode): Control[] {
   const def = findComponent(n.use);
@@ -4313,9 +4329,16 @@ function contentKeysOf(n: PcNode): Set<string> {
 
 /** Which property kind a control of this kind edits. The controls came first, so this reads
     from them rather than the other way round. */
+/* Which property kind a control of this kind edits. The controls came first, so this reads
+   from them rather than the other way round.
+
+   `icon` is here because the first real component built with this was a feature card, and a
+   feature card whose instances cannot each have their own glyph is not the component anybody
+   wanted. It costs one entry, because the control that picks an icon already exists — which is
+   the whole point of deriving property kinds from control kinds. */
 const PROP_KIND: Record<string, PropKind> = {
   text: 'text', area: 'text', rich: 'rich', img: 'img', link: 'link',
-  color: 'color', select: 'select', check: 'bool'
+  color: 'color', select: 'select', toggle: 'bool', icon: 'icon'
 };
 /** Turn what a node holds into a property of the component being edited, and bind it. One
     verb, because it is one decision — "this varies" — and doing it in three steps (declare,
@@ -4388,12 +4411,10 @@ function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
   };
   delete fresh.vals; delete fresh.variant; delete fresh.slot; delete fresh.st; delete fresh.anim;
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
-  const pl = parentNode ? lvl(parentNode.type) : 0;
-  const nested = parentNode && parentNode.type === 'column' && lvl(fresh.type) === 2;
-  if (lvl(fresh.type) <= pl && !nested) return dropTree(fresh, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(Math.max(0, Math.min(index, list.length)), 0,
-    wrap(fresh.type, takes(parentNode ? parentNode.type : null), fresh));
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
 /** Every instance of a definition, across every page and both global regions. */
@@ -4420,6 +4441,27 @@ function propAdd(cid: string, label: string, t: PropKind, def = '') {
   c.props = c.props || [];
   c.props.push({ k, label: String(label || 'Property').slice(0, 40), t, def });
   return k;
+}
+/** Rename a property. The label is what every instance's panel shows, and the one derived from
+    a control's label — "Heading text" for what a person would call "Title" — is a guess made at
+    the moment of declaring, when nobody was asked. */
+function propRename(cid: string, k: string, label: string) {
+  const pr = findProp(findComponent(cid), k);
+  if (!pr) return false;
+  pr.label = String(label || pr.label).slice(0, 40);
+  return true;
+}
+/** Move a property up or down. The order is the order of the controls on every instance's
+    panel, so it is a real decision and not bookkeeping. */
+function propMove(cid: string, k: string, dir: number) {
+  const c = findComponent(cid);
+  if (!c) return false;
+  const list = c.props || [];
+  const i = list.findIndex(x => x.k === k);
+  const j = i + (dir < 0 ? -1 : 1);
+  if (i < 0 || j < 0 || j >= list.length) return false;
+  [list[i], list[j]] = [list[j], list[i]];
+  return true;
 }
 /** Undeclare it, and unbind everything that read it — a binding pointing at a property that no
     longer exists would render the value authored in the definition, which looks like the
@@ -5222,11 +5264,10 @@ function patternInsert(pid: string, parentNode?: PcNode | null, index = 0) {
   if (!p) return null;
   const node = p.build();
   if (parentNode === undefined) return dropTree(node, state.ui.sel);
-  const pl = parentNode ? lvl(parentNode.type) : 0;
-  if (lvl(node.type) <= pl) return dropTree(node, parentNode ? parentNode.id : null);
+  const pt = parentNode ? parentNode.type : null;
+  if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
-  list.splice(Math.max(0, Math.min(index, list.length)), 0,
-    wrap(node.type, takes(parentNode ? parentNode.type : null), node));
+  list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(node.type, takes(pt), node));
   return node;
 }
 
@@ -5635,8 +5676,12 @@ function pageFromTemplate(tid: string, name?: string): any {
    the first thing anyone does with this tool and it was the roughest path in it.
 
    The counterpart to seed(), and the line it draws is content out, libraries in.
-   Colours, text styles, classes and saved blocks are things you built rather than
-   content, and clearing them would be destroying work to save a click.
+   Colours, text styles, classes, saved blocks and component definitions are things you
+   built rather than content, and clearing them would be destroying work to save a click.
+   Components land on the library side for the same reason blocks do, and the consequence is
+   worth knowing: the pages go, so every definition is left with no instances. That is the
+   same state as a block nobody has placed, and the Components tab says "0 instances" rather
+   than pretending otherwise.
 
    A collection splits across that line, which seed() does not have to face: the
    *schema* is a library — 'Projects has a title, a summary, a cover and a year' is a
@@ -7161,5 +7206,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
 };

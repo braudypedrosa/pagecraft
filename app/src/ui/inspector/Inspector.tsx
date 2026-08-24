@@ -15,6 +15,11 @@ import { Icon } from '../Icon';
 import { Ctl } from './Controls';
 import type { Control, Node as PcNode } from '../../core/types';
 
+/* `askConfirm` takes HTML, so the one value interpolated into it is escaped by hand — the same
+   reason Add.tsx has this line. */
+const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, ch =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));
+
 /** A collapsible group. Its open state is keyed by widget type and title, so folding
     Spacing away on a Section does not fold it on every Heading too. */
 function Group({ title, n, items, gk }: { title: string; n: PcNode; items?: Control[]; gk?: string; children?: any }) {
@@ -376,6 +381,74 @@ function ContentSource({ n }: { n: PcNode }) {
 
 const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile' };
 
+/* A component's declared properties, listed where the component itself is.
+
+   Nothing listed them. The badge on a control declares one and binds it in a single click,
+   which is the right way to *make* one — and it left no way to see what a component declares,
+   rename a property, reorder them or remove one. The first component built with this ended up
+   with properties called "Heading text" and "Rich text", named after the controls they came
+   from, which is what a guess made at the moment of declaring looks like on nine instances.
+
+   Shown on the definition's root, because that is the node that stands for the component. The
+   order is the order of the controls on every instance's panel, so moving one is a real
+   decision rather than bookkeeping. */
+function ComponentProps({ n }: { n: PcNode }) {
+  const cid = C.state.ui.cedit;
+  if (C.state.ui.mode !== 'component' || !cid) return null;
+  const def = C.findComponent(cid);
+  if (!def || def.node.id !== n.id) return null;
+  const list = def.props || [];
+
+  const rename = async (k: string, label: string) => {
+    const name = await L.askText('Rename property', 'Label', label);
+    if (!name) return;
+    C.edit(() => C.propRename(cid, k, name));
+    repaint('right');
+  };
+  const move = (k: string, dir: number) => {
+    C.edit(() => C.propMove(cid, k, dir));
+    repaint('right');
+  };
+  const remove = async (k: string, label: string) => {
+    const pr = C.findProp(def, k);
+    const used = C.componentUsage(cid);
+    const ok = await L.askConfirm('Remove this property?',
+      `<b>${esc(label)}</b> stops varying between instances. Every element that reads it goes back `
+      + `to the value written in the definition`
+      + (used ? `, on ${used === 1 ? 'the one instance' : 'all ' + used + ' instances'}.` : '.'),
+      { ok: 'Remove property' });
+    if (!ok) return;
+    C.edit(() => C.propDelete(cid, k));
+    L.paint(); L.save();
+    repaint('right');
+    void pr;
+  };
+
+  return (
+    <Panel title="Properties" n={n}>
+      {list.length ? list.map((pr, i) => (
+        <div class="lrow" key={pr.k} style={{ paddingLeft: 0, paddingRight: 0 }}>
+          <span class="nm" style={{ cursor: 'pointer' }} onClick={() => rename(pr.k, pr.label)}
+            title="Rename">
+            <b>{pr.label}</b> <small style={{ opacity: .6 }}>{pr.t}</small>
+          </span>
+          <button class="bx" title="Move up" disabled={i === 0}
+            onClick={() => move(pr.k, -1)}><Icon name="toTop" size={11} /></button>
+          <button class="bx" title="Move down" disabled={i === list.length - 1}
+            onClick={() => move(pr.k, 1)}><Icon name="toBottom" size={11} /></button>
+          <button class="bx" title="Remove this property"
+            onClick={() => remove(pr.k, pr.label)}><Icon name="trash" size={11} /></button>
+        </div>
+      )) : (
+        <div class="note">
+          Nothing varies between instances yet. Every control that holds a value has a
+          <b> component badge</b> beside its label — press it to make that value a property.
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 /* "Show only if" — a condition on a value rather than on a breakpoint.
 
    It sits in Visibility because that is the question it answers, next to the three breakpoint
@@ -516,6 +589,7 @@ export function Inspector() {
       <div class="pane">
         {tab === 'content' || many ? null : <StatePick />}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
+        {tab === 'content' ? <ComponentProps n={n} /> : null}
         {tab === 'content' ? (
           content.length
             ? <Group title={n.use ? C.nameOf(n) : d.label} n={n} items={content} />
