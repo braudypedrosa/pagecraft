@@ -494,12 +494,25 @@ Verified over real HTTP: the ask says 200 for a claimed domain, 404 for a strang
 wildcard, and 403 when it arrives from outside. Moving a site to `acme.localhost` made it answer
 there, stop answering on the old host, and flipped both answers from the ask.
 
-**The Caddyfile is not verified.** `caddy:2-alpine` would not pull here, so it has never been
-through `caddy validate` — its syntax and directive names come from documentation rather than
-from a run, and the file says so at the top along with the command. Caddy rather than an ACME
-client in the app because issuance is the easy part: renewal, reload without dropping
-connections, and what happens at 3am when a renewal fails are the rest of it, and a page builder
-is the least interesting place to keep a security bug.
+**The Caddyfile is validated and was run.** The image would not pull at first and the file
+carried an honest "UNVALIDATED" header for one commit; the pull finished later, and validating
+it found a real error in the first line it checked — `interval` and `burst` under
+`on_demand_tls`, which current Caddy removed and named in as many words. Documentation is not a
+run. Two warnings after that: a `header_up X-Forwarded-Host` that Caddy passes upstream anyway,
+and unformatted input, both now gone.
+
+Then it was actually run in front of the server: a site served through it, `www.site.localhost`
+redirected 301 to the apex, `/internal/*` was refused at the edge, and an unknown host still
+404ed. And the fence on the app's side was checked on its own, by putting up a second proxy that
+forwards `/internal` deliberately — the app answered 403, so both layers are real rather than
+one of them being decoration.
+
+What remains untested is the ACME exchange, which needs a public name and a real certificate
+authority. The `ask` behind it is tested from both directions.
+
+Caddy rather than an ACME client in the app because issuance is the easy part: renewal, reload
+without dropping connections, and what happens at 3am when a renewal fails are the rest of it,
+and a page builder is the least interesting place to keep a security bug.
 
 The `www` redirect lives in the proxy rather than as an alias list per site, so the app keeps
 exactly one host per site and `byHost` stays a lookup rather than a search.

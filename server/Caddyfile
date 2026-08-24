@@ -1,14 +1,19 @@
 # TLS for domains that are not mine.
 #
-# UNVALIDATED. `caddy:2-alpine` would not pull on the machine this was written on, so this file
-# has never been through `caddy validate`. Everything on the app side of the fence is tested —
-# `server/tests/host.test.ts` covers the domain endpoint and the certificate ask — but the
-# syntax and directive names below are from the documentation rather than from a run. Do this
-# before trusting it:
+# Validated, and run. `caddy validate` accepts it with no warnings, and the proxy path was
+# exercised against a real Caddy in front of the real server: a site served through it, the www
+# redirect fired, `/internal/*` was refused at the edge, and an unknown host still 404ed.
+#
+# Validation earned its keep immediately — the first draft carried `interval` and `burst` under
+# `on_demand_tls`, which current Caddy removed, and it said so by name. Documentation is not a
+# run. To check it again after an edit:
 #
 #   docker run --rm -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" \
 #     -e ACME_EMAIL=you@example.com -e EDITOR_HOST=admin.example.com \
 #     caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile
+#
+# What is still untested is the ACME exchange itself, which needs a public name and a real
+# certificate authority. The `ask` behind it is tested from both sides.
 #
 # The Node server speaks plain HTTP and matches a request on its Host header, which is all it
 # needs to serve many sites. What it cannot do is hold a certificate for somebody else's
@@ -42,18 +47,17 @@
 # the alternatives were a list of aliases per site — a second thing to keep in step with the
 # host — or one rule in the proxy. This is one rule in the proxy. The app keeps exactly one
 # host per site, which is what makes `byHost` a lookup rather than a search.
-
 {
 	# A real address, so a failed renewal reaches somebody.
 	email {$ACME_EMAIL}
 
 	on_demand_tls {
-		# The app decides. Nothing is issued for a domain no site has claimed.
+		# The app decides, and it is the only thing that decides. Current Caddy removed the
+		# `interval` and `burst` ceilings that used to sit alongside this — validation said so
+		# in as many words — on the reasoning that the ask is the real gate and a rate limit
+		# behind it only delays a flood of requests that should have been refused outright. So
+		# `/internal/tls-check` carries the whole weight, which is worth knowing when reading it.
 		ask http://127.0.0.1:8787/internal/tls-check
-		# A ceiling as well as a gate: even with the ask, a burst of new domains should not
-		# turn into a burst of issuance.
-		interval 2m
-		burst 5
 	}
 }
 
@@ -81,9 +85,7 @@ https:// {
 	@www header_regexp host Host ^www\.(.+)$
 	redir @www https://{re.host.1}{uri} permanent
 
-	reverse_proxy 127.0.0.1:8787 {
-		header_up X-Forwarded-Host {host}
-	}
+	reverse_proxy 127.0.0.1:8787
 
 	@internal path /internal/*
 	respond @internal 404
