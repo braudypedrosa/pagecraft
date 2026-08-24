@@ -137,13 +137,18 @@ Fly's proxy terminates TLS for a hostname you add, so Caddy would be a second TL
 for no benefit.
 
 ```bash
-fly launch --no-deploy --copy-config --config server/fly.toml
+fly apps create pagecraft
 fly postgres create --name pagecraft-db
-fly postgres attach pagecraft-db
-fly secrets set OWNER_EMAIL=you@example.com
-fly deploy --config server/fly.toml --dockerfile server/Dockerfile
-fly certs add pagecraft.example.com
+fly postgres attach pagecraft-db --app pagecraft
+fly secrets set --app pagecraft OWNER_EMAIL=you@example.com
+fly deploy --app pagecraft --config server/fly.toml --dockerfile server/Dockerfile
+fly certs add --app pagecraft pagecraft.braudyp.dev
 ```
+
+`fly apps create` rather than `fly launch`: launch is interactive and may rewrite `fly.toml`.
+**`server/DEPLOY.md` is this written out for somebody who does not have the history** — the two
+decisions that need a human, every environment value with what breaks without it, and the one
+failure mode that looks like a platform problem and is not.
 
 Change `EDITOR_HOST` and `primary_region` in the toml before the first deploy. A wrong
 `EDITOR_HOST` means every request is looked up as a custom domain and nothing is found, which

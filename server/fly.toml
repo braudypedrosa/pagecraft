@@ -1,11 +1,14 @@
 # Pagecraft on Fly.
 #
-#   fly launch --no-deploy --copy-config --config server/fly.toml
+#   fly apps create pagecraft                   # not `launch`: it is interactive and rewrites this
 #   fly postgres create --name pagecraft-db
-#   fly postgres attach pagecraft-db            # sets DATABASE_URL for you
-#   fly secrets set OWNER_EMAIL=you@example.com
-#   fly deploy --config server/fly.toml --dockerfile server/Dockerfile
-#   fly certs add pagecraft.example.com         # then the CNAME it prints, at your DNS
+#   fly postgres attach pagecraft-db --app pagecraft     # sets DATABASE_URL for you
+#   fly secrets set --app pagecraft OWNER_EMAIL=you@example.com
+#   fly deploy --app pagecraft --config server/fly.toml --dockerfile server/Dockerfile
+#   fly certs add --app pagecraft pagecraft.example.com  # then the record it prints, at your DNS
+#
+# `server/DEPLOY.md` is the same thing written out, with the two decisions and the failure mode
+# to expect. Read that first if this is the first deploy.
 #
 # Run from the repository root: the image's build context is the repo, because the first stage
 # builds the editor from `builder.html` and `app/`.
