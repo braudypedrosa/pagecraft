@@ -1385,6 +1385,20 @@ let saveWarned = false;
    one is how the server knows two people are editing. */
 const SRV = window.PC_SERVER || null;
 
+/* The server transport is a typed adapter compiled with the ported UI. WordPress creates the
+   sibling adapter; both stop at the same document/schema boundary and neither reaches into
+   the component runtime. The standalone artifact keeps its localStorage/IndexedDB host. */
+const HOST = SRV ? PC_UI.createWebHostAdapter({
+  siteId: SRV.siteId,
+  sessionToken: SRV.editorSessionToken,
+  role: SRV.role,
+  userId: SRV.user && SRV.user.id,
+  userName: SRV.user && (SRV.user.name || SRV.user.email),
+  document: SRV.doc,
+  version: SRV.version,
+  fetch: fetch.bind(window)
+}) : null;
+
 /* WordPress's native-content index is only a link catalogue. Treat the injected payload as
    data at the seam: reject malformed targets, non-HTTPS links outside local testing,
    cross-origin links, duplicate ids,
@@ -1450,17 +1464,6 @@ const WORDPRESS_CONTENT = (() => {
 })();
 const wordpressContent = () => WORDPRESS_CONTENT;
 
-/* WordPress embeds the full editor with a one-use SSO handoff. The resulting credential is
-   short-lived and scoped to this project; it is not the connector's refresh credential. Keep
-   it in memory and attach it only to Pagecraft's own relative API routes so an external font,
-   form endpoint, or absolute URL can never receive it by accident. */
-function pagecraftFetch(input, options = {}) {
-  const path = typeof input === 'string' ? input : String(input && input.url || '');
-  if (!SRV || !SRV.editorSessionToken || !/^\/(?:api|v1)\//.test(path)) return fetch(input, options);
-  const headers = { ...(options.headers || {}), 'X-Pagecraft-Editor-Session': SRV.editorSessionToken };
-  return fetch(input, { ...options, headers });
-}
-
 /* The live URL, for sending to somebody.
 
    Only in server mode, because the single-file build has nowhere to share to — the button is
@@ -1504,9 +1507,7 @@ async function historyModal() {
     '<button class="btn" id="historyClose">Close</button>');
   $('#historyClose').addEventListener('click', closeModal);
   try {
-    const response = await pagecraftFetch(`/api/sites/${SRV.siteId}/history`);
-    if (!response.ok) throw new Error(`History could not be loaded (${response.status})`);
-    const revisions = await response.json();
+    const revisions = await HOST.revisions.list();
     $('#mBody').innerHTML = revisions.length ? `<div class="historyList">${revisions.map(revision => {
       const current = revision.version === SRV.version;
       const author = revision.author && (revision.author.name || revision.author.email);
@@ -1525,11 +1526,7 @@ async function historyModal() {
       button.disabled = true;
       button.textContent = 'Restoring…';
       try {
-        const restored = await pagecraftFetch(`/api/sites/${SRV.siteId}/history/${version}/restore`, {
-          method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ currentVersion: SRV.version })
-        });
-        if (!restored.ok) throw new Error(`Version could not be restored (${restored.status})`);
+        await HOST.revisions.restore(version, SRV.version);
         location.reload();
       } catch (error) {
         button.disabled = false;
@@ -1612,9 +1609,7 @@ async function loadReleasePanel() {
   const host = $('#releasePanel');
   if (host) host.setAttribute('aria-busy', 'true');
   try {
-    const response = await pagecraftFetch(`/v1/sites/${SRV.siteId}/releases`);
-    if (!response.ok) throw new Error(`Release status could not be loaded (${response.status})`);
-    const payload = await response.json();
+    const payload = await HOST.releases.list();
     renderReleasePanel(payload);
   } catch (error) {
     if (host) host.innerHTML = `<div class="alert"><b>Release status is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
@@ -1650,21 +1645,13 @@ async function publishDraft(button) {
     const idempotencyKey = button.dataset.idempotencyKey
       || (crypto.randomUUID ? crypto.randomUUID() : `${SRV.siteId}-${SRV.version}-${Date.now()}`);
     button.dataset.idempotencyKey = idempotencyKey;
-    const response = await pagecraftFetch(`/v1/sites/${SRV.siteId}/releases`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        sourceVersion: SRV.version,
-        idempotencyKey,
-        acknowledgeWarnings: counts.warn > 0,
-        warningCodes: findings.filter(f => f.level === 'warn').map(f => f.code)
-      })
+    const payload = await HOST.releases.publish({
+      sourceVersion: SRV.version,
+      idempotencyKey,
+      acknowledgeWarnings: counts.warn > 0,
+      warningCodes: findings.filter(f => f.level === 'warn').map(f => f.code)
     });
     responseReceived = true;
-    const payload = await response.json().catch(() => ({}));
-    if (response.status === 409) {
-      warnStale(payload); throw new Error('The draft changed before it could be published.');
-    }
-    if (!response.ok) throw new Error(payload.error || payload.detail || `The release was refused (${response.status})`);
     const release = payload.release || payload;
     SRV.publishedRelease = release;
     SRV.publishedVersion = payload.publishedVersion ?? releaseSourceVersion(release) ?? SRV.publishedVersion;
@@ -1675,6 +1662,10 @@ async function publishDraft(button) {
     setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish draft'; } }, 900);
     await loadReleasePanel();
   } catch (error) {
+    if (error && Number.isInteger(error.status)) responseReceived = true;
+    if (error && error.status === 409) {
+      warnStale(error.payload || {});
+    }
     /* If the server answered, the attempt definitely ended and a correction should get a new
        key. If the network disappeared after accepting the release, retaining the key makes
        Retry reconcile that same immutable release instead of creating a duplicate. */
@@ -1751,19 +1742,17 @@ async function writeServer() {
   saving = true;
   stamp('Saving…', false);
   try {
-    const res = await pagecraftFetch(`/api/sites/${SRV.siteId}`, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ doc: doc(), version: SRV.version })
-    });
-    if (res.status === 409) { saveState = 'failed'; stamp('NOT SAVED', true); warnStale(await res.json().catch(() => ({}))); return; }
-    if (res.status === 403) { saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(await res.json().catch(() => ({}))); return; }
-    if (!res.ok) throw new Error('The server refused the save (' + res.status + ')');
-    const body = await res.json();
+    const body = await HOST.documents.save({ document: doc(), version: SRV.version });
     SRV.version = body.version;
     saveState = 'ok';
     stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
   } catch (e) {
+    if (e && e.status === 409) {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
+    }
+    if (e && e.status === 403) {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(e.payload || {}); return;
+    }
     saveState = 'failed';
     stamp('NOT SAVED', true);
     warnSaveFailed(e);
@@ -1886,10 +1875,12 @@ function load() {
   /* Before anything draws, so the panels never flash into view. The default panel is Add,
      which a content account does not have — `boot()` sends it to Pages instead. */
   if (SRV && !canStructure()) document.body.classList.add('content-only');
-  /* The server put the document in the page, so there is nothing to read and nothing that
-     can fail. `migrate` still runs: a stored document can be older than this build. */
+  /* The server put the document in the page, so there is no asynchronous read. Adoption still
+     runs: an older row follows the one migration chain, while a newer one fails closed with
+     the upgrade instruction supplied by the shared host boundary. */
   if (SRV) {
-    const d = migrate({ ...SRV.doc, v: SCHEMA });
+    let d = null, loadError = null;
+    try { d = PC_UI.adoptHostDocument(SRV.doc); } catch (error) { loadError = error; }
     if (d) {
       state.meta = { ...state.meta, ...d.meta };
       if (!state.meta.tokens) state.meta.tokens = defaultTokens(state.meta);
@@ -1901,10 +1892,10 @@ function load() {
     /* A document the server holds and this build cannot read is not a case to paper over
        with the demo site — that would look like the site had been replaced. */
     seed();
-    setTimeout(() => openModal('This site was saved by a newer build', `
-      <div class="alert"><b>The server holds a document this build cannot read.</b>
+    setTimeout(() => openModal('This site cannot be opened by this build', `
+      <div class="alert"><b>The server holds a document this Pagecraft build cannot read.</b>
       <span>You are looking at the demo site. Nothing has been saved and nothing has been lost.</span></div>
-      <div class="note" style="margin-top:var(--gap-2)">Update the server to a matching build.</div>`,
+      <div class="note" style="margin-top:var(--gap-2)">${esc(loadError && loadError.message || 'Update this host to a matching Pagecraft build.')}</div>`,
       `<button class="btn primary" id="svOk">Understood</button>`) || $('#svOk').addEventListener('click', closeModal), 300);
     return;
   }
@@ -1919,13 +1910,14 @@ function load() {
   if (!raw) { seed(); return; }
   let parsed = null;
   try { parsed = JSON.parse(raw); } catch (e) { }
-  const d = migrate(parsed);
+  let d = null, loadError = null;
+  try { d = PC_UI.adoptHostDocument(parsed); } catch (error) { loadError = error; }
   if (!d) {
     seed();
-    if (parsed && parsed.v > SCHEMA) setTimeout(() => openModal('Saved project is from a newer version', `
-      <div class="alert"><b>This browser holds a project saved by a newer build of Slate.</b>
+    if (loadError) setTimeout(() => openModal('Saved project cannot be opened by this build', `
+      <div class="alert"><b>This browser holds a project this Pagecraft build cannot read.</b>
       <span>It was left untouched rather than loaded and possibly mangled. You are looking at the demo site.</span></div>
-      <div class="note" style="margin-top:var(--gap-2)">Update to the newer build to open it, or import a JSON backup instead.</div>`,
+      <div class="note" style="margin-top:var(--gap-2)">${esc(loadError.message)}</div>`,
       `<button class="btn primary" id="nvOk">Understood</button>`) || $('#nvOk').addEventListener('click', closeModal), 300);
     return;
   }
@@ -1981,24 +1973,19 @@ async function assetsLoad() {
    over the wire and comes back as an id, and `AS.mem` records it with a URL pointing at the
    server — which keeps every existing reader of `AS.mem` working unchanged. */
 async function assetAddServer(file) {
-  const form = new FormData();
-  form.set('file', file);
-  let res;
+  let meta;
   try {
-    res = await pagecraftFetch(`/api/sites/${SRV.siteId}/assets`, { method: 'POST', body: form });
+    meta = await HOST.assets.upload(file, file.name);
   } catch (e) {
-    toast('The upload did not reach the server');
+    const why = e && e.payload;
+    toast((why && why.error) || (e && e.status
+      ? `The server refused the image (${e.status})`
+      : 'The upload did not reach the server'));
     return null;
   }
-  if (!res.ok) {
-    const why = await res.json().catch(() => ({}));
-    toast(why.error || `The server refused the image (${res.status})`);
-    return null;
-  }
-  const meta = await res.json();
   AS.mem.set(meta.id, {
-    id: meta.id, name: meta.name, type: meta.type, size: file.size,
-    w: meta.w, h: meta.h,
+    id: meta.id, name: meta.name, type: meta.mimeType, size: meta.size || file.size,
+    w: meta.width, h: meta.height,
     /* served by the editor's own route, so it needs the session the page already has */
     url: SRV.editorSessionToken ? URL.createObjectURL(file) : `/api/sites/${SRV.siteId}/assets/${meta.id}`
   });
@@ -2010,19 +1997,19 @@ async function assetAddServer(file) {
 async function assetsLoadServer() {
   let list = [];
   try {
-    const res = await pagecraftFetch(`/api/sites/${SRV.siteId}/assets`);
-    if (res.ok) list = await res.json();
+    list = await HOST.assets.list();
   } catch (e) { }
   await Promise.all(list.map(async m => {
-    let url = `/api/sites/${SRV.siteId}/assets/${m.id}`;
+    let url = m.url;
     if (SRV.editorSessionToken) {
       try {
-        const response = await pagecraftFetch(url);
-        if (!response.ok) return;
-        url = URL.createObjectURL(await response.blob());
+        url = URL.createObjectURL(await HOST.assets.download(m.id));
       } catch { return; }
     }
-    AS.mem.set(m.id, { id: m.id, name: m.name, type: m.type, size: 0, w: m.w, h: m.h, url });
+    AS.mem.set(m.id, {
+      id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
+      w: m.width, h: m.height, url
+    });
   }));
 }
 
@@ -2042,18 +2029,13 @@ async function assetAdd(file) {
 async function assetDel(id) {
   const a = AS.mem.get(id);
   if (SRV) {
-    let res;
     try {
-      res = await pagecraftFetch(`/api/sites/${encodeURIComponent(SRV.siteId)}/assets/${encodeURIComponent(id)}`, {
-        method: 'DELETE'
-      });
+      await HOST.assets.remove(id);
     } catch (e) {
-      toast('The image could not be deleted from the server');
-      return false;
-    }
-    if (!res.ok) {
-      const why = await res.json().catch(() => ({}));
-      toast(why.error || `The server refused to delete the image (${res.status})`);
+      const why = e && e.payload;
+      toast((why && why.error) || (e && e.status
+        ? `The server refused to delete the image (${e.status})`
+        : 'The image could not be deleted from the server'));
       return false;
     }
   } else if (AS.ok) {

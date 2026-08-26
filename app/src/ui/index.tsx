@@ -18,6 +18,13 @@ import { TextStyles } from './TextStyles';
 import { FontSelect } from './FontSelect';
 import { ReviewList } from './ReviewList';
 
+/* Host factories ship in the same sealed bundle as the editor UI. The classic single-file
+   shell can therefore select Pagecraft Cloud today and WordPress later without importing a
+   second component runtime or copying any schema/compiler code. */
+export { createWebHostAdapter } from '../host/web';
+export { createWordPressHostAdapter } from '../host/wordpress';
+export { adoptHostDocument } from '../host/schema';
+
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
 

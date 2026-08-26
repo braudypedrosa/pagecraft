@@ -1504,12 +1504,12 @@ var ANIM_CSS = `@keyframes bpFadeIn{from{opacity:0}to{opacity:1}}@keyframes bpSl
 `;
 var ANIM_JS = `/**
  * BP Animate Library
- * 
+ *
  * A lightweight animation library that adds animation triggers when elements
  * come into view. The base class "bp-animate" doesn't start animations itself,
  * but triggers the "bp-is-animating" class when elements enter the viewport.
  * When the animation completes, it adds the "bp-is-done-animating" class.
- * 
+ *
  * @version 1.2.2
  */
 
@@ -1518,10 +1518,10 @@ var ANIM_JS = `/**
 
     /**
      * Get animation attributes from element
-     * 
+     *
      * Reads custom animation attributes (bp-duration, bp-delay, bp-easing)
      * from the element. Returns null if no custom attributes are provided.
-     * 
+     *
      * @param {HTMLElement} element - The element to read attributes from
      * @returns {Object|null} Object containing duration, delay, and easing values, or null
      * @since 1.0.0
@@ -1531,21 +1531,21 @@ var ANIM_JS = `/**
         const hasDuration = element.hasAttribute('bp-duration');
         const hasDelay = element.hasAttribute('bp-delay');
         const hasEasing = element.hasAttribute('bp-easing');
-        
+
         // If no custom attributes, return null to use CSS defaults
         if (!hasDuration && !hasDelay && !hasEasing) {
             return null;
         }
-        
+
         // Get duration (default: 0.6s if attribute exists but is empty)
         const duration = hasDuration ? (element.getAttribute('bp-duration') || '0.6s') : '0.6s';
-        
+
         // Get delay (default: 0s if attribute exists but is empty)
         const delay = hasDelay ? (element.getAttribute('bp-delay') || '0s') : '0s';
-        
+
         // Get easing (default: ease-in-out if attribute exists but is empty)
         const easing = hasEasing ? (element.getAttribute('bp-easing') || 'ease-in-out') : 'ease-in-out';
-        
+
         return {
             duration: duration,
             delay: delay,
@@ -1555,9 +1555,9 @@ var ANIM_JS = `/**
 
     /**
      * Get keyframe name from animation class
-     * 
+     *
      * Maps animation class names to their corresponding keyframe names.
-     * 
+     *
      * @param {HTMLElement} element - The element to check for animation classes
      * @returns {string|null} The keyframe name or null if no animation class found
      * @since 1.0.0
@@ -1608,10 +1608,10 @@ var ANIM_JS = `/**
 
     /**
      * Apply animation styles to element
-     * 
+     *
      * Applies custom duration, delay, and easing to the element
      * by setting the animation property directly via inline styles.
-     * 
+     *
      * @param {HTMLElement} element - The element to apply styles to
      * @param {Object} attributes - Animation attributes object
      * @since 1.0.0
@@ -1619,7 +1619,7 @@ var ANIM_JS = `/**
     function applyAnimationStyles(element, attributes) {
         // Get the keyframe name for this element's animation class
         const keyframeName = getKeyframeName(element);
-        
+
         if (keyframeName) {
             // Build the animation property: name duration easing delay fill-mode
             // Using 'forwards' to keep the final state after animation completes
@@ -1630,17 +1630,17 @@ var ANIM_JS = `/**
 
     /**
      * Check if element is actually visible
-     * 
+     *
      * Checks if an element is truly visible, not just in the viewport.
      * An element is considered visible if:
      * - It has dimensions (width and height > 0)
      * - It's not display: none
      * - It's not visibility: hidden
      * - It has opacity > 0 OR has animation classes AND is not intentionally hidden
-     * 
+     *
      * This prevents triggering animations on elements that are intentionally hidden
      * via opacity: 0 but are not part of an animation sequence.
-     * 
+     *
      * @param {HTMLElement} element - The element to check
      * @returns {boolean} True if element is visible, false otherwise
      * @since 1.0.0
@@ -1648,25 +1648,25 @@ var ANIM_JS = `/**
     function isElementVisible(element) {
         // Get computed styles
         const style = window.getComputedStyle(element);
-        
+
         // Check if element is hidden via display
         if (style.display === 'none') {
             return false;
         }
-        
+
         // Check if element is hidden via visibility
         if (style.visibility === 'hidden') {
             return false;
         }
-        
+
         // Check if element has dimensions
         const rect = element.getBoundingClientRect();
-        
+
         // Check if element has a valid animation class (predefined or custom)
         // Custom animation classes often start with "animation-" prefix
         const hasAnimationClass = getKeyframeName(element) !== null;
-        const hasCustomAnimationClass = Array.from(element.classList).some(className => 
-            className.startsWith('animation-') || 
+        const hasCustomAnimationClass = Array.from(element.classList).some(className =>
+            className.startsWith('animation-') ||
             className.includes('animate') ||
             className.includes('grow') ||
             className.includes('slide') ||
@@ -1676,7 +1676,7 @@ var ANIM_JS = `/**
             className.includes('bounce') ||
             className.includes('flip')
         );
-        
+
         // If element has zero dimensions, check if it has an animation class
         // Animations like growWidth, scale-up, etc. may intentionally start from zero
         if (rect.width === 0 && rect.height === 0) {
@@ -1691,20 +1691,20 @@ var ANIM_JS = `/**
                 return false;
             }
         }
-        
+
         // Check opacity
         const opacity = parseFloat(style.opacity);
-        
+
         // If opacity is 0, we need to be more careful
         if (opacity === 0) {
             // Check if element has a valid animation class
             const hasAnimationClass = getKeyframeName(element) !== null;
-            
+
             // If it doesn't have a valid animation class, it's intentionally hidden
             if (!hasAnimationClass) {
                 return false;
             }
-            
+
             // Element has opacity 0 and an animation class
             // Check if opacity is set via inline style (intentional hiding)
             const inlineOpacity = element.style.opacity;
@@ -1713,7 +1713,7 @@ var ANIM_JS = `/**
                 // Even if it has an animation class, don't trigger if opacity is explicitly 0
                 return false;
             }
-            
+
             // Check if element has position fixed/absolute
             // Fixed/absolute elements with opacity 0 are often intentionally hidden (like menus)
             // Only trigger if explicitly allowed via data attribute
@@ -1725,23 +1725,23 @@ var ANIM_JS = `/**
                     return false;
                 }
             }
-            
+
             // Element has opacity 0 but has a valid animation class and passes other checks
             // Opacity 0 is the initial state for fade-in, slide, etc. animations
             return true;
         }
-        
+
         // Element has opacity > 0, so it's visible
         return true;
     }
 
     /**
      * Handle animation completion
-     * 
+     *
      * This function listens for transitionend and animationend events
      * to detect when CSS animations/transitions are complete.
      * When complete, it adds the "bp-is-done-animating" class.
-     * 
+     *
      * @param {HTMLElement} element - The element that is animating
      * @since 1.0.0
      */
@@ -1781,12 +1781,12 @@ var ANIM_JS = `/**
 
     /**
      * Initialize the BP Animate library
-     * 
+     *
      * This function sets up an Intersection Observer to watch for elements
      * with the "bp-animate" class. When these elements come into view,
      * it adds the "bp-is-animating" class to trigger animations.
      * When animations complete, it adds the "bp-is-done-animating" class.
-     * 
+     *
      * @since 1.0.0
      */
     function initBPAnimate() {
@@ -1800,7 +1800,7 @@ var ANIM_JS = `/**
 
         /**
          * Intersection Observer options
-         * 
+         *
          * root: null means we're observing relative to the viewport
          * rootMargin: '0px' means no offset (you can adjust this to trigger earlier/later)
          * threshold: 0 means trigger when any part of the element enters the viewport
@@ -1813,7 +1813,7 @@ var ANIM_JS = `/**
 
         /**
          * Callback function that runs when observed elements intersect with the viewport
-         * 
+         *
          * @param {IntersectionObserverEntry[]} entries - Array of intersection entries
          * @param {IntersectionObserver} observer - The observer instance
          */
@@ -1822,42 +1822,42 @@ var ANIM_JS = `/**
                 // Check if the element is currently intersecting (visible in viewport)
                 if (entry.isIntersecting) {
                     const element = entry.target;
-                    
+
                     // Check if element is actually visible
                     const isVisible = isElementVisible(element);
-                    
+
                     if (isVisible) {
                         // Element is in viewport AND actually visible
                         // Remove hidden class if it exists
                         element.classList.remove('bp-is-hidden');
-                        
+
                         // Always add bp-is-visible class when element is in viewport and visible
                         // This works for elements with or without animation classes
                         element.classList.add('bp-is-visible');
-                        
+
                         // Check if element has an animation class
                         // Only trigger animation if element has a valid animation class
                         const hasAnimationClass = getKeyframeName(element) !== null;
-                        
+
                         if (hasAnimationClass) {
                             // Get animation attributes (duration, delay, easing)
                             // Returns null if no custom attributes are provided
                             const attributes = getAnimationAttributes(element);
-                            
+
                             // Apply animation styles only if custom attributes are provided
                             if (attributes !== null) {
                                 applyAnimationStyles(element, attributes);
                             }
-                            
+
                             // Remove done class if it exists (for re-animations)
                             element.classList.remove('bp-is-done-animating');
-                            
+
                             // Add the bp-is-animating class to trigger the animation
                             element.classList.add('bp-is-animating');
-                            
+
                             // Set up listeners to detect when animation completes
                             handleAnimationComplete(element);
-                            
+
                             // Check if animation should only run once
                             const animationOnce = element.getAttribute('bp-animation-once');
                             if (animationOnce === 'true') {
@@ -1869,7 +1869,7 @@ var ANIM_JS = `/**
                         // Element is in viewport but NOT actually visible (hidden via CSS)
                         // Remove visible class if it exists
                         element.classList.remove('bp-is-visible');
-                        
+
                         // Add bp-is-hidden class to indicate element is in viewport but hidden
                         element.classList.add('bp-is-hidden');
                     }
@@ -1893,19 +1893,19 @@ var ANIM_JS = `/**
         animateElements.forEach(element => {
             observer.observe(element);
         });
-        
+
         // Store observer globally so we can add new elements to it later
         window._bpAnimateObserver = observer;
-        
+
         return observer;
     }
-    
+
     /**
      * Observe a new element that was dynamically added to the DOM
-     * 
+     *
      * This function adds a new element to the Intersection Observer
      * and sets up visibility change watching for dynamically added elements.
-     * 
+     *
      * @param {HTMLElement} element - The element to observe
      * @since 1.2.1
      */
@@ -1914,38 +1914,38 @@ var ANIM_JS = `/**
         if (!element.classList.contains('bp-animate')) {
             return;
         }
-        
+
         // Check if element is already being observed
         if (element.dataset.bpObserved === 'true') {
             return;
         }
-        
+
         // Mark as observed
         element.dataset.bpObserved = 'true';
-        
+
         // Get or create the observer
         let observer = window._bpAnimateObserver;
-        
+
         if (!observer) {
             // Observer doesn't exist yet, initialize it
             initBPAnimate();
             observer = window._bpAnimateObserver;
         }
-        
+
         if (observer) {
             // Add element to Intersection Observer
             observer.observe(element);
-            
+
             // Set up visibility change watching
             watchForVisibilityChanges([element]);
-            
+
             // If element is already in viewport, trigger check immediately
             const rect = element.getBoundingClientRect();
             const isInViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) &&
                                 rect.bottom > 0 &&
                                 rect.left < (window.innerWidth || document.documentElement.clientWidth) &&
                                 rect.right > 0;
-            
+
             if (isInViewport) {
                 // Small delay to ensure CSS is applied
                 setTimeout(function() {
@@ -1954,13 +1954,13 @@ var ANIM_JS = `/**
             }
         }
     }
-    
+
     /**
      * Watch for dynamically added elements with bp-animate class
-     * 
+     *
      * Sets up a MutationObserver to watch the entire document for new elements
      * being added that have the bp-animate class.
-     * 
+     *
      * @since 1.2.1
      */
     function watchForNewElements() {
@@ -1975,7 +1975,7 @@ var ANIM_JS = `/**
                         if (node.classList && node.classList.contains('bp-animate')) {
                             observeNewElement(node);
                         }
-                        
+
                         // Also check for bp-animate elements within the added node
                         const bpAnimateElements = node.querySelectorAll && node.querySelectorAll('.bp-animate');
                         if (bpAnimateElements) {
@@ -1987,23 +1987,23 @@ var ANIM_JS = `/**
                 });
             });
         });
-        
+
         // Start observing the document body for child additions
         domObserver.observe(document.body, {
             childList: true,    // Watch for added/removed children
             subtree: true       // Watch all descendants, not just direct children
         });
-        
+
         // Store observer so it persists
         window._bpAnimateDOMObserver = domObserver;
     }
 
     /**
      * Manually trigger animation for an element
-     * 
+     *
      * This function allows you to manually trigger an animation on an element,
      * useful when elements become visible dynamically via class or CSS changes.
-     * 
+     *
      * @param {HTMLElement|string} element - The element or selector to trigger animation on
      * @returns {boolean} True if animation was triggered, false otherwise
      * @since 1.1.0
@@ -2013,42 +2013,42 @@ var ANIM_JS = `/**
         if (typeof element === 'string') {
             element = document.querySelector(element);
         }
-        
+
         // Check if element exists and has bp-animate class
         if (!element || !element.classList.contains('bp-animate')) {
             return false;
         }
-        
+
         // Check if element is actually visible now
         const isVisible = isElementVisible(element);
-        
+
         if (isVisible) {
             // Element is visible - add bp-is-visible, remove bp-is-hidden
             element.classList.remove('bp-is-hidden');
             element.classList.add('bp-is-visible');
-            
+
             // Check if element has an animation class
             const hasAnimationClass = getKeyframeName(element) !== null;
-            
+
             if (hasAnimationClass) {
                 // Get animation attributes
                 const attributes = getAnimationAttributes(element);
-                
+
                 // Apply animation styles if custom attributes provided
                 if (attributes !== null) {
                     applyAnimationStyles(element, attributes);
                 }
-                
+
                 // Remove done class if it exists (for re-animations)
                 element.classList.remove('bp-is-done-animating');
-                
+
                 // Add the bp-is-animating class to trigger the animation
                 element.classList.add('bp-is-animating');
-                
+
                 // Set up listeners to detect when animation completes
                 handleAnimationComplete(element);
             }
-            
+
             return true;
         } else {
             // Element is in viewport but not visible - add bp-is-hidden
@@ -2060,10 +2060,10 @@ var ANIM_JS = `/**
 
     /**
      * Watch for dynamic visibility changes
-     * 
+     *
      * Sets up a MutationObserver to watch for class and style changes
      * that might make elements visible, and triggers animations accordingly.
-     * 
+     *
      * @param {HTMLElement[]} elements - Array of elements to watch
      * @since 1.1.0
      */
@@ -2073,29 +2073,29 @@ var ANIM_JS = `/**
             if (element.dataset.bpWatched === 'true') {
                 return;
             }
-            
+
             element.dataset.bpWatched = 'true';
-            
+
             // Watch for class and style attribute changes
             const observer = new MutationObserver(function(mutations) {
                 let shouldCheck = false;
-                
+
                 mutations.forEach(function(mutation) {
                     // Check if class or style changed
-                    if (mutation.type === 'attributes' && 
+                    if (mutation.type === 'attributes' &&
                         (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
                         shouldCheck = true;
                     }
                 });
-                
+
                 // If relevant changes occurred, check if element is now visible
                 if (shouldCheck) {
                     // Small delay to allow CSS to update
                     setTimeout(function() {
                         // Only trigger if element is not already animating
-                        if (!element.classList.contains('bp-is-animating') && 
+                        if (!element.classList.contains('bp-is-animating') &&
                             !element.classList.contains('bp-is-done-animating')) {
-                            
+
                             // Check if element is now visible
                             if (isElementVisible(element)) {
                                 // Check if element is in viewport
@@ -2104,7 +2104,7 @@ var ANIM_JS = `/**
                                                     rect.bottom > 0 &&
                                                     rect.left < (window.innerWidth || document.documentElement.clientWidth) &&
                                                     rect.right > 0;
-                                
+
                                 if (isInViewport) {
                                     // Trigger animation/visibility detection
                                     // This will add bp-is-visible or bp-is-hidden as appropriate
@@ -2115,7 +2115,7 @@ var ANIM_JS = `/**
                     }, 50);
                 }
             });
-            
+
             observer.observe(element, {
                 attributes: true,
                 attributeFilter: ['class', 'style']
@@ -2125,7 +2125,7 @@ var ANIM_JS = `/**
 
     /**
      * Initialize when DOM is ready
-     * 
+     *
      * We wait for the DOM to be fully loaded before initializing.
      * This ensures all elements with .bp-animate are available.
      */
@@ -2521,7 +2521,7 @@ var DEF = {
        script for it and still swipes on a phone, scrolls with a trackpad and reaches every
        slide from the keyboard. Only the arrow buttons need JavaScript, which is why they
        are optional and why they arrive hidden.
-  
+
        Slides do not carry flex-grow the way a row's columns do: their width comes from
        `--sl-w`, so "three per view" is one declaration rather than a ratio per slide. */
   slider: {
@@ -2684,10 +2684,10 @@ var DEF = {
        load-bearing, and it is one widget rather than four because Div, Flex and Grid differ by a
        single declaration. Three palette entries build it with a different `layout`, the way
        `columns` builds a row; the panel then offers the controls that layout actually has.
-  
+
        Level 2, so it sits where a row sits: a section holds one, a column holds one, and it
        holds rows, columns, boxes and anything else. That is what `alsoHolds` is for.
-  
+
        `link` makes the whole box an anchor — the Link Block. Nothing else in the widget set could
        do it: a link lived on a heading, a button or an image, so a clickable card meant a
        transparent button stretched over it. */
@@ -2780,12 +2780,12 @@ var DEF = {
        two WYSIWYG blocks holding `<p>&ldquo;…&rdquo;</p>`, so the most quotable thing on
        a marketing page exported as an anonymous paragraph with decorative curly braces
        in the text. A reader on a screen reader heard prose; a search engine saw prose.
-  
+
        The shape follows the image widget's figure rule, for the same reason: an
        attribution is a caption, and a caption is what makes an element a `<figure>`.
        Unattributed, a bare `<blockquote>` says everything there is to say — wrapping it
        in a figure with an empty figcaption would say less, not more.
-  
+
        The attribution is sized in rem rather than the em the image caption uses. A quote's
        own size lands on the figure and ranges from 16px in a card to 40px in a pull quote,
        so an em attribution rendered at 10px in the first and 25px in the second; an
@@ -9396,6 +9396,9 @@ var PC_UI = (() => {
   // app/src/ui/index.tsx
   var index_exports = {};
   __export(index_exports, {
+    adoptHostDocument: () => adoptHostDocument,
+    createWebHostAdapter: () => createWebHostAdapter,
+    createWordPressHostAdapter: () => createWordPressHostAdapter,
     mount: () => mount
   });
 
@@ -9532,7 +9535,7 @@ var PC_UI = (() => {
     };
   }
   function q(n2, u4, t3, i3, r3, o3, e3, f4, c3, a3) {
-    var s3, h3, p3, v3, y3, d3, _2, k3, x2, M, I2, P2, A3, H2, T3, j3, F = u4.type;
+    var s3, h3, p3, v3, y3, d3, _2, k3, x2, M, I2, P2, A3, H2, T4, j3, F = u4.type;
     if (void 0 !== u4.constructor) return null;
     128 & t3.__u && (c3 = !!(32 & t3.__u), o3 = [f4 = u4.__e = t3.__e]), (s3 = l.__b) && s3(u4);
     n: if ("function" == typeof F) {
@@ -9554,7 +9557,7 @@ var PC_UI = (() => {
         else do {
           p3.__d = false, A3 && A3(u4), s3 = p3.render(p3.props, p3.state, p3.context), p3.state = p3.__s;
         } while (p3.__d && ++H2 < 25);
-        p3.state = p3.__s, null != p3.getChildContext && (i3 = m(m({}, i3), p3.getChildContext())), M && !v3 && null != p3.getSnapshotBeforeUpdate && (_2 = p3.getSnapshotBeforeUpdate(y3, d3)), T3 = null != s3 && s3.type === S && null == s3.key ? E(s3.props.children) : s3, f4 = L(n2, g(T3) ? T3 : [T3], u4, t3, i3, r3, o3, e3, f4, c3, a3), p3.base = u4.__e, u4.__u &= -161, p3.__h.length && e3.push(p3), k3 && (p3.__E = p3.__ = null);
+        p3.state = p3.__s, null != p3.getChildContext && (i3 = m(m({}, i3), p3.getChildContext())), M && !v3 && null != p3.getSnapshotBeforeUpdate && (_2 = p3.getSnapshotBeforeUpdate(y3, d3)), T4 = null != s3 && s3.type === S && null == s3.key ? E(s3.props.children) : s3, f4 = L(n2, g(T4) ? T4 : [T4], u4, t3, i3, r3, o3, e3, f4, c3, a3), p3.base = u4.__e, u4.__u &= -161, p3.__h.length && e3.push(p3), k3 && (p3.__E = p3.__ = null);
       } catch (n3) {
         if (e3.length = h3, u4.__v = null, c3 || null != o3) {
           if (n3.then) {
@@ -11362,8 +11365,8 @@ var PC_UI = (() => {
         const link = parsed(it);
         const wordpress = wordpressDestinationForValue(it.href);
         const mode = link.mode === "page" ? "page" : wordpress ? "wordpress" : "custom";
-        const page = link.page || C2.page().slug;
-        const anchors = mode === "page" ? C2.anchorsOf(page) : [];
+        const page2 = link.page || C2.page().slug;
+        const anchors = mode === "page" ? C2.anchorsOf(page2) : [];
         const isDragging = dragging === k3;
         return /* @__PURE__ */ u2(
           "div",
@@ -11433,7 +11436,7 @@ var PC_UI = (() => {
                   /* @__PURE__ */ u2("option", { value: "custom", children: "Custom URL" })
                 ] }),
                 mode === "page" ? /* @__PURE__ */ u2(S, { children: [
-                  /* @__PURE__ */ u2("select", { class: "ctl", value: page, onChange: (e3) => {
+                  /* @__PURE__ */ u2("select", { class: "ctl", value: page2, onChange: (e3) => {
                     commit(k3, "href", C2.buildLink({ mode: "page", page: e3.target.value, frag: "" }));
                   }, children: C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
                     p3.name,
@@ -11441,7 +11444,7 @@ var PC_UI = (() => {
                     p3.slug === "index" ? "/" : "/" + p3.slug
                   ] }, p3.id)) }),
                   /* @__PURE__ */ u2("select", { class: "ctl", value: link.frag || "", onChange: (e3) => {
-                    commit(k3, "href", C2.buildLink({ mode: "page", page, frag: e3.target.value }));
+                    commit(k3, "href", C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }));
                   }, children: [
                     /* @__PURE__ */ u2("option", { value: "", children: "Top of the page" }),
                     anchors.map((id) => /* @__PURE__ */ u2("option", { value: id, children: [
@@ -11851,12 +11854,12 @@ var PC_UI = (() => {
         pop ? (
           /* picking a literal breaks any token link, which is why this writes through the
                      same path as typing a hex rather than a special one.
-          
+
                      `start` falls back to what the property actually resolves to, so opening the
                      picker on a field reading `inherit` begins at the colour on screen rather than at
                      black. Nothing is written until you move something — this only decides where the
                      pointer starts.
-          
+
                      Through `resolveColor`, because what it inherits is usually a token reference and
                      `var(--c-muted)` is not a colour any parser can read — without it the fallback
                      landed back on black, which is the thing it was meant to fix. */
@@ -13951,6 +13954,2089 @@ var PC_UI = (() => {
     ] });
   }
 
+  // app/src/host/transport.ts
+  var HostRequestError = class extends Error {
+    constructor(message, status, payload) {
+      super(message);
+      this.status = status;
+      this.payload = payload;
+      this.name = "HostRequestError";
+    }
+    status;
+    payload;
+  };
+  var FetchHostTransport = class {
+    constructor(baseUrl, fetcher, headers = () => ({})) {
+      this.baseUrl = baseUrl;
+      this.fetcher = fetcher;
+      this.headers = headers;
+    }
+    baseUrl;
+    fetcher;
+    headers;
+    async request(request) {
+      const customHeaders = { ...this.headers(), ...request.headers || {} };
+      let body = request.body;
+      if (body && typeof body === "object" && !(body instanceof Blob) && !(body instanceof FormData) && !(body instanceof URLSearchParams) && !(body instanceof ArrayBuffer)) {
+        customHeaders["content-type"] ||= "application/json";
+        body = JSON.stringify(body);
+      }
+      const response = await this.fetcher(this.baseUrl + request.path, {
+        method: request.method,
+        headers: customHeaders,
+        body
+      });
+      const type = request.responseType || "json";
+      let parsed;
+      if (type === "empty" || response.status === 204) parsed = void 0;
+      else if (type === "blob") parsed = await response.blob();
+      else if (type === "text") parsed = await response.text();
+      else parsed = await response.json().catch(() => null);
+      if (!response.ok) {
+        const detail = parsed && typeof parsed === "object" ? String(parsed.detail || parsed.error || "") : "";
+        throw new HostRequestError(detail || `Host request failed (${response.status})`, response.status, parsed);
+      }
+      return { status: response.status, headers: response.headers, body: parsed };
+    }
+  };
+  var encodePath = (value) => encodeURIComponent(String(value));
+
+  // app/src/core/icons.ts
+  var IC = {
+    cms: '<ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/>',
+    section: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4 5.5h8M4 8h8M4 10.5h5"/>',
+    row: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M8 3.5v9"/>',
+    table: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6h13M6.5 6v7.5"/>',
+    codeblock: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M5 7l-1.6 1.6L5 10.2M9.2 7l1.6 1.6-1.6 1.6" stroke-linecap="round"/>',
+    crumbs: '<path d="M1.5 8h3.2M7.2 8h3.2M12.9 8h1.6" stroke-linecap="round"/><path d="M5.6 6.4L7 8 5.6 9.6M11.3 6.4L12.7 8l-1.4 1.6" stroke-linecap="round"/>',
+    slider: '<rect x="1.5" y="3.5" width="8" height="9" rx="1.5"/><path d="M12 5.2v5.6M14.3 6.6v2.8"/>',
+    column: '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5.6 2.5v11M10.4 2.5v11"/>',
+    columns: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.8 3.5v9M10.2 3.5v9"/>',
+    heading: '<path d="M4 13V3M12 13V3M4 8h8" stroke-linecap="round"/>',
+    text: '<path d="M2.5 3.5h11M2.5 6.6h11M2.5 9.7h11M2.5 12.8h6" stroke-linecap="round"/>',
+    quote: '<path d="M6.6 4.3C4.5 5.3 3.3 7 3.3 8.9c0 1.4.9 2.4 2.2 2.4 1.1 0 1.9-.8 1.9-1.8s-.7-1.7-1.7-1.7M13.6 4.3c-2.1 1-3.3 2.7-3.3 4.6 0 1.4.9 2.4 2.2 2.4 1.1 0 1.9-.8 1.9-1.8s-.7-1.7-1.7-1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+    image: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.6" cy="6.4" r="1.2"/><path d="M1.8 11.6l3.4-3 3 2.6 2.3-2 3.7 3.3"/>',
+    video: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M6.6 5.9l4 2.1-4 2.1z" fill="currentColor" stroke="none"/>',
+    button: '<rect x="1.5" y="4.5" width="13" height="7" rx="3.5"/><path d="M5 8h6" stroke-linecap="round"/>',
+    spacer: '<path d="M2.5 2.5h11M2.5 13.5h11" stroke-linecap="round"/><path d="M8 5v6M6.2 6.6L8 4.8l1.8 1.8M6.2 9.4L8 11.2l1.8-1.8"/>',
+    divider: '<path d="M1.5 8h13" stroke-linecap="round"/><path d="M4 4.6h8M4 11.4h8" opacity=".4"/>',
+    nav: '<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h7" stroke-linecap="round"/>',
+    form: '<rect x="2" y="2.5" width="12" height="4" rx="1.2"/><rect x="2" y="9.5" width="12" height="4" rx="1.2"/><path d="M4.5 4.5h3M4.5 11.5h5" stroke-linecap="round"/>',
+    globe: '<circle cx="8" cy="8" r="6.3"/><path d="M1.9 6.2h12.2M1.9 9.8h12.2M8 1.7c-1.6 1.7-2.5 3.9-2.5 6.3S6.4 12.6 8 14.3c1.6-1.7 2.5-3.9 2.5-6.3S9.6 3.4 8 1.7z"/>',
+    lock: '<rect x="3.5" y="7" width="9" height="6.5" rx="1.3"/><path d="M5.8 7V5.2a2.2 2.2 0 014.4 0V7"/>',
+    external: '<path d="M9.5 2.5H13V6"/><path d="M13 2.5L7.5 8"/><path d="M11.5 9.5v3H3.5v-8h3" stroke-linecap="round"/>',
+    link: '<path d="M6.5 9.5l3-3M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/>',
+    unlink: '<path d="M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/><path d="M2.5 2.5l11 11" stroke-linecap="round" opacity=".7"/>',
+    icon: '<path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.7 4.1 13.7l.8-4.3-3.1-3 4.3-.6z"/>',
+    caret: '<path d="M3.5 5.5L8 10l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    /* the same chevron the other way up. A down caret was standing in for both directions, so
+       Move up and Move down were the same glyph — and Select parent pointed downwards. Drawn
+       rather than rotated, for the reason the `more` icon was: a rotated glyph needs a class on
+       the element that carries it, which is a second thing to remember at every call site. */
+    caretUp: '<path d="M3.5 10.5L8 6l4.5 4.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    close: '<path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"/>',
+    trash: '<path d="M2.8 4.5h10.4M6.2 4.5V2.8h3.6v1.7M4.2 4.5l.6 8.2c0 .5.5.8 1 .8h4.4c.5 0 1-.3 1-.8l.6-8.2" stroke-linecap="round"/>',
+    copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.4"/><path d="M10.5 5.5v-2A1 1 0 009.5 2.5h-6a1 1 0 00-1 1v6a1 1 0 001 1h2"/>',
+    /* A component: one outline, and a filled mark inside it that is the part that varies.
+       Deliberately not `copy` — two identical squares is what a component is *not*, and the
+       Blocks tab is the thing next to it in the panel. */
+    component: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><rect x="5.5" y="5.5" width="5" height="5" rx="1" fill="currentColor" stroke="none"/>',
+    /* Three dots in a row. It exists because the overflow button used to be `drag`
+       rotated 90 degrees, and a 3x2 dot grid beside a 2x3 dot grid is the same glyph
+       twice at 12px — "drag to move" and "everything else" were indistinguishable. */
+    more: '<circle cx="3.6" cy="8" r="1.15" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="1.15" fill="currentColor" stroke="none"/><circle cx="12.4" cy="8" r="1.15" fill="currentColor" stroke="none"/>',
+    drag: '<circle cx="6" cy="4" r="1.1" fill="currentColor" stroke="none"/><circle cx="10" cy="4" r="1.1" fill="currentColor" stroke="none"/><circle cx="6" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="6" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="10" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
+    eye: '<path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="1.9"/>',
+    eyeoff: '<path d="M2 2l12 12" stroke-linecap="round"/><path d="M6.2 6.3A2 2 0 008 10a2 2 0 001.7-1M4.2 4.6C2.5 5.9 1.5 8 1.5 8S3.9 12.5 8 12.5c1 0 1.9-.2 2.7-.6M12.4 10.4c1.3-1.2 2.1-2.4 2.1-2.4S12.1 3.5 8 3.5c-.4 0-.8 0-1.2.1"/>',
+    desktop: '<rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/><path d="M5.5 14h5"/>',
+    tablet: '<rect x="3.5" y="1.5" width="9" height="13" rx="1.5"/>',
+    mobile: '<rect x="4.5" y="1.5" width="7" height="13" rx="1.5"/>',
+    alignL: '<path d="M2 3.5h12M2 8h7M2 12.5h10" stroke-linecap="round"/>',
+    alignC: '<path d="M2 3.5h12M4.5 8h7M3 12.5h10" stroke-linecap="round"/>',
+    alignR: '<path d="M2 3.5h12M7 8h7M4 12.5h10" stroke-linecap="round"/>',
+    alignJ: '<path d="M2 3.5h12M2 8h12M2 12.5h12" stroke-linecap="round"/>',
+    vTop: '<path d="M2 2.5h12" stroke-linecap="round"/><rect x="5" y="5" width="6" height="8" rx="1"/>',
+    vMid: '<path d="M2 8h12" stroke-linecap="round" opacity=".5"/><rect x="5" y="4" width="6" height="8" rx="1"/>',
+    vBot: '<path d="M2 13.5h12" stroke-linecap="round"/><rect x="5" y="3" width="6" height="8" rx="1"/>',
+    toTop: '<path d="M3 2.8h10M8 13.2V6M5 8.9L8 5.9l3 3" stroke-linecap="round" stroke-linejoin="round"/>',
+    toBottom: '<path d="M3 13.2h10M8 2.8V10M5 7.1L8 10.1l3-3" stroke-linecap="round" stroke-linejoin="round"/>',
+    plus: '<path d="M8 3v10M3 8h10" stroke-linecap="round"/>',
+    edit: '<path d="M11.2 2.6l2.2 2.2-8 8L3 13.5l.7-2.4z" stroke-linejoin="round"/>',
+    arrow: '<path d="M6 3.5L10.5 8 6 12.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    check: '<path d="M3 8.5l3.2 3.2L13 5" stroke-linecap="round" stroke-linejoin="round"/>',
+    page: '<rect x="2.5" y="1.5" width="11" height="13" rx="1.5"/><path d="M5 5h6M5 8h6M5 11h4"/>',
+    code: '<path d="M5.5 5L2.5 8l3 3M10.5 5l3 3-3 3M9.3 3.2l-2.6 9.6" stroke-linecap="round"/>',
+    tabs: '<path d="M1.8 6.2h12.4v7.6a.9.9 0 01-.9.9H2.7a.9.9 0 01-.9-.9z" stroke-linejoin="round"/><path d="M1.8 6.2l1.4-3.4h3.6l.7 3.4" stroke-linecap="round" stroke-linejoin="round"/>',
+    accordion: '<rect x="1.5" y="2.2" width="13" height="3.6" rx="1"/><rect x="1.5" y="7.4" width="13" height="6.4" rx="1"/><path d="M4 9.9h6M4 11.9h4" opacity=".5"/>',
+    gallery: '<rect x="1.5" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="9.1" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="1.5" y="9.6" width="5.4" height="3.9" rx="1"/><rect x="9.1" y="9.6" width="5.4" height="3.9" rx="1"/>',
+    pipette: '<path d="M9.6 2.4l4 4" stroke-linecap="round"/><path d="M12.3 5.1L6.2 11.2l-2.9.9.9-2.9 6.1-6.1z" stroke-linecap="round" stroke-linejoin="round"/>'
+  };
+  var ICONS = [
+    ["Interface", [
+      ["check", '<path d="M20 6.5L9.2 17.3 4 12.1"/>'],
+      ["check-circle", '<circle cx="12" cy="12" r="9"/><path d="M8.2 12.4l2.6 2.6 5-5.6"/>'],
+      ["plus", '<path d="M12 5v14M5 12h14"/>'],
+      ["minus", '<path d="M5 12h14"/>'],
+      ["close", '<path d="M6 6l12 12M18 6L6 18"/>'],
+      ["arrow-right", '<path d="M4 12h15M13.2 6l6 6-6 6"/>'],
+      ["arrow-up-right", '<path d="M7 17L17.2 6.8M8.4 6.8h8.8v8.8"/>'],
+      ["chevron-down", '<path d="M6 9.5l6 6 6-6"/>'],
+      ["chevron-right", '<path d="M9.5 6l6 6-6 6"/>'],
+      ["menu", '<path d="M4 7h16M4 12h16M4 17h16"/>'],
+      ["search", '<circle cx="11" cy="11" r="6.4"/><path d="M15.8 15.8l4.7 4.7"/>'],
+      ["settings", '<circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v3.1M12 18.3v3.1M4.4 7.2l2.7 1.6M16.9 15.2l2.7 1.6M4.4 16.8l2.7-1.6M16.9 8.8l2.7-1.6"/>'],
+      ["external", '<path d="M14 4h6v6M20 4l-8.6 8.6M17 14.4v5.1H4.5V7h5.1"/>'],
+      ["download", '<path d="M12 4v11.4M7.4 11l4.6 4.6L16.6 11M4.4 19.6h15.2"/>']
+    ]],
+    ["Signals", [
+      ["star", '<path d="M12 3.2l2.7 5.6 6.1.9-4.4 4.4 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.4 6.1-.9z"/>'],
+      ["heart", '<path d="M12 20.2C9.5 18.4 4.6 14.9 4.6 11a3.9 3.9 0 017.4-1.8A3.9 3.9 0 0119.4 11c0 3.9-4.9 7.4-7.4 9.2z"/>'],
+      ["zap", '<path d="M13.4 2.4L4.6 14.2H10l-1.4 7.4 8.8-11.8h-5.4z"/>'],
+      ["sparkle", '<path d="M10 3.2l1.7 4.6 4.6 1.7-4.6 1.7L10 15.8 8.3 11.2 3.7 9.5l4.6-1.7z"/><path d="M17.6 14.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>'],
+      ["info", '<circle cx="12" cy="12" r="9"/><path d="M12 11.1v5.6M12 7.5v.9"/>'],
+      ["alert", '<path d="M12 3.6l8.8 15.8H3.2z"/><path d="M12 9.4v4.4M12 16.6v.9"/>'],
+      ["shield", '<path d="M12 3l8 3v5.9c0 5-3.4 8.1-8 9.1-4.6-1-8-4.1-8-9.1V6z"/>'],
+      ["lock", '<rect x="4.8" y="10.9" width="14.4" height="9.4" rx="2"/><path d="M8.2 10.9V8a3.8 3.8 0 017.6 0v2.9"/>']
+    ]],
+    ["Contact", [
+      ["mail", '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.6 6.6L12 12.5l8.4-5.9"/>'],
+      ["phone", '<path d="M6.1 3.2h2.8l1.9 4.7-2.1 1.4a12.3 12.3 0 005.9 5.9l1.4-2.1 4.7 1.9v2.8a2 2 0 01-2.2 2A16.6 16.6 0 014.1 5.4a2 2 0 012-2.2z"/>'],
+      ["chat", '<path d="M20 14.8a2 2 0 01-2 2H8.6L4 20.6V6a2 2 0 012-2h12a2 2 0 012 2z"/>'],
+      ["map-pin", '<path d="M12 21.2C12 21.2 5 15.1 5 10.4a7 7 0 1114 0c0 4.7-7 10.8-7 10.8z"/><circle cx="12" cy="10.2" r="2.6"/>'],
+      ["clock", '<circle cx="12" cy="12" r="9"/><path d="M12 6.9v5.5l3.6 2.2"/>'],
+      ["calendar", '<rect x="3.6" y="5.1" width="16.8" height="15.3" rx="2"/><path d="M3.6 10.1h16.8M8.2 3v4.1M15.8 3v4.1"/>'],
+      ["users", '<circle cx="9.2" cy="8" r="3.4"/><path d="M2.6 20a6.6 6.6 0 0113.2 0"/><path d="M16.2 5.2a3.4 3.4 0 010 5.6M17.6 14.5A6.6 6.6 0 0121.4 20"/>']
+    ]],
+    ["Craft", [
+      ["code", '<path d="M8.4 7.4L3.8 12l4.6 4.6M15.6 7.4L20.2 12l-4.6 4.6M13.7 4.4l-3.4 15.2"/>'],
+      ["layers", '<path d="M12 3l9 4.8-9 4.8-9-4.8z"/><path d="M3 12.6l9 4.8 9-4.8"/>'],
+      ["box", '<path d="M12 3.2l8.4 4.4v8.8L12 20.8l-8.4-4.4V7.6z"/><path d="M3.6 7.6L12 12l8.4-4.4M12 12v8.8"/>'],
+      ["chart", '<path d="M3 20.2h18"/><path d="M6.6 20.2v-6.4M12 20.2V7.4M17.4 20.2v-9.2"/>'],
+      ["globe", '<circle cx="12" cy="12" r="9"/><path d="M3.2 9.4h17.6M3.2 14.6h17.6"/><path d="M12 3c-2.4 2.6-3.7 5.7-3.7 9s1.3 6.4 3.7 9c2.4-2.6 3.7-5.7 3.7-9S14.4 5.6 12 3z"/>'],
+      ["play", '<circle cx="12" cy="12" r="9"/><path d="M10.2 8.4l6 3.6-6 3.6z"/>']
+    ]]
+  ];
+  var ICON_PATHS = ICONS.reduce(
+    (all, [, list2]) => {
+      list2.forEach(([k3, p3]) => {
+        all[k3] = p3;
+      });
+      return all;
+    },
+    {}
+  );
+  var ICON_NAMES = Object.keys(ICON_PATHS);
+
+  // app/src/core/index.ts
+  var _seq = 0;
+  var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
+  var clone = (o3) => JSON.parse(JSON.stringify(o3));
+  var HOME = "index.html";
+  var FILTER_OPS = [
+    ["is", "is"],
+    ["not", "is not"],
+    ["has", "contains"],
+    ["set", "has any value"],
+    ["unset", "is empty"]
+  ];
+  var BOX = (t3, r3, b2, l3) => ({ "padding-top": t3, "padding-right": r3, "padding-bottom": b2, "padding-left": l3 });
+  var U = {
+    size: ["px", "rem", "em", "vw"],
+    len: ["px", "rem", "%", "vw", "vh"],
+    space: ["px", "rem", "%"],
+    radius: ["px", "rem", "%"],
+    line: ["", "px", "em", "%"],
+    track: ["em", "px"],
+    border: ["px", "rem"]
+  };
+  var COLUMN_V_ALIGN = "--pc-column-v-align";
+  function columnVerticalOptions(n2) {
+    return [
+      ["follow", `Follow row \xB7 ${rowVerticalLabel(n2)}`],
+      ["flex-start", "Top"],
+      ["center", "Center"],
+      ["flex-end", "Bottom"]
+    ];
+  }
+  var GF_FALLBACK = {
+    s: "system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    f: "Georgia,'Times New Roman',serif",
+    d: "system-ui,-apple-system,sans-serif",
+    m: "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+  };
+  var GF_GROUP = { s: "Sans serif", f: "Serif", d: "Display", m: "Monospace" };
+  var W4 = "400;500;600;700";
+  var GF = [
+    ["Manrope", "s", W4],
+    ["DM Sans", "s", W4],
+    ["Inter", "s", W4],
+    ["Figtree", "s", W4],
+    ["Plus Jakarta Sans", "s", W4],
+    ["Work Sans", "s", W4],
+    ["Outfit", "s", W4],
+    ["Sora", "s", W4],
+    ["Space Grotesk", "s", "400;500;600;700"],
+    ["Epilogue", "s", W4],
+    ["Archivo", "s", W4],
+    ["Karla", "s", W4],
+    ["Rubik", "s", W4],
+    ["Poppins", "s", "400;500;600;700"],
+    ["Montserrat", "s", W4],
+    ["Raleway", "s", W4],
+    ["Nunito Sans", "s", W4],
+    ["Open Sans", "s", W4],
+    ["Lato", "s", "400;700"],
+    ["Roboto", "s", "400;500;700"],
+    ["Source Sans 3", "s", W4],
+    ["IBM Plex Sans", "s", "400;500;600;700"],
+    ["Mulish", "s", W4],
+    ["Public Sans", "s", W4],
+    ["Playfair Display", "f", "400;500;600;700"],
+    ["Fraunces", "f", W4],
+    ["Lora", "f", "400;500;600;700"],
+    ["Merriweather", "f", "400;700"],
+    ["Source Serif 4", "f", W4],
+    ["Crimson Pro", "f", W4],
+    ["Libre Baskerville", "f", "400;700"],
+    ["EB Garamond", "f", "400;500;600;700"],
+    ["Cormorant Garamond", "f", "400;500;600;700"],
+    ["Spectral", "f", "400;500;600;700"],
+    ["Newsreader", "f", W4],
+    ["DM Serif Display", "f", "400"],
+    ["Instrument Serif", "f", "400"],
+    ["Bebas Neue", "d", "400"],
+    ["Anton", "d", "400"],
+    ["Oswald", "d", "400;500;600;700"],
+    ["Archivo Black", "d", "400"],
+    ["Syne", "d", "400;500;600;700;800"],
+    ["Chivo", "d", W4],
+    ["JetBrains Mono", "m", "400;500;600;700"],
+    ["IBM Plex Mono", "m", "400;500;600;700"],
+    ["Space Mono", "m", "400;700"],
+    ["Roboto Mono", "m", W4],
+    ["Fira Code", "m", W4],
+    ["DM Mono", "m", "400;500"]
+  ];
+  var gfIndex = Object.fromEntries(GF.map(([fam, cat, w3]) => [fam.toLowerCase(), { fam, cat, w: w3 }]));
+  var stackFor = (fam, cat) => `'${fam}',${GF_FALLBACK[cat] || GF_FALLBACK.s}`;
+  var FONT_BASE = [
+    ["", "Inherit"],
+    ["system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", "System sans"],
+    ["Georgia,'Times New Roman',serif", "System serif"],
+    ["ui-monospace,SFMono-Regular,Menlo,Consolas,monospace", "System monospace"]
+  ];
+  function fontGroups() {
+    const groups = [["Standard", FONT_BASE]];
+    ["s", "f", "d", "m"].forEach((cat) => {
+      groups.push([
+        GF_GROUP[cat] + " \u2014 Google Fonts",
+        GF.filter(([, c3]) => c3 === cat).map(([fam, c3]) => [stackFor(fam, c3), fam])
+      ]);
+    });
+    return groups;
+  }
+  var SHADOWS = [
+    ["", "None"],
+    ["0 1px 2px rgba(17,19,17,.07)", "Hairline"],
+    ["0 8px 20px -8px rgba(17,19,17,.18)", "Soft"],
+    ["0 20px 44px -14px rgba(17,19,17,.28)", "Elevated"],
+    ["0 34px 70px -22px rgba(17,19,17,.38)", "Deep"]
+  ];
+  var FILTERS = [
+    ["", "None"],
+    ["grayscale(1)", "Greyscale"],
+    ["saturate(1.25)", "Richer"],
+    ["contrast(1.1)", "More contrast"],
+    ["blur(6px)", "Blurred"],
+    ["brightness(.85)", "Darker"]
+  ];
+  var GRID_COLS = [
+    ["repeat(2, minmax(0, 1fr))", "2 across"],
+    ["repeat(3, minmax(0, 1fr))", "3 across"],
+    ["repeat(4, minmax(0, 1fr))", "4 across"],
+    ["repeat(6, minmax(0, 1fr))", "6 across"],
+    ["repeat(auto-fit, minmax(240px, 1fr))", "As many as fit"],
+    ["2fr 1fr", "Wide then narrow"],
+    ["1fr 2fr", "Narrow then wide"]
+  ];
+  var DEF = {
+    section: {
+      label: "Section",
+      icon: "section",
+      level: 1,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({ props: { tag: "section", width: "boxed", inner: "" }, css: { d: { ...BOX("72px", "24px", "72px", "24px") }, t: {}, m: { ...BOX("48px", "20px", "48px", "20px") } } }),
+      controls: {
+        content: [
+          { t: "pick", k: "width", label: "Content width", opts: [["boxed", "Boxed"], ["full", "Full width"]], text: 1 },
+          { t: "unit", c: "min-height", label: "Min height", r: 1, units: U.len },
+          { t: "select", k: "tag", label: "HTML tag", opts: [["section", "section"], ["div", "div"], ["header", "header"], ["footer", "footer"], ["main", "main"], ["article", "article"], ["aside", "aside"]] }
+        ],
+        style: []
+      }
+    },
+    row: {
+      label: "Row",
+      icon: "row",
+      level: 2,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({ props: {}, css: { d: { gap: "24px", "align-items": "stretch", "justify-content": "flex-start" }, t: {}, m: { gap: "20px" } } }),
+      controls: {
+        content: [
+          { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
+          /* Baseline is here because the header templates use it — text beside text in a bar
+             is read on the baseline, not on the box. Without the option the control had no
+             button lit for a row it was looking at, and touching any other one threw the
+             value away with no way back through the UI. Same defect as a unit control whose
+             list omits the stored unit. */
+          { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["baseline", "Base"], ["stretch", "Fill"]] },
+          { t: "select", c: "justify-content", label: "Horizontal distribute", r: 1, opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
+          { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] },
+          { t: "cols", label: "Columns" }
+        ],
+        style: []
+      }
+    },
+    /* A Slider is a Row that scrolls and snaps. Not to be confused with the `slider` control
+         kind, which is a range input — one is a widget type, the other a control type, and the two
+         never meet., so a slide is a Column and anything can
+         go in one. The scrolling, the snapping and the sizing are CSS — a page ships no
+         script for it and still swipes on a phone, scrolls with a trackpad and reaches every
+         slide from the keyboard. Only the arrow buttons need JavaScript, which is why they
+         are optional and why they arrive hidden.
+
+         Slides do not carry flex-grow the way a row's columns do: their width comes from
+         `--sl-w`, so "three per view" is one declaration rather than a ratio per slide. */
+    slider: {
+      label: "Slider",
+      icon: "slider",
+      level: 2,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: { arrows: 1, aria: "Slides" },
+        css: {
+          d: { "--sl-gap": "24px", "--sl-w": "calc((100% - 2 * var(--sl-gap,24px)) / 3)" },
+          t: { "--sl-w": "calc((100% - var(--sl-gap,24px)) / 2)" },
+          m: { "--sl-gap": "16px", "--sl-w": "86%" }
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "select",
+            c: "--sl-w",
+            label: "Slides in view",
+            r: 1,
+            opts: [
+              ["100%", "One"],
+              ["calc((100% - var(--sl-gap,24px)) / 2)", "Two"],
+              ["calc((100% - 2 * var(--sl-gap,24px)) / 3)", "Three"],
+              ["calc((100% - 3 * var(--sl-gap,24px)) / 4)", "Four"],
+              ["86%", "One and a peek"],
+              ["auto", "As wide as their contents"]
+            ]
+          },
+          { t: "unit", c: "--sl-gap", label: "Gap", r: 1, units: U.space },
+          {
+            t: "toggle",
+            k: "arrows",
+            label: "Arrow buttons",
+            note: "Hidden without JavaScript, where swiping and scrolling still work"
+          },
+          {
+            t: "text",
+            k: "aria",
+            label: "Region name",
+            ph: "Slides",
+            note: "What a screen reader calls the scrollable area"
+          }
+        ],
+        style: []
+      }
+    },
+    /* A Collection List is a Row whose contents repeat — put one Column inside and
+       you get a grid of cards. The collection lives on `node.src`, the same field
+       phase 2 uses, so anything inside binds with no extra plumbing. */
+    list: {
+      label: "Collection list",
+      icon: "cms",
+      level: 2,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: { sort: "", dir: "asc", limit: "" },
+        css: { d: { gap: "24px", "align-items": "stretch", "flex-wrap": "wrap" }, t: {}, m: { gap: "20px" } }
+      }),
+      controls: {
+        content: [
+          { t: "source", label: "Collection" },
+          {
+            t: "select",
+            k: "sort",
+            label: "Sort by",
+            opts: (n2) => [
+              ["", "The order in the CMS"],
+              ...(n2.src && findCollection(n2.src) ? findCollection(n2.src).fields : []).map((f4) => [f4.id, f4.name])
+            ]
+          },
+          { t: "pick", k: "dir", label: "Direction", opts: [["asc", "A\u2013Z"], ["desc", "Z\u2013A"]] },
+          {
+            t: "select",
+            k: "where",
+            label: "Only show items where",
+            opts: (n2) => [
+              ["", "Every item"],
+              ...(n2.src && findCollection(n2.src) ? findCollection(n2.src).fields : []).map((f4) => [f4.id, f4.name])
+            ]
+          },
+          /* Both hidden until a field is chosen: an operator and a value with nothing to
+             test are two controls that cannot do anything, and a panel that shows every
+             control it has regardless is how the inspector got long in the first place. */
+          { t: "select", k: "op", label: "Test", opts: FILTER_OPS, when: (n2) => !!n2.props.where },
+          {
+            t: "text",
+            k: "val",
+            label: "Value",
+            ph: "e.g. Journal",
+            set: 1,
+            when: (n2) => {
+              const p3 = n2.props;
+              return !!p3.where && p3.op !== "set" && p3.op !== "unset";
+            }
+          },
+          {
+            t: "unit",
+            k: "per",
+            label: "Items per page",
+            units: [""],
+            ph: "all on one page",
+            note: "Turns this page into one file per page of results."
+          },
+          {
+            t: "unit",
+            k: "limit",
+            label: "Show at most",
+            units: [""],
+            ph: "all",
+            note: "Items per page wins where both are set.",
+            when: (n2) => !(parseInt(String(n2.props.per || ""), 10) > 0)
+          },
+          { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
+          /* Baseline is here because the header templates use it — text beside text in a bar
+             is read on the baseline, not on the box. Without the option the control had no
+             button lit for a row it was looking at, and touching any other one threw the
+             value away with no way back through the UI. Same defect as a unit control whose
+             list omits the stored unit. */
+          { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["baseline", "Base"], ["stretch", "Fill"]] },
+          { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] }
+        ],
+        style: []
+      }
+    },
+    column: {
+      label: "Column",
+      icon: "column",
+      level: 3,
+      alsoHolds: ["row", "slider", "box"],
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({ props: {}, css: { d: { "flex-grow": "100", [COLUMN_V_ALIGN]: "follow", "align-items": "stretch", gap: "16px" }, t: {}, m: { "flex-basis": "100%" } } }),
+      controls: {
+        content: [
+          /* Neither of these is a slide's business. Inside a slider a column's width comes from
+             the slider's own "Slides in view" — the strip sets `flex` on its children with two
+             classes, so a share or a basis set here is a control that does nothing. */
+          { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1, when: notASlide },
+          { t: "unit", c: "flex-basis", label: "Min basis", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
+          {
+            t: "select",
+            c: COLUMN_V_ALIGN,
+            label: "Vertical align",
+            r: 1,
+            opts: columnVerticalOptions,
+            note: "Follows the parent row unless this column overrides it."
+          },
+          { t: "pick", c: "align-items", label: "Horizontal align", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
+          { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space }
+        ],
+        style: []
+      }
+    },
+    /* ---- Box: the general container ------------------------------------------
+         The layout this editor could express was `section > row > column` and nothing else. A
+         three-across grid of cards that reflows to two, a toolbar whose items push apart, a whole
+         card that is one link — none of them were sayable. This is the primitive the plan called
+         load-bearing, and it is one widget rather than four because Div, Flex and Grid differ by a
+         single declaration. Three palette entries build it with a different `layout`, the way
+         `columns` builds a row; the panel then offers the controls that layout actually has.
+
+         Level 2, so it sits where a row sits: a section holds one, a column holds one, and it
+         holds rows, columns, boxes and anything else. That is what `alsoHolds` is for.
+
+         `link` makes the whole box an anchor — the Link Block. Nothing else in the widget set could
+         do it: a link lived on a heading, a button or an image, so a clickable card meant a
+         transparent button stretched over it. */
+    box: {
+      label: "Box",
+      icon: "section",
+      level: 2,
+      takes: 4,
+      alsoHolds: ["box", "row", "slider", "column"],
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({ props: { layout: "block", tag: "div", link: "", target: "" }, css: { d: {}, t: {}, m: {} } }),
+      controls: {
+        content: [
+          { t: "select", k: "layout", label: "Layout", opts: [["block", "Stacked"], ["flex", "Flex"], ["grid", "Grid"]] },
+          /* Flex. The same four controls a row has, because they are the four questions flexbox
+             asks — and named the way the row names them, so learning one teaches the other. */
+          { t: "pick", c: "flex-direction", label: "Direction", r: 1, when: (n2) => n2.props.layout === "flex", opts: [["row", "Row"], ["column", "Column"]] },
+          { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space, when: (n2) => n2.props.layout !== "block" },
+          { t: "select", c: "justify-content", label: "Distribute", r: 1, when: (n2) => n2.props.layout !== "block", opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
+          { t: "pick", c: "align-items", label: "Align", r: 1, when: (n2) => n2.props.layout !== "block", opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["stretch", "Fill"]] },
+          { t: "select", c: "flex-wrap", label: "Wrap", r: 1, when: (n2) => n2.props.layout === "flex", opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] },
+          /* Grid. A count rather than a template string: `repeat(3, minmax(0, 1fr))` is the
+             answer to "three across" every time, and `minmax(0, 1fr)` rather than `1fr` because
+             a grid child with long content overflows its track otherwise — the single most
+             common CSS grid surprise, and not one an author should have to know. */
+          { t: "select", c: "grid-template-columns", label: "Columns", r: 1, when: (n2) => n2.props.layout === "grid", opts: GRID_COLS },
+          { t: "select", k: "tag", label: "HTML tag", when: (n2) => !String(n2.props.link || "").trim(), opts: [["div", "div"], ["article", "article"], ["aside", "aside"], ["nav", "nav"], ["header", "header"], ["footer", "footer"], ["main", "main"], ["section", "section"], ["ul", "ul"], ["ol", "ol"], ["li", "li"]] },
+          { t: "link", k: "link", label: "Link", note: "A whole box that is one link." }
+        ],
+        style: []
+      }
+    },
+    heading: {
+      label: "Heading",
+      icon: "heading",
+      level: 4,
+      edit: "text",
+      styleLabel: "Typography & fill",
+      caps: ["spacing", "effects", "typography", "animation"],
+      make: () => ({
+        props: { text: "A headline that carries weight", level: "h2", link: "", target: "", ts: "title" },
+        css: { d: { "text-align": "left", "margin-bottom": "0px" }, t: {}, m: {} }
+      }),
+      controls: {
+        content: [
+          { t: "area", k: "text", label: "Heading text", rows: 2, mono: 0 },
+          { t: "tstyle", k: "ts", label: "Text style" },
+          { t: "select", k: "level", label: "HTML tag", opts: [["h1", "H1"], ["h2", "H2"], ["h3", "H3"], ["h4", "H4"], ["h5", "H5"], ["h6", "H6"], ["p", "p"], ["div", "div"]] },
+          { t: "pick", c: "text-align", label: "Alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
+          { t: "link", k: "link", label: "Link" }
+        ],
+        style: [
+          { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
+          { t: "color", c: "color", label: "Colour" },
+          { t: "select", c: "font-weight", label: "Weight", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
+          { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
+          { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
+          { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
+          { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
+        ]
+      }
+    },
+    text: {
+      label: "WYSIWYG",
+      icon: "text",
+      level: 4,
+      edit: "rich",
+      styleLabel: "Typography & fill",
+      caps: ["spacing", "effects", "typography", "animation"],
+      make: () => ({
+        props: { html: "<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings \u2014 everything exports as clean semantic HTML.</p>", ts: "body" },
+        css: { d: { "text-align": "left" }, t: {}, m: {} }
+      }),
+      controls: {
+        content: [
+          { t: "rich", k: "html", label: "Rich text" },
+          { t: "tstyle", k: "ts", label: "Text style" },
+          { t: "pick", c: "text-align", label: "Alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"], ["justify", "alignJ"]] }
+        ],
+        style: [
+          { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
+          { t: "color", c: "color", label: "Colour" },
+          { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
+          { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
+          { t: "color", c: "--link", label: "Link colour" }
+        ]
+      }
+    },
+    /* A quotation, as a quotation. Both testimonial patterns used to build this out of
+         two WYSIWYG blocks holding `<p>&ldquo;…&rdquo;</p>`, so the most quotable thing on
+         a marketing page exported as an anonymous paragraph with decorative curly braces
+         in the text. A reader on a screen reader heard prose; a search engine saw prose.
+
+         The shape follows the image widget's figure rule, for the same reason: an
+         attribution is a caption, and a caption is what makes an element a `<figure>`.
+         Unattributed, a bare `<blockquote>` says everything there is to say — wrapping it
+         in a figure with an empty figcaption would say less, not more.
+
+         The attribution is sized in rem rather than the em the image caption uses. A quote's
+         own size lands on the figure and ranges from 16px in a card to 40px in a pull quote,
+         so an em attribution rendered at 10px in the first and 25px in the second; an
+         attribution should read the same wherever the quote appears. */
+    quote: {
+      label: "Quote",
+      icon: "quote",
+      level: 4,
+      edit: "text",
+      styleLabel: "Typography & fill",
+      caps: ["spacing", "decoration", "effects", "typography", "animation"],
+      make: () => ({
+        props: {
+          text: "A sentence in their words that a prospect would recognise as their own problem, solved.",
+          by: "Name, Role at Company",
+          source: "",
+          ts: "lead"
+        },
+        css: {
+          d: {
+            "font-size": "24px",
+            "line-height": "1.45",
+            color: cvar("ink"),
+            "max-width": "34ch",
+            "align-self": "flex-start"
+          },
+          t: {},
+          m: { "font-size": "20px" }
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "area",
+            k: "text",
+            label: "Quotation",
+            rows: 3,
+            mono: 0,
+            note: "No quotation marks \u2014 the style draws them."
+          },
+          {
+            t: "text",
+            k: "by",
+            label: "Attribution",
+            ph: "Name, Role at Company",
+            note: "Empty exports a bare blockquote; named adds a caption."
+          },
+          {
+            t: "text",
+            k: "source",
+            label: "Source URL",
+            ph: "https://\u2026",
+            note: "Links the attribution, and records the source."
+          },
+          { t: "tstyle", k: "ts", label: "Text style" },
+          { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
+        ],
+        style: [
+          { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
+          { t: "color", c: "color", label: "Colour" },
+          { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
+          { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
+          /* ch first, and not U.len: the default measure is in ch, and a unit control
+             whose list omits the stored unit falls back to its first entry — which would
+             quietly rewrite 34ch as 34px the moment anyone touched the field. */
+          {
+            t: "unit",
+            c: "max-width",
+            label: "Measure",
+            r: 1,
+            units: ["ch", "px", "rem", "%"],
+            note: "How wide the lines may run. 34ch reads well."
+          },
+          { t: "pick", c: "text-align", label: "Text alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
+          { t: "color", c: "border-left-color", label: "Rule colour" },
+          { t: "unit", c: "border-left-width", label: "Rule width", r: 1, units: U.border },
+          { t: "box", c: "padding", label: "Padding", r: 1 }
+        ]
+      }
+    },
+    image: {
+      label: "Image",
+      icon: "image",
+      level: 4,
+      caps: ["spacing", "effects", "animation"],
+      make: () => ({
+        /* alt starts empty on purpose. It used to default to the literal string
+           'Descriptive alt text', which satisfied the review's alt check — so a
+           hand-placed image exported meaningless alt text and nothing ever said so.
+           The guidance belongs in the field's placeholder, which already carries it. */
+        props: { src: "", alt: "", link: "", target: "", caption: "", lazy: 1, w: "", h: "", decorative: 0 },
+        css: { d: { width: "100%", "max-width": "100%", "border-radius": "10px", "object-fit": "cover", "align-self": "flex-start" }, t: {}, m: {} }
+      }),
+      controls: {
+        content: [
+          { t: "img", k: "src", label: "Image source" },
+          { t: "text", k: "alt", label: "Alt text", ph: "Describe the image" },
+          { t: "toggle", k: "decorative", label: "Decorative \u2014 export an empty alt" },
+          { t: "dims", label: "Intrinsic size", note: "Stops the page shifting as it loads." },
+          { t: "text", k: "caption", label: "Caption", ph: "Optional" },
+          { t: "link", k: "link", label: "Link" },
+          { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
+          { t: "toggle", k: "lazy", label: "Lazy load" }
+        ],
+        style: [
+          { t: "unit", c: "width", label: "Width", r: 1, units: U.len },
+          { t: "unit", c: "height", label: "Height", r: 1, units: U.len },
+          { t: "select", c: "object-fit", label: "Fit", opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
+          { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
+          { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
+          { t: "opt", c: "filter", label: "Filter", opts: FILTERS, ph: "grayscale(1) blur(2px)" }
+        ]
+      }
+    },
+    video: {
+      label: "Video",
+      icon: "video",
+      level: 4,
+      caps: ["spacing", "effects", "animation"],
+      make: () => ({
+        props: { src: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", ratio: "16 / 9", autoplay: 0, loop: 0, muted: 1, controls: 1, poster: "", facade: 1 },
+        css: { d: { width: "100%", "border-radius": "10px", overflow: "hidden" }, t: {}, m: {} }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "src", label: "Video URL", ph: "YouTube, Vimeo or .mp4" },
+          { t: "select", k: "ratio", label: "Aspect ratio", opts: [["16 / 9", "16:9"], ["4 / 3", "4:3"], ["1 / 1", "1:1"], ["21 / 9", "21:9"], ["9 / 16", "9:16 vertical"]] },
+          { t: "img", k: "poster", label: "Poster image" },
+          { t: "toggle", k: "facade", label: "Load player on click" },
+          { t: "toggle", k: "controls", label: "Show controls" },
+          { t: "toggle", k: "autoplay", label: "Autoplay" },
+          { t: "toggle", k: "muted", label: "Muted" },
+          { t: "toggle", k: "loop", label: "Loop" }
+        ],
+        style: [
+          { t: "unit", c: "width", label: "Width", r: 1, units: U.len },
+          { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius }
+        ]
+      }
+    },
+    button: {
+      label: "Button",
+      icon: "button",
+      level: 4,
+      edit: "text",
+      caps: ["spacing", "decoration", "effects", "typography", "animation"],
+      make: () => ({
+        props: { text: "Get started", link: "", target: "", variant: "solid", icon: "none", align: "flex-start", wrap: "inline-flex", ts: "btn" },
+        css: {
+          d: {
+            "padding-top": "13px",
+            "padding-right": "26px",
+            "padding-bottom": "13px",
+            "padding-left": "26px",
+            "border-radius": "8px",
+            "background-color": cvar("brand"),
+            color: cvar("ink"),
+            "align-self": "flex-start"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "text", k: "text", label: "Label" },
+          { t: "tstyle", k: "ts", label: "Text style" },
+          { t: "link", k: "link", label: "Link" },
+          { t: "select", k: "variant", label: "Variant", opts: [["solid", "Solid"], ["outline", "Outline"], ["ghost", "Ghost"], ["link", "Text link"]] },
+          { t: "select", k: "icon", label: "Trailing icon", opts: [["none", "None"], ["arrow", "Arrow"], ["check", "Check"], ["plus", "Plus"]] },
+          { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
+          {
+            t: "select",
+            c: "margin-top",
+            label: "Position in column",
+            r: 1,
+            opts: [["", "In the normal flow"], ["auto", "Push to column bottom"]],
+            note: "Uses the column\u2019s remaining height above this button.",
+            when: (n2) => !!locate(n2.id)?.parent && locate(n2.id).parent.type === "column"
+          }
+        ],
+        style: [
+          { t: "color", c: "background-color", label: "Background" },
+          { t: "color", c: "color", label: "Text colour" },
+          { t: "unit", c: "font-size", label: "Size", r: 1, units: U.space },
+          { t: "select", c: "font-weight", label: "Weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+          { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
+          { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
+          { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+        ]
+      }
+    },
+    nav: {
+      label: "Nav menu",
+      icon: "nav",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "typography", "animation"],
+      make: () => ({
+        props: {
+          /* All three point at the home page, and none of them used to resolve: `#work` and
+             `#contact` are anchors nothing defines and `pricing.html` is a page a new project
+             does not have, so dropping a Nav into a fresh site opened the review on three
+             errors the author had not caused. Repeated destinations read as placeholders; a
+             dead link reads as working markup. */
+          items: [{ label: "Work", href: HOME }, { label: "About", href: HOME }, { label: "Contact", href: HOME }],
+          collapse: "mobile",
+          aria: "Main"
+        },
+        css: {
+          d: {
+            "font-size": "15px",
+            "font-weight": "500",
+            color: cvar("muted"),
+            "align-self": "center",
+            "justify-content": "flex-end",
+            width: "100%",
+            "--nav-hover": cvar("ink"),
+            "--nav-gap": "26px",
+            "--nav-panel": cvar("bg")
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "items", k: "items", label: "Menu links" },
+          { t: "select", k: "collapse", label: "Collapse to a burger", opts: [["mobile", "On mobile (\u2264767px)"], ["tablet", "On tablet and below (\u22641024px)"], ["never", "Never \u2014 always inline"]] },
+          { t: "pick", c: "justify-content", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] },
+          { t: "text", k: "aria", label: "Accessible name", ph: "Main", note: "Read by screen readers as \u201C<name> menu\u201D." }
+        ],
+        style: [
+          { t: "unit", c: "--nav-gap", label: "Link spacing", r: 1, units: U.space },
+          { t: "unit", c: "font-size", label: "Size", r: 1, units: U.space },
+          { t: "select", c: "font-weight", label: "Weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+          { t: "color", c: "color", label: "Link colour" },
+          { t: "color", c: "--nav-hover", label: "Hover colour" },
+          { t: "color", c: "--nav-panel", label: "Burger panel background" },
+          { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
+          { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+        ]
+      }
+    },
+    form: {
+      label: "Form",
+      icon: "form",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "typography", "animation"],
+      make: () => ({
+        props: {
+          mode: "external",
+          action: "",
+          method: "post",
+          submit: "Send",
+          aria: "Contact form",
+          fields: [
+            { type: "text", label: "Name", name: "name", required: 1, ph: "" },
+            { type: "email", label: "Email", name: "email", required: 1, ph: "" },
+            { type: "textarea", label: "Message", name: "message", required: 0, ph: "" }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--f-gap": "16px",
+            "--f-radius": "8px",
+            "--f-pad": "11px 13px",
+            "--f-bg": cvar("surface"),
+            "--f-border": cvar("line"),
+            "--f-text": cvar("text"),
+            "--f-label": cvar("muted"),
+            "--f-btn-bg": cvar("brand"),
+            "--f-btn-fg": cvar("ink"),
+            "font-size": "15px"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "fields", k: "fields", label: "Fields" },
+          { t: "text", k: "submit", label: "Submit button label" },
+          { t: "select", k: "mode", label: "Submission handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
+          { t: "text", k: "action", label: "Where submissions go", ph: "https://formspree.io/f/\u2026", note: "Paste the complete https:// endpoint for the form service.", when: (n2) => n2.props.mode !== "wordpress" },
+          { t: "select", k: "method", label: "Method", opts: [["post", "POST"], ["get", "GET"]], when: (n2) => n2.props.mode !== "wordpress" },
+          { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
+        ],
+        style: [
+          { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
+          { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
+          { t: "color", c: "--f-bg", label: "Field background" },
+          { t: "color", c: "--f-border", label: "Field border" },
+          { t: "color", c: "--f-text", label: "Field text" },
+          { t: "color", c: "--f-label", label: "Label colour" },
+          { t: "unit", c: "--f-radius", label: "Field radius", r: 1, units: U.radius },
+          { t: "color", c: "--f-btn-bg", label: "Button background" },
+          { t: "color", c: "--f-btn-fg", label: "Button text" }
+        ]
+      }
+    },
+    spacer: {
+      label: "Spacer",
+      icon: "spacer",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({ props: {}, css: { d: { height: "48px" }, t: {}, m: { height: "32px" } } }),
+      controls: { content: [{ t: "unit", c: "height", label: "Height", r: 1, units: U.len }], style: [] }
+    },
+    divider: {
+      label: "Divider",
+      icon: "divider",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({ props: {}, css: { d: { "border-top-width": "1px", "border-top-style": "solid", "border-top-color": cvar("line"), width: "100%", "margin-top": "20px", "margin-bottom": "20px" }, t: {}, m: {} } }),
+      controls: {
+        content: [
+          { t: "unit", c: "border-top-width", label: "Thickness", r: 1, units: U.border },
+          { t: "select", c: "border-top-style", label: "Style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
+          { t: "color", c: "border-top-color", label: "Colour" },
+          { t: "unit", c: "width", label: "Width", r: 1, units: U.len }
+        ],
+        style: []
+      }
+    },
+    /* Native `<details>`, so an accordion needs no JavaScript at all and arrives
+       keyboard-operable and screen-reader-announced for free. `single` sets the
+       shared `name` attribute, which is what makes one-open-at-a-time native too;
+       where a browser has not caught up the panels stay independent, which is a
+       lesser accordion rather than a broken one. */
+    /* Panels one at a time. The accordion's shape, with one difference that decides everything
+       else: an accordion works without JavaScript because `<details>` does, and tabs do not. So
+       the markup renders every panel visible and the script hides all but one — a reader with no
+       script gets the whole content stacked, which is the honest failure. Hiding them in CSS and
+       revealing with script fails the other way, into a page with the content missing. */
+    crumbs: {
+      label: "Breadcrumb",
+      icon: "crumbs",
+      level: 4,
+      caps: ["spacing", "effects", "typography", "animation"],
+      make: () => ({
+        props: { mode: "auto", home: "Home", sep: "chevron" },
+        css: {
+          d: {
+            "--cb-size": "13px",
+            "--cb-color": cvar("muted"),
+            "--cb-current": cvar("text"),
+            "--cb-gap": "8px",
+            "--cb-weight": "500"
+          },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "pick",
+            k: "mode",
+            label: "Trail",
+            set: 1,
+            r: 0,
+            opts: [["auto", "From the page"], ["manual", "Written here"]]
+          },
+          {
+            t: "text",
+            k: "home",
+            label: "Front page is called",
+            ph: "Home",
+            when: (n2) => n2.props.mode !== "manual"
+          },
+          { t: "items", k: "items", label: "Crumbs", when: (n2) => n2.props.mode === "manual" },
+          {
+            t: "select",
+            k: "sep",
+            label: "Separator",
+            set: 1,
+            opts: [["chevron", "\u203A"], ["slash", "/"], ["dot", "\xB7"], ["dash", "\u2014"]]
+          }
+        ],
+        style: [
+          { t: "unit", c: "--cb-size", label: "Text size", r: 1, units: U.size },
+          { t: "color", c: "--cb-color", label: "Link colour" },
+          { t: "color", c: "--cb-current", label: "Current page colour" },
+          { t: "unit", c: "--cb-gap", label: "Spacing", r: 1, units: U.space }
+        ]
+      }
+    },
+    code: {
+      label: "Code",
+      icon: "codeblock",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          body: "const site = build({\n  pages: 12,\n  scripts: 0   // nothing to run\n});",
+          lang: "js",
+          numbers: 0,
+          softwrap: 0,
+          copy: 1
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--cd-bg": cvar("bg"),
+            "--cd-text": cvar("text"),
+            "--cd-size": "14px",
+            "--cd-pad": "16px 18px",
+            "--cd-radius": "10px",
+            "--cd-line": cvar("line"),
+            "--cd-com": cvar("muted"),
+            "--cd-str": "#2f6f5e",
+            "--cd-kw": "#8a4b2a",
+            "--cd-num": "#3a5a9a",
+            "--cd-key": "#5b4a8a"
+          },
+          t: {},
+          m: { "--cd-size": "13px", "--cd-pad": "12px 13px" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "area", k: "body", label: "Code", rows: 9, mono: 1, ph: "const x = 1;" },
+          {
+            t: "select",
+            k: "lang",
+            label: "Language",
+            set: 1,
+            opts: () => Object.keys(CODE_LANGS).map((k3) => [k3, CODE_LANGS[k3].label])
+          },
+          { t: "text", k: "title", label: "File name", ph: "index.js" },
+          { t: "toggle", k: "numbers", label: "Number the lines" },
+          { t: "toggle", k: "softwrap", label: "Wrap long lines" },
+          {
+            t: "toggle",
+            k: "copy",
+            label: "Copy button",
+            note: "Hidden unless the browser can copy, so it is never a button that does nothing"
+          }
+        ],
+        style: [
+          { t: "color", c: "--cd-bg", label: "Background" },
+          { t: "color", c: "--cd-text", label: "Text colour" },
+          { t: "unit", c: "--cd-size", label: "Text size", r: 1, units: U.size },
+          { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
+          { t: "unit", c: "--cd-radius", label: "Radius", r: 1, units: U.radius },
+          { t: "color", c: "--cd-com", label: "Comments", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-str", label: "Strings", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-kw", label: "Keywords", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-num", label: "Numbers", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-key", label: "Names", when: (n2) => n2.props.lang !== "text" }
+        ]
+      }
+    },
+    table: {
+      label: "Table",
+      icon: "table",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          body: "Plan|Monthly|Seats\nStarter|\xA39|1\nStudio|\xA329|5\nHouse|\xA379|20",
+          head: 1,
+          rules: "rows",
+          zebra: 0
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--tbl-size": "15px",
+            "--tbl-pad": "10px 12px",
+            "--tbl-line": cvar("line"),
+            "--tbl-text": cvar("text"),
+            "--tbl-head-bg": "transparent",
+            "--tbl-head-text": cvar("ink"),
+            "--tbl-head-weight": "600",
+            "--tbl-zebra": cvar("bg"),
+            "--tbl-caption-size": "13px",
+            "--tbl-caption-color": cvar("muted")
+          },
+          t: {},
+          m: { "--tbl-size": "14px", "--tbl-pad": "8px 10px" }
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "area",
+            k: "body",
+            label: "Rows",
+            rows: 7,
+            mono: 1,
+            ph: "Plan|Monthly|Seats\nStarter|\xA39|1",
+            note: "One row per line. Paste from a spreadsheet, or separate cells with |"
+          },
+          { t: "text", k: "caption", label: "Caption", ph: "What this table shows" },
+          { t: "toggle", k: "head", label: "First row is a heading" },
+          { t: "toggle", k: "rowhead", label: "First column is a heading" },
+          {
+            t: "select",
+            k: "rules",
+            label: "Lines",
+            set: 1,
+            opts: [["rows", "Between rows"], ["all", "Full grid"], ["none", "None"]]
+          },
+          { t: "toggle", k: "zebra", label: "Shade alternate rows" }
+        ],
+        style: [
+          { t: "unit", c: "--tbl-size", label: "Text size", r: 1, units: U.size },
+          { t: "color", c: "--tbl-text", label: "Text colour" },
+          { t: "unit", c: "--tbl-pad", label: "Cell padding", r: 1, units: U.space },
+          { t: "color", c: "--tbl-line", label: "Line colour" },
+          { t: "color", c: "--tbl-head-bg", label: "Heading background" },
+          { t: "color", c: "--tbl-head-text", label: "Heading colour" },
+          { t: "color", c: "--tbl-zebra", label: "Shading", when: (n2) => !!n2.props.zebra },
+          { t: "color", c: "--tbl-caption-color", label: "Caption colour", when: (n2) => !!String(n2.props.caption || "").trim() }
+        ]
+      }
+    },
+    tabs: {
+      label: "Tabs",
+      icon: "tabs",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          items: [
+            { label: "Overview", panel: "What this is, in a sentence or two." },
+            { label: "Details", panel: "The part someone came looking for." },
+            { label: "Pricing", panel: "The number, plainly." }
+          ]
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--tb-align": "flex-start",
+            "--tb-line": cvar("line"),
+            "--tb-on": cvar("ink"),
+            "--tb-off": cvar("muted"),
+            "--tb-size": "15px",
+            "--tb-weight": "500",
+            "--tb-pad": "10px 2px",
+            "--tb-gap": "22px",
+            "--tb-body-size": "16px",
+            "--tb-body-color": cvar("text"),
+            "--tb-body-pad": "20px"
+          },
+          t: {},
+          m: { "--tb-gap": "16px", "--tb-size": "14px" }
+        }
+      }),
+      controls: {
+        content: [
+          {
+            t: "qa",
+            k: "items",
+            label: "Tabs",
+            rowKeys: ["label", "panel"],
+            rowPhs: ["Tab label", "What this tab says"],
+            rowNew: ["New tab", ""],
+            addLabel: "Add tab"
+          },
+          { t: "pick", c: "--tb-align", label: "Tabs sit", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
+        ],
+        style: [
+          { t: "color", c: "--tb-on", label: "Selected label" },
+          { t: "color", c: "--tb-off", label: "Other labels" },
+          { t: "color", c: "--tb-line", label: "Rule" },
+          { t: "unit", c: "--tb-size", label: "Label size", r: 1, units: U.size },
+          { t: "unit", c: "--tb-gap", label: "Label spacing", r: 1, units: U.space },
+          { t: "unit", c: "--tb-body-size", label: "Body size", r: 1, units: U.size },
+          { t: "color", c: "--tb-body-color", label: "Body colour" },
+          { t: "unit", c: "--tb-body-pad", label: "Body padding", r: 1, units: U.space }
+        ]
+      }
+    },
+    accordion: {
+      label: "Accordion",
+      icon: "accordion",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: {
+          items: [
+            { q: "What do I get?", a: "One paragraph that answers the question plainly." },
+            { q: "How long does it take?", a: "Say the real number. A range is fine; a dodge is not." },
+            { q: "What does it cost?", a: "The answer people scrolled this far to find." }
+          ],
+          open: "first",
+          single: 0,
+          marker: "plus"
+        },
+        css: {
+          d: {
+            width: "100%",
+            "--ac-line": cvar("line"),
+            "--ac-pad": "18px",
+            "--ac-gap": "0px",
+            "--ac-q-size": "17px",
+            "--ac-q-weight": "600",
+            "--ac-q-color": cvar("ink"),
+            "--ac-a-size": "16px",
+            "--ac-a-color": cvar("muted"),
+            "--ac-mark": cvar("slate"),
+            "--ac-radius": "0px"
+          },
+          t: {},
+          m: { "--ac-pad": "15px", "--ac-q-size": "16px" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "qa", k: "items", label: "Questions", rowNew: ["A new question", ""] },
+          { t: "select", k: "open", label: "Open on load", opts: [["none", "All closed"], ["first", "The first one"], ["all", "All open"]] },
+          { t: "toggle", k: "single", label: "One open at a time" },
+          { t: "select", k: "marker", label: "Marker", opts: [["plus", "Plus / minus"], ["caret", "Caret"], ["none", "None"]] }
+        ],
+        style: [
+          { t: "color", c: "--ac-line", label: "Divider colour" },
+          { t: "unit", c: "--ac-pad", label: "Row padding", r: 1, units: U.space },
+          { t: "unit", c: "--ac-gap", label: "Gap between rows", r: 1, units: U.space },
+          { t: "unit", c: "--ac-q-size", label: "Question size", r: 1, units: U.size },
+          { t: "select", c: "--ac-q-weight", label: "Question weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+          { t: "color", c: "--ac-q-color", label: "Question colour" },
+          { t: "unit", c: "--ac-a-size", label: "Answer size", r: 1, units: U.size },
+          { t: "color", c: "--ac-a-color", label: "Answer colour" },
+          { t: "color", c: "--ac-mark", label: "Marker colour" },
+          { t: "unit", c: "--ac-radius", label: "Row radius", r: 1, units: U.radius }
+        ]
+      }
+    },
+    /* The escape hatch. Everything else in this builder is a described shape it
+       knows how to style; this one is markup it agrees not to understand — a map,
+       a booking widget, a payment button, an SVG the icon set does not carry. */
+    embed: {
+      label: "Embed",
+      icon: "code",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({ props: { html: "", ratio: "" }, css: { d: { width: "100%" }, t: {}, m: {} } }),
+      controls: {
+        content: [
+          {
+            t: "area",
+            k: "html",
+            label: "HTML",
+            rows: 8,
+            mono: 1,
+            ph: '<iframe src="\u2026" \u2026></iframe>',
+            note: "Runs on the exported site, not in this canvas."
+          },
+          {
+            t: "select",
+            k: "ratio",
+            label: "Aspect ratio",
+            opts: [["", "Whatever the markup is"], ["16 / 9", "16:9"], ["4 / 3", "4:3"], ["1 / 1", "1:1"], ["21 / 9", "21:9"], ["9 / 16", "9:16 vertical"]],
+            note: "Pick one for an iframe with no height of its own."
+          }
+        ],
+        style: []
+      }
+    },
+    /* Stroke-only glyphs on `currentColor`, sized by one variable, so an icon
+       inherits colour the way text does and scales with a single control. */
+    icon: {
+      label: "Icon",
+      icon: "icon",
+      level: 4,
+      caps: ["spacing", "effects", "animation"],
+      make: () => ({
+        props: { name: "check", label: "", link: "", target: "" },
+        css: {
+          d: { "--icon-size": "30px", "--icon-stroke": "1.75", color: cvar("ink"), "align-self": "flex-start" },
+          t: {},
+          m: {}
+        }
+      }),
+      controls: {
+        content: [
+          { t: "icon", k: "name", label: "Icon" },
+          {
+            t: "text",
+            k: "label",
+            label: "Accessible label",
+            ph: "Leave empty if decorative",
+            note: "Empty is hidden from screen readers."
+          },
+          { t: "link", k: "link", label: "Link" },
+          { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
+        ],
+        style: [
+          { t: "unit", c: "--icon-size", label: "Glyph size", r: 1, units: U.size },
+          { t: "color", c: "color", label: "Colour" },
+          { t: "slider", c: "--icon-stroke", label: "Stroke weight", min: 1, max: 3, step: 0.05, raw: 1 },
+          { t: "color", c: "background-color", label: "Badge background" },
+          { t: "box", c: "padding", label: "Badge padding", r: 1 },
+          { t: "unit", c: "border-radius", label: "Badge radius", r: 1, units: U.radius }
+        ]
+      }
+    },
+    /* A grid of stored images. With the lightbox on, each tile is a real link to
+       the full image — so it works with JavaScript off, and the script that ships
+       only intercepts a click that would already have gone somewhere useful. */
+    gallery: {
+      label: "Gallery",
+      icon: "gallery",
+      level: 4,
+      caps: ["spacing", "decoration", "effects", "animation"],
+      make: () => ({
+        props: { items: [], ratio: "4 / 3", fit: "cover", lightbox: 1, lazy: 1, captions: 0 },
+        css: {
+          d: { width: "100%", "--g-cols": "3", "--g-gap": "12px", "--g-radius": "10px" },
+          t: {},
+          m: { "--g-cols": "2", "--g-gap": "8px" }
+        }
+      }),
+      controls: {
+        content: [
+          { t: "imgs", k: "items", label: "Images" },
+          { t: "unit", c: "--g-cols", label: "Columns", r: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
+          { t: "select", k: "ratio", label: "Tile shape", opts: [["4 / 3", "4:3"], ["1 / 1", "Square"], ["3 / 2", "3:2"], ["16 / 9", "16:9"], ["3 / 4", "3:4 portrait"], ["", "Whatever each image is"]] },
+          { t: "select", k: "fit", label: "Fit", opts: [["cover", "Cover \u2014 fill and crop"], ["contain", "Contain \u2014 fit inside"]] },
+          { t: "toggle", k: "lightbox", label: "Open full size on click" },
+          { t: "toggle", k: "captions", label: "Show captions under each tile" },
+          { t: "toggle", k: "lazy", label: "Lazy load" }
+        ],
+        style: [
+          { t: "unit", c: "--g-gap", label: "Gap", r: 1, units: U.space },
+          { t: "unit", c: "--g-radius", label: "Tile radius", r: 1, units: U.radius }
+        ]
+      }
+    }
+  };
+  var CODE_LANGS = {
+    text: { label: "Plain text" },
+    html: { label: "HTML", markup: 1 },
+    css: { label: "CSS", block: ["/*", "*/"], keys: 1, calls: 1 },
+    js: {
+      label: "JavaScript",
+      line: "//",
+      block: ["/*", "*/"],
+      calls: 1,
+      words: "const let var function return if else for while of in new class extends super import export from default await async try catch finally throw typeof instanceof delete void yield switch case break continue do this null undefined true false"
+    },
+    ts: {
+      label: "TypeScript",
+      line: "//",
+      block: ["/*", "*/"],
+      calls: 1,
+      words: "const let var function return if else for while of in new class extends super import export from default await async try catch finally throw typeof instanceof delete void yield switch case break continue do this null undefined true false interface type enum implements readonly public private protected as satisfies keyof namespace declare"
+    },
+    json: { label: "JSON", keys: 1, words: "true false null" },
+    sh: {
+      label: "Shell",
+      line: "#",
+      words: "if then elif else fi for in do done while until case esac function return export local readonly cd echo printf set unset source exit sudo"
+    },
+    py: {
+      label: "Python",
+      line: "#",
+      calls: 1,
+      words: "def class return if elif else for while in not and or is None True False import from as with try except finally raise lambda yield pass break continue global nonlocal assert del await async match"
+    }
+  };
+  function styleSeen(n2, prop) {
+    const bags = [];
+    const push = (o3) => {
+      if (!o3) return;
+      ["d", "t", "m"].forEach((b2) => bags.push(o3.css && o3.css[b2]));
+      const st = o3.st || {};
+      Object.keys(st).forEach((k3) => ["d", "t", "m"].forEach((b2) => bags.push(st[k3] && st[k3][b2])));
+    };
+    push(tgtObj(n2));
+    nodeClasses(n2).forEach((c3) => push(c3));
+    for (const bag of bags) if (bag && bag[prop]) return String(bag[prop]);
+    return "";
+  }
+  var hasBackdrop = (n2) => !!(styleSeen(n2, "background-image") || styleSeen(n2, "background"));
+  var hasBorder = (n2) => {
+    const v3 = styleSeen(n2, "border-style");
+    return !!v3 && v3 !== "none";
+  };
+  function notASlide(n2) {
+    const pid = parentOf(n2.id);
+    const h3 = pid ? locate(pid) : null;
+    return !h3 || h3.node.type !== "slider";
+  }
+  var COMMON_STYLE = [
+    { g: "Spacing", cap: "spacing", items: [{ t: "box", c: "padding", label: "Padding", r: 1 }, { t: "box", c: "margin", label: "Margin", r: 1, neg: 1 }] },
+    {
+      g: "Background",
+      cap: "decoration",
+      items: [
+        { t: "color", c: "background-color", label: "Colour" },
+        { t: "img", c: "background-image", label: "Image", bg: 1 },
+        { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
+        /* A pick, not a select: where an image sits is a spatial choice, and five words in a
+           dropdown make you read to find the one you could have pointed at. The glyphs are the
+           alignment ones already in the set, which is what the same question looks like
+           everywhere else in this panel. */
+        { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
+        { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
+        { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
+      ]
+    },
+    {
+      g: "Border & shadow",
+      cap: "decoration",
+      items: [
+        { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
+        { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
+        { t: "color", c: "border-color", label: "Border colour", when: hasBorder },
+        { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
+        { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
+      ]
+    },
+    {
+      /* Opacity and Transform are how a thing looks, which is what this group is for — and both
+         are what a hover usually changes. Transition moved to Motion: its only job is to animate
+         a change, so it belongs with the other motion rather than beside the properties it
+         happens to animate. */
+      g: "Effects",
+      cap: "effects",
+      items: [
+        { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
+        { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" }
+      ]
+    }
+  ];
+  var DEV_KEY = { desktop: "d", tablet: "t", mobile: "m" };
+  function initUi() {
+    return {
+      mode: "page",
+      dev: "desktop",
+      sel: null,
+      multi: [],
+      tab: "add",
+      atab: "widgets",
+      stab: "content",
+      target: "",
+      lmode: null,
+      open: {},
+      collapsed: {},
+      custom: {},
+      zoom: "fit",
+      pno: 1,
+      st: ""
+    };
+  }
+  var state = {
+    v: 1,
+    meta: {
+      name: "Untitled project",
+      maxWidth: "1200px",
+      font: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+      headFont: "",
+      size: "16px",
+      css: "",
+      headHtml: "",
+      lang: "en",
+      baseUrl: "",
+      ogImage: "",
+      favicon: "",
+      blocks: [],
+      tokens: null
+      // filled by defaultTokens() at boot
+    },
+    header: [],
+    footer: [],
+    pages: [],
+    cur: 0,
+    ui: initUi()
+  };
+  var page = () => state.pages[state.cur] || state.pages[0];
+  var tree = () => {
+    if (state.ui.mode === "component") {
+      const cd = findComponent(state.ui.cedit);
+      return cd ? [cd.node] : [];
+    }
+    return state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
+  };
+  var dk = () => DEV_KEY[state.ui.dev];
+  function locate(id, list2 = tree(), parent = null) {
+    for (let i3 = 0; i3 < list2.length; i3++) {
+      if (list2[i3].id === id) return { node: list2[i3], list: list2, parent, i: i3 };
+      const hit = locate(id, list2[i3].children || [], list2[i3]);
+      if (hit) return hit;
+    }
+    return null;
+  }
+  function locateAny(id) {
+    for (const [m3, list2] of [["header", state.header], ["footer", state.footer]]) {
+      const h3 = locate(id, list2, null);
+      if (h3) return { ...h3, mode: m3 };
+    }
+    for (let p3 = 0; p3 < state.pages.length; p3++) {
+      const h3 = locate(id, state.pages[p3].tree, null);
+      if (h3) return { ...h3, mode: "page", page: p3 };
+    }
+    return null;
+  }
+  function eachNode(list2, fn, parent = null, depth = 0) {
+    list2.forEach((n2, i3) => {
+      fn(n2, parent, i3, depth);
+      eachNode(n2.children || [], fn, n2, depth + 1);
+    });
+  }
+  function reid(n2) {
+    n2.id = uid();
+    if (n2.adv) n2.adv.htmlId = "";
+    (n2.children || []).forEach(reid);
+    return n2;
+  }
+  var BP_CHAIN = { d: ["d"], t: ["t", "d"], m: ["m", "t", "d"] };
+  function cssAt(n2, b2, prop) {
+    for (const k3 of BP_CHAIN[b2] || ["d"]) {
+      const own = ((n2.css || {})[k3] || {})[prop];
+      if (own !== void 0 && own !== "") return own;
+      const applied = nodeClasses(n2);
+      for (let i3 = applied.length - 1; i3 >= 0; i3--) {
+        const v3 = ((applied[i3].css || {})[k3] || {})[prop];
+        if (v3 !== void 0 && v3 !== "") return v3;
+      }
+    }
+    return "";
+  }
+  function rowVerticalValue(row, b2) {
+    if (!row || row.type !== "row") return "flex-start";
+    const v3 = cssAt(row, b2, "align-items");
+    return v3 === "center" || v3 === "flex-end" ? v3 : "flex-start";
+  }
+  function rowVerticalLabel(n2) {
+    const h3 = locateAny(n2.id);
+    const v3 = rowVerticalValue(h3 && h3.parent ? h3.parent : null, dk());
+    return v3 === "center" ? "Center" : v3 === "flex-end" ? "Bottom" : "Top";
+  }
+  var cvar = (id) => `var(--c-${id})`;
+  var classes = () => state.meta.tokens && state.meta.tokens.classes || [];
+  var findClass = (id) => classes().find((c3) => c3.id === id) || null;
+  var nodeClasses = (n2) => {
+    const ids = Array.isArray(n2.cls) ? n2.cls : [];
+    return classes().filter((c3) => ids.includes(c3.id));
+  };
+  function defaultTokens(meta = {}) {
+    return {
+      classes: [],
+      colors: [
+        { id: "text", name: "Body text", value: meta.color || "#111311" },
+        { id: "bg", name: "Page background", value: meta.bg || "#f8f6ef" },
+        { id: "brand", name: "Craft Green", value: meta.accent || "#b7f34a" },
+        { id: "ink", name: "Ink", value: "#111311" },
+        { id: "muted", name: "Slate (on Paper)", value: "#5f6660" },
+        { id: "muted-i", name: "Slate (on Ink)", value: "#b0b7b1" },
+        { id: "slate", name: "Slate (brand)", value: "#6f7771" },
+        { id: "line", name: "Hairline", value: "#e5e1d6" },
+        { id: "surface", name: "White", value: "#ffffff" }
+      ],
+      text: [
+        { id: "display", name: "Display", tag: "h1", css: { d: { "font-size": "58px", "font-weight": "600", "line-height": ".96", "letter-spacing": "-.04em", color: cvar("ink") }, t: { "font-size": "44px" }, m: { "font-size": "33px" } } },
+        { id: "title", name: "Section title", tag: "h2", css: { d: { "font-size": "38px", "font-weight": "600", "line-height": "1.05", "letter-spacing": "-.035em", color: cvar("ink") }, t: { "font-size": "32px" }, m: { "font-size": "27px" } } },
+        { id: "subtitle", name: "Card title", tag: "h3", css: { d: { "font-size": "19px", "font-weight": "700", "line-height": "1.3", color: cvar("ink") }, t: {}, m: { "font-size": "18px" } } },
+        { id: "lead", name: "Lead paragraph", tag: "p", css: { d: { "font-size": "18px", "line-height": "1.65", color: cvar("muted") }, t: {}, m: { "font-size": "16px" } } },
+        { id: "body", name: "Body", tag: "p", css: { d: { "font-size": "16px", "line-height": "1.7", color: cvar("text") }, t: {}, m: { "font-size": "15px" } } },
+        { id: "small", name: "Small", tag: "p", css: { d: { "font-size": "14px", "line-height": "1.65", color: cvar("muted") }, t: {}, m: {} } },
+        { id: "eyebrow", name: "Eyebrow", tag: "div", css: { d: { "font-family": "'DM Sans',system-ui,sans-serif", "font-size": "12px", "font-weight": "500", "letter-spacing": ".04em", "text-transform": "uppercase", color: cvar("muted") }, t: {}, m: {} } },
+        { id: "btn", name: "Button label", css: { d: { "font-size": "15px", "font-weight": "600", "letter-spacing": "0em" }, t: {}, m: {} } }
+      ]
+    };
+  }
+  function tgtObj(n2) {
+    const id = state.ui.target;
+    const c3 = id ? findClass(id) : null;
+    return c3 && (n2.cls || []).includes(id) ? c3 : n2;
+  }
+  var CRC_T = (() => {
+    const t3 = new Uint32Array(256);
+    for (let i3 = 0; i3 < 256; i3++) {
+      let c3 = i3;
+      for (let k3 = 0; k3 < 8; k3++) c3 = c3 & 1 ? 3988292384 ^ c3 >>> 1 : c3 >>> 1;
+      t3[i3] = c3 >>> 0;
+    }
+    return t3;
+  })();
+  var collections = () => state.meta.collections || (state.meta.collections = []);
+  var findCollection = (id) => collections().find((c3) => c3.id === id) || null;
+  function components() {
+    return state.meta.components || (state.meta.components = []);
+  }
+  function findComponent(id) {
+    return id ? components().find((c3) => c3.id === id) || null : null;
+  }
+  var parentOf = (id) => {
+    const h3 = locate(id);
+    return h3 && h3.parent ? h3.parent.id : null;
+  };
+  var SCHEMA = 13;
+  function migrate(d3) {
+    if (!d3 || !d3.pages || !d3.pages.length) return null;
+    const schemaVersion = d3.schemaVersion;
+    const legacyVersion = d3.v;
+    if (schemaVersion !== void 0 && (!Number.isInteger(schemaVersion) || schemaVersion < 1)) {
+      throw new Error("invalid document schemaVersion");
+    }
+    if (legacyVersion !== void 0 && (!Number.isInteger(legacyVersion) || legacyVersion < 1)) {
+      throw new Error("invalid legacy document version");
+    }
+    if (schemaVersion !== void 0 && legacyVersion !== void 0 && schemaVersion !== legacyVersion) {
+      throw new Error("conflicting document schema versions");
+    }
+    const v3 = schemaVersion ?? legacyVersion ?? 1;
+    if (v3 > SCHEMA) return null;
+    const everyNode = (fn) => {
+      const walk = (n2) => {
+        fn(n2);
+        (n2.children || []).forEach(walk);
+      };
+      (d3.header || []).forEach(walk);
+      (d3.footer || []).forEach(walk);
+      (d3.pages || []).forEach((pg) => (pg.tree || []).forEach(walk));
+      ((d3.meta || {}).blocks || []).forEach((bl) => {
+        if (bl.node) walk(bl.node);
+      });
+      ((d3.meta || {}).components || []).forEach((cd) => {
+        if (cd.node) walk(cd.node);
+      });
+    };
+    if (v3 < 3) {
+      d3.meta = d3.meta || {};
+      if (!d3.meta.tokens) d3.meta.tokens = defaultTokens(d3.meta);
+      delete d3.meta.color;
+      delete d3.meta.bg;
+      delete d3.meta.accent;
+    }
+    if (v3 < 4) {
+      d3.meta = d3.meta || {};
+      d3.meta.tokens = d3.meta.tokens || defaultTokens(d3.meta);
+      if (!Array.isArray(d3.meta.tokens.classes)) d3.meta.tokens.classes = [];
+    }
+    if (v3 < 5) {
+      const TAGS2 = { display: "h1", title: "h2", subtitle: "h3", lead: "p", body: "p", small: "p", eyebrow: "div" };
+      ((d3.meta.tokens || {}).text || []).forEach((t3) => {
+        const tg = TAGS2;
+        if (!t3.tag && tg[t3.id]) t3.tag = tg[t3.id];
+      });
+    }
+    if (v3 < 6) {
+      d3.meta = d3.meta || {};
+      if (!Array.isArray(d3.meta.blocks)) d3.meta.blocks = [];
+    }
+    if (v3 < 7) {
+      d3.meta = d3.meta || {};
+      if (!Array.isArray(d3.meta.collections)) d3.meta.collections = [];
+    }
+    if (v3 < 8) {
+      everyNode((n2) => ["d", "t", "m"].forEach((b2) => {
+        const map = n2.css && n2.css[b2];
+        if (!map) return;
+        const bg = map["--hover-bg"], fg = map["--hover-fg"];
+        delete map["--hover-bg"];
+        delete map["--hover-fg"];
+        if (!bg && !fg) return;
+        n2.st = n2.st || {};
+        const h3 = n2.st.hover = n2.st.hover || { d: {}, t: {}, m: {} };
+        h3[b2] = h3[b2] || {};
+        if (bg) h3[b2]["background-color"] = bg;
+        if (fg) {
+          h3[b2].color = fg;
+          h3[b2]["border-color"] = fg;
+        }
+      }));
+    }
+    if (v3 < 9) {
+      everyNode((n2) => {
+        if (!n2.bind) return;
+        for (const [k3, val] of Object.entries(n2.bind)) {
+          if (typeof val === "string") n2.bind[k3] = { src: "field", path: val };
+        }
+      });
+    }
+    if (v3 < 10) {
+      d3.meta = d3.meta || {};
+      if (!Array.isArray(d3.meta.components)) d3.meta.components = [];
+    }
+    if (v3 < 11) {
+      const bl = (d3.meta || {}).blocks || [];
+      const global = bl.filter((b2) => b2 && b2.sync && b2.node);
+      if (global.length) {
+        d3.meta.components = Array.isArray(d3.meta.components) ? d3.meta.components : [];
+        const shape = (n2) => JSON.stringify(n2, (key, val) => {
+          if (key === "id") return void 0;
+          if (key === "adv" && val) {
+            const { block, ...rest } = val;
+            return rest;
+          }
+          return val;
+        });
+        for (const b2 of global) {
+          const def = { id: b2.id, name: b2.name, node: reid(clone(b2.node)), props: [] };
+          const want = shape(b2.node);
+          everyNode((n2) => {
+            if (!n2.adv || n2.adv.block !== b2.id) return;
+            delete n2.adv.block;
+            if (shape(n2) !== want) return;
+            n2.use = b2.id;
+            n2.children = [];
+            n2.css = { d: {}, t: {}, m: {} };
+            n2.cls = [];
+            n2.hide = {};
+            n2.adv = { htmlId: "", cls: "", css: "" };
+            delete n2.st;
+            delete n2.anim;
+            delete n2.bind;
+            delete n2.src;
+          });
+          eachNode([def.node], (n2) => {
+            const adv = n2.adv;
+            if (adv && adv.block === b2.id) delete adv.block;
+          });
+          d3.meta.components.push(def);
+        }
+        d3.meta.blocks = bl.filter((b2) => !(b2 && b2.sync));
+      }
+      ((d3.meta || {}).blocks || []).forEach((b2) => {
+        if (b2) delete b2.sync;
+      });
+    }
+    if (v3 < 12) {
+      const styleClasses = ((d3.meta || {}).tokens || {}).classes || [];
+      const classValue = (n2, b2, prop) => {
+        const ids = Array.isArray(n2.cls) ? n2.cls : [];
+        let value = "";
+        for (const cls of styleClasses) {
+          if (!cls || !ids.includes(cls.id)) continue;
+          const next = cls.css && cls.css[b2] && cls.css[b2][prop];
+          if (next !== void 0 && next !== "") value = next;
+        }
+        return value;
+      };
+      everyNode((n2) => {
+        if (!n2 || n2.type !== "column") return;
+        n2.css = n2.css || { d: {}, t: {}, m: {} };
+        for (const b2 of ["d", "t", "m"]) {
+          const map = n2.css[b2] = n2.css[b2] || {};
+          const old = map["justify-content"];
+          if (old !== void 0 && old !== "") {
+            map[COLUMN_V_ALIGN] = b2 === "d" && old === "flex-start" ? "follow" : old;
+            delete map["justify-content"];
+          } else if (!map[COLUMN_V_ALIGN]) {
+            const fromClass = classValue(n2, b2, "justify-content");
+            if (fromClass) map[COLUMN_V_ALIGN] = fromClass;
+          }
+        }
+        if (!n2.css.d[COLUMN_V_ALIGN]) n2.css.d[COLUMN_V_ALIGN] = "follow";
+      });
+    }
+    if (v3 < 13) everyNode((n2) => {
+      if (!n2 || n2.type !== "form") return;
+      n2.props = n2.props || {};
+      if (n2.props.mode !== "wordpress") n2.props.mode = "external";
+    });
+    d3.v = SCHEMA;
+    d3.schemaVersion = SCHEMA;
+    return d3;
+  }
+  var PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`
+  );
+  var BICON = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
+  var T3 = 33.3333;
+  var T6 = 66.6666;
+  var LAYOUTS = {
+    1: [[100]],
+    2: [[50, 50], [T6, T3], [T3, T6], [75, 25], [25, 75]],
+    3: [[T3, T3, T3], [50, 25, 25], [25, 50, 25], [25, 25, 50]],
+    4: [[25, 25, 25, 25], [40, 20, 20, 20], [20, 20, 20, 40]],
+    5: [[20, 20, 20, 20, 20]],
+    6: [[16.6666, 16.6666, 16.6666, 16.6666, 16.6666, 16.6666]]
+  };
+  var COUNTS = Object.keys(LAYOUTS).map(Number);
+  var KEYS = {
+    columns: { type: "row", label: "Columns", icon: "columns" },
+    box: { type: "box", label: "Box", icon: "section", props: { layout: "block" } },
+    flex: { type: "box", label: "Flex", icon: "row", props: { layout: "flex" } },
+    grid: { type: "box", label: "Grid", icon: "columns", props: { layout: "grid" } },
+    linkbox: { type: "box", label: "Link block", icon: "link", props: { layout: "block", link: "#" } }
+  };
+  var BASE = Object.fromEntries(
+    Object.entries(KEYS).map(([k3, v3]) => [k3, v3.type])
+  );
+  var HTML_COMMENT_OPEN = String.fromCharCode(60, 33, 45, 45);
+  var HTML_COMMENT_CLOSE = String.fromCharCode(45, 45, 62);
+  var SHARED_HEADER_START = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_HEADER_START" + HTML_COMMENT_CLOSE;
+  var SHARED_HEADER_END = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_HEADER_END" + HTML_COMMENT_CLOSE;
+  var SHARED_FOOTER_START = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_FOOTER_START" + HTML_COMMENT_CLOSE;
+  var SHARED_FOOTER_END = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_FOOTER_END" + HTML_COMMENT_CLOSE;
+
+  // app/src/host/schema.ts
+  var DocumentSchemaError = class extends Error {
+    constructor(message, suppliedVersion, supportedVersion = SCHEMA) {
+      super(message);
+      this.suppliedVersion = suppliedVersion;
+      this.supportedVersion = supportedVersion;
+      this.name = "DocumentSchemaError";
+    }
+    suppliedVersion;
+    supportedVersion;
+  };
+  var versionOf = (input) => {
+    if (!input || typeof input !== "object") return null;
+    const row = input;
+    const value = row.schemaVersion ?? row.v;
+    return Number.isInteger(value) ? value : null;
+  };
+  function adoptHostDocument(input) {
+    const supplied = versionOf(input);
+    if (supplied !== null && supplied > SCHEMA) {
+      throw new DocumentSchemaError(
+        `This project uses Pagecraft schema ${supplied}, but this host supports schema ${SCHEMA}. Upgrade Pagecraft on this host before opening or saving the project.`,
+        supplied
+      );
+    }
+    let adopted;
+    try {
+      adopted = migrate(clone(input));
+    } catch (error) {
+      throw new DocumentSchemaError(
+        `This Pagecraft document is invalid and could not be migrated: ${error instanceof Error ? error.message : String(error)}`,
+        supplied
+      );
+    }
+    if (!adopted) {
+      throw new DocumentSchemaError(
+        "This Pagecraft document is incomplete or unsupported. Restore a valid project backup or upgrade Pagecraft.",
+        supplied
+      );
+    }
+    return adopted;
+  }
+
+  // app/src/host/shared.ts
+  function authenticationAdapter(initial, load = async () => initial) {
+    let current = initial;
+    return {
+      async session() {
+        current = await load();
+        return current;
+      },
+      can(capability) {
+        return current.capabilities.includes(capability);
+      }
+    };
+  }
+  function documentAdapter(transport, path, initial) {
+    return {
+      async load() {
+        const row = initial || (await transport.request({ path })).body;
+        return { document: adoptHostDocument(row.document ?? row.doc), version: row.version };
+      },
+      async save(input) {
+        const document2 = adoptHostDocument(input.document);
+        return (await transport.request({
+          method: "PUT",
+          path,
+          body: { document: document2, doc: document2, version: input.version }
+        })).body;
+      }
+    };
+  }
+  function pageAdapter(transport, root) {
+    return {
+      async list() {
+        return (await transport.request({ path: root })).body;
+      },
+      async get(id) {
+        return (await transport.request({ path: `${root}/${encodePath(id)}` })).body;
+      },
+      async create(page2) {
+        return (await transport.request({ method: "POST", path: root, body: { ...page2 } })).body;
+      },
+      async update(id, page2) {
+        return (await transport.request({ method: "PATCH", path: `${root}/${encodePath(id)}`, body: page2 })).body;
+      }
+    };
+  }
+  function menuAdapter(transport, root) {
+    return {
+      async list() {
+        return (await transport.request({ path: root })).body;
+      },
+      async get(id) {
+        return (await transport.request({ path: `${root}/${encodePath(id)}` })).body;
+      },
+      async save(menu) {
+        return (await transport.request({ method: "PUT", path: `${root}/${encodePath(menu.id)}`, body: menu })).body;
+      }
+    };
+  }
+  function revisionAdapter(transport, root) {
+    return {
+      async list() {
+        return (await transport.request({ path: root })).body;
+      },
+      async restore(version, currentVersion) {
+        const row = (await transport.request({
+          method: "POST",
+          path: `${root}/${encodePath(version)}/restore`,
+          body: { currentVersion }
+        })).body;
+        const raw = row.document ?? row.doc;
+        return raw === void 0 ? { version: row.version } : { document: adoptHostDocument(raw), version: row.version };
+      }
+    };
+  }
+  function assetAdapter(transport, root) {
+    return {
+      async list() {
+        return (await transport.request({ path: root })).body;
+      },
+      async download(id) {
+        return (await transport.request({ path: `${root}/${encodePath(id)}`, responseType: "blob" })).body;
+      },
+      async upload(file, filename) {
+        const form = new FormData();
+        form.set("file", file, filename || ("name" in file ? String(file.name || "asset") : "asset"));
+        return (await transport.request({ method: "POST", path: root, body: form })).body;
+      },
+      async remove(id) {
+        await transport.request({ method: "DELETE", path: `${root}/${encodePath(id)}`, responseType: "empty" });
+      }
+    };
+  }
+  function settingsAdapter(transport, path) {
+    return {
+      async read() {
+        return (await transport.request({ path })).body;
+      },
+      async write(settings) {
+        return (await transport.request({ method: "PUT", path, body: settings })).body;
+      }
+    };
+  }
+
+  // app/src/host/web.ts
+  var webCapabilities = (role) => role === "content" ? ["edit_document"] : [
+    "edit_document",
+    "edit_structure",
+    "publish",
+    "upload_media",
+    "manage_pages",
+    "manage_menus",
+    "manage_settings",
+    "restore_revisions"
+  ];
+  function createWebHostAdapter(options) {
+    const site = encodeURIComponent(options.siteId);
+    const transport = options.transport || new FetchHostTransport(
+      options.baseUrl || "",
+      options.fetch || globalThis.fetch.bind(globalThis),
+      () => options.sessionToken ? { "X-Pagecraft-Editor-Session": options.sessionToken } : {}
+    );
+    const session = {
+      authenticated: !!options.role || !!options.sessionToken,
+      userId: options.userId || "",
+      displayName: options.userName || "",
+      capabilities: webCapabilities(options.role)
+    };
+    const initial = options.document ? { document: options.document, version: options.version || 1 } : void 0;
+    const assetRoot = `/api/sites/${site}/assets`;
+    const asMedia = (row, size = 0) => ({
+      id: String(row.id),
+      name: String(row.name || "asset"),
+      mimeType: String(row.mimeType || row.type || ""),
+      url: String(row.url || `${assetRoot}/${encodeURIComponent(String(row.id))}`),
+      size: Number(row.size || size || 0),
+      width: Number(row.width ?? row.w ?? 0),
+      height: Number(row.height ?? row.h ?? 0)
+    });
+    return {
+      kind: "web",
+      authentication: authenticationAdapter(session),
+      documents: {
+        async load() {
+          const row = initial || (await transport.request({ path: `/api/sites/${site}` })).body;
+          return { document: adoptHostDocument(row.document ?? row.doc), version: row.version };
+        },
+        async save(input) {
+          const doc = adoptHostDocument(input.document);
+          return (await transport.request({
+            method: "PUT",
+            path: `/api/sites/${site}`,
+            body: { doc, version: input.version }
+          })).body;
+        }
+      },
+      pages: pageAdapter(transport, `/api/sites/${site}/pages`),
+      menus: menuAdapter(transport, `/api/sites/${site}/menus`),
+      revisions: revisionAdapter(transport, `/api/sites/${site}/history`),
+      assets: {
+        async list() {
+          return (await transport.request({ path: assetRoot })).body.map((row) => asMedia(row));
+        },
+        async download(id) {
+          return (await transport.request({ path: `${assetRoot}/${encodeURIComponent(id)}`, responseType: "blob" })).body;
+        },
+        async upload(file, filename) {
+          const form = new FormData();
+          const name = filename || ("name" in file ? String(file.name || "asset") : "asset");
+          form.set("file", file, name);
+          const row = (await transport.request({ method: "POST", path: assetRoot, body: form })).body;
+          return asMedia(row, file.size);
+        },
+        async remove(id) {
+          await transport.request({ method: "DELETE", path: `${assetRoot}/${encodeURIComponent(id)}` });
+        }
+      },
+      settings: settingsAdapter(transport, `/api/sites/${site}/settings`),
+      releases: {
+        async list() {
+          return (await transport.request({ path: `/v1/sites/${site}/releases` })).body;
+        },
+        async publish(input) {
+          return (await transport.request({
+            method: "POST",
+            path: `/v1/sites/${site}/releases`,
+            body: { ...input }
+          })).body;
+        }
+      }
+    };
+  }
+
+  // app/src/host/wordpress.ts
+  var normalizeRestUrl = (value) => value.replace(/\/+$/, "");
+  function createWordPressHostAdapter(options) {
+    let nonce = options.nonce;
+    const capabilities = [...options.capabilities || []];
+    const transport = options.transport || new FetchHostTransport(
+      normalizeRestUrl(options.restUrl || "/wp-json/pagecraft/v1"),
+      options.fetch || globalThis.fetch.bind(globalThis),
+      () => ({ "X-WP-Nonce": nonce })
+    );
+    const page2 = encodeURIComponent(String(options.pageId));
+    const initialSession = {
+      authenticated: true,
+      userId: String(options.userId || ""),
+      displayName: options.userName || "",
+      capabilities
+    };
+    const authentication = authenticationAdapter(initialSession, async () => {
+      const current = (await transport.request({ path: "/session" })).body;
+      capabilities.splice(0, capabilities.length, ...current.capabilities);
+      return current;
+    });
+    return {
+      kind: "wordpress",
+      authentication,
+      documents: documentAdapter(transport, `/pages/${page2}/document`),
+      pages: pageAdapter(transport, "/pages"),
+      menus: menuAdapter(transport, "/menus"),
+      revisions: revisionAdapter(transport, `/pages/${page2}/revisions`),
+      assets: assetAdapter(transport, "/media"),
+      settings: settingsAdapter(transport, "/settings"),
+      setNonce(value) {
+        nonce = value;
+      }
+    };
+  }
+
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
@@ -14052,6 +16138,20 @@ let saveWarned = false;
    one is how the server knows two people are editing. */
 const SRV = window.PC_SERVER || null;
 
+/* The server transport is a typed adapter compiled with the ported UI. WordPress creates the
+   sibling adapter; both stop at the same document/schema boundary and neither reaches into
+   the component runtime. The standalone artifact keeps its localStorage/IndexedDB host. */
+const HOST = SRV ? PC_UI.createWebHostAdapter({
+  siteId: SRV.siteId,
+  sessionToken: SRV.editorSessionToken,
+  role: SRV.role,
+  userId: SRV.user && SRV.user.id,
+  userName: SRV.user && (SRV.user.name || SRV.user.email),
+  document: SRV.doc,
+  version: SRV.version,
+  fetch: fetch.bind(window)
+}) : null;
+
 /* WordPress's native-content index is only a link catalogue. Treat the injected payload as
    data at the seam: reject malformed targets, non-HTTPS links outside local testing,
    cross-origin links, duplicate ids,
@@ -14117,17 +16217,6 @@ const WORDPRESS_CONTENT = (() => {
 })();
 const wordpressContent = () => WORDPRESS_CONTENT;
 
-/* WordPress embeds the full editor with a one-use SSO handoff. The resulting credential is
-   short-lived and scoped to this project; it is not the connector's refresh credential. Keep
-   it in memory and attach it only to Pagecraft's own relative API routes so an external font,
-   form endpoint, or absolute URL can never receive it by accident. */
-function pagecraftFetch(input, options = {}) {
-  const path = typeof input === 'string' ? input : String(input && input.url || '');
-  if (!SRV || !SRV.editorSessionToken || !/^\/(?:api|v1)\//.test(path)) return fetch(input, options);
-  const headers = { ...(options.headers || {}), 'X-Pagecraft-Editor-Session': SRV.editorSessionToken };
-  return fetch(input, { ...options, headers });
-}
-
 /* The live URL, for sending to somebody.
 
    Only in server mode, because the single-file build has nowhere to share to — the button is
@@ -14171,9 +16260,7 @@ async function historyModal() {
     '<button class="btn" id="historyClose">Close</button>');
   $('#historyClose').addEventListener('click', closeModal);
   try {
-    const response = await pagecraftFetch(`/api/sites/${SRV.siteId}/history`);
-    if (!response.ok) throw new Error(`History could not be loaded (${response.status})`);
-    const revisions = await response.json();
+    const revisions = await HOST.revisions.list();
     $('#mBody').innerHTML = revisions.length ? `<div class="historyList">${revisions.map(revision => {
       const current = revision.version === SRV.version;
       const author = revision.author && (revision.author.name || revision.author.email);
@@ -14192,11 +16279,7 @@ async function historyModal() {
       button.disabled = true;
       button.textContent = 'Restoring…';
       try {
-        const restored = await pagecraftFetch(`/api/sites/${SRV.siteId}/history/${version}/restore`, {
-          method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ currentVersion: SRV.version })
-        });
-        if (!restored.ok) throw new Error(`Version could not be restored (${restored.status})`);
+        await HOST.revisions.restore(version, SRV.version);
         location.reload();
       } catch (error) {
         button.disabled = false;
@@ -14279,9 +16362,7 @@ async function loadReleasePanel() {
   const host = $('#releasePanel');
   if (host) host.setAttribute('aria-busy', 'true');
   try {
-    const response = await pagecraftFetch(`/v1/sites/${SRV.siteId}/releases`);
-    if (!response.ok) throw new Error(`Release status could not be loaded (${response.status})`);
-    const payload = await response.json();
+    const payload = await HOST.releases.list();
     renderReleasePanel(payload);
   } catch (error) {
     if (host) host.innerHTML = `<div class="alert"><b>Release status is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
@@ -14317,21 +16398,13 @@ async function publishDraft(button) {
     const idempotencyKey = button.dataset.idempotencyKey
       || (crypto.randomUUID ? crypto.randomUUID() : `${SRV.siteId}-${SRV.version}-${Date.now()}`);
     button.dataset.idempotencyKey = idempotencyKey;
-    const response = await pagecraftFetch(`/v1/sites/${SRV.siteId}/releases`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        sourceVersion: SRV.version,
-        idempotencyKey,
-        acknowledgeWarnings: counts.warn > 0,
-        warningCodes: findings.filter(f => f.level === 'warn').map(f => f.code)
-      })
+    const payload = await HOST.releases.publish({
+      sourceVersion: SRV.version,
+      idempotencyKey,
+      acknowledgeWarnings: counts.warn > 0,
+      warningCodes: findings.filter(f => f.level === 'warn').map(f => f.code)
     });
     responseReceived = true;
-    const payload = await response.json().catch(() => ({}));
-    if (response.status === 409) {
-      warnStale(payload); throw new Error('The draft changed before it could be published.');
-    }
-    if (!response.ok) throw new Error(payload.error || payload.detail || `The release was refused (${response.status})`);
     const release = payload.release || payload;
     SRV.publishedRelease = release;
     SRV.publishedVersion = payload.publishedVersion ?? releaseSourceVersion(release) ?? SRV.publishedVersion;
@@ -14342,6 +16415,10 @@ async function publishDraft(button) {
     setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish draft'; } }, 900);
     await loadReleasePanel();
   } catch (error) {
+    if (error && Number.isInteger(error.status)) responseReceived = true;
+    if (error && error.status === 409) {
+      warnStale(error.payload || {});
+    }
     /* If the server answered, the attempt definitely ended and a correction should get a new
        key. If the network disappeared after accepting the release, retaining the key makes
        Retry reconcile that same immutable release instead of creating a duplicate. */
@@ -14418,19 +16495,17 @@ async function writeServer() {
   saving = true;
   stamp('Saving…', false);
   try {
-    const res = await pagecraftFetch(`/api/sites/${SRV.siteId}`, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ doc: doc(), version: SRV.version })
-    });
-    if (res.status === 409) { saveState = 'failed'; stamp('NOT SAVED', true); warnStale(await res.json().catch(() => ({}))); return; }
-    if (res.status === 403) { saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(await res.json().catch(() => ({}))); return; }
-    if (!res.ok) throw new Error('The server refused the save (' + res.status + ')');
-    const body = await res.json();
+    const body = await HOST.documents.save({ document: doc(), version: SRV.version });
     SRV.version = body.version;
     saveState = 'ok';
     stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
   } catch (e) {
+    if (e && e.status === 409) {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
+    }
+    if (e && e.status === 403) {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(e.payload || {}); return;
+    }
     saveState = 'failed';
     stamp('NOT SAVED', true);
     warnSaveFailed(e);
@@ -14553,10 +16628,12 @@ function load() {
   /* Before anything draws, so the panels never flash into view. The default panel is Add,
      which a content account does not have — `boot()` sends it to Pages instead. */
   if (SRV && !canStructure()) document.body.classList.add('content-only');
-  /* The server put the document in the page, so there is nothing to read and nothing that
-     can fail. `migrate` still runs: a stored document can be older than this build. */
+  /* The server put the document in the page, so there is no asynchronous read. Adoption still
+     runs: an older row follows the one migration chain, while a newer one fails closed with
+     the upgrade instruction supplied by the shared host boundary. */
   if (SRV) {
-    const d = migrate({ ...SRV.doc, v: SCHEMA });
+    let d = null, loadError = null;
+    try { d = PC_UI.adoptHostDocument(SRV.doc); } catch (error) { loadError = error; }
     if (d) {
       state.meta = { ...state.meta, ...d.meta };
       if (!state.meta.tokens) state.meta.tokens = defaultTokens(state.meta);
@@ -14568,10 +16645,10 @@ function load() {
     /* A document the server holds and this build cannot read is not a case to paper over
        with the demo site — that would look like the site had been replaced. */
     seed();
-    setTimeout(() => openModal('This site was saved by a newer build', `
-      <div class="alert"><b>The server holds a document this build cannot read.</b>
+    setTimeout(() => openModal('This site cannot be opened by this build', `
+      <div class="alert"><b>The server holds a document this Pagecraft build cannot read.</b>
       <span>You are looking at the demo site. Nothing has been saved and nothing has been lost.</span></div>
-      <div class="note" style="margin-top:var(--gap-2)">Update the server to a matching build.</div>`,
+      <div class="note" style="margin-top:var(--gap-2)">${esc(loadError && loadError.message || 'Update this host to a matching Pagecraft build.')}</div>`,
       `<button class="btn primary" id="svOk">Understood</button>`) || $('#svOk').addEventListener('click', closeModal), 300);
     return;
   }
@@ -14586,13 +16663,14 @@ function load() {
   if (!raw) { seed(); return; }
   let parsed = null;
   try { parsed = JSON.parse(raw); } catch (e) { }
-  const d = migrate(parsed);
+  let d = null, loadError = null;
+  try { d = PC_UI.adoptHostDocument(parsed); } catch (error) { loadError = error; }
   if (!d) {
     seed();
-    if (parsed && parsed.v > SCHEMA) setTimeout(() => openModal('Saved project is from a newer version', `
-      <div class="alert"><b>This browser holds a project saved by a newer build of Slate.</b>
+    if (loadError) setTimeout(() => openModal('Saved project cannot be opened by this build', `
+      <div class="alert"><b>This browser holds a project this Pagecraft build cannot read.</b>
       <span>It was left untouched rather than loaded and possibly mangled. You are looking at the demo site.</span></div>
-      <div class="note" style="margin-top:var(--gap-2)">Update to the newer build to open it, or import a JSON backup instead.</div>`,
+      <div class="note" style="margin-top:var(--gap-2)">${esc(loadError.message)}</div>`,
       `<button class="btn primary" id="nvOk">Understood</button>`) || $('#nvOk').addEventListener('click', closeModal), 300);
     return;
   }
@@ -14648,24 +16726,19 @@ async function assetsLoad() {
    over the wire and comes back as an id, and `AS.mem` records it with a URL pointing at the
    server — which keeps every existing reader of `AS.mem` working unchanged. */
 async function assetAddServer(file) {
-  const form = new FormData();
-  form.set('file', file);
-  let res;
+  let meta;
   try {
-    res = await pagecraftFetch(`/api/sites/${SRV.siteId}/assets`, { method: 'POST', body: form });
+    meta = await HOST.assets.upload(file, file.name);
   } catch (e) {
-    toast('The upload did not reach the server');
+    const why = e && e.payload;
+    toast((why && why.error) || (e && e.status
+      ? `The server refused the image (${e.status})`
+      : 'The upload did not reach the server'));
     return null;
   }
-  if (!res.ok) {
-    const why = await res.json().catch(() => ({}));
-    toast(why.error || `The server refused the image (${res.status})`);
-    return null;
-  }
-  const meta = await res.json();
   AS.mem.set(meta.id, {
-    id: meta.id, name: meta.name, type: meta.type, size: file.size,
-    w: meta.w, h: meta.h,
+    id: meta.id, name: meta.name, type: meta.mimeType, size: meta.size || file.size,
+    w: meta.width, h: meta.height,
     /* served by the editor's own route, so it needs the session the page already has */
     url: SRV.editorSessionToken ? URL.createObjectURL(file) : `/api/sites/${SRV.siteId}/assets/${meta.id}`
   });
@@ -14677,19 +16750,19 @@ async function assetAddServer(file) {
 async function assetsLoadServer() {
   let list = [];
   try {
-    const res = await pagecraftFetch(`/api/sites/${SRV.siteId}/assets`);
-    if (res.ok) list = await res.json();
+    list = await HOST.assets.list();
   } catch (e) { }
   await Promise.all(list.map(async m => {
-    let url = `/api/sites/${SRV.siteId}/assets/${m.id}`;
+    let url = m.url;
     if (SRV.editorSessionToken) {
       try {
-        const response = await pagecraftFetch(url);
-        if (!response.ok) return;
-        url = URL.createObjectURL(await response.blob());
+        url = URL.createObjectURL(await HOST.assets.download(m.id));
       } catch { return; }
     }
-    AS.mem.set(m.id, { id: m.id, name: m.name, type: m.type, size: 0, w: m.w, h: m.h, url });
+    AS.mem.set(m.id, {
+      id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
+      w: m.width, h: m.height, url
+    });
   }));
 }
 
@@ -14709,18 +16782,13 @@ async function assetAdd(file) {
 async function assetDel(id) {
   const a = AS.mem.get(id);
   if (SRV) {
-    let res;
     try {
-      res = await pagecraftFetch(`/api/sites/${encodeURIComponent(SRV.siteId)}/assets/${encodeURIComponent(id)}`, {
-        method: 'DELETE'
-      });
+      await HOST.assets.remove(id);
     } catch (e) {
-      toast('The image could not be deleted from the server');
-      return false;
-    }
-    if (!res.ok) {
-      const why = await res.json().catch(() => ({}));
-      toast(why.error || `The server refused to delete the image (${res.status})`);
+      const why = e && e.payload;
+      toast((why && why.error) || (e && e.status
+        ? `The server refused to delete the image (${e.status})`
+        : 'The image could not be deleted from the server'));
       return false;
     }
   } else if (AS.ok) {
