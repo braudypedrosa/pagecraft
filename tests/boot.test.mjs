@@ -196,6 +196,68 @@ test('server mode separates draft saving from explicit release publication', asy
   dom.window.close();
 });
 
+test('WordPress mode boots the shared editor and saves a native fallback through the nonce adapter', async () => {
+  const config = {
+    restUrl: 'http://localhost/wp-json/pagecraft/v1', nonce: 'wp-rest-nonce', doc: null, version: 0,
+    role: 'owner', siteName: 'Fixture WordPress',
+    page: { id: 42, title: 'Native landing page', slug: 'native-landing-page' },
+    user: { id: '7', name: 'Admin' },
+    capabilities: ['edit_document', 'edit_structure', 'manage_pages', 'restore_revisions'],
+    previewUrl: 'http://localhost/native-landing-page/', pagesUrl: 'http://localhost/wp-admin/edit.php?post_type=page'
+  };
+  const marker = '<script>\n/* =====================================================================';
+  const html = readFileSync(BUILT, 'utf8').replace(marker,
+    `<script>window.PC_WORDPRESS=${JSON.stringify(config).replace(/</g, '\\u003c')}</script>\n${marker}`);
+  const calls = [];
+  const errors = [];
+  const vc = new VirtualConsole();
+  vc.on('jsdomError', e => errors.push(String(e?.message || e)));
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/wp-admin/admin-ajax.php',
+    virtualConsole: vc,
+    beforeParse(win) {
+      win.fetch = async (url, opts = {}) => {
+        calls.push([String(url), opts.method || 'GET', opts.body, opts.headers]);
+        if (String(url).endsWith('/media')) {
+          return { ok: true, status: 200, json: async () => [] };
+        }
+        if (String(url).endsWith('/pages/42/document') && opts.method === 'PUT') {
+          return { ok: true, status: 200, json: async () => ({ version: 1 }) };
+        }
+        throw new Error(`Unexpected WordPress request: ${opts.method || 'GET'} ${url}`);
+      };
+    }
+  });
+  await new Promise(r => setTimeout(r, 800));
+  const doc = dom.window.document;
+  const bootUntil = Date.now() + 2000;
+  while (doc.querySelector('#savedTag')?.textContent === '—' && Date.now() < bootUntil) {
+    await new Promise(r => setTimeout(r, 25));
+  }
+  if (doc.querySelector('#savedTag')?.textContent === '—') dom.window.bindTop();
+  a.equal(doc.querySelector('#publishLabel')?.textContent.trim(), 'Done');
+  a.equal(dom.window.__CORE.state.pages.length, 1, 'new WordPress page did not start as one local page');
+  a.equal(dom.window.__CORE.state.pages[0].name, 'Native landing page');
+  a.equal(dom.window.__CORE.state.pages[0].slug, 'native-landing-page');
+  a.equal(dom.window.__CORE.state.pages[0].tree.length, 0, 'new WordPress page started with demo content');
+
+  await dom.window.writeNow();
+  const saveUntil = Date.now() + 1500;
+  while (!calls.some(([, method]) => method === 'PUT') && Date.now() < saveUntil) {
+    await new Promise(r => setTimeout(r, 20));
+  }
+  const save = calls.find(([url, method]) => url.endsWith('/pages/42/document') && method === 'PUT');
+  a.ok(save, 'WordPress draft did not save through the shared host adapter');
+  const payload = JSON.parse(save[2]);
+  a.equal(payload.version, 0);
+  a.match(payload.compiled.html, /<main\b/);
+  a.equal(typeof payload.compiled.globalCss, 'string');
+  a.equal(typeof payload.compiled.pageCss, 'string');
+  a.equal(new Headers(save[3]).get('X-WP-Nonce'), 'wp-rest-nonce');
+  a.deepEqual(errors, []);
+  dom.window.close();
+});
+
 test('a content collaborator is not offered the owner-only Publish action', async () => {
   const base = await boot();
   const server = {

@@ -34,7 +34,12 @@ export function documentAdapter(
     async save(input) {
       const document = adoptHostDocument(input.document);
       return (await transport.request<{ version: number }>({
-        method: 'PUT', path, body: { document, doc: document, version: input.version }
+        method: 'PUT', path, body: {
+          document,
+          doc: document,
+          version: input.version,
+          ...(input.compiled ? { compiled: input.compiled } : {})
+        }
       })).body;
     }
   };

@@ -90,7 +90,13 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   const loaded = await host.documents.load();
   a.equal(loaded.version, 9);
   a.equal(loaded.document.schemaVersion, Core.SCHEMA);
-  a.equal((await host.documents.save({ document: doc, version: 9 })).version, 10);
+  a.equal((await host.documents.save({
+    document: doc,
+    version: 9,
+    compiled: { html: '<main id="pagecraft-main"></main>', globalCss: ':root{}', pageCss: '.page{}' }
+  })).version, 10);
+  const savedDocument = JSON.parse(String(fixture.calls.at(-1)!.init.body));
+  a.equal(savedDocument.compiled.pageCss, '.page{}');
 
   a.equal((await host.pages.list())[0].title, 'Home');
   a.equal((await host.pages.get('42')).slug, 'home');
