@@ -48,6 +48,7 @@ import {
 } from './releases.ts';
 import { freezeGoogleFontStylesheets } from './font-freeze.ts';
 import type { PackageRegistry } from './packages.ts';
+import { createPagePackage, createSitePackage, portableAssetIds } from './portable-packages.ts';
 
 export const SESSION_COOKIE = 'pc_session';
 
@@ -1421,6 +1422,60 @@ export function createApp(o: Options) {
     if (!gate.ok) return deny(c, gate.status);
     if (!await o.store.byId(id)) return deny(c, 404);
     return c.json({ targets: await wordpressContentForSite(id) });
+  });
+
+  const portableDownload = (c: Context, pkg: ReturnType<typeof createSitePackage>) => c.body(
+    pkg.bytes as unknown as ArrayBuffer, 200, {
+      'content-type': 'application/zip',
+      'content-length': String(pkg.bytes.byteLength),
+      'content-disposition': `attachment; filename="${pkg.filename}"`,
+      'x-pagecraft-content-sha256': pkg.sha256,
+      'cache-control': 'private, no-store'
+    }
+  );
+
+  app.get('/v1/sites/:id/packages/site', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'read');
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    try {
+      const assetIds = new Set(portableAssetIds(site.doc));
+      return portableDownload(c, createSitePackage({
+        document: site.doc,
+        assets: await assetBodiesOf(id, assetIds),
+        provenance: {
+          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud',
+          sourceId: site.id, sourceVersion: site.version, exportedBy: gate.user.id
+        }
+      }));
+    } catch (error) {
+      return c.json({ error: (error as Error).message }, 422);
+    }
+  });
+
+  app.get('/v1/sites/:id/packages/pages/:pageId', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'read');
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    try {
+      const pageId = c.req.param('pageId');
+      const assetIds = new Set(portableAssetIds(site.doc, pageId));
+      return portableDownload(c, createPagePackage({
+        document: site.doc,
+        pageId,
+        assets: await assetBodiesOf(id, assetIds),
+        provenance: {
+          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud',
+          sourceId: site.id, sourceVersion: site.version, exportedBy: gate.user.id
+        }
+      }));
+    } catch (error) {
+      return c.json({ error: (error as Error).message }, 422);
+    }
   });
 
   app.get('/v1/sites/:id/connections', async c => {

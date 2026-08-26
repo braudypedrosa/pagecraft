@@ -1,14 +1,19 @@
-import { SCHEMA, clone, migrate } from '../core/index';
-import type { Doc, UnknownDocumentInput } from '../core/types';
+import { SCHEMA, clone, migrate } from '../core/index.ts';
+import type { Doc, UnknownDocumentInput } from '../core/types.ts';
 
 export class DocumentSchemaError extends Error {
+  readonly suppliedVersion: number | null;
+  readonly supportedVersion: number;
+
   constructor(
     message: string,
-    readonly suppliedVersion: number | null,
-    readonly supportedVersion: number = SCHEMA
+    suppliedVersion: number | null,
+    supportedVersion: number = SCHEMA
   ) {
     super(message);
     this.name = 'DocumentSchemaError';
+    this.suppliedVersion = suppliedVersion;
+    this.supportedVersion = supportedVersion;
   }
 }
 

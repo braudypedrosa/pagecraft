@@ -15761,14 +15761,14 @@ var PC_UI = (() => {
 
   // app/src/host/schema.ts
   var DocumentSchemaError = class extends Error {
-    constructor(message, suppliedVersion, supportedVersion = SCHEMA) {
-      super(message);
-      this.suppliedVersion = suppliedVersion;
-      this.supportedVersion = supportedVersion;
-      this.name = "DocumentSchemaError";
-    }
     suppliedVersion;
     supportedVersion;
+    constructor(message, suppliedVersion, supportedVersion = SCHEMA) {
+      super(message);
+      this.name = "DocumentSchemaError";
+      this.suppliedVersion = suppliedVersion;
+      this.supportedVersion = supportedVersion;
+    }
   };
   var versionOf = (input) => {
     if (!input || typeof input !== "object") return null;
