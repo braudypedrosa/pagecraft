@@ -1,0 +1,78 @@
+.pagecraft-admin {
+  --pc-ink: #111311;
+  --pc-paper: #f8f6ef;
+  --pc-green: #b7f34a;
+  --pc-line: rgba(17, 19, 17, .16);
+  color: var(--pc-ink);
+  max-width: 1180px;
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.pagecraft-admin h1,
+.pagecraft-admin h2,
+.pagecraft-admin strong {
+  font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.pagecraft-admin__mast {
+  align-items: flex-start;
+  background: var(--pc-paper);
+  border: 1px solid var(--pc-line);
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0 14px;
+  padding: 24px;
+}
+
+.pagecraft-admin__mast h1 { color: var(--pc-ink); margin: 0 0 6px; }
+.pagecraft-admin__mast p:last-child { margin-bottom: 0; }
+.pagecraft-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .13em; margin: 0 0 7px; text-transform: uppercase; }
+.pagecraft-state { border: 1px solid var(--pc-line); border-radius: 999px; font-size: 12px; font-weight: 700; padding: 6px 10px; }
+.pagecraft-state--connected { background: var(--pc-green); border-color: var(--pc-green); }
+.pagecraft-state--paused { background: #fff3c4; }
+.pagecraft-state--frozen { background: #e7e5de; }
+
+.pagecraft-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pagecraft-card,
+.pagecraft-panel { background: #fff; border: 1px solid var(--pc-line); }
+.pagecraft-card { display: grid; gap: 8px; min-height: 82px; padding: 18px; }
+.pagecraft-card span { color: #5c625c; font-size: 12px; }
+.pagecraft-card strong { font-size: 15px; overflow-wrap: anywhere; }
+.pagecraft-panel { margin-top: 14px; padding: 20px; }
+.pagecraft-panel h2 { margin: 0 0 8px; }
+.pagecraft-panel__head { align-items: center; display: flex; gap: 20px; justify-content: space-between; }
+.pagecraft-panel__head p { margin-bottom: 0; }
+.pagecraft-actions,
+.pagecraft-table-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 7px; }
+.pagecraft-inline { display: inline-block; margin: 0; }
+.pagecraft-fields { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px 0; }
+.pagecraft-fields label { display: grid; font-weight: 600; gap: 6px; }
+.pagecraft-fields input,
+.pagecraft-fields select { max-width: none; width: 100%; }
+.pagecraft-admin table { margin-top: 14px; }
+.pagecraft-admin code { font-size: 11px; overflow-wrap: anywhere; }
+.pagecraft-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+.pagecraft-table-scroll:focus { outline: 2px solid var(--pc-green); outline-offset: 2px; }
+.pagecraft-submissions { min-width: 680px; table-layout: fixed; }
+.pagecraft-submissions th:nth-child(1) { width: 22%; }
+.pagecraft-submissions th:nth-child(2) { width: 20%; }
+.pagecraft-submissions th:nth-child(3) { width: 38%; }
+.pagecraft-submissions th:nth-child(4) { width: 20%; }
+.pagecraft-submissions pre { box-sizing: border-box; margin: 0; max-width: 100%; overflow-wrap: anywhere; white-space: pre-wrap; word-break: break-word; }
+.pagecraft-honeypot { left: -10000px !important; position: absolute !important; }
+
+.pagecraft-editor { max-width: none; }
+.pagecraft-editor__frame { background: #fff; border: 1px solid var(--pc-line); display: block; height: calc(100vh - 190px); min-height: 620px; width: 100%; }
+
+@media (max-width: 900px) {
+  .pagecraft-grid,
+  .pagecraft-fields { grid-template-columns: 1fr; }
+  .pagecraft-admin__mast,
+  .pagecraft-panel__head { align-items: stretch; flex-direction: column; }
+  .pagecraft-panel { padding: 14px; }
+  .pagecraft-submissions { min-width: 620px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagecraft-admin *, .pagecraft-admin *::before, .pagecraft-admin *::after { scroll-behavior: auto !important; transition: none !important; }
+}
