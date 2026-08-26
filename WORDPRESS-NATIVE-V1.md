@@ -12,6 +12,15 @@ Approved product decisions:
 - WordPress Pages is the only page library; Pagecraft does not add a duplicate Pages submenu.
 - Pagecraft navigation becomes a native WordPress menu whose presentation remains controlled by the Pagecraft navigation component.
 
+## GitHub tracking
+
+- Epic: [Pagecraft WordPress v1: native handoff](https://github.com/braudypedrosa/pagecraft/issues/12)
+- Milestone: [Pagecraft WordPress v1 — Native Handoff](https://github.com/braudypedrosa/pagecraft/milestone/1)
+- Historical checkpoint branch: `bp/connected-v1-checkpoint`
+- Active development branch: `bp/wordpress-native-v1`
+
+Every implementation pull request must reference its scoped child issue and include the relevant automated and manual test evidence.
+
 ## Product contract
 
 The Pagecraft web application creates, previews, shares, and exports sites. The WordPress product consists of a Pagecraft Builder plugin and Pagecraft Theme distributed together. Customers may upload an offline package or connect a Pagecraft account to browse and manually import cloud pages.
