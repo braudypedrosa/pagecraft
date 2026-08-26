@@ -9,6 +9,13 @@ trap 'rm -rf -- "${PACKAGE_TEMP}"' EXIT
 PAGECRAFT_PACKAGE_OUTPUT_DIR="${PACKAGE_TEMP}" \
 	bash "${WORDPRESS_DIR}/tools/build-packages.sh" 0.2.0 >/dev/null
 
+node --experimental-strip-types \
+	"${WORDPRESS_DIR}/tools/build-runtime.mjs" \
+	"${PACKAGE_TEMP}/pagecraft-runtime.js"
+cmp "${PACKAGE_TEMP}/pagecraft-runtime.js" \
+	"${WORDPRESS_DIR}/pagecraft-builder/assets/pagecraft-runtime.js"
+node --check "${PACKAGE_TEMP}/pagecraft-runtime.js"
+
 builder="${PACKAGE_TEMP}/pagecraft-builder-0.2.0.zip"
 theme="${PACKAGE_TEMP}/pagecraft-theme-0.2.0.zip"
 first_builder="$(shasum -a 256 "${builder}" | awk '{print $1}')"
@@ -28,6 +35,7 @@ unzip -Z1 "${builder}" >"${builder_entries}"
 unzip -Z1 "${theme}" >"${theme_entries}"
 grep -Fxq 'pagecraft-builder/pagecraft-builder.php' "${builder_entries}"
 grep -Fxq 'pagecraft-builder/uninstall.php' "${builder_entries}"
+grep -Fxq 'pagecraft-builder/assets/BP-ANIMATE-LICENSE.txt' "${builder_entries}"
 grep -Fxq 'pagecraft/style.css' "${theme_entries}"
 if grep -Eq '^pagecraft-theme/' "${theme_entries}"; then
 	echo 'Pagecraft theme package uses an updater-incompatible stylesheet root.' >&2

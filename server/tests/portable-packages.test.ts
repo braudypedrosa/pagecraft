@@ -40,7 +40,7 @@ const fixture = () => {
     w: 1, h: 1,
     bytes: new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
   };
-  return { doc, asset };
+  return { doc, asset, nav, image };
 };
 
 const provenance = {
@@ -76,7 +76,7 @@ test('identical site inputs produce byte-identical deterministic packages and ha
 });
 
 test('site and page packages retain source, globals, menus, styles, previews, and assets', () => {
-  const { doc, asset } = fixture();
+  const { doc, asset, nav, image } = fixture();
   const site = validatePortablePackage(createSitePackage({ document: doc, assets: [asset], provenance }).bytes);
   a.equal(site.manifest.kind, 'site');
   a.equal(site.document.pages.length, 2);
@@ -85,7 +85,16 @@ test('site and page packages retain source, globals, menus, styles, previews, an
   a.ok(site.files.has('source/dependencies.json'));
   a.ok(site.files.has('compiled/index.html'));
   a.ok(site.files.has('compiled/about.html'));
-  a.ok(site.files.has('styles/index.css'));
+  a.ok(site.files.has('styles/global.css'));
+  a.ok(site.files.has('styles/pages/index.css'));
+  a.ok(site.files.has('styles/pages/about.css'));
+  const globalCss = decoder.decode(site.files.get('styles/global.css'));
+  const pageCss = decoder.decode(site.files.get('styles/pages/index.css'));
+  a.match(globalCss, /:root\{/);
+  a.match(globalCss, new RegExp(`\\.${Core.nodeClass(nav)}\\b`));
+  a.doesNotMatch(globalCss, new RegExp(`\\.${Core.nodeClass(image)}\\b`));
+  a.match(pageCss, new RegExp(`\\.${Core.nodeClass(image)}\\b`));
+  a.doesNotMatch(pageCss, /:root\{/);
   a.ok(site.files.has('previews/index.html'));
   a.ok([...site.files.keys()].some(path => /^assets\/hero-image-/.test(path)));
   a.equal(site.dependencies.globals.headerNodes, 1);

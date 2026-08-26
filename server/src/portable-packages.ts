@@ -1,6 +1,6 @@
 import type { Doc, NavItem, Node as PagecraftNode } from '../../app/src/core/types.ts';
 import {
-  SCHEMA, assetFile, eachNode, slugify
+  SCHEMA, assetFile, eachNode, exportTargets, slugify, wordpressStyles
 } from '../../app/src/core/index.ts';
 import { adoptHostDocument } from '../../app/src/host/schema.ts';
 import {
@@ -169,9 +169,6 @@ const mimeFor = (path: string) => {
   return 'application/octet-stream';
 };
 
-const styleText = (html: string) => [...html.matchAll(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/gi)]
-  .map(match => match[1].trim()).filter(Boolean).join('\n');
-
 const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
   const page = doc.pages.find(candidate => candidate.id === pageId);
   if (!page) throw new Error(`Pagecraft page ${pageId} does not exist`);
@@ -211,10 +208,19 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   const dependencies = dependenciesOf(document);
   const selectedAssets = packageAssets(document, assets);
   const rendered = renderSite(document, selectedAssets);
+  const wordpressStyleFiles = new Map(exportTargets().map(target => [
+    target.path,
+    wordpressStyles(target.pg)
+  ]));
+  const firstStyles = wordpressStyleFiles.values().next().value as ReturnType<typeof wordpressStyles> | undefined;
   const content: PackageContent[] = [
     { path: DOCUMENT_PATH, role: 'document', mediaType: 'application/json', bytes: jsonBytes(document) },
     { path: PROVENANCE_PATH, role: 'provenance', mediaType: 'application/json', bytes: jsonBytes(provenance) },
-    { path: DEPENDENCIES_PATH, role: 'dependencies', mediaType: 'application/json', bytes: jsonBytes(dependencies) }
+    { path: DEPENDENCIES_PATH, role: 'dependencies', mediaType: 'application/json', bytes: jsonBytes(dependencies) },
+    {
+      path: 'styles/global.css', role: 'style', mediaType: 'text/css; charset=utf-8',
+      bytes: textBytes(firstStyles?.global || '')
+    }
   ];
 
   for (const [path, source] of [...rendered.files.entries()].sort(([a], [b]) => utf8ByteCompare(a, b))) {
@@ -226,10 +232,12 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
       bytes: textBytes(source)
     });
     if (isPage) {
+      const styles = wordpressStyleFiles.get(path);
+      if (!styles) throw new Error(`Portable package could not resolve WordPress styles for ${path}`);
       content.push({ path: `previews/${path}`, role: 'preview', mediaType: mimeFor(path), bytes: textBytes(source) });
       content.push({
-        path: `styles/${path.replace(/\.html$/i, '.css')}`,
-        role: 'style', mediaType: 'text/css; charset=utf-8', bytes: textBytes(styleText(source))
+        path: `styles/pages/${path.replace(/\.html$/i, '.css')}`,
+        role: 'style', mediaType: 'text/css; charset=utf-8', bytes: textBytes(styles.page)
       });
     }
   }

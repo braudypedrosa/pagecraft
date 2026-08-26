@@ -398,6 +398,7 @@ __export(index_exports, {
   vidSrc: () => vidSrc,
   widgetSlug: () => widgetSlug,
   wordpressContentToken: () => wordpressContentToken,
+  wordpressStyles: () => wordpressStyles,
   wrap: () => wrap,
   zoomFor: () => zoomFor
 });
@@ -6944,12 +6945,35 @@ function usedComponents(lists) {
   lists.forEach(visit);
   return out;
 }
+function treeRuleCss(lists, editing) {
+  const acc = { d: "", t: "", m: "" };
+  usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc, null, true));
+  lists.forEach((l) => l.forEach((n) => nodeCss(n, editing, acc)));
+  return acc.d + (acc.t ? `${MQ.t}{${acc.t}}` : "") + (acc.m ? `${MQ.m}{${acc.m}}` : "");
+}
+function foundationCss(editing) {
+  const tk = tokenCss();
+  return baseCss(editing) + tk.d + (tk.t ? `${MQ.t}{${tk.t}}` : "") + (tk.m ? `${MQ.m}{${tk.m}}` : "");
+}
 function treeCss(lists, editing) {
   const acc = { d: "", t: "", m: "" };
   usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc, null, true));
   lists.forEach((l) => l.forEach((n) => nodeCss(n, editing, acc)));
   const tk = tokenCss();
   return baseCss(editing) + tk.d + acc.d + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : "") + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : "");
+}
+function wordpressStyles(pg2) {
+  const globalTrees = [state.header, state.footer];
+  const globalMoves = animUsed(globalTrees);
+  const pageMoves = animUsed([pg2.tree]);
+  return {
+    global: tidy(foundationCss(false) + treeRuleCss(globalTrees, false) + (globalMoves ? `
+${ANIM_CSS}
+${ANIM_CALM}` : "")),
+    page: tidy(treeRuleCss([pg2.tree], false) + (pageMoves && !globalMoves ? `
+${ANIM_CSS}
+${ANIM_CALM}` : ""))
+  };
 }
 function baseCss(editing) {
   const m = state.meta;
@@ -8403,6 +8427,7 @@ ${ANIM_JS}
   vidSrc,
   widgetSlug,
   wordpressContentToken,
+  wordpressStyles,
   wrap,
   zoomFor
 });

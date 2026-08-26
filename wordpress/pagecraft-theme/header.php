@@ -14,8 +14,9 @@
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<a class="pagecraft-skip-link" href="#primary"><?php esc_html_e( 'Skip to content', 'pagecraft' ); ?></a>
+<a class="pagecraft-skip-link" href="#<?php echo pagecraft_theme_is_managed_page() ? 'pagecraft-main' : 'primary'; ?>"><?php esc_html_e( 'Skip to content', 'pagecraft' ); ?></a>
 <div class="pagecraft-fallback-shell">
+	<?php if ( ! pagecraft_theme_render_global( 'header' ) ) : ?>
 	<header class="pagecraft-site-header">
 		<div class="pagecraft-shell-inner">
 			<div class="pagecraft-site-branding">
@@ -46,3 +47,4 @@
 			</nav>
 		</div>
 	</header>
+	<?php endif; ?>

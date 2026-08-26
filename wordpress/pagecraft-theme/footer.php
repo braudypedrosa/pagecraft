@@ -5,6 +5,7 @@
  * @package Pagecraft
  */
 ?>
+	<?php if ( ! pagecraft_theme_render_global( 'footer' ) ) : ?>
 	<footer class="pagecraft-site-footer">
 		<div class="pagecraft-shell-inner">
 			<p>
@@ -19,6 +20,7 @@
 			</p>
 		</div>
 	</footer>
+	<?php endif; ?>
 </div>
 <?php wp_footer(); ?>
 </body>

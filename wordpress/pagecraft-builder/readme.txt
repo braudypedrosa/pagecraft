@@ -14,7 +14,9 @@ Pagecraft Builder is the WordPress host for the Pagecraft editor and portable do
 
 Version 0.2.0 establishes the native Builder package, compatibility boundary, local capabilities, managed-page ownership, and the strict page-package import service. Imported pages retain canonical Pagecraft source and provenance in revision-enabled metadata while sanitized compiled markup remains native `post_content`.
 
-Package upload screens, the embedded editor, native menus, media, global elements, and optional manual cloud import are added through the tracked WordPress v1 milestone.
+Generated project/global CSS, page CSS, and the trusted Pagecraft interaction runtime are immutable content-hashed files below `wp-content/uploads/pagecraft`. Revision-capable native global-element records hold the Pagecraft header and footer. Updating the plugin or theme does not overwrite those files or records.
+
+Package upload screens, the embedded editor, native menus, media, global-element screens, and optional manual cloud import are added through the tracked WordPress v1 milestone.
 
 Pagecraft Builder does not run background synchronization, deployment promotion, webhooks, CMS write-back, or remote release activation.
 
@@ -32,7 +34,7 @@ Import creates an independent WordPress copy. Reimport creates a new page by def
 
 The importer preserves native title, slug, status, author, featured image, and third-party metadata when replacing a Pagecraft-managed page. It refuses to convert an ordinary WordPress page through the low-level import service.
 
-Deactivation and uninstall do not remove imported pages, post content, post metadata, menus, or media.
+Deactivation and uninstall do not remove imported pages, post content, post metadata, global elements, generated assets, menus, or media.
 
 == License ==
 
