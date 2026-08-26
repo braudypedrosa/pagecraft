@@ -9,6 +9,7 @@ import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, type Role } from '../src/auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
+import { validatePortablePackage } from '../src/portable-packages.ts';
 
 /* The demo project, not an empty one: it has a header, a footer, two pages and most of the
    widget set, so a byte-identity claim over it means something. */
@@ -86,6 +87,26 @@ test('auth and API routes answer only on the editor host', async () => {
   a.equal(login.status, 404);
   const api = await app.request(new Request('http://acme.test/api/sites', { headers: { host: 'acme.test' } }));
   a.equal(api.status, 404);
+});
+
+test('an authorized reader can download deterministic portable site and page packages', async () => {
+  const { site, user, admin, signIn } = await rig('content');
+  const { cookie } = await signIn();
+  const siteResponse = await admin(`/v1/sites/${site.id}/packages/site`, {}, cookie);
+  a.equal(siteResponse.status, 200);
+  a.equal(siteResponse.headers.get('content-type'), 'application/zip');
+  a.match(siteResponse.headers.get('content-disposition') || '', /\.pagecraft-site\.zip/);
+  const siteBytes = new Uint8Array(await siteResponse.arrayBuffer());
+  a.equal(siteResponse.headers.get('x-pagecraft-content-sha256'), validatePortablePackage(siteBytes).sha256);
+
+  const pageId = site.doc.pages[0].id;
+  const pageResponse = await admin(`/v1/sites/${site.id}/packages/pages/${pageId}`, {}, cookie);
+  a.equal(pageResponse.status, 200);
+  a.match(pageResponse.headers.get('content-disposition') || '', /\.pagecraft-page\.zip/);
+  const imported = validatePortablePackage(new Uint8Array(await pageResponse.arrayBuffer()));
+  a.equal(imported.manifest.entryPageId, pageId);
+  a.equal(imported.provenance.origin, 'pagecraft-cloud');
+  a.equal(imported.provenance.exportedBy, user.id);
 });
 
 test('a shared-path site keeps the published sandbox on the editor host', async () => {
