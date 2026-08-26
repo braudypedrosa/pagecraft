@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Pagecraft\Connector;
+namespace Pagecraft\Builder;
 
 final class Autoload
 {

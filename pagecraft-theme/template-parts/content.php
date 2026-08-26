@@ -33,14 +33,7 @@
 	<div class="pagecraft-entry-content">
 		<?php
 		if ( is_singular() ) {
-			$pagecraft_managed_content = pagecraft_theme_get_managed_content( get_the_ID() );
-
-			if ( '' !== $pagecraft_managed_content ) {
-				// The connector returns trusted, sanitized active-release HTML.
-				echo $pagecraft_managed_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			} else {
-				the_content();
-			}
+			the_content();
 		} else {
 			the_excerpt();
 		}

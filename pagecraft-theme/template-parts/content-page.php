@@ -5,7 +5,6 @@
  * @package Pagecraft
  */
 
-$pagecraft_managed_content = pagecraft_theme_get_managed_content( get_the_ID() );
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'pagecraft-entry' ); ?>>
 	<header class="pagecraft-entry-header">
@@ -17,13 +16,6 @@ $pagecraft_managed_content = pagecraft_theme_get_managed_content( get_the_ID() )
 	<?php endif; ?>
 
 	<div class="pagecraft-entry-content">
-		<?php if ( '' !== $pagecraft_managed_content ) : ?>
-			<?php
-			// The connector returns trusted, sanitized active-release HTML.
-			echo $pagecraft_managed_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			?>
-		<?php else : ?>
-			<?php the_content(); ?>
-		<?php endif; ?>
+		<?php the_content(); ?>
 	</div>
 </article>

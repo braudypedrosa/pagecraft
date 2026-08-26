@@ -13,6 +13,6 @@ docker run --rm \
 	--entrypoint sh \
 	--volume "${WORDPRESS_DIR}:/workspace:ro" \
 	wordpress:6.6-php8.1-apache \
-	-lc 'find /workspace/pagecraft-theme /workspace/pagecraft-connector /workspace/tests -type f -name "*.php" -exec php -l {} \; >/dev/null'
+	-lc 'find /workspace/pagecraft-theme /workspace/pagecraft-builder /workspace/tests -type f -name "*.php" -exec php -l {} \; >/dev/null'
 
-echo 'Theme, connector, and fixtures parse on the required PHP 8.1 runtime.'
+echo 'Theme, Builder, and WordPress tests parse on the required PHP 8.1 runtime.'

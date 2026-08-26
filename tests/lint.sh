@@ -13,7 +13,7 @@ while IFS= read -r -d '' file; do
 	php -l "${file}" >/dev/null
 done < <(find \
 	"${WORDPRESS_DIR}/pagecraft-theme" \
-	"${WORDPRESS_DIR}/pagecraft-connector" \
+	"${WORDPRESS_DIR}/pagecraft-builder" \
 	"${WORDPRESS_DIR}/tests" \
 	-type f -name '*.php' -print0)
 
@@ -23,4 +23,6 @@ json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
 echo "theme.json is valid\n";
 ' "${WORDPRESS_DIR}/pagecraft-theme/theme.json"
 
-echo 'Theme, connector, and fixture PHP syntax is valid.'
+php "${WORDPRESS_DIR}/tests/builder-contract.php"
+
+echo 'Theme, Builder, and WordPress test PHP syntax is valid.'
