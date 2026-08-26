@@ -102,7 +102,7 @@ input,select,textarea{font:inherit;color:inherit}
 
 /* ---- top bar: Ink structure --------------------------------------------- */
 .topbar{
-  display:flex;align-items:center;gap:var(--sp-5);height:52px;flex:0 0 52px;padding:0 12px 0 0;
+  display:flex;align-items:center;gap:var(--sp-4);height:52px;flex:0 0 52px;padding:0 12px 0 0;
   background:var(--rail);color:var(--rail-text);position:relative;z-index:40;
 }
 .brand{
@@ -113,10 +113,15 @@ input,select,textarea{font:inherit;color:inherit}
 .topsep{width:1px;height:22px;background:var(--rail-line);flex:0 0 1px}
 .docname{
   display:flex;align-items:center;gap:var(--sp-3);padding:6px 10px;border-radius:var(--r-sm);
-  font-size:var(--fs-3);font-weight:500;color:var(--rail-text);max-width:230px;
+  font-size:var(--fs-3);font-weight:500;color:var(--rail-text);max-width:230px;min-width:0;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
 }
 .docname small{color:var(--rail-text-2);font-family:var(--label);font-size:var(--fs-2)}
 .spacer{flex:1}
+.topgroup{display:flex;align-items:center;gap:var(--sp-2);flex:0 0 auto}
+.topgroup.divided{border-left:1px solid var(--rail-line);padding-left:var(--sp-4)}
+.topTools{gap:var(--sp-1)}
+.topActions{gap:var(--sp-3)}
 
 /* segmented controls on Ink — active state is a green underline, not a fill */
 .seg{display:flex;gap:var(--sp-1);align-items:center}
@@ -204,6 +209,59 @@ input,select,textarea{font:inherit;color:inherit}
   color:var(--ink);background:#e8a3a3;border-radius:var(--r-sm);
   padding:3px 7px;font-weight:600;min-width:0;
 }
+/* Keep the canvas controls usable before the header starts wrapping. Secondary
+   labels yield to their icons; the committed Publish action stays explicit. */
+@media(max-width:1380px){
+  .topUtility .actionLabel,.topActions .collapseLabel{display:none}
+  .topUtility .btn,.topActions .btn:has(.collapseLabel){width:var(--ic-lg);height:var(--ic-lg);padding:0}
+  .docname{max-width:180px}
+}
+@media(max-width:1160px){
+  .saved{display:none}
+  .docname small{display:none}
+  .docname{max-width:140px}
+}
+@media(max-width:980px){
+  .brand{padding-inline:10px}
+  .brandLabel,.topsep{display:none}
+  .docname{max-width:110px;padding-inline:4px}
+}
+.historyList{display:flex;flex-direction:column}
+.historyRow{
+  display:grid;grid-template-columns:minmax(90px,.7fr) minmax(170px,1.5fr) minmax(170px,1fr) auto;
+  align-items:center;gap:var(--sp-5);padding:13px 0;border-bottom:1px solid var(--line);
+}
+.historyRow:first-child{padding-top:0}
+.historyRow:last-child{border-bottom:0;padding-bottom:0}
+.historyVersion{font-weight:600;color:var(--text)}
+.historyMeta{font-size:var(--fs-3);color:var(--text-2);min-width:0;overflow:hidden;text-overflow:ellipsis}
+.historyCurrent{font-family:var(--label);font-size:var(--fs-1);font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
+.releaseLead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-6);align-items:start;margin-bottom:var(--gap-2)}
+.releaseLead h3{font-size:var(--fs-5);line-height:1.25;margin:0 0 var(--sp-3);font-weight:600;letter-spacing:-.015em}
+.releaseLead p{max-width:66ch;margin:0;color:var(--text-2);font-size:var(--fs-3);line-height:1.6}
+.releaseState{
+  display:inline-flex;align-items:center;gap:var(--sp-3);padding:5px 9px;border:1px solid var(--line-2);
+  border-radius:var(--r-pill);font:600 var(--fs-1)/1 var(--label);letter-spacing:.035em;text-transform:uppercase;white-space:nowrap
+}
+.releaseState::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--text-3)}
+.releaseState.live::before{background:var(--green)}
+.releaseState.failed::before{background:var(--danger)}
+.releaseState.waiting::before{background:var(--warn)}
+.releaseTargets{border-top:1px solid var(--line);margin-top:var(--gap-2);padding-top:var(--gap-2)}
+.releaseTargets h4{font-size:var(--fs-4);margin:0 0 var(--sp-4);font-weight:600}
+.releaseTarget{display:grid;grid-template-columns:minmax(100px,.65fr) minmax(0,1fr) auto;align-items:center;gap:var(--sp-5);padding:10px 0;border-bottom:1px solid var(--line)}
+.releaseTarget:last-child{border-bottom:0}
+.releaseTarget b{font-size:var(--fs-3);font-weight:600}
+.releaseTarget span{font-size:var(--fs-2);color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.releaseEmpty{padding:12px 14px;background:var(--field);border-radius:var(--r-md);color:var(--text-2);font-size:var(--fs-3);line-height:1.55}
+@media(max-width:760px){
+  .historyRow{grid-template-columns:1fr auto}
+  .historyMeta{grid-column:1}
+  .historyRow .btn{grid-column:2;grid-row:1/4}
+  .releaseLead{grid-template-columns:1fr}
+  .releaseTarget{grid-template-columns:1fr auto}
+  .releaseTarget span{grid-column:1}
+}
 
 /* ---------------------------------------------------------- body layout --- */
 .main{display:flex;flex:1;min-height:0}
@@ -241,6 +299,9 @@ body.preview .left,body.preview .right{display:none}
 .panelHead .spacer{flex:1}
 .pane{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 .pane[hidden]{display:none}
+/* The Add library alternates between short empty states and long scrolling lists.
+   Reserve the track in both so its sticky category switcher never changes width. */
+#paneAdd{scrollbar-gutter:stable}
 
 /* ---- inspector tabs ---------------------------------------------------- */
 /* The row's padding is the panel inset less the label's own, so the first label lines up
@@ -300,16 +361,35 @@ body.content-only .s-hud [data-x=down]{display:none}
   border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);
   cursor:grab;user-select:none;
 }
+.brow-main{display:flex;align-items:center;gap:var(--sp-4);flex:1;min-width:0;text-align:left}
 .brow:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .brow:active{cursor:grabbing}
 .brow svg{color:var(--text-2);flex:0 0 auto}
 .brow .bn{flex:1;min-width:0;overflow:hidden}
 .brow .bn b{display:block;font-size:var(--fs-2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brow .bn small{display:block;font-family:var(--label);font-size:var(--fs-1);color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* The Add panel scrolls as a block, so `flex` cannot give the row its height — the same
-   reason `.tabs.flush` states its own. The height, inset and label size it used to override
-   were a second opinion about how big a tab is; there is only the one kind. */
-.atabs{flex:none;height:44px}
+/* Four categories stay visible without forcing four labels into one narrow row. */
+.addSwitcher{
+  position:sticky;top:0;z-index:4;display:grid;grid-template-columns:1fr 1fr;
+  gap:4px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);
+}
+.addSwitcher button{
+  min-width:0;height:36px;padding:0 9px;display:flex;align-items:center;gap:7px;
+  border:1px solid transparent;
+  border-radius:var(--r-sm);background:transparent;color:var(--text-2);
+  font-size:var(--fs-2);font-weight:500;text-align:left;
+}
+.addSwitcherIcon{display:grid;place-items:center;color:var(--text-3);flex:0 0 auto}
+.addSwitcherIcon svg{display:block}
+.addSwitcher button:hover{background:var(--field);color:var(--text)}
+.addSwitcher button.on{
+  background:var(--field-2);border-color:var(--line-2);color:var(--text);font-weight:600;
+}
+.addSwitcher button.on .addSwitcherIcon{color:var(--text-2)}
+.addContext{
+  padding:9px 14px 0;color:var(--text-3);font-family:var(--label);
+  font-size:var(--fs-1);line-height:1.45;
+}
 .brow .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;opacity:0}
 .brow:hover .bx{opacity:1}
 .brow .bx:hover{background:var(--risk-bg);color:var(--risk-fg)}
@@ -342,6 +422,7 @@ body.content-only .s-hud [data-x=down]{display:none}
 .tpl b{font-size:var(--fs-3);font-weight:600}
 .tpl span{font-family:var(--label);font-size:var(--fs-2);color:var(--text-3);line-height:1.45}
 .pitem{
+  width:100%;font:inherit;color:inherit;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
   padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:var(--sp-4);
   cursor:grab;user-select:none;transition:border-color .14s,background .14s,transform .07s;
@@ -372,7 +453,8 @@ body.content-only .s-hud [data-x=down]{display:none}
   text-transform:uppercase;background:var(--green);color:var(--ink);
   padding:2px 6px;border-radius:var(--r-pill);
 }
-.lrow .tw{width:14px;flex:0 0 14px;display:grid;place-items:center;color:var(--text-3)}
+.lrow .tw{width:14px;height:20px;padding:0;flex:0 0 14px;display:grid;place-items:center;color:var(--text-3)}
+.lrow .tw:disabled{cursor:default;opacity:1}
 .lrow .tw svg{width:9px;height:9px;transition:transform .12s}
 .lrow.collapsed .tw svg{transform:rotate(-90deg)}
 .lrow svg.ico{width:13px;height:13px;flex:0 0 13px;opacity:.75}
@@ -383,7 +465,7 @@ body.content-only .s-hud [data-x=down]{display:none}
 .lrow .act button{width:var(--ic-sm);height:var(--ic-sm);display:grid;place-items:center;border-radius:var(--r-sm);color:var(--text-3)}
 .lrow .act button:hover{background:var(--line);color:var(--text)}
 /* the row's own grab affordance, revealed on hover so the list stays quiet */
-.lrow .gr{width:14px;flex:0 0 14px;display:grid;place-items:center;color:var(--text-3);cursor:grab;opacity:0}
+.lrow .gr{width:14px;height:20px;padding:0;flex:0 0 14px;display:grid;place-items:center;color:var(--text-3);cursor:grab;opacity:0}
 .lrow:hover .gr{opacity:.8}
 .lrow .gr:hover{opacity:1;color:var(--text)}
 .lrow .gr svg{width:11px;height:11px}
@@ -400,6 +482,7 @@ body.dragging .lrow{cursor:grabbing}
   display:flex;align-items:center;gap:var(--sp-4);padding:9px 10px;border-radius:var(--r-md);
   border:1px solid var(--line);margin-bottom:var(--gap-1);cursor:pointer;background:var(--panel);
 }
+.pagerow-main{display:flex;align-items:center;gap:var(--sp-4);flex:1;min-width:0;text-align:left}
 .pagerow:hover{border-color:var(--text-3)}
 .pagerow.on{border-color:var(--ink);background:var(--field)}
 .pagerow.on::before{content:"";width:3px;height:22px;border-radius:2px;background:var(--green);margin-left:-4px}
@@ -431,7 +514,6 @@ body.preview .stage{padding:0}
   /* centres when it fits and starts at the left edge when it does not, without the
      unreachable overflow that align-items:center would cause */
   margin-inline:auto;
-  transition:width .24s cubic-bezier(.4,0,.2,1);
 }
 body.preview .frameWrap{border-radius:0;box-shadow:none;width:100% !important}
 #canvas{
@@ -458,9 +540,9 @@ body.preview .modebar{display:none}
 }
 .pill.g{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .pill.g svg{color:var(--green)}
-#itemBar button{padding:0 4px;color:var(--text-3);font-size:var(--fs-3);line-height:1}
-#itemBar button:hover{color:var(--text)}
-#itemBar button:disabled{opacity:var(--dim);cursor:default}
+.itemBar button{padding:0 4px;color:var(--text-3);font-size:var(--fs-3);line-height:1}
+.itemBar button:hover{color:var(--text)}
+.itemBar button:disabled{opacity:var(--dim);cursor:default}
 /* dimension readout, kept close to the working surface */
 .dim{
   position:absolute;left:16px;bottom:12px;z-index:12;display:flex;align-items:center;gap:var(--sp-4);
@@ -480,6 +562,7 @@ body.preview .dim{display:none}
 .sHead .tt{flex:1;min-width:0}
 .sHead .tt b{display:block;font-size:var(--fs-4);font-weight:600;letter-spacing:-.01em}
 .sHead .tt small{color:var(--text-3);font-size:var(--fs-2);font-family:var(--label)}
+.panelClose{display:none}
 /* The style clipboard, shown as state rather than as two verbs: it exists only while
    something is held, so there is never a disabled button sitting on screen. Above the
    tabs, so it does not belong to any one of them — copying is not a Style-tab act. */
@@ -496,7 +579,7 @@ body.preview .dim{display:none}
 }
 .stclip .x:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .group{border-bottom:1px solid var(--line)}
-.gh{display:flex;align-items:center;gap:var(--sp-4);padding:11px 14px;cursor:pointer;font-size:var(--fs-3);font-weight:600;color:var(--text)}
+.gh{display:flex;align-items:center;gap:var(--sp-4);width:100%;padding:11px 14px;cursor:pointer;text-align:left;font-size:var(--fs-3);font-weight:600;color:var(--text)}
 .gh:hover{color:var(--text)}
 .gh svg{width:9px;height:9px;color:var(--text-3);transition:transform .12s}
 .group.closed .gh svg{transform:rotate(-90deg)}
@@ -522,6 +605,9 @@ body.preview .dim{display:none}
   display:flex;align-items:center;gap:var(--sp-3);font-family:var(--label);font-size:var(--fs-2);font-weight:500;
   color:var(--text-3);margin-bottom:var(--gap-1);
 }
+.wp-link-picker{margin-top:var(--gap-1);min-width:0}
+.wp-link-picker>label{display:block;margin:0 0 4px;font-family:var(--label);font-size:var(--fs-1);font-weight:500;color:var(--text-3)}
+.wp-link-picker>.note{overflow-wrap:anywhere}
 .f>label .rsp{width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2)}
 .f>label .rsp svg{width:9px;height:9px}
 .f>label .ovr{color:var(--on-green);background:var(--green)}
@@ -746,21 +832,21 @@ select.ctl{
    pixel larger than the other three and .frow the only one of the four whose disabled
    button still lit up on hover. Anything genuinely per-list stays with that list, and
    says why. */
-.frow,.qarow,.gtile{
+.frow,.qarow,.gtile,.navitem{
   border:1px solid var(--line);border-radius:var(--r-sm);
   padding:6px;margin-bottom:var(--gap-1);background:var(--field);
 }
-.frow .ctl,.qarow .ctl,.gtile .ctl,.irow .ctl{padding:5px 7px;font-size:var(--fs-2);min-width:0}
-.frow .x,.qarow .x,.gtile .x,.irow .x{
+.frow .ctl,.qarow .ctl,.gtile .ctl,.irow .ctl,.navitem .ctl{padding:5px 7px;font-size:var(--fs-2);min-width:0}
+.frow .x,.qarow .x,.gtile .x,.irow .x,.navitem .x{
   width:var(--ic-md);height:var(--ic-md);color:var(--text-3);
   border-radius:var(--r-sm);display:grid;place-items:center;
 }
-.frow .x[disabled],.qarow .x[disabled],.gtile .x[disabled],.irow .x[disabled]{opacity:var(--dim);cursor:default}
+.frow .x[disabled],.qarow .x[disabled],.gtile .x[disabled],.irow .x[disabled],.navitem .x[disabled]{opacity:var(--dim);cursor:default}
 .frow .x[disabled]:hover,.qarow .x[disabled]:hover,
-.gtile .x[disabled]:hover,.irow .x[disabled]:hover{background:none;color:var(--text-3)}
+.gtile .x[disabled]:hover,.irow .x[disabled]:hover,.navitem .x[disabled]:hover{background:none;color:var(--text-3)}
 /* The hover is one step off the row's own ground, so it cannot be one colour: three of
    the rows sit on --field, and .irow sits bare on the panel, where --panel is invisible. */
-.frow .x:hover,.qarow .x:hover,.gtile .x:hover{color:var(--text);background:var(--panel)}
+.frow .x:hover,.qarow .x:hover,.gtile .x:hover,.navitem .x:hover{color:var(--text);background:var(--panel)}
 .irow .x:hover{background:var(--wake-bg);color:var(--wake-fg)}
 /* the up arrow is the down arrow, turned over */
 .frow .x[data-x=fu] svg,.qarow .x[data-x=qu] svg,
@@ -805,6 +891,36 @@ select.ctl{
    exactly the 44px of the thumb beside them, which is the alignment the tile is built on */
 .gtile .x{height:21px}
 .irow{display:grid;grid-template-columns:1fr 1fr var(--ic-md) var(--ic-md);gap:var(--sp-2);margin-bottom:var(--gap-1);align-items:center}
+
+/* A menu item follows the familiar collapsed-row model: the destination is scannable in the
+   header, while the less frequent settings take space only for the item being edited. */
+.navitem{position:relative;padding:0;overflow:hidden;transition:border-color .12s,opacity .12s}
+.navitem:not(.on):hover .navitem-head{background:var(--panel)}
+.navitem.on{border-color:var(--line-2)}
+.navitem.on .navitem-head{background:var(--field-2)}
+.navitem.dragging{opacity:.45}
+.navitem.dragover{border-color:var(--ink)}
+.navitem.dragover::before{content:"";position:absolute;z-index:2;inset:-1px auto -1px -1px;width:3px;background:var(--green)}
+.navitem-head{display:grid;grid-template-columns:var(--ic-md) minmax(0,1fr) var(--ic-md);gap:var(--sp-1);align-items:center;padding:5px;transition:background .12s}
+.navitem-drag{width:var(--ic-md);height:var(--ic-md);display:grid;place-items:center;border-radius:var(--r-sm);color:var(--text-3);cursor:grab}
+.navitem-drag:hover{background:var(--wake-bg);color:var(--wake-fg)}
+.navitem-drag:active{cursor:grabbing}
+.navitem-main{min-width:0;display:flex;align-items:center;gap:var(--sp-3);padding:2px 4px;text-align:left;border-radius:var(--r-sm);color:var(--text)}
+.navitem-main:hover{background:transparent}
+.navitem .x:hover{background:var(--risk-bg);color:var(--risk-fg)}
+.navitem-main>span{min-width:0;flex:1}
+.navitem-main b,.navitem-main small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.navitem-main b{font-size:var(--fs-2);font-weight:600}
+.navitem-main small{font-family:var(--label);font-size:var(--fs-1);color:var(--text-3);margin-top:1px}
+.navitem-main>svg{flex:0 0 auto;color:var(--text-3);transition:transform .12s}
+.navitem.on .navitem-main>svg{transform:rotate(180deg)}
+.navitem-body{padding:8px 10px 10px;border-top:1px solid var(--line);background:var(--panel)}
+.navitem-body>label{display:block;margin:9px 0 4px;font-family:var(--label);font-size:var(--fs-1);font-weight:500;color:var(--text-3)}
+.navitem-body>label:first-child{margin-top:0}
+.navitem-body>.ctl+.ctl{margin-top:var(--gap-1)}
+.navitem-target{margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.navitem-add{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2)}
+.navitem-add .btn{min-width:0;padding-inline:6px}
 
 
 /* asset + token rows */
@@ -1030,6 +1146,59 @@ pre.code{
 }
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
+/* A tablet cannot give the library, canvas and inspector useful widths at the same
+   time. Keep the rail stable and let whichever side the person is using own the
+   workspace. Clicking a rail item brings the library forward; selecting something
+   brings the inspector forward. The other panel leaves layout instead of crushing the
+   canvas into the 116px sliver the three fixed columns used to leave at 768px. These
+   rules intentionally live after every panel's base rule so the responsive dimensions
+   win the cascade. */
+@media(max-width:900px){
+  body:not(.library-focus) .left{display:none}
+  body.library-focus .right{display:none}
+  .rail{width:54px;flex-basis:54px}
+  .rail button{height:52px}
+  .left{width:260px;flex-basis:260px}
+  .right{width:300px;flex-basis:300px}
+  .stage{padding-inline:12px}
+}
+/* On a phone, a panel is a drawer over a full-width canvas. The active rail item can
+   close the library again, and the inspector gets an explicit close control. */
+@media(max-width:600px){
+  .topbar{gap:var(--sp-2);padding-right:6px}
+  .brand{padding-inline:8px}
+  .docname,.topUtility,#helpBtn{display:none}
+  #devSeg{padding:2px}
+  #devSeg button{width:30px;height:28px}
+  .topTools,.topActions{gap:0}
+  .topgroup.divided{padding-left:var(--sp-2)}
+  .topbar .btn.primary{padding:7px 10px}
+  .main{position:relative}
+  .rail{width:48px;flex-basis:48px}
+  .rail button{height:49px}
+  .rail button span{display:none}
+  .left,.right{
+    position:absolute;top:0;bottom:0;z-index:28;box-shadow:var(--shadow-lg);
+    max-width:calc(100vw - 48px)
+  }
+  .left{left:48px;width:min(300px,calc(100vw - 48px))}
+  .right{right:0;width:min(318px,calc(100vw - 48px))}
+  .sHead .panelClose{display:grid}
+  .stage{padding:10px 8px 0}
+  .dim{left:8px;bottom:8px}
+  .mask,#ask{padding:8px}
+  .modal{max-height:calc(100vh - 16px);border-radius:var(--r-md)}
+  .mh{padding:13px 14px}
+  .mb{padding:14px}
+  .mf{padding:11px 14px}
+  .toast{max-width:calc(100vw - 24px);text-align:center}
+}
+@media(max-width:360px){
+  #redoBtn{display:none}
+  .topbar .btn.primary{width:var(--ic-lg);height:var(--ic-lg);padding:0}
+  #publishLabel{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+}
+
 /* ------------------------------------------------------- accessibility --- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
@@ -1042,7 +1211,7 @@ pre.code{
   <div class="topbar">
     <div class="brand">
       <svg width="17" height="22" viewBox="0 0 73 95" aria-hidden="true"><path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill="#b7f34a" fill-rule="evenodd"/></svg>
-      Pagecraft
+      <span class="brandLabel">Pagecraft</span>
     </div>
     <span class="topsep"></span>
     <span class="docname" id="docName"></span>
@@ -1061,43 +1230,46 @@ pre.code{
       </button>
     </div>
 
-    <span style="width:6px"></span>
+    <div class="topgroup topTools divided">
+      <button class="iconbtn" id="undoBtn" title="Undo (⌘Z)" aria-label="Undo">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h7.5a3 3 0 010 6H7"/><path d="M5.5 5.5L3 8l2.5 2.5"/></svg>
+      </button>
+      <button class="iconbtn" id="redoBtn" title="Redo (⌘⇧Z)" aria-label="Redo">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 8H5.5a3 3 0 000 6H9"/><path d="M10.5 5.5L13 8l-2.5 2.5"/></svg>
+      </button>
+      <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><path d="M6.2 6a1.8 1.8 0 013.6.3c0 1.2-1.8 1.4-1.8 2.7" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".7" fill="currentColor" stroke="none"/></svg>
+      </button>
+    </div>
 
-    <button class="iconbtn" id="undoBtn" title="Undo (⌘Z)">
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h7.5a3 3 0 010 6H7"/><path d="M5.5 5.5L3 8l2.5 2.5"/></svg>
-    </button>
-    <button class="iconbtn" id="redoBtn" title="Redo (⌘⇧Z)">
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 8H5.5a3 3 0 000 6H9"/><path d="M10.5 5.5L13 8l-2.5 2.5"/></svg>
-    </button>
-    <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts">
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><path d="M6.2 6a1.8 1.8 0 013.6.3c0 1.2-1.8 1.4-1.8 2.7" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".7" fill="currentColor" stroke="none"/></svg>
-    </button>
-
-    <span style="width:6px"></span>
     <span class="saved" id="savedTag">—</span>
 
-    <button class="btn ghost" id="reviewBtn" title="Review this project">
-      <span id="reviewDot" class="rdot"></span><span id="reviewText">Review</span>
-    </button>
-    <button class="btn ghost" id="previewBtn" title="Preview (⌘P)">
+    <div class="topgroup topUtility">
+      <button class="btn ghost" id="reviewBtn" title="Review this project" aria-label="Review this project">
+        <span id="reviewDot" class="rdot"></span><span id="reviewText" class="actionLabel">Review</span>
+      </button>
+      <button class="btn ghost" id="historyBtn" title="Version history" aria-label="Version history" hidden>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3.2 4.1A6 6 0 118 14"/><path d="M3.2 1.8v2.3H.9"/><path d="M8 4.4V8l2.4 1.4"/></svg>
+        <span class="actionLabel">History</span>
+      </button>
+    </div>
+    <div class="topgroup topActions divided">
+    <button class="btn ghost" id="previewBtn" title="Preview (⌘P)" aria-label="Preview">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="1.9"/></svg>
-      Preview
-    </button>
-    <button class="btn" id="projBtn" title="Project settings">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M12.6 3.4l-1.3 1.3M4.7 11.3l-1.3 1.3"/></svg>
-      Project
+      <span class="collapseLabel">Preview</span>
     </button>
     <!-- Server mode only, and hidden otherwise: the single-file build has nowhere to share
          *to*. Beside Publish because it answers the same question — "how does somebody else
          see this?" — and a live URL is the answer that needs no download. -->
-    <button class="btn ghost" id="shareBtn" title="Copy the link to this site" hidden>
+    <button class="btn ghost" id="shareBtn" title="Copy the link to this site" aria-label="Copy the link to this site" hidden>
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
-      Share
+      <span class="collapseLabel">Share</span>
     </button>
-    <button class="btn primary" id="exportBtn" title="Export HTML (⌘E)">
+    <button class="btn primary" id="exportBtn" title="Publish this draft">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 10.5V2"/><path d="M4.8 5.2L8 2l3.2 3.2"/><path d="M2 10.5v2A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5v-2"/></svg>
-      Publish
+      <span id="publishLabel">Publish</span>
     </button>
+    </div>
   </div>
 
   <div class="main">
@@ -1151,11 +1323,11 @@ pre.code{
 </div>
 
 <div id="ghost"></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="mask" id="modal" hidden>
-  <div class="modal" id="modalBox">
-    <div class="mh"><b id="mTitle">Title</b><button class="iconbtn" id="mClose">
+  <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
+    <div class="mh"><b id="mTitle">Title</b><button class="iconbtn" id="mClose" aria-label="Close dialog">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
     </button></div>
     <div class="mb" id="mBody"></div>
@@ -1164,8 +1336,8 @@ pre.code{
 </div>
 
 <div class="mask" id="ask" hidden>
-  <div class="modal sm">
-    <div class="mh"><b id="askTitle">Title</b><button class="iconbtn" id="askX">
+  <div class="modal sm" id="askBox" role="dialog" aria-modal="true" aria-labelledby="askTitle" tabindex="-1">
+    <div class="mh"><b id="askTitle">Title</b><button class="iconbtn" id="askX" aria-label="Close dialog">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
     </button></div>
     <div id="askBody"></div>
@@ -1213,6 +1385,82 @@ let saveWarned = false;
    one is how the server knows two people are editing. */
 const SRV = window.PC_SERVER || null;
 
+/* WordPress's native-content index is only a link catalogue. Treat the injected payload as
+   data at the seam: reject malformed targets, non-HTTPS links outside local testing,
+   cross-origin links, duplicate ids,
+   and return frozen copies so a ported panel cannot accidentally turn a picker into an edit
+   path. The standalone build has no connected WordPress target and therefore an empty list. */
+const WORDPRESS_CONTENT = (() => {
+  if (!SRV || !Array.isArray(SRV.wordpressContent)) return Object.freeze([]);
+  const targets = [];
+  const seenConnections = new Set();
+  const text = value => typeof value === 'string' ? value.trim() : '';
+  const safeTargetUrl = value => {
+    try {
+      const parsed = new URL(text(value));
+      const loopback = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === '::1';
+      const protocolOk = parsed.protocol === 'https:' || (parsed.protocol === 'http:' && loopback);
+      return protocolOk && !parsed.username && !parsed.password ? parsed : null;
+    } catch { return null; }
+  };
+
+  for (const raw of SRV.wordpressContent) {
+    if (!raw || typeof raw !== 'object' || !Array.isArray(raw.items)) continue;
+    const connectionId = text(raw.connectionId);
+    const environment = raw.environment === 'staging' || raw.environment === 'production' ? raw.environment : '';
+    const targetOrigin = text(raw.targetOrigin);
+    const targetPathText = text(raw.targetPath);
+    const targetPath = targetPathText === '/' ? '/' : targetPathText.replace(/\/+$/, '');
+    const origin = safeTargetUrl(targetOrigin);
+    if (!connectionId || !environment || !origin || !targetPath.startsWith('/')
+      || /[?#\\]/.test(targetPath) || seenConnections.has(connectionId)) continue;
+    seenConnections.add(connectionId);
+
+    const seenItems = new Set();
+    const items = [];
+    for (const rawItem of raw.items) {
+      if (!rawItem || typeof rawItem !== 'object') continue;
+      const id = text(rawItem.id);
+      const objectType = text(rawItem.objectType);
+      const url = text(rawItem.url);
+      const parsed = safeTargetUrl(url);
+      const insideTarget = !!parsed && (targetPath === '/' || parsed.pathname === targetPath
+        || parsed.pathname.startsWith(targetPath + '/'));
+      if (!id || !['page', 'post'].includes(objectType) || !parsed || parsed.origin !== origin.origin
+        || !insideTarget || parsed.hash || parsed.search || seenItems.has(id)) continue;
+      seenItems.add(id);
+      items.push(Object.freeze({
+        id,
+        objectType,
+        title: text(rawItem.title) || `Untitled ${objectType}`,
+        url,
+        modifiedAt: text(rawItem.modifiedAt)
+      }));
+    }
+    targets.push(Object.freeze({
+      connectionId,
+      environment,
+      profile: text(raw.profile),
+      targetOrigin,
+      targetPath,
+      items: Object.freeze(items)
+    }));
+  }
+  return Object.freeze(targets);
+})();
+const wordpressContent = () => WORDPRESS_CONTENT;
+
+/* WordPress embeds the full editor with a one-use SSO handoff. The resulting credential is
+   short-lived and scoped to this project; it is not the connector's refresh credential. Keep
+   it in memory and attach it only to Pagecraft's own relative API routes so an external font,
+   form endpoint, or absolute URL can never receive it by accident. */
+function pagecraftFetch(input, options = {}) {
+  const path = typeof input === 'string' ? input : String(input && input.url || '');
+  if (!SRV || !SRV.editorSessionToken || !/^\/(?:api|v1)\//.test(path)) return fetch(input, options);
+  const headers = { ...(options.headers || {}), 'X-Pagecraft-Editor-Session': SRV.editorSessionToken };
+  return fetch(input, { ...options, headers });
+}
+
 /* The live URL, for sending to somebody.
 
    Only in server mode, because the single-file build has nowhere to share to — the button is
@@ -1235,6 +1483,228 @@ function wireShare() {
       toast(SRV.url);
     }
   });
+}
+
+function wireHistory() {
+  const btn = $('#historyBtn');
+  if (!btn || !SRV || SRV.role !== 'owner') return;
+  btn.hidden = false;
+  btn.addEventListener('click', historyModal);
+}
+
+const historyDate = value => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Unknown time' : new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium', timeStyle: 'short'
+  }).format(date);
+};
+
+async function historyModal() {
+  openModal('Version history', '<div class="note">Loading saved versions…</div>',
+    '<button class="btn" id="historyClose">Close</button>');
+  $('#historyClose').addEventListener('click', closeModal);
+  try {
+    const response = await pagecraftFetch(`/api/sites/${SRV.siteId}/history`);
+    if (!response.ok) throw new Error(`History could not be loaded (${response.status})`);
+    const revisions = await response.json();
+    $('#mBody').innerHTML = revisions.length ? `<div class="historyList">${revisions.map(revision => {
+      const current = revision.version === SRV.version;
+      const author = revision.author && (revision.author.name || revision.author.email);
+      return `<div class="historyRow">
+        <div class="historyVersion">Version ${revision.version}</div>
+        <div class="historyMeta">${esc(historyDate(revision.createdAt))}</div>
+        <div class="historyMeta">${esc(author || 'Imported version')}</div>
+        ${current ? '<span class="historyCurrent">Current</span>' : `<button class="btn tiny" data-restore="${revision.version}">Restore</button>`}
+      </div>`;
+    }).join('')}</div>` : '<div class="note">No saved versions yet.</div>';
+    $$('[data-restore]', $('#mBody')).forEach(button => button.addEventListener('click', async () => {
+      const version = Number(button.dataset.restore);
+      if (!await askConfirm(`Restore version ${version}?`,
+        'Your current site will remain in history. Restoring creates a new version and reloads the editor.',
+        { ok: 'Restore version ' + version, danger: true })) return;
+      button.disabled = true;
+      button.textContent = 'Restoring…';
+      try {
+        const restored = await pagecraftFetch(`/api/sites/${SRV.siteId}/history/${version}/restore`, {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ currentVersion: SRV.version })
+        });
+        if (!restored.ok) throw new Error(`Version could not be restored (${restored.status})`);
+        location.reload();
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = 'Restore';
+        toast(error.message || String(error));
+      }
+    }));
+  } catch (error) {
+    $('#mBody').innerHTML = `<div class="alert"><b>History is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
+  }
+}
+
+/* Drafts and releases are deliberately separate in server mode. Autosave protects the work;
+   Publish is the explicit boundary that changes a public site. The single-file edition still
+   has no server release ledger, so its primary action remains Export. */
+const releaseNumber = release => release && (release.releaseNumber ?? release.number ?? release.sequence);
+const releaseSourceVersion = release => release && (release.sourceVersion ?? release.source_version ?? release.version);
+const releaseStatus = release => String(release && (release.status || release.state) || 'draft').toLowerCase();
+const releaseWhen = release => release && (release.createdAt || release.created_at || release.publishedAt || release.published_at);
+const releaseClass = status => /live|active|published|succeeded/.test(status) ? 'live'
+  : /fail|reject|rollback/.test(status) ? 'failed'
+    : /queue|wait|download|stage|activat|verify|approval/.test(status) ? 'waiting' : '';
+const releaseLabel = status => ({ succeeded: 'Live', published: 'Published', active: 'Live', needs_approval: 'Needs approval' }[status]
+  || status.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase()));
+
+function releaseTargetRows(payload) {
+  const releases = payload && payload.releases;
+  const latest = Array.isArray(releases) ? releases[0] : null;
+  const connections = payload && (payload.connections || payload.targets || payload.deployments)
+    || latest && (latest.targets || latest.deployments || latest.connections) || [];
+  if (!Array.isArray(connections) || !connections.length) return `
+    <div class="releaseEmpty">
+      Pagecraft hosting will use this release. No WordPress staging or production target is connected yet.
+    </div>`;
+  return connections.map(item => {
+    const connection = item.connection || item;
+    const environment = connection.environment || item.environment || item.kind || item.target || 'WordPress';
+    const origin = connection.targetOrigin || connection.origin || connection.wordpressOrigin
+      || connection.wordpress_url || connection.url || 'Connected site';
+    const status = releaseStatus(item.deployment || item);
+    const detail = item.detail || item.deployment?.detail || '';
+    return `<div class="releaseTarget">
+      <b>${esc(String(environment).replace(/^./, c => c.toUpperCase()))}</b>
+      <span title="${esc(origin)}">${esc(origin)}</span>
+      <span class="releaseState ${releaseClass(status)}"${detail ? ` title="${esc(detail)}"` : ''}>${esc(releaseLabel(status))}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderReleasePanel(payload = {}) {
+  const host = $('#releasePanel');
+  if (!host) return;
+  const releases = Array.isArray(payload) ? payload : (payload.releases || []);
+  const publishedId = payload.publishedReleaseId || SRV.publishedRelease?.releaseId;
+  const published = publishedId && releases.find(release => (release.releaseId || release.id) === publishedId);
+  const latest = payload.release || payload.publishedRelease || payload.published || published
+    || releases[0] || SRV.publishedRelease || null;
+  const number = releaseNumber(latest);
+  const version = releaseSourceVersion(latest);
+  const status = latest ? releaseStatus(latest) : 'not published';
+  const when = releaseWhen(latest);
+  host.innerHTML = `
+    <div class="releaseLead">
+      <div>
+        <h3>${latest ? `Release ${esc(number || '—')}` : 'Nothing has been published yet'}</h3>
+        <p>${latest
+          ? `Draft version ${esc(version || '—')} became the public release${when ? ` on ${esc(historyDate(when))}` : ''}. Autosaved changes after that remain private.`
+          : 'Autosave is protecting this draft, but visitors will not see it until an owner publishes it.'}</p>
+      </div>
+      <span class="releaseState ${releaseClass(status)}">${esc(releaseLabel(status))}</span>
+    </div>
+    <div class="releaseTargets">
+      <h4>Destinations</h4>
+      ${releaseTargetRows(payload)}
+    </div>`;
+  host.setAttribute('aria-busy', 'false');
+}
+
+async function loadReleasePanel() {
+  const host = $('#releasePanel');
+  if (host) host.setAttribute('aria-busy', 'true');
+  try {
+    const response = await pagecraftFetch(`/v1/sites/${SRV.siteId}/releases`);
+    if (!response.ok) throw new Error(`Release status could not be loaded (${response.status})`);
+    const payload = await response.json();
+    renderReleasePanel(payload);
+  } catch (error) {
+    if (host) host.innerHTML = `<div class="alert"><b>Release status is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
+    if (host) host.setAttribute('aria-busy', 'false');
+  }
+}
+
+async function flushDraft() {
+  await writeServer();
+  const until = Date.now() + 20000;
+  while ((saving || saveAgain) && Date.now() < until) await new Promise(resolve => setTimeout(resolve, 40));
+  if (saving || saveAgain) throw new Error('The draft is still saving. Try Publish again in a moment.');
+  if (saveState !== 'ok') throw new Error('The draft was not saved, so it was not published.');
+}
+
+async function publishDraft(button) {
+  const findings = lint();
+  const counts = lintCounts(findings);
+  if (counts.error) {
+    toast(`Resolve ${counts.error} problem${counts.error === 1 ? '' : 's'} before publishing`);
+    return;
+  }
+  if (counts.warn && !await askConfirm('Publish with suggestions?',
+    `${counts.warn} suggestion${counts.warn === 1 ? '' : 's'} will be recorded with this release. Problems always block publication.`,
+    { ok: 'Publish this release' })) return;
+
+  button.disabled = true;
+  button.textContent = 'Publishing…';
+  $('#releasePanel')?.setAttribute('aria-busy', 'true');
+  let responseReceived = false;
+  try {
+    await flushDraft();
+    const idempotencyKey = button.dataset.idempotencyKey
+      || (crypto.randomUUID ? crypto.randomUUID() : `${SRV.siteId}-${SRV.version}-${Date.now()}`);
+    button.dataset.idempotencyKey = idempotencyKey;
+    const response = await pagecraftFetch(`/v1/sites/${SRV.siteId}/releases`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        sourceVersion: SRV.version,
+        idempotencyKey,
+        acknowledgeWarnings: counts.warn > 0,
+        warningCodes: findings.filter(f => f.level === 'warn').map(f => f.code)
+      })
+    });
+    responseReceived = true;
+    const payload = await response.json().catch(() => ({}));
+    if (response.status === 409) {
+      warnStale(payload); throw new Error('The draft changed before it could be published.');
+    }
+    if (!response.ok) throw new Error(payload.error || payload.detail || `The release was refused (${response.status})`);
+    const release = payload.release || payload;
+    SRV.publishedRelease = release;
+    SRV.publishedVersion = payload.publishedVersion ?? releaseSourceVersion(release) ?? SRV.publishedVersion;
+    delete button.dataset.idempotencyKey;
+    renderReleasePanel(payload);
+    toast(`Release ${releaseNumber(release) || ''} created${payload.status === 'live' ? ' and verified' : ''}`.trim());
+    button.textContent = 'Published';
+    setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish draft'; } }, 900);
+    await loadReleasePanel();
+  } catch (error) {
+    /* If the server answered, the attempt definitely ended and a correction should get a new
+       key. If the network disappeared after accepting the release, retaining the key makes
+       Retry reconcile that same immutable release instead of creating a duplicate. */
+    if (responseReceived) delete button.dataset.idempotencyKey;
+    button.disabled = false;
+    button.textContent = 'Try again';
+    const host = $('#releasePanel');
+    if (host) host.insertAdjacentHTML('afterbegin', `<div class="alert" style="margin-bottom:var(--gap-2)"><b>Nothing changed publicly.</b><span>${esc(error.message || String(error))}</span></div>`);
+    if (host) host.setAttribute('aria-busy', 'false');
+  }
+}
+
+function publishModal() {
+  if (!SRV) return exportModal();
+  if (editing.on) exitEdit();
+  const counts = lintCounts(lint());
+  const mayPublish = SRV.role === 'owner' && !counts.error;
+  openModal('Publish', `
+    <div class="review" id="exReview"></div>
+    <div id="releasePanel" role="status" aria-live="polite" aria-atomic="true" aria-busy="true"><div class="releaseEmpty">Loading release status…</div></div>`, `
+    <button class="btn" id="releaseExport" title="Download static HTML instead">Export HTML…</button>
+    <span style="flex:1"></span>
+    <button class="btn" id="releaseClose">Close</button>
+    ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish draft'}</button>` : ''}`);
+  ui().mountReview();
+  loadReleasePanel();
+  $('#releaseClose').addEventListener('click', closeModal);
+  $('#releaseExport').addEventListener('click', exportModal);
+  const publish = $('#releasePublish');
+  if (publish) publish.addEventListener('click', () => publishDraft(publish));
 }
 
 /* May this session change the shape of the site, as opposed to its words?
@@ -1281,7 +1751,7 @@ async function writeServer() {
   saving = true;
   stamp('Saving…', false);
   try {
-    const res = await fetch(`/api/sites/${SRV.siteId}`, {
+    const res = await pagecraftFetch(`/api/sites/${SRV.siteId}`, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ doc: doc(), version: SRV.version })
@@ -1292,7 +1762,7 @@ async function writeServer() {
     const body = await res.json();
     SRV.version = body.version;
     saveState = 'ok';
-    stamp('Saved ' + new Date().toTimeString().slice(0, 5), false);
+    stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
   } catch (e) {
     saveState = 'failed';
     stamp('NOT SAVED', true);
@@ -1515,7 +1985,7 @@ async function assetAddServer(file) {
   form.set('file', file);
   let res;
   try {
-    res = await fetch(`/api/sites/${SRV.siteId}/assets`, { method: 'POST', body: form });
+    res = await pagecraftFetch(`/api/sites/${SRV.siteId}/assets`, { method: 'POST', body: form });
   } catch (e) {
     toast('The upload did not reach the server');
     return null;
@@ -1530,7 +2000,7 @@ async function assetAddServer(file) {
     id: meta.id, name: meta.name, type: meta.type, size: file.size,
     w: meta.w, h: meta.h,
     /* served by the editor's own route, so it needs the session the page already has */
-    url: `/api/sites/${SRV.siteId}/assets/${meta.id}`
+    url: SRV.editorSessionToken ? URL.createObjectURL(file) : `/api/sites/${SRV.siteId}/assets/${meta.id}`
   });
   return meta.id;
 }
@@ -1540,12 +2010,19 @@ async function assetAddServer(file) {
 async function assetsLoadServer() {
   let list = [];
   try {
-    const res = await fetch(`/api/sites/${SRV.siteId}/assets`);
+    const res = await pagecraftFetch(`/api/sites/${SRV.siteId}/assets`);
     if (res.ok) list = await res.json();
   } catch (e) { }
-  list.forEach(m => AS.mem.set(m.id, {
-    id: m.id, name: m.name, type: m.type, size: 0, w: m.w, h: m.h,
-    url: `/api/sites/${SRV.siteId}/assets/${m.id}`
+  await Promise.all(list.map(async m => {
+    let url = `/api/sites/${SRV.siteId}/assets/${m.id}`;
+    if (SRV.editorSessionToken) {
+      try {
+        const response = await pagecraftFetch(url);
+        if (!response.ok) return;
+        url = URL.createObjectURL(await response.blob());
+      } catch { return; }
+    }
+    AS.mem.set(m.id, { id: m.id, name: m.name, type: m.type, size: 0, w: m.w, h: m.h, url });
   }));
 }
 
@@ -1564,10 +2041,29 @@ async function assetAdd(file) {
 }
 async function assetDel(id) {
   const a = AS.mem.get(id);
+  if (SRV) {
+    let res;
+    try {
+      res = await pagecraftFetch(`/api/sites/${encodeURIComponent(SRV.siteId)}/assets/${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      });
+    } catch (e) {
+      toast('The image could not be deleted from the server');
+      return false;
+    }
+    if (!res.ok) {
+      const why = await res.json().catch(() => ({}));
+      toast(why.error || `The server refused to delete the image (${res.status})`);
+      return false;
+    }
+  } else if (AS.ok) {
+    try { await idbReq(idbStore('readwrite').delete(id)); }
+    catch (e) { toast('The image could not be deleted from storage'); return false; }
+  }
   /* a server URL is a path, not a blob URL, and revoking one is a no-op that reads as a bug */
-  if (a && a.url && !SRV) URL.revokeObjectURL(a.url);
+  if (a && a.url && a.url.startsWith('blob:')) URL.revokeObjectURL(a.url);
   AS.mem.delete(id);
-  if (AS.ok) { try { await idbReq(idbStore('readwrite').delete(id)); } catch (e) { } }
+  return true;
 }
 const assetBytes = () => [...AS.mem.values()].reduce((n, a) => n + (a.size || 0), 0);
 
@@ -1808,8 +2304,89 @@ function pageCtx() {
   return { pg, pageNo, pages, ...(col ? { col, item: previewItem(col) } : {}) };
 }
 
+/* Preview runs the exact interaction payloads written into an export. Keeping a second,
+   hand-written approximation here is how Tabs, Gallery, Code, Slider and Video could all
+   look right in the editor while doing nothing until after download. The listeners and
+   observers are recorded so repainting Preview does not leave old document/window handlers
+   alive against nodes that no longer exist. */
+let previewDispose = () => {};
+const previewScriptBody = source => {
+  const text = String(source || '');
+  if (!/^\s*<script[>\s]/i.test(text)) return text;
+  return text.slice(text.indexOf('>') + 1, text.toLowerCase().lastIndexOf('<'));
+};
+function runPreviewRuntime(html) {
+  previewDispose();
+  previewDispose = () => {};
+  if (!cdoc || !document.body.classList.contains('preview')) return;
+
+  let runtimeStyle = null;
+  if (/\bbp-animate\b/.test(html)) {
+    runtimeStyle = cdoc.createElement('style');
+    runtimeStyle.id = 's-preview-runtime';
+    runtimeStyle.textContent = ANIM_CSS + '\n' + ANIM_CALM;
+    cdoc.head.appendChild(runtimeStyle);
+  }
+
+  const listeners = [], observers = [];
+  const proto = cwin.EventTarget && cwin.EventTarget.prototype;
+  const add = proto && proto.addEventListener;
+  if (add) proto.addEventListener = function(type, fn, opts) {
+    listeners.push([this, type, fn, opts]);
+    return add.call(this, type, fn, opts);
+  };
+
+  const nativeObserver = {};
+  ['MutationObserver', 'IntersectionObserver'].forEach(name => {
+    const Native = cwin[name];
+    if (typeof Native !== 'function') return;
+    nativeObserver[name] = Native;
+    const Wrapped = function(...args) {
+      const observer = new Native(...args);
+      observers.push(observer);
+      return observer;
+    };
+    Wrapped.prototype = Native.prototype;
+    cwin[name] = Wrapped;
+  });
+
+  const scripts = [
+    [/data-slider/.test(html), SLIDE_JS],
+    [/data-copy/.test(html), CODE_JS],
+    [/data-tabs/.test(html), TABS_JS],
+    [/data-nav/.test(html), NAV_JS],
+    [/data-facade/.test(html), FACADE_JS],
+    [/data-lightbox/.test(html), LB_JS],
+    [/\bbp-animate\b/.test(html), ANIM_JS]
+  ];
+  try {
+    scripts.forEach(([used, source]) => {
+      if (!used) return;
+      const script = cdoc.createElement('script');
+      script.textContent = previewScriptBody(source);
+      cdoc.body.appendChild(script);
+      script.remove();
+    });
+  } finally {
+    if (add) proto.addEventListener = add;
+    Object.keys(nativeObserver).forEach(name => { cwin[name] = nativeObserver[name]; });
+  }
+
+  previewDispose = () => {
+    listeners.forEach(([target, type, fn, opts]) => {
+      try { target.removeEventListener(type, fn, opts); } catch (e) { }
+    });
+    observers.forEach(observer => { try { observer.disconnect(); } catch (e) { } });
+    if (runtimeStyle) runtimeStyle.remove();
+    $$('.pagecraft-lightbox', cdoc).forEach(el => el.remove());
+    try { delete cwin.bpAnimate; } catch (e) { }
+  };
+}
+
 function paint() {
   if (!cdoc) return;
+  previewDispose();
+  previewDispose = () => {};
   const editing = !document.body.classList.contains('preview');
   const scope = scopeOf();
   const css = treeCss(curSets(), editing);
@@ -1847,6 +2424,7 @@ function paint() {
   syncFonts();
   cdoc.getElementById('s-css').textContent = assetsToBlob(css);
   cdoc.getElementById('s-root').innerHTML = assetsToBlob(html);
+  if (!editing) runPreviewRuntime(html);
   positionHud();
 }
 
@@ -1994,6 +2572,10 @@ function select(id, opts = {}) {
     const h = locate(sid); if (!h) continue;
     for (let p = h.parent; p; p = (locate(p.id) || {}).parent) delete state.ui.collapsed[p.id];
   }
+  /* At tablet widths the library and inspector take turns instead of both taking a
+     fixed column. Selection is the unambiguous signal that the inspector is the side
+     somebody needs; clearing it returns to the library. */
+  document.body.classList.toggle('library-focus', !state.ui.sel);
   paintSel();
   renderRight();
   renderLayers();
@@ -2086,8 +2668,10 @@ function openCtx(x, y, ids) {
   if (!items.length) return;
   const m = document.createElement('div');
   m.id = 'ctx';
+  m.setAttribute('role', 'menu');
+  m.setAttribute('aria-label', 'Element actions');
   m.innerHTML = items.map(i =>
-    `<button data-a="${i.act}"${i.danger ? ' class="danger"' : ''}${i.sep ? ' data-sep="1"' : ''}>`
+    `<button role="menuitem" data-a="${i.act}"${i.danger ? ' class="danger"' : ''}${i.sep ? ' data-sep="1"' : ''}>`
     + `<span>${esc(i.label)}</span>${i.key ? `<em>${esc(i.key)}</em>` : ''}</button>`).join('');
   document.body.appendChild(m);
   /* place it at the pointer, then pull it back inside the window rather than letting
@@ -2095,7 +2679,17 @@ function openCtx(x, y, ids) {
   const r = m.getBoundingClientRect();
   m.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
   m.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
-  $$('button', m).forEach(b => b.addEventListener('click', () => {
+  const buttons = $$('button', m);
+  buttons[0]?.focus();
+  m.addEventListener('keydown', e => {
+    const at = buttons.indexOf(document.activeElement);
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? buttons.length - 1
+      : e.key === 'ArrowDown' ? (at + 1) % buttons.length
+        : e.key === 'ArrowUp' ? (at - 1 + buttons.length) % buttons.length : -1;
+    if (next < 0) return;
+    e.preventDefault(); buttons[next].focus();
+  });
+  buttons.forEach(b => b.addEventListener('click', () => {
     const a = b.dataset.a;
     closeCtx();
     runAct(a, ids);
@@ -2182,8 +2776,13 @@ function bindCanvas() {
   cdoc.addEventListener('click', e => {
     const a = e.target.closest('a');
     if (!a) return;
+    const claimed = e.defaultPrevented;
     e.preventDefault();
     if (!document.body.classList.contains('preview')) return;
+    /* Gallery lightbox (and any future exported interaction) already owns this click.
+       Preview still prevents the browser navigation, but does not reinterpret it as a page
+       link or announce a spurious external-link warning. */
+    if (claimed) return;
     const href = a.getAttribute('href') || '';
     if (!href) return;
     /* A fragment on this page is a scroll, and always was. */
@@ -2232,24 +2831,6 @@ function bindCanvas() {
       const n = locate(hit.dataset.id).node;
       if (DEF[n.type].edit) { e.preventDefault(); enterEdit(n.id); }
     }
-  });
-  /* preview mode drives the same toggle the export ships */
-  cdoc.addEventListener('click', e => {
-    if (!document.body.classList.contains('preview')) return;
-    const t = e.target.closest('[data-nav-t]');
-    if (t) {
-      const w = t.closest('[data-nav]');
-      const open = !w.classList.contains('is-open');
-      w.classList.toggle('is-open', open);
-      t.setAttribute('aria-expanded', open ? 'true' : 'false');
-      return;
-    }
-    $$('[data-nav].is-open', cdoc).forEach(w => {
-      if (w.contains(e.target)) return;
-      w.classList.remove('is-open');
-      const b = w.querySelector('[data-nav-t]');
-      if (b) b.setAttribute('aria-expanded', 'false');
-    });
   });
   /* the menu is placed at the pointer in outer-document coordinates, so once the canvas
      scrolls it is pointing at whatever moved into that spot */
@@ -2699,7 +3280,7 @@ const ui = () => UI || (UI = PC_UI.mount(
   /* __CORE is generated by build.mjs from the core bundle's own export list, so it
      cannot drift from what the core actually exports. See the note there. */
   __CORE,
-  { canStructure, select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
+  { canStructure, wordpressContent, select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
     askText, askConfirm, cmsModal, saveBlockFlow, toast, startDrag, appendSmart,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
@@ -2799,7 +3380,8 @@ function mediaCards(list, use, attr) {
       <span class="mname">${esc(a.name)}</span>
       <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''}${use[a.id] ? ` · used ${use[a.id]}×` : ' · unused'}</span>
     </button>
-    <button class="mdel" data-del="${a.id}" title="Delete from the library">${svg('trash', 12)}</button>
+    <button class="mdel" type="button" data-del="${a.id}" title="Delete from the library"
+      aria-label="Delete ${esc(a.name)} from the library">${svg('trash', 12)}</button>
   </div>`).join('');
 }
 
@@ -2810,6 +3392,7 @@ async function mediaTake(file) {
     `This file is <b>${(file.size / 1048576).toFixed(1)} MB</b>. Large images slow the page down.`,
     { ok: 'Add anyway', danger: false })) return null;
   const id = await assetAdd(file);
+  if (!id) return null;
   const got = AS.mem.get(id);
   writeNow();
   toast(`${file.name} — ${kb(file.size)}${got && got.w ? `, ${got.w} × ${got.h}` : ''}`);
@@ -2843,8 +3426,10 @@ function mediaModal() {
     $('#mmDone').addEventListener('click', closeModal);
     const prune = $('#mmPrune');
     if (prune) prune.addEventListener('click', async () => {
-      for (const a of [...AS.mem.values()]) if (!use[a.id]) await assetDel(a.id);
-      writeNow(); draw(); toast('Unused images removed');
+      let removed = 0;
+      for (const a of [...AS.mem.values()]) if (!use[a.id] && await assetDel(a.id)) removed++;
+      if (removed) writeNow();
+      draw(); toast(removed ? `${removed} unused image${removed === 1 ? '' : 's'} removed` : 'No images were removed');
     });
     $$('[data-use]', $('#mBody')).forEach(b => b.addEventListener('click', () => {
       const a = AS.mem.get(b.dataset.use); if (!a) return;
@@ -2864,7 +3449,8 @@ function mediaModal() {
       if (use[id] && !await askConfirm('Delete this image?',
         `It is used ${use[id]}× on the site. Those elements fall back to a placeholder.`,
         { ok: 'Delete image' })) return;
-      await assetDel(id); writeNow(); paint(); draw();
+      if (!await assetDel(id)) return;
+      writeNow(); paint(); draw();
     }));
   };
   draw();
@@ -2885,18 +3471,18 @@ function cmsModal(colId) {
     if (!col) return closeModal();
     const tf = titleField(col);
     openModal(`Content — ${col.name}`, `
-      <div class="tabs flush" id="cmsTabs">
-        <button data-c="items" class="${cmsTab === 'items' ? 'on' : ''}">Items · ${col.items.length}</button>
-        <button data-c="fields" class="${cmsTab === 'fields' ? 'on' : ''}">Fields · ${col.fields.length}</button>
+      <div class="tabs flush" id="cmsTabs" role="tablist" aria-label="Content section">
+        <button role="tab" aria-selected="${cmsTab === 'items'}" data-c="items" class="${cmsTab === 'items' ? 'on' : ''}">Items · ${col.items.length}</button>
+        <button role="tab" aria-selected="${cmsTab === 'fields'}" data-c="fields" class="${cmsTab === 'fields' ? 'on' : ''}">Fields · ${col.fields.length}</button>
       </div>
       ${cmsTab === 'fields' ? `
         ${col.fields.map((f, i) => `<div class="arow" data-f="${f.id}">
           <span class="rowmeta" style="flex-basis:64px;justify-content:flex-start">${esc(f.id)}</span>
-          <span class="an"><input class="ctl" data-fname="${f.id}" value="${esc(f.name)}" style="font-size:var(--fs-2);font-weight:600"></span>
-          <select class="ctl" data-ftype="${f.id}" style="width:132px;flex:0 0 132px;font-size:var(--fs-1)">
+          <span class="an"><input class="ctl" data-fname="${f.id}" aria-label="Field name" value="${esc(f.name)}" style="font-size:var(--fs-2);font-weight:600"></span>
+          <select class="ctl" data-ftype="${f.id}" aria-label="Type for ${esc(f.name)}" style="width:132px;flex:0 0 132px;font-size:var(--fs-1)">
             ${FIELD_TYPES.map(([t, l]) => `<option value="${t}"${f.type === t ? ' selected' : ''}>${l}</option>`).join('')}
           </select>
-          ${f.type === 'ref' ? `<select class="ctl" data-fref="${f.id}" style="width:132px;flex:0 0 132px;font-size:var(--fs-1)" title="The collection this points into">
+          ${f.type === 'ref' ? `<select class="ctl" data-fref="${f.id}" aria-label="Referenced collection for ${esc(f.name)}" style="width:132px;flex:0 0 132px;font-size:var(--fs-1)" title="The collection this points into">
             <option value="">— pick one —</option>
             ${collections().filter(c => c.id !== col.id).map(c => `<option value="${esc(c.id)}"${c.id === f.ref ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}
           </select>` : ''}
@@ -2910,8 +3496,8 @@ function cmsModal(colId) {
         </tr></thead><tbody>
         ${col.items.map((it, i) => `<tr data-i="${it.id}"${it.draft ? ' class="isdraft"' : ''}>
           ${col.fields.map(f => `<td>${cmsCell(col, it, f)}</td>`).join('')}
-          <td><input class="ctl" data-islug="${it.id}" value="${esc(it.slug)}" style="font-family:var(--mono);font-size:var(--fs-1)"></td>
-          <td><input type="checkbox" data-idraft="${it.id}"${it.draft ? ' checked' : ''} title="Hold this item back from the published site"></td>
+          <td><input class="ctl" data-islug="${it.id}" aria-label="Slug for ${esc(itemTitle(col, it))}" value="${esc(it.slug)}" style="font-family:var(--mono);font-size:var(--fs-1)"></td>
+          <td><input type="checkbox" data-idraft="${it.id}" aria-label="Hold ${esc(itemTitle(col, it))} back from the published site"${it.draft ? ' checked' : ''} title="Hold this item back from the published site"></td>
           <td style="white-space:nowrap;display:flex;gap:var(--sp-1);align-items:center">
             <button class="iconbtn" data-iup="${it.id}" title="Move up"${i === 0 ? ' disabled' : ''}>${svg('caretUp', 12)}</button>
             <button class="iconbtn" data-idel="${it.id}" title="Delete item">${svg('trash', 13)}</button>
@@ -2921,7 +3507,7 @@ function cmsModal(colId) {
       `<span class="note" style="margin:0;flex:1;text-align:left">${cmsTab === 'items'
         ? `${(() => { const d = col.items.filter(i => i.draft).length;
              return `${col.items.length} item${col.items.length === 1 ? '' : 's'}`
-               + `${d ? `, ${d} held back` : ''}`; })()} · URLs will be <b>${esc(col.slug)}/&lt;slug&gt;.html</b>`
+               + `${d ? `, ${d} held back` : ''}`; })()} · URLs will be <b>/${esc(col.slug)}/&lt;slug&gt;</b>`
         : 'Deleting a field clears its values on every item'}</span>
        <button class="btn" id="cmsNew">${svg('plus', 13)} ${cmsTab === 'items' ? 'Add item' : 'Add field'}</button>
        <button class="btn primary" id="cmsDone">Done</button>`, 'lg');
@@ -2940,6 +3526,7 @@ function cmsModal(colId) {
       tx('fname:' + el.dataset.fname);
       const f = findField(findCollection(colId), el.dataset.fname); if (f) { f.name = el.value; save(); }
     }));
+    $$('[data-fname]', box).forEach(el => el.addEventListener('blur', endTx));
     $$('[data-ftype]', box).forEach(el => el.addEventListener('change', () => {
       edit(() => { const f = findField(findCollection(colId), el.dataset.ftype); if (f) f.type = el.value; });
       draw();
@@ -3083,7 +3670,8 @@ function renderModebar() {
   const R = regions().find(x => x.kind === scope) || { label: '' };
   $('#modebar').innerHTML =
     (scope === 'main'
-      ? `<span class="pill">${svg('page', 11)} ${esc(page().name)}</span><span class="crumb">/${esc(page().slug)}.html</span>`
+      ? `<span class="pill">${svg('page', 11)} ${esc(page().name)}</span>`
+        + (isFront(page()) ? '' : `<span class="crumb">/${esc(page().slug)}</span>`)
       : scope === 'component'
         ? `<span class="pill g">${svg('component', 11)} Editing ${esc(R.label.replace('Component — ', ''))} — ${cUsageLabel()}</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`
@@ -3093,12 +3681,11 @@ function renderModebar() {
     (crumbs.length ? `<span class="crumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
     itemBarHtml() +
     `<span class="pill">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
-  const ib = $('#itemBar');
-  if (ib) $$('button', ib).forEach(b => b.addEventListener('click', () => {
+  $$('.itemBar', $('#modebar')).forEach(ib => $$('button', ib).forEach(b => b.addEventListener('click', () => {
     state.ui.item = state.ui.item || {};
     state.ui.item[b.dataset.col] = +b.dataset.i;
     paint(); renderModebar();
-  }));
+  })));
 }
 
 /* Which item the canvas is standing in for. Only shown when something on this
@@ -3112,7 +3699,7 @@ function itemBarHtml() {
     const col = findCollection(id);
     if (!col.items.length) return `<span class="pill">${svg('cms', 11)} ${esc(col.name)} — no items yet</span>`;
     const at = Math.min(previewIndex(id), col.items.length - 1);
-    return `<span class="pill" id="itemBar" style="gap:var(--sp-2)">${svg('cms', 11)} ${esc(col.name)}
+    return `<span class="pill itemBar" data-col="${esc(id)}" style="gap:var(--sp-2)">${svg('cms', 11)} ${esc(col.name)}
       <button data-col="${id}" data-i="${Math.max(0, at - 1)}" title="Previous item"${at === 0 ? ' disabled' : ''}>‹</button>
       <b style="font-weight:600">${esc(itemTitle(col, col.items[at]))}</b>
       <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" title="Next item"${at === col.items.length - 1 ? ' disabled' : ''}>›</button>
@@ -3354,16 +3941,62 @@ async function download(name, text, type = 'text/html;charset=utf-8') {
 }
 
 /* ================================================================ modal */
+const dialogFocusables = box => $$('button:not([disabled]):not([hidden]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', box)
+  .filter(el => !el.closest('[hidden]'));
+function trapDialogKey(e, box, close) {
+  if (e.key === 'Escape') {
+    e.preventDefault(); e.stopPropagation(); close(); return true;
+  }
+  if (e.key !== 'Tab') return false;
+  const list = dialogFocusables(box);
+  if (!list.length) { e.preventDefault(); box.focus(); return true; }
+  const first = list[0], last = list[list.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  return true;
+}
+
+let modalReturnFocus = null;
+/* Only the top dialog may be exposed to the accessibility tree. The confirmation
+   layer intentionally sits above the larger project/publish dialog, so opening it
+   makes that underlying dialog inert until the confirmation resolves. */
+function syncDialogLayers() {
+  const modalOpen = !$('#modal').hidden;
+  const askOpen = !$('#ask').hidden;
+  const app = $('#app');
+  const modal = $('#modal');
+  const lock = (el, on) => {
+    if (on) { el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); }
+    else { el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }
+  };
+  lock(app, modalOpen || askOpen);
+  lock(modal, modalOpen && askOpen);
+}
 function openModal(title, bodyHtml, footHtml, size) {
+  const wasHidden = $('#modal').hidden;
+  if (wasHidden) modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   $('#modalBox').className = 'modal' + (size ? ' ' + size : '');
   $('#mTitle').textContent = title;
   $('#mBody').innerHTML = bodyHtml;
   $('#mFoot').innerHTML = footHtml || '';
   $('#modal').hidden = false;
+  syncDialogLayers();
+  if (wasHidden) {
+    const first = dialogFocusables($('#modalBox'))[0];
+    (first || $('#modalBox')).focus();
+  }
 }
-const closeModal = () => { $('#modal').hidden = true; };
+const closeModal = () => {
+  if ($('#modal').hidden) return;
+  $('#modal').hidden = true;
+  syncDialogLayers();
+  endTx();
+  const back = modalReturnFocus; modalReturnFocus = null;
+  if (back && back.isConnected) back.focus();
+};
 $('#mClose').addEventListener('click', closeModal);
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
+$('#modal').addEventListener('keydown', e => trapDialogKey(e, $('#modalBox'), closeModal));
 
 /* ---- asking for something ---------------------------------------------
    Replaces native prompt() and confirm(). Those were unstyled OS chrome in the
@@ -3372,8 +4005,10 @@ $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') 
    nothing in the published Artifact.
    Both return a promise: a string / true on confirm, null / false on any exit. */
 let askDone = null;
+let askReturnFocus = null;
 function askOpen(title, bodyHtml, okLabel, danger) {
   askClose(null);                                     // never stack two asks
+  askReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   $('#askTitle').textContent = title;
   $('#askBody').innerHTML = bodyHtml;
   const yes = $('#askYes');
@@ -3385,22 +4020,34 @@ function askOpen(title, bodyHtml, okLabel, danger) {
   yes.classList.toggle('primary', !danger);
   $('#askNo').textContent = okLabel === null ? 'Close' : 'Cancel';
   $('#ask').hidden = false;
+  syncDialogLayers();
   const input = $('#askBody input');
   if (input) { input.focus(); input.select(); }
-  else if (!yes.hidden) yes.focus();
+  else {
+    const choice = $('#askBody [data-p], #askBody [data-pick]');
+    if (choice) choice.focus();
+    else if (!yes.hidden) yes.focus();
+    else $('#askBox').focus();
+  }
   return new Promise(res => { askDone = res; });
 }
 function askClose(value) {
+  const wasOpen = !$('#ask').hidden;
   $('#ask').hidden = true;
+  syncDialogLayers();
   const res = askDone; askDone = null;
   if (res) res(value);
+  if (wasOpen) {
+    const back = askReturnFocus; askReturnFocus = null;
+    if (back && back.isConnected) back.focus();
+  }
 }
 const askOpenNow = () => !$('#ask').hidden;
 
 /* a name, a URL — anything that used prompt() */
 function askText(title, label, value = '', opts = {}) {
   return askOpen(title,
-    `<div class="f" style="margin-bottom:0"><label>${esc(label)}</label>
+    `<div class="f" style="margin-bottom:0"><label for="askIn">${esc(label)}</label>
        <input class="ctl" id="askIn" value="${esc(value)}" placeholder="${esc(opts.placeholder || '')}">
        ${opts.note ? `<div class="note">${opts.note}</div>` : ''}</div>`,
     opts.ok || 'Save', false);
@@ -3428,8 +4075,33 @@ function mediaPicker(title = 'Choose from the library') {
     toast('No images yet — upload one and it joins the library');
     return Promise.resolve(null);
   }
-  const p = askOpen(title, `<div class="mgrid">${mediaCards(list, assetUsage(), 'data-pick')}</div>`, null, false);
-  $$('#askBody [data-pick]').forEach(b => b.addEventListener('click', () => askClose(b.dataset.pick)));
+  const p = askOpen(title, '<div class="mgrid"></div>', null, false);
+  const draw = () => {
+    const next = [...AS.mem.values()];
+    if (!next.length) {
+      $('#askBody').innerHTML = '';
+      askClose(null); toast('No images left in the library'); return;
+    }
+    const use = assetUsage();
+    $('#askBody').innerHTML = `<div class="mgrid">${mediaCards(next, use, 'data-pick')}</div>`;
+    $$('#askBody [data-pick]').forEach(b => b.addEventListener('click', () => askClose(b.dataset.pick)));
+    $$('#askBody [data-del]').forEach(b => b.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = b.dataset.del;
+      if (use[id] && b.dataset.confirm !== '1') {
+        b.dataset.confirm = '1';
+        b.title = `Used ${use[id]} times — click again to confirm deletion`;
+        b.setAttribute('aria-label', b.title);
+        toast(`That image is used ${use[id]}× — click its delete button again to confirm`);
+        return;
+      }
+      if (!await assetDel(id)) return;
+      writeNow(); paint(); draw();
+    }));
+    const first = $('#askBody [data-pick]');
+    if (first) first.focus();
+  };
+  draw();
   return p;
 }
 
@@ -3444,8 +4116,18 @@ $('#askYes').addEventListener('click', () => {
   askClose(v);
 });
 $('#ask').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); $('#askYes').click(); }
-  if (e.key === 'Escape') { e.preventDefault(); askClose(null); }
+  if (e.key === 'Escape') {
+    e.preventDefault(); e.stopPropagation(); askClose(null); return;
+  }
+  if (e.key === 'Tab') { trapDialogKey(e, $('#askBox'), () => askClose(null)); return; }
+  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+  const yes = $('#askYes');
+  const choice = e.target.closest && e.target.closest('[data-p], [data-pick], [data-del]');
+  if (yes.hidden) {
+    if (choice) { e.preventDefault(); e.stopPropagation(); choice.click(); }
+    return;
+  }
+  e.preventDefault(); e.stopPropagation(); yes.click();
 });
 
 function exportModal() {
@@ -3725,19 +4407,21 @@ function unitField(id, val, units) {
   const p = parseU(val);
   return `<div class="unit">
       <input class="ctl" id="${id}" type="number" min="0" value="${esc(p.n)}" placeholder="auto">
-      <select class="ctl" id="${id}U">${units.map(u => `<option value="${u}"${u === p.u ? ' selected' : ''}>${u || '—'}</option>`).join('')}</select>
+      <select class="ctl" id="${id}U" aria-label="Unit">${units.map(u => `<option value="${u}"${u === p.u ? ' selected' : ''}>${u || '—'}</option>`).join('')}</select>
     </div>`;
 }
 function wireUnit(id, get, set) {
   const num = $('#' + id), unit = $('#' + id + 'U');
   if (!num || !unit) return;
   const push = () => {
+    tx('project:' + id);
     const v = String(num.value).trim();
     set(v === '' ? '' : v + unit.value);
     paintCss(); save();
   };
   num.addEventListener('input', push);
-  unit.addEventListener('change', push);
+  num.addEventListener('blur', endTx);
+  unit.addEventListener('change', () => { push(); endTx(); });
 }
 function langSelect(id, val) {
   const cur = String(val || 'en');
@@ -3777,13 +4461,13 @@ function projectModal() {
   const m = state.meta;
   openModal('Project settings', `
     <div class="fgrid">
-      <div class="f"><label>Project name</label><input class="ctl" id="mName" value="${esc(m.name)}"></div>
-      <div class="f"><label>Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
+      <div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(m.name)}"></div>
+      <div class="f"><label for="mMax">Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
       <div class="f"><label>Body font</label><div id="mFontBox"></div></div>
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
-      <div class="f"><label>Base font size</label>${unitField('mSize', m.size, ['px', 'rem', '%'])}</div>
-      <div class="f"><label>Language</label>${langSelect('mLang', m.lang)}</div>
-      <div class="f"><label>Site URL <span style="color:var(--text-3);font-weight:400">— enables canonical tags and a sitemap</span></label>
+      <div class="f"><label for="mSize">Base font size</label>${unitField('mSize', m.size, ['px', 'rem', '%'])}</div>
+      <div class="f"><label for="mLang">Language</label>${langSelect('mLang', m.lang)}</div>
+      <div class="f"><label for="mBase">Site URL <span style="color:var(--text-3);font-weight:400">— enables canonical tags and a sitemap</span></label>
         <input class="ctl" id="mBase" value="${esc(m.baseUrl)}" placeholder="https://example.com"></div>
     </div>
     <div class="fgrid">
@@ -3800,9 +4484,9 @@ function projectModal() {
     <div class="f"><label>Style classes <span style="color:var(--text-3);font-weight:500">— any reusable styling; later in the list wins</span></label>
       <div id="mClasses"></div></div>
 
-    <div class="f"><label>Global CSS — injected into every exported page</label>
+    <div class="f"><label for="mCss">Global CSS — injected into every exported page</label>
       <textarea class="ctl" id="mCss" style="min-height:88px">${esc(m.css)}</textarea></div>
-    <div class="f"><label>Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
+    <div class="f"><label for="mHeadHtml">Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
       <textarea class="ctl" id="mHeadHtml" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>
     <div class="f"><label>Webfonts</label>
       <label class="swrow"><input type="checkbox" id="mSelfHost"${m.selfHostFonts ? ' checked' : ''}>
@@ -3819,33 +4503,38 @@ function projectModal() {
 
   const wire = (id, fn) => {
     const el = $('#' + id); if (!el) return;
-    el.addEventListener('input', () => { fn(el.value); paintCss(); save(); });
+    el.addEventListener('input', () => { tx('project:' + id); fn(el.value); paintCss(); save(); });
+    el.addEventListener('blur', endTx);
   };
   wire('mName', v => { m.name = v; renderModebar(); });
 
   /* app/src/ui/FontSelect.tsx, the same picker the text-style editor uses. */
   ui().mountFontSelect('mFontBox', {
+    label: 'Body font',
     get: () => m.font,
-    set: v => { m.font = v || FONT_BASE[1][0]; paintCss(); save(); }
+    set: v => { tx('project:font'); m.font = v || FONT_BASE[1][0]; endTx(); paintCss(); save(); }
   });
   ui().mountFontSelect('mHeadBox', {
+    label: 'Heading font',
     get: () => m.headFont,
-    set: v => { m.headFont = v; paintCss(); save(); }
+    set: v => { tx('project:headFont'); m.headFont = v; endTx(); paintCss(); save(); }
   });
   wire('mBase', v => { m.baseUrl = v.trim(); });
   wireUnit('mMax', null, v => { m.maxWidth = v || '1200px'; });
   wireUnit('mSize', null, v => { m.size = v || '16px'; });
   const langEl = $('#mLang');
-  if (langEl) langEl.addEventListener('change', () => { m.lang = langEl.value; paintCss(); save(); });
+  if (langEl) langEl.addEventListener('change', () => {
+    tx('project:lang'); m.lang = langEl.value; endTx(); paintCss(); save();
+  });
 
   /* app/src/ui/AssetField.tsx. Each box has one writer, so the component owns the div
      and redraws itself — there is nothing here to keep in step with it. */
   ui().mountAssetField('mFavBox', {
-    get: () => m.favicon, set: v => { m.favicon = v; },
+    get: () => m.favicon, set: v => { tx('project:favicon'); m.favicon = v; endTx(); save(); },
     note: 'Exported as a &lt;link rel="icon"&gt;.'
   });
   ui().mountAssetField('mOgBox', {
-    get: () => m.ogImage, set: v => { m.ogImage = v; },
+    get: () => m.ogImage, set: v => { tx('project:ogImage'); m.ogImage = v; endTx(); save(); },
     note: 'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.'
   });
   wire('mCss', v => { m.css = v; });
@@ -3853,9 +4542,10 @@ function projectModal() {
   {
     const cb = $('#mSelfHost');
     if (cb) cb.addEventListener('change', () => {
+      tx('project:selfHostFonts');
       m.selfHostFonts = cb.checked ? 1 : 0;
       fontPack = undefined;              // ask again next export rather than reusing a stale answer
-      save();
+      endTx(); save();
     });
   }
 
@@ -4093,6 +4783,14 @@ function hotkey(e) {
      and Escape, and without this Escape would also walk the canvas selection */
   if (askOpenNow()) return;
   const t = e.target, tag = (t.tagName || '').toLowerCase();
+  /* A dialog is its own keyboard scope. Buttons inside it used to leak Enter, arrows,
+     Delete and command shortcuts into the canvas; Escape could close the dialog and then
+     walk the selection as the same event continued bubbling. */
+  const modalTarget = t.closest && t.closest('#modal');
+  if (!$('#modal').hidden || modalTarget) {
+    if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
+    return;
+  }
   if (tag === 'input' || tag === 'textarea' || tag === 'select' || (t.isContentEditable && !editing.on)) return;
   const meta = e.metaKey || e.ctrlKey;
   /* some synthetic and assistive input stacks omit `key`; `code` still names
@@ -4187,7 +4885,6 @@ function hotkey(e) {
     if (n && DEF[n.node.type].edit) { e.preventDefault(); enterEdit(state.ui.sel); return; }
   }
   if (k === 'escape') {
-    if (!$('#modal').hidden) { closeModal(); return; }
     /* one step per press: back to a single element first, then up the tree.
        Doing both at once would lose the set before you could see what you had. */
     if (multiOn()) { select(state.ui.sel); return; }
@@ -4202,19 +4899,40 @@ function bindTop() {
   $('#undoBtn').addEventListener('click', undo);
   $('#redoBtn').addEventListener('click', redo);
   $('#previewBtn').addEventListener('click', togglePreview);
-  $('#exportBtn').addEventListener('click', exportModal);
-  $('#reviewBtn').addEventListener('click', exportModal);
-  $('#projBtn').addEventListener('click', projectModal);
+  const primary = $('#exportBtn');
+  const primaryLabel = $('#publishLabel');
+  if (SRV) {
+    if (SRV.role === 'owner') {
+      primary.title = 'Publish this draft';
+      primary.setAttribute('aria-label', 'Publish this draft');
+      primaryLabel.textContent = 'Publish';
+      primary.addEventListener('click', publishModal);
+    } else {
+      /* Publication includes warning acceptance and target promotion. A content collaborator
+         may review and export, but must not be offered an action the API will refuse. */
+      primary.hidden = true;
+    }
+    $('#reviewBtn').addEventListener('click', publishModal);
+  } else {
+    primary.title = 'Export HTML (⌘E)';
+    primary.setAttribute('aria-label', 'Export HTML');
+    primaryLabel.textContent = 'Export';
+    primary.addEventListener('click', exportModal);
+    $('#reviewBtn').addEventListener('click', exportModal);
+  }
   wireShare();
+  wireHistory();
   $('#helpBtn').addEventListener('click', helpModal);
   /* Extracted so anything can open a panel, not only a click on the rail — starting
      an empty site sends you to Add, which is the only thing left to do. */
   window.showPanel = t => {
+    document.body.classList.add('library-focus');
     state.ui.tab = t;
     $$('#leftRail button[data-t]').forEach(x => x.classList.toggle('on', x.dataset.t === t));
     ['add', 'layers', 'pages', 'cms'].forEach(k => { $('#pane' + k[0].toUpperCase() + k.slice(1)).hidden = k !== t; });
     renderPanelHead();
     renderCms();
+    requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
   };
   /* Add is the default panel and a content account has no Add. Pages is the right landing
      place: every site has one, and its title and description are content. */
@@ -4225,8 +4943,17 @@ function bindTop() {
        changed. Scoping the toggle to `[data-t]` is what keeps them out of it. */
     const dialog = { media: mediaModal, project: projectModal }[b.dataset.act];
     if (dialog) { dialog(); return; }
+    /* A second press on the active rail item dismisses the narrow drawer. Desktop
+       keeps the stable workbench behavior. */
+    if (matchMedia('(max-width:900px)').matches && b.dataset.t === state.ui.tab
+      && document.body.classList.contains('library-focus')) {
+      document.body.classList.remove('library-focus');
+      requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
+      return;
+    }
     showPanel(b.dataset.t);
   }));
+  document.body.classList.toggle('library-focus', !state.ui.sel);
   window.addEventListener('resize', () => { layoutCanvas(); positionHud(); renderDim(); });
 }
 
@@ -4241,6 +4968,6 @@ HOOKS.note = msg => toast(msg);
   bindTop();
   renderPalette();
   setDev(state.ui.dev);
-  stamp('Ready', false);
+  stamp(SRV ? 'Draft ready' : 'Ready', false);
 })();
 </script>

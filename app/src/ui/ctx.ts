@@ -28,6 +28,28 @@ import type * as CoreNs from '../core/index';
  */
 export type Core = typeof CoreNs;
 
+/** A WordPress-owned destination that may be linked from Pagecraft. The index is
+    deliberately read-only: it is navigation data, not a second editing API. */
+export interface WordPressContentItem {
+  readonly id: string;
+  readonly objectType: string;
+  readonly title: string;
+  readonly url: string;
+  readonly modifiedAt: string;
+}
+
+/** One connected WordPress target and its current native-content snapshot. */
+export interface WordPressContentTarget {
+  readonly connectionId: string;
+  readonly environment: 'staging' | 'production';
+  readonly profile: string;
+  readonly targetOrigin: string;
+  /** WordPress home path on this origin. Native references are relative to this
+      boundary so staging and production may live in different subdirectories. */
+  readonly targetPath: string;
+  readonly items: readonly WordPressContentItem[];
+}
+
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {
   /** May this session change the shape of the site, or only its words? False for a
@@ -35,6 +57,9 @@ export interface Legacy {
       accounts. The server refuses a structural save either way — this is so the panels do
       not offer one. */
   canStructure(): boolean;
+  /** Native WordPress pages/posts available as link destinations. Empty in the
+      standalone build. Returning a snapshot keeps the UI read-only by construction. */
+  wordpressContent(): readonly WordPressContentTarget[];
   /** select an element on the canvas; `null` clears the selection */
   select(id: string | null, opts?: { scroll?: boolean; add?: boolean; range?: boolean }): void;
   /** switch the editing scope between the page and the global header/footer */

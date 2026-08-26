@@ -11,15 +11,20 @@ import * as C from '../app/src/core/index';
 import { install, registerPainter, type Legacy } from '../app/src/ui/ctx';
 
 export type Call = [string, ...any[]];
+type StubOptions = {
+  canStructure?: boolean;
+  wordpressContent?: ReturnType<Legacy['wordpressContent']>;
+};
 
 /** Every Legacy entry, recording its name and arguments. Fields that must return a
     value return something harmless; the rest return undefined. */
-export function stubLegacy(calls: Call[], opts: { canStructure?: boolean } = {}): Legacy {
+export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
   const rec = (name: string) => (...args: any[]) => { calls.push([name, ...args]); };
   return {
     /* True by default, because that is the single-file build and most cases are not about
        roles. `stubLegacy(calls, { canStructure: false })` is how a case asks for the other. */
     canStructure: () => opts.canStructure !== false,
+    wordpressContent: () => opts.wordpressContent || [],
     select: rec('select'),
     /* records *and* switches, because the real one does: `tree()` reads the mode, so a
        panel that asks to change region before inserting can only be checked against
@@ -102,7 +107,7 @@ export interface Rig {
 }
 
 /** A blank project plus a mounted container. Called from `beforeEach`. */
-export function rig(opts: { canStructure?: boolean } = {}): Rig {
+export function rig(opts: StubOptions = {}): Rig {
   const calls: Call[] = [];
   install(C, stubLegacy(calls, opts));
 

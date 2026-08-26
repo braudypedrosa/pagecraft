@@ -18,6 +18,7 @@ import type { Doc } from '../../app/src/core/types.ts';
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -116,6 +117,29 @@ test('the session cookie is not readable by script and does not travel cross-sit
   a.match(raw, /SameSite=Lax/i);
   a.match(raw, /Path=\//i);
   a.equal(/Secure/i.test(raw), false, 'off for local http; index.ts turns it on in production');
+});
+
+test('production cookies are Secure and private routes are explicitly not cacheable', async () => {
+  const store = new MemoryStore();
+  const auth = new MemoryAuthStore();
+  let sent = '';
+  const app = createApp({
+    store, auth, editorHost: 'admin.test', editorOrigin: 'https://admin.test', secureCookies: true,
+    sendLink: (_to, url) => { sent = url; }
+  });
+  await auth.createUser('client@acme.test');
+  const login = await app.request(new Request('https://admin.test/auth/login', {
+    method: 'POST', headers: { host: 'admin.test', 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'client@acme.test' })
+  }));
+  a.equal(login.headers.get('cache-control'), 'private, no-store');
+  a.equal(login.headers.get('strict-transport-security'), 'max-age=31536000');
+  const token = new URL(sent).searchParams.get('token');
+  const callback = await app.request(new Request(`https://admin.test/auth/callback?token=${token}`, {
+    headers: { host: 'admin.test' }
+  }));
+  a.match(callback.headers.get('set-cookie') || '', /Secure/i);
+  a.equal(callback.headers.get('cache-control'), 'private, no-store');
 });
 
 test('login says the same thing whether or not the address is known', async () => {

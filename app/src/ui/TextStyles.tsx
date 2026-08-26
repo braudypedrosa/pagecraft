@@ -105,7 +105,7 @@ function Editor({ t }: { t: TextStyle }) {
         <div class="f"><label>Letter spacing</label><Unit prop="letter-spacing" units={C.U.track} /></div>
       </div>
       <div class="f"><label>Font</label>
-        <FontSelect value={b['font-family'] || ''} onChange={v => {
+        <FontSelect value={b['font-family'] || ''} ariaLabel="Font" onChange={v => {
           L.tx('tsval:' + t.id + 'font');
           if (v) bucket()['font-family'] = v; else delete bucket()['font-family'];
           L.endTx(); commit(); repaint('styles');
@@ -202,7 +202,7 @@ function Row({ t }: { t: TextStyle }) {
               L.tx('tsname:' + t.id);
               const s = C.findStyle(t.id);
               if (s) { s.name = (e.target as HTMLInputElement).value; L.save(); }
-            }} />
+            }} onBlur={L.endTx} aria-label="Text style name" />
         </span>
         <input class="ctl" value={d['font-size'] || ''} placeholder="auto"
           title="Base size — expand the row to set a Tablet or Mobile override"

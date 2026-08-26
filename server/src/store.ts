@@ -29,15 +29,48 @@ export interface Site {
       silently overwriting whatever arrived in between — two people in one document is a
       real case the moment a client edits while you do. */
   version: number;
+  /** The immutable revision currently served to visitors. Saving only advances `version`. */
+  publishedVersion: number;
+  /** The signed release backing the public pointer, once the site has published through v1. */
+  publishedReleaseId: string | null;
   updatedAt: string;
 }
+
+/** The picker/list shape. Documents can be megabytes and do not belong in a site index. */
+export type SiteMeta = Omit<Site, 'doc'>;
 
 export interface SaveResult {
   ok: boolean;
   site?: Site;
   /** set when the save was rejected because someone else had already saved */
   conflict?: { yours: number; theirs: number };
+  /** A WordPress connection became inactive before its draft mutation committed. */
+  guarded?: true;
 }
+
+export interface SiteRevision {
+  siteId: string;
+  version: number;
+  doc: Doc;
+  savedBy: string | null;
+  /** Structured provenance for automated/editor-adjacent writes. */
+  context?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface CmsWriteHead {
+  connectionId: string;
+  collectionId: string;
+  itemId: string;
+  writeSequence: number;
+  idempotencyKey: string;
+  bodyHash: string;
+  version: number;
+}
+
+/** Length-prefix the first ASCII identifier so `a:b` + `c` cannot collide with `a` + `b:c`. */
+export const cmsItemKey = (collectionId: string, itemId: string) =>
+  `${collectionId.length}:${collectionId}${itemId}`;
 
 export interface Store {
   byHost(host: string): Promise<Site | null>;
@@ -45,9 +78,24 @@ export interface Store {
   bySlug(slug: string): Promise<Site | null>;
   byId(id: string): Promise<Site | null>;
   list(): Promise<Site[]>;
-  create(input: { host: string; slug?: string; name: string; doc: Doc }): Promise<Site>;
+  listMeta(): Promise<SiteMeta[]>;
+  create(input: { host: string; slug?: string; name: string; doc: Doc; savedBy?: string }): Promise<Site>;
   /** `version` is the version the editor loaded. See `Site.version`. */
-  save(id: string, doc: Doc, version: number): Promise<SaveResult>;
+  save(id: string, doc: Doc, version: number, savedBy?: string, context?: Record<string, unknown>): Promise<SaveResult>;
+  /** WordPress-only CAS. Production implementations lock the connection row and commit the
+      draft revision in the same database statement; the callback gives the in-memory store
+      the equivalent single-event-loop guard for race tests. */
+  saveConnectedCms(
+    id: string, doc: Doc, version: number, savedBy: string, connectionId: string,
+    context: Record<string, unknown>, active?: () => Promise<boolean>
+  ): Promise<SaveResult>;
+  history(id: string): Promise<SiteRevision[]>;
+  revision(id: string, version: number): Promise<SiteRevision | null>;
+  /** Latest WordPress write sequence per requested item, read without returning revision docs. */
+  cmsWriteHeads(id: string, connectionId: string, itemKeys: string[]): Promise<CmsWriteHead[]>;
+  /** Atomically move the public pointer to an existing immutable revision/release. A delayed
+      lower release sequence is a successful no-op, never a rollback of the hosted pointer. */
+  publish(id: string, version: number, releaseId: string, releaseSequence: number): Promise<Site | null>;
   /** Move a site to a different domain. Null when the domain is taken. */
   setHost(id: string, host: string): Promise<Site | null>;
   /** Move a site to a different path. Null when the path is taken or reserved. */
@@ -63,7 +111,7 @@ export interface Store {
    `app.test.ts` asserts that by reading Hono's own route table. Adding a route without adding
    it here is caught rather than discovered the day a site called `api` stops loading. */
 export const RESERVED_PATHS = [
-  'api', 'auth', 'internal', 'edit',
+  'api', 'auth', 'internal', 'edit', 'v1',
   /* not routes, but names a browser or a crawler asks for at the root */
   'assets', 'favicon.ico', 'robots.txt', 'sitemap.xml', 'index.html', '.well-known'
 ];
@@ -126,6 +174,8 @@ export function validHost(raw: string): string | null {
 
 export class MemoryStore implements Store {
   private sites = new Map<string, Site>();
+  private revisions = new Map<string, SiteRevision[]>();
+  private publishedSequences = new Map<string, number>();
   private seq = 0;
 
   async byHost(host: string) {
@@ -143,7 +193,12 @@ export class MemoryStore implements Store {
   async list() {
     return [...this.sites.values()].map(s => this.copy(s));
   }
-  async create(input: { host: string; slug?: string; name: string; doc: Doc }) {
+  async listMeta() {
+    return [...this.sites.values()]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(({ doc: _doc, ...site }) => ({ ...site }));
+  }
+  async create(input: { host: string; slug?: string; name: string; doc: Doc; savedBy?: string }) {
     for (const s of this.sites.values()) {
       if (s.host === input.host) throw new Error(`host already taken: ${input.host}`);
     }
@@ -161,9 +216,16 @@ export class MemoryStore implements Store {
       name: input.name,
       doc: structuredClone(input.doc),
       version: 1,
+      publishedVersion: 1,
+      publishedReleaseId: null,
       updatedAt: new Date().toISOString()
     };
     this.sites.set(site.id, site);
+    this.publishedSequences.set(site.id, 0);
+    this.revisions.set(site.id, [this.revisionCopy({
+      siteId: site.id, version: site.version, doc: site.doc,
+      savedBy: input.savedBy || null, createdAt: site.updatedAt
+    })]);
     return this.copy(site);
   }
   async setSlug(id: string, slug: string) {
@@ -187,14 +249,82 @@ export class MemoryStore implements Store {
     s.updatedAt = new Date().toISOString();
     return this.copy(s);
   }
-  async save(id: string, doc: Doc, version: number): Promise<SaveResult> {
+  async save(id: string, doc: Doc, version: number, savedBy?: string, context?: Record<string, unknown>): Promise<SaveResult> {
     const s = this.sites.get(id);
     if (!s) return { ok: false };
     if (s.version !== version) return { ok: false, conflict: { yours: version, theirs: s.version } };
     s.doc = structuredClone(doc);
     s.version += 1;
     s.updatedAt = new Date().toISOString();
+    const revisions = this.revisions.get(id) || [];
+    revisions.push(this.revisionCopy({
+      siteId: id, version: s.version, doc: s.doc,
+      savedBy: savedBy || null, context: context ? structuredClone(context) : null,
+      createdAt: s.updatedAt
+    }));
+    this.revisions.set(id, revisions);
     return { ok: true, site: this.copy(s) };
+  }
+
+  async saveConnectedCms(
+    id: string, doc: Doc, version: number, savedBy: string, _connectionId: string,
+    context: Record<string, unknown>, active?: () => Promise<boolean>
+  ) {
+    if (!active || !await active()) return { ok: false, guarded: true } as SaveResult;
+    /* MemoryStore.save has no await between its CAS check and durable mutation. Once the guard
+       resolves true, JavaScript cannot interleave a disconnect before this write completes. */
+    return this.save(id, doc, version, savedBy, context);
+  }
+
+  async history(id: string) {
+    return (this.revisions.get(id) || []).slice().reverse().map(r => this.revisionCopy(r));
+  }
+
+  async revision(id: string, version: number) {
+    const found = (this.revisions.get(id) || []).find(r => r.version === version);
+    return found ? this.revisionCopy(found) : null;
+  }
+
+  async cmsWriteHeads(id: string, connectionId: string, itemKeys: string[]) {
+    const wanted = new Set(itemKeys);
+    const heads = new Map<string, CmsWriteHead>();
+    for (const revision of this.revisions.get(id) || []) {
+      const writes = revision.context?.cmsWrites;
+      if (!Array.isArray(writes)) continue;
+      for (const candidate of writes) {
+        if (!candidate || typeof candidate !== 'object') continue;
+        const write = candidate as Record<string, unknown>;
+        const collectionId = typeof write.collectionId === 'string' ? write.collectionId : '';
+        const itemId = typeof write.itemId === 'string' ? write.itemId : '';
+        const key = cmsItemKey(collectionId, itemId);
+        if (write.connectionId !== connectionId || !wanted.has(key)
+          || !Number.isSafeInteger(write.writeSequence) || Number(write.writeSequence) < 1
+          || typeof write.idempotencyKey !== 'string' || typeof write.bodyHash !== 'string') continue;
+        const prior = heads.get(key);
+        if (!prior || Number(write.writeSequence) > prior.writeSequence) {
+          heads.set(key, {
+            connectionId, collectionId, itemId, writeSequence: Number(write.writeSequence),
+            idempotencyKey: write.idempotencyKey, bodyHash: write.bodyHash, version: revision.version
+          });
+        }
+      }
+    }
+    return [...heads.values()];
+  }
+
+  async publish(id: string, version: number, releaseId: string, releaseSequence: number) {
+    const site = this.sites.get(id);
+    if (!site || !(this.revisions.get(id) || []).some(revision => revision.version === version)) return null;
+    const activeSequence = this.publishedSequences.get(id) || 0;
+    if (releaseSequence < activeSequence
+      || (releaseSequence === activeSequence && site.publishedReleaseId !== releaseId)) {
+      return this.copy(site);
+    }
+    site.publishedVersion = version;
+    site.publishedReleaseId = releaseId;
+    this.publishedSequences.set(id, releaseSequence);
+    site.updatedAt = new Date().toISOString();
+    return this.copy(site);
   }
 
   /* Callers get their own copy. A store that hands out a reference into its own map lets a
@@ -202,5 +332,8 @@ export class MemoryStore implements Store {
      implementation where that worked — the bug would appear on the day Postgres arrived. */
   private copy(s: Site): Site {
     return { ...s, doc: structuredClone(s.doc) };
+  }
+  private revisionCopy(r: SiteRevision): SiteRevision {
+    return { ...r, doc: structuredClone(r.doc) };
   }
 }

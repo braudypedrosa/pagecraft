@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" data-variant="electric">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pagecraft — build visually, publish with confidence</title>
+  <meta name="description" content="Pagecraft is a visual website builder for people who want a polished website and the freedom to keep it. Design in the browser, review the details, and publish portable output.">
+  <meta name="theme-color" content="#0b0d0b">
+  <link rel="canonical" href="https://itspagecraft.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://itspagecraft.com/">
+  <meta property="og:title" content="Pagecraft — build visually, publish with confidence">
+  <meta property="og:description" content="Design the site you want. Publish a release you can keep.">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      var variant = new URLSearchParams(window.location.search).get('variant');
+      if (['paper', 'electric', 'collage'].indexOf(variant) !== -1) {
+        document.documentElement.setAttribute('data-variant', variant);
+      }
+    }());
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="variants.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <svg class="symbol-library" aria-hidden="true" focusable="false">
+    <symbol id="pagecraft-mark" viewBox="0 0 73 95">
+      <path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill-rule="evenodd"/>
+    </symbol>
+    <symbol id="arrow-up-right" viewBox="0 0 20 20">
+      <path d="M6 14 14 6M8 6h6v6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/>
+    </symbol>
+    <symbol id="menu" viewBox="0 0 20 20"><path d="M3 6h14M3 10h14M3 14h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></symbol>
+    <symbol id="close" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#main" aria-label="Pagecraft home"><svg aria-hidden="true" viewBox="0 0 73 95"><use href="#pagecraft-mark"/></svg><span>Pagecraft</span></a>
+      <nav class="nav" id="site-nav" aria-label="Primary navigation">
+        <a href="#workflow">How it works</a><a href="#capabilities">What it handles</a><a href="#ownership">Why Pagecraft</a>
+        <a class="nav-cta" href="https://build.itspagecraft.com/">Open the builder</a>
+      </nav>
+      <a class="button button--green header-cta" href="https://build.itspagecraft.com/">Open the builder</a>
+      <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <svg class="menu-icon" aria-hidden="true"><use href="#menu"/></svg><svg class="close-icon" aria-hidden="true"><use href="#close"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <h1>Build the site.<br><em>Keep the site.</em></h1>
+          <p class="hero-lead">Pagecraft is a visual website builder for people who want a polished result without handing the future of their website to the editor that made it.</p>
+          <div class="button-row">
+            <a class="button button--green" href="https://build.itspagecraft.com/">Start building <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a>
+            <a class="button button--dark" href="#workflow">See how it works</a>
+          </div>
+          <p class="hero-note">Visual editing, deliberate publishing, and portable output.</p>
+        </div>
+
+        <div class="editor" aria-label="A preview of the Pagecraft visual editor">
+          <div class="editor-topbar">
+            <span class="editor-brand"><svg aria-hidden="true"><use href="#pagecraft-mark"/></svg> Pagecraft</span>
+            <div class="viewport-switch" aria-hidden="true"><span></span><span></span><span class="active"></span></div><span class="publish-chip">Publish</span>
+          </div>
+          <div class="editor-body">
+            <aside class="editor-rail" aria-hidden="true"><span class="rail-dot active"></span><span class="rail-dot"></span><span class="rail-dot"></span><span class="rail-dot"></span></aside>
+            <div class="editor-panel" aria-hidden="true">
+              <strong>Pages</strong><span class="panel-row selected">Home</span><span class="panel-row">About</span><span class="panel-row">Services</span><span class="panel-row">Contact</span><i></i>
+              <strong>Layers</strong><span class="panel-row inset">Header</span><span class="panel-row inset selected">Hero</span><span class="panel-row inset">Services</span>
+            </div>
+            <div class="editor-canvas">
+              <div class="canvas-page">
+                <div class="canvas-nav"><b>STILL / FORM</b><span>Work &nbsp; Studio &nbsp; Contact</span></div>
+                <div class="canvas-hero">
+                  <div class="canvas-copy"><small>Independent creative studio</small><strong>Ideas made<br>tangible.</strong><span>Brand systems and digital experiences shaped with care.</span><i>See selected work</i></div>
+                  <div class="canvas-art" aria-hidden="true"><span></span><span></span><span></span></div>
+                </div>
+                <div class="selection-outline" aria-hidden="true"><span>Hero</span><i></i><i></i><i></i><i></i></div>
+              </div>
+            </div>
+            <aside class="inspector" aria-hidden="true"><strong>Hero</strong><span>Layout</span><i class="control wide"></i><span>Spacing</span><div><i class="control"></i><i class="control"></i></div><span>Background</span><i class="swatch"></i><span>Typography</span><i class="control wide"></i></aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof-strip" aria-label="Pagecraft product principles">
+      <div class="container proof-grid">
+        <p><strong>Visual by default</strong><span>Work directly on the page you are shaping.</span></p>
+        <p><strong>Quality built in</strong><span>Review structure, links, contrast, and content before release.</span></p>
+        <p><strong>Yours after publish</strong><span>Keep a real website, not a dependency on an editing session.</span></p>
+      </div>
+    </section>
+
+    <section class="section workflow" id="workflow">
+      <div class="container">
+        <div class="section-heading"><p class="section-label">From blank page to public release</p><h2>A clear path from idea to website.</h2><p>Pagecraft keeps the creative work visual and makes the important publishing decisions explicit.</p></div>
+        <ol class="process">
+          <li><span class="process-number">01</span><div><h3>Choose a useful starting point</h3><p>Begin with a full-page template, a ready-made section, or an empty canvas. Every starting point inherits your project’s own type and colour system.</p></div></li>
+          <li><span class="process-number">02</span><div><h3>Shape it where it lives</h3><p>Edit copy, layout, imagery, responsive styles, forms, and reusable components on the canvas. The structure stays visible while you work.</p></div></li>
+          <li><span class="process-number">03</span><div><h3>Review before you release</h3><p>Pagecraft checks the details that turn a draft into a dependable site, including missing destinations, image descriptions, heading structure, and contrast.</p></div></li>
+          <li><span class="process-number">04</span><div><h3>Publish a version you can trust</h3><p>A draft stays private until you publish it. A release is deliberate, portable, and separate from whatever you decide to change next.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section capabilities" id="capabilities">
+      <div class="container capability-layout">
+        <div class="capability-intro"><p class="section-label">A builder with a point of view</p><h2>Enough control to make it yours. Enough structure to keep it sound.</h2><p>Pagecraft is not a pile of decorative blocks. Its tools are organised around the decisions a real website needs.</p></div>
+        <dl class="capability-ledger">
+          <div><dt>Design system</dt><dd>Shared colour tokens, typography, classes, components, global regions, and breakpoint-specific styles.</dd></div>
+          <div><dt>Content and media</dt><dd>Structured pages, image and video libraries, forms, galleries, tables, reusable blocks, and collection-driven content.</dd></div>
+          <div><dt>Responsive control</dt><dd>Desktop, tablet, and mobile decisions stay connected without forcing every screen into the same composition.</dd></div>
+          <div><dt>Built-in review</dt><dd>Actionable checks for accessibility, content completeness, links, metadata, and output quality before export.</dd></div>
+          <div><dt>Portable release</dt><dd>Publish real HTML and assets that remain useful beyond the editor. Your public site is the deliverable.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section ownership" id="ownership">
+      <div class="container ownership-grid">
+        <div class="ownership-copy">
+          <p class="section-label">Designed for ownership</p><h2>The editor is a tool.<br>Your website is the asset.</h2>
+          <p>Pagecraft separates the working draft from the release your visitors see. If an edit fails, your last healthy release stays healthy. If you move on, the output does not vanish with the tool.</p>
+          <a class="text-link" href="https://github.com/braudypedrosa/pagecraft">Review the open-source project <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a>
+        </div>
+        <div class="release-diagram" aria-label="A Pagecraft draft becomes a checked, portable release">
+          <div class="release-card draft-card"><span>01</span><strong>Working draft</strong><small>Private and editable</small></div><div class="release-path" aria-hidden="true"><i></i><b>review</b><i></i></div>
+          <div class="release-card checked-card"><span>02</span><strong>Checked release</strong><small>Locked and verifiable</small></div><div class="release-path" aria-hidden="true"><i></i><b>publish</b><i></i></div>
+          <div class="release-card live-card"><span>03</span><strong>Your live site</strong><small>Portable and durable</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section closing">
+      <div class="container closing-inner">
+        <div><h2>Make something you are proud to publish.</h2><p>Open Pagecraft in your browser and start shaping the first page.</p></div>
+        <div class="closing-actions"><a class="button button--ink" href="https://build.itspagecraft.com/">Open Pagecraft <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a><p>No software installation required.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a class="brand footer-brand" href="#main" aria-label="Back to the top"><svg aria-hidden="true" viewBox="0 0 73 95"><use href="#pagecraft-mark"/></svg><span>Pagecraft</span></a>
+      <nav aria-label="Footer navigation"><a href="#workflow">How it works</a><a href="#capabilities">Capabilities</a><a href="https://build.itspagecraft.com/">Builder</a><a href="https://github.com/braudypedrosa/pagecraft">GitHub</a></nav>
+      <p>Build visually. Publish deliberately. Keep what you make.</p>
+    </div>
+  </footer>
+  <script src="main.js"></script>
+</body>
+</html>

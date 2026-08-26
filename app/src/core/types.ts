@@ -118,8 +118,20 @@ export interface ButtonProps extends Linkable, Styled {
   text?: string; variant?: string; icon?: string; align?: string; wrap?: string;
 }
 export interface NavProps { items?: NavItem[]; collapse?: string; aria?: string }
-export interface NavItem { label?: string; href?: string }
+export interface NavItem {
+  label?: string;
+  href?: string;
+  /** Custom classes belong to the menu item (`li`), matching the WordPress menu model. */
+  cls?: string;
+  /** `_blank` opens this item in a new tab; absent keeps the current tab. */
+  target?: string;
+}
 export interface FormProps {
+  /** External posts to an explicit HTTPS service. WordPress is compiled to a target-local,
+      signed connector endpoint and is inert anywhere that does not replace its placeholder. */
+  /** `external` | `wordpress`. Kept string-wide because `Props` is an intersection shared
+      with Breadcrumb's `auto`/`manual` mode; runtime validation still owns the exact values. */
+  mode?: string;
   fields?: FormField[]; submit?: string; action?: string; method?: string; aria?: string;
 }
 export interface FormField {
@@ -680,11 +692,21 @@ export interface State {
 
 /** What `doc()` returns and what storage round-trips. No `ui`. */
 export interface Doc {
+  /**
+   * Version of the persisted document shape. Legacy imports may omit this while they are
+   * being adopted, but every document emitted by the current core and every durable server
+   * row carries it. It is deliberately separate from a site's save/revision number.
+   */
+  schemaVersion: number;
   meta: Meta;
   header: Node[];
   footer: Node[];
   pages: Page[];
 }
+
+/** Input boundary for old imports/rows. It becomes a `Doc` only after `migrate` succeeds. */
+export type LegacyDoc = Omit<Doc, 'schemaVersion'> & { schemaVersion?: number; v?: number };
+export type UnknownDocumentInput = Doc | LegacyDoc | Record<string, unknown>;
 
 /* ---- rendering and export --------------------------------------------- */
 

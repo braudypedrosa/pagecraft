@@ -1,140 +1,198 @@
-# Deploy handover — pagecraft.braudyp.dev
+# Production handover — build.itspagecraft.com
 
-Everything needed to put this server on `pagecraft.braudyp.dev`. Written for somebody with
-server and Cloudflare access who does not have the history: it states the invariants, marks the
-two genuine decisions, and gives a command that says whether it worked.
+Pagecraft runs on the existing Namecheap/cPanel account. Supabase holds the durable data, and
+Cloudflare proxies the public hostname.
 
-## What is being deployed
+## Production topology
 
-A Node server (Hono) that stores site documents in Postgres and renders them on request. Sites
-are shared by path: `pagecraft.braudyp.dev/<slug>/<page>`. The editor is served from the same
-host at `/`, behind a magic-link sign-in.
+- Public URL: `https://build.itspagecraft.com`
+- Node 24 application: `/home/itspbuku/pagecraft-app`
+- Runtime: CloudLinux Node selector and LiteSpeed Passenger
+- Startup bridge: `app.cjs`, which imports `server/src/index.ts`
+- Supabase project: `Pagecraft` (`pwgwvicrdbjiecjxiyvl`, Singapore)
+- Database bridge: `https://pwgwvicrdbjiecjxiyvl.supabase.co/functions/v1/pagecraft-db`
+- Cloudflare: proxied A record to `67.223.118.197`, Full (strict), Always Use HTTPS enabled
 
-Repository: `~/Projects/pagecraft`, public at `github.com/braudypedrosa/pagecraft`.
-Server code: `server/`. Image: `server/Dockerfile`. Fly config: `server/fly.toml`.
+Namecheap blocks outbound PostgreSQL ports. The Node process therefore calls the authenticated
+Supabase Edge Function over HTTPS. The function exposes a fixed operation list and parameterized
+queries; it never accepts caller-provided SQL.
 
-## Hard requirements
+## Source of truth
 
-**It cannot run on Cloudflare Workers, Pages, or any edge runtime.** It uses `pg` over TCP,
-reads `index.html` off disk, and sends SMTP. It needs a normal Node process.
+- Node transport: `server/src/store-gateway.ts`
+- Edge Function: `supabase/functions/pagecraft-db/`
+- Reproducible schema: `supabase/migrations/`
+- Passenger bridge: `app.cjs`
 
-**It needs Postgres.** Everything that must survive a restart is there — documents, sessions,
-invitations, and uploaded images as `bytea`. Nothing is written to disk, so **no volume is
-required**; that is a property of the code, not an oversight.
+The gateway key is not committed. Supabase stores only its SHA-256 digest in
+`public.gateway_config`; the raw value exists only as `DATABASE_GATEWAY_KEY` in the cPanel
+application environment.
 
-**Node 24.** The server runs TypeScript directly via Node's type stripping. The Dockerfile pins
-this; do not change it to an older major.
+## Application environment
 
-**The editor must be built before the image.** `node build.mjs` writes `index.html`, and the
-Dockerfile's first stage does this itself — so a plain `fly deploy` is enough. Do not add a build
-step that runs a bundler at container start.
+Required:
 
-## The two decisions
+| Variable | Value or purpose |
+|---|---|
+| `DATABASE_GATEWAY_URL` | Deployed `pagecraft-db` Edge Function URL |
+| `DATABASE_GATEWAY_KEY` | Private raw gateway key; never commit it |
+| `EDITOR_HOST` | `build.itspagecraft.com` |
+| `EDITOR_ORIGIN` | `https://build.itspagecraft.com` |
+| `OWNER_EMAIL` | `braudypedrosa@gmail.com` |
+| `NODE_ENV` | `production`, which enables Secure session cookies |
 
-**1. Cloudflare proxy: use DNS only (grey cloud).** Recommended, and what the config assumes.
-Fly terminates TLS for the hostname; proxying through Cloudflare adds a second TLS layer to
-debug for no benefit here. If you deliberately choose proxied, set SSL/TLS mode to Full (strict).
+Mail is sent through Resend SMTP using a dedicated sending-only key restricted to
+`braudyp.dev`. The current sender is `Pagecraft <pagecraft@braudyp.dev>`. Keep
+`SMTP_PASS` only in the cPanel application environment.
 
-**2. SMTP now or later.** Without it, sign-in links are **printed to the server log** instead of
-emailed. That is workable for the first sign-in and unacceptable as a standing state — anyone who
-can read logs can sign in as anyone. Deploying without it first is fine; set it before a second
-person uses the server.
+Connected WordPress additionally fails closed until the release trust chain is provisioned:
 
-## Steps
+| Variable | Value or purpose |
+|---|---|
+| `PAGECRAFT_RELEASE_KEY_ID` | Identifier for the online Ed25519 release key |
+| `PAGECRAFT_RELEASE_PRIVATE_KEY` | PKCS#8 release private key encoded as base64url; runtime secret |
+| `PAGECRAFT_ROOT_PUBLIC_KEY` | Raw 32-byte offline root public key encoded as base64url |
+| `PAGECRAFT_KEYSET_ENVELOPE` | Root-signed canonical release-key set JSON |
+| `PAGECRAFT_CONNECTOR_PACKAGE_PATH` | Absolute path to the provisioned connector ZIP |
+| `PAGECRAFT_CONNECTOR_PACKAGE_VERSION` | Exact connector package version |
+| `PAGECRAFT_THEME_PACKAGE_PATH` | Absolute path to the theme ZIP |
+| `PAGECRAFT_THEME_PACKAGE_VERSION` | Exact theme package version |
+
+Generate the root and release keys on an offline machine with
+`node server/tools/provision-release-keys.mjs`. Store the root private key offline and the
+release private key in the server secret store. Never save either private key in this checkout,
+WordPress, a deployment log, or chat. Inject only the root public key while building the private
+WordPress packages:
+
+```bash
+PAGECRAFT_ROOT_PUBLIC_KEY_BASE64URL='<offline-root-public-key>' \
+  bash wordpress/tools/build-packages.sh 0.1.0
+```
+
+The package builder rejects a missing/invalid root key and verifies that the development marker
+is absent from the resulting connector archive. Copy both archives to a private, non-public
+server directory and configure the package path/version variables before enabling Connected
+WordPress. The application signs package metadata at runtime; WordPress downloads a package only
+through a scoped, one-time authorization.
+
+## Deploy an application update
 
 ```bash
 cd ~/Projects/pagecraft
+npm test
 
-# 1. the app. `apps create` rather than `launch`: launch is interactive and may rewrite fly.toml.
-fly apps create pagecraft
+rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' server/src/ \
+  itspagecraft-host:/home/itspbuku/pagecraft-app/server/src/
+rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' app/src/core/ \
+  itspagecraft-host:/home/itspbuku/pagecraft-app/app/src/core/
+rsync -az -e 'ssh -F .pagecraft-local/ssh-config' app.cjs index.html package.json package-lock.json \
+  itspagecraft-host:/home/itspbuku/pagecraft-app/
 
-# 2. Postgres, attached so DATABASE_URL is set for the app.
-#    On current flyctl this is `fly postgres create` + `fly postgres attach`. If your flyctl
-#    offers Managed Postgres instead, create one there and set DATABASE_URL as a secret by hand.
-#    The invariant is only this: the app must start with DATABASE_URL pointing at a Postgres.
-fly postgres create --name pagecraft-db
-fly postgres attach pagecraft-db --app pagecraft
+ssh -F .pagecraft-local/ssh-config itspagecraft-host \
+  'cloudlinux-selector restart --json --interpreter nodejs \
+   --domain build.itspagecraft.com --app-root pagecraft-app'
 
-# 3. the owner. Without this nobody can sign in — the sites still serve, but the editor is shut.
-fly secrets set --app pagecraft OWNER_EMAIL=braudy@creationworx.com
-
-# 4. deploy
-fly deploy --app pagecraft --config server/fly.toml --dockerfile server/Dockerfile
-
-# 5. the hostname, then the DNS record it prints, at Cloudflare — DNS only, grey cloud
-fly certs add --app pagecraft pagecraft.braudyp.dev
+node tools/smoke.mjs https://build.itspagecraft.com
 ```
 
-**Before step 4**, set `EDITOR_HOST` in `server/fly.toml` to `pagecraft.braudyp.dev`. It ships as
-`pagecraft.example.com`. Also set `primary_region` to whatever is nearest; it ships as `lhr`.
+The server imports `app/src/core/` at runtime for schema migration and rendering. Never deploy
+`server/src/` without the matching core directory: a newer editor with an older server renderer
+can accept a document that production cannot render.
 
-## Environment
+If dependencies change, run this before restarting. The root production dependencies mirror
+the server workspace because CloudLinux installs from the application-root manifest. Do not run
+the virtual environment's `npm` directly inside the app root: the selector owns the
+`node_modules` symlink.
 
-Set in `server/fly.toml` under `[env]` (not secret) or via `fly secrets set` (secret).
+```bash
+ssh -F .pagecraft-local/ssh-config itspagecraft-host \
+  'cloudlinux-selector install-modules --json --interpreter nodejs \
+   --app-root pagecraft-app --skip-web-check'
+```
 
-| | | |
-|---|---|---|
-| `EDITOR_HOST` | **required** | `pagecraft.braudyp.dev`. The host the editor answers on and the host sites are shared under. Get this wrong and every request is treated as a custom-domain lookup, so the editor answers `No site for host …` — see the failure mode below |
-| `DATABASE_URL` | **required** | set by `fly postgres attach`. Absent, the server runs on in-memory stores and loses everything on restart |
-| `OWNER_EMAIL` | **required** | the first person who can sign in. Idempotent, so leaving it set is fine |
-| `NODE_ENV=production` | set in fly.toml | puts `Secure` on the session cookie. Without it the cookie can travel in clear |
-| `PORT=8787` | set in fly.toml | must match `http_service.internal_port` |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | optional | how links are sent. `MAIL_FROM` is required for mail to count as configured; port defaults to 587. **Secrets** |
-| `ACME_EMAIL` | not needed on Fly | Caddy's, for the compose deployment only |
-| `CLIENT_EMAIL` | do not set | a development shortcut that grants the content role on every site |
+## Deploy a database change
 
-Generate `POSTGRES_PASSWORD` only for the compose path (below); on Fly the attach handles
-credentials. Nothing secret goes in the repository — `fly secrets` or the environment, never a
-committed file.
+First reconcile `supabase migration list` with the repository. The live project's historical
+version labels predate these checked-in filenames, so do not blindly replay the initial schema
+against production. Resolve that history once, then keep the checked-in list authoritative.
+
+Apply new ordered files from `supabase/migrations/` to project
+`pwgwvicrdbjiecjxiyvl`, including these Connected WordPress migrations in order:
+
+1. `20260826000000_wordpress_connected_v1.sql`
+2. `20260826001638_gateway_release_blob_transport.sql`
+3. `20260826004000_wordpress_connection_revocation.sql`
+
+Before touching the live project, prove the complete migration chain, RLS/grant posture, and
+database advisors against a disposable PostgreSQL 17 instance:
+
+```bash
+server/tools/test-supabase-migrations.sh
+server/tools/test-postgres-concurrency.sh
+
+deno fmt --check --config supabase/functions/pagecraft-db/deno.json \
+  supabase/functions/pagecraft-db
+deno check --config supabase/functions/pagecraft-db/deno.json \
+  supabase/functions/pagecraft-db/index.ts
+deno test --config supabase/functions/pagecraft-db/deno.json \
+  supabase/functions/pagecraft-db
+```
+
+Then deploy
+`supabase/functions/pagecraft-db/` **before** restarting the Node application. The old application
+ignores new gateway operations, while the new application cannot use an old gateway that does not
+know them. Keep
+`verify_jwt=false`: this function deliberately uses its own gateway-key authentication.
+
+For a fresh project, generate a random gateway key, apply the migrations, and insert its digest:
+
+```sql
+insert into public.gateway_config (id, secret_hash)
+values ('primary', '<sha256-of-new-gateway-key>');
+```
+
+Put the raw key in cPanel as `DATABASE_GATEWAY_KEY`. Never put it in SQL, a migration, a shell
+history file, or this repository.
+
+## Backups and recovery
+
+The current Supabase Free plan does not provide the automatic daily backup guarantee used by a
+customer-facing production service. Run the encrypted backup job on an off-server runner and keep
+its output in separate off-site storage. The exact commands, retention policy, integrity checks,
+and disposable-project restore drill are in [`RECOVERY.md`](../RECOVERY.md).
+
+Do not call a backup complete until its encrypted artifact and checksum have left both Namecheap
+and the Supabase project. Run and record a restore drill before launch and at least quarterly.
+
+## TLS renewal
+
+The origin certificate is a Let's Encrypt certificate installed through cPanel. Renewal is
+handled by the existing user crontab through:
+
+```text
+/home/itspbuku/pagecraft-ops/acme-home/acme.sh
+```
+
+Renewal uses the HTTP webroot at `/home/itspbuku/build.itspagecraft.com`, so no Cloudflare API
+credential is stored on the server. The deploy hook installs renewed certificates through
+cPanel UAPI. The same renewal runner also maintains the separate apex/`www` landing certificate.
 
 ## Verify
 
 ```bash
-node tools/smoke.mjs https://pagecraft.braudyp.dev
+node tools/smoke.mjs https://build.itspagecraft.com
+
+curl -I https://build.itspagecraft.com/
+curl -I http://build.itspagecraft.com/
 ```
 
-Read-only: signs nothing in, creates nothing. Exit code is the number of failures, and each
-failure prints what to change. Then open the URL: it should show a sign-in form, and after
-signing in, **"Make your first site"** with a name field.
+Expected: the HTTPS request returns `200` with HSTS; HTTP redirects to HTTPS; the observable smoke
+suite passes; the public page renders the Pagecraft magic-link sign-in form. The smoke script marks
+the Secure-cookie check explicitly unverified because proving it would consume a real login link;
+`server/tests/auth.test.ts` performs that authenticated callback locally. Restart Passenger once
+and confirm the owner row remains in Supabase to prove the app is not using memory storage.
 
-## The failure mode to expect
+## Current production note
 
-If `EDITOR_HOST` does not match the hostname, the site answers `No site for host
-pagecraft.braudyp.dev` for every request. This looks like broken DNS, a broken proxy or a broken
-box, and it is one string in `fly.toml`. The smoke test names it and prints the value to use.
-Check that before investigating anything else.
-
-Second most likely: a 503 with `No editor build`. That means `index.html` is missing from the
-image — the Dockerfile's first stage failed, so read the build log rather than the runtime log.
-
-## Alternative: a plain box
-
-If Fly is not wanted, `server/compose.yml` runs the same image with Postgres and Caddy, and Caddy
-gets the certificate itself. From the repository root:
-
-```bash
-POSTGRES_PASSWORD="$(openssl rand -base64 32)" EDITOR_HOST=pagecraft.braudyp.dev \
-OWNER_EMAIL=braudy@creationworx.com ACME_EMAIL=braudy@creationworx.com \
-docker compose -f server/compose.yml up -d --build
-```
-
-Needs ports 80 and 443 reachable, an A record at the box, and grey cloud at Cloudflare so Caddy
-can complete the ACME challenge. Caddy uses `network_mode: host`, which does not work on Docker
-Desktop — Linux only.
-
-## What has been verified, and what has not
-
-Verified in containers against real Postgres: the image builds, the stack comes up, sign-in
-works, a site is created from a name alone, it serves at its path, documents round-trip, a
-content account can edit words and not structure, and the smoke test passes — and fails with the
-right advice against a deliberately wrong `EDITOR_HOST`.
-
-**Not verified:** any Fly deployment, and the ACME certificate exchange. Both need an account and
-a public name. If `fly deploy` fails, `fly logs` plus the boot lines this server prints name which
-environment value is wrong.
-
-## Report back
-
-The URL, the output of `tools/smoke.mjs`, and — if anything failed — the boot lines from
-`fly logs`. The server prints one line per configured thing on start (`store:`, `owner`, `mail`),
-which is usually enough to see what is missing.
+The application, database gateway, DNS, origin TLS, renewal, restart persistence, Resend SMTP,
+and public sign-in screen are live.

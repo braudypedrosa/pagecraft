@@ -73,6 +73,10 @@ __export(index_exports, {
   RESERVED: () => RESERVED,
   SCHEMA: () => SCHEMA,
   SEC_TAGS: () => SEC_TAGS,
+  SHARED_FOOTER_END: () => SHARED_FOOTER_END,
+  SHARED_FOOTER_START: () => SHARED_FOOTER_START,
+  SHARED_HEADER_END: () => SHARED_HEADER_END,
+  SHARED_HEADER_START: () => SHARED_HEADER_START,
   SLIDE_JS: () => SLIDE_JS,
   SLOT_LABEL: () => SLOT_LABEL,
   SRCSET_W: () => SRCSET_W,
@@ -117,6 +121,7 @@ __export(index_exports, {
   bucket: () => bucket,
   buildLink: () => buildLink,
   buildPage: () => buildPage,
+  buildWordPressContentReference: () => buildWordPressContentReference,
   canDo: () => canDo,
   canFacade: () => canFacade,
   canvasWidth: () => canvasWidth,
@@ -291,6 +296,8 @@ __export(index_exports, {
   parseFontCss: () => parseFontCss,
   parseLink: () => parseLink,
   parseU: () => parseU,
+  parseWordPressContentReference: () => parseWordPressContentReference,
+  parseWordPressContentToken: () => parseWordPressContentToken,
   pasteNode: () => pasteNode,
   pasteStyles: () => pasteStyles,
   pasteStylesMany: () => pasteStylesMany,
@@ -390,6 +397,7 @@ __export(index_exports, {
   vidPoster: () => vidPoster,
   vidSrc: () => vidSrc,
   widgetSlug: () => widgetSlug,
+  wordpressContentToken: () => wordpressContentToken,
   wrap: () => wrap,
   zoomFor: () => zoomFor
 });
@@ -428,6 +436,7 @@ var IC = {
      rather than rotated, for the reason the `more` icon was: a rotated glyph needs a class on
      the element that carries it, which is a second thing to remember at every call site. */
   caretUp: '<path d="M3.5 10.5L8 6l4.5 4.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  close: '<path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"/>',
   trash: '<path d="M2.8 4.5h10.4M6.2 4.5V2.8h3.6v1.7M4.2 4.5l.6 8.2c0 .5.5.8 1 .8h4.4c.5 0 1-.3 1-.8l.6-8.2" stroke-linecap="round"/>',
   copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.4"/><path d="M10.5 5.5v-2A1 1 0 009.5 2.5h-6a1 1 0 00-1 1v6a1 1 0 001 1h2"/>',
   /* A component: one outline, and a filled mark inside it that is the part that varies.
@@ -1198,6 +1207,89 @@ var safeUrl = (u) => {
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
   return "";
 };
+var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs";
+var WORDPRESS_CONTENT_REFERENCE_PREFIX = "pagecraft:wordpress-content:";
+var WORDPRESS_CONTENT_TOKEN_PREFIX = "%%PAGECRAFT_WP_CONTENT:";
+var BASE64URL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+function base64urlUtf8(value) {
+  const bytes = new TextEncoder().encode(value);
+  let result = "";
+  for (let index = 0; index < bytes.length; index += 3) {
+    const first = bytes[index];
+    const second = index + 1 < bytes.length ? bytes[index + 1] : 0;
+    const third = index + 2 < bytes.length ? bytes[index + 2] : 0;
+    const packed = first << 16 | second << 8 | third;
+    result += BASE64URL_ALPHABET[packed >> 18 & 63] + BASE64URL_ALPHABET[packed >> 12 & 63] + (index + 1 < bytes.length ? BASE64URL_ALPHABET[packed >> 6 & 63] : "") + (index + 2 < bytes.length ? BASE64URL_ALPHABET[packed & 63] : "");
+  }
+  return result;
+}
+function utf8FromBase64url(value) {
+  if (!value || /[^A-Za-z0-9_-]/.test(value)) return null;
+  const bytes = [];
+  let bits = 0, bitCount = 0;
+  for (const character of value) {
+    const digit = BASE64URL_ALPHABET.indexOf(character);
+    if (digit < 0) return null;
+    bits = bits << 6 | digit;
+    bitCount += 6;
+    if (bitCount >= 8) {
+      bitCount -= 8;
+      bytes.push(bits >> bitCount & 255);
+      bits &= (1 << bitCount) - 1;
+    }
+  }
+  if (bitCount && bits !== 0) return null;
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(bytes));
+  } catch {
+    return null;
+  }
+}
+function normalizeWordPressContentPath(value) {
+  let path = String(value == null ? "" : value).trim();
+  if (!path || path.length > 2048 || /[?#\\\u0000-\u001f\u007f]/.test(path)) return null;
+  path = ("/" + path.replace(/^\/+/, "")).replace(/\/{2,}/g, "/");
+  if (path !== "/" && !/\.[^/]+\/?$/.test(path) && !path.endsWith("/")) path += "/";
+  return path;
+}
+function buildWordPressContentReference(objectType, path) {
+  if (objectType !== "page" && objectType !== "post") return "";
+  const normalized = normalizeWordPressContentPath(path);
+  return normalized ? `${WORDPRESS_CONTENT_REFERENCE_PREFIX}${objectType}:${base64urlUtf8(normalized)}` : "";
+}
+function parseWordPressContentReference(value) {
+  const exact = String(value == null ? "" : value).trim();
+  const match = exact.match(/^pagecraft:wordpress-content:(page|post):([A-Za-z0-9_-]+)$/);
+  if (!match) return null;
+  const decoded = utf8FromBase64url(match[2]);
+  const path = decoded == null ? null : normalizeWordPressContentPath(decoded);
+  if (!path || path !== decoded || base64urlUtf8(path) !== match[2]) return null;
+  return { objectType: match[1], path };
+}
+function wordpressContentToken(reference) {
+  const stored = buildWordPressContentReference(reference.objectType, reference.path);
+  const parsed = stored ? parseWordPressContentReference(stored) : null;
+  return parsed ? `${WORDPRESS_CONTENT_TOKEN_PREFIX}${parsed.objectType}:${base64urlUtf8(parsed.path)}%%` : "";
+}
+function parseWordPressContentToken(value) {
+  const exact = String(value == null ? "" : value).trim();
+  const match = exact.match(/^%%PAGECRAFT_WP_CONTENT:(page|post):([A-Za-z0-9_-]+)%%$/);
+  if (!match) return null;
+  return parseWordPressContentReference(
+    `${WORDPRESS_CONTENT_REFERENCE_PREFIX}${match[1]}:${match[2]}`
+  );
+}
+var safeFormAction = (u) => {
+  const v = String(u == null ? "" : u).trim();
+  if (!/^https:\/\//i.test(v)) return "";
+  try {
+    const url = new URL(v);
+    if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return "";
+    return v;
+  } catch {
+    return "";
+  }
+};
 var clone = (o) => JSON.parse(JSON.stringify(o));
 var slugify = (s) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "page";
 var dbounce = (fn, ms) => {
@@ -1225,6 +1317,15 @@ var U = {
   track: ["em", "px"],
   border: ["px", "rem"]
 };
+var COLUMN_V_ALIGN = "--pc-column-v-align";
+function columnVerticalOptions(n) {
+  return [
+    ["follow", `Follow row \xB7 ${rowVerticalLabel(n)}`],
+    ["flex-start", "Top"],
+    ["center", "Center"],
+    ["flex-end", "Bottom"]
+  ];
+}
 var GF_FALLBACK = {
   s: "system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
   f: "Georgia,'Times New Roman',serif",
@@ -1589,7 +1690,7 @@ var DEF = {
     level: 3,
     alsoHolds: ["row", "slider", "box"],
     caps: ["spacing", "decoration", "effects", "animation"],
-    make: () => ({ props: {}, css: { d: { "flex-grow": "100", "justify-content": "flex-start", "align-items": "stretch", gap: "16px" }, t: {}, m: { "flex-basis": "100%" } } }),
+    make: () => ({ props: {}, css: { d: { "flex-grow": "100", [COLUMN_V_ALIGN]: "follow", "align-items": "stretch", gap: "16px" }, t: {}, m: { "flex-basis": "100%" } } }),
     controls: {
       content: [
         /* Neither of these is a slide's business. Inside a slider a column's width comes from
@@ -1597,7 +1698,14 @@ var DEF = {
            classes, so a share or a basis set here is a control that does nothing. */
         { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1, when: notASlide },
         { t: "unit", c: "flex-basis", label: "Min basis", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
-        { t: "pick", c: "justify-content", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"]] },
+        {
+          t: "select",
+          c: COLUMN_V_ALIGN,
+          label: "Vertical align",
+          r: 1,
+          opts: columnVerticalOptions,
+          note: "Follows the parent row unless this column overrides it."
+        },
         { t: "pick", c: "align-items", label: "Horizontal align", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
         { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space }
       ],
@@ -1883,7 +1991,16 @@ var DEF = {
         { t: "link", k: "link", label: "Link" },
         { t: "select", k: "variant", label: "Variant", opts: [["solid", "Solid"], ["outline", "Outline"], ["ghost", "Ghost"], ["link", "Text link"]] },
         { t: "select", k: "icon", label: "Trailing icon", opts: [["none", "None"], ["arrow", "Arrow"], ["check", "Check"], ["plus", "Plus"]] },
-        { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] }
+        { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
+        {
+          t: "select",
+          c: "margin-top",
+          label: "Position in column",
+          r: 1,
+          opts: [["", "In the normal flow"], ["auto", "Push to column bottom"]],
+          note: "Uses the column\u2019s remaining height above this button.",
+          when: (n) => !!locate(n.id)?.parent && locate(n.id).parent.type === "column"
+        }
       ],
       style: [
         { t: "color", c: "background-color", label: "Background" },
@@ -1954,6 +2071,7 @@ var DEF = {
     caps: ["spacing", "decoration", "effects", "typography", "animation"],
     make: () => ({
       props: {
+        mode: "external",
         action: "",
         method: "post",
         submit: "Send",
@@ -1986,8 +2104,9 @@ var DEF = {
       content: [
         { t: "fields", k: "fields", label: "Fields" },
         { t: "text", k: "submit", label: "Submit button label" },
-        { t: "text", k: "action", label: "Where submissions go", ph: "https://formspree.io/f/\u2026", note: "A static page can\u2019t receive a POST \u2014 paste an endpoint." },
-        { t: "select", k: "method", label: "Method", opts: [["post", "POST"], ["get", "GET"]] },
+        { t: "select", k: "mode", label: "Submission handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
+        { t: "text", k: "action", label: "Where submissions go", ph: "https://formspree.io/f/\u2026", note: "Paste the complete https:// endpoint for the form service.", when: (n) => n.props.mode !== "wordpress" },
+        { t: "select", k: "method", label: "Method", opts: [["post", "POST"], ["get", "GET"]], when: (n) => n.props.mode !== "wordpress" },
         { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
       ],
       style: [
@@ -2393,7 +2512,7 @@ var DEF = {
         { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
       ],
       style: [
-        { t: "unit", c: "--icon-size", label: "Size", r: 1, units: U.size },
+        { t: "unit", c: "--icon-size", label: "Glyph size", r: 1, units: U.size },
         { t: "color", c: "color", label: "Colour" },
         { t: "slider", c: "--icon-stroke", label: "Stroke weight", min: 1, max: 3, step: 0.05, raw: 1 },
         { t: "color", c: "background-color", label: "Badge background" },
@@ -2779,7 +2898,13 @@ var state = {
   cur: 0,
   ui: initUi()
 };
-var doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
+var doc = () => ({
+  schemaVersion: SCHEMA,
+  meta: state.meta,
+  header: state.header,
+  footer: state.footer,
+  pages: state.pages
+});
 var page = () => state.pages[state.cur] || state.pages[0];
 var tree = () => {
   if (state.ui.mode === "component") {
@@ -3126,6 +3251,28 @@ function applyCols(row, ws) {
 }
 var MIN_COL = 4;
 var BP_CHAIN = { d: ["d"], t: ["t", "d"], m: ["m", "t", "d"] };
+function cssAt(n, b, prop) {
+  for (const k of BP_CHAIN[b] || ["d"]) {
+    const own = ((n.css || {})[k] || {})[prop];
+    if (own !== void 0 && own !== "") return own;
+    const applied = nodeClasses(n);
+    for (let i = applied.length - 1; i >= 0; i--) {
+      const v = ((applied[i].css || {})[k] || {})[prop];
+      if (v !== void 0 && v !== "") return v;
+    }
+  }
+  return "";
+}
+function rowVerticalValue(row, b) {
+  if (!row || row.type !== "row") return "flex-start";
+  const v = cssAt(row, b, "align-items");
+  return v === "center" || v === "flex-end" ? v : "flex-start";
+}
+function rowVerticalLabel(n) {
+  const h = locateAny(n.id);
+  const v = rowVerticalValue(h && h.parent ? h.parent : null, dk());
+  return v === "center" ? "Center" : v === "flex-end" ? "Bottom" : "Top";
+}
 function rowRatiosAt(row, b) {
   return (row.children || []).map((c) => {
     for (const k of BP_CHAIN[b] || ["d"]) {
@@ -3518,11 +3665,23 @@ var colorUsage = (id) => {
   return k;
 };
 var A_RE = /asset:([a-z0-9]+)(?:@(\d+))?/g;
-var assetFile = (a) => "assets/" + String(a.name || a.id).replace(/[^\w.-]+/g, "-").toLowerCase();
+var assetFile = (a) => {
+  const id = String(a.id || "asset").replace(/[^a-z0-9]+/gi, "").toLowerCase() || "asset";
+  if (!a.name) return "assets/" + id;
+  const cleaned = String(a.name).replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase() || "image";
+  const dot = cleaned.lastIndexOf(".");
+  const hasExtension = dot > 0 && dot < cleaned.length - 1;
+  const extension = hasExtension ? cleaned.slice(dot).slice(0, 17) : "";
+  const rawStem = hasExtension ? cleaned.slice(0, dot) : cleaned;
+  const stem = rawStem.endsWith(`-${id}`) ? rawStem : `${rawStem.slice(0, 180)}-${id}`;
+  return `assets/${stem}${extension}`;
+};
 function assetPaths(str, get, rel = "") {
-  return String(str).replace(A_RE, (_m, id) => {
+  return String(str).replace(A_RE, (_m, id, _width, offset, source) => {
     const a = get(id);
-    return a ? rel + assetFile(a) : PH;
+    if (!a) return PH;
+    const absoluteUrlPrefix = /(?:https?:)?\/\/[^\s"'<>]*$/i.test(source.slice(0, offset));
+    return (absoluteUrlPrefix ? "" : rel) + assetFile(a);
   });
 }
 var SRCSET_W = [480, 768, 1024, 1440, 1920];
@@ -3681,6 +3840,7 @@ function lint() {
     if (!pg2.desc) add("warn", "no-desc", `\u201C${pg2.name}\u201D has no meta description, so search results pick their own snippet.`, scope);
     const seenIds = /* @__PURE__ */ new Set(), dupIds = /* @__PURE__ */ new Set();
     let headings = [];
+    let heroImageReviewed = false;
     const stack = [];
     const visit = (list, chain, region) => list.forEach((n) => {
       const w = { ...scope, region, node: DEF[n.type].label };
@@ -3707,7 +3867,7 @@ function lint() {
       const inLink = chain.some((x) => x.type === "box" && String(x.props.link || "").trim());
       if (inLink) {
         const own = n.type === "box" ? String(n.props.link || "").trim() : n.type === "button" || n.type === "heading" || n.type === "image" || n.type === "icon" ? String(n.props.link || "").trim() : "";
-        if (own || n.type === "nav" || n.type === "text" && /<a\s/i.test(String(n.props.html || ""))) {
+        if (own || hasItemHrefs(n) || n.type === "text" && /<a\s/i.test(String(n.props.html || ""))) {
           add(
             "error",
             "nested-link",
@@ -3717,8 +3877,20 @@ function lint() {
           );
         }
       }
+      if (n.type === "nav") {
+        const labels = /* @__PURE__ */ new Set([slugify(pg2.name), slugify(pg2.title), slugify(pg2.slug)]);
+        if (isFront(pg2)) labels.add("home");
+        (n.props.items || []).forEach((it) => {
+          const h = String(it && it.href || "").trim();
+          const [path, frag = ""] = h.split("#");
+          const target = path === "" ? here : path;
+          if (h && target === here && !frag && !labels.has(slugify(it && it.label || ""))) {
+            add("warn", "nav-page-top", `\u201C${String(it && it.label || "A menu item")}\u201D in the ${region} links to the top of \u201C${pg2.name}\u201D. Choose a section or a page that matches the label.`, w, n.id);
+          }
+        });
+      }
       const links = [];
-      if (n.type === "nav") (n.props.items || []).forEach((it) => links.push(it.href));
+      if (hasItemHrefs(n)) (n.props.items || []).forEach((it) => links.push(it.href));
       if (n.props.link !== void 0) links.push(n.props.link);
       if (n.type === "text") [...String(n.props.html || "").matchAll(/href="([^"]*)"/g)].forEach((m) => links.push(m[1]));
       links.filter((h) => h !== void 0 && h !== null).forEach((href) => {
@@ -3726,6 +3898,11 @@ function lint() {
         if (!h) return;
         if (h === "#") {
           add("warn", "empty-anchor", `A link in the ${region} points at \u201C#\u201D, which goes nowhere.`, w, n.id);
+          return;
+        }
+        if (parseWordPressContentReference(h)) return;
+        if (h.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX)) {
+          add("error", "wordpress-link-invalid", `A WordPress content link in the ${region} has an invalid target-neutral reference. Choose the WordPress destination again.`, w, n.id);
           return;
         }
         if (/^(https?:|mailto:|tel:|data:)/i.test(h)) return;
@@ -3764,8 +3941,13 @@ function lint() {
         if (!n.props.src) add("warn", "no-image", `An image in the ${region} has no source and will export a placeholder.`, w, n.id);
         if (n.props.src && !n.props.decorative && !String(n.props.alt || "").trim())
           add("error", "no-alt", `An image in the ${region} has no alt text. Describe it, or mark it decorative.`, w, n.id);
-        if (!(n.props.w && n.props.h))
+        if (n.props.src && !(n.props.w && n.props.h))
           add("warn", "no-dimensions", `An image in the ${region} has no width/height, so the page will shift as it loads.`, w, n.id);
+        const inFirstSection = region === "page" && (n === pg2.tree[0] || chain[0] === pg2.tree[0]);
+        if (!heroImageReviewed && inFirstSection && n.props.src) {
+          heroImageReviewed = true;
+          if (n.props.lazy) add("warn", "hero-image-lazy", `The first image in \u201C${pg2.name}\u201D is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`, w, n.id);
+        }
       }
       if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
@@ -3826,8 +4008,12 @@ function lint() {
         headings.push({ level: +String(n.props.level)[1], node: n, region });
       if (n.type === "form") {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
-        if (!String(n.props.action || "").trim())
-          add("error", "form-no-action", `A form in the ${region} has nowhere to send submissions, so it will silently do nothing. Paste an endpoint from a form service, or a mailto: address.`, w, n.id);
+        const rawAction = String(n.props.action || "").trim();
+        const wordpressManaged = n.props.mode === "wordpress";
+        if (!wordpressManaged && !rawAction)
+          add("error", "form-no-action", `A form in the ${region} has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.`, w, n.id);
+        else if (!wordpressManaged && !safeFormAction(rawAction))
+          add("error", "unsafe-form-action", `A form in the ${region} does not use an explicit, secure endpoint, so submission is disabled when published. Paste a complete https:// URL for the form service that will receive it.`, w, n.id);
         if (!fields.length)
           add("warn", "form-no-fields", `A form in the ${region} has no fields.`, w, n.id);
         fields.forEach((fl, fi) => {
@@ -3861,6 +4047,8 @@ function lint() {
       }
       if (n.type === "button" && !String(n.props.text || "").trim())
         add("error", "empty-button", `A button in the ${region} has no label.`, w, n.id);
+      else if (n.type === "button" && !String(n.props.link || "").trim())
+        add("warn", "button-no-link", `\u201C${String(n.props.text || "Button")}\u201D in the ${region} has no destination, so it is inert on the published page. Add a link or remove the button.`, w, n.id);
       if (TEXTY.includes(n.type)) {
         const fg = effective(n, "color", chain);
         let bg = (n.css.d || {})["background-color"] || "";
@@ -3969,6 +4157,7 @@ var TEXT_SLOTS = {
   nav: [["items", "label"]],
   form: [["fields", "label", "ph"]]
 };
+var OWNER_ONLY_CONTENT = /* @__PURE__ */ new Set(["embed"]);
 var PAGE_TEXT = [["title", "Browser title"], ["desc", "Meta description"], ["name", "Page name"]];
 var SLOT_LABEL = {
   text: "Text",
@@ -3992,6 +4181,7 @@ var ASSET_SLOTS = {
 };
 function contentKeys(type) {
   const out = /* @__PURE__ */ new Set();
+  if (OWNER_ONLY_CONTENT.has(type)) return out;
   const add = (specs) => specs.forEach((spec) => out.add(typeof spec === "string" ? spec : spec[0]));
   add(TEXT_SLOTS[type] || []);
   add(ASSET_SLOTS[type] || []);
@@ -4399,6 +4589,9 @@ function pageHref(link, o) {
     if (!o || !o.col || !o.item) return "";
     v = o.col.slug + "/" + o.item.slug + ".html";
   }
+  const wordpress = parseWordPressContentReference(v);
+  if (wordpress) return wordpressContentToken(wordpress);
+  if (v.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX)) return "";
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
@@ -4437,7 +4630,7 @@ function relink(from, to) {
   allTrees().forEach((list) => eachNode(list, (node) => {
     const p = node.props;
     if (p.link !== void 0) p.link = swap2(p.link);
-    if (node.type === "nav" && Array.isArray(p.items)) {
+    if (hasItemHrefs(node) && Array.isArray(p.items)) {
       p.items.forEach((it) => {
         it.href = swap2(it.href);
       });
@@ -4552,6 +4745,10 @@ function contentImport(raw) {
 }
 var pagedPath = (slug, n) => n <= 1 ? slug + ".html" : `${slug}/page-${n}.html`;
 var pagedRel = (n) => n <= 1 ? "" : "../";
+var pathRel = (path) => "../".repeat(Math.max(
+  0,
+  String(path || "").replace(/^\/+|\/+$/g, "").split("/").length - 1
+));
 function listPageCount(n, col) {
   const per = parseInt(String(n.props.per || ""), 10);
   if (!(per > 0)) return 1;
@@ -4601,10 +4798,11 @@ function exportTargets() {
       const pgn = paginatorOf(pg2);
       const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
       for (let i = 1; i <= n; i++) {
+        const path = pagedPath(pg2.slug, i);
         out.push({
           pg: i > 1 ? { ...pg2, title: `${pg2.title || pg2.name} \u2014 page ${i}` } : pg2,
-          path: pagedPath(pg2.slug, i),
-          rel: pagedRel(i),
+          path,
+          rel: pathRel(path),
           col: null,
           item: null,
           pageNo: i,
@@ -4616,10 +4814,11 @@ function exportTargets() {
     for (const it of published(col)) {
       const t = pg2.bindTitle ? String(fieldValue(col, it, pg2.bindTitle) || "").trim() : "";
       const d = pg2.bindDesc ? String(fieldValue(col, it, pg2.bindDesc) || "").trim() : "";
+      const path = col.slug + "/" + it.slug + ".html";
       out.push({
         pg: { ...pg2, slug: col.slug + "/" + it.slug, title: t || pg2.title, desc: d || pg2.desc },
-        path: col.slug + "/" + it.slug + ".html",
-        rel: "../",
+        path,
+        rel: pathRel(path),
         col,
         item: it
       });
@@ -5271,10 +5470,21 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 11;
+var SCHEMA = 13;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
-  const v = d.v || 1;
+  const schemaVersion = d.schemaVersion;
+  const legacyVersion = d.v;
+  if (schemaVersion !== void 0 && (!Number.isInteger(schemaVersion) || schemaVersion < 1)) {
+    throw new Error("invalid document schemaVersion");
+  }
+  if (legacyVersion !== void 0 && (!Number.isInteger(legacyVersion) || legacyVersion < 1)) {
+    throw new Error("invalid legacy document version");
+  }
+  if (schemaVersion !== void 0 && legacyVersion !== void 0 && schemaVersion !== legacyVersion) {
+    throw new Error("conflicting document schema versions");
+  }
+  const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;
   const everyNode = (fn) => {
     const walk = (n) => {
@@ -5286,6 +5496,9 @@ function migrate(d) {
     (d.pages || []).forEach((pg2) => (pg2.tree || []).forEach(walk));
     ((d.meta || {}).blocks || []).forEach((bl) => {
       if (bl.node) walk(bl.node);
+    });
+    ((d.meta || {}).components || []).forEach((cd) => {
+      if (cd.node) walk(cd.node);
     });
   };
   if (v < 3) {
@@ -5360,7 +5573,6 @@ function migrate(d) {
       });
       for (const b of global) {
         const def = { id: b.id, name: b.name, node: reid(clone(b.node)), props: [] };
-        d.meta.components.push(def);
         const want = shape(b.node);
         everyNode((n) => {
           if (!n.adv || n.adv.block !== b.id) return;
@@ -5377,6 +5589,11 @@ function migrate(d) {
           delete n.bind;
           delete n.src;
         });
+        eachNode([def.node], (n) => {
+          const adv = n.adv;
+          if (adv && adv.block === b.id) delete adv.block;
+        });
+        d.meta.components.push(def);
       }
       d.meta.blocks = bl.filter((b) => !(b && b.sync));
     }
@@ -5384,7 +5601,42 @@ function migrate(d) {
       if (b) delete b.sync;
     });
   }
+  if (v < 12) {
+    const styleClasses = ((d.meta || {}).tokens || {}).classes || [];
+    const classValue = (n, b, prop) => {
+      const ids = Array.isArray(n.cls) ? n.cls : [];
+      let value = "";
+      for (const cls of styleClasses) {
+        if (!cls || !ids.includes(cls.id)) continue;
+        const next = cls.css && cls.css[b] && cls.css[b][prop];
+        if (next !== void 0 && next !== "") value = next;
+      }
+      return value;
+    };
+    everyNode((n) => {
+      if (!n || n.type !== "column") return;
+      n.css = n.css || { d: {}, t: {}, m: {} };
+      for (const b of ["d", "t", "m"]) {
+        const map = n.css[b] = n.css[b] || {};
+        const old = map["justify-content"];
+        if (old !== void 0 && old !== "") {
+          map[COLUMN_V_ALIGN] = b === "d" && old === "flex-start" ? "follow" : old;
+          delete map["justify-content"];
+        } else if (!map[COLUMN_V_ALIGN]) {
+          const fromClass = classValue(n, b, "justify-content");
+          if (fromClass) map[COLUMN_V_ALIGN] = fromClass;
+        }
+      }
+      if (!n.css.d[COLUMN_V_ALIGN]) n.css.d[COLUMN_V_ALIGN] = "follow";
+    });
+  }
+  if (v < 13) everyNode((n) => {
+    if (!n || n.type !== "form") return;
+    n.props = n.props || {};
+    if (n.props.mode !== "wordpress") n.props.mode = "external";
+  });
   d.v = SCHEMA;
+  d.schemaVersion = SCHEMA;
   return d;
 }
 var PV = (body) => `<svg class="pvw" viewBox="0 0 96 58" aria-hidden="true">${body}</svg>`;
@@ -5406,7 +5658,7 @@ var PATTERNS = [
           T_T("<p>One sentence on what this is and who it is for.</p>", "lead"),
           N("button", { text: "Get started", ts: "btn" }, { d: { "background-color": cvar("brand"), color: cvar("ink"), "align-self": "flex-start" } })
         ],
-        [N("image", { src: "", alt: "" }, { d: { "border-radius": "16px", height: "380px" }, m: { height: "220px" } })]
+        [N("image", { src: "", alt: "", lazy: 0 }, { d: { "border-radius": "16px", height: "380px" }, m: { height: "220px" } })]
       ], { d: { gap: "56px", "align-items": "center" } })
     ])
   },
@@ -6639,8 +6891,19 @@ var nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
 var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
 var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
 var selOf = (n) => "." + nodeClass(n);
-function bucket(n, b, editing) {
-  const map = n.css[b] || {};
+function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
+  const map = { ...n.css[b] || {} };
+  if (n.type === "column") {
+    const own = cssAt(n, b, COLUMN_V_ALIGN);
+    const def = n.use ? findComponent(n.use) : null;
+    const inherited = def && def.node.type === "column" ? cssAt(def.node, b, COLUMN_V_ALIGN) : "";
+    const mode = own || inherited || "follow";
+    delete map[COLUMN_V_ALIGN];
+    const definitionOwnsExplicit = !!n.use && !own && !!inherited && inherited !== "follow";
+    if (!(detachedComponentRoot && mode === "follow") && !definitionOwnsExplicit) {
+      map["justify-content"] = mode === "follow" ? rowVerticalValue(parent, b) : mode;
+    }
+  }
   let extra = "";
   if (n.hide && n.hide[b]) extra = editing ? "opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;" : "display:none !important;";
   const body = decl(map) + extra;
@@ -6654,17 +6917,17 @@ function bucket(n, b, editing) {
   return rules.join("");
 }
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`;
-function nodeCss(n, editing, acc) {
-  acc.d += bucket(n, "d", editing);
+function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
+  acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
   if (n.type === "nav") {
     const c = n.props.collapse;
     if (c === "tablet") acc.t += navCollapse(n);
     else if (c !== "never") acc.m += navCollapse(n);
   }
-  acc.t += bucket(n, "t", editing);
-  acc.m += bucket(n, "m", editing);
+  acc.t += bucket(n, "t", editing, parent, detachedComponentRoot);
+  acc.m += bucket(n, "m", editing, parent, detachedComponentRoot);
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
-  (n.children || []).forEach((c) => nodeCss(c, editing, acc));
+  (n.children || []).forEach((c) => nodeCss(c, editing, acc, n));
   return acc;
 }
 function usedComponents(lists) {
@@ -6683,7 +6946,7 @@ function usedComponents(lists) {
 }
 function treeCss(lists, editing) {
   const acc = { d: "", t: "", m: "" };
-  usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc));
+  usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc, null, true));
   lists.forEach((l) => l.forEach((n) => nodeCss(n, editing, acc)));
   const tk = tokenCss();
   return baseCss(editing) + tk.d + acc.d + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : "") + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : "");
@@ -6697,6 +6960,12 @@ ${tokenVars()}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;font-family:${m.font};font-size:${m.size};line-height:1.6;color:var(--c-text);background:var(--c-bg);-webkit-font-smoothing:antialiased}
 img,video,svg{max-width:100%}
+.pagecraft-skip{
+  position:fixed;left:12px;top:12px;z-index:2147483647;padding:10px 14px;
+  color:var(--c-bg);background:var(--c-ink);border-radius:6px;text-decoration:none;
+  transform:translateY(calc(-100% - 24px));transition:transform .15s ease;
+}
+.pagecraft-skip:focus{transform:translateY(0)}
 .pagecraft-section{position:relative;width:100%}
 .pagecraft-container{width:100%;max-width:var(--maxw);margin-left:auto;margin-right:auto;position:relative}
 .pagecraft-container.full{max-width:none}
@@ -6877,6 +7146,8 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
 }
+.pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
+.pagecraft-form-status{flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
 
@@ -6925,7 +7196,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 
 .pagecraft-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:inherit;text-decoration:none}
 .pagecraft-icon-glyph{
-  display:block;flex:0 0 auto;
+  display:block;flex:0 0 auto;box-sizing:content-box;
   width:var(--icon-size,30px);height:var(--icon-size,30px);stroke-width:var(--icon-stroke,1.75);
 }
 
@@ -7102,9 +7373,7 @@ function vidSrc(p) {
   return { kind: src ? "other" : "none", id: src };
 }
 function vidPoster(p) {
-  if (p.poster) return p.poster;
-  const v = vidSrc(p);
-  return v.kind === "youtube" ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : "";
+  return p.poster || "";
 }
 var embedUrl = (p) => {
   const v = vidSrc(p);
@@ -7152,6 +7421,75 @@ function stripScripts(html) {
     return "";
   });
   return { html: out, stripped };
+}
+function demoteMainTags(html) {
+  const source = String(html == null ? "" : html);
+  const lower = source.toLowerCase();
+  const raw = /* @__PURE__ */ new Set(["script", "style", "textarea", "title", "xmp", "iframe", "noembed", "noframes", "plaintext"]);
+  const tagEnd = (from) => {
+    let quote = "";
+    for (let i = from; i < source.length; i++) {
+      const ch = source[i];
+      if (quote) {
+        if (ch === quote) quote = "";
+      } else if (ch === '"' || ch === "'") quote = ch;
+      else if (ch === ">") return i;
+    }
+    return -1;
+  };
+  const rawClose = (name, from) => {
+    let found = from;
+    while ((found = lower.indexOf(`</${name}`, found)) >= 0) {
+      const after = lower[found + name.length + 2] || "";
+      if (!after || /[\s/>]/.test(after)) return found;
+      found += name.length + 2;
+    }
+    return -1;
+  };
+  const demote = (tag) => tag.replace(/^(<\s*\/?\s*)main\b/i, "$1div");
+  let out = "", at = 0;
+  while (at < source.length) {
+    const openAt = source.indexOf("<", at);
+    if (openAt < 0) {
+      out += source.slice(at);
+      break;
+    }
+    out += source.slice(at, openAt);
+    if (source[openAt + 1] === "!" && source[openAt + 2] === "-" && source[openAt + 3] === "-") {
+      const end = source.indexOf("-->", openAt + 4);
+      const stop = end < 0 ? source.length : end + 3;
+      out += source.slice(openAt, stop);
+      at = stop;
+      continue;
+    }
+    const openEnd = tagEnd(openAt + 1);
+    if (openEnd < 0) {
+      out += source.slice(openAt);
+      break;
+    }
+    const open = source.slice(openAt, openEnd + 1);
+    const named = open.match(/^<\s*(\/?)\s*([a-z][\w:-]*)\b/i);
+    const closing = !!(named && named[1]);
+    const name = named ? named[2].toLowerCase() : "";
+    if (!name || closing || !raw.has(name) || /\/\s*>$/.test(open)) {
+      out += name === "main" ? demote(open) : open;
+      at = openEnd + 1;
+      continue;
+    }
+    const closeAt = rawClose(name, openEnd + 1);
+    if (closeAt < 0) {
+      out += open + source.slice(openEnd + 1);
+      break;
+    }
+    const closeEnd = tagEnd(closeAt + 2 + name.length);
+    if (closeEnd < 0) {
+      out += open + source.slice(openEnd + 1);
+      break;
+    }
+    out += open + source.slice(openEnd + 1, closeEnd + 1);
+    at = closeEnd + 1;
+  }
+  return out;
 }
 var BICON = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
 function pager(pg2, at, total, o) {
@@ -7264,7 +7602,7 @@ function renderNode(n, o) {
     case "image": {
       const src = esc(p.src || PH);
       const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : "";
-      const dim = p.w && p.h ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : "";
+      const dim = p.w && p.h ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : !p.src ? ' width="800" height="500"' : "";
       const alt = ` alt="${p.decorative ? "" : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
       const set = o.variants && !o.edit && /^asset:\w+$/.test(String(p.src || "")) ? imageWidths(p.w).map((w) => `${p.src}@${w} ${w}w`) : [];
@@ -7293,24 +7631,37 @@ function renderNode(n, o) {
       const items = Array.isArray(p.items) ? p.items : [];
       const name = esc(p.aria || "Main");
       const mid = domId + "-menu";
-      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + items.map((it) => `<li><a href="${esc(pageHref(it.href, o) || "#")}">${esc(it.label || "")}</a></li>`).join("") + `</ul></nav>`;
+      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + items.map((it) => {
+        const classes2 = String(it.cls || "").trim().split(/\s+/).filter(Boolean).join(" ");
+        const liClass = classes2 ? ` class="${esc(classes2)}"` : "";
+        const target = it.target === "_blank" ? ' target="_blank" rel="noopener"' : "";
+        return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}>${esc(it.label || "")}</a></li>`;
+      }).join("") + `</ul></nav>`;
     }
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const fid = (i) => domId + "-f" + i;
+      const wordpressManaged = p.mode === "wordpress";
+      const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
+      const act = wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
+      const disabled = act ? "" : " disabled";
       const body = fields.map((f, i) => {
         const name = esc(f.name || slugify(f.label) || "field-" + (i + 1));
         const req = f.required ? " required" : "";
         const ph2 = f.ph ? ` placeholder="${esc(f.ph)}"` : "";
         const half = f.half ? " half" : "";
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ""}</label>`;
-        if (f.type === "checkbox") return `<div class="pagecraft-field pagecraft-field-check${half}"><input id="${fid(i)}" name="${name}" type="checkbox"${req}><label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
-        if (f.type === "textarea") return `<div class="pagecraft-field${half}">${lab}<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph2}></textarea></div>`;
-        if (f.type === "select") return `<div class="pagecraft-field${half}">${lab}<select id="${fid(i)}" name="${name}"${req}>` + String(f.opts || "").split(",").map((o3) => o3.trim()).filter(Boolean).map((o3) => `<option value="${esc(o3)}">${esc(o3)}</option>`).join("") + `</select></div>`;
-        return `<div class="pagecraft-field${half}">${lab}<input id="${fid(i)}" name="${name}" type="${esc(f.type || "text")}"${req}${ph2}></div>`;
+        if (f.type === "checkbox") return `<div class="pagecraft-field pagecraft-field-check${half}"><input id="${fid(i)}" name="${name}" type="checkbox"${req}${disabled}><label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
+        if (f.type === "textarea") return `<div class="pagecraft-field${half}">${lab}<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph2}${disabled}></textarea></div>`;
+        if (f.type === "select") return `<div class="pagecraft-field${half}">${lab}<select id="${fid(i)}" name="${name}"${req}${disabled}>` + String(f.opts || "").split(",").map((o3) => o3.trim()).filter(Boolean).map((o3) => `<option value="${esc(o3)}">${esc(o3)}</option>`).join("") + `</select></div>`;
+        return `<div class="pagecraft-field${half}">${lab}<input id="${fid(i)}" name="${name}" type="${esc(f.type || "text")}"${req}${ph2}${disabled}></div>`;
       }).join("");
-      const act = safeUrl(p.action) || (/^mailto:/i.test(String(p.action || "")) ? p.action : "");
-      return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}"${act ? ` action="${esc(act)}" method="${p.method === "get" ? "get" : "post"}"` : ""}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
+      if (!act) {
+        const status = domId + "-status";
+        return `<div ${at} ${cx("pagecraft-form")} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
+      }
+      const managed2 = wordpressManaged ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
+      return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
     }
     case "crumbs": {
       const manual = p.mode === "manual";
@@ -7373,7 +7724,8 @@ function renderNode(n, o) {
       return `<div ${at} ${cx("pagecraft-accordion")} data-marker="${esc(p.marker || "plus")}">${body}</div>`;
     }
     case "embed": {
-      const raw = String(p.html == null ? "" : p.html);
+      const supplied = String(p.html == null ? "" : p.html);
+      const raw = n.bind && n.bind.html ? esc(supplied) : supplied;
       const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : "";
       const ecls = "pagecraft-embed" + (p.ratio ? " pagecraft-embed-ratio" : "");
       if (!raw.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-embed")}><div class="s-empty">${svg("code", 12)} Paste embed HTML in the panel</div></div>` : "";
@@ -7520,7 +7872,7 @@ if(typeof HTMLDialogElement!=='function')return;
 var dlg=null,imgEl,capEl,prevB,nextB,list=[],at=0;
 function build(){
 dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';
-dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" alt=""><p class="pagecraft-lightbox-cap"></p></figure>'
+dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><p class="pagecraft-lightbox-cap"></p></figure>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-prev" type="button" aria-label="Previous image">\u2039</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-next" type="button" aria-label="Next image">\u203A</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-close" type="button" aria-label="Close">\xD7</button>';
@@ -7536,7 +7888,7 @@ if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
 if(e.key==='ArrowRight'){e.preventDefault();go(1);}
 });
 }
-function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;
+function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;imgEl.hidden=false;
 capEl.textContent=it.cap;capEl.hidden=!it.cap;
 prevB.hidden=nextB.hidden=list.length<2;}
 function go(d){at=(at+d+list.length)%list.length;show();}
@@ -7564,7 +7916,7 @@ function jsonLdGraph(pg2, ctx = {}) {
   const base = String(m.baseUrl || "").replace(/\/+$/, "");
   if (!base) return null;
   const abs = (u) => !u ? "" : /^https?:/i.test(u) ? u : base + "/" + String(u).replace(/^\/+/, "");
-  const url = `${base}/${pg2.slug}.html`;
+  const url = `${base}/${pagedPath(pg2.slug, ctx.pageNo || 1)}`;
   const org = `${base}/#org`;
   const site = `${base}/#site`;
   const image = abs(pg2.ogImage || m.ogImage || "");
@@ -7602,6 +7954,12 @@ ${json}
 </script>
 `;
 }
+var HTML_COMMENT_OPEN = String.fromCharCode(60, 33, 45, 45);
+var HTML_COMMENT_CLOSE = String.fromCharCode(45, 45, 62);
+var SHARED_HEADER_START = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_HEADER_START" + HTML_COMMENT_CLOSE;
+var SHARED_HEADER_END = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_HEADER_END" + HTML_COMMENT_CLOSE;
+var SHARED_FOOTER_START = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_FOOTER_START" + HTML_COMMENT_CLOSE;
+var SHARED_FOOTER_END = HTML_COMMENT_OPEN + "PAGECRAFT_SHARED_FOOTER_END" + HTML_COMMENT_CLOSE;
 function buildPage(pg2, ctx = {}) {
   const m = state.meta;
   const o = {
@@ -7616,7 +7974,16 @@ function buildPage(pg2, ctx = {}) {
   };
   const css = treeCss([state.header, pg2.tree, state.footer], false);
   const moves = animUsed([state.header, pg2.tree, state.footer]);
-  const body = renderList(state.header, o) + renderList(pg2.tree, o) + renderList(state.footer, o);
+  const allNodes = [...state.header, ...pg2.tree, ...state.footer];
+  const occupied = /* @__PURE__ */ new Set();
+  eachNode(allNodes, (n) => occupied.add(domIdOf(n)));
+  let mainId = "pagecraft-main";
+  while (occupied.has(mainId)) mainId += "-content";
+  const header = demoteMainTags(renderList(state.header, o));
+  const pageBody = demoteMainTags(renderList(pg2.tree, o));
+  const footer = demoteMainTags(renderList(state.footer, o));
+  const main = `<main id="${mainId}" class="pagecraft-main">${pageBody}</main>`;
+  const body = SHARED_HEADER_START + header + SHARED_HEADER_END + main + SHARED_FOOTER_START + footer + SHARED_FOOTER_END;
   const title = pg2.title || `${pg2.name} \u2014 ${m.name}`;
   const base = String(m.baseUrl || "").replace(/\/+$/, "");
   const abs = (u) => !u ? "" : /^https?:/i.test(u) ? u : base ? base + "/" + String(u).replace(/^\/+/, "") : u;
@@ -7640,14 +8007,15 @@ ${pg2.desc ? `<meta property="og:description" content="${esc(pg2.desc)}">
 ` : ""}${canon ? `<meta property="og:url" content="${esc(canon)}">
 ` : ""}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">
 <meta name="twitter:card" content="summary_large_image">
-` : ""}${jsonLd(pg2, ctx)}<style>
+` : ""}${jsonLd(pg2, { col: o.col, item: o.item, pageNo: o.pageNo })}<style>
 ${tidy(css)}${moves ? `
 ${ANIM_CSS}
 ${ANIM_CALM}` : ""}
 </style>
-${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${m.headHtml || ""}${pg2.headHtml || ""}
+${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMainTags(m.headHtml || "")}${demoteMainTags(pg2.headHtml || "")}
 </head>
 <body>
+<a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
 ${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${moves ? `<script>
 ${ANIM_JS}
@@ -7710,6 +8078,10 @@ ${ANIM_JS}
   RESERVED,
   SCHEMA,
   SEC_TAGS,
+  SHARED_FOOTER_END,
+  SHARED_FOOTER_START,
+  SHARED_HEADER_END,
+  SHARED_HEADER_START,
   SLIDE_JS,
   SLOT_LABEL,
   SRCSET_W,
@@ -7754,6 +8126,7 @@ ${ANIM_JS}
   bucket,
   buildLink,
   buildPage,
+  buildWordPressContentReference,
   canDo,
   canFacade,
   canvasWidth,
@@ -7928,6 +8301,8 @@ ${ANIM_JS}
   parseFontCss,
   parseLink,
   parseU,
+  parseWordPressContentReference,
+  parseWordPressContentToken,
   pasteNode,
   pasteStyles,
   pasteStylesMany,
@@ -8027,6 +8402,7 @@ ${ANIM_JS}
   vidPoster,
   vidSrc,
   widgetSlug,
+  wordpressContentToken,
   wrap,
   zoomFor
 });

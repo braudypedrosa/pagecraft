@@ -19,6 +19,7 @@ import type { Doc } from '../../app/src/core/types.ts';
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -86,9 +87,17 @@ test('a site is served under its path, with no domain of its own', async () => {
   a.equal(home.status, 200);
   a.match(await home.text(), /<h1/);
 
-  a.equal((await req('/acme')).status, 200, 'without the trailing slash too');
-  a.equal((await req('/acme/pricing.html')).status, 200, 'and a named page');
+  const bare = await req('/acme?from=bare');
+  a.equal(bare.status, 308, 'the directory-shaped root has one canonical URL');
+  a.equal(bare.headers.get('location'), '/acme/?from=bare');
+  const legacy = await req('/acme/pricing.html?from=old');
+  a.equal(legacy.status, 308, 'a legacy filename redirects');
+  a.equal(legacy.headers.get('location'), '/acme/pricing?from=old');
   a.equal((await req('/acme/pricing')).status, 200, 'extensionless, the way a static host would');
+  const oldHome = await req('/acme/index.html');
+  a.equal(oldHome.status, 308);
+  a.equal(oldHome.headers.get('location'), '/acme/');
+  a.equal((await req('/acme/nope.html')).status, 404, 'a missing filename does not earn a redirect');
   a.equal((await req('/acme/nope')).status, 404);
   a.equal((await req('/nobody/')).status, 404, 'a slug nobody has');
 });
@@ -107,14 +116,13 @@ test('the editor keeps its own paths, whatever a site is called', async () => {
 test('two sites, two paths, and the right pages under each', async () => {
   const { store, req } = await rig();
   await store.create({ host: 'a.invalid', slug: 'first', name: 'First', doc: demo() });
-  const two = await store.create({ host: 'b.invalid', slug: 'second', name: 'Second', doc: demo() });
 
   /* tell them apart by content */
   const doc = demo();
   doc.pages[0].tree = [Core.N('section', {}, {}, [Core.N('row', {}, {}, [
     Core.N('column', {}, {}, [Core.N('heading', { text: 'I am the second site', level: 'h1' })])
   ])])];
-  await store.save(two.id, doc, two.version);
+  await store.create({ host: 'b.invalid', slug: 'second', name: 'Second', doc });
 
   a.match(await (await req('/first/')).text(), /Pagecraft|craft/i);
   a.match(await (await req('/second/')).text(), /I am the second site/);
@@ -161,6 +169,19 @@ test('a site with a real domain reports that instead', async () => {
   a.equal(seen.url, 'http://acme.com/', 'a domain is the better address once there is one');
   a.equal(seen.slug, 'acme', 'and the path still works, because links to it might exist');
   a.equal((await req('/acme/')).status, 200);
+});
+
+test('site creation validates a supplied host before storing anything', async () => {
+  const { store, req, signIn } = await rig();
+  const cookie = await signIn('owner@admin.test');
+  const before = await store.listMeta();
+  const res = await req('/api/sites', {
+    method: 'POST', body: JSON.stringify({
+      name: 'Bad host', host: 'https://bad.example/path', doc: demo()
+    })
+  }, cookie);
+  a.equal(res.status, 400);
+  a.deepEqual(await store.listMeta(), before, 'invalid input did not create an unreachable site');
 });
 
 test('moving a path is an admin’s call, and refuses one already taken', async () => {

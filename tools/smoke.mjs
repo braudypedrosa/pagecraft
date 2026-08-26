@@ -29,6 +29,7 @@ const host = new URL(base).hostname;
 const secure = base.startsWith('https:');
 
 let failures = 0;
+let skipped = 0;
 const pad = (s, n) => String(s).padEnd(n);
 
 /** One check. `fix` is printed only when it fails, because advice nobody needs is noise. */
@@ -46,6 +47,11 @@ async function check(what, fn, fix) {
   if (!ok && fix) console.log(`       ${fix}`);
 }
 
+function skip(what, note) {
+  skipped++;
+  console.log(`  \x1b[33mSKIP\x1b[0m ${pad(what, 44)} ${note}`);
+}
+
 /* `redirect: manual` throughout: a 302 is an answer, and following it hides which one. */
 const get = (path, headers = {}) =>
   fetch(base + path, { redirect: 'manual', headers });
@@ -55,7 +61,7 @@ console.log(`\n${base}\n`);
 await check('the host answers at all', async () => {
   const r = await get('/');
   return { ok: r.status < 500, note: `${r.status}` };
-}, 'Nothing is listening, or the proxy cannot reach it. `fly logs`, or `docker compose logs server`.');
+}, 'Nothing is listening, or the proxy cannot reach it. Check the cPanel Node application log and Passenger status.');
 
 await check('EDITOR_HOST matches this hostname', async () => {
   const r = await get('/');
@@ -101,30 +107,27 @@ await check('the certificate gate refuses an outside caller', async () => {
 }, 'A 200 is serious: anybody could make this server request certificates. Check the proxy.');
 
 if (secure) {
-  await check('the session cookie is Secure', async () => {
-    /* Asked without an address, so nothing is sent and no user is revealed: the endpoint answers
-       200 either way by design. What is being read is the shape of the response, not a session. */
-    const r = await fetch(base + '/auth/login', {
-      method: 'POST', redirect: 'manual',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: `smoke-${Date.now()}@invalid.test` })
-    });
-    const set = r.headers.get('set-cookie') || '';
-    /* No cookie is the right answer here — a link was not sent to an address nobody knows. This
-       checks that when one *is* set it is Secure, by checking NODE_ENV's visible effect. */
-    return { ok: r.status === 200 && (!set || /Secure/i.test(set)), note: set ? 'cookie present' : 'no cookie, as expected' };
-  }, 'A session cookie without Secure travels in clear. Set NODE_ENV=production.');
+  /* A session cookie is issued only after consuming a real magic link. A read-only production
+     probe cannot honestly observe it. The in-process auth regression performs that callback and
+     asserts Secure; say this is unverified here instead of treating a missing cookie as a pass. */
+  skip('the session cookie is Secure', 'requires an authenticated callback; covered by server/tests/auth.test.ts');
+
+  await check('HTTPS advertises HSTS', async () => {
+    const r = await get('/');
+    const value = r.headers.get('strict-transport-security') || '';
+    return { ok: /max-age=\d+/i.test(value), note: value || 'header missing' };
+  }, 'Enable Strict-Transport-Security after confirming the production hostname is HTTPS-only.');
 
   await check('http is redirected to https', async () => {
     const r = await fetch(base.replace('https:', 'http:') + '/', { redirect: 'manual' });
     return { ok: r.status >= 300 && r.status < 400, note: `${r.status} → ${r.headers.get('location') || '?'}` };
-  }, 'Set force_https in fly.toml, or let Caddy handle it.');
+  }, 'Enable the HTTPS redirect for this cPanel subdomain (and check the Cloudflare SSL rule).');
 }
 
 console.log();
 if (failures) {
   console.log(`\x1b[31m${failures} check${failures === 1 ? '' : 's'} failed.\x1b[0m Each line above says what to change.\n`);
 } else {
-  console.log('\x1b[32mAll checks passed.\x1b[0m Sign in with the OWNER_EMAIL address to make a site.\n');
+  console.log(`\x1b[32mAll observable checks passed.\x1b[0m${skipped ? ` ${skipped} authenticated check remains explicit above.` : ''} Sign in with the OWNER_EMAIL address to make a site.\n`);
 }
 process.exit(failures);

@@ -10,6 +10,7 @@ import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { bound, writer } from './ctl';
 import type { Control, Node as PcNode } from '../../core/types';
+import { useId } from 'preact/hooks';
 
 const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile' };
 
@@ -119,6 +120,7 @@ function PropBadge({ n, c }: { n: PcNode; c: Control }) {
 }
 
 export function Field({ n, c, children }: { n: PcNode; c: Control; children?: any }) {
+  const labelId = useId();
   const { scope, fid } = bound(n, c);
   const bindable = c.k && C.bindableKeys(n.type).includes(c.k);
   /* Anything a control writes can vary between instances — a colour, a variant, a link — so
@@ -135,8 +137,8 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
     : '';
 
   return (
-    <div class={'f' + (fid ? ' bound' : '')}>
-      <label>
+    <div class={'f' + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
+      <label id={labelId}>
         {c.label || ''}
         {c.r ? <ResponsiveBadge n={n} c={c} /> : null}
         {bindable ? <BindBadge n={n} c={c} /> : null}

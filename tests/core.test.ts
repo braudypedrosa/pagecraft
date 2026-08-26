@@ -248,6 +248,59 @@ test('migrate stamps old projects and refuses newer ones', () => {
   a.equal(C.migrate({ nope: 1 }), null);
 });
 
+test('v11 columns adopt row alignment without losing intentional overrides', () => {
+  blank();
+  const inherited = C.N('column');
+  const explicit = C.N('column');
+  delete inherited.css.d['--pc-column-v-align'];
+  inherited.css.d['justify-content'] = 'flex-start';
+  delete explicit.css.d['--pc-column-v-align'];
+  explicit.css.d['justify-content'] = 'center';
+  explicit.css.t['justify-content'] = 'flex-start';
+  const doc: any = {
+    v: 11, meta: structuredClone(C.state.meta), header: [], footer: [],
+    pages: [{ ...C.state.pages[0], tree: [C.N('section', {}, {}, [C.N('row', {}, {}, [inherited, explicit])])] }]
+  };
+  const out = C.migrate(doc);
+  const [aCol, bCol] = out.pages[0].tree[0].children[0].children;
+  a.equal(aCol.css.d['--pc-column-v-align'], 'follow');
+  a.equal(aCol.css.d['justify-content'], undefined);
+  a.equal(bCol.css.d['--pc-column-v-align'], 'center');
+  a.equal(bCol.css.t['--pc-column-v-align'], 'flex-start');
+  a.equal(bCol.css.d['justify-content'], undefined);
+  a.equal(out.v, C.SCHEMA);
+});
+
+test('v11 migration reaches component definitions and preserves class-provided column alignment', () => {
+  blank();
+  const col = C.N('column');
+  delete col.css.d['--pc-column-v-align'];
+  col.cls = ['legacy-column'];
+  const row = C.N('row', {}, {}, [col]);
+  const meta: any = structuredClone(C.state.meta);
+  meta.tokens.classes = [{
+    id: 'legacy-column', name: 'Legacy column',
+    css: {
+      d: { 'justify-content': 'center' },
+      t: { 'justify-content': 'flex-end' },
+      m: { 'justify-content': 'flex-start' }
+    }
+  }];
+  meta.components = [{ id: 'legacy-card', name: 'Legacy card', node: row, props: [] }];
+  const doc: any = {
+    v: 11, meta, header: [], footer: [],
+    pages: [{ ...C.state.pages[0], tree: [] }]
+  };
+
+  const out = C.migrate(doc);
+  const migrated = out.meta.components[0].node.children[0];
+  a.equal(migrated.css.d['--pc-column-v-align'], 'center');
+  a.equal(migrated.css.t['--pc-column-v-align'], 'flex-end');
+  a.equal(migrated.css.m['--pc-column-v-align'], 'flex-start');
+  a.deepEqual(out.meta.tokens.classes[0].css, meta.tokens.classes[0].css,
+    'the shared class stays intact because another element type may use its declaration');
+});
+
 /* ------------------------------------------------ responsive stylesheet */
 test('breakpoint overrides land in the matching media query only', () => {
   blank();
@@ -266,6 +319,52 @@ test('breakpoint overrides land in the matching media query only', () => {
      counted as one. Counting bare `@media` conflated the two. */
   a.equal((css.match(/@media \(max-width/g) || []).length, 2, 'exactly one media block per breakpoint');
   a.equal(css.indexOf(C.MQ.t) < css.indexOf(C.MQ.m), true, 'tablet before mobile');
+});
+
+test('columns follow their row vertically until a breakpoint overrides them', () => {
+  blank();
+  const sec = insert('section', null, 0);
+  const row = insert('row', sec, 0);
+  const col = insert('column', row, 0);
+  row.css.d['align-items'] = 'center';
+  row.css.t['align-items'] = 'flex-end';
+
+  let out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  const sel = new RegExp('\\.' + C.nodeClass(col) + '\\{[^}]*justify-content:center');
+  const end = new RegExp('\\.' + C.nodeClass(col) + '\\{[^}]*justify-content:flex-end');
+  a.match(out.base, sel, 'desktop follows the centred row');
+  a.match(out.tablet, end, 'tablet follows the row breakpoint override');
+  a.match(out.mobile, end, 'mobile inherits the tablet row setting');
+
+  col.css.t['--pc-column-v-align'] = 'flex-start';
+  out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  a.match(out.tablet, new RegExp('\\.' + C.nodeClass(col) + '\\{[^}]*justify-content:flex-start'),
+    'an explicit column override wins at that breakpoint');
+  a.match(out.mobile, new RegExp('\\.' + C.nodeClass(col) + '\\{[^}]*justify-content:flex-start'),
+    'and naturally cascades until changed again');
+});
+
+test('a root-column component follows its instance row across breakpoints', () => {
+  blank();
+  C.state.meta.components = [];
+  const sec = insert('section', null, 0);
+  const row = insert('row', sec, 0);
+  const col = insert('column', row, 0);
+  insert('heading', col, 0);
+  row.css.d['align-items'] = 'center';
+  row.css.t['align-items'] = 'flex-end';
+  const cid = must(C.componentFromNode(col.id, 'Following column'), 'componentFromNode');
+  const def = must(C.findComponent(cid), 'component');
+  a.equal(def.node.type, 'column');
+  a.equal(def.node.css.d['--pc-column-v-align'], 'follow');
+  a.equal(col.css.d['--pc-column-v-align'], undefined, 'the instance itself stays unstyled');
+
+  const out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  const own = '\\.' + C.nodeClass(col) + '\\{[^}]*justify-content:';
+  a.match(out.base, new RegExp(own + 'center'), 'desktop resolves against the instance row');
+  a.match(out.tablet, new RegExp(own + 'flex-end'), 'tablet resolves the row override');
+  a.match(out.mobile, new RegExp(own + 'flex-end'), 'mobile inherits the row tablet override');
+  C.state.meta.components = [];
 });
 
 test('hidden elements are removed on export but only ghosted while editing', () => {
@@ -1294,6 +1393,34 @@ test('a paginated page exports one file per page, each knowing which it is', () 
   a.equal(/page/.test(String(t[0].pg.title || '')), false, 'but page one is left alone');
 });
 
+test('ordinary pages in folders climb to root links and assets', () => {
+  C.seed();
+  C.blankProject('Nested route');
+  const pg = C.state.pages[0];
+  pg.slug = 'nested/about';
+  pg.ogImage = 'asset:assetone';
+  C.state.meta.baseUrl = 'https://nested.example/site';
+  const headerLink = C.N('heading', { text: 'Home', level: 'div', link: 'index.html' });
+  C.state.header = [C.N('section', { tag: 'header' }, {}, [
+    C.N('row', {}, {}, [C.N('column', {}, {}, [headerLink])])
+  ])];
+  const image = C.N('image', {
+    src: 'asset:assetone', alt: 'Nested asset', w: '1', h: '1', lazy: 0
+  });
+  pg.tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [image])])])];
+
+  const target = C.exportTargets().find(item => item.path === 'nested/about.html');
+  a.ok(target);
+  a.equal(target.rel, '../');
+  const html = C.assetPaths(C.buildPage(target.pg, target), id =>
+    id === 'assetone' ? { id, name: 'Hero.png' } : null, target.rel);
+  a.match(html, /<header[\s\S]*href="\.\.\/index\.html"/);
+  a.match(html, /src="\.\.\/assets\/hero-assetone\.png"/);
+  a.match(html, /property="og:image" content="https:\/\/nested\.example\/site\/assets\/hero-assetone\.png"/);
+  a.doesNotMatch(html, /nested\.example\/site\/\.\.\/assets/,
+    'absolute SEO asset URLs stay inside the configured site base');
+});
+
 test('each exported page carries its own slice, and the pager points at its neighbours', () => {
   const { pg } = paged('4', 10);
   const html = (n: number) => C.buildPage(pg, { pageNo: n, pages: 3, rel: C.pagedRel(n) });
@@ -1361,7 +1488,17 @@ test('the sitemap and the canonical name the file, not the slug', () => {
   a.match(map, /https:\/\/example\.com\/journal\/page-2\.html/);
   a.equal((map.match(/journal\.html/g) || []).length, 1, 'page one listed once, not three times');
   /* and each file points at itself */
-  a.match(C.buildPage(pg, { pageNo: 2 }), /rel="canonical" href="https:\/\/example\.com\/journal\/page-2\.html"/);
+  const html = C.buildPage(pg, { pageNo: 2 });
+  const canonical = html.match(/rel="canonical" href="([^"]+)"/)![1];
+  const openGraph = html.match(/property="og:url" content="([^"]+)"/)![1];
+  const structured = JSON.parse(html.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/)![1]);
+  const webPage = structured['@graph'].find((node: any) => node['@type'] === 'WebPage');
+  a.equal(canonical, 'https://example.com/journal/page-2.html');
+  a.equal(openGraph, canonical, 'Open Graph names the same paginated document');
+  a.equal(webPage.url, canonical, 'WebPage structured data names the same paginated document');
+  a.equal(webPage['@id'], canonical);
+  a.equal((must(C.jsonLdGraph(pg, { pageNo: 2 }), 'page-two graph')['@graph'][2] as any).url,
+    canonical, 'the graph API also carries the pagination context');
 });
 
 test('preview can follow a pager link', () => {
@@ -2325,8 +2462,8 @@ const find = (f: Finding[], code: string) => f.filter(x => x.code === code);
 test('the demo project reviews clean apart from its placeholder image', () => {
   const f = C.lint();
   a.equal(C.lintCounts(f).error, 0, 'no errors: ' + JSON.stringify(codes(f)));
-  a.deepEqual([...new Set(codes(f))].sort(), ['no-dimensions', 'no-image'],
-    'the only findings are the image the user is meant to replace');
+  a.deepEqual([...new Set(codes(f))].sort(), ['no-image'],
+    'the seeded demo already wires its navigation and calls to action');
 });
 
 test('a dead internal link is an error, a live one is silent', () => {
@@ -2336,6 +2473,29 @@ test('a dead internal link is an error, a live one is silent', () => {
   a.equal(find(C.lint(), 'dead-link').length, 1);
   b.props.link = 'pricing.html';
   a.equal(find(C.lint(), 'dead-link').length, 0);
+});
+
+test('a labelled button with no destination is reported as inert', () => {
+  blank();
+  const b = insert('button', null, 0);
+  a.equal(find(C.lint(), 'button-no-link').length, 1);
+  a.match(find(C.lint(), 'button-no-link')[0].msg, /inert/);
+  b.props.link = 'pricing.html';
+  a.equal(find(C.lint(), 'button-no-link').length, 0);
+});
+
+test('a menu label cannot pretend that the top of the current page is another destination', () => {
+  blank();
+  const nav = insert('nav', null, 0);
+  nav.props.items = [
+    { label: 'Home', href: 'index.html' },
+    { label: 'Work', href: 'index.html' }
+  ];
+  const warned = find(C.lint(), 'nav-page-top');
+  a.equal(warned.length, 1, 'Home is truthful; Work is not');
+  a.match(warned[0].msg, /Work/);
+  nav.props.items[1].href = 'pricing.html';
+  a.equal(find(C.lint(), 'nav-page-top').length, 0, 'a real page destination clears it');
 });
 
 test('a fragment link is checked against the page that owns it', () => {
@@ -2379,6 +2539,24 @@ test('images without intrinsic size are flagged for layout shift', () => {
   img.props.w = '800'; img.props.h = '600';
   a.equal(find(C.lint(), 'no-dimensions').length, 0);
   a.match(C.renderNode(img, { edit: false }), /width="800" height="600"/);
+});
+
+test('the image placeholder reserves its intrinsic size without a false layout-shift warning', () => {
+  blank();
+  const img = insert('image', null, 0);
+  const html = C.renderNode(img, { edit: false });
+  a.match(html, /width="800" height="500"/);
+  a.equal(find(C.lint(), 'no-dimensions').length, 0);
+  a.equal(find(C.lint(), 'no-image').length, 1);
+});
+
+test('an opening-section image is expected to load eagerly', () => {
+  blank();
+  const img = insert('image', null, 0);
+  img.props.src = 'hero.jpg'; img.props.alt = 'Product in use'; img.props.w = '1200'; img.props.h = '800';
+  a.equal(find(C.lint(), 'hero-image-lazy').length, 1);
+  img.props.lazy = 0;
+  a.equal(find(C.lint(), 'hero-image-lazy').length, 0);
 });
 
 test('heading order and h1 count are checked per page', () => {
@@ -2441,7 +2619,13 @@ test('an embedded player is deferred behind a facade by default', () => {
   a.equal(/<iframe/.test(html), false, 'no player iframe on load');
   a.match(html, /data-facade/);
   a.match(html, /data-embed="https:\/\/www\.youtube\.com\/embed\//);
-  a.match(html, /i\.ytimg\.com\/vi\/[\w-]+\/hqdefault\.jpg/, 'the poster comes from the video id');
+  a.doesNotMatch(html, /i\.ytimg\.com/, 'an immutable export never fetches a provider-owned poster');
+  a.equal(/pagecraft-video-play[^>]*>[\s\S]*?<img/.test(html), false,
+    'a facade without an authored poster uses its deterministic play treatment');
+  v.props.poster = 'poster.jpg';
+  a.match(C.buildPage(C.state.pages[0]), /<img src="poster\.jpg"/,
+    'an authored poster remains available for release freezing');
+  v.props.poster = '';
   a.equal((html.match(/<script/g) || []).length, 1, 'one small script, only because a facade is present');
   /* turning it off restores the eager embed and drops the script */
   v.props.facade = 0;
@@ -2910,12 +3094,18 @@ test('a form with nowhere to submit is an error, not a shrug', () => {
   blank();
   const fm = insert('form', null, 0);
   a.equal(find(C.lint(), 'form-no-action').length, 1);
-  a.match(C.renderNode(fm, { edit: false }), /^<form [^>]*>(?!.*action=)/s, 'and no action attribute is emitted');
+  const inert = C.renderNode(fm, { edit: false });
+  a.match(inert, /^<div [^>]*role="group"[^>]*data-disabled>/s);
+  a.equal(/^<form\b/.test(inert), false, 'it cannot fall back to a GET of the current URL');
+  a.match(inert, /<input[^>]* disabled>/);
+  a.match(inert, /<button type="button" class="pagecraft-form-button" disabled>/);
+  a.match(inert, /not configured to receive submissions/);
   fm.props.action = 'https://formspree.io/f/abc';
   a.equal(find(C.lint(), 'form-no-action').length, 0);
+  a.equal(find(C.lint(), 'unsafe-form-action').length, 0);
   fm.props.action = 'mailto:hi@example.com';
-  a.equal(find(C.lint(), 'form-no-action').length, 0, 'a mailto counts');
-  a.match(C.renderNode(fm, { edit: false }), /action="mailto:hi@example\.com"/);
+  a.equal(find(C.lint(), 'unsafe-form-action').length, 1, 'email links are not submission endpoints');
+  a.equal(/^<form\b/.test(C.renderNode(fm, { edit: false })), false);
 });
 
 test('an unlabelled field and a duplicate name are both reported', () => {
@@ -2938,13 +3128,61 @@ test('a field with no name falls back to its label', () => {
   a.equal(find(C.lint(), 'field-dup-name').length, 0);
 });
 
-test('a javascript: action is refused like any other link', () => {
+test('unsafe or non-submission form actions are refused', () => {
   blank();
   const fm = insert('form', null, 0);
-  fm.props.action = 'javascript:alert(1)';
+  for (const action of [
+    '', 'javascript:alert(1)', 'http://forms.example.test/send', '//forms.example.test/send',
+    'forms.example.test/send', '/api/forms', '../submit', '#', 'mailto:hi@example.test',
+    'tel:+15551212', 'data:image/png;base64,AA', 'https://user:secret@forms.example.test/send'
+  ]) {
+    fm.props.action = action;
+    const html = C.renderNode(fm, { edit: false });
+    if (action) a.equal(html.includes(action), false, action + ' is not emitted');
+    a.equal(/^<form\b/.test(html), false, action + ' degrades to an inert group, not a form');
+    a.equal(find(C.lint(), action ? 'unsafe-form-action' : 'form-no-action').length, 1);
+    a.match(html, /data-disabled/);
+  }
+});
+
+test('a complete HTTPS form endpoint is preserved exactly when published', () => {
+  blank();
+  const fm = insert('form', null, 0);
+  fm.props.action = 'https://forms.example.test/v1/submit?project=pagecraft&mode=live';
   const html = C.renderNode(fm, { edit: false });
-  a.equal(/javascript:/i.test(html), false);
-  a.equal(/action=/.test(html), false, 'it degrades to a form that submits nowhere');
+  a.match(html, /^<form\b/);
+  a.match(html, /action="https:\/\/forms\.example\.test\/v1\/submit\?project=pagecraft&amp;mode=live"/);
+  a.equal(find(C.lint(), 'form-no-action').length, 0);
+  a.equal(find(C.lint(), 'unsafe-form-action').length, 0);
+});
+
+test('a WordPress-managed form emits only its typed connector placeholder', () => {
+  blank();
+  const fm = insert('form', null, 0);
+  fm.props.mode = 'wordpress';
+  fm.props.action = 'javascript:must-not-ship()';
+  fm.props.method = 'get';
+  const html = C.renderNode(fm, { edit: false });
+  a.match(html, /^<form\b/);
+  a.match(html, new RegExp(`action="%%PAGECRAFT_FORM_ENDPOINT:${fm.id}%%"`));
+  a.match(html, /method="post" data-pagecraft-form-mode="wordpress"/);
+  a.match(html, new RegExp(`data-pagecraft-form-id="${fm.id}"`));
+  a.equal(html.includes('javascript:'), false);
+  a.equal(find(C.lint(), 'form-no-action').length, 0);
+  a.equal(find(C.lint(), 'unsafe-form-action').length, 0);
+});
+
+test('v12 forms migrate to the explicit external submission mode', () => {
+  blank();
+  const form = C.N('form');
+  delete form.props.mode;
+  const before = {
+    v: 12, schemaVersion: 12, meta: structuredClone(C.state.meta), header: [], footer: [],
+    pages: [{ ...structuredClone(C.state.pages[0]), tree: [form] }]
+  };
+  const after = C.migrate(before);
+  a.equal(after.schemaVersion, C.SCHEMA);
+  a.equal(after.pages[0].tree[0].props.mode, 'external');
 });
 
 test('the form takes its colours from tokens so a rebrand reaches it', () => {
@@ -3063,6 +3301,15 @@ test('the contact template ships a form that the review then asks you to wire up
   a.equal(find(C.lint(), 'form-no-action').length, 1, 'and it tells you the endpoint is missing');
 });
 
+test('the split hero leaves its opening image eager', () => {
+  fresh();
+  const pattern = must(C.PATTERNS.find(p => p.id === 'hero-split'), 'split hero');
+  const built = pattern.build();
+  const images: PcNode[] = [];
+  C.eachNode([built], n => { if (n.type === 'image') images.push(n); });
+  a.equal(must(images[0], 'hero image').props.lazy, 0);
+});
+
 test('migration v5 to v6 adds the block list', () => {
   const d = C.migrate({ v: 5, meta: { tokens: { colors: [], text: [], classes: [] } }, pages: [{ tree: [] }] });
   a.equal(d.v, C.SCHEMA);
@@ -3080,6 +3327,48 @@ test('every exported element carries a pagecraft class and an id', () => {
   /* every element that owns a class also owns an id, so it can be linked to */
   tags.filter(t => /class="pagecraft-[\w-]+ pagecraft-/.test(t))
     .forEach(t => a.match(t, /\bid="[\w-]+"/, 'no id on ' + t.slice(0, 70)));
+});
+
+test('every exported page has a main landmark and a keyboard skip link', () => {
+  fresh();
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /<a class="pagecraft-skip" href="#pagecraft-main">Skip to content<\/a>/);
+  a.equal((html.match(/<main\b/g) || []).length, 1);
+  const mainAt = html.indexOf('<main id="pagecraft-main"');
+  a.ok(mainAt > html.indexOf('<header'), 'global header stays before the main landmark');
+  a.ok(mainAt < html.lastIndexOf('<footer'), 'global footer stays after the main landmark');
+  a.match(C.baseCss(false), /\.pagecraft-skip:focus\{transform:translateY\(0\)\}/);
+});
+
+test('the page-level main owns the whole page even when authored content asks for main', () => {
+  blank();
+  const section = insert('section', null, 0);
+  section.props.tag = 'main';
+  section.adv.htmlId = 'pagecraft-main';
+  section.children.push(C.N('embed', {
+    html: `<main id="embed-main"><p>Embedded content</p></main><script>const sample = '<main id="script-text">';</script>`
+  }));
+  C.state.pages[0].tree.push(C.N('section', {}, {}, [C.N('heading', { text: 'Sibling content', level: 'h2', ts: 'h2' })]));
+  C.state.header = [C.N('section', { tag: 'main' }, {}, [C.N('heading', { text: 'Global header content', level: 'h2', ts: 'h2' })])];
+  C.state.footer = [C.N('section', { tag: 'main' }, {}, [C.N('heading', { text: 'Global footer content', level: 'h2', ts: 'h2' })])];
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /<a class="pagecraft-skip" href="#pagecraft-main-content">/,
+    'the node tree, not rendered script text, reserves the wrapper id');
+  const withoutScripts = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '');
+  a.equal((withoutScripts.match(/<main\b/g) || []).length, 1);
+  a.equal((withoutScripts.match(/<\/main>/g) || []).length, 1);
+  a.match(html, /<div id="pagecraft-main"[^>]*class="pagecraft-section/,
+    'an authored section main becomes ordinary content inside the landmark');
+  a.match(html, /<div id="embed-main"><p>Embedded content<\/p><\/div>/,
+    'an actual main pasted into an embed is demoted');
+  a.ok(html.includes(`<script>const sample = '<main id="script-text">';</script>`),
+    'a main-looking JavaScript string stays byte-for-byte authored');
+  const mainAt = html.indexOf('<main id="pagecraft-main-content"');
+  const mainEnd = html.indexOf('</main>', mainAt);
+  a.ok(html.indexOf('Global header content') < mainAt, 'the global header remains outside');
+  a.ok(html.indexOf('Embedded content') > mainAt && html.indexOf('Sibling content') < mainEnd,
+    'all sibling page content is inside the one main');
+  a.ok(html.indexOf('Global footer content') > mainEnd, 'the global footer remains outside');
 });
 
 test('the class names come from the widget names', () => {
@@ -3307,7 +3596,10 @@ test('no page template skips a heading level', () => {
 /* Findings that belong to the author, not to the template: a slot to fill, a
    title to write, an endpoint to paste. `gallery-no-image` is one of these for
    the same reason `no-image` is — a template ships somewhere to put an image. */
-const THEIRS = ['no-title', 'no-desc', 'no-image', 'no-dimensions', 'form-no-action', 'no-h1', 'gallery-no-image'];
+const THEIRS = [
+  'no-title', 'no-desc', 'no-image', 'no-dimensions', 'hero-image-lazy',
+  'form-no-action', 'button-no-link', 'nav-page-top', 'no-h1', 'gallery-no-image'
+];
 
 test('no page template lands with a problem of its own making', () => {
   for (const t of C.TEMPLATES) {
@@ -3622,6 +3914,7 @@ test('migration v10 to v11: a global block becomes a component', () => {
   const sec = C.state.pages[0].tree[0];
 
   const node = structuredClone(sec) as any;
+  node.adv.block = 'promo';
   const copy = structuredClone(sec) as any;
   copy.id = 'ncopy';
   copy.adv.block = 'promo';
@@ -3635,6 +3928,7 @@ test('migration v10 to v11: a global block becomes a component', () => {
     pages: [{ ...C.state.pages[0], tree: [copy, diverged] }],
     meta: {
       ...structuredClone(C.state.meta),
+      components: [],
       blocks: [
         { id: 'promo', name: 'Promo', node, sync: 1 },
         { id: 'snippet', name: 'Snippet', node: structuredClone(sec), sync: 0 }
@@ -3645,6 +3939,14 @@ test('migration v10 to v11: a global block becomes a component', () => {
 
   a.deepEqual(out.meta.components.map((c: { id: string; name: string }) => [c.id, c.name]),
     [['promo', 'Promo']], 'the global block is a component');
+  a.equal(out.meta.components[0].node.use, undefined,
+    'the new definition is not mistaken for one of its own legacy placements');
+  a.ok(out.meta.components[0].node.children.length, 'the definition keeps its tree');
+  a.equal(out.meta.components[0].node.adv.block, undefined, 'the retired block tag is removed');
+  let definitionColumn: PcNode | null = null;
+  C.eachNode([out.meta.components[0].node], n => { if (!definitionColumn && n.type === 'column') definitionColumn = n; });
+  a.equal((definitionColumn as PcNode | null)?.css.d['--pc-column-v-align'], 'follow',
+    'the component created by v10→v11 continues through the v11→v12 node migration');
   a.deepEqual(out.meta.blocks.map((b: { id: string }) => b.id), ['snippet'],
     'and is no longer also a block — one tree under two names is what this removes');
   a.equal('sync' in out.meta.blocks[0], false, 'nothing is global any more');
@@ -4143,6 +4445,35 @@ test('the header on a nested page links back out', () => {
   a.match(nested, /href="https:\/\/x\.com"/, 'but an external link is left alone');
 });
 
+test('a nav item exports its custom classes and new-tab behavior', () => {
+  const n = C.N('nav', { items: [{
+    label: 'Journal', href: 'https://example.com/journal', cls: 'featured-link nav-accent', target: '_blank'
+  }] });
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, /<li class="featured-link nav-accent">/);
+  a.match(html, /href="https:\/\/example\.com\/journal" target="_blank" rel="noopener"/);
+});
+
+test('icon padding adds to the chosen glyph size instead of consuming it', () => {
+  a.match(C.baseCss(false), /\.pagecraft-icon-glyph\{[^}]*box-sizing:content-box/);
+});
+
+test('a button directly in a column can push itself to the bottom responsively', () => {
+  const col = C.N('column', {}, {}, []);
+  const button = C.N('button');
+  col.children.push(button);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [col])])];
+  const ctl = C.DEF.button.controls.content.find(c => c.c === 'margin-top')!;
+  a.equal(ctl.when!(button), true);
+  C.state.ui.dev = 'mobile';
+  C.applyC(button, ctl, 'auto');
+  a.equal(button.css.m['margin-top'], 'auto');
+
+  const loose = C.N('button');
+  C.state.pages[0].tree.push(loose);
+  a.equal(ctl.when!(loose), false, 'the option is contextual rather than promising an effect outside a column');
+});
+
 test('the sitemap lists every generated file', () => {
   detail();
   C.state.meta.baseUrl = 'https://example.com';
@@ -4287,6 +4618,60 @@ const commonCtl = (c: string) => {
 };
 const offered = (n: any, c: string) => { const it = commonCtl(c); return !it.when || it.when(n); };
 const one = (type: string) => { blank(); return insert(type, null, 0); };
+
+test('every responsive inspector declaration round-trips and compiles at all three breakpoints', () => {
+  const declarations: Array<{ owner: string; c: Control }> = [];
+  for (const [type, def] of Object.entries(C.DEF)) {
+    for (const c of [...def.controls.content, ...def.controls.style]) {
+      if (c.r) declarations.push({ owner: type, c });
+    }
+  }
+  for (const group of C.COMMON_STYLE) {
+    for (const c of group.items) if (c.r) declarations.push({ owner: 'section', c });
+  }
+  const devices = [['desktop', 'd'], ['tablet', 't'], ['mobile', 'm']] as const;
+  for (const { owner, c } of declarations) {
+    const node = C.N(owner);
+    for (let i = 0; i < devices.length; i++) {
+      const [device, bucket] = devices[i];
+      C.state.ui.dev = device;
+      if (c.t === 'box') {
+        for (const [sideIndex, side] of ['top', 'right', 'bottom', 'left'].entries()) {
+          C.setCss(node, `${c.c}-${side}`, `${11 + i + sideIndex}px`, true);
+        }
+      } else {
+        const opts = typeof c.opts === 'function' ? c.opts(node) : (c.opts || []);
+        const concreteOpts = opts.filter(([value]) => String(value) !== '');
+        const value = (c.t === 'select' || c.t === 'pick') && concreteOpts.length
+          ? String(concreteOpts[i % concreteOpts.length][0])
+          : c.t === 'slider' && c.raw ? String(20 + i)
+            : c.t === 'slider' ? String(20 + i) + 'px'
+              : c.t === 'unit' ? String(11 + i) + (c.units?.[0] || '')
+                : `responsive-${i}`;
+        C.applyC(node, c, value);
+      }
+      const keys = c.t === 'box'
+        ? ['top', 'right', 'bottom', 'left'].map(side => `${c.c}-${side}`)
+        : [c.c!];
+      for (const key of keys) {
+        a.ok(key in node.css[bucket],
+          `${owner} ${c.label || c.c || c.k} did not persist ${device}`);
+      }
+    }
+    const saved = JSON.stringify(node);
+    const restored = JSON.parse(saved) as PcNode;
+    a.deepEqual(restored.css, node.css,
+      `${owner} ${c.label || c.c || c.k} lost a responsive value on save/load`);
+    const css = { d: '', t: '', m: '' };
+    C.nodeCss(restored, false, css);
+    for (const [, bucket] of devices) {
+      a.ok(css[bucket].includes(C.nodeClass(restored)),
+        `${owner} ${c.label || c.c || c.k} did not compile ${bucket}`);
+    }
+  }
+  a.equal(declarations.length, 84,
+    'adding or removing a responsive inspector row requires updating the exhaustive acceptance count');
+});
 
 test('every widget declares what it can do, so nothing arrives with a capability by accident', () => {
   /* The point of the registry. An exclusion list grants by default: the widget added next year
@@ -6685,6 +7070,16 @@ test('a detail page is an Article with a publisher', () => {
   a.equal(node.url, `https://example.com/${col.slug}/${item.slug}.html`);
   a.equal(node['@id'], node.url + '#article', 'its own id, distinct from the page url');
   a.deepEqual(node.publisher, { '@id': 'https://example.com/#org' });
+
+  const html = C.buildPage(pg, { col, item });
+  const canonical = html.match(/rel="canonical" href="([^"]+)"/)![1];
+  const openGraph = html.match(/property="og:url" content="([^"]+)"/)![1];
+  const structured = JSON.parse(html.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/)![1]);
+  const article = structured['@graph'].find((entry: any) => entry['@type'] === 'Article');
+  a.equal(canonical, node.url);
+  a.equal(openGraph, canonical, 'Open Graph agrees with the nested detail canonical');
+  a.equal(article.url, canonical, 'Article structured data agrees with the nested detail canonical');
+  a.equal(article['@id'], canonical + '#article');
 });
 
 test('the page image is absolute, and a full URL is left alone', () => {
@@ -6758,7 +7153,7 @@ test('every exported target produces a graph naming its own URL', () => {
   const targets = C.exportTargets();
   a.ok(targets.length > 1);
   targets.forEach((t: any) => {
-    const g = must(C.jsonLdGraph(t.pg, { col: t.col, item: t.item }), 'graph for ' + t.path);
+    const g = must(C.jsonLdGraph(t.pg, { col: t.col, item: t.item, pageNo: t.pageNo }), 'graph for ' + t.path);
     const node = g['@graph'][2] as any;
     a.equal(node.url, 'https://example.com/' + t.path, t.path + ' names itself');
     a.equal(node['@type'], t.item ? 'Article' : 'WebPage');
@@ -6809,9 +7204,11 @@ test('saving a component leaves the page exactly as it was', () => {
   const shape = (x: string) => x.slice(x.indexOf('<body')).replace(/ (id|class)="[^"]*"/g, '');
   a.equal(shape(after), shape(before), 'the same tags, the same nesting, the same words');
 
-  /* And the stylesheet says the same things. Not in the same order — a definition's rules are
-     emitted before the document's, so an instance's own rules are the later ones and win. */
-  const decls = (x: string) => (x.slice(0, x.indexOf('<body')).match(/\{[^{}]*\}/g) || []).sort();
+  /* And the stylesheet says the same things. Not in the same order or necessarily in the same
+     rule: a root Column's row-relative declaration belongs to the instance selector while the
+     definition keeps its intrinsic declarations. Compare declarations rather than braces. */
+  const decls = (x: string) => (x.slice(0, x.indexOf('<body')).match(/\{[^{}]*\}/g) || [])
+    .flatMap(rule => rule.slice(1, -1).split(';').map(v => v.trim()).filter(Boolean)).sort();
   a.deepEqual(decls(after), decls(before), 'the same declarations, under different names');
 });
 
@@ -7589,6 +7986,10 @@ test('a whole site: templates, a component, two pages, and a clean export', () =
   /* the global regions, from the templates */
   C.state.ui.mode = 'header';
   a.ok(C.patternInsert('header-cta', null, 0), 'a header template lands');
+  C.eachNode(C.state.header, n => {
+    if (n.type === 'nav') n.props.items = [{ label: 'Home', href: 'index.html' }, { label: 'Two', href: 'two.html' }];
+    if (n.type === 'button') n.props.link = 'two.html';
+  });
   C.state.ui.mode = 'footer';
   a.ok(C.patternInsert('footer-slim', null, 0), 'and a footer one');
   C.state.ui.mode = 'page';
@@ -7597,6 +7998,7 @@ test('a whole site: templates, a component, two pages, and a clean export', () =
   C.state.pages[0].title = 'A site';
   C.state.pages[0].desc = 'Built the way a person builds one.';
   a.ok(C.patternInsert('hero-centre', null, 0));
+  C.eachNode(C.state.pages[0].tree, n => { if (n.type === 'button') n.props.link = 'two.html'; });
   /* An h2 above the cards. The cards are h3, and h1 straight to h3 skips a level — which the
      review caught in this fixture twice before it was written down. */
   const intro = insert('heading', null, 1);

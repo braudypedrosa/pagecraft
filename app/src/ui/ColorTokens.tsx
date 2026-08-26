@@ -48,7 +48,8 @@ function Row({ id }: { id: string }) {
     <div class="arow">
       <span class="sw">
         <i style={{ background: t.value }} />
-        <input type="color" value={hexish} onInput={e => set(row(e), (e.target as HTMLInputElement).value)} />
+        <input type="color" value={hexish} aria-label={`${t.name} colour`}
+          onInput={e => set(row(e), (e.target as HTMLInputElement).value)} onBlur={L.endTx} />
       </span>
       <span class="an">
         <input class="ctl" value={t.name} style={{ fontSize: 'var(--fs-2)', fontWeight: 600 }}
@@ -56,11 +57,12 @@ function Row({ id }: { id: string }) {
             L.tx('tokname:' + id);
             const tok = C.findColor(id);
             if (tok) { tok.name = (e.target as HTMLInputElement).value; L.save(); }
-          }} />
+          }} onBlur={L.endTx} aria-label="Colour token name" />
       </span>
       <input class="ctl hexval" value={t.value}
         style={{ width: '92px', flex: '0 0 92px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
-        onInput={e => set(row(e), (e.target as HTMLInputElement).value.trim())} />
+        onInput={e => set(row(e), (e.target as HTMLInputElement).value.trim())} onBlur={L.endTx}
+        aria-label={`${t.name} colour value`} />
       {locked
         ? <span class="rowlock" title="Built in — part of the brand, so it cannot be deleted">
           <Icon name="lock" size={13} /></span>

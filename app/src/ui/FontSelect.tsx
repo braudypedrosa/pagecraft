@@ -5,7 +5,11 @@
    one markup function and three separate places wiring up its output by id. */
 import { C } from './ctx';
 
-export function FontSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function FontSelect({ value, onChange, ariaLabel = 'Font' }: {
+  value: string;
+  onChange: (v: string) => void;
+  ariaLabel?: string;
+}) {
   const cur = String(value || '');
   const groups = C.fontGroups();
   /* a stack that came from somewhere else — an import, or hand-typed — still has to be
@@ -13,7 +17,8 @@ export function FontSelect({ value, onChange }: { value: string; onChange: (v: s
   const known = groups.some(([, list]) => list.some(([v]) => v === cur));
 
   return (
-    <select class="ctl" value={cur} onChange={e => onChange((e.target as HTMLSelectElement).value)}>
+    <select class="ctl" value={cur} aria-label={ariaLabel}
+      onChange={e => onChange((e.target as HTMLSelectElement).value)}>
       {groups.map(([g, list]) => (
         <optgroup key={g} label={g}>
           {list.map(([v, l]) => <option key={v} value={v}>{l}</option>)}

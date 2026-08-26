@@ -37,21 +37,24 @@ function PageRow({ i }: { i: number }) {
   };
 
   return (
-    <div class={'pagerow' + (i === C.state.cur ? ' on' : '')} onClick={go}>
-      <Icon name="page" size={14} />
-      <span class="pn">
-        <b>{p.name}</b>
-        <small>{C.isFront(p) ? 'the front page' : '/' + p.slug}</small>
-      </span>
+    <div class={'pagerow' + (i === C.state.cur ? ' on' : '')}>
+      <button type="button" class="pagerow-main" aria-current={i === C.state.cur ? 'page' : undefined}
+        onClick={go}>
+        <Icon name="page" size={14} />
+        <span class="pn">
+          <b>{p.name}</b>
+          <small>{C.isFront(p) ? 'the front page' : '/' + p.slug}</small>
+        </span>
+      </button>
       <span class="act">
-        <button title="Move up" disabled={i === 0} onClick={e => act(e, 'up')}>
+        <button type="button" title="Move up" disabled={i === 0} onClick={e => act(e, 'up')}>
           <Icon name="caretUp" size={12} /></button>
-        <button title="Move down" disabled={last} onClick={e => act(e, 'down')}>
+        <button type="button" title="Move down" disabled={last} onClick={e => act(e, 'down')}>
           <Icon name="caret" size={12} /></button>
-        <button title="Duplicate page" onClick={e => act(e, 'dup')}>
+        <button type="button" title="Duplicate page" onClick={e => act(e, 'dup')}>
           <Icon name="copy" size={12} /></button>
         {C.state.pages.length > 1 && (
-          <button title="Delete page" onClick={e => act(e, 'del')}>
+          <button type="button" title="Delete page" onClick={e => act(e, 'del')}>
             <Icon name="trash" size={12} /></button>
         )}
       </span>
@@ -69,8 +72,8 @@ function DetailBindings({ colId }: { colId: string }) {
 
   const pick = (key: 'bindTitle' | 'bindDesc', label: string, blank: string) => (
     <div class="f" style={{ marginBottom: 0 }}>
-      <label>{label}</label>
-      <select class="ctl" value={pg[key] || ''}
+      <label htmlFor={'page-' + key}>{label}</label>
+      <select class="ctl" id={'page-' + key} value={pg[key] || ''}
         onChange={e => bind(key, (e.target as HTMLSelectElement).value)}>
         <option value="">{blank}</option>
         {dc.fields.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -96,9 +99,17 @@ export function Pages() {
 
   /* input updates and saves; change repaints. Splitting them is what keeps the caret
      where it was — see the note at the top of this file. */
-  const field = (set: (v: string) => void, after?: () => void) => ({
-    onInput: (e: Event) => { set((e.target as HTMLInputElement).value); L.save(); },
-    onChange: () => { repaint('pages'); (after || L.renderModebar)(); }
+  const field = (key: string, set: (v: string) => void, after?: () => void) => ({
+    onInput: (e: Event) => {
+      L.tx(`page:${pg.id}:${key}`);
+      set((e.target as HTMLInputElement).value);
+      L.save();
+    },
+    onBlur: () => {
+      L.endTx();
+      repaint('pages');
+      (after || L.renderModebar)();
+    }
   });
 
   const setCollection = (v: string) => {
@@ -131,30 +142,30 @@ export function Pages() {
             content account gets the two, in the order they matter, and none of the rest. */}
         {!L.canStructure() ? (
           <>
-            <div class="f"><label>Browser title</label>
-              <input class="ctl" value={pg.title || ''} placeholder={pg.name}
-                {...field(v => { C.page().title = v; })} /></div>
-            <div class="f"><label>Meta description</label>
-              <textarea class="ctl" value={pg.desc || ''}
+            <div class="f"><label htmlFor="page-title">Browser title</label>
+              <input class="ctl" id="page-title" value={pg.title || ''} placeholder={pg.name}
+                {...field('title', v => { C.page().title = v; })} /></div>
+            <div class="f"><label htmlFor="page-desc">Meta description</label>
+              <textarea class="ctl" id="page-desc" value={pg.desc || ''}
                 style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: 'var(--fs-2)' }}
-                {...field(v => { C.page().desc = v; })} /></div>
+                {...field('desc', v => { C.page().desc = v; })} /></div>
           </>
         ) : <>
-        <div class="f"><label>Page name</label>
-          <input class="ctl" value={pg.name}
-            {...field(v => { C.page().name = v; L.renderModebar(); })} /></div>
+        <div class="f"><label htmlFor="page-name">Page name</label>
+          <input class="ctl" id="page-name" value={pg.name}
+            {...field('name', v => { C.page().name = v; L.renderModebar(); })} /></div>
 
         {/* A slug, not a filename. `.html` is what an HTML export happens to name the file
             and it lives in the note, not in the field — the page's identity is its slug, and
             Preview follows links by slug for the same reason. */}
         {/* through `pageSlugSet`, so every href pointing at the old slug follows. Writing
             `page().slug` directly is what left the review to report the breakage afterwards. */}
-        <div class="f"><label>Slug</label>
+        <div class="f"><label htmlFor="page-slug">Slug</label>
           {/* on change, not on input. Renaming rewrites every href that pointed at the old
               slug, and `field` commits on every keystroke — which would relink once per letter
               and refuse half of them as taken. The DOM holds the half-typed text; this reads it
               when the field is left, and puts the real slug back if the rename was refused. */}
-          <input class="ctl" value={pg.slug} disabled={C.isFront(pg)}
+          <input class="ctl" id="page-slug" value={pg.slug} disabled={C.isFront(pg)}
             onChange={e => {
               const el = e.target as HTMLInputElement;
               const at = C.state.cur;
@@ -170,14 +181,14 @@ export function Pages() {
             }} />
           <div class="note">{C.isFront(pg)
               ? <>Fixed at <code>index</code> — a host serves it at the root.</>
-              : <>Exports as <code>{pg.slug || '…'}.html</code>.</>}
+              : <>Published at <code>/{pg.slug || '…'}</code>.</>}
             {C.isNotFound(pg) ? ' Your not-found page: out of the sitemap, and noindex.' : ''}</div>
           {C.isFront(pg) ? null : (
             <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
               onClick={async () => {
                 const front = C.state.pages.find(C.isFront);
                 if (!await L.askConfirm('Make this the front page?',
-                  `<b>${C.esc(pg.name)}</b> becomes <code>index.html</code>, which a host serves at the root.`
+                  `<b>${C.esc(pg.name)}</b> becomes the front page at <code>/</code>.`
                   + (front ? ` <b>${C.esc(front.name)}</b> takes a slug from its own name.` : '')
                   + ' Links pointing at either page follow the change.',
                   { ok: 'Make it the front page', danger: false })) return;
@@ -188,33 +199,33 @@ export function Pages() {
               }}>Make this the front page</button>
           )}</div>
 
-        <div class="f"><label>Browser title</label>
-          <input class="ctl" value={pg.title || ''} placeholder={pg.name}
-            {...field(v => { C.page().title = v; })} /></div>
+        <div class="f"><label htmlFor="page-title">Browser title</label>
+          <input class="ctl" id="page-title" value={pg.title || ''} placeholder={pg.name}
+            {...field('title', v => { C.page().title = v; })} /></div>
 
-        <div class="f"><label>Meta description</label>
-          <textarea class="ctl" value={pg.desc || ''}
+        <div class="f"><label htmlFor="page-desc">Meta description</label>
+          <textarea class="ctl" id="page-desc" value={pg.desc || ''}
             style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: 'var(--fs-2)' }}
-            {...field(v => { C.page().desc = v; })} /></div>
+            {...field('desc', v => { C.page().desc = v; })} /></div>
 
         <div class="f"><label>Social share image</label>
           <AssetField value={pg.ogImage} note="Falls back to the project image when empty."
-            onChange={v => { C.page().ogImage = v; repaint('pages'); }} /></div>
+            onChange={v => { C.edit(() => { C.page().ogImage = v; }); repaint('pages'); }} /></div>
 
         {/* Project settings has the site-wide version. This is the per-page one, which is
             where a page-specific meta tag, a schema block or a one-page script goes — there
             was nowhere for those before, only the project-wide block. */}
-        <div class="f"><label>Extra &lt;head&gt; HTML</label>
-          <textarea class="ctl" value={pg.headHtml || ''}
+        <div class="f"><label htmlFor="page-head-html">Extra &lt;head&gt; HTML</label>
+          <textarea class="ctl" id="page-head-html" value={pg.headHtml || ''}
             style={{ minHeight: '56px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
             placeholder="&lt;meta name=&quot;robots&quot; content=&quot;noindex&quot;&gt;"
-            {...field(v => { C.page().headHtml = v; })} />
+            {...field('headHtml', v => { C.page().headHtml = v; })} />
           <div class="note">This page only, after the project's block.</div></div>
 
         <div class="f">
-          <label>Detail template <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>
+          <label htmlFor="page-collection">Detail template <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>
             — one page per item</span></label>
-          <select class="ctl" value={pg.collection || ''}
+          <select class="ctl" id="page-collection" value={pg.collection || ''}
             onChange={e => setCollection((e.target as HTMLSelectElement).value)}>
             <option value="">— An ordinary page —</option>
             {cols.map(c => (

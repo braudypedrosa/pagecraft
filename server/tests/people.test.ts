@@ -15,6 +15,7 @@ import type { Doc } from '../../app/src/core/types.ts';
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -157,6 +158,16 @@ test('a malformed address is refused before an account is made', async () => {
   const cookie = await signIn(owner.email);
   a.equal((await invite(cookie, 'not-an-address')).status, 400);
   a.equal(await auth.userByEmail('not-an-address'), null);
+  a.equal((await invite(cookie, 'broken@')).status, 400, 'the login validator and invite validator agree');
+  a.equal(await auth.userByEmail('broken@'), null);
+});
+
+test('an unknown invite role is refused instead of silently becoming content', async () => {
+  const { auth, signIn, member, invite } = await rig();
+  const owner = await member('owner@acme.test', 'owner');
+  const cookie = await signIn(owner.email);
+  a.equal((await invite(cookie, 'client@acme.test', 'administrator')).status, 400);
+  a.equal(await auth.userByEmail('client@acme.test'), null, 'validation happens before account creation');
 });
 
 /* ------------------------------------------------- the site that nobody owns */

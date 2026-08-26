@@ -123,18 +123,24 @@ export function smtpSender(cfg: MailConfig, transport?: Transporter): LinkSender
  * window, and putting it in Postgres would mean a write on every login attempt, including all
  * the ones that are the attack.
  */
-export function throttle(max = 5, windowMs = 15 * 60 * 1000) {
+export function throttle(max = 5, windowMs = 15 * 60 * 1000, maxKeys = 5000) {
   const hits = new Map<string, number[]>();
   return {
     /** true when this address may be sent another link. Records the attempt when it may. */
     take(key: string, now = Date.now()) {
+      if (!hits.has(key) && hits.size >= maxKeys) {
+        for (const [k, v] of hits) if (!v.some(t => now - t < windowMs)) hits.delete(k);
+        /* Active attacker-controlled keys do not earn unbounded memory. A new key waits until
+           an old window expires; existing legitimate keys continue to receive normal answers. */
+        if (hits.size >= maxKeys) return false;
+      }
       const recent = (hits.get(key) || []).filter(t => now - t < windowMs);
       if (recent.length >= max) { hits.set(key, recent); return false; }
       recent.push(now);
       hits.set(key, recent);
       /* Swept here rather than on a timer: the only thing that grows this map is traffic, and
          traffic is also what cleans it. A timer would be a second thing to get wrong. */
-      if (hits.size > 5000) {
+      if (hits.size > maxKeys) {
         for (const [k, v] of hits) if (!v.some(t => now - t < windowMs)) hits.delete(k);
       }
       return true;

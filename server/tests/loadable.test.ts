@@ -19,6 +19,7 @@ import { test } from 'vitest';
 import a from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { readdirSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -67,4 +68,39 @@ test('no module reaches for a TypeScript feature that has to be compiled', async
     if (/^\s*@[A-Za-z]/m.test(src)) bad.push(`${f}: decorator`);
   }
   a.deepEqual(bad, [], 'these need a compiler, and the server only has Node');
+});
+
+test('production refuses to boot without durable storage', async () => {
+  const entry = join(srcDir, 'index.ts');
+  await a.rejects(() => run(process.execPath, ['--experimental-strip-types', entry], {
+    cwd: join(here, '..', '..'),
+    env: { ...process.env, NODE_ENV: 'production', DATABASE_URL: '', DATABASE_GATEWAY_URL: '', DATABASE_GATEWAY_KEY: '' }
+  }), error => /production requires DATABASE_GATEWAY_URL or DATABASE_URL/.test(
+    String((error as { stderr?: string }).stderr || error)
+  ));
+});
+
+test('production refuses to boot without mail instead of logging authentication tokens', async () => {
+  const gateway = createServer((_req, res) => {
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ data: [] }));
+  });
+  await new Promise<void>(resolve => gateway.listen(0, '127.0.0.1', resolve));
+  const address = gateway.address();
+  a.ok(address && typeof address === 'object');
+  const entry = join(srcDir, 'index.ts');
+  try {
+    await a.rejects(() => run(process.execPath, ['--experimental-strip-types', entry], {
+      cwd: join(here, '..', '..'),
+      env: {
+        ...process.env, NODE_ENV: 'production', DATABASE_URL: '',
+        DATABASE_GATEWAY_URL: `http://127.0.0.1:${address.port}`, DATABASE_GATEWAY_KEY: 'test-only',
+        OWNER_EMAIL: '', CLIENT_EMAIL: '', SMTP_HOST: '', SMTP_USER: '', SMTP_PASS: '', MAIL_FROM: ''
+      }
+    }), error => /production requires complete SMTP_HOST/.test(
+      String((error as { stderr?: string }).stderr || error)
+    ));
+  } finally {
+    await new Promise<void>((resolve, reject) => gateway.close(error => error ? reject(error) : resolve()));
+  }
 });

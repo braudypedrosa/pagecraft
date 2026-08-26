@@ -78,11 +78,12 @@ export function mount(core: Core, legacy: Legacy) {
 
   /* The project dialog's two font defaults. Same one-writer rule; the component is the
      one the text-style editor uses too, so there is a single font picker in the app. */
-  const mountFontSelect = (hostId: string, opts: { get(): string; set(v: string): void }) => {
+  const mountFontSelect = (hostId: string, opts: { get(): string; set(v: string): void; label?: string }) => {
     const host = document.getElementById(hostId);
     if (!host) return;
     const draw = () => render(
-      <FontSelect value={opts.get()} onChange={v => { opts.set(v); draw(); }} />, host);
+      <FontSelect value={opts.get()} ariaLabel={opts.label}
+        onChange={v => { opts.set(v); draw(); }} />, host);
     draw();
   };
 

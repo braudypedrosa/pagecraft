@@ -37,6 +37,113 @@ const safeUrl = (u: unknown) => {
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;            // page.html, example.com/x
   return '';
 };
+/** Nav menu and manual Breadcrumb are the two widgets whose links live in `props.items`.
+ * Keep every link traversal on this semantic predicate so review, page renames, rendering,
+ * and Connected release migration cannot quietly disagree about one of them. */
+const hasItemHrefs = (node: Pick<PcNode, 'type'>) => node.type === 'nav' || node.type === 'crumbs';
+
+/** A WordPress-owned destination is stored in the editor as a typed, target-neutral
+ * reference. It is not a browser URL: `pageHref` converts it to the exact signed
+ * placeholder that the Connected compiler and connector understand. Keeping the
+ * WordPress-relative route in the reference lets one release promote unchanged from a
+ * subdirectory staging install to a differently hosted production install. */
+export type WordPressContentReference = { objectType: 'page' | 'post'; path: string };
+const WORDPRESS_CONTENT_REFERENCE_PREFIX = 'pagecraft:wordpress-content:';
+const WORDPRESS_CONTENT_TOKEN_PREFIX = '%%PAGECRAFT_WP_CONTENT:';
+const BASE64URL_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+function base64urlUtf8(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let result = '';
+  for (let index = 0; index < bytes.length; index += 3) {
+    const first = bytes[index];
+    const second = index + 1 < bytes.length ? bytes[index + 1] : 0;
+    const third = index + 2 < bytes.length ? bytes[index + 2] : 0;
+    const packed = (first << 16) | (second << 8) | third;
+    result += BASE64URL_ALPHABET[(packed >> 18) & 63]
+      + BASE64URL_ALPHABET[(packed >> 12) & 63]
+      + (index + 1 < bytes.length ? BASE64URL_ALPHABET[(packed >> 6) & 63] : '')
+      + (index + 2 < bytes.length ? BASE64URL_ALPHABET[packed & 63] : '');
+  }
+  return result;
+}
+
+function utf8FromBase64url(value: string): string | null {
+  if (!value || /[^A-Za-z0-9_-]/.test(value)) return null;
+  const bytes: number[] = [];
+  let bits = 0, bitCount = 0;
+  for (const character of value) {
+    const digit = BASE64URL_ALPHABET.indexOf(character);
+    if (digit < 0) return null;
+    bits = (bits << 6) | digit;
+    bitCount += 6;
+    if (bitCount >= 8) {
+      bitCount -= 8;
+      bytes.push((bits >> bitCount) & 255);
+      bits &= (1 << bitCount) - 1;
+    }
+  }
+  if (bitCount && bits !== 0) return null;
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes));
+  } catch { return null; }
+}
+
+function normalizeWordPressContentPath(value: unknown): string | null {
+  let path = String(value == null ? '' : value).trim();
+  if (!path || path.length > 2048 || /[?#\\\u0000-\u001f\u007f]/.test(path)) return null;
+  path = ('/' + path.replace(/^\/+/, '')).replace(/\/{2,}/g, '/');
+  if (path !== '/' && !/\.[^/]+\/?$/.test(path) && !path.endsWith('/')) path += '/';
+  return path;
+}
+
+function buildWordPressContentReference(objectType: unknown, path: unknown): string {
+  if (objectType !== 'page' && objectType !== 'post') return '';
+  const normalized = normalizeWordPressContentPath(path);
+  return normalized
+    ? `${WORDPRESS_CONTENT_REFERENCE_PREFIX}${objectType}:${base64urlUtf8(normalized)}`
+    : '';
+}
+
+function parseWordPressContentReference(value: unknown): WordPressContentReference | null {
+  const exact = String(value == null ? '' : value).trim();
+  const match = exact.match(/^pagecraft:wordpress-content:(page|post):([A-Za-z0-9_-]+)$/);
+  if (!match) return null;
+  const decoded = utf8FromBase64url(match[2]);
+  const path = decoded == null ? null : normalizeWordPressContentPath(decoded);
+  if (!path || path !== decoded || base64urlUtf8(path) !== match[2]) return null;
+  return { objectType: match[1] as 'page' | 'post', path };
+}
+
+function wordpressContentToken(reference: WordPressContentReference): string {
+  const stored = buildWordPressContentReference(reference.objectType, reference.path);
+  const parsed = stored ? parseWordPressContentReference(stored) : null;
+  return parsed
+    ? `${WORDPRESS_CONTENT_TOKEN_PREFIX}${parsed.objectType}:${base64urlUtf8(parsed.path)}%%`
+    : '';
+}
+
+function parseWordPressContentToken(value: unknown): WordPressContentReference | null {
+  const exact = String(value == null ? '' : value).trim();
+  const match = exact.match(/^%%PAGECRAFT_WP_CONTENT:(page|post):([A-Za-z0-9_-]+)%%$/);
+  if (!match) return null;
+  return parseWordPressContentReference(
+    `${WORDPRESS_CONTENT_REFERENCE_PREFIX}${match[1]}:${match[2]}`
+  );
+}
+/* A hosted Pagecraft site has no submission receiver of its own. A form is therefore live
+   only when its author supplies an explicit, encrypted, absolute endpoint. Relative actions
+   would POST back into the published-site router; host-looking strings and protocol-relative
+   URLs are ambiguous; http sends visitors' answers in clear text. Keep all of them inert. */
+const safeFormAction = (u: unknown) => {
+  const v = String(u == null ? '' : u).trim();
+  if (!/^https:\/\//i.test(v)) return '';
+  try {
+    const url = new URL(v);
+    if (url.protocol !== 'https:' || !url.hostname || url.username || url.password) return '';
+    return v;
+  } catch { return ''; }
+};
 const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 const slugify = (s: unknown) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'page';
 
@@ -73,6 +180,18 @@ const U = {
   track: ['em', 'px'],
   border: ['px', 'rem']
 };
+
+/* A column's vertical alignment is a relationship with its row, not only a literal
+   `justify-content`. The marker stays in the document so each breakpoint can either
+   follow the row or opt out without copying values into every child. `bucket()` resolves
+   it to ordinary CSS; exported pages never need special runtime behaviour. */
+const COLUMN_V_ALIGN = '--pc-column-v-align';
+function columnVerticalOptions(n: PcNode): string[][] {
+  return [
+    ['follow', `Follow row · ${rowVerticalLabel(n)}`],
+    ['flex-start', 'Top'], ['center', 'Center'], ['flex-end', 'Bottom']
+  ];
+}
 
 /* Values that come from a known set belong in a picker, not a text field.
    Each list ends with Custom… for anything the list does not cover. */
@@ -410,7 +529,7 @@ const DEF: Record<string, WidgetDef> = {
   column: {
     label: 'Column', icon: 'column', level: 3, alsoHolds: ['row', 'slider', 'box'],
     caps: ['spacing', 'decoration', 'effects', 'animation'],
-    make: () => ({ props: {}, css: { d: { 'flex-grow': '100', 'justify-content': 'flex-start', 'align-items': 'stretch', gap: '16px' }, t: {}, m: { 'flex-basis': '100%' } } }),
+    make: () => ({ props: {}, css: { d: { 'flex-grow': '100', [COLUMN_V_ALIGN]: 'follow', 'align-items': 'stretch', gap: '16px' }, t: {}, m: { 'flex-basis': '100%' } } }),
     controls: {
       content: [
         /* Neither of these is a slide's business. Inside a slider a column's width comes from
@@ -418,7 +537,8 @@ const DEF: Record<string, WidgetDef> = {
            classes, so a share or a basis set here is a control that does nothing. */
         { t: 'slider', c: 'flex-grow', label: 'Width (share)', r: 1, min: 5, max: 100, step: .01, raw: 1, when: notASlide },
         { t: 'unit', c: 'flex-basis', label: 'Min basis', r: 1, units: ['%', 'px', 'rem'], note: 'Set 100% to force a full-width stack.', when: notASlide },
-        { t: 'pick', c: 'justify-content', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot']] },
+        { t: 'select', c: COLUMN_V_ALIGN, label: 'Vertical align', r: 1, opts: columnVerticalOptions,
+          note: 'Follows the parent row unless this column overrides it.' },
         { t: 'pick', c: 'align-items', label: 'Horizontal align', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
         { t: 'unit', c: 'gap', label: 'Gap', r: 1, units: U.space }
       ],
@@ -652,7 +772,13 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'link', k: 'link', label: 'Link' },
         { t: 'select', k: 'variant', label: 'Variant', opts: [['solid', 'Solid'], ['outline', 'Outline'], ['ghost', 'Ghost'], ['link', 'Text link']] },
         { t: 'select', k: 'icon', label: 'Trailing icon', opts: [['none', 'None'], ['arrow', 'Arrow'], ['check', 'Check'], ['plus', 'Plus']] },
-        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] }
+        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
+        {
+          t: 'select', c: 'margin-top', label: 'Position in column', r: 1,
+          opts: [['', 'In the normal flow'], ['auto', 'Push to column bottom']],
+          note: 'Uses the column’s remaining height above this button.',
+          when: n => !!locate(n.id)?.parent && locate(n.id)!.parent!.type === 'column'
+        }
       ],
       style: [
         { t: 'color', c: 'background-color', label: 'Background' },
@@ -712,7 +838,7 @@ const DEF: Record<string, WidgetDef> = {
     caps: ['spacing', 'decoration', 'effects', 'typography', 'animation'],
     make: () => ({
       props: {
-        action: '', method: 'post', submit: 'Send', aria: 'Contact form',
+        mode: 'external', action: '', method: 'post', submit: 'Send', aria: 'Contact form',
         fields: [
           { type: 'text', label: 'Name', name: 'name', required: 1, ph: '' },
           { type: 'email', label: 'Email', name: 'email', required: 1, ph: '' },
@@ -732,8 +858,9 @@ const DEF: Record<string, WidgetDef> = {
       content: [
         { t: 'fields', k: 'fields', label: 'Fields' },
         { t: 'text', k: 'submit', label: 'Submit button label' },
-        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'https://formspree.io/f/…', note: 'A static page can’t receive a POST — paste an endpoint.' },
-        { t: 'select', k: 'method', label: 'Method', opts: [['post', 'POST'], ['get', 'GET']] },
+        { t: 'select', k: 'mode', label: 'Submission handling', opts: [['external', 'External HTTPS endpoint'], ['wordpress', 'WordPress managed']] },
+        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'https://formspree.io/f/…', note: 'Paste the complete https:// endpoint for the form service.', when: n => (n.props as PropBag).mode !== 'wordpress' },
+        { t: 'select', k: 'method', label: 'Method', opts: [['post', 'POST'], ['get', 'GET']], when: n => (n.props as PropBag).mode !== 'wordpress' },
         { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Contact form' }
       ],
       style: [
@@ -1028,7 +1155,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
       ],
       style: [
-        { t: 'unit', c: '--icon-size', label: 'Size', r: 1, units: U.size },
+        { t: 'unit', c: '--icon-size', label: 'Glyph size', r: 1, units: U.size },
         { t: 'color', c: 'color', label: 'Colour' },
         { t: 'slider', c: '--icon-stroke', label: 'Stroke weight', min: 1, max: 3, step: .05, raw: 1 },
         { t: 'color', c: 'background-color', label: 'Badge background' },
@@ -1496,7 +1623,13 @@ const state: State = {
   ui: initUi()
 };
 
-const doc = () => ({ meta: state.meta, header: state.header, footer: state.footer, pages: state.pages });
+const doc = (): Doc => ({
+  schemaVersion: SCHEMA,
+  meta: state.meta,
+  header: state.header,
+  footer: state.footer,
+  pages: state.pages
+});
 const page = () => state.pages[state.cur] || state.pages[0];
 /* Which tree is being edited. A component definition is one of them, and that single line is
    most of what makes editing a component work: `locate`, `insert`, the drag targets, the
@@ -1961,6 +2094,34 @@ const MIN_COL = 4;
    stylesheet does (mobile → tablet → desktop). `rowRatios` stays the desktop-only
    reader its existing callers expect. */
 const BP_CHAIN = { d: ['d'], t: ['t', 'd'], m: ['m', 't', 'd'] };
+/** A responsive declaration as the stylesheet sees it at one breakpoint. Node rules
+    follow class rules in the generated sheet, so the node wins at each step. */
+function cssAt(n: PcNode, b: Bp, prop: string) {
+  for (const k of (BP_CHAIN[b] || ['d']) as Bp[]) {
+    const own = ((n.css || {})[k] || {})[prop];
+    if (own !== undefined && own !== '') return own;
+    const applied = nodeClasses(n);
+    for (let i = applied.length - 1; i >= 0; i--) {
+      const v = ((applied[i].css || {})[k] || {})[prop];
+      if (v !== undefined && v !== '') return v;
+    }
+  }
+  return '';
+}
+
+/** Row alignment names the position of its column boxes. A following column uses the
+    same top/middle/bottom value for its contents. Baseline and Fill do not describe a
+    vertical content position, so their honest content default is Top. */
+function rowVerticalValue(row: PcNode | null, b: Bp) {
+  if (!row || row.type !== 'row') return 'flex-start';
+  const v = cssAt(row, b, 'align-items');
+  return v === 'center' || v === 'flex-end' ? v : 'flex-start';
+}
+function rowVerticalLabel(n: PcNode) {
+  const h = locateAny(n.id);
+  const v = rowVerticalValue(h && h.parent ? h.parent : null, dk());
+  return v === 'center' ? 'Center' : v === 'flex-end' ? 'Bottom' : 'Top';
+}
 function rowRatiosAt(row: PcNode, b: Bp) {
   return (row.children || []).map(c => {
     for (const k of (BP_CHAIN[b] || ['d'])) {
@@ -2473,18 +2634,35 @@ const colorUsage = (id: string) => {
     writes. Several consumers read this and only the path rewriter cares about the width. */
 const A_RE = /asset:([a-z0-9]+)(?:@(\d+))?/g;
 
-/** The path an asset takes in an export, and on the server. Named from the uploaded filename
-    so a person can recognise the file, with the id as the fallback. */
-const assetFile = (a: { id: string; name?: string }) =>
-  'assets/' + String(a.name || a.id).replace(/[^\w.-]+/g, '-').toLowerCase();
+/** The path an asset takes in an export, and on the server. It keeps the recognisable upload
+    name and adds the stable id before the extension, so two `photo.png` uploads cannot overwrite
+    each other or share an immutable-cache URL. */
+const assetFile = (a: { id: string; name?: string }) => {
+  const id = String(a.id || 'asset').replace(/[^a-z0-9]+/gi, '').toLowerCase() || 'asset';
+  if (!a.name) return 'assets/' + id;
+  const cleaned = String(a.name).replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'image';
+  const dot = cleaned.lastIndexOf('.');
+  const hasExtension = dot > 0 && dot < cleaned.length - 1;
+  const extension = hasExtension ? cleaned.slice(dot).slice(0, 17) : '';
+  const rawStem = hasExtension ? cleaned.slice(0, dot) : cleaned;
+  const stem = rawStem.endsWith(`-${id}`) ? rawStem : `${rawStem.slice(0, 180)}-${id}`;
+  return `assets/${stem}${extension}`;
+};
 
 /** Rewrite every token in `str` to a path, given a way to look an id up. `rel` is how deep
     the file sits — the same `rel` `pageHref` takes. A token whose asset has gone becomes the
     placeholder rather than a broken `src`. */
 function assetPaths(str: string, get: (id: string) => { id: string; name?: string } | null, rel = '') {
-  return String(str).replace(A_RE, (_m, id: string) => {
+  return String(str).replace(A_RE, (_m, id: string, _width: string | undefined,
+    offset: number, source: string) => {
     const a = get(id);
-    return a ? rel + assetFile(a) : PH;
+    if (!a) return PH;
+    /* SEO image URLs are made absolute before assets are materialized. Prefixing `../` there
+       creates `https://site/base/../assets/...`, which escapes a configured subdirectory and
+       cannot be frozen target-neutrally. A standalone asset token in HTML/CSS still needs the
+       generated file's relative climb. */
+    const absoluteUrlPrefix = /(?:https?:)?\/\/[^\s"'<>]*$/i.test(source.slice(0, offset));
+    return (absoluteUrlPrefix ? '' : rel) + assetFile(a);
   });
 }
 
@@ -2704,6 +2882,7 @@ function lint() {
 
     const seenIds = new Set(), dupIds = new Set();
     let headings: any[] = [];
+    let heroImageReviewed = false;
     /* the components being walked into, so one that contains itself is a finding-free stop
        rather than a stack overflow in the review */
     const stack: string[] = [];
@@ -2748,7 +2927,7 @@ function lint() {
         const own = n.type === 'box' ? String(n.props.link || '').trim()
           : (n.type === 'button' || n.type === 'heading' || n.type === 'image' || n.type === 'icon')
             ? String(n.props.link || '').trim() : '';
-        if (own || n.type === 'nav' || (n.type === 'text' && /<a\s/i.test(String(n.props.html || '')))) {
+        if (own || hasItemHrefs(n) || (n.type === 'text' && /<a\s/i.test(String(n.props.html || '')))) {
           add('error', 'nested-link',
             `A ${DEF[n.type].label.toLowerCase()} inside a Link block is a link inside a link — browsers drop one of them, and it is not the one you would choose.`,
             w, n.id);
@@ -2756,14 +2935,34 @@ function lint() {
       }
 
       /* links */
+      if (n.type === 'nav') {
+        const labels = new Set([slugify(pg.name), slugify(pg.title), slugify(pg.slug)]);
+        if (isFront(pg)) labels.add('home');
+        ((n.props.items as NavItem[]) || []).forEach(it => {
+          const h = String(it && it.href || '').trim();
+          const [path, frag = ''] = h.split('#');
+          const target = path === '' ? here : path;
+          /* A menu label promises a destination. “Work” pointing to the top of Home is a
+             working URL and still a broken journey, so the ordinary dead-link check cannot
+             catch it. A genuine Home item is intentionally allowed. */
+          if (h && target === here && !frag && !labels.has(slugify(it && it.label || ''))) {
+            add('warn', 'nav-page-top', `“${String(it && it.label || 'A menu item')}” in the ${region} links to the top of “${pg.name}”. Choose a section or a page that matches the label.`, w, n.id);
+          }
+        });
+      }
       const links: any[] = [];
-      if (n.type === 'nav') ((n.props.items as any[]) || []).forEach((it: any) => links.push(it.href));
+      if (hasItemHrefs(n)) ((n.props.items as any[]) || []).forEach((it: any) => links.push(it.href));
       if (n.props.link !== undefined) links.push(n.props.link);
       if (n.type === 'text') [...String(n.props.html || '').matchAll(/href="([^"]*)"/g)].forEach(m => links.push(m[1]));
       links.filter(h => h !== undefined && h !== null).forEach(href => {
         const h = String(href).trim();
         if (!h) return;
         if (h === '#') { add('warn', 'empty-anchor', `A link in the ${region} points at “#”, which goes nowhere.`, w, n.id); return; }
+        if (parseWordPressContentReference(h)) return;
+        if (h.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX)) {
+          add('error', 'wordpress-link-invalid', `A WordPress content link in the ${region} has an invalid target-neutral reference. Choose the WordPress destination again.`, w, n.id);
+          return;
+        }
         if (/^(https?:|mailto:|tel:|data:)/i.test(h)) return;
         /* `cms:item` resolves per item at export, so it cannot be checked as a path.
            What can go wrong is that nothing templates the collection — then it
@@ -2806,8 +3005,15 @@ function lint() {
            on a wall of problems the user cannot yet act on. */
         if (n.props.src && !n.props.decorative && !String(n.props.alt || '').trim())
           add('error', 'no-alt', `An image in the ${region} has no alt text. Describe it, or mark it decorative.`, w, n.id);
-        if (!(n.props.w && n.props.h))
+        if (n.props.src && !(n.props.w && n.props.h))
           add('warn', 'no-dimensions', `An image in the ${region} has no width/height, so the page will shift as it loads.`, w, n.id);
+        /* The first image in the first body section is the only position the review can call
+           above-the-fold without guessing at authored heights. Later images should stay lazy. */
+        const inFirstSection = region === 'page' && (n === pg.tree[0] || chain[0] === pg.tree[0]);
+        if (!heroImageReviewed && inFirstSection && n.props.src) {
+          heroImageReviewed = true;
+          if (n.props.lazy) add('warn', 'hero-image-lazy', `The first image in “${pg.name}” is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`, w, n.id);
+        }
       }
       /* video */
       if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
@@ -2894,8 +3100,12 @@ function lint() {
       /* forms */
       if (n.type === 'form') {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
-        if (!String(n.props.action || '').trim())
-          add('error', 'form-no-action', `A form in the ${region} has nowhere to send submissions, so it will silently do nothing. Paste an endpoint from a form service, or a mailto: address.`, w, n.id);
+        const rawAction = String(n.props.action || '').trim();
+        const wordpressManaged = n.props.mode === 'wordpress';
+        if (!wordpressManaged && !rawAction)
+          add('error', 'form-no-action', `A form in the ${region} has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.`, w, n.id);
+        else if (!wordpressManaged && !safeFormAction(rawAction))
+          add('error', 'unsafe-form-action', `A form in the ${region} does not use an explicit, secure endpoint, so submission is disabled when published. Paste a complete https:// URL for the form service that will receive it.`, w, n.id);
         if (!fields.length)
           add('warn', 'form-no-fields', `A form in the ${region} has no fields.`, w, n.id);
         fields.forEach((fl, fi) => {
@@ -2929,6 +3139,8 @@ function lint() {
       /* empty labels */
       if (n.type === 'button' && !String(n.props.text || '').trim())
         add('error', 'empty-button', `A button in the ${region} has no label.`, w, n.id);
+      else if (n.type === 'button' && !String(n.props.link || '').trim())
+        add('warn', 'button-no-link', `“${String(n.props.text || 'Button')}” in the ${region} has no destination, so it is inert on the published page. Add a link or remove the button.`, w, n.id);
 
       /* contrast of text against the nearest background behind it */
       if (TEXTY.includes(n.type)) {
@@ -3076,6 +3288,9 @@ const TEXT_SLOTS = {
   nav: [['items', 'label']],
   form: [['fields', 'label', 'ph']]
 };
+/* Embed HTML remains searchable, but it is executable on the published page and therefore only
+   an owner may edit it. Shared by the inspector and the server-side content boundary. */
+const OWNER_ONLY_CONTENT = new Set(['embed']);
 /* the fields on a page itself, rather than on anything in it */
 const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['name', 'Page name']];
 const SLOT_LABEL = {
@@ -3110,6 +3325,7 @@ const ASSET_SLOTS: Record<string, (string | string[])[]> = {
     once, which is the only way that stays true. */
 function contentKeys(type: string): Set<string> {
   const out = new Set<string>();
+  if (OWNER_ONLY_CONTENT.has(type)) return out;
   const add = (specs: (string | string[])[]) => specs.forEach(spec =>
     out.add(typeof spec === 'string' ? spec : spec[0]));
   add((TEXT_SLOTS as Record<string, any[]>)[type] || []);
@@ -3557,6 +3773,10 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
     if (!o || !o.col || !o.item) return '';
     v = o.col.slug + '/' + o.item.slug + '.html';
   }
+  const wordpress = parseWordPressContentReference(v);
+  if (wordpress) return wordpressContentToken(wordpress);
+  /* A malformed reserved reference never degrades into a raw custom scheme. */
+  if (v.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX)) return '';
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
@@ -3624,7 +3844,7 @@ function relink(from: string, to: string) {
   allTrees().forEach(list => eachNode(list, node => {
     const p = node.props as PropBag;
     if (p.link !== undefined) p.link = swap(p.link);
-    if (node.type === 'nav' && Array.isArray(p.items)) {
+    if (hasItemHrefs(node) && Array.isArray(p.items)) {
       (p.items as NavItem[]).forEach(it => { it.href = swap(it.href); });
     }
     if (node.type === 'text' && typeof p.html === 'string') {
@@ -3787,6 +4007,11 @@ function contentImport(raw: unknown): ImportReport | null {
    order, and the review says so rather than letting the second one quietly not paginate. */
 const pagedPath = (slug: string, n: number) => n <= 1 ? slug + '.html' : `${slug}/page-${n}.html`;
 const pagedRel = (n: number) => n <= 1 ? '' : '../';
+/** How a generated file climbs back to the project root. Page slugs may contain folders, so
+    page number alone is not enough: `nested/about.html` needs `../`, while its page two at
+    `nested/about/page-2.html` needs `../../`. */
+const pathRel = (path: string) => '../'.repeat(Math.max(0,
+  String(path || '').replace(/^\/+|\/+$/g, '').split('/').length - 1));
 
 /** How many exported pages a list needs. One when it does not paginate, so callers can
     multiply by it without asking whether it does. */
@@ -3864,9 +4089,10 @@ function exportTargets() {
       const pgn = paginatorOf(pg);
       const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
       for (let i = 1; i <= n; i++) {
+        const path = pagedPath(pg.slug, i);
         out.push({
           pg: i > 1 ? { ...pg, title: `${pg.title || pg.name} — page ${i}` } : pg,
-          path: pagedPath(pg.slug, i), rel: pagedRel(i),
+          path, rel: pathRel(path),
           col: null, item: null, pageNo: i, pages: n
         });
       }
@@ -3875,9 +4101,10 @@ function exportTargets() {
     for (const it of published(col)) {
       const t = pg.bindTitle ? String(fieldValue(col, it, pg.bindTitle) || '').trim() : '';
       const d = pg.bindDesc ? String(fieldValue(col, it, pg.bindDesc) || '').trim() : '';
+      const path = col.slug + '/' + it.slug + '.html';
       out.push({
         pg: { ...pg, slug: col.slug + '/' + it.slug, title: t || pg.title, desc: d || pg.desc },
-        path: col.slug + '/' + it.slug + '.html', rel: '../', col, item: it
+        path, rel: pathRel(path), col, item: it
       });
     }
   }
@@ -4691,10 +4918,24 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 11;                       // bump when the stored shape changes
+const SCHEMA = 13;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
-  const v = d.v || 1;
+  /* `v` was the editor-backup marker before the document schema became an explicit part of
+     the persisted contract. Accept it for old projects, but never guess when both markers
+     disagree: that is corruption (or an incomplete writer), not a migration opportunity. */
+  const schemaVersion = d.schemaVersion;
+  const legacyVersion = d.v;
+  if (schemaVersion !== undefined && (!Number.isInteger(schemaVersion) || schemaVersion < 1)) {
+    throw new Error('invalid document schemaVersion');
+  }
+  if (legacyVersion !== undefined && (!Number.isInteger(legacyVersion) || legacyVersion < 1)) {
+    throw new Error('invalid legacy document version');
+  }
+  if (schemaVersion !== undefined && legacyVersion !== undefined && schemaVersion !== legacyVersion) {
+    throw new Error('conflicting document schema versions');
+  }
+  const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;          // written by a newer build — refuse rather than corrupt
   /* Every node the document owns, for the steps that rewrite nodes rather than meta. Saved
      blocks are in here on purpose: a block is a detached tree, and a step that skips them
@@ -4705,6 +4946,7 @@ function migrate(d: any) {
     (d.footer || []).forEach(walk);
     (d.pages || []).forEach((pg: any) => (pg.tree || []).forEach(walk));
     (((d.meta || {}).blocks) || []).forEach((bl: any) => { if (bl.node) walk(bl.node); });
+    (((d.meta || {}).components) || []).forEach((cd: any) => { if (cd.node) walk(cd.node); });
   };
   /* v1 → v2: images were inline data URIs. They still render as-is, so that
      step is a stamp only; new uploads go to the asset store as asset:<id>. */
@@ -4813,8 +5055,12 @@ function migrate(d: any) {
       });
       for (const b of global) {
         const def = { id: b.id, name: b.name, node: reid(clone(b.node)), props: [] };
-        d.meta.components.push(def);
         const want = shape(b.node);
+        /* Convert placements before registering this definition. `everyNode` intentionally
+           includes component definitions so later migrations reach them; registering the new
+           definition first would also make a legacy source tagged with its own block id turn
+           into an instance of itself and discard its children. Existing definitions remain in
+           the walk, so a global block nested in one is still upgraded. */
         everyNode(n => {
           if (!n.adv || n.adv.block !== b.id) return;
           delete n.adv.block;
@@ -4827,6 +5073,11 @@ function migrate(d: any) {
           n.adv = { htmlId: '', cls: '', css: '' };
           delete n.st; delete n.anim; delete n.bind; delete n.src;
         });
+        eachNode([def.node], n => {
+          const adv = n.adv as any;
+          if (adv && adv.block === b.id) delete adv.block;
+        });
+        d.meta.components.push(def);
       }
       /* the global ones are components now; a document holding both lists would be holding the
          same tree twice under two names */
@@ -4835,7 +5086,54 @@ function migrate(d: any) {
     /* and nothing is a global block any more, including the ones that never were */
     ((d.meta || {}).blocks || []).forEach((b: any) => { if (b) delete b.sync; });
   }
+  /* v11 -> v12: columns follow their row's vertical alignment by default.
+     Previously every new column stored `justify-content:flex-start`, so there was no
+     distinction between the untouched default and an intentional Top override. Treating
+     that old default as Follow row makes existing layouts gain the expected behaviour;
+     non-default Center and Bottom values remain explicit at the same breakpoint. */
+  if (v < 12) {
+    /* A class declaration was live CSS before this migration, even when the column had no
+       declaration of its own. The new node marker is emitted after classes, so blindly
+       defaulting that column to Follow row would override a class-provided Center or Bottom
+       and move the page. Read the old class cascade without mutating the class itself: the
+       same class may also dress a Box, where `justify-content` means something different. */
+    const styleClasses = ((((d.meta || {}).tokens || {}).classes) || []) as any[];
+    const classValue = (n: any, b: string, prop: string) => {
+      const ids = Array.isArray(n.cls) ? n.cls : [];
+      let value = '';
+      for (const cls of styleClasses) {
+        if (!cls || !ids.includes(cls.id)) continue;
+        const next = cls.css && cls.css[b] && cls.css[b][prop];
+        if (next !== undefined && next !== '') value = next;
+      }
+      return value;
+    };
+    everyNode(n => {
+      if (!n || n.type !== 'column') return;
+      n.css = n.css || { d: {}, t: {}, m: {} };
+      for (const b of ['d', 't', 'm']) {
+        const map = n.css[b] = n.css[b] || {};
+        const old = map['justify-content'];
+        if (old !== undefined && old !== '') {
+          map[COLUMN_V_ALIGN] = (b === 'd' && old === 'flex-start') ? 'follow' : old;
+          delete map['justify-content'];
+        } else if (!map[COLUMN_V_ALIGN]) {
+          const fromClass = classValue(n, b, 'justify-content');
+          if (fromClass) map[COLUMN_V_ALIGN] = fromClass;
+        }
+      }
+      if (!n.css.d[COLUMN_V_ALIGN]) n.css.d[COLUMN_V_ALIGN] = 'follow';
+    });
+  }
+  /* v12 -> v13: a form states who receives it. Every existing form used the external HTTPS
+     contract, so migration records that explicitly; WordPress-managed handling is opt-in. */
+  if (v < 13) everyNode(n => {
+    if (!n || n.type !== 'form') return;
+    n.props = n.props || {};
+    if (n.props.mode !== 'wordpress') n.props.mode = 'external';
+  });
   d.v = SCHEMA;
+  d.schemaVersion = SCHEMA;
   return d;
 }
 
@@ -4872,7 +5170,7 @@ const PATTERNS: Pattern[] = [
         [T_H('A headline with weight', 'display', { d: { 'margin-bottom': '16px' } }),
         T_T('<p>One sentence on what this is and who it is for.</p>', 'lead'),
         N('button', { text: 'Get started', ts: 'btn' }, { d: { 'background-color': cvar('brand'), color: cvar('ink'), 'align-self': 'flex-start' } })],
-        [N('image', { src: '', alt: '' }, { d: { 'border-radius': '16px', height: '380px' }, m: { height: '220px' } })]
+        [N('image', { src: '', alt: '', lazy: 0 }, { d: { 'border-radius': '16px', height: '380px' }, m: { height: '220px' } })]
       ], { d: { gap: '56px', 'align-items': 'center' } })
     ])
   },
@@ -5953,8 +6251,29 @@ const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n
 const selOf = (n: PcNode) => '.' + nodeClass(n);
 
 /* per-node CSS for one breakpoint bucket */
-function bucket(n: PcNode, b: Bp, editing: boolean) {
-  const map = n.css[b] || {};
+function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null,
+  detachedComponentRoot = false) {
+  const map = { ...(n.css[b] || {}) };
+  if (n.type === 'column') {
+    /* The marker is editor state, not page CSS. Resolve it at every breakpoint so a
+       tablet row override reaches following columns even when the columns themselves
+       have no tablet declaration. A component instance has intentionally empty styling;
+       when its definition root is a Column, its Follow marker still has to resolve against
+       the instance's real Row rather than the detached definition's null parent. */
+    const own = cssAt(n, b, COLUMN_V_ALIGN);
+    const def = n.use ? findComponent(n.use) : null;
+    const inherited = def && def.node.type === 'column'
+      ? cssAt(def.node, b, COLUMN_V_ALIGN) : '';
+    const mode = own || inherited || 'follow';
+    delete map[COLUMN_V_ALIGN];
+    /* A detached definition root has no row. Its instance rule below owns this one
+       relationship, which both avoids a false Top declaration and preserves the one-rule-in,
+       one-rule-out promise of turning an ordinary column into a component. */
+    const definitionOwnsExplicit = !!n.use && !own && !!inherited && inherited !== 'follow';
+    if (!(detachedComponentRoot && mode === 'follow') && !definitionOwnsExplicit) {
+      map['justify-content'] = mode === 'follow' ? rowVerticalValue(parent, b) : mode;
+    }
+  }
   let extra = '';
   if (n.hide && n.hide[b]) extra = editing ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;' : 'display:none !important;';
   const body = decl(map) + extra;
@@ -5978,17 +6297,18 @@ const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:fl
   + `${selOf(n)}.is-open .pagecraft-nav-list{display:flex}`
   + `${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`;
 
-function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string }) {
-  acc.d += bucket(n, 'd', editing);
+function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string },
+  parent: PcNode | null = null, detachedComponentRoot = false) {
+  acc.d += bucket(n, 'd', editing, parent, detachedComponentRoot);
   if (n.type === 'nav') {
     const c = n.props.collapse;
     if (c === 'tablet') acc.t += navCollapse(n);      // ≤1024 already covers mobile
     else if (c !== 'never') acc.m += navCollapse(n);
   }
-  acc.t += bucket(n, 't', editing);
-  acc.m += bucket(n, 'm', editing);
+  acc.t += bucket(n, 't', editing, parent, detachedComponentRoot);
+  acc.m += bucket(n, 'm', editing, parent, detachedComponentRoot);
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
-  (n.children || []).forEach(c => nodeCss(c, editing, acc));
+  (n.children || []).forEach(c => nodeCss(c, editing, acc, n));
   return acc;
 }
 /* Which definitions these trees actually render, following instances inside definitions. A
@@ -6015,7 +6335,7 @@ function treeCss(lists: PcNode[][], editing: boolean) {
      its definition rather than copying it, so one set of rules dresses all of them. First
      because an instance's own rules have to win, and two single-class selectors are decided by
      document order. */
-  usedComponents(lists).forEach(cd => nodeCss(cd.node, editing, acc));
+  usedComponents(lists).forEach(cd => nodeCss(cd.node, editing, acc, null, true));
   lists.forEach(l => l.forEach(n => nodeCss(n, editing, acc)));
   const tk = tokenCss();
   return baseCss(editing) + tk.d + acc.d
@@ -6048,6 +6368,12 @@ ${tokenVars()}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;font-family:${m.font};font-size:${m.size};line-height:1.6;color:var(--c-text);background:var(--c-bg);-webkit-font-smoothing:antialiased}
 img,video,svg{max-width:100%}
+.pagecraft-skip{
+  position:fixed;left:12px;top:12px;z-index:2147483647;padding:10px 14px;
+  color:var(--c-bg);background:var(--c-ink);border-radius:6px;text-decoration:none;
+  transform:translateY(calc(-100% - 24px));transition:transform .15s ease;
+}
+.pagecraft-skip:focus{transform:translateY(0)}
 .pagecraft-section{position:relative;width:100%}
 .pagecraft-container{width:100%;max-width:var(--maxw);margin-left:auto;margin-right:auto;position:relative}
 .pagecraft-container.full{max-width:none}
@@ -6228,6 +6554,8 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
 }
+.pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
+.pagecraft-form-status{flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
 
@@ -6276,7 +6604,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 
 .pagecraft-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:inherit;text-decoration:none}
 .pagecraft-icon-glyph{
-  display:block;flex:0 0 auto;
+  display:block;flex:0 0 auto;box-sizing:content-box;
   width:var(--icon-size,30px);height:var(--icon-size,30px);stroke-width:var(--icon-stroke,1.75);
 }
 
@@ -6455,12 +6783,10 @@ function vidSrc(p: any) {
   if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(src) || src.startsWith('data:video')) return { kind: 'file', id: src };
   return { kind: src ? 'other' : 'none', id: src };
 }
-/* Poster for a click-to-play facade. YouTube publishes a predictable still;
-   Vimeo needs an API call, so it falls back to whatever the author supplied. */
+/* A facade poster is release content, so only an author-owned/frozen asset is eligible.
+   Provider thumbnails are mutable remote bytes and cannot be part of an immutable release. */
 function vidPoster(p: any) {
-  if (p.poster) return p.poster;
-  const v = vidSrc(p);
-  return v.kind === 'youtube' ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : '';
+  return p.poster || '';
 }
 const embedUrl = (p: any) => {
   const v = vidSrc(p);
@@ -6515,6 +6841,68 @@ function stripScripts(html: unknown) {
     .replace(/<script\b[^>]*\/?>/gi, () => { stripped++; return ''; })
     .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, () => { stripped++; return ''; });
   return { html: out, stripped };
+}
+
+/* Pagecraft owns the document's one page-level `<main>`. Authors can still choose `main` in
+   semantic controls or paste one into rich/embed markup, but those fragments live *inside*
+   the page landmark and therefore become divs at publish time. This scanner changes actual
+   tags only: comments and raw-text bodies such as JavaScript are copied byte-for-byte, so a
+   string containing "<main>" never becomes evidence about the document structure. */
+function demoteMainTags(html: unknown) {
+  const source = String(html == null ? '' : html);
+  const lower = source.toLowerCase();
+  const raw = new Set(['script', 'style', 'textarea', 'title', 'xmp', 'iframe', 'noembed', 'noframes', 'plaintext']);
+  const tagEnd = (from: number) => {
+    let quote = '';
+    for (let i = from; i < source.length; i++) {
+      const ch = source[i];
+      if (quote) {
+        if (ch === quote) quote = '';
+      } else if (ch === '"' || ch === "'") quote = ch;
+      else if (ch === '>') return i;
+    }
+    return -1;
+  };
+  const rawClose = (name: string, from: number) => {
+    let found = from;
+    while ((found = lower.indexOf(`</${name}`, found)) >= 0) {
+      const after = lower[found + name.length + 2] || '';
+      if (!after || /[\s/>]/.test(after)) return found;
+      found += name.length + 2;
+    }
+    return -1;
+  };
+  const demote = (tag: string) => tag.replace(/^(<\s*\/?\s*)main\b/i, '$1div');
+
+  let out = '', at = 0;
+  while (at < source.length) {
+    const openAt = source.indexOf('<', at);
+    if (openAt < 0) { out += source.slice(at); break; }
+    out += source.slice(at, openAt);
+    if (source[openAt + 1] === '!' && source[openAt + 2] === '-' && source[openAt + 3] === '-') {
+      const end = source.indexOf('-->', openAt + 4);
+      const stop = end < 0 ? source.length : end + 3;
+      out += source.slice(openAt, stop); at = stop; continue;
+    }
+    const openEnd = tagEnd(openAt + 1);
+    if (openEnd < 0) { out += source.slice(openAt); break; }
+    const open = source.slice(openAt, openEnd + 1);
+    const named = open.match(/^<\s*(\/?)\s*([a-z][\w:-]*)\b/i);
+    const closing = !!(named && named[1]);
+    const name = named ? named[2].toLowerCase() : '';
+    if (!name || closing || !raw.has(name) || /\/\s*>$/.test(open)) {
+      out += name === 'main' ? demote(open) : open;
+      at = openEnd + 1;
+      continue;
+    }
+    const closeAt = rawClose(name, openEnd + 1);
+    if (closeAt < 0) { out += open + source.slice(openEnd + 1); break; }
+    const closeEnd = tagEnd(closeAt + 2 + name.length);
+    if (closeEnd < 0) { out += open + source.slice(openEnd + 1); break; }
+    out += open + source.slice(openEnd + 1, closeEnd + 1);
+    at = closeEnd + 1;
+  }
+  return out;
 }
 
 const BICON: Record<string, string> = { arrow: IC.arrow, check: IC.check, plus: IC.plus };
@@ -6733,7 +7121,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const src = esc(p.src || PH);
       const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : '';
       /* intrinsic dimensions let the browser reserve space — no layout shift */
-      const dim = (p.w && p.h) ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : '';
+      const dim = (p.w && p.h) ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"`
+        : (!p.src ? ' width="800" height="500"' : '');
       const alt = ` alt="${p.decorative ? '' : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
       /* `asset:<id>@<w>` is a variant of the same asset. The export rewrites every asset
@@ -6774,12 +7163,21 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav aria-label="${name}">`
         + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
-        + items.map(it => `<li><a href="${esc(pageHref(it.href, o) || '#')}">${esc(it.label || '')}</a></li>`).join('')
+        + items.map(it => {
+          const classes = String(it.cls || '').trim().split(/\s+/).filter(Boolean).join(' ');
+          const liClass = classes ? ` class="${esc(classes)}"` : '';
+          const target = it.target === '_blank' ? ' target="_blank" rel="noopener"' : '';
+          return `<li${liClass}><a href="${esc(pageHref(it.href, o) || '#')}"${target}>${esc(it.label || '')}</a></li>`;
+        }).join('')
         + `</ul></nav>`;
     }
     case 'form': {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const fid = (i: number) => domId + '-f' + i;
+      const wordpressManaged = p.mode === 'wordpress';
+      const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
+      const act = wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
+      const disabled = act ? '' : ' disabled';
       const body = fields.map((f, i) => {
         const name = esc(f.name || slugify(f.label) || 'field-' + (i + 1));
         const req = f.required ? ' required' : '';
@@ -6790,21 +7188,29 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         const half = f.half ? ' half' : '';
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ''}</label>`;
         if (f.type === 'checkbox') return `<div class="pagecraft-field pagecraft-field-check${half}">`
-          + `<input id="${fid(i)}" name="${name}" type="checkbox"${req}>`
+          + `<input id="${fid(i)}" name="${name}" type="checkbox"${req}${disabled}>`
           + `<label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
         if (f.type === 'textarea') return `<div class="pagecraft-field${half}">${lab}`
-          + `<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph}></textarea></div>`;
+          + `<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph}${disabled}></textarea></div>`;
         if (f.type === 'select') return `<div class="pagecraft-field${half}">${lab}`
-          + `<select id="${fid(i)}" name="${name}"${req}>`
+          + `<select id="${fid(i)}" name="${name}"${req}${disabled}>`
           + String(f.opts || '').split(',').map(o => o.trim()).filter(Boolean)
             .map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')
           + `</select></div>`;
         return `<div class="pagecraft-field${half}">${lab}`
-          + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${req}${ph}></div>`;
+          + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${req}${ph}${disabled}></div>`;
       }).join('');
-      const act = safeUrl(p.action) || (/^mailto:/i.test(String(p.action || '')) ? p.action : '');
-      return `<form ${at} ${cx('pagecraft-form')} aria-label="${esc(p.aria || 'Form')}"`
-        + `${act ? ` action="${esc(act)}" method="${p.method === 'get' ? 'get' : 'post'}"` : ''}>`
+      if (!act) {
+        const status = domId + '-status';
+        return `<div ${at} ${cx('pagecraft-form')} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled>`
+          + body
+          + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || 'Send')}</button>`
+          + `<p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p>`
+          + `</div>`;
+      }
+      const managed = wordpressManaged
+        ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : '';
+      return `<form ${at} ${cx('pagecraft-form')} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${wordpressManaged ? 'post' : p.method === 'get' ? 'get' : 'post'}"${managed}>`
         + body
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
         + `</form>`;
@@ -6919,7 +7325,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       return `<div ${at} ${cx('pagecraft-accordion')} data-marker="${esc(p.marker || 'plus')}">${body}</div>`;
     }
     case 'embed': {
-      const raw = String(p.html == null ? '' : p.html);
+      /* Static markup is an owner's explicit integration. A CMS/component binding is editable
+         content, so it is rendered as text instead of becoming an indirect script channel. */
+      const supplied = String(p.html == null ? '' : p.html);
+      const raw = n.bind && n.bind.html ? esc(supplied) : supplied;
       const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : '';
       const ecls = 'pagecraft-embed' + (p.ratio ? ' pagecraft-embed-ratio' : '');
       if (!raw.trim()) return o.edit
@@ -7129,7 +7538,7 @@ if(typeof HTMLDialogElement!=='function')return;
 var dlg=null,imgEl,capEl,prevB,nextB,list=[],at=0;
 function build(){
 dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';
-dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" alt=""><p class="pagecraft-lightbox-cap"></p></figure>'
+dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><p class="pagecraft-lightbox-cap"></p></figure>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-prev" type="button" aria-label="Previous image">\u2039</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-next" type="button" aria-label="Next image">\u203a</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-close" type="button" aria-label="Close">\u00d7</button>';
@@ -7145,7 +7554,7 @@ if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
 if(e.key==='ArrowRight'){e.preventDefault();go(1);}
 });
 }
-function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;
+function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;imgEl.hidden=false;
 capEl.textContent=it.cap;capEl.hidden=!it.cap;
 prevB.hidden=nextB.hidden=list.length<2;}
 function go(d){at=(at+d+list.length)%list.length;show();}
@@ -7182,13 +7591,17 @@ const tidy = (css: string) => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n')
 /** Absolute URLs are not optional in structured data — a relative `url` is worse than
     no `url`, because a consumer resolves it against its own host. Same rule the
     canonical tag and the sitemap already follow: no Site URL, no output. */
-function jsonLdGraph(pg: Page, ctx: { col?: Collection | null; item?: Item | null } = {}) {
+function jsonLdGraph(pg: Page, ctx: { col?: Collection | null; item?: Item | null; pageNo?: number } = {}) {
   const m = state.meta;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
   if (!base) return null;
 
   const abs = (u: string) => !u ? '' : (/^https?:/i.test(u) ? u : base + '/' + String(u).replace(/^\/+/, ''));
-  const url = `${base}/${pg.slug}.html`;
+  /* A paginated page is a distinct exported document. Its canonical and Open Graph URL
+     already use `pagedPath`; structured data must name that same document rather than
+     claiming every slice is page one. Detail-page slugs continue through the same path
+     helper, so nested Articles retain their exact export URL. */
+  const url = `${base}/${pagedPath(pg.slug, ctx.pageNo || 1)}`;
   const org = `${base}/#org`;
   const site = `${base}/#site`;
   const image = abs(pg.ogImage || m.ogImage || '');
@@ -7234,12 +7647,25 @@ function jsonLdGraph(pg: Page, ctx: { col?: Collection | null; item?: Item | nul
 
 /** The graph as a script tag. `<` is escaped so a value containing `</script>` cannot
     close the block early — the one injection route a JSON island has. */
-function jsonLd(pg: Page, ctx: { col?: Collection | null; item?: Item | null } = {}) {
+function jsonLd(pg: Page, ctx: { col?: Collection | null; item?: Item | null; pageNo?: number } = {}) {
   const g = jsonLdGraph(pg, ctx);
   if (!g) return '';
   const json = JSON.stringify(g, null, 2).replace(/</g, '\\u003c');
   return `<script type="application/ld+json">\n${json}\n</script>\n`;
 }
+
+/* Compiler-owned comments identify the actual global trees independently of the semantic
+   tag a user chooses for a top-level Section. Connected publication rejects these reserved
+   bytes when they originate in the document, so custom markup cannot counterfeit a boundary. */
+/* Construct the delimiters at runtime so the single-file builder's own inline script never
+   contains an HTML comment opener. A literal opener changes the browser tokenizer state and
+   can make a later script close parse as text; `boot.test.mjs` enforces this source boundary. */
+const HTML_COMMENT_OPEN = String.fromCharCode(60, 33, 45, 45);
+const HTML_COMMENT_CLOSE = String.fromCharCode(45, 45, 62);
+const SHARED_HEADER_START = HTML_COMMENT_OPEN + 'PAGECRAFT_SHARED_HEADER_START' + HTML_COMMENT_CLOSE;
+const SHARED_HEADER_END = HTML_COMMENT_OPEN + 'PAGECRAFT_SHARED_HEADER_END' + HTML_COMMENT_CLOSE;
+const SHARED_FOOTER_START = HTML_COMMENT_OPEN + 'PAGECRAFT_SHARED_FOOTER_START' + HTML_COMMENT_CLOSE;
+const SHARED_FOOTER_END = HTML_COMMENT_OPEN + 'PAGECRAFT_SHARED_FOOTER_END' + HTML_COMMENT_CLOSE;
 
 function buildPage(pg: Page, ctx: {
   col?: Collection | null; item?: Item | null; rel?: string; variants?: boolean;
@@ -7262,7 +7688,23 @@ function buildPage(pg: Page, ctx: {
   /* per page, not per project: two pages of a site can differ, and 34 KB is most of the weight
      of a page that has nothing moving on it */
   const moves = animUsed([state.header, pg.tree, state.footer]);
-  const body = renderList(state.header, o) + renderList(pg.tree, o) + renderList(state.footer, o);
+  /* The node tree, not a regex over rendered bytes, defines the document landmarks. Every
+     page tree is wrapped in one Pagecraft-owned main; global regions stay outside. Any main
+     authored inside those fragments is demoted by a raw-text-aware scanner before nesting,
+     which prevents sibling content and multiple landmarks without treating script/embed text
+     as structure. */
+  const allNodes = [...state.header, ...pg.tree, ...state.footer];
+  const occupied = new Set<string>();
+  eachNode(allNodes, n => occupied.add(domIdOf(n)));
+  let mainId = 'pagecraft-main';
+  while (occupied.has(mainId)) mainId += '-content';
+  const header = demoteMainTags(renderList(state.header, o));
+  const pageBody = demoteMainTags(renderList(pg.tree, o));
+  const footer = demoteMainTags(renderList(state.footer, o));
+  const main = `<main id="${mainId}" class="pagecraft-main">${pageBody}</main>`;
+  const body = SHARED_HEADER_START + header + SHARED_HEADER_END
+    + main
+    + SHARED_FOOTER_START + footer + SHARED_FOOTER_END;
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
   const abs = (u: string) => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
@@ -7277,12 +7719,13 @@ function buildPage(pg: Page, ctx: {
 <title>${esc(title)}</title>
 ${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${ctx.fontCss}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
 <meta property="og:title" content="${esc(title)}">
-${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, ctx)}<style>
+${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, { col: o.col, item: o.item, pageNo: o.pageNo })}<style>
 ${tidy(css)}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
 </style>
-${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${m.headHtml || ''}${pg.headHtml || ''}
+${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainTags(m.headHtml || '')}${demoteMainTags(pg.headHtml || '')}
 </head>
 <body>
+<a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
 ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
@@ -7291,5 +7734,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, buildPage
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
 };

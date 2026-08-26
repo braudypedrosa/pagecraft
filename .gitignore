@@ -7,5 +7,18 @@ node_modules
 # records its hash, so both belong in history. Only the Vite output is generated.
 dist/next
 
+# Encrypted database backups are generated locally or in CI and retained off-repository.
+.backups/
+
 .DS_Store
 *.tsbuildinfo
+
+# Signed WordPress release archives are built locally and served privately.
+wordpress/build/
+
+# Supabase CLI version and runtime scratch files are machine-local.
+supabase/.temp/
+
+# Machine-local deployment access. Private keys remain in ~/.ssh and this
+# directory stores only ignored connection metadata for this checkout.
+.pagecraft-local/

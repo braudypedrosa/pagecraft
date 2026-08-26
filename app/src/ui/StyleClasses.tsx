@@ -47,7 +47,7 @@ export function StyleClasses() {
                   L.tx('clsname:' + c.id);
                   const cls = C.findClass(c.id);
                   if (cls) { cls.name = (e.target as HTMLInputElement).value; L.save(); }
-                }} />
+                }} onBlur={L.endTx} aria-label="Class name" />
             </span>
             <span class="rowmeta" title={`${props} declaration${props === 1 ? '' : 's'} in this class`}>
               {props} decl

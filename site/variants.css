@@ -1,0 +1,177 @@
+/*
+  Pagecraft visual studies.
+  Dark Glass is the selected default. Query variants remain available as
+  visual references while the chosen direction is refined.
+*/
+
+/* Variation 01: Warm editorial paper */
+html[data-variant="paper"] body { background: #f3efe4; }
+html[data-variant="paper"] .site-header {
+  background: rgba(248, 246, 239, .94);
+  color: var(--ink);
+  border-color: rgba(17, 19, 17, .16);
+}
+html[data-variant="paper"] .nav a { color: #555c56; }
+html[data-variant="paper"] .nav a:hover { color: var(--ink); }
+html[data-variant="paper"] .menu-button { border-color: rgba(17, 19, 17, .2); color: var(--ink); }
+html[data-variant="paper"] .hero {
+  color: var(--ink);
+  background-color: #e9e3d4;
+  background-image:
+    linear-gradient(90deg, rgba(248, 246, 239, .98) 0%, rgba(248, 246, 239, .93) 49%, rgba(248, 246, 239, .48) 78%, rgba(248, 246, 239, .24) 100%),
+    url("images/pagecraft-paper-system.webp");
+  background-position: center, right 34%;
+}
+html[data-variant="paper"] .hero h1 em {
+  display: inline;
+  padding-inline: .07em;
+  background: var(--green);
+  color: var(--ink);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+html[data-variant="paper"] .hero-lead,
+html[data-variant="paper"] .hero-note { color: #555c56; }
+html[data-variant="paper"] .button--dark { border-color: rgba(17, 19, 17, .25); color: var(--ink); }
+html[data-variant="paper"] .button--dark:hover { border-color: rgba(17, 19, 17, .5); background: rgba(17, 19, 17, .06); }
+html[data-variant="paper"] .editor { box-shadow: 0 42px 80px -42px rgba(38, 31, 17, .6); }
+html[data-variant="paper"] .workflow { background: #fffdf7; }
+html[data-variant="paper"] .capabilities {
+  background-image:
+    linear-gradient(90deg, rgba(232, 226, 210, .97), rgba(232, 226, 210, .86) 58%, rgba(232, 226, 210, .56)),
+    url("images/pagecraft-hero-digital-craft.webp");
+}
+html[data-variant="paper"] .ownership {
+  background-image:
+    linear-gradient(90deg, rgba(11, 13, 11, .98), rgba(11, 13, 11, .88) 55%, rgba(11, 13, 11, .38)),
+    url("images/pagecraft-release-layers.webp");
+}
+
+/* Variation 02: Dark glass and electric green */
+html[data-variant="electric"] body { background: #080a08; color: var(--on-dark); }
+html[data-variant="electric"] .site-header { background: rgba(4, 6, 4, .82); }
+html[data-variant="electric"] .hero {
+  min-height: calc(100vh - var(--header-height));
+  background-image:
+    radial-gradient(circle at 78% 18%, rgba(183, 243, 74, .16), transparent 26rem),
+    linear-gradient(90deg, rgba(5, 7, 5, .99) 0%, rgba(5, 7, 5, .90) 44%, rgba(5, 7, 5, .42) 100%),
+    url("images/pagecraft-release-layers.webp");
+  background-position: center, center, right center;
+}
+html[data-variant="electric"] .hero h1 { max-width: 14ch; text-shadow: 0 8px 42px rgba(0, 0, 0, .65); }
+html[data-variant="electric"] .editor {
+  border-color: rgba(183, 243, 74, .32);
+  background: rgba(12, 16, 12, .88);
+  box-shadow: 0 0 0 1px rgba(183, 243, 74, .07), 0 40px 100px -30px rgba(0, 0, 0, .95);
+  backdrop-filter: blur(18px);
+}
+html[data-variant="electric"] .proof-strip { background: #0d100d; border-color: rgba(246, 244, 236, .14); }
+html[data-variant="electric"] .proof-grid p + p { border-color: rgba(246, 244, 236, .14); }
+html[data-variant="electric"] .proof-grid span,
+html[data-variant="electric"] .workflow p,
+html[data-variant="electric"] .capability-intro > p:last-child,
+html[data-variant="electric"] .capability-ledger dd { color: var(--on-dark-muted); }
+html[data-variant="electric"] .workflow {
+  background-color: #080a08;
+  background-image:
+    linear-gradient(rgba(8, 10, 8, .94), rgba(8, 10, 8, .96)),
+    url("images/pagecraft-hero-digital-craft.webp");
+  background-position: center;
+  background-size: cover;
+}
+html[data-variant="electric"] .process::before,
+html[data-variant="electric"] .capability-ledger div + div { background: rgba(246, 244, 236, .15); border-color: rgba(246, 244, 236, .15); }
+html[data-variant="electric"] .process-number { background: var(--on-dark); color: var(--ink); }
+html[data-variant="electric"] .process li:last-child .process-number { background: var(--green); }
+html[data-variant="electric"] .capabilities {
+  background-color: #111511;
+  background-image:
+    linear-gradient(90deg, rgba(12, 16, 12, .98), rgba(12, 16, 12, .87) 55%, rgba(12, 16, 12, .60)),
+    url("images/pagecraft-paper-system.webp");
+}
+html[data-variant="electric"] .ownership {
+  border-top: 1px solid rgba(183, 243, 74, .22);
+  background-image:
+    radial-gradient(circle at 76% 52%, rgba(183, 243, 74, .13), transparent 20rem),
+    linear-gradient(90deg, rgba(4, 6, 4, .99), rgba(4, 6, 4, .78)),
+    url("images/pagecraft-release-layers.webp");
+}
+
+/* Variation 03: Image-led studio collage */
+html[data-variant="collage"] .hero {
+  background-color: #111311;
+  background-image:
+    linear-gradient(90deg, rgba(11, 13, 11, .98) 0%, rgba(11, 13, 11, .91) 43%, rgba(11, 13, 11, .44) 70%, rgba(11, 13, 11, .16) 100%),
+    url("images/pagecraft-release-layers.webp"),
+    url("images/pagecraft-paper-system.webp"),
+    url("images/pagecraft-hero-digital-craft.webp");
+  background-repeat: no-repeat;
+  background-size: cover, 37% 53%, 31% 39%, 43% 59%;
+  background-position: center, right 5% top 7%, right 38% top 18%, right 6% bottom 4%;
+}
+html[data-variant="collage"] .hero::after {
+  content: "";
+  position: absolute;
+  inset: 5% 3% auto auto;
+  width: min(43vw, 34rem);
+  height: min(54vw, 34rem);
+  border: 1px solid rgba(246, 244, 236, .23);
+  pointer-events: none;
+}
+html[data-variant="collage"] .hero h1 { max-width: 12ch; }
+html[data-variant="collage"] .editor {
+  width: 92%;
+  margin-left: auto;
+  transform: rotate(-.65deg);
+  transform-origin: bottom right;
+  box-shadow: -24px 38px 90px -35px rgba(0, 0, 0, .9);
+}
+html[data-variant="collage"] .proof-strip { position: relative; z-index: 2; }
+html[data-variant="collage"] .workflow {
+  background-color: #f8f6ef;
+  background-image:
+    linear-gradient(90deg, rgba(248, 246, 239, .99) 0%, rgba(248, 246, 239, .94) 67%, rgba(248, 246, 239, .70) 100%),
+    url("images/pagecraft-paper-system.webp");
+  background-position: center, right center;
+  background-size: cover;
+}
+html[data-variant="collage"] .process li:nth-child(even) { transform: translateY(2rem); }
+html[data-variant="collage"] .capabilities {
+  background-color: #ded8ca;
+  background-image:
+    linear-gradient(90deg, rgba(238, 234, 222, .97), rgba(238, 234, 222, .72)),
+    url("images/pagecraft-hero-digital-craft.webp");
+  background-position: center, right 42%;
+}
+html[data-variant="collage"] .ownership {
+  background-image:
+    linear-gradient(90deg, rgba(11, 13, 11, .98), rgba(11, 13, 11, .84) 48%, rgba(11, 13, 11, .28)),
+    url("images/pagecraft-release-layers.webp");
+}
+
+@media (max-width: 56.24rem) {
+  html[data-variant="paper"] .nav { background: var(--paper); border-color: rgba(17, 19, 17, .16); }
+  html[data-variant="paper"] .nav a { border-color: rgba(17, 19, 17, .16); }
+  html[data-variant="collage"] .editor { width: 100%; transform: none; }
+  html[data-variant="collage"] .process li:nth-child(even) { transform: none; }
+}
+
+@media (max-width: 40rem) {
+  html[data-variant="paper"] .hero {
+    background-image: linear-gradient(rgba(248, 246, 239, .78), rgba(248, 246, 239, .96) 58%), url("images/pagecraft-paper-system.webp");
+    background-position: center, 61% top;
+  }
+  html[data-variant="electric"] .hero {
+    background-image: linear-gradient(rgba(5, 7, 5, .78), rgba(5, 7, 5, .96) 58%), url("images/pagecraft-release-layers.webp");
+  }
+  html[data-variant="collage"] .hero {
+    background-image: linear-gradient(rgba(11, 13, 11, .70), rgba(11, 13, 11, .98) 55%), url("images/pagecraft-hero-digital-craft.webp");
+    background-size: cover;
+    background-position: center, 66% top;
+  }
+  html[data-variant="collage"] .hero::after { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-variant="collage"] .editor { transform: none; }
+}

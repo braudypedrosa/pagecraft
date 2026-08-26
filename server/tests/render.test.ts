@@ -4,7 +4,9 @@
 import { test } from 'vitest';
 import a from 'node:assert/strict';
 import * as Core from '../../app/src/core/index.ts';
-import { adopt, renderSite, resolvePath } from '../src/render.ts';
+import {
+  adopt, blankDoc, cleanPublishedUrl, hostedHtml, hostedSitemap, publicPath, renderSite, resolvePath
+} from '../src/render.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
 /* The demo project, not an empty one: it has a header, a footer, two pages and most of the
@@ -12,6 +14,7 @@ import type { Doc } from '../../app/src/core/types.ts';
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -50,8 +53,14 @@ test('every page the document declares gets a file, and the SEO pair follows the
   doc.meta.baseUrl = 'https://acme.example.com';
   const withBase = renderSite(doc).files;
   a.equal(withBase.has('sitemap.xml'), true);
-  a.match(withBase.get('sitemap.xml')!, /acme\.example\.com\/index\.html/);
+  a.match(withBase.get('sitemap.xml')!, /<loc>https:\/\/acme\.example\.com\/<\/loc>/);
+  a.equal(/\.html<\/loc>/.test(withBase.get('sitemap.xml')!), false,
+    'the hosted sitemap names the canonical visitor routes');
   a.match(withBase.get('robots.txt')!, /Sitemap: https:\/\/acme\.example\.com\/sitemap\.xml/);
+
+  Core.restore(structuredClone(doc));
+  a.match(Core.sitemapXml(), /acme\.example\.com\/index\.html/,
+    'the portable static export still names the files it actually writes');
 });
 
 test('two documents rendered one after the other do not leak into each other', () => {
@@ -86,6 +95,49 @@ test('rendering does not mutate the document it was given', () => {
   a.equal(JSON.stringify(doc), before, 'the store hands out documents, not scratch space');
 });
 
+test('a new site starts from pristine metadata after another project was rendered', () => {
+  const foreign = demo();
+  Object.assign(foreign.meta, {
+    baseUrl: 'https://foreign.example/site',
+    ogImage: 'asset:foreign-share',
+    favicon: 'asset:foreign-icon',
+    css: '.foreign-project{display:block}',
+    headHtml: '<meta name="foreign-project" content="yes">',
+    lang: 'fr',
+    selfHostFonts: 1
+  });
+  foreign.meta.blocks = [{ id: 'foreign-block', name: 'Foreign block', node: Core.makeFor('box') }];
+  foreign.meta.components = [{
+    id: 'foreign-component', name: 'Foreign component', node: Core.makeFor('box'), props: []
+  }];
+  foreign.meta.collections = [{
+    id: 'foreign-collection', name: 'Foreign collection', slug: 'foreign', detail: '',
+    fields: [], items: []
+  }];
+  foreign.meta.tokens!.classes.push({
+    id: 'foreign-class', name: 'Foreign class', css: { d: {}, t: {}, m: {} }
+  });
+  renderSite(foreign);
+
+  const fresh = blankDoc('Fresh site');
+  a.equal(fresh.meta.name, 'Fresh site');
+  a.equal(fresh.meta.baseUrl, '');
+  a.equal(fresh.meta.ogImage, '');
+  a.equal(fresh.meta.favicon, '');
+  a.equal(fresh.meta.css, '');
+  a.equal(fresh.meta.headHtml, '');
+  a.equal(fresh.meta.lang, 'en');
+  a.equal(fresh.meta.selfHostFonts, undefined);
+  a.deepEqual(fresh.meta.blocks, []);
+  a.equal(fresh.meta.components, undefined);
+  a.deepEqual(fresh.meta.collections, []);
+  a.equal(fresh.meta.tokens?.classes.some(item => item.id === 'foreign-class'), false);
+  a.ok((fresh.meta.tokens?.colors.length || 0) > 0, 'the default design library is still seeded');
+  a.equal(fresh.pages.length, 1);
+  a.equal(fresh.pages[0].slug, 'index');
+  a.deepEqual(fresh.pages[0].tree, []);
+});
+
 test('a request path resolves the way a static host would', () => {
   a.equal(resolvePath('/'), 'index.html');
   a.equal(resolvePath(''), 'index.html');
@@ -97,10 +149,140 @@ test('a request path resolves the way a static host would', () => {
   a.equal(resolvePath('/robots.txt'), 'robots.txt');
 });
 
+test('hosted HTML uses clean public paths while rendered export files keep their names', () => {
+  const files = new Map([
+    ['index.html', '<a href="pricing.html">Price</a> <a href="index.html#work">Work</a>'],
+    ['pricing.html', '<a href="index.html">Home</a>'],
+    ['notes/first.html', '<a href="../pricing.html?from=note#plans">Price</a>'],
+    ['download.pdf', 'pdf']
+  ]);
+
+  a.equal(publicPath('index.html', 'acme'), '/acme/');
+  a.equal(publicPath('pricing.html', 'acme'), '/acme/pricing');
+  a.equal(publicPath('notes/index.html', 'acme'), '/acme/notes/');
+  a.equal(publicPath('pricing.html'), '/pricing');
+
+  a.equal(
+    hostedHtml(files.get('index.html')!, 'index.html', files, 'acme'),
+    '<a href="/acme/pricing">Price</a> <a href="/acme/#work">Work</a>'
+  );
+  a.equal(
+    hostedHtml(files.get('notes/first.html')!, 'notes/first.html', files, 'acme'),
+    '<a href="/acme/pricing?from=note#plans">Price</a>'
+  );
+
+  const untouched = '<a href="#work">Here</a> <a href="https://other.test/page.html">Away</a> <a href="missing.html">Missing</a>';
+  a.equal(hostedHtml(untouched, 'index.html', files, 'acme'), untouched);
+  a.match(files.get('index.html')!, /href="pricing\.html"/, 'the downloadable export is unchanged');
+});
+
+test('hosted resources stay under the shared site path on root and nested pages', () => {
+  const files = new Map([
+    ['index.html', 'home'],
+    ['notes/first.html', 'note']
+  ]);
+  const html = `<link rel="icon" href="../assets/favicon.svg">
+<style>.hero{background-image:url('../assets/hero.webp?rev=2#crop')}</style>
+<div style="mask-image: url(../assets/mask.svg)"></div>
+<img src="../assets/photo.webp" poster="../assets/poster.webp"
+ srcset="../assets/photo-480.webp 480w, ../assets/photo-960.webp 960w">`;
+  const out = hostedHtml(html, 'notes/first.html', files, 'acme');
+  for (const path of [
+    '/acme/assets/favicon.svg', '/acme/assets/hero.webp?rev=2#crop',
+    '/acme/assets/mask.svg',
+    '/acme/assets/photo.webp', '/acme/assets/poster.webp',
+    '/acme/assets/photo-480.webp', '/acme/assets/photo-960.webp'
+  ]) a.ok(out.includes(path), path + ' was not rooted under the site');
+
+  a.match(hostedHtml('<img src="assets/logo.webp">', 'index.html', files), /src="\/assets\/logo\.webp"/,
+    'a custom-domain root also uses a root-relative asset');
+});
+
+test('hosted rewriting never interprets executable script or raw-text contents as HTML or CSS', () => {
+  const files = new Map([['index.html', 'home'], ['pricing.html', 'price']]);
+  const script = String.raw`<script>
+const linkText = 'href="pricing.html"';
+const sourcePattern = /\bsrc=(['"])(.*?)\1/gi;
+const cssPattern = /url\((['"]?)(.*?)\1\)/gi;
+const cssText = 'url("assets/not-a-real-request.webp")';
+const notAClosingTag = '</scripture>';
+</script>`;
+  const textarea = `<textarea>href="pricing.html" url("assets/also-text.webp")</textarea>`;
+  const comparison = `2 < 3 href="pricing.html" > 1`;
+  const html = `<a href="pricing.html">Price</a>${script}${textarea}${comparison}<style>.real{background:url("assets/real.webp")}</style>`;
+  const out = hostedHtml(html, 'index.html', files, 'acme');
+  a.ok(out.includes(script), 'the executable script block stays byte-for-byte intact');
+  a.ok(out.includes(textarea), 'raw text is not mistaken for tags or CSS');
+  a.ok(out.includes(comparison), 'text containing angle brackets is not mistaken for a tag');
+  a.match(out, /<a href="\/acme\/pricing">/);
+  a.match(out, /\.real\{background:url\("\/acme\/assets\/real\.webp"\)\}/,
+    'real style content is still normalized');
+});
+
+test('hosted SEO metadata and structured data use clean canonical URLs', () => {
+  const files = new Map([
+    ['index.html', 'home'],
+    ['notes/first.html', 'note']
+  ]);
+  const html = `<link rel="canonical" href="https://example.test/base/notes/first.html">
+<meta property="og:url" content="https://example.test/base/notes/first.html">
+<meta property="og:image" content="../assets/share.webp">
+<script type="application/ld+json">
+{"@graph":[{"@type":"WebSite","url":"https://example.test/base/"},{"url":"https://example.test/base/notes/first.html","image":"../assets/article.webp","isPartOf":{"url":"https://example.test/base/index.html"},"away":"https://elsewhere.test/base/notes/first.html","sameOriginAway":"https://example.test/base/archive/notes/first.html"}]}
+</script>`;
+  const out = hostedHtml(html, 'notes/first.html', files, 'acme');
+  a.match(out, /rel="canonical" href="https:\/\/example\.test\/base\/notes\/first"/);
+  a.match(out, /property="og:url" content="https:\/\/example\.test\/base\/notes\/first"/);
+  a.match(out, /property="og:image" content="\/acme\/assets\/share\.webp"/);
+  const json = out.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/)![1];
+  const graph = JSON.parse(json);
+  a.equal(graph['@graph'][1].url, 'https://example.test/base/notes/first');
+  a.equal(graph['@graph'][1].image, '/acme/assets/article.webp');
+  a.equal(graph['@graph'][1].isPartOf.url, 'https://example.test/base/');
+  a.equal(graph['@graph'][1].away, 'https://elsewhere.test/base/notes/first.html',
+    'an unrelated external URL stays authored even when its filename matches a page');
+  a.equal(graph['@graph'][1].sameOriginAway, 'https://example.test/base/archive/notes/first.html',
+    'a suffix match elsewhere under the same site also stays authored');
+  a.equal(out.includes('/acme/../assets'), false, 'the shared prefix never keeps parent traversal');
+});
+
+test('hosted sitemap cleanup preserves query and hash while static URLs remain explicit', () => {
+  const files = new Map([['index.html', 'home'], ['pricing.html', 'price']]);
+  const siteBase = 'https://example.test/base/';
+  a.equal(cleanPublishedUrl('https://example.test/base/index.html?from=old#top', files, siteBase),
+    'https://example.test/base/?from=old#top');
+  a.equal(cleanPublishedUrl('https://example.test/base/missing.html', files, siteBase),
+    'https://example.test/base/missing.html');
+  a.equal(cleanPublishedUrl('https://elsewhere.test/base/pricing.html', files, siteBase),
+    'https://elsewhere.test/base/pricing.html', 'a matching filename on another origin is not ours');
+  a.equal(cleanPublishedUrl('https://example.test/other/pricing.html', files, siteBase),
+    'https://example.test/other/pricing.html', 'the same origin outside the configured base is not ours');
+  a.equal(cleanPublishedUrl('https://example.test/base/archive/pricing.html', files, siteBase),
+    'https://example.test/base/archive/pricing.html', 'a suffix match below another path is not a generated route');
+  a.equal(cleanPublishedUrl('https://example.test/base/pricing.html', files, ''),
+    'https://example.test/base/pricing.html', 'without a configured site base there is no ownership proof');
+  const xml = '<urlset><url><loc>https://example.test/base/index.html</loc></url><url><loc>https://example.test/base/pricing.html</loc></url><url><loc>https://elsewhere.test/base/pricing.html</loc></url></urlset>';
+  a.equal(hostedSitemap(xml, files, siteBase),
+    '<urlset><url><loc>https://example.test/base/</loc></url><url><loc>https://example.test/base/pricing</loc></url><url><loc>https://elsewhere.test/base/pricing.html</loc></url></urlset>');
+});
+
 test('the review comes back with the render, so a save can report it without a second pass', () => {
   const out = renderSite(demo());
   a.ok(Array.isArray(out.findings));
   a.deepEqual(out.findings, Core.lint(), 'and it is the same review the builder shows');
+});
+
+test('manual Breadcrumb item links receive the same reserved-reference review as Nav items', () => {
+  const doc = blankDoc('Breadcrumb review');
+  const crumbs = Core.makeFor('crumbs');
+  crumbs.props.mode = 'manual';
+  crumbs.props.items = [{
+    label: 'Broken native destination', href: 'pagecraft:wordpress-content:page:not-base64!'
+  }, { label: 'Current', href: '' }];
+  doc.pages[0].tree = [crumbs];
+  const findings = renderSite(doc).findings;
+  a.ok(findings.some(finding => finding.code === 'wordpress-link-invalid'
+    && finding.nodeId === crumbs.id), 'the malformed reserved reference is a publish-blocking finding');
 });
 
 /* ------------------------------------------------------------------- schema */
@@ -112,6 +294,7 @@ test('a row written by an older editor is brought up to date before it is served
   const doc = demo() as any;
   /* v7: a button's hover was two custom properties read by a branch in the stylesheet writer */
   doc.v = 7;
+  doc.schemaVersion = 7;
   const btn = { id: 'nX', type: 'button', props: { text: 'Go' }, adv: {}, children: [],
                 css: { d: { '--hover-bg': '#ff0000', '--hover-fg': '#ffffff' }, t: {}, m: {} } };
   doc.pages[0].tree.push(btn);
@@ -135,6 +318,7 @@ test('adopt is idempotent, which is what makes it safe on every render', () => {
 test('a document from a newer build is refused rather than half-understood', () => {
   const doc = demo() as any;
   doc.v = Core.SCHEMA + 1;
+  doc.schemaVersion = Core.SCHEMA + 1;
   a.equal(adopt(doc), null);
 });
 

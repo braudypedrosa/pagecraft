@@ -1,0 +1,45 @@
+name: encrypted database backup
+
+on:
+  schedule:
+    - cron: '17 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
+        with:
+          version: 2.104.0
+
+      - name: Require backup secrets
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PAGECRAFT_BACKUP_PASSPHRASE: ${{ secrets.PAGECRAFT_BACKUP_PASSPHRASE }}
+        run: |
+          test -n "$SUPABASE_DB_URL" || { echo "Missing SUPABASE_DB_URL"; exit 1; }
+          test -n "$PAGECRAFT_BACKUP_PASSPHRASE" || { echo "Missing PAGECRAFT_BACKUP_PASSPHRASE"; exit 1; }
+
+      - name: Create encrypted logical backup
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PAGECRAFT_BACKUP_PASSPHRASE: ${{ secrets.PAGECRAFT_BACKUP_PASSPHRASE }}
+        run: bash tools/backup-supabase.sh "$RUNNER_TEMP/pagecraft-backups"
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: pagecraft-db-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/pagecraft-backups/*.enc
+            ${{ runner.temp }}/pagecraft-backups/*.sha256
+          if-no-files-found: error
+          retention-days: 30

@@ -17,6 +17,7 @@ import type { Doc } from '../../app/src/core/types.ts';
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -73,19 +74,19 @@ test('dimensions are read from the bytes, and an unknown size is zero rather tha
 
 /* ------------------------------------------------------- naming and paths */
 
-test('a rendered page names an image the way an exported zip does', () => {
+test('server asset metadata uses a collision-safe immutable path', () => {
   /* One rule, in the core, because a page served from here and the same page in a zip have
      to ask for the same file. */
   const asset = { id: 'a1', siteId: 's1', name: 'Big Logo.PNG', type: 'image/png', w: 8, h: 8, bytes: PNG };
-  a.equal(Core.assetFile(asset), 'assets/big-logo.png', 'sanitised and lowercased');
-  a.equal(metaOf(asset).path, 'assets/big-logo.png');
+  a.equal(Core.assetFile(asset), 'assets/big-logo-a1.png', 'sanitised, stable and collision-safe');
+  a.equal(metaOf(asset).path, 'assets/big-logo-a1.png', 'the stable id prevents filename collisions');
   a.equal(Core.assetFile({ id: 'a2' }), 'assets/a2', 'the id when there is no name');
 });
 
 test('a token becomes a path, and one with nothing behind it becomes the placeholder', () => {
   const get = (id: string) => id === 'a1' ? { id: 'a1', name: 'logo.png' } : null;
-  a.equal(Core.assetPaths('<img src="asset:a1">', get), '<img src="assets/logo.png">');
-  a.equal(Core.assetPaths('<img src="asset:a1">', get, '../'), '<img src="../assets/logo.png">');
+  a.equal(Core.assetPaths('<img src="asset:a1">', get), '<img src="assets/logo-a1.png">');
+  a.equal(Core.assetPaths('<img src="asset:a1">', get, '../'), '<img src="../assets/logo-a1.png">');
   a.match(Core.assetPaths('<img src="asset:gone">', get), /^<img src="data:image\/svg\+xml/,
     'a missing image is a placeholder, not a broken src');
 });
@@ -101,7 +102,7 @@ test('a page one directory down asks for the image at the right depth', () => {
 
   const assets = [{ id: 'a1', siteId: 's1', name: 'hero.png', type: 'image/png', w: 8, h: 8, bytes: PNG }];
   const out = renderSite(doc, assets);
-  a.match(out.files.get('index.html')!, /src="assets\/hero\.png"/);
+  a.match(out.files.get('index.html')!, /src="assets\/hero-a1\.png"/);
   a.equal(/src="asset:a1"/.test(out.files.get('index.html')!), false, 'the token must not survive');
 });
 
@@ -144,18 +145,31 @@ test('an image uploads, lists, and is served on the site at its export path', as
   const up = await upload(PNG, 'Hero Shot.png');
   a.equal(up.status, 201);
   const meta = await up.json() as { id: string; path: string; w: number; h: number; type: string };
-  a.equal(meta.path, 'assets/hero-shot.png');
+  a.equal(meta.path, `assets/hero-shot-${meta.id}.png`);
   a.deepEqual([meta.w, meta.h], [800, 600], 'measured on the way in');
 
   const list = await (await req(`/api/sites/${site.id}/assets`, {}, cookie)).json() as unknown[];
   a.equal(list.length, 1);
 
   /* the site serves it, on the path the export would have written */
-  const served = await app.request(new Request('http://acme.test/assets/hero-shot.png', { headers: { host: 'acme.test' } }));
+  const served = await app.request(new Request(`http://acme.test/${meta.path}`, { headers: { host: 'acme.test' } }));
   a.equal(served.status, 200);
   a.equal(served.headers.get('content-type'), 'image/png');
   a.match(served.headers.get('cache-control') || '', /immutable/);
   a.deepEqual(new Uint8Array(await served.arrayBuffer()), PNG, 'the same bytes back');
+});
+
+test('SVG remains supported but is sandboxed when opened directly', async () => {
+  const { app, upload } = await rig('content');
+  const active = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>alert(1)</script></svg>');
+  const up = await upload(active, 'mark.svg', 'image/svg+xml');
+  a.equal(up.status, 201);
+  const meta = await up.json() as { path: string };
+  const served = await app.request(new Request(`http://acme.test/${meta.path}`, { headers: { host: 'acme.test' } }));
+  a.equal(served.status, 200);
+  a.match(served.headers.get('content-security-policy') || '', /^sandbox;/);
+  a.match(served.headers.get('content-security-policy') || '', /default-src 'none'/);
+  a.equal(served.headers.get('x-content-type-options'), 'nosniff');
 });
 
 test('an upload that is not an image is refused whatever it says it is', async () => {
@@ -182,15 +196,46 @@ test('an upload with no file is a 400, not a stored empty asset', async () => {
 
 test('assets belong to their site and nobody else’s', async () => {
   const { app, store, assets, upload, site } = await rig();
-  await upload(PNG, 'mine.png');
+  const meta = await (await upload(PNG, 'mine.png')).json() as { path: string };
   const other = await store.create({ host: 'beta.test', name: 'Beta', doc: demo() });
 
   a.equal((await assets.list(other.id)).length, 0);
-  const cross = await app.request(new Request('http://beta.test/assets/mine.png', { headers: { host: 'beta.test' } }));
+  const cross = await app.request(new Request(`http://beta.test/${meta.path}`, { headers: { host: 'beta.test' } }));
   a.equal(cross.status, 404, 'another site cannot serve this one’s images');
-  const own = await app.request(new Request('http://acme.test/assets/mine.png', { headers: { host: 'acme.test' } }));
+  const own = await app.request(new Request(`http://acme.test/${meta.path}`, { headers: { host: 'acme.test' } }));
   a.equal(own.status, 200);
   void site;
+});
+
+test('same-named uploads receive different immutable paths and remain individually readable', async () => {
+  const { app, upload } = await rig();
+  const one = await (await upload(PNG, 'photo.png')).json() as { id: string; path: string };
+  const two = await (await upload(JPEG, 'photo.png', 'image/jpeg')).json() as { id: string; path: string };
+  a.notEqual(one.id, two.id);
+  a.notEqual(one.path, two.path);
+  const first = await app.request(new Request(`http://acme.test/${one.path}`, { headers: { host: 'acme.test' } }));
+  const second = await app.request(new Request(`http://acme.test/${two.path}`, { headers: { host: 'acme.test' } }));
+  a.deepEqual(new Uint8Array(await first.arrayBuffer()), PNG);
+  a.deepEqual(new Uint8Array(await second.arrayBuffer()), JPEG);
+});
+
+test('asset deletion is durable, permissioned, and visible after reload', async () => {
+  const { assets, upload, req, cookie, site } = await rig();
+  const meta = await (await upload(PNG, 'unused.png')).json() as { id: string };
+  const gone = await req(`/api/sites/${site.id}/assets/${meta.id}`, { method: 'DELETE' }, cookie);
+  a.equal(gone.status, 200);
+  a.equal(await assets.get(site.id, meta.id), null);
+  a.deepEqual(await (await req(`/api/sites/${site.id}/assets`, {}, cookie)).json(), []);
+  a.equal((await req(`/api/sites/${site.id}/assets/${meta.id}`, { method: 'DELETE' }, cookie)).status, 404);
+});
+
+test('asset deletion needs a signed-in writer', async () => {
+  const { app, upload, site } = await rig();
+  const meta = await (await upload(PNG, 'private.png')).json() as { id: string };
+  const res = await app.request(new Request(`http://admin.test/api/sites/${site.id}/assets/${meta.id}`, {
+    method: 'DELETE', headers: { host: 'admin.test' }
+  }));
+  a.equal(res.status, 401);
 });
 
 test('uploading needs a session and a role on that site', async () => {

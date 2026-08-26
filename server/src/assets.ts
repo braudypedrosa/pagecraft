@@ -6,7 +6,7 @@
    ever in somebody else's browser.
 
    So the server owns them. An asset belongs to a site, carries the filename it was uploaded
-   under, and is served at the same path the export writes — `assets/<name>`, from
+   under, and is served at the same collision-safe path the export writes, from
    `assetFile` in the core, so a page served from here and the same page in an exported zip
    name the file identically. That agreement is the reason `assetFile` moved into the core
    rather than being written twice.
@@ -15,7 +15,7 @@
    what keeps a save small and a render synchronous. */
 import { assetFile } from '../../app/src/core/index.ts';
 
-export interface Asset {
+export interface AssetRecord {
   id: string;
   siteId: string;
   /** the uploaded filename, sanitised into the path by `assetFile` */
@@ -24,21 +24,40 @@ export interface Asset {
   /** intrinsic size, so the export can write width and height and the review can check them */
   w: number;
   h: number;
+}
+
+export interface Asset extends AssetRecord {
   bytes: Uint8Array;
 }
 
 /** What a listing hands back: everything except the bytes. */
-export type AssetMeta = Omit<Asset, 'bytes' | 'siteId'> & { path: string };
+export type AssetMeta = Omit<AssetRecord, 'siteId'> & { path: string };
 
-export const metaOf = (a: Asset): AssetMeta =>
-  ({ id: a.id, name: a.name, type: a.type, w: a.w, h: a.h, path: assetFile(a) });
+export const metaOf = (a: AssetRecord): AssetMeta =>
+  ({
+    id: a.id, name: a.name, type: a.type, w: a.w, h: a.h,
+    path: assetFile(a)
+  });
+
+/** The filename-only path older releases emitted. Public lookup keeps accepting it so already
+    published markup and bookmarks do not break while new renders use the id-suffixed path. */
+export const legacyAssetPath = (a: Pick<AssetRecord, 'id' | 'name'>) =>
+  'assets/' + String(a.name || a.id).replace(/[^\w.-]+/g, '-').toLowerCase();
 
 export interface AssetStore {
-  list(siteId: string): Promise<Asset[]>;
+  /** Metadata only. Listing a library must never transfer every image body. */
+  list(siteId: string): Promise<AssetRecord[]>;
   get(siteId: string, id: string): Promise<Asset | null>;
-  /** by the path a rendered page asks for, e.g. `assets/logo.png` */
+  /** by the path a rendered page asks for, e.g. `assets/logo-a123.png` */
   byPath(siteId: string, path: string): Promise<Asset | null>;
-  put(a: Omit<Asset, 'id'> & { id?: string }): Promise<Asset>;
+  put(a: Omit<Asset, 'id'> & { id?: string }): Promise<AssetRecord>;
+  /** Finalize a WordPress-originated asset only while its connection is active. Production
+      stores lock that connection alongside the insert; the callback gives MemoryAssetStore
+      the same ordering guarantee in tests. Null means the guard or exact-id binding failed. */
+  putConnected(
+    a: Omit<Asset, 'id'> & { id: string }, connectionId: string,
+    active?: () => Promise<boolean>
+  ): Promise<AssetRecord | null>;
   remove(siteId: string, id: string): Promise<boolean>;
 }
 
@@ -118,14 +137,20 @@ export class MemoryAssetStore implements AssetStore {
   private seq = 0;
 
   async list(siteId: string) {
-    return [...this.all.values()].filter(a => a.siteId === siteId);
+    return [...this.all.values()]
+      .filter(a => a.siteId === siteId)
+      .map(({ bytes: _bytes, ...meta }) => ({ ...meta }));
   }
   async get(siteId: string, id: string) {
     const a = this.all.get(id);
     return a && a.siteId === siteId ? a : null;
   }
   async byPath(siteId: string, path: string) {
-    for (const a of this.all.values()) if (a.siteId === siteId && assetFile(a) === path) return a;
+    for (const a of this.all.values()) {
+      if (a.siteId !== siteId) continue;
+      const current = metaOf(a).path;
+      if (current === path || legacyAssetPath(a) === path) return a;
+    }
     return null;
   }
   async put(a: Omit<Asset, 'id'> & { id?: string }) {
@@ -134,7 +159,15 @@ export class MemoryAssetStore implements AssetStore {
     const id = a.id || 'a' + (++this.seq) + Math.random().toString(36).slice(2, 8);
     const rec: Asset = { ...a, id };
     this.all.set(id, rec);
-    return rec;
+    const { bytes: _bytes, ...meta } = rec;
+    return { ...meta };
+  }
+  async putConnected(a: Omit<Asset, 'id'> & { id: string }, _connectionId: string, active?: () => Promise<boolean>) {
+    if (!active || !await active()) return null;
+    const prior = this.all.get(a.id);
+    if (prior && (prior.siteId !== a.siteId || prior.name !== a.name || prior.type !== a.type
+      || prior.w !== a.w || prior.h !== a.h || !sameBytes(prior.bytes, a.bytes))) return null;
+    return prior ? metaOfRecord(prior) : this.put(a);
   }
   async remove(siteId: string, id: string) {
     const a = this.all.get(id);
@@ -143,6 +176,13 @@ export class MemoryAssetStore implements AssetStore {
     return true;
   }
 }
+
+const sameBytes = (a: Uint8Array, b: Uint8Array) =>
+  a.byteLength === b.byteLength && a.every((value, index) => value === b[index]);
+const metaOfRecord = (a: Asset): AssetRecord => {
+  const { bytes: _bytes, ...meta } = a;
+  return { ...meta };
+};
 
 /** The volume's half of the schema. Unexercised, like the rest of `store-pg.ts`. */
 export const ASSET_SCHEMA = `

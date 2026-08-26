@@ -12,12 +12,13 @@ import { contentOnly } from '../src/content.ts';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, type Role } from '../src/auth.ts';
-import { adopt } from '../src/render.ts';
+import { adopt, renderSite } from '../src/render.ts';
 import type { Doc, Node as PcNode } from '../../app/src/core/types.ts';
 
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -54,6 +55,29 @@ test('words are content — in a heading, a button, a paragraph, an alt text', (
   a.equal(change(d => { find(d, 'button').props.text = 'Press me'; }).ok, true);
   a.equal(change(d => { find(d, 'text').props.html = '<p>Rewritten.</p>'; }).ok, true);
   a.equal(change(d => { find(d, 'image').props.alt = 'A described picture'; }).ok, true);
+});
+
+test('rich text keeps toolbar formatting and refuses executable markup', () => {
+  a.equal(change(d => { find(d, 'text').props.html = '<p><strong>Safe</strong> <a href="https://example.com">link</a></p>'; }).ok, true);
+  for (const html of [
+    '<img src=x onerror="alert(1)">',
+    '<script>fetch("/api/sites")</script>',
+    '<p style="background:url(https://evil.test)">Tracked</p>',
+    '<a href="javascript:alert(1)">Bad link</a>'
+  ]) {
+    const result = change(d => { find(d, 'text').props.html = html; });
+    a.equal(result.ok, false, html);
+    a.match(result.where || '', /markup this account may not publish/);
+  }
+});
+
+test('Embed HTML is owner-only even though its words remain searchable', () => {
+  const before = demo();
+  before.pages[0].tree[0].children.push(Core.N('embed', { html: '<p>Owner widget</p>' }, {}, []));
+  const after = structuredClone(before);
+  find(after, 'embed').props.html = '<script>alert(1)</script>';
+  a.equal(contentOnly(before, after).ok, false);
+  a.equal(Core.contentKeys('embed').size, 0, 'the limited editor must not offer the control');
 });
 
 test('a page’s own title and description are content', () => {
@@ -320,8 +344,12 @@ test('a content client saves words and is refused the layout', async () => {
   }, cookie);
   a.equal(ok.status, 200, 'a content client must be able to change words');
 
+  const saved = await (await req(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc };
+  a.equal(find(saved.doc, 'heading').props.text, 'A client wrote this',
+    'the content edit is present in the shared draft');
   const live = await app.request(new Request('http://acme.test/', { headers: { host: 'acme.test' } }));
-  a.match(await live.text(), /A client wrote this/);
+  a.equal(/A client wrote this/.test(await live.text()), false,
+    'a content autosave must not leak onto the published site');
 
   /* the edit a client does not get to make */
   const styled = structuredClone(words);
@@ -354,6 +382,7 @@ test('a content client can still save against a row an older editor wrote', asyn
      structure. The client would be told they had changed the layout by opening the page. */
   const legacy = demo() as any;
   legacy.v = 7;
+  legacy.schemaVersion = 7;
   find(legacy, 'button').css.d['--hover-bg'] = '#ff0000';
 
   const store = new MemoryStore();
@@ -389,10 +418,11 @@ test('a content client can still save against a row an older editor wrote', asyn
   }, cookie);
   a.equal(res.status, 200, 'a legacy row plus a content account is a save, not a refusal');
 
-  const live = await app.request(new Request('http://acme.test/', { headers: { host: 'acme.test' } }));
-  const html = await live.text();
+  const saved = await (await req(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc };
+  a.equal(find(saved.doc, 'heading').props.text, 'A client wrote this');
+  const html = renderSite(adopt(saved.doc) as Doc).files.get('index.html') || '';
   a.match(html, /A client wrote this/);
-  a.match(html, /:hover\{[^}]*background-color:#ff0000/, 'and the hover survived the round trip');
+  a.match(html, /:hover\{[^}]*background-color:#ff0000/, 'and the hover survived the draft round trip');
 });
 
 test('a document from a newer editor is refused with something a person can read', async () => {
@@ -417,6 +447,7 @@ test('a document from a newer editor is refused with something a person can read
 
   const loaded = await (await req(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc; version: number };
   const future = structuredClone(loaded.doc) as any;
+  future.schemaVersion = Core.SCHEMA + 1;
   future.v = Core.SCHEMA + 1;
   find(future, 'heading').props.text = 'From the future';
 
@@ -639,10 +670,15 @@ test('a client rewrites an item and the detail page it generates changes with it
   }, cookie);
   a.equal(res.status, 200, 'words in a CMS item are content');
 
-  /* the page it generates says so, at the same URL — the slug is stable on purpose */
+  /* The shared draft changes, while the active release at the stable URL remains unchanged. */
+  const saved = await (await req(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc };
+  const savedCol = (saved.doc.meta.collections || [])[0];
+  a.equal(savedCol.items[0].values[titleField], 'The first note, renamed');
   const after = await req('/notes/first-note', {}, undefined, 'notes.test');
   a.equal(after.status, 200);
-  a.match(await after.text(), /<h1[^>]*>The first note, renamed</);
+  const afterHtml = await after.text();
+  a.match(afterHtml, /<h1[^>]*>First note</);
+  a.equal(/The first note, renamed/.test(afterHtml), false, 'the draft value must not leak publicly');
 });
 
 test('a client cannot add an item, delete one, or change the schema', async () => {

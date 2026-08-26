@@ -20,6 +20,7 @@ import type { Doc } from '../../app/src/core/types.ts';
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -140,6 +141,24 @@ test('the map does not grow without limit', () => {
   a.ok(t.size() <= 6000, 'sanity');
   t.take('trigger@x.test', t0 + 10_000);
   a.ok(t.size() < 100, `expected a sweep, still holding ${t.size()}`);
+});
+
+test('active attacker-controlled keys are capped too', () => {
+  const t = throttle(1, 60_000, 3);
+  a.equal(t.take('one', 1), true);
+  a.equal(t.take('two', 1), true);
+  a.equal(t.take('three', 1), true);
+  a.equal(t.take('four', 1), false);
+  a.equal(t.size(), 3);
+});
+
+test('the public login body and address have hard limits', async () => {
+  const app = createApp({ store: new MemoryStore(), auth: new MemoryAuthStore(), editorHost: 'admin.test' });
+  const ask = (body: string) => app.request(new Request('http://admin.test/auth/login', {
+    method: 'POST', headers: { host: 'admin.test', 'content-type': 'application/json' }, body
+  }));
+  a.equal((await ask('x'.repeat(9000))).status, 413);
+  a.equal((await ask(JSON.stringify({ email: `${'a'.repeat(255)}@x.test` }))).status, 400);
 });
 
 /* ------------------------------------------------------------ through the API */

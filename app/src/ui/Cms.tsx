@@ -21,16 +21,19 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
   };
 
   return (
-    <div class="brow" title={'Edit ' + col.name} onClick={() => L.cmsModal(col.id)}>
-      <Icon name="page" size={14} />
-      <span class="bn">
-        <b>{col.name}</b>
-        <small>{n(col.fields.length, 'field')} · {n(col.items.length, 'item')}</small>
-      </span>
+    <div class="brow">
+      <button type="button" class="brow-main" title={'Edit ' + col.name}
+        onClick={() => L.cmsModal(col.id)}>
+        <Icon name="page" size={14} />
+        <span class="bn">
+          <b>{col.name}</b>
+          <small>{n(col.fields.length, 'field')} · {n(col.items.length, 'item')}</small>
+        </span>
+      </button>
       {/* Deleting a collection takes its items with it. That is not a content edit however
           much of the content it removes, and the server refuses it. */}
       {L.canStructure() ? (
-        <button class="bx" title="Delete this collection" onClick={remove}>
+        <button type="button" class="bx" title="Delete this collection" onClick={remove}>
           <Icon name="trash" size={11} />
         </button>
       ) : null}

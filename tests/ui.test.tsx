@@ -12,11 +12,15 @@
 import { test, beforeEach, afterEach } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
-import { Ctl } from '../app/src/ui/inspector/Controls';
+import { CONTROL_KINDS, Ctl, Dropzone } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
 import { Add } from '../app/src/ui/Add';
 import { Inspector } from '../app/src/ui/inspector/Inspector';
 import { Pages } from '../app/src/ui/Pages';
+import { Cms } from '../app/src/ui/Cms';
+import { ColorTokens } from '../app/src/ui/ColorTokens';
+import { StyleClasses } from '../app/src/ui/StyleClasses';
+import { TextStyles } from '../app/src/ui/TextStyles';
 import { act } from 'preact/test-utils';
 import { rig, type Rig } from './ui.setup';
 import type { Control, NavItem } from '../app/src/core/types';
@@ -27,9 +31,93 @@ afterEach(() => { r.host.remove(); });
 
 const heading = () => C.insert('heading', null, 0)!;
 
+test('every declared inspector control has a renderer and every declared choice is operable', () => {
+  const declared: Array<{ owner: string; n: any; c: Control }> = [];
+  for (const [type, def] of Object.entries(C.DEF)) {
+    const n = C.N(type);
+    for (const c of [...def.controls.content, ...def.controls.style]) {
+      declared.push({ owner: type, n, c });
+    }
+  }
+  const commonNode = C.N('section');
+  for (const group of C.COMMON_STYLE) {
+    for (const c of group.items) declared.push({ owner: `common:${group.g}`, n: commonNode, c });
+  }
+
+  const seen = new Set<string>();
+  let choices = 0;
+  for (const { owner, n, c } of declared) {
+    seen.add(c.t);
+    r.draw(<Ctl n={n} c={c} />);
+    a.ok(r.host.firstElementChild, `${owner} ${c.label || c.c || c.k || c.t} did not render`);
+    const opts = typeof c.opts === 'function' ? c.opts(n) : (c.opts || []);
+    if (c.t === 'select' || c.t === 'pick') {
+      const elements = c.t === 'select' ? r.$$('select option') : r.$$('.pick > button');
+      a.equal(elements.length, opts.length,
+        `${owner} ${c.label || c.c || c.k} does not expose every declared choice`);
+      for (let i = 0; i < opts.length; i++) {
+        const value = String(opts[i][0]);
+        if (c.t === 'select') r.pick(r.$('select')!, value);
+        else r.click(elements[i]);
+        const stored = c.c
+          ? C.cssVal(C.tgtObj(n), c.c, !!c.r).v
+          : C.propVal(n, c.k);
+        a.equal(String(stored ?? ''), value,
+          `${owner} ${c.label || c.c || c.k} did not apply option ${value}`);
+        choices++;
+      }
+    }
+    if (c.t === 'opt') {
+      const groups = c.og ? c.og() : [];
+      const pool = groups.length
+        ? groups.flatMap((group: any[]) => group[1] || [])
+        : (typeof c.opts === 'function' ? c.opts(n) : (c.opts || []));
+      a.equal(r.$$('select option').length, pool.length + 1,
+        `${owner} ${c.label || c.k} does not expose every grouped choice`);
+      for (const [value] of pool as string[][]) {
+        r.pick(r.$('select')!, String(value));
+        a.equal(String(c.c ? C.cssVal(C.tgtObj(n), c.c, !!c.r).v : C.propVal(n, c.k) ?? ''),
+          String(value), `${owner} ${c.label || c.k} did not apply grouped option ${value}`);
+        choices++;
+      }
+      r.pick(r.$('select')!, '__custom');
+      choices++;
+    }
+  }
+  a.deepEqual([...seen].sort(), [...CONTROL_KINDS].sort(),
+    'the renderer registry and the controls declared by the product must stay exhaustive together');
+  a.ok(declared.length >= 230, `expected the complete inspector surface, got ${declared.length} rows`);
+  a.ok(choices >= 250, `expected every declared choice, got ${choices}`);
+});
+
 /* A repeater's rows, typed. `items` is a different shape per widget, so the test that
    built the node says which it has. */
 const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
+
+const WORDPRESS_CONTENT = [{
+  connectionId: 'wp-stage',
+  environment: 'staging',
+  profile: 'existing-theme',
+  targetOrigin: 'https://stage.example.test',
+  targetPath: '/preview',
+  items: [{
+    id: 'page:41', objectType: 'page', title: 'Native contact',
+    url: 'https://stage.example.test/preview/native-contact/', modifiedAt: '2026-08-26T00:00:00Z'
+  }, {
+    id: 'page:42', objectType: 'page', title: 'Preview-only native',
+    url: 'https://stage.example.test/preview/native-contact/?preview=1', modifiedAt: '2026-08-26T00:00:01Z'
+  }]
+}, {
+  connectionId: 'wp-prod',
+  environment: 'production',
+  profile: 'pagecraft-theme',
+  targetOrigin: 'https://www.example.test',
+  targetPath: '/',
+  items: [{
+    id: 'post:7', objectType: 'post', title: 'WordPress journal',
+    url: 'https://www.example.test/journal/wordpress-post/', modifiedAt: '2026-08-26T01:00:00Z'
+  }]
+}] as const;
 
 /* ----------------------------------------------- scoped to a content account */
 
@@ -420,7 +508,7 @@ test('the HTML id control reads from adv and strips what an attribute cannot car
 
 /* ------------------------------------------------------------------ repeaters */
 
-test('a repeater adds, reorders and removes rows', () => {
+test('a repeater adds and removes rows', () => {
   const n = C.insert('nav', null, 0)!;
   C.selSet([n.id]);
   const c: Control = { t: 'items', k: 'items', label: 'Menu links' };
@@ -428,30 +516,137 @@ test('a repeater adds, reorders and removes rows', () => {
   drawn();
 
   const before = navRows(n).length;
-  r.click(r.$$('button').find(b => /Add link/.test(b.textContent || '')) || null);
+  r.click(r.$$('button').find(b => /Add page/.test(b.textContent || '')) || null);
   a.equal(navRows(n).length, before + 1);
 
   drawn();
-  r.type(r.$$('.irow')[0].querySelector('input')!, 'Renamed');
-  a.equal(navRows(n)[0].label, 'Renamed');
-
-  drawn();
-  const second = navRows(n)[1].label;
-  r.click(r.$$('.irow')[1].querySelector('[title="Move up"]'));
-  a.equal(navRows(n)[0].label, second, 'it swapped with the row above');
+  r.type(r.$('.navitem.on input[placeholder="Link label"]')!, 'Renamed');
+  a.equal(navRows(n)[navRows(n).length - 1].label, 'Renamed');
 
   drawn();
   const count = navRows(n).length;
-  r.click(r.$$('.irow')[0].querySelector('[title="Remove"]'));
+  r.click(r.$$('.navitem')[0].querySelector('[title="Remove"]'));
   a.equal(navRows(n).length, count - 1);
 });
 
-test('move up is disabled on the first row', () => {
+test('menu links expose one disclosure caret and reorder by dragging the handle', () => {
   const n = C.insert('nav', null, 0)!;
   C.selSet([n.id]);
   r.draw(<Ctl n={n} c={{ t: 'items', k: 'items', label: 'Menu links' }} />);
-  const first = r.$$('.irow')[0].querySelector('[title="Move up"]') as HTMLButtonElement;
-  a.equal(first.disabled, true, 'there is nothing above it');
+  const cards = r.$$('.navitem');
+  const firstLabel = navRows(n)[0].label;
+  const secondLabel = navRows(n)[1].label;
+  a.equal(cards[0].querySelectorAll('.navitem-main svg').length, 1, 'the only caret opens the item');
+  a.equal(cards[0].querySelector('[title="Move up"]'), null, 'there is no second caret for positioning');
+  const handle = cards[0].querySelector('[title="Drag to reorder"]') as HTMLElement;
+  a.equal(handle.getAttribute('draggable'), 'true');
+  handle.dispatchEvent(new window.Event('dragstart', { bubbles: true }));
+  cards[1].dispatchEvent(new window.Event('drop', { bubbles: true, cancelable: true }));
+  a.equal(navRows(n)[0].label, secondLabel);
+  a.equal(navRows(n)[1].label, firstLabel);
+});
+
+test('a menu item chooses a project page or custom URL and carries its own classes and target', () => {
+  const n = C.insert('nav', null, 0)!;
+  C.selSet([n.id]);
+  const c: Control = { t: 'items', k: 'items', label: 'Menu links' };
+  const drawn = () => r.draw(<Ctl n={n} c={c} />);
+  drawn();
+
+  const first = () => r.$$('.navitem')[0];
+  a.match(first().textContent || '', /Page ·/);
+  r.type(first().querySelector('input[placeholder="featured-link another-class"]')!, 'featured-link nav-accent');
+  r.click(first().querySelector('.sw-tog'));
+  a.equal(navRows(n)[0].cls, 'featured-link nav-accent');
+  a.equal(navRows(n)[0].target, '_blank');
+
+  const destination = first().querySelector('.navitem-body select')!;
+  r.pick(destination, 'custom');
+  drawn();
+  r.type(first().querySelector('input[placeholder="https://example.com or #section"]')!, 'https://example.com/work');
+  a.equal(navRows(n)[0].href, 'https://example.com/work');
+});
+
+test('the external link control stores a target-neutral WordPress route rather than the selected target URL', () => {
+  const r2 = rig({ wordpressContent: WORDPRESS_CONTENT });
+  const n = C.insert('button', null, 0)!;
+  n.props.link = 'https://manual.example.test/start';
+  C.selSet([n.id]);
+  const draw = () => r2.draw(<Ctl n={n} c={{ t: 'link', k: 'link', label: 'Link' }} />);
+  draw();
+
+  const picker = r2.$('.wp-link-picker select') as HTMLSelectElement;
+  a.ok(picker, 'an indexed target makes the optional picker available');
+  const label = r2.$(`label[for="${picker.id}"]`);
+  a.equal(label?.textContent, 'WordPress content', 'the picker has a visible programmatic label');
+  a.ok(picker.getAttribute('aria-describedby'), 'ownership guidance is associated with the picker');
+  a.deepEqual(r2.$$('.wp-link-picker optgroup').map(group => group.getAttribute('label')), [
+    'Staging · https://stage.example.test/preview',
+    'Production · https://www.example.test'
+  ]);
+  a.match(r2.$('.wp-link-picker')!.textContent || '', /editable only in WordPress/);
+  a.doesNotMatch(r2.$('.wp-link-picker')!.textContent || '', /Preview-only native/,
+    'query-bearing native destinations are not offered because dropping the query would change the link');
+
+  const neutral = C.buildWordPressContentReference('page', '/native-contact/');
+  r2.pick(picker, neutral);
+  a.equal(n.props.link, neutral, 'the typed WordPress-relative route is stored');
+  a.equal(String(n.props.link).includes('stage.example.test'), false,
+    'the selected staging hostname never enters the document');
+
+  C.state.ui.lmode = null; // the same state a newly loaded editor has
+  draw();
+  a.equal((r2.$('.wp-link-picker select') as HTMLSelectElement).value, neutral,
+    'the neutral reference is detected again after editor state reloads');
+  a.equal(r2.$('input[aria-label="Custom or external URL"]'), null,
+    'an internal typed reference is not exposed as a raw custom scheme');
+  a.equal(r2.$('.wp-link-picker a, .wp-link-picker button'), null,
+    'the catalogue has no native-content edit affordance');
+  r2.host.remove();
+});
+
+test('the WordPress destination picker is absent when no connected index is available', () => {
+  const n = C.insert('button', null, 0)!;
+  n.props.link = 'https://example.com/manual';
+  C.selSet([n.id]);
+  r.draw(<Ctl n={n} c={{ t: 'link', k: 'link', label: 'Link' }} />);
+  a.equal(r.$('.wp-link-picker'), null);
+  a.equal((r.$('input[aria-label="Custom or external URL"]') as HTMLInputElement).value,
+    'https://example.com/manual', 'manual external links do not depend on WordPress');
+});
+
+test('navigation rows choose WordPress content and recognise it after a redraw', () => {
+  const r2 = rig({ wordpressContent: WORDPRESS_CONTENT });
+  const n = C.insert('nav', null, 0)!;
+  C.selSet([n.id]);
+  const control: Control = { t: 'items', k: 'items', label: 'Menu links' };
+  const draw = () => r2.draw(<Ctl n={n} c={control} />);
+  draw();
+
+  let destination = r2.$('.navitem.on select[aria-label^="Destination for"]') as HTMLSelectElement;
+  a.ok([...destination.options].some(option => option.value === 'wordpress'),
+    'WordPress is an explicit destination alongside Pagecraft and custom URLs');
+  r2.pick(destination, 'wordpress');
+  const stagingReference = C.buildWordPressContentReference('page', '/native-contact/');
+  a.equal(navRows(n)[0].href, stagingReference,
+    'choosing WordPress starts with a typed target-neutral route');
+
+  draw();
+  destination = r2.$('.navitem.on select[aria-label^="Destination for"]') as HTMLSelectElement;
+  a.equal(destination.value, 'wordpress', 'the stored URL restores the WordPress destination mode');
+  const picker = r2.$('.navitem.on .wp-link-picker select') as HTMLSelectElement;
+  const productionReference = C.buildWordPressContentReference('post', '/journal/wordpress-post/');
+  r2.pick(picker, productionReference);
+  a.equal(navRows(n)[0].href, productionReference,
+    'navigation commits the selected native route without a target hostname');
+
+  C.edit(() => { navRows(n)[0].href = 'https://manual.example.test/path'; });
+  draw();
+  destination = r2.$('.navitem.on select[aria-label^="Destination for"]') as HTMLSelectElement;
+  a.equal(destination.value, 'custom', 'an unindexed absolute URL remains a custom destination');
+  a.equal((r2.$('.navitem.on input[placeholder="https://example.com or #section"]') as HTMLInputElement).value,
+    'https://manual.example.test/path');
+  r2.host.remove();
 });
 
 /* ------------------------------------------------------------------- toggle */
@@ -533,4 +728,105 @@ test('the twisty collapses a subtree without changing the selection', () => {
   a.equal(C.state.ui.collapsed[sec.id], true);
   a.ok(r.$$('.lrow[data-id]').length < before, 'the subtree went');
   a.deepEqual(C.selIds(), [n.id], 'and the selection stayed put');
+});
+
+/* ------------------------------------------------ release-blocker interaction coverage */
+
+test('an inspector image drop passes the dropped file instead of reopening the chooser', async () => {
+  const dropped = new File(['image'], 'cover.png', { type: 'image/png' });
+  let chosen = 0;
+  let files: File[] = [];
+  r.draw(<Dropzone onChoose={() => { chosen++; }} onFiles={list => { files = Array.from(list); }} />);
+  const event = new window.Event('drop', { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'dataTransfer', { value: { files: [dropped] } });
+  r.$('.imgdrop')!.dispatchEvent(event);
+  await Promise.resolve();
+  a.equal(chosen, 0, 'drop does not launch a second file chooser');
+  a.deepEqual(files, [dropped], 'the file from DataTransfer reaches the upload path');
+});
+
+test('page-link choices use clean routes and toggles expose their state', () => {
+  const n = C.insert('button', null, 0)!;
+  const about = C.pageDup(0)!;
+  about.name = 'About'; about.slug = 'about';
+  n.props.link = 'about.html';
+  C.selSet([n.id]);
+  r.draw(<Ctl n={n} c={{ t: 'link', k: 'link', label: 'Link' }} />);
+  const labels = r.$$('option').map(x => x.textContent || '');
+  a.ok(labels.some(x => x.includes('About') && x.includes('/about')));
+  a.equal(labels.some(x => x.includes('.html')), false);
+  const toggle = r.$('.sw-tog')!;
+  a.equal(toggle.getAttribute('role'), 'switch');
+  a.equal(toggle.getAttribute('aria-checked'), 'false');
+  r.click(toggle);
+  a.equal(n.props.target, '_blank');
+});
+
+test('Add tiles, inspector groups, and Navigator rows have keyboard semantics', () => {
+  C.state.ui.atab = 'widgets';
+  r.draw(() => <Add />, 'add');
+  a.equal(r.$('.pitem')!.tagName, 'BUTTON');
+  const firstTab = r.$('.addSwitcher [role="tab"]')!;
+  firstTab.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  a.equal(C.state.ui.atab, 'templates');
+
+  const n = heading();
+  C.selSet([n.id]);
+  r.draw(() => <Inspector />, 'right');
+  const group = r.$('button.gh')!;
+  a.equal(group.getAttribute('aria-expanded'), 'true');
+  r.click(group);
+  a.equal(group.getAttribute('aria-expanded'), 'false');
+
+  r.draw(() => <Layers />, 'layers');
+  const row = r.$(`.lrow[data-id="${n.id}"]`)!;
+  a.equal(row.getAttribute('role'), 'treeitem');
+  r.calls.length = 0;
+  row.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  a.deepEqual(r.arg('select'), [n.id, { scroll: true }]);
+});
+
+test('page and collection rows expose a primary button without nesting their action buttons', () => {
+  r.draw(<Pages />);
+  a.equal(r.$('.pagerow-main')!.tagName, 'BUTTON');
+  a.equal(r.$('.pagerow-main button'), null, 'the page picker does not contain its action buttons');
+
+  C.collectionAdd('Articles');
+  r.draw(<Cms />);
+  a.equal(r.$('.brow-main')!.tagName, 'BUTTON');
+  a.equal(r.$('.brow-main button'), null, 'the collection picker does not contain its delete button');
+});
+
+test('page, token, class, and text-style typing closes one undo transaction on blur', () => {
+  r.draw(() => <Pages />, 'pages');
+  const pageName = r.$('#page-name')!;
+  r.type(pageName, 'Renamed page');
+  pageName.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
+  a.deepEqual(r.arg('tx'), [`page:${C.page().id}:name`]);
+  a.ok(r.names().includes('endTx'));
+
+  r.calls.length = 0;
+  r.draw(<ColorTokens />);
+  const tokenName = r.$('input[aria-label="Colour token name"]')!;
+  r.type(tokenName, 'Brand ink');
+  tokenName.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
+  a.ok(r.names().includes('tx'));
+  a.ok(r.names().includes('endTx'));
+
+  r.calls.length = 0;
+  C.classAdd('Card');
+  r.draw(<StyleClasses />);
+  const className = r.$('input[aria-label="Class name"]')!;
+  r.type(className, 'Feature card');
+  className.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
+  a.ok(r.names().includes('tx'));
+  a.ok(r.names().includes('endTx'));
+
+  r.calls.length = 0;
+  r.draw(<TextStyles />);
+  const styleName = r.$('input[aria-label="Text style name"]')!;
+  r.type(styleName, 'Display');
+  styleName.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
+  a.ok(r.names().includes('tx'));
+  a.ok(r.names().includes('endTx'));
 });

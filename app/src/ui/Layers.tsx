@@ -13,9 +13,15 @@ import { Icon } from './Icon';
 
 function RegionRow({ kind, label }: { kind: string; label: string }) {
   const live = kind === L.scopeOf();
+  const open = () => L.setMode(L.modeFor(kind));
   return (
     <div class={'lrow region' + (live ? ' live' : ' locked')}
-      onClick={() => L.setMode(L.modeFor(kind))}>
+      role="treeitem" tabIndex={0} aria-current={live ? 'true' : undefined}
+      onClick={open}
+      onKeyDown={e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault(); open();
+      }}>
       <Icon name={kind === 'main' ? 'page' : 'globe'} size={13} cls="ico" />
       <span class="nm">{label}</span>
       {live ? <span class="badge">Editing</span> : <Icon name="lock" size={12} cls="lk" />}
@@ -41,22 +47,31 @@ function NodeRow({ n, depth }: { n: any; depth: number }) {
          Region rows deliberately carry none, which is what excludes them as targets.
          It comes off when the drag moves across too. */
       data-id={n.id}
+      role="treeitem" tabIndex={0} aria-level={depth + 1}
+      aria-selected={primary || alsoPicked ? 'true' : 'false'}
+      aria-expanded={kids.length ? (collapsed ? 'false' : 'true') : undefined}
       style={{ paddingLeft: (6 + depth * 13) + 'px' }}
       onClick={e => L.select(n.id, { scroll: true, add: e.metaKey || e.ctrlKey, range: e.shiftKey })}
+      onKeyDown={e => {
+        if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return;
+        e.preventDefault(); L.select(n.id, { scroll: true });
+      }}
       onContextMenu={e => {
         e.preventDefault();
         if (!C.selIds().includes(n.id)) L.select(n.id);
         L.openCtx(e.clientX, e.clientY, C.selIds());
       }}>
-      <span class="tw" onClick={e => {
+      <button type="button" class="tw" aria-label={collapsed ? 'Expand' : 'Collapse'}
+        aria-expanded={kids.length ? (collapsed ? 'false' : 'true') : undefined}
+        disabled={!kids.length} onClick={e => {
         e.stopPropagation();
         C.state.ui.collapsed[n.id] = !collapsed;
         repaint('layers');
-      }}>{kids.length ? <Icon name="caret" size={10} /> : null}</span>
-      <span class="gr" title="Drag to reorder"
+      }}>{kids.length ? <Icon name="caret" size={10} /> : null}</button>
+      <button type="button" class="gr" title="Drag to reorder" aria-label="Drag to reorder"
         onPointerDown={e => L.startLayerDrag(e as unknown as PointerEvent, n.id)}>
         <Icon name="drag" size={11} />
-      </span>
+      </button>
       <Icon name={C.DEF[n.type].icon} size={13} cls="ico" />
       <span class="nm">{C.nameOf(n)}</span>
       <span class="act">
@@ -85,7 +100,7 @@ export function Layers() {
   const scope = L.scopeOf();
   const list = C.tree();
   return (
-    <div class="layers">
+    <div class="layers" role="tree" aria-label="Page content">
       {L.regions().map(R => (
         <>
           <RegionRow key={'r-' + R.kind} kind={R.kind} label={R.label} />

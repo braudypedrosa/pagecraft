@@ -12,6 +12,7 @@ import { useState } from 'preact/hooks';
 import { valueOf, bound, writer } from './ctl';
 import { ColorPop } from './ColorPop';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
+import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
 import type { Control, Node as PcNode, PropBag } from '../../core/types';
 
 type P = { n: PcNode; c: Control };
@@ -186,7 +187,9 @@ function PickCtl({ n, c }: P) {
   return <Field n={n} c={c}>
     <div class="pick">
       {opts.map(([v, l]) => (
-        <button key={v} class={val === String(v) ? 'on' : ''} title={C.IC[l] ? (PICK_TIP[l] || l) : l}
+        <button type="button" key={v} class={val === String(v) ? 'on' : ''}
+          aria-pressed={val === String(v) ? 'true' : 'false'}
+          title={C.IC[l] ? (PICK_TIP[l] || l) : l}
           onClick={() => w.hard(v)}>{C.IC[l] ? <Icon name={l} size={13} /> : l}</button>
       ))}
     </div>
@@ -208,7 +211,8 @@ function ToggleCtl({ n, c }: P) {
   return <div class="f">
     <div class="tog-row">
       <span>{c.label}</span>
-      <button class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>
+      <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
+        class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>
     </div>
   </div>;
 }
@@ -258,17 +262,19 @@ function BoxCtl({ n, c }: P) {
 /** One file into the library and onto a prop. Shared so the type check, the
     large-image warning and the toast are identical everywhere. */
 function useFilePicker(take: (id: string) => void, multiple = false) {
-  return () => {
+  const takeFiles = async (files: FileList | File[]) => {
+    for (const file of Array.from(files || [])) {
+      const id = await L.mediaTake(file);
+      if (id) take(id);
+    }
+  };
+  const choose = () => {
     const fi = document.createElement('input');
     fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = multiple;
-    fi.onchange = async () => {
-      for (const file of Array.from(fi.files || [])) {
-        const id = await L.mediaTake(file);
-        if (id) take(id);
-      }
-    };
+    fi.onchange = () => { void takeFiles(fi.files || []); };
     fi.click();
   };
+  return { choose, takeFiles };
 }
 
 function ImgCtl({ n, c }: P) {
@@ -289,7 +295,7 @@ function ImgCtl({ n, c }: P) {
       if (!c.bg && got.w) { n.props.w = String(got.w); n.props.h = String(got.h); }
     });
   };
-  const choose = useFilePicker(use);
+  const files = useFilePicker(use);
 
   return <Field n={n} c={c}>
     {a
@@ -305,9 +311,9 @@ function ImgCtl({ n, c }: P) {
           <button class="x" title="Clear" onClick={() => w.hard(wrap(''))}>
             <Icon name="trash" size={12} /></button>
         </div>
-        : <Dropzone onFiles={choose} />}
+        : <Dropzone onChoose={files.choose} onFiles={files.takeFiles} />}
     <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
-      <button class="btn grow" onClick={choose}>
+      <button class="btn grow" onClick={files.choose}>
         <Icon name="image" size={13} /> {a ? 'Replace' : 'Upload'}
       </button>
       {L.assetCount() ? (
@@ -323,16 +329,24 @@ function ImgCtl({ n, c }: P) {
 
 /** The drop target. `over` is toggled on the element rather than in state so a
     dragenter does not repaint the panel mid-drag. */
-export function Dropzone({ onFiles }: { onFiles: () => void }) {
+export function Dropzone({ onChoose, onFiles }: {
+  onChoose: () => void;
+  onFiles: (files: FileList | File[]) => void | Promise<void>;
+}) {
   const stop = (e: DragEvent, add: boolean) => {
     e.preventDefault();
     (e.currentTarget as HTMLElement).classList.toggle('over', add);
   };
   return (
-    <div class="imgdrop" onClick={onFiles}
+    <div class="imgdrop" role="button" tabIndex={0} aria-label="Upload an image"
+      onClick={onChoose}
+      onKeyDown={e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault(); onChoose();
+      }}
       onDragEnter={e => stop(e, true)} onDragOver={e => stop(e, true)}
       onDragLeave={e => stop(e, false)}
-      onDrop={e => { stop(e, false); void e; onFiles(); }}>
+      onDrop={e => { stop(e, false); void onFiles(e.dataTransfer?.files || []); }}>
       <b>Drop an image here</b><span>or choose a file</span>
     </div>
   );
@@ -461,6 +475,7 @@ function OptCtl({ n, c }: P) {
 function LinkCtl({ n, c }: P) {
   const here = C.page().slug;
   const link = C.linkOf(n, c.k!, here) as any;
+  const wordpress = link.mode === 'url' ? wordpressDestinationForValue(link.value) : null;
   const tkey = c.tk || 'target';
   const anchors = link.mode === 'page' ? C.anchorsOf(link.page || here) : [];
   const scope = C.bindScope(n.id);
@@ -476,6 +491,12 @@ function LinkCtl({ n, c }: P) {
   const commit = (o: any) => {
     L.tx(key); (n.props as PropBag)[c.k!] = C.buildLink(o);
     L.endTx(); L.paint(); L.save(); repaint('right');
+  };
+  const chooseWordPress = (url: string) => {
+    /* Clearing the indexed choice means "type a custom URL", not "No link". Keep
+       the URL mode alive until that custom value exists, just as the mode picker does. */
+    C.state.ui.lmode = url ? null : { key: n.id + '|' + c.k, mode: 'url' };
+    commit({ mode: 'url', value: url });
   };
 
   return <Field n={n} c={c}>
@@ -496,7 +517,7 @@ function LinkCtl({ n, c }: P) {
       <select class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || here}
         onChange={e => commit({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' })}>
         {C.state.pages.map(p => (
-          <option key={p.id} value={p.slug}>{p.name} — /{p.slug}.html</option>
+          <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>
         ))}
       </select>
       <select class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.frag || ''}
@@ -511,17 +532,27 @@ function LinkCtl({ n, c }: P) {
       )}
     </> : null}
 
-    {['url', 'email', 'phone'].includes(link.mode) ? (
-      <input class="ctl" type={link.mode === 'email' ? 'email' : undefined} value={link.value || ''}
+    {['url', 'email', 'phone'].includes(link.mode) ? <>
+      {link.mode === 'url'
+        ? <WordPressContentPicker value={link.value || ''} onChange={chooseWordPress} />
+        : null}
+      {link.mode !== 'url' || !wordpress ? <input class="ctl" type={link.mode === 'email' ? 'email' : undefined} value={link.value || ''}
         style={{ marginTop: 'var(--gap-1)' }}
+        aria-label={link.mode === 'url' ? 'Custom or external URL'
+          : link.mode === 'email' ? 'Email address' : 'Phone number'}
         placeholder={link.mode === 'url' ? 'https://example.com'
           : link.mode === 'email' ? 'hello@example.com' : '+1 555 0100'}
         onInput={e => {
+          const value = (e.target as HTMLInputElement).value.trim();
           L.tx(key);
-          (n.props as PropBag)[c.k!] = C.buildLink({ ...C.linkOf(n, c.k!, here), value: (e.target as HTMLInputElement).value.trim() });
+          (n.props as PropBag)[c.k!] = C.buildLink({ ...C.linkOf(n, c.k!, here), value });
           L.repaint();
-        }} onBlur={L.endTx} />
-    ) : null}
+          if (link.mode === 'url') {
+            C.state.ui.lmode = value ? null : { key: n.id + '|' + c.k, mode: 'url' };
+            repaint('right');
+          }
+        }} onBlur={L.endTx} /> : null}
+    </> : null}
 
     {link.mode === 'item' && scope ? (
       <div class="note">Each card links to its own page under <b>{scope.col.slug}/</b>.</div>
@@ -530,7 +561,10 @@ function LinkCtl({ n, c }: P) {
     {link.mode !== 'none' ? (
       <div class="tog-row" style={{ marginTop: 'var(--gap-1)' }}>
         <span>Open in a new tab</span>
-        <button class={'sw-tog' + (C.propVal(n, tkey) === '_blank' ? ' on' : '')}
+        <button type="button" role="switch"
+          aria-checked={C.propVal(n, tkey) === '_blank' ? 'true' : 'false'}
+          aria-label="Open in a new tab"
+          class={'sw-tog' + (C.propVal(n, tkey) === '_blank' ? ' on' : '')}
           onClick={() => {
             L.tx(key);
             (n.props as PropBag)[tkey] = C.propVal(n, tkey) === '_blank' ? '' : '_blank';

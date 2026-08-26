@@ -48,11 +48,15 @@ export function AssetField({ value, note, onChange }: {
             <b>{a.name}</b>
             <small>{C.kb(a.size)}{a.w ? ` · ${a.w} × ${a.h}` : ''}</small>
           </span>
-          <button class="x" title="Remove" onClick={() => commit('')}>
+          <button type="button" class="x" title="Remove" onClick={() => commit('')}>
             <Icon name="trash" size={12} />
           </button>
         </div>
-        : <div class="imgdrop" onClick={choose}
+        : <div class="imgdrop" role="button" tabIndex={0} aria-label="Upload an image" onClick={choose}
+          onKeyDown={e => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault(); choose();
+          }}
           onDragEnter={e => over(e, true)} onDragOver={e => over(e, true)}
           onDragLeave={e => over(e, false)}
           onDrop={e => { over(e, false); void take(e.dataTransfer?.files[0]); }}>
@@ -60,11 +64,11 @@ export function AssetField({ value, note, onChange }: {
         </div>}
 
       <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
-        <button class="btn grow" onClick={choose}>
+        <button type="button" class="btn grow" onClick={choose}>
           <Icon name="image" size={13} /> {a ? 'Replace' : 'Upload'}
         </button>
         {L.assetCount() ? (
-          <button class="btn grow"
+          <button type="button" class="btn grow"
             title="Pick from the Media library"
             onClick={async () => { const id = await L.mediaPicker(); if (id) commit('asset:' + id); }}>
             <Icon name="copy" size={13} /> Library

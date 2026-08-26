@@ -82,5 +82,16 @@ export const liftRow = (n: PcNode, c: Control, k: number) => {
   if (!k) return;
   C.edit(() => { const a = rows(n, c); [a[k - 1], a[k]] = [a[k], a[k - 1]]; });
 };
+/** Move one row to another row's position. Unlike liftRow this is suited to a drag
+    gesture, where the source and destination can be several places apart. */
+export const moveRow = (n: PcNode, c: Control, from: number, to: number) => {
+  if (from === to || from < 0 || to < 0) return;
+  C.edit(() => {
+    const a = rows(n, c);
+    if (from >= a.length || to >= a.length) return;
+    const [row] = a.splice(from, 1);
+    a.splice(to, 0, row);
+  });
+};
 export const dropRow = (n: PcNode, c: Control, k: number) =>
   C.edit(() => rows(n, c).splice(k, 1));

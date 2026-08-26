@@ -53,6 +53,10 @@ async function boot() {
   /* the app installs the UI, loads or seeds a project and paints, across a few microtasks and
      a frame; this is long enough for all of it and short enough not to slow the suite */
   await new Promise(r => setTimeout(r, 800));
+  const bootUntil = Date.now() + 2000;
+  while (dom.window.document.querySelector('#savedTag')?.textContent === '—' && Date.now() < bootUntil) {
+    await new Promise(r => setTimeout(r, 25));
+  }
   booted = { dom, window: dom.window, doc: dom.window.document, errors };
   return booted;
 }
@@ -79,6 +83,176 @@ test('the chrome drew', async () => {
   a.ok(doc.querySelectorAll('.rail button, .rail [data-p]').length >= 4, 'the tool rail is empty');
   a.ok(doc.querySelectorAll('.topbar button, #top button').length >= 5, 'the top bar is empty');
   a.ok(doc.querySelector('iframe'), 'the canvas frame is missing');
+});
+
+test('the standalone build makes Export its primary action', async () => {
+  const { window: w, doc } = await boot();
+  /* jsdom does not always dispatch the iframe load that the real canvas awaits, so finish
+     top-bar binding directly when boot is paused at that browser boundary. */
+  if (doc.querySelector('#savedTag').textContent === '—') w.bindTop();
+  const primary = doc.querySelector('#exportBtn');
+  a.equal(doc.querySelector('#publishLabel').textContent.trim(), 'Export');
+  a.match(primary.title, /Export HTML/);
+  primary.click();
+  a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Export static HTML');
+  doc.querySelector('#mClose').click();
+});
+
+test('server mode separates draft saving from explicit release publication', async () => {
+  const base = await boot();
+  const server = {
+    siteId: 'site-release', version: 7, publishedVersion: 5, role: 'owner',
+    editorSessionToken: 'scoped-editor-session',
+    doc: base.window.__CORE.clone(base.window.__CORE.doc())
+  };
+  const marker = '<script>\n/* =====================================================================';
+  const injected = `<script>window.PC_SERVER=${JSON.stringify(server).replace(/</g, '\\u003c')}</script>\n${marker}`;
+  const html = readFileSync(BUILT, 'utf8').replace(marker, injected);
+  const calls = [];
+  const errors = [];
+  const vc = new VirtualConsole();
+  vc.on('jsdomError', e => errors.push(String(e?.message || e)));
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: vc,
+    beforeParse(win) {
+      win.fetch = async (url, opts = {}) => {
+        calls.push([String(url), opts.method || 'GET', opts.body, opts.headers]);
+        if (String(url) === '/api/sites/site-release/assets' && !opts.method) {
+          return { ok: true, status: 200, json: async () => [] };
+        }
+        if (String(url) === '/v1/sites/site-release/releases' && opts.method === 'POST') {
+          const body = JSON.parse(opts.body);
+          return { ok: true, status: 201, json: async () => ({
+            releaseId: 'release-8', sequence: 3, sourceVersion: body.sourceVersion,
+            schemaVersion: 5, publishedVersion: body.sourceVersion,
+            createdAt: '2026-08-26T00:00:00.000Z', deployments: []
+          }) };
+        }
+        if (String(url) === '/v1/sites/site-release/releases') {
+          return { ok: true, status: 200, json: async () => ({
+            publishedVersion: 5,
+            publishedReleaseId: 'release-5',
+            releases: [{
+              releaseId: 'release-5', sequence: 2, sourceVersion: 5,
+              createdAt: '2026-08-25T00:00:00.000Z',
+              targets: [{
+                connection: {
+                  environment: 'staging', targetOrigin: 'https://staging.example.test'
+                },
+                status: 'needs_approval', detail: 'Approve changed executable scripts'
+              }]
+            }]
+          }) };
+        }
+        return { ok: true, status: 200, json: async () => ({ version: 8 }) };
+      };
+    }
+  });
+  await new Promise(r => setTimeout(r, 800));
+  const doc = dom.window.document;
+  const bootUntil = Date.now() + 2000;
+  while (doc.querySelector('#savedTag').textContent === '—' && Date.now() < bootUntil) {
+    await new Promise(r => setTimeout(r, 25));
+  }
+  if (doc.querySelector('#savedTag').textContent === '—') dom.window.bindTop();
+  a.equal(doc.querySelector('#publishLabel').textContent.trim(), 'Publish');
+  doc.querySelector('#exportBtn').click();
+  await new Promise(r => setTimeout(r, 0));
+  a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Publish');
+  a.ok(calls.some(([url, method]) => url === '/v1/sites/site-release/releases' && method === 'GET'));
+  const targetUntil = Date.now() + 1000;
+  while (!doc.querySelector('.releaseTarget') && Date.now() < targetUntil) {
+    await new Promise(r => setTimeout(r, 20));
+  }
+  a.match(doc.querySelector('.releaseTarget')?.textContent || '', /Staging/);
+  a.match(doc.querySelector('.releaseTarget')?.textContent || '', /staging\.example\.test/);
+  a.match(doc.querySelector('.releaseTarget')?.textContent || '', /Needs approval/);
+  a.equal(doc.querySelector('#releasePanel')?.getAttribute('role'), 'status');
+  a.equal(doc.querySelector('#releasePanel')?.getAttribute('aria-live'), 'polite');
+  a.equal(doc.querySelector('#releasePanel')?.getAttribute('aria-busy'), 'false');
+  a.equal(doc.querySelector('.releaseTarget .releaseState')?.title,
+    'Approve changed executable scripts');
+  a.equal(calls.some(([, method]) => method === 'POST'), false,
+    'opening Publish must not create a release');
+  dom.window.askConfirm = async () => true;
+  const publish = doc.querySelector('#releasePublish');
+  a.ok(publish && !publish.disabled, 'an owner with no blocking findings can publish');
+  publish.click();
+  const publishUntil = Date.now() + 2500;
+  while (!calls.some(([, method]) => method === 'POST') && Date.now() < publishUntil) {
+    await new Promise(r => setTimeout(r, 25));
+  }
+  const post = calls.find(([url, method]) => url === '/v1/sites/site-release/releases' && method === 'POST');
+  a.ok(post, 'Publish creates a release through the versioned API');
+  const body = JSON.parse(post[2]);
+  a.equal(body.sourceVersion, 8, 'the release freezes the version returned by the draft save');
+  a.equal(typeof body.idempotencyKey, 'string');
+  a.equal(typeof body.acknowledgeWarnings, 'boolean');
+  a.ok(Array.isArray(body.warningCodes));
+  a.equal(post[3]['X-Pagecraft-Editor-Session'], 'scoped-editor-session');
+  const save = calls.find(([url, method]) => url === '/api/sites/site-release' && method === 'PUT');
+  a.equal(save?.[3]['X-Pagecraft-Editor-Session'], 'scoped-editor-session');
+  a.deepEqual(errors, []);
+  dom.window.close();
+});
+
+test('a content collaborator is not offered the owner-only Publish action', async () => {
+  const base = await boot();
+  const server = {
+    siteId: 'site-content', version: 3, publishedVersion: 2, role: 'content',
+    doc: base.window.__CORE.clone(base.window.__CORE.doc())
+  };
+  const marker = '<script>\n/* =====================================================================';
+  const html = readFileSync(BUILT, 'utf8').replace(marker,
+    `<script>window.PC_SERVER=${JSON.stringify(server).replace(/</g, '\\u003c')}</script>\n${marker}`);
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/',
+    beforeParse(win) {
+      win.fetch = async url => ({
+        ok: true, status: 200,
+        json: async () => String(url).endsWith('/assets') ? [] : ({ publishedVersion: 2, releases: [] })
+      });
+    }
+  });
+  await new Promise(r => setTimeout(r, 500));
+  if (dom.window.document.querySelector('#savedTag').textContent === '—') dom.window.bindTop();
+  a.equal(dom.window.document.querySelector('#exportBtn').hidden, true);
+  a.equal(dom.window.document.querySelector('#reviewBtn').hidden, false);
+  dom.window.close();
+});
+
+test('the editor chrome keeps navigation compact and the whole Add library reachable', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  w.renderPalette();
+  const categories = [...doc.querySelectorAll('#paneAdd .addSwitcher button')];
+  a.deepEqual(categories.map(x => x.textContent.trim()),
+    ['Elements', 'Templates', 'Components', 'Blocks']);
+  a.deepEqual(categories.map(x => x.querySelector('svg')?.getAttribute('width')),
+    ['14', '14', '14', '14']);
+  a.equal(categories[0].getAttribute('aria-selected'), 'true');
+  categories[1].click();
+  await new Promise(r => setTimeout(r, 0));
+  a.equal(C.state.ui.atab, 'templates');
+  a.equal(doc.querySelector('#paneAdd .addSwitcher button[aria-selected="true"]').textContent.trim(), 'Templates');
+  a.match(doc.querySelector('#paneAdd .addContext').textContent, /Ready-made sections/);
+  C.state.ui.atab = 'widgets';
+  w.renderPalette();
+  a.equal(doc.querySelector('#projBtn'), null, 'Project is duplicated in the top bar');
+
+  const pg = C.page();
+  const slug = pg.slug;
+  pg.slug = 'index';
+  w.renderModebar();
+  a.equal(doc.querySelector('#modebar').textContent.includes('/index'), false,
+    'the front page should not show its implementation path');
+  pg.slug = 'about';
+  w.renderModebar();
+  a.match(doc.querySelector('#modebar').textContent, /\/about/);
+  a.equal(doc.querySelector('#modebar').textContent.includes('.html'), false,
+    'ordinary pages should use their clean route');
+  pg.slug = slug;
+  w.renderModebar();
 });
 
 test('selecting an element draws an inspector', async () => {
@@ -149,4 +323,255 @@ test('the inlined bundle contains nothing that ends its own script element', () 
   a.equal(body.includes('</script'), false, 'a literal </script closes the element early');
   a.equal(body.includes('<!' + '--'), false,
     'a literal <!-- puts the tokenizer in escaped state and </script> stops closing');
+});
+
+test('generic dialogs isolate shortcuts, trap focus, restore focus, and pickers return their value on Enter', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  let id = null;
+  C.eachNode(C.page().tree, n => { if (!id && n.type === 'heading') id = n.id; });
+  C.selSet([id]);
+
+  const launch = doc.createElement('button');
+  launch.textContent = 'Launch'; doc.body.appendChild(launch); launch.focus();
+  w.openModal('Test dialog', '<button id="dialogAction">Action</button>', '<button id="dialogLast">Last</button>');
+  const modal = doc.querySelector('#modalBox');
+  a.equal(modal.getAttribute('role'), 'dialog');
+  a.equal(modal.getAttribute('aria-modal'), 'true');
+  a.equal(doc.querySelector('#app').hasAttribute('inert'), true,
+    'the editor behind an open dialog is inert');
+
+  const before = JSON.stringify(C.page().tree);
+  doc.querySelector('#dialogAction').dispatchEvent(new w.KeyboardEvent('keydown', {
+    key: 'Delete', bubbles: true, cancelable: true
+  }));
+  a.equal(JSON.stringify(C.page().tree), before, 'Delete inside a dialog never reaches the canvas');
+
+  doc.querySelector('#mClose').focus();
+  doc.querySelector('#mClose').dispatchEvent(new w.KeyboardEvent('keydown', {
+    key: 'Tab', shiftKey: true, bubbles: true, cancelable: true
+  }));
+  a.equal(doc.activeElement?.id, 'dialogLast', 'Shift+Tab wraps to the final control');
+
+  const action = doc.querySelector('#dialogAction'); action.focus();
+  const picked = w.askPick('Choose one', [['alpha', 'Alpha'], ['beta', 'Beta']]);
+  const first = doc.querySelector('#askBody [data-p]');
+  a.equal(doc.querySelector('#modal').hasAttribute('inert'), true,
+    'the underlying dialog is inert while a nested confirmation is open');
+  a.equal(doc.querySelector('#modal').getAttribute('aria-hidden'), 'true');
+  a.equal(doc.activeElement, first, 'the first choice receives focus');
+  first.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+  a.equal(await picked, 'alpha', 'Enter resolves the picker value, not a hidden Yes button');
+  a.equal(doc.activeElement, action, 'closing the nested picker returns focus to its launcher');
+  a.equal(doc.querySelector('#modal').hasAttribute('inert'), false);
+  a.equal(doc.querySelector('#modal').hasAttribute('aria-hidden'), false);
+
+  modal.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  a.equal(doc.querySelector('#modal').hidden, true);
+  a.equal(C.state.ui.sel, id, 'the same Escape does not walk the canvas selection');
+  a.equal(doc.activeElement, launch, 'focus returns to the control that opened the dialog');
+  a.equal(doc.querySelector('#app').hasAttribute('inert'), false);
+  launch.remove();
+});
+
+test('status messages and narrow-workspace controls expose accessible hooks', async () => {
+  const { doc } = await boot();
+  const toast = doc.querySelector('#toast');
+  a.equal(toast.getAttribute('role'), 'status');
+  a.equal(toast.getAttribute('aria-live'), 'polite');
+  a.equal(toast.getAttribute('aria-atomic'), 'true');
+  a.ok(doc.querySelector('#right .panelClose'), 'the narrow inspector has a dismiss control');
+
+  const html = readFileSync(BUILT, 'utf8');
+  a.match(html, /@media\(max-width:900px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/);
+  a.match(html, /@media\(max-width:600px\)[\s\S]*?\.left,\.right\{[\s\S]*?position:absolute/);
+});
+
+test('project and CMS text fields close their undo transactions on blur', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  const typeAndBlur = (el, value) => {
+    el.value = value;
+    el.dispatchEvent(new w.Event('input', { bubbles: true }));
+    el.dispatchEvent(new w.FocusEvent('blur', { bubbles: true }));
+  };
+
+  w.projectModal();
+  const projectName = doc.querySelector('#mName');
+  const projectHistory = C.hist.u.length;
+  typeAndBlur(projectName, 'Release candidate one');
+  typeAndBlur(projectName, 'Release candidate two');
+  a.equal(C.hist.u.length, projectHistory + 2,
+    'each separate Project edit opens one undo step after the prior blur closes it');
+  doc.querySelector('#mClose').click();
+
+  const col = C.collectionAdd('Undo fields');
+  w.cmsModal(col.id);
+  doc.querySelector('#cmsTabs [data-c="fields"]').click();
+  const fieldName = doc.querySelector('#mBody [data-fname]');
+  const cmsHistory = C.hist.u.length;
+  typeAndBlur(fieldName, 'Primary title');
+  typeAndBlur(fieldName, 'Display title');
+  a.equal(C.hist.u.length, cmsHistory + 2,
+    'each separate CMS field-name edit opens one undo step after the prior blur closes it');
+  doc.querySelector('#mClose').click();
+});
+
+test('each collection preview bar is unique and its own controls update that collection', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  const one = C.collectionAdd('Articles');
+  const two = C.collectionAdd('News');
+  C.itemAdd(one.id); C.itemAdd(one.id);
+  C.itemAdd(two.id); C.itemAdd(two.id);
+  const aList = C.N('list'); aList.src = one.id;
+  const bList = C.N('list'); bList.src = two.id;
+  C.page().tree = [aList, bList];
+  C.state.ui.item = {};
+  w.renderModebar();
+  const bars = [...doc.querySelectorAll('#modebar .itemBar')];
+  a.equal(bars.length, 2);
+  a.equal(doc.querySelectorAll('#itemBar').length, 0, 'no duplicate id is emitted');
+  bars[1].querySelector('button[title="Next item"]').click();
+  a.equal(C.state.ui.item[two.id], 1);
+  a.equal(C.state.ui.item[one.id] || 0, 0, 'the other collection is untouched');
+});
+
+test('Preview runs the same Tabs, Gallery, Code, Slider, Video, navigation and animation payloads as export', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  const frame = doc.querySelector('#canvas');
+  /* jsdom does not navigate iframe.srcdoc on its own. Populate the same document and fire
+     the load callback the browser fires, so this test exercises the real bind/paint path. */
+  const initial = frame.srcdoc;
+  frame.contentDocument.open();
+  frame.contentDocument.write(initial);
+  frame.contentDocument.close();
+  frame.dispatchEvent(new w.Event('load'));
+  await new Promise(r => setTimeout(r, 20));
+  const cw = frame.contentWindow;
+
+  const copied = [];
+  Object.defineProperty(cw.navigator, 'clipboard', {
+    configurable: true, value: { writeText: async value => { copied.push(value); } }
+  });
+  cw.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+  cw.HTMLElement.prototype.scrollBy = function(opts) { this.__lastScroll = opts; };
+  Object.defineProperty(cw.HTMLElement.prototype, 'clientWidth', {
+    configurable: true, get() { return this.hasAttribute?.('data-slides') ? 100 : 0; }
+  });
+  Object.defineProperty(cw.HTMLElement.prototype, 'scrollWidth', {
+    configurable: true, get() { return this.hasAttribute?.('data-slides') ? 300 : 0; }
+  });
+  if (cw.HTMLDialogElement) {
+    cw.HTMLDialogElement.prototype.showModal = function() { this.open = true; };
+    cw.HTMLDialogElement.prototype.close = function() { this.open = false; };
+  }
+  cw.IntersectionObserver = class {
+    constructor(cb) { this.cb = cb; }
+    observe(el) { this.cb([{ target: el, isIntersecting: true, intersectionRatio: 1 }], this); }
+    unobserve() {}
+    disconnect() {}
+  };
+
+  const tabs = C.N('tabs');
+  const gallery = C.N('gallery');
+  gallery.props.items = [
+    { src: 'https://example.test/one.jpg', alt: 'One', caption: 'First' },
+    { src: 'https://example.test/two.jpg', alt: 'Two', caption: 'Second' }
+  ];
+  const code = C.N('code');
+  code.props.body = 'const preview = true;';
+  const slider = C.N('slider');
+  slider.children = [C.N('box'), C.N('box')];
+  const video = C.N('video');
+  const animated = C.N('heading');
+  animated.anim = { name: 'fade-in' };
+  const external = C.N('button');
+  external.props.link = 'https://example.test/outside';
+  C.state.header = []; C.state.footer = [];
+  C.page().tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [
+    C.N('column', {}, {}, [tabs, gallery, code, slider, video, animated, external])
+  ])])];
+
+  if (!doc.body.classList.contains('preview')) w.togglePreview();
+  const cd = frame.contentDocument;
+  const tabset = cd.querySelector('[data-tabs]');
+  a.ok(tabset.hasAttribute('data-tabs-ready'));
+  const tabButtons = tabset.querySelectorAll('[role="tab"]');
+  tabButtons[1].click();
+  a.equal(tabButtons[1].getAttribute('aria-selected'), 'true');
+
+  const copy = cd.querySelector('[data-copy]');
+  a.equal(copy.hidden, false, 'the exported copy script reveals the control');
+  copy.click(); await Promise.resolve();
+  a.deepEqual(copied, ['const preview = true;']);
+
+  const next = cd.querySelector('[data-slide-n]');
+  a.equal(next.hidden, false, 'the exported slider script reveals its arrows');
+  next.click();
+  a.ok(cd.querySelector('[data-slides]').__lastScroll.left > 0);
+
+  cd.querySelector('.pagecraft-video-play').click();
+  a.ok(cd.querySelector('[data-facade] iframe'), 'the facade swaps to the real player');
+
+  const lightboxLink = cd.querySelector('.pagecraft-gallery-frame[href]');
+  lightboxLink.dispatchEvent(new cw.MouseEvent('click', { bubbles: true, cancelable: true }));
+  const dialog = cd.querySelector('.pagecraft-lightbox');
+  a.ok(dialog && dialog.open, 'the exported Gallery lightbox opens inside Preview');
+  a.match(dialog.querySelector('img').src, /one\.jpg$/);
+
+  a.ok(cd.querySelector('.bp-animate').classList.contains('bp-is-animating'),
+    'the exported scroll-animation runtime is active');
+  const before = cw.location.href;
+  const out = cd.querySelector('.pagecraft-button[href^="https://example.test"]');
+  const click = new cw.MouseEvent('click', { bubbles: true, cancelable: true });
+  out.dispatchEvent(click);
+  a.equal(click.defaultPrevented, true);
+  a.equal(cw.location.href, before, 'Preview never follows an external navigation');
+
+  w.togglePreview();
+});
+
+test('the server media picker wires trash to durable DELETE before removing the card', async () => {
+  const base = await boot();
+  const server = {
+    siteId: 'site-1', version: 1, role: 'owner', doc: base.window.__CORE.clone(base.window.__CORE.doc())
+  };
+  const marker = '<script>\n/* =====================================================================';
+  const injected = `<script>window.PC_SERVER=${JSON.stringify(server).replace(/</g, '\\u003c')}</script>\n${marker}`;
+  const html = readFileSync(BUILT, 'utf8').replace(marker, injected);
+  const calls = [];
+  const errors = [];
+  const vc = new VirtualConsole();
+  vc.on('jsdomError', e => errors.push(String(e?.message || e)));
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: vc,
+    beforeParse(win) {
+      win.fetch = async (url, opts = {}) => {
+        calls.push([String(url), opts.method || 'GET']);
+        if (String(url) === '/api/sites/site-1/assets' && !opts.method) {
+          return { ok: true, status: 200, json: async () => [
+            { id: 'asset1', name: 'cover.png', type: 'image/png', w: 1200, h: 800 }
+          ] };
+        }
+        if (String(url) === '/api/sites/site-1/assets/asset1' && opts.method === 'DELETE') {
+          return { ok: true, status: 204, json: async () => ({}) };
+        }
+        return { ok: true, status: 200, json: async () => ({ version: 2 }) };
+      };
+    }
+  });
+  await new Promise(r => setTimeout(r, 800));
+  const picker = dom.window.mediaPicker();
+  const trash = dom.window.document.querySelector('#askBody [data-del="asset1"]');
+  a.ok(trash, 'the picker renders its delete action');
+  trash.click();
+  a.equal(await picker, null, 'deleting the final card closes the empty picker');
+  await new Promise(r => setTimeout(r, 0));
+  a.ok(calls.some(([url, method]) => url === '/api/sites/site-1/assets/asset1' && method === 'DELETE'));
+  a.equal(dom.window.document.querySelector('#askBody [data-pick="asset1"]'), null,
+    'the card leaves only after the durable request succeeds');
+  a.deepEqual(errors, []);
+  dom.window.close();
 });

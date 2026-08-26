@@ -26,6 +26,7 @@ export type Role = 'owner' | 'content';
 export interface User { id: string; email: string; name: string }
 export interface Session { token: string; userId: string; expiresAt: number }
 export interface Membership { siteId: string; userId: string; role: Role }
+export interface SessionAccess { user: User; role: Role | null }
 
 /** Fifteen minutes. Long enough to find the email, short enough that a leaked one is stale. */
 export const LINK_TTL_MS = 15 * 60 * 1000;
@@ -44,10 +45,16 @@ export function sameDigest(a: string, b: string) {
 
 /** An address is normalised before anything is keyed on it, or one person becomes two. */
 export const normalEmail = (e: string) => String(e || '').trim().toLowerCase();
+export const validEmail = (raw: string) => {
+  const email = normalEmail(raw);
+  return email.length <= 254 && /^[^\s@]{1,64}@[^\s@]{1,189}$/.test(email);
+};
 
 export interface AuthStore {
   userByEmail(email: string): Promise<User | null>;
   userById(id: string): Promise<User | null>;
+  /** Resolve several revision authors without one store round trip per history row. */
+  usersByIds(ids: string[]): Promise<User[]>;
   createUser(email: string, name?: string): Promise<User>;
 
   /** Store the digest, never the token. */
@@ -57,9 +64,14 @@ export interface AuthStore {
 
   putSession(digest: string, userId: string, expiresAt: number): Promise<void>;
   sessionByDigest(digest: string): Promise<Session | null>;
+  /** Resolve a live session and its user in one store round trip. */
+  userForSession(digest: string): Promise<User | null>;
+  /** Resolve identity and one site's membership together; null means the session is invalid. */
+  accessForSession(digest: string, siteId: string): Promise<SessionAccess | null>;
   dropSession(digest: string): Promise<void>;
 
   membership(siteId: string, userId: string): Promise<Membership | null>;
+  membershipsForUser(userId: string): Promise<Membership[]>;
   grant(siteId: string, userId: string, role: Role): Promise<Membership>;
   /** Everyone with a role on this site, with the addresses an owner needs to read. */
   members(siteId: string): Promise<(Membership & { email: string; name: string })[]>;
@@ -125,6 +137,12 @@ export class MemoryAuthStore implements AuthStore {
     const u = this.users.get(id);
     return u ? { ...u } : null;
   }
+  async usersByIds(ids: string[]) {
+    return [...new Set(ids)].flatMap(id => {
+      const user = this.users.get(id);
+      return user ? [{ ...user }] : [];
+    });
+  }
   async createUser(email: string, name = '') {
     const u: User = { id: 'u' + ++this.seq, email: normalEmail(email), name };
     this.users.set(u.id, u);
@@ -153,11 +171,26 @@ export class MemoryAuthStore implements AuthStore {
     if (s.expiresAt <= Date.now()) { this.sessions.delete(digest); return null; }
     return { ...s };
   }
+  async userForSession(digest: string) {
+    const session = await this.sessionByDigest(digest);
+    return session ? this.userById(session.userId) : null;
+  }
+  async accessForSession(digest: string, siteId: string) {
+    const user = await this.userForSession(digest);
+    if (!user) return null;
+    const membership = await this.membership(siteId, user.id);
+    return { user, role: membership?.role || null };
+  }
   async dropSession(digest: string) { this.sessions.delete(digest); }
 
   async membership(siteId: string, userId: string) {
     const m = this.memberships.get(siteId + '|' + userId);
     return m ? { ...m } : null;
+  }
+  async membershipsForUser(userId: string) {
+    const out: Membership[] = [];
+    for (const m of this.memberships.values()) if (m.userId === userId) out.push({ ...m });
+    return out;
   }
   async grant(siteId: string, userId: string, role: Role) {
     const m: Membership = { siteId, userId, role };

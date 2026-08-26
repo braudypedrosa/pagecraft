@@ -9,7 +9,7 @@
 
    None of that survives. A control's handlers are written beside its markup, `CUR` and
    `data-ci` are gone, and the guard has nothing left to check. */
-import { useEffect } from 'preact/hooks';
+import { useEffect, useId } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Ctl } from './Controls';
@@ -23,6 +23,7 @@ const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, ch =>
 /** A collapsible group. Its open state is keyed by widget type and title, so folding
     Spacing away on a Section does not fold it on every Heading too. */
 function Group({ title, n, items, gk }: { title: string; n: PcNode; items?: Control[]; gk?: string; children?: any }) {
+  const bodyId = useId();
   const key = gk || (n.type + ':' + title);
   const closed = C.state.ui.open[key] === false;
   /* `when` lets a control depend on the node: a background's position appears once
@@ -33,10 +34,11 @@ function Group({ title, n, items, gk }: { title: string; n: PcNode; items?: Cont
   if (shown && !shown.length) return null;
   return (
     <div class={'group' + (closed ? ' closed' : '')}>
-      <div class="gh" onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
+      <button type="button" class="gh" aria-expanded={closed ? 'false' : 'true'} aria-controls={bodyId}
+        onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
         <Icon name="caret" size={10} /> {title}
-      </div>
-      <div class="gb">
+      </button>
+      <div class="gb" id={bodyId}>
         {shown ? shown.map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
       </div>
     </div>
@@ -45,14 +47,16 @@ function Group({ title, n, items, gk }: { title: string; n: PcNode; items?: Cont
 
 /** Same, but for a group whose body is markup rather than a control list. */
 function Panel({ title, n, gk, children }: { title: string; n: PcNode; gk?: string; children: any }) {
+  const bodyId = useId();
   const key = gk || (n.type + ':' + title);
   const closed = C.state.ui.open[key] === false;
   return (
     <div class={'group' + (closed ? ' closed' : '')}>
-      <div class="gh" onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
+      <button type="button" class="gh" aria-expanded={closed ? 'false' : 'true'} aria-controls={bodyId}
+        onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
         <Icon name="caret" size={10} /> {title}
-      </div>
-      <div class="gb">{children}</div>
+      </button>
+      <div class="gb" id={bodyId}>{children}</div>
     </div>
   );
 }
@@ -82,6 +86,14 @@ function Head({ h }: { h: NonNullable<ReturnType<typeof C.locate>> }) {
           <Icon name="caretUp" size={13} />
         </button>
       ) : null}
+      <button class="iconbtn panelClose" type="button" title="Close inspector" aria-label="Close inspector"
+        onClick={() => {
+          L.select(null);
+          document.body.classList.remove('library-focus');
+          requestAnimationFrame(() => { L.layoutCanvas(); L.positionHud(); L.renderDim(); });
+        }}>
+        <Icon name="close" size={13} />
+      </button>
     </div>
   );
 }
@@ -253,9 +265,11 @@ function StatePick() {
     <div class={'f statepick' + (cur ? ' on' : '')}>
       <label>State</label>
       <div class="pick">
-        <button class={cur ? '' : 'on'} onClick={() => set('')}>Resting</button>
+        <button type="button" aria-pressed={cur ? 'false' : 'true'}
+          class={cur ? '' : 'on'} onClick={() => set('')}>Resting</button>
         {C.STATES.map(([k, label]) => (
-          <button key={k} class={cur === k ? 'on' : ''} onClick={() => set(k)}>{label}</button>
+          <button type="button" key={k} aria-pressed={cur === k ? 'true' : 'false'}
+            class={cur === k ? 'on' : ''} onClick={() => set(k)}>{label}</button>
         ))}
       </div>
       {/* No note. It had one of 245 characters restating what the lit segment says — and a
@@ -524,7 +538,9 @@ function Visibility({ n }: { n: PcNode }) {
       {(['d', 't', 'm'] as const).map(b => (
         <div class="tog-row" key={b} style={{ marginBottom: 'var(--gap-1)' }}>
           <span><Icon name={DEV_ICON[b]} size={12} /> Hide on {C.DEV_LABEL[b]}</span>
-          <button class={'sw-tog' + (n.hide && n.hide[b] ? ' on' : '')}
+          <button type="button" role="switch" aria-label={`Hide on ${C.DEV_LABEL[b]}`}
+            aria-checked={n.hide && n.hide[b] ? 'true' : 'false'}
+            class={'sw-tog' + (n.hide && n.hide[b] ? ' on' : '')}
             onClick={() => C.edit(() => { n.hide = n.hide || {}; n.hide[b] = !n.hide[b]; })}><i /></button>
         </div>
       ))}
@@ -571,6 +587,17 @@ export function Inspector() {
   const keys = L.canStructure() ? null : C.contentKeysOf(n);
   const content = keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all;
   const many = C.selIds().length > 1;
+  const inspectorTabs = [['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']];
+  const chooseTab = (key: string) => { C.state.ui.stab = key; repaint('right'); };
+  const tabKey = (e: KeyboardEvent, key: string) => {
+    const keys = inspectorTabs.map(([k]) => k);
+    const move = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? keys.length - 1
+      : move ? (keys.indexOf(key) + move + keys.length) % keys.length : -1;
+    if (next < 0) return;
+    e.preventDefault(); chooseTab(keys[next]);
+    requestAnimationFrame(() => document.getElementById('inspector-tab-' + keys[next])?.focus());
+  };
 
   return (
     <>
@@ -579,14 +606,17 @@ export function Inspector() {
       {/* A content account gets Content and nothing else: the other two tabs write CSS and
           the server refuses CSS from them. One tab is no tab, so the row goes entirely. */}
       {L.canStructure() ? (
-        <div class="tabs">
-          {[['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']].map(([k, label]) => (
-            <button key={k} class={tab === k ? 'on' : ''}
-              onClick={() => { C.state.ui.stab = k; repaint('right'); }}>{label}</button>
+        <div class="tabs" role="tablist" aria-label="Inspector section">
+          {inspectorTabs.map(([k, label]) => (
+            <button type="button" role="tab" key={k} id={'inspector-tab-' + k}
+              aria-selected={tab === k ? 'true' : 'false'} aria-controls="inspector-panel"
+              tabIndex={tab === k ? 0 : -1} class={tab === k ? 'on' : ''}
+              onKeyDown={e => tabKey(e, k)} onClick={() => chooseTab(k)}>{label}</button>
           ))}
         </div>
       ) : null}
-      <div class="pane">
+      <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
+        aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
         {tab === 'content' || many ? null : <StatePick />}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}

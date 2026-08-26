@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@supabase/functions-js/edge-runtime.d.ts": "jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts",
+    "postgres": "npm:postgres@3.4.7"
+  }
+}

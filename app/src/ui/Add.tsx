@@ -47,7 +47,13 @@ const PAL: { g: string; items: [string, string][] }[] = [
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
 ];
 
-const TABS: [string, string][] = [['widgets', 'Widgets'], ['components', 'Components'], ['blocks', 'Blocks'], ['templates', 'Templates']];
+const TABS = [
+  ['widgets', 'Elements', 'Basic elements for building a page', 'plus'],
+  ['templates', 'Templates', 'Ready-made sections using this project’s styles', 'section'],
+  ['components', 'Components', 'Reusable elements that stay synchronized', 'component'],
+  ['blocks', 'Blocks', 'Reusable copies you can edit independently', 'copy']
+] as const;
+type AddTab = (typeof TABS)[number][0];
 const tab = () => C.state.ui.atab || 'widgets';
 
 function Widgets() {
@@ -58,13 +64,13 @@ function Widgets() {
           <div class="plabel">{g.g}</div>
           <div class="pgrid">
             {g.items.map(([k, label]) => (
-              <div class="pitem" key={k} title="Drag onto the canvas — or click to append"
+              <button type="button" class="pitem" key={k} title="Drag onto the canvas — or click to append"
                 onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
                   { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
                 onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
                 <Icon name={C.iconOf(k)} size={19} />
                 <span>{label}</span>
-              </div>
+              </button>
             ))}
           </div>
         </>
@@ -119,9 +125,6 @@ function Templates() {
 
   return (
     <>
-      <div class="hint" style={{ paddingBottom: '12px' }}>
-        Ready-made sections, built from this project's colours and text styles.
-      </div>
       {cats.map(cat => (
         <>
           <div class="plabel">{cat}</div>
@@ -315,15 +318,37 @@ function Components() {
 
 export function Add() {
   const t = tab();
+  const current = TABS.find(([key]) => key === t) || TABS[0];
+
+  const choose = (key: AddTab) => {
+    C.state.ui.atab = key;
+    repaint('add');
+  };
+  const keys = TABS.map(([key]) => key);
+  const keyNav = (e: KeyboardEvent, key: AddTab) => {
+    const move = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+      : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? keys.length - 1
+      : move ? (keys.indexOf(key) + move + keys.length) % keys.length : -1;
+    if (next < 0) return;
+    e.preventDefault(); choose(keys[next]);
+    requestAnimationFrame(() => document.getElementById('add-tab-' + keys[next])?.focus());
+  };
+
   return (
     <>
-      <div class="tabs atabs">
-        {TABS.map(([key, label]) => (
-          <button key={key} class={t === key ? 'on' : ''}
-            onClick={() => { C.state.ui.atab = key; repaint('add'); }}>{label}</button>
+      <div class="addSwitcher" role="tablist" aria-label="Add category">
+        {TABS.map(([key, label, , icon]) => (
+          <button key={key} role="tab" aria-selected={t === key ? 'true' : 'false'}
+            id={'add-tab-' + key} aria-controls="add-category-panel" tabIndex={t === key ? 0 : -1}
+            class={t === key ? 'on' : ''} onClick={() => choose(key)} onKeyDown={e => keyNav(e, key)}>
+            <span class="addSwitcherIcon" aria-hidden="true"><Icon name={icon} size={14} /></span>
+            <span>{label}</span>
+          </button>
         ))}
       </div>
-      <div class="palette">
+      <div class="addContext">{current[2]}</div>
+      <div class="palette" id="add-category-panel" role="tabpanel" aria-labelledby={'add-tab-' + t}>
         {t === 'widgets' ? <Widgets />
           : t === 'components' ? <Components />
             : t === 'templates' ? <Templates /> : <Blocks />}

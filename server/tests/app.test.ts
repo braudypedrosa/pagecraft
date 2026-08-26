@@ -15,6 +15,7 @@ import type { Doc } from '../../app/src/core/types.ts';
 const demo = (): Doc => {
   Core.seed();
   return structuredClone({
+    schemaVersion: Core.SCHEMA,
     meta: Core.state.meta, header: Core.state.header,
     footer: Core.state.footer, pages: Core.state.pages
   });
@@ -71,10 +72,33 @@ test('a visitor gets the page the export would have written', async () => {
   const html = await res.text();
   a.match(html, /<!doctype html>/i);
   a.match(html, /<\/html>/);
+  a.match(res.headers.get('content-security-policy') || '', /sandbox allow-scripts/);
+  a.equal(/allow-same-origin/.test(res.headers.get('content-security-policy') || ''), false,
+    'published scripts must receive an opaque origin, not the editor session origin');
 });
 
-test('editing content changes the live page, with nobody exporting anything', async () => {
-  const { site, get, put, signIn } = await rig();
+test('auth and API routes answer only on the editor host', async () => {
+  const { app } = await rig();
+  const login = await app.request(new Request('http://acme.test/auth/login', {
+    method: 'POST', headers: { host: 'acme.test', 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'client@acme.test' })
+  }));
+  a.equal(login.status, 404);
+  const api = await app.request(new Request('http://acme.test/api/sites', { headers: { host: 'acme.test' } }));
+  a.equal(api.status, 404);
+});
+
+test('a shared-path site keeps the published sandbox on the editor host', async () => {
+  const { site, admin } = await rig();
+  const res = await admin(`/${site.slug}/`);
+  a.equal(res.status, 200);
+  const policy = res.headers.get('content-security-policy') || '';
+  a.match(policy, /sandbox allow-scripts/);
+  a.equal(policy.includes('allow-same-origin'), false);
+});
+
+test('autosave creates a draft without changing the published page', async () => {
+  const { site, get, put, admin, signIn } = await rig();
   const { cookie } = await signIn();
 
   const before = await (await get('/')).text();
@@ -95,8 +119,13 @@ test('editing content changes the live page, with nobody exporting anything', as
   a.equal(body.version, site.version + 1, 'a save bumps the version');
   a.ok(body.files.includes('index.html'));
 
+  const draft = await (await admin(`/api/sites/${site.id}`, {}, cookie)).json() as { doc: Doc };
+  a.equal(JSON.stringify(draft.doc).includes('Braudy was here'), true,
+    'the saved words must remain available in the draft');
+
   const after = await (await get('/')).text();
-  a.match(after, /Braudy was here/, 'the served page did not change');
+  a.equal(/Braudy was here/.test(after), false,
+    'autosave must not leak draft content to the published page');
 });
 
 test('a save carrying a stale version is refused rather than winning', async () => {
@@ -112,6 +141,77 @@ test('a save carrying a stale version is refused rather than winning', async () 
   const body = await late.json() as { error: string; conflict: { yours: number; theirs: number } };
   a.equal(body.error, 'stale');
   a.deepEqual(body.conflict, { yours: 1, theirs: 2 });
+});
+
+test('an unrenderable save is rejected before it can advance or corrupt the stored document', async () => {
+  const { site, put, signIn, store } = await rig();
+  const { cookie } = await signIn();
+  const malformed = structuredClone(site.doc);
+  malformed.pages = [{}] as Doc['pages'];
+
+  const res = await put(site.id, malformed, site.version, cookie);
+  a.equal(res.status, 422);
+  a.equal((await res.json() as { error: string }).error, 'invalid document');
+  const stored = await store.byId(site.id);
+  a.equal(stored!.version, site.version, 'no failed write bumped the version');
+  a.deepEqual(stored!.doc, site.doc, 'the valid document remains intact');
+});
+
+test('an unrenderable create is rejected before a site or revision is inserted', async () => {
+  const { site, admin, signIn, store } = await rig();
+  const { cookie } = await signIn();
+  const malformed = structuredClone(site.doc);
+  malformed.pages = [{}] as Doc['pages'];
+  const before = await store.listMeta();
+
+  const res = await admin('/api/sites', {
+    method: 'POST', body: JSON.stringify({ name: 'Broken', doc: malformed })
+  }, cookie);
+  a.equal(res.status, 422);
+  a.deepEqual((await store.listMeta()).map(s => s.id), before.map(s => s.id));
+});
+
+test('an owner can inspect history and restore without deleting later versions', async () => {
+  const { site, put, admin, signIn, store } = await rig();
+  const { cookie } = await signIn();
+  const changed = structuredClone(site.doc);
+  changed.pages[0].title = 'Second version';
+  a.equal((await put(site.id, changed, 1, cookie)).status, 200);
+
+  const listed = await admin(`/api/sites/${site.id}/history`, {}, cookie);
+  a.equal(listed.status, 200);
+  const versions = await listed.json() as { version: number; author: { email: string } | null }[];
+  a.deepEqual(versions.map(v => v.version), [2, 1]);
+  a.equal(versions[0].author?.email, 'client@acme.test');
+
+  const restored = await admin(`/api/sites/${site.id}/history/1/restore`, {
+    method: 'POST', body: JSON.stringify({ currentVersion: 2 })
+  }, cookie);
+  a.equal(restored.status, 200);
+  a.equal((await restored.json() as { version: number }).version, 3);
+  a.equal((await store.history(site.id)).length, 3);
+  a.equal((await store.byId(site.id))!.doc.pages[0].title, site.doc.pages[0].title);
+});
+
+test('restore requires a positive integer current version before touching history', async () => {
+  const { site, admin, signIn, store } = await rig();
+  const { cookie } = await signIn();
+  const before = await store.history(site.id);
+  const res = await admin(`/api/sites/${site.id}/history/1/restore`, {
+    method: 'POST', body: JSON.stringify({ currentVersion: 1.5 })
+  }, cookie);
+  a.equal(res.status, 400);
+  a.deepEqual(await store.history(site.id), before);
+});
+
+test('a content account may read history but cannot restore it', async () => {
+  const { site, admin, signIn } = await rig('content');
+  const { cookie } = await signIn();
+  a.equal((await admin(`/api/sites/${site.id}/history`, {}, cookie)).status, 200);
+  const restore = await admin(`/api/sites/${site.id}/history/1/restore`, {
+    method: 'POST', body: JSON.stringify({ currentVersion: 1 })
+  }, cookie);
+  a.equal(restore.status, 403);
 });
 
 test('a save reports what the review noticed, so the editor need not ask twice', async () => {
@@ -132,9 +232,26 @@ test('paths resolve as a static host would, and a missing one is a 404', async (
   await put(site.id, doc, site.version, cookie);
 
   a.equal((await get('/' + second.slug)).status, 200, 'extensionless');
-  a.equal((await get('/' + second.slug + '.html')).status, 200);
+  const legacy = await get('/' + second.slug + '.html');
+  a.equal(legacy.status, 308, 'the old filename redirects to the clean custom-domain path');
+  a.equal(legacy.headers.get('location'), '/' + second.slug);
   a.equal((await get('/robots.txt')).status, 200);
   a.equal((await get('/nope')).status, 404);
+});
+
+test('site roots and index aliases redirect to one clean URL without losing the query', async () => {
+  const { site, get, admin } = await rig();
+  const sharedRoot = await admin(`/${site.slug}?from=bare`);
+  a.equal(sharedRoot.status, 308);
+  a.equal(sharedRoot.headers.get('location'), `/${site.slug}/?from=bare`);
+
+  const sharedIndex = await admin(`/${site.slug}/index?from=index`);
+  a.equal(sharedIndex.status, 308);
+  a.equal(sharedIndex.headers.get('location'), `/${site.slug}/?from=index`);
+
+  const customIndex = await get('/index.html?from=legacy');
+  a.equal(customIndex.status, 308);
+  a.equal(customIndex.headers.get('location'), '/?from=legacy');
 });
 
 test('an unknown host is not somebody else’s site', async () => {
@@ -150,6 +267,8 @@ test('the editor host asks who you are before it shows you anything', async () =
   a.equal(res.status, 200);
   const html = await res.text();
   a.match(html, /Send me a link/, 'a sign-in form, not the editor');
+  a.match(html, /if \(!response\.ok\)/, 'mail failures must not become a false success screen');
+  a.match(html, /role="alert"/, 'the failure has a visible and accessible destination');
   a.equal(/<title>Builder<\/title>/.test(html), false);
 });
 

@@ -8,8 +8,13 @@
 import { C, L } from '../ctx';
 import { Icon } from '../Icon';
 import { Field } from './Field';
-import { valueOf, rows, liftRow, dropRow } from './ctl';
+import { valueOf, rows, liftRow, moveRow, dropRow } from './ctl';
+import {
+  WordPressContentPicker, wordpressContentTargets, wordpressDestinationForValue,
+  wordpressReferenceForItem
+} from '../WordPressContentPicker';
 import type { Control, Node as PcNode } from '../../core/types';
+import { useRef, useState } from 'preact/hooks';
 
 type P = { n: PcNode; c: Control };
 
@@ -49,16 +54,138 @@ function AddButton({ label, onClick, gap, small }: { label: string; onClick: () 
 
 export function ItemsCtl({ n, c }: P) {
   const arr = list(n, c);
+  const [open, setOpen] = useState<number | null>(arr.length ? 0 : null);
+  const [dragging, setDragging] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  const dragFrom = useRef<number | null>(null);
+  const wordpressTargets = wordpressContentTargets();
+  const firstWordPressTarget = wordpressTargets.find(target => target.items.some(item =>
+    !!wordpressReferenceForItem(target, item))) || null;
+  const firstWordPress = firstWordPressTarget?.items.find(item =>
+    !!wordpressReferenceForItem(firstWordPressTarget, item)) || null;
+  const firstWordPressReference = firstWordPressTarget && firstWordPress
+    ? wordpressReferenceForItem(firstWordPressTarget, firstWordPress)?.reference || '' : '';
+  const commit = (k: number, prop: string, value: string) => C.edit(() => { rows(n, c)[k][prop] = value; });
+  const parsed = (it: any) => C.parseLink(it.href, C.page().slug) as any;
+  const pageName = (slug: string) => C.state.pages.find(p => p.slug === slug)?.name || 'Missing page';
+  const summary = (it: any) => {
+    const link = parsed(it);
+    if (link.mode === 'page') return `Page · ${pageName(link.page || C.page().slug)}`;
+    const wordpress = wordpressDestinationForValue(it.href);
+    if (wordpress) return `WordPress · ${wordpress.item.objectType === 'post' ? 'Post' : 'Page'} · ${wordpress.path}`;
+    return String(it.href || '').trim() || 'Custom URL not set';
+  };
+  const finishDrag = (to: number) => {
+    const from = dragFrom.current;
+    dragFrom.current = null;
+    setDragging(null);
+    setDragOver(null);
+    if (from === null || from === to) return;
+    moveRow(n, c, from, to);
+    if (open === from) setOpen(to);
+    else if (open !== null && from < open && to >= open) setOpen(open - 1);
+    else if (open !== null && from > open && to <= open) setOpen(open + 1);
+  };
+
   return <Field n={n} c={c}>
-    {arr.map((_, k) => (
-      <div class="irow" key={k}>
-        <RowInput n={n} c={c} k={k} prop="label" placeholder="Label" />
-        <RowInput n={n} c={c} k={k} prop="href" placeholder="#anchor or page.html" />
-        <RowActs n={n} c={c} k={k} />
+    {arr.map((it, k) => {
+      const link = parsed(it);
+      const wordpress = wordpressDestinationForValue(it.href);
+      const mode = link.mode === 'page' ? 'page' : wordpress ? 'wordpress' : 'custom';
+      const page = link.page || C.page().slug;
+      const anchors = mode === 'page' ? C.anchorsOf(page) : [];
+      const isDragging = dragging === k;
+      return <div class={'navitem' + (open === k ? ' on' : '') + (isDragging ? ' dragging' : '') + (dragOver === k && !isDragging ? ' dragover' : '')}
+        key={k} onDragOver={e => { e.preventDefault(); if (dragFrom.current !== null && dragFrom.current !== k) setDragOver(k); }}
+        onDrop={e => { e.preventDefault(); finishDrag(k); }}>
+        <div class="navitem-head">
+          <button class="navitem-drag" draggable aria-label={`Drag ${it.label || 'untitled link'} to reorder`}
+            title="Drag to reorder"
+            onDragStart={e => {
+              dragFrom.current = k;
+              setDragging(k);
+              setDragOver(null);
+              if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', String(k));
+              }
+            }}
+            onDragEnd={() => { dragFrom.current = null; setDragging(null); setDragOver(null); }}>
+            <Icon name="drag" size={12} />
+          </button>
+          <button class="navitem-main" aria-expanded={open === k ? 'true' : 'false'}
+            onClick={() => setOpen(open === k ? null : k)}>
+            <span><b>{it.label || 'Untitled link'}</b><small>{summary(it)}</small></span>
+            <Icon name="caret" size={11} />
+          </button>
+          <button class="x" title="Remove" onClick={() => dropRow(n, c, k)}>
+            <Icon name="trash" size={11} />
+          </button>
+        </div>
+        {open === k ? <div class="navitem-body">
+          <label>Navigation label</label>
+          <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label" />
+
+          <label>Destination</label>
+          <select class="ctl" value={mode} aria-label={`Destination for ${it.label || 'untitled link'}`} onChange={e => {
+            const next = (e.target as HTMLSelectElement).value;
+            commit(k, 'href', next === 'page'
+              ? C.buildLink({ mode: 'page', page: C.page().slug, frag: '' })
+              : next === 'wordpress' ? firstWordPressReference : '');
+          }}>
+            <option value="page">A Pagecraft page</option>
+            {firstWordPress ? <option value="wordpress">WordPress content</option> : null}
+            <option value="custom">Custom URL</option>
+          </select>
+
+          {mode === 'page' ? <>
+            <select class="ctl" value={page} onChange={e => {
+              commit(k, 'href', C.buildLink({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' }));
+            }}>
+              {C.state.pages.map(p => <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
+            </select>
+            <select class="ctl" value={link.frag || ''} onChange={e => {
+              commit(k, 'href', C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }));
+            }}>
+              <option value="">Top of the page</option>
+              {anchors.map(id => <option key={id} value={id}>#{id}</option>)}
+              {link.frag && !anchors.includes(link.frag)
+                ? <option value={link.frag}>#{link.frag} — missing</option> : null}
+            </select>
+          </> : mode === 'wordpress' ? (
+            <WordPressContentPicker value={it.href} onChange={url => commit(k, 'href', url)} />
+          ) : <>
+            <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section" />
+            <div class="note">Supports external URLs, email, phone, and section links.</div>
+          </>}
+
+          <label>CSS classes</label>
+          <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class" />
+          <div class="note">Applied to this menu item. Separate multiple classes with spaces.</div>
+
+          <div class="tog-row navitem-target">
+            <span>Open in a new tab</span>
+            <button type="button" role="switch" aria-label="Open in a new tab"
+              aria-checked={it.target === '_blank' ? 'true' : 'false'}
+              class={'sw-tog' + (it.target === '_blank' ? ' on' : '')} onClick={() => {
+              commit(k, 'target', it.target === '_blank' ? '' : '_blank');
+            }}><i /></button>
+          </div>
+        </div> : null}
       </div>
-    ))}
-    <AddButton label="Add link" gap={!!arr.length} small
-      onClick={() => C.edit(() => rows(n, c).push({ label: 'New link', href: '' }))} />
+    })}
+    <div class="navitem-add" style={{ marginTop: arr.length ? 'var(--gap-1)' : '0' }}>
+      <AddButton label="Add page" gap={false} small onClick={() => {
+        const at = arr.length;
+        C.edit(() => rows(n, c).push({ label: C.page().name, href: C.buildLink({ mode: 'page', page: C.page().slug, frag: '' }), cls: '', target: '' }));
+        setOpen(at);
+      }} />
+      <AddButton label="Add custom" gap={false} small onClick={() => {
+        const at = arr.length;
+        C.edit(() => rows(n, c).push({ label: 'New link', href: '', cls: '', target: '' }));
+        setOpen(at);
+      }} />
+    </div>
   </Field>;
 }
 
