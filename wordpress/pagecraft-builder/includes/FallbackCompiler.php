@@ -13,7 +13,7 @@ final class FallbackCompiler
             || !preg_match('/<main\b[^>]*\bid=(?:"pagecraft-main"|\'pagecraft-main\')[^>]*>([\s\S]*)<\/main\s*>/i', $html, $match)) {
             throw new PackageException('The compiled Pagecraft page has no unambiguous page body.');
         }
-        $body = $match[1];
+        $body = self::cleanInternalLinks($match[1]);
         self::assertSafeMarkup($body);
         $wrapped = '<div id="pagecraft-main" class="pagecraft-main" data-pagecraft-fallback="1">'
             . $body . '</div>';
@@ -24,9 +24,60 @@ final class FallbackCompiler
         return $sanitized;
     }
 
+    public static function globalContent(PortablePagePackage $package, string $kind): string
+    {
+        if (!in_array($kind, ['header', 'footer'], true)) {
+            throw new PackageException('The Pagecraft global element kind is invalid.');
+        }
+        $label = strtoupper($kind);
+        $start = '<!--PAGECRAFT_SHARED_' . $label . '_START-->';
+        $end = '<!--PAGECRAFT_SHARED_' . $label . '_END-->';
+        $html = $package->compiledHtml();
+        $pattern = '/' . preg_quote($start, '/') . '([\s\S]*?)' . preg_quote($end, '/') . '/';
+        if (substr_count($html, $start) !== 1 || substr_count($html, $end) !== 1
+            || !preg_match($pattern, $html, $match)) {
+            throw new PackageException('The compiled Pagecraft page has no unambiguous global ' . $kind . '.');
+        }
+
+        $fragment = preg_replace_callback(
+            '/<(\/?)' . preg_quote($kind, '/') . '(\b[^>]*)>/i',
+            static fn (array $tag): string => '<' . $tag[1] . 'div' . $tag[2] . '>',
+            self::cleanInternalLinks($match[1])
+        );
+        if (!is_string($fragment)) {
+            throw new PackageException('WordPress could not normalize the global ' . $kind . ' landmark.');
+        }
+        return self::sanitizeFragment($fragment, 'global ' . $kind);
+    }
+
+    public static function needsRuntime(string $html): bool
+    {
+        return preg_match(
+            '/\b(?:data-(?:slider|copy|tabs|nav|facade|lightbox)|bp-(?:duration|delay|easing))\b|class\s*=\s*["\'][^"\']*\b(?:bp-animate|pc-(?:fade|slide|scale|zoom|rotate|bounce|flip|spin|elastic))/i',
+            $html
+        ) === 1;
+    }
+
     public static function css(PortablePagePackage $package): string
     {
-        $css = $package->compiledCss();
+        return implode("\n", array_filter([
+            self::globalCss($package),
+            self::pageCss($package),
+        ], static fn (string $part): bool => $part !== ''));
+    }
+
+    public static function globalCss(PortablePagePackage $package): string
+    {
+        return self::safeCss($package->globalCss());
+    }
+
+    public static function pageCss(PortablePagePackage $package): string
+    {
+        return self::safeCss($package->pageCss());
+    }
+
+    private static function safeCss(string $css): string
+    {
         if (preg_match(
             '/@(?:import|charset|namespace)\b|expression\s*\(|(?:^|[;{])\s*(?:behavior|-moz-binding)\s*:|<\/style|url\s*\(\s*["\']?\s*(?:javascript|data\s*:\s*text\/html)/i',
             $css
@@ -34,6 +85,47 @@ final class FallbackCompiler
             throw new PackageException('The compiled Pagecraft stylesheet contains an unsupported executable or parser directive.');
         }
         return $css;
+    }
+
+    private static function sanitizeFragment(string $html, string $label): string
+    {
+        self::assertSafeMarkup($html);
+        $sanitized = wp_kses($html, self::allowedHtml(), self::allowedProtocols());
+        if (trim($html) !== '' && trim(strip_tags($sanitized)) === ''
+            && !preg_match('/<(?:img|video|svg|iframe)\b/i', $sanitized)) {
+            throw new PackageException('WordPress could not preserve the compiled Pagecraft ' . $label . ' safely.');
+        }
+        return $sanitized;
+    }
+
+    private static function cleanInternalLinks(string $html): string
+    {
+        $cleaned = preg_replace_callback(
+            '/(\shref\s*=\s*)(["\'])([^"\']*)\2/i',
+            static function (array $match): string {
+                $value = html_entity_decode($match[3], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                if ($value === '' || str_starts_with($value, '#')
+                    || preg_match('#^(?:[a-z][a-z0-9+.-]*:|//)#i', $value)) {
+                    return $match[0];
+                }
+                if (!preg_match('~^(?:\.\./|\./|/)*([A-Za-z0-9][A-Za-z0-9/_-]*?)\.html([?#].*)?$~i', $value, $path)) {
+                    return $match[0];
+                }
+                $route = trim($path[1], '/');
+                if ($route === 'index') {
+                    $route = '';
+                } elseif (str_ends_with(strtolower($route), '/index')) {
+                    $route = substr($route, 0, -strlen('/index'));
+                }
+                $clean = '/' . ($route !== '' ? $route . '/' : '') . ($path[2] ?? '');
+                return $match[1] . $match[2] . htmlspecialchars($clean, ENT_QUOTES | ENT_HTML5, 'UTF-8') . $match[2];
+            },
+            $html
+        );
+        if (!is_string($cleaned)) {
+            throw new PackageException('WordPress could not normalize Pagecraft internal links.');
+        }
+        return $cleaned;
     }
 
     private static function assertSafeMarkup(string $html): void

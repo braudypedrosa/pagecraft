@@ -22,8 +22,20 @@ final class PageImporter
         }
 
         $content = FallbackCompiler::content($package);
-        $css = FallbackCompiler::css($package);
-        $metadata = ManagedPage::metadata($package, $content, $css);
+        $globalCss = FallbackCompiler::globalCss($package);
+        $pageCss = FallbackCompiler::pageCss($package);
+        $assets = new GeneratedAssetStore();
+        $globalCssAsset = $globalCss !== '' ? $assets->writeCss('global', $globalCss) : null;
+        $pageCssAsset = $pageCss !== '' ? $assets->writeCss('page', $pageCss) : null;
+        $runtimeAsset = FallbackCompiler::needsRuntime($content) ? $assets->writeRuntime() : null;
+        $metadata = ManagedPage::metadata(
+            $package,
+            $content,
+            implode("\n", array_filter([$globalCss, $pageCss], static fn (string $part): bool => $part !== '')),
+            $globalCssAsset,
+            $pageCssAsset,
+            $runtimeAsset
+        );
         $replacePostId = (int) ($options['replace_post_id'] ?? 0);
         if ($replacePostId > 0) {
             return $this->replace($replacePostId, $content, $metadata, !empty($options['confirm_replace']));

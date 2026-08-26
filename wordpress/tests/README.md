@@ -6,7 +6,7 @@
 bash wordpress/tests/lint.sh
 ```
 
-This validates every PHP file in Pagecraft Theme, Pagecraft Builder, and the WordPress test harness, then parses `theme.json`. It also creates a real deterministic `.pagecraft-page.zip` and proves native-page creation, default-new reimport, revision-before-replace, native-field preservation, tamper/CMS/traversal rejection, and plugin-disabled theme fallback behavior.
+This validates every PHP file in Pagecraft Theme, Pagecraft Builder, and the WordPress test harness, then parses `theme.json`. It also creates a real deterministic `.pagecraft-page.zip` and proves native-page creation, split content-hashed asset storage, trusted runtime selection, revision-before-replace, revision-backed global header/footer storage, clean internal routes, tamper/CMS/traversal rejection, exact per-route enqueueing, and plugin-disabled theme fallback behavior.
 
 The release gate also parses the same files with the exact required runtime:
 

@@ -15,6 +15,7 @@ $GLOBALS['pc_meta'] = [];
 $GLOBALS['pc_revisions'] = [];
 $GLOBALS['pc_events'] = [];
 $GLOBALS['pc_next_post'] = 100;
+$GLOBALS['pc_upload_dir'] = sys_get_temp_dir() . '/pagecraft-native-' . substr(hash('sha256', $argv[1]), 0, 16);
 $GLOBALS['pc_caps'] = [
     'import_pagecraft_pages' => true,
     'publish_pages' => true,
@@ -85,6 +86,20 @@ function pc_unslash(mixed $value): mixed
 function wp_kses(string $html, array $allowedHtml, array $allowedProtocols): string
 {
     return $html;
+}
+
+function wp_upload_dir(): array
+{
+    return [
+        'basedir' => $GLOBALS['pc_upload_dir'],
+        'baseurl' => 'https://example.test/wp-content/uploads',
+        'error' => false,
+    ];
+}
+
+function wp_mkdir_p(string $directory): bool
+{
+    return is_dir($directory) || mkdir($directory, 0777, true);
 }
 
 function wp_insert_post(array $post, bool $wpError = false): int|WP_Error
@@ -193,6 +208,8 @@ $fixture = $argv[1];
 $package = \Pagecraft\Builder\PortablePagePackage::fromFile($fixture);
 pc_assert($package->manifest()->entryPageId === 'page-import-fixture', 'Entry page was not validated.');
 pc_assert($package->provenance()->sourceId === 'cloud-project-fixture', 'Provenance was not retained.');
+pc_assert(!\Pagecraft\Builder\FallbackCompiler::needsRuntime('<p>Static</p>'), 'Static markup requested a runtime.');
+pc_assert(\Pagecraft\Builder\FallbackCompiler::needsRuntime('<div data-tabs></div>'), 'Interactive markup did not request a runtime.');
 
 $importer = new \Pagecraft\Builder\PageImporter();
 $first = $importer->import($package);
@@ -211,6 +228,29 @@ pc_assert(
     ($GLOBALS['pc_meta'][$first->postId]['_pagecraft_compiled_hash'] ?? '')
         === hash('sha256', $GLOBALS['pc_posts'][$first->postId]['post_content']),
     'Compiled fallback hash is wrong.'
+);
+$globalCssPath = $GLOBALS['pc_meta'][$first->postId]['_pagecraft_global_css_path'] ?? '';
+$pageCssPath = $GLOBALS['pc_meta'][$first->postId]['_pagecraft_page_css_path'] ?? '';
+$runtimePath = $GLOBALS['pc_meta'][$first->postId]['_pagecraft_runtime_path'] ?? '';
+pc_assert(
+    preg_match('#^pagecraft/global-[a-f0-9]{64}\.css$#', $globalCssPath) === 1,
+    'The imported page has no content-hashed global stylesheet.'
+);
+pc_assert(
+    preg_match('#^pagecraft/page-[a-f0-9]{64}\.css$#', $pageCssPath) === 1,
+    'The imported page has no content-hashed page stylesheet.'
+);
+pc_assert(
+    preg_match('#^pagecraft/runtime-[a-f0-9]{64}\.js$#', $runtimePath) === 1,
+    'The imported interactive page has no trusted content-hashed runtime.'
+);
+foreach ([$globalCssPath, $pageCssPath, $runtimePath] as $assetPath) {
+    pc_assert(is_file($GLOBALS['pc_upload_dir'] . '/' . $assetPath), 'A generated asset was not written below uploads/pagecraft.');
+}
+pc_assert(
+    hash_file('sha256', $GLOBALS['pc_upload_dir'] . '/' . $runtimePath)
+        === ($GLOBALS['pc_meta'][$first->postId]['_pagecraft_runtime_hash'] ?? ''),
+    'The generated runtime hash does not match the stored file.'
 );
 
 $second = $importer->import($package);
@@ -332,5 +372,11 @@ try {
     pc_assert(str_contains($error->getMessage(), 'path traversal'), 'Traversal rejection is unclear.');
 }
 unlink($traversal);
+
+foreach (glob($GLOBALS['pc_upload_dir'] . '/pagecraft/*') ?: [] as $asset) {
+    unlink($asset);
+}
+if (is_dir($GLOBALS['pc_upload_dir'] . '/pagecraft')) rmdir($GLOBALS['pc_upload_dir'] . '/pagecraft');
+if (is_dir($GLOBALS['pc_upload_dir'])) rmdir($GLOBALS['pc_upload_dir']);
 
 echo "Native WordPress page import and revision contract is valid.\n";
