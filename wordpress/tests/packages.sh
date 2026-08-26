@@ -27,6 +27,7 @@ theme_entries="${PACKAGE_TEMP}/theme-entries.txt"
 unzip -Z1 "${builder}" >"${builder_entries}"
 unzip -Z1 "${theme}" >"${theme_entries}"
 grep -Fxq 'pagecraft-builder/pagecraft-builder.php' "${builder_entries}"
+grep -Fxq 'pagecraft-builder/uninstall.php' "${builder_entries}"
 grep -Fxq 'pagecraft/style.css' "${theme_entries}"
 if grep -Eq '^pagecraft-theme/' "${theme_entries}"; then
 	echo 'Pagecraft theme package uses an updater-incompatible stylesheet root.' >&2
@@ -38,6 +39,10 @@ if grep -Eq 'pagecraft-builder/(vendor|tests|tools|\.phpunit\.cache)/' "${builde
 fi
 if grep -Eqi 'pagecraft-connector|includes/(Sync|ReleaseRepository|CmsWriteback|Cron)\.php' "${builder_entries}"; then
 	echo 'Builder release package contains retired Connected-mode files.' >&2
+	exit 1
+fi
+if unzip -p "${builder}" pagecraft-builder/uninstall.php | grep -Eq 'wp_delete_post|delete_post_meta|wp_delete_attachment'; then
+	echo 'Builder uninstall deletes WordPress-owned imported content.' >&2
 	exit 1
 fi
 
