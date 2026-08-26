@@ -8,30 +8,32 @@ web
 
 ## Users
 
-Pagecraft serves people who need a publishable website quickly and site administrators who want a visual builder without surrendering their content to a hosted runtime. Connected WordPress v1 is initially for Braudy's own controlled test installations before broader customer distribution.
+Pagecraft serves people who need an instant publishable website and WordPress site owners who want the same visual builder without remaining dependent on a hosted runtime. WordPress v1 is initially for Braudy's own controlled test installation before broader customer distribution.
 
 ## Product Purpose
 
-Pagecraft is a visual website builder whose canonical project can be published either through Pagecraft hosting or as a verified local release on WordPress. Success means an administrator can design once, publish deliberately, and keep the last published WordPress site online even when Pagecraft is unavailable.
+Pagecraft is a visual website builder for creating, previewing, and sharing hosted sites, then handing a site or page to WordPress as an independently editable local copy. Success means a customer can start in Pagecraft Cloud, import into WordPress, and continue using the same builder without requiring synchronization or Pagecraft availability.
 
 ## Positioning
 
-Pagecraft separates a portable, signed release from the editor that authored it. WordPress is a self-contained deployment target and integration surface, while Pagecraft remains the source of truth for managed pages, templates, design, and release history.
+Pagecraft separates a portable, versioned document from the environment that owns it. Pagecraft Cloud owns the cloud copy; after import, WordPress owns the WordPress copy. The two environments share one document model, compiler, renderer, and editor, but never silently synchronize.
 
 ## Operating Context
 
-- Authors work in the Pagecraft editor directly or through a full-page editor embedded in WordPress Admin.
-- Autosave records drafts. Explicit Publish creates immutable releases.
-- A project may connect one staging and one production WordPress site; staging verification precedes automatic production promotion.
-- WordPress administrators manage connection health, script approvals, synchronization, forms, CMS-item write-back, and emergency rollback.
+- Authors work in Pagecraft Cloud or through the same full-page editor embedded in WordPress Admin.
+- Full-site and single-page packages support offline handoff. An optional account connection provides manual cloud-page browsing and import only.
+- Imported pages are native WordPress `page` records. The Pagecraft document is stored in post metadata and compiled fallback HTML is stored in `post_content`.
+- WordPress Pages is the canonical page library. Pagecraft adds badges, filters, and “Edit with Pagecraft” actions instead of a duplicate Pages screen.
+- Pagecraft navigation is converted to a native WordPress menu and bound back to the imported navigation component; WordPress owns menu content while Pagecraft owns presentation.
 
 ## Capabilities and Constraints
 
-- Pagecraft supports its complete current element, component, responsive-style, interaction, CMS, asset, form, SEO, and custom-code model.
-- Connected WordPress v1 supports WordPress single-site, WordPress 6.6 or newer, PHP 8.1 or newer, HTTPS, and pretty permalinks.
-- Pagecraft-managed pages are read-only in Gutenberg. Production WordPress may write CMS item fields and media back to the Pagecraft draft; schemas and templates remain Pagecraft-owned.
-- WordPress remains live on the last verified local release when disconnected. The installed Pagecraft theme/connector remain part of that runtime.
-- Multisite, native editable handoff, DNS provisioning, billing, public marketplace distribution, arbitrary third-party builder conversion, MCP, and vacation-rental widgets are outside v1.
+- Pagecraft supports its current element, component, responsive-style, interaction, asset, SEO, and approved custom-code model in both hosts.
+- WordPress v1 supports single-site, WordPress 6.6 or newer, PHP 8.1 or newer, HTTPS, pretty permalinks, and the Pagecraft Theme only.
+- Pagecraft-managed pages use the Pagecraft editor for layout. Native WordPress fields, revisions, menus, media, status, author, slug, and integrations remain available.
+- Generated CSS and runtime assets live under versioned Pagecraft upload paths rather than being written into the installed theme directory.
+- Cloud CMS bindings must be flattened with an explicit warning or rejected during import. Native WordPress data providers are deferred.
+- Background synchronization, conflict merging, staging promotion, Gutenberg conversion, existing-theme compatibility, multisite, billing, MCP, ecommerce, and vacation-rental widgets are outside v1.
 
 ## Brand Commitments
 
@@ -46,11 +48,12 @@ The product is Pagecraft. Its established interface is a calm editorial workbenc
 
 ## Product Principles
 
-- Drafts are private; only explicit releases become public.
-- A failed deployment never replaces a healthy public release.
-- Stable Pagecraft identities, deterministic artifacts, and signatures make synchronization auditable and repeatable.
-- Existing WordPress-owned content is never silently overwritten.
-- Administrative interfaces state the current target, release, ownership, and recovery action plainly.
+- An import is a copy and an ownership handoff, never an implied synchronization relationship.
+- Reimport defaults to creating a new page; replacing an existing page is explicit and creates a WordPress revision first.
+- Stable Pagecraft identities, versioned schemas, deterministic compilation, and file hashes make packages auditable and repeatable.
+- Existing WordPress content, navigation, and media are never silently overwritten.
+- Published pages retain compiled HTML and CSS so disabling the builder does not blank the site.
+- Administrative interfaces state whether content is cloud-owned, imported, or locally WordPress-owned.
 
 ## Accessibility & Inclusion
 

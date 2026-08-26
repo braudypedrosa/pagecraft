@@ -1,5 +1,7 @@
 # Pagecraft Connected WordPress v1 QA
 
+> Historical checkpoint: this document records the superseded Connected-mode prototype preserved on `bp/connected-v1-checkpoint`. The active WordPress direction is the native handoff plan in `WORDPRESS-NATIVE-V1.md`.
+
 Date: 2026-08-26
 Scope: local v1 implementation and acceptance evidence
 Hosted acceptance: blocked until two disposable hosted WordPress administrator accounts are supplied
