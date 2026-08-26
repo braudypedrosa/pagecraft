@@ -27,6 +27,13 @@ export interface HostDocument {
 export interface HostDocumentSave {
   document: UnknownDocumentInput;
   version: number;
+  /** A host may persist a compiled fallback beside the portable document. WordPress uses
+   * this to keep the native page renderable when Pagecraft Builder is disabled. */
+  compiled?: {
+    html: string;
+    globalCss: string;
+    pageCss: string;
+  };
 }
 
 export interface HostPage {

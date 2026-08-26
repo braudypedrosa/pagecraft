@@ -15,6 +15,9 @@ node --experimental-strip-types \
 cmp "${PACKAGE_TEMP}/pagecraft-runtime.js" \
 	"${WORDPRESS_DIR}/pagecraft-builder/assets/pagecraft-runtime.js"
 node --check "${PACKAGE_TEMP}/pagecraft-runtime.js"
+node "${WORDPRESS_DIR}/tools/build-editor.mjs" "${PACKAGE_TEMP}/pagecraft-editor.html" >/dev/null
+cmp "${PACKAGE_TEMP}/pagecraft-editor.html" \
+	"${WORDPRESS_DIR}/pagecraft-builder/assets/pagecraft-editor.html"
 
 builder="${PACKAGE_TEMP}/pagecraft-builder-0.2.0.zip"
 theme="${PACKAGE_TEMP}/pagecraft-theme-0.2.0.zip"
@@ -36,6 +39,8 @@ unzip -Z1 "${theme}" >"${theme_entries}"
 grep -Fxq 'pagecraft-builder/pagecraft-builder.php' "${builder_entries}"
 grep -Fxq 'pagecraft-builder/uninstall.php' "${builder_entries}"
 grep -Fxq 'pagecraft-builder/assets/BP-ANIMATE-LICENSE.txt' "${builder_entries}"
+grep -Fxq 'pagecraft-builder/assets/pagecraft-editor.html' "${builder_entries}"
+grep -Fxq 'pagecraft-builder/assets/pagecraft-admin.css' "${builder_entries}"
 grep -Fxq 'pagecraft/style.css' "${theme_entries}"
 if grep -Eq '^pagecraft-theme/' "${theme_entries}"; then
 	echo 'Pagecraft theme package uses an updater-incompatible stylesheet root.' >&2
