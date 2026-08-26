@@ -33,6 +33,10 @@ const withFonts = html => {
   if (!html.includes(FONT_SLOT)) throw new Error('font slot ' + FONT_SLOT + ' missing from builder.html');
   return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n</style>`);
 };
+/* esbuild preserves indentation inside block comments, including indentation-only blank
+   lines. Strip that generated whitespace so rebuilding does not make `git diff --check`
+   report source comments as new trailing-space defects. */
+const cleanGenerated = text => text.replace(/[\t ]+$/gm, '');
 const FONT_SLOT = '<!--PAGECRAFT-FONTS-->';
 
 const rawScript = frag.slice(frag.indexOf('<script>') + 8, frag.lastIndexOf('</script>'));
@@ -161,7 +165,7 @@ const fragOut = (() => {
 
 /* ---- 1. standalone page ------------------------------------------------ */
 const cut = fragOut.indexOf('<div id="app">');
-writeFileSync(join(here, 'index.html'), withFonts(`<!doctype html>
+writeFileSync(join(here, 'index.html'), cleanGenerated(withFonts(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -172,11 +176,11 @@ ${fragOut.slice(0, cut).trim()}
 ${fragOut.slice(cut).trim()}
 </body>
 </html>
-`));
+`)));
 
 /* ---- 1b. artifact source: the same fragment with fonts inlined ---------- */
 mkdirSync(join(here, 'dist'), { recursive: true });
-writeFileSync(join(here, 'dist', 'artifact.html'), withFonts(fragOut));
+writeFileSync(join(here, 'dist', 'artifact.html'), cleanGenerated(withFonts(fragOut)));
 
 /* ---- 1c. every control kind must have a component ----------------------
    This used to compare `ctlHtml`'s cases against `bindRight`'s, because a slice-based
