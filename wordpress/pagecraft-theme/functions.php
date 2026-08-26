@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PAGECRAFT_THEME_VERSION', '0.1.0' );
+define( 'PAGECRAFT_THEME_VERSION', '0.2.0' );
 define( 'PAGECRAFT_THEME_DIR', get_template_directory() );
 
 require_once PAGECRAFT_THEME_DIR . '/inc/pagecraft-integration.php';
@@ -53,6 +53,7 @@ function pagecraft_theme_setup(): void {
 		array(
 			'primary' => __( 'Primary navigation', 'pagecraft' ),
 			'footer'  => __( 'Footer navigation', 'pagecraft' ),
+			'utility' => __( 'Utility navigation', 'pagecraft' ),
 		)
 	);
 }
