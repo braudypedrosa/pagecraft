@@ -55,6 +55,11 @@ function esc_html__(string $text, string $domain): string
     return $text;
 }
 
+function __(string $text, string $domain): string
+{
+    return $text;
+}
+
 function load_plugin_textdomain(string $domain, bool $deprecated = false, string $path = ''): bool
 {
     return true;
@@ -97,8 +102,14 @@ function update_option(string $name, mixed $value, bool $autoload = true): bool
 
 function register_post_meta(string $post_type, string $key, array $args): bool
 {
-    $GLOBALS['pagecraft_test_meta'][$key] = [$post_type, $args];
+    $GLOBALS['pagecraft_test_meta'][$post_type . ':' . $key] = [$post_type, $key, $args];
     return true;
+}
+
+function register_post_type(string $post_type, array $args): object
+{
+    $GLOBALS['pagecraft_test_post_types'][$post_type] = $args;
+    return (object) $args;
 }
 
 function current_user_can(string $capability, mixed ...$args): bool
@@ -150,15 +161,28 @@ $expected_meta = [
     '_pagecraft_document', '_pagecraft_schema_version', '_pagecraft_renderer_version',
     '_pagecraft_source_project_id', '_pagecraft_source_page_id', '_pagecraft_source_origin',
     '_pagecraft_source_version', '_pagecraft_provenance', '_pagecraft_imported_at',
-    '_pagecraft_compiled_hash', '_pagecraft_compiled_css', '_pagecraft_package_hash',
+    '_pagecraft_compiled_hash', '_pagecraft_compiled_css', '_pagecraft_global_css_path',
+    '_pagecraft_global_css_hash', '_pagecraft_page_css_path', '_pagecraft_page_css_hash',
+    '_pagecraft_runtime_path', '_pagecraft_runtime_hash', '_pagecraft_package_hash',
 ];
 sort($expected_meta);
-$registered_meta = array_keys($GLOBALS['pagecraft_test_meta']);
-sort($registered_meta);
-pagecraft_test_assert($registered_meta === $expected_meta, 'Managed-page metadata contract is incomplete.');
-foreach ($GLOBALS['pagecraft_test_meta'] as [$post_type, $args]) {
-    pagecraft_test_assert($post_type === 'page', 'Pagecraft metadata was registered outside native pages.');
+$registered_page_meta = [];
+foreach ($GLOBALS['pagecraft_test_meta'] as [$post_type, $key, $args]) {
+    if ($post_type === 'page') $registered_page_meta[] = $key;
+}
+sort($registered_page_meta);
+pagecraft_test_assert($registered_page_meta === $expected_meta, 'Managed-page metadata contract is incomplete.');
+foreach ($GLOBALS['pagecraft_test_meta'] as [$post_type, $key, $args]) {
+    pagecraft_test_assert(in_array($post_type, ['page', 'pagecraft_global'], true), 'Pagecraft metadata escaped its native entities.');
     pagecraft_test_assert(($args['revisions_enabled'] ?? false) === true, 'Pagecraft metadata is not revision-enabled.');
+}
+pagecraft_test_assert(
+    ($GLOBALS['pagecraft_test_post_types']['pagecraft_global']['supports'] ?? []) === ['title', 'editor', 'revisions', 'custom-fields'],
+    'Global header/footer entities are not revision-capable native records.'
+);
+foreach ($GLOBALS['pagecraft_test_meta'] as [$post_type, $key, $args]) {
+    if ($post_type !== 'page') continue;
+    pagecraft_test_assert($post_type === 'page', 'Pagecraft metadata was registered outside native pages.');
 }
 
 $activation = $GLOBALS['pagecraft_test_activation'];

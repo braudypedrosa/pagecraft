@@ -8,6 +8,6 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 
 /*
  * Imported pages are native WordPress content owned by this site. Deliberately delete nothing:
- * page posts, revisions, Pagecraft source metadata, generated CSS, and media must survive
+ * page posts, revisions, global elements, Pagecraft source metadata, generated assets, and media must survive
  * uninstall so the Pagecraft Theme can keep rendering the last imported fallback.
  */

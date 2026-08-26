@@ -17,6 +17,12 @@ final class ManagedPage
     public const IMPORTED_AT = '_pagecraft_imported_at';
     public const COMPILED_HASH = '_pagecraft_compiled_hash';
     public const COMPILED_CSS = '_pagecraft_compiled_css';
+    public const GLOBAL_CSS_PATH = '_pagecraft_global_css_path';
+    public const GLOBAL_CSS_HASH = '_pagecraft_global_css_hash';
+    public const PAGE_CSS_PATH = '_pagecraft_page_css_path';
+    public const PAGE_CSS_HASH = '_pagecraft_page_css_hash';
+    public const RUNTIME_PATH = '_pagecraft_runtime_path';
+    public const RUNTIME_HASH = '_pagecraft_runtime_hash';
     public const PACKAGE_HASH = '_pagecraft_package_hash';
 
     /** @return list<string> */
@@ -34,6 +40,12 @@ final class ManagedPage
             self::IMPORTED_AT,
             self::COMPILED_HASH,
             self::COMPILED_CSS,
+            self::GLOBAL_CSS_PATH,
+            self::GLOBAL_CSS_HASH,
+            self::PAGE_CSS_PATH,
+            self::PAGE_CSS_HASH,
+            self::RUNTIME_PATH,
+            self::RUNTIME_HASH,
             self::PACKAGE_HASH,
         ];
     }
@@ -62,7 +74,14 @@ final class ManagedPage
     }
 
     /** @return array<string, string> */
-    public static function metadata(PortablePagePackage $package, string $content, string $css): array
+    public static function metadata(
+        PortablePagePackage $package,
+        string $content,
+        string $css,
+        ?array $globalCss,
+        ?array $pageCss,
+        ?array $runtime
+    ): array
     {
         $provenance = $package->provenance();
         return [
@@ -77,6 +96,12 @@ final class ManagedPage
             self::IMPORTED_AT => gmdate('c'),
             self::COMPILED_HASH => hash('sha256', $content),
             self::COMPILED_CSS => $css,
+            self::GLOBAL_CSS_PATH => $globalCss['path'] ?? '',
+            self::GLOBAL_CSS_HASH => $globalCss['hash'] ?? '',
+            self::PAGE_CSS_PATH => $pageCss['path'] ?? '',
+            self::PAGE_CSS_HASH => $pageCss['hash'] ?? '',
+            self::RUNTIME_PATH => $runtime['path'] ?? '',
+            self::RUNTIME_HASH => $runtime['hash'] ?? '',
             self::PACKAGE_HASH => $package->packageHash(),
         ];
     }

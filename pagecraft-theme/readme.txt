@@ -12,6 +12,8 @@ The frontend theme for native WordPress pages created with Pagecraft Builder.
 
 The Pagecraft theme renders ordinary WordPress content and Pagecraft-managed native pages through the standard WordPress template hierarchy. Pagecraft Builder stores compiled fallback HTML in each page's `post_content`; the theme does not fetch remote releases or depend on background synchronization.
 
+Revision-backed Pagecraft header and footer records render across managed and ordinary WordPress routes. The theme loads only the content-hashed global, current-page, and trusted runtime assets referenced by the active records from `wp-content/uploads/pagecraft`. Those files survive theme and plugin updates, and the theme can keep rendering them while Pagecraft Builder is deactivated.
+
 The theme registers Primary, Footer, and Utility navigation locations. Imported Pagecraft navigation is converted to native WordPress menus and assigned to these locations by Pagecraft Builder.
 
 == Installation ==

@@ -25,8 +25,9 @@ final class PortablePagePackage
     private \stdClass $dependencies;
     private string $archiveHash;
     private string $compiledPath;
-    /** @var list<string> */
-    private array $stylePaths = [];
+    private ?string $globalStylePath = null;
+    private ?string $pageStylePath = null;
+    private ?string $legacyStylePath = null;
 
     private function __construct()
     {
@@ -105,11 +106,21 @@ final class PortablePagePackage
 
     public function compiledCss(): string
     {
-        $parts = [];
-        foreach ($this->stylePaths as $path) {
-            $parts[] = $this->readText($path);
-        }
-        return implode("\n", array_filter($parts, static fn (string $part): bool => $part !== ''));
+        return implode("\n", array_filter([
+            $this->globalCss(),
+            $this->pageCss(),
+        ], static fn (string $part): bool => $part !== ''));
+    }
+
+    public function globalCss(): string
+    {
+        return $this->globalStylePath !== null ? $this->readText($this->globalStylePath) : '';
+    }
+
+    public function pageCss(): string
+    {
+        $path = $this->pageStylePath ?? $this->legacyStylePath;
+        return $path !== null ? $this->readText($path) : '';
     }
 
     private function validateArchive(): void
@@ -211,14 +222,29 @@ final class PortablePagePackage
             if ($record->role === 'compiled-page') {
                 $compiled[] = $path;
             } elseif ($record->role === 'style') {
-                $this->stylePaths[] = $path;
+                if ($path === 'styles/global.css') {
+                    $this->globalStylePath = $path;
+                } elseif (str_starts_with($path, 'styles/pages/')) {
+                    if ($this->pageStylePath !== null) {
+                        throw new PackageException('A Pagecraft page package cannot contain multiple page stylesheets.');
+                    }
+                    $this->pageStylePath = $path;
+                } else {
+                    if ($this->legacyStylePath !== null) {
+                        throw new PackageException('A legacy Pagecraft page package cannot contain multiple stylesheets.');
+                    }
+                    $this->legacyStylePath = $path;
+                }
             }
         }
-        if (count($compiled) !== 1 || count($this->stylePaths) !== 1) {
-            throw new PackageException('A Pagecraft page package must contain one compiled page and one page stylesheet.');
+        $modernStyles = $this->globalStylePath !== null && $this->pageStylePath !== null && $this->legacyStylePath === null;
+        $legacyStyles = $this->legacyStylePath !== null && $this->globalStylePath === null && $this->pageStylePath === null;
+        if (count($compiled) !== 1 || (!$modernStyles && !$legacyStyles)) {
+            throw new PackageException(
+                'A Pagecraft page package must contain one compiled page and either split global/page styles or one legacy stylesheet.'
+            );
         }
         $this->compiledPath = $compiled[0];
-        sort($this->stylePaths, SORT_STRING);
 
         $documentSource = $this->readText('source/document.json', self::MAX_DOCUMENT_BYTES);
         $this->document = CanonicalJson::decodeObject($documentSource, 'Pagecraft package document');

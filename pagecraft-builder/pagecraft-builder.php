@@ -65,3 +65,21 @@ function pagecraft_builder_import_page_package(
     $package = \Pagecraft\Builder\PortablePagePackage::fromFile($package_file);
     return (new \Pagecraft\Builder\PageImporter())->import($package, $options);
 }
+
+/**
+ * Explicitly replace the local global header and footer from a page package.
+ *
+ * Page import never calls this automatically. Site import and the Pagecraft global editor use
+ * this separate boundary so importing one page cannot unexpectedly replace site navigation.
+ *
+ * @return array{header:int,footer:int}
+ */
+function pagecraft_builder_import_global_elements(string $package_file): array
+{
+    $package = \Pagecraft\Builder\PortablePagePackage::fromFile($package_file);
+    $repository = new \Pagecraft\Builder\GlobalElement();
+    return [
+        'header' => $repository->import($package, 'header'),
+        'footer' => $repository->import($package, 'footer'),
+    ];
+}
