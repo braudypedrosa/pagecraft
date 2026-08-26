@@ -9,6 +9,17 @@ $GLOBALS['pagecraft_test_activation'] = null;
 $GLOBALS['pagecraft_test_caps'] = [];
 $GLOBALS['pagecraft_test_options'] = [];
 $GLOBALS['pagecraft_test_meta'] = [];
+$GLOBALS['pagecraft_test_routes'] = [];
+$GLOBALS['pagecraft_test_can'] = true;
+
+final class WP_REST_Request implements ArrayAccess
+{
+    public function __construct(private array $values = []) {}
+    public function offsetExists(mixed $offset): bool { return isset($this->values[$offset]); }
+    public function offsetGet(mixed $offset): mixed { return $this->values[$offset] ?? null; }
+    public function offsetSet(mixed $offset, mixed $value): void { $this->values[$offset] = $value; }
+    public function offsetUnset(mixed $offset): void { unset($this->values[$offset]); }
+}
 
 function plugin_dir_path(string $file): string
 {
@@ -33,6 +44,11 @@ function register_activation_hook(string $file, callable $callback): void
 function add_action(string $hook, callable $callback): void
 {
     $GLOBALS['pagecraft_test_actions'][$hook][] = $callback;
+}
+
+function add_filter(string $hook, callable $callback, int $priority = 10, int $acceptedArgs = 1): void
+{
+    $GLOBALS['pagecraft_test_actions']['filter:' . $hook][] = $callback;
 }
 
 function do_action(string $hook, mixed ...$args): void
@@ -114,6 +130,12 @@ function register_post_type(string $post_type, array $args): object
 
 function current_user_can(string $capability, mixed ...$args): bool
 {
+    return $GLOBALS['pagecraft_test_can'];
+}
+
+function register_rest_route(string $namespace, string $route, array $args): bool
+{
+    $GLOBALS['pagecraft_test_routes'][$namespace . $route] = $args;
     return true;
 }
 
@@ -147,12 +169,28 @@ foreach ($GLOBALS['pagecraft_test_actions']['plugins_loaded'] ?? [] as $callback
 foreach ($GLOBALS['pagecraft_test_actions']['init'] ?? [] as $callback) {
     $callback();
 }
+foreach ($GLOBALS['pagecraft_test_actions']['rest_api_init'] ?? [] as $callback) {
+    $callback();
+}
 
 $loaded = array_filter(
     $GLOBALS['pagecraft_test_actions']['fired'] ?? [],
     static fn (array $action): bool => $action[0] === 'pagecraft_builder_loaded' && $action[1] === ['0.2.0']
 );
 pagecraft_test_assert($loaded !== [], 'Builder did not publish its local boot action.');
+pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['rest_api_init']), 'Builder REST routes were not registered.');
+pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['admin_menu']), 'Pagecraft top-level admin menu was not registered.');
+pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['wp_ajax_pagecraft_editor_frame']), 'Secure editor frame was not registered.');
+pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['filter:page_row_actions']), 'Native Pages row actions were not registered.');
+$documentRoute = $GLOBALS['pagecraft_test_routes']['pagecraft/v1/pages/(?P<id>\d+)/document'] ?? null;
+pagecraft_test_assert(is_array($documentRoute) && count($documentRoute) === 2, 'Document load/save REST route is incomplete.');
+$GLOBALS['pagecraft_test_can'] = false;
+pagecraft_test_assert(
+    $documentRoute[0]['permission_callback'](new WP_REST_Request(['id' => 42])) === false
+        && $documentRoute[1]['permission_callback'](new WP_REST_Request(['id' => 42])) === false,
+    'Unauthorized users can load or save Pagecraft documents.'
+);
+$GLOBALS['pagecraft_test_can'] = true;
 pagecraft_test_assert(pagecraft_builder_is_managed_page(42), 'Pagecraft document metadata was not recognized.');
 pagecraft_test_assert(!pagecraft_builder_is_managed_page(43), 'An empty page was incorrectly marked as Pagecraft-managed.');
 pagecraft_test_assert(!pagecraft_builder_is_managed_page(99), 'A non-page post was incorrectly marked as Pagecraft-managed.');
@@ -164,6 +202,7 @@ $expected_meta = [
     '_pagecraft_compiled_hash', '_pagecraft_compiled_css', '_pagecraft_global_css_path',
     '_pagecraft_global_css_hash', '_pagecraft_page_css_path', '_pagecraft_page_css_hash',
     '_pagecraft_runtime_path', '_pagecraft_runtime_hash', '_pagecraft_package_hash',
+    '_pagecraft_document_version', '_pagecraft_conversion_revision',
 ];
 sort($expected_meta);
 $registered_page_meta = [];

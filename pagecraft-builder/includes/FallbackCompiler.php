@@ -8,7 +8,11 @@ final class FallbackCompiler
 {
     public static function content(PortablePagePackage $package): string
     {
-        $html = $package->compiledHtml();
+        return self::contentFromHtml($package->compiledHtml());
+    }
+
+    public static function contentFromHtml(string $html): string
+    {
         if (preg_match_all('/<main\b/i', $html) !== 1
             || !preg_match('/<main\b[^>]*\bid=(?:"pagecraft-main"|\'pagecraft-main\')[^>]*>([\s\S]*)<\/main\s*>/i', $html, $match)) {
             throw new PackageException('The compiled Pagecraft page has no unambiguous page body.');
@@ -74,6 +78,11 @@ final class FallbackCompiler
     public static function pageCss(PortablePagePackage $package): string
     {
         return self::safeCss($package->pageCss());
+    }
+
+    public static function safeCssSource(string $css): string
+    {
+        return self::safeCss($css);
     }
 
     private static function safeCss(string $css): string

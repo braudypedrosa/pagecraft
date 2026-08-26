@@ -12,11 +12,13 @@ Import and edit Pagecraft content as independently owned native WordPress pages.
 
 Pagecraft Builder is the WordPress host for the Pagecraft editor and portable document format. Imported pages are native WordPress pages. WordPress owns the imported copy and Pagecraft Cloud never updates it automatically.
 
-Version 0.2.0 establishes the native Builder package, compatibility boundary, local capabilities, managed-page ownership, and the strict page-package import service. Imported pages retain canonical Pagecraft source and provenance in revision-enabled metadata while sanitized compiled markup remains native `post_content`.
+Version 0.2.0 establishes the native Builder package, compatibility boundary, local capabilities, managed-page ownership, strict page-package import service, and full-screen WordPress editor host. Imported pages retain canonical Pagecraft source and provenance in revision-enabled metadata while sanitized compiled markup remains native `post_content`.
 
 Generated project/global CSS, page CSS, and the trusted Pagecraft interaction runtime are immutable content-hashed files below `wp-content/uploads/pagecraft`. Revision-capable native global-element records hold the Pagecraft header and footer. Updating the plugin or theme does not overwrite those files or records.
 
-Package upload screens, the embedded editor, native menus, media, global-element screens, and optional manual cloud import are added through the tracked WordPress v1 milestone.
+WordPress Pages remains the only page list. It receives Pagecraft status, filtering, and Edit with Pagecraft actions. Ordinary Gutenberg pages require an explicit revision-backed conversion before the shared editor can save them. The top-level Pagecraft menu owns overview, global-element, import/export, connection, and settings entry points without creating a second page library.
+
+The editor uses a same-origin nonce-protected WordPress REST adapter, optimistic document versions, visible save/conflict recovery, WordPress revisions, content-hashed styles, and refreshed native fallback markup. Native-menu conversion, deeper media portability, visual global-element editing, and optional manual cloud import continue through their tracked WordPress v1 milestones.
 
 Pagecraft Builder does not run background synchronization, deployment promotion, webhooks, CMS write-back, or remote release activation.
 

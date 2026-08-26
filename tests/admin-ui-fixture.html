@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pagecraft WordPress admin fixture</title>
+<link rel="stylesheet" href="../pagecraft-builder/assets/pagecraft-admin.css">
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#f0f0f1;color:#1d2327;font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  a{color:#2271b1}.wpbar{height:32px;padding:7px 16px;background:#1d2327;color:#f0f0f1}.wpshell{display:grid;grid-template-columns:160px 1fr;min-height:calc(100vh - 32px)}
+  .wpnav{padding:14px 0;background:#1d2327;color:#c3c4c7}.wpnav div{padding:8px 14px}.wpnav .active{background:#2271b1;color:#fff}.wpcontent{padding:0 24px 48px}
+  .button{display:inline-flex;min-height:32px;align-items:center;padding:0 12px;border:1px solid #2271b1;border-radius:3px;background:#f6f7f7;color:#2271b1;text-decoration:none;cursor:pointer}
+  .button-hero{min-height:40px;padding:0 18px}.fixture-list{width:100%;margin-top:38px;border-collapse:collapse;background:#fff}.fixture-list th,.fixture-list td{padding:12px;border-bottom:1px solid #c3c4c7;text-align:left}.fixture-list th:first-child{width:42%}
+  @media(max-width:782px){.wpshell{grid-template-columns:1fr}.wpnav{display:none}.wpcontent{padding:0 16px 36px}.wpbar{height:46px;padding-top:13px}}
+</style>
+</head>
+<body>
+<div class="wpbar">WordPress &nbsp; · &nbsp; Pagecraft test site</div>
+<div class="wpshell">
+  <nav class="wpnav" aria-label="WordPress administration"><div>Dashboard</div><div>Pages</div><div class="active">Pagecraft</div><div>Appearance</div></nav>
+  <main class="wpcontent">
+    <div class="wrap pagecraft-admin pagecraft-start">
+      <a class="pagecraft-admin__back" href="#">← WordPress Pages</a>
+      <h1>Edit “Native landing page” with Pagecraft</h1>
+      <p class="pagecraft-start__intro">Choose how this native WordPress page should enter Pagecraft. Nothing happens until you choose.</p>
+      <div class="pagecraft-start__choices">
+        <section><h2>Start from scratch</h2><p>Create a recoverable WordPress revision, then open a blank Pagecraft canvas for this page.</p><button class="button button-primary">Start from scratch</button></section>
+        <section><h2>Import from Pagecraft Cloud</h2><p>Connect an account, choose a cloud page, and import an independent WordPress-owned copy.</p><a class="button" href="#">Connect Pagecraft account</a></section>
+        <section><h2>Upload a package</h2><p>Import a .pagecraft-page.zip as a new native WordPress page.</p><a class="button" href="#">Choose a package</a></section>
+      </div>
+      <table class="fixture-list"><thead><tr><th>Title</th><th>Author</th><th class="column-pagecraft">Pagecraft</th></tr></thead><tbody>
+        <tr><td><strong>Native landing page</strong><div><a href="#">Build with Pagecraft</a> · Edit · Trash · View</div></td><td>Admin</td><td><span class="pagecraft-status pagecraft-status--native">WordPress</span></td></tr>
+        <tr><td><strong>Imported home</strong><div><a href="#">Edit with Pagecraft</a> · WordPress settings · View</div></td><td>Admin</td><td><span class="pagecraft-status pagecraft-status--ready">Ready</span></td></tr>
+      </tbody></table>
+    </div>
+  </main>
+</div>
+</body>
+</html>

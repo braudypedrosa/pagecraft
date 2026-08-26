@@ -24,6 +24,8 @@ final class ManagedPage
     public const RUNTIME_PATH = '_pagecraft_runtime_path';
     public const RUNTIME_HASH = '_pagecraft_runtime_hash';
     public const PACKAGE_HASH = '_pagecraft_package_hash';
+    public const DOCUMENT_VERSION = '_pagecraft_document_version';
+    public const CONVERSION_REVISION = '_pagecraft_conversion_revision';
 
     /** @return list<string> */
     public static function keys(): array
@@ -47,6 +49,8 @@ final class ManagedPage
             self::RUNTIME_PATH,
             self::RUNTIME_HASH,
             self::PACKAGE_HASH,
+            self::DOCUMENT_VERSION,
+            self::CONVERSION_REVISION,
         ];
     }
 
@@ -103,6 +107,8 @@ final class ManagedPage
             self::RUNTIME_PATH => $runtime['path'] ?? '',
             self::RUNTIME_HASH => $runtime['hash'] ?? '',
             self::PACKAGE_HASH => $package->packageHash(),
+            self::DOCUMENT_VERSION => '1',
+            self::CONVERSION_REVISION => '',
         ];
     }
 }

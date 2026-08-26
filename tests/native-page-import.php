@@ -9,6 +9,7 @@ if ($argc < 2) {
 define('ABSPATH', __DIR__ . '/');
 define('PAGECRAFT_BUILDER_FILE', dirname(__DIR__) . '/pagecraft-builder/pagecraft-builder.php');
 define('PAGECRAFT_BUILDER_DIR', dirname(__DIR__) . '/pagecraft-builder/');
+define('PAGECRAFT_BUILDER_VERSION', '0.2.0');
 
 $GLOBALS['pc_posts'] = [];
 $GLOBALS['pc_meta'] = [];
@@ -18,6 +19,7 @@ $GLOBALS['pc_next_post'] = 100;
 $GLOBALS['pc_upload_dir'] = sys_get_temp_dir() . '/pagecraft-native-' . substr(hash('sha256', $argv[1]), 0, 16);
 $GLOBALS['pc_caps'] = [
     'import_pagecraft_pages' => true,
+    'edit_pagecraft_pages' => true,
     'publish_pages' => true,
     'edit_others_pages' => true,
 ];
@@ -372,6 +374,40 @@ try {
     pc_assert(str_contains($error->getMessage(), 'path traversal'), 'Traversal rejection is unclear.');
 }
 unlink($traversal);
+
+$editor = new \Pagecraft\Builder\PageEditor();
+$editorInput = [
+    'document' => json_decode($package->documentJson(), true, 512, JSON_THROW_ON_ERROR),
+    'version' => 1,
+    'compiled' => [
+        'html' => $package->compiledHtml(),
+        'globalCss' => $package->globalCss(),
+        'pageCss' => $package->pageCss(),
+    ],
+];
+$saved = $editor->save($first->postId, $editorInput);
+pc_assert($saved['version'] === 2, 'Embedded editor save did not advance the optimistic document version.');
+pc_assert(($GLOBALS['pc_meta'][$first->postId]['_pagecraft_document_version'] ?? '') === '2', 'Editor version metadata was not stored.');
+pc_assert(str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], 'A native Pagecraft page'), 'Editor save did not refresh native fallback content.');
+pc_assert($saved['revisionId'] !== null, 'Editor save was not revision-backed.');
+try {
+    $editor->save($first->postId, $editorInput);
+    throw new RuntimeException('A stale embedded-editor save was accepted.');
+} catch (\Pagecraft\Builder\EditorConflict $error) {
+    pc_assert($error->mine === 1 && $error->theirs === 2, 'Editor conflict did not report both versions.');
+}
+
+try {
+    $editor->save($nativeId, array_merge($editorInput, ['version' => 0]));
+    throw new RuntimeException('The editor converted an ordinary WordPress page without a backup marker.');
+} catch (\Pagecraft\Builder\PackageException $error) {
+    pc_assert(str_contains($error->getMessage(), 'explicit Pagecraft conversion'), 'Unprepared conversion error is unclear.');
+}
+pc_assert($GLOBALS['pc_posts'][$nativeId]['post_content'] === '<p>Native content</p>', 'Rejected editor conversion changed Gutenberg content.');
+$GLOBALS['pc_meta'][$nativeId]['_pagecraft_conversion_revision'] = '1234';
+$converted = $editor->save($nativeId, array_merge($editorInput, ['version' => 0]));
+pc_assert($converted['version'] === 1 && $converted['revisionId'] === 1234, 'Prepared conversion did not preserve its safety revision.');
+pc_assert(\Pagecraft\Builder\ManagedPage::isManaged($nativeId), 'Prepared native page did not become Pagecraft-managed.');
 
 foreach (glob($GLOBALS['pc_upload_dir'] . '/pagecraft/*') ?: [] as $asset) {
     unlink($asset);
