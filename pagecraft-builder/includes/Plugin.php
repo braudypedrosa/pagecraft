@@ -26,6 +26,7 @@ final class Plugin
         $this->booted = true;
 
         load_plugin_textdomain('pagecraft-builder', false, dirname(plugin_basename(PAGECRAFT_BUILDER_FILE)) . '/languages');
+        add_action('init', [ManagedPage::class, 'register']);
         do_action('pagecraft_builder_loaded', PAGECRAFT_BUILDER_VERSION);
     }
 }

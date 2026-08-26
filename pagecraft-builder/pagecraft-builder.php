@@ -47,9 +47,21 @@ add_action('plugins_loaded', static function (): void {
 function pagecraft_builder_is_managed_page(?int $post_id = null): bool
 {
     $resolved = $post_id ?? (int) get_the_ID();
-    if ($resolved <= 0 || get_post_type($resolved) !== 'page') {
-        return false;
-    }
+    return \Pagecraft\Builder\ManagedPage::isManaged($resolved);
+}
 
-    return get_post_meta($resolved, '_pagecraft_document', true) !== '';
+/**
+ * Import a validated Pagecraft page package into native WordPress ownership.
+ *
+ * New-page import is the default. A caller requesting replacement must provide both a target
+ * Pagecraft page ID and explicit confirmation; the importer creates a revision before writing.
+ *
+ * @param array<string, mixed> $options Import ownership and replacement options.
+ */
+function pagecraft_builder_import_page_package(
+    string $package_file,
+    array $options = []
+): \Pagecraft\Builder\PageImportResult {
+    $package = \Pagecraft\Builder\PortablePagePackage::fromFile($package_file);
+    return (new \Pagecraft\Builder\PageImporter())->import($package, $options);
 }

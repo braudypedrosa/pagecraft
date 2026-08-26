@@ -6,7 +6,7 @@
 bash wordpress/tests/lint.sh
 ```
 
-This validates every PHP file in Pagecraft Theme, Pagecraft Builder, and the WordPress test harness, then parses `theme.json`.
+This validates every PHP file in Pagecraft Theme, Pagecraft Builder, and the WordPress test harness, then parses `theme.json`. It also creates a real deterministic `.pagecraft-page.zip` and proves native-page creation, default-new reimport, revision-before-replace, native-field preservation, tamper/CMS/traversal rejection, and plugin-disabled theme fallback behavior.
 
 The release gate also parses the same files with the exact required runtime:
 
@@ -23,7 +23,7 @@ cannot hide a compatibility failure.
 bash wordpress/tests/packages.sh
 ```
 
-This proves the Builder/Theme archives are repeatable, have the required top-level directories, exclude test-only dependencies, and cannot accidentally ship the retired Connector runtime.
+This proves the Builder/Theme archives are repeatable, have the required top-level directories, exclude test-only dependencies, retain the intentionally non-destructive uninstall contract, and cannot accidentally ship the retired Connector runtime.
 
 ## Integration checks
 

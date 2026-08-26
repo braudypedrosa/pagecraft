@@ -8,6 +8,7 @@ $GLOBALS['pagecraft_test_actions'] = [];
 $GLOBALS['pagecraft_test_activation'] = null;
 $GLOBALS['pagecraft_test_caps'] = [];
 $GLOBALS['pagecraft_test_options'] = [];
+$GLOBALS['pagecraft_test_meta'] = [];
 
 function plugin_dir_path(string $file): string
 {
@@ -94,6 +95,17 @@ function update_option(string $name, mixed $value, bool $autoload = true): bool
     return true;
 }
 
+function register_post_meta(string $post_type, string $key, array $args): bool
+{
+    $GLOBALS['pagecraft_test_meta'][$key] = [$post_type, $args];
+    return true;
+}
+
+function current_user_can(string $capability, mixed ...$args): bool
+{
+    return true;
+}
+
 function deactivate_plugins(string $plugin): void
 {
     throw new RuntimeException('Compatible test runtime must not deactivate the plugin: ' . $plugin);
@@ -121,6 +133,9 @@ pagecraft_test_assert(!class_exists('Pagecraft\\Connector\\Sync'), 'Retired Conn
 foreach ($GLOBALS['pagecraft_test_actions']['plugins_loaded'] ?? [] as $callback) {
     $callback();
 }
+foreach ($GLOBALS['pagecraft_test_actions']['init'] ?? [] as $callback) {
+    $callback();
+}
 
 $loaded = array_filter(
     $GLOBALS['pagecraft_test_actions']['fired'] ?? [],
@@ -130,6 +145,21 @@ pagecraft_test_assert($loaded !== [], 'Builder did not publish its local boot ac
 pagecraft_test_assert(pagecraft_builder_is_managed_page(42), 'Pagecraft document metadata was not recognized.');
 pagecraft_test_assert(!pagecraft_builder_is_managed_page(43), 'An empty page was incorrectly marked as Pagecraft-managed.');
 pagecraft_test_assert(!pagecraft_builder_is_managed_page(99), 'A non-page post was incorrectly marked as Pagecraft-managed.');
+
+$expected_meta = [
+    '_pagecraft_document', '_pagecraft_schema_version', '_pagecraft_renderer_version',
+    '_pagecraft_source_project_id', '_pagecraft_source_page_id', '_pagecraft_source_origin',
+    '_pagecraft_source_version', '_pagecraft_provenance', '_pagecraft_imported_at',
+    '_pagecraft_compiled_hash', '_pagecraft_compiled_css', '_pagecraft_package_hash',
+];
+sort($expected_meta);
+$registered_meta = array_keys($GLOBALS['pagecraft_test_meta']);
+sort($registered_meta);
+pagecraft_test_assert($registered_meta === $expected_meta, 'Managed-page metadata contract is incomplete.');
+foreach ($GLOBALS['pagecraft_test_meta'] as [$post_type, $args]) {
+    pagecraft_test_assert($post_type === 'page', 'Pagecraft metadata was registered outside native pages.');
+    pagecraft_test_assert(($args['revisions_enabled'] ?? false) === true, 'Pagecraft metadata is not revision-enabled.');
+}
 
 $activation = $GLOBALS['pagecraft_test_activation'];
 pagecraft_test_assert(is_callable($activation), 'Builder activation callback is missing.');

@@ -223,6 +223,16 @@ body.pagecraft-theme-fallback {
 	margin-inline: auto;
 }
 
+/* A managed page owns its compiled canvas. Keep the fallback theme out of its width and
+   spacing decisions even when Pagecraft Builder is deactivated. */
+.pagecraft-theme-managed .pagecraft-fallback-main,
+.pagecraft-theme-managed .pagecraft-fallback-main > .pagecraft-managed-page {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	padding: 0;
+}
+
 .pagecraft-content-header {
 	margin-bottom: clamp(2rem, 5vw, 4rem);
 }
