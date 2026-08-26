@@ -25,4 +25,13 @@ echo "theme.json is valid\n";
 
 php "${WORDPRESS_DIR}/tests/builder-contract.php"
 
+IMPORT_TEMP="$(mktemp -d "${TMPDIR:-/tmp}/pagecraft-native-import.XXXXXX")"
+trap 'rm -rf -- "${IMPORT_TEMP}"' EXIT
+node --experimental-strip-types \
+	"${WORDPRESS_DIR}/tests/create-page-package-fixture.ts" \
+	"${IMPORT_TEMP}/fixture.pagecraft-page.zip"
+php "${WORDPRESS_DIR}/tests/native-page-import.php" \
+	"${IMPORT_TEMP}/fixture.pagecraft-page.zip"
+php "${WORDPRESS_DIR}/tests/theme-managed-fallback.php"
+
 echo 'Theme, Builder, and WordPress test PHP syntax is valid.'
