@@ -1,0 +1,5 @@
+RewriteEngine On
+
+# Keep one canonical public hostname for search engines and shared links.
+RewriteCond %{HTTP_HOST} ^www\.itspagecraft\.com$ [NC]
+RewriteRule ^ https://itspagecraft.com%{REQUEST_URI} [R=301,L]

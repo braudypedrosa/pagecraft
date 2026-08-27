@@ -38,7 +38,7 @@ host-managed certificate and cPanel directories that must remain intact.
 ```bash
 rsync -az --itemize-changes \
   -e 'ssh -F .pagecraft-local/ssh-config' \
-  site/index.html site/styles.css site/variants.css site/main.js \
+  site/.htaccess site/index.html site/styles.css site/variants.css site/main.js \
   site/favicon.svg site/robots.txt site/sitemap.xml site/fonts site/images \
   itspagecraft-host:/home/itspbuku/public_html/
 ```
