@@ -77,15 +77,16 @@ test('sign in offers Google and email, links to registration, and uses the Pagec
   a.match(html, /Continue with Google/);
   a.match(html, /action="\/auth\/login"/);
   a.match(html, /href="\/sign-up"/);
-  a.match(html, /src="\/brand\/pagecraft-logo\.svg\?v=ink-2"/);
+  a.match(html, /src="\/brand\/pagecraft-logo\.svg\?v=dark-2"/);
+  a.match(html, /data-theme="dark"/);
   a.match(html, /rel="icon" type="image\/svg\+xml" href="\/brand\/pagecraft-favicon\.svg"/);
 
   const logo = await request('/brand/pagecraft-logo.svg');
   a.equal(logo.status, 200);
   a.match(logo.headers.get('content-type') || '', /image\/svg\+xml/);
   const logoSvg = await logo.text();
-  a.match(logoSvg, /Pagecraft primary logo for light backgrounds/);
-  a.match(logoSvg, /fill="#111311"/);
+  a.match(logoSvg, /Pagecraft primary logo for dark backgrounds/);
+  a.match(logoSvg, /fill="#F8F6EF"/);
 
   const favicon = await request('/brand/pagecraft-favicon.svg');
   a.equal(favicon.status, 200);
