@@ -83,7 +83,9 @@ test('sign in offers Google and email, links to registration, and uses the Pagec
   const logo = await request('/brand/pagecraft-logo.svg');
   a.equal(logo.status, 200);
   a.match(logo.headers.get('content-type') || '', /image\/svg\+xml/);
-  a.match(await logo.text(), /<svg/);
+  const logoSvg = await logo.text();
+  a.match(logoSvg, /Pagecraft primary logo for light backgrounds/);
+  a.match(logoSvg, /fill="#111311"/);
 
   const favicon = await request('/brand/pagecraft-favicon.svg');
   a.equal(favicon.status, 200);

@@ -151,7 +151,7 @@ export function createApp(o: Options) {
   app.use('/forgot-password', editorOnly);
   app.use('/reset-password', editorOnly);
   app.get('/brand/pagecraft-logo.svg', editorOnly, serveStatic({
-    path: './brand/logo/pagecraft-logo-primary-dark.svg'
+    path: './brand/logo/pagecraft-logo-primary-ink.svg'
   }));
   app.get('/brand/pagecraft-favicon.svg', editorOnly, serveStatic({
     path: './brand/pagecraft-favicon.svg'
