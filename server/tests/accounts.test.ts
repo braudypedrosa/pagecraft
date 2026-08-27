@@ -77,7 +77,7 @@ test('sign in offers Google and email, links to registration, and uses the Pagec
   a.match(html, /Continue with Google/);
   a.match(html, /action="\/auth\/login"/);
   a.match(html, /href="\/sign-up"/);
-  a.match(html, /src="\/brand\/pagecraft-logo\.svg\?v=ink"/);
+  a.match(html, /src="\/brand\/pagecraft-logo\.svg\?v=ink-2"/);
   a.match(html, /rel="icon" type="image\/svg\+xml" href="\/brand\/pagecraft-favicon\.svg"/);
 
   const logo = await request('/brand/pagecraft-logo.svg');
