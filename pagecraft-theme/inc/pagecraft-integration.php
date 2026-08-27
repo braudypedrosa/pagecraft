@@ -63,6 +63,7 @@ function pagecraft_theme_render_global( string $kind ): bool {
 	if ( ! is_string( $content ) || '' === trim( $content ) ) {
 		return false;
 	}
+	$content = pagecraft_theme_bind_native_menus( $content, $kind );
 	$tag = 'header' === $kind ? 'header' : 'footer';
 	printf(
 		'<%1$s class="pagecraft-global pagecraft-global-%2$s" data-pagecraft-global="%2$s">%3$s</%1$s>',
@@ -71,6 +72,80 @@ function pagecraft_theme_render_global( string $kind ): bool {
 		$content // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitized before persistence.
 	);
 	return true;
+}
+
+/**
+ * Keep page-backed menu items dynamic while preserving an imported Pagecraft anchor.
+ *
+ * @param object $item WordPress menu item.
+ * @return object
+ */
+function pagecraft_theme_menu_item_anchor( object $item ): object {
+	if ( ! isset( $item->ID, $item->url ) || 'post_type' !== ( $item->type ?? '' ) ) {
+		return $item;
+	}
+	$anchor = sanitize_title( (string) get_post_meta( (int) $item->ID, '_pagecraft_menu_anchor', true ) );
+	if ( '' !== $anchor ) {
+		$item->url = strtok( (string) $item->url, '#' ) . '#' . $anchor;
+	}
+	return $item;
+}
+add_filter( 'wp_setup_nav_menu_item', 'pagecraft_theme_menu_item_anchor', 20 );
+
+/**
+ * Replace a compiled Pagecraft menu list with the native menu assigned to its stable location.
+ * Pagecraft keeps the surrounding nav, toggle, classes and generated CSS; WordPress supplies
+ * the current menu items and URLs.
+ */
+function pagecraft_theme_bind_native_menus( string $content, string $kind ): string {
+	$locations = get_nav_menu_locations();
+	$seen = 0;
+	$bound = preg_replace_callback(
+		'#<nav\b([^>]*)\bdata-nav\b([^>]*)>([\s\S]*?)</nav>#i',
+		static function ( array $match ) use ( $kind, $locations, &$seen ): string {
+			$attributes = $match[1] . ' data-nav' . $match[2];
+			$location = '';
+			if ( preg_match( '/\bdata-pagecraft-menu-location=(?:"([a-z0-9_-]+)"|\'([a-z0-9_-]+)\')/i', $attributes, $declared ) ) {
+				$location = (string) ( $declared[1] ?: $declared[2] );
+			} elseif ( 'header' === $kind ) {
+				$location = 0 === $seen ? 'primary' : 'utility';
+			} elseif ( 0 === $seen ) {
+				$location = 'footer';
+			}
+			$seen++;
+			$menu_id = (int) ( $locations[ $location ] ?? 0 );
+			if ( $menu_id <= 0 ) {
+				return $match[0];
+			}
+			if ( ! str_contains( $attributes, 'data-pagecraft-menu-location=' ) ) {
+				$attributes .= ' data-pagecraft-menu-location="' . esc_attr( $location ) . '"';
+			}
+			$toggle = '';
+			if ( preg_match( '#<button\b[^>]*\bdata-nav-t\b[^>]*>[\s\S]*?</button>#i', $match[3], $button ) ) {
+				$toggle = $button[0];
+			}
+			$list_id = 'pagecraft-native-menu-' . $menu_id;
+			if ( preg_match( '/<ul\b[^>]*\bid=(?:"([^"]+)"|\'([^\']+)\')/i', $match[3], $list ) ) {
+				$list_id = sanitize_html_class( (string) ( $list[1] ?: $list[2] ), $list_id );
+			}
+			$menu = wp_nav_menu(
+				array(
+					'menu'        => $menu_id,
+					'container'   => false,
+					'depth'       => 0,
+					'fallback_cb' => false,
+					'echo'        => false,
+					'items_wrap'  => '<ul id="' . esc_attr( $list_id ) . '" class="pagecraft-nav-list" data-nav-l>%3$s</ul>',
+				)
+			);
+			if ( ! is_string( $menu ) || '' === trim( $menu ) ) {
+				return $match[0];
+			}
+			return '<nav' . $attributes . '>' . $toggle . $menu . '</nav>';
+		},
+		$content
+	);
+	return is_string( $bound ) ? $bound : $content;
 }
 
 /**

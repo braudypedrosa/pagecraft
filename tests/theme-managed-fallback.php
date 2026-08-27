@@ -81,6 +81,17 @@ function get_post_field(string $field, int $postId): string
     };
 }
 function esc_attr(string $value): string { return htmlspecialchars($value, ENT_QUOTES); }
+function sanitize_title(string $value): string { return strtolower(preg_replace('/[^a-z0-9_-]+/i', '-', trim($value)) ?? ''); }
+function sanitize_html_class(string $value, string $fallback = ''): string
+{
+    $clean = preg_replace('/[^A-Za-z0-9_-]/', '', $value) ?? '';
+    return $clean !== '' ? $clean : $fallback;
+}
+function get_nav_menu_locations(): array { return ['primary' => 90]; }
+function wp_nav_menu(array $args): string
+{
+    return str_replace('%3$s', '<li class="menu-item"><a href="/native-page/">Native page</a></li>', $args['items_wrap']);
+}
 function wp_upload_dir(): array
 {
     return [
@@ -157,6 +168,11 @@ ob_start();
 pc_theme_assert(pagecraft_theme_render_global('header'), 'Stored Pagecraft header was not found.');
 $header = (string) ob_get_clean();
 pc_theme_assert(str_contains($header, '<header') && str_contains($header, 'data-nav'), 'Stored header lacks its landmark or markup.');
+pc_theme_assert(
+    str_contains($header, 'data-pagecraft-menu-location="primary"')
+        && str_contains($header, 'href="/native-page/"'),
+    'Stored Pagecraft navigation did not render the native menu assigned to Primary navigation.'
+);
 ob_start();
 pc_theme_assert(pagecraft_theme_render_global('footer'), 'Stored Pagecraft footer was not found.');
 $footer = (string) ob_get_clean();

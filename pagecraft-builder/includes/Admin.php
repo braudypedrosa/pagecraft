@@ -17,6 +17,7 @@ final class Admin
         add_action('admin_post_pagecraft_prepare_page', [$this, 'preparePage']);
         add_action('admin_post_pagecraft_create_page', [$this, 'createPage']);
         add_action('admin_post_pagecraft_upload_page', [$this, 'uploadPage']);
+        add_action('admin_post_pagecraft_add_page_to_menu', [$this, 'addPageToMenu']);
         add_filter('manage_pages_columns', [$this, 'columns']);
         add_action('manage_pages_custom_column', [$this, 'column'], 10, 2);
         add_filter('page_row_actions', [$this, 'rowActions'], 10, 2);
@@ -96,6 +97,26 @@ final class Admin
         $this->guard(Capabilities::IMPORT);
         echo '<div class="wrap pagecraft-admin"><h1>' . esc_html__('Import / Export', 'pagecraft-builder') . '</h1>';
         $this->noticeFromQuery();
+        $imported = isset($_GET['pagecraft_imported']) ? absint($_GET['pagecraft_imported']) : 0;
+        if ($imported > 0 && get_post_type($imported) === 'page' && current_user_can('edit_post', $imported)) {
+            echo '<div class="pagecraft-admin__rule pagecraft-import-result"><h2>'
+                . esc_html__('Page imported into WordPress', 'pagecraft-builder') . '</h2><p>'
+                . esc_html__('The page is independent and WordPress-owned. Global navigation was not changed.', 'pagecraft-builder')
+                . '</p><div class="pagecraft-import-result__actions"><a class="button button-primary" href="'
+                . esc_url($this->editorUrl($imported)) . '">' . esc_html__('Edit with Pagecraft', 'pagecraft-builder')
+                . '</a><form action="' . esc_url(admin_url('admin-post.php')) . '" method="post">';
+            wp_nonce_field('pagecraft_add_page_to_menu_' . $imported);
+            echo '<input type="hidden" name="action" value="pagecraft_add_page_to_menu">'
+                . '<input type="hidden" name="post" value="' . esc_attr((string) $imported) . '">'
+                . '<label class="screen-reader-text" for="pagecraft-menu-location">'
+                . esc_html__('Menu location', 'pagecraft-builder') . '</label>'
+                . '<select id="pagecraft-menu-location" name="location">';
+            foreach (NativeMenu::locations() as $slug => $label) {
+                echo '<option value="' . esc_attr($slug) . '">' . esc_html($label) . '</option>';
+            }
+            echo '</select><button class="button">' . esc_html__('Add to menu', 'pagecraft-builder')
+                . '</button></form></div></div>';
+        }
         echo '<div class="pagecraft-admin__rule"><h2>' . esc_html__('Upload a Pagecraft page', 'pagecraft-builder') . '</h2>'
             . '<p>' . esc_html__('Import creates a new native WordPress page. It never replaces an existing page unless a later explicit replacement flow confirms it.', 'pagecraft-builder') . '</p>'
             . '<form class="pagecraft-upload" action="' . esc_url(admin_url('admin-post.php')) . '" method="post" enctype="multipart/form-data">';
@@ -184,6 +205,9 @@ final class Admin
         }
         try {
             $loaded = (new PageEditor())->load($postId);
+            if (is_array($loaded['document'])) {
+                $loaded['document'] = (new NativeMenu())->hydrateDocument($loaded['document']);
+            }
         } catch (PackageException $error) {
             $this->fail($error->getMessage(), 400);
         }
@@ -205,8 +229,11 @@ final class Admin
             'capabilities' => array_values(array_merge(
                 ['edit_document', 'edit_structure', 'restore_revisions'],
                 current_user_can('edit_pages') ? ['manage_pages'] : [],
-                current_user_can('upload_files') ? ['upload_media'] : []
+                current_user_can('upload_files') ? ['upload_media'] : [],
+                current_user_can(Capabilities::MANAGE) && current_user_can('edit_theme_options')
+                    ? ['manage_menus'] : []
             )),
+            'wordpressContent' => $this->wordpressContent(),
             'previewUrl' => get_preview_post_link($postId),
             'pagesUrl' => $this->pagesUrl(),
             'exitUrl' => get_edit_post_link($postId, 'raw'),
@@ -286,9 +313,34 @@ final class Admin
         }
         try {
             $result = pagecraft_builder_import_page_package($file['tmp_name']);
-            wp_safe_redirect($this->editorUrl($result->postId));
+            wp_safe_redirect(add_query_arg(
+                'pagecraft_imported',
+                (string) $result->postId,
+                admin_url('admin.php?page=pagecraft-import-export')
+            ));
         } catch (PackageException $error) {
             wp_safe_redirect(add_query_arg('pagecraft_error', rawurlencode($error->getMessage()), admin_url('admin.php?page=pagecraft-import-export')));
+        }
+        exit;
+    }
+
+    public function addPageToMenu(): void
+    {
+        $postId = isset($_POST['post']) ? absint($_POST['post']) : 0;
+        check_admin_referer('pagecraft_add_page_to_menu_' . $postId);
+        $this->guard(Capabilities::MANAGE);
+        $location = sanitize_key((string) ($_POST['location'] ?? ''));
+        try {
+            (new NativeMenu())->addPageToLocation($postId, $location);
+            wp_safe_redirect(add_query_arg([
+                'pagecraft_imported' => (string) $postId,
+                'pagecraft_menu_added' => $location,
+            ], admin_url('admin.php?page=pagecraft-import-export')));
+        } catch (PackageException $error) {
+            wp_safe_redirect(add_query_arg([
+                'pagecraft_imported' => (string) $postId,
+                'pagecraft_error' => rawurlencode($error->getMessage()),
+            ], admin_url('admin.php?page=pagecraft-import-export')));
         }
         exit;
     }
@@ -374,13 +426,18 @@ final class Admin
 
     private function noticeFromQuery(): void
     {
-        if (!isset($_GET['pagecraft_error'])) {
-            return;
+        if (isset($_GET['pagecraft_menu_added'])) {
+            $location = sanitize_key((string) $_GET['pagecraft_menu_added']);
+            $label = NativeMenu::locations()[$location] ?? __('selected navigation', 'pagecraft-builder');
+            echo '<div class="notice notice-success is-dismissible"><p>'
+                . esc_html(sprintf(__('The page was added to %s.', 'pagecraft-builder'), $label)) . '</p></div>';
         }
-        $message = $_GET['pagecraft_error'] === 'upload'
-            ? __('WordPress did not receive a valid Pagecraft package upload.', 'pagecraft-builder')
-            : sanitize_text_field(wp_unslash((string) $_GET['pagecraft_error']));
-        echo '<div class="notice notice-error"><p>' . esc_html($message) . '</p></div>';
+        if (isset($_GET['pagecraft_error'])) {
+            $message = $_GET['pagecraft_error'] === 'upload'
+                ? __('WordPress did not receive a valid Pagecraft package upload.', 'pagecraft-builder')
+                : sanitize_text_field(wp_unslash((string) $_GET['pagecraft_error']));
+            echo '<div class="notice notice-error"><p>' . esc_html($message) . '</p></div>';
+        }
     }
 
     private function managedCount(): int
@@ -392,6 +449,50 @@ final class Admin
             'fields' => 'ids',
             'meta_key' => ManagedPage::DOCUMENT,
         ]));
+    }
+
+    /** @return list<array<string,mixed>> */
+    private function wordpressContent(): array
+    {
+        $home = home_url('/');
+        $parts = wp_parse_url($home);
+        if (!is_array($parts) || !is_string($parts['scheme'] ?? null) || !is_string($parts['host'] ?? null)) {
+            return [];
+        }
+        $origin = $parts['scheme'] . '://' . $parts['host']
+            . (isset($parts['port']) ? ':' . (int) $parts['port'] : '');
+        $targetPath = '/' . trim((string) ($parts['path'] ?? '/'), '/');
+        if ($targetPath !== '/') {
+            $targetPath = rtrim($targetPath, '/');
+        }
+        $posts = get_posts([
+            'post_type' => ['page', 'post'],
+            'post_status' => ['draft', 'pending', 'publish', 'private'],
+            'posts_per_page' => 500,
+            'orderby' => ['post_type' => 'ASC', 'menu_order' => 'ASC', 'title' => 'ASC'],
+        ]);
+        $items = [];
+        foreach (is_array($posts) ? $posts : [] as $post) {
+            if (!is_object($post) || !isset($post->ID, $post->post_type)
+                || !in_array($post->post_type, ['page', 'post'], true)) {
+                continue;
+            }
+            $items[] = [
+                'id' => (string) $post->ID,
+                'objectType' => (string) $post->post_type,
+                'title' => get_the_title($post),
+                'url' => get_permalink($post),
+                'modifiedAt' => get_post_modified_time('c', true, $post),
+            ];
+        }
+        return [[
+            'connectionId' => 'wordpress-local',
+            'environment' => 'production',
+            'profile' => 'pagecraft-theme',
+            'targetOrigin' => $origin,
+            'targetPath' => $targetPath,
+            'items' => $items,
+        ]];
     }
 
     private function pagesUrl(): string

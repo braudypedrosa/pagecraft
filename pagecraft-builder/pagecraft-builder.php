@@ -78,8 +78,14 @@ function pagecraft_builder_import_global_elements(string $package_file): array
 {
     $package = \Pagecraft\Builder\PortablePagePackage::fromFile($package_file);
     $repository = new \Pagecraft\Builder\GlobalElement();
-    return [
+    $records = [
         'header' => $repository->import($package, 'header'),
         'footer' => $repository->import($package, 'footer'),
     ];
+    $document = json_decode($package->documentJson(), true, 512, JSON_THROW_ON_ERROR);
+    if (!is_array($document)) {
+        throw new \Pagecraft\Builder\PackageException('The Pagecraft document could not be prepared for native menus.');
+    }
+    (new \Pagecraft\Builder\NativeMenu())->importDocument($document, [], true);
+    return $records;
 }

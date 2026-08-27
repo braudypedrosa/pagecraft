@@ -7881,7 +7881,7 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   if (n.type === "text" && map["--link"]) rules.push(`${selOf(n)} a{color:${map["--link"]}}`);
   return rules.join("");
 }
-var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`;
+var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
   if (n.type === "nav") {
@@ -8105,6 +8105,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-video>iframe,.pagecraft-video>video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover}
 .pagecraft-nav-menu{display:flex;align-items:center;position:relative}
 .pagecraft-nav-list{display:flex;align-items:center;gap:var(--nav-gap,26px);list-style:none;margin:0;padding:0}
+.pagecraft-nav-list li{position:relative}
+.pagecraft-nav-list .sub-menu{display:none;position:absolute;z-index:65;top:100%;left:0;min-width:190px;margin:0;padding:8px;list-style:none;background:var(--nav-panel,#fff);box-shadow:0 18px 38px -18px rgba(15,23,42,.36)}
+.pagecraft-nav-list li:hover>.sub-menu,.pagecraft-nav-list li:focus-within>.sub-menu{display:block}
+.pagecraft-nav-list .sub-menu .sub-menu{top:0;left:100%}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
@@ -8619,12 +8623,28 @@ function renderNode(n, o) {
       const items = Array.isArray(p.items) ? p.items : [];
       const name = esc(p.aria || "Main");
       const mid = domId + "-menu";
-      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + items.map((it) => {
-        const classes2 = String(it.cls || "").trim().split(/\s+/).filter(Boolean).join(" ");
-        const liClass = classes2 ? ` class="${esc(classes2)}"` : "";
-        const target = it.target === "_blank" ? ' target="_blank" rel="noopener"' : "";
-        return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}>${esc(it.label || "")}</a></li>`;
-      }).join("") + `</ul></nav>`;
+      const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || "")) ? ` data-pagecraft-menu-location="${esc(String(p.menuLocation))}"` : "";
+      const keyed = new Map(items.filter((it) => it.id).map((it) => [String(it.id), it]));
+      const childrenOf = (parentId, ancestry) => items.filter((it) => {
+        const parent = String(it.parentId || "");
+        if (!parentId) return !parent || !keyed.has(parent);
+        return parent === parentId;
+      }).map((it) => {
+        const id = String(it.id || "");
+        if (id && ancestry.has(id)) return "";
+        const classes2 = String(it.cls || "").trim().split(/\s+/).filter(Boolean);
+        const nextAncestry = new Set(ancestry);
+        if (id) nextAncestry.add(id);
+        const nested = id ? childrenOf(id, nextAncestry) : "";
+        if (nested) classes2.push("menu-item-has-children");
+        const liClass = classes2.length ? ` class="${esc(Array.from(new Set(classes2)).join(" "))}"` : "";
+        const rel = String(it.rel || "").trim().split(/\s+/).filter(Boolean);
+        if (it.target === "_blank" && !rel.includes("noopener")) rel.push("noopener");
+        const target = it.target === "_blank" ? ' target="_blank"' : "";
+        const relationship = rel.length ? ` rel="${esc(rel.join(" "))}"` : "";
+        return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}${relationship}>${esc(it.label || "")}</a>` + (nested ? `<ul class="sub-menu">${nested}</ul>` : "") + `</li>`;
+      }).join("");
+      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul></nav>`;
     }
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
@@ -11364,6 +11384,13 @@ var PC_UI = (() => {
     const commit = (k3, prop, value) => C2.edit(() => {
       rows(n2, c3)[k3][prop] = value;
     });
+    const commitDestination = (k3, value) => C2.edit(() => {
+      const row = rows(n2, c3)[k3];
+      row.href = value;
+      delete row.objectId;
+      delete row.objectType;
+      delete row.anchor;
+    });
     const parsed = (it) => C2.parseLink(it.href, C2.page().slug);
     const pageName = (slug) => C2.state.pages.find((p3) => p3.slug === slug)?.name || "Missing page";
     const summary = (it) => {
@@ -11384,7 +11411,25 @@ var PC_UI = (() => {
       else if (open !== null && from < open && to >= open) setOpen(open - 1);
       else if (open !== null && from > open && to <= open) setOpen(open + 1);
     };
+    const wouldCreateParentCycle = (itemIndex, candidateIndex) => {
+      const itemId = String(arr[itemIndex]?.id || "");
+      let candidateId = String(arr[candidateIndex]?.id || "");
+      if (!itemId || !candidateId) return true;
+      const byId = new Map(arr.map((item) => [String(item.id || ""), item]));
+      const seen = /* @__PURE__ */ new Set();
+      while (candidateId && !seen.has(candidateId)) {
+        if (candidateId === itemId) return true;
+        seen.add(candidateId);
+        candidateId = String(byId.get(candidateId)?.parentId || "");
+      }
+      return false;
+    };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      n2.props.menuLocation ? /* @__PURE__ */ u2("div", { class: "note native-menu-note", children: [
+        "WordPress menu \xB7 ",
+        String(n2.props.menuLocation).replace(/(^|[-_])\w/g, (value) => value.replace(/[-_]/, " ").toUpperCase()),
+        " navigation. Content changes here also appear in Appearance \u2192 Menus; Pagecraft keeps the visual settings."
+      ] }) : null,
       arr.map((it, k3) => {
         const link = parsed(it);
         const wordpress = wordpressDestinationForValue(it.href);
@@ -11453,7 +11498,7 @@ var PC_UI = (() => {
                 /* @__PURE__ */ u2("label", { children: "Destination" }),
                 /* @__PURE__ */ u2("select", { class: "ctl", value: mode, "aria-label": `Destination for ${it.label || "untitled link"}`, onChange: (e3) => {
                   const next = e3.target.value;
-                  commit(k3, "href", next === "page" ? C2.buildLink({ mode: "page", page: C2.page().slug, frag: "" }) : next === "wordpress" ? firstWordPressReference : "");
+                  commitDestination(k3, next === "page" ? C2.buildLink({ mode: "page", page: C2.page().slug, frag: "" }) : next === "wordpress" ? firstWordPressReference : "");
                 }, children: [
                   /* @__PURE__ */ u2("option", { value: "page", children: "A Pagecraft page" }),
                   firstWordPress ? /* @__PURE__ */ u2("option", { value: "wordpress", children: "WordPress content" }) : null,
@@ -11461,7 +11506,7 @@ var PC_UI = (() => {
                 ] }),
                 mode === "page" ? /* @__PURE__ */ u2(S, { children: [
                   /* @__PURE__ */ u2("select", { class: "ctl", value: page2, onChange: (e3) => {
-                    commit(k3, "href", C2.buildLink({ mode: "page", page: e3.target.value, frag: "" }));
+                    commitDestination(k3, C2.buildLink({ mode: "page", page: e3.target.value, frag: "" }));
                   }, children: C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
                     p3.name,
                     " \xB7 ",
@@ -11481,13 +11526,29 @@ var PC_UI = (() => {
                       " \u2014 missing"
                     ] }) : null
                   ] })
-                ] }) : mode === "wordpress" ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => commit(k3, "href", url) }) : /* @__PURE__ */ u2(S, { children: [
+                ] }) : mode === "wordpress" ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => commitDestination(k3, url) }) : /* @__PURE__ */ u2(S, { children: [
                   /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "href", placeholder: "https://example.com or #section" }),
                   /* @__PURE__ */ u2("div", { class: "note", children: "Supports external URLs, email, phone, and section links." })
                 ] }),
                 /* @__PURE__ */ u2("label", { children: "CSS classes" }),
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "cls", placeholder: "featured-link another-class" }),
                 /* @__PURE__ */ u2("div", { class: "note", children: "Applied to this menu item. Separate multiple classes with spaces." }),
+                /* @__PURE__ */ u2("label", { children: "Parent item" }),
+                /* @__PURE__ */ u2("select", { class: "ctl", value: it.parentId || "", onChange: (e3) => commit(k3, "parentId", e3.target.value), children: [
+                  /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
+                  arr.map((candidate, index) => index === k3 ? null : /* @__PURE__ */ u2(
+                    "option",
+                    {
+                      value: candidate.id || "",
+                      disabled: !candidate.id || wouldCreateParentCycle(k3, index),
+                      children: candidate.label || "Untitled link"
+                    },
+                    candidate.id || index
+                  ))
+                ] }),
+                /* @__PURE__ */ u2("label", { children: "Link relationship" }),
+                /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "rel", placeholder: "nofollow sponsored" }),
+                /* @__PURE__ */ u2("div", { class: "note", children: "Optional WordPress XFN/relationship values, separated with spaces." }),
                 /* @__PURE__ */ u2("div", { class: "tog-row navitem-target", children: [
                   /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
                   /* @__PURE__ */ u2(
@@ -11514,12 +11575,12 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2("div", { class: "navitem-add", style: { marginTop: arr.length ? "var(--gap-1)" : "0" }, children: [
         /* @__PURE__ */ u2(AddButton, { label: "Add page", gap: false, small: true, onClick: () => {
           const at = arr.length;
-          C2.edit(() => rows(n2, c3).push({ label: C2.page().name, href: C2.buildLink({ mode: "page", page: C2.page().slug, frag: "" }), cls: "", target: "" }));
+          C2.edit(() => rows(n2, c3).push({ id: C2.uid(), label: C2.page().name, href: C2.buildLink({ mode: "page", page: C2.page().slug, frag: "" }), parentId: "", cls: "", target: "", rel: "" }));
           setOpen(at);
         } }),
         /* @__PURE__ */ u2(AddButton, { label: "Add custom", gap: false, small: true, onClick: () => {
           const at = arr.length;
-          C2.edit(() => rows(n2, c3).push({ label: "New link", href: "", cls: "", target: "" }));
+          C2.edit(() => rows(n2, c3).push({ id: C2.uid(), label: "New link", href: "", parentId: "", cls: "", target: "", rel: "" }));
           setOpen(at);
         } })
       ] })

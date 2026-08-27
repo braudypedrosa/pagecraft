@@ -14,7 +14,7 @@ The Pagecraft theme renders ordinary WordPress content and Pagecraft-managed nat
 
 Revision-backed Pagecraft header and footer records render across managed and ordinary WordPress routes. The theme loads only the content-hashed global, current-page, and trusted runtime assets referenced by the active records from `wp-content/uploads/pagecraft`. Those files survive theme and plugin updates, and the theme can keep rendering them while Pagecraft Builder is deactivated.
 
-The theme registers Primary, Footer, and Utility navigation locations. Imported Pagecraft navigation is converted to native WordPress menus and assigned to these locations by Pagecraft Builder.
+The theme registers Primary, Footer, and Utility navigation locations. Imported Pagecraft navigation is converted to native WordPress menus and assigned to these locations by Pagecraft Builder. The theme renders those native records inside the Pagecraft navigation component so WordPress owns destinations and hierarchy while Pagecraft retains responsive presentation.
 
 == Installation ==
 

@@ -18,7 +18,9 @@ Generated project/global CSS, page CSS, and the trusted Pagecraft interaction ru
 
 WordPress Pages remains the only page list. It receives Pagecraft status, filtering, and Edit with Pagecraft actions. Ordinary Gutenberg pages require an explicit revision-backed conversion before the shared editor can save them. The top-level Pagecraft menu owns overview, global-element, import/export, connection, and settings entry points without creating a second page library.
 
-The editor uses a same-origin nonce-protected WordPress REST adapter, optimistic document versions, visible save/conflict recovery, WordPress revisions, content-hashed styles, and refreshed native fallback markup. Native-menu conversion, deeper media portability, visual global-element editing, and optional manual cloud import continue through their tracked WordPress v1 milestones.
+The editor uses a same-origin nonce-protected WordPress REST adapter, optimistic document versions, visible save/conflict recovery, WordPress revisions, content-hashed styles, and refreshed native fallback markup.
+
+Pagecraft navigation becomes native WordPress menu data assigned to the Pagecraft Theme's Primary, Footer, and Utility locations. Internal destinations remain page-backed, so WordPress slug changes update automatically. Nesting, order, anchors, external URLs, targets, CSS classes, and XFN relationships round-trip through the same records edited under Appearance > Menus. Single-page import never changes navigation automatically; its success screen offers an explicit Add to menu action. Deeper media portability, visual global-element editing, and optional manual cloud import continue through their tracked WordPress v1 milestones.
 
 Pagecraft Builder does not run background synchronization, deployment promotion, webhooks, CMS write-back, or remote release activation.
 

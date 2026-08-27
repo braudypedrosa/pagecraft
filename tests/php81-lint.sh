@@ -25,6 +25,7 @@ docker run --rm \
 		php /workspace/tests/builder-contract.php
 		php /workspace/tests/native-page-import.php /fixtures/fixture.pagecraft-page.zip
 		php /workspace/tests/global-elements.php /fixtures/fixture.pagecraft-page.zip
+		php /workspace/tests/native-menus.php
 		php /workspace/tests/theme-managed-fallback.php'
 
 echo 'Theme, Builder, and WordPress ownership tests pass on the required PHP 8.1 runtime.'
