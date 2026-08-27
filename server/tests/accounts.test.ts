@@ -96,10 +96,18 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /class="pc-site-card"/);
   a.match(html, /class="pc-site-preview"/);
   a.match(html, />Braudy<\/div>/);
+  a.match(html, /class="pc-site-url"/);
+  a.match(html, />admin\.test\/braudy<\/a>/);
   a.match(html, />Open builder<\/a>/);
   a.match(html, />View site<\/a>/);
   a.match(html, />Owner<\/div>/);
   a.match(html, /2 sites remaining/);
+  a.match(html, /1 of 3 owned sites used/);
+  a.match(html, /data-site-view="owned"/);
+  a.match(html, /data-filter-empty/);
+  a.match(html, /No sites match your search/);
+  a.match(html, /No shared sites yet/);
+  a.match(html, /No owned sites yet/);
   a.match(html, />Add new site<\/a>/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
