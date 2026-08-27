@@ -86,6 +86,26 @@ final class RestController
             'permission_callback' => static fn (\WP_REST_Request $request): bool => current_user_can(Capabilities::EDIT)
                 && current_user_can('delete_post', (int) $request['id']),
         ]);
+        register_rest_route(self::NAMESPACE, '/menus', [
+            'methods' => 'GET',
+            'callback' => [$this, 'menus'],
+            'permission_callback' => static fn (): bool => current_user_can(Capabilities::MANAGE)
+                && current_user_can('edit_theme_options'),
+        ]);
+        register_rest_route(self::NAMESPACE, '/menus/(?P<id>\d+)', [
+            [
+                'methods' => 'GET',
+                'callback' => [$this, 'menu'],
+                'permission_callback' => static fn (): bool => current_user_can(Capabilities::MANAGE)
+                    && current_user_can('edit_theme_options'),
+            ],
+            [
+                'methods' => 'PUT',
+                'callback' => [$this, 'saveMenu'],
+                'permission_callback' => static fn (): bool => current_user_can(Capabilities::MANAGE)
+                    && current_user_can('edit_theme_options'),
+            ],
+        ]);
         register_rest_route(self::NAMESPACE, '/settings', [
             'methods' => 'GET',
             'callback' => [$this, 'settings'],
@@ -109,6 +129,9 @@ final class RestController
         }
         if (current_user_can('upload_files')) {
             $capabilities[] = 'upload_media';
+        }
+        if (current_user_can(Capabilities::MANAGE) && current_user_can('edit_theme_options')) {
+            $capabilities[] = 'manage_menus';
         }
         return new \WP_REST_Response([
             'authenticated' => $user->exists(),
@@ -182,15 +205,28 @@ final class RestController
 
     public function document(\WP_REST_Request $request): \WP_REST_Response
     {
-        return $this->editorResponse(static fn (): array => (new PageEditor())->load((int) $request['id']));
+        return $this->editorResponse(function () use ($request): array {
+            $loaded = (new PageEditor())->load((int) $request['id']);
+            if (is_array($loaded['document'])) {
+                $loaded['document'] = (new NativeMenu())->hydrateDocument($loaded['document']);
+            }
+            return $loaded;
+        });
     }
 
     public function saveDocument(\WP_REST_Request $request): \WP_REST_Response
     {
-        return $this->editorResponse(static fn (): array => (new PageEditor())->save(
-            (int) $request['id'],
-            $request->get_json_params()
-        ));
+        return $this->editorResponse(function () use ($request): array {
+            $input = $request->get_json_params();
+            $document = $input['document'] ?? $input['doc'] ?? null;
+            if (is_array($document)) {
+                return (new NativeMenu())->synchronizeAndRun(
+                    $document,
+                    static fn (): array => (new PageEditor())->save((int) $request['id'], $input)
+                );
+            }
+            return (new PageEditor())->save((int) $request['id'], $input);
+        });
     }
 
     public function revisions(\WP_REST_Request $request): \WP_REST_Response
@@ -242,6 +278,24 @@ final class RestController
             return new \WP_REST_Response(['error' => __('WordPress could not delete that media item.', 'pagecraft-builder')], 400);
         }
         return new \WP_REST_Response(['removed' => (string) $id]);
+    }
+
+    public function menus(): \WP_REST_Response
+    {
+        return $this->menuResponse(static fn (): array => (new NativeMenu())->list());
+    }
+
+    public function menu(\WP_REST_Request $request): \WP_REST_Response
+    {
+        return $this->menuResponse(static fn (): array => (new NativeMenu())->get((int) $request['id']));
+    }
+
+    public function saveMenu(\WP_REST_Request $request): \WP_REST_Response
+    {
+        return $this->menuResponse(static fn (): array => (new NativeMenu())->save(
+            (int) $request['id'],
+            $request->get_json_params()
+        ));
     }
 
     public function settings(): \WP_REST_Response
@@ -306,6 +360,16 @@ final class RestController
                 'error' => $error->getMessage(),
                 'conflict' => ['mine' => $error->mine, 'theirs' => $error->theirs],
             ], 409);
+        } catch (PackageException $error) {
+            return new \WP_REST_Response(['error' => $error->getMessage()], 400);
+        }
+    }
+
+    /** @param callable():array<mixed> $operation */
+    private function menuResponse(callable $operation): \WP_REST_Response
+    {
+        try {
+            return new \WP_REST_Response($operation());
         } catch (PackageException $error) {
             return new \WP_REST_Response(['error' => $error->getMessage()], 400);
         }

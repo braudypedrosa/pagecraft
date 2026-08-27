@@ -6917,7 +6917,7 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   if (n.type === "text" && map["--link"]) rules.push(`${selOf(n)} a{color:${map["--link"]}}`);
   return rules.join("");
 }
-var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`;
+var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
   if (n.type === "nav") {
@@ -7141,6 +7141,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-video>iframe,.pagecraft-video>video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover}
 .pagecraft-nav-menu{display:flex;align-items:center;position:relative}
 .pagecraft-nav-list{display:flex;align-items:center;gap:var(--nav-gap,26px);list-style:none;margin:0;padding:0}
+.pagecraft-nav-list li{position:relative}
+.pagecraft-nav-list .sub-menu{display:none;position:absolute;z-index:65;top:100%;left:0;min-width:190px;margin:0;padding:8px;list-style:none;background:var(--nav-panel,#fff);box-shadow:0 18px 38px -18px rgba(15,23,42,.36)}
+.pagecraft-nav-list li:hover>.sub-menu,.pagecraft-nav-list li:focus-within>.sub-menu{display:block}
+.pagecraft-nav-list .sub-menu .sub-menu{top:0;left:100%}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
@@ -7655,12 +7659,28 @@ function renderNode(n, o) {
       const items = Array.isArray(p.items) ? p.items : [];
       const name = esc(p.aria || "Main");
       const mid = domId + "-menu";
-      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + items.map((it) => {
-        const classes2 = String(it.cls || "").trim().split(/\s+/).filter(Boolean).join(" ");
-        const liClass = classes2 ? ` class="${esc(classes2)}"` : "";
-        const target = it.target === "_blank" ? ' target="_blank" rel="noopener"' : "";
-        return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}>${esc(it.label || "")}</a></li>`;
-      }).join("") + `</ul></nav>`;
+      const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || "")) ? ` data-pagecraft-menu-location="${esc(String(p.menuLocation))}"` : "";
+      const keyed = new Map(items.filter((it) => it.id).map((it) => [String(it.id), it]));
+      const childrenOf = (parentId, ancestry) => items.filter((it) => {
+        const parent = String(it.parentId || "");
+        if (!parentId) return !parent || !keyed.has(parent);
+        return parent === parentId;
+      }).map((it) => {
+        const id = String(it.id || "");
+        if (id && ancestry.has(id)) return "";
+        const classes2 = String(it.cls || "").trim().split(/\s+/).filter(Boolean);
+        const nextAncestry = new Set(ancestry);
+        if (id) nextAncestry.add(id);
+        const nested = id ? childrenOf(id, nextAncestry) : "";
+        if (nested) classes2.push("menu-item-has-children");
+        const liClass = classes2.length ? ` class="${esc(Array.from(new Set(classes2)).join(" "))}"` : "";
+        const rel = String(it.rel || "").trim().split(/\s+/).filter(Boolean);
+        if (it.target === "_blank" && !rel.includes("noopener")) rel.push("noopener");
+        const target = it.target === "_blank" ? ' target="_blank"' : "";
+        const relationship = rel.length ? ` rel="${esc(rel.join(" "))}"` : "";
+        return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}${relationship}>${esc(it.label || "")}</a>` + (nested ? `<ul class="sub-menu">${nested}</ul>` : "") + `</li>`;
+      }).join("");
+      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul></nav>`;
     }
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];

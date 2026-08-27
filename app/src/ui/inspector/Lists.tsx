@@ -66,6 +66,13 @@ export function ItemsCtl({ n, c }: P) {
   const firstWordPressReference = firstWordPressTarget && firstWordPress
     ? wordpressReferenceForItem(firstWordPressTarget, firstWordPress)?.reference || '' : '';
   const commit = (k: number, prop: string, value: string) => C.edit(() => { rows(n, c)[k][prop] = value; });
+  const commitDestination = (k: number, value: string) => C.edit(() => {
+    const row = rows(n, c)[k];
+    row.href = value;
+    delete row.objectId;
+    delete row.objectType;
+    delete row.anchor;
+  });
   const parsed = (it: any) => C.parseLink(it.href, C.page().slug) as any;
   const pageName = (slug: string) => C.state.pages.find(p => p.slug === slug)?.name || 'Missing page';
   const summary = (it: any) => {
@@ -86,8 +93,25 @@ export function ItemsCtl({ n, c }: P) {
     else if (open !== null && from < open && to >= open) setOpen(open - 1);
     else if (open !== null && from > open && to <= open) setOpen(open + 1);
   };
+  const wouldCreateParentCycle = (itemIndex: number, candidateIndex: number) => {
+    const itemId = String(arr[itemIndex]?.id || '');
+    let candidateId = String(arr[candidateIndex]?.id || '');
+    if (!itemId || !candidateId) return true;
+    const byId = new Map(arr.map(item => [String(item.id || ''), item]));
+    const seen = new Set<string>();
+    while (candidateId && !seen.has(candidateId)) {
+      if (candidateId === itemId) return true;
+      seen.add(candidateId);
+      candidateId = String(byId.get(candidateId)?.parentId || '');
+    }
+    return false;
+  };
 
   return <Field n={n} c={c}>
+    {n.props.menuLocation ? <div class="note native-menu-note">
+      WordPress menu · {String(n.props.menuLocation).replace(/(^|[-_])\w/g, value => value.replace(/[-_]/, ' ').toUpperCase())} navigation.
+      Content changes here also appear in Appearance → Menus; Pagecraft keeps the visual settings.
+    </div> : null}
     {arr.map((it, k) => {
       const link = parsed(it);
       const wordpress = wordpressDestinationForValue(it.href);
@@ -129,7 +153,7 @@ export function ItemsCtl({ n, c }: P) {
           <label>Destination</label>
           <select class="ctl" value={mode} aria-label={`Destination for ${it.label || 'untitled link'}`} onChange={e => {
             const next = (e.target as HTMLSelectElement).value;
-            commit(k, 'href', next === 'page'
+            commitDestination(k, next === 'page'
               ? C.buildLink({ mode: 'page', page: C.page().slug, frag: '' })
               : next === 'wordpress' ? firstWordPressReference : '');
           }}>
@@ -140,7 +164,7 @@ export function ItemsCtl({ n, c }: P) {
 
           {mode === 'page' ? <>
             <select class="ctl" value={page} onChange={e => {
-              commit(k, 'href', C.buildLink({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' }));
+              commitDestination(k, C.buildLink({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' }));
             }}>
               {C.state.pages.map(p => <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
             </select>
@@ -153,7 +177,7 @@ export function ItemsCtl({ n, c }: P) {
                 ? <option value={link.frag}>#{link.frag} — missing</option> : null}
             </select>
           </> : mode === 'wordpress' ? (
-            <WordPressContentPicker value={it.href} onChange={url => commit(k, 'href', url)} />
+            <WordPressContentPicker value={it.href} onChange={url => commitDestination(k, url)} />
           ) : <>
             <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section" />
             <div class="note">Supports external URLs, email, phone, and section links.</div>
@@ -162,6 +186,21 @@ export function ItemsCtl({ n, c }: P) {
           <label>CSS classes</label>
           <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class" />
           <div class="note">Applied to this menu item. Separate multiple classes with spaces.</div>
+
+          <label>Parent item</label>
+          <select class="ctl" value={it.parentId || ''} onChange={e => commit(k, 'parentId', (e.target as HTMLSelectElement).value)}>
+            <option value="">Top level</option>
+            {arr.map((candidate, index) => index === k ? null : (
+              <option key={candidate.id || index} value={candidate.id || ''}
+                disabled={!candidate.id || wouldCreateParentCycle(k, index)}>
+                {candidate.label || 'Untitled link'}
+              </option>
+            ))}
+          </select>
+
+          <label>Link relationship</label>
+          <RowInput n={n} c={c} k={k} prop="rel" placeholder="nofollow sponsored" />
+          <div class="note">Optional WordPress XFN/relationship values, separated with spaces.</div>
 
           <div class="tog-row navitem-target">
             <span>Open in a new tab</span>
@@ -177,12 +216,12 @@ export function ItemsCtl({ n, c }: P) {
     <div class="navitem-add" style={{ marginTop: arr.length ? 'var(--gap-1)' : '0' }}>
       <AddButton label="Add page" gap={false} small onClick={() => {
         const at = arr.length;
-        C.edit(() => rows(n, c).push({ label: C.page().name, href: C.buildLink({ mode: 'page', page: C.page().slug, frag: '' }), cls: '', target: '' }));
+        C.edit(() => rows(n, c).push({ id: C.uid(), label: C.page().name, href: C.buildLink({ mode: 'page', page: C.page().slug, frag: '' }), parentId: '', cls: '', target: '', rel: '' }));
         setOpen(at);
       }} />
       <AddButton label="Add custom" gap={false} small onClick={() => {
         const at = arr.length;
-        C.edit(() => rows(n, c).push({ label: 'New link', href: '', cls: '', target: '' }));
+        C.edit(() => rows(n, c).push({ id: C.uid(), label: 'New link', href: '', parentId: '', cls: '', target: '', rel: '' }));
         setOpen(at);
       }} />
     </div>

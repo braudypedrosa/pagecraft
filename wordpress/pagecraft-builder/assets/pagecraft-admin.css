@@ -153,6 +153,24 @@
   font-weight: 600;
 }
 
+.pagecraft-import-result__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.pagecraft-import-result__actions form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pagecraft-import-result__actions select {
+  min-height: 44px;
+}
+
 .pagecraft-editor-admin {
   position: fixed;
   z-index: 100000;
@@ -219,5 +237,11 @@
 
   .pagecraft-start__choices section:last-child {
     border-bottom: 0;
+  }
+
+  .pagecraft-import-result__actions,
+  .pagecraft-import-result__actions form {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

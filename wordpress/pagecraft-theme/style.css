@@ -192,6 +192,28 @@ body.pagecraft-theme-fallback {
 	list-style: none;
 }
 
+.pagecraft-primary-navigation li {
+	position: relative;
+}
+
+.pagecraft-primary-navigation .sub-menu {
+	display: none;
+	position: absolute;
+	z-index: 20;
+	top: 100%;
+	left: 0;
+	min-width: 12rem;
+	align-items: stretch;
+	padding: 0.5rem;
+	background: var(--pagecraft-fallback-surface);
+	box-shadow: 0 1rem 2rem -1.25rem rgba(17, 19, 17, 0.42);
+}
+
+.pagecraft-primary-navigation li:hover > .sub-menu,
+.pagecraft-primary-navigation li:focus-within > .sub-menu {
+	display: flex;
+}
+
 .pagecraft-primary-navigation a {
 	display: inline-block;
 	padding-block: 0.35rem;
@@ -415,6 +437,15 @@ body.pagecraft-theme-fallback {
 
 	.pagecraft-primary-navigation ul {
 		justify-content: flex-start;
+	}
+
+	.pagecraft-primary-navigation .sub-menu {
+		display: flex;
+		position: static;
+		width: 100%;
+		padding-left: 1rem;
+		background: transparent;
+		box-shadow: none;
 	}
 
 	.pagecraft-site-description {

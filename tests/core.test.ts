@@ -4454,6 +4454,23 @@ test('a nav item exports its custom classes and new-tab behavior', () => {
   a.match(html, /href="https:\/\/example\.com\/journal" target="_blank" rel="noopener"/);
 });
 
+test('a native-bound nav preserves hierarchy, relationships and its stable WordPress location', () => {
+  const n = C.N('nav', {
+    menuLocation: 'primary',
+    items: [
+      { id: 'services', label: 'Services', href: '/services/', cls: 'services' },
+      { id: 'strategy', parentId: 'services', label: 'Strategy', href: '/services/#strategy', rel: 'nofollow' },
+      { id: 'external', label: 'Partner', href: 'https://partner.example', target: '_blank', rel: 'sponsored' }
+    ]
+  });
+  const html = C.renderNode(n, { edit: false });
+  a.match(html, /data-pagecraft-menu-location="primary"/);
+  a.match(html, /<li class="services menu-item-has-children"><a href="\/services\/">Services<\/a><ul class="sub-menu">/);
+  a.match(html, /href="\/services\/#strategy" rel="nofollow">Strategy/);
+  a.match(html, /href="https:\/\/partner\.example" target="_blank" rel="sponsored noopener"/);
+  a.match(C.baseCss(false), /\.pagecraft-nav-list li:focus-within>\.sub-menu\{display:block\}/);
+});
+
 test('icon padding adds to the chosen glyph size instead of consuming it', () => {
   a.match(C.baseCss(false), /\.pagecraft-icon-glyph\{[^}]*box-sizing:content-box/);
 });

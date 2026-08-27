@@ -16,3 +16,7 @@ The current web shell creates `WebHostAdapter` from the same sealed bundle as th
 The WordPress plugin can create `WordPressHostAdapter` with its REST root, page ID, nonce, and
 capability snapshot. Host-specific REST routes may evolve, but editor and component behavior
 must continue to depend only on these typed contracts.
+
+WordPress menu payloads identify page/post-backed items separately from custom URLs and retain
+stable item ids, parent ids, classes, targets, relationships, and optional anchors. This lets the
+WordPress host update native records without teaching the shared renderer about WordPress APIs.

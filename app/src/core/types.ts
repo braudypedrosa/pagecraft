@@ -117,14 +117,33 @@ export interface IconProps extends Linkable { name?: string; label?: string }
 export interface ButtonProps extends Linkable, Styled {
   text?: string; variant?: string; icon?: string; align?: string; wrap?: string;
 }
-export interface NavProps { items?: NavItem[]; collapse?: string; aria?: string }
+export interface NavProps {
+  items?: NavItem[];
+  collapse?: string;
+  aria?: string;
+  /** WordPress binds the visual component to one stable theme menu location. */
+  menuLocation?: 'primary' | 'footer' | 'utility' | string;
+  /** Native term id supplied by the WordPress host. It is host metadata, not presentation. */
+  nativeMenuId?: string;
+}
 export interface NavItem {
+  /** Stable native item identity when WordPress owns this menu. */
+  id?: string;
   label?: string;
   href?: string;
+  /** Stable item identity, not an array index, so nesting survives reordering. */
+  parentId?: string;
   /** Custom classes belong to the menu item (`li`), matching the WordPress menu model. */
   cls?: string;
   /** `_blank` opens this item in a new tab; absent keeps the current tab. */
   target?: string;
+  /** WordPress relationship/XFN data. */
+  rel?: string;
+  /** Native object metadata keeps page-backed items linked after a slug change. */
+  objectType?: 'page' | 'post' | 'custom' | string;
+  objectId?: string;
+  /** A page-backed WordPress item may retain a section anchor without freezing its URL. */
+  anchor?: string;
 }
 export interface FormProps {
   /** External posts to an explicit HTTPS service. WordPress is compiled to a target-local,

@@ -60,6 +60,10 @@ export interface HostMenuItem {
   parentId?: string | null;
   classes?: readonly string[];
   target?: '' | '_blank';
+  rel?: string;
+  objectType?: 'page' | 'post' | 'custom';
+  objectId?: string;
+  anchor?: string;
   order: number;
 }
 

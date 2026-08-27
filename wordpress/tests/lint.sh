@@ -34,6 +34,7 @@ php "${WORDPRESS_DIR}/tests/native-page-import.php" \
 	"${IMPORT_TEMP}/fixture.pagecraft-page.zip"
 php "${WORDPRESS_DIR}/tests/global-elements.php" \
 	"${IMPORT_TEMP}/fixture.pagecraft-page.zip"
+php "${WORDPRESS_DIR}/tests/native-menus.php"
 php "${WORDPRESS_DIR}/tests/theme-managed-fallback.php"
 
 echo 'Theme, Builder, and WordPress test PHP syntax is valid.'
