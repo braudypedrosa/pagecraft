@@ -306,7 +306,7 @@ reload, and understands how much owned-site capacity remains.
 Verified on August 28, 2026 with desktop and mobile browser checks, the authenticated production
 dashboard, TypeScript validation, and the complete Pagecraft test suite.
 
-### Phase 2: creation and workspace resilience — Planned
+### Phase 2: creation and workspace resilience — Complete
 
 - Add the optional editable slug to the creation flow
 - Keep the short creation flow progressive and open the builder after success
@@ -317,6 +317,11 @@ dashboard, TypeScript validation, and the complete Pagecraft test suite.
 
 Exit gate: first-site creation and all Dashboard 1A failure states recover without exposing raw
 API responses or leaving the workspace.
+
+Verified on August 28, 2026 with invalid and duplicate-slug contract tests, desktop and mobile
+built-in-browser checks, TypeScript validation, and the complete Pagecraft test suite. The
+restricted states use the real profile-missing and creation-unavailable contracts; no fictional
+account-status flag was introduced.
 
 ### Phase 3: site Overview and management shell — Planned
 

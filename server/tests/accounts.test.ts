@@ -95,6 +95,8 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /<option value="updated">Last edited<\/option>/);
   a.match(html, /class="pc-site-card"/);
   a.match(html, /class="pc-site-preview"/);
+  a.match(html, /class="pc-preview-fallback"/);
+  a.match(html, /data-copy-site/);
   a.match(html, />Braudy<\/div>/);
   a.match(html, /class="pc-site-url"/);
   a.match(html, />admin\.test\/braudy<\/a>/);
@@ -109,8 +111,48 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /No shared sites yet/);
   a.match(html, /No owned sites yet/);
   a.match(html, />Add new site<\/a>/);
+  a.match(html, /name="slug"/);
+  a.match(html, /data-create-error/);
+  a.match(html, /background-position:right 14px center/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
+});
+
+test('site creation reports usable slug errors to JSON and redirects form submissions safely', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: 'auth-1', email: 'builder@example.test', name: 'Builder' };
+  await auth.ensureAuthUser('auth-1', 'builder@example.test', 'Builder');
+
+  const invalid = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Invalid', slug: 'Not A Slug' })
+  });
+  a.equal(invalid.status, 422);
+  a.deepEqual(await invalid.json(), {
+    error: 'invalid_slug',
+    detail: 'Use lowercase letters, numbers, and single hyphens. Maximum 40 characters.'
+  });
+
+  const invalidForm = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ name: 'Invalid', slug: 'Not A Slug' })
+  });
+  a.equal(invalidForm.status, 303);
+  a.equal(invalidForm.headers.get('location'), '/?error=slug');
+
+  const first = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'First', slug: 'reserved-address' })
+  });
+  a.equal(first.status, 201);
+  const duplicate = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Second', slug: 'reserved-address' })
+  });
+  a.equal(duplicate.status, 409);
+  a.deepEqual(await duplicate.json(), {
+    error: 'slug_taken', detail: 'That site address is already in use. Choose another.'
+  });
 });
 
 test('sign in offers Google and email, links to registration, and uses the Pagecraft logo', async () => {

@@ -842,6 +842,15 @@ export function createApp(o: Options) {
        set it up, and had nowhere to go. They *are* whoever set it up. A name is enough now, and
        the server starts them where the builder's own "Start an empty site" does. */
     const name = String(body.name || '').trim() || 'Untitled site';
+    const requestedSlug = String(body.slug || '').trim();
+    if (requestedSlug && !validSlug(requestedSlug)) {
+      return htmlForm
+        ? c.redirect('/?error=slug', 303)
+        : c.json({
+          error: 'invalid_slug',
+          detail: 'Use lowercase letters, numbers, and single hyphens. Maximum 40 characters.'
+        }, 422);
+    }
     const doc0 = body.doc || blankDoc(name);
     /* A host is no longer required to have a site. It used to be the only way to reach one, so
        making a site meant inventing a domain first; a slug is enough, and the host is what you
@@ -873,20 +882,32 @@ export function createApp(o: Options) {
     if (!preview) return c.json({ error: 'invalid document', detail: 'The document is not a renderable Pagecraft project.' }, 422);
     try {
       const created = o.accountAuth
-        ? await o.ownedSites?.create({ ownerId: user.id, host, slug: body.slug, name, doc })
+        ? await o.ownedSites?.create({ ownerId: user.id, host, slug: requestedSlug || undefined, name, doc })
         : null;
-      if (o.accountAuth && !created) return c.json({ error: 'site creation is unavailable' }, 503);
+      if (o.accountAuth && !created) {
+        return htmlForm
+          ? c.redirect('/?error=creation', 303)
+          : c.json({
+            error: 'site_creation_unavailable',
+            detail: 'Site creation is temporarily unavailable. Your existing sites are still available.'
+          }, 503);
+      }
       if (created && !created.ok) {
         if (created.reason === 'site_limit_reached') {
           return htmlForm
             ? c.redirect('/?error=limit', 303)
             : c.json({ error: 'site_limit_reached', limit: 3 }, 409);
         }
-        return c.json({ error: 'profile_missing' }, 409);
+        return htmlForm
+          ? c.redirect('/?error=account', 303)
+          : c.json({
+            error: 'profile_missing',
+            detail: 'Your Pagecraft profile is not ready. Sign out and sign in again, or contact support.'
+          }, 409);
       }
       const site = created?.ok
         ? created.site
-        : await o.store.create({ host, slug: body.slug, name, doc, savedBy: user.id });
+        : await o.store.create({ host, slug: requestedSlug || undefined, name, doc, savedBy: user.id });
       if (!o.accountAuth) await o.auth.grant(site.id, user.id, 'owner');
       const out = remember(site, preview);
       if (htmlForm) return c.redirect(`/edit/${encodeURIComponent(site.id)}`, 303);
@@ -898,7 +919,18 @@ export function createApp(o: Options) {
         files: [...out.files.keys()]
       }, 201);
     } catch (e) {
-      return c.json({ error: String((e as Error).message || e) }, 409);
+      const message = String((e as Error).message || e);
+      if (/already taken|duplicate|unique/i.test(message)) {
+        return htmlForm
+          ? c.redirect('/?error=slug_taken', 303)
+          : c.json({
+            error: 'slug_taken',
+            detail: 'That site address is already in use. Choose another.'
+          }, 409);
+      }
+      return htmlForm
+        ? c.redirect('/?error=creation', 303)
+        : c.json({ error: 'site_creation_failed', detail: 'We could not create that site. Try again.' }, 409);
     }
   });
 
