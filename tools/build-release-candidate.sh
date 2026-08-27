@@ -7,6 +7,7 @@ VERSION="${1:-0.2.0}"
 OUTPUT_DIR="${2:-${WORDPRESS_DIR}/build/release-candidate-${VERSION}}"
 
 mkdir -p "${OUTPUT_DIR}"
+OUTPUT_DIR="$(cd -- "${OUTPUT_DIR}" && pwd)"
 PAGECRAFT_PACKAGE_OUTPUT_DIR="${OUTPUT_DIR}" bash "${SCRIPT_DIR}/build-packages.sh" "${VERSION}" >/dev/null
 cp "${WORDPRESS_DIR}/RELEASE-NOTES-${VERSION}.md" "${OUTPUT_DIR}/RELEASE-NOTES.md"
 
