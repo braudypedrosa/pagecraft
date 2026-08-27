@@ -25,7 +25,7 @@ Every implementation pull request must reference its scoped child issue and incl
 
 The Pagecraft web application creates, previews, shares, and exports sites. The WordPress product consists of a Pagecraft Builder plugin and Pagecraft Theme distributed together. Customers may upload an offline package or connect a Pagecraft account to browse and manually import cloud pages.
 
-The WordPress plugin owns the admin menu, package import/export, account connection, full-screen editor, REST adapter, native page integration, revisions, media import, and generated assets. The theme owns frontend templates, Pagecraft header/footer locations, global presentation, and fallback rendering.
+The WordPress plugin owns the admin menu, package import/export, revocable manual-import account connection, full-screen editor, REST adapter, native page integration, revisions, media import, and generated assets. The theme owns frontend templates, Pagecraft header/footer locations, global presentation, and fallback rendering.
 
 ## Ownership lifecycle
 

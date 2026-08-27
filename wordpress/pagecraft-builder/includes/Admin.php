@@ -18,6 +18,10 @@ final class Admin
         add_action('admin_post_pagecraft_create_page', [$this, 'createPage']);
         add_action('admin_post_pagecraft_upload_page', [$this, 'uploadPage']);
         add_action('admin_post_pagecraft_add_page_to_menu', [$this, 'addPageToMenu']);
+        add_action('admin_post_pagecraft_cloud_start', [$this, 'cloudStart']);
+        add_action('admin_post_pagecraft_cloud_callback', [$this, 'cloudCallback']);
+        add_action('admin_post_pagecraft_cloud_disconnect', [$this, 'cloudDisconnect']);
+        add_action('admin_post_pagecraft_cloud_import', [$this, 'cloudImport']);
         add_filter('manage_pages_columns', [$this, 'columns']);
         add_action('manage_pages_custom_column', [$this, 'column'], 10, 2);
         add_filter('page_row_actions', [$this, 'rowActions'], 10, 2);
@@ -130,11 +134,85 @@ final class Admin
 
     public function connect(): void
     {
-        $this->simplePage(
-            __('Connect Account', 'pagecraft-builder'),
-            __('A connection will let you browse your Pagecraft Cloud pages and manually import a copy.', 'pagecraft-builder'),
-            __('Cloud import never creates background synchronization. This account flow is delivered in the tracked connection milestone.', 'pagecraft-builder')
-        );
+        $this->guard(Capabilities::MANAGE);
+        $cloud = new CloudImport();
+        echo '<div class="wrap pagecraft-admin pagecraft-cloud"><div class="pagecraft-admin__mast"><div><h1>'
+            . esc_html__('Import from Pagecraft Cloud', 'pagecraft-builder') . '</h1><p>'
+            . esc_html__('Browse your cloud pages and deliberately import an independent WordPress-owned copy.', 'pagecraft-builder')
+            . '</p></div></div>';
+        $this->noticeFromQuery();
+        if (!$cloud->connection()) {
+            echo '<section class="pagecraft-cloud__empty"><h2>' . esc_html__('Connect only when you need to import', 'pagecraft-builder')
+                . '</h2><p>' . esc_html__('The connection is read-only and revocable. It creates no webhooks, polling, synchronization, or background updates.', 'pagecraft-builder')
+                . '</p><form action="' . esc_url(admin_url('admin-post.php')) . '" method="post">';
+            wp_nonce_field('pagecraft_cloud_start');
+            echo '<input type="hidden" name="action" value="pagecraft_cloud_start"><button class="button button-primary button-hero">'
+                . esc_html__('Connect Pagecraft account', 'pagecraft-builder') . '</button></form></section></div>';
+            return;
+        }
+        echo '<div class="pagecraft-cloud__status"><div><strong>' . esc_html__('Connected for manual import', 'pagecraft-builder')
+            . '</strong><span>' . esc_html__('Nothing imports until an administrator clicks Import.', 'pagecraft-builder')
+            . '</span></div><form action="' . esc_url(admin_url('admin-post.php')) . '" method="post">';
+        wp_nonce_field('pagecraft_cloud_disconnect');
+        echo '<input type="hidden" name="action" value="pagecraft_cloud_disconnect"><button class="button">'
+            . esc_html__('Disconnect', 'pagecraft-builder') . '</button></form></div>';
+        try {
+            $projects = $cloud->projects();
+            $selected = sanitize_text_field((string) ($_GET['project'] ?? ($projects[0]['id'] ?? '')));
+            echo '<form class="pagecraft-cloud__project" method="get" action="' . esc_url(admin_url('admin.php')) . '">'
+                . '<input type="hidden" name="page" value="pagecraft-connect"><label for="pagecraft-cloud-project">'
+                . esc_html__('Pagecraft project', 'pagecraft-builder') . '</label><select id="pagecraft-cloud-project" name="project">';
+            foreach ($projects as $project) {
+                $id = (string) ($project['id'] ?? '');
+                echo '<option value="' . esc_attr($id) . '"' . selected($id, $selected, false) . '>'
+                    . esc_html((string) ($project['name'] ?? __('Untitled project', 'pagecraft-builder'))) . ' · '
+                    . esc_html(sprintf(_n('%d page', '%d pages', (int) ($project['pageCount'] ?? 0), 'pagecraft-builder'), (int) ($project['pageCount'] ?? 0)))
+                    . '</option>';
+            }
+            echo '</select><button class="button">' . esc_html__('Show pages', 'pagecraft-builder') . '</button></form>';
+            if ($selected !== '') $this->cloudPages($cloud, $selected);
+        } catch (PackageException $error) {
+            echo '<div class="notice notice-error inline"><p>' . esc_html($error->getMessage()) . '</p><p><a class="button" href="'
+                . esc_url(admin_url('admin.php?page=pagecraft-connect&pagecraft_error=reconnect')) . '">'
+                . esc_html__('Reconnect account', 'pagecraft-builder') . '</a></p></div>';
+        }
+        echo '</div>';
+    }
+
+    private function cloudPages(CloudImport $cloud, string $projectId): void
+    {
+        $result = $cloud->pages($projectId);
+        $pages = $result['pages'];
+        if (!$pages) {
+            echo '<div class="pagecraft-cloud__empty"><h2>' . esc_html__('No pages in this project', 'pagecraft-builder')
+                . '</h2><p>' . esc_html__('Create a page in the Pagecraft web builder, then return here to import it.', 'pagecraft-builder') . '</p></div>';
+            return;
+        }
+        echo '<div class="pagecraft-cloud__pages" role="list">';
+        foreach ($pages as $page) {
+            $pageId = (string) ($page['id'] ?? '');
+            $local = $this->localCloudCopy($projectId, $pageId);
+            echo '<article class="pagecraft-cloud-page" role="listitem"><div class="pagecraft-cloud-page__body"><h2>'
+                . esc_html((string) ($page['name'] ?? __('Untitled page', 'pagecraft-builder'))) . '</h2><p class="pagecraft-cloud-page__path">/'
+                . esc_html((string) ($page['slug'] ?? '')) . '</p><p>'
+                . esc_html(sprintf(__('Cloud version %1$d · Modified %2$s', 'pagecraft-builder'),
+                    (int) ($page['sourceVersion'] ?? 0), $this->dateLabel((string) ($page['modifiedAt'] ?? ''))))
+                . '</p></div><div class="pagecraft-cloud-page__actions"><a class="button" target="_blank" rel="noopener" href="'
+                . esc_url((string) ($page['previewUrl'] ?? '')) . '">' . esc_html__('Preview', 'pagecraft-builder') . '</a>'
+                . '<form action="' . esc_url(admin_url('admin-post.php')) . '" method="post">';
+            wp_nonce_field('pagecraft_cloud_import_' . $projectId . '_' . $pageId);
+            echo '<input type="hidden" name="action" value="pagecraft_cloud_import"><input type="hidden" name="project" value="'
+                . esc_attr($projectId) . '"><input type="hidden" name="cloud_page" value="' . esc_attr($pageId) . '">'
+                . '<label class="screen-reader-text" for="pagecraft-import-mode-' . esc_attr($pageId) . '">'
+                . esc_html__('Import method', 'pagecraft-builder') . '</label><select id="pagecraft-import-mode-' . esc_attr($pageId) . '" name="mode">'
+                . '<option value="draft">' . esc_html__('New draft', 'pagecraft-builder') . '</option>';
+            if (current_user_can('publish_pages')) echo '<option value="publish">' . esc_html__('New published page', 'pagecraft-builder') . '</option>';
+            if ($local > 0) echo '<option value="replace:' . esc_attr((string) $local) . '">'
+                . esc_html__('Replace local copy (creates revision)', 'pagecraft-builder') . '</option>';
+            echo '</select><button class="button button-primary">' . esc_html__('Import page', 'pagecraft-builder')
+                . '</button></form></div></article>';
+        }
+        echo '</div>';
     }
 
     public function settings(): void
@@ -345,6 +423,67 @@ final class Admin
         exit;
     }
 
+    public function cloudStart(): void
+    {
+        check_admin_referer('pagecraft_cloud_start');
+        $this->guard(Capabilities::MANAGE);
+        $callback = admin_url('admin-post.php?action=pagecraft_cloud_callback');
+        wp_safe_redirect((new CloudImport())->authorizationUrl($callback));
+        exit;
+    }
+
+    public function cloudCallback(): void
+    {
+        $this->guard(Capabilities::MANAGE);
+        $code = sanitize_text_field((string) ($_GET['code'] ?? ''));
+        $state = sanitize_text_field((string) ($_GET['state'] ?? ''));
+        try {
+            if ($code === '' || $state === '') throw new PackageException('Pagecraft did not return a complete authorization response.');
+            (new CloudImport())->complete($code, $state, admin_url('admin-post.php?action=pagecraft_cloud_callback'));
+            wp_safe_redirect(admin_url('admin.php?page=pagecraft-connect&pagecraft_connected=1'));
+        } catch (PackageException $error) {
+            wp_safe_redirect(add_query_arg('pagecraft_error', rawurlencode($error->getMessage()), admin_url('admin.php?page=pagecraft-connect')));
+        }
+        exit;
+    }
+
+    public function cloudDisconnect(): void
+    {
+        check_admin_referer('pagecraft_cloud_disconnect');
+        $this->guard(Capabilities::MANAGE);
+        (new CloudImport())->disconnect();
+        wp_safe_redirect(admin_url('admin.php?page=pagecraft-connect&pagecraft_disconnected=1'));
+        exit;
+    }
+
+    public function cloudImport(): void
+    {
+        $projectId = sanitize_text_field((string) ($_POST['project'] ?? ''));
+        $pageId = sanitize_text_field((string) ($_POST['cloud_page'] ?? ''));
+        check_admin_referer('pagecraft_cloud_import_' . $projectId . '_' . $pageId);
+        $this->guard(Capabilities::IMPORT);
+        $temporary = '';
+        try {
+            $mode = sanitize_text_field((string) ($_POST['mode'] ?? 'draft'));
+            $options = [];
+            if ($mode === 'publish') $options['status'] = 'publish';
+            elseif (str_starts_with($mode, 'replace:')) {
+                $options['replace_post_id'] = absint(substr($mode, strlen('replace:')));
+                $options['confirm_replace'] = true;
+            } elseif ($mode !== 'draft') throw new PackageException('Choose a supported Pagecraft import method.');
+            $temporary = (new CloudImport())->download($projectId, $pageId);
+            $result = pagecraft_builder_import_page_package($temporary, $options);
+            wp_safe_redirect(add_query_arg('pagecraft_imported', (string) $result->postId,
+                admin_url('admin.php?page=pagecraft-import-export')));
+        } catch (PackageException $error) {
+            wp_safe_redirect(add_query_arg('pagecraft_error', rawurlencode($error->getMessage()),
+                admin_url('admin.php?page=pagecraft-connect&project=' . rawurlencode($projectId))));
+        } finally {
+            if ($temporary !== '' && is_file($temporary)) wp_delete_file($temporary);
+        }
+        exit;
+    }
+
     /** @param array<string,string> $columns @return array<string,string> */
     public function columns(array $columns): array
     {
@@ -452,6 +591,26 @@ final class Admin
     }
 
     /** @return list<array<string,mixed>> */
+    private function localCloudCopy(string $projectId, string $pageId): int
+    {
+        $ids = get_posts([
+            'post_type' => 'page', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids',
+            'meta_query' => [
+                'relation' => 'AND',
+                ['key' => ManagedPage::SOURCE_PROJECT_ID, 'value' => $projectId],
+                ['key' => ManagedPage::SOURCE_PAGE_ID, 'value' => $pageId],
+            ],
+        ]);
+        return is_array($ids) && isset($ids[0]) ? (int) $ids[0] : 0;
+    }
+
+    private function dateLabel(string $value): string
+    {
+        $timestamp = strtotime($value);
+        return $timestamp ? wp_date(get_option('date_format') . ' ' . get_option('time_format'), $timestamp)
+            : __('Unknown date', 'pagecraft-builder');
+    }
+
     private function wordpressContent(): array
     {
         $home = home_url('/');

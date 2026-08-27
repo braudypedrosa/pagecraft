@@ -159,7 +159,8 @@ export interface WebhookOutboxEvent {
   createdAt: string;
 }
 
-export type ConnectedGrantKind = 'oauth-consent' | 'editor-code' | 'package-download';
+export type ConnectedGrantKind = 'oauth-consent' | 'editor-code' | 'package-download'
+  | 'manual-import-consent' | 'manual-import-code';
 export interface ConnectedGrant {
   digest: string;
   kind: ConnectedGrantKind;

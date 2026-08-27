@@ -80,6 +80,37 @@ test('gateway connected asset finalization carries its connection guard', async 
   a.equal((calls[1].args.asset as Record<string, unknown>).id, 'wp-a1');
 });
 
+test('gateway manual-import credentials never expose plaintext token material to persistence', async () => {
+  const row = {
+    id: 'manual-one', owner_id: 'u1', installation_id: 'wp-one',
+    access_token_digest: 'a'.repeat(64), access_expires_at: '2026-08-27T01:00:00.000Z',
+    refresh_token_digest: 'r'.repeat(64), status: 'active',
+    created_at: '2026-08-27T00:00:00.000Z', updated_at: '2026-08-27T00:00:00.000Z', revoked_at: null
+  };
+  const { gateway, calls } = fakeGateway(call => {
+    if (call.op === 'auth.manualImport.create') return row;
+    if (call.op === 'auth.manualImport.byAccess' || call.op === 'auth.manualImport.byRefresh') return row;
+    if (call.op === 'auth.manualImport.rotate') return { ...row, access_token_digest: call.args.digest };
+    if (call.op === 'auth.manualImport.revoke') return true;
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const auth = new GatewayAuthStore(gateway);
+  await auth.createManualImportCredential({
+    id: row.id, ownerId: row.owner_id, installationId: row.installation_id,
+    accessTokenDigest: row.access_token_digest, accessExpiresAt: new Date(row.access_expires_at).getTime(),
+    refreshTokenDigest: row.refresh_token_digest
+  });
+  a.equal((await auth.manualImportByAccess(row.access_token_digest))?.ownerId, 'u1');
+  a.equal((await auth.manualImportByRefresh(row.refresh_token_digest))?.installationId, 'wp-one');
+  await auth.rotateManualImportAccess(row.id, 'b'.repeat(64), Date.now() + 60_000);
+  a.equal(await auth.revokeManualImportCredential(row.id, row.refresh_token_digest), true);
+  a.deepEqual(calls.map(call => call.op), [
+    'auth.manualImport.create', 'auth.manualImport.byAccess', 'auth.manualImport.byRefresh',
+    'auth.manualImport.rotate', 'auth.manualImport.revoke'
+  ]);
+  a.equal(JSON.stringify(calls).includes('access-secret'), false);
+});
+
 test('gateway site metadata excludes documents and hot public lookups are boundedly cached', async () => {
   let slugReads = 0;
   const { gateway, calls } = fakeGateway(call => {

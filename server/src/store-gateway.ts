@@ -7,7 +7,7 @@
 import type { Doc } from '../../app/src/core/types.ts';
 import { MAX_BYTES, type Asset, type AssetRecord, type AssetStore } from './assets.ts';
 import {
-  normalEmail, type AuthStore, type Membership, type Role, type Session, type User
+  normalEmail, type AuthStore, type ManualImportCredential, type Membership, type Role, type Session, type User
 } from './auth.ts';
 import {
   validSlug, slugFrom, type CmsWriteHead, type SaveResult, type Site, type SiteRevision, type Store
@@ -697,6 +697,18 @@ export class GatewayAssetStore implements AssetStore {
 interface SessionWire { digest: string; user_id: string; expires_at: string }
 interface MembershipWire { site_id: string; user_id: string; role: Role; email?: string; name?: string }
 interface AccessWire extends User { role: Role | null }
+interface ManualImportWire {
+  id:string; owner_id:string; installation_id:string; access_token_digest:string;
+  access_expires_at:string; refresh_token_digest:string; status:'active'|'revoked';
+  created_at:string; updated_at:string; revoked_at:string|null;
+}
+const toManualImport = (row: ManualImportWire): ManualImportCredential => ({
+  id: row.id, ownerId: row.owner_id, installationId: row.installation_id,
+  accessTokenDigest: row.access_token_digest, accessExpiresAt: new Date(row.access_expires_at).getTime(),
+  refreshTokenDigest: row.refresh_token_digest, status: row.status,
+  createdAt: new Date(row.created_at).getTime(), updatedAt: new Date(row.updated_at).getTime(),
+  revokedAt: row.revoked_at ? new Date(row.revoked_at).getTime() : null
+});
 
 const toMembership = (row: MembershipWire): Membership => ({
   siteId: row.site_id, userId: row.user_id, role: row.role
@@ -770,5 +782,26 @@ export class GatewayAuthStore implements AuthStore {
   }
   revoke(siteId: string, userId: string) {
     return this.gateway.call<boolean>('auth.revoke', { siteId, userId });
+  }
+  async createManualImportCredential(input: Omit<ManualImportCredential,
+    'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {
+    return toManualImport(await this.gateway.call<ManualImportWire>('auth.manualImport.create', { input }));
+  }
+  async manualImportByAccess(digest: string) {
+    const row = await this.gateway.call<ManualImportWire|null>('auth.manualImport.byAccess', { digest });
+    return row ? toManualImport(row) : null;
+  }
+  async manualImportByRefresh(digest: string) {
+    const row = await this.gateway.call<ManualImportWire|null>('auth.manualImport.byRefresh', { digest });
+    return row ? toManualImport(row) : null;
+  }
+  async rotateManualImportAccess(id: string, digest: string, expiresAt: number) {
+    const row = await this.gateway.call<ManualImportWire|null>('auth.manualImport.rotate', {
+      id, digest, expiresAt: new Date(expiresAt).toISOString()
+    });
+    return row ? toManualImport(row) : null;
+  }
+  revokeManualImportCredential(id: string, refreshDigest: string) {
+    return this.gateway.call<boolean>('auth.manualImport.revoke', { id, refreshDigest });
   }
 }

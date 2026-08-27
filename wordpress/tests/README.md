@@ -10,6 +10,8 @@ This validates every PHP file in Pagecraft Theme, Pagecraft Builder, and the Wor
 
 Media coverage verifies package hashes and actual file types, rollback after a failed page import, content-hash deduplication, native attachment metadata, alt text, captions, responsive sources, local document/HTML/CSS references, and deletion protection from both current records and revisions.
 
+Manual cloud-import coverage verifies PKCE authorization, encrypted WordPress credential storage, short-lived bearer access, project/page browsing, exact package-byte downloads, server revocation, expiry recovery, and the absence of webhook, polling, or background-import hooks.
+
 The same contract also verifies the nonce/capability-gated editor routes, explicit conversion marker, optimistic save conflicts, revision-backed embedded-editor saves, refreshed native fallback output, and native WordPress menu conversion. Menu coverage includes page-backed links, automatic slug changes, anchors, hierarchy, classes, XFN relationships, idempotent full-site reimport, Pagecraft round-trip editing, and explicit single-page insertion.
 
 The release gate also parses the same files with the exact required runtime:
