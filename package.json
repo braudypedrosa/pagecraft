@@ -6,6 +6,7 @@
   "description": "Visual page builder that exports static HTML",
   "scripts": {
     "dev": "vite",
+    "build:site": "node site/build.mjs",
     "build": "node build.mjs",
     "build:next": "vite build",
     "test": "node build.mjs && tsc --noEmit && vitest run",
