@@ -80,7 +80,7 @@ test('production refuses to boot without durable storage', async () => {
   ));
 });
 
-test('production refuses to boot without mail instead of logging authentication tokens', async () => {
+test('production refuses to boot without Supabase Auth and Turnstile configuration', async () => {
   const gateway = createServer((_req, res) => {
     res.setHeader('content-type', 'application/json');
     res.end(JSON.stringify({ data: [] }));
@@ -97,7 +97,7 @@ test('production refuses to boot without mail instead of logging authentication 
         DATABASE_GATEWAY_URL: `http://127.0.0.1:${address.port}`, DATABASE_GATEWAY_KEY: 'test-only',
         OWNER_EMAIL: '', CLIENT_EMAIL: '', SMTP_HOST: '', SMTP_USER: '', SMTP_PASS: '', MAIL_FROM: ''
       }
-    }), error => /production requires complete SMTP_HOST/.test(
+    }), error => /account auth requires SUPABASE_URL/.test(
       String((error as { stderr?: string }).stderr || error)
     ));
   } finally {

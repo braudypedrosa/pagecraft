@@ -27,7 +27,7 @@ import {
 interface GatewayReply<T> { data: T }
 interface GatewayFailure { error?: string; code?: string }
 
-class GatewayError extends Error {
+export class GatewayError extends Error {
   code?: string;
   constructor(message: string, code?: string) {
     super(message);
@@ -694,9 +694,10 @@ export class GatewayAssetStore implements AssetStore {
   }
 }
 
+interface UserWire { id: string; email: string; name: string; auth_user_id?: string | null }
 interface SessionWire { digest: string; user_id: string; expires_at: string }
 interface MembershipWire { site_id: string; user_id: string; role: Role; email?: string; name?: string }
-interface AccessWire extends User { role: Role | null }
+interface AccessWire extends UserWire { role: Role | null }
 interface ManualImportWire {
   id:string; owner_id:string; installation_id:string; access_token_digest:string;
   access_expires_at:string; refresh_token_digest:string; status:'active'|'revoked';
@@ -713,22 +714,39 @@ const toManualImport = (row: ManualImportWire): ManualImportCredential => ({
 const toMembership = (row: MembershipWire): Membership => ({
   siteId: row.site_id, userId: row.user_id, role: row.role
 });
+const toUser = (row: UserWire): User => ({
+  id: row.id, email: row.email, name: row.name, authUserId: row.auth_user_id ?? null
+});
 
 export class GatewayAuthStore implements AuthStore {
   private gateway: PagecraftGateway;
   constructor(gateway: PagecraftGateway) { this.gateway = gateway; }
 
   userByEmail(email: string) {
-    return this.gateway.call<User | null>('auth.userByEmail', { email: normalEmail(email) });
+    return this.gateway.call<UserWire | null>('auth.userByEmail', { email: normalEmail(email) })
+      .then(row => row ? toUser(row) : null);
   }
-  userById(id: string) { return this.gateway.call<User | null>('auth.userById', { id }); }
+  userById(id: string) {
+    return this.gateway.call<UserWire | null>('auth.userById', { id }).then(row => row ? toUser(row) : null);
+  }
+  userByAuthId(authUserId: string) {
+    return this.gateway.call<UserWire | null>('auth.userByAuthId', { authUserId })
+      .then(row => row ? toUser(row) : null);
+  }
+  ensureAuthUser(authUserId: string, email: string, name = '') {
+    return this.gateway.call<UserWire>('auth.ensureAuthUser', {
+      id: crypto.randomUUID(), authUserId, email: normalEmail(email), name: name.trim()
+    }).then(toUser);
+  }
   usersByIds(ids: string[]) {
-    return ids.length ? this.gateway.call<User[]>('auth.usersByIds', { ids: [...new Set(ids)] }) : Promise.resolve([]);
+    return ids.length
+      ? this.gateway.call<UserWire[]>('auth.usersByIds', { ids: [...new Set(ids)] }).then(rows => rows.map(toUser))
+      : Promise.resolve([]);
   }
   createUser(email: string, name = '') {
-    return this.gateway.call<User>('auth.createUser', {
+    return this.gateway.call<UserWire>('auth.createUser', {
       id: crypto.randomUUID(), email: normalEmail(email), name
-    });
+    }).then(toUser);
   }
   async putLink(digest: string, email: string, expiresAt: number) {
     await this.gateway.call('auth.putLink', {
@@ -757,12 +775,13 @@ export class GatewayAuthStore implements AuthStore {
     return session;
   }
   userForSession(digest: string) {
-    return this.gateway.call<User | null>('auth.userForSession', { digest });
+    return this.gateway.call<UserWire | null>('auth.userForSession', { digest })
+      .then(row => row ? toUser(row) : null);
   }
   async accessForSession(digest: string, siteId: string) {
     const row = await this.gateway.call<AccessWire | null>('auth.accessForSession', { digest, siteId });
     if (!row) return null;
-    return { user: { id: row.id, email: row.email, name: row.name }, role: row.role };
+    return { user: toUser(row), role: row.role };
   }
   async dropSession(digest: string) { await this.gateway.call('auth.dropSession', { digest }); }
   async membership(siteId: string, userId: string) {

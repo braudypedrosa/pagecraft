@@ -14,8 +14,11 @@ create table public.users (
   id text primary key,
   email text not null unique,
   name text not null default '',
+  auth_user_id text,
   created_at timestamptz not null default now()
 );
+create unique index users_auth_user_id_key on public.users (auth_user_id)
+  where auth_user_id is not null;
 
 create table public.login_links (
   digest text primary key,

@@ -4,12 +4,37 @@ import a from 'node:assert/strict';
 import { Pool, type PoolClient } from 'pg';
 import { blankDoc } from '../src/render.ts';
 import { PgAuthStore, PgConnectedStore, PgStore, type Queryable } from '../src/store-pg.ts';
+import { PgOwnedSiteStore } from '../src/accounts.ts';
 import type {
   ReleaseReservation, SiteRelease, WordPressConnection
 } from '../src/release-store.ts';
 
 const databaseUrl = process.env.PAGECRAFT_TEST_DATABASE_URL;
 const postgresTest = databaseUrl ? test : test.skip;
+
+postgresTest('real PostgreSQL cannot exceed the three-owned-site quota under concurrent creation', async () => {
+  const firstPool = new Pool({ connectionString: databaseUrl, max: 2 });
+  const secondPool = new Pool({ connectionString: databaseUrl, max: 2 });
+  const firstDb = firstPool as unknown as Queryable;
+  const secondDb = secondPool as unknown as Queryable;
+  const sites = new PgStore(firstDb), auth = new PgAuthStore(firstDb);
+  try {
+    await sites.init();
+    await auth.init();
+    const owner = await auth.ensureAuthUser(randomUUID(), `${randomUUID()}@integration.test`, 'Owner');
+    const writers = [new PgOwnedSiteStore(firstDb), new PgOwnedSiteStore(secondDb)];
+    const results = await Promise.all(Array.from({ length: 4 }, (_, index) =>
+      writers[index % 2].create({
+        ownerId: owner.id, host: `${randomUUID()}.integration.test`,
+        name: `Concurrent site ${index + 1}`, doc: blankDoc(`Concurrent site ${index + 1}`)
+      })));
+    a.equal(results.filter(result => result.ok).length, 3);
+    a.deepEqual(results.filter(result => !result.ok), [{ ok: false, reason: 'site_limit_reached' }]);
+    a.equal((await auth.membershipsForUser(owner.id)).filter(item => item.role === 'owner').length, 3);
+  } finally {
+    await Promise.all([firstPool.end(), secondPool.end()]);
+  }
+});
 
 function immutableRelease(reservation: ReleaseReservation, sourceVersion: number): SiteRelease {
   return {

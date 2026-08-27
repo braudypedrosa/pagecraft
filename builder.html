@@ -1215,6 +1215,9 @@ pre.code{
     </div>
     <span class="topsep"></span>
     <span class="docname" id="docName"></span>
+    <button class="iconbtn" id="sitesBtn" title="Back to sites" aria-label="Sites" hidden>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="4.5" height="4.5" rx=".7"/><rect x="9.5" y="2" width="4.5" height="4.5" rx=".7"/><rect x="2" y="9.5" width="4.5" height="4.5" rx=".7"/><rect x="9.5" y="9.5" width="4.5" height="4.5" rx=".7"/></svg>
+    </button>
 
     <span class="spacer"></span>
 
@@ -4918,6 +4921,11 @@ document.addEventListener('keydown', hotkey);
 
 /* ================================================================= init */
 function bindTop() {
+  const sitesButton = $('#sitesBtn');
+  if (SRV && !IS_WORDPRESS) {
+    sitesButton.hidden = false;
+    sitesButton.addEventListener('click', () => { location.href = '/'; });
+  }
   $$('#devSeg button').forEach(b => b.addEventListener('click', () => setDev(b.dataset.dev)));
   $('#undoBtn').addEventListener('click', undo);
   $('#redoBtn').addEventListener('click', redo);

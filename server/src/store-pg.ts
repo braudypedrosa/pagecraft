@@ -25,7 +25,7 @@ import {
   type Asset, type AssetRecord, type AssetStore
 } from './assets.ts';
 import {
-  AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session, type ManualImportCredential
+  AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session, type ManualImportCredential, type User
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -1663,7 +1663,7 @@ export class PgAssetStore implements AssetStore {
 
 /* --------------------------------------------------------------------- auth */
 
-interface UserRow { id: string; email: string; name: string }
+interface UserRow { id: string; email: string; name: string; auth_user_id?: string | null }
 interface SessionRow { digest: string; user_id: string; expires_at: Date | string }
 interface MemberRow { site_id: string; user_id: string; role: Role }
 interface AccessRow extends UserRow { role: Role | null }
@@ -1680,18 +1680,36 @@ export class PgAuthStore implements AuthStore {
 
   async userByEmail(email: string) {
     const { rows } = await this.db.query<UserRow>('select * from users where email = $1', [normalEmail(email)]);
-    return rows[0] || null;
+    return rows[0] ? this.user(rows[0]) : null;
   }
   async userById(id: string) {
     const { rows } = await this.db.query<UserRow>('select * from users where id = $1', [id]);
-    return rows[0] || null;
+    return rows[0] ? this.user(rows[0]) : null;
+  }
+  async userByAuthId(authUserId: string) {
+    const { rows } = await this.db.query<UserRow>(
+      'select * from users where auth_user_id = $1', [authUserId]);
+    return rows[0] ? this.user(rows[0]) : null;
+  }
+  async ensureAuthUser(authUserId: string, email: string, name = '') {
+    const { rows } = await this.db.query<UserRow>(
+      `insert into users (id, email, name, auth_user_id) values ($1, $2, $3, $4)
+       on conflict (email) do update set
+         auth_user_id = excluded.auth_user_id,
+         name = coalesce(nullif(excluded.name, ''), users.name)
+       where users.auth_user_id is null or users.auth_user_id = excluded.auth_user_id
+       returning *`,
+      [crypto.randomUUID(), normalEmail(email), name.trim(), authUserId]
+    );
+    if (!rows[0]) throw new Error('that email is already linked to another identity');
+    return this.user(rows[0]);
   }
   async usersByIds(ids: string[]) {
     const unique = [...new Set(ids)];
     if (!unique.length) return [];
     const { rows } = await this.db.query<UserRow>(
-      'select id, email, name from users where id = any($1::text[])', [unique]);
-    return rows;
+      'select id, email, name, auth_user_id from users where id = any($1::text[])', [unique]);
+    return rows.map(row => this.user(row));
   }
   async createUser(email: string, name = '') {
     /* `on conflict` rather than a read-then-write: two invitations to the same address arriving
@@ -1702,7 +1720,7 @@ export class PgAuthStore implements AuthStore {
        returning *`,
       [crypto.randomUUID(), normalEmail(email), name]
     );
-    return rows[0];
+    return this.user(rows[0]);
   }
 
   async putLink(digest: string, email: string, expiresAt: number) {
@@ -1742,24 +1760,24 @@ export class PgAuthStore implements AuthStore {
   }
   async userForSession(digest: string) {
     const { rows } = await this.db.query<UserRow>(
-      `select u.id, u.email, u.name
+      `select u.id, u.email, u.name, u.auth_user_id
        from sessions s join users u on u.id = s.user_id
        where s.digest = $1 and s.expires_at > now()`, [digest]);
-    if (rows[0]) return rows[0];
+    if (rows[0]) return this.user(rows[0]);
     /* Opportunistic cleanup for an expired token. Unknown tokens make this harmless no-op. */
     await this.db.query('delete from sessions where digest = $1 and expires_at <= now()', [digest]);
     return null;
   }
   async accessForSession(digest: string, siteId: string) {
     const { rows } = await this.db.query<AccessRow>(
-      `select u.id, u.email, u.name, m.role
+      `select u.id, u.email, u.name, u.auth_user_id, m.role
        from sessions s
        join users u on u.id = s.user_id
        left join site_users m on m.user_id = u.id and m.site_id = $2
        where s.digest = $1 and s.expires_at > now()`, [digest, siteId]);
     if (rows[0]) {
-      const { role, ...user } = rows[0];
-      return { user, role };
+      const { role, ...row } = rows[0];
+      return { user: this.user(row), role };
     }
     await this.db.query('delete from sessions where digest = $1 and expires_at <= now()', [digest]);
     return null;
@@ -1799,6 +1817,13 @@ export class PgAuthStore implements AuthStore {
     const { rows } = await this.db.query<{ user_id: string }>(
       'delete from site_users where site_id = $1 and user_id = $2 returning user_id', [siteId, userId]);
     return rows.length > 0;
+  }
+
+  private user(row: UserRow): User {
+    return {
+      id: row.id, email: row.email, name: row.name,
+      authUserId: row.auth_user_id ?? null
+    };
   }
   async createManualImportCredential(input: Omit<ManualImportCredential,
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {

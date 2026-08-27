@@ -111,7 +111,7 @@ export interface Store {
    `app.test.ts` asserts that by reading Hono's own route table. Adding a route without adding
    it here is caught rather than discovered the day a site called `api` stops loading. */
 export const RESERVED_PATHS = [
-  'api', 'auth', 'internal', 'edit', 'v1',
+  'api', 'auth', 'internal', 'edit', 'v1', 'sign-up', 'sign-in', 'forgot-password', 'reset-password',
   /* not routes, but names a browser or a crawler asks for at the root */
   'assets', 'favicon.ico', 'robots.txt', 'sitemap.xml', 'index.html', '.well-known'
 ];

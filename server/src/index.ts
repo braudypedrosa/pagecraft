@@ -18,6 +18,9 @@ import {
   type KeysetEnvelopeV1, type ReleaseSigningKey
 } from './releases.ts';
 import { PackageRegistry } from './packages.ts';
+import { SupabaseAccountAuth } from './account-auth.ts';
+import { SupabaseHumanChallenge, TestHumanChallenge } from './turnstile.ts';
+import { GatewayOwnedSiteStore, MemoryOwnedSiteStore, PgOwnedSiteStore, type OwnedSiteStore } from './accounts.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..');
@@ -34,7 +37,7 @@ if (!editorHtml) console.warn(`no editor at ${editorPath} — run \`node build.m
 /* One connection for all three, because they are one database and a second pool would only be
    a second thing to run out of. Order matters on first run: the auth and asset tables
    reference `sites`, and a foreign key to a table that is not there yet is an error. */
-async function pickStores(): Promise<{ store: Store; assets: AssetStore; auth: AuthStore; connected: ConnectedStore }> {
+async function pickStores(): Promise<{ store: Store; assets: AssetStore; auth: AuthStore; connected: ConnectedStore; owned: OwnedSiteStore }> {
   const gatewayUrl = process.env.DATABASE_GATEWAY_URL;
   const gatewayKey = process.env.DATABASE_GATEWAY_KEY;
   if (gatewayUrl || gatewayKey) {
@@ -49,12 +52,9 @@ async function pickStores(): Promise<{ store: Store; assets: AssetStore; auth: A
     /* Make boot prove the HTTPS/database path before Passenger declares the app started. */
     await store.listMeta();
     console.log('store: supabase gateway');
-    return {
-      store,
-      assets: new GatewayAssetStore(gateway),
-      auth: new GatewayAuthStore(gateway),
-      connected: new GatewayConnectedStore(gateway)
-    };
+    const auth = new GatewayAuthStore(gateway);
+    return { store, assets: new GatewayAssetStore(gateway), auth,
+      connected: new GatewayConnectedStore(gateway), owned: new GatewayOwnedSiteStore(gateway, store) };
   }
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -63,10 +63,9 @@ async function pickStores(): Promise<{ store: Store; assets: AssetStore; auth: A
     }
     console.warn('DATABASE_URL is not set — using the in-memory stores. Nothing survives a restart,');
     console.warn('including who is signed in and who has been invited.');
-    return {
-      store: new MemoryStore(), assets: new MemoryAssetStore(), auth: new MemoryAuthStore(),
-      connected: new MemoryConnectedStore()
-    };
+    const store = new MemoryStore(), auth = new MemoryAuthStore();
+    return { store, assets: new MemoryAssetStore(), auth, connected: new MemoryConnectedStore(),
+      owned: new MemoryOwnedSiteStore(store, auth) };
   }
   /* Imported here rather than at the top so a run without a database needs no driver. */
   const { Pool } = await import('pg');
@@ -81,10 +80,24 @@ async function pickStores(): Promise<{ store: Store; assets: AssetStore; auth: A
   await assets.init();
   await connected.init();
   console.log('store: postgres');
-  return { store, assets, auth, connected };
+  return { store, assets, auth, connected, owned: new PgOwnedSiteStore(pool) };
 }
 
-const { store, assets, auth, connected } = await pickStores();
+const { store, assets, auth, connected, owned } = await pickStores();
+
+const production = process.env.NODE_ENV === 'production';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY;
+const testAuth = process.env.PAGECRAFT_AUTH_TEST_MODE === '1';
+if (!supabaseUrl || !supabaseKey || !turnstileSiteKey) {
+  throw new Error('account auth requires SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY and TURNSTILE_SITE_KEY');
+}
+if (production && testAuth) throw new Error('PAGECRAFT_AUTH_TEST_MODE is forbidden in production');
+const accountAuth = new SupabaseAccountAuth({
+  url: supabaseUrl, publishableKey: supabaseKey, secureCookies: production
+});
+const challenge = testAuth ? new TestHumanChallenge() : new SupabaseHumanChallenge();
 
 function releaseSecurity(): { releaseSigning?: ReleaseSigningKey; keysetEnvelope?: KeysetEnvelopeV1 } {
   const privateWire = process.env.PAGECRAFT_RELEASE_PRIVATE_KEY;
@@ -194,7 +207,7 @@ void drainWordPressWebhooks();
 /* One site, seeded, when the store is empty and we are running on memory. Without it the
    first thing a new checkout shows is "No site for host localhost", which reads as broken
    rather than as empty. */
-if (!process.env.DATABASE_URL && !process.env.DATABASE_GATEWAY_URL && !(await store.listMeta()).length) {
+if (!accountAuth && !process.env.DATABASE_URL && !process.env.DATABASE_GATEWAY_URL && !(await store.listMeta()).length) {
   const Core = await import('../../app/src/core/index.ts');
   Core.seed();
   await store.create({
@@ -216,19 +229,19 @@ if (!process.env.DATABASE_URL && !process.env.DATABASE_GATEWAY_URL && !(await st
    Idempotent, so setting it on every boot is harmless: `createUser` upserts on the address and
    `grant` upserts on the pair. Once there is an owner, everybody else arrives through
    `POST /api/sites/:id/people`, which is the flow this replaced. */
-const OWNER = process.env.OWNER_EMAIL;
+const OWNER = accountAuth ? undefined : process.env.OWNER_EMAIL;
 if (OWNER) {
   const user = await auth.createUser(OWNER, 'Owner');
   for (const s of await store.listMeta()) await auth.grant(s.id, user.id, 'owner');
   console.log(`owner    ${OWNER} — POST /auth/login for a link`);
-} else {
+} else if (!accountAuth) {
   console.warn('OWNER_EMAIL is not set — nobody can sign in. The sites still serve.');
 }
 
 /* Kept for trying the content role on a throwaway run. Inviting is the real route now, and on
    a database this is the one thing here that a restart would re-grant after a revoke — so it
    is a development convenience and says so. */
-const CLIENT = process.env.CLIENT_EMAIL;
+const CLIENT = accountAuth ? undefined : process.env.CLIENT_EMAIL;
 if (CLIENT) {
   const user = await auth.createUser(CLIENT, 'Client');
   for (const s of await store.listMeta()) await auth.grant(s.id, user.id, 'content');
@@ -238,16 +251,18 @@ if (CLIENT) {
 /* Real mail when it is configured, the console when it is not. Said out loud either way,
    because "the link was sent" and "the link was printed in a log you are not reading" look
    identical from the sign-in form. */
-const mail = mailConfig(process.env);
+const mail = accountAuth ? null : mailConfig(process.env);
 if (mail) {
   const who = mail.user ? ` as ${mail.user}` : ' with no credentials';
   console.log(`mail     ${mail.host}:${mail.port}${who}, from ${mail.from}`);
 } else {
-  if (process.env.NODE_ENV === 'production') {
+  if (!accountAuth && process.env.NODE_ENV === 'production') {
     throw new Error('production requires complete SMTP_HOST, SMTP_USER, SMTP_PASS and MAIL_FROM settings; refusing to log sign-in tokens');
   }
-  console.warn('SMTP is not configured — development login links are printed here instead of emailed.');
-  console.warn('Set SMTP_HOST, SMTP_USER, SMTP_PASS and MAIL_FROM to send them.');
+  if (!accountAuth) {
+    console.warn('SMTP is not configured — development login links are printed here instead of emailed.');
+    console.warn('Set SMTP_HOST, SMTP_USER, SMTP_PASS and MAIL_FROM to send them.');
+  }
 }
 
 const app = createApp({
@@ -258,6 +273,10 @@ const app = createApp({
   secureCookies: process.env.NODE_ENV === 'production',
   connected,
   packages,
+  accountAuth,
+  ownedSites: owned,
+  challenge,
+  turnstileSiteKey,
   ...signing
 });
 

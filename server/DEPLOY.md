@@ -38,12 +38,20 @@ Required:
 | `DATABASE_GATEWAY_KEY` | Private raw gateway key; never commit it |
 | `EDITOR_HOST` | `build.itspagecraft.com` |
 | `EDITOR_ORIGIN` | `https://build.itspagecraft.com` |
-| `OWNER_EMAIL` | `braudypedrosa@gmail.com` |
-| `NODE_ENV` | `production`, which enables Secure session cookies |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_PUBLISHABLE_KEY` | Public project key used by the server-side SSR client |
+| `TURNSTILE_SITE_KEY` | Cloudflare Turnstile widget key for the production hostname |
+| `NODE_ENV` | `production`, which enables Secure auth cookies and forbids test challenge mode |
 
-Mail is sent through Resend SMTP using a dedicated sending-only key restricted to
-`braudyp.dev`. The current sender is `Pagecraft <pagecraft@braudyp.dev>`. Keep
-`SMTP_PASS` only in the cPanel application environment.
+Account email is sent by Supabase Auth through the project's custom SMTP provider. Configure and
+test that provider in Supabase before releasing the application; the built-in development mail
+service is not a production transport. `OWNER_EMAIL`, `CLIENT_EMAIL`, and the application's old
+SMTP variables are legacy rollback settings and are not used by Supabase account mode.
+The Turnstile secret belongs only in Supabase Auth's Bot and Abuse Protection settings, not in the
+Pagecraft application environment.
+
+The complete Auth URL, email-template, Turnstile, and local-test checklist is in
+[`AUTH_SETUP.md`](AUTH_SETUP.md).
 
 Connected WordPress additionally fails closed until the release trust chain is provisioned:
 
@@ -85,6 +93,10 @@ rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' server/src/ \
   itspagecraft-host:/home/itspbuku/pagecraft-app/server/src/
 rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' app/src/core/ \
   itspagecraft-host:/home/itspbuku/pagecraft-app/app/src/core/
+rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' app/src/host/ \
+  itspagecraft-host:/home/itspbuku/pagecraft-app/app/src/host/
+rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' app/src/package/ \
+  itspagecraft-host:/home/itspbuku/pagecraft-app/app/src/package/
 rsync -az -e 'ssh -F .pagecraft-local/ssh-config' app.cjs index.html package.json package-lock.json \
   itspagecraft-host:/home/itspbuku/pagecraft-app/
 
@@ -95,9 +107,10 @@ ssh -F .pagecraft-local/ssh-config itspagecraft-host \
 node tools/smoke.mjs https://build.itspagecraft.com
 ```
 
-The server imports `app/src/core/` at runtime for schema migration and rendering. Never deploy
-`server/src/` without the matching core directory: a newer editor with an older server renderer
-can accept a document that production cannot render.
+The server imports `app/src/core/`, `app/src/host/`, and `app/src/package/` at runtime for schema
+migration, rendering, and portable-package handling. Never deploy `server/src/` without these
+matching directories: a newer editor with an older server renderer can accept a document that
+production cannot render, while missing host/package modules prevent Passenger from starting.
 
 If dependencies change, run this before restarting. The root production dependencies mirror
 the server workspace because CloudLinux installs from the application-root manifest. Do not run
@@ -122,6 +135,7 @@ Apply new ordered files from `supabase/migrations/` to project
 1. `20260826000000_wordpress_connected_v1.sql`
 2. `20260826001638_gateway_release_blob_transport.sql`
 3. `20260826004000_wordpress_connection_revocation.sql`
+4. `20260827063203_supabase_auth_profiles.sql`
 
 Before touching the live project, prove the complete migration chain, RLS/grant posture, and
 database advisors against a disposable PostgreSQL 17 instance:
@@ -138,8 +152,7 @@ deno test --config supabase/functions/pagecraft-db/deno.json \
   supabase/functions/pagecraft-db
 ```
 
-Then deploy
-`supabase/functions/pagecraft-db/` **before** restarting the Node application. The old application
+Then deploy `supabase/functions/pagecraft-db/` **before** restarting the Node application. The old application
 ignores new gateway operations, while the new application cannot use an old gateway that does not
 know them. Keep
 `verify_jwt=false`: this function deliberately uses its own gateway-key authentication.
@@ -186,13 +199,12 @@ curl -I https://build.itspagecraft.com/
 curl -I http://build.itspagecraft.com/
 ```
 
-Expected: the HTTPS request returns `200` with HSTS; HTTP redirects to HTTPS; the observable smoke
-suite passes; the public page renders the Pagecraft magic-link sign-in form. The smoke script marks
-the Secure-cookie check explicitly unverified because proving it would consume a real login link;
-`server/tests/auth.test.ts` performs that authenticated callback locally. Restart Passenger once
-and confirm the owner row remains in Supabase to prove the app is not using memory storage.
+Expected: the HTTPS root redirects to `/sign-in` with HSTS; HTTP redirects to HTTPS; the observable
+smoke suite passes; and `/sign-in` renders the password form with Turnstile. Complete one verified
+account smoke flow separately and confirm the auth cookie is `HttpOnly`, `Secure`, `SameSite=Lax`,
+and scoped to `/`. Restart Passenger once and confirm the profile and sites remain in Supabase.
 
 ## Current production note
 
-The application, database gateway, DNS, origin TLS, renewal, restart persistence, Resend SMTP,
-and public sign-in screen are live.
+Do not mark account launch live until the schema/gateway, Supabase Auth/SMTP/redirect configuration,
+application, and authenticated smoke verification have been completed in that order.

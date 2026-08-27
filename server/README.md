@@ -13,12 +13,15 @@ about its output has to keep covering the thing people actually visit.
 ## Run it
 
 ```bash
-node build.mjs && cd server && npm install && OWNER_EMAIL=you@example.com npm start
+node build.mjs
+SUPABASE_URL=http://127.0.0.1:54321 \
+SUPABASE_PUBLISHABLE_KEY='<local-publishable-key>' \
+TURNSTILE_SITE_KEY='<local-site-key>' PAGECRAFT_AUTH_TEST_MODE=1 \
+npm --workspace server start
 ```
 
-That is the whole development setup. With no `DATABASE_URL` it uses in-memory stores and seeds
-one demo site, so a fresh checkout shows a page rather than "No site for host localhost".
-Nothing survives a restart, including who is signed in.
+With no `DATABASE_URL` it uses in-memory Pagecraft stores. Auth still requires an explicitly
+configured Supabase project; the server never silently bypasses account verification.
 
 - editor: <http://localhost:8787/>
 - the demo site: <http://site.localhost:8787/>
@@ -29,16 +32,9 @@ reasons.
 
 ## Sign in
 
-`POST /auth/login` with an email address sends a link. Without SMTP configured it is **printed
-in the server log** — which is said out loud on boot, because "the link was sent" and "the link
-was printed somewhere you are not looking" look identical from the form.
-
-Only an address the server already knows gets a link, and `/auth/login` answers 200 either
-way — an endpoint that says "no such user" is an endpoint that enumerates your users.
-
-So somebody has to exist first, and that is `OWNER_EMAIL`: on boot it is created and granted
-owner on every site. Idempotent, so leaving it set is harmless. Everybody after that arrives
-through `POST /api/sites/:id/people`, which is the flow it replaced.
+Create an account at `/sign-up`, confirm the email through Supabase Auth, then sign in with the
+password at `/sign-in`. Every authenticated account lands on the sites dashboard. See
+[`AUTH_SETUP.md`](AUTH_SETUP.md) for local and production configuration.
 
 ## Environment
 
@@ -49,19 +45,19 @@ says so on boot and carries on in the mode that absence implies.
 |---|---|
 | `PORT` | default `8787` |
 | `EDITOR_HOST` | the name you sign in on, and the host sites are shared under as `/<slug>/`. Default `localhost`. Requests for any *other* host are looked up as custom domains |
-| `OWNER_EMAIL` | the first owner. Absent: **nobody can sign in.** The sites still serve |
-| `DATABASE_URL` | Postgres. Absent: in-memory stores, and one seeded demo site |
-| `NODE_ENV` | `production` turns on `Secure` on the session cookie. Set it in production, or the cookie travels over plain HTTP |
-| `CLIENT_EMAIL` | granted the content role on every site, for trying that role on a throwaway run. A development shortcut — invite instead |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | how login links are sent. Port defaults to 587, which is submission with STARTTLS; name 465 for implicit TLS. A loopback host may have no credentials, and nothing else may |
-| `MAIL_FROM` | the From address. `Pagecraft <hello@example.com>` is allowed. **Required** for mail to be considered configured |
-| `MAIL_PRODUCT` | what the message calls the thing being signed into. Default `Pagecraft` |
+| `EDITOR_ORIGIN` | canonical editor origin used for callback URLs and same-origin checks |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | required server-side Supabase Auth configuration |
+| `TURNSTILE_SITE_KEY` | required account-form widget key; the secret is configured in Supabase Auth |
+| `PAGECRAFT_AUTH_TEST_MODE` | explicit local-only challenge mode; production rejects it |
+| `DATABASE_URL` | Postgres. Absent: in-memory Pagecraft data stores |
+| `NODE_ENV` | `production` turns on `Secure` auth cookies and strict configuration checks |
 | `ACME_EMAIL` | Caddy's, not the server's — where a failed certificate renewal is reported |
 
 ## Deploy
 
 ```bash
-POSTGRES_PASSWORD=… EDITOR_HOST=admin.example.com OWNER_EMAIL=you@example.com \
+POSTGRES_PASSWORD=… EDITOR_HOST=admin.example.com EDITOR_ORIGIN=https://admin.example.com \
+SUPABASE_URL=… SUPABASE_PUBLISHABLE_KEY=… TURNSTILE_SITE_KEY=… \
 ACME_EMAIL=you@example.com docker compose -f server/compose.yml up -d --build
 ```
 
@@ -140,7 +136,7 @@ for no benefit.
 fly apps create pagecraft
 fly postgres create --name pagecraft-db
 fly postgres attach pagecraft-db --app pagecraft
-fly secrets set --app pagecraft OWNER_EMAIL=you@example.com
+fly secrets set --app pagecraft SUPABASE_URL=… SUPABASE_PUBLISHABLE_KEY=… TURNSTILE_SITE_KEY=…
 fly deploy --app pagecraft --config server/fly.toml --dockerfile server/Dockerfile
 fly certs add --app pagecraft pagecraft.braudyp.dev
 ```
@@ -168,7 +164,9 @@ environment values is wrong.
 ### On a plain box, from the repository root:
 
 ```bash
-POSTGRES_PASSWORD=… EDITOR_HOST=pagecraft.example.com OWNER_EMAIL=you@example.com ACME_EMAIL=you@example.com docker compose -f server/compose.yml up -d --build
+POSTGRES_PASSWORD=… EDITOR_HOST=pagecraft.example.com EDITOR_ORIGIN=https://pagecraft.example.com \
+SUPABASE_URL=… SUPABASE_PUBLISHABLE_KEY=… TURNSTILE_SITE_KEY=… \
+ACME_EMAIL=you@example.com docker compose -f server/compose.yml up -d --build
 ```
 
 **4. Check it.**
@@ -186,9 +184,8 @@ custom domain, so the editor answers `No site for host …` — which reads as a
 DNS or a bad proxy, and is one string in a config file. The check names it and prints the value
 to use.
 
-**5. Sign in.** `POST /auth/login` with `OWNER_EMAIL`. Without SMTP configured the link is
-printed in `docker compose logs server`, which is fine for the first sign-in and not fine as a
-habit — set `SMTP_*` and `MAIL_FROM` before anybody else uses it.
+**5. Sign up.** Open `/sign-up`, complete Turnstile, and confirm the message delivered by the
+Supabase Auth custom SMTP provider. The confirmed account lands on the sites dashboard.
 
 Note what is *not* needed for this shape. The Caddyfile's `on_demand_tls` and its
 `/internal/tls-check` gate exist to certify **clients'** domains on demand; with one hostname
@@ -241,7 +238,7 @@ only showed up in a browser.
 | `src/app.ts` | every route |
 | `src/render.ts` | a stored document to the files a browser asks for. **Synchronous, and must stay that way** — the core keeps its document in a module-level singleton, so an `await` in the middle of a render is how two sites start swapping pages under load |
 | `src/store.ts`, `src/store-pg.ts` | sites, in memory and in Postgres |
-| `src/auth.ts` | magic links, sessions, roles |
+| `src/account-auth.ts`, `src/auth.ts` | Supabase identity, local profiles, memberships, and rollback-only legacy sessions |
 | `src/content.ts` | what a `content` account may save |
 | `src/assets.ts` | uploads, sniffed rather than trusted |
 | `src/mail.ts` | SMTP, throttled per address |

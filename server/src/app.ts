@@ -49,6 +49,12 @@ import {
 import { freezeGoogleFontStylesheets } from './font-freeze.ts';
 import type { PackageRegistry } from './packages.ts';
 import { createPagePackage, createSitePackage, portableAssetIds } from './portable-packages.ts';
+import type { AccountAuth } from './account-auth.ts';
+import type { HumanChallenge } from './turnstile.ts';
+import type { OwnedSiteStore } from './accounts.ts';
+import {
+  dashboardPage, forgotPage, resetPage, signInPage as accountSignInPage, signUpPage
+} from './account-pages.ts';
 
 export const SESSION_COOKIE = 'pc_session';
 
@@ -90,6 +96,13 @@ export interface Options {
   packages?: PackageRegistry;
   /** Injectable only so font freezing can be proven without a live third-party dependency. */
   fontFetch?: typeof fetch;
+  /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
+  accountAuth?: AccountAuth;
+  /** Atomic site creation and owner grant, including the owned-site quota. */
+  ownedSites?: OwnedSiteStore;
+  /** Cloudflare Turnstile verifier for public account forms. */
+  challenge?: HumanChallenge;
+  turnstileSiteKey?: string;
 }
 
 const TYPES: Record<string, string> = {
@@ -132,6 +145,10 @@ export function createApp(o: Options) {
   app.use('/auth/*', editorOnly);
   app.use('/api/*', editorOnly);
   app.use('/v1/*', editorOnly);
+  app.use('/sign-up', editorOnly);
+  app.use('/sign-in', editorOnly);
+  app.use('/forgot-password', editorOnly);
+  app.use('/reset-password', editorOnly);
   app.use('/api/*', bodyLimit({
     maxSize: 16 * 1024 * 1024,
     onError: c => c.json({ error: 'request is too large' }, 413)
@@ -140,6 +157,24 @@ export function createApp(o: Options) {
     maxSize: 16 * 1024 * 1024,
     onError: c => c.json({ error: 'request is too large' }, 413)
   }));
+  if (o.accountAuth) {
+    app.use('*', async (c, next) => {
+      const method = c.req.method.toUpperCase();
+      const path = new URL(c.req.url).pathname;
+      const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method)
+        && (/^\/(?:auth|api)(?:\/|$)/.test(path));
+      const bearer = /^Bearer\s+/i.test(c.req.header('authorization') || '')
+        || !!c.req.header('x-pagecraft-editor-session');
+      const origin = c.req.header('origin');
+      if (mutating && !bearer && origin) {
+        const expected = new URL(o.editorOrigin || c.req.url).origin;
+        if (origin !== expected) return c.json({ error: 'origin_not_allowed' }, 403);
+      }
+      /* The old cookie is deliberately cleared throughout the cutover release. */
+      if (getCookie(c, SESSION_COOKIE)) deleteCookie(c, SESSION_COOKIE, { path: '/' });
+      await next();
+    });
+  }
 
   /* Rendered output, per site id, rebuilt on save. A site's files are small — the whole
      demo project is 69 KB of HTML — and rendering is about 5 ms, so holding them costs
@@ -233,6 +268,11 @@ export function createApp(o: Options) {
 
   /** The person behind this request, or null. A bad cookie is the same as no cookie. */
   const who = async (c: Context): Promise<User | null> => {
+    if (o.accountAuth) {
+      const identity = await o.accountAuth.identity(c);
+      if (!identity) return null;
+      return o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
+    }
     const token = getCookie(c, SESSION_COOKIE);
     if (!token) return null;
     return o.auth.userForSession(hashToken(token));
@@ -265,13 +305,22 @@ export function createApp(o: Options) {
       if (!user || membership?.role !== 'owner') return { ok: false as const, status: 403 as const };
       return { ok: true as const, user, role: membership.role };
     }
-    const token = getCookie(c, SESSION_COOKIE);
-    if (!token) return { ok: false as const, status: 401 as const };
-    const access = await o.auth.accessForSession(hashToken(token), siteId);
-    if (!access) return { ok: false as const, status: 401 as const };
-    if (!access.role) return { ok: false as const, status: 404 as const }; // conceal existence
-    if (!roleAllows(access.role, verb)) return { ok: false as const, status: 403 as const };
-    return { ok: true as const, user: access.user, role: access.role };
+    if (o.accountAuth) {
+      const user = await who(c);
+      if (!user) return { ok: false as const, status: 401 as const };
+      const membership = await o.auth.membership(siteId, user.id);
+      if (!membership) return { ok: false as const, status: 404 as const };
+      if (!roleAllows(membership.role, verb)) return { ok: false as const, status: 403 as const };
+      return { ok: true as const, user, role: membership.role };
+    } else {
+      const token = getCookie(c, SESSION_COOKIE);
+      if (!token) return { ok: false as const, status: 401 as const };
+      const access = await o.auth.accessForSession(hashToken(token), siteId);
+      if (!access) return { ok: false as const, status: 401 as const };
+      if (!access.role) return { ok: false as const, status: 404 as const }; // conceal existence
+      if (!roleAllows(access.role, verb)) return { ok: false as const, status: 403 as const };
+      return { ok: true as const, user: access.user, role: access.role };
+    }
   };
 
   const deny = (c: Context, status: 401 | 403 | 404) =>
@@ -488,7 +537,7 @@ export function createApp(o: Options) {
      mail, which is the point. */
   const limit = o.loginLimit || throttle();
   const sourceLimit = throttle(30, 15 * 60 * 1000, 5000);
-  app.post('/auth/login', bodyLimit({
+  if (!o.accountAuth) app.post('/auth/login', bodyLimit({
     maxSize: 8 * 1024,
     onError: c => c.json({ error: 'request is too large' }, 413)
   }), async c => {
@@ -516,6 +565,7 @@ export function createApp(o: Options) {
   });
 
   app.get('/auth/callback', async c => {
+    if (o.accountAuth) return c.notFound();
     const token = c.req.query('token') || '';
     const link = token ? await o.auth.useLink(hashToken(token)) : null;
     if (!link) return c.text('That link has expired or has already been used.', 400);
@@ -532,12 +582,118 @@ export function createApp(o: Options) {
     return c.redirect('/');
   });
 
-  app.post('/auth/logout', async c => {
+  if (!o.accountAuth) app.post('/auth/logout', async c => {
     const token = getCookie(c, SESSION_COOKIE);
     if (token) await o.auth.dropSession(hashToken(token));
     deleteCookie(c, SESSION_COOKIE, { path: '/' });
     return c.json({ ok: true });
   });
+
+  if (o.accountAuth) {
+    const siteKey = o.turnstileSiteKey || '';
+    const safeNext = (raw: unknown) => {
+      const value = String(raw || '');
+      return value.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : '/';
+    };
+    const form = async (c: Context) => {
+      const type = c.req.header('content-type') || '';
+      if (type.includes('application/json')) return await c.req.json().catch(() => ({})) as Record<string, unknown>;
+      return await c.req.parseBody().catch(() => ({})) as Record<string, unknown>;
+    };
+    const source = (c: Context) => c.req.header('cf-connecting-ip')
+      || (c.req.header('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+    const authSourceLimit = throttle(30, 15 * 60 * 1000, 5000);
+    const authEmailLimit = throttle(8, 15 * 60 * 1000, 5000);
+    const challengeToken = async (c: Context, body: Record<string, unknown>, action: 'signup' | 'login' | 'forgot') => {
+      const token = String(body['cf-turnstile-response'] || body.turnstileToken || '');
+      return o.challenge && await o.challenge.verify({ token, ip: source(c), action }) ? token : '';
+    };
+
+    app.get('/sign-up', c => c.html(signUpPage(siteKey, { error: c.req.query('error'), message: c.req.query('message') })));
+    app.get('/sign-in', c => c.html(accountSignInPage(siteKey, {
+      error: c.req.query('error'), message: c.req.query('message'), next: safeNext(c.req.query('next'))
+    })));
+    app.get('/forgot-password', c => c.html(forgotPage(siteKey, { error: c.req.query('error'), message: c.req.query('message') })));
+    app.get('/reset-password', async c => {
+      const user = await who(c);
+      return user ? c.html(resetPage({ error: c.req.query('error') })) : c.redirect('/sign-in?error=reset');
+    });
+
+    app.post('/auth/signup', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
+      const body = await form(c);
+      const email = normalEmail(String(body.email || ''));
+      const name = String(body.name || '').trim().slice(0, 120);
+      const password = String(body.password || '');
+      const confirmation = String(body.passwordConfirm || '');
+      if (!validEmail(email) || !name) return c.redirect('/sign-up?error=invalid', 303);
+      if (password.length < 12) return c.redirect('/sign-up?error=password', 303);
+      if (password !== confirmation) return c.redirect('/sign-up?error=mismatch', 303);
+      if (!authSourceLimit.take(source(c)) || !authEmailLimit.take(email)) {
+        return c.redirect('/sign-up?message=Check+your+email+to+finish+creating+your+account.', 303);
+      }
+      const captchaToken = await challengeToken(c, body, 'signup');
+      if (!captchaToken) return c.redirect('/sign-up?error=challenge', 303);
+      const origin = o.editorOrigin || new URL(c.req.url).origin;
+      await o.accountAuth!.signUp(c, { email, password, name, redirectTo: `${origin}/auth/confirm`, captchaToken });
+      return c.redirect('/sign-in?message=Check+your+email+to+confirm+your+account.', 303);
+    });
+
+    app.post('/auth/login', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
+      const body = await form(c);
+      const email = normalEmail(String(body.email || ''));
+      const password = String(body.password || '');
+      const next = safeNext(body.next);
+      const limited = !authSourceLimit.take(source(c)) || !authEmailLimit.take(email);
+      const captchaToken = await challengeToken(c, body, 'login');
+      if (!validEmail(email) || !password || limited || !captchaToken) {
+        return c.redirect(`/sign-in?error=${limited ? 'auth' : 'challenge'}&next=${encodeURIComponent(next)}`, 303);
+      }
+      const identity = await o.accountAuth!.signIn(c, { email, password, captchaToken });
+      if (!identity) return c.redirect(`/sign-in?error=auth&next=${encodeURIComponent(next)}`, 303);
+      await o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
+      return c.redirect(next, 303);
+    });
+
+    app.get('/auth/confirm', async c => {
+      const type = c.req.query('type');
+      const identity = await o.accountAuth!.confirm(c, {
+        code: c.req.query('code'), tokenHash: c.req.query('token_hash'), type
+      });
+      if (!identity) return c.redirect('/sign-in?error=expired', 303);
+      await o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
+      return c.redirect(type === 'recovery' ? '/reset-password' : '/', 303);
+    });
+
+    app.post('/auth/forgot-password', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
+      const body = await form(c);
+      const email = normalEmail(String(body.email || ''));
+      const captchaToken = await challengeToken(c, body, 'forgot');
+      const allowedRequest = validEmail(email) && authSourceLimit.take(source(c)) && authEmailLimit.take(email)
+        && !!captchaToken;
+      if (allowedRequest) {
+        const origin = o.editorOrigin || new URL(c.req.url).origin;
+        await o.accountAuth!.forgot(c, {
+          email, redirectTo: `${origin}/auth/confirm?type=recovery`, captchaToken
+        }).catch(() => undefined);
+      }
+      return c.redirect('/forgot-password?message=If+an+account+matches,+reset+instructions+are+on+the+way.', 303);
+    });
+
+    app.post('/auth/reset-password', async c => {
+      const body = await form(c);
+      const password = String(body.password || '');
+      if (password.length < 12) return c.redirect('/reset-password?error=password', 303);
+      if (password !== String(body.passwordConfirm || '')) return c.redirect('/reset-password?error=mismatch', 303);
+      if (!await o.accountAuth!.reset(c, password)) return c.redirect('/sign-in?error=reset', 303);
+      return c.redirect('/?message=Password+updated.', 303);
+    });
+
+    app.post('/auth/logout', async c => {
+      await o.accountAuth!.signOut(c);
+      deleteCookie(c, SESSION_COOKIE, { path: '/' });
+      return c.redirect('/sign-in', 303);
+    });
+  }
 
   app.get('/auth/me', async c => {
     const user = await who(c);
@@ -559,6 +715,15 @@ export function createApp(o: Options) {
       return serveSite(c, o, built, render, '/', site);
     }
     const user = await who(c);
+    if (o.accountAuth) {
+      if (!user) return c.redirect('/sign-in');
+      const mine = (await visibleSites(user)).sort((a, b) =>
+        new Date(b.site.updatedAt).getTime() - new Date(a.site.updatedAt).getTime());
+      return c.html(dashboardPage(user, mine.map(({ site, role }) => ({
+        id: site.id, name: site.name, role, updatedAt: site.updatedAt,
+        url: shareUrl(c, o, site), published: site.version === site.publishedVersion
+      })), mine.filter(item => item.role === 'owner').length, c.req.query('error')));
+    }
     if (!user) return c.html(signInPage());
 
     const mine = await visibleSites(user);
@@ -582,7 +747,11 @@ export function createApp(o: Options) {
   app.get('/edit/:id', async c => {
     const id = c.req.param('id');
     const gate = await allowed(c, id, 'read');
-    if (!gate.ok) return gate.status === 401 ? c.html(signInPage()) : deny(c, gate.status);
+    if (!gate.ok) return gate.status === 401
+      ? (o.accountAuth
+        ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
+        : c.html(signInPage()))
+      : deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     if (!o.editorHtml) return c.text('No editor build. Run `node build.mjs` first.', 503);
@@ -609,11 +778,12 @@ export function createApp(o: Options) {
     const user = await who(c);
     if (!user) return deny(c, 401);
     const out = (await visibleSites(user)).map(({ site, role }) => ({
-      id: site.id, host: site.host, name: site.name,
+      id: site.id, host: site.host, slug: site.slug, url: shareUrl(c, o, site), name: site.name,
       version: site.version, publishedVersion: site.publishedVersion,
       publishedReleaseId: site.publishedReleaseId,
-      updatedAt: site.updatedAt, role
-    }));
+      updatedAt: site.updatedAt, role,
+      publishState: site.version === site.publishedVersion ? 'published' : 'draft_changes'
+    })).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     return c.json(out);
   });
 
@@ -634,7 +804,9 @@ export function createApp(o: Options) {
   app.post('/api/sites', async c => {
     const user = await who(c);
     if (!user) return deny(c, 401);
-    const body = await c.req.json().catch(() => null) as
+    const htmlForm = (c.req.header('content-type') || '').includes('application/x-www-form-urlencoded')
+      || (c.req.header('content-type') || '').includes('multipart/form-data');
+    const body = (htmlForm ? await c.req.parseBody().catch(() => null) : await c.req.json().catch(() => null)) as
       { host?: string; slug?: string; name?: string; doc?: Doc } | null;
     if (!body) return c.json({ error: 'a JSON body is required' }, 400);
     /* A document is optional. It used to be required, which meant the only way to make a site
@@ -672,11 +844,24 @@ export function createApp(o: Options) {
     const preview = candidate(doc, []);
     if (!preview) return c.json({ error: 'invalid document', detail: 'The document is not a renderable Pagecraft project.' }, 422);
     try {
-      const site = await o.store.create({
-        host, slug: body.slug, name, doc, savedBy: user.id
-      });
-      await o.auth.grant(site.id, user.id, 'owner');
+      const created = o.accountAuth
+        ? await o.ownedSites?.create({ ownerId: user.id, host, slug: body.slug, name, doc })
+        : null;
+      if (o.accountAuth && !created) return c.json({ error: 'site creation is unavailable' }, 503);
+      if (created && !created.ok) {
+        if (created.reason === 'site_limit_reached') {
+          return htmlForm
+            ? c.redirect('/?error=limit', 303)
+            : c.json({ error: 'site_limit_reached', limit: 3 }, 409);
+        }
+        return c.json({ error: 'profile_missing' }, 409);
+      }
+      const site = created?.ok
+        ? created.site
+        : await o.store.create({ host, slug: body.slug, name, doc, savedBy: user.id });
+      if (!o.accountAuth) await o.auth.grant(site.id, user.id, 'owner');
       const out = remember(site, preview);
+      if (htmlForm) return c.redirect(`/edit/${encodeURIComponent(site.id)}`, 303);
       return c.json({
         id: site.id, slug: site.slug, version: site.version,
         /* where to send somebody, said once by the server rather than assembled by every

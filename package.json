@@ -29,6 +29,8 @@
   },
   "dependencies": {
     "@hono/node-server": "1.19.17",
+    "@supabase/ssr": "0.12.5",
+    "@supabase/supabase-js": "2.112.4",
     "hono": "4.13.3",
     "nodemailer": "9.0.5",
     "pg": "8.23.0",

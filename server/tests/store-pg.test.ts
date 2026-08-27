@@ -19,6 +19,7 @@ import { AUTH_SCHEMA, hashToken, newToken, LINK_TTL_MS, SESSION_TTL_MS } from '.
 import { ASSET_SCHEMA } from '../src/assets.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import { cmsItemKey } from '../src/store.ts';
+import { PgOwnedSiteStore } from '../src/accounts.ts';
 
 const demo = (): Doc => {
   Core.seed();
@@ -63,6 +64,26 @@ test('running init twice is not an error, because a restart is not a special cas
   await sites.init();
   await assets.init();
   a.deepEqual(await sites.list(), []);
+});
+
+test('owned-site creation commits the site, revision and membership together and enforces its quota', async () => {
+  const { db, sites, auth } = await fresh();
+  const owner = await auth.ensureAuthUser('supabase-owner', 'owner@example.test', 'Owner');
+  const collaborator = await auth.ensureAuthUser('supabase-collaborator', 'collab@example.test', 'Collaborator');
+  const owned = new PgOwnedSiteStore(db as unknown as Queryable);
+  const first = await owned.create({ ownerId: owner.id, host: 'one.test', name: 'One', doc: demo() });
+  a.equal(first.ok, true);
+  if (!first.ok) throw new Error('site was not created');
+  await auth.grant(first.site.id, collaborator.id, 'content');
+  for (const [host, name] of [['two.test', 'Two'], ['three.test', 'Three']]) {
+    a.equal((await owned.create({ ownerId: owner.id, host, name, doc: demo() })).ok, true);
+  }
+  const fourth = await owned.create({ ownerId: owner.id, host: 'four.test', name: 'Four', doc: demo() });
+  a.deepEqual(fourth, { ok: false, reason: 'site_limit_reached' });
+  a.equal((await auth.membershipsForUser(collaborator.id)).length, 1,
+    'collaborator membership exists but does not consume their own creation quota');
+  a.equal((await owned.create({ ownerId: collaborator.id, host: 'collab-owned.test', name: 'Mine', doc: demo() })).ok, true);
+  a.equal((await sites.history(first.site.id)).length, 1);
 });
 
 /* -------------------------------------------------------------- the sites */

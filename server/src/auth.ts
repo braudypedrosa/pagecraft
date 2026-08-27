@@ -23,7 +23,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 export type Role = 'owner' | 'content';
 
-export interface User { id: string; email: string; name: string }
+export interface User { id: string; email: string; name: string; authUserId?: string | null }
 export interface Session { token: string; userId: string; expiresAt: number }
 export interface Membership { siteId: string; userId: string; role: Role }
 export interface SessionAccess { user: User; role: Role | null }
@@ -65,6 +65,10 @@ export const validEmail = (raw: string) => {
 export interface AuthStore {
   userByEmail(email: string): Promise<User | null>;
   userById(id: string): Promise<User | null>;
+  /** A verified Supabase identity mapped to Pagecraft's profile and memberships. */
+  userByAuthId(authUserId: string): Promise<User | null>;
+  /** Link a verified identity to an invited profile, or create its fresh profile. */
+  ensureAuthUser(authUserId: string, email: string, name?: string): Promise<User>;
   /** Resolve several revision authors without one store round trip per history row. */
   usersByIds(ids: string[]): Promise<User[]>;
   createUser(email: string, name?: string): Promise<User>;
@@ -105,6 +109,9 @@ create table if not exists users (
   name        text not null default '',
   created_at  timestamptz not null default now()
 );
+alter table users add column if not exists auth_user_id text;
+create unique index if not exists users_auth_user_id_key on users (auth_user_id)
+  where auth_user_id is not null;
 
 create table if not exists login_links (
   digest      text primary key,
@@ -173,6 +180,32 @@ export class MemoryAuthStore implements AuthStore {
     const u = this.users.get(id);
     return u ? { ...u } : null;
   }
+  async userByAuthId(authUserId: string) {
+    for (const user of this.users.values()) {
+      if (user.authUserId === authUserId) return { ...user };
+    }
+    return null;
+  }
+  async ensureAuthUser(authUserId: string, email: string, name = '') {
+    const existingIdentity = await this.userByAuthId(authUserId);
+    if (existingIdentity) return existingIdentity;
+    const normalized = normalEmail(email);
+    const existingEmail = await this.userByEmail(normalized);
+    if (existingEmail) {
+      if (existingEmail.authUserId && existingEmail.authUserId !== authUserId) {
+        throw new Error('that email is already linked to another identity');
+      }
+      const stored = this.users.get(existingEmail.id)!;
+      stored.authUserId = authUserId;
+      if (name.trim()) stored.name = name.trim();
+      return { ...stored };
+    }
+    const user: User = {
+      id: 'u' + ++this.seq, email: normalized, name: name.trim(), authUserId
+    };
+    this.users.set(user.id, user);
+    return { ...user };
+  }
   async usersByIds(ids: string[]) {
     return [...new Set(ids)].flatMap(id => {
       const user = this.users.get(id);
@@ -180,7 +213,13 @@ export class MemoryAuthStore implements AuthStore {
     });
   }
   async createUser(email: string, name = '') {
-    const u: User = { id: 'u' + ++this.seq, email: normalEmail(email), name };
+    const existing = await this.userByEmail(email);
+    if (existing) {
+      const stored = this.users.get(existing.id)!;
+      if (name.trim()) stored.name = name.trim();
+      return { ...stored };
+    }
+    const u: User = { id: 'u' + ++this.seq, email: normalEmail(email), name, authUserId: null };
     this.users.set(u.id, u);
     return { ...u };
   }

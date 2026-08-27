@@ -78,7 +78,7 @@ await check('EDITOR_HOST matches this hostname', async () => {
    a perfectly good build is how a five-minute fix becomes an afternoon. */
 const hostWrong = failures > 0;
 await check('the sign-in page is served, not an error', async () => {
-  const r = await get('/');
+  const r = await get('/sign-in');
   const body = await r.text();
   return { ok: r.status === 200 && /<form|sign in/i.test(body), note: `${r.status}, ${body.length} bytes` };
 }, hostWrong
@@ -107,10 +107,9 @@ await check('the certificate gate refuses an outside caller', async () => {
 }, 'A 200 is serious: anybody could make this server request certificates. Check the proxy.');
 
 if (secure) {
-  /* A session cookie is issued only after consuming a real magic link. A read-only production
-     probe cannot honestly observe it. The in-process auth regression performs that callback and
-     asserts Secure; say this is unverified here instead of treating a missing cookie as a pass. */
-  skip('the session cookie is Secure', 'requires an authenticated callback; covered by server/tests/auth.test.ts');
+  /* A Supabase session cookie is issued only after a real password/confirmation flow. A
+     read-only production probe cannot honestly observe it. */
+  skip('the session cookie is Secure', 'requires an authenticated flow; covered by server/tests/auth.test.ts and server/tests/accounts.test.ts');
 
   await check('HTTPS advertises HSTS', async () => {
     const r = await get('/');
@@ -128,6 +127,6 @@ console.log();
 if (failures) {
   console.log(`\x1b[31m${failures} check${failures === 1 ? '' : 's'} failed.\x1b[0m Each line above says what to change.\n`);
 } else {
-  console.log(`\x1b[32mAll observable checks passed.\x1b[0m${skipped ? ` ${skipped} authenticated check remains explicit above.` : ''} Sign in with the OWNER_EMAIL address to make a site.\n`);
+  console.log(`\x1b[32mAll observable checks passed.\x1b[0m${skipped ? ` ${skipped} authenticated check remains explicit above.` : ''} Confirm an account, then sign in to reach the sites dashboard.\n`);
 }
 process.exit(failures);

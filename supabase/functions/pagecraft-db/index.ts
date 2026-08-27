@@ -1,5 +1,5 @@
-import "@supabase/functions-js/edge-runtime.d.ts";
-import postgres from "postgres";
+import "jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts";
+import postgres from "npm:postgres@3.4.7";
 import {
   assembleStoredGatewayBlob,
   GATEWAY_ASSET_BLOB_MAX_BYTES,
@@ -182,6 +182,41 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `,
         )
       );
+    case "account.createOwnedSite":
+      return await sql.begin(async (transaction) => {
+        const ownerId = text(args.ownerId);
+        const owner =
+          await transaction`select id from users where id = ${ownerId} for update`;
+        if (!owner[0]) return { status: "missing" };
+        const owned = await transaction<{ count: number }[]>`
+          select count(*)::integer as count from site_users
+          where user_id = ${ownerId} and role = 'owner'
+        `;
+        if (integer(owned[0]?.count) >= 3) {
+          return { status: "limit" };
+        }
+        const made = one(
+          await transaction`
+          insert into sites (id, host, slug, name, doc)
+          values (${text(args.id)}, ${text(args.host)}, ${text(args.slug)}, ${
+            text(args.name)
+          },
+            ${transaction.json(jsonValue(args.doc))})
+          returning *
+        `,
+        );
+        await transaction`
+          insert into site_users (site_id, user_id, role)
+          values (${text(args.id)}, ${ownerId}, 'owner')
+        `;
+        await transaction`
+          insert into site_revisions (site_id, version, doc, saved_by, created_at)
+          select id, version, doc, ${ownerId}, updated_at from sites where id = ${
+          text(args.id)
+        }
+        `;
+        return { status: "created", site: made };
+      });
     case "site.setSlug":
       return one(
         await sql`
@@ -1866,22 +1901,50 @@ async function dispatch(op: string, args: Record<string, unknown>) {
 
     case "auth.userByEmail":
       return one(
-        await sql`select id, email, name from users where email = ${
+        await sql`select id, email, name, auth_user_id from users where email = ${
           text(args.email)
         } limit 1`,
       );
     case "auth.userById":
       return one(
-        await sql`select id, email, name from users where id = ${
+        await sql`select id, email, name, auth_user_id from users where id = ${
           text(args.id)
         } limit 1`,
       );
+    case "auth.userByAuthId":
+      return one(
+        await sql`select id, email, name, auth_user_id from users where auth_user_id = ${
+          text(args.authUserId)
+        } limit 1`,
+      );
+    case "auth.ensureAuthUser": {
+      const rows = await sql`
+        insert into users (id, email, name, auth_user_id)
+        values (${text(args.id)}, ${text(args.email)}, ${text(args.name)}, ${
+        text(args.authUserId)
+      })
+        on conflict (email) do update set
+          auth_user_id = excluded.auth_user_id,
+          name = coalesce(nullif(excluded.name, ''), users.name)
+        where users.auth_user_id is null or users.auth_user_id = excluded.auth_user_id
+        returning id, email, name, auth_user_id
+      `;
+      if (!rows[0]) {
+        throw Object.assign(
+          new Error("that email is already linked to another identity"),
+          { status: 409, code: "AUTH_IDENTITY_CONFLICT" },
+        );
+      }
+      return rows[0];
+    }
     case "auth.usersByIds": {
       const ids = Array.isArray(args.ids)
         ? [...new Set(args.ids.map(text).filter(Boolean))].slice(0, 500)
         : [];
       return ids.length
-        ? await sql`select id, email, name from users where id in ${sql(ids)}`
+        ? await sql`select id, email, name, auth_user_id from users where id in ${
+          sql(ids)
+        }`
         : [];
     }
     case "auth.createUser":
@@ -1892,7 +1955,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         }, ${text(args.name)})
         on conflict (email) do update
           set name = coalesce(nullif(excluded.name, ''), users.name)
-        returning id, email, name
+        returning id, email, name, auth_user_id
       `,
       );
     case "auth.putLink":
@@ -1931,7 +1994,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const digest = text(args.digest);
       const user = one(
         await sql`
-        select u.id, u.email, u.name
+        select u.id, u.email, u.name, u.auth_user_id
         from sessions s join users u on u.id = s.user_id
         where s.digest = ${digest} and s.expires_at > now()
         limit 1
@@ -1946,7 +2009,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const digest = text(args.digest);
       const access = one(
         await sql`
-        select u.id, u.email, u.name, m.role
+        select u.id, u.email, u.name, u.auth_user_id, m.role
         from sessions s
         join users u on u.id = s.user_id
         left join site_users m
@@ -2000,43 +2063,65 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         returning user_id
       `).length > 0;
     case "auth.manualImport.create": {
-      const input = (args.input && typeof args.input === "object" && !Array.isArray(args.input))
-        ? args.input as Record<string, unknown> : {};
-      return one(await sql`
+      const input = (args.input && typeof args.input === "object" &&
+          !Array.isArray(args.input))
+        ? args.input as Record<string, unknown>
+        : {};
+      return one(
+        await sql`
         insert into wordpress_import_credentials (
           id, owner_id, installation_id, access_token_digest, access_expires_at, refresh_token_digest
-        ) values (${text(input.id)}, ${text(input.ownerId)}, ${text(input.installationId)},
-          ${text(input.accessTokenDigest)}, ${text(input.accessExpiresAt)}, ${text(input.refreshTokenDigest)})
+        ) values (${text(input.id)}, ${text(input.ownerId)}, ${
+          text(input.installationId)
+        },
+          ${text(input.accessTokenDigest)}, ${text(input.accessExpiresAt)}, ${
+          text(input.refreshTokenDigest)
+        })
         on conflict (owner_id, installation_id) do update set
           access_token_digest = excluded.access_token_digest,
           access_expires_at = excluded.access_expires_at,
           refresh_token_digest = excluded.refresh_token_digest,
           status = 'active', revoked_at = null, updated_at = now()
         returning *
-      `);
+      `,
+      );
     }
     case "auth.manualImport.byAccess":
-      return one(await sql`
+      return one(
+        await sql`
         select * from wordpress_import_credentials
-        where access_token_digest = ${text(args.digest)} and status = 'active' and access_expires_at > now()
+        where access_token_digest = ${
+          text(args.digest)
+        } and status = 'active' and access_expires_at > now()
         limit 1
-      `);
+      `,
+      );
     case "auth.manualImport.byRefresh":
-      return one(await sql`
+      return one(
+        await sql`
         select * from wordpress_import_credentials
-        where refresh_token_digest = ${text(args.digest)} and status = 'active' limit 1
-      `);
+        where refresh_token_digest = ${
+          text(args.digest)
+        } and status = 'active' limit 1
+      `,
+      );
     case "auth.manualImport.rotate":
-      return one(await sql`
+      return one(
+        await sql`
         update wordpress_import_credentials
-        set access_token_digest = ${text(args.digest)}, access_expires_at = ${text(args.expiresAt)}, updated_at = now()
+        set access_token_digest = ${text(args.digest)}, access_expires_at = ${
+          text(args.expiresAt)
+        }, updated_at = now()
         where id = ${text(args.id)} and status = 'active' returning *
-      `);
+      `,
+      );
     case "auth.manualImport.revoke":
       return (await sql`
         update wordpress_import_credentials
         set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
-        where id = ${text(args.id)} and refresh_token_digest = ${text(args.refreshDigest)} returning id
+        where id = ${text(args.id)} and refresh_token_digest = ${
+        text(args.refreshDigest)
+      } returning id
       `).length > 0;
     default:
       throw Object.assign(new Error("unknown gateway operation"), {
