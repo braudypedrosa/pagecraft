@@ -181,14 +181,24 @@ pagecraft_test_assert($loaded !== [], 'Builder did not publish its local boot ac
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['rest_api_init']), 'Builder REST routes were not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['admin_menu']), 'Pagecraft top-level admin menu was not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['wp_ajax_pagecraft_editor_frame']), 'Secure editor frame was not registered.');
+pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['admin_post_pagecraft_add_page_to_menu']), 'Explicit Add to menu action was not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['filter:page_row_actions']), 'Native Pages row actions were not registered.');
 $documentRoute = $GLOBALS['pagecraft_test_routes']['pagecraft/v1/pages/(?P<id>\d+)/document'] ?? null;
 pagecraft_test_assert(is_array($documentRoute) && count($documentRoute) === 2, 'Document load/save REST route is incomplete.');
+$menusRoute = $GLOBALS['pagecraft_test_routes']['pagecraft/v1/menus'] ?? null;
+$menuRoute = $GLOBALS['pagecraft_test_routes']['pagecraft/v1/menus/(?P<id>\d+)'] ?? null;
+pagecraft_test_assert(is_array($menusRoute) && is_array($menuRoute) && count($menuRoute) === 2, 'Native menu REST routes are incomplete.');
 $GLOBALS['pagecraft_test_can'] = false;
 pagecraft_test_assert(
     $documentRoute[0]['permission_callback'](new WP_REST_Request(['id' => 42])) === false
         && $documentRoute[1]['permission_callback'](new WP_REST_Request(['id' => 42])) === false,
     'Unauthorized users can load or save Pagecraft documents.'
+);
+pagecraft_test_assert(
+    $menusRoute['permission_callback']() === false
+        && $menuRoute[0]['permission_callback']() === false
+        && $menuRoute[1]['permission_callback']() === false,
+    'Unauthorized users can read or write native WordPress menus.'
 );
 $GLOBALS['pagecraft_test_can'] = true;
 pagecraft_test_assert(pagecraft_builder_is_managed_page(42), 'Pagecraft document metadata was not recognized.');
