@@ -37,6 +37,7 @@ function ViewportSwitch() {
 
 function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState('');
   const shell = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,13 +55,43 @@ function SiteHeader() {
     };
   }, [open]);
 
+  useEffect(() => {
+    const header = document.querySelector<HTMLElement>('.site-header');
+    const sections = ['workflow', 'capabilities', 'ownership']
+      .map(id => document.getElementById(id))
+      .filter((section): section is HTMLElement => Boolean(section));
+
+    const updateProgress = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      header?.style.setProperty('--page-progress', String(progress));
+      header?.toggleAttribute('data-scrolled', window.scrollY > 18);
+    };
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActive((visible.target as HTMLElement).id);
+    }, { rootMargin: '-22% 0px -62% 0px', threshold: [0, .2, .5] });
+
+    sections.forEach(section => observer.observe(section));
+    updateProgress();
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', updateProgress);
+      window.removeEventListener('resize', updateProgress);
+    };
+  }, []);
+
   return (
     <div class="header-shell" ref={shell}>
       <a class="brand" href="#main" aria-label="Pagecraft home"><Mark /><span>Pagecraft</span></a>
       <nav class="nav" id="site-nav" aria-label="Primary navigation" data-open={open || undefined}>
-        <a href="#workflow" onClick={() => setOpen(false)}>How it works</a>
-        <a href="#capabilities" onClick={() => setOpen(false)}>What it handles</a>
-        <a href="#ownership" onClick={() => setOpen(false)}>Why Pagecraft</a>
+        <a href="#workflow" aria-current={active === 'workflow' ? 'location' : undefined} onClick={() => setOpen(false)}>How it works</a>
+        <a href="#capabilities" aria-current={active === 'capabilities' ? 'location' : undefined} onClick={() => setOpen(false)}>What it handles</a>
+        <a href="#ownership" aria-current={active === 'ownership' ? 'location' : undefined} onClick={() => setOpen(false)}>Why Pagecraft</a>
         <a class="nav-cta" href={BUILDER_URL}>Open the builder</a>
       </nav>
       <a class="button button--green header-cta" href={BUILDER_URL}>Open the builder</a>
