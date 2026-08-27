@@ -100,7 +100,7 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, />Braudy<\/div>/);
   a.match(html, /class="pc-site-url"/);
   a.match(html, />admin\.test\/braudy<\/a>/);
-  a.match(html, />Open builder<\/a>/);
+  a.match(html, />Edit<\/a>/);
   a.match(html, />View site<\/a>/);
   a.match(html, />Owner<\/div>/);
   a.match(html, /2 sites remaining/);
