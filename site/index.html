@@ -25,6 +25,14 @@
   <link rel="stylesheet" href="variants.css">
 </head>
 <body>
+  <!--
+    THESIS: Pagecraft capabilities read as actions and outcomes, refusing the generic numbered feature grid.
+    OWN-WORLD: Paper surfaces, Ink rules, Craft Green conclusions, Manrope display type, and DM Sans utility copy.
+    STORY: Compose, populate, adapt, review, then hand the complete site to WordPress as an independent local copy.
+    FIRST VIEWPORT: An oversized promise sits over a quiet material photograph and resolves into a full-width working editor specimen.
+    FORM: Capability index extension inside the incumbent Pagecraft world; local extension, so no direction seed was required.
+    FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+  -->
   <a class="skip-link" href="#main">Skip to content</a>
 
   <svg class="symbol-library" aria-hidden="true" focusable="false">
@@ -36,39 +44,34 @@
     </symbol>
     <symbol id="menu" viewBox="0 0 20 20"><path d="M3 6h14M3 10h14M3 14h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></symbol>
     <symbol id="close" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></symbol>
+    <symbol id="icon-swatch" viewBox="0 0 24 24"><path d="M12 3v18M5.64 5.64l12.72 12.72M3 12h18M5.64 18.36 18.36 5.64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="icon-media" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="8.5" cy="9" r="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m4 17 5-5 3.5 3.5 2.5-2.5 5 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></symbol>
+    <symbol id="icon-responsive" viewBox="0 0 24 24"><rect x="2.5" y="4" width="14" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M7 20h5m-2.5-5v5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/><rect x="17.5" y="9" width="4" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="icon-review" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m8 12 2.5 2.5L16.5 8.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></symbol>
+    <symbol id="icon-export" viewBox="0 0 24 24"><path d="M4 7h10v10H4zM14 4h6v6M20 4l-9 9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/></symbol>
   </svg>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="#main" aria-label="Pagecraft home"><svg aria-hidden="true" viewBox="0 0 73 95"><use href="#pagecraft-mark"/></svg><span>Pagecraft</span></a>
-      <nav class="nav" id="site-nav" aria-label="Primary navigation">
-        <a href="#workflow">How it works</a><a href="#capabilities">What it handles</a><a href="#ownership">Why Pagecraft</a>
-        <a class="nav-cta" href="https://build.itspagecraft.com/">Open the builder</a>
-      </nav>
-      <a class="button button--green header-cta" href="https://build.itspagecraft.com/">Open the builder</a>
-      <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
-        <svg class="menu-icon" aria-hidden="true"><use href="#menu"/></svg><svg class="close-icon" aria-hidden="true"><use href="#close"/></svg>
-      </button>
-    </div>
-  </header>
+  <header class="site-header"><div class="container header-inner" id="site-header-app"></div></header>
 
   <main id="main">
     <section class="hero">
       <div class="container hero-inner">
-        <div class="hero-copy">
-          <h1>Build the site.<br><em>Keep the site.</em></h1>
-          <p class="hero-lead">Pagecraft is a visual website builder for people who want a polished result without handing the future of their website to the editor that made it.</p>
-          <div class="button-row">
-            <a class="button button--green" href="https://build.itspagecraft.com/">Start building <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a>
-            <a class="button button--dark" href="#workflow">See how it works</a>
+        <div class="hero-top">
+          <div class="hero-copy">
+            <h1>Beautiful sites.<br><em>Built right now.</em></h1>
+            <p class="hero-lead">Start with a complete page or an empty canvas, shape a polished website immediately, then convert it into a full native WordPress site.</p>
+            <div class="button-row">
+              <a class="button button--green" href="https://build.itspagecraft.com/">Start building <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a>
+              <a class="button button--dark" href="#workflow">See how it works</a>
+            </div>
+            <p class="hero-note">Start fast. Edit visually. Publish deliberately.</p>
           </div>
-          <p class="hero-note">Visual editing, deliberate publishing, and portable output.</p>
         </div>
 
         <div class="editor" aria-label="A preview of the Pagecraft visual editor">
           <div class="editor-topbar">
             <span class="editor-brand"><svg aria-hidden="true"><use href="#pagecraft-mark"/></svg> Pagecraft</span>
-            <div class="viewport-switch" aria-hidden="true"><span></span><span></span><span class="active"></span></div><span class="publish-chip">Publish</span>
+            <div id="viewport-switch-app"></div><span class="publish-chip">Publish</span>
           </div>
           <div class="editor-body">
             <aside class="editor-rail" aria-hidden="true"><span class="rail-dot active"></span><span class="rail-dot"></span><span class="rail-dot"></span><span class="rail-dot"></span></aside>
@@ -78,10 +81,10 @@
             </div>
             <div class="editor-canvas">
               <div class="canvas-page">
-                <div class="canvas-nav"><b>STILL / FORM</b><span>Work &nbsp; Studio &nbsp; Contact</span></div>
+                <div class="canvas-nav"><img class="northhouse-logo northhouse-logo--canvas" src="images/northhouse-logo-v2.webp" alt="Northhouse"><span>Work &nbsp; Studio &nbsp; Contact</span></div>
                 <div class="canvas-hero">
-                  <div class="canvas-copy"><small>Independent creative studio</small><strong>Ideas made<br>tangible.</strong><span>Brand systems and digital experiences shaped with care.</span><i>See selected work</i></div>
-                  <div class="canvas-art" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="canvas-copy"><small>Independent creative studio</small><strong>Distinct by<br>design.</strong><span>Brand systems and digital experiences shaped with care.</span><i>See selected work</i></div>
+                  <div class="canvas-art"><img src="images/north-house-exterior-v1.webp" alt="Modern limestone and timber house in a planted landscape"></div>
                 </div>
                 <div class="selection-outline" aria-hidden="true"><span>Hero</span><i></i><i></i><i></i><i></i></div>
               </div>
@@ -92,58 +95,152 @@
       </div>
     </section>
 
-    <section class="proof-strip" aria-label="Pagecraft product principles">
-      <div class="container proof-grid">
-        <p><strong>Visual by default</strong><span>Work directly on the page you are shaping.</span></p>
-        <p><strong>Quality built in</strong><span>Review structure, links, contrast, and content before release.</span></p>
-        <p><strong>Yours after publish</strong><span>Keep a real website, not a dependency on an editing session.</span></p>
+    <section class="section direct-edit" aria-labelledby="direct-edit-title" data-reveal>
+      <div class="container direct-edit-stage">
+        <header class="direct-edit-heading">
+          <h2 id="direct-edit-title">Select what you see.<br>Make it unmistakably yours.</h2>
+          <p>Click any element on the canvas and shape its type, spacing, colour, and responsive behaviour in context.</p>
+        </header>
+        <div class="type-canvas" aria-label="A Pagecraft headline selected for direct editing">
+          <span class="type-selection-label">Hero / Headline</span>
+          <strong>Make the page<br>feel like you.</strong>
+          <span class="type-handle type-handle-one" aria-hidden="true"></span><span class="type-handle type-handle-two" aria-hidden="true"></span><span class="type-handle type-handle-three" aria-hidden="true"></span><span class="type-handle type-handle-four" aria-hidden="true"></span>
+          <dl class="type-controls">
+            <div><dt>Typeface</dt><dd>Manrope</dd></div>
+            <div><dt>Size / line</dt><dd>88 / 84</dd></div>
+            <div><dt>Spacing</dt><dd>48 px</dd></div>
+            <div><dt>Viewport</dt><dd>Desktop</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="section fast-start" aria-labelledby="fast-start-title" data-reveal>
+      <div class="container fast-start-layout">
+        <div class="fast-start-copy">
+          <h2 id="fast-start-title">Beautiful from the first frame.</h2>
+          <p>Choose a complete page, drop in a ready-made section, or begin clean. Every route opens inside the same visual canvas, ready for your words, images, and brand.</p>
+          <a class="button button--ink fast-start-cta" href="https://build.itspagecraft.com/">Try building <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a>
+        </div>
+        <div class="start-preview" aria-label="A polished Pagecraft starting design">
+          <div class="start-preview-bar"><img class="northhouse-logo" src="images/northhouse-logo-v2.webp" alt="Northhouse"><span>Journal&nbsp;&nbsp; Work&nbsp;&nbsp; Contact</span></div>
+          <div class="start-preview-body"><div><small>Architecture for living well</small><strong>Space to<br>feel at home.</strong><span>Residential spaces shaped around light, material, and daily life.</span></div><figure><img src="images/north-house-interior-v1.webp" alt="Warm modern living room opening onto a green courtyard"><figcaption>Courtyard House · London</figcaption></figure></div>
+          <footer class="start-preview-footer"><img class="northhouse-logo" src="images/northhouse-logo-v2.webp" alt="Northhouse"><span>London&nbsp;&nbsp; © 2026</span></footer>
+        </div>
       </div>
     </section>
 
     <section class="section workflow" id="workflow">
-      <div class="container">
-        <div class="section-heading"><p class="section-label">From blank page to public release</p><h2>A clear path from idea to website.</h2><p>Pagecraft keeps the creative work visual and makes the important publishing decisions explicit.</p></div>
-        <ol class="process">
-          <li><span class="process-number">01</span><div><h3>Choose a useful starting point</h3><p>Begin with a full-page template, a ready-made section, or an empty canvas. Every starting point inherits your project’s own type and colour system.</p></div></li>
-          <li><span class="process-number">02</span><div><h3>Shape it where it lives</h3><p>Edit copy, layout, imagery, responsive styles, forms, and reusable components on the canvas. The structure stays visible while you work.</p></div></li>
-          <li><span class="process-number">03</span><div><h3>Review before you release</h3><p>Pagecraft checks the details that turn a draft into a dependable site, including missing destinations, image descriptions, heading structure, and contrast.</p></div></li>
-          <li><span class="process-number">04</span><div><h3>Publish a version you can trust</h3><p>A draft stays private until you publish it. A release is deliberate, portable, and separate from whatever you decide to change next.</p></div></li>
-        </ol>
-      </div>
+      <div class="container" id="workflow-app"></div>
     </section>
 
-    <section class="section capabilities" id="capabilities">
+    <section class="section capabilities" id="capabilities" data-reveal>
       <div class="container capability-layout">
-        <div class="capability-intro"><p class="section-label">A builder with a point of view</p><h2>Enough control to make it yours. Enough structure to keep it sound.</h2><p>Pagecraft is not a pile of decorative blocks. Its tools are organised around the decisions a real website needs.</p></div>
-        <dl class="capability-ledger">
-          <div><dt>Design system</dt><dd>Shared colour tokens, typography, classes, components, global regions, and breakpoint-specific styles.</dd></div>
-          <div><dt>Content and media</dt><dd>Structured pages, image and video libraries, forms, galleries, tables, reusable blocks, and collection-driven content.</dd></div>
-          <div><dt>Responsive control</dt><dd>Desktop, tablet, and mobile decisions stay connected without forcing every screen into the same composition.</dd></div>
-          <div><dt>Built-in review</dt><dd>Actionable checks for accessibility, content completeness, links, metadata, and output quality before export.</dd></div>
-          <div><dt>Portable release</dt><dd>Publish real HTML and assets that remain useful beyond the editor. Your public site is the deliverable.</dd></div>
-        </dl>
+        <div class="capability-intro"><h2>Build the whole site in one visual system.</h2><p>Every part remains visible, connected, and ready to carry into WordPress.</p></div>
+        <div class="capability-index">
+          <article class="capability-card capability-card--compose">
+            <figure class="capability-card-media">
+              <img src="images/pagecraft-hero-digital-craft.webp" alt="" loading="lazy">
+              <div class="capability-mini-editor" aria-hidden="true">
+                <header><b><svg><use href="#pagecraft-mark"/></svg> Pagecraft</b><span>Publish</span></header>
+                <div class="mini-editor-body"><aside><small>Layers</small><i>Header</i><i class="active">Hero</i><i>Heading</i><i>Button</i></aside><div class="mini-page"><small>FIELD / NOTES</small><strong>Make room<br>for the idea.</strong><em></em><span>Hero / Heading</span></div></div>
+              </div>
+            </figure>
+            <div class="capability-card-copy"><span>Visual composition</span><h3>Compose the whole page.</h3><p>Shape layout, navigation, type, colour, and reusable regions directly on the canvas.</p></div>
+          </article>
+          <article class="capability-card capability-card--populate">
+            <figure class="capability-card-media">
+              <img src="images/pagecraft-populate-background-v1.webp" alt="" loading="lazy">
+              <div class="capability-media-library" aria-hidden="true">
+                <header><b>Media library</b><span>Upload media</span></header>
+                <div class="media-toolbar"><i>All media</i><i>Images</i><i>Video</i><em>Search media</em></div>
+                <div class="media-grid"><img src="images/media-library-lamp-v1.webp" alt=""><img src="images/media-library-portrait-v1.webp" alt=""><img src="images/media-library-headphones-v1.webp" alt=""><img src="images/media-library-designer-v1.webp" alt=""><img src="images/media-library-chair-v1.webp" alt=""><img src="images/media-library-materials-v1.webp" alt=""></div>
+                <footer><span>18 project assets</span><b>Use selected</b></footer>
+              </div>
+            </figure>
+            <div class="capability-card-copy"><span>Structured content</span><h3>Bring the content with you.</h3><p>Work with images, video, forms, galleries, tables, and collection-driven content in context.</p></div>
+          </article>
+          <article class="capability-card capability-card--adapt">
+            <figure class="capability-card-media">
+              <img src="images/pagecraft-release-layers.webp" alt="" loading="lazy">
+              <div class="capability-responsive-editor" aria-hidden="true">
+                <header><span>Responsive</span><nav><b>Desktop</b><i>Tablet</i><i>Mobile</i></nav></header>
+                <div class="responsive-stage"><div class="responsive-page"><img class="northhouse-logo northhouse-logo--responsive" src="images/northhouse-logo-v2.webp" alt=""><strong>Space shaped<br>around you.</strong><em></em></div><aside><span>Breakpoint</span><b>Desktop · 1200+</b><span>Columns</span><b>12</b><span>Gap</span><b>32 px</b></aside></div>
+              </div>
+            </figure>
+            <div class="capability-card-copy"><span>Responsive control</span><h3>One design. Every screen.</h3><p>Tune desktop, tablet, and mobile without splitting the page into disconnected versions.</p></div>
+          </article>
+          <article class="capability-card capability-card--review">
+            <figure class="capability-card-media">
+              <img src="images/pagecraft-paper-system.webp" alt="" loading="lazy">
+              <div class="capability-review" aria-hidden="true">
+                <header><div><i></i><b>2 problems · 4 suggestions</b></div><span>Review before publishing</span></header>
+                <ul><li><i class="bad"></i><span>Button has no destination<small>Home · Hero</small></span><b>Show me</b></li><li><i class="bad"></i><span>Image needs a description<small>Work · Gallery</small></span><b>Show me</b></li><li><i></i><span>Heading order skips a level<small>About · Main page</small></span><b>Show me</b></li><li><i></i><span>Meta description is missing<small>Contact</small></span><b>Show me</b></li></ul>
+                <footer><span>Also checks contrast, page titles, social images, empty content, and publish destinations.</span></footer>
+              </div>
+            </figure>
+            <div class="capability-card-copy"><span>Built-in review</span><h3>Know what is ready.</h3><p>Catch broken links, missing descriptions, heading issues, incomplete metadata, contrast problems, and unfinished content before release.</p></div>
+          </article>
+          <article class="capability-delivery">
+            <div><h3>Take the complete site to native WordPress.</h3><p>Convert Pagecraft into an independent WordPress-owned copy with its layout, styling, assets, and responsive behaviour intact.</p></div>
+            <a class="button button--ink" href="https://build.itspagecraft.com/">Try the builder <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section class="section ownership" id="ownership">
-      <div class="container ownership-grid">
-        <div class="ownership-copy">
-          <p class="section-label">Designed for ownership</p><h2>The editor is a tool.<br>Your website is the asset.</h2>
-          <p>Pagecraft separates the working draft from the release your visitors see. If an edit fails, your last healthy release stays healthy. If you move on, the output does not vanish with the tool.</p>
-          <a class="text-link" href="https://github.com/braudypedrosa/pagecraft">Review the open-source project <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a>
-        </div>
-        <div class="release-diagram" aria-label="A Pagecraft draft becomes a checked, portable release">
-          <div class="release-card draft-card"><span>01</span><strong>Working draft</strong><small>Private and editable</small></div><div class="release-path" aria-hidden="true"><i></i><b>review</b><i></i></div>
-          <div class="release-card checked-card"><span>02</span><strong>Checked release</strong><small>Locked and verifiable</small></div><div class="release-path" aria-hidden="true"><i></i><b>publish</b><i></i></div>
-          <div class="release-card live-card"><span>03</span><strong>Your live site</strong><small>Portable and durable</small></div>
+    <section class="section native-wordpress" aria-labelledby="native-wordpress-title" data-reveal>
+      <div class="container native-wordpress-heading">
+        <div><h2 id="native-wordpress-title">Not a screenshot.<br>A real WordPress site.</h2></div>
+        <p>Pagecraft converts pages, styles, assets, and responsive rules into a full native WordPress site. The imported site becomes its own WordPress-owned copy, editable locally without a Pagecraft Cloud dependency.</p>
+      </div>
+      <div class="container wordpress-admin-stage" aria-label="A concept preview of a Pagecraft site handed off to WordPress ownership">
+        <aside aria-hidden="true"><strong><img src="https://s.w.org/style/images/about/WordPress-logotype-wmark-white.png" alt=""></strong><span>Dashboard</span><span class="active">Pagecraft</span><span>Pages</span><span>Media</span><span>Settings</span></aside>
+        <div class="wordpress-admin-main">
+          <header><div><span>Pagecraft</span><strong>Production site</strong></div><b>Connected</b></header>
+          <div class="wordpress-release-view">
+            <div class="wordpress-release-copy"><h3>Home is live in WordPress.</h3><p>The imported page runs from WordPress data and local assets. Continue editing it with Pagecraft inside WordPress, independently of the cloud copy.</p><dl><div><dt>Layout</dt><dd>Matched</dd></div><div><dt>Assets</dt><dd>Local</dd></div><div><dt>Responsive rules</dt><dd>Included</dd></div></dl></div>
+            <div class="wordpress-page-preview" aria-hidden="true"><header><img src="images/northhouse-logo-v2.webp" alt=""><span>Work&nbsp;&nbsp; Studio&nbsp;&nbsp; Contact</span></header><div class="wordpress-site-hero"><div><small>Courtyard House · London</small><strong>Space shaped around daily life.</strong><span>Residential architecture built around material, light, and place.</span></div><img src="images/north-house-interior-v1.webp" alt=""></div><footer><span>Selected project</span><b>View project</b></footer></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section closing">
+    <section class="section ownership" id="ownership" data-reveal>
+      <div class="container release-story">
+        <div class="release-heading">
+          <h2>Publish is a clean break.</h2>
+          <p>Your draft can keep changing. The release already serving visitors does not. Pagecraft packages the site, verifies it, and leaves the last healthy version online.</p>
+        </div>
+        <div class="release-theatre" aria-label="A visual explanation of a Pagecraft project becoming a portable release">
+          <div class="working-surface">
+            <div class="surface-bar"><span><svg aria-hidden="true"><use href="#pagecraft-mark"/></svg> Working canvas</span><b>Draft saved</b></div>
+            <div class="surface-page">
+              <img class="northhouse-logo northhouse-logo--surface" src="images/northhouse-logo-v2.webp" alt="Northhouse">
+              <strong>Ideas made<br>tangible.</strong>
+              <i aria-hidden="true"></i>
+            </div>
+          </div>
+          <div class="release-switch" aria-hidden="true"><span>Publish</span><i></i></div>
+          <div class="release-output">
+            <div class="output-bar"><span>Verified release</span><b>Ready</b></div>
+            <div class="file-tree" aria-label="Release contents">
+              <span>site/</span>
+              <span><i>↳</i> index.html</span>
+              <span><i>↳</i> assets/</span>
+              <span><i>↳</i> manifest.json</span>
+              <span><i>↳</i> signature</span>
+            </div>
+            <p><strong>Live independently</strong><span>The published site stays available on its last verified release.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section closing try-pagecraft" id="try" data-reveal>
       <div class="container closing-inner">
-        <div><h2>Make something you are proud to publish.</h2><p>Open Pagecraft in your browser and start shaping the first page.</p></div>
-        <div class="closing-actions"><a class="button button--ink" href="https://build.itspagecraft.com/">Open Pagecraft <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a><p>No software installation required.</p></div>
+        <div><h2>Try Pagecraft. Make the first page beautiful.</h2><p>Open the visual builder and shape the first screen directly in your browser.</p></div>
+        <div class="closing-actions"><a class="button button--ink" href="https://build.itspagecraft.com/">Try the builder <svg aria-hidden="true"><use href="#arrow-up-right"/></svg></a><p>No software installation required.</p></div>
       </div>
     </section>
   </main>
@@ -151,10 +248,11 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <a class="brand footer-brand" href="#main" aria-label="Back to the top"><svg aria-hidden="true" viewBox="0 0 73 95"><use href="#pagecraft-mark"/></svg><span>Pagecraft</span></a>
-      <nav aria-label="Footer navigation"><a href="#workflow">How it works</a><a href="#capabilities">Capabilities</a><a href="https://build.itspagecraft.com/">Builder</a><a href="https://github.com/braudypedrosa/pagecraft">GitHub</a></nav>
+      <nav aria-label="Footer navigation"><a href="#workflow">How it works</a><a href="#capabilities">Capabilities</a><a href="https://build.itspagecraft.com/">Builder</a></nav>
       <p>Build visually. Publish deliberately. Keep what you make.</p>
     </div>
   </footer>
+  <div id="framework-root" hidden></div>
   <script src="main.js"></script>
 </body>
 </html>

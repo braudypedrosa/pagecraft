@@ -51,12 +51,8 @@ html[data-variant="paper"] .ownership {
 html[data-variant="electric"] body { background: #080a08; color: var(--on-dark); }
 html[data-variant="electric"] .site-header { background: rgba(4, 6, 4, .82); }
 html[data-variant="electric"] .hero {
-  min-height: calc(100vh - var(--header-height));
-  background-image:
-    radial-gradient(circle at 78% 18%, rgba(183, 243, 74, .16), transparent 26rem),
-    linear-gradient(90deg, rgba(5, 7, 5, .99) 0%, rgba(5, 7, 5, .90) 44%, rgba(5, 7, 5, .42) 100%),
-    url("images/pagecraft-release-layers.webp");
-  background-position: center, center, right center;
+  min-height: 0;
+  background: #050705;
 }
 html[data-variant="electric"] .hero h1 { max-width: 14ch; text-shadow: 0 8px 42px rgba(0, 0, 0, .65); }
 html[data-variant="electric"] .editor {
@@ -65,12 +61,7 @@ html[data-variant="electric"] .editor {
   box-shadow: 0 0 0 1px rgba(183, 243, 74, .07), 0 40px 100px -30px rgba(0, 0, 0, .95);
   backdrop-filter: blur(18px);
 }
-html[data-variant="electric"] .proof-strip { background: #0d100d; border-color: rgba(246, 244, 236, .14); }
-html[data-variant="electric"] .proof-grid p + p { border-color: rgba(246, 244, 236, .14); }
-html[data-variant="electric"] .proof-grid span,
-html[data-variant="electric"] .workflow p,
-html[data-variant="electric"] .capability-intro > p:last-child,
-html[data-variant="electric"] .capability-ledger dd { color: var(--on-dark-muted); }
+html[data-variant="electric"] .workflow p { color: var(--on-dark-muted); }
 html[data-variant="electric"] .workflow {
   background-color: #080a08;
   background-image:
@@ -79,22 +70,24 @@ html[data-variant="electric"] .workflow {
   background-position: center;
   background-size: cover;
 }
-html[data-variant="electric"] .process::before,
-html[data-variant="electric"] .capability-ledger div + div { background: rgba(246, 244, 236, .15); border-color: rgba(246, 244, 236, .15); }
-html[data-variant="electric"] .process-number { background: var(--on-dark); color: var(--ink); }
-html[data-variant="electric"] .process li:last-child .process-number { background: var(--green); }
 html[data-variant="electric"] .capabilities {
-  background-color: #111511;
-  background-image:
-    linear-gradient(90deg, rgba(12, 16, 12, .98), rgba(12, 16, 12, .87) 55%, rgba(12, 16, 12, .60)),
-    url("images/pagecraft-paper-system.webp");
+  background: var(--paper);
+  color: var(--ink);
 }
+html[data-variant="electric"] .capability-intro > p:last-child { color: var(--muted); }
 html[data-variant="electric"] .ownership {
   border-top: 1px solid rgba(183, 243, 74, .22);
+  background: #050705;
+}
+html[data-variant="electric"] .closing {
+  color: var(--ink);
+  background-color: #e8e2d3;
   background-image:
-    radial-gradient(circle at 76% 52%, rgba(183, 243, 74, .13), transparent 20rem),
-    linear-gradient(90deg, rgba(4, 6, 4, .99), rgba(4, 6, 4, .78)),
-    url("images/pagecraft-release-layers.webp");
+    linear-gradient(90deg, rgba(248, 246, 239, .93) 0%, rgba(248, 246, 239, .77) 54%, rgba(248, 246, 239, .42) 100%),
+    url("images/pagecraft-paper-system.webp");
+  background-position: center, right 42%;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 /* Variation 03: Image-led studio collage */
@@ -126,7 +119,6 @@ html[data-variant="collage"] .editor {
   transform-origin: bottom right;
   box-shadow: -24px 38px 90px -35px rgba(0, 0, 0, .9);
 }
-html[data-variant="collage"] .proof-strip { position: relative; z-index: 2; }
 html[data-variant="collage"] .workflow {
   background-color: #f8f6ef;
   background-image:
@@ -162,7 +154,13 @@ html[data-variant="collage"] .ownership {
     background-position: center, 61% top;
   }
   html[data-variant="electric"] .hero {
-    background-image: linear-gradient(rgba(5, 7, 5, .78), rgba(5, 7, 5, .96) 58%), url("images/pagecraft-release-layers.webp");
+    background: #050705;
+  }
+  html[data-variant="electric"] .closing {
+    background-image:
+      linear-gradient(rgba(248, 246, 239, .82), rgba(248, 246, 239, .94)),
+      url("images/pagecraft-paper-system.webp");
+    background-position: center, 62% center;
   }
   html[data-variant="collage"] .hero {
     background-image: linear-gradient(rgba(11, 13, 11, .70), rgba(11, 13, 11, .98) 55%), url("images/pagecraft-hero-digital-craft.webp");
