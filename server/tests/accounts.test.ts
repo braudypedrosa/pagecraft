@@ -72,6 +72,7 @@ test('anonymous visitors are sent to sign in and a verified identity always sees
   a.match(html, /height:52px/);
   a.match(html, /width:62px/);
   a.match(html, /@media\(max-width:520px\).*\.pc-rail\{width:52px/);
+  a.match(html, /<button type="button" data-site-view="sites" aria-pressed="true">/);
   a.doesNotMatch(html, /data-site-view="recent"/);
   a.doesNotMatch(html, /class="pc-rail-account"/);
   a.doesNotMatch(html, /data-account-open/);
