@@ -53,3 +53,23 @@ jobs:
             test -s "$f" || { echo "missing or empty: $f"; exit 1; }
             echo "$f — $(wc -c < "$f") bytes"
           done
+
+  wordpress-release-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node wordpress/tools/build-editor.mjs
+      - run: bash wordpress/tests/lint.sh
+      - run: bash wordpress/tests/packages.sh
+      - run: bash wordpress/tests/php81-lint.sh
+      - run: bash wordpress/tools/build-release-candidate.sh 0.2.0 wordpress/build/release-candidate-0.2.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pagecraft-wordpress-0.2.0-release-candidate
+          path: wordpress/build/release-candidate-0.2.0/
+          if-no-files-found: error
