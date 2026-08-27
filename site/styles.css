@@ -186,10 +186,8 @@ h3 { font-size: var(--fs-h3); line-height: 1.3; letter-spacing: -.015em; } p { m
 .capability-intro { max-width: 58rem; margin-bottom: clamp(2.5rem,5vw,4.5rem); }
 .capability-intro h2 { max-width: 17ch; }
 .capability-intro > p:last-child { max-width: 42ch; margin: var(--space-md) 0 0; }
-.capability-index { display: grid; grid-template-columns: repeat(12,minmax(0,1fr)); gap: 1px; background: rgba(17,19,17,.22); border: 1px solid rgba(17,19,17,.22); }
+.capability-index { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1px; background: rgba(17,19,17,.22); border: 1px solid rgba(17,19,17,.22); }
 .capability-card { position:relative; display: grid; grid-template-rows: minmax(18rem,25vw) auto; min-width: 0; background: var(--paper); overflow: hidden; }
-.capability-card--compose,.capability-card--review { grid-column:span 7; }
-.capability-card--populate,.capability-card--adapt { grid-column:span 5; }
 .capability-card::before { content:"";position:absolute;z-index:3;top:0;right:0;left:0;height:2px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform 360ms cubic-bezier(.2,.75,.2,1); }
 .capability-card:hover::before { transform:scaleX(1); }
 .capability-card-media { position: relative; min-height: 0; margin: 0; overflow: hidden; background: #111511; }
@@ -299,7 +297,6 @@ h3 { font-size: var(--fs-h3); line-height: 1.3; letter-spacing: -.015em; } p { m
   .closing-inner { grid-template-columns: 1fr; } .closing-actions { justify-items: start; } .footer-inner { grid-template-columns: 1fr; justify-items: start; gap: var(--space-md); } .site-footer nav { justify-content: flex-start; }
   .capabilities { background-image: linear-gradient(rgba(238,234,222,.90), rgba(238,234,222,.96)), url("images/pagecraft-paper-system.webp"); background-position: center, 62% center; }
   .capability-index { grid-template-columns:1fr; }
-  .capability-card--compose,.capability-card--populate,.capability-card--adapt,.capability-card--review { grid-column:auto; }
   .capability-card { grid-template-rows:minmax(18rem,52vw) auto; }
   .ownership { background-image: linear-gradient(rgba(11,13,11,.93), rgba(11,13,11,.89)), url("images/pagecraft-release-layers.webp"); background-position: center, 62% center; }
 }
