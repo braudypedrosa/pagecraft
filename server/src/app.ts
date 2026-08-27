@@ -153,6 +153,9 @@ export function createApp(o: Options) {
   app.get('/brand/pagecraft-logo.svg', editorOnly, serveStatic({
     path: './brand/logo/pagecraft-logo-primary-dark.svg'
   }));
+  app.get('/brand/pagecraft-favicon.svg', editorOnly, serveStatic({
+    path: './brand/pagecraft-favicon.svg'
+  }));
   app.use('/api/*', bodyLimit({
     maxSize: 16 * 1024 * 1024,
     onError: c => c.json({ error: 'request is too large' }, 413)
