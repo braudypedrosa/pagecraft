@@ -65,8 +65,37 @@ test('anonymous visitors are sent to sign in and a verified identity always sees
   const dashboard = await request('/');
   a.equal(dashboard.status, 200);
   const html = await dashboard.text();
-  a.match(html, /Your sites/);
-  a.match(html, /Start your first site/);
+  a.match(html, /<h1>Sites<\/h1>/);
+  a.match(html, /Create your first site/);
+  a.match(html, /class="pc-topbar"/);
+  a.match(html, /class="pc-rail"/);
+  a.match(html, /height:52px/);
+  a.match(html, /width:62px/);
+  a.match(html, /@media\(max-width:520px\).*\.pc-rail\{width:52px/);
+});
+
+test('dashboard renders searchable builder-style site cards and the owner quota', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: 'auth-1', email: 'builder@example.test', name: 'Builder' };
+  await auth.ensureAuthUser('auth-1', 'builder@example.test', 'Builder');
+  const created = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Braudy', doc: doc() })
+  });
+  a.equal(created.status, 201);
+
+  const dashboard = await request('/');
+  a.equal(dashboard.status, 200);
+  const html = await dashboard.text();
+  a.match(html, /placeholder="Search sites"/);
+  a.match(html, /<option value="updated">Last edited<\/option>/);
+  a.match(html, /class="pc-site-card"/);
+  a.match(html, /class="pc-site-preview"/);
+  a.match(html, />Braudy<\/div>/);
+  a.match(html, />Open builder<\/a>/);
+  a.match(html, />View site<\/a>/);
+  a.match(html, />Owner<\/div>/);
+  a.match(html, /2 sites remaining/);
 });
 
 test('sign in offers Google and email, links to registration, and uses the Pagecraft logo', async () => {
