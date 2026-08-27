@@ -31,6 +31,7 @@ interface PackageContent {
   role: PortablePackageFileRole;
   mediaType: string;
   bytes: Uint8Array;
+  asset?: PortablePackageFileV1['asset'];
 }
 
 export interface PortablePackageInput {
@@ -242,13 +243,17 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     }
   }
   for (const asset of selectedAssets) {
-    content.push({ path: assetFile(asset), role: 'asset', mediaType: asset.type, bytes: new Uint8Array(asset.bytes) });
+    content.push({
+      path: assetFile(asset), role: 'asset', mediaType: asset.type, bytes: new Uint8Array(asset.bytes),
+      asset: { id: asset.id, name: asset.name, width: asset.w, height: asset.h }
+    });
   }
 
   content.sort((left, right) => utf8ByteCompare(left.path, right.path));
   const files: PortablePackageFileV1[] = content.map(file => ({
     path: file.path, role: file.role, mediaType: file.mediaType,
-    bytes: file.bytes.byteLength, sha256: sha256(file.bytes)
+    bytes: file.bytes.byteLength, sha256: sha256(file.bytes),
+    ...(file.asset ? { asset: file.asset } : {})
   }));
   const manifest: PortablePackageManifestV1 = {
     format: kind === 'site' ? SITE_PACKAGE_FORMAT_V1 : PAGE_PACKAGE_FORMAT_V1,
@@ -297,6 +302,7 @@ const ROLES = new Set<PortablePackageFileRole>([
 ]);
 
 const validFileContract = (file: PortablePackageFileV1) => {
+  if (file.role !== 'asset' && file.asset !== undefined) return false;
   if (file.path === DOCUMENT_PATH) return file.role === 'document' && file.mediaType === 'application/json';
   if (file.path === PROVENANCE_PATH) return file.role === 'provenance' && file.mediaType === 'application/json';
   if (file.path === DEPENDENCIES_PATH) return file.role === 'dependencies' && file.mediaType === 'application/json';
@@ -310,7 +316,15 @@ const validFileContract = (file: PortablePackageFileV1) => {
   }
   if (file.role === 'style') return /^styles\/.+\.css$/i.test(file.path) && file.mediaType === 'text/css; charset=utf-8';
   if (file.role === 'preview') return /^previews\/.+\.html$/i.test(file.path) && file.mediaType === 'text/html; charset=utf-8';
-  if (file.role === 'asset') return /^assets\/.+/.test(file.path) && ALLOWED_ASSET_TYPES.has(file.mediaType);
+  if (file.role === 'asset') {
+    const asset = file.asset;
+    return /^assets\/.+/.test(file.path) && ALLOWED_ASSET_TYPES.has(file.mediaType)
+      && !!asset && typeof asset.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(asset.id)
+      && typeof asset.name === 'string' && asset.name.length > 0
+      && Number.isInteger(asset.width) && asset.width >= 0
+      && Number.isInteger(asset.height) && asset.height >= 0
+      && assetFile({ id: asset.id, name: asset.name }) === file.path;
+  }
   return false;
 };
 
@@ -386,6 +400,11 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   const expectedDependencies = dependenciesOf(document);
   if (canonicalJson(dependencies) !== canonicalJson(expectedDependencies)) {
     throw new Error('portable package dependencies do not match the document');
+  }
+  const packagedAssetIds = manifest.files.filter(file => file.role === 'asset').map(file => file.asset!.id)
+    .sort(utf8ByteCompare);
+  if (canonicalJson(packagedAssetIds) !== canonicalJson(dependencies.assets)) {
+    throw new Error('portable package assets do not match the document references');
   }
   if (manifest.kind === 'page') {
     if (document.pages.length !== 1 || !manifest.entryPageId || document.pages[0].id !== manifest.entryPageId) {

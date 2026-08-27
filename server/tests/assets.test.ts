@@ -84,9 +84,12 @@ test('server asset metadata uses a collision-safe immutable path', () => {
 });
 
 test('a token becomes a path, and one with nothing behind it becomes the placeholder', () => {
-  const get = (id: string) => id === 'a1' ? { id: 'a1', name: 'logo.png' } : null;
+  const get = (id: string) => id === 'a1' ? { id: 'a1', name: 'logo.png' }
+    : id === 'hero-image.v2' ? { id: 'hero-image.v2', name: 'hero.png' } : null;
   a.equal(Core.assetPaths('<img src="asset:a1">', get), '<img src="assets/logo-a1.png">');
   a.equal(Core.assetPaths('<img src="asset:a1">', get, '../'), '<img src="../assets/logo-a1.png">');
+  a.equal(Core.assetPaths('<img src="asset:hero-image.v2">', get), '<img src="assets/hero-heroimagev2.png">',
+    'portable asset ids retain supported punctuation while resolving');
   a.match(Core.assetPaths('<img src="asset:gone">', get), /^<img src="data:image\/svg\+xml/,
     'a missing image is a placeholder, not a broken src');
 });

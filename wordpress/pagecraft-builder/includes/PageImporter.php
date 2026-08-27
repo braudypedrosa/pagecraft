@@ -21,31 +21,39 @@ final class PageImporter
             throw new PackageException('You are not allowed to import Pagecraft pages.');
         }
 
-        $content = FallbackCompiler::content($package);
-        $globalCss = FallbackCompiler::globalCss($package);
-        $pageCss = FallbackCompiler::pageCss($package);
-        $assets = new GeneratedAssetStore();
-        $globalCssAsset = $globalCss !== '' ? $assets->writeCss('global', $globalCss) : null;
-        $pageCssAsset = $pageCss !== '' ? $assets->writeCss('page', $pageCss) : null;
-        $runtimeAsset = FallbackCompiler::needsRuntime($content) ? $assets->writeRuntime() : null;
-        $metadata = ManagedPage::metadata(
-            $package,
-            $content,
-            implode("\n", array_filter([$globalCss, $pageCss], static fn (string $part): bool => $part !== '')),
-            $globalCssAsset,
-            $pageCssAsset,
-            $runtimeAsset
-        );
         $replacePostId = (int) ($options['replace_post_id'] ?? 0);
-        if ($replacePostId > 0) {
-            return $this->replace($replacePostId, $content, $metadata, !empty($options['confirm_replace']));
-        }
+        if ($replacePostId > 0) $this->assertReplaceable($replacePostId, !empty($options['confirm_replace']));
 
-        return $this->create($package, $content, $metadata, $options);
+        $media = (new MediaLibrary())->import($package);
+        try {
+            $content = $media->rewriteHtml(FallbackCompiler::content($package));
+            $globalCss = $media->rewrite(FallbackCompiler::globalCss($package));
+            $pageCss = $media->rewrite(FallbackCompiler::pageCss($package));
+            $assets = new GeneratedAssetStore();
+            $globalCssAsset = $globalCss !== '' ? $assets->writeCss('global', $globalCss) : null;
+            $pageCssAsset = $pageCss !== '' ? $assets->writeCss('page', $pageCss) : null;
+            $runtimeAsset = FallbackCompiler::needsRuntime($content) ? $assets->writeRuntime() : null;
+            $metadata = ManagedPage::metadata(
+                $package,
+                $content,
+                implode("\n", array_filter([$globalCss, $pageCss], static fn (string $part): bool => $part !== '')),
+                $globalCssAsset,
+                $pageCssAsset,
+                $runtimeAsset,
+                $media->documentJson($package->documentJson()),
+                $media->attachmentIdsJson()
+            );
+            if ($replacePostId > 0) {
+                return $this->replace($replacePostId, $content, $metadata, true);
+            }
+            return $this->create($package, $content, $metadata, $options);
+        } catch (\Throwable $error) {
+            $media->rollback();
+            throw $error;
+        }
     }
 
-    /** @param array<string, string> $metadata */
-    private function replace(int $postId, string $content, array $metadata, bool $confirmed): PageImportResult
+    private function assertReplaceable(int $postId, bool $confirmed): void
     {
         if (!$confirmed) {
             throw new PackageException('Replacing a WordPress page requires explicit confirmation.');
@@ -64,6 +72,12 @@ final class PageImporter
         if (!post_type_supports('page', 'revisions') || !wp_revisions_enabled(get_post($postId))) {
             throw new PackageException('WordPress revisions must be enabled before replacing a Pagecraft page.');
         }
+    }
+
+    /** @param array<string, string> $metadata */
+    private function replace(int $postId, string $content, array $metadata, bool $confirmed): PageImportResult
+    {
+        $this->assertReplaceable($postId, $confirmed);
 
         $revision = wp_save_post_revision($postId);
         if (is_wp_error($revision)) {

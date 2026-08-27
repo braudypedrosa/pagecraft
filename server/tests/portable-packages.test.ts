@@ -97,6 +97,8 @@ test('site and page packages retain source, globals, menus, styles, previews, an
   a.doesNotMatch(pageCss, /:root\{/);
   a.ok(site.files.has('previews/index.html'));
   a.ok([...site.files.keys()].some(path => /^assets\/hero-image-/.test(path)));
+  const packagedAsset = site.manifest.files.find(file => file.role === 'asset')!;
+  a.deepEqual(packagedAsset.asset, { id: 'hero-image', name: 'Hero Image.png', width: 1, height: 1 });
   a.equal(site.dependencies.globals.headerNodes, 1);
   a.equal(site.dependencies.menus[0].items[1].target, '_blank');
   a.deepEqual(site.dependencies.menus[0].items[0].classes, ['current', 'primary']);
@@ -159,6 +161,12 @@ test('unsupported file types and newer schemas fail closed', () => {
     manifest.contentHash = sha256(json(manifest.files));
   });
   a.throws(() => validatePortablePackage(wrongType), /file record is invalid/);
+
+  const wrongIdentity = rewriteManifest(built.bytes, manifest => {
+    manifest.files.find(file => file.role === 'asset')!.asset!.id = 'another-asset';
+    manifest.contentHash = sha256(json(manifest.files));
+  });
+  a.throws(() => validatePortablePackage(wrongIdentity), /file record is invalid/);
 
   const newer = rewriteManifest(built.bytes, (manifest, files) => {
     const document = JSON.parse(decoder.decode(files.get(manifest.documentPath)!)) as Doc & { v?: number };

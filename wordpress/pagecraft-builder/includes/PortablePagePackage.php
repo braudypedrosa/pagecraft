@@ -123,6 +123,28 @@ final class PortablePagePackage
         return $path !== null ? $this->readText($path) : '';
     }
 
+    /** @return list<\stdClass> */
+    public function assetRecords(): array
+    {
+        return array_values(array_filter(
+            $this->records,
+            static fn (\stdClass $record): bool => ($record->role ?? null) === 'asset'
+        ));
+    }
+
+    public function assetBytes(string $path): string
+    {
+        $record = $this->records[strtolower($path)] ?? null;
+        if (!$record instanceof \stdClass || ($record->role ?? null) !== 'asset' || $record->path !== $path) {
+            throw new PackageException('The requested Pagecraft asset is not part of this package.');
+        }
+        $source = $this->archive->getFromName($path, 0, \ZipArchive::FL_UNCHANGED);
+        if (!is_string($source) || strlen($source) !== $record->bytes || hash('sha256', $source) !== $record->sha256) {
+            throw new PackageException('The Pagecraft asset failed integrity verification: ' . $path . '.');
+        }
+        return $source;
+    }
+
     private function validateArchive(): void
     {
         if ($this->archive->numFiles < 2 || $this->archive->numFiles > self::MAX_FILES) {
@@ -288,6 +310,21 @@ final class PortablePagePackage
             || ($cms->collectionLists ?? null) !== 0 || ($cms->detailPages ?? null) !== 0) {
             throw new PackageException('Pagecraft CMS content must be flattened explicitly before WordPress import.');
         }
+        $dependencyAssets = $this->dependencies->assets ?? null;
+        $packagedAssets = array_map(
+            static fn (\stdClass $record): string => (string) $record->asset->id,
+            $this->assetRecords()
+        );
+        if (!is_array($dependencyAssets)
+            || count(array_filter($dependencyAssets, 'is_string')) !== count($dependencyAssets)) {
+            throw new PackageException('The Pagecraft package asset dependency list is invalid.');
+        }
+        $dependencyAssets = array_values($dependencyAssets);
+        sort($dependencyAssets, SORT_STRING);
+        sort($packagedAssets, SORT_STRING);
+        if ($dependencyAssets !== $packagedAssets || count(array_unique($packagedAssets)) !== count($packagedAssets)) {
+            throw new PackageException('The Pagecraft package assets do not match its document references.');
+        }
         $this->assertDocumentHasNoCms();
         $head = (string) (($this->document->meta->headHtml ?? '') ?: '');
         $pageHead = (string) (($this->document->pages[0]->headHtml ?? '') ?: '');
@@ -385,9 +422,37 @@ final class PortablePagePackage
                 && $type === 'text/html; charset=utf-8',
             'asset' => str_starts_with($path, 'assets/') && in_array($type, [
                 'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml'
-            ], true),
+            ], true) && $this->validAssetMetadata($record),
             default => false,
         };
+    }
+
+    private function validAssetMetadata(\stdClass $record): bool
+    {
+        $asset = $record->asset ?? null;
+        if (!$asset instanceof \stdClass || !is_string($asset->id ?? null)
+            || !preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]*$/', $asset->id)
+            || !is_string($asset->name ?? null) || $asset->name === ''
+            || !is_int($asset->width ?? null) || $asset->width < 0
+            || !is_int($asset->height ?? null) || $asset->height < 0) {
+            return false;
+        }
+        return $record->path === self::assetPath($asset->id, $asset->name);
+    }
+
+    private static function assetPath(string $id, string $name): string
+    {
+        $cleanId = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '', $id));
+        $cleanId = $cleanId !== '' ? $cleanId : 'asset';
+        $cleaned = strtolower(trim((string) preg_replace('/[^A-Za-z0-9_.-]+/', '-', $name), '-'));
+        $cleaned = $cleaned !== '' ? $cleaned : 'image';
+        $dot = strrpos($cleaned, '.');
+        $hasExtension = $dot !== false && $dot > 0 && $dot < strlen($cleaned) - 1;
+        $extension = $hasExtension ? substr(substr($cleaned, (int) $dot), 0, 17) : '';
+        $rawStem = $hasExtension ? substr($cleaned, 0, (int) $dot) : $cleaned;
+        $stem = str_ends_with($rawStem, '-' . $cleanId)
+            ? $rawStem : substr($rawStem, 0, 180) . '-' . $cleanId;
+        return 'assets/' . $stem . $extension;
     }
 
     private function verifyFile(\stdClass $record): void

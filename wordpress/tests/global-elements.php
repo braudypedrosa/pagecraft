@@ -24,6 +24,13 @@ final class WP_Error
 
 function is_wp_error(mixed $value): bool { return $value instanceof WP_Error; }
 function current_user_can(string $capability, mixed ...$args): bool { return true; }
+function sanitize_text_field(string $value): string { return trim(strip_tags($value)); }
+function sanitize_file_name(string $value): string
+{
+    return trim((string) preg_replace('/[^A-Za-z0-9._-]+/', '-', basename($value)), '-');
+}
+function esc_attr(string $value): string { return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+function esc_url_raw(string $value): string { return filter_var($value, FILTER_VALIDATE_URL) ? $value : ''; }
 function wp_slash(mixed $value): mixed { return is_string($value) ? addslashes($value) : $value; }
 function pc_global_unslash(mixed $value): mixed
 {
@@ -58,6 +65,17 @@ function wp_insert_post(array $post, bool $wpError = false): int|WP_Error
     $GLOBALS['pc_global_meta'][$id] = $meta;
     return $id;
 }
+function wp_insert_attachment(array $post, string $file, int $parent = 0, bool $wpError = false): int|WP_Error
+{
+    $post['post_type'] = 'attachment';
+    $post['post_parent'] = $parent;
+    $id = wp_insert_post($post, $wpError);
+    if (is_int($id)) {
+        $GLOBALS['pc_global_meta'][$id]['_attached_file'] = $file;
+        $GLOBALS['pc_global_meta'][$id]['_attachment_url'] = 'https://example.test/wp-content/uploads/' . basename($file);
+    }
+    return $id;
+}
 function wp_update_post(array $post, bool $wpError = false): int|WP_Error
 {
     $post = pc_global_unslash($post);
@@ -70,6 +88,87 @@ function update_post_meta(int $postId, string $key, mixed $value): int
 {
     $GLOBALS['pc_global_meta'][$postId][$key] = pc_global_unslash($value);
     return 1;
+}
+function get_post_meta(int $postId, string $key, bool $single = false): mixed
+{
+    if (isset($GLOBALS['pc_global_revisions'][$postId]['meta'])) {
+        return $GLOBALS['pc_global_revisions'][$postId]['meta'][$key] ?? '';
+    }
+    return $GLOBALS['pc_global_meta'][$postId][$key] ?? '';
+}
+function get_posts(array $args): array
+{
+    $types = (array) ($args['post_type'] ?? 'post');
+    $ids = [];
+    foreach ($GLOBALS['pc_global_posts'] as $id => $post) {
+        if (!in_array(($post['post_type'] ?? ''), $types, true)) continue;
+        if (($post['post_type'] ?? '') === 'attachment') {
+            $key = (string) ($args['meta_key'] ?? '');
+            $value = (string) ($args['meta_value'] ?? '');
+            if ($key !== '' && (string) ($GLOBALS['pc_global_meta'][$id][$key] ?? '') !== $value) continue;
+        }
+        $ids[] = (int) $id;
+    }
+    if (in_array('revision', $types, true)) {
+        $ids = array_merge($ids, array_map('intval', array_keys($GLOBALS['pc_global_revisions'])));
+    }
+    $metaQuery = $args['meta_query'][0] ?? null;
+    if (is_array($metaQuery)) {
+        $ids = array_values(array_filter($ids, static function (int $id) use ($metaQuery): bool {
+            return str_contains((string) get_post_meta($id, (string) $metaQuery['key'], true), (string) $metaQuery['value']);
+        }));
+    }
+    return $ids;
+}
+function wp_upload_bits(string $name, ?string $deprecated, string $bytes): array
+{
+    $directory = $GLOBALS['pc_global_uploads'] . '/media';
+    if (!wp_mkdir_p($directory)) return ['error' => 'directory failed'];
+    $path = $directory . '/' . sanitize_file_name($name);
+    $info = pathinfo($path);
+    $suffix = 1;
+    while (is_file($path)) {
+        $path = $info['dirname'] . '/' . $info['filename'] . '-' . $suffix++
+            . (isset($info['extension']) ? '.' . $info['extension'] : '');
+    }
+    file_put_contents($path, $bytes);
+    return ['file' => $path, 'url' => 'https://example.test/wp-content/uploads/' . basename($path), 'error' => false];
+}
+function get_attached_file(int $attachmentId): string|false
+{
+    return $GLOBALS['pc_global_meta'][$attachmentId]['_attached_file'] ?? false;
+}
+function wp_get_attachment_url(int $attachmentId): string|false
+{
+    return $GLOBALS['pc_global_meta'][$attachmentId]['_attachment_url'] ?? false;
+}
+function wp_generate_attachment_metadata(int $attachmentId, string $file): array
+{
+    return ['width' => 1, 'height' => 1];
+}
+function wp_update_attachment_metadata(int $attachmentId, array $metadata): bool
+{
+    $GLOBALS['pc_global_meta'][$attachmentId]['_wp_attachment_metadata'] = $metadata;
+    return true;
+}
+function wp_get_attachment_image_srcset(int $attachmentId, string|array $size = 'medium'): string|false
+{
+    $url = wp_get_attachment_url($attachmentId);
+    return is_string($url) ? $url . ' 1w' : false;
+}
+function wp_get_attachment_image_sizes(int $attachmentId, string|array $size = 'medium'): string|false
+{
+    return wp_get_attachment_url($attachmentId) ? '100vw' : false;
+}
+function wp_delete_attachment(int $attachmentId, bool $force = false): object|false
+{
+    if (($GLOBALS['pc_global_posts'][$attachmentId]['post_type'] ?? '') !== 'attachment') return false;
+    $file = get_attached_file($attachmentId);
+    if (is_string($file) && is_file($file)) unlink($file);
+    $deleted = (object) $GLOBALS['pc_global_posts'][$attachmentId];
+    $deleted->ID = $attachmentId;
+    unset($GLOBALS['pc_global_posts'][$attachmentId], $GLOBALS['pc_global_meta'][$attachmentId]);
+    return $deleted;
 }
 function post_type_supports(string $postType, string $feature): bool
 {
@@ -103,7 +202,26 @@ $repository = new \Pagecraft\Builder\GlobalElement();
 $headerId = $repository->import($package, 'header');
 $footerId = $repository->import($package, 'footer');
 
-pc_global_assert(count($GLOBALS['pc_global_posts']) === 2, 'Global import did not create exactly two native entities.');
+$globalPosts = array_filter(
+    $GLOBALS['pc_global_posts'],
+    static fn (array $post): bool => ($post['post_type'] ?? '') === 'pagecraft_global'
+);
+$attachments = array_filter(
+    $GLOBALS['pc_global_posts'],
+    static fn (array $post): bool => ($post['post_type'] ?? '') === 'attachment'
+);
+pc_global_assert(count($globalPosts) === 2, 'Global import did not create exactly two native entities.');
+pc_global_assert(count($attachments) === 1, 'Global import did not localize package media exactly once.');
+$attachmentId = (int) array_key_first($attachments);
+pc_global_assert(
+    ($GLOBALS['pc_global_meta'][$headerId]['_pagecraft_media_attachments'] ?? '') === '["' . $attachmentId . '"]'
+        && ($GLOBALS['pc_global_meta'][$footerId]['_pagecraft_media_attachments'] ?? '') === '["' . $attachmentId . '"]',
+    'Global elements did not retain their native media relationships.'
+);
+pc_global_assert(
+    \Pagecraft\Builder\MediaLibrary::preventReferencedDeletion(null, (object) ['ID' => $attachmentId], true) === false,
+    'A global-element media reference was not protected from deletion.'
+);
 pc_global_assert(
     str_contains($GLOBALS['pc_global_posts'][$headerId]['post_content'], 'data-nav'),
     'The Pagecraft global header markup was not preserved.'
@@ -149,6 +267,8 @@ pc_global_assert($revision['post']['post_content'] === $oldHeader, 'The global h
 
 foreach (glob($GLOBALS['pc_global_uploads'] . '/pagecraft/*') ?: [] as $asset) unlink($asset);
 if (is_dir($GLOBALS['pc_global_uploads'] . '/pagecraft')) rmdir($GLOBALS['pc_global_uploads'] . '/pagecraft');
+foreach (glob($GLOBALS['pc_global_uploads'] . '/media/*') ?: [] as $asset) unlink($asset);
+if (is_dir($GLOBALS['pc_global_uploads'] . '/media')) rmdir($GLOBALS['pc_global_uploads'] . '/media');
 if (is_dir($GLOBALS['pc_global_uploads'])) rmdir($GLOBALS['pc_global_uploads']);
 
 echo "Revision-backed Pagecraft global elements and generated assets are valid.\n";

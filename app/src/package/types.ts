@@ -31,6 +31,12 @@ export interface PortablePackageFileV1 {
   mediaType: string;
   bytes: number;
   sha256: string;
+  asset?: {
+    id: string;
+    name: string;
+    width: number;
+    height: number;
+  };
 }
 
 export interface PortablePackageProvenanceV1 {

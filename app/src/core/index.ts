@@ -2632,7 +2632,7 @@ const colorUsage = (id: string) => {
 
 /** `asset:<id>`, optionally `@<width>` for a downscaled variant the separate-files export
     writes. Several consumers read this and only the path rewriter cares about the width. */
-const A_RE = /asset:([a-z0-9]+)(?:@(\d+))?/g;
+const A_RE = /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
 
 /** The path an asset takes in an export, and on the server. It keeps the recognisable upload
     name and adds the stable id before the extension, so two `photo.png` uploads cannot overwrite
@@ -7167,7 +7167,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          token to a path once the whole page is rendered, so a width marker rides along in
          the token rather than needing the renderer to know where files land. Only for a
          stored asset: a data URI or a remote URL has no variants to point at. */
-      const set = (o.variants && !o.edit && /^asset:\w+$/.test(String(p.src || '')))
+      const set = (o.variants && !o.edit && /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(String(p.src || '')))
         ? imageWidths(p.w).map(w => `${p.src}@${w} ${w}w`) : [];
       const ss = set.length
         ? ` srcset="${esc(set.join(', '))}" sizes="${esc(sizesFor(n.id))}"` : '';
