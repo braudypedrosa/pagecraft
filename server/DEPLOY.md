@@ -10,7 +10,7 @@ Cloudflare proxies the public hostname.
 - Runtime: CloudLinux Node selector and LiteSpeed Passenger
 - Startup bridge: `app.cjs`, which imports `server/src/index.ts`
 - Supabase project: `Pagecraft` (`pwgwvicrdbjiecjxiyvl`, Singapore)
-- Database bridge: `https://pwgwvicrdbjiecjxiyvl.supabase.co/functions/v1/pagecraft-db`
+- Database bridge: `https://pwgwvicrdbjiecjxiyvl.supabase.co/functions/v1/pagecraft-db-v3`
 - Cloudflare: proxied A record to `67.223.118.197`, Full (strict), Always Use HTTPS enabled
 
 Namecheap blocks outbound PostgreSQL ports. The Node process therefore calls the authenticated
@@ -34,7 +34,7 @@ Required:
 
 | Variable | Value or purpose |
 |---|---|
-| `DATABASE_GATEWAY_URL` | Deployed `pagecraft-db` Edge Function URL |
+| `DATABASE_GATEWAY_URL` | Deployed `pagecraft-db-v3` Edge Function URL |
 | `DATABASE_GATEWAY_KEY` | Private raw gateway key; never commit it |
 | `EDITOR_HOST` | `build.itspagecraft.com` |
 | `EDITOR_ORIGIN` | `https://build.itspagecraft.com` |
@@ -158,7 +158,8 @@ deno test --config supabase/functions/pagecraft-db/deno.json \
   supabase/functions/pagecraft-db
 ```
 
-Then deploy `supabase/functions/pagecraft-db/` **before** restarting the Node application. The old application
+Then deploy `supabase/functions/pagecraft-db/` under the production function slug
+`pagecraft-db-v3` **before** restarting the Node application. The old application
 ignores new gateway operations, while the new application cannot use an old gateway that does not
 know them. Keep
 `verify_jwt=false`: this function deliberately uses its own gateway-key authentication.
