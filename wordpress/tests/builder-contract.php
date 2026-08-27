@@ -183,6 +183,7 @@ pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['admin_menu']), '
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['wp_ajax_pagecraft_editor_frame']), 'Secure editor frame was not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['admin_post_pagecraft_add_page_to_menu']), 'Explicit Add to menu action was not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['filter:page_row_actions']), 'Native Pages row actions were not registered.');
+pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['filter:pre_delete_attachment']), 'Referenced Media Library protection was not registered.');
 $documentRoute = $GLOBALS['pagecraft_test_routes']['pagecraft/v1/pages/(?P<id>\d+)/document'] ?? null;
 pagecraft_test_assert(is_array($documentRoute) && count($documentRoute) === 2, 'Document load/save REST route is incomplete.');
 $menusRoute = $GLOBALS['pagecraft_test_routes']['pagecraft/v1/menus'] ?? null;
@@ -213,6 +214,7 @@ $expected_meta = [
     '_pagecraft_global_css_hash', '_pagecraft_page_css_path', '_pagecraft_page_css_hash',
     '_pagecraft_runtime_path', '_pagecraft_runtime_hash', '_pagecraft_package_hash',
     '_pagecraft_document_version', '_pagecraft_conversion_revision',
+    '_pagecraft_media_attachments',
 ];
 sort($expected_meta);
 $registered_page_meta = [];

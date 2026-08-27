@@ -2,6 +2,7 @@ import { writeFileSync } from 'node:fs';
 import * as Core from '../../app/src/core/index.ts';
 import { blankDoc } from '../../server/src/render.ts';
 import { createPagePackage } from '../../server/src/portable-packages.ts';
+import type { Asset } from '../../server/src/assets.ts';
 
 const output = process.argv[2];
 if (!output) throw new Error('an output path is required');
@@ -32,7 +33,13 @@ section.id = 'section-import-fixture';
 const heading = Core.makeFor('heading');
 heading.id = 'heading-import-fixture';
 heading.props.text = 'A native Pagecraft page';
-section.children = [heading];
+const image = Core.makeFor('image');
+image.id = 'image-import-fixture';
+Object.assign(image.props, {
+  src: 'asset:hero-image', alt: 'Pagecraft native media', caption: 'Locally owned in WordPress', w: '1', h: '1'
+});
+section.css.d['background-image'] = 'url("asset:hero-image")';
+section.children = [heading, image];
 const tabs = Core.makeFor('tabs');
 tabs.id = 'tabs-import-fixture';
 tabs.props.items = [
@@ -42,9 +49,17 @@ tabs.props.items = [
 section.children.push(tabs);
 document.pages[0].tree = [section];
 
+const asset: Asset = {
+  id: 'hero-image', siteId: 'cloud-project-fixture', name: 'Pagecraft Hero.png', type: 'image/png', w: 1, h: 1,
+  bytes: Uint8Array.from(Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2h8sAAAAASUVORK5CYII=',
+    'base64'
+  ))
+};
 const built = createPagePackage({
   document,
   pageId: document.pages[0].id,
+  assets: [asset],
   provenance: {
     format: 'pagecraft.provenance.v1',
     origin: 'pagecraft-cloud',

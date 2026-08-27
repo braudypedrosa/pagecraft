@@ -16,12 +16,14 @@ $GLOBALS['pc_meta'] = [];
 $GLOBALS['pc_revisions'] = [];
 $GLOBALS['pc_events'] = [];
 $GLOBALS['pc_next_post'] = 100;
+$GLOBALS['pc_fail_next_page_insert'] = false;
 $GLOBALS['pc_upload_dir'] = sys_get_temp_dir() . '/pagecraft-native-' . substr(hash('sha256', $argv[1]), 0, 16);
 $GLOBALS['pc_caps'] = [
     'import_pagecraft_pages' => true,
     'edit_pagecraft_pages' => true,
     'publish_pages' => true,
     'edit_others_pages' => true,
+    'upload_files' => true,
 ];
 
 final class WP_Error
@@ -69,6 +71,21 @@ function sanitize_title(string $value): string
     return trim((string) preg_replace('/[^a-z0-9]+/', '-', strtolower($value)), '-');
 }
 
+function sanitize_file_name(string $value): string
+{
+    return trim((string) preg_replace('/[^A-Za-z0-9._-]+/', '-', basename($value)), '-');
+}
+
+function esc_attr(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function esc_url_raw(string $value): string
+{
+    return filter_var($value, FILTER_VALIDATE_URL) ? $value : '';
+}
+
 function wp_slash(mixed $value): mixed
 {
     if (is_array($value)) {
@@ -107,6 +124,10 @@ function wp_mkdir_p(string $directory): bool
 function wp_insert_post(array $post, bool $wpError = false): int|WP_Error
 {
     $post = pc_unslash($post);
+    if (($post['post_type'] ?? '') === 'page' && $GLOBALS['pc_fail_next_page_insert']) {
+        $GLOBALS['pc_fail_next_page_insert'] = false;
+        return new WP_Error('simulated page insert failure');
+    }
     $id = $GLOBALS['pc_next_post']++;
     $meta = $post['meta_input'] ?? [];
     unset($post['meta_input']);
@@ -114,6 +135,18 @@ function wp_insert_post(array $post, bool $wpError = false): int|WP_Error
     $GLOBALS['pc_posts'][$id] = $post;
     $GLOBALS['pc_meta'][$id] = $meta;
     $GLOBALS['pc_events'][] = ['insert', $id];
+    return $id;
+}
+
+function wp_insert_attachment(array $post, string $file, int $parent = 0, bool $wpError = false): int|WP_Error
+{
+    $post['post_type'] = 'attachment';
+    $post['post_parent'] = $parent;
+    $id = wp_insert_post($post, $wpError);
+    if (is_int($id)) {
+        $GLOBALS['pc_meta'][$id]['_attached_file'] = $file;
+        $GLOBALS['pc_meta'][$id]['_attachment_url'] = 'https://example.test/wp-content/uploads/' . basename($file);
+    }
     return $id;
 }
 
@@ -141,6 +174,9 @@ function get_post(int $postId): ?object
 
 function get_post_meta(int $postId, string $key, bool $single = false): mixed
 {
+    if (isset($GLOBALS['pc_revisions'][$postId]['meta'])) {
+        return $GLOBALS['pc_revisions'][$postId]['meta'][$key] ?? '';
+    }
     return $GLOBALS['pc_meta'][$postId][$key] ?? '';
 }
 
@@ -196,6 +232,90 @@ function set_post_thumbnail(int $postId, int $thumbnailId): bool
     return true;
 }
 
+function get_posts(array $args): array
+{
+    $types = (array) ($args['post_type'] ?? 'post');
+    $ids = [];
+    if (in_array('attachment', $types, true)) {
+        foreach ($GLOBALS['pc_posts'] as $id => $post) {
+            if (($post['post_type'] ?? '') !== 'attachment') continue;
+            $key = (string) ($args['meta_key'] ?? '');
+            $value = (string) ($args['meta_value'] ?? '');
+            if ($key === '' || (string) ($GLOBALS['pc_meta'][$id][$key] ?? '') === $value) $ids[] = (int) $id;
+        }
+    }
+    if (in_array('page', $types, true) || in_array('revision', $types, true)) {
+        foreach ($GLOBALS['pc_posts'] as $id => $post) {
+            if (in_array(($post['post_type'] ?? ''), $types, true)) $ids[] = (int) $id;
+        }
+        if (in_array('revision', $types, true)) $ids = array_merge($ids, array_map('intval', array_keys($GLOBALS['pc_revisions'])));
+        $metaQuery = $args['meta_query'][0] ?? null;
+        if (is_array($metaQuery)) {
+            $ids = array_values(array_filter($ids, static function (int $id) use ($metaQuery): bool {
+                return str_contains((string) get_post_meta($id, (string) $metaQuery['key'], true), (string) $metaQuery['value']);
+            }));
+        }
+    }
+    return $ids;
+}
+
+function wp_upload_bits(string $name, ?string $deprecated, string $bytes): array
+{
+    if (!wp_mkdir_p($GLOBALS['pc_upload_dir'] . '/media')) return ['error' => 'directory failed'];
+    $path = $GLOBALS['pc_upload_dir'] . '/media/' . sanitize_file_name($name);
+    $suffix = 1;
+    $info = pathinfo($path);
+    while (is_file($path)) {
+        $path = $info['dirname'] . '/' . $info['filename'] . '-' . $suffix++
+            . (isset($info['extension']) ? '.' . $info['extension'] : '');
+    }
+    file_put_contents($path, $bytes);
+    return ['file' => $path, 'url' => 'https://example.test/wp-content/uploads/' . basename($path), 'error' => false];
+}
+
+function get_attached_file(int $attachmentId): string|false
+{
+    return $GLOBALS['pc_meta'][$attachmentId]['_attached_file'] ?? false;
+}
+
+function wp_get_attachment_url(int $attachmentId): string|false
+{
+    return $GLOBALS['pc_meta'][$attachmentId]['_attachment_url'] ?? false;
+}
+
+function wp_generate_attachment_metadata(int $attachmentId, string $file): array
+{
+    return ['width' => 1, 'height' => 1, 'sizes' => ['thumbnail' => ['file' => 'thumb-' . basename($file), 'width' => 1, 'height' => 1]]];
+}
+
+function wp_update_attachment_metadata(int $attachmentId, array $metadata): bool
+{
+    $GLOBALS['pc_meta'][$attachmentId]['_wp_attachment_metadata'] = $metadata;
+    return true;
+}
+
+function wp_get_attachment_image_srcset(int $attachmentId, string|array $size = 'medium'): string|false
+{
+    $url = wp_get_attachment_url($attachmentId);
+    return is_string($url) ? $url . ' 1w' : false;
+}
+
+function wp_get_attachment_image_sizes(int $attachmentId, string|array $size = 'medium'): string|false
+{
+    return wp_get_attachment_url($attachmentId) ? '100vw' : false;
+}
+
+function wp_delete_attachment(int $attachmentId, bool $force = false): object|false
+{
+    if (($GLOBALS['pc_posts'][$attachmentId]['post_type'] ?? '') !== 'attachment') return false;
+    $file = get_attached_file($attachmentId);
+    if (is_string($file) && is_file($file)) unlink($file);
+    $deleted = (object) $GLOBALS['pc_posts'][$attachmentId];
+    $deleted->ID = $attachmentId;
+    unset($GLOBALS['pc_posts'][$attachmentId], $GLOBALS['pc_meta'][$attachmentId]);
+    return $deleted;
+}
+
 function pc_assert(bool $condition, string $message): void
 {
     if (!$condition) {
@@ -214,6 +334,14 @@ pc_assert(!\Pagecraft\Builder\FallbackCompiler::needsRuntime('<p>Static</p>'), '
 pc_assert(\Pagecraft\Builder\FallbackCompiler::needsRuntime('<div data-tabs></div>'), 'Interactive markup did not request a runtime.');
 
 $importer = new \Pagecraft\Builder\PageImporter();
+$GLOBALS['pc_fail_next_page_insert'] = true;
+try {
+    $importer->import($package);
+    throw new RuntimeException('A simulated page failure was accepted.');
+} catch (\Pagecraft\Builder\PackageException $error) {
+    pc_assert(str_contains($error->getMessage(), 'could not create'), 'The simulated page failure was not actionable.');
+}
+pc_assert(count(array_filter($GLOBALS['pc_posts'], static fn (array $post): bool => ($post['post_type'] ?? '') === 'attachment')) === 0, 'A failed page import left a partial Media Library attachment.');
 $first = $importer->import($package);
 pc_assert(!$first->replaced && $first->revisionId === null, 'New import was treated as replacement.');
 pc_assert($GLOBALS['pc_posts'][$first->postId]['post_type'] === 'page', 'Import did not create a native page.');
@@ -222,6 +350,30 @@ pc_assert($GLOBALS['pc_posts'][$first->postId]['post_title'] === 'Imported Landi
 pc_assert($GLOBALS['pc_posts'][$first->postId]['post_name'] === 'imported-landing-page', 'Native slug was lost.');
 pc_assert(str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], 'A native Pagecraft page'), 'Fallback content is blank.');
 pc_assert(str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], 'data-pagecraft-fallback="1"'), 'Fallback ownership marker is missing.');
+$attachmentIds = array_keys(array_filter(
+    $GLOBALS['pc_posts'],
+    static fn (array $post): bool => ($post['post_type'] ?? '') === 'attachment'
+));
+pc_assert(count($attachmentIds) === 1, 'Package media was not registered as one native WordPress attachment.');
+$attachmentId = (int) $attachmentIds[0];
+$attachmentUrl = (string) wp_get_attachment_url($attachmentId);
+pc_assert($attachmentUrl !== '' && str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], $attachmentUrl), 'Compiled content was not localized to the Media Library URL.');
+pc_assert(!str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], 'assets/pagecraft-hero'), 'Compiled content still requests the packaged cloud asset path.');
+pc_assert(str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], 'wp-image-' . $attachmentId), 'Localized image markup has no native attachment class.');
+pc_assert(str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], 'srcset='), 'Localized image markup has no WordPress responsive source set.');
+pc_assert(($GLOBALS['pc_meta'][$attachmentId]['_wp_attachment_image_alt'] ?? '') === 'Pagecraft native media', 'Attachment alt text was not preserved.');
+pc_assert(($GLOBALS['pc_posts'][$attachmentId]['post_excerpt'] ?? '') === 'Locally owned in WordPress', 'Attachment caption was not preserved.');
+pc_assert(($GLOBALS['pc_meta'][$attachmentId]['_wp_attachment_metadata']['width'] ?? 0) === 1, 'Attachment dimensions were not generated.');
+$localizedDocument = (string) ($GLOBALS['pc_meta'][$first->postId]['_pagecraft_document'] ?? '');
+pc_assert(str_contains($localizedDocument, $attachmentUrl) && !str_contains($localizedDocument, 'asset:hero-image'), 'The editable document was not localized to WordPress media.');
+pc_assert(
+    ($GLOBALS['pc_meta'][$first->postId]['_pagecraft_media_attachments'] ?? '') === '["' . $attachmentId . '"]',
+    'The managed page does not retain its attachment relationship.'
+);
+pc_assert(
+    \Pagecraft\Builder\MediaLibrary::preventReferencedDeletion(null, (object) ['ID' => $attachmentId], true) === false,
+    'A current Pagecraft page did not protect its referenced attachment.'
+);
 pc_assert(
     ($GLOBALS['pc_meta'][$first->postId]['_pagecraft_source_project_id'] ?? '') === 'cloud-project-fixture',
     'Source project metadata is missing.'
@@ -249,6 +401,9 @@ pc_assert(
 foreach ([$globalCssPath, $pageCssPath, $runtimePath] as $assetPath) {
     pc_assert(is_file($GLOBALS['pc_upload_dir'] . '/' . $assetPath), 'A generated asset was not written below uploads/pagecraft.');
 }
+$localizedPageCss = file_get_contents($GLOBALS['pc_upload_dir'] . '/' . $pageCssPath);
+pc_assert(is_string($localizedPageCss) && str_contains($localizedPageCss, $attachmentUrl), 'Generated page CSS was not localized to WordPress media.');
+pc_assert(!str_contains((string) $localizedPageCss, 'assets/pagecraft-hero'), 'Generated page CSS still references the packaged asset path.');
 pc_assert(
     hash_file('sha256', $GLOBALS['pc_upload_dir'] . '/' . $runtimePath)
         === ($GLOBALS['pc_meta'][$first->postId]['_pagecraft_runtime_hash'] ?? ''),
@@ -257,7 +412,8 @@ pc_assert(
 
 $second = $importer->import($package);
 pc_assert($second->postId !== $first->postId, 'Reimport silently overwrote the first page.');
-pc_assert(count($GLOBALS['pc_posts']) === 2, 'Reimport did not default to a new page.');
+pc_assert(count(array_filter($GLOBALS['pc_posts'], static fn (array $post): bool => ($post['post_type'] ?? '') === 'page')) === 2, 'Reimport did not default to a new page.');
+pc_assert(count(array_filter($GLOBALS['pc_posts'], static fn (array $post): bool => ($post['post_type'] ?? '') === 'attachment')) === 1, 'Reimport duplicated an identical Media Library attachment.');
 
 $before = $GLOBALS['pc_posts'][$first->postId];
 try {
@@ -307,6 +463,12 @@ pc_assert($GLOBALS['pc_posts'][$first->postId]['post_author'] === 8, 'Replacemen
 pc_assert($GLOBALS['pc_meta'][$first->postId]['_thumbnail_id'] === '88', 'Replacement changed featured image.');
 pc_assert($GLOBALS['pc_meta'][$first->postId]['_yoast_wpseo_title'] === 'SEO integration stays', 'Replacement changed integration metadata.');
 pc_assert(str_contains($GLOBALS['pc_posts'][$first->postId]['post_content'], 'A native Pagecraft page'), 'Confirmed replacement did not update content.');
+$GLOBALS['pc_meta'][$first->postId]['_pagecraft_media_attachments'] = '[]';
+pc_assert(
+    \Pagecraft\Builder\MediaLibrary::preventReferencedDeletion(null, (object) ['ID' => $attachmentId], true) === false,
+    'A recoverable Pagecraft revision did not protect its referenced attachment.'
+);
+$GLOBALS['pc_meta'][$first->postId]['_pagecraft_media_attachments'] = '["' . $attachmentId . '"]';
 
 $tampered = tempnam(sys_get_temp_dir(), 'pagecraft-tampered-');
 if ($tampered === false || !copy($fixture, $tampered)) {
@@ -323,6 +485,40 @@ try {
     pc_assert(str_contains($error->getMessage(), 'integrity verification'), 'Tampered-package error is unclear.');
 }
 unlink($tampered);
+
+$unsafeMedia = tempnam(sys_get_temp_dir(), 'pagecraft-unsafe-media-');
+if ($unsafeMedia === false || !copy($fixture, $unsafeMedia)) {
+    throw new RuntimeException('Could not create the unsafe-media fixture.');
+}
+$zip = new ZipArchive();
+pc_assert($zip->open($unsafeMedia) === true, 'Could not open unsafe-media fixture.');
+$manifestSource = $zip->getFromName('manifest.json');
+pc_assert(is_string($manifestSource), 'Unsafe-media fixture manifest is missing.');
+$manifest = \Pagecraft\Builder\CanonicalJson::decodeObject($manifestSource, 'fixture manifest');
+$unsafeBytes = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><script>alert(1)</script></svg>';
+$unsafePath = '';
+foreach ($manifest->files as $record) {
+    if ($record->role === 'asset') {
+        $unsafePath = (string) $record->path;
+        $record->bytes = strlen($unsafeBytes);
+        $record->sha256 = hash('sha256', $unsafeBytes);
+    }
+}
+pc_assert($unsafePath !== '', 'Unsafe-media fixture asset is missing.');
+$manifest->contentHash = hash('sha256', \Pagecraft\Builder\CanonicalJson::encode($manifest->files));
+$zip->addFromString($unsafePath, $unsafeBytes);
+$zip->addFromString('manifest.json', \Pagecraft\Builder\CanonicalJson::encode($manifest));
+$zip->close();
+try {
+    $importer->import(\Pagecraft\Builder\PortablePagePackage::fromFile($unsafeMedia));
+    throw new RuntimeException('An unsafe media payload was accepted.');
+} catch (\Pagecraft\Builder\PackageException $error) {
+    pc_assert(
+        str_contains($error->getMessage(), 'declared media type'),
+        'Unsafe-media rejection does not identify the verified media-type mismatch.'
+    );
+}
+unlink($unsafeMedia);
 
 $cmsFixture = tempnam(sys_get_temp_dir(), 'pagecraft-cms-');
 if ($cmsFixture === false || !copy($fixture, $cmsFixture)) {
@@ -409,10 +605,10 @@ $converted = $editor->save($nativeId, array_merge($editorInput, ['version' => 0]
 pc_assert($converted['version'] === 1 && $converted['revisionId'] === 1234, 'Prepared conversion did not preserve its safety revision.');
 pc_assert(\Pagecraft\Builder\ManagedPage::isManaged($nativeId), 'Prepared native page did not become Pagecraft-managed.');
 
-foreach (glob($GLOBALS['pc_upload_dir'] . '/pagecraft/*') ?: [] as $asset) {
-    unlink($asset);
-}
+foreach (glob($GLOBALS['pc_upload_dir'] . '/pagecraft/*') ?: [] as $asset) unlink($asset);
+foreach (glob($GLOBALS['pc_upload_dir'] . '/media/*') ?: [] as $asset) unlink($asset);
 if (is_dir($GLOBALS['pc_upload_dir'] . '/pagecraft')) rmdir($GLOBALS['pc_upload_dir'] . '/pagecraft');
+if (is_dir($GLOBALS['pc_upload_dir'] . '/media')) rmdir($GLOBALS['pc_upload_dir'] . '/media');
 if (is_dir($GLOBALS['pc_upload_dir'])) rmdir($GLOBALS['pc_upload_dir']);
 
 echo "Native WordPress page import and revision contract is valid.\n";

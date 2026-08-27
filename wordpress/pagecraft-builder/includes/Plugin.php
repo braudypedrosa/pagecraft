@@ -28,6 +28,7 @@ final class Plugin
         load_plugin_textdomain('pagecraft-builder', false, dirname(plugin_basename(PAGECRAFT_BUILDER_FILE)) . '/languages');
         add_action('init', [ManagedPage::class, 'register']);
         add_action('init', [GlobalElement::class, 'register']);
+        MediaLibrary::register();
         (new RestController())->register();
         (new Admin())->register();
         do_action('pagecraft_builder_loaded', PAGECRAFT_BUILDER_VERSION);
