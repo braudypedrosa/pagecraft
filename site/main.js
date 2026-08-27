@@ -434,6 +434,7 @@
   }
   function SiteHeader() {
     const [open, setOpen] = d2(false);
+    const [active, setActive] = d2("");
     const shell = A2(null);
     h2(() => {
       const closeOnEscape = (event) => {
@@ -449,15 +450,38 @@
         document.removeEventListener("pointerdown", closeOutside);
       };
     }, [open]);
+    h2(() => {
+      const header2 = document.querySelector(".site-header");
+      const sections = ["workflow", "capabilities", "ownership"].map((id) => document.getElementById(id)).filter((section) => Boolean(section));
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        header2?.style.setProperty("--page-progress", String(progress));
+        header2?.toggleAttribute("data-scrolled", window.scrollY > 18);
+      };
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting).sort((a3, b2) => b2.intersectionRatio - a3.intersectionRatio)[0];
+        if (visible) setActive(visible.target.id);
+      }, { rootMargin: "-22% 0px -62% 0px", threshold: [0, 0.2, 0.5] });
+      sections.forEach((section) => observer.observe(section));
+      updateProgress();
+      window.addEventListener("scroll", updateProgress, { passive: true });
+      window.addEventListener("resize", updateProgress);
+      return () => {
+        observer.disconnect();
+        window.removeEventListener("scroll", updateProgress);
+        window.removeEventListener("resize", updateProgress);
+      };
+    }, []);
     return /* @__PURE__ */ u3("div", { class: "header-shell", ref: shell, children: [
       /* @__PURE__ */ u3("a", { class: "brand", href: "#main", "aria-label": "Pagecraft home", children: [
         /* @__PURE__ */ u3(Mark, {}),
         /* @__PURE__ */ u3("span", { children: "Pagecraft" })
       ] }),
       /* @__PURE__ */ u3("nav", { class: "nav", id: "site-nav", "aria-label": "Primary navigation", "data-open": open || void 0, children: [
-        /* @__PURE__ */ u3("a", { href: "#workflow", onClick: () => setOpen(false), children: "How it works" }),
-        /* @__PURE__ */ u3("a", { href: "#capabilities", onClick: () => setOpen(false), children: "What it handles" }),
-        /* @__PURE__ */ u3("a", { href: "#ownership", onClick: () => setOpen(false), children: "Why Pagecraft" }),
+        /* @__PURE__ */ u3("a", { href: "#workflow", "aria-current": active === "workflow" ? "location" : void 0, onClick: () => setOpen(false), children: "How it works" }),
+        /* @__PURE__ */ u3("a", { href: "#capabilities", "aria-current": active === "capabilities" ? "location" : void 0, onClick: () => setOpen(false), children: "What it handles" }),
+        /* @__PURE__ */ u3("a", { href: "#ownership", "aria-current": active === "ownership" ? "location" : void 0, onClick: () => setOpen(false), children: "Why Pagecraft" }),
         /* @__PURE__ */ u3("a", { class: "nav-cta", href: BUILDER_URL, children: "Open the builder" })
       ] }),
       /* @__PURE__ */ u3("a", { class: "button button--green header-cta", href: BUILDER_URL, children: "Open the builder" }),
