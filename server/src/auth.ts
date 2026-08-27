@@ -27,6 +27,18 @@ export interface User { id: string; email: string; name: string }
 export interface Session { token: string; userId: string; expiresAt: number }
 export interface Membership { siteId: string; userId: string; role: Role }
 export interface SessionAccess { user: User; role: Role | null }
+export interface ManualImportCredential {
+  id: string;
+  ownerId: string;
+  installationId: string;
+  accessTokenDigest: string;
+  accessExpiresAt: number;
+  refreshTokenDigest: string;
+  status: 'active' | 'revoked';
+  createdAt: number;
+  updatedAt: number;
+  revokedAt: number | null;
+}
 
 /** Fifteen minutes. Long enough to find the email, short enough that a leaked one is stale. */
 export const LINK_TTL_MS = 15 * 60 * 1000;
@@ -76,6 +88,13 @@ export interface AuthStore {
   /** Everyone with a role on this site, with the addresses an owner needs to read. */
   members(siteId: string): Promise<(Membership & { email: string; name: string })[]>;
   revoke(siteId: string, userId: string): Promise<boolean>;
+
+  createManualImportCredential(input: Omit<ManualImportCredential,
+    'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>): Promise<ManualImportCredential>;
+  manualImportByAccess(digest: string): Promise<ManualImportCredential | null>;
+  manualImportByRefresh(digest: string): Promise<ManualImportCredential | null>;
+  rotateManualImportAccess(id: string, digest: string, expiresAt: number): Promise<ManualImportCredential | null>;
+  revokeManualImportCredential(id: string, refreshDigest: string): Promise<boolean>;
 }
 
 /** The auth half of the schema, beside the site half in `store-pg.ts`. */
@@ -106,6 +125,22 @@ create table if not exists site_users (
   role        text not null check (role in ('owner', 'content')),
   primary key (site_id, user_id)
 );
+
+create table if not exists wordpress_import_credentials (
+  id text primary key,
+  owner_id text not null references users (id) on delete cascade,
+  installation_id text not null,
+  access_token_digest text not null unique,
+  access_expires_at timestamptz not null,
+  refresh_token_digest text not null unique,
+  status text not null check (status in ('active', 'revoked')) default 'active',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  revoked_at timestamptz,
+  unique (owner_id, installation_id)
+);
+create index if not exists wordpress_import_credentials_owner_idx
+  on wordpress_import_credentials (owner_id, status);
 `;
 
 /**
@@ -127,6 +162,7 @@ export class MemoryAuthStore implements AuthStore {
   private links = new Map<string, { email: string; expiresAt: number }>();
   private sessions = new Map<string, Session>();
   private memberships = new Map<string, Membership>();
+  private manualImports = new Map<string, ManualImportCredential>();
   private seq = 0;
 
   async userByEmail(email: string) {
@@ -208,6 +244,46 @@ export class MemoryAuthStore implements AuthStore {
   }
   async revoke(siteId: string, userId: string) {
     return this.memberships.delete(siteId + '|' + userId);
+  }
+  async createManualImportCredential(input: Omit<ManualImportCredential,
+    'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {
+    const now = Date.now();
+    for (const item of this.manualImports.values()) {
+      if (item.ownerId === input.ownerId && item.installationId === input.installationId) {
+        item.status = 'revoked'; item.revokedAt = item.updatedAt = now;
+      }
+    }
+    const credential: ManualImportCredential = {
+      ...input, status: 'active', createdAt: now, updatedAt: now, revokedAt: null
+    };
+    this.manualImports.set(input.id, credential);
+    return { ...credential };
+  }
+  async manualImportByAccess(digest: string) {
+    const item = [...this.manualImports.values()].find(candidate =>
+      candidate.status === 'active' && candidate.accessTokenDigest === digest && candidate.accessExpiresAt > Date.now());
+    return item ? { ...item } : null;
+  }
+  async manualImportByRefresh(digest: string) {
+    const item = [...this.manualImports.values()].find(candidate =>
+      candidate.status === 'active' && candidate.refreshTokenDigest === digest);
+    return item ? { ...item } : null;
+  }
+  async rotateManualImportAccess(id: string, digest: string, expiresAt: number) {
+    const item = this.manualImports.get(id);
+    if (!item || item.status !== 'active') return null;
+    item.accessTokenDigest = digest;
+    item.accessExpiresAt = expiresAt;
+    item.updatedAt = Date.now();
+    return { ...item };
+  }
+  async revokeManualImportCredential(id: string, refreshDigest: string) {
+    const item = this.manualImports.get(id);
+    if (!item || item.refreshTokenDigest !== refreshDigest) return false;
+    if (item.status === 'revoked') return true;
+    item.status = 'revoked';
+    item.revokedAt = item.updatedAt = Date.now();
+    return true;
   }
 }
 

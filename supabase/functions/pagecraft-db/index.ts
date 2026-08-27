@@ -1999,6 +1999,45 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       } and user_id = ${text(args.userId)}
         returning user_id
       `).length > 0;
+    case "auth.manualImport.create": {
+      const input = (args.input && typeof args.input === "object" && !Array.isArray(args.input))
+        ? args.input as Record<string, unknown> : {};
+      return one(await sql`
+        insert into wordpress_import_credentials (
+          id, owner_id, installation_id, access_token_digest, access_expires_at, refresh_token_digest
+        ) values (${text(input.id)}, ${text(input.ownerId)}, ${text(input.installationId)},
+          ${text(input.accessTokenDigest)}, ${text(input.accessExpiresAt)}, ${text(input.refreshTokenDigest)})
+        on conflict (owner_id, installation_id) do update set
+          access_token_digest = excluded.access_token_digest,
+          access_expires_at = excluded.access_expires_at,
+          refresh_token_digest = excluded.refresh_token_digest,
+          status = 'active', revoked_at = null, updated_at = now()
+        returning *
+      `);
+    }
+    case "auth.manualImport.byAccess":
+      return one(await sql`
+        select * from wordpress_import_credentials
+        where access_token_digest = ${text(args.digest)} and status = 'active' and access_expires_at > now()
+        limit 1
+      `);
+    case "auth.manualImport.byRefresh":
+      return one(await sql`
+        select * from wordpress_import_credentials
+        where refresh_token_digest = ${text(args.digest)} and status = 'active' limit 1
+      `);
+    case "auth.manualImport.rotate":
+      return one(await sql`
+        update wordpress_import_credentials
+        set access_token_digest = ${text(args.digest)}, access_expires_at = ${text(args.expiresAt)}, updated_at = now()
+        where id = ${text(args.id)} and status = 'active' returning *
+      `);
+    case "auth.manualImport.revoke":
+      return (await sql`
+        update wordpress_import_credentials
+        set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+        where id = ${text(args.id)} and refresh_token_digest = ${text(args.refreshDigest)} returning id
+      `).length > 0;
     default:
       throw Object.assign(new Error("unknown gateway operation"), {
         status: 400,

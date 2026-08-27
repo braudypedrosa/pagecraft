@@ -163,6 +163,13 @@ export function createApp(o: Options) {
       scopes: string[];
     };
   };
+  type ManualImportConsent = {
+    userId: string;
+    installationId: string;
+    redirectUri: string;
+    codeChallenge: string;
+    state: string;
+  };
 
   /* A render needs the site's assets, and fetching them is asynchronous while the render is
      not — so they are fetched first and handed in. `renderSite` stays synchronous, which is
@@ -1020,7 +1027,178 @@ export function createApp(o: Options) {
     return c.json({ removed: aid });
   });
 
-  /* -------------------------------------------------------- Connected WordPress v1 */
+  /* -------------------------------------------------------- Manual WordPress import */
+
+  const manualImportBearer = async (c: Context) => {
+    const token = (c.req.header('authorization') || '').match(/^Bearer\s+([^\s]+)$/i)?.[1] || '';
+    return token ? o.auth.manualImportByAccess(hashToken(token)) : null;
+  };
+
+  app.get('/v1/wordpress-import/authorize', async c => {
+    if (!o.connected) return c.json({ error: 'manual import persistence is unavailable' }, 503);
+    const user = await who(c);
+    if (!user) return c.redirect(`/auth?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
+    const q = c.req.query();
+    const installationId = String(q.installation_id || '');
+    const redirectUri = String(q.redirect_uri || '');
+    const codeChallenge = String(q.code_challenge || '');
+    const state = String(q.state || '');
+    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(installationId)
+      || !/^[A-Za-z0-9_-]{43}$/.test(codeChallenge)
+      || !/^[A-Za-z0-9_-]{16,256}$/.test(state)
+      || String(q.code_challenge_method || '') !== 'S256') {
+      return c.json({ error: 'installation, state, and PKCE S256 parameters are required' }, 400);
+    }
+    let redirect: URL;
+    try {
+      redirect = new URL(redirectUri);
+      if ((redirect.protocol !== 'https:' && redirect.hostname !== 'localhost')
+        || redirect.username || redirect.password || redirect.hash) throw new Error();
+    } catch {
+      return c.json({ error: 'redirect_uri must be an absolute HTTPS WordPress admin URL' }, 400);
+    }
+    const projects = (await visibleSites(user)).filter(item => item.role === 'owner');
+    if (!projects.length) return c.json({ error: 'this account owns no Pagecraft projects' }, 403);
+    const csrf = newToken();
+    const consent: ManualImportConsent = {
+      userId: user.id, installationId, redirectUri: redirect.href, codeChallenge, state
+    };
+    await o.connected.putGrant({
+      digest: hashToken(csrf), kind: 'manual-import-consent', siteId: null, connectionId: null,
+      payload: consent as unknown as Record<string, unknown>,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    });
+    return c.html(shell('Connect Pagecraft', `<h1>Let this WordPress site browse your Pagecraft pages?</h1>
+      <p>This grants read-only, manual import access to ${projects.length} ${projects.length === 1 ? 'project' : 'projects'} you own.</p>
+      <div class="ok"><strong>Independent copies only</strong><br><small>No webhooks, polling, background updates, or WordPress password access.</small></div>
+      <form method="post" action="/v1/wordpress-import/authorize">
+        <input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
+        <button type="submit">Approve manual import</button>
+      </form>`));
+  });
+
+  app.post('/v1/wordpress-import/authorize', async c => {
+    if (!o.connected) return c.json({ error: 'manual import persistence is unavailable' }, 503);
+    const user = await who(c);
+    if (!user) return c.json({ error: 'sign in' }, 401);
+    const body = await c.req.parseBody().catch(() => null) as Record<string, unknown> | null;
+    const grant = body?.csrf
+      ? await o.connected.consumeGrant(hashToken(String(body.csrf)), 'manual-import-consent', new Date().toISOString())
+      : null;
+    const consent = grant?.payload as unknown as ManualImportConsent | undefined;
+    if (!consent || consent.userId !== user.id) return c.json({ error: 'consent expired or already used' }, 400);
+    const code = newToken();
+    await o.connected.putGrant({
+      digest: hashToken(code), kind: 'manual-import-code', siteId: null, connectionId: null,
+      payload: consent as unknown as Record<string, unknown>,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    });
+    const redirect = new URL(consent.redirectUri);
+    redirect.searchParams.set('code', code);
+    redirect.searchParams.set('state', consent.state);
+    return c.redirect(redirect.href, 302);
+  });
+
+  app.post('/v1/wordpress-import/token', async c => {
+    if (!o.connected) return c.json({ error: 'manual import persistence is unavailable' }, 503);
+    const body = await c.req.json().catch(() => null) as Record<string, unknown> | null;
+    const grantType = String(body?.grant_type || '');
+    if (grantType === 'authorization_code') {
+      const code = String(body?.code || '');
+      const verifier = String(body?.code_verifier || '');
+      const grant = code
+        ? await o.connected.consumeGrant(hashToken(code), 'manual-import-code', new Date().toISOString()) : null;
+      const consent = grant?.payload as unknown as ManualImportConsent | undefined;
+      const challenge = base64url(new Uint8Array(Buffer.from(hashToken(verifier), 'hex')));
+      if (!consent || consent.redirectUri !== String(body?.redirect_uri || '') || challenge !== consent.codeChallenge) {
+        return c.json({ error: 'invalid_grant' }, 400);
+      }
+      const accessToken = newToken(), refreshToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
+      const credential = await o.auth.createManualImportCredential({
+        id: crypto.randomUUID(), ownerId: consent.userId, installationId: consent.installationId,
+        accessTokenDigest: hashToken(accessToken), accessExpiresAt: expiresAt,
+        refreshTokenDigest: hashToken(refreshToken)
+      });
+      return c.json({
+        token_type: 'Bearer', access_token: accessToken, expires_in: 15 * 60,
+        refresh_token: refreshToken, credential_id: credential.id, scope: 'projects:read packages:read'
+      });
+    }
+    if (grantType === 'refresh_token') {
+      const refreshToken = String(body?.refresh_token || '');
+      const credential = await o.auth.manualImportByRefresh(hashToken(refreshToken));
+      if (!credential) return c.json({ error: 'invalid_grant', reconnect: true }, 401);
+      const accessToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
+      const rotated = await o.auth.rotateManualImportAccess(credential.id, hashToken(accessToken), expiresAt);
+      if (!rotated) return c.json({ error: 'invalid_grant', reconnect: true }, 401);
+      return c.json({ token_type: 'Bearer', access_token: accessToken, expires_in: 15 * 60 });
+    }
+    return c.json({ error: 'unsupported_grant_type' }, 400);
+  });
+
+  app.get('/v1/wordpress-import/projects', async c => {
+    const credential = await manualImportBearer(c);
+    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
+    const memberships = (await o.auth.membershipsForUser(credential.ownerId)).filter(item => item.role === 'owner');
+    const allowedIds = new Set(memberships.map(item => item.siteId));
+    const projects = (await o.store.listMeta()).filter(site => allowedIds.has(site.id)).map(site => ({
+      id: site.id, name: site.name, pageCount: 0, modifiedAt: site.updatedAt, sourceVersion: site.version
+    }));
+    for (const project of projects) {
+      const site = await o.store.byId(project.id);
+      project.pageCount = site?.doc.pages.length || 0;
+    }
+    return c.json({ projects });
+  });
+
+  const manualImportSite = async (credential: { ownerId:string }, siteId: string) => {
+    const membership = await o.auth.membership(siteId, credential.ownerId);
+    return membership?.role === 'owner' ? o.store.byId(siteId) : null;
+  };
+
+  app.get('/v1/wordpress-import/projects/:id/pages', async c => {
+    const credential = await manualImportBearer(c);
+    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
+    const site = await manualImportSite(credential, c.req.param('id'));
+    if (!site) return c.notFound();
+    const base = shareUrl(c, o, site);
+    return c.json({ project: { id: site.id, name: site.name, sourceVersion: site.version }, pages: site.doc.pages.map(page => ({
+      id: page.id, name: page.name || page.title || 'Untitled page', slug: page.slug,
+      previewUrl: new URL(page.slug === 'index' ? './' : `./${page.slug}`, base).href,
+      modifiedAt: site.updatedAt, sourceVersion: site.version
+    })) });
+  });
+
+  app.get('/v1/wordpress-import/projects/:id/pages/:pageId/package', async c => {
+    const credential = await manualImportBearer(c);
+    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
+    const site = await manualImportSite(credential, c.req.param('id'));
+    if (!site) return c.notFound();
+    try {
+      const pageId = c.req.param('pageId');
+      const assetIds = new Set(portableAssetIds(site.doc, pageId));
+      return portableDownload(c, createPagePackage({
+        document: site.doc, pageId, assets: await assetBodiesOf(site.id, assetIds),
+        provenance: {
+          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud', sourceId: site.id,
+          sourceVersion: site.version, exportedBy: credential.ownerId
+        }
+      }));
+    } catch (error) {
+      return c.json({ error: (error as Error).message }, 422);
+    }
+  });
+
+  app.post('/v1/wordpress-import/revoke', async c => {
+    const body = await c.req.json().catch(() => null) as { refresh_token?:string; credential_id?:string } | null;
+    const refreshDigest = hashToken(String(body?.refresh_token || ''));
+    const credential = await o.auth.manualImportByRefresh(refreshDigest);
+    if (!credential || credential.id !== String(body?.credential_id || '')) return c.json({ revoked: true });
+    await o.auth.revokeManualImportCredential(credential.id, refreshDigest);
+    return c.json({ revoked: true });
+  });
+
+  /* -------------------------------------------------------- Retained Connected WordPress checkpoint */
 
   app.get('/v1/oauth/authorize', async c => {
     if (!o.connected) return releaseUnavailable(c);

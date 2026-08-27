@@ -25,7 +25,7 @@ import {
   type Asset, type AssetRecord, type AssetStore
 } from './assets.ts';
 import {
-  AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session
+  AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session, type ManualImportCredential
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -321,7 +321,8 @@ create index if not exists wordpress_webhook_outbox_ready_idx
 
 create table if not exists connected_one_time_grants (
   digest text primary key,
-  kind text not null check (kind in ('oauth-consent', 'editor-code', 'package-download')),
+  kind text not null check (kind in ('oauth-consent', 'editor-code', 'package-download',
+    'manual-import-consent', 'manual-import-code')),
   site_id text references sites (id) on delete cascade,
   connection_id text references wordpress_connections (id) on delete cascade,
   payload jsonb not null,
@@ -1798,6 +1799,59 @@ export class PgAuthStore implements AuthStore {
     const { rows } = await this.db.query<{ user_id: string }>(
       'delete from site_users where site_id = $1 and user_id = $2 returning user_id', [siteId, userId]);
     return rows.length > 0;
+  }
+  async createManualImportCredential(input: Omit<ManualImportCredential,
+    'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {
+    const { rows } = await this.db.query<{
+      id:string; owner_id:string; installation_id:string; access_token_digest:string;
+      access_expires_at:Date|string; refresh_token_digest:string; status:'active'|'revoked';
+      created_at:Date|string; updated_at:Date|string; revoked_at:Date|string|null;
+    }>(`insert into wordpress_import_credentials (
+        id, owner_id, installation_id, access_token_digest, access_expires_at, refresh_token_digest
+      ) values ($1, $2, $3, $4, $5, $6)
+      on conflict (owner_id, installation_id) do update set
+        access_token_digest = excluded.access_token_digest,
+        access_expires_at = excluded.access_expires_at,
+        refresh_token_digest = excluded.refresh_token_digest,
+        status = 'active', revoked_at = null, updated_at = now()
+      returning *`, [
+      input.id, input.ownerId, input.installationId, input.accessTokenDigest,
+      new Date(input.accessExpiresAt).toISOString(), input.refreshTokenDigest
+    ]);
+    return this.manualCredential(rows[0]);
+  }
+  async manualImportByAccess(digest: string) {
+    const { rows } = await this.db.query<any>(
+      `select * from wordpress_import_credentials
+       where access_token_digest = $1 and status = 'active' and access_expires_at > now() limit 1`, [digest]);
+    return rows[0] ? this.manualCredential(rows[0]) : null;
+  }
+  async manualImportByRefresh(digest: string) {
+    const { rows } = await this.db.query<any>(
+      `select * from wordpress_import_credentials
+       where refresh_token_digest = $1 and status = 'active' limit 1`, [digest]);
+    return rows[0] ? this.manualCredential(rows[0]) : null;
+  }
+  async rotateManualImportAccess(id: string, digest: string, expiresAt: number) {
+    const { rows } = await this.db.query<any>(
+      `update wordpress_import_credentials set access_token_digest = $2, access_expires_at = $3, updated_at = now()
+       where id = $1 and status = 'active' returning *`, [id, digest, new Date(expiresAt).toISOString()]);
+    return rows[0] ? this.manualCredential(rows[0]) : null;
+  }
+  async revokeManualImportCredential(id: string, refreshDigest: string) {
+    const { rows } = await this.db.query<{ id:string }>(
+      `update wordpress_import_credentials set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+       where id = $1 and refresh_token_digest = $2 returning id`, [id, refreshDigest]);
+    return rows.length > 0;
+  }
+  private manualCredential(row: any): ManualImportCredential {
+    return {
+      id: row.id, ownerId: row.owner_id, installationId: row.installation_id,
+      accessTokenDigest: row.access_token_digest, accessExpiresAt: ms(row.access_expires_at),
+      refreshTokenDigest: row.refresh_token_digest, status: row.status,
+      createdAt: ms(row.created_at), updatedAt: ms(row.updated_at),
+      revokedAt: row.revoked_at ? ms(row.revoked_at) : null
+    };
   }
   /** Sessions a revoked person still holds are harmless — access is checked per request
       against `site_users`, so a membership that is gone is access that is gone. */

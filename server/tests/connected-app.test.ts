@@ -13,6 +13,7 @@ import {
   base64url, buildKeysetEnvelope, decodeReleaseManifest, parseReleaseArtifact, sha256
 } from '../src/releases.ts';
 import { assetFile, N } from '../../app/src/core/index.ts';
+import { validatePortablePackage } from '../src/portable-packages.ts';
 
 const privateKey = (value: string) => createPrivateKey({
   key: Buffer.from(value, 'base64url'), format: 'der', type: 'pkcs8'
@@ -93,6 +94,67 @@ const connection = (siteId: string, ownerId: string, environment: 'staging' | 'p
   refreshTokenDigest: hashToken(`refresh-${environment}`), desiredReleaseId: null,
   pendingReleaseId: null, nextSequence: 1, lastAcknowledgedSequence: 0,
   activeReleaseId: null, activeHash: null
+});
+
+test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and action-only', async () => {
+  const { site, first, second, admin, request } = await rig();
+  const verifier = 'm'.repeat(64);
+  const challenge = base64url(Buffer.from(hashToken(verifier), 'hex'));
+  const callback = 'https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback';
+  const query = new URLSearchParams({
+    installation_id: 'wordpress-manual-import-1', redirect_uri: callback,
+    code_challenge: challenge, code_challenge_method: 'S256', state: 'manual-import-state-0001'
+  });
+  const consent = await admin(first, `/v1/wordpress-import/authorize?${query}`);
+  a.equal(consent.status, 200);
+  a.match(await consent.clone().text(), /No webhooks, polling, background updates/);
+  const csrf = (await consent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
+  a.ok(csrf);
+  const approved = await admin(second, '/v1/wordpress-import/authorize', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ csrf: csrf! })
+  });
+  a.equal(approved.status, 302);
+  const code = new URL(approved.headers.get('location')!).searchParams.get('code')!;
+  const tokenResponse = await request(first, '/v1/wordpress-import/token', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ grant_type: 'authorization_code', code, code_verifier: verifier, redirect_uri: callback })
+  });
+  a.equal(tokenResponse.status, 200, await tokenResponse.clone().text());
+  const tokens = await tokenResponse.json() as {
+    access_token:string; refresh_token:string; credential_id:string;
+  };
+  const bearer = { authorization: `Bearer ${tokens.access_token}` };
+  const projectsResponse = await request(second, '/v1/wordpress-import/projects', { headers: bearer });
+  a.equal(projectsResponse.status, 200);
+  const projects = await projectsResponse.json() as { projects:Array<{id:string;pageCount:number}> };
+  a.deepEqual(projects.projects.map(item => item.id), [site.id]);
+  a.ok(projects.projects[0].pageCount > 0);
+  const pagesResponse = await request(first, `/v1/wordpress-import/projects/${site.id}/pages`, { headers: bearer });
+  a.equal(pagesResponse.status, 200);
+  const pages = await pagesResponse.json() as { pages:Array<{id:string;previewUrl:string}> };
+  a.ok(pages.pages.length > 0);
+  a.match(pages.pages[0].previewUrl, /^http:\/\//);
+  const packageResponse = await request(first,
+    `/v1/wordpress-import/projects/${site.id}/pages/${pages.pages[0].id}/package`, { headers: bearer });
+  a.equal(packageResponse.status, 200, await packageResponse.clone().text());
+  a.equal(validatePortablePackage(new Uint8Array(await packageResponse.arrayBuffer())).manifest.kind, 'page');
+
+  const refreshed = await request(second, '/v1/wordpress-import/token', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
+  });
+  a.equal(refreshed.status, 200);
+  const revoked = await request(first, '/v1/wordpress-import/revoke', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ credential_id: tokens.credential_id, refresh_token: tokens.refresh_token })
+  });
+  a.equal(revoked.status, 200);
+  const afterRevoke = await request(second, '/v1/wordpress-import/token', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
+  });
+  a.equal(afterRevoke.status, 401);
 });
 
 test('OAuth consent and one-time editor SSO work across app workers and reject replay/demotion', async () => {
