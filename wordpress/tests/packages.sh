@@ -60,3 +60,13 @@ if unzip -p "${builder}" pagecraft-builder/uninstall.php | grep -Eq 'wp_delete_p
 fi
 
 echo 'Native Pagecraft Builder and Theme package inputs are deterministic and production-shaped.'
+
+release_one="${PACKAGE_TEMP}/release-one"
+release_two="${PACKAGE_TEMP}/release-two"
+bash "${WORDPRESS_DIR}/tools/build-release-candidate.sh" 0.2.0 "${release_one}" >/dev/null
+bash "${WORDPRESS_DIR}/tools/build-release-candidate.sh" 0.2.0 "${release_two}" >/dev/null
+diff -ru "${release_one}" "${release_two}" >/dev/null
+(cd "${release_one}" && shasum -a 256 -c SHA256SUMS >/dev/null)
+grep -Fq 'hosted WordPress desktop/mobile acceptance' "${release_one}/RELEASE-NOTES.md"
+
+echo 'Release-candidate archives, manifest, notes, and checksums are deterministic.'

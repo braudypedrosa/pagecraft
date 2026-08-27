@@ -16,6 +16,17 @@ dist/next
 # Signed WordPress release archives are built locally and served privately.
 wordpress/build/
 
+# LocalWP sites belong in ~/Local Sites, never inside this repository. These
+# root-only rules prevent an accidental WordPress core install from being added
+# while keeping wordpress/pagecraft-builder and wordpress/pagecraft-theme tracked.
+/local-wordpress/
+/wordpress-site/
+/wp-admin/
+/wp-content/
+/wp-includes/
+/wp-*.php
+/xmlrpc.php
+
 # Supabase CLI version and runtime scratch files are machine-local.
 supabase/.temp/
 
