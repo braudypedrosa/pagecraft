@@ -23,6 +23,18 @@ In the Pagecraft Supabase project:
 6. Set the minimum password length to 12. Enable leaked-password protection when the project plan
    exposes it.
 
+## Google sign-in
+
+Create a Google Cloud OAuth 2.0 Web application for Pagecraft, then enable the Google provider under
+Supabase Auth Providers. Use `https://build.itspagecraft.com` as the authorized JavaScript origin
+and use the Supabase callback URL shown on the Google provider settings page as the authorized
+redirect URI (normally `https://<project-ref>.supabase.co/auth/v1/callback`). Store the Google client
+ID and secret only in Supabase. Do not add either credential to Pagecraft's environment or repository.
+
+Keep the application callback URLs listed above. After Google completes its Supabase callback,
+Supabase sends the browser to `/auth/confirm`; Pagecraft exchanges the PKCE code server-side,
+provisions the verified local profile, and returns the user to their safe local destination.
+
 Never put the service-role key in the Pagecraft application. The server needs only the project URL
 and publishable key for Auth; database access continues through the private fixed-operation gateway.
 

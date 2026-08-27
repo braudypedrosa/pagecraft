@@ -97,6 +97,8 @@ rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' app/src/host/ \
   itspagecraft-host:/home/itspbuku/pagecraft-app/app/src/host/
 rsync -az --delete -e 'ssh -F .pagecraft-local/ssh-config' app/src/package/ \
   itspagecraft-host:/home/itspbuku/pagecraft-app/app/src/package/
+rsync -az -e 'ssh -F .pagecraft-local/ssh-config' brand/logo/pagecraft-logo-primary-dark.svg \
+  itspagecraft-host:/home/itspbuku/pagecraft-app/brand/logo/
 rsync -az -e 'ssh -F .pagecraft-local/ssh-config' app.cjs index.html package.json package-lock.json \
   itspagecraft-host:/home/itspbuku/pagecraft-app/
 

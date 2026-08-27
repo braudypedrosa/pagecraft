@@ -18,7 +18,12 @@ const doc = () => {
 class FakeAccountAuth implements AccountAuth {
   current: VerifiedIdentity | null = null;
   signup: { email: string; name: string; captchaToken: string } | null = null;
+  oauthRedirectTo: string | null = null;
   async identity(_c: Context) { return this.current; }
+  async oauth(_c: Context, input: { provider: 'google'; redirectTo: string }) {
+    this.oauthRedirectTo = input.redirectTo;
+    return 'https://accounts.example.test/google';
+  }
   async signUp(_c: Context, input: { email: string; password: string; name: string; captchaToken: string }) {
     this.signup = { email: input.email, name: input.name, captchaToken: input.captchaToken };
     return 'confirmation_required' as const;
@@ -48,6 +53,10 @@ const rig = () => {
 
 test('anonymous visitors are sent to sign in and a verified identity always sees the dashboard', async () => {
   const { request, accountAuth } = rig();
+  const root = await request('/');
+  a.equal(root.status, 302);
+  a.equal(root.headers.get('location'), '/sign-in');
+
   const anonymous = await request('/edit/unknown');
   a.equal(anonymous.status, 302);
   a.equal(anonymous.headers.get('location'), '/sign-in?next=%2Fedit%2Funknown');
@@ -58,6 +67,42 @@ test('anonymous visitors are sent to sign in and a verified identity always sees
   const html = await dashboard.text();
   a.match(html, /Your sites/);
   a.match(html, /Start your first site/);
+});
+
+test('sign in offers Google and email, links to registration, and uses the Pagecraft logo', async () => {
+  const { request } = rig();
+  const response = await request('/sign-in');
+  a.equal(response.status, 200);
+  const html = await response.text();
+  a.match(html, /Continue with Google/);
+  a.match(html, /action="\/auth\/login"/);
+  a.match(html, /href="\/sign-up"/);
+  a.match(html, /src="\/brand\/pagecraft-logo\.svg"/);
+
+  const logo = await request('/brand/pagecraft-logo.svg');
+  a.equal(logo.status, 200);
+  a.match(logo.headers.get('content-type') || '', /image\/svg\+xml/);
+  a.match(await logo.text(), /<svg/);
+});
+
+test('Google sign in uses the Supabase PKCE callback and preserves only a safe local destination', async () => {
+  const { request, accountAuth, auth } = rig();
+  const start = await request('/auth/google', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ next: '/edit/site-1' })
+  });
+  a.equal(start.status, 303);
+  a.equal(start.headers.get('location'), 'https://accounts.example.test/google');
+  a.equal(accountAuth.oauthRedirectTo, 'http://admin.test/auth/confirm?next=%2Fedit%2Fsite-1');
+
+  accountAuth.current = { authUserId: 'google-auth-1', email: 'google@example.test', name: 'Google Builder' };
+  const callback = await request('/auth/confirm?code=valid&next=%2Fedit%2Fsite-1');
+  a.equal(callback.status, 303);
+  a.equal(callback.headers.get('location'), '/edit/site-1');
+  a.ok(await auth.userByEmail('google@example.test'));
+
+  const unsafe = await request('/auth/confirm?code=valid&next=https%3A%2F%2Fevil.test');
+  a.equal(unsafe.headers.get('location'), '/');
 });
 
 test('signup validates a human challenge and does not provision an unconfirmed profile', async () => {

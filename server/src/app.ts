@@ -14,6 +14,7 @@
    `app.ts` takes its stores and its editor file as arguments. That is what makes it testable
    without a database or a build — `index.ts` is the part that reads the environment. */
 import { Hono, type Context } from 'hono';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { bodyLimit } from 'hono/body-limit';
 import { cmsItemKey, validHost, validSlug, type Site, type Store } from './store.ts';
@@ -149,6 +150,9 @@ export function createApp(o: Options) {
   app.use('/sign-in', editorOnly);
   app.use('/forgot-password', editorOnly);
   app.use('/reset-password', editorOnly);
+  app.get('/brand/pagecraft-logo.svg', editorOnly, serveStatic({
+    path: './brand/logo/pagecraft-logo-primary-dark.svg'
+  }));
   app.use('/api/*', bodyLimit({
     maxSize: 16 * 1024 * 1024,
     onError: c => c.json({ error: 'request is too large' }, 413)
@@ -654,14 +658,28 @@ export function createApp(o: Options) {
       return c.redirect(next, 303);
     });
 
+    app.post('/auth/google', bodyLimit({ maxSize: 4 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
+      const body = await form(c);
+      const next = safeNext(body.next);
+      if (!authSourceLimit.take(source(c))) {
+        return c.redirect(`/sign-in?error=oauth&next=${encodeURIComponent(next)}`, 303);
+      }
+      const origin = o.editorOrigin || new URL(c.req.url).origin;
+      const redirectTo = `${origin}/auth/confirm?next=${encodeURIComponent(next)}`;
+      const url = await o.accountAuth!.oauth(c, { provider: 'google', redirectTo });
+      return url ? c.redirect(url, 303)
+        : c.redirect(`/sign-in?error=oauth&next=${encodeURIComponent(next)}`, 303);
+    });
+
     app.get('/auth/confirm', async c => {
       const type = c.req.query('type');
+      const next = safeNext(c.req.query('next'));
       const identity = await o.accountAuth!.confirm(c, {
         code: c.req.query('code'), tokenHash: c.req.query('token_hash'), type
       });
       if (!identity) return c.redirect('/sign-in?error=expired', 303);
       await o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
-      return c.redirect(type === 'recovery' ? '/reset-password' : '/', 303);
+      return c.redirect(type === 'recovery' ? '/reset-password' : next, 303);
     });
 
     app.post('/auth/forgot-password', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {

@@ -12,6 +12,7 @@ export interface VerifiedIdentity {
 
 export interface AccountAuth {
   identity(c: Context): Promise<VerifiedIdentity | null>;
+  oauth(c: Context, input: { provider: 'google'; redirectTo: string }): Promise<string | null>;
   signUp(c: Context, input: { email: string; password: string; name: string; redirectTo: string; captchaToken: string }): Promise<'confirmation_required' | 'exists'>;
   signIn(c: Context, input: { email: string; password: string; captchaToken: string }): Promise<VerifiedIdentity | null>;
   confirm(c: Context, input: { code?: string; tokenHash?: string; type?: string }): Promise<VerifiedIdentity | null>;
@@ -29,7 +30,9 @@ export interface SupabaseAccountAuthOptions {
 
 const verified = (user: User | null): VerifiedIdentity | null => {
   if (!user?.id || !user.email || !user.email_confirmed_at) return null;
-  const name = typeof user.user_metadata?.name === 'string' ? user.user_metadata.name.trim().slice(0, 120) : '';
+  const metadataName = typeof user.user_metadata?.name === 'string' ? user.user_metadata.name
+    : typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : '';
+  const name = metadataName.trim().slice(0, 120);
   return { authUserId: user.id, email: normalEmail(user.email), name };
 };
 
@@ -82,6 +85,14 @@ export class SupabaseAccountAuth implements AccountAuth {
        Keep Pagecraft's response non-enumerating in both cases. */
     if (error || !data.user || data.user.identities?.length === 0) return 'exists' as const;
     return 'confirmation_required' as const;
+  }
+
+  async oauth(c: Context, input: { provider: 'google'; redirectTo: string }) {
+    const { data, error } = await this.client(c).auth.signInWithOAuth({
+      provider: input.provider,
+      options: { redirectTo: input.redirectTo }
+    });
+    return error ? null : data.url;
   }
 
   async signIn(c: Context, input: { email: string; password: string; captchaToken: string }) {
