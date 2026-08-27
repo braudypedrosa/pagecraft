@@ -182,6 +182,12 @@ pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['rest_api_init'])
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['admin_menu']), 'Pagecraft top-level admin menu was not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['wp_ajax_pagecraft_editor_frame']), 'Secure editor frame was not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['admin_post_pagecraft_add_page_to_menu']), 'Explicit Add to menu action was not registered.');
+foreach (['start', 'callback', 'disconnect', 'import'] as $cloudAction) {
+    pagecraft_test_assert(
+        isset($GLOBALS['pagecraft_test_actions']['admin_post_pagecraft_cloud_' . $cloudAction]),
+        'Manual cloud ' . $cloudAction . ' action was not registered.'
+    );
+}
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['filter:page_row_actions']), 'Native Pages row actions were not registered.');
 pagecraft_test_assert(isset($GLOBALS['pagecraft_test_actions']['filter:pre_delete_attachment']), 'Referenced Media Library protection was not registered.');
 $documentRoute = $GLOBALS['pagecraft_test_routes']['pagecraft/v1/pages/(?P<id>\d+)/document'] ?? null;

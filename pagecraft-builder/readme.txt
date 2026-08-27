@@ -24,7 +24,7 @@ Pagecraft navigation becomes native WordPress menu data assigned to the Pagecraf
 
 Package images are hash-verified, type-checked, deduplicated by content, and registered as native WordPress Media Library attachments. The importer preserves image dimensions, alt text, captions, and WordPress responsive image sources; it rewrites editable documents, compiled markup, and generated styles to local attachment URLs. Imported pages and revision-backed global elements retain explicit attachment relationships, and referenced attachments cannot be deleted while a current record or recoverable revision still needs them.
 
-Optional manual cloud import continues through its tracked WordPress v1 milestone.
+The optional account connection is read-only, revocable, and manual-import-only. WordPress uses OAuth-style authorization with PKCE, stores its refresh credential encrypted with WordPress salts, and receives short-lived access tokens. Administrators can browse owned projects, page previews, versions, and modification dates, then deliberately import a new draft, publish a new page, or explicitly replace an earlier copy with a WordPress revision. Disconnecting removes the local credential and leaves every imported page, menu, attachment, and generated file intact.
 
 Pagecraft Builder does not run background synchronization, deployment promotion, webhooks, CMS write-back, or remote release activation.
 
