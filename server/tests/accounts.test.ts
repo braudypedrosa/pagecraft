@@ -77,6 +77,8 @@ test('sign in offers Google and email, links to registration, and uses the Pagec
   a.match(html, /Continue with Google/);
   a.match(html, /action="\/auth\/login"/);
   a.match(html, /href="\/sign-up"/);
+  a.match(html, /href="\/privacy"/);
+  a.match(html, /href="\/terms"/);
   a.match(html, /src="\/brand\/pagecraft-logo\.svg\?v=dark-2"/);
   a.match(html, /data-theme="dark"/);
   a.match(html, /rel="icon" type="image\/svg\+xml" href="\/brand\/pagecraft-favicon\.svg"/);
@@ -92,6 +94,23 @@ test('sign in offers Google and email, links to registration, and uses the Pagec
   a.equal(favicon.status, 200);
   a.match(favicon.headers.get('content-type') || '', /image\/svg\+xml/);
   a.match(await favicon.text(), /Pagecraft favicon/);
+});
+
+test('privacy and terms are public on the editor host', async () => {
+  const { request } = rig();
+  const privacy = await request('/privacy');
+  a.equal(privacy.status, 200);
+  const privacyHtml = await privacy.text();
+  a.match(privacyHtml, /Privacy Policy/);
+  a.match(privacyHtml, /Braudy Pedrosa/);
+  a.match(privacyHtml, /hello@braudyp\.dev/);
+  a.match(privacyHtml, /Supabase/);
+
+  const terms = await request('/terms');
+  a.equal(terms.status, 200);
+  const termsHtml = await terms.text();
+  a.match(termsHtml, /Terms of Service/);
+  a.match(termsHtml, /laws of the Philippines/);
 });
 
 test('Google sign in uses the Supabase PKCE callback and preserves only a safe local destination', async () => {

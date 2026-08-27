@@ -54,7 +54,8 @@ import type { AccountAuth } from './account-auth.ts';
 import type { HumanChallenge } from './turnstile.ts';
 import type { OwnedSiteStore } from './accounts.ts';
 import {
-  dashboardPage, forgotPage, resetPage, signInPage as accountSignInPage, signUpPage
+  dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
+  signUpPage, termsPage
 } from './account-pages.ts';
 
 export const SESSION_COOKIE = 'pc_session';
@@ -150,6 +151,8 @@ export function createApp(o: Options) {
   app.use('/sign-in', editorOnly);
   app.use('/forgot-password', editorOnly);
   app.use('/reset-password', editorOnly);
+  app.use('/privacy', editorOnly);
+  app.use('/terms', editorOnly);
   app.get('/brand/pagecraft-logo.svg', editorOnly, serveStatic({
     path: './brand/logo/pagecraft-logo-primary-dark.svg'
   }));
@@ -544,6 +547,8 @@ export function createApp(o: Options) {
      mail, which is the point. */
   const limit = o.loginLimit || throttle();
   const sourceLimit = throttle(30, 15 * 60 * 1000, 5000);
+  app.get('/privacy', c => c.html(privacyPage()));
+  app.get('/terms', c => c.html(termsPage()));
   if (!o.accountAuth) app.post('/auth/login', bodyLimit({
     maxSize: 8 * 1024,
     onError: c => c.json({ error: 'request is too large' }, 413)
