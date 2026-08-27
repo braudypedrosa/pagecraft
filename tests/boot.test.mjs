@@ -102,6 +102,7 @@ test('server mode separates draft saving from explicit release publication', asy
   const base = await boot();
   const server = {
     siteId: 'site-release', version: 7, publishedVersion: 5, role: 'owner',
+    user: { id: 'user-1', name: 'Braudy Pedrosa', email: 'braudy@example.test' },
     editorSessionToken: 'scoped-editor-session',
     doc: base.window.__CORE.clone(base.window.__CORE.doc())
   };
@@ -156,6 +157,13 @@ test('server mode separates draft saving from explicit release publication', asy
   }
   if (doc.querySelector('#savedTag').textContent === '—') dom.window.bindTop();
   a.equal(doc.querySelector('#publishLabel').textContent.trim(), 'Publish');
+  a.equal(doc.querySelector('[data-act="project"] span').textContent.trim(), 'Settings');
+  a.equal(doc.querySelector('#accountBtn').hidden, false);
+  a.equal(doc.querySelector('#accountInitials').textContent.trim(), 'BP');
+  doc.querySelector('#accountBtn').click();
+  a.equal(doc.querySelector('#accountPop').hidden, false);
+  a.equal(doc.querySelector('#accountEmail').textContent.trim(), 'braudy@example.test');
+  a.match(doc.querySelector('#accountPop').textContent, /Sign out/);
   doc.querySelector('#exportBtn').click();
   await new Promise(r => setTimeout(r, 0));
   a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Publish');

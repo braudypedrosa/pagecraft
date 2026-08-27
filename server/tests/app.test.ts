@@ -331,7 +331,7 @@ test('a signed-in person with no sites is offered one, not a dead end', async ()
 });
 
 test('the editor arrives with the document already in the page', async () => {
-  const { admin, signIn, site } = await rig();
+  const { admin, signIn, site, user } = await rig();
   const { cookie } = await signIn();
   const res = await admin(`/edit/${site.id}`, {}, cookie);
   a.equal(res.status, 200);
@@ -347,6 +347,7 @@ test('the editor arrives with the document already in the page', async () => {
   a.equal(config.siteId, site.id);
   a.equal(config.version, 1);
   a.equal(config.role, 'owner');
+  a.deepEqual(config.user, { id: user.id, name: 'Client', email: 'client@acme.test' });
   a.equal(config.host, 'acme.test');
   a.ok(config.doc.pages.length >= 1, 'the document itself, so load() stays synchronous');
 });

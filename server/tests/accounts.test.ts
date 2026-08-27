@@ -72,6 +72,9 @@ test('anonymous visitors are sent to sign in and a verified identity always sees
   a.match(html, /height:52px/);
   a.match(html, /width:62px/);
   a.match(html, /@media\(max-width:520px\).*\.pc-rail\{width:52px/);
+  a.doesNotMatch(html, /data-site-view="recent"/);
+  a.doesNotMatch(html, /class="pc-rail-account"/);
+  a.doesNotMatch(html, /data-account-open/);
 });
 
 test('dashboard renders searchable builder-style site cards and the owner quota', async () => {
@@ -96,6 +99,9 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, />View site<\/a>/);
   a.match(html, />Owner<\/div>/);
   a.match(html, /2 sites remaining/);
+  a.match(html, />Add new site<\/a>/);
+  a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
+  a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
 });
 
 test('sign in offers Google and email, links to registration, and uses the Pagecraft logo', async () => {

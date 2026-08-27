@@ -793,7 +793,9 @@ export function createApp(o: Options) {
       schemaVersion: site.doc.schemaVersion,
       connectedApiBase: '/v1',
       connectedPublishingAvailable: releaseReady(),
-      role: gate.role, doc: site.doc,
+      role: gate.role,
+      user: { id: gate.user.id, name: gate.user.name, email: gate.user.email },
+      doc: site.doc,
       wordpressContent: await wordpressContentForSite(site.id)
     };
     return c.html(inject(o.editorHtml, config));
