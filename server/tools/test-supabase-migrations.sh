@@ -24,7 +24,17 @@ for migration_attempt in $(seq 1 60); do
 done
 docker exec "$migration_container" pg_isready --username postgres --dbname pagecraft >/dev/null
 docker exec "$migration_container" psql --username postgres --dbname pagecraft \
-  --set ON_ERROR_STOP=1 --command 'create role anon nologin; create role authenticated nologin;' >/dev/null
+  --set ON_ERROR_STOP=1 --command '
+    create role anon nologin;
+    create role authenticated nologin;
+    create schema storage;
+    create table storage.buckets (
+      id text primary key,
+      name text not null unique,
+      public boolean not null default false,
+      file_size_limit bigint,
+      allowed_mime_types text[]
+    );' >/dev/null
 
 for migration_file in supabase/migrations/*.sql; do
   docker exec --interactive "$migration_container" psql --username postgres --dbname pagecraft \

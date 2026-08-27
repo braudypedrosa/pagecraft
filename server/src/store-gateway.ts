@@ -5,7 +5,10 @@
    project's server-side Data API client. Keeping the Store interfaces unchanged means the
    editor, auth, rendering, and asset routes do not know or care which transport is in use. */
 import type { Doc } from '../../app/src/core/types.ts';
-import { MAX_BYTES, type Asset, type AssetRecord, type AssetStore } from './assets.ts';
+import {
+  AssetQuotaError, FREE_STORAGE_BYTES, MAX_BYTES,
+  type Asset, type AssetQuota, type AssetRecord, type AssetStore
+} from './assets.ts';
 import {
   normalEmail, type AuthStore, type ManualImportCredential, type Membership, type Role, type Session, type User
 } from './auth.ts';
@@ -621,18 +624,30 @@ export class GatewayConnectedStore implements ConnectedStore {
 
 interface AssetMetaWire {
   id: string; site_id: string; name: string; type: string; w: number; h: number;
+  owner_id?: string | null; stored_bytes?: number | string | null;
+  original_bytes?: number | string | null; content_hash?: string | null; optimized?: boolean;
 }
 interface AssetWire extends AssetMetaWire {
   bytes: string;
 }
 
 const toAssetRecord = (row: AssetMetaWire): AssetRecord => ({
-  id: row.id, siteId: row.site_id, name: row.name, type: row.type, w: row.w, h: row.h
+  id: row.id, siteId: row.site_id, name: row.name, type: row.type, w: row.w, h: row.h,
+  ownerId: row.owner_id || undefined,
+  storedBytes: row.stored_bytes == null ? undefined : Number(row.stored_bytes),
+  originalBytes: row.original_bytes == null ? undefined : Number(row.original_bytes),
+  contentHash: row.content_hash || undefined,
+  optimized: row.optimized
 });
 
 const toAsset = (row: AssetWire): Asset => ({
   id: row.id, siteId: row.site_id, name: row.name, type: row.type,
-  w: row.w, h: row.h, bytes: new Uint8Array(Buffer.from(row.bytes, 'base64'))
+  w: row.w, h: row.h, bytes: new Uint8Array(Buffer.from(row.bytes, 'base64')),
+  ownerId: row.owner_id || undefined,
+  storedBytes: row.stored_bytes == null ? undefined : Number(row.stored_bytes),
+  originalBytes: row.original_bytes == null ? undefined : Number(row.original_bytes),
+  contentHash: row.content_hash || undefined,
+  optimized: row.optimized
 });
 
 export class GatewayAssetStore implements AssetStore {
@@ -650,7 +665,7 @@ export class GatewayAssetStore implements AssetStore {
     const row = await this.gateway.call<AssetWire | null>('asset.byPath', { siteId, path });
     return row ? toAsset(row) : null;
   }
-  async put(asset: Omit<Asset, 'id'> & { id?: string }) {
+  async put(asset: Omit<Asset, 'id'> & { id?: string }, quota?: AssetQuota) {
     if (asset.bytes.byteLength > MAX_BYTES) {
       throw new RangeError(`asset exceeds the ${MAX_BYTES}-byte limit`);
     }
@@ -660,17 +675,27 @@ export class GatewayAssetStore implements AssetStore {
       await Promise.all(split.chunks.slice(start, start + 4).map(chunk =>
         this.gateway.call('asset.blob.putChunk', { blob: split.descriptor, chunk })));
     }
-    const row = await this.gateway.call<AssetMetaWire>('asset.putBlob', {
-      asset: {
-        id, siteId: asset.siteId, name: asset.name, type: asset.type,
-        w: asset.w, h: asset.h, blob: split.descriptor
+    try {
+      const row = await this.gateway.call<AssetMetaWire>('asset.putBlob', {
+        asset: {
+          id, siteId: asset.siteId, name: asset.name, type: asset.type,
+          w: asset.w, h: asset.h, blob: split.descriptor,
+          ownerId: quota?.ownerId, limitBytes: quota?.limitBytes,
+          originalBytes: quota?.originalBytes, optimized: quota?.optimized,
+          contentHash: asset.contentHash
+        }
+      });
+      return toAssetRecord(row);
+    } catch (error) {
+      if (error instanceof GatewayError && error.code === 'STORAGE_LIMIT' && quota) {
+        throw new AssetQuotaError(await this.usage(quota.ownerId, quota.limitBytes));
       }
-    });
-    return toAssetRecord(row);
+      throw error;
+    }
   }
   async putConnected(
     asset: Omit<Asset, 'id'> & { id: string }, connectionId: string,
-    _active?: () => Promise<boolean>
+    _active?: () => Promise<boolean>, quota?: AssetQuota
   ) {
     if (asset.bytes.byteLength > MAX_BYTES) {
       throw new RangeError(`asset exceeds the ${MAX_BYTES}-byte limit`);
@@ -680,17 +705,31 @@ export class GatewayAssetStore implements AssetStore {
       await Promise.all(split.chunks.slice(start, start + 4).map(chunk =>
         this.gateway.call('asset.blob.putChunk', { blob: split.descriptor, chunk })));
     }
-    const row = await this.gateway.call<AssetMetaWire | null>('asset.putBlobConnected', {
-      connectionId,
-      asset: {
-        id: asset.id, siteId: asset.siteId, name: asset.name, type: asset.type,
-        w: asset.w, h: asset.h, blob: split.descriptor
+    try {
+      const row = await this.gateway.call<AssetMetaWire | null>('asset.putBlobConnected', {
+        connectionId,
+        asset: {
+          id: asset.id, siteId: asset.siteId, name: asset.name, type: asset.type,
+          w: asset.w, h: asset.h, blob: split.descriptor,
+          ownerId: quota?.ownerId, limitBytes: quota?.limitBytes,
+          originalBytes: quota?.originalBytes, optimized: quota?.optimized,
+          contentHash: asset.contentHash
+        }
+      });
+      return row ? toAssetRecord(row) : null;
+    } catch (error) {
+      if (error instanceof GatewayError && error.code === 'STORAGE_LIMIT' && quota) {
+        throw new AssetQuotaError(await this.usage(quota.ownerId, quota.limitBytes));
       }
-    });
-    return row ? toAssetRecord(row) : null;
+      throw error;
+    }
   }
   async remove(siteId: string, id: string) {
     return this.gateway.call<boolean>('asset.remove', { siteId, id });
+  }
+  async usage(ownerId: string, limitBytes = FREE_STORAGE_BYTES) {
+    const usedBytes = await this.gateway.call<number>('asset.usage', { ownerId });
+    return { usedBytes: Number(usedBytes || 0), limitBytes };
   }
 }
 

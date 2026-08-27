@@ -2034,7 +2034,7 @@ async function assetAddServer(file) {
     meta = await HOST.assets.upload(file, file.name);
   } catch (e) {
     const why = e && e.payload;
-    toast((why && why.error) || (e && e.status
+    toast((why && (why.detail || why.error)) || (e && e.status
       ? `The server refused the image (${e.status})`
       : 'The upload did not reach the server'));
     return null;
@@ -3433,7 +3433,7 @@ async function mediaTake(file) {
   if (!id) return null;
   const got = AS.mem.get(id);
   writeNow();
-  toast(`${file.name} — ${kb(file.size)}${got && got.w ? `, ${got.w} × ${got.h}` : ''}`);
+  toast(`${file.name} — ${kb(got && got.size || file.size)} optimized${got && got.w ? `, ${got.w} × ${got.h}` : ''}`);
   return id;
 }
 function mediaChooseFiles(after) {

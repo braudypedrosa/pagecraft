@@ -1818,10 +1818,14 @@ test('production CMS media upload is exact, scoped, idempotent, and usable only 
   };
   a.equal(media.reference, `asset:${media.assetId}`);
   a.equal(media.hash, sha256(png));
-  a.equal(media.bytes, png.byteLength);
-  a.equal(media.mime, 'image/png');
+  const stored = await assets.get(site.id, media.assetId);
+  a.ok(stored);
+  a.equal(media.bytes, stored.bytes.byteLength);
+  a.equal(media.mime, 'image/webp');
   a.equal(media.duplicate, false);
-  a.deepEqual((await assets.get(site.id, media.assetId))?.bytes, png);
+  a.equal(stored.type, 'image/webp');
+  a.equal(stored.contentHash, sha256(png), 'source identity is metadata; source bytes are discarded');
+  a.notDeepEqual(stored.bytes, png);
 
   const replay = await upload('cms-media-token', 'cms-media-upload-0001', png);
   a.equal(replay.status, 200, await replay.clone().text());

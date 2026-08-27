@@ -104,7 +104,7 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, />View site<\/a>/);
   a.match(html, />Owner<\/div>/);
   a.match(html, /2 sites remaining/);
-  a.match(html, /1 of 3 owned sites used/);
+  a.match(html, /1 of 3 owned sites · 0 KB of 100 MB media used/);
   a.match(html, /data-site-view="owned"/);
   a.match(html, /data-filter-empty/);
   a.match(html, /No sites match your search/);

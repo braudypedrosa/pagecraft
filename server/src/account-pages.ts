@@ -131,6 +131,10 @@ export const termsPage = () => legalShell('Terms of Service',
 export interface DashboardSite {
   id: string; name: string; url: string; role: Role; updatedAt: string; published: boolean;
 }
+export interface DashboardStorage { usedBytes: number; limitBytes: number }
+const mediaSize = (bytes: number) => bytes >= 1024 * 1024
+  ? `${new Intl.NumberFormat('en', { maximumFractionDigits: bytes < 10 * 1024 * 1024 ? 1 : 0 }).format(bytes / 1024 / 1024)} MB`
+  : `${Math.max(0, Math.ceil(bytes / 1024))} KB`;
 const relativeTime = (iso: string) => {
   const seconds = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
   if (seconds < 60) return 'Just now';
@@ -140,7 +144,9 @@ const relativeTime = (iso: string) => {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(iso));
 };
 
-export const dashboardPage = (user: User, sites: DashboardSite[], ownerCount: number, error?: string) => {
+export const dashboardPage = (
+  user: User, sites: DashboardSite[], ownerCount: number, storage: DashboardStorage, error?: string
+) => {
   const atLimit = ownerCount >= 3;
   const remaining = Math.max(0, 3 - ownerCount);
   const initials = (user.name || user.email).split(/\s+|@/).filter(Boolean).slice(0, 2)
@@ -161,7 +167,7 @@ export const dashboardPage = (user: User, sites: DashboardSite[], ownerCount: nu
   <div class="pc-main"><nav class="pc-rail" aria-label="Sites navigation"><button type="button" data-site-view="sites" aria-pressed="true">${sitesIcon}<span>Sites</span></button><button type="button" data-site-view="owned" aria-pressed="false">${ownedIcon}<span>Owned</span></button><button type="button" data-site-view="shared" aria-pressed="false">${sharedIcon}<span>Shared</span></button><span class="pc-rail-gap"></span></nav>
   <section class="pc-workspace"><div class="pc-content"><header class="pc-heading"><h1>Sites</h1><p>Manage and continue building your Pagecraft sites.</p></header>
   <div class="pc-toolbar"><label class="pc-search"><span class="sr-only">Search sites</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/></svg><input type="search" placeholder="Search sites" data-site-search></label><label><span class="sr-only">Sort sites</span><select class="pc-sort" data-site-sort><option value="updated">Last edited</option><option value="name">Name</option></select></label>${newSiteAction}</div>
-  ${notice(error)}<div class="pc-results-row"><p class="pc-results" aria-live="polite" data-site-results>${sites.length} ${sites.length === 1 ? 'site' : 'sites'}</p><span class="pc-allowance">${ownerCount} of 3 owned sites used</span></div><section class="pc-site-grid" aria-label="Sites" data-site-grid>${cards}${!sites.length ? `<div class="pc-empty-copy"><h2>Start with a blank site</h2><p>Your builder opens after the site is created. You will still return here whenever you sign in.</p></div>` : ''}<div class="pc-filter-empty" data-filter-empty hidden><h2 data-filter-title>No sites found</h2><p data-filter-copy></p><button class="pc-btn" type="button" data-filter-action>Show all sites</button></div>${createCard}</section></div></section></div>
+  ${notice(error)}<div class="pc-results-row"><p class="pc-results" aria-live="polite" data-site-results>${sites.length} ${sites.length === 1 ? 'site' : 'sites'}</p><span class="pc-allowance">${ownerCount} of 3 owned sites · ${esc(mediaSize(storage.usedBytes))} of ${esc(mediaSize(storage.limitBytes))} media used</span></div><section class="pc-site-grid" aria-label="Sites" data-site-grid>${cards}${!sites.length ? `<div class="pc-empty-copy"><h2>Start with a blank site</h2><p>Your builder opens after the site is created. You will still return here whenever you sign in.</p></div>` : ''}<div class="pc-filter-empty" data-filter-empty hidden><h2 data-filter-title>No sites found</h2><p data-filter-copy></p><button class="pc-btn" type="button" data-filter-action>Show all sites</button></div>${createCard}</section></div></section></div>
   </main><script>(()=>{
     const cards=[...document.querySelectorAll('[data-site-card]')],grid=document.querySelector('[data-site-grid]'),search=document.querySelector('[data-site-search]'),sort=document.querySelector('[data-site-sort]'),results=document.querySelector('[data-site-results]'),createCard=document.querySelector('.pc-create-card'),createForm=document.querySelector('[data-create-form]'),createError=document.querySelector('[data-create-error]'),empty=document.querySelector('[data-filter-empty]'),emptyTitle=document.querySelector('[data-filter-title]'),emptyCopy=document.querySelector('[data-filter-copy]'),emptyAction=document.querySelector('[data-filter-action]');
     let view='sites',emptyMode='all';

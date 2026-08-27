@@ -24,6 +24,13 @@ export interface AssetRecord {
   /** intrinsic size, so the export can write width and height and the review can check them */
   w: number;
   h: number;
+  /** Optimized bytes charged to the free account's shared media allowance. */
+  storedBytes?: number;
+  /** Source size is retained as metadata only; the source bytes are discarded. */
+  originalBytes?: number;
+  ownerId?: string;
+  contentHash?: string;
+  optimized?: boolean;
 }
 
 export interface Asset extends AssetRecord {
@@ -36,7 +43,10 @@ export type AssetMeta = Omit<AssetRecord, 'siteId'> & { path: string };
 export const metaOf = (a: AssetRecord): AssetMeta =>
   ({
     id: a.id, name: a.name, type: a.type, w: a.w, h: a.h,
-    path: assetFile(a)
+    path: assetFile(a),
+    ...(a.storedBytes == null ? {} : { storedBytes: a.storedBytes }),
+    ...(a.originalBytes == null ? {} : { originalBytes: a.originalBytes }),
+    ...(a.optimized == null ? {} : { optimized: a.optimized })
   });
 
 /** The filename-only path older releases emitted. Public lookup keeps accepting it so already
@@ -50,20 +60,40 @@ export interface AssetStore {
   get(siteId: string, id: string): Promise<Asset | null>;
   /** by the path a rendered page asks for, e.g. `assets/logo-a123.png` */
   byPath(siteId: string, path: string): Promise<Asset | null>;
-  put(a: Omit<Asset, 'id'> & { id?: string }): Promise<AssetRecord>;
+  put(a: Omit<Asset, 'id'> & { id?: string }, quota?: AssetQuota): Promise<AssetRecord>;
   /** Finalize a WordPress-originated asset only while its connection is active. Production
       stores lock that connection alongside the insert; the callback gives MemoryAssetStore
       the same ordering guarantee in tests. Null means the guard or exact-id binding failed. */
   putConnected(
     a: Omit<Asset, 'id'> & { id: string }, connectionId: string,
-    active?: () => Promise<boolean>
+    active?: () => Promise<boolean>, quota?: AssetQuota
   ): Promise<AssetRecord | null>;
   remove(siteId: string, id: string): Promise<boolean>;
+  usage(ownerId: string, limitBytes?: number): Promise<AssetUsage>;
+}
+
+export interface AssetQuota {
+  ownerId: string;
+  limitBytes: number;
+  originalBytes: number;
+  optimized: boolean;
+}
+
+export interface AssetUsage { usedBytes: number; limitBytes: number }
+
+export class AssetQuotaError extends Error {
+  usage: AssetUsage;
+  constructor(usage: AssetUsage) {
+    super('free account media storage limit reached');
+    this.name = 'AssetQuotaError';
+    this.usage = usage;
+  }
 }
 
 /** Ten megabytes. Large enough for a photograph nobody has thought about, small enough that
     one upload cannot fill a volume. */
 export const MAX_BYTES = 10 * 1024 * 1024;
+export const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
 
 /** What a browser will actually display, which is the only reason to accept an upload. */
 export const ALLOWED = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml']);
@@ -134,6 +164,7 @@ export function dimensions(bytes: Uint8Array, type: string): { w: number; h: num
 
 export class MemoryAssetStore implements AssetStore {
   private all = new Map<string, Asset>();
+  private quotas = new Map<string, AssetQuota>();
   private seq = 0;
 
   async list(siteId: string) {
@@ -153,27 +184,47 @@ export class MemoryAssetStore implements AssetStore {
     }
     return null;
   }
-  async put(a: Omit<Asset, 'id'> & { id?: string }) {
+  async put(a: Omit<Asset, 'id'> & { id?: string }, quota?: AssetQuota) {
     /* `a` + digits: the same shape the editor's own ids take, so a document written against
        one store opens against the other. */
     const id = a.id || 'a' + (++this.seq) + Math.random().toString(36).slice(2, 8);
+    if (quota) {
+      const prior = this.all.get(id);
+      const used = [...this.all.entries()].reduce((total, [assetId, asset]) =>
+        total + (this.quotas.get(assetId)?.ownerId === quota.ownerId ? asset.bytes.byteLength : 0), 0);
+      const replacing = prior && this.quotas.get(id)?.ownerId === quota.ownerId ? prior.bytes.byteLength : 0;
+      if (used - replacing + a.bytes.byteLength > quota.limitBytes) {
+        throw new AssetQuotaError({ usedBytes: used, limitBytes: quota.limitBytes });
+      }
+      this.quotas.set(id, quota);
+    }
     const rec: Asset = { ...a, id };
     this.all.set(id, rec);
     const { bytes: _bytes, ...meta } = rec;
-    return { ...meta };
+    return { ...meta, storedBytes: rec.bytes.byteLength,
+      originalBytes: quota?.originalBytes, ownerId: quota?.ownerId,
+      optimized: quota?.optimized };
   }
-  async putConnected(a: Omit<Asset, 'id'> & { id: string }, _connectionId: string, active?: () => Promise<boolean>) {
+  async putConnected(a: Omit<Asset, 'id'> & { id: string }, _connectionId: string,
+    active?: () => Promise<boolean>, quota?: AssetQuota) {
     if (!active || !await active()) return null;
     const prior = this.all.get(a.id);
     if (prior && (prior.siteId !== a.siteId || prior.name !== a.name || prior.type !== a.type
       || prior.w !== a.w || prior.h !== a.h || !sameBytes(prior.bytes, a.bytes))) return null;
-    return prior ? metaOfRecord(prior) : this.put(a);
+    return prior ? metaOfRecord(prior) : this.put(a, quota);
   }
   async remove(siteId: string, id: string) {
     const a = this.all.get(id);
     if (!a || a.siteId !== siteId) return false;
     this.all.delete(id);
+    this.quotas.delete(id);
     return true;
+  }
+
+  async usage(ownerId: string, limitBytes = FREE_STORAGE_BYTES) {
+    const usedBytes = [...this.all.entries()].reduce((total, [id, asset]) =>
+      total + (this.quotas.get(id)?.ownerId === ownerId ? asset.bytes.byteLength : 0), 0);
+    return { usedBytes, limitBytes };
   }
 }
 
@@ -189,11 +240,20 @@ export const ASSET_SCHEMA = `
 create table if not exists assets (
   id       text primary key,
   site_id  text not null references sites (id) on delete cascade,
+  owner_id text references users (id) on delete restrict,
   name     text not null,
   type     text not null,
   w        integer not null default 0,
   h        integer not null default 0,
-  bytes    bytea not null
+  bytes    bytea,
+  storage_path text,
+  stored_bytes bigint,
+  original_bytes bigint,
+  content_hash text,
+  optimized boolean not null default false
 );
 create index if not exists assets_site_idx on assets (site_id);
+create index if not exists assets_owner_idx on assets (owner_id);
+create unique index if not exists assets_storage_path_key on assets (storage_path)
+  where storage_path is not null;
 `;

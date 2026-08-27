@@ -10,7 +10,7 @@ import * as Core from '../../app/src/core/index.ts';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore } from '../src/auth.ts';
-import { MemoryAssetStore, sniff, dimensions, metaOf, ALLOWED, MAX_BYTES } from '../src/assets.ts';
+import { AssetQuotaError, MemoryAssetStore, sniff, dimensions, metaOf, ALLOWED, MAX_BYTES } from '../src/assets.ts';
 import { renderSite } from '../src/render.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
@@ -109,6 +109,25 @@ test('a page one directory down asks for the image at the right depth', () => {
   a.equal(/src="asset:a1"/.test(out.files.get('index.html')!), false, 'the token must not survive');
 });
 
+test('free media usage is shared across an owner’s sites and deletion frees allowance', async () => {
+  const assets = new MemoryAssetStore();
+  const quota = { ownerId: 'u1', limitBytes: 10, originalBytes: 20, optimized: true };
+  await assets.put({ siteId: 's1', name: 'one.webp', type: 'image/webp', w: 1, h: 1,
+    bytes: new Uint8Array(6) }, quota);
+  await assets.put({ siteId: 's2', name: 'two.webp', type: 'image/webp', w: 1, h: 1,
+    bytes: new Uint8Array(4) }, quota);
+  a.deepEqual(await assets.usage('u1', 10), { usedBytes: 10, limitBytes: 10 });
+  await a.rejects(
+    assets.put({ siteId: 's3', name: 'full.webp', type: 'image/webp', w: 1, h: 1,
+      bytes: new Uint8Array(1) }, quota),
+    (error: unknown) => error instanceof AssetQuotaError
+  );
+  const first = (await assets.list('s1'))[0];
+  await assets.remove('s1', first.id);
+  a.deepEqual(await assets.usage('u1', 10), { usedBytes: 4, limitBytes: 10 });
+  a.deepEqual(await assets.usage('u2', 10), { usedBytes: 0, limitBytes: 10 });
+});
+
 /* ------------------------------------------------------------ through the API */
 
 const rig = async (role: 'owner' | 'content' = 'owner') => {
@@ -118,9 +137,19 @@ const rig = async (role: 'owner' | 'content' = 'owner') => {
   let sent = '';
   const app = createApp({
     store, auth, assets, editorHost: 'admin.test', editorOrigin: 'http://admin.test',
-    sendLink: (_t, url) => { sent = url; }
+    sendLink: (_t, url) => { sent = url; },
+    /* Most fixtures below are deliberately header-only byte sequences. Keep the transport
+       tests focused on storage semantics; real Sharp/SVGO output has its own test file. */
+    optimizeAsset: async (bytes, type) => ({
+      bytes, type, ...dimensions(bytes, type), extension: type === 'image/svg+xml' ? 'svg'
+        : type === 'image/jpeg' ? 'jpg' : type.split('/')[1]
+    })
   });
   const site = await store.create({ host: 'acme.test', name: 'Acme', doc: demo() });
+  if (role === 'content') {
+    const owner = await auth.createUser('owner@acme.test');
+    await auth.grant(site.id, owner.id, 'owner');
+  }
   const user = await auth.createUser('me@acme.test');
   await auth.grant(site.id, user.id, role);
   const req = (path: string, init: RequestInit = {}, cookie?: string) =>
@@ -153,6 +182,9 @@ test('an image uploads, lists, and is served on the site at its export path', as
 
   const list = await (await req(`/api/sites/${site.id}/assets`, {}, cookie)).json() as unknown[];
   a.equal(list.length, 1);
+  const usage = await (await req('/api/storage', {}, cookie)).json() as { usedBytes: number; limitBytes: number };
+  a.equal(usage.usedBytes, PNG.byteLength, 'the shared allowance charges stored output bytes');
+  a.equal(usage.limitBytes, 100 * 1024 * 1024);
 
   /* the site serves it, on the path the export would have written */
   const served = await app.request(new Request(`http://acme.test/${meta.path}`, { headers: { host: 'acme.test' } }));

@@ -24,8 +24,9 @@ import { assertTypedCmsWrite } from './cms-values.ts';
 import { throttle } from './mail.ts';
 import {
   type AssetStore, type Asset, type AssetRecord,
-  metaOf, sniff, dimensions, MAX_BYTES, ALLOWED
+  metaOf, sniff, MAX_BYTES, ALLOWED, FREE_STORAGE_BYTES, AssetQuotaError
 } from './assets.ts';
+import { optimizeImage, optimizedName, type OptimizedImage } from './image-optimization.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import { assetFile } from '../../app/src/core/index.ts';
 import {
@@ -77,6 +78,8 @@ export interface Options {
   auth: AuthStore;
   /** where the images live. Absent means a site renders with placeholders. */
   assets?: AssetStore;
+  /** Injectable so route behavior can be proven with tiny synthetic image headers. */
+  optimizeAsset?: (bytes: Uint8Array, type: string) => Promise<OptimizedImage>;
   /** the built builder, as a string. Absent in tests that only exercise the site routes. */
   editorHtml?: string;
   /** which host serves the editor. Every other host is a site. */
@@ -118,6 +121,7 @@ const typeOf = (path: string) => TYPES[(path.split('.').pop() || '').toLowerCase
 
 export function createApp(o: Options) {
   const app = new Hono();
+  const optimizeAsset = o.optimizeAsset || optimizeImage;
 
   /* Baseline browser hardening. Published HTML adds a sandbox below because it may contain an
      owner's intentional scripts; the editor itself must never be framed by another site. */
@@ -298,6 +302,14 @@ export function createApp(o: Options) {
       const role = roles.get(site.id);
       return role ? [{ site, role }] : [];
     });
+  };
+
+  const storageOwner = async (siteId: string, actor: User, role: Role) => {
+    if (role === 'owner') return actor.id;
+    const owners = (await o.auth.members(siteId))
+      .filter(member => member.role === 'owner')
+      .sort((a, b) => a.userId.localeCompare(b.userId));
+    return owners[0]?.userId || null;
   };
 
   /**
@@ -729,7 +741,8 @@ export function createApp(o: Options) {
       id: site.id, host: site.host, slug: site.slug,
       url: shareUrl(c, o, site), name: site.name, role
     }));
-    return c.json({ user: { id: user.id, email: user.email, name: user.name }, sites: mine });
+    const storage = o.assets ? await o.assets.usage(user.id, FREE_STORAGE_BYTES) : null;
+    return c.json({ user: { id: user.id, email: user.email, name: user.name }, sites: mine, storage });
   });
 
   /* ---------------------------------------------------------------- the editor */
@@ -746,10 +759,13 @@ export function createApp(o: Options) {
       if (!user) return c.redirect('/sign-in');
       const mine = (await visibleSites(user)).sort((a, b) =>
         new Date(b.site.updatedAt).getTime() - new Date(a.site.updatedAt).getTime());
+      const storage = o.assets
+        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
+        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
       return c.html(dashboardPage(user, mine.map(({ site, role }) => ({
         id: site.id, name: site.name, role, updatedAt: site.updatedAt,
         url: shareUrl(c, o, site), published: site.version === site.publishedVersion
-      })), mine.filter(item => item.role === 'owner').length, c.req.query('error')));
+      })), mine.filter(item => item.role === 'owner').length, storage, c.req.query('error')));
     }
     if (!user) return c.html(signInPage());
 
@@ -783,6 +799,10 @@ export function createApp(o: Options) {
     if (!site) return deny(c, 404);
     if (!o.editorHtml) return c.text('No editor build. Run `node build.mjs` first.', 503);
 
+    const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
+    const storage = o.assets && mediaOwnerId
+      ? await o.assets.usage(mediaOwnerId, FREE_STORAGE_BYTES)
+      : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
     const config = {
       siteId: site.id, host: site.host, slug: site.slug, name: site.name,
       /* the link to send somebody, worked out once here rather than assembled in the editor:
@@ -796,6 +816,7 @@ export function createApp(o: Options) {
       connectedPublishingAvailable: releaseReady(),
       role: gate.role,
       user: { id: gate.user.id, name: gate.user.name, email: gate.user.email },
+      storage,
       doc: site.doc,
       wordpressContent: await wordpressContentForSite(site.id)
     };
@@ -814,6 +835,13 @@ export function createApp(o: Options) {
       publishState: site.version === site.publishedVersion ? 'published' : 'draft_changes'
     })).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     return c.json(out);
+  });
+
+  app.get('/api/storage', async c => {
+    const user = await who(c);
+    if (!user) return deny(c, 401);
+    if (!o.assets) return c.json({ usedBytes: 0, limitBytes: FREE_STORAGE_BYTES });
+    return c.json(await o.assets.usage(user.id, FREE_STORAGE_BYTES));
   });
 
   app.get('/api/sites/:id', async c => {
@@ -1237,10 +1265,36 @@ export function createApp(o: Options) {
        arbitrary bytes is a way to host arbitrary content on somebody else's domain. */
     const type = sniff(bytes);
     if (!type || !ALLOWED.has(type)) return c.json({ error: 'that is not an image this server serves' }, 415);
-
-    const saved = await o.assets.put({
-      siteId: id, name: file.name || 'image', type, bytes, ...dimensions(bytes, type)
-    });
+    const ownerId = await storageOwner(id, gate.user, gate.role);
+    if (!ownerId) return c.json({ error: 'this site has no storage owner' }, 409);
+    let output: OptimizedImage;
+    try {
+      output = await optimizeAsset(bytes, type);
+    } catch {
+      return c.json({
+        error: 'image_optimization_failed',
+        detail: 'Pagecraft could not optimize this image. Try exporting it as PNG, JPEG, WebP, or SVG.'
+      }, 422);
+    }
+    let saved: AssetRecord;
+    try {
+      saved = await o.assets.put({
+        siteId: id, name: optimizedName(file.name || 'image', output.extension),
+        type: output.type, bytes: output.bytes, w: output.w, h: output.h,
+        contentHash: sha256(bytes)
+      }, {
+        ownerId, limitBytes: FREE_STORAGE_BYTES,
+        originalBytes: file.size, optimized: true
+      });
+    } catch (error) {
+      if (error instanceof AssetQuotaError) {
+        return c.json({
+          error: 'storage_limit_reached', ...error.usage,
+          detail: 'Your free account has used its 100 MB media allowance. Remove unused images and try again.'
+        }, 409);
+      }
+      throw error;
+    }
     /* The next public request rebuilds from the metadata list. No image bodies are fetched. */
     built.delete(id);
     return c.json(metaOf(saved), 201);
@@ -2554,7 +2608,7 @@ export function createApp(o: Options) {
     const assetId = 'wp' + sha256(new TextEncoder().encode(`${connection.id}\0${idempotencyKey}`)).slice(0, 48);
     const existing = await o.assets.get(id, assetId);
     if (existing) {
-      if (existing.type !== type || existing.name !== filename || sha256(existing.bytes) !== bodyHash) {
+      if (existing.contentHash !== bodyHash) {
         return c.json({ error: 'the idempotency key was already used for different media' }, 409);
       }
       return c.json({
@@ -2562,21 +2616,37 @@ export function createApp(o: Options) {
         bytes: existing.bytes.byteLength, mime: existing.type, duplicate: true
       });
     }
-    const saved = await o.assets.putConnected({
-      id: assetId, siteId: id, name: filename, type, bytes, ...dimensions(bytes, type)
-    }, connection.id, async () => {
-      const current = await o.connected!.connection(connection.id);
-      return current?.status === 'active'
-        && !!current.accessTokenExpiresAt
-        && new Date(current.accessTokenExpiresAt).getTime() > Date.now();
-    });
+    let output: OptimizedImage;
+    try { output = await optimizeAsset(bytes, type); }
+    catch { return c.json({ error: 'image optimization failed' }, 422); }
+    let saved: AssetRecord | null;
+    try {
+      saved = await o.assets.putConnected({
+        id: assetId, siteId: id, name: optimizedName(filename, output.extension),
+        type: output.type, bytes: output.bytes, w: output.w, h: output.h,
+        contentHash: bodyHash
+      }, connection.id, async () => {
+        const current = await o.connected!.connection(connection.id);
+        return current?.status === 'active'
+          && !!current.accessTokenExpiresAt
+          && new Date(current.accessTokenExpiresAt).getTime() > Date.now();
+      }, {
+        ownerId: connection.createdBy, limitBytes: FREE_STORAGE_BYTES,
+        originalBytes: bytes.byteLength, optimized: true
+      });
+    } catch (error) {
+      if (error instanceof AssetQuotaError) {
+        return c.json({ error: 'storage_limit_reached', ...error.usage }, 409);
+      }
+      throw error;
+    }
     if (!saved) {
       /* A null result can be a disconnect racing this request or an exact-id binding failure.
          Re-read once so a timed-out exact retry stays successful without allowing the same
          idempotency key to overwrite different bytes. */
       const current = await o.assets.get(id, assetId);
       if (current) {
-        if (current.type !== type || current.name !== filename || sha256(current.bytes) !== bodyHash) {
+        if (current.contentHash !== bodyHash) {
           return c.json({ error: 'the idempotency key was already used for different media' }, 409);
         }
         return c.json({
@@ -2594,7 +2664,7 @@ export function createApp(o: Options) {
     built.delete(id);
     return c.json({
       ...metaOf(saved), assetId, reference: `asset:${assetId}`, hash: bodyHash,
-      bytes: bytes.byteLength, mime: type, duplicate: false
+      bytes: saved.storedBytes ?? output.bytes.byteLength, mime: saved.type, duplicate: false
     }, 201);
   });
 

@@ -31,6 +31,7 @@ COPY builder.html ./
 COPY tools ./tools
 COPY app ./app
 COPY brand ./brand
+COPY shared ./shared
 RUN node build.mjs
 
 # ---- stage 2: the server ----------------------------------------------------

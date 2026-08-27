@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts";
 import postgres from "npm:postgres@3.4.7";
+import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import {
   assembleStoredGatewayBlob,
   GATEWAY_ASSET_BLOB_MAX_BYTES,
@@ -20,6 +21,15 @@ const sql = postgres(Deno.env.get("SUPABASE_DB_URL")!, {
   connect_timeout: 10,
   idle_timeout: 20,
 });
+const storage = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  { auth: { persistSession: false, autoRefreshToken: false } },
+).storage;
+const ASSET_BUCKET = "pagecraft-assets";
+const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
+const assetStoragePath = (ownerId: string, siteId: string, id: string, hash: string, type: string) =>
+  `${ownerId}/${siteId}/${id}-${hash.slice(0, 16)}.${type === "image/svg+xml" ? "svg" : "webp"}`;
 
 const MAX_BODY = 16 * 1024 * 1024;
 const json = (data: unknown, status = 200) =>
@@ -67,8 +77,13 @@ function toBase64(value: Uint8Array) {
   return btoa(binary);
 }
 
-function assetWire(row: Record<string, unknown>) {
-  const bytes = row.bytes;
+async function assetWire(row: Record<string, unknown>) {
+  let bytes = row.bytes;
+  if (!(bytes instanceof Uint8Array) && row.storage_path) {
+    const result = await storage.from(ASSET_BUCKET).download(text(row.storage_path));
+    if (result.error || !result.data) throw new Error("stored asset could not be read");
+    bytes = new Uint8Array(await result.data.arrayBuffer());
+  }
   if (!(bytes instanceof Uint8Array)) {
     throw new Error("database returned an asset in an unknown binary format");
   }
@@ -1686,7 +1701,8 @@ async function dispatch(op: string, args: Record<string, unknown>) {
 
     case "asset.list":
       return await sql`
-        select id, site_id, name, type, w, h
+        select id, site_id, name, type, w, h, owner_id, storage_path,
+          stored_bytes, original_bytes, content_hash, optimized
         from assets where site_id = ${text(args.siteId)} order by name
       `;
     case "asset.get": {
@@ -1697,7 +1713,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         } limit 1
       `,
       );
-      return row ? assetWire(row) : null;
+      return row ? await assetWire(row) : null;
     }
     case "asset.byPath": {
       const rows = await sql<{ id: string; name: string }[]>`
@@ -1717,7 +1733,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         } and id = ${found.id} limit 1
       `,
       );
-      return row ? assetWire(row) : null;
+      return row ? await assetWire(row) : null;
     }
     case "asset.put": {
       const row = one(
@@ -1760,8 +1776,16 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const type = text(input.type);
       const w = integer(input.w);
       const h = integer(input.h);
+      const requestedOwnerId = text(input.ownerId);
+      const limitBytes = Number(input.limitBytes || FREE_STORAGE_BYTES);
+      const originalBytes = Number(input.originalBytes || blob.bytes);
+      const contentHash = text(input.contentHash);
+      const optimized = Boolean(input.optimized);
       if (
         !id || !siteId || !name || !type || (connected && !connectionId) ||
+        !Number.isSafeInteger(limitBytes) || limitBytes < 1 ||
+        !Number.isSafeInteger(originalBytes) || originalBytes < 0 ||
+        !/^[a-f0-9]{64}$/i.test(contentHash) ||
         !Number.isSafeInteger(w) || w < 0 ||
         !Number.isSafeInteger(h) || h < 0 ||
         blob.bytes > GATEWAY_ASSET_BLOB_MAX_BYTES
@@ -1771,24 +1795,49 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           code: "INVALID_ASSET_BLOB",
         });
       }
-      return await sql.begin(async (transaction) => {
+      let uploadedPath = "";
+      let replacedPath = "";
+      try {
+        const saved = await sql.begin(async (transaction) => {
         /* Connection revocation takes the same row lock. This makes finalization linearizable:
            a request may upload disposable chunks before revocation, but it cannot create or
            replace a durable asset after Disconnect has committed. */
+        let connectionOwnerId = "";
         if (connected) {
           const guard = one(
             await transaction<Record<string, unknown>[]>`
-            select id from wordpress_connections
+            select id, created_by from wordpress_connections
             where id = ${connectionId} and site_id = ${siteId}
               and status = 'active' and access_token_expires_at > now()
             for update
           `,
           );
           if (!guard) return null;
+          connectionOwnerId = text(guard.created_by);
+        }
+        const ownerId = connected
+          ? connectionOwnerId
+          : requestedOwnerId || text(one(await transaction<Record<string, unknown>[]>`
+              select user_id from site_users where site_id = ${siteId} and role = 'owner'
+              order by user_id limit 1
+            `)?.user_id);
+        if (!ownerId) {
+          throw Object.assign(new Error("site storage owner does not exist"), {
+            status: 409, code: "STORAGE_OWNER_MISSING",
+          });
+        }
+        const owner = one(await transaction<Record<string, unknown>[]>`
+          select id from users where id = ${ownerId} for update
+        `);
+        if (!owner) {
+          throw Object.assign(new Error("site storage owner does not exist"), {
+            status: 409, code: "STORAGE_OWNER_MISSING",
+          });
         }
         const prior = one(
           await transaction<Record<string, unknown>[]>`
-          select id, site_id, name, type, w, h, bytes
+          select id, site_id, owner_id, name, type, w, h, bytes, storage_path,
+            stored_bytes, original_bytes, content_hash, optimized
           from assets where id = ${id} limit 1 for update
         `,
         );
@@ -1799,15 +1848,11 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           );
         }
         if (prior) {
-          if (!(prior.bytes instanceof Uint8Array)) {
-            throw new Error(
-              "database returned an asset in an unknown binary format",
-            );
-          }
           const exactRetry = prior.name === name && prior.type === type &&
             Number(prior.w) === w && Number(prior.h) === h &&
-            prior.bytes.byteLength === blob.bytes &&
-            await hexSha256(prior.bytes) === blob.hash;
+            Number(prior.stored_bytes || (prior.bytes instanceof Uint8Array ? prior.bytes.byteLength : 0)) === blob.bytes &&
+            (text(prior.content_hash) === contentHash ||
+              (!prior.content_hash && prior.bytes instanceof Uint8Array && await hexSha256(prior.bytes) === blob.hash));
           if (exactRetry) {
             return {
               id: prior.id,
@@ -1816,6 +1861,12 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               type: prior.type,
               w: Number(prior.w),
               h: Number(prior.h),
+              owner_id: prior.owner_id || ownerId,
+              storage_path: prior.storage_path || null,
+              stored_bytes: Number(prior.stored_bytes || blob.bytes),
+              original_bytes: Number(prior.original_bytes || originalBytes),
+              content_hash: prior.content_hash || contentHash,
+              optimized: Boolean(prior.optimized),
             };
           }
           if (connected) return null;
@@ -1855,28 +1906,62 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           },
         );
         const bytes = await assembleStoredGatewayBlob(blob, storedChunks);
+        const usedRow = one(await transaction<Record<string, unknown>[]>`
+          select coalesce(sum(stored_bytes), 0)::text as used
+          from assets where owner_id = ${ownerId}
+        `);
+        const usedBytes = Number(usedRow?.used || 0);
+        const replacingBytes = prior && text(prior.owner_id) === ownerId
+          ? Number(prior.stored_bytes || (prior.bytes instanceof Uint8Array ? prior.bytes.byteLength : 0))
+          : 0;
+        if (usedBytes - replacingBytes + bytes.byteLength > limitBytes) {
+          throw Object.assign(new Error("free account media storage limit reached"), {
+            status: 409, code: "STORAGE_LIMIT",
+          });
+        }
+        uploadedPath = assetStoragePath(ownerId, siteId, id, blob.hash, type);
+        replacedPath = prior?.storage_path && text(prior.storage_path) !== uploadedPath
+          ? text(prior.storage_path)
+          : "";
+        const stored = await storage.from(ASSET_BUCKET).upload(uploadedPath, bytes, {
+          contentType: type,
+          cacheControl: "31536000",
+          upsert: false,
+        });
+        if (stored.error && stored.error.message !== "The resource already exists") {
+          throw new Error(`stored asset could not be written: ${stored.error.message}`);
+        }
         const row = connected
           ? one(
             await transaction<Record<string, unknown>[]>`
-              insert into assets (id, site_id, name, type, w, h, bytes)
-              values (${id}, ${siteId}, ${name}, ${type}, ${w}, ${h}, ${bytes})
+              insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
+                storage_path, stored_bytes, original_bytes, content_hash, optimized)
+              values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
+                ${uploadedPath}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
               on conflict (id) do update set id = assets.id
               where assets.site_id = excluded.site_id
                 and assets.name = excluded.name and assets.type = excluded.type
                 and assets.w = excluded.w and assets.h = excluded.h
-                and assets.bytes = excluded.bytes
-              returning id, site_id, name, type, w, h
+                and assets.content_hash = excluded.content_hash
+              returning id, site_id, name, type, w, h, owner_id, storage_path,
+                stored_bytes, original_bytes, content_hash, optimized
             `,
           )
           : one(
             await transaction<Record<string, unknown>[]>`
-              insert into assets (id, site_id, name, type, w, h, bytes)
-              values (${id}, ${siteId}, ${name}, ${type}, ${w}, ${h}, ${bytes})
+              insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
+                storage_path, stored_bytes, original_bytes, content_hash, optimized)
+              values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
+                ${uploadedPath}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
               on conflict (id) do update set
                 name = excluded.name, type = excluded.type,
-                w = excluded.w, h = excluded.h, bytes = excluded.bytes
+                w = excluded.w, h = excluded.h, bytes = null,
+                owner_id = excluded.owner_id, storage_path = excluded.storage_path,
+                stored_bytes = excluded.stored_bytes, original_bytes = excluded.original_bytes,
+                content_hash = excluded.content_hash, optimized = excluded.optimized
               where assets.site_id = excluded.site_id
-              returning id, site_id, name, type, w, h
+              returning id, site_id, name, type, w, h, owner_id, storage_path,
+                stored_bytes, original_bytes, content_hash, optimized
             `,
           );
         if (!row) {
@@ -1890,14 +1975,36 @@ async function dispatch(op: string, args: Record<string, unknown>) {
            remain safe. The existing 24-hour TTL cleanup on chunk ingress removes completed or
            abandoned staging rows without touching durable assets. */
         return row;
-      });
+        });
+        if (replacedPath) {
+          const removed = await storage.from(ASSET_BUCKET).remove([replacedPath]);
+          if (removed.error) console.error("could not remove replaced asset", removed.error);
+        }
+        return saved;
+      } catch (error) {
+        if (uploadedPath) await storage.from(ASSET_BUCKET).remove([uploadedPath]).catch(() => undefined);
+        throw error;
+      }
     }
-    case "asset.remove":
-      return (await sql`
-        delete from assets where site_id = ${text(args.siteId)} and id = ${
-        text(args.id)
-      } returning id
-      `).length > 0;
+    case "asset.usage": {
+      const row = one(await sql`
+        select coalesce(sum(stored_bytes), 0)::text as used
+        from assets where owner_id = ${text(args.ownerId)}
+      `);
+      return Number(row?.used || 0);
+    }
+    case "asset.remove": {
+      const row = one(await sql<Record<string, unknown>[]>`
+        delete from assets where site_id = ${text(args.siteId)} and id = ${text(args.id)}
+        returning id, storage_path
+      `);
+      if (!row) return false;
+      if (row.storage_path) {
+        const result = await storage.from(ASSET_BUCKET).remove([text(row.storage_path)]);
+        if (result.error) console.error("could not remove stored asset", result.error);
+      }
+      return true;
+    }
 
     case "auth.userByEmail":
       return one(

@@ -22,7 +22,8 @@ import {
 } from './store.ts';
 import {
   ASSET_SCHEMA, legacyAssetPath, metaOf,
-  type Asset, type AssetRecord, type AssetStore
+  AssetQuotaError, FREE_STORAGE_BYTES,
+  type Asset, type AssetQuota, type AssetRecord, type AssetStore
 } from './assets.ts';
 import {
   AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session, type ManualImportCredential, type User
@@ -1574,18 +1575,32 @@ export function statements(sql: string): string[] {
 
 interface AssetRow {
   id: string; site_id: string; name: string; type: string;
-  w: number; h: number; bytes: Uint8Array;
+  w: number; h: number; bytes: Uint8Array | null;
+  owner_id: string | null; storage_path: string | null;
+  stored_bytes: number | string | null; original_bytes: number | string | null;
+  content_hash: string | null; optimized: boolean;
 }
 
 type AssetMetaRow = Omit<AssetRow, 'bytes'>;
 
 const toAsset = (r: AssetRow): Asset => ({
   id: r.id, siteId: r.site_id, name: r.name, type: r.type,
-  w: r.w, h: r.h, bytes: r.bytes instanceof Uint8Array ? r.bytes : new Uint8Array(r.bytes)
+  w: r.w, h: r.h,
+  bytes: r.bytes instanceof Uint8Array ? r.bytes : new Uint8Array(r.bytes || []),
+  ownerId: r.owner_id || undefined,
+  storedBytes: r.stored_bytes == null ? undefined : Number(r.stored_bytes),
+  originalBytes: r.original_bytes == null ? undefined : Number(r.original_bytes),
+  contentHash: r.content_hash || undefined,
+  optimized: r.optimized
 });
 
 const toAssetRecord = (r: AssetMetaRow): AssetRecord => ({
-  id: r.id, siteId: r.site_id, name: r.name, type: r.type, w: r.w, h: r.h
+  id: r.id, siteId: r.site_id, name: r.name, type: r.type, w: r.w, h: r.h,
+  ownerId: r.owner_id || undefined,
+  storedBytes: r.stored_bytes == null ? undefined : Number(r.stored_bytes),
+  originalBytes: r.original_bytes == null ? undefined : Number(r.original_bytes),
+  contentHash: r.content_hash || undefined,
+  optimized: r.optimized
 });
 
 export class PgAssetStore implements AssetStore {
@@ -1598,7 +1613,9 @@ export class PgAssetStore implements AssetStore {
 
   async list(siteId: string) {
     const { rows } = await this.db.query<AssetMetaRow>(
-      'select id, site_id, name, type, w, h from assets where site_id = $1 order by name', [siteId]);
+      `select id, site_id, name, type, w, h, owner_id, storage_path,
+              stored_bytes, original_bytes, content_hash, optimized
+       from assets where site_id = $1 order by name`, [siteId]);
     return rows.map(toAssetRecord);
   }
 
@@ -1616,47 +1633,112 @@ export class PgAssetStore implements AssetStore {
     return null;
   }
 
-  async put(a: Omit<Asset, 'id'> & { id?: string }) {
+  async put(a: Omit<Asset, 'id'> & { id?: string }, quota?: AssetQuota) {
     const id = a.id || 'a' + crypto.randomUUID().replace(/-/g, '').slice(0, 12);
-    const { rows } = await this.db.query<AssetMetaRow>(
-      `insert into assets (id, site_id, name, type, w, h, bytes)
-       values ($1, $2, $3, $4, $5, $6, $7)
-       on conflict (id) do update set
-         name = excluded.name, type = excluded.type,
-         w = excluded.w, h = excluded.h, bytes = excluded.bytes
-       returning id, site_id, name, type, w, h`,
-      [id, a.siteId, a.name, a.type, a.w, a.h, a.bytes]
-    );
-    return toAssetRecord(rows[0]);
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      if (quota) {
+        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [quota.ownerId]);
+        if (!owner.rows[0]) throw new Error('storage owner does not exist');
+        const current = await client.query<{ used: string }>(
+          `select coalesce(sum(stored_bytes),0)::text as used from assets where owner_id = $1`, [quota.ownerId]);
+        const prior = await client.query<{ bytes: string }>(
+          `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [id, quota.ownerId]);
+        const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
+        if (used - replacing + a.bytes.byteLength > quota.limitBytes) {
+          throw new AssetQuotaError({ usedBytes: used, limitBytes: quota.limitBytes });
+        }
+      }
+      const { rows } = await client.query<AssetMetaRow>(
+        `insert into assets (
+           id, site_id, owner_id, name, type, w, h, bytes,
+           stored_bytes, original_bytes, content_hash, optimized
+         ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+         on conflict (id) do update set
+           name = excluded.name, type = excluded.type, w = excluded.w, h = excluded.h,
+           bytes = excluded.bytes, owner_id = excluded.owner_id,
+           stored_bytes = excluded.stored_bytes, original_bytes = excluded.original_bytes,
+           content_hash = excluded.content_hash, optimized = excluded.optimized
+         returning id, site_id, name, type, w, h, owner_id, storage_path,
+                   stored_bytes, original_bytes, content_hash, optimized`,
+        [id, a.siteId, quota?.ownerId || null, a.name, a.type, a.w, a.h, a.bytes,
+          a.bytes.byteLength, quota?.originalBytes ?? a.bytes.byteLength,
+          a.contentHash || null, quota?.optimized || false]
+      );
+      await client.query('commit');
+      return toAssetRecord(rows[0]);
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
   }
 
   async putConnected(
     a: Omit<Asset, 'id'> & { id: string }, connectionId: string,
-    _active?: () => Promise<boolean>
+    _active?: () => Promise<boolean>, quota?: AssetQuota
   ) {
-    const { rows } = await this.db.query<AssetMetaRow>(
-      `with guard as materialized (
-         select id from wordpress_connections
-         where id = $8 and site_id = $2 and status = 'active'
-           and access_token_expires_at > now()
-         for update
-       )
-       insert into assets (id, site_id, name, type, w, h, bytes)
-       select $1, $2, $3, $4, $5, $6, $7 from guard
-       on conflict (id) do update set id = assets.id
-       where assets.site_id = excluded.site_id and assets.name = excluded.name
-         and assets.type = excluded.type and assets.w = excluded.w and assets.h = excluded.h
-         and assets.bytes = excluded.bytes
-       returning assets.id, assets.site_id, assets.name, assets.type, assets.w, assets.h`,
-      [a.id, a.siteId, a.name, a.type, a.w, a.h, a.bytes, connectionId]
-    );
-    return rows[0] ? toAssetRecord(rows[0]) : null;
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      const guard = await client.query<{ created_by: string }>(
+        `select created_by from wordpress_connections
+         where id = $1 and site_id = $2 and status = 'active'
+           and access_token_expires_at > now() for update`, [connectionId, a.siteId]);
+      if (!guard.rows[0]) {
+        await client.query('rollback');
+        return null;
+      }
+      const ownerId = quota?.ownerId || guard.rows[0].created_by;
+      if (quota) {
+        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [ownerId]);
+        if (!owner.rows[0]) throw new Error('storage owner does not exist');
+        const current = await client.query<{ used: string }>(
+          `select coalesce(sum(stored_bytes),0)::text as used from assets where owner_id = $1`, [ownerId]);
+        const prior = await client.query<{ bytes: string }>(
+          `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [a.id, ownerId]);
+        const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
+        if (used - replacing + a.bytes.byteLength > quota.limitBytes) {
+          throw new AssetQuotaError({ usedBytes: used, limitBytes: quota.limitBytes });
+        }
+      }
+      const { rows } = await client.query<AssetMetaRow>(
+        `insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
+           stored_bytes, original_bytes, content_hash, optimized)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+         on conflict (id) do update set id = assets.id
+         where assets.site_id = excluded.site_id and assets.name = excluded.name
+           and assets.type = excluded.type and assets.w = excluded.w and assets.h = excluded.h
+           and assets.bytes = excluded.bytes
+         returning assets.id, assets.site_id, assets.name, assets.type, assets.w, assets.h,
+           assets.owner_id, assets.storage_path, assets.stored_bytes, assets.original_bytes,
+           assets.content_hash, assets.optimized`,
+        [a.id, a.siteId, ownerId, a.name, a.type, a.w, a.h, a.bytes,
+          a.bytes.byteLength, quota?.originalBytes ?? a.bytes.byteLength,
+          a.contentHash || null, quota?.optimized || false]
+      );
+      await client.query('commit');
+      return rows[0] ? toAssetRecord(rows[0]) : null;
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
   }
 
   async remove(siteId: string, id: string) {
     const { rows } = await this.db.query<{ id: string }>(
       'delete from assets where site_id = $1 and id = $2 returning id', [siteId, id]);
     return rows.length > 0;
+  }
+
+  async usage(ownerId: string, limitBytes = FREE_STORAGE_BYTES) {
+    const { rows } = await this.db.query<{ used: string }>(
+      `select coalesce(sum(stored_bytes),0)::text as used from assets where owner_id = $1`, [ownerId]);
+    return { usedBytes: Number(rows[0]?.used || 0), limitBytes };
   }
 }
 

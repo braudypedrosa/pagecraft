@@ -44,7 +44,8 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
   const asMedia = (row: any, size = 0): HostMedia => ({
     id: String(row.id), name: String(row.name || 'asset'), mimeType: String(row.mimeType || row.type || ''),
     url: String(row.url || `${assetRoot}/${encodeURIComponent(String(row.id))}`),
-    size: Number(row.size || size || 0), width: Number(row.width ?? row.w ?? 0), height: Number(row.height ?? row.h ?? 0)
+    size: Number(row.size || row.storedBytes || size || 0),
+    width: Number(row.width ?? row.w ?? 0), height: Number(row.height ?? row.h ?? 0)
   });
   return {
     kind: 'web',
