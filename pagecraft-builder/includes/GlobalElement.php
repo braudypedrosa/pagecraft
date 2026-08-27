@@ -17,6 +17,7 @@ final class GlobalElement
     public const CSS_HASH = '_pagecraft_global_css_hash';
     public const RUNTIME_PATH = '_pagecraft_runtime_path';
     public const RUNTIME_HASH = '_pagecraft_runtime_hash';
+    public const MEDIA_ATTACHMENTS = '_pagecraft_media_attachments';
     public const UPDATED_AT = '_pagecraft_imported_at';
 
     /** @return list<string> */
@@ -33,6 +34,7 @@ final class GlobalElement
             self::CSS_HASH,
             self::RUNTIME_PATH,
             self::RUNTIME_HASH,
+            self::MEDIA_ATTACHMENTS,
             self::UPDATED_AT,
         ];
     }
@@ -74,60 +76,67 @@ final class GlobalElement
             throw new PackageException('You are not allowed to update Pagecraft global elements.');
         }
         self::assertKind($kind);
-        $content = FallbackCompiler::globalContent($package, $kind);
-        $css = FallbackCompiler::globalCss($package);
-        $assets = new GeneratedAssetStore();
-        $cssAsset = $css !== '' ? $assets->writeCss('global', $css) : null;
-        $runtimeAsset = FallbackCompiler::needsRuntime($content) ? $assets->writeRuntime() : null;
-        $document = CanonicalJson::encode($package->document()->{$kind});
-        $provenance = $package->provenance();
-        $metadata = [
-            self::KIND => $kind,
-            self::DOCUMENT => $document,
-            self::SCHEMA_VERSION => (string) $package->manifest()->schemaVersion,
-            self::RENDERER_VERSION => (string) $package->manifest()->rendererVersion,
-            self::SOURCE_PROJECT_ID => (string) $provenance->sourceId,
-            self::SOURCE_VERSION => (string) $provenance->sourceVersion,
-            self::CSS_PATH => $cssAsset['path'] ?? '',
-            self::CSS_HASH => $cssAsset['hash'] ?? '',
-            self::RUNTIME_PATH => $runtimeAsset['path'] ?? '',
-            self::RUNTIME_HASH => $runtimeAsset['hash'] ?? '',
-            self::UPDATED_AT => gmdate('c'),
-        ];
+        $media = (new MediaLibrary())->import($package);
+        try {
+            $content = $media->rewriteHtml(FallbackCompiler::globalContent($package, $kind));
+            $css = $media->rewrite(FallbackCompiler::globalCss($package));
+            $assets = new GeneratedAssetStore();
+            $cssAsset = $css !== '' ? $assets->writeCss('global', $css) : null;
+            $runtimeAsset = FallbackCompiler::needsRuntime($content) ? $assets->writeRuntime() : null;
+            $document = $media->rewrite(CanonicalJson::encode($package->document()->{$kind}));
+            $provenance = $package->provenance();
+            $metadata = [
+                self::KIND => $kind,
+                self::DOCUMENT => $document,
+                self::SCHEMA_VERSION => (string) $package->manifest()->schemaVersion,
+                self::RENDERER_VERSION => (string) $package->manifest()->rendererVersion,
+                self::SOURCE_PROJECT_ID => (string) $provenance->sourceId,
+                self::SOURCE_VERSION => (string) $provenance->sourceVersion,
+                self::CSS_PATH => $cssAsset['path'] ?? '',
+                self::CSS_HASH => $cssAsset['hash'] ?? '',
+                self::RUNTIME_PATH => $runtimeAsset['path'] ?? '',
+                self::RUNTIME_HASH => $runtimeAsset['hash'] ?? '',
+                self::MEDIA_ATTACHMENTS => $media->attachmentIdsJson(),
+                self::UPDATED_AT => gmdate('c'),
+            ];
 
-        $existing = get_page_by_path(self::slug($kind), OBJECT, self::POST_TYPE);
-        $postId = is_object($existing) && isset($existing->ID) ? (int) $existing->ID : 0;
-        if ($postId > 0) {
-            if (!post_type_supports(self::POST_TYPE, 'revisions') || !wp_revisions_enabled(get_post($postId))) {
-                throw new PackageException('WordPress revisions must be enabled for Pagecraft global elements.');
+            $existing = get_page_by_path(self::slug($kind), OBJECT, self::POST_TYPE);
+            $postId = is_object($existing) && isset($existing->ID) ? (int) $existing->ID : 0;
+            if ($postId > 0) {
+                if (!post_type_supports(self::POST_TYPE, 'revisions') || !wp_revisions_enabled(get_post($postId))) {
+                    throw new PackageException('WordPress revisions must be enabled for Pagecraft global elements.');
+                }
+                $revision = wp_save_post_revision($postId);
+                if (is_wp_error($revision)) {
+                    throw new PackageException('WordPress could not revise the Pagecraft ' . $kind . ': ' . $revision->get_error_message());
+                }
+                $saved = wp_update_post([
+                    'ID' => $postId,
+                    'post_content' => wp_slash($content),
+                ], true);
+            } else {
+                $saved = wp_insert_post([
+                    'post_type' => self::POST_TYPE,
+                    'post_status' => 'publish',
+                    'post_title' => $kind === 'header' ? 'Pagecraft Header' : 'Pagecraft Footer',
+                    'post_name' => self::slug($kind),
+                    'post_content' => wp_slash($content),
+                    'meta_input' => array_map('wp_slash', $metadata),
+                ], true);
             }
-            $revision = wp_save_post_revision($postId);
-            if (is_wp_error($revision)) {
-                throw new PackageException('WordPress could not revise the Pagecraft ' . $kind . ': ' . $revision->get_error_message());
+            if (is_wp_error($saved)) {
+                throw new PackageException('WordPress could not store the Pagecraft ' . $kind . ': ' . $saved->get_error_message());
             }
-            $saved = wp_update_post([
-                'ID' => $postId,
-                'post_content' => wp_slash($content),
-            ], true);
-        } else {
-            $saved = wp_insert_post([
-                'post_type' => self::POST_TYPE,
-                'post_status' => 'publish',
-                'post_title' => $kind === 'header' ? 'Pagecraft Header' : 'Pagecraft Footer',
-                'post_name' => self::slug($kind),
-                'post_content' => wp_slash($content),
-                'meta_input' => array_map('wp_slash', $metadata),
-            ], true);
-        }
-        if (is_wp_error($saved)) {
-            throw new PackageException('WordPress could not store the Pagecraft ' . $kind . ': ' . $saved->get_error_message());
-        }
-        $postId = (int) $saved;
-        foreach ($metadata as $key => $value) {
-            update_post_meta($postId, $key, wp_slash($value));
-        }
+            $postId = (int) $saved;
+            foreach ($metadata as $key => $value) {
+                update_post_meta($postId, $key, wp_slash($value));
+            }
 
-        return $postId;
+            return $postId;
+        } catch (\Throwable $error) {
+            $media->rollback();
+            throw $error;
+        }
     }
 
     private static function assertKind(string $kind): void

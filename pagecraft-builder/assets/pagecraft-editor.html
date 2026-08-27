@@ -4629,7 +4629,7 @@ var colorUsage = (id) => {
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
   return k;
 };
-var A_RE = /asset:([a-z0-9]+)(?:@(\d+))?/g;
+var A_RE = /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
 var assetFile = (a) => {
   const id = String(a.id || "asset").replace(/[^a-z0-9]+/gi, "").toLowerCase() || "asset";
   if (!a.name) return "assets/" + id;
@@ -8597,7 +8597,7 @@ function renderNode(n, o) {
       const dim = p.w && p.h ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : !p.src ? ' width="800" height="500"' : "";
       const alt = ` alt="${p.decorative ? "" : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
-      const set = o.variants && !o.edit && /^asset:\w+$/.test(String(p.src || "")) ? imageWidths(p.w).map((w) => `${p.src}@${w} ${w}w`) : [];
+      const set = o.variants && !o.edit && /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(String(p.src || "")) ? imageWidths(p.w).map((w) => `${p.src}@${w} ${w}w`) : [];
       const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;

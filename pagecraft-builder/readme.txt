@@ -20,7 +20,11 @@ WordPress Pages remains the only page list. It receives Pagecraft status, filter
 
 The editor uses a same-origin nonce-protected WordPress REST adapter, optimistic document versions, visible save/conflict recovery, WordPress revisions, content-hashed styles, and refreshed native fallback markup.
 
-Pagecraft navigation becomes native WordPress menu data assigned to the Pagecraft Theme's Primary, Footer, and Utility locations. Internal destinations remain page-backed, so WordPress slug changes update automatically. Nesting, order, anchors, external URLs, targets, CSS classes, and XFN relationships round-trip through the same records edited under Appearance > Menus. Single-page import never changes navigation automatically; its success screen offers an explicit Add to menu action. Deeper media portability, visual global-element editing, and optional manual cloud import continue through their tracked WordPress v1 milestones.
+Pagecraft navigation becomes native WordPress menu data assigned to the Pagecraft Theme's Primary, Footer, and Utility locations. Internal destinations remain page-backed, so WordPress slug changes update automatically. Nesting, order, anchors, external URLs, targets, CSS classes, and XFN relationships round-trip through the same records edited under Appearance > Menus. Single-page import never changes navigation automatically; its success screen offers an explicit Add to menu action.
+
+Package images are hash-verified, type-checked, deduplicated by content, and registered as native WordPress Media Library attachments. The importer preserves image dimensions, alt text, captions, and WordPress responsive image sources; it rewrites editable documents, compiled markup, and generated styles to local attachment URLs. Imported pages and revision-backed global elements retain explicit attachment relationships, and referenced attachments cannot be deleted while a current record or recoverable revision still needs them.
+
+Optional manual cloud import continues through its tracked WordPress v1 milestone.
 
 Pagecraft Builder does not run background synchronization, deployment promotion, webhooks, CMS write-back, or remote release activation.
 

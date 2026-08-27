@@ -26,6 +26,7 @@ final class ManagedPage
     public const PACKAGE_HASH = '_pagecraft_package_hash';
     public const DOCUMENT_VERSION = '_pagecraft_document_version';
     public const CONVERSION_REVISION = '_pagecraft_conversion_revision';
+    public const MEDIA_ATTACHMENTS = '_pagecraft_media_attachments';
 
     /** @return list<string> */
     public static function keys(): array
@@ -51,6 +52,7 @@ final class ManagedPage
             self::PACKAGE_HASH,
             self::DOCUMENT_VERSION,
             self::CONVERSION_REVISION,
+            self::MEDIA_ATTACHMENTS,
         ];
     }
 
@@ -84,12 +86,14 @@ final class ManagedPage
         string $css,
         ?array $globalCss,
         ?array $pageCss,
-        ?array $runtime
+        ?array $runtime,
+        string $documentJson = '',
+        string $mediaAttachments = '[]'
     ): array
     {
         $provenance = $package->provenance();
         return [
-            self::DOCUMENT => $package->documentJson(),
+            self::DOCUMENT => $documentJson !== '' ? $documentJson : $package->documentJson(),
             self::SCHEMA_VERSION => (string) $package->manifest()->schemaVersion,
             self::RENDERER_VERSION => (string) $package->manifest()->rendererVersion,
             self::SOURCE_PROJECT_ID => (string) $provenance->sourceId,
@@ -109,6 +113,7 @@ final class ManagedPage
             self::PACKAGE_HASH => $package->packageHash(),
             self::DOCUMENT_VERSION => '1',
             self::CONVERSION_REVISION => '',
+            self::MEDIA_ATTACHMENTS => $mediaAttachments,
         ];
     }
 }
