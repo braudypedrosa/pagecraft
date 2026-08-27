@@ -114,6 +114,8 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /name="slug"/);
   a.match(html, /data-create-error/);
   a.match(html, /background-position:right 14px center/);
+  a.match(html, /pc-custom-select-trigger/);
+  a.match(html, /pc-custom-select-popover/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
 });

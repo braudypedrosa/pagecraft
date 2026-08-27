@@ -57,6 +57,7 @@ import {
   dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
   signUpPage, termsPage
 } from './account-pages.ts';
+import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
 
 export const SESSION_COOKIE = 'pc_session';
 
@@ -2838,7 +2839,8 @@ const shell = (title: string, body: string) => `<!doctype html>
   a:hover{background:#f8f6ef;border-color:#5f6660}
   small{color:#5f6660;font-size:12px}
   .ok{padding:11px 12px;border-radius:8px;background:#f8f6ef;font-size:13.5px}
-</style></head><body><div class="card">${body}</div></body></html>`;
+  ${body.includes('<select') ? CUSTOM_SELECT_CSS : ''}
+</style></head><body><div class="card">${body}</div>${body.includes('<select') ? `<script>${CUSTOM_SELECT_BOOT_SCRIPT}<\/script>` : ''}</body></html>`;
 
 /* No framework for four screens' worth of markup. If this grows past a form and a list it
    should become part of the editor bundle rather than more strings in here. */
