@@ -19,6 +19,8 @@ class FakeAccountAuth implements AccountAuth {
   current: VerifiedIdentity | null = null;
   signup: { email: string; name: string; captchaToken: string } | null = null;
   oauthRedirectTo: string | null = null;
+  emailRedirectTo: string | null = null;
+  passwordUpdate: { password: string; currentPassword?: string } | null = null;
   async identity(_c: Context) { return this.current; }
   async oauth(_c: Context, input: { provider: 'google'; redirectTo: string }) {
     this.oauthRedirectTo = input.redirectTo;
@@ -35,6 +37,16 @@ class FakeAccountAuth implements AccountAuth {
   async confirm() { return this.current; }
   async forgot() {}
   async reset(_c: Context, password: string) { return password.length >= 12; }
+  async updateEmail(_c: Context, input: { email: string; redirectTo: string }) {
+    if (!this.current) return false;
+    this.emailRedirectTo = input.redirectTo;
+    this.current = { ...this.current, email: input.email };
+    return true;
+  }
+  async updatePassword(_c: Context, input: { password: string; currentPassword?: string }) {
+    this.passwordUpdate = input;
+    return input.password.length >= 12 && input.currentPassword !== 'wrong password';
+  }
   async signOut() { this.current = null; }
 }
 
@@ -111,6 +123,7 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /No shared sites yet/);
   a.match(html, /No owned sites yet/);
   a.match(html, />Add new site<\/a>/);
+  a.match(html, /href="\/account">Account settings<\/a>/);
   a.match(html, /name="slug"/);
   a.match(html, /data-create-error/);
   a.match(html, /background-position:right 14px center/);
@@ -118,6 +131,105 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /pc-custom-select-popover/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
+});
+
+test('account settings shows profile, security, providers, and real free-plan usage', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = {
+    authUserId: 'auth-1', email: 'builder@example.test', name: 'Builder',
+    providers: ['email', 'google'], createdAt: '2026-01-12T00:00:00.000Z'
+  };
+  await auth.ensureAuthUser('auth-1', 'builder@example.test', 'Builder');
+
+  const response = await request('/account');
+  a.equal(response.status, 200);
+  const html = await response.text();
+  a.match(html, /<h1>Account settings<\/h1>/);
+  a.match(html, /action="\/account\/profile"/);
+  a.match(html, /value="Builder"/);
+  a.match(html, /value="builder@example\.test"/);
+  a.match(html, /Email and password<\/strong><span>Connected/);
+  a.match(html, /Google<\/strong><span>Connected/);
+  a.match(html, /action="\/account\/password"/);
+  a.match(html, /Current password/);
+  a.match(html, /Plan &amp; billing/);
+  a.match(html, /<span class="pc-plan-badge">Free<\/span>/);
+  a.match(html, /0 of 3 used/);
+  a.match(html, /0 KB of 100 MB/);
+  a.match(html, /Paid plans are not available yet/);
+  a.match(html, /Joined Jan 12, 2026/);
+});
+
+test('account profile updates the local name and starts verified email change', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = {
+    authUserId: 'auth-1', email: 'old@example.test', name: 'Old Name', providers: ['email']
+  };
+  const user = await auth.ensureAuthUser('auth-1', 'old@example.test', 'Old Name');
+  const response = await request('/account/profile', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ name: 'New Name', email: 'new@example.test' })
+  });
+  a.equal(response.status, 303);
+  a.match(response.headers.get('location') || '', /Confirm\+the\+new\+email/);
+  a.equal(accountAuth.emailRedirectTo, 'http://admin.test/auth/confirm?next=%2Faccount');
+  a.equal((await auth.userById(user.id))?.name, 'New Name');
+
+  const page = await request('/account');
+  a.equal(page.status, 200);
+  a.equal((await auth.userById(user.id))?.email, 'new@example.test');
+});
+
+test('account profile refuses an email already owned by another Pagecraft identity', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = {
+    authUserId: 'auth-1', email: 'first@example.test', name: 'First', providers: ['email']
+  };
+  await auth.ensureAuthUser('auth-1', 'first@example.test', 'First');
+  await auth.ensureAuthUser('auth-2', 'taken@example.test', 'Second');
+  const response = await request('/account/profile', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ name: 'First', email: 'taken@example.test' })
+  });
+  a.equal(response.status, 303);
+  a.equal(response.headers.get('location'), '/account?error=email_conflict#profile');
+});
+
+test('password accounts require the current password while Google-only accounts can set one', async () => {
+  const { request, accountAuth } = rig();
+  accountAuth.current = {
+    authUserId: 'auth-1', email: 'builder@example.test', name: 'Builder', providers: ['email']
+  };
+  const wrong = await request('/account/password', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ currentPassword: 'wrong password', password: 'a long replacement passphrase',
+      passwordConfirm: 'a long replacement passphrase' })
+  });
+  a.equal(wrong.headers.get('location'), '/account?error=password_current#security');
+
+  accountAuth.current = {
+    authUserId: 'auth-2', email: 'google@example.test', name: 'Google', providers: ['google']
+  };
+  const set = await request('/account/password', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ password: 'a long replacement passphrase',
+      passwordConfirm: 'a long replacement passphrase' })
+  });
+  a.equal(set.headers.get('location'), '/account?message=Password+updated.#security');
+  a.deepEqual(accountAuth.passwordUpdate, { password: 'a long replacement passphrase' });
+});
+
+test('account mutations enforce the browser origin check', async () => {
+  const { request, accountAuth } = rig();
+  accountAuth.current = {
+    authUserId: 'auth-1', email: 'builder@example.test', name: 'Builder', providers: ['email']
+  };
+  const response = await request('/account/profile', {
+    method: 'POST', headers: { origin: 'https://elsewhere.test', 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ name: 'Changed', email: 'builder@example.test' })
+  });
+  a.equal(response.status, 403);
+  a.deepEqual(await response.json(), { error: 'origin_not_allowed' });
 });
 
 test('site creation reports usable slug errors to JSON and redirects form submissions safely', async () => {

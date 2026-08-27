@@ -55,7 +55,7 @@ import type { AccountAuth } from './account-auth.ts';
 import type { HumanChallenge } from './turnstile.ts';
 import type { OwnedSiteStore } from './accounts.ts';
 import {
-  dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
+  accountSettingsPage, dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
   signUpPage, termsPage
 } from './account-pages.ts';
 import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
@@ -135,6 +135,7 @@ export function createApp(o: Options) {
     }
     const path = new URL(c.req.url).pathname;
     const privateRoute = /^\/(?:api|auth|edit|v1)(?:\/|$)/.test(path)
+      || /^\/account(?:\/|$)/.test(path)
       || (path === '/' && isEditorHost(c.req.header('host'), o));
     if (privateRoute) c.header('cache-control', 'private, no-store');
     /* `secureCookies` is the production signal already passed by the entry point. Browsers
@@ -156,6 +157,8 @@ export function createApp(o: Options) {
   app.use('/sign-in', editorOnly);
   app.use('/forgot-password', editorOnly);
   app.use('/reset-password', editorOnly);
+  app.use('/account', editorOnly);
+  app.use('/account/*', editorOnly);
   app.use('/privacy', editorOnly);
   app.use('/terms', editorOnly);
   app.get('/brand/pagecraft-logo.svg', editorOnly, serveStatic({
@@ -177,7 +180,7 @@ export function createApp(o: Options) {
       const method = c.req.method.toUpperCase();
       const path = new URL(c.req.url).pathname;
       const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method)
-        && (/^\/(?:auth|api)(?:\/|$)/.test(path));
+        && (/^\/(?:auth|api|account)(?:\/|$)/.test(path));
       const bearer = /^Bearer\s+/i.test(c.req.header('authorization') || '')
         || !!c.req.header('x-pagecraft-editor-session');
       const origin = c.req.header('origin');
@@ -629,6 +632,7 @@ export function createApp(o: Options) {
       || (c.req.header('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
     const authSourceLimit = throttle(30, 15 * 60 * 1000, 5000);
     const authEmailLimit = throttle(8, 15 * 60 * 1000, 5000);
+    const accountChangeLimit = throttle(8, 15 * 60 * 1000, 5000);
     const challengeToken = async (c: Context, body: Record<string, unknown>, action: 'signup' | 'login' | 'forgot') => {
       const token = String(body['cf-turnstile-response'] || body.turnstileToken || '');
       return o.challenge && await o.challenge.verify({ token, ip: source(c), action }) ? token : '';
@@ -732,6 +736,76 @@ export function createApp(o: Options) {
       deleteCookie(c, SESSION_COOKIE, { path: '/' });
       return c.redirect('/sign-in', 303);
     });
+
+    app.get('/account', async c => {
+      const [user, identity] = await Promise.all([who(c), o.accountAuth!.identity(c)]);
+      if (!user || !identity) return c.redirect('/sign-in?next=%2Faccount');
+      const mine = await visibleSites(user);
+      const storage = o.assets
+        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
+        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+      return c.html(accountSettingsPage(user, {
+        providers: identity.providers || [],
+        createdAt: identity.createdAt || user.createdAt,
+        ownerCount: mine.filter(item => item.role === 'owner').length,
+        storage
+      }, { error: c.req.query('error'), message: c.req.query('message') }));
+    });
+
+    app.post('/account/profile', bodyLimit({
+      maxSize: 16 * 1024, onError: c => c.text('Request too large', 413)
+    }), async c => {
+      const [user, identity] = await Promise.all([who(c), o.accountAuth!.identity(c)]);
+      if (!user || !identity) return c.redirect('/sign-in?next=%2Faccount');
+      const body = await form(c);
+      const name = String(body.name || '').trim().slice(0, 120);
+      const email = normalEmail(String(body.email || ''));
+      if (!name || !validEmail(email)) return c.redirect('/account?error=profile#profile', 303);
+      if (!accountChangeLimit.take(`${source(c)}|profile`)) {
+        return c.redirect('/account?error=password_rate#profile', 303);
+      }
+      const updated = await o.auth.updateProfile(user.id, { name });
+      if (!updated) return c.redirect('/account?error=account#profile', 303);
+      if (email === identity.email) return c.redirect('/account?message=Profile+updated.#profile', 303);
+      const conflict = await o.auth.userByEmail(email);
+      if (conflict && conflict.id !== user.id) {
+        return c.redirect('/account?error=email_conflict#profile', 303);
+      }
+      const origin = o.editorOrigin || new URL(c.req.url).origin;
+      const accepted = await o.accountAuth!.updateEmail(c, {
+        email, redirectTo: `${origin}/auth/confirm?next=%2Faccount`
+      });
+      return accepted
+        ? c.redirect('/account?message=Profile+updated.+Confirm+the+new+email+address+to+finish+the+change.#profile', 303)
+        : c.redirect('/account?error=email_update#profile', 303);
+    });
+
+    app.post('/account/password', bodyLimit({
+      maxSize: 16 * 1024, onError: c => c.text('Request too large', 413)
+    }), async c => {
+      const identity = await o.accountAuth!.identity(c);
+      if (!identity) return c.redirect('/sign-in?next=%2Faccount');
+      if (!accountChangeLimit.take(`${source(c)}|password`)) {
+        return c.redirect('/account?error=password_rate#security', 303);
+      }
+      const body = await form(c);
+      const password = String(body.password || '');
+      const currentPassword = String(body.currentPassword || '');
+      if (password.length < 12) return c.redirect('/account?error=password#security', 303);
+      if (password !== String(body.passwordConfirm || '')) {
+        return c.redirect('/account?error=mismatch#security', 303);
+      }
+      const hasPassword = (identity.providers || []).includes('email');
+      if (hasPassword && !currentPassword) {
+        return c.redirect('/account?error=password_current#security', 303);
+      }
+      const changed = await o.accountAuth!.updatePassword(c, {
+        password, ...(hasPassword ? { currentPassword } : {})
+      });
+      return changed
+        ? c.redirect('/account?message=Password+updated.#security', 303)
+        : c.redirect('/account?error=password_current#security', 303);
+    });
   }
 
   app.get('/auth/me', async c => {
@@ -742,7 +816,10 @@ export function createApp(o: Options) {
       url: shareUrl(c, o, site), name: site.name, role
     }));
     const storage = o.assets ? await o.assets.usage(user.id, FREE_STORAGE_BYTES) : null;
-    return c.json({ user: { id: user.id, email: user.email, name: user.name }, sites: mine, storage });
+    return c.json({
+      user: { id: user.id, email: user.email, name: user.name, plan: user.plan || 'free' },
+      sites: mine, storage
+    });
   });
 
   /* ---------------------------------------------------------------- the editor */

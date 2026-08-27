@@ -8,6 +8,8 @@ export interface VerifiedIdentity {
   authUserId: string;
   email: string;
   name: string;
+  providers?: string[];
+  createdAt?: string;
 }
 
 export interface AccountAuth {
@@ -18,6 +20,8 @@ export interface AccountAuth {
   confirm(c: Context, input: { code?: string; tokenHash?: string; type?: string }): Promise<VerifiedIdentity | null>;
   forgot(c: Context, input: { email: string; redirectTo: string; captchaToken: string }): Promise<void>;
   reset(c: Context, password: string): Promise<boolean>;
+  updateEmail(c: Context, input: { email: string; redirectTo: string }): Promise<boolean>;
+  updatePassword(c: Context, input: { password: string; currentPassword?: string }): Promise<boolean>;
   signOut(c: Context): Promise<void>;
 }
 
@@ -33,7 +37,14 @@ const verified = (user: User | null): VerifiedIdentity | null => {
   const metadataName = typeof user.user_metadata?.name === 'string' ? user.user_metadata.name
     : typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : '';
   const name = metadataName.trim().slice(0, 120);
-  return { authUserId: user.id, email: normalEmail(user.email), name };
+  const providers = [...new Set([
+    ...(Array.isArray(user.app_metadata?.providers) ? user.app_metadata.providers : []),
+    ...(user.identities || []).map(identity => identity.provider)
+  ].filter(provider => typeof provider === 'string'))] as string[];
+  return {
+    authUserId: user.id, email: normalEmail(user.email), name,
+    providers, createdAt: user.created_at
+  };
 };
 
 export class SupabaseAccountAuth implements AccountAuth {
@@ -127,6 +138,21 @@ export class SupabaseAccountAuth implements AccountAuth {
 
   async reset(c: Context, password: string) {
     const { error } = await this.client(c).auth.updateUser({ password });
+    return !error;
+  }
+
+  async updateEmail(c: Context, input: { email: string; redirectTo: string }) {
+    const { error } = await this.client(c).auth.updateUser(
+      { email: input.email }, { emailRedirectTo: input.redirectTo }
+    );
+    return !error;
+  }
+
+  async updatePassword(c: Context, input: { password: string; currentPassword?: string }) {
+    const { error } = await this.client(c).auth.updateUser({
+      password: input.password,
+      ...(input.currentPassword ? { currentPassword: input.currentPassword } : {})
+    });
     return !error;
   }
 

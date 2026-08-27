@@ -22,8 +22,16 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 export type Role = 'owner' | 'content';
+export type AccountPlan = 'free';
 
-export interface User { id: string; email: string; name: string; authUserId?: string | null }
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  authUserId?: string | null;
+  plan?: AccountPlan;
+  createdAt?: string;
+}
 export interface Session { token: string; userId: string; expiresAt: number }
 export interface Membership { siteId: string; userId: string; role: Role }
 export interface SessionAccess { user: User; role: Role | null }
@@ -69,6 +77,8 @@ export interface AuthStore {
   userByAuthId(authUserId: string): Promise<User | null>;
   /** Link a verified identity to an invited profile, or create its fresh profile. */
   ensureAuthUser(authUserId: string, email: string, name?: string): Promise<User>;
+  /** Update only editable profile fields. Identity and plan are never caller-controlled. */
+  updateProfile(userId: string, input: { name: string }): Promise<User | null>;
   /** Resolve several revision authors without one store round trip per history row. */
   usersByIds(ids: string[]): Promise<User[]>;
   createUser(email: string, name?: string): Promise<User>;
@@ -110,6 +120,7 @@ create table if not exists users (
   created_at  timestamptz not null default now()
 );
 alter table users add column if not exists auth_user_id text;
+alter table users add column if not exists plan text not null default 'free';
 create unique index if not exists users_auth_user_id_key on users (auth_user_id)
   where auth_user_id is not null;
 
@@ -188,7 +199,12 @@ export class MemoryAuthStore implements AuthStore {
   }
   async ensureAuthUser(authUserId: string, email: string, name = '') {
     const existingIdentity = await this.userByAuthId(authUserId);
-    if (existingIdentity) return existingIdentity;
+    if (existingIdentity) {
+      const stored = this.users.get(existingIdentity.id)!;
+      stored.email = normalEmail(email);
+      if (!stored.name && name.trim()) stored.name = name.trim();
+      return { ...stored };
+    }
     const normalized = normalEmail(email);
     const existingEmail = await this.userByEmail(normalized);
     if (existingEmail) {
@@ -201,7 +217,8 @@ export class MemoryAuthStore implements AuthStore {
       return { ...stored };
     }
     const user: User = {
-      id: 'u' + ++this.seq, email: normalized, name: name.trim(), authUserId
+      id: 'u' + ++this.seq, email: normalized, name: name.trim(), authUserId,
+      plan: 'free', createdAt: new Date().toISOString()
     };
     this.users.set(user.id, user);
     return { ...user };
@@ -212,6 +229,12 @@ export class MemoryAuthStore implements AuthStore {
       return user ? [{ ...user }] : [];
     });
   }
+  async updateProfile(userId: string, input: { name: string }) {
+    const stored = this.users.get(userId);
+    if (!stored) return null;
+    stored.name = input.name.trim();
+    return { ...stored };
+  }
   async createUser(email: string, name = '') {
     const existing = await this.userByEmail(email);
     if (existing) {
@@ -219,7 +242,10 @@ export class MemoryAuthStore implements AuthStore {
       if (name.trim()) stored.name = name.trim();
       return { ...stored };
     }
-    const u: User = { id: 'u' + ++this.seq, email: normalEmail(email), name, authUserId: null };
+    const u: User = {
+      id: 'u' + ++this.seq, email: normalEmail(email), name, authUserId: null,
+      plan: 'free', createdAt: new Date().toISOString()
+    };
     this.users.set(u.id, u);
     return { ...u };
   }

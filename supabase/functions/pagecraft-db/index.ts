@@ -2008,23 +2008,31 @@ async function dispatch(op: string, args: Record<string, unknown>) {
 
     case "auth.userByEmail":
       return one(
-        await sql`select id, email, name, auth_user_id from users where email = ${
+        await sql`select id, email, name, auth_user_id, plan, created_at from users where email = ${
           text(args.email)
         } limit 1`,
       );
     case "auth.userById":
       return one(
-        await sql`select id, email, name, auth_user_id from users where id = ${
+        await sql`select id, email, name, auth_user_id, plan, created_at from users where id = ${
           text(args.id)
         } limit 1`,
       );
     case "auth.userByAuthId":
       return one(
-        await sql`select id, email, name, auth_user_id from users where auth_user_id = ${
+        await sql`select id, email, name, auth_user_id, plan, created_at from users where auth_user_id = ${
           text(args.authUserId)
         } limit 1`,
       );
     case "auth.ensureAuthUser": {
+      const existing = await sql`
+        update users set
+          email = ${text(args.email)},
+          name = case when name = '' then ${text(args.name)} else name end
+        where auth_user_id = ${text(args.authUserId)}
+        returning id, email, name, auth_user_id, plan, created_at
+      `;
+      if (existing[0]) return existing[0];
       const rows = await sql`
         insert into users (id, email, name, auth_user_id)
         values (${text(args.id)}, ${text(args.email)}, ${text(args.name)}, ${
@@ -2032,9 +2040,9 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       })
         on conflict (email) do update set
           auth_user_id = excluded.auth_user_id,
-          name = coalesce(nullif(excluded.name, ''), users.name)
+          name = case when users.name = '' then excluded.name else users.name end
         where users.auth_user_id is null or users.auth_user_id = excluded.auth_user_id
-        returning id, email, name, auth_user_id
+        returning id, email, name, auth_user_id, plan, created_at
       `;
       if (!rows[0]) {
         throw Object.assign(
@@ -2044,12 +2052,20 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       }
       return rows[0];
     }
+    case "auth.updateProfile":
+      return one(
+        await sql`
+        update users set name = ${text(args.name)}
+        where id = ${text(args.userId)}
+        returning id, email, name, auth_user_id, plan, created_at
+      `,
+      );
     case "auth.usersByIds": {
       const ids = Array.isArray(args.ids)
         ? [...new Set(args.ids.map(text).filter(Boolean))].slice(0, 500)
         : [];
       return ids.length
-        ? await sql`select id, email, name, auth_user_id from users where id in ${
+        ? await sql`select id, email, name, auth_user_id, plan, created_at from users where id in ${
           sql(ids)
         }`
         : [];
@@ -2062,7 +2078,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         }, ${text(args.name)})
         on conflict (email) do update
           set name = coalesce(nullif(excluded.name, ''), users.name)
-        returning id, email, name, auth_user_id
+        returning id, email, name, auth_user_id, plan, created_at
       `,
       );
     case "auth.putLink":

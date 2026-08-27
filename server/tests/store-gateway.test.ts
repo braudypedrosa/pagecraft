@@ -356,6 +356,10 @@ test('gateway auth resolves a session and all memberships with one operation eac
     if (call.op === 'auth.membershipsForUser') {
       return [{ site_id: 's1', user_id: 'u1', role: 'owner' }];
     }
+    if (call.op === 'auth.updateProfile') {
+      return { id: 'u1', email: 'me@acme.test', name: 'Updated', plan: 'free',
+        created_at: '2026-08-28T00:00:00.000Z' };
+    }
     throw new Error(`unexpected ${call.op}`);
   });
   const auth = new GatewayAuthStore(gateway);
@@ -363,8 +367,12 @@ test('gateway auth resolves a session and all memberships with one operation eac
   a.equal((await auth.userForSession('digest'))!.id, 'u1');
   a.equal((await auth.accessForSession('digest', 's1'))!.role, 'owner');
   a.deepEqual(await auth.membershipsForUser('u1'), [{ siteId: 's1', userId: 'u1', role: 'owner' }]);
+  const updated = await auth.updateProfile('u1', { name: 'Updated' });
+  a.equal(updated?.name, 'Updated');
+  a.equal(updated?.plan, 'free');
   a.deepEqual(calls.map(call => call.op), [
-    'auth.usersByIds', 'auth.userForSession', 'auth.accessForSession', 'auth.membershipsForUser'
+    'auth.usersByIds', 'auth.userForSession', 'auth.accessForSession', 'auth.membershipsForUser',
+    'auth.updateProfile'
   ]);
 });
 

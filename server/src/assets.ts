@@ -14,6 +14,7 @@
    Bytes stay out of the document. The document holds `asset:<id>` and nothing else, which is
    what keeps a save small and a render synchronous. */
 import { assetFile } from '../../app/src/core/index.ts';
+import { FREE_PLAN } from './plans.ts';
 
 export interface AssetRecord {
   id: string;
@@ -93,7 +94,7 @@ export class AssetQuotaError extends Error {
 /** Ten megabytes. Large enough for a photograph nobody has thought about, small enough that
     one upload cannot fill a volume. */
 export const MAX_BYTES = 10 * 1024 * 1024;
-export const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
+export const FREE_STORAGE_BYTES = FREE_PLAN.storageBytes;
 
 /** What a browser will actually display, which is the only reason to accept an upload. */
 export const ALLOWED = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml']);

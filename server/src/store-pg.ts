@@ -1745,7 +1745,10 @@ export class PgAssetStore implements AssetStore {
 
 /* --------------------------------------------------------------------- auth */
 
-interface UserRow { id: string; email: string; name: string; auth_user_id?: string | null }
+interface UserRow {
+  id: string; email: string; name: string; auth_user_id?: string | null;
+  plan?: 'free'; created_at?: Date | string;
+}
 interface SessionRow { digest: string; user_id: string; expires_at: Date | string }
 interface MemberRow { site_id: string; user_id: string; role: Role }
 interface AccessRow extends UserRow { role: Role | null }
@@ -1774,17 +1777,31 @@ export class PgAuthStore implements AuthStore {
     return rows[0] ? this.user(rows[0]) : null;
   }
   async ensureAuthUser(authUserId: string, email: string, name = '') {
+    const normalized = normalEmail(email);
+    const existing = await this.db.query<UserRow>(
+      `update users set
+         email = $2,
+         name = case when name = '' then $3 else name end
+       where auth_user_id = $1 returning *`,
+      [authUserId, normalized, name.trim()]
+    );
+    if (existing.rows[0]) return this.user(existing.rows[0]);
     const { rows } = await this.db.query<UserRow>(
       `insert into users (id, email, name, auth_user_id) values ($1, $2, $3, $4)
        on conflict (email) do update set
          auth_user_id = excluded.auth_user_id,
-         name = coalesce(nullif(excluded.name, ''), users.name)
+         name = case when users.name = '' then excluded.name else users.name end
        where users.auth_user_id is null or users.auth_user_id = excluded.auth_user_id
        returning *`,
-      [crypto.randomUUID(), normalEmail(email), name.trim(), authUserId]
+      [crypto.randomUUID(), normalized, name.trim(), authUserId]
     );
     if (!rows[0]) throw new Error('that email is already linked to another identity');
     return this.user(rows[0]);
+  }
+  async updateProfile(userId: string, input: { name: string }) {
+    const { rows } = await this.db.query<UserRow>(
+      'update users set name = $2 where id = $1 returning *', [userId, input.name.trim()]);
+    return rows[0] ? this.user(rows[0]) : null;
   }
   async usersByIds(ids: string[]) {
     const unique = [...new Set(ids)];
@@ -1904,7 +1921,9 @@ export class PgAuthStore implements AuthStore {
   private user(row: UserRow): User {
     return {
       id: row.id, email: row.email, name: row.name,
-      authUserId: row.auth_user_id ?? null
+      authUserId: row.auth_user_id ?? null,
+      plan: row.plan || 'free',
+      createdAt: row.created_at ? new Date(row.created_at).toISOString() : undefined
     };
   }
   async createManualImportCredential(input: Omit<ManualImportCredential,

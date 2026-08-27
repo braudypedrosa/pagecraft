@@ -3,8 +3,9 @@ import type { AuthStore } from './auth.ts';
 import { slugFrom, validSlug, type Site, type Store } from './store.ts';
 import type { Queryable } from './store-pg.ts';
 import type { PagecraftGateway } from './store-gateway.ts';
+import { FREE_PLAN } from './plans.ts';
 
-export const OWNED_SITE_LIMIT = 3;
+export const OWNED_SITE_LIMIT = FREE_PLAN.ownedSites;
 export type CreateOwnedResult =
   | { ok: true; site: Site }
   | { ok: false; reason: 'site_limit_reached' | 'profile_missing' };

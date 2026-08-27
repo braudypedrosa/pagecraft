@@ -733,7 +733,10 @@ export class GatewayAssetStore implements AssetStore {
   }
 }
 
-interface UserWire { id: string; email: string; name: string; auth_user_id?: string | null }
+interface UserWire {
+  id: string; email: string; name: string; auth_user_id?: string | null;
+  plan?: 'free'; created_at?: string;
+}
 interface SessionWire { digest: string; user_id: string; expires_at: string }
 interface MembershipWire { site_id: string; user_id: string; role: Role; email?: string; name?: string }
 interface AccessWire extends UserWire { role: Role | null }
@@ -754,7 +757,8 @@ const toMembership = (row: MembershipWire): Membership => ({
   siteId: row.site_id, userId: row.user_id, role: row.role
 });
 const toUser = (row: UserWire): User => ({
-  id: row.id, email: row.email, name: row.name, authUserId: row.auth_user_id ?? null
+  id: row.id, email: row.email, name: row.name, authUserId: row.auth_user_id ?? null,
+  plan: row.plan || 'free', createdAt: row.created_at
 });
 
 export class GatewayAuthStore implements AuthStore {
@@ -776,6 +780,11 @@ export class GatewayAuthStore implements AuthStore {
     return this.gateway.call<UserWire>('auth.ensureAuthUser', {
       id: crypto.randomUUID(), authUserId, email: normalEmail(email), name: name.trim()
     }).then(toUser);
+  }
+  updateProfile(userId: string, input: { name: string }) {
+    return this.gateway.call<UserWire | null>('auth.updateProfile', {
+      userId, name: input.name.trim()
+    }).then(row => row ? toUser(row) : null);
   }
   usersByIds(ids: string[]) {
     return ids.length
