@@ -109,6 +109,7 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /class="pc-site-preview"/);
   a.match(html, /class="pc-preview-fallback"/);
   a.match(html, /data-copy-site/);
+  a.match(html, />Manage site<\/a>/);
   a.match(html, />Braudy<\/div>/);
   a.match(html, /class="pc-site-url"/);
   a.match(html, />admin\.test\/braudy<\/a>/);
@@ -131,6 +132,48 @@ test('dashboard renders searchable builder-style site cards and the owner quota'
   a.match(html, /pc-custom-select-popover/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
+});
+
+test('site overview is protected, membership-scoped, and exposes working management actions', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' };
+  const owner = await auth.ensureAuthUser('auth-owner', 'owner@example.test', 'Owner');
+  const created = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Studio site', doc: doc() })
+  });
+  a.equal(created.status, 201);
+  const site = await created.json() as { id: string };
+
+  const response = await request(`/sites/${site.id}`);
+  a.equal(response.status, 200);
+  const html = await response.text();
+  a.match(html, /<h1>Studio site<\/h1>/);
+  a.match(html, /aria-label="Site management"/);
+  a.match(html, /aria-current="page"/);
+  a.match(html, />Published<\/span>/);
+  a.match(html, />Owner<\/dd>/);
+  a.match(html, new RegExp(`href="/edit/${site.id}">Edit site<\\/a>`));
+  a.match(html, new RegExp(`href="/v1/sites/${site.id}/packages/site">Download project<\\/a>`));
+  a.match(html, /Custom domains will be managed here in the next phase/);
+
+  accountAuth.current = null;
+  const anonymous = await request(`/sites/${site.id}`);
+  a.equal(anonymous.status, 302);
+  a.equal(anonymous.headers.get('location'), `/sign-in?next=%2Fsites%2F${site.id}`);
+
+  accountAuth.current = { authUserId: 'auth-content', email: 'content@example.test', name: 'Content' };
+  const content = await auth.ensureAuthUser('auth-content', 'content@example.test', 'Content');
+  await auth.grant(site.id, content.id, 'content');
+  const collaborator = await request(`/sites/${site.id}`);
+  a.equal(collaborator.status, 200);
+  a.match(await collaborator.text(), />Content editor<\/dd>/);
+
+  accountAuth.current = { authUserId: 'auth-stranger', email: 'stranger@example.test', name: 'Stranger' };
+  await auth.ensureAuthUser('auth-stranger', 'stranger@example.test', 'Stranger');
+  a.equal((await request(`/sites/${site.id}`)).status, 404);
+  a.equal((await request('/sites/does-not-exist')).status, 404);
+  a.ok(owner.id);
 });
 
 test('account settings shows profile, security, providers, and real free-plan usage', async () => {

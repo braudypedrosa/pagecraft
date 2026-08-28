@@ -112,7 +112,7 @@ export interface Store {
    it here is caught rather than discovered the day a site called `api` stops loading. */
 export const RESERVED_PATHS = [
   'account',
-  'api', 'auth', 'brand', 'internal', 'edit', 'v1', 'sign-up', 'sign-in', 'forgot-password',
+  'api', 'auth', 'brand', 'internal', 'edit', 'sites', 'v1', 'sign-up', 'sign-in', 'forgot-password',
   'reset-password', 'privacy', 'terms',
   /* not routes, but names a browser or a crawler asks for at the root */
   'assets', 'favicon.ico', 'robots.txt', 'sitemap.xml', 'index.html', '.well-known'

@@ -56,7 +56,7 @@ import type { HumanChallenge } from './turnstile.ts';
 import type { OwnedSiteStore } from './accounts.ts';
 import {
   accountSettingsPage, dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
-  signUpPage, termsPage
+  signUpPage, siteOverviewPage, termsPage
 } from './account-pages.ts';
 import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
 
@@ -134,7 +134,7 @@ export function createApp(o: Options) {
       c.header('content-security-policy', "frame-ancestors 'none'; base-uri 'none'; object-src 'none'");
     }
     const path = new URL(c.req.url).pathname;
-    const privateRoute = /^\/(?:api|auth|edit|v1)(?:\/|$)/.test(path)
+    const privateRoute = /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path)
       || /^\/account(?:\/|$)/.test(path)
       || (path === '/' && isEditorHost(c.req.header('host'), o));
     if (privateRoute) c.header('cache-control', 'private, no-store');
@@ -159,6 +159,7 @@ export function createApp(o: Options) {
   app.use('/reset-password', editorOnly);
   app.use('/account', editorOnly);
   app.use('/account/*', editorOnly);
+  app.use('/sites/*', editorOnly);
   app.use('/privacy', editorOnly);
   app.use('/terms', editorOnly);
   app.get('/brand/pagecraft-logo.svg', editorOnly, serveStatic({
@@ -859,6 +860,26 @@ export function createApp(o: Options) {
       id: m.site.id, name: m.site.name, role: m.role,
       where: /\.invalid$/.test(m.site.host) ? `/${m.site.slug}/` : m.site.host
     }))));
+  });
+
+  app.get('/sites/:id', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'read');
+    if (!gate.ok) return gate.status === 401
+      ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
+      : deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const publishedRevision = site.publishedVersion > 0
+      ? await o.store.revision(site.id, site.publishedVersion)
+      : null;
+    return c.html(siteOverviewPage(gate.user, {
+      id: site.id, name: site.name, role: gate.role, updatedAt: site.updatedAt,
+      url: shareUrl(c, o, site), published: site.version === site.publishedVersion,
+      version: site.version, publishedVersion: site.publishedVersion,
+      publishedAt: publishedRevision?.createdAt,
+      customDomain: /\.invalid$/.test(site.host) ? undefined : site.host
+    }));
   });
 
   /* The editor, with the document already in the page.
