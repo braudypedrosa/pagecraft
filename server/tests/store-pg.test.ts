@@ -418,6 +418,38 @@ test('atomic membership changes preserve a final owner', async () => {
   a.equal((await auth.membership(site.id, second.id))?.role, 'owner');
 });
 
+test('collaborator provisioning atomically grants access and enqueues delivery', async () => {
+  const { db, sites, auth } = await fresh();
+  const site = await sites.create({ host: 'invite.test', name: 'Invite', doc: demo() });
+  const owner = await auth.createUser('owner@invite.test');
+  await auth.grant(site.id, owner.id, 'owner');
+  const result = await auth.provisionInvitation({
+    siteId: site.id, actorUserId: owner.id, email: 'Client@Invite.test', role: 'content',
+    redirectTo: 'https://build.itspagecraft.com/auth/confirm?type=invite'
+  });
+  a.equal(result.status, 'granted');
+  if (result.status !== 'granted') return;
+  a.equal(result.user.email, 'client@invite.test');
+  a.equal((await auth.membership(site.id, result.user.id))?.role, 'content');
+  const queued = await db.query<{ email: string; delivered_at: string | null }>(
+    'select email, delivered_at from collaborator_invitation_outbox where site_id = $1', [site.id]);
+  a.deepEqual(queued.rows, [{ email: 'client@invite.test', delivered_at: null }]);
+
+  a.equal((await auth.removeMember(site.id, result.user.id)).status, 'removed');
+  const cancelled = await db.query(
+    'select id from collaborator_invitation_outbox where site_id = $1 and delivered_at is null', [site.id]);
+  a.equal(cancelled.rows.length, 0, 'removing access also cancels email that has not been sent');
+
+  const stranger = await auth.createUser('stranger@invite.test');
+  const refused = await auth.provisionInvitation({
+    siteId: site.id, actorUserId: stranger.id, email: 'other@invite.test', role: 'content',
+    redirectTo: 'https://build.itspagecraft.com/auth/confirm?type=invite'
+  });
+  a.equal(refused.status, 'forbidden');
+  a.equal(await auth.userByEmail('other@invite.test'), null,
+    'authorization is checked before creating a profile or outbox row');
+});
+
 test('a role cannot be granted for a site or a person that does not exist', async () => {
   const { sites, auth } = await fresh();
   const site = await sites.create({ host: 'acme.test', name: 'Acme', doc: demo() });

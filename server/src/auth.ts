@@ -39,6 +39,10 @@ export type MemberChangeResult =
   | { status: 'last_owner' | 'missing' };
 export type MemberRemovalResult = { status: 'removed' | 'last_owner' | 'missing' };
 export type InviteDeliveryResult = 'sent' | 'exists' | 'failed' | 'unavailable';
+export type InvitationProvisionResult =
+  | { status: 'granted'; user: User; membership: Membership; queued: boolean }
+  | { status: 'last_owner' | 'forbidden' };
+export interface InvitationDrainResult { processed: number; delivered: number; pending: number }
 export interface SessionAccess { user: User; role: Role | null }
 export interface ManualImportCredential {
   id: string;
@@ -112,6 +116,12 @@ export interface AuthStore {
   /** Change or remove access while holding the site's owner set stable. */
   changeMemberRole(siteId: string, userId: string, role: Role): Promise<MemberChangeResult>;
   removeMember(siteId: string, userId: string): Promise<MemberRemovalResult>;
+  /** Atomically provision the profile, membership, and durable email work item. */
+  provisionInvitation(input: {
+    siteId: string; actorUserId: string; email: string; role: Role; redirectTo: string;
+  }): Promise<InvitationProvisionResult>;
+  /** Deliver claimed email work. Gateway-backed stores perform the privileged Supabase call. */
+  drainInvitationOutbox(worker: string, limit?: number): Promise<InvitationDrainResult>;
   /** Send the Supabase invitation without exposing its privileged key to the application. */
   inviteEmail(email: string, redirectTo: string): Promise<InviteDeliveryResult>;
 
@@ -155,6 +165,25 @@ create table if not exists site_users (
   role        text not null check (role in ('owner', 'content')),
   primary key (site_id, user_id)
 );
+
+create table if not exists collaborator_invitation_outbox (
+  id text primary key,
+  site_id text not null references sites (id) on delete cascade,
+  user_id text not null references users (id) on delete cascade,
+  email text not null,
+  redirect_to text not null,
+  attempts integer not null default 0 check (attempts >= 0),
+  next_attempt_at timestamptz not null default now(),
+  locked_at timestamptz,
+  locked_by text,
+  delivered_at timestamptz,
+  last_error text,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists collaborator_invitation_outbox_pending_key
+  on collaborator_invitation_outbox (site_id, user_id) where delivered_at is null;
+create index if not exists collaborator_invitation_outbox_ready_idx
+  on collaborator_invitation_outbox (next_attempt_at, created_at) where delivered_at is null;
 
 create table if not exists wordpress_import_credentials (
   id text primary key,
@@ -342,6 +371,25 @@ export class MemoryAuthStore implements AuthStore {
     if (current.role === 'owner' && owners.length === 1) return { status: 'last_owner' };
     await this.revoke(siteId, userId);
     return { status: 'removed' };
+  }
+  async provisionInvitation(input: {
+    siteId: string; actorUserId: string; email: string; role: Role; redirectTo: string;
+  }): Promise<InvitationProvisionResult> {
+    if ((await this.membership(input.siteId, input.actorUserId))?.role !== 'owner') {
+      return { status: 'forbidden' };
+    }
+    const user = await this.createUser(input.email);
+    const current = await this.membership(input.siteId, user.id);
+    if (current?.role === 'owner' && input.role !== 'owner') {
+      const owners = [...this.memberships.values()].filter(item =>
+        item.siteId === input.siteId && item.role === 'owner');
+      if (owners.length <= 1) return { status: 'last_owner' };
+    }
+    const membership = await this.grant(input.siteId, user.id, input.role);
+    return { status: 'granted', user, membership, queued: !user.authUserId };
+  }
+  async drainInvitationOutbox(_worker: string, _limit = 10): Promise<InvitationDrainResult> {
+    return { processed: 0, delivered: 0, pending: 0 };
   }
   async inviteEmail(_email: string, _redirectTo: string): Promise<InviteDeliveryResult> {
     return 'sent';

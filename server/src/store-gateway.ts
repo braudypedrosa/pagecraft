@@ -11,6 +11,7 @@ import {
 } from './assets.ts';
 import {
   normalEmail, type AuthStore, type InviteDeliveryResult, type ManualImportCredential,
+  type InvitationDrainResult, type InvitationProvisionResult,
   type MemberChangeResult, type MemberRemovalResult, type Membership, type Role, type Session, type User
 } from './auth.ts';
 import {
@@ -874,6 +875,20 @@ export class GatewayAuthStore implements AuthStore {
   }
   removeMember(siteId: string, userId: string) {
     return this.gateway.call<MemberRemovalResult>('auth.removeMember', { siteId, userId });
+  }
+  async provisionInvitation(input: {
+    siteId: string; actorUserId: string; email: string; role: Role; redirectTo: string;
+  }): Promise<InvitationProvisionResult> {
+    const result = await this.gateway.call<
+      | { status: 'granted'; user: UserWire; membership: MembershipWire; queued: boolean }
+      | { status: 'last_owner' | 'forbidden' }
+    >('auth.provisionInvitation', { ...input, email: normalEmail(input.email), id: crypto.randomUUID() });
+    return result.status === 'granted'
+      ? { ...result, user: toUser(result.user), membership: toMembership(result.membership) }
+      : result;
+  }
+  drainInvitationOutbox(worker: string, limit = 10) {
+    return this.gateway.call<InvitationDrainResult>('auth.drainInvitationOutbox', { worker, limit });
   }
   inviteEmail(email: string, redirectTo: string) {
     return this.gateway.call<InviteDeliveryResult>('auth.inviteEmail', {

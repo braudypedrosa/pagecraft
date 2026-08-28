@@ -379,6 +379,12 @@ test('gateway auth resolves a session and all memberships with one operation eac
       return { status: 'updated', membership: { site_id: 's1', user_id: 'u2', role: 'owner' } };
     }
     if (call.op === 'auth.removeMember') return { status: 'removed' };
+    if (call.op === 'auth.provisionInvitation') return {
+      status: 'granted', queued: true,
+      user: { id: 'u2', email: 'invitee@acme.test', name: '' },
+      membership: { site_id: 's1', user_id: 'u2', role: 'content' }
+    };
+    if (call.op === 'auth.drainInvitationOutbox') return { processed: 1, delivered: 1, pending: 0 };
     if (call.op === 'auth.inviteEmail') return 'sent';
     throw new Error(`unexpected ${call.op}`);
   });
@@ -393,12 +399,26 @@ test('gateway auth resolves a session and all memberships with one operation eac
   const changed = await auth.changeMemberRole('s1', 'u2', 'owner');
   a.equal(changed.status, 'updated');
   a.equal((await auth.removeMember('s1', 'u2')).status, 'removed');
+  const provisioned = await auth.provisionInvitation({
+    siteId: 's1', actorUserId: 'u1', email: 'INVITEE@acme.test', role: 'content',
+    redirectTo: 'https://build.itspagecraft.com/auth/confirm?type=invite'
+  });
+  a.equal(provisioned.status, 'granted');
+  if (provisioned.status === 'granted') {
+    a.equal(provisioned.user.email, 'invitee@acme.test');
+    a.equal(provisioned.membership.role, 'content');
+    a.equal(provisioned.queued, true);
+  }
+  a.deepEqual(await auth.drainInvitationOutbox('worker', 5), {
+    processed: 1, delivered: 1, pending: 0
+  });
   a.equal(await auth.inviteEmail(
     'invitee@acme.test', 'https://build.itspagecraft.com/auth/confirm?type=invite'
   ), 'sent');
   a.deepEqual(calls.map(call => call.op), [
     'auth.usersByIds', 'auth.userForSession', 'auth.accessForSession', 'auth.membershipsForUser',
-    'auth.updateProfile', 'auth.changeMemberRole', 'auth.removeMember', 'auth.inviteEmail'
+    'auth.updateProfile', 'auth.changeMemberRole', 'auth.removeMember',
+    'auth.provisionInvitation', 'auth.drainInvitationOutbox', 'auth.inviteEmail'
   ]);
 });
 

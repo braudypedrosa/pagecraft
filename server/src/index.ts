@@ -204,6 +204,23 @@ const webhookTimer = setInterval(drainWordPressWebhooks, 15_000);
 webhookTimer.unref();
 void drainWordPressWebhooks();
 
+const invitationWorker = `pagecraft-invites-${process.pid}-${crypto.randomUUID()}`;
+let invitationDrainRunning = false;
+async function drainCollaboratorInvitations() {
+  if (invitationDrainRunning) return;
+  invitationDrainRunning = true;
+  try {
+    await auth.drainInvitationOutbox(invitationWorker, 10);
+  } catch (caught) {
+    console.error('Collaborator invitation outbox could not be drained:', (caught as Error).message);
+  } finally {
+    invitationDrainRunning = false;
+  }
+}
+const invitationTimer = setInterval(drainCollaboratorInvitations, 60_000);
+invitationTimer.unref();
+void drainCollaboratorInvitations();
+
 /* One site, seeded, when the store is empty and we are running on memory. Without it the
    first thing a new checkout shows is "No site for host localhost", which reads as broken
    rather than as empty. */

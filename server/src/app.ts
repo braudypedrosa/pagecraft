@@ -951,29 +951,21 @@ export function createApp(o: Options) {
       return c.redirect(`${base}?error=people_rate`, 303);
     }
 
-    const existing = await o.auth.userByEmail(email);
-    if (existing?.id === gate.user.id && role !== 'owner') {
-      return c.redirect(`${base}?error=people_last_owner`, 303);
-    }
-    const user = existing || await o.auth.createUser(email);
-    const membership = await o.auth.membership(id, user.id);
-    if (membership) {
-      const changed = await o.auth.changeMemberRole(id, user.id, role);
-      if (changed.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
-      if (changed.status === 'missing') return c.redirect(`${base}?error=people_missing`, 303);
-    } else {
-      await o.auth.grant(id, user.id, role);
-    }
-
     const genericSuccess = `${base}?message=Access+updated.+An+invitation+was+sent+if+needed.`;
-    if (user.authUserId) return c.redirect(genericSuccess, 303);
     const origin = o.editorOrigin || new URL(c.req.url).origin;
     const next = `/sites/${id}/people`;
-    const delivery = await o.auth.inviteEmail(
-      email, `${origin}/auth/confirm?type=invite&next=${encodeURIComponent(next)}`
-    );
-    if (delivery === 'sent' || delivery === 'exists') return c.redirect(genericSuccess, 303);
-    return c.redirect(`${base}?error=people_invite_mail`, 303);
+    const provisioned = await o.auth.provisionInvitation({
+      siteId: id, actorUserId: gate.user.id, email, role,
+      redirectTo: `${origin}/auth/confirm?type=invite&next=${encodeURIComponent(next)}`
+    });
+    if (provisioned.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
+    if (provisioned.status === 'forbidden') return deny(c, 404);
+    /* Delivery is best-effort here. The durable outbox is also drained on an interval, so a
+       transient Supabase/SMTP failure cannot roll back or strand the membership grant. */
+    await o.auth.drainInvitationOutbox(`request-${crypto.randomUUID()}`, 5).catch(error => {
+      console.error('collaborator invitation outbox could not be drained:', (error as Error).message);
+    });
+    return c.redirect(genericSuccess, 303);
   });
 
   app.post('/sites/:id/people/:userId/role', async c => {

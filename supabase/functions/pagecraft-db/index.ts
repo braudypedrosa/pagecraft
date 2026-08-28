@@ -29,8 +29,30 @@ const supabase = createClient(
 const storage = supabase.storage;
 const ASSET_BUCKET = "pagecraft-assets";
 const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
-const assetStoragePath = (ownerId: string, siteId: string, id: string, hash: string, type: string) =>
-  `${ownerId}/${siteId}/${id}-${hash.slice(0, 16)}.${type === "image/svg+xml" ? "svg" : "webp"}`;
+const invitationRedirect = (raw: unknown) => {
+  const redirect = new URL(text(raw));
+  const editorOrigin = Deno.env.get("PAGECRAFT_EDITOR_ORIGIN") ||
+    "https://build.itspagecraft.com";
+  if (
+    redirect.origin !== editorOrigin || redirect.pathname !== "/auth/confirm"
+  ) {
+    throw Object.assign(new Error("invalid invitation redirect"), {
+      status: 400,
+      code: "INVALID_INVITE_REDIRECT",
+    });
+  }
+  return redirect.toString();
+};
+const assetStoragePath = (
+  ownerId: string,
+  siteId: string,
+  id: string,
+  hash: string,
+  type: string,
+) =>
+  `${ownerId}/${siteId}/${id}-${hash.slice(0, 16)}.${
+    type === "image/svg+xml" ? "svg" : "webp"
+  }`;
 
 const MAX_BODY = 16 * 1024 * 1024;
 const json = (data: unknown, status = 200) =>
@@ -81,8 +103,12 @@ function toBase64(value: Uint8Array) {
 async function assetWire(row: Record<string, unknown>) {
   let bytes = row.bytes;
   if (!(bytes instanceof Uint8Array) && row.storage_path) {
-    const result = await storage.from(ASSET_BUCKET).download(text(row.storage_path));
-    if (result.error || !result.data) throw new Error("stored asset could not be read");
+    const result = await storage.from(ASSET_BUCKET).download(
+      text(row.storage_path),
+    );
+    if (result.error || !result.data) {
+      throw new Error("stored asset could not be read");
+    }
     bytes = new Uint8Array(await result.data.arrayBuffer());
   }
   if (!(bytes instanceof Uint8Array)) {
@@ -1829,141 +1855,181 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       let replacedPath = "";
       try {
         const saved = await sql.begin(async (transaction) => {
-        /* Connection revocation takes the same row lock. This makes finalization linearizable:
+          /* Connection revocation takes the same row lock. This makes finalization linearizable:
            a request may upload disposable chunks before revocation, but it cannot create or
            replace a durable asset after Disconnect has committed. */
-        let connectionOwnerId = "";
-        if (connected) {
-          const guard = one(
-            await transaction<Record<string, unknown>[]>`
+          let connectionOwnerId = "";
+          if (connected) {
+            const guard = one(
+              await transaction<Record<string, unknown>[]>`
             select id, created_by from wordpress_connections
             where id = ${connectionId} and site_id = ${siteId}
               and status = 'active' and access_token_expires_at > now()
             for update
           `,
-          );
-          if (!guard) return null;
-          connectionOwnerId = text(guard.created_by);
-        }
-        const ownerId = connected
-          ? connectionOwnerId
-          : requestedOwnerId || text(one(await transaction<Record<string, unknown>[]>`
+            );
+            if (!guard) return null;
+            connectionOwnerId = text(guard.created_by);
+          }
+          const ownerId = connected ? connectionOwnerId : requestedOwnerId ||
+            text(
+              one(
+                await transaction<Record<string, unknown>[]>`
               select user_id from site_users where site_id = ${siteId} and role = 'owner'
               order by user_id limit 1
-            `)?.user_id);
-        if (!ownerId) {
-          throw Object.assign(new Error("site storage owner does not exist"), {
-            status: 409, code: "STORAGE_OWNER_MISSING",
-          });
-        }
-        const owner = one(await transaction<Record<string, unknown>[]>`
+            `,
+              )?.user_id,
+            );
+          if (!ownerId) {
+            throw Object.assign(
+              new Error("site storage owner does not exist"),
+              {
+                status: 409,
+                code: "STORAGE_OWNER_MISSING",
+              },
+            );
+          }
+          const owner = one(
+            await transaction<Record<string, unknown>[]>`
           select id from users where id = ${ownerId} for update
-        `);
-        if (!owner) {
-          throw Object.assign(new Error("site storage owner does not exist"), {
-            status: 409, code: "STORAGE_OWNER_MISSING",
-          });
-        }
-        const prior = one(
-          await transaction<Record<string, unknown>[]>`
+        `,
+          );
+          if (!owner) {
+            throw Object.assign(
+              new Error("site storage owner does not exist"),
+              {
+                status: 409,
+                code: "STORAGE_OWNER_MISSING",
+              },
+            );
+          }
+          const prior = one(
+            await transaction<Record<string, unknown>[]>`
           select id, site_id, owner_id, name, type, w, h, bytes, storage_path,
             stored_bytes, original_bytes, content_hash, optimized
           from assets where id = ${id} limit 1 for update
         `,
-        );
-        if (prior && prior.site_id !== siteId) {
-          throw Object.assign(
-            new Error("asset id already belongs to another site"),
-            { status: 409, code: "ASSET_ID_CONFLICT" },
           );
-        }
-        if (prior) {
-          const exactRetry = prior.name === name && prior.type === type &&
-            Number(prior.w) === w && Number(prior.h) === h &&
-            Number(prior.stored_bytes || (prior.bytes instanceof Uint8Array ? prior.bytes.byteLength : 0)) === blob.bytes &&
-            (text(prior.content_hash) === contentHash ||
-              (!prior.content_hash && prior.bytes instanceof Uint8Array && await hexSha256(prior.bytes) === blob.hash));
-          if (exactRetry) {
-            return {
-              id: prior.id,
-              site_id: prior.site_id,
-              name: prior.name,
-              type: prior.type,
-              w: Number(prior.w),
-              h: Number(prior.h),
-              owner_id: prior.owner_id || ownerId,
-              storage_path: prior.storage_path || null,
-              stored_bytes: Number(prior.stored_bytes || blob.bytes),
-              original_bytes: Number(prior.original_bytes || originalBytes),
-              content_hash: prior.content_hash || contentHash,
-              optimized: Boolean(prior.optimized),
-            };
+          if (prior && prior.site_id !== siteId) {
+            throw Object.assign(
+              new Error("asset id already belongs to another site"),
+              { status: 409, code: "ASSET_ID_CONFLICT" },
+            );
           }
-          if (connected) return null;
-        }
-        const upload = one(
-          await transaction<Record<string, unknown>[]>`
+          if (prior) {
+            const exactRetry = prior.name === name && prior.type === type &&
+              Number(prior.w) === w && Number(prior.h) === h &&
+              Number(
+                  prior.stored_bytes ||
+                    (prior.bytes instanceof Uint8Array
+                      ? prior.bytes.byteLength
+                      : 0),
+                ) === blob.bytes &&
+              (text(prior.content_hash) === contentHash ||
+                (!prior.content_hash && prior.bytes instanceof Uint8Array &&
+                  await hexSha256(prior.bytes) === blob.hash));
+            if (exactRetry) {
+              return {
+                id: prior.id,
+                site_id: prior.site_id,
+                name: prior.name,
+                type: prior.type,
+                w: Number(prior.w),
+                h: Number(prior.h),
+                owner_id: prior.owner_id || ownerId,
+                storage_path: prior.storage_path || null,
+                stored_bytes: Number(prior.stored_bytes || blob.bytes),
+                original_bytes: Number(prior.original_bytes || originalBytes),
+                content_hash: prior.content_hash || contentHash,
+                optimized: Boolean(prior.optimized),
+              };
+            }
+            if (connected) return null;
+          }
+          const upload = one(
+            await transaction<Record<string, unknown>[]>`
           select * from gateway_blob_uploads where hash = ${blob.hash} for share
         `,
-        );
-        if (
-          !upload || Number(upload.bytes) !== blob.bytes ||
-          Number(upload.chunk_bytes) !== blob.chunkBytes ||
-          Number(upload.chunk_count) !== blob.chunkCount
-        ) {
-          throw Object.assign(
-            new Error("asset blob upload is missing or incomplete"),
-            { status: 409, code: "ASSET_BLOB_UNAVAILABLE" },
           );
-        }
-        const storedRows = await transaction<Record<string, unknown>[]>`
+          if (
+            !upload || Number(upload.bytes) !== blob.bytes ||
+            Number(upload.chunk_bytes) !== blob.chunkBytes ||
+            Number(upload.chunk_count) !== blob.chunkCount
+          ) {
+            throw Object.assign(
+              new Error("asset blob upload is missing or incomplete"),
+              { status: 409, code: "ASSET_BLOB_UNAVAILABLE" },
+            );
+          }
+          const storedRows = await transaction<Record<string, unknown>[]>`
           select chunk_index, bytes, chunk_hash, content from gateway_blob_chunks
           where blob_hash = ${blob.hash} order by chunk_index
         `;
-        const storedChunks: StoredGatewayBlobChunkV1[] = storedRows.map(
-          (stored) => {
-            if (!(stored.content instanceof Uint8Array)) {
-              throw new Error(
-                "database returned a gateway blob chunk in an unknown binary format",
-              );
-            }
-            return {
-              index: Number(stored.chunk_index),
-              bytes: Number(stored.bytes),
-              hash: String(stored.chunk_hash),
-              content: stored.content,
-            };
-          },
-        );
-        const bytes = await assembleStoredGatewayBlob(blob, storedChunks);
-        const usedRow = one(await transaction<Record<string, unknown>[]>`
+          const storedChunks: StoredGatewayBlobChunkV1[] = storedRows.map(
+            (stored) => {
+              if (!(stored.content instanceof Uint8Array)) {
+                throw new Error(
+                  "database returned a gateway blob chunk in an unknown binary format",
+                );
+              }
+              return {
+                index: Number(stored.chunk_index),
+                bytes: Number(stored.bytes),
+                hash: String(stored.chunk_hash),
+                content: stored.content,
+              };
+            },
+          );
+          const bytes = await assembleStoredGatewayBlob(blob, storedChunks);
+          const usedRow = one(
+            await transaction<Record<string, unknown>[]>`
           select coalesce(sum(stored_bytes), 0)::text as used
           from assets where owner_id = ${ownerId}
-        `);
-        const usedBytes = Number(usedRow?.used || 0);
-        const replacingBytes = prior && text(prior.owner_id) === ownerId
-          ? Number(prior.stored_bytes || (prior.bytes instanceof Uint8Array ? prior.bytes.byteLength : 0))
-          : 0;
-        if (usedBytes - replacingBytes + bytes.byteLength > limitBytes) {
-          throw Object.assign(new Error("free account media storage limit reached"), {
-            status: 409, code: "STORAGE_LIMIT",
-          });
-        }
-        uploadedPath = assetStoragePath(ownerId, siteId, id, blob.hash, type);
-        replacedPath = prior?.storage_path && text(prior.storage_path) !== uploadedPath
-          ? text(prior.storage_path)
-          : "";
-        const stored = await storage.from(ASSET_BUCKET).upload(uploadedPath, bytes, {
-          contentType: type,
-          cacheControl: "31536000",
-          upsert: false,
-        });
-        if (stored.error && stored.error.message !== "The resource already exists") {
-          throw new Error(`stored asset could not be written: ${stored.error.message}`);
-        }
-        const row = connected
-          ? one(
-            await transaction<Record<string, unknown>[]>`
+        `,
+          );
+          const usedBytes = Number(usedRow?.used || 0);
+          const replacingBytes = prior && text(prior.owner_id) === ownerId
+            ? Number(
+              prior.stored_bytes ||
+                (prior.bytes instanceof Uint8Array
+                  ? prior.bytes.byteLength
+                  : 0),
+            )
+            : 0;
+          if (usedBytes - replacingBytes + bytes.byteLength > limitBytes) {
+            throw Object.assign(
+              new Error("free account media storage limit reached"),
+              {
+                status: 409,
+                code: "STORAGE_LIMIT",
+              },
+            );
+          }
+          uploadedPath = assetStoragePath(ownerId, siteId, id, blob.hash, type);
+          replacedPath =
+            prior?.storage_path && text(prior.storage_path) !== uploadedPath
+              ? text(prior.storage_path)
+              : "";
+          const stored = await storage.from(ASSET_BUCKET).upload(
+            uploadedPath,
+            bytes,
+            {
+              contentType: type,
+              cacheControl: "31536000",
+              upsert: false,
+            },
+          );
+          if (
+            stored.error &&
+            stored.error.message !== "The resource already exists"
+          ) {
+            throw new Error(
+              `stored asset could not be written: ${stored.error.message}`,
+            );
+          }
+          const row = connected
+            ? one(
+              await transaction<Record<string, unknown>[]>`
               insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
                 storage_path, stored_bytes, original_bytes, content_hash, optimized)
               values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
@@ -1976,9 +2042,9 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               returning id, site_id, name, type, w, h, owner_id, storage_path,
                 stored_bytes, original_bytes, content_hash, optimized
             `,
-          )
-          : one(
-            await transaction<Record<string, unknown>[]>`
+            )
+            : one(
+              await transaction<Record<string, unknown>[]>`
               insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
                 storage_path, stored_bytes, original_bytes, content_hash, optimized)
               values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
@@ -1993,45 +2059,63 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               returning id, site_id, name, type, w, h, owner_id, storage_path,
                 stored_bytes, original_bytes, content_hash, optimized
             `,
-          );
-        if (!row) {
-          if (connected) return null;
-          throw Object.assign(
-            new Error("asset id already belongs to another site"),
-            { status: 409, code: "ASSET_ID_CONFLICT" },
-          );
-        }
-        /* Keep content-addressed chunks briefly so concurrent equal uploads and exact retries
+            );
+          if (!row) {
+            if (connected) return null;
+            throw Object.assign(
+              new Error("asset id already belongs to another site"),
+              { status: 409, code: "ASSET_ID_CONFLICT" },
+            );
+          }
+          /* Keep content-addressed chunks briefly so concurrent equal uploads and exact retries
            remain safe. The existing 24-hour TTL cleanup on chunk ingress removes completed or
            abandoned staging rows without touching durable assets. */
-        return row;
+          return row;
         });
         if (replacedPath) {
-          const removed = await storage.from(ASSET_BUCKET).remove([replacedPath]);
-          if (removed.error) console.error("could not remove replaced asset", removed.error);
+          const removed = await storage.from(ASSET_BUCKET).remove([
+            replacedPath,
+          ]);
+          if (removed.error) {
+            console.error("could not remove replaced asset", removed.error);
+          }
         }
         return saved;
       } catch (error) {
-        if (uploadedPath) await storage.from(ASSET_BUCKET).remove([uploadedPath]).catch(() => undefined);
+        if (uploadedPath) {
+          await storage.from(ASSET_BUCKET).remove([uploadedPath]).catch(() =>
+            undefined
+          );
+        }
         throw error;
       }
     }
     case "asset.usage": {
-      const row = one(await sql`
+      const row = one(
+        await sql`
         select coalesce(sum(stored_bytes), 0)::text as used
         from assets where owner_id = ${text(args.ownerId)}
-      `);
+      `,
+      );
       return Number(row?.used || 0);
     }
     case "asset.remove": {
-      const row = one(await sql<Record<string, unknown>[]>`
-        delete from assets where site_id = ${text(args.siteId)} and id = ${text(args.id)}
+      const row = one(
+        await sql<Record<string, unknown>[]>`
+        delete from assets where site_id = ${text(args.siteId)} and id = ${
+          text(args.id)
+        }
         returning id, storage_path
-      `);
+      `,
+      );
       if (!row) return false;
       if (row.storage_path) {
-        const result = await storage.from(ASSET_BUCKET).remove([text(row.storage_path)]);
-        if (result.error) console.error("could not remove stored asset", result.error);
+        const result = await storage.from(ASSET_BUCKET).remove([
+          text(row.storage_path),
+        ]);
+        if (result.error) {
+          console.error("could not remove stored asset", result.error);
+        }
       }
       return true;
     }
@@ -2217,24 +2301,36 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `).length > 0;
     case "auth.changeMemberRole":
       return await sql.begin(async (transaction) => {
-        await transaction`select id from sites where id = ${text(args.siteId)} for update`;
-        const current = one(await transaction<Record<string, unknown>[]>`
+        await transaction`select id from sites where id = ${
+          text(args.siteId)
+        } for update`;
+        const current = one(
+          await transaction<Record<string, unknown>[]>`
           select site_id, user_id, role from site_users
-          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
-        `);
+          where site_id = ${text(args.siteId)} and user_id = ${
+            text(args.userId)
+          }
+        `,
+        );
         if (!current) return { status: "missing" };
         if (current.role === "owner" && text(args.role) !== "owner") {
-          const owners = one(await transaction<Record<string, unknown>[]>`
+          const owners = one(
+            await transaction<Record<string, unknown>[]>`
             select count(*)::integer as count from site_users
             where site_id = ${text(args.siteId)} and role = 'owner'
-          `);
+          `,
+          );
           if (integer(owners?.count) <= 1) return { status: "last_owner" };
         }
-        const changed = one(await transaction<Record<string, unknown>[]>`
+        const changed = one(
+          await transaction<Record<string, unknown>[]>`
           update site_users set role = ${text(args.role)}
-          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
+          where site_id = ${text(args.siteId)} and user_id = ${
+            text(args.userId)
+          }
           returning site_id, user_id, role
-        `)!;
+        `,
+        )!;
         return {
           status: "updated",
           membership: {
@@ -2246,41 +2342,175 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       });
     case "auth.removeMember":
       return await sql.begin(async (transaction) => {
-        await transaction`select id from sites where id = ${text(args.siteId)} for update`;
-        const current = one(await transaction<Record<string, unknown>[]>`
+        await transaction`select id from sites where id = ${
+          text(args.siteId)
+        } for update`;
+        const current = one(
+          await transaction<Record<string, unknown>[]>`
           select site_id, user_id, role from site_users
-          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
-        `);
+          where site_id = ${text(args.siteId)} and user_id = ${
+            text(args.userId)
+          }
+        `,
+        );
         if (!current) return { status: "missing" };
         if (current.role === "owner") {
-          const owners = one(await transaction<Record<string, unknown>[]>`
+          const owners = one(
+            await transaction<Record<string, unknown>[]>`
             select count(*)::integer as count from site_users
             where site_id = ${text(args.siteId)} and role = 'owner'
-          `);
+          `,
+          );
           if (integer(owners?.count) <= 1) return { status: "last_owner" };
         }
         await transaction`
           delete from site_users
-          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
+          where site_id = ${text(args.siteId)} and user_id = ${
+          text(args.userId)
+        }
+        `;
+        await transaction`
+          delete from collaborator_invitation_outbox
+          where site_id = ${text(args.siteId)} and user_id = ${
+          text(args.userId)
+        } and delivered_at is null
         `;
         return { status: "removed" };
       });
-    case "auth.inviteEmail": {
-      const redirect = new URL(text(args.redirectTo));
-      const editorOrigin = Deno.env.get("PAGECRAFT_EDITOR_ORIGIN") ||
-        "https://build.itspagecraft.com";
-      if (
-        redirect.origin !== editorOrigin ||
-        redirect.pathname !== "/auth/confirm"
-      ) {
-        throw Object.assign(new Error("invalid invitation redirect"), {
+    case "auth.provisionInvitation": {
+      const redirectTo = invitationRedirect(args.redirectTo);
+      const role = text(args.role);
+      if (role !== "owner" && role !== "content") {
+        throw Object.assign(new Error("invalid collaborator role"), {
           status: 400,
-          code: "INVALID_INVITE_REDIRECT",
+          code: "INVALID_ROLE",
         });
       }
+      return await sql.begin(async (transaction) => {
+        await transaction`select id from sites where id = ${
+          text(args.siteId)
+        } for update`;
+        const actor = one(
+          await transaction<Record<string, unknown>[]>`
+          select site_id, user_id, role from site_users
+          where site_id = ${text(args.siteId)} and user_id = ${
+            text(args.actorUserId)
+          }
+        `,
+        );
+        if (actor?.role !== "owner") return { status: "forbidden" };
+        const user = one(
+          await transaction<Record<string, unknown>[]>`
+          insert into users (id, email, name)
+          values (${text(args.id)}, ${text(args.email)}, '')
+          on conflict (email) do update set email = excluded.email
+          returning id, email, name, auth_user_id, plan, created_at
+        `,
+        )!;
+        const current = one(
+          await transaction<Record<string, unknown>[]>`
+          select site_id, user_id, role from site_users
+          where site_id = ${text(args.siteId)} and user_id = ${text(user.id)}
+        `,
+        );
+        if (current?.role === "owner" && role !== "owner") {
+          const owners = one(
+            await transaction<Record<string, unknown>[]>`
+            select count(*)::integer as count from site_users
+            where site_id = ${text(args.siteId)} and role = 'owner'
+          `,
+          );
+          if (integer(owners?.count) <= 1) return { status: "last_owner" };
+        }
+        const membership = one(
+          await transaction<Record<string, unknown>[]>`
+          insert into site_users (site_id, user_id, role)
+          values (${text(args.siteId)}, ${text(user.id)}, ${role})
+          on conflict (site_id, user_id) do update set role = excluded.role
+          returning site_id, user_id, role
+        `,
+        )!;
+        const queued = !user.auth_user_id;
+        if (queued) {
+          await transaction`
+            insert into collaborator_invitation_outbox
+              (id, site_id, user_id, email, redirect_to)
+            values (${crypto.randomUUID()}, ${text(args.siteId)}, ${
+            text(user.id)
+          },
+              ${text(user.email)}, ${redirectTo})
+            on conflict (site_id, user_id) where delivered_at is null do update set
+              email = excluded.email, redirect_to = excluded.redirect_to,
+              next_attempt_at = least(collaborator_invitation_outbox.next_attempt_at, now()),
+              locked_at = null, locked_by = null
+          `;
+        }
+        return { status: "granted", user, membership, queued };
+      });
+    }
+    case "auth.drainInvitationOutbox": {
+      const worker = text(args.worker).slice(0, 200);
+      const limit = Math.max(1, Math.min(integer(args.limit) || 10, 25));
+      const claimed = await sql<Record<string, unknown>[]>`
+        with claim as (
+          select id from collaborator_invitation_outbox
+          where delivered_at is null and next_attempt_at <= now()
+            and (locked_at is null or locked_at < now() - interval '5 minutes')
+          order by next_attempt_at, created_at for update skip locked
+          limit ${limit}
+        ) update collaborator_invitation_outbox o
+        set locked_at = now(), locked_by = ${worker}, attempts = attempts + 1
+        from claim where o.id = claim.id returning o.*
+      `;
+      let delivered = 0;
+      for (const item of claimed) {
+        let success = false;
+        let message = "";
+        try {
+          const redirectTo = invitationRedirect(item.redirect_to);
+          const { error } = await supabase.auth.admin.inviteUserByEmail(
+            text(item.email),
+            { redirectTo },
+          );
+          const code = String(error?.code || "");
+          success = !error || code === "email_exists" ||
+            code === "user_already_exists" ||
+            /already (registered|exists)/i.test(error?.message || "");
+          if (error && !success) message = error.message;
+        } catch (error) {
+          message = String((error as Error).message || error);
+        }
+        const delaySeconds = Math.min(
+          21600,
+          15 * 2 ** Math.min(integer(item.attempts), 8),
+        );
+        await sql`
+          update collaborator_invitation_outbox set
+            locked_at = null, locked_by = null,
+            delivered_at = case when ${success} then now() else delivered_at end,
+            next_attempt_at = now() + (${delaySeconds}::text || ' seconds')::interval,
+            last_error = ${success ? null : message.slice(0, 2000)}
+          where id = ${text(item.id)} and locked_by = ${worker}
+        `;
+        if (success) delivered++;
+      }
+      const remaining = one(
+        await sql<Record<string, unknown>[]>`
+        select count(*)::integer as count from collaborator_invitation_outbox
+        where delivered_at is null
+      `,
+      );
+      return {
+        processed: claimed.length,
+        delivered,
+        pending: integer(remaining?.count),
+      };
+    }
+    case "auth.inviteEmail": {
+      const redirect = invitationRedirect(args.redirectTo);
       const { error } = await supabase.auth.admin.inviteUserByEmail(
         text(args.email),
-        { redirectTo: redirect.toString() },
+        { redirectTo: redirect },
       );
       if (!error) return "sent";
       const code = String(error.code || "");

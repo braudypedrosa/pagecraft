@@ -27,6 +27,7 @@ import {
 } from './assets.ts';
 import {
   AUTH_SCHEMA, normalEmail, type AuthStore, type InviteDeliveryResult,
+  type InvitationDrainResult, type InvitationProvisionResult,
   type MemberChangeResult, type MemberRemovalResult, type Role, type Session,
   type ManualImportCredential, type User
 } from './auth.ts';
@@ -1979,6 +1980,9 @@ export class PgAuthStore implements AuthStore {
         }
       }
       await client.query('delete from site_users where site_id = $1 and user_id = $2', [siteId, userId]);
+      await client.query(
+        `delete from collaborator_invitation_outbox
+         where site_id = $1 and user_id = $2 and delivered_at is null`, [siteId, userId]);
       await client.query('commit');
       return { status: 'removed' };
     } catch (error) {
@@ -1987,6 +1991,63 @@ export class PgAuthStore implements AuthStore {
     } finally {
       if ('release' in client && typeof client.release === 'function') client.release();
     }
+  }
+  async provisionInvitation(input: {
+    siteId: string; actorUserId: string; email: string; role: Role; redirectTo: string;
+  }): Promise<InvitationProvisionResult> {
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      await client.query('select id from sites where id = $1 for update', [input.siteId]);
+      const actor = await client.query<MemberRow>(
+        'select * from site_users where site_id = $1 and user_id = $2', [input.siteId, input.actorUserId]);
+      if (actor.rows[0]?.role !== 'owner') { await client.query('rollback'); return { status: 'forbidden' }; }
+      const created = await client.query<UserRow>(
+        `insert into users (id, email, name) values ($1, $2, '')
+         on conflict (email) do update set email = excluded.email returning *`,
+        [crypto.randomUUID(), normalEmail(input.email)]);
+      const user = this.user(created.rows[0]);
+      const current = await client.query<MemberRow>(
+        'select * from site_users where site_id = $1 and user_id = $2', [input.siteId, user.id]);
+      if (current.rows[0]?.role === 'owner' && input.role !== 'owner') {
+        const owners = await client.query<{ count: string }>(
+          `select count(*)::text as count from site_users where site_id = $1 and role = 'owner'`, [input.siteId]);
+        if (Number(owners.rows[0]?.count || 0) <= 1) {
+          await client.query('rollback'); return { status: 'last_owner' };
+        }
+      }
+      const membershipRows = await client.query<MemberRow>(
+        `insert into site_users (site_id, user_id, role) values ($1, $2, $3)
+         on conflict (site_id, user_id) do update set role = excluded.role returning *`,
+        [input.siteId, user.id, input.role]);
+      if (!user.authUserId) {
+        await client.query(
+          `insert into collaborator_invitation_outbox (id, site_id, user_id, email, redirect_to)
+           values ($1, $2, $3, $4, $5)
+           on conflict (site_id, user_id) where delivered_at is null do update set
+             email = excluded.email, redirect_to = excluded.redirect_to,
+             next_attempt_at = least(collaborator_invitation_outbox.next_attempt_at, now()),
+             locked_at = null, locked_by = null`,
+          [crypto.randomUUID(), input.siteId, user.id, user.email, input.redirectTo]);
+      }
+      await client.query('commit');
+      const row = membershipRows.rows[0];
+      return {
+        status: 'granted', user,
+        membership: { siteId: row.site_id, userId: row.user_id, role: row.role },
+        queued: !user.authUserId
+      };
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
+  }
+  async drainInvitationOutbox(_worker: string, _limit = 10): Promise<InvitationDrainResult> {
+    /* Direct-Postgres deployments do not possess Supabase's service credential. The durable
+       work remains queued until a privileged gateway worker drains it. */
+    return { processed: 0, delivered: 0, pending: 0 };
   }
   async inviteEmail(_email: string, _redirectTo: string): Promise<InviteDeliveryResult> {
     return 'unavailable';
