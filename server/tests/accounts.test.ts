@@ -155,7 +155,8 @@ test('site overview is protected, membership-scoped, and exposes working managem
   a.match(html, />Owner<\/dd>/);
   a.match(html, new RegExp(`href="/edit/${site.id}">Edit site<\\/a>`));
   a.match(html, new RegExp(`href="/v1/sites/${site.id}/packages/site">Download project<\\/a>`));
-  a.match(html, /Custom domains will be managed here in the next phase/);
+  a.match(html, new RegExp(`href="/sites/${site.id}/settings"`));
+  a.match(html, /This site is available on its Pagecraft address/);
 
   accountAuth.current = null;
   const anonymous = await request(`/sites/${site.id}`);
@@ -167,13 +168,78 @@ test('site overview is protected, membership-scoped, and exposes working managem
   await auth.grant(site.id, content.id, 'content');
   const collaborator = await request(`/sites/${site.id}`);
   a.equal(collaborator.status, 200);
-  a.match(await collaborator.text(), />Content editor<\/dd>/);
+  const collaboratorHtml = await collaborator.text();
+  a.match(collaboratorHtml, />Content editor<\/dd>/);
+  a.doesNotMatch(collaboratorHtml, /Settings<\/span>/);
 
   accountAuth.current = { authUserId: 'auth-stranger', email: 'stranger@example.test', name: 'Stranger' };
   await auth.ensureAuthUser('auth-stranger', 'stranger@example.test', 'Stranger');
   a.equal((await request(`/sites/${site.id}`)).status, 404);
   a.equal((await request('/sites/does-not-exist')).status, 404);
   a.ok(owner.id);
+});
+
+test('site settings let only owners rename, change the Pagecraft address, and delete by typed confirmation', async () => {
+  const { request, accountAuth, auth, store } = rig();
+  accountAuth.current = { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' };
+  const owner = await auth.ensureAuthUser('auth-owner', 'owner@example.test', 'Owner');
+  const create = async (name: string) => {
+    const response = await request('/api/sites', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, doc: doc() })
+    });
+    a.equal(response.status, 201);
+    return await response.json() as { id: string; slug: string };
+  };
+  const site = await create('Studio site');
+  const other = await create('Second site');
+  const form = (path: string, values: Record<string, string>) => request(path, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(values)
+  });
+
+  const settings = await request(`/sites/${site.id}/settings`);
+  a.equal(settings.status, 200);
+  const html = await settings.text();
+  a.match(html, /<h1>Site settings<\/h1>/);
+  a.match(html, /action="\/sites\/.+\/settings\/name"/);
+  a.match(html, /action="\/sites\/.+\/settings\/slug"/);
+  a.match(html, /Support ID/);
+  a.match(html, new RegExp(`<code>${site.id}<\\/code>`));
+  a.match(html, /data-delete-submit disabled/);
+  a.match(html, /Settings<\/span>/);
+
+  accountAuth.current = { authUserId: 'auth-content', email: 'content@example.test', name: 'Content' };
+  const content = await auth.ensureAuthUser('auth-content', 'content@example.test', 'Content');
+  await auth.grant(site.id, content.id, 'content');
+  a.equal((await request(`/sites/${site.id}/settings`)).status, 403);
+  a.equal((await form(`/sites/${site.id}/settings/name`, { name: 'Not allowed' })).status, 403);
+
+  accountAuth.current = { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' };
+  const renamed = await form(`/sites/${site.id}/settings/name`, { name: 'Renamed studio' });
+  a.equal(renamed.status, 303);
+  a.equal((await store.byId(site.id))?.name, 'Renamed studio');
+
+  const invalid = await form(`/sites/${site.id}/settings/slug`, { slug: 'Not Valid' });
+  a.equal(invalid.status, 303);
+  a.match(invalid.headers.get('location') || '', /error=site_slug/);
+  const collision = await form(`/sites/${site.id}/settings/slug`, { slug: other.slug });
+  a.equal(collision.status, 303);
+  a.match(collision.headers.get('location') || '', /error=site_slug_taken/);
+  const moved = await form(`/sites/${site.id}/settings/slug`, { slug: 'renamed-studio' });
+  a.equal(moved.status, 303);
+  a.equal((await store.byId(site.id))?.slug, 'renamed-studio');
+
+  const mismatch = await form(`/sites/${site.id}/settings/delete`, { confirmation: 'Studio site' });
+  a.equal(mismatch.status, 303);
+  a.ok(await store.byId(site.id));
+  const deleted = await form(`/sites/${site.id}/settings/delete`, { confirmation: 'Renamed studio' });
+  a.equal(deleted.status, 303);
+  a.equal(deleted.headers.get('location'), '/?message=Site+deleted.');
+  a.equal(await store.byId(site.id), null);
+  a.equal(await auth.membership(site.id, owner.id), null);
+  a.equal(await auth.membership(site.id, content.id), null);
+  a.equal((await request(`/sites/${site.id}/settings`)).status, 404);
 });
 
 test('account settings shows profile, security, providers, and real free-plan usage', async () => {

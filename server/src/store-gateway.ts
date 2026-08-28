@@ -191,6 +191,20 @@ export class GatewayStore implements Store {
       throw error;
     }
   }
+  async setName(id: string, name: string) {
+    const clean = name.trim();
+    if (!clean) return null;
+    const row = await this.gateway.call<SiteRow | null>('site.setName', { id, name: clean });
+    const site = row ? toSite(row) : null;
+    this.clearCache();
+    this.remember(site);
+    return site;
+  }
+  async delete(id: string) {
+    const deleted = await this.gateway.call<boolean>('site.delete', { id });
+    this.clearCache();
+    return deleted;
+  }
   async setHost(id: string, host: string) {
     try {
       const row = await this.gateway.call<SiteRow | null>('site.setHost', { id, host });

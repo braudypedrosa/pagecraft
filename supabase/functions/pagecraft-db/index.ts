@@ -239,6 +239,35 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         where id = ${text(args.id)} returning *
       `,
       );
+    case "site.setName":
+      return one(
+        await sql`
+        update sites set name = ${text(args.name)}, updated_at = now()
+        where id = ${text(args.id)} returning *
+      `,
+      );
+    case "site.delete": {
+      const storedAssets = await sql<Record<string, unknown>[]>`
+        select storage_path from assets
+        where site_id = ${text(args.id)} and storage_path is not null
+      `;
+      const deleted = !!one(
+        await sql`delete from sites where id = ${text(args.id)} returning id`,
+      );
+      if (!deleted) return false;
+      const paths = storedAssets.map((row) => text(row.storage_path)).filter(
+        Boolean,
+      );
+      for (let start = 0; start < paths.length; start += 100) {
+        const result = await storage.from(ASSET_BUCKET).remove(
+          paths.slice(start, start + 100),
+        );
+        if (result.error) {
+          console.error("could not remove deleted site assets", result.error);
+        }
+      }
+      return true;
+    }
     case "site.setHost":
       return one(
         await sql`

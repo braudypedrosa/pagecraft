@@ -130,6 +130,21 @@ test('gateway site metadata excludes documents and hot public lookups are bounde
   a.deepEqual(calls.map(call => call.op), ['site.listMeta', 'site.bySlug']);
 });
 
+test('gateway site settings use fixed rename and deletion operations', async () => {
+  const { gateway, calls } = fakeGateway(call => {
+    if (call.op === 'site.setName') return { ...siteRow, name: call.args.name };
+    if (call.op === 'site.delete') return true;
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const sites = new GatewayStore(gateway);
+  a.equal((await sites.setName('s1', 'Renamed studio'))?.name, 'Renamed studio');
+  a.equal(await sites.delete('s1'), true);
+  a.deepEqual(calls, [
+    { op: 'site.setName', args: { id: 's1', name: 'Renamed studio' } },
+    { op: 'site.delete', args: { id: 's1' } }
+  ]);
+});
+
 test('gateway publish carries the release sequence required by the database CAS', async () => {
   const { gateway, calls } = fakeGateway(call => {
     if (call.op === 'site.publish') return siteRow;

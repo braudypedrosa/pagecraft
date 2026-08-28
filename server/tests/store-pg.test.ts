@@ -105,6 +105,19 @@ test('a site round-trips through jsonb with its document intact', async () => {
   a.equal(await sites.byId('nope'), null);
 });
 
+test('site settings rename and permanently delete the site with dependent rows', async () => {
+  const { sites, auth } = await fresh();
+  const owner = await auth.ensureAuthUser('settings-owner', 'settings@example.test', 'Settings Owner');
+  const made = await sites.create({ host: 'settings.test', name: 'Original', doc: demo(), savedBy: owner.id });
+  await auth.grant(made.id, owner.id, 'owner');
+  a.equal((await sites.setName(made.id, 'Renamed'))?.name, 'Renamed');
+  a.equal((await sites.byId(made.id))?.name, 'Renamed');
+  a.equal(await sites.delete(made.id), true);
+  a.equal(await sites.byId(made.id), null);
+  a.deepEqual(await auth.membershipsForUser(owner.id), []);
+  a.equal(await sites.delete(made.id), false);
+});
+
 test('a host is unique, and the second attempt fails rather than shadowing the first', async () => {
   const { sites } = await fresh();
   await sites.create({ host: 'acme.test', name: 'Acme', doc: demo() });

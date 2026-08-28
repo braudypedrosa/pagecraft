@@ -100,6 +100,10 @@ export interface Store {
   setHost(id: string, host: string): Promise<Site | null>;
   /** Move a site to a different path. Null when the path is taken or reserved. */
   setSlug(id: string, slug: string): Promise<Site | null>;
+  /** Change the human-readable label without changing the document or its public address. */
+  setName(id: string, name: string): Promise<Site | null>;
+  /** Permanently remove one site and every row that belongs to it. */
+  delete(id: string): Promise<boolean>;
 }
 
 /* ---- slugs -------------------------------------------------------------
@@ -240,6 +244,19 @@ export class MemoryStore implements Store {
     s.slug = want;
     s.updatedAt = new Date().toISOString();
     return this.copy(s);
+  }
+  async setName(id: string, name: string) {
+    const s = this.sites.get(id), clean = name.trim();
+    if (!s || !clean) return null;
+    s.name = clean;
+    s.updatedAt = new Date().toISOString();
+    return this.copy(s);
+  }
+  async delete(id: string) {
+    const removed = this.sites.delete(id);
+    this.revisions.delete(id);
+    this.publishedSequences.delete(id);
+    return removed;
   }
   async setHost(id: string, host: string) {
     const s = this.sites.get(id);

@@ -467,6 +467,19 @@ export class PgStore implements Store {
     }
   }
 
+  async setName(id: string, name: string) {
+    const clean = name.trim();
+    if (!clean) return null;
+    const { rows } = await this.db.query<Row>(
+      'update sites set name = $1, updated_at = now() where id = $2 returning *', [clean, id]);
+    return rows[0] ? toSite(rows[0]) : null;
+  }
+
+  async delete(id: string) {
+    const { rows } = await this.db.query<{ id: string }>('delete from sites where id = $1 returning id', [id]);
+    return !!rows[0];
+  }
+
   async setHost(id: string, host: string) {
     /* The unique index is what decides, not a read beforehand: two sites claiming one domain
        is exactly the race a check-then-write leaves open. */

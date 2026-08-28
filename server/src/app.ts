@@ -56,7 +56,7 @@ import type { HumanChallenge } from './turnstile.ts';
 import type { OwnedSiteStore } from './accounts.ts';
 import {
   accountSettingsPage, dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
-  signUpPage, siteOverviewPage, termsPage
+  signUpPage, siteOverviewPage, siteSettingsPage, termsPage
 } from './account-pages.ts';
 import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
 
@@ -845,7 +845,8 @@ export function createApp(o: Options) {
       return c.html(dashboardPage(user, mine.map(({ site, role }) => ({
         id: site.id, name: site.name, role, updatedAt: site.updatedAt,
         url: shareUrl(c, o, site), published: site.version === site.publishedVersion
-      })), mine.filter(item => item.role === 'owner').length, storage, c.req.query('error')));
+      })), mine.filter(item => item.role === 'owner').length, storage,
+      c.req.query('error'), c.req.query('message')));
     }
     if (!user) return c.html(signInPage());
 
@@ -874,12 +875,76 @@ export function createApp(o: Options) {
       ? await o.store.revision(site.id, site.publishedVersion)
       : null;
     return c.html(siteOverviewPage(gate.user, {
-      id: site.id, name: site.name, role: gate.role, updatedAt: site.updatedAt,
+      id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt,
       url: shareUrl(c, o, site), published: site.version === site.publishedVersion,
       version: site.version, publishedVersion: site.publishedVersion,
       publishedAt: publishedRevision?.createdAt,
       customDomain: /\.invalid$/.test(site.host) ? undefined : site.host
     }));
+  });
+
+  app.get('/sites/:id/settings', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return gate.status === 401
+      ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
+      : deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const publishedRevision = site.publishedVersion > 0
+      ? await o.store.revision(site.id, site.publishedVersion)
+      : null;
+    return c.html(siteSettingsPage(gate.user, {
+      id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt,
+      url: shareUrl(c, o, site), published: site.version === site.publishedVersion,
+      version: site.version, publishedVersion: site.publishedVersion,
+      publishedAt: publishedRevision?.createdAt,
+      customDomain: /\.invalid$/.test(site.host) ? undefined : site.host
+    }, { error: c.req.query('error'), message: c.req.query('message') }));
+  });
+
+  app.post('/sites/:id/settings/name', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    const name = String(body.name || '').trim();
+    if (!name || name.length > 120) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_name`, 303);
+    const changed = await o.store.setName(id, name);
+    if (!changed) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_settings`, 303);
+    return c.redirect(`/sites/${encodeURIComponent(id)}/settings?message=Site+name+updated.`, 303);
+  });
+
+  app.post('/sites/:id/settings/slug', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    const slug = validSlug(body.slug || '');
+    if (!slug) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_slug`, 303);
+    const moved = await o.store.setSlug(id, slug);
+    if (!moved) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_slug_taken`, 303);
+    built.delete(id);
+    return c.redirect(`/sites/${encodeURIComponent(id)}/settings?message=Pagecraft+address+updated.`, 303);
+  });
+
+  app.post('/sites/:id/settings/delete', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    if (String(body.confirmation || '') !== site.name) {
+      return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_delete_confirm`, 303);
+    }
+    const memberIds = (await o.auth.members(id)).map(member => member.userId);
+    if (!await o.store.delete(id)) return deny(c, 404);
+    /* Postgres removes memberships through the site's cascading foreign key. The in-memory
+       development stores are separate objects, so mirror that cleanup after the site is gone. */
+    await Promise.all(memberIds.map(userId => o.auth.revoke(id, userId).catch(() => false)));
+    built.delete(id);
+    return c.redirect('/?message=Site+deleted.', 303);
   });
 
   /* The editor, with the document already in the page.
