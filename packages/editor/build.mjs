@@ -49,7 +49,7 @@ writeFileSync(
 );
 writeFileSync(join(dist, 'contract.json'), JSON.stringify({
   format: 'pagecraft.editor-contract.v1',
-  editorVersion: '0.2.1',
+  editorVersion: '0.2.2',
   schemaVersion: Core.SCHEMA,
   rendererVersion: `pagecraft-core-${Core.SCHEMA}`,
   packages: {
@@ -91,7 +91,13 @@ Object.assign(image.props, {
   src: 'asset:hero-image', alt: 'Pagecraft native media', caption: 'Locally owned in WordPress', w: '1', h: '1'
 });
 section.css.d['background-image'] = 'url("asset:hero-image")';
-section.children = [heading, image];
+const tabs = Core.makeFor('tabs');
+tabs.id = 'tabs-import-fixture';
+tabs.props.items = [
+  { label: 'First', panel: '<p>First panel</p>' },
+  { label: 'Second', panel: '<p>Second panel</p>' }
+];
+section.children = [heading, image, tabs];
 fixture.pages[0].tree = [section];
 const fixturePackage = createPagePackage({
   document: fixture,
