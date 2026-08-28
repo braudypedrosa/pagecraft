@@ -100,7 +100,7 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   const { site, first, second, admin, request } = await rig();
   const verifier = 'm'.repeat(64);
   const challenge = base64url(Buffer.from(hashToken(verifier), 'hex'));
-  const callback = 'https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback';
+  const callback = 'http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback';
   const query = new URLSearchParams({
     installation_id: 'wordpress-manual-import-1', redirect_uri: callback,
     code_challenge: challenge, code_challenge_method: 'S256', state: 'manual-import-state-0001'
@@ -108,15 +108,19 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   for (const redirectUri of [
     'https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback&next=https://evil.test',
     'https://wordpress.test/wp-admin/admin.php?page=pagecraft',
+    'http://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
   ]) {
     const rejected = new URLSearchParams(query);
     rejected.set('redirect_uri', redirectUri);
     a.equal((await admin(first, `/v1/wordpress-import/authorize?${rejected}`)).status, 400);
   }
+  const anonymous = await request(first, `/v1/wordpress-import/authorize?${query}`);
+  a.equal(anonymous.status, 302);
+  a.match(anonymous.headers.get('location') || '', /^\/sign-in\?next=/);
   const consent = await admin(first, `/v1/wordpress-import/authorize?${query}`);
   a.equal(consent.status, 200);
   a.match(await consent.clone().text(), /No webhooks, polling, background updates/);
-  a.match(await consent.clone().text(), /wordpress\.test/);
+  a.match(await consent.clone().text(), /pagecraft-wordpress-qa\.local/);
   const csrf = (await consent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
   a.ok(csrf);
   const approved = await admin(second, '/v1/wordpress-import/authorize', {

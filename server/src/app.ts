@@ -1775,7 +1775,7 @@ export function createApp(o: Options) {
   app.get('/v1/wordpress-import/authorize', async c => {
     if (!o.connected) return c.json({ error: 'manual import persistence is unavailable' }, 503);
     const user = await who(c);
-    if (!user) return c.redirect(`/auth?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
+    if (!user) return c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
     const q = c.req.query();
     const installationId = String(q.installation_id || '');
     const redirectUri = String(q.redirect_uri || '');
@@ -1790,7 +1790,10 @@ export function createApp(o: Options) {
     let redirect: URL;
     try {
       redirect = new URL(redirectUri);
-      if ((redirect.protocol !== 'https:' && redirect.hostname !== 'localhost')
+      const localDevelopment = redirect.protocol === 'http:'
+        && (redirect.hostname === 'localhost' || redirect.hostname === '127.0.0.1'
+          || redirect.hostname === '[::1]' || redirect.hostname.endsWith('.local'));
+      if ((redirect.protocol !== 'https:' && !localDevelopment)
         || redirect.username || redirect.password || redirect.hash
         || redirect.pathname !== '/wp-admin/admin-post.php'
         || redirect.searchParams.get('action') !== 'pagecraft_cloud_callback'
@@ -1967,7 +1970,7 @@ export function createApp(o: Options) {
     if (!o.connected) return releaseUnavailable(c);
     const q = c.req.query();
     const user = await who(c);
-    if (!user) return c.redirect(`/auth?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
+    if (!user) return c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
     const exact = (camel: string, snake?: string) => {
       const a = q[camel], b = snake ? q[snake] : undefined;
       if (a && b && a !== b) throw new Error(`${camel} was supplied twice with different values`);
