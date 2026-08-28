@@ -1,0 +1,19 @@
+{
+  "name": "@pagecraft/editor",
+  "version": "0.2.0",
+  "description": "Versioned Pagecraft workbench and WordPress runtime contract",
+  "license": "Apache-2.0",
+  "private": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    "./editor.html": "./dist/editor.html",
+    "./runtime.js": "./dist/runtime.js",
+    "./contract.json": "./dist/contract.json"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}

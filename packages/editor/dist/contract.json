@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.editor-contract.v1",
+  "editorVersion": "0.2.0",
+  "schemaVersion": 13,
+  "rendererVersion": "pagecraft-core-13",
+  "packages": {
+    "site": "pagecraft.site-package.v1",
+    "page": "pagecraft.page-package.v1",
+    "limits": {
+      "archiveBytes": 314572800,
+      "files": 5000,
+      "pathBytes": 240,
+      "fileBytes": 104857600,
+      "expandedBytes": 524288000,
+      "manifestBytes": 2097152,
+      "documentBytes": 52428800
+    }
+  }
+}
