@@ -49,7 +49,7 @@ writeFileSync(
 );
 writeFileSync(join(dist, 'contract.json'), JSON.stringify({
   format: 'pagecraft.editor-contract.v1',
-  editorVersion: '0.2.3',
+  editorVersion: '0.2.4',
   schemaVersion: Core.SCHEMA,
   rendererVersion: `pagecraft-core-${Core.SCHEMA}`,
   packages: {

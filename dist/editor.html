@@ -16439,6 +16439,8 @@ var PC_UI = (() => {
       () => ({ "X-WP-Nonce": nonce })
     );
     const page2 = encodeURIComponent(String(options.pageId));
+    const documentPath = options.documentPath || `/pages/${page2}/document`;
+    const revisionsPath = options.revisionsPath || `/pages/${page2}/revisions`;
     const initialSession = {
       authenticated: true,
       userId: String(options.userId || ""),
@@ -16453,10 +16455,10 @@ var PC_UI = (() => {
     return {
       kind: "wordpress",
       authentication,
-      documents: documentAdapter(transport, `/pages/${page2}/document`),
+      documents: documentAdapter(transport, documentPath),
       pages: pageAdapter(transport, "/pages"),
       menus: menuAdapter(transport, "/menus"),
-      revisions: revisionAdapter(transport, `/pages/${page2}/revisions`),
+      revisions: revisionAdapter(transport, revisionsPath),
       assets: assetAdapter(transport, "/media"),
       settings: settingsAdapter(transport, "/settings"),
       setNonce(value) {
