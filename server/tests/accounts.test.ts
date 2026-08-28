@@ -207,7 +207,8 @@ test('site People lets owners invite and manage collaborators while content sees
     email: 'Collaborator@Example.test', role: 'content'
   });
   a.equal(invited.status, 303);
-  a.equal(invited.headers.get('location'), `/sites/${site.id}/people?message=Invitation+sent.`);
+  const genericInvite = `/sites/${site.id}/people?message=Access+updated.+An+invitation+was+sent+if+needed.`;
+  a.equal(invited.headers.get('location'), genericInvite);
   const collaborator = await auth.userByEmail('collaborator@example.test');
   a.ok(collaborator);
   a.equal((await auth.membership(site.id, collaborator!.id))?.role, 'content');
@@ -219,6 +220,20 @@ test('site People lets owners invite and manage collaborators while content sees
   a.equal((await auth.membership(site.id, collaborator!.id))?.role, 'owner');
   const demoted = await form(`/sites/${site.id}/people/${collaborator!.id}/role`, { role: 'content' });
   a.equal(demoted.status, 303);
+
+  const repeated = await form(`/sites/${site.id}/people/invite`, {
+    email: 'collaborator@example.test', role: 'content'
+  });
+  a.equal(repeated.status, 303);
+  a.equal(repeated.headers.get('location'), `/sites/${site.id}/people?error=people_rate`);
+  a.equal(repeated.headers.get('retry-after'), '60');
+
+  const active = await auth.ensureAuthUser('auth-active', 'active@example.test', 'Active');
+  const activeInvite = await form(`/sites/${site.id}/people/invite`, {
+    email: active.email, role: 'content'
+  });
+  a.equal(activeInvite.headers.get('location'), genericInvite,
+    'the response does not disclose whether an address already has an account');
 
   accountAuth.current = {
     authUserId: 'auth-collaborator', email: 'collaborator@example.test', name: 'Collaborator'
@@ -432,6 +447,64 @@ test('account mutations enforce the browser origin check', async () => {
   });
   a.equal(response.status, 403);
   a.deepEqual(await response.json(), { error: 'origin_not_allowed' });
+});
+
+test('site management mutations require a trusted browser origin', async () => {
+  const { app, request, accountAuth, auth } = rig();
+  accountAuth.current = {
+    authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner', providers: ['email']
+  };
+  await auth.ensureAuthUser('auth-owner', 'owner@example.test', 'Owner');
+  const created = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Protected site', doc: doc() })
+  });
+  const site = await created.json() as { id: string };
+
+  const crossOrigin = await request(`/sites/${site.id}/settings/name`, {
+    method: 'POST', headers: {
+      origin: 'https://attacker.itspagecraft.com',
+      'content-type': 'application/x-www-form-urlencoded'
+    }, body: new URLSearchParams({ name: 'Taken over' })
+  });
+  a.equal(crossOrigin.status, 403);
+  a.deepEqual(await crossOrigin.json(), { error: 'origin_not_allowed' });
+
+  const missingOrigin = await app.request(new Request(
+    `http://admin.test/sites/${site.id}/settings/name`, {
+      method: 'POST', headers: { host: 'admin.test', 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ name: 'Unverified' })
+    }
+  ));
+  a.equal(missingOrigin.status, 403);
+  a.deepEqual(await missingOrigin.json(), { error: 'origin_not_allowed' });
+
+  const refererFallback = await app.request(new Request(
+    `http://admin.test/sites/${site.id}/settings/name`, {
+      method: 'POST', headers: {
+        host: 'admin.test', referer: `http://admin.test/sites/${site.id}/settings`,
+        'content-type': 'application/x-www-form-urlencoded'
+      }, body: new URLSearchParams({ name: 'Verified' })
+    }
+  ));
+  a.equal(refererFallback.status, 303);
+});
+
+test('site management forms reject oversized bodies before parsing', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' };
+  await auth.ensureAuthUser('auth-owner', 'owner@example.test', 'Owner');
+  const created = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Bounded site', doc: doc() })
+  });
+  const site = await created.json() as { id: string };
+  const response = await request(`/sites/${site.id}/people/invite`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ email: `${'a'.repeat(17 * 1024)}@example.test`, role: 'content' })
+  });
+  a.equal(response.status, 413);
+  a.equal(await response.text(), 'Request too large');
 });
 
 test('site creation reports usable slug errors to JSON and redirects form submissions safely', async () => {

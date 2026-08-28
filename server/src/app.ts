@@ -122,6 +122,17 @@ const typeOf = (path: string) => TYPES[(path.split('.').pop() || '').toLowerCase
 export function createApp(o: Options) {
   const app = new Hono();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
+  const requestSource = (c: Context) => c.req.header('cf-connecting-ip')
+    || (c.req.header('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+  /* Invitations can send transactional email and create pending access records. These limits
+     are deliberately independent: rotating addresses must not evade the source/account limit,
+     while rotating callers must not mail-bomb one recipient. The short recipient cooldown
+     also makes accidental double-submission harmless. */
+  const inviteSourceLimit = throttle(30, 15 * 60 * 1000, 5000);
+  const inviteAccountLimit = throttle(20, 60 * 60 * 1000, 5000);
+  const inviteSiteLimit = throttle(20, 60 * 60 * 1000, 5000);
+  const inviteEmailLimit = throttle(3, 60 * 60 * 1000, 5000);
+  const inviteCooldown = throttle(1, 60 * 1000, 5000);
 
   /* Baseline browser hardening. Published HTML adds a sandbox below because it may contain an
      owner's intentional scripts; the editor itself must never be framed by another site. */
@@ -176,18 +187,24 @@ export function createApp(o: Options) {
     maxSize: 16 * 1024 * 1024,
     onError: c => c.json({ error: 'request is too large' }, 413)
   }));
+  app.use('/sites/*', bodyLimit({
+    maxSize: 16 * 1024,
+    onError: c => c.text('Request too large', 413)
+  }));
   if (o.accountAuth) {
     app.use('*', async (c, next) => {
       const method = c.req.method.toUpperCase();
       const path = new URL(c.req.url).pathname;
       const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method)
-        && (/^\/(?:auth|api|account)(?:\/|$)/.test(path));
+        && (/^\/(?:auth|api|account|sites)(?:\/|$)/.test(path));
       const bearer = /^Bearer\s+/i.test(c.req.header('authorization') || '')
         || !!c.req.header('x-pagecraft-editor-session');
-      const origin = c.req.header('origin');
-      if (mutating && !bearer && origin) {
+      if (mutating && !bearer) {
         const expected = new URL(o.editorOrigin || c.req.url).origin;
-        if (origin !== expected) return c.json({ error: 'origin_not_allowed' }, 403);
+        const origin = c.req.header('origin') || (() => {
+          try { return new URL(c.req.header('referer') || '').origin; } catch { return ''; }
+        })();
+        if (!origin || origin !== expected) return c.json({ error: 'origin_not_allowed' }, 403);
       }
       /* The old cookie is deliberately cleared throughout the cutover release. */
       if (getCookie(c, SESSION_COOKIE)) deleteCookie(c, SESSION_COOKIE, { path: '/' });
@@ -629,14 +646,12 @@ export function createApp(o: Options) {
       if (type.includes('application/json')) return await c.req.json().catch(() => ({})) as Record<string, unknown>;
       return await c.req.parseBody().catch(() => ({})) as Record<string, unknown>;
     };
-    const source = (c: Context) => c.req.header('cf-connecting-ip')
-      || (c.req.header('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
     const authSourceLimit = throttle(30, 15 * 60 * 1000, 5000);
     const authEmailLimit = throttle(8, 15 * 60 * 1000, 5000);
     const accountChangeLimit = throttle(8, 15 * 60 * 1000, 5000);
     const challengeToken = async (c: Context, body: Record<string, unknown>, action: 'signup' | 'login' | 'forgot') => {
       const token = String(body['cf-turnstile-response'] || body.turnstileToken || '');
-      return o.challenge && await o.challenge.verify({ token, ip: source(c), action }) ? token : '';
+      return o.challenge && await o.challenge.verify({ token, ip: requestSource(c), action }) ? token : '';
     };
 
     app.get('/sign-up', c => c.html(signUpPage(siteKey, { error: c.req.query('error'), message: c.req.query('message') })));
@@ -660,7 +675,7 @@ export function createApp(o: Options) {
       if (!validEmail(email) || !name) return c.redirect('/sign-up?error=invalid', 303);
       if (password.length < 12) return c.redirect('/sign-up?error=password', 303);
       if (password !== confirmation) return c.redirect('/sign-up?error=mismatch', 303);
-      if (!authSourceLimit.take(source(c)) || !authEmailLimit.take(email)) {
+      if (!authSourceLimit.take(requestSource(c)) || !authEmailLimit.take(email)) {
         return c.redirect('/sign-up?message=Check+your+email+to+finish+creating+your+account.', 303);
       }
       const captchaToken = await challengeToken(c, body, 'signup');
@@ -675,7 +690,7 @@ export function createApp(o: Options) {
       const email = normalEmail(String(body.email || ''));
       const password = String(body.password || '');
       const next = safeNext(body.next);
-      const limited = !authSourceLimit.take(source(c)) || !authEmailLimit.take(email);
+      const limited = !authSourceLimit.take(requestSource(c)) || !authEmailLimit.take(email);
       const captchaToken = await challengeToken(c, body, 'login');
       if (!validEmail(email) || !password || limited || !captchaToken) {
         return c.redirect(`/sign-in?error=${limited ? 'auth' : 'challenge'}&next=${encodeURIComponent(next)}`, 303);
@@ -689,7 +704,7 @@ export function createApp(o: Options) {
     app.post('/auth/google', bodyLimit({ maxSize: 4 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
       const body = await form(c);
       const next = safeNext(body.next);
-      if (!authSourceLimit.take(source(c))) {
+      if (!authSourceLimit.take(requestSource(c))) {
         return c.redirect(`/sign-in?error=oauth&next=${encodeURIComponent(next)}`, 303);
       }
       const origin = o.editorOrigin || new URL(c.req.url).origin;
@@ -716,7 +731,7 @@ export function createApp(o: Options) {
       const body = await form(c);
       const email = normalEmail(String(body.email || ''));
       const captchaToken = await challengeToken(c, body, 'forgot');
-      const allowedRequest = validEmail(email) && authSourceLimit.take(source(c)) && authEmailLimit.take(email)
+      const allowedRequest = validEmail(email) && authSourceLimit.take(requestSource(c)) && authEmailLimit.take(email)
         && !!captchaToken;
       if (allowedRequest) {
         const origin = o.editorOrigin || new URL(c.req.url).origin;
@@ -773,7 +788,7 @@ export function createApp(o: Options) {
       const name = String(body.name || '').trim().slice(0, 120);
       const email = normalEmail(String(body.email || ''));
       if (!name || !validEmail(email)) return c.redirect('/account?tab=profile&error=profile', 303);
-      if (!accountChangeLimit.take(`${source(c)}|profile`)) {
+      if (!accountChangeLimit.take(`${requestSource(c)}|profile`)) {
         return c.redirect('/account?tab=profile&error=password_rate', 303);
       }
       const updated = await o.auth.updateProfile(user.id, { name });
@@ -797,7 +812,7 @@ export function createApp(o: Options) {
     }), async c => {
       const identity = await o.accountAuth!.identity(c);
       if (!identity) return c.redirect('/sign-in?next=%2Faccount');
-      if (!accountChangeLimit.take(`${source(c)}|password`)) {
+      if (!accountChangeLimit.take(`${requestSource(c)}|password`)) {
         return c.redirect('/account?tab=security&error=password_rate', 303);
       }
       const body = await form(c);
@@ -926,6 +941,15 @@ export function createApp(o: Options) {
     const base = `/sites/${encodeURIComponent(id)}/people`;
     if (!validEmail(email)) return c.redirect(`${base}?error=people_email`, 303);
     if (role !== 'owner' && role !== 'content') return c.redirect(`${base}?error=people_role`, 303);
+    const allowedInvitation = inviteSourceLimit.take(requestSource(c))
+      && inviteAccountLimit.take(gate.user.id)
+      && inviteSiteLimit.take(id)
+      && inviteEmailLimit.take(email)
+      && inviteCooldown.take(`${id}|${email}`);
+    if (!allowedInvitation) {
+      c.header('retry-after', '60');
+      return c.redirect(`${base}?error=people_rate`, 303);
+    }
 
     const existing = await o.auth.userByEmail(email);
     if (existing?.id === gate.user.id && role !== 'owner') {
@@ -941,16 +965,14 @@ export function createApp(o: Options) {
       await o.auth.grant(id, user.id, role);
     }
 
-    if (user.authUserId) return c.redirect(`${base}?message=Access+updated.`, 303);
+    const genericSuccess = `${base}?message=Access+updated.+An+invitation+was+sent+if+needed.`;
+    if (user.authUserId) return c.redirect(genericSuccess, 303);
     const origin = o.editorOrigin || new URL(c.req.url).origin;
     const next = `/sites/${id}/people`;
     const delivery = await o.auth.inviteEmail(
       email, `${origin}/auth/confirm?type=invite&next=${encodeURIComponent(next)}`
     );
-    if (delivery === 'sent') return c.redirect(`${base}?message=Invitation+sent.`, 303);
-    if (delivery === 'exists') {
-      return c.redirect(`${base}?message=Access+granted.+They+can+sign+in+with+that+email.`, 303);
-    }
+    if (delivery === 'sent' || delivery === 'exists') return c.redirect(genericSuccess, 303);
     return c.redirect(`${base}?error=people_invite_mail`, 303);
   });
 

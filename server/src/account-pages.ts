@@ -33,6 +33,7 @@ const messages: Record<string, string> = {
   site_settings: 'We could not update this site. Refresh the page and try again.',
   people_email: 'Enter a valid email address.',
   people_role: 'Choose Owner or Content editor.',
+  people_rate: 'Too many invitations were attempted. Wait a minute and try again.',
   people_last_owner: 'A site must always have at least one owner.',
   people_missing: 'That collaborator no longer has access to this site.',
   people_invite_mail: 'Access was granted, but the invitation email could not be sent. Share the Pagecraft sign-up link directly.'
