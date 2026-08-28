@@ -110,7 +110,18 @@ const challenge = testAuth ? new TestHumanChallenge() : new SupabaseHumanChallen
 function releaseSecurity(): { releaseSigning?: ReleaseSigningKey; keysetEnvelope?: KeysetEnvelopeV1 } {
   const privateWire = process.env.PAGECRAFT_RELEASE_PRIVATE_KEY;
   const keyId = process.env.PAGECRAFT_RELEASE_KEY_ID;
-  const envelopeWire = process.env.PAGECRAFT_KEYSET_ENVELOPE;
+  const envelopeJson = process.env.PAGECRAFT_KEYSET_ENVELOPE;
+  const envelopeBase64 = process.env.PAGECRAFT_KEYSET_ENVELOPE_BASE64URL;
+  if (envelopeJson && envelopeBase64) {
+    throw new Error('set only PAGECRAFT_KEYSET_ENVELOPE_BASE64URL or the legacy PAGECRAFT_KEYSET_ENVELOPE, not both');
+  }
+  if (envelopeBase64 && (!/^[A-Za-z0-9_-]+$/.test(envelopeBase64)
+    || Buffer.from(envelopeBase64, 'base64url').toString('base64url') !== envelopeBase64)) {
+    throw new Error('PAGECRAFT_KEYSET_ENVELOPE_BASE64URL is malformed');
+  }
+  const envelopeWire = envelopeBase64
+    ? Buffer.from(envelopeBase64, 'base64url').toString('utf8')
+    : envelopeJson;
   const rootWire = process.env.PAGECRAFT_ROOT_PUBLIC_KEY;
   const supplied = [privateWire, keyId, envelopeWire, rootWire].filter(Boolean).length;
   if (!supplied) {
@@ -118,11 +129,16 @@ function releaseSecurity(): { releaseSigning?: ReleaseSigningKey; keysetEnvelope
     return {};
   }
   if (supplied !== 4) {
-    throw new Error('PAGECRAFT_RELEASE_PRIVATE_KEY, PAGECRAFT_RELEASE_KEY_ID, PAGECRAFT_KEYSET_ENVELOPE and PAGECRAFT_ROOT_PUBLIC_KEY must be set together');
+    throw new Error('PAGECRAFT_RELEASE_PRIVATE_KEY, PAGECRAFT_RELEASE_KEY_ID, a keyset envelope, and PAGECRAFT_ROOT_PUBLIC_KEY must be set together');
   }
   let envelope: KeysetEnvelopeV1;
   try { envelope = JSON.parse(envelopeWire!) as KeysetEnvelopeV1; }
-  catch { throw new Error('PAGECRAFT_KEYSET_ENVELOPE is not valid JSON'); }
+  catch (error) {
+    const first = envelopeWire!.codePointAt(0) ?? -1;
+    const last = envelopeWire!.codePointAt(envelopeWire!.length - 1) ?? -1;
+    const reason = error instanceof Error ? error.message.replace(/[\r\n]+/g, ' ') : 'parse failed';
+    throw new Error(`PAGECRAFT_KEYSET_ENVELOPE is not valid JSON (length ${envelopeWire!.length}; boundary code points ${first}/${last}; ${reason})`);
+  }
   const privateKey = createPrivateKey({
     key: Buffer.from(privateWire!, 'base64url'), format: 'der', type: 'pkcs8'
   });

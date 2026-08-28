@@ -68,28 +68,32 @@ Connected WordPress additionally fails closed until the release trust chain is p
 | `PAGECRAFT_RELEASE_KEY_ID` | Identifier for the online Ed25519 release key |
 | `PAGECRAFT_RELEASE_PRIVATE_KEY` | PKCS#8 release private key encoded as base64url; runtime secret |
 | `PAGECRAFT_ROOT_PUBLIC_KEY` | Raw 32-byte offline root public key encoded as base64url |
-| `PAGECRAFT_KEYSET_ENVELOPE` | Root-signed canonical release-key set JSON |
-| `PAGECRAFT_CONNECTOR_PACKAGE_PATH` | Absolute path to the provisioned connector ZIP |
-| `PAGECRAFT_CONNECTOR_PACKAGE_VERSION` | Exact connector package version |
+| `PAGECRAFT_KEYSET_ENVELOPE_BASE64URL` | Root-signed canonical release-key envelope encoded as base64url |
+| `PAGECRAFT_IMPORTER_PACKAGE_PATH` | Absolute path to the provisioned Importer ZIP |
+| `PAGECRAFT_IMPORTER_PACKAGE_VERSION` | Exact Importer version |
+| `PAGECRAFT_BUILDER_PACKAGE_PATH` | Absolute path to the provisioned Builder ZIP |
+| `PAGECRAFT_BUILDER_PACKAGE_VERSION` | Exact Builder version |
 | `PAGECRAFT_THEME_PACKAGE_PATH` | Absolute path to the theme ZIP |
 | `PAGECRAFT_THEME_PACKAGE_VERSION` | Exact theme package version |
 
 Generate the root and release keys on an offline machine with
-`node server/tools/provision-release-keys.mjs`. Store the root private key offline and the
+`node server/tools/provision-release-keys.mjs --profile production --output <protected-path>`.
+Use `--profile test` only for the development distribution. The command creates a new mode-0600
+file and refuses to overwrite it. Store the root private key offline and the
 release private key in the server secret store. Never save either private key in this checkout,
 WordPress, a deployment log, or chat. Inject only the root public key while building the private
-WordPress packages:
+WordPress packages from the private `pagecraft-wordpress` repository:
 
 ```bash
 PAGECRAFT_ROOT_PUBLIC_KEY_BASE64URL='<offline-root-public-key>' \
-  bash wordpress/tools/build-packages.sh 0.1.0
+  bash tools/build-release-candidate.sh 0.2.0
 ```
 
 The package builder rejects a missing/invalid root key and verifies that the development marker
-is absent from the resulting connector archive. Copy both archives to a private, non-public
-server directory and configure the package path/version variables before enabling Connected
-WordPress. The application signs package metadata at runtime; WordPress downloads a package only
-through a scoped, one-time authorization.
+is absent from the resulting Importer archive. Copy all three archives to a private, non-public
+server directory and configure their package path/version variables. The stable endpoint signs
+the distribution manifest at runtime; the Importer downloads Builder and Theme only from the
+content-addressed URLs bound into that signed manifest.
 
 ## Deploy an application update
 
