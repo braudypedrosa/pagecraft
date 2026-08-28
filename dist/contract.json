@@ -1,6 +1,6 @@
 {
   "format": "pagecraft.editor-contract.v1",
-  "editorVersion": "0.2.0",
+  "editorVersion": "0.2.1",
   "schemaVersion": 13,
   "rendererVersion": "pagecraft-core-13",
   "packages": {
