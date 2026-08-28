@@ -1812,14 +1812,23 @@ export function createApp(o: Options) {
       payload: consent as unknown as Record<string, unknown>,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
     });
-    return c.html(shell('Connect Pagecraft', `<h1>Let this WordPress site import a Pagecraft project?</h1>
-      <p>This grants read-only, manual import access to ${projects.length} ${projects.length === 1 ? 'project' : 'projects'} you own.</p>
-      <div class="ok"><strong>WordPress destination</strong><br><small>${escapeHtml(redirect.origin)}</small></div>
-      <div class="ok"><strong>Independent copies only</strong><br><small>No webhooks, polling, background updates, or WordPress password access.</small></div>
-      <form method="post" action="/v1/wordpress-import/authorize">
-        <input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
-        <button type="submit">Approve manual import</button>
-      </form>`));
+    return c.html(shell('Connect Pagecraft', `<section class="consent">
+      <header class="consent__header">
+        <div class="consent__brand"><img src="/brand/pagecraft-favicon.svg" alt=""><span>Pagecraft</span></div>
+        <h1>Let this WordPress site import a Pagecraft project?</h1>
+        <p>This grants read-only, manual import access to ${projects.length} ${projects.length === 1 ? 'project' : 'projects'} you own.</p>
+      </header>
+      <div class="consent__body">
+        <dl class="consent__details">
+          <div><dt>WordPress destination</dt><dd class="consent__destination">${escapeHtml(redirect.origin)}</dd></div>
+          <div><dt>How it works</dt><dd>Independent copies only</dd><small>No webhooks, polling, background updates, or WordPress password access.</small></div>
+        </dl>
+        <form class="consent__actions" method="post" action="/v1/wordpress-import/authorize">
+          <input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
+          <button type="submit">Approve manual import</button>
+        </form>
+      </div>
+    </section>`));
   });
 
   app.post('/v1/wordpress-import/authorize', async c => {
@@ -3406,6 +3415,7 @@ const shell = (title: string, body: string) => `<!doctype html>
        font:15px/1.5 "Manrope",system-ui,-apple-system,sans-serif}
   .card{background:#fff;border:1px solid #e5e1d6;border-radius:16px;padding:28px;width:min(92vw,380px);
         box-shadow:0 10px 30px -12px #1113111f}
+  .card--consent{width:min(calc(100vw - 32px),620px);padding:0;overflow:hidden}
   h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
   p{margin:0 0 18px;color:#5f6660;font-size:13.5px}
   label{display:block;font-size:12px;color:#5f6660;margin-bottom:6px}
@@ -3418,8 +3428,36 @@ const shell = (title: string, body: string) => `<!doctype html>
   a:hover{background:#f8f6ef;border-color:#5f6660}
   small{color:#5f6660;font-size:12px}
   .ok{padding:11px 12px;border-radius:8px;background:#f8f6ef;font-size:13.5px}
+  .consent__header{padding:32px 36px 28px;background:#f8f6ef;border-bottom:1px solid #e5e1d6}
+  .consent__brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;font-weight:700;font-size:16px}
+  .consent__brand img{width:28px;height:28px;border-radius:6px}
+  .consent h1{max-width:24ch;margin-bottom:10px;font-size:28px;line-height:1.18;letter-spacing:-.025em}
+  .consent__header p{max-width:58ch;margin:0;font-size:14px}
+  .consent__body{padding:28px 36px 36px}
+  .consent__details{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);margin:0 0 28px;
+                    border:1px solid #e5e1d6;border-radius:8px;background:#fff}
+  .consent__details>div{min-width:0;padding:20px 22px}
+  .consent__details>div+div{border-left:1px solid #e5e1d6}
+  .consent__details dt{margin:0 0 7px;color:#5f6660;font-size:11px;font-weight:700;letter-spacing:.045em;text-transform:uppercase}
+  .consent__details dd{margin:0;font-size:14px;font-weight:700;line-height:1.4}
+  .consent__details small{display:block;margin-top:5px;line-height:1.5}
+  .consent__destination{overflow-wrap:anywhere}
+  .consent__actions{margin:0}
+  .consent__actions button{min-height:46px;border-radius:4px}
+  .consent__actions button:hover{background:#a9e63c}
+  .consent__actions button:focus-visible{outline:3px solid #111311;outline-offset:3px}
+  ${'@'}media(max-width:560px){
+    .card--consent{width:min(calc(100vw - 24px),620px)}
+    .consent__header{padding:26px 24px 24px}
+    .consent__brand{margin-bottom:22px}
+    .consent h1{font-size:24px}
+    .consent__body{padding:24px}
+    .consent__details{grid-template-columns:1fr}
+    .consent__details>div{padding:18px}
+    .consent__details>div+div{border-top:1px solid #e5e1d6;border-left:0}
+  }
   ${body.includes('<select') ? CUSTOM_SELECT_CSS : ''}
-</style></head><body><div class="card">${body}</div>${body.includes('<select') ? `<script>${CUSTOM_SELECT_BOOT_SCRIPT}<\/script>` : ''}</body></html>`;
+</style></head><body><div class="card${body.includes('class="consent"') ? ' card--consent' : ''}">${body}</div>${body.includes('<select') ? `<script>${CUSTOM_SELECT_BOOT_SCRIPT}<\/script>` : ''}</body></html>`;
 
 /* No framework for four screens' worth of markup. If this grows past a form and a list it
    should become part of the editor bundle rather than more strings in here. */
