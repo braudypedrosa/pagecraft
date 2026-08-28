@@ -189,7 +189,6 @@ export const accountSettingsPage = (
     const move=id=>{if(!ids.has(id))return false;select(id);document.getElementById(id)?.scrollIntoView({block:'start',behavior:'auto'});return true;};
     links.forEach(link=>link.addEventListener('click',event=>{const id=link.hash.slice(1);if(!ids.has(id))return;event.preventDefault();history.pushState(null,'','#'+id);move(id);}));
     addEventListener('hashchange',()=>move(location.hash.slice(1)||'profile'));
-    let frame=0;workspace.addEventListener('scroll',()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const rootTop=workspace.getBoundingClientRect().top+32;const atEnd=workspace.scrollHeight-workspace.clientHeight-workspace.scrollTop<2;let current=atEnd?sections.at(-1):sections[0];if(!atEnd)for(const section of sections){if(section.getBoundingClientRect().top<=rootTop)current=section;else break;}select(current.id);});},{passive:true});
     const initial=location.hash.slice(1);if(initial&&ids.has(initial))requestAnimationFrame(()=>move(initial));else select('profile');
   })();</script>`);
 };
