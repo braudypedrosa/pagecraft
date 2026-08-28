@@ -13,6 +13,9 @@ describe('@pagecraft/editor package', () => {
 
     expect(html).toContain('window.PC_WORDPRESS');
     expect(html).toContain('createWordPressHostAdapter');
+    expect(html).toContain('documentPath: WP.documentPath');
+    expect(html).toContain('revisionsPath: WP.revisionsPath');
+    expect(html).toContain('WP.returnLabel');
     expect(contract).toMatchObject({
       format: 'pagecraft.editor-contract.v1',
       schemaVersion: SCHEMA,

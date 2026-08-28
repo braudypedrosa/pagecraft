@@ -16571,6 +16571,8 @@ const IS_WORDPRESS = !!WP;
 const HOST = WP ? PC_UI.createWordPressHostAdapter({
   restUrl: WP.restUrl,
   pageId: WP.page.id,
+  documentPath: WP.documentPath,
+  revisionsPath: WP.revisionsPath,
   nonce: WP.nonce,
   capabilities: WP.capabilities || [],
   userId: WP.user && WP.user.id,
@@ -20104,8 +20106,9 @@ function bindTop() {
   const primary = $('#exportBtn');
   const primaryLabel = $('#publishLabel');
   if (IS_WORDPRESS) {
-    primary.title = 'Save and return to WordPress Pages';
-    primary.setAttribute('aria-label', 'Save and return to WordPress Pages');
+    const returnLabel = WP.returnLabel || 'Save and return to WordPress Pages';
+    primary.title = returnLabel;
+    primary.setAttribute('aria-label', returnLabel);
     primaryLabel.textContent = 'Done';
     primary.addEventListener('click', () => finishWordPress(primary));
     $('#reviewBtn').addEventListener('click', exportModal);
