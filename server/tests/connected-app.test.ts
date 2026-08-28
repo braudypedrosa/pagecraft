@@ -105,9 +105,18 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
     installation_id: 'wordpress-manual-import-1', redirect_uri: callback,
     code_challenge: challenge, code_challenge_method: 'S256', state: 'manual-import-state-0001'
   });
+  for (const redirectUri of [
+    'https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback&next=https://evil.test',
+    'https://wordpress.test/wp-admin/admin.php?page=pagecraft',
+  ]) {
+    const rejected = new URLSearchParams(query);
+    rejected.set('redirect_uri', redirectUri);
+    a.equal((await admin(first, `/v1/wordpress-import/authorize?${rejected}`)).status, 400);
+  }
   const consent = await admin(first, `/v1/wordpress-import/authorize?${query}`);
   a.equal(consent.status, 200);
   a.match(await consent.clone().text(), /No webhooks, polling, background updates/);
+  a.match(await consent.clone().text(), /wordpress\.test/);
   const csrf = (await consent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
   a.ok(csrf);
   const approved = await admin(second, '/v1/wordpress-import/authorize', {

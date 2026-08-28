@@ -5,6 +5,8 @@ import type { HostCapability, HostSession, WordPressHostAdapter } from './types'
 export interface WordPressHostOptions {
   restUrl?: string;
   pageId: string | number;
+  documentPath?: string;
+  revisionsPath?: string;
   nonce: string;
   capabilities?: readonly HostCapability[];
   userId?: string | number;
@@ -24,6 +26,8 @@ export function createWordPressHostAdapter(options: WordPressHostOptions): WordP
     () => ({ 'X-WP-Nonce': nonce })
   );
   const page = encodeURIComponent(String(options.pageId));
+  const documentPath = options.documentPath || `/pages/${page}/document`;
+  const revisionsPath = options.revisionsPath || `/pages/${page}/revisions`;
   const initialSession: HostSession = {
     authenticated: true,
     userId: String(options.userId || ''),
@@ -39,10 +43,10 @@ export function createWordPressHostAdapter(options: WordPressHostOptions): WordP
   return {
     kind: 'wordpress',
     authentication,
-    documents: documentAdapter(transport, `/pages/${page}/document`),
+    documents: documentAdapter(transport, documentPath),
     pages: pageAdapter(transport, '/pages'),
     menus: menuAdapter(transport, '/menus'),
-    revisions: revisionAdapter(transport, `/pages/${page}/revisions`),
+    revisions: revisionAdapter(transport, revisionsPath),
     assets: assetAdapter(transport, '/media'),
     settings: settingsAdapter(transport, '/settings'),
     setNonce(value) { nonce = value; }

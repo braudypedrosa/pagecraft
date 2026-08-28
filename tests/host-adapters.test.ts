@@ -127,6 +127,41 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   a.ok(fixture.calls.every(call => call.url.startsWith('https://wp.test/wp-json/pagecraft/v1/')));
 });
 
+test('WordPress adapter can target a native global-element document without changing other host services', async () => {
+  const calls: string[] = [];
+  const doc = currentDocument();
+  const host = createWordPressHostAdapter({
+    restUrl: 'https://wp.test/wp-json/pagecraft/v1',
+    pageId: 77,
+    documentPath: '/globals/77/document',
+    revisionsPath: '/globals/77/revisions',
+    nonce: 'global-nonce',
+    fetch: async (input, init = {}) => {
+      const path = new URL(String(input)).pathname.replace('/wp-json/pagecraft/v1', '');
+      calls.push(`${String(init.method || 'GET').toUpperCase()} ${path}`);
+      if (path === '/globals/77/document') {
+        return json({ document: doc, version: 3 });
+      }
+      if (path === '/globals/77/revisions') {
+        return json([{ id: 'current', version: 3, createdAt: '2026-08-28T00:00:00Z', current: true }]);
+      }
+      if (path === '/globals/77/revisions/2/restore') {
+        return json({ document: doc, version: 4 });
+      }
+      throw new Error(`Unhandled global fixture request: ${path}`);
+    }
+  });
+
+  a.equal((await host.documents.load()).version, 3);
+  a.equal((await host.revisions.list())[0].version, 3);
+  a.equal((await host.revisions.restore(2, 3)).version, 4);
+  a.deepEqual(calls, [
+    'GET /globals/77/document',
+    'GET /globals/77/revisions',
+    'POST /globals/77/revisions/2/restore'
+  ]);
+});
+
 test('web and WordPress hosts adopt and compile the identical document identically', async () => {
   const doc = currentDocument();
   const web = createWebHostAdapter({

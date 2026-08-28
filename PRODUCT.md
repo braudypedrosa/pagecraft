@@ -12,7 +12,7 @@ Pagecraft serves people who need an instant publishable website and WordPress si
 
 ## Product Purpose
 
-Pagecraft is a visual website builder for creating, previewing, and sharing hosted sites, then handing a site or page to WordPress as an independently editable local copy. Success means a customer can start in Pagecraft Cloud, import into WordPress, and continue using the same builder without requiring synchronization or Pagecraft availability.
+Pagecraft is a visual website builder for creating, previewing, and publishing hosted sites, then optionally handing a complete project to WordPress as independently editable local content. Success means a customer can build either in Cloud or directly in WordPress without requiring synchronization or Pagecraft availability for WordPress rendering.
 
 ## Positioning
 
@@ -21,7 +21,7 @@ Pagecraft separates a portable, versioned document from the environment that own
 ## Operating Context
 
 - Authors work in Pagecraft Cloud or through the same full-page editor embedded in WordPress Admin.
-- Full-site and single-page packages support offline handoff. An optional account connection provides manual cloud-page browsing and import only.
+- Cloud import is optional and whole-project only. WordPress uses a revocable PKCE connection to download the internal project package; there is no user-facing project upload or page-by-page Cloud import.
 - Imported pages are native WordPress `page` records. The Pagecraft document is stored in post metadata and compiled fallback HTML is stored in `post_content`.
 - WordPress Pages is the canonical page library. Pagecraft adds badges, filters, and “Edit with Pagecraft” actions instead of a duplicate Pages screen.
 - Pagecraft navigation is converted to a native WordPress menu and bound back to the imported navigation component; WordPress owns menu content while Pagecraft owns presentation.
@@ -33,7 +33,7 @@ Pagecraft separates a portable, versioned document from the environment that own
 - Pagecraft-managed pages use the Pagecraft editor for layout. Native WordPress fields, revisions, menus, media, status, author, slug, and integrations remain available.
 - Generated CSS and runtime assets live under versioned Pagecraft upload paths rather than being written into the installed theme directory.
 - Cloud CMS bindings must be flattened with an explicit warning or rejected during import. Native WordPress data providers are deferred.
-- Background synchronization, conflict merging, staging promotion, Gutenberg conversion, existing-theme compatibility, multisite, billing, MCP, ecommerce, and vacation-rental widgets are outside v1.
+- Background synchronization, Cloud push, conflict merging, staging promotion, Gutenberg conversion, existing-theme compatibility, multisite, billing, MCP, ecommerce, and vacation-rental widgets are outside v1.
 
 ## Brand Commitments
 
@@ -49,7 +49,7 @@ The product is Pagecraft. Its established interface is a calm editorial workbenc
 ## Product Principles
 
 - An import is a copy and an ownership handoff, never an implied synchronization relationship.
-- Reimport defaults to creating a new page; replacing an existing page is explicit and creates a WordPress revision first.
+- Reimport is manual and whole-project. It matches immutable source IDs, creates revisions before updates, adds new pages, and marks missing Cloud pages without deleting them.
 - Stable Pagecraft identities, versioned schemas, deterministic compilation, and file hashes make packages auditable and repeatable.
 - Existing WordPress content, navigation, and media are never silently overwritten.
 - Published pages retain compiled HTML and CSS so disabling the builder does not blank the site.

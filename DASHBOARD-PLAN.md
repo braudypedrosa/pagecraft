@@ -169,12 +169,11 @@ a spacious drawer, but it must preserve the Sites workspace as the primary dashb
 
 - Download static site ZIP
 - Download the editable Pagecraft project
-- Export `.pagecraft-site.zip`
-- Export individual `.pagecraft-page.zip` packages
 - Show WordPress handoff instructions
+- Offer the signed Pagecraft Importer download and checksum
 - Record package type and export date where practical
 - State clearly that WordPress receives an independent, WordPress-owned copy
-- Do not imply background synchronization or automatic merging
+- Do not expose a WordPress project-upload workflow or imply background synchronization or automatic merging
 
 ### Settings
 
@@ -344,8 +343,9 @@ account-status flag was introduced.
 
 ### Phase 7: export and WordPress handoff — Planned
 
-- Static, editable, site-package, and page-package exports
+- Static and editable Pagecraft exports
 - WordPress handoff guidance and explicit independent-copy ownership language
+- Signed Importer download that installs the version-locked Builder and Theme
 
 ### Phase 8: account and plan surface — Planned
 

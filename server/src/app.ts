@@ -1791,9 +1791,12 @@ export function createApp(o: Options) {
     try {
       redirect = new URL(redirectUri);
       if ((redirect.protocol !== 'https:' && redirect.hostname !== 'localhost')
-        || redirect.username || redirect.password || redirect.hash) throw new Error();
+        || redirect.username || redirect.password || redirect.hash
+        || redirect.pathname !== '/wp-admin/admin-post.php'
+        || redirect.searchParams.get('action') !== 'pagecraft_cloud_callback'
+        || [...redirect.searchParams.keys()].some(key => key !== 'action')) throw new Error();
     } catch {
-      return c.json({ error: 'redirect_uri must be an absolute HTTPS WordPress admin URL' }, 400);
+      return c.json({ error: 'redirect_uri must be the exact HTTPS Pagecraft callback in WordPress admin' }, 400);
     }
     const projects = (await visibleSites(user)).filter(item => item.role === 'owner');
     if (!projects.length) return c.json({ error: 'this account owns no Pagecraft projects' }, 403);
@@ -1808,6 +1811,7 @@ export function createApp(o: Options) {
     });
     return c.html(shell('Connect Pagecraft', `<h1>Let this WordPress site import a Pagecraft project?</h1>
       <p>This grants read-only, manual import access to ${projects.length} ${projects.length === 1 ? 'project' : 'projects'} you own.</p>
+      <div class="ok"><strong>WordPress destination</strong><br><small>${escapeHtml(redirect.origin)}</small></div>
       <div class="ok"><strong>Independent copies only</strong><br><small>No webhooks, polling, background updates, or WordPress password access.</small></div>
       <form method="post" action="/v1/wordpress-import/authorize">
         <input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
