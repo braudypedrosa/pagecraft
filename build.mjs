@@ -8,7 +8,7 @@ import {
   PAGE_PACKAGE_FORMAT_V1, PORTABLE_PACKAGE_LIMITS_V1, SITE_PACKAGE_FORMAT_V1
 } from '../../app/src/package/types.ts';
 import { blankDoc } from '../../server/src/render.ts';
-import { createPagePackage } from '../../server/src/portable-packages.ts';
+import { createPagePackage, createSitePackage } from '../../server/src/portable-packages.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../..');
@@ -49,7 +49,7 @@ writeFileSync(
 );
 writeFileSync(join(dist, 'contract.json'), JSON.stringify({
   format: 'pagecraft.editor-contract.v1',
-  editorVersion: '0.2.2',
+  editorVersion: '0.2.3',
   schemaVersion: Core.SCHEMA,
   rendererVersion: `pagecraft-core-${Core.SCHEMA}`,
   packages: {
@@ -99,22 +99,32 @@ tabs.props.items = [
 ];
 section.children = [heading, image, tabs];
 fixture.pages[0].tree = [section];
+const fixtureAssets = [{
+  id: 'hero-image', siteId: 'cloud-project-fixture', name: 'Pagecraft Hero.png', type: 'image/png', w: 1, h: 1,
+  bytes: Uint8Array.from(Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2h8sAAAAASUVORK5CYII=',
+    'base64'
+  ))
+}];
+const provenance = {
+  format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud',
+  sourceId: 'cloud-project-fixture', sourceVersion: 9, exportedBy: 'owner-fixture'
+};
 const fixturePackage = createPagePackage({
   document: fixture,
   pageId: fixture.pages[0].id,
-  assets: [{
-    id: 'hero-image', siteId: 'cloud-project-fixture', name: 'Pagecraft Hero.png', type: 'image/png', w: 1, h: 1,
-    bytes: Uint8Array.from(Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2h8sAAAAASUVORK5CYII=',
-      'base64'
-    ))
-  }],
-  provenance: {
-    format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud',
-    sourceId: 'cloud-project-fixture', sourceVersion: 9, exportedBy: 'owner-fixture'
-  }
+  assets: fixtureAssets,
+  provenance
 });
+const secondPage = structuredClone(fixture.pages[0]);
+secondPage.id = 'page-import-fixture-about';
+secondPage.name = 'Imported About Page';
+secondPage.slug = 'about';
+secondPage.title = 'About — Pagecraft';
+fixture.pages.push(secondPage);
+const fixtureSitePackage = createSitePackage({ document: fixture, assets: fixtureAssets, provenance });
 mkdirSync(join(dist, 'fixtures'), { recursive: true });
 writeFileSync(join(dist, 'fixtures', 'page.pagecraft-page.zip'), fixturePackage.bytes);
+writeFileSync(join(dist, 'fixtures', 'site.pagecraft-site.zip'), fixtureSitePackage.bytes);
 
 console.log(`@pagecraft/editor artifacts written to ${dist}`);
