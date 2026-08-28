@@ -158,6 +158,10 @@ test('account settings shows profile, security, providers, and real free-plan us
   a.match(html, /0 KB of 100 MB/);
   a.match(html, /Paid plans are not available yet/);
   a.match(html, /Joined Jan 12, 2026/);
+  a.match(html, /href="#profile" aria-current="location"/);
+  a.match(html, /addEventListener\('hashchange'/);
+  a.match(html, /history\.pushState\(null,'','#'\+id\)/);
+  a.match(html, /scrollIntoView\(\{block:'start',behavior:'auto'\}\)/);
 });
 
 test('account profile updates the local name and starts verified email change', async () => {
