@@ -109,6 +109,11 @@ test('gateway manual-import credentials never expose plaintext token material to
     'auth.manualImport.create', 'auth.manualImport.byAccess', 'auth.manualImport.byRefresh',
     'auth.manualImport.rotate', 'auth.manualImport.revoke'
   ]);
+  a.equal(
+    (calls[0].args.input as Record<string, unknown>).accessExpiresAt,
+    row.access_expires_at,
+    'gateway timestamps cross the HTTPS boundary as ISO-8601 strings'
+  );
   a.equal(JSON.stringify(calls).includes('access-secret'), false);
 });
 

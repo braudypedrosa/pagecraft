@@ -910,7 +910,9 @@ export class GatewayAuthStore implements AuthStore {
   }
   async createManualImportCredential(input: Omit<ManualImportCredential,
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {
-    return toManualImport(await this.gateway.call<ManualImportWire>('auth.manualImport.create', { input }));
+    return toManualImport(await this.gateway.call<ManualImportWire>('auth.manualImport.create', {
+      input: { ...input, accessExpiresAt: new Date(input.accessExpiresAt).toISOString() }
+    }));
   }
   async manualImportByAccess(digest: string) {
     const row = await this.gateway.call<ManualImportWire|null>('auth.manualImport.byAccess', { digest });
