@@ -95,6 +95,7 @@ test('production refuses to boot without Supabase Auth and Turnstile configurati
       env: {
         ...process.env, NODE_ENV: 'production', DATABASE_URL: '',
         DATABASE_GATEWAY_URL: `http://127.0.0.1:${address.port}`, DATABASE_GATEWAY_KEY: 'test-only',
+        PAGECRAFT_PUBLICATION_ROOT: '/tmp/pagecraft-publications-loadable-test',
         OWNER_EMAIL: '', CLIENT_EMAIL: '', SMTP_HOST: '', SMTP_USER: '', SMTP_PASS: '', MAIL_FROM: ''
       }
     }), error => /account auth requires SUPABASE_URL/.test(

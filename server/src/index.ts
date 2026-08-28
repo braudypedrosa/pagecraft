@@ -7,6 +7,7 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 import { createPrivateKey, createPublicKey } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
 import { createApp } from './app.ts';
 import { MemoryStore, type Store } from './store.ts';
 import { MemoryAuthStore, type AuthStore } from './auth.ts';
@@ -21,6 +22,7 @@ import { PackageRegistry } from './packages.ts';
 import { SupabaseAccountAuth } from './account-auth.ts';
 import { SupabaseHumanChallenge, TestHumanChallenge } from './turnstile.ts';
 import { GatewayOwnedSiteStore, MemoryOwnedSiteStore, PgOwnedSiteStore, type OwnedSiteStore } from './accounts.ts';
+import { FileHostedPublicationStore } from './publications.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..');
@@ -86,6 +88,12 @@ async function pickStores(): Promise<{ store: Store; assets: AssetStore; auth: A
 const { store, assets, auth, connected, owned } = await pickStores();
 
 const production = process.env.NODE_ENV === 'production';
+const publicationRoot = process.env.PAGECRAFT_PUBLICATION_ROOT
+  || (production ? '' : join(tmpdir(), 'pagecraft-publications-development'));
+if (!publicationRoot) {
+  throw new Error('production requires PAGECRAFT_PUBLICATION_ROOT for immutable hosted publications');
+}
+const publications = new FileHostedPublicationStore(publicationRoot);
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY;
@@ -136,6 +144,16 @@ function packageRegistry() {
       slug: 'pagecraft-connector' as const,
       path: process.env.PAGECRAFT_CONNECTOR_PACKAGE_PATH,
       version: process.env.PAGECRAFT_CONNECTOR_PACKAGE_VERSION
+    },
+    {
+      slug: 'pagecraft-importer' as const,
+      path: process.env.PAGECRAFT_IMPORTER_PACKAGE_PATH,
+      version: process.env.PAGECRAFT_IMPORTER_PACKAGE_VERSION
+    },
+    {
+      slug: 'pagecraft-builder' as const,
+      path: process.env.PAGECRAFT_BUILDER_PACKAGE_PATH,
+      version: process.env.PAGECRAFT_BUILDER_PACKAGE_VERSION
     },
     {
       slug: 'pagecraft-theme' as const,
@@ -294,6 +312,7 @@ const app = createApp({
   ownedSites: owned,
   challenge,
   turnstileSiteKey,
+  publications,
   ...signing
 });
 

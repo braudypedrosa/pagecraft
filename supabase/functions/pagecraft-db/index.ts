@@ -190,7 +190,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     case "site.listMeta":
       return await sql`
         select id, host, slug, name, version, published_version,
-               published_release_id, updated_at from sites order by name
+               published_release_id, published_publication_id, updated_at from sites order by name
       `;
     case "site.byHost":
       return one(
@@ -436,6 +436,38 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         } and exists (select 1 from valid)
             and not exists (select 1 from changed) limit 1
       `,
+      );
+
+    case "site.publishHosted":
+      return await sql.begin(async (transaction) =>
+        one(
+          await transaction`
+          with valid as materialized (
+            select 1 from site_revisions
+            where site_id = ${text(args.id)} and version = ${
+            integer(args.version)
+          }
+          ), recorded as (
+            insert into hosted_publications
+              (id, site_id, source_version, content_hash, storage_key, created_by, created_at)
+            select ${text(args.publicationId)}::uuid, ${text(args.id)}, ${
+            integer(args.version)
+          },
+              ${text(args.contentHash)}, ${text(args.publicationId)}, ${
+            text(args.createdBy)
+          },
+              ${text(args.createdAt)}::timestamptz from valid
+            on conflict (site_id, source_version, content_hash)
+              do update set content_hash = excluded.content_hash returning id
+          ), changed as (
+            update sites set published_version = ${integer(args.version)},
+              published_publication_id = (select id from recorded), updated_at = now()
+            where id = ${
+            text(args.id)
+          } and exists (select 1 from recorded) returning *
+          ) select * from changed
+        `,
+        )
       );
 
     case "connection.create": {

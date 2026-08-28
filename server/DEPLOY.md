@@ -42,6 +42,7 @@ Required:
 | `SUPABASE_PUBLISHABLE_KEY` | Public project key used by the server-side SSR client |
 | `TURNSTILE_SITE_KEY` | Cloudflare Turnstile widget key for the production hostname |
 | `NODE_ENV` | `production`, which enables Secure auth cookies and forbids test challenge mode |
+| `PAGECRAFT_PUBLICATION_ROOT` | Persistent, writable absolute directory outside the application deployment, recommended `/home/itspbuku/pagecraft-publications` |
 
 Account email is sent by Supabase Auth through the project's custom SMTP provider. Configure and
 test that provider in Supabase before releasing the application; the built-in development mail
@@ -49,6 +50,13 @@ service is not a production transport. `OWNER_EMAIL`, `CLIENT_EMAIL`, and the ap
 SMTP variables are legacy rollback settings and are not used by Supabase account mode.
 The Turnstile secret belongs only in Supabase Auth's Bot and Abuse Protection settings, not in the
 Pagecraft application environment.
+
+Create the publication directory once and keep it outside the rsync `--delete` target:
+
+```bash
+ssh -F .pagecraft-local/ssh-config itspagecraft-host \
+  'mkdir -p /home/itspbuku/pagecraft-publications && chmod 700 /home/itspbuku/pagecraft-publications'
+```
 
 The complete Auth URL, email-template, Turnstile, and local-test checklist is in
 [`AUTH_SETUP.md`](AUTH_SETUP.md).

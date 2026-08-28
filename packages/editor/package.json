@@ -1,6 +1,6 @@
 {
   "name": "@pagecraft/editor",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Versioned Pagecraft workbench and WordPress runtime contract",
   "license": "Apache-2.0",
   "private": false,
@@ -12,7 +12,8 @@
     "./editor.html": "./dist/editor.html",
     "./runtime.js": "./dist/runtime.js",
     "./contract.json": "./dist/contract.json",
-    "./fixtures/page.pagecraft-page.zip": "./dist/fixtures/page.pagecraft-page.zip"
+    "./fixtures/page.pagecraft-page.zip": "./dist/fixtures/page.pagecraft-page.zip",
+    "./fixtures/site.pagecraft-site.zip": "./dist/fixtures/site.pagecraft-site.zip"
   },
   "scripts": {
     "build": "node build.mjs"

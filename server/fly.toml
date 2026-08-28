@@ -49,6 +49,7 @@ primary_region = 'lhr'
   # your own before the first deploy: a mismatch means every request is looked up as a custom
   # domain and nothing is found.
   EDITOR_HOST = 'pagecraft.example.com'
+  PAGECRAFT_PUBLICATION_ROOT = '/data/publications'
 
 [http_service]
   internal_port = 8787
@@ -70,7 +71,6 @@ primary_region = 'lhr'
   size = 'shared-cpu-1x'
   memory = '512mb'
 
-# No [[mounts]]. Everything that has to survive a restart is in Postgres — documents, sessions,
-# invitations and uploaded images, which are `bytea` rather than files on disk. That is what makes
-# this deployable without a volume, and it was a deliberate choice in `assets.ts` rather than a
-# happy accident.
+[[mounts]]
+  source = 'pagecraft_publications'
+  destination = '/data'

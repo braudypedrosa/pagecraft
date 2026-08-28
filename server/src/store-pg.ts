@@ -49,10 +49,24 @@ create table if not exists sites (
   version     integer not null default 1,
   published_version integer not null default 1,
   published_release_id text,
+  published_publication_id uuid,
   published_release_sequence integer not null default 0,
   updated_at  timestamptz not null default now()
 );
 create index if not exists sites_host_idx on sites (host);
+
+create table if not exists hosted_publications (
+  id uuid primary key,
+  site_id text not null references sites (id) on delete cascade,
+  source_version integer not null,
+  content_hash text not null check (content_hash ~ '^[a-f0-9]{64}$'),
+  storage_key text not null,
+  created_by text not null,
+  created_at timestamptz not null,
+  unique (site_id, source_version, content_hash)
+);
+create index if not exists hosted_publications_site_time_idx
+  on hosted_publications (site_id, created_at desc);
 
 -- The path a site answers on under the editor's own host. Added after the table shipped, so it
 -- arrives as an alter: a column, a backfill from the host's first label, then the constraints.
@@ -67,6 +81,7 @@ update sites set published_version = version where published_version is null;
 alter table sites alter column published_version set default 1;
 alter table sites alter column published_version set not null;
 alter table sites add column if not exists published_release_id text;
+alter table sites add column if not exists published_publication_id uuid;
 alter table sites add column if not exists published_release_sequence integer not null default 0;
 
 create table if not exists site_revisions (
@@ -362,12 +377,14 @@ export interface Queryable {
 interface Row {
   id: string; host: string; slug: string; name: string; doc: Doc;
   version: number; published_version: number; published_release_id: string | null;
+  published_publication_id: string | null;
   updated_at: Date | string;
 }
 
 const toSite = (r: Row): Site => ({
   id: r.id, host: r.host, slug: r.slug, name: r.name, doc: r.doc, version: r.version,
   publishedVersion: r.published_version, publishedReleaseId: r.published_release_id,
+  publishedPublicationId: r.published_publication_id || null,
   updatedAt: typeof r.updated_at === 'string' ? r.updated_at : r.updated_at.toISOString()
 });
 
@@ -417,10 +434,11 @@ export class PgStore implements Store {
 
   async listMeta() {
     const { rows } = await this.db.query<Omit<Row, 'doc'>>(
-      'select id, host, slug, name, version, published_version, published_release_id, updated_at from sites order by name');
+      'select id, host, slug, name, version, published_version, published_release_id, published_publication_id, updated_at from sites order by name');
     return rows.map(r => ({
       id: r.id, host: r.host, slug: r.slug, name: r.name, version: r.version,
       publishedVersion: r.published_version, publishedReleaseId: r.published_release_id,
+      publishedPublicationId: r.published_publication_id || null,
       updatedAt: typeof r.updated_at === 'string' ? r.updated_at : r.updated_at.toISOString()
     }));
   }
@@ -608,6 +626,29 @@ export class PgStore implements Store {
          select s.* from sites s where s.id = $1 and exists (select 1 from valid)
            and not exists (select 1 from changed) limit 1`,
       [id, version, releaseId, releaseSequence]
+    );
+    return rows[0] ? toSite(rows[0]) : null;
+  }
+
+  async publishHosted(input: {
+    id: string; version: number; publicationId: string; contentHash: string;
+    createdBy: string; createdAt: string;
+  }) {
+    const { rows } = await this.db.query<Row>(
+      `with valid as materialized (
+         select 1 from site_revisions where site_id = $1 and version = $2
+       ), recorded as (
+         insert into hosted_publications
+           (id, site_id, source_version, content_hash, storage_key, created_by, created_at)
+         select $3::uuid, $1, $2, $4, $3, $5, $6::timestamptz from valid
+         on conflict (site_id, source_version, content_hash)
+           do update set content_hash = excluded.content_hash returning id
+       ), changed as (
+         update sites set published_version = $2,
+           published_publication_id = (select id from recorded), updated_at = now()
+         where id = $1 and exists (select 1 from recorded) returning *
+       ) select * from changed`,
+      [input.id, input.version, input.publicationId, input.contentHash, input.createdBy, input.createdAt]
     );
     return rows[0] ? toSite(rows[0]) : null;
   }

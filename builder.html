@@ -247,20 +247,16 @@ input,select,textarea{font:inherit;color:inherit}
 .releaseState.live::before{background:var(--green)}
 .releaseState.failed::before{background:var(--danger)}
 .releaseState.waiting::before{background:var(--warn)}
-.releaseTargets{border-top:1px solid var(--line);margin-top:var(--gap-2);padding-top:var(--gap-2)}
-.releaseTargets h4{font-size:var(--fs-4);margin:0 0 var(--sp-4);font-weight:600}
-.releaseTarget{display:grid;grid-template-columns:minmax(100px,.65fr) minmax(0,1fr) auto;align-items:center;gap:var(--sp-5);padding:10px 0;border-bottom:1px solid var(--line)}
-.releaseTarget:last-child{border-bottom:0}
-.releaseTarget b{font-size:var(--fs-3);font-weight:600}
-.releaseTarget span{font-size:var(--fs-2);color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .releaseEmpty{padding:12px 14px;background:var(--field);border-radius:var(--r-md);color:var(--text-2);font-size:var(--fs-3);line-height:1.55}
+.releaseInstructions{margin:var(--gap-3) 0;padding-left:22px;color:var(--text-2);font-size:var(--fs-3);line-height:1.65}
+.releaseInstructions li+li{margin-top:var(--sp-3)}
+#importerDownload{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-4)}
+#importerDownload small{min-width:0;overflow-wrap:anywhere}
 @media(max-width:760px){
   .historyRow{grid-template-columns:1fr auto}
   .historyMeta{grid-column:1}
   .historyRow .btn{grid-column:2;grid-row:1/4}
   .releaseLead{grid-template-columns:1fr}
-  .releaseTarget{grid-template-columns:1fr auto}
-  .releaseTarget span{grid-column:1}
 }
 
 /* ---------------------------------------------------------- body layout --- */
@@ -1569,65 +1565,28 @@ async function historyModal() {
 /* Drafts and releases are deliberately separate in server mode. Autosave protects the work;
    Publish is the explicit boundary that changes a public site. The single-file edition still
    has no server release ledger, so its primary action remains Export. */
-const releaseNumber = release => release && (release.releaseNumber ?? release.number ?? release.sequence);
-const releaseSourceVersion = release => release && (release.sourceVersion ?? release.source_version ?? release.version);
-const releaseStatus = release => String(release && (release.status || release.state) || 'draft').toLowerCase();
-const releaseWhen = release => release && (release.createdAt || release.created_at || release.publishedAt || release.published_at);
 const releaseClass = status => /live|active|published|succeeded/.test(status) ? 'live'
   : /fail|reject|rollback/.test(status) ? 'failed'
     : /queue|wait|download|stage|activat|verify|approval/.test(status) ? 'waiting' : '';
 const releaseLabel = status => ({ succeeded: 'Live', published: 'Published', active: 'Live', needs_approval: 'Needs approval' }[status]
   || status.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase()));
 
-function releaseTargetRows(payload) {
-  const releases = payload && payload.releases;
-  const latest = Array.isArray(releases) ? releases[0] : null;
-  const connections = payload && (payload.connections || payload.targets || payload.deployments)
-    || latest && (latest.targets || latest.deployments || latest.connections) || [];
-  if (!Array.isArray(connections) || !connections.length) return `
-    <div class="releaseEmpty">
-      Pagecraft hosting will use this release. No WordPress staging or production target is connected yet.
-    </div>`;
-  return connections.map(item => {
-    const connection = item.connection || item;
-    const environment = connection.environment || item.environment || item.kind || item.target || 'WordPress';
-    const origin = connection.targetOrigin || connection.origin || connection.wordpressOrigin
-      || connection.wordpress_url || connection.url || 'Connected site';
-    const status = releaseStatus(item.deployment || item);
-    const detail = item.detail || item.deployment?.detail || '';
-    return `<div class="releaseTarget">
-      <b>${esc(String(environment).replace(/^./, c => c.toUpperCase()))}</b>
-      <span title="${esc(origin)}">${esc(origin)}</span>
-      <span class="releaseState ${releaseClass(status)}"${detail ? ` title="${esc(detail)}"` : ''}>${esc(releaseLabel(status))}</span>
-    </div>`;
-  }).join('');
-}
-
 function renderReleasePanel(payload = {}) {
   const host = $('#releasePanel');
   if (!host) return;
-  const releases = Array.isArray(payload) ? payload : (payload.releases || []);
-  const publishedId = payload.publishedReleaseId || SRV.publishedRelease?.releaseId;
-  const published = publishedId && releases.find(release => (release.releaseId || release.id) === publishedId);
-  const latest = payload.release || payload.publishedRelease || payload.published || published
-    || releases[0] || SRV.publishedRelease || null;
-  const number = releaseNumber(latest);
-  const version = releaseSourceVersion(latest);
-  const status = latest ? releaseStatus(latest) : 'not published';
-  const when = releaseWhen(latest);
+  const publicationId = payload.publicationId || SRV.publishedPublicationId;
+  const version = payload.publishedVersion ?? payload.sourceVersion ?? SRV.publishedVersion;
+  const when = payload.publishedAt;
+  const status = payload.status || (publicationId ? 'published' : 'draft');
   host.innerHTML = `
     <div class="releaseLead">
       <div>
-        <h3>${latest ? `Release ${esc(number || '—')}` : 'Nothing has been published yet'}</h3>
-        <p>${latest
+        <h3>${publicationId ? 'Published on Pagecraft' : 'Nothing has been published yet'}</h3>
+        <p>${publicationId
           ? `Draft version ${esc(version || '—')} became the public release${when ? ` on ${esc(historyDate(when))}` : ''}. Autosaved changes after that remain private.`
           : 'Autosave is protecting this draft, but visitors will not see it until an owner publishes it.'}</p>
       </div>
       <span class="releaseState ${releaseClass(status)}">${esc(releaseLabel(status))}</span>
-    </div>
-    <div class="releaseTargets">
-      <h4>Destinations</h4>
-      ${releaseTargetRows(payload)}
     </div>`;
   host.setAttribute('aria-busy', 'false');
 }
@@ -1681,42 +1640,55 @@ async function publishDraft(button) {
   button.disabled = true;
   button.textContent = 'Publishing…';
   $('#releasePanel')?.setAttribute('aria-busy', 'true');
-  let responseReceived = false;
   try {
     await flushDraft();
-    const idempotencyKey = button.dataset.idempotencyKey
-      || (crypto.randomUUID ? crypto.randomUUID() : `${SRV.siteId}-${SRV.version}-${Date.now()}`);
-    button.dataset.idempotencyKey = idempotencyKey;
     const payload = await HOST.releases.publish({
       sourceVersion: SRV.version,
-      idempotencyKey,
-      acknowledgeWarnings: counts.warn > 0,
-      warningCodes: findings.filter(f => f.level === 'warn').map(f => f.code)
+      acknowledgeWarnings: counts.warn > 0
     });
-    responseReceived = true;
-    const release = payload.release || payload;
-    SRV.publishedRelease = release;
-    SRV.publishedVersion = payload.publishedVersion ?? releaseSourceVersion(release) ?? SRV.publishedVersion;
-    delete button.dataset.idempotencyKey;
+    SRV.publishedPublicationId = payload.publicationId;
+    SRV.publishedVersion = payload.sourceVersion ?? SRV.publishedVersion;
     renderReleasePanel(payload);
-    toast(`Release ${releaseNumber(release) || ''} created${payload.status === 'live' ? ' and verified' : ''}`.trim());
+    toast(payload.status === 'unchanged' ? 'This version is already published' : 'Published to Pagecraft');
     button.textContent = 'Published';
-    setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish draft'; } }, 900);
+    setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish to Pagecraft'; } }, 900);
     await loadReleasePanel();
   } catch (error) {
-    if (error && Number.isInteger(error.status)) responseReceived = true;
     if (error && error.status === 409) {
       warnStale(error.payload || {});
     }
-    /* If the server answered, the attempt definitely ended and a correction should get a new
-       key. If the network disappeared after accepting the release, retaining the key makes
-       Retry reconcile that same immutable release instead of creating a duplicate. */
-    if (responseReceived) delete button.dataset.idempotencyKey;
     button.disabled = false;
     button.textContent = 'Try again';
     const host = $('#releasePanel');
     if (host) host.insertAdjacentHTML('afterbegin', `<div class="alert" style="margin-bottom:var(--gap-2)"><b>Nothing changed publicly.</b><span>${esc(error.message || String(error))}</span></div>`);
     if (host) host.setAttribute('aria-busy', 'false');
+  }
+}
+
+async function wordpressPublishModal() {
+  openModal('Publish on WordPress', `
+    <div class="releaseLead"><div><h3>Use Pagecraft natively in WordPress</h3>
+      <p>Install the Pagecraft Importer in WordPress. It verifies and installs the matching Pagecraft Builder and Theme, then lets you build locally or import this whole Cloud project.</p></div></div>
+    <ol class="releaseInstructions">
+      <li>Download the verified Pagecraft Importer.</li>
+      <li>In WordPress, open Plugins → Add New Plugin → Upload Plugin.</li>
+      <li>Activate the Importer and approve its Builder and Theme compatibility checks.</li>
+      <li>Build from scratch, or connect Pagecraft Cloud and import the whole project.</li>
+    </ol>
+    <div id="importerDownload" class="releaseEmpty" role="status">Checking the current signed release…</div>`, `
+    <button class="btn" id="releaseClose">Close</button>`);
+  $('#releaseClose').addEventListener('click', closeModal);
+  const host = $('#importerDownload');
+  try {
+    const response = await fetch('/v1/wordpress-distribution/stable', { credentials: 'same-origin' });
+    if (!response.ok) throw new Error('The signed Importer download is not enabled yet.');
+    const payload = await response.json();
+    const importer = payload.products && payload.products.importer;
+    if (!importer || !importer.downloadUrl || !importer.sha256) throw new Error('The release manifest is incomplete.');
+    host.innerHTML = `<a class="btn primary" href="${esc(importer.downloadUrl)}">Download Pagecraft Importer ${esc(importer.version || '')}</a>
+      <small>SHA-256: <code>${esc(importer.sha256)}</code></small>`;
+  } catch (error) {
+    host.innerHTML = `<b>Importer download unavailable.</b><span>${esc(error.message || String(error))}</span>`;
   }
 }
 
@@ -1728,14 +1700,14 @@ function publishModal() {
   openModal('Publish', `
     <div class="review" id="exReview"></div>
     <div id="releasePanel" role="status" aria-live="polite" aria-atomic="true" aria-busy="true"><div class="releaseEmpty">Loading release status…</div></div>`, `
-    <button class="btn" id="releaseExport" title="Download static HTML instead">Export HTML…</button>
+    <button class="btn" id="releaseWordPress">Publish on WordPress</button>
     <span style="flex:1"></span>
     <button class="btn" id="releaseClose">Close</button>
-    ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish draft'}</button>` : ''}`);
+    ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
   ui().mountReview();
   loadReleasePanel();
   $('#releaseClose').addEventListener('click', closeModal);
-  $('#releaseExport').addEventListener('click', exportModal);
+  $('#releaseWordPress').addEventListener('click', wordpressPublishModal);
   const publish = $('#releasePublish');
   if (publish) publish.addEventListener('click', () => publishDraft(publish));
 }

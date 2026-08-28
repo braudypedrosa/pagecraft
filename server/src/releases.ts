@@ -20,6 +20,7 @@ export const DEPLOYMENT_CONTEXT = 'pagecraft-deployment-v1\0';
 export const KEYSET_CONTEXT = 'pagecraft-keyset-v1\0';
 export const WEBHOOK_CONTEXT = 'pagecraft-webhook-v1\0';
 export const PACKAGE_CONTEXT = 'pagecraft-package-v1\0';
+export const WORDPRESS_DISTRIBUTION_CONTEXT = 'pagecraft-wordpress-distribution-v1\0';
 
 /** Fixed v1 ceilings mirrored by the connector's staging verifier. A signed release must be
  * accepted or rejected before notification; WordPress must never discover contract drift only
@@ -269,13 +270,30 @@ export interface ReleaseAvailableWebhookV1 {
 
 export interface PackageManifestV1 {
   format: 'pagecraft.package.v1';
-  slug: 'pagecraft-connector' | 'pagecraft-theme';
+  slug: 'pagecraft-connector' | 'pagecraft-importer' | 'pagecraft-builder' | 'pagecraft-theme';
   version: string;
   packageHash: string;
   packageBytes: number;
   license: 'GPL-3.0-or-later';
-  requirements: { wordpress: string; php: string; connector?: string };
+  requirements: {
+    wordpress: string; php: string; connector?: string; importer?: string; theme?: string;
+  };
   generatedAt: string;
+}
+
+export interface WordPressDistributionManifestV1 {
+  format: 'pagecraft.wordpress-distribution.v1';
+  channel: 'stable';
+  generatedAt: string;
+  products: Record<'importer' | 'builder' | 'theme', {
+    slug: 'pagecraft-importer' | 'pagecraft-builder' | 'pagecraft-theme';
+    version: string;
+    sha256: string;
+    size: number;
+    downloadPath: string;
+    requirements: PackageManifestV1['requirements'];
+  }>;
+  compatibility: { builderTheme: Array<{ builder: string; theme: string }> };
 }
 
 export function signPackageManifest(manifest: PackageManifestV1, key: ReleaseSigningKey) {
@@ -291,6 +309,20 @@ export function verifySignedPackage(input: {
   if (input.packageBytes && (input.packageBytes.byteLength !== manifest.packageBytes
     || sha256(input.packageBytes) !== manifest.packageHash)) throw new Error('package archive does not match signed metadata');
   return manifest;
+}
+
+export function signWordPressDistribution(manifest: WordPressDistributionManifestV1, key: ReleaseSigningKey) {
+  const signed = signCanonical(manifest, WORDPRESS_DISTRIBUTION_CONTEXT, key);
+  return { manifest: signed.encoded, signature: signed.signature, keyId: key.keyId };
+}
+
+export function verifyWordPressDistribution(input: {
+  manifest: string; signature: string; publicKey: KeyLike | string | Uint8Array;
+}) {
+  verifyCanonical(input.manifest, input.signature, WORDPRESS_DISTRIBUTION_CONTEXT, input.publicKey);
+  return decodeCanonical(
+    input.manifest, 'pagecraft.wordpress-distribution.v1'
+  ) as unknown as WordPressDistributionManifestV1;
 }
 
 export function signReleaseAvailableWebhook(event: ReleaseAvailableWebhookV1, key: ReleaseSigningKey) {

@@ -50,6 +50,7 @@ says so on boot and carries on in the mode that absence implies.
 | `TURNSTILE_SITE_KEY` | required account-form widget key; the secret is configured in Supabase Auth |
 | `PAGECRAFT_AUTH_TEST_MODE` | explicit local-only challenge mode; production rejects it |
 | `DATABASE_URL` | Postgres. Absent: in-memory Pagecraft data stores |
+| `PAGECRAFT_PUBLICATION_ROOT` | Absolute directory for immutable hosted publications and atomic public pointers. Required in production |
 | `NODE_ENV` | `production` turns on `Secure` auth cookies and strict configuration checks |
 | `ACME_EMAIL` | Caddy's, not the server's — where a failed certificate renewal is reported |
 
@@ -65,7 +66,8 @@ From the repository root, not from `server/`: the image's build context is the r
 first stage builds the editor from `builder.html` and `app/`.
 
 Three services. Caddy holds the certificates, the server holds the documents and renders them,
-Postgres holds everything that has to survive a restart. The database has no `ports:` — it is
+Postgres holds application records and the `publications` volume holds materialized public sites.
+The database has no `ports:` — it is
 reachable by name from the other two services and from nothing else. The server binds
 `127.0.0.1:8787`, so `/internal/tls-check` cannot be reached from outside the box; the app
 refuses a request carrying `X-Forwarded-For` as well, and Caddy 404s `/internal/*` at the edge.
@@ -136,6 +138,7 @@ for no benefit.
 fly apps create pagecraft
 fly postgres create --name pagecraft-db
 fly postgres attach pagecraft-db --app pagecraft
+fly volumes create pagecraft_publications --region lhr --size 1 --app pagecraft
 fly secrets set --app pagecraft SUPABASE_URL=… SUPABASE_PUBLISHABLE_KEY=… TURNSTILE_SITE_KEY=…
 fly deploy --app pagecraft --config server/fly.toml --dockerfile server/Dockerfile
 fly certs add --app pagecraft pagecraft.braudyp.dev
@@ -150,8 +153,9 @@ Change `EDITOR_HOST` and `primary_region` in the toml before the first deploy. A
 `EDITOR_HOST` means every request is looked up as a custom domain and nothing is found, which
 looks like a broken deployment rather than a wrong setting.
 
-No volume, and that is not an accident: documents, sessions, invitations and uploaded images all
-live in Postgres — images as `bytea` rather than files — so there is nothing on disk to lose.
+The publication volume is required. Draft documents and media remain in Postgres/Supabase, while
+every successful publish materializes a complete immutable site under the configured publication
+root and atomically moves a small public pointer. Visitor requests read only that volume.
 
 What this gives up is `on_demand_tls`. On Fly a client's custom domain is a `fly certs add` each
 time: fine for a handful, a chore for hundreds. Sites shared by path need none of it.

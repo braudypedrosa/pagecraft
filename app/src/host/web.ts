@@ -84,10 +84,10 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
     },
     settings: settingsAdapter(transport, `/api/sites/${site}/settings`),
     releases: {
-      async list() { return (await transport.request<unknown>({ path: `/v1/sites/${site}/releases` })).body; },
+      async list() { return (await transport.request<unknown>({ path: `/api/sites/${site}/publication` })).body; },
       async publish(input) {
         return (await transport.request<unknown>({
-          method: 'POST', path: `/v1/sites/${site}/releases`, body: { ...input }
+          method: 'POST', path: `/api/sites/${site}/publish`, body: { ...input }
         })).body;
       }
     }

@@ -33,6 +33,8 @@ export interface Site {
   publishedVersion: number;
   /** The signed release backing the public pointer, once the site has published through v1. */
   publishedReleaseId: string | null;
+  /** The independently compiled Pagecraft-hosted publication currently visible to visitors. */
+  publishedPublicationId: string | null;
   updatedAt: string;
 }
 
@@ -96,6 +98,11 @@ export interface Store {
   /** Atomically move the public pointer to an existing immutable revision/release. A delayed
       lower release sequence is a successful no-op, never a rollback of the hosted pointer. */
   publish(id: string, version: number, releaseId: string, releaseSequence: number): Promise<Site | null>;
+  /** Promote an already materialized hosted publication without creating a WordPress release. */
+  publishHosted(input: {
+    id: string; version: number; publicationId: string; contentHash: string;
+    createdBy: string; createdAt: string;
+  }): Promise<Site | null>;
   /** Move a site to a different domain. Null when the domain is taken. */
   setHost(id: string, host: string): Promise<Site | null>;
   /** Move a site to a different path. Null when the path is taken or reserved. */
@@ -182,6 +189,7 @@ export class MemoryStore implements Store {
   private sites = new Map<string, Site>();
   private revisions = new Map<string, SiteRevision[]>();
   private publishedSequences = new Map<string, number>();
+  private hostedPublicationKeys = new Map<string, string>();
   private seq = 0;
 
   async byHost(host: string) {
@@ -224,6 +232,7 @@ export class MemoryStore implements Store {
       version: 1,
       publishedVersion: 1,
       publishedReleaseId: null,
+      publishedPublicationId: null,
       updatedAt: new Date().toISOString()
     };
     this.sites.set(site.id, site);
@@ -256,6 +265,9 @@ export class MemoryStore implements Store {
     const removed = this.sites.delete(id);
     this.revisions.delete(id);
     this.publishedSequences.delete(id);
+    for (const key of this.hostedPublicationKeys.keys()) {
+      if (key.startsWith(`${id}:`)) this.hostedPublicationKeys.delete(key);
+    }
     return removed;
   }
   async setHost(id: string, host: string) {
@@ -342,6 +354,22 @@ export class MemoryStore implements Store {
     site.publishedVersion = version;
     site.publishedReleaseId = releaseId;
     this.publishedSequences.set(id, releaseSequence);
+    site.updatedAt = new Date().toISOString();
+    return this.copy(site);
+  }
+
+  async publishHosted(input: {
+    id: string; version: number; publicationId: string; contentHash: string;
+    createdBy: string; createdAt: string;
+  }) {
+    const site = this.sites.get(input.id);
+    if (!site || !input.publicationId
+      || !(this.revisions.get(input.id) || []).some(revision => revision.version === input.version)) return null;
+    const key = `${input.id}:${input.version}:${input.contentHash}`;
+    const publicationId = this.hostedPublicationKeys.get(key) || input.publicationId;
+    this.hostedPublicationKeys.set(key, publicationId);
+    site.publishedVersion = input.version;
+    site.publishedPublicationId = publicationId;
     site.updatedAt = new Date().toISOString();
     return this.copy(site);
   }

@@ -121,28 +121,18 @@ test('server mode separates draft saving from explicit release publication', asy
         if (String(url) === '/api/sites/site-release/assets' && !opts.method) {
           return { ok: true, status: 200, json: async () => [] };
         }
-        if (String(url) === '/v1/sites/site-release/releases' && opts.method === 'POST') {
+        if (String(url) === '/api/sites/site-release/publish' && opts.method === 'POST') {
           const body = JSON.parse(opts.body);
-          return { ok: true, status: 201, json: async () => ({
-            releaseId: 'release-8', sequence: 3, sourceVersion: body.sourceVersion,
-            schemaVersion: 5, publishedVersion: body.sourceVersion,
-            createdAt: '2026-08-26T00:00:00.000Z', deployments: []
+          return { ok: true, status: 200, json: async () => ({
+            status: 'published', publicationId: 'publication-8', sourceVersion: body.sourceVersion,
+            publishedAt: '2026-08-26T00:00:00.000Z', publicUrl: 'https://build.itspagecraft.com/site-release/'
           }) };
         }
-        if (String(url) === '/v1/sites/site-release/releases') {
+        if (String(url) === '/api/sites/site-release/publication') {
           return { ok: true, status: 200, json: async () => ({
             publishedVersion: 5,
-            publishedReleaseId: 'release-5',
-            releases: [{
-              releaseId: 'release-5', sequence: 2, sourceVersion: 5,
-              createdAt: '2026-08-25T00:00:00.000Z',
-              targets: [{
-                connection: {
-                  environment: 'staging', targetOrigin: 'https://staging.example.test'
-                },
-                status: 'needs_approval', detail: 'Approve changed executable scripts'
-              }]
-            }]
+            publicationId: 'publication-5', status: 'draft_changes',
+            publishedAt: '2026-08-25T00:00:00.000Z'
           }) };
         }
         return { ok: true, status: 200, json: async () => ({ version: 8 }) };
@@ -167,21 +157,18 @@ test('server mode separates draft saving from explicit release publication', asy
   doc.querySelector('#exportBtn').click();
   await new Promise(r => setTimeout(r, 0));
   a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Publish');
-  a.ok(calls.some(([url, method]) => url === '/v1/sites/site-release/releases' && method === 'GET'));
+  a.ok(calls.some(([url, method]) => url === '/api/sites/site-release/publication' && method === 'GET'));
   const targetUntil = Date.now() + 1000;
-  while (!doc.querySelector('.releaseTarget') && Date.now() < targetUntil) {
+  while (!doc.querySelector('.releaseLead') && Date.now() < targetUntil) {
     await new Promise(r => setTimeout(r, 20));
   }
-  a.match(doc.querySelector('.releaseTarget')?.textContent || '', /Staging/);
-  a.match(doc.querySelector('.releaseTarget')?.textContent || '', /staging\.example\.test/);
-  a.match(doc.querySelector('.releaseTarget')?.textContent || '', /Needs approval/);
+  a.match(doc.querySelector('.releaseLead')?.textContent || '', /Published on Pagecraft/);
+  a.equal(doc.querySelector('#releaseWordPress')?.textContent.trim(), 'Publish on WordPress');
   a.equal(doc.querySelector('#releasePanel')?.getAttribute('role'), 'status');
   a.equal(doc.querySelector('#releasePanel')?.getAttribute('aria-live'), 'polite');
   a.equal(doc.querySelector('#releasePanel')?.getAttribute('aria-busy'), 'false');
-  a.equal(doc.querySelector('.releaseTarget .releaseState')?.title,
-    'Approve changed executable scripts');
   a.equal(calls.some(([, method]) => method === 'POST'), false,
-    'opening Publish must not create a release');
+    'opening Publish must not create a publication');
   dom.window.askConfirm = async () => true;
   const publish = doc.querySelector('#releasePublish');
   a.ok(publish && !publish.disabled, 'an owner with no blocking findings can publish');
@@ -190,13 +177,11 @@ test('server mode separates draft saving from explicit release publication', asy
   while (!calls.some(([, method]) => method === 'POST') && Date.now() < publishUntil) {
     await new Promise(r => setTimeout(r, 25));
   }
-  const post = calls.find(([url, method]) => url === '/v1/sites/site-release/releases' && method === 'POST');
-  a.ok(post, 'Publish creates a release through the versioned API');
+  const post = calls.find(([url, method]) => url === '/api/sites/site-release/publish' && method === 'POST');
+  a.ok(post, 'Publish promotes the saved draft through the hosted publication API');
   const body = JSON.parse(post[2]);
-  a.equal(body.sourceVersion, 8, 'the release freezes the version returned by the draft save');
-  a.equal(typeof body.idempotencyKey, 'string');
+  a.equal(body.sourceVersion, 8, 'the publication freezes the version returned by the draft save');
   a.equal(typeof body.acknowledgeWarnings, 'boolean');
-  a.ok(Array.isArray(body.warningCodes));
   a.equal(post[3]['X-Pagecraft-Editor-Session'], 'scoped-editor-session');
   const save = calls.find(([url, method]) => url === '/api/sites/site-release' && method === 'PUT');
   a.equal(save?.[3]['X-Pagecraft-Editor-Session'], 'scoped-editor-session');

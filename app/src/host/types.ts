@@ -161,9 +161,7 @@ export interface WebReleaseAdapter {
   list(): Promise<unknown>;
   publish(input: {
     sourceVersion: number;
-    idempotencyKey: string;
     acknowledgeWarnings: boolean;
-    warningCodes: readonly string[];
   }): Promise<unknown>;
 }
 

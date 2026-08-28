@@ -10,6 +10,7 @@ import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, type Role } from '../src/auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import { validatePortablePackage } from '../src/portable-packages.ts';
+import { MemoryHostedPublicationStore } from '../src/publications.ts';
 
 /* The demo project, not an empty one: it has a header, a footer, two pages and most of the
    widget set, so a byte-identity claim over it means something. */
@@ -24,15 +25,30 @@ const demo = (): Doc => {
 
 /* A rig that signs in the way a person does: ask for a link, follow it, keep the cookie.
    Fabricating a session would leave the login flow untested by everything that uses it. */
-const rig = async (role: Role = 'owner') => {
+const rig = async (role: Role = 'owner', hostedPublications = false) => {
   const store = new MemoryStore();
   const auth = new MemoryAuthStore();
+  const publications = hostedPublications ? new MemoryHostedPublicationStore() : undefined;
   let sent = '';
   const app = createApp({
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
-    editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }
+    editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications
   });
-  const site = await store.create({ host: 'acme.test', name: 'Acme', doc: demo() });
+  const fixture = demo();
+  if (hostedPublications) {
+    fixture.meta.font = "system-ui,-apple-system,'Segoe UI',sans-serif";
+    fixture.meta.headFont = "system-ui,-apple-system,'Segoe UI',sans-serif";
+    const replaceGoogleFonts = (value: unknown): unknown => {
+      if (typeof value === 'string') return value.replace(/Manrope|DM Sans/g, 'Arial');
+      if (Array.isArray(value)) return value.map(replaceGoogleFonts);
+      if (value && typeof value === 'object') return Object.fromEntries(
+        Object.entries(value).map(([key, child]) => [key, replaceGoogleFonts(child)])
+      );
+      return value;
+    };
+    Object.assign(fixture, replaceGoogleFonts(fixture));
+  }
+  const site = await store.create({ host: 'acme.test', name: 'Acme', doc: fixture });
   const user = await auth.createUser('client@acme.test', 'Client');
   await auth.grant(site.id, user.id, role);
 
@@ -62,7 +78,7 @@ const rig = async (role: Role = 'owner') => {
   const put = (id: string, doc: Doc, version: number, cookie?: string) =>
     admin(`/api/sites/${id}`, { method: 'PUT', body: JSON.stringify({ doc, version }) }, cookie);
 
-  return { store, auth, app, site, user, get, put, admin, signIn, linkUrl: () => sent };
+  return { store, auth, app, site, user, get, put, admin, signIn, publications, linkUrl: () => sent };
 };
 
 test('a visitor gets the page the export would have written', async () => {
@@ -147,6 +163,47 @@ test('autosave creates a draft without changing the published page', async () =>
   const after = await (await get('/')).text();
   a.equal(/Braudy was here/.test(after), false,
     'autosave must not leak draft content to the published page');
+});
+
+test('hosted publishing promotes immutable bytes and public reads bypass the application store', async () => {
+  const { site, store, get, admin, signIn, app } = await rig('owner', true);
+  const { cookie } = await signIn();
+  a.equal((await get('/')).status, 404, 'a new hosted URL is private until its first publication');
+
+  const stale = await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version + 1 })
+  }, cookie);
+  a.equal(stale.status, 409);
+  a.equal((await stale.json() as { error: string }).error, 'stale_source_version');
+
+  const published = await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
+  }, cookie);
+  const publishedBody = await published.text();
+  a.equal(published.status, 200, publishedBody);
+  const result = JSON.parse(publishedBody) as { status: string; publicationId: string };
+  a.equal(result.status, 'published');
+  a.ok(result.publicationId);
+
+  const first = await get('/');
+  a.equal(first.status, 200);
+  const etag = first.headers.get('etag');
+  a.ok(etag);
+  a.match(first.headers.get('cache-control') || '', /must-revalidate/);
+  const unchanged = await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version })
+  }, cookie);
+  a.equal(unchanged.status, 200);
+  a.equal((await unchanged.json() as { status: string }).status, 'unchanged');
+
+  store.byHost = async () => { throw new Error('public rendering queried the site database'); };
+  store.bySlug = async () => { throw new Error('public rendering queried the site database'); };
+  const cached = await get('/', 'acme.test');
+  a.equal(cached.status, 200);
+  const notModified = await app.request(new Request('http://acme.test/', {
+    headers: { host: 'acme.test', 'if-none-match': etag! }
+  }));
+  a.equal(notModified.status, 304);
 });
 
 test('a save carrying a stale version is refused rather than winning', async () => {

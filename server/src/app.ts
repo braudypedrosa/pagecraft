@@ -50,6 +50,7 @@ import {
 } from './releases.ts';
 import { freezeGoogleFontStylesheets } from './font-freeze.ts';
 import type { PackageRegistry } from './packages.ts';
+import type { HostedPublicationStore, PublicationSummary } from './publications.ts';
 import { createPagePackage, createSitePackage, portableAssetIds } from './portable-packages.ts';
 import type { AccountAuth } from './account-auth.ts';
 import type { HumanChallenge } from './turnstile.ts';
@@ -100,6 +101,8 @@ export interface Options {
   keysetEnvelope?: KeysetEnvelopeV1;
   /** Pre-verified, signed connector/theme archives. No registry means no update downloads. */
   packages?: PackageRegistry;
+  /** Immutable, materialized hosted releases and their atomic public pointers. */
+  publications?: HostedPublicationStore;
   /** Injectable only so font freezing can be proven without a live third-party dependency. */
   fontFetch?: typeof fetch;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -145,7 +148,8 @@ export function createApp(o: Options) {
       c.header('content-security-policy', "frame-ancestors 'none'; base-uri 'none'; object-src 'none'");
     }
     const path = new URL(c.req.url).pathname;
-    const privateRoute = /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path)
+    const privateRoute = !path.startsWith('/v1/wordpress-distribution/')
+      && /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path)
       || /^\/account(?:\/|$)/.test(path)
       || (path === '/' && isEditorHost(c.req.header('host'), o));
     if (privateRoute) c.header('cache-control', 'private, no-store');
@@ -854,6 +858,12 @@ export function createApp(o: Options) {
   app.get('/', async c => {
     if (!isEditorHost(c.req.header('host'), o)) {
       const host = (c.req.header('host') || '').split(':')[0];
+      if (o.publications) {
+        const publication = await o.publications.currentByHost(host);
+        return publication
+          ? serveHostedPublication(c, o.publications, publication, '/', false)
+          : c.text(`No published site for host ${host}`, 404);
+      }
       const site = await o.store.byHost(host);
       if (!site) return c.text(`No site for host ${host}`, 404);
       return serveSite(c, o, built, render, '/', site);
@@ -868,7 +878,8 @@ export function createApp(o: Options) {
         : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
       return c.html(dashboardPage(user, mine.map(({ site, role }) => ({
         id: site.id, name: site.name, role, updatedAt: site.updatedAt,
-        url: shareUrl(c, o, site), published: site.version === site.publishedVersion
+        url: shareUrl(c, o, site),
+        published: !!site.publishedPublicationId && site.version === site.publishedVersion
       })), mine.filter(item => item.role === 'owner').length, storage,
       c.req.query('error'), c.req.query('message')));
     }
@@ -1089,6 +1100,7 @@ export function createApp(o: Options) {
       version: site.version,
       publishedVersion: site.publishedVersion,
       publishedReleaseId: site.publishedReleaseId,
+      publishedPublicationId: site.publishedPublicationId,
       schemaVersion: site.doc.schemaVersion,
       connectedApiBase: '/v1',
       connectedPublishingAvailable: releaseReady(),
@@ -1109,8 +1121,10 @@ export function createApp(o: Options) {
       id: site.id, host: site.host, slug: site.slug, url: shareUrl(c, o, site), name: site.name,
       version: site.version, publishedVersion: site.publishedVersion,
       publishedReleaseId: site.publishedReleaseId,
+      publishedPublicationId: site.publishedPublicationId,
       updatedAt: site.updatedAt, role,
-      publishState: site.version === site.publishedVersion ? 'published' : 'draft_changes'
+      publishState: site.publishedPublicationId && site.version === site.publishedVersion
+        ? 'published' : 'draft_changes'
     })).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     return c.json(out);
   });
@@ -1131,6 +1145,143 @@ export function createApp(o: Options) {
     return c.json({
       id: site.id, host: site.host, slug: site.slug, url: shareUrl(c, o, site),
       name: site.name, version: site.version, role: gate.role, doc: site.doc
+    });
+  });
+
+  app.get('/api/sites/:id/publication', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'read');
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const publication = site.publishedPublicationId && o.publications
+      ? await o.publications.byId(id, site.publishedPublicationId)
+      : null;
+    return c.json({
+      draftVersion: site.version,
+      publishedVersion: publication?.sourceVersion ?? null,
+      publicationId: publication?.id ?? null,
+      publishedAt: publication?.createdAt ?? null,
+      publicUrl: publication ? shareUrl(c, o, site) : null,
+      status: publication ? (publication.sourceVersion === site.version ? 'published' : 'draft_changes') : 'draft'
+    });
+  });
+
+  app.post('/api/sites/:id/publish', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    if (!o.publications) return c.json({ error: 'hosted publication storage is unavailable' }, 503);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const body = await c.req.json().catch(() => null) as {
+      sourceVersion?: number; acknowledgeWarnings?: boolean;
+    } | null;
+    const sourceVersion = body?.sourceVersion;
+    if (!Number.isInteger(sourceVersion) || Number(sourceVersion) < 1) {
+      return c.json({ error: 'a valid sourceVersion is required' }, 400);
+    }
+    if (sourceVersion !== site.version) {
+      return c.json({
+        error: 'stale_source_version', sourceVersion, currentVersion: site.version
+      }, 409);
+    }
+
+    if (site.publishedPublicationId) {
+      const current = await o.publications.byId(id, site.publishedPublicationId);
+      if (current?.sourceVersion === sourceVersion
+        && current.slug === site.slug && current.host === site.host.toLowerCase()) {
+        try { await o.publications.promote(current); }
+        catch (error) {
+          c.header('retry-after', '5');
+          return c.json({
+            error: 'publication_pointer_unavailable', retryable: true,
+            detail: String((error as Error).message)
+          }, 503);
+        }
+        return c.json({
+          status: 'unchanged', publicationId: current.id, sourceVersion,
+          publishedAt: current.createdAt, publicUrl: shareUrl(c, o, site)
+        });
+      }
+    }
+
+    const revision = await o.store.revision(id, sourceVersion);
+    if (!revision) return c.json({ error: 'source_revision_not_found' }, 404);
+    let document: Doc | null;
+    try { document = adopt(revision.doc); }
+    catch (error) {
+      return c.json({ error: 'publication_validation_failed', detail: String((error as Error).message) }, 422);
+    }
+    if (!document) return c.json({
+      error: 'publication_schema_unsupported', detail: 'This document needs a newer Pagecraft server.'
+    }, 422);
+
+    const metadata = await assetsOf(id);
+    let rendered: ReturnType<typeof render>;
+    try {
+      rendered = render(document, metadata);
+      if (releaseStylesheetLinks(rendered.files).length) {
+        rendered.files = await freezeGoogleFontStylesheets(rendered.files, o.fontFetch || fetch);
+      }
+    } catch (error) {
+      return c.json({ error: 'publication_compile_failed', detail: String((error as Error).message) }, 422);
+    }
+    const remainingStylesheets = releaseStylesheetLinks(rendered.files);
+    if (remainingStylesheets.length) return c.json({
+      error: 'publication_validation_failed', errorCodes: ['unfrozen-stylesheet'],
+      stylesheets: remainingStylesheets
+    }, 422);
+    const errors = rendered.findings.filter(finding => finding.level === 'error');
+    const warnings = rendered.findings.filter(finding => finding.level === 'warn');
+    if (errors.length) return c.json({
+      error: 'publication_validation_failed',
+      findings: errors.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where }))
+    }, 422);
+    if (warnings.length && body?.acknowledgeWarnings !== true) return c.json({
+      error: 'warning_acknowledgement_required',
+      findings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where }))
+    }, 409);
+
+    const assets = await assetBodiesOf(id, releaseAssetIds(document, rendered.files, metadata));
+    const files = [
+      ...[...rendered.files].map(([path, content]) => ({
+        path, mediaType: typeOf(path), bytes: new TextEncoder().encode(content)
+      })),
+      ...assets.map(asset => ({ path: assetFile(asset), mediaType: asset.type, bytes: asset.bytes }))
+    ];
+    let publication: PublicationSummary;
+    try {
+      publication = await o.publications.create({
+        siteId: id, slug: site.slug, host: site.host, sourceVersion, files
+      });
+    } catch (error) {
+      return c.json({ error: 'publication_write_failed', detail: String((error as Error).message) }, 503);
+    }
+    const committed = await o.store.publishHosted({
+      id, version: sourceVersion, publicationId: publication.id,
+      contentHash: publication.contentHash, createdBy: gate.user.id, createdAt: publication.createdAt
+    });
+    if (!committed) return c.json({ error: 'publication_commit_failed', retryable: true }, 409);
+    const effective = committed.publishedPublicationId === publication.id
+      ? publication
+      : await o.publications.byId(id, committed.publishedPublicationId || '');
+    if (!effective) return c.json({
+      error: 'publication_winner_unavailable', retryable: true,
+      detail: 'The database selected a concurrent publication whose files are not available yet.'
+    }, 503);
+    try { await o.publications.promote(effective); }
+    catch (error) {
+      c.header('retry-after', '5');
+      return c.json({
+        error: 'publication_pointer_unavailable', retryable: true,
+        publicationId: effective.id, detail: String((error as Error).message)
+      }, 503);
+    }
+    return c.json({
+      status: effective.id === publication.id ? 'published' : 'unchanged',
+      publicationId: effective.id, sourceVersion,
+      publishedAt: effective.createdAt, publicUrl: shareUrl(c, o, committed)
     });
   });
 
@@ -1655,7 +1806,7 @@ export function createApp(o: Options) {
       payload: consent as unknown as Record<string, unknown>,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
     });
-    return c.html(shell('Connect Pagecraft', `<h1>Let this WordPress site browse your Pagecraft pages?</h1>
+    return c.html(shell('Connect Pagecraft', `<h1>Let this WordPress site import a Pagecraft project?</h1>
       <p>This grants read-only, manual import access to ${projects.length} ${projects.length === 1 ? 'project' : 'projects'} you own.</p>
       <div class="ok"><strong>Independent copies only</strong><br><small>No webhooks, polling, background updates, or WordPress password access.</small></div>
       <form method="post" action="/v1/wordpress-import/authorize">
@@ -1743,6 +1894,27 @@ export function createApp(o: Options) {
     return membership?.role === 'owner' ? o.store.byId(siteId) : null;
   };
 
+  app.get('/v1/wordpress-import/projects/:projectId/package', async c => {
+    const credential = await manualImportBearer(c);
+    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
+    const site = await manualImportSite(credential, c.req.param('projectId'));
+    if (!site) return c.notFound();
+    try {
+      const assetIds = new Set(portableAssetIds(site.doc));
+      return portableDownload(c, createSitePackage({
+        document: site.doc,
+        assets: await assetBodiesOf(site.id, assetIds),
+        provenance: {
+          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud', sourceId: site.id,
+          sourceVersion: site.version, exportedBy: credential.ownerId
+        }
+      }));
+    } catch (error) {
+      return c.json({ error: (error as Error).message }, 422);
+    }
+  });
+
+  /* Retained for one rollback release. The active WordPress UI uses the whole-project route. */
   app.get('/v1/wordpress-import/projects/:id/pages', async c => {
     const credential = await manualImportBearer(c);
     if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
@@ -2705,6 +2877,33 @@ export function createApp(o: Options) {
     });
   });
 
+  app.get('/v1/wordpress-distribution/stable', async c => {
+    const origin = o.editorOrigin || new URL(c.req.url).origin;
+    const distribution = o.packages?.stable(origin);
+    if (!distribution) return c.json({ error: 'signed WordPress distribution is unavailable' }, 503);
+    return c.json(distribution, 200, {
+      'cache-control': 'public, max-age=300, must-revalidate'
+    });
+  });
+
+  app.get('/v1/wordpress-distribution/packages/:slug/:archive', async c => {
+    const pkg = o.packages?.get(c.req.param('slug'));
+    const match = c.req.param('archive').match(/^([a-f0-9]{64})\.zip$/);
+    if (!pkg || !match || pkg.hash !== match[1]
+      || !['pagecraft-importer', 'pagecraft-builder', 'pagecraft-theme'].includes(pkg.slug)) {
+      return c.notFound();
+    }
+    const etag = `"${pkg.hash}"`;
+    const headers = {
+      'content-type': 'application/zip', 'content-length': String(pkg.bytes.byteLength),
+      'content-disposition': `attachment; filename="${pkg.slug}-${pkg.version}.zip"`,
+      'x-pagecraft-content-sha256': pkg.hash, etag,
+      'cache-control': 'public, max-age=31536000, immutable'
+    };
+    if (c.req.header('if-none-match') === etag) return c.body(null, 304, headers);
+    return c.body(pkg.bytes as unknown as ArrayBuffer, 200, headers);
+  });
+
   app.get('/v1/packages/:slug', async c => {
     const connection = await bearerConnection(c);
     if (!connection || !connection.scopes.includes('release:read')) return c.json({ error: 'unauthorized' }, 401);
@@ -3140,6 +3339,16 @@ export function createApp(o: Options) {
     if (isEditorHost(c.req.header('host'), o)) {
       const [, first, ...rest] = url.pathname.split('/');
       const slug = first ? validSlug(first) : null;
+      if (o.publications) {
+        const publication = slug ? await o.publications.currentBySlug(slug) : null;
+        if (!publication) return c.text(first
+          ? `No published site at /${first}`
+          : 'No site here. Sign in to the editor to make one.', 404);
+        if (!rest.length && !url.pathname.endsWith('/')) {
+          return c.redirect(`/${publication.slug}/${url.search}`, 308);
+        }
+        return serveHostedPublication(c, o.publications, publication, '/' + rest.join('/'), true);
+      }
       const site = slug ? await o.store.bySlug(slug) : null;
       if (!site) {
         return c.text(first
@@ -3156,6 +3365,12 @@ export function createApp(o: Options) {
       return serveSite(c, o, built, render, '/' + rest.join('/'), site);
     }
     const host = (c.req.header('host') || '').split(':')[0];
+    if (o.publications) {
+      const publication = await o.publications.currentByHost(host);
+      return publication
+        ? serveHostedPublication(c, o.publications, publication, url.pathname, false)
+        : c.text(`No published site for host ${host}`, 404);
+    }
     const site = await o.store.byHost(host);
     if (!site) return c.text(`No site for host ${host}`, 404);
     return serveSite(c, o, built, render, url.pathname, site);
@@ -3309,6 +3524,73 @@ function shareUrl(c: Context, o: Options, site: Pick<Site, 'host' | 'slug'>): st
   const here = c.req.header('host') || o.editorHost || 'localhost';
   return `${proto}://${here}/${site.slug}/`;
 }
+
+/** Serve only immutable materialized bytes. This path deliberately receives neither the
+ * application Store nor the asset database, so a public request cannot accidentally grow a
+ * Supabase dependency later. */
+async function serveHostedPublication(
+  c: Context,
+  publications: HostedPublicationStore,
+  publication: PublicationSummary,
+  urlPath: string,
+  sharedHost: boolean
+) {
+  const path = resolvePath(urlPath);
+  const prefix = sharedHost ? publication.slug : '';
+  const records = new Map(publication.files.map(file => [file.path, file]));
+  const renderedPaths = new Map(publication.files.map(file => [file.path, '']));
+
+  if (/(^|\/)index(?:\.html)?$/i.test(urlPath.replace(/\/+$/, '')) && records.has(path)) {
+    return c.redirect(publicPath(path, prefix) + new URL(c.req.url).search, 308);
+  }
+  if (/\.html$/i.test(urlPath) && records.has(path)) {
+    return c.redirect(publicPath(path, prefix) + new URL(c.req.url).search, 308);
+  }
+
+  let status: 200 | 404 = 200;
+  let record = records.get(path);
+  if (!record) {
+    record = records.get('404.html');
+    if (!record) return c.text(`Not found: /${path}`, 404);
+    status = 404;
+  }
+  const bytes = await publications.file(publication, record.path);
+  if (!bytes) return c.text('Published file unavailable', 503);
+  const html = record.mediaType.startsWith('text/html');
+  let body: string | Uint8Array = bytes;
+  if (html) {
+    try {
+      body = hostedHtml(new TextDecoder().decode(bytes), record.path, renderedPaths, prefix);
+    } catch { return c.text('Published HTML unavailable', 503); }
+  }
+  const etag = `"${sha256(typeof body === 'string' ? new TextEncoder().encode(body) : body)}"`;
+  const headers: Record<string, string> = html
+    ? {
+        ...publishedHeaders(record.mediaType), etag,
+        'cache-control': 'public, max-age=0, must-revalidate'
+      }
+    : {
+        ...publicationAssetHeaders(record.mediaType, record.path), etag,
+        'cache-control': 'public, max-age=31536000, immutable'
+      };
+  if (c.req.header('if-none-match')?.split(',').map(value => value.trim()).includes(etag)) {
+    return c.body(null, 304, headers);
+  }
+  if (typeof body === 'string') return c.body(body, status, headers);
+  return c.body(body as unknown as ArrayBuffer, status, {
+    ...headers, 'content-length': String(body.byteLength)
+  });
+}
+
+const publicationAssetHeaders = (mediaType: string, path: string): Record<string, string> =>
+  mediaType === 'image/svg+xml'
+    ? {
+        'content-type': mediaType,
+        'content-security-policy': "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
+        'content-disposition': `inline; filename="${path.split('/').at(-1)!.replace(/["\\\r\n]/g, '_')}"`,
+        'x-content-type-options': 'nosniff'
+      }
+    : { 'content-type': mediaType, 'x-content-type-options': 'nosniff' };
 
 async function serveSite(
   c: Context,

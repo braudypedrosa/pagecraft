@@ -28,6 +28,7 @@ const siteRow = {
   id: 's1', host: 'acme.test', slug: 'acme', name: 'Acme',
   doc: { meta: {}, header: [], footer: [], pages: [] } as unknown as Doc,
   version: 3, published_version: 2, published_release_id: 'release-two',
+  published_publication_id: null,
   updated_at: '2026-08-26T00:00:00.000Z'
 };
 
@@ -143,6 +144,23 @@ test('gateway site settings use fixed rename and deletion operations', async () 
     { op: 'site.setName', args: { id: 's1', name: 'Renamed studio' } },
     { op: 'site.delete', args: { id: 's1' } }
   ]);
+});
+
+test('gateway promotes hosted publications through one fixed operation', async () => {
+  const input = {
+    id: 's1', version: 3, publicationId: '9f680e13-b841-43dc-9b47-a4d2a8215b13',
+    contentHash: 'a'.repeat(64), createdBy: 'owner-1', createdAt: '2026-08-28T12:00:00.000Z'
+  };
+  const { gateway, calls } = fakeGateway(call => {
+    if (call.op === 'site.publishHosted') return {
+      ...siteRow, published_version: input.version, published_publication_id: input.publicationId
+    };
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const sites = new GatewayStore(gateway);
+  const published = await sites.publishHosted(input);
+  a.equal(published?.publishedPublicationId, input.publicationId);
+  a.deepEqual(calls, [{ op: 'site.publishHosted', args: input }]);
 });
 
 test('gateway publish carries the release sequence required by the database CAS', async () => {

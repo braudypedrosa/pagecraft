@@ -83,6 +83,7 @@ export class PagecraftGateway {
 interface SiteRow {
   id: string; host: string; slug: string; name: string; doc: Doc;
   version: number; published_version: number; published_release_id: string | null;
+  published_publication_id: string | null;
   updated_at: string;
 }
 
@@ -92,6 +93,7 @@ const toSite = (row: SiteRow): Site => ({
   id: row.id, host: row.host, slug: row.slug, name: row.name, doc: row.doc,
   version: row.version, publishedVersion: row.published_version,
   publishedReleaseId: row.published_release_id,
+  publishedPublicationId: row.published_publication_id || null,
   updatedAt: new Date(row.updated_at).toISOString()
 });
 
@@ -153,6 +155,7 @@ export class GatewayStore implements Store {
     return (await this.gateway.call<SiteMetaRow[]>('site.listMeta')).map(row => ({
       id: row.id, host: row.host, slug: row.slug, name: row.name, version: row.version,
       publishedVersion: row.published_version, publishedReleaseId: row.published_release_id,
+      publishedPublicationId: row.published_publication_id || null,
       updatedAt: new Date(row.updated_at).toISOString()
     }));
   }
@@ -267,6 +270,16 @@ export class GatewayStore implements Store {
     const row = await this.gateway.call<SiteRow | null>('site.publish', {
       id, version, releaseId, releaseSequence
     });
+    const site = row ? toSite(row) : null;
+    this.clearCache();
+    this.remember(site);
+    return site;
+  }
+  async publishHosted(input: {
+    id: string; version: number; publicationId: string; contentHash: string;
+    createdBy: string; createdAt: string;
+  }) {
+    const row = await this.gateway.call<SiteRow | null>('site.publishHosted', input);
     const site = row ? toSite(row) : null;
     this.clearCache();
     this.remember(site);

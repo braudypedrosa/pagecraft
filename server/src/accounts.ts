@@ -51,12 +51,14 @@ export class MemoryOwnedSiteStore implements OwnedSiteStore {
 
 interface SiteRow {
   id: string; host: string; slug: string; name: string; doc: Doc; version: number;
-  published_version: number; published_release_id: string | null; updated_at: string | Date;
+  published_version: number; published_release_id: string | null;
+  published_publication_id: string | null; updated_at: string | Date;
 }
 const siteFromRow = (row: SiteRow): Site => ({
   id: row.id, host: row.host, slug: row.slug, name: row.name, doc: row.doc,
   version: row.version, publishedVersion: row.published_version,
   publishedReleaseId: row.published_release_id,
+  publishedPublicationId: row.published_publication_id || null,
   updatedAt: typeof row.updated_at === 'string' ? new Date(row.updated_at).toISOString() : row.updated_at.toISOString()
 });
 

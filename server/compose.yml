@@ -60,6 +60,7 @@ services:
       EDITOR_HOST: ${EDITOR_HOST:-localhost}
       OWNER_EMAIL: ${OWNER_EMAIL:-}
       NODE_ENV: production
+      PAGECRAFT_PUBLICATION_ROOT: /var/lib/pagecraft/publications
       PORT: '8787'
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-}
@@ -72,6 +73,8 @@ services:
     # and this is the other half of that fence.
     ports:
       - '127.0.0.1:8787:8787'
+    volumes:
+      - publications:/var/lib/pagecraft/publications
 
   caddy:
     image: caddy:2-alpine
@@ -97,3 +100,4 @@ volumes:
   caddy-data:
   caddy-config:
   db:
+  publications:

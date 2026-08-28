@@ -12,6 +12,7 @@
    shape is what hands the question to the database instead of to this code. */
 import { test } from 'vitest';
 import a from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { PGlite } from '@electric-sql/pglite';
 import * as Core from '../../app/src/core/index.ts';
 import { PgStore, PgAssetStore, PgAuthStore, statements, SCHEMA, type Queryable } from '../src/store-pg.ts';
@@ -103,6 +104,28 @@ test('a site round-trips through jsonb with its document intact', async () => {
   a.deepEqual((await sites.byHost('acme.test'))!.id, made.id);
   a.equal(await sites.byHost('nobody.test'), null);
   a.equal(await sites.byId('nope'), null);
+});
+
+test('hosted publication promotion is atomic and concurrent duplicates select one immutable record', async () => {
+  const { db, sites } = await fresh();
+  const made = await sites.create({ host: 'publish.test', name: 'Publish', doc: demo() });
+  const base = {
+    id: made.id, version: made.version, contentHash: 'a'.repeat(64), createdBy: 'owner-1'
+  };
+  const firstId = randomUUID();
+  const secondId = randomUUID();
+  const first = await sites.publishHosted({
+    ...base, publicationId: firstId, createdAt: '2026-08-28T12:00:00.000Z'
+  });
+  const second = await sites.publishHosted({
+    ...base, publicationId: secondId, createdAt: '2026-08-28T12:00:01.000Z'
+  });
+  a.equal(first?.publishedPublicationId, firstId);
+  a.equal(second?.publishedPublicationId, firstId, 'same source and content reuses the winning publication');
+  const rows = await db.query<{ id: string }>(
+    'select id from hosted_publications where site_id = $1', [made.id]
+  );
+  a.deepEqual(rows.rows.map(row => row.id), [firstId]);
 });
 
 test('site settings rename and permanently delete the site with dependent rows', async () => {
