@@ -163,6 +163,7 @@ test('account settings shows profile, security, providers, and real free-plan us
   a.match(html, /role="tabpanel" aria-labelledby="settings-tab-security" tabindex="0" data-settings-panel="security"/);
   a.match(html, /event\.key==='ArrowRight'/);
   a.match(html, /panel\.hidden=panel\.dataset\.settingsPanel!==name/);
+  a.match(html, /\.pc-settings-links\{margin-top:auto;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/);
 
   const planResponse = await request('/account?tab=plan');
   const planHtml = await planResponse.text();
