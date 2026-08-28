@@ -158,10 +158,15 @@ test('account settings shows profile, security, providers, and real free-plan us
   a.match(html, /0 KB of 100 MB/);
   a.match(html, /Paid plans are not available yet/);
   a.match(html, /Joined Jan 12, 2026/);
-  a.match(html, /href="#profile" aria-current="location"/);
-  a.match(html, /addEventListener\('hashchange'/);
-  a.match(html, /history\.pushState\(null,'','#'\+id\)/);
-  a.match(html, /scrollIntoView\(\{block:'start',behavior:'auto'\}\)/);
+  a.match(html, /role="tablist" aria-label="Account settings"/);
+  a.match(html, /role="tab" aria-controls="settings-panel-profile" data-settings-tab="profile" aria-selected="true" tabindex="0"/);
+  a.match(html, /role="tabpanel" aria-labelledby="settings-tab-security" tabindex="0" data-settings-panel="security"/);
+  a.match(html, /event\.key==='ArrowRight'/);
+  a.match(html, /panel\.hidden=panel\.dataset\.settingsPanel!==name/);
+
+  const planResponse = await request('/account?tab=plan');
+  const planHtml = await planResponse.text();
+  a.match(planHtml, /data-settings-tab="plan" aria-selected="true" tabindex="0"/);
 });
 
 test('account profile updates the local name and starts verified email change', async () => {
@@ -196,7 +201,7 @@ test('account profile refuses an email already owned by another Pagecraft identi
     body: new URLSearchParams({ name: 'First', email: 'taken@example.test' })
   });
   a.equal(response.status, 303);
-  a.equal(response.headers.get('location'), '/account?error=email_conflict#profile');
+  a.equal(response.headers.get('location'), '/account?tab=profile&error=email_conflict');
 });
 
 test('password accounts require the current password while Google-only accounts can set one', async () => {
@@ -209,7 +214,7 @@ test('password accounts require the current password while Google-only accounts 
     body: new URLSearchParams({ currentPassword: 'wrong password', password: 'a long replacement passphrase',
       passwordConfirm: 'a long replacement passphrase' })
   });
-  a.equal(wrong.headers.get('location'), '/account?error=password_current#security');
+  a.equal(wrong.headers.get('location'), '/account?tab=security&error=password_current');
 
   accountAuth.current = {
     authUserId: 'auth-2', email: 'google@example.test', name: 'Google', providers: ['google']
@@ -219,7 +224,7 @@ test('password accounts require the current password while Google-only accounts 
     body: new URLSearchParams({ password: 'a long replacement passphrase',
       passwordConfirm: 'a long replacement passphrase' })
   });
-  a.equal(set.headers.get('location'), '/account?message=Password+updated.#security');
+  a.equal(set.headers.get('location'), '/account?tab=security&message=Password+updated.');
   a.deepEqual(accountAuth.passwordUpdate, { password: 'a long replacement passphrase' });
 });
 

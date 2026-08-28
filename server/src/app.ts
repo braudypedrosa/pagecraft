@@ -740,6 +740,8 @@ export function createApp(o: Options) {
     app.get('/account', async c => {
       const [user, identity] = await Promise.all([who(c), o.accountAuth!.identity(c)]);
       if (!user || !identity) return c.redirect('/sign-in?next=%2Faccount');
+      const requestedTab = c.req.query('tab');
+      const tab = requestedTab === 'security' || requestedTab === 'plan' ? requestedTab : 'profile';
       const mine = await visibleSites(user);
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
@@ -749,7 +751,7 @@ export function createApp(o: Options) {
         createdAt: identity.createdAt || user.createdAt,
         ownerCount: mine.filter(item => item.role === 'owner').length,
         storage
-      }, { error: c.req.query('error'), message: c.req.query('message') }));
+      }, { error: c.req.query('error'), message: c.req.query('message'), tab }));
     });
 
     app.post('/account/profile', bodyLimit({
@@ -760,24 +762,24 @@ export function createApp(o: Options) {
       const body = await form(c);
       const name = String(body.name || '').trim().slice(0, 120);
       const email = normalEmail(String(body.email || ''));
-      if (!name || !validEmail(email)) return c.redirect('/account?error=profile#profile', 303);
+      if (!name || !validEmail(email)) return c.redirect('/account?tab=profile&error=profile', 303);
       if (!accountChangeLimit.take(`${source(c)}|profile`)) {
-        return c.redirect('/account?error=password_rate#profile', 303);
+        return c.redirect('/account?tab=profile&error=password_rate', 303);
       }
       const updated = await o.auth.updateProfile(user.id, { name });
-      if (!updated) return c.redirect('/account?error=account#profile', 303);
-      if (email === identity.email) return c.redirect('/account?message=Profile+updated.#profile', 303);
+      if (!updated) return c.redirect('/account?tab=profile&error=account', 303);
+      if (email === identity.email) return c.redirect('/account?tab=profile&message=Profile+updated.', 303);
       const conflict = await o.auth.userByEmail(email);
       if (conflict && conflict.id !== user.id) {
-        return c.redirect('/account?error=email_conflict#profile', 303);
+        return c.redirect('/account?tab=profile&error=email_conflict', 303);
       }
       const origin = o.editorOrigin || new URL(c.req.url).origin;
       const accepted = await o.accountAuth!.updateEmail(c, {
         email, redirectTo: `${origin}/auth/confirm?next=%2Faccount`
       });
       return accepted
-        ? c.redirect('/account?message=Profile+updated.+Confirm+the+new+email+address+to+finish+the+change.#profile', 303)
-        : c.redirect('/account?error=email_update#profile', 303);
+        ? c.redirect('/account?tab=profile&message=Profile+updated.+Confirm+the+new+email+address+to+finish+the+change.', 303)
+        : c.redirect('/account?tab=profile&error=email_update', 303);
     });
 
     app.post('/account/password', bodyLimit({
@@ -786,25 +788,25 @@ export function createApp(o: Options) {
       const identity = await o.accountAuth!.identity(c);
       if (!identity) return c.redirect('/sign-in?next=%2Faccount');
       if (!accountChangeLimit.take(`${source(c)}|password`)) {
-        return c.redirect('/account?error=password_rate#security', 303);
+        return c.redirect('/account?tab=security&error=password_rate', 303);
       }
       const body = await form(c);
       const password = String(body.password || '');
       const currentPassword = String(body.currentPassword || '');
-      if (password.length < 12) return c.redirect('/account?error=password#security', 303);
+      if (password.length < 12) return c.redirect('/account?tab=security&error=password', 303);
       if (password !== String(body.passwordConfirm || '')) {
-        return c.redirect('/account?error=mismatch#security', 303);
+        return c.redirect('/account?tab=security&error=mismatch', 303);
       }
       const hasPassword = (identity.providers || []).includes('email');
       if (hasPassword && !currentPassword) {
-        return c.redirect('/account?error=password_current#security', 303);
+        return c.redirect('/account?tab=security&error=password_current', 303);
       }
       const changed = await o.accountAuth!.updatePassword(c, {
         password, ...(hasPassword ? { currentPassword } : {})
       });
       return changed
-        ? c.redirect('/account?message=Password+updated.#security', 303)
-        : c.redirect('/account?error=password_current#security', 303);
+        ? c.redirect('/account?tab=security&message=Password+updated.', 303)
+        : c.redirect('/account?tab=security&error=password_current', 303);
     });
   }
 
