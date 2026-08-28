@@ -399,6 +399,25 @@ test('a role is granted, changed and revoked, and the list reads by address', as
   a.equal(await auth.membership(site.id, adam.id), null);
 });
 
+test('atomic membership changes preserve a final owner', async () => {
+  const { sites, auth } = await fresh();
+  const site = await sites.create({ host: 'people.test', name: 'People', doc: demo() });
+  const first = await auth.createUser('first@people.test');
+  const second = await auth.createUser('second@people.test');
+  await auth.grant(site.id, first.id, 'owner');
+  await auth.grant(site.id, second.id, 'content');
+
+  a.equal((await auth.changeMemberRole(site.id, first.id, 'content')).status, 'last_owner');
+  a.equal((await auth.removeMember(site.id, first.id)).status, 'last_owner');
+  a.equal((await auth.membership(site.id, first.id))?.role, 'owner');
+
+  a.equal((await auth.changeMemberRole(site.id, second.id, 'owner')).status, 'updated');
+  a.equal((await auth.changeMemberRole(site.id, first.id, 'content')).status, 'updated');
+  a.equal((await auth.removeMember(site.id, first.id)).status, 'removed');
+  a.equal((await auth.removeMember(site.id, first.id)).status, 'missing');
+  a.equal((await auth.membership(site.id, second.id))?.role, 'owner');
+});
+
 test('a role cannot be granted for a site or a person that does not exist', async () => {
   const { sites, auth } = await fresh();
   const site = await sites.create({ host: 'acme.test', name: 'Acme', doc: demo() });

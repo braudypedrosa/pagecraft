@@ -30,7 +30,12 @@ const messages: Record<string, string> = {
   site_slug: 'Use lowercase letters, numbers, and single hyphens for the Pagecraft address.',
   site_slug_taken: 'That Pagecraft address is already used by another site.',
   site_delete_confirm: 'Type the complete site name to confirm permanent deletion.',
-  site_settings: 'We could not update this site. Refresh the page and try again.'
+  site_settings: 'We could not update this site. Refresh the page and try again.',
+  people_email: 'Enter a valid email address.',
+  people_role: 'Choose Owner or Content editor.',
+  people_last_owner: 'A site must always have at least one owner.',
+  people_missing: 'That collaborator no longer has access to this site.',
+  people_invite_mail: 'Access was granted, but the invitation email could not be sent. Share the Pagecraft sign-up link directly.'
 };
 
 const shell = (title: string, body: string, turnstileSiteKey?: string) => `<!doctype html>
@@ -67,10 +72,13 @@ const accountMenuCss = `<style>.pc-account-menu a{width:100%;min-height:34px;dis
 const initialsOf = (user: User) => (user.name || user.email).split(/\s+|@/).filter(Boolean).slice(0, 2)
   .map(part => part[0]?.toUpperCase() || '').join('') || 'PC';
 const workbenchHeader = (user: User, label: string) => `<header class="pc-topbar"><a class="pc-brand" href="/" aria-label="Pagecraft sites">${builderMark}<span class="pc-brand-label">Pagecraft</span></a><span class="pc-topsep"></span><span class="pc-docname">${esc(label)}</span><span class="pc-spacer"></span><a class="pc-iconbtn" href="mailto:hello@braudyp.dev" title="Help" aria-label="Help">${helpIcon}</a><details class="pc-account" id="account-menu"><summary><span class="pc-account-email">${esc(user.email)}</span><span class="pc-avatar" aria-hidden="true">${esc(initialsOf(user))}</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4.5 6.5L8 10l3.5-3.5"/></svg></summary><div class="pc-account-menu"><p>${esc(user.email)}</p><a href="/account">Account settings</a><form method="post" action="/auth/logout"><button type="submit">Sign out</button></form></div></details></header>`;
-const managementRail = (site: Pick<SiteOverviewData, 'id' | 'role'>, current: 'overview' | 'settings') => {
+const managementRail = (
+  site: Pick<SiteOverviewData, 'id' | 'role'>, current: 'overview' | 'people' | 'settings'
+) => {
   const base = `/sites/${encodeURIComponent(site.id)}`;
-  const selected = (item: 'overview' | 'settings') => item === current ? ' aria-current="page"' : '';
-  return `<nav class="pc-rail pc-management-rail" aria-label="Site management"><a href="/">${sitesIcon}<span>Sites</span></a><a href="${base}"${selected('overview')}>${ownedIcon}<span>Overview</span></a>${site.role === 'owner' ? `<a href="${base}/settings"${selected('settings')}>${settingsIcon}<span>Settings</span></a>` : ''}<span class="pc-rail-gap"></span></nav>`;
+  const selected = (item: 'overview' | 'people' | 'settings') =>
+    item === current ? ' aria-current="page"' : '';
+  return `<nav class="pc-rail pc-management-rail" aria-label="Site management"><a href="/">${sitesIcon}<span>Sites</span></a><a href="${base}"${selected('overview')}>${ownedIcon}<span>Overview</span></a><a href="${base}/people"${selected('people')}>${sharedIcon}<span>People</span></a>${site.role === 'owner' ? `<a href="${base}/settings"${selected('settings')}>${settingsIcon}<span>Settings</span></a>` : ''}<span class="pc-rail-gap"></span></nav>`;
 };
 
 export const signInPage = (siteKey: string, input: { error?: string; next?: string; message?: string } = {}) => shell('Sign in', `
@@ -107,10 +115,11 @@ ${notice(input.error, input.message)}<form class="stack" method="post" action="/
 ${challenge(siteKey, 'forgot')}<button class="primary" type="submit">Send reset instructions</button></form>
 <p class="foot"><a href="/sign-in">Back to sign in</a></p></section></main>`, siteKey);
 
-export const resetPage = (input: { error?: string } = {}) => shell('Choose a password', `
+export const resetPage = (input: { error?: string; next?: string } = {}) => shell('Choose a password', `
 <main class="account">${brand()}<section class="panel" aria-labelledby="title">
 <h1 id="title">Choose a new password</h1><p>Use at least 12 characters. Signing in again may be required on other devices.</p>
 ${notice(input.error)}<form class="stack" method="post" action="/auth/reset-password">
+${nextField(input.next)}
 <div class="field"><label for="password">New password</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="12" required></div>
 <div class="field"><label for="passwordConfirm">Confirm password</label><input id="passwordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="12" required></div>
 <button class="primary" type="submit">Update password</button></form></section></main>`);
@@ -158,6 +167,13 @@ export interface SiteOverviewData extends DashboardSite {
   publishedVersion: number;
   publishedAt?: string;
   customDomain?: string;
+}
+export interface SiteMemberData {
+  userId: string;
+  email: string;
+  name: string;
+  role: Role;
+  active: boolean;
 }
 export interface AccountSettingsData {
   providers: string[];
@@ -212,6 +228,33 @@ export const siteSettingsPage = (
   <section class="pc-site-setting"><div class="pc-site-setting-copy"><h2>Support ID</h2><p>Include this identifier when contacting Pagecraft support about this site.</p></div><div class="pc-site-id"><code>${esc(site.id)}</code><button class="pc-btn" type="button" data-copy-value="${esc(site.id)}">Copy ID</button></div></section>
   <section class="pc-site-setting pc-site-danger"><div class="pc-site-setting-copy"><h2>Delete site</h2><p>Permanently deletes this site, its versions, media, collaborator access, and publishing connections. This cannot be undone.</p></div><form class="pc-site-setting-form" method="post" action="${base}/settings/delete"><div class="pc-site-setting-field"><label for="site-delete-confirm">Type <span class="pc-site-danger-confirm">${esc(site.name)}</span> to confirm</label><input id="site-delete-confirm" name="confirmation" autocomplete="off" data-delete-confirm="${esc(site.name)}" required></div><div class="pc-site-setting-actions"><button class="pc-btn" type="submit" data-delete-submit disabled>Delete site permanently</button></div></form></section>
   </div></div></section></div></main><script>(()=>{document.querySelectorAll('[data-copy-value]').forEach(button=>button.addEventListener('click',async()=>{const value=button.dataset.copyValue||'';try{await navigator.clipboard.writeText(value);}catch{const field=document.createElement('textarea');field.value=value;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();document.execCommand('copy');field.remove();}const previous=button.textContent;button.textContent='Copied';setTimeout(()=>button.textContent=previous,1600);}));const field=document.querySelector('[data-delete-confirm]'),submit=document.querySelector('[data-delete-submit]');if(field&&submit){const sync=()=>{submit.disabled=field.value!==field.dataset.deleteConfirm;};field.addEventListener('input',sync);sync();}})();</script>`);
+};
+
+const sitePeopleCss = `<style>
+.pc-people{width:min(100%,920px)}.pc-people-head{padding-bottom:26px;border-bottom:1px solid var(--pc-line)}.pc-people-head h1{font-size:clamp(1.8rem,3.3vw,2.5rem);line-height:1;letter-spacing:-.04em;margin:0 0 8px}.pc-people-head p{max-width:62ch;margin:0;color:var(--pc-text-2);font-size:.9rem}.pc-people>.notice{margin-top:20px}.pc-role-guide{display:grid;grid-template-columns:1fr 1fr;gap:0 42px;padding:24px 0;border-bottom:1px solid var(--pc-line)}.pc-role-guide h2{margin:0 0 5px;font-size:.86rem}.pc-role-guide p{margin:0;color:var(--pc-text-2);font-size:.75rem;line-height:1.55}.pc-invite{display:grid;grid-template-columns:minmax(180px,.65fr) minmax(0,1.35fr);gap:clamp(32px,6vw,72px);padding:30px 0;border-bottom:1px solid var(--pc-line)}.pc-invite h2,.pc-members-head h2{font-size:1.05rem;letter-spacing:-.02em;margin:0}.pc-invite-copy p,.pc-members-head p{margin:6px 0 0;color:var(--pc-text-2);font-size:.78rem;line-height:1.55}.pc-invite-form{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:10px}.pc-invite-form input,.pc-member-role select{width:100%;height:44px;padding:0 13px;border:1px solid var(--pc-line-2);border-radius:7px;background:var(--pc-field);color:var(--pc-text)}.pc-invite-form .pc-btn{grid-column:1/-1;width:max-content}.pc-members{padding-top:30px}.pc-members-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:14px}.pc-member-count{font-family:"DM Sans",system-ui,sans-serif;font-size:.7rem;color:var(--pc-text-2)}.pc-member-list{border-top:1px solid var(--pc-line)}.pc-member{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center;padding:17px 0;border-bottom:1px solid var(--pc-line)}.pc-member-person{display:flex;align-items:center;gap:13px;min-width:0}.pc-member-avatar{width:38px;height:38px;flex:0 0 38px;border:1px solid var(--pc-line-2);border-radius:50%;display:grid;place-items:center;background:var(--pc-panel);font-family:"DM Sans",system-ui,sans-serif;font-size:.72rem;font-weight:700}.pc-member-name{display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:650}.pc-member-you{font-family:"DM Sans",system-ui,sans-serif;font-size:.62rem;font-weight:600;color:var(--pc-text-2)}.pc-member-email{margin-top:3px;color:var(--pc-text-2);font-family:"DM Sans",system-ui,sans-serif;font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pc-member-state{display:inline-flex;align-items:center;gap:6px;margin-top:5px;color:var(--pc-text-2);font-family:"DM Sans",system-ui,sans-serif;font-size:.65rem}.pc-member-state:before{content:"";width:6px;height:6px;border-radius:50%;background:#73b82b}.pc-member-state.pending:before{background:#d18a32}.pc-member-controls{display:flex;align-items:center;gap:8px}.pc-member-role{display:flex;align-items:center;gap:8px}.pc-member-role select{width:160px;height:38px;font-size:.74rem}.pc-member-controls .pc-btn{height:38px;padding-inline:12px;font-size:.72rem}.pc-member-remove{border-color:#d4aaa5!important;color:var(--pc-danger)!important}.pc-member-static{text-align:right}.pc-member-static strong{display:block;font-family:"DM Sans",system-ui,sans-serif;font-size:.73rem}.pc-member-static span{display:block;margin-top:4px;color:var(--pc-text-2);font-family:"DM Sans",system-ui,sans-serif;font-size:.65rem}@media(max-width:760px){.pc-role-guide{grid-template-columns:1fr;gap:18px}.pc-invite{grid-template-columns:1fr;gap:20px}.pc-invite-form{grid-template-columns:1fr 160px}.pc-member{grid-template-columns:1fr}.pc-member-controls{padding-left:51px}.pc-member-static{text-align:left;padding-left:51px}}@media(max-width:540px){.pc-invite-form{grid-template-columns:1fr}.pc-invite-form .pc-btn{width:100%}.pc-member-controls{align-items:stretch;flex-direction:column}.pc-member-role{display:grid;grid-template-columns:1fr auto}.pc-member-role select{width:100%}.pc-member-remove{width:100%}.pc-member-static{padding-left:0}}
+</style>`;
+
+export const sitePeoplePage = (
+  user: User, site: SiteOverviewData, members: SiteMemberData[],
+  input: { error?: string; message?: string } = {}
+) => {
+  const base = `/sites/${encodeURIComponent(site.id)}`;
+  const owner = site.role === 'owner';
+  const ownerCount = members.filter(member => member.role === 'owner').length;
+  const person = (member: SiteMemberData) => {
+    const self = member.userId === user.id;
+    const pending = !member.active;
+    const label = member.name || (pending ? 'Pending collaborator' : member.email.split('@')[0]);
+    const avatar = initialsOf({ ...user, name: label, email: member.email });
+    const lockedOwner = member.role === 'owner' && ownerCount === 1;
+    const controls = owner && !self
+      ? `<div class="pc-member-controls"><form class="pc-member-role" method="post" action="${base}/people/${encodeURIComponent(member.userId)}/role"><label class="sr-only" for="member-role-${esc(member.userId)}">Role for ${esc(member.email)}</label><select id="member-role-${esc(member.userId)}" name="role"${lockedOwner ? ' disabled' : ''}><option value="content"${member.role === 'content' ? ' selected' : ''}>Content editor</option><option value="owner"${member.role === 'owner' ? ' selected' : ''}>Owner</option></select><button class="pc-btn" type="submit"${lockedOwner ? ' disabled' : ''}>Save</button></form><form method="post" action="${base}/people/${encodeURIComponent(member.userId)}/remove" data-remove-person="${esc(member.email)}"><button class="pc-btn pc-member-remove" type="submit"${lockedOwner ? ' disabled' : ''}>Remove</button></form></div>`
+      : `<div class="pc-member-static"><strong>${member.role === 'owner' ? 'Owner' : 'Content editor'}</strong><span>${self ? 'Your access' : lockedOwner ? 'Final owner' : ''}</span></div>`;
+    return `<div class="pc-member"><div class="pc-member-person"><span class="pc-member-avatar" aria-hidden="true">${esc(avatar)}</span><div class="pc-member-identity"><div class="pc-member-name">${esc(label)}${self ? '<span class="pc-member-you">You</span>' : ''}</div><div class="pc-member-email">${esc(member.email)}</div><div class="pc-member-state${pending ? ' pending' : ''}">${pending ? 'Invitation pending' : 'Active account'}</div></div></div>${controls}</div>`;
+  };
+  const visible = owner ? members : members.filter(member => member.userId === user.id);
+  const invite = owner ? `<section class="pc-invite"><div class="pc-invite-copy"><h2>Invite someone</h2><p>They will receive an email to join this site. Existing Pagecraft accounts receive access immediately.</p></div><form class="pc-invite-form" method="post" action="${base}/people/invite"><label class="sr-only" for="people-email">Email address</label><input id="people-email" name="email" type="email" placeholder="name@example.com" autocomplete="email" maxlength="254" required><label class="sr-only" for="people-role">Role</label><select id="people-role" name="role"><option value="content">Content editor</option><option value="owner">Owner</option></select><button class="pc-btn primary" type="submit">Send invitation</button></form></section>` : '';
+  return shell(`${site.name} people`, `<main class="dashboard-app">${accountMenuCss}${siteOverviewCss}${sitePeopleCss}${workbenchHeader(user, site.name)}<div class="pc-main">${managementRail(site, 'people')}<section class="pc-workspace"><div class="pc-manage-content"><div class="pc-people"><header class="pc-people-head"><a class="pc-manage-back" href="${base}"><span aria-hidden="true">←</span> Site overview</a><h1>People</h1><p>${owner ? 'Invite collaborators and manage who can edit or administer this site.' : 'Review your access level and what each Pagecraft role can do.'}</p></header>${notice(input.error, input.message)}<section class="pc-role-guide" aria-label="Role permissions"><div><h2>Owner</h2><p>Can edit, publish, export, manage people, and change site settings.</p></div><div><h2>Content editor</h2><p>Can update approved content and media, but cannot change structure, access, or settings.</p></div></section>${invite}<section class="pc-members"><header class="pc-members-head"><div><h2>${owner ? 'Site members' : 'Your membership'}</h2><p>${owner ? 'Role changes apply on the collaborator’s next request.' : 'Ask a site owner if your access needs to change.'}</p></div><span class="pc-member-count">${visible.length} ${visible.length === 1 ? 'person' : 'people'}</span></header><div class="pc-member-list">${visible.map(person).join('')}</div></section></div></div></section></div></main><script>(()=>{document.querySelectorAll('[data-remove-person]').forEach(form=>form.addEventListener('submit',event=>{if(!window.confirm('Remove '+form.dataset.removePerson+' from this site?'))event.preventDefault();}));})();</script>`);
 };
 
 const accountSettingsCss = `<style>

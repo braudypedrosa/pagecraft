@@ -26,7 +26,9 @@ import {
   type Asset, type AssetQuota, type AssetRecord, type AssetStore
 } from './assets.ts';
 import {
-  AUTH_SCHEMA, normalEmail, type AuthStore, type Role, type Session, type ManualImportCredential, type User
+  AUTH_SCHEMA, normalEmail, type AuthStore, type InviteDeliveryResult,
+  type MemberChangeResult, type MemberRemovalResult, type Role, type Session,
+  type ManualImportCredential, type User
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -1918,17 +1920,76 @@ export class PgAuthStore implements AuthStore {
   }
   async members(siteId: string) {
     const { rows } = await this.db.query<MemberRow & UserRow>(
-      `select m.site_id, m.user_id, m.role, u.email, u.name
+      `select m.site_id, m.user_id, m.role, u.email, u.name, u.auth_user_id
        from site_users m join users u on u.id = m.user_id
        where m.site_id = $1 order by u.email`, [siteId]);
     return rows.map(r => ({
-      siteId: r.site_id, userId: r.user_id, role: r.role, email: r.email, name: r.name
+      siteId: r.site_id, userId: r.user_id, role: r.role, email: r.email, name: r.name,
+      authUserId: r.auth_user_id ?? null
     }));
   }
   async revoke(siteId: string, userId: string) {
     const { rows } = await this.db.query<{ user_id: string }>(
       'delete from site_users where site_id = $1 and user_id = $2 returning user_id', [siteId, userId]);
     return rows.length > 0;
+  }
+  async changeMemberRole(siteId: string, userId: string, role: Role): Promise<MemberChangeResult> {
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      await client.query('select id from sites where id = $1 for update', [siteId]);
+      const current = await client.query<MemberRow>(
+        'select * from site_users where site_id = $1 and user_id = $2', [siteId, userId]);
+      if (!current.rows[0]) { await client.query('rollback'); return { status: 'missing' }; }
+      if (current.rows[0].role === 'owner' && role !== 'owner') {
+        const owners = await client.query<{ count: string }>(
+          `select count(*)::text as count from site_users where site_id = $1 and role = 'owner'`, [siteId]);
+        if (Number(owners.rows[0]?.count || 0) <= 1) {
+          await client.query('rollback');
+          return { status: 'last_owner' };
+        }
+      }
+      const changed = await client.query<MemberRow>(
+        'update site_users set role = $3 where site_id = $1 and user_id = $2 returning *',
+        [siteId, userId, role]);
+      await client.query('commit');
+      const row = changed.rows[0];
+      return { status: 'updated', membership: { siteId: row.site_id, userId: row.user_id, role: row.role } };
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
+  }
+  async removeMember(siteId: string, userId: string): Promise<MemberRemovalResult> {
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      await client.query('select id from sites where id = $1 for update', [siteId]);
+      const current = await client.query<MemberRow>(
+        'select * from site_users where site_id = $1 and user_id = $2', [siteId, userId]);
+      if (!current.rows[0]) { await client.query('rollback'); return { status: 'missing' }; }
+      if (current.rows[0].role === 'owner') {
+        const owners = await client.query<{ count: string }>(
+          `select count(*)::text as count from site_users where site_id = $1 and role = 'owner'`, [siteId]);
+        if (Number(owners.rows[0]?.count || 0) <= 1) {
+          await client.query('rollback');
+          return { status: 'last_owner' };
+        }
+      }
+      await client.query('delete from site_users where site_id = $1 and user_id = $2', [siteId, userId]);
+      await client.query('commit');
+      return { status: 'removed' };
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
+  }
+  async inviteEmail(_email: string, _redirectTo: string): Promise<InviteDeliveryResult> {
+    return 'unavailable';
   }
 
   private user(row: UserRow): User {

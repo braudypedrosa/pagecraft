@@ -56,7 +56,7 @@ import type { HumanChallenge } from './turnstile.ts';
 import type { OwnedSiteStore } from './accounts.ts';
 import {
   accountSettingsPage, dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
-  signUpPage, siteOverviewPage, siteSettingsPage, termsPage
+  signUpPage, siteOverviewPage, sitePeoplePage, siteSettingsPage, termsPage
 } from './account-pages.ts';
 import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
 
@@ -646,7 +646,9 @@ export function createApp(o: Options) {
     app.get('/forgot-password', c => c.html(forgotPage(siteKey, { error: c.req.query('error'), message: c.req.query('message') })));
     app.get('/reset-password', async c => {
       const user = await who(c);
-      return user ? c.html(resetPage({ error: c.req.query('error') })) : c.redirect('/sign-in?error=reset');
+      return user ? c.html(resetPage({
+        error: c.req.query('error'), next: safeNext(c.req.query('next'))
+      })) : c.redirect('/sign-in?error=reset');
     });
 
     app.post('/auth/signup', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
@@ -705,7 +707,9 @@ export function createApp(o: Options) {
       });
       if (!identity) return c.redirect('/sign-in?error=expired', 303);
       await o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
-      return c.redirect(type === 'recovery' ? '/reset-password' : next, 303);
+      return c.redirect(type === 'recovery' || type === 'invite'
+        ? `/reset-password?next=${encodeURIComponent(next)}`
+        : next, 303);
     });
 
     app.post('/auth/forgot-password', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
@@ -726,10 +730,15 @@ export function createApp(o: Options) {
     app.post('/auth/reset-password', async c => {
       const body = await form(c);
       const password = String(body.password || '');
-      if (password.length < 12) return c.redirect('/reset-password?error=password', 303);
-      if (password !== String(body.passwordConfirm || '')) return c.redirect('/reset-password?error=mismatch', 303);
+      const next = safeNext(body.next);
+      if (password.length < 12) {
+        return c.redirect(`/reset-password?error=password&next=${encodeURIComponent(next)}`, 303);
+      }
+      if (password !== String(body.passwordConfirm || '')) {
+        return c.redirect(`/reset-password?error=mismatch&next=${encodeURIComponent(next)}`, 303);
+      }
       if (!await o.accountAuth!.reset(c, password)) return c.redirect('/sign-in?error=reset', 303);
-      return c.redirect('/?message=Password+updated.', 303);
+      return c.redirect(`${next}${next.includes('?') ? '&' : '?'}message=Password+updated.`, 303);
     });
 
     app.post('/auth/logout', async c => {
@@ -881,6 +890,96 @@ export function createApp(o: Options) {
       publishedAt: publishedRevision?.createdAt,
       customDomain: /\.invalid$/.test(site.host) ? undefined : site.host
     }));
+  });
+
+  app.get('/sites/:id/people', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'read');
+    if (!gate.ok) return gate.status === 401
+      ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
+      : deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const members = gate.role === 'owner'
+      ? await o.auth.members(id)
+      : [{
+          userId: gate.user.id, email: gate.user.email, name: gate.user.name,
+          role: gate.role, authUserId: gate.user.authUserId
+        }];
+    return c.html(sitePeoplePage(gate.user, {
+      id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt,
+      url: shareUrl(c, o, site), published: site.version === site.publishedVersion,
+      version: site.version, publishedVersion: site.publishedVersion
+    }, members.map(member => ({
+      userId: member.userId, email: member.email, name: member.name, role: member.role,
+      active: !!member.authUserId
+    })), { error: c.req.query('error'), message: c.req.query('message') }));
+  });
+
+  app.post('/sites/:id/people/invite', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    const email = normalEmail(String(body.email || ''));
+    const role = String(body.role || '') as Role;
+    const base = `/sites/${encodeURIComponent(id)}/people`;
+    if (!validEmail(email)) return c.redirect(`${base}?error=people_email`, 303);
+    if (role !== 'owner' && role !== 'content') return c.redirect(`${base}?error=people_role`, 303);
+
+    const existing = await o.auth.userByEmail(email);
+    if (existing?.id === gate.user.id && role !== 'owner') {
+      return c.redirect(`${base}?error=people_last_owner`, 303);
+    }
+    const user = existing || await o.auth.createUser(email);
+    const membership = await o.auth.membership(id, user.id);
+    if (membership) {
+      const changed = await o.auth.changeMemberRole(id, user.id, role);
+      if (changed.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
+      if (changed.status === 'missing') return c.redirect(`${base}?error=people_missing`, 303);
+    } else {
+      await o.auth.grant(id, user.id, role);
+    }
+
+    if (user.authUserId) return c.redirect(`${base}?message=Access+updated.`, 303);
+    const origin = o.editorOrigin || new URL(c.req.url).origin;
+    const next = `/sites/${id}/people`;
+    const delivery = await o.auth.inviteEmail(
+      email, `${origin}/auth/confirm?type=invite&next=${encodeURIComponent(next)}`
+    );
+    if (delivery === 'sent') return c.redirect(`${base}?message=Invitation+sent.`, 303);
+    if (delivery === 'exists') {
+      return c.redirect(`${base}?message=Access+granted.+They+can+sign+in+with+that+email.`, 303);
+    }
+    return c.redirect(`${base}?error=people_invite_mail`, 303);
+  });
+
+  app.post('/sites/:id/people/:userId/role', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    const role = String(body.role || '') as Role;
+    const base = `/sites/${encodeURIComponent(id)}/people`;
+    if (role !== 'owner' && role !== 'content') return c.redirect(`${base}?error=people_role`, 303);
+    if (c.req.param('userId') === gate.user.id && role !== 'owner') {
+      return c.redirect(`${base}?error=people_last_owner`, 303);
+    }
+    const changed = await o.auth.changeMemberRole(id, c.req.param('userId'), role);
+    if (changed.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
+    if (changed.status === 'missing') return c.redirect(`${base}?error=people_missing`, 303);
+    return c.redirect(`${base}?message=Role+updated.`, 303);
+  });
+
+  app.post('/sites/:id/people/:userId/remove', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'admin');
+    if (!gate.ok) return deny(c, gate.status);
+    const base = `/sites/${encodeURIComponent(id)}/people`;
+    const removed = await o.auth.removeMember(id, c.req.param('userId'));
+    if (removed.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
+    if (removed.status === 'missing') return c.redirect(`${base}?error=people_missing`, 303);
+    return c.redirect(`${base}?message=Collaborator+removed.`, 303);
   });
 
   app.get('/sites/:id/settings', async c => {
@@ -1342,9 +1441,9 @@ export function createApp(o: Options) {
 
   /* ---------------------------------------------------------------- the people
 
-     Inviting somebody is a grant, not a token. Creating an account for an address hands over
-     nothing on its own — they still have to receive a magic link at that address to sign in —
-     so there is no invite to expire, resend or leak, and one fewer lifecycle to get wrong.
+     Membership is the authorization record. Authentication invitations only prove control of
+     an email address; they never carry a site or role, and editable auth metadata is not used
+     to authorize anything.
 
      Only an owner may do any of this: `admin` is the verb, and `roleAllows` gives it to owners
      alone. */
@@ -1377,8 +1476,21 @@ export function createApp(o: Options) {
     }
 
     const user = existing || await o.auth.createUser(email);
-    const m = await o.auth.grant(id, user.id, role);
-    return c.json({ userId: user.id, email: user.email, name: user.name, role: m.role }, 201);
+    const current = await o.auth.membership(id, user.id);
+    if (current) {
+      const changed = await o.auth.changeMemberRole(id, user.id, role);
+      if (changed.status === 'last_owner') {
+        return c.json({ error: 'the last owner cannot give up ownership' }, 409);
+      }
+      if (changed.status === 'missing') return c.json({ error: 'they had no access to update' }, 404);
+      if (changed.status === 'updated') {
+        return c.json({
+          userId: user.id, email: user.email, name: user.name, role: changed.membership.role
+        }, 201);
+      }
+    }
+    const granted = await o.auth.grant(id, user.id, role);
+    return c.json({ userId: user.id, email: user.email, name: user.name, role: granted.role }, 201);
   });
 
   app.delete('/api/sites/:id/people/:userId', async c => {
@@ -1387,15 +1499,11 @@ export function createApp(o: Options) {
     if (!gate.ok) return deny(c, gate.status);
 
     const target = c.req.param('userId');
-    /* A site with no owner is a site nobody can manage, and there is no route back — no
-       superuser, and the API is the only way in. So the last owner does not leave. */
-    const owners = (await o.auth.members(id)).filter(m => m.role === 'owner');
-    if (owners.length === 1 && owners[0].userId === target) {
+    const removed = await o.auth.removeMember(id, target);
+    if (removed.status === 'last_owner') {
       return c.json({ error: 'the last owner cannot be removed — a site with no owner cannot be managed' }, 409);
     }
-
-    const gone = await o.auth.revoke(id, target);
-    if (!gone) return c.json({ error: 'they had no access to remove' }, 404);
+    if (removed.status === 'missing') return c.json({ error: 'they had no access to remove' }, 404);
     /* Their sessions stay valid and are harmless: access is checked per request against the
        membership, so a membership that is gone is access that is gone. */
     return c.json({ removed: target });

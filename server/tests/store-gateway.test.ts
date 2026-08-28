@@ -375,6 +375,11 @@ test('gateway auth resolves a session and all memberships with one operation eac
       return { id: 'u1', email: 'me@acme.test', name: 'Updated', plan: 'free',
         created_at: '2026-08-28T00:00:00.000Z' };
     }
+    if (call.op === 'auth.changeMemberRole') {
+      return { status: 'updated', membership: { site_id: 's1', user_id: 'u2', role: 'owner' } };
+    }
+    if (call.op === 'auth.removeMember') return { status: 'removed' };
+    if (call.op === 'auth.inviteEmail') return 'sent';
     throw new Error(`unexpected ${call.op}`);
   });
   const auth = new GatewayAuthStore(gateway);
@@ -385,9 +390,15 @@ test('gateway auth resolves a session and all memberships with one operation eac
   const updated = await auth.updateProfile('u1', { name: 'Updated' });
   a.equal(updated?.name, 'Updated');
   a.equal(updated?.plan, 'free');
+  const changed = await auth.changeMemberRole('s1', 'u2', 'owner');
+  a.equal(changed.status, 'updated');
+  a.equal((await auth.removeMember('s1', 'u2')).status, 'removed');
+  a.equal(await auth.inviteEmail(
+    'invitee@acme.test', 'https://build.itspagecraft.com/auth/confirm?type=invite'
+  ), 'sent');
   a.deepEqual(calls.map(call => call.op), [
     'auth.usersByIds', 'auth.userForSession', 'auth.accessForSession', 'auth.membershipsForUser',
-    'auth.updateProfile'
+    'auth.updateProfile', 'auth.changeMemberRole', 'auth.removeMember', 'auth.inviteEmail'
   ]);
 });
 

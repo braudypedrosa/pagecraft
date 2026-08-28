@@ -21,11 +21,12 @@ const sql = postgres(Deno.env.get("SUPABASE_DB_URL")!, {
   connect_timeout: 10,
   idle_timeout: 20,
 });
-const storage = createClient(
+const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   { auth: { persistSession: false, autoRefreshToken: false } },
-).storage;
+);
+const storage = supabase.storage;
 const ASSET_BUCKET = "pagecraft-assets";
 const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
 const assetStoragePath = (ownerId: string, siteId: string, id: string, hash: string, type: string) =>
@@ -2203,7 +2204,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       );
     case "auth.members":
       return await sql`
-        select m.site_id, m.user_id, m.role, u.email, u.name
+        select m.site_id, m.user_id, m.role, u.email, u.name, u.auth_user_id
         from site_users m join users u on u.id = m.user_id
         where m.site_id = ${text(args.siteId)} order by u.email
       `;
@@ -2214,6 +2215,84 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       } and user_id = ${text(args.userId)}
         returning user_id
       `).length > 0;
+    case "auth.changeMemberRole":
+      return await sql.begin(async (transaction) => {
+        await transaction`select id from sites where id = ${text(args.siteId)} for update`;
+        const current = one(await transaction<Record<string, unknown>[]>`
+          select site_id, user_id, role from site_users
+          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
+        `);
+        if (!current) return { status: "missing" };
+        if (current.role === "owner" && text(args.role) !== "owner") {
+          const owners = one(await transaction<Record<string, unknown>[]>`
+            select count(*)::integer as count from site_users
+            where site_id = ${text(args.siteId)} and role = 'owner'
+          `);
+          if (integer(owners?.count) <= 1) return { status: "last_owner" };
+        }
+        const changed = one(await transaction<Record<string, unknown>[]>`
+          update site_users set role = ${text(args.role)}
+          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
+          returning site_id, user_id, role
+        `)!;
+        return {
+          status: "updated",
+          membership: {
+            siteId: changed.site_id,
+            userId: changed.user_id,
+            role: changed.role,
+          },
+        };
+      });
+    case "auth.removeMember":
+      return await sql.begin(async (transaction) => {
+        await transaction`select id from sites where id = ${text(args.siteId)} for update`;
+        const current = one(await transaction<Record<string, unknown>[]>`
+          select site_id, user_id, role from site_users
+          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
+        `);
+        if (!current) return { status: "missing" };
+        if (current.role === "owner") {
+          const owners = one(await transaction<Record<string, unknown>[]>`
+            select count(*)::integer as count from site_users
+            where site_id = ${text(args.siteId)} and role = 'owner'
+          `);
+          if (integer(owners?.count) <= 1) return { status: "last_owner" };
+        }
+        await transaction`
+          delete from site_users
+          where site_id = ${text(args.siteId)} and user_id = ${text(args.userId)}
+        `;
+        return { status: "removed" };
+      });
+    case "auth.inviteEmail": {
+      const redirect = new URL(text(args.redirectTo));
+      const editorOrigin = Deno.env.get("PAGECRAFT_EDITOR_ORIGIN") ||
+        "https://build.itspagecraft.com";
+      if (
+        redirect.origin !== editorOrigin ||
+        redirect.pathname !== "/auth/confirm"
+      ) {
+        throw Object.assign(new Error("invalid invitation redirect"), {
+          status: 400,
+          code: "INVALID_INVITE_REDIRECT",
+        });
+      }
+      const { error } = await supabase.auth.admin.inviteUserByEmail(
+        text(args.email),
+        { redirectTo: redirect.toString() },
+      );
+      if (!error) return "sent";
+      const code = String(error.code || "");
+      if (
+        code === "email_exists" || code === "user_already_exists" ||
+        /already (registered|exists)/i.test(error.message)
+      ) {
+        return "exists";
+      }
+      console.error("could not send collaborator invitation", error);
+      return "failed";
+    }
     case "auth.manualImport.create": {
       const input = (args.input && typeof args.input === "object" &&
           !Array.isArray(args.input))

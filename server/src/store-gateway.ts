@@ -10,7 +10,8 @@ import {
   type Asset, type AssetQuota, type AssetRecord, type AssetStore
 } from './assets.ts';
 import {
-  normalEmail, type AuthStore, type ManualImportCredential, type Membership, type Role, type Session, type User
+  normalEmail, type AuthStore, type InviteDeliveryResult, type ManualImportCredential,
+  type MemberChangeResult, type MemberRemovalResult, type Membership, type Role, type Session, type User
 } from './auth.ts';
 import {
   validSlug, slugFrom, type CmsWriteHead, type SaveResult, type Site, type SiteRevision, type Store
@@ -752,7 +753,10 @@ interface UserWire {
   plan?: 'free'; created_at?: string;
 }
 interface SessionWire { digest: string; user_id: string; expires_at: string }
-interface MembershipWire { site_id: string; user_id: string; role: Role; email?: string; name?: string }
+interface MembershipWire {
+  site_id: string; user_id: string; role: Role; email?: string; name?: string;
+  auth_user_id?: string | null;
+}
 interface AccessWire extends UserWire { role: Role | null }
 interface ManualImportWire {
   id:string; owner_id:string; installation_id:string; access_token_digest:string;
@@ -858,11 +862,23 @@ export class GatewayAuthStore implements AuthStore {
   }
   async members(siteId: string) {
     return (await this.gateway.call<MembershipWire[]>('auth.members', { siteId })).map(row => ({
-      ...toMembership(row), email: row.email || '', name: row.name || ''
+      ...toMembership(row), email: row.email || '', name: row.name || '',
+      authUserId: row.auth_user_id ?? null
     }));
   }
   revoke(siteId: string, userId: string) {
     return this.gateway.call<boolean>('auth.revoke', { siteId, userId });
+  }
+  changeMemberRole(siteId: string, userId: string, role: Role) {
+    return this.gateway.call<MemberChangeResult>('auth.changeMemberRole', { siteId, userId, role });
+  }
+  removeMember(siteId: string, userId: string) {
+    return this.gateway.call<MemberRemovalResult>('auth.removeMember', { siteId, userId });
+  }
+  inviteEmail(email: string, redirectTo: string) {
+    return this.gateway.call<InviteDeliveryResult>('auth.inviteEmail', {
+      email: normalEmail(email), redirectTo
+    });
   }
   async createManualImportCredential(input: Omit<ManualImportCredential,
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {

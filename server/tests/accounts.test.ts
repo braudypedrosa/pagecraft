@@ -179,6 +179,89 @@ test('site overview is protected, membership-scoped, and exposes working managem
   a.ok(owner.id);
 });
 
+test('site People lets owners invite and manage collaborators while content sees only itself', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' };
+  await auth.ensureAuthUser('auth-owner', 'owner@example.test', 'Owner');
+  const created = await request('/api/sites', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'People site', doc: doc() })
+  });
+  const site = await created.json() as { id: string };
+  const form = (path: string, values: Record<string, string>) => request(path, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(values)
+  });
+
+  const page = await request(`/sites/${site.id}/people`);
+  a.equal(page.status, 200);
+  const ownerHtml = await page.text();
+  a.match(ownerHtml, /<h1>People<\/h1>/);
+  a.match(ownerHtml, /Invite someone/);
+  a.match(ownerHtml, /Content editor/);
+  a.match(ownerHtml, /owner@example\.test/);
+  a.match(ownerHtml, /Active account/);
+  a.match(ownerHtml, /aria-current="page"[^>]*>.*People/s);
+
+  const invited = await form(`/sites/${site.id}/people/invite`, {
+    email: 'Collaborator@Example.test', role: 'content'
+  });
+  a.equal(invited.status, 303);
+  a.equal(invited.headers.get('location'), `/sites/${site.id}/people?message=Invitation+sent.`);
+  const collaborator = await auth.userByEmail('collaborator@example.test');
+  a.ok(collaborator);
+  a.equal((await auth.membership(site.id, collaborator!.id))?.role, 'content');
+
+  const pending = await request(`/sites/${site.id}/people`);
+  a.match(await pending.text(), /Invitation pending/);
+  const promoted = await form(`/sites/${site.id}/people/${collaborator!.id}/role`, { role: 'owner' });
+  a.equal(promoted.status, 303);
+  a.equal((await auth.membership(site.id, collaborator!.id))?.role, 'owner');
+  const demoted = await form(`/sites/${site.id}/people/${collaborator!.id}/role`, { role: 'content' });
+  a.equal(demoted.status, 303);
+
+  accountAuth.current = {
+    authUserId: 'auth-collaborator', email: 'collaborator@example.test', name: 'Collaborator'
+  };
+  await auth.ensureAuthUser('auth-collaborator', 'collaborator@example.test', 'Collaborator');
+  const contentPage = await request(`/sites/${site.id}/people`);
+  a.equal(contentPage.status, 200);
+  const contentHtml = await contentPage.text();
+  a.match(contentHtml, /Your membership/);
+  a.match(contentHtml, /collaborator@example\.test/);
+  a.doesNotMatch(contentHtml, /owner@example\.test/);
+  a.doesNotMatch(contentHtml, /Invite someone/);
+  a.doesNotMatch(contentHtml, /Send invitation/);
+
+  accountAuth.current = { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' };
+  const removed = await form(`/sites/${site.id}/people/${collaborator!.id}/remove`, {});
+  a.equal(removed.status, 303);
+  a.equal(await auth.membership(site.id, collaborator!.id), null);
+});
+
+test('invitation confirmation requires a password and preserves the safe People destination', async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: 'auth-invitee', email: 'invitee@example.test', name: 'Invitee' };
+  await auth.ensureAuthUser('auth-invitee', 'invitee@example.test', 'Invitee');
+
+  const confirmed = await request('/auth/confirm?type=invite&next=%2Fsites%2Fsite-one%2Fpeople');
+  a.equal(confirmed.status, 303);
+  a.equal(confirmed.headers.get('location'), '/reset-password?next=%2Fsites%2Fsite-one%2Fpeople');
+  const reset = await request('/reset-password?next=%2Fsites%2Fsite-one%2Fpeople');
+  a.equal(reset.status, 200);
+  a.match(await reset.text(), /name="next" value="\/sites\/site-one\/people"/);
+
+  const updated = await request('/auth/reset-password', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      next: '/sites/site-one/people', password: 'correct horse battery',
+      passwordConfirm: 'correct horse battery'
+    })
+  });
+  a.equal(updated.status, 303);
+  a.equal(updated.headers.get('location'), '/sites/site-one/people?message=Password+updated.');
+});
+
 test('site settings let only owners rename, change the Pagecraft address, and delete by typed confirmation', async () => {
   const { request, accountAuth, auth, store } = rig();
   accountAuth.current = { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' };

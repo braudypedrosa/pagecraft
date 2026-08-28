@@ -34,6 +34,11 @@ export interface User {
 }
 export interface Session { token: string; userId: string; expiresAt: number }
 export interface Membership { siteId: string; userId: string; role: Role }
+export type MemberChangeResult =
+  | { status: 'updated'; membership: Membership }
+  | { status: 'last_owner' | 'missing' };
+export type MemberRemovalResult = { status: 'removed' | 'last_owner' | 'missing' };
+export type InviteDeliveryResult = 'sent' | 'exists' | 'failed' | 'unavailable';
 export interface SessionAccess { user: User; role: Role | null }
 export interface ManualImportCredential {
   id: string;
@@ -99,9 +104,16 @@ export interface AuthStore {
   membership(siteId: string, userId: string): Promise<Membership | null>;
   membershipsForUser(userId: string): Promise<Membership[]>;
   grant(siteId: string, userId: string, role: Role): Promise<Membership>;
-  /** Everyone with a role on this site, with the addresses an owner needs to read. */
-  members(siteId: string): Promise<(Membership & { email: string; name: string })[]>;
+  /** Everyone with a role on this site, with the identity state an owner needs to manage. */
+  members(siteId: string): Promise<(Membership & {
+    email: string; name: string; authUserId?: string | null;
+  })[]>;
   revoke(siteId: string, userId: string): Promise<boolean>;
+  /** Change or remove access while holding the site's owner set stable. */
+  changeMemberRole(siteId: string, userId: string, role: Role): Promise<MemberChangeResult>;
+  removeMember(siteId: string, userId: string): Promise<MemberRemovalResult>;
+  /** Send the Supabase invitation without exposing its privileged key to the application. */
+  inviteEmail(email: string, redirectTo: string): Promise<InviteDeliveryResult>;
 
   createManualImportCredential(input: Omit<ManualImportCredential,
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>): Promise<ManualImportCredential>;
@@ -303,12 +315,36 @@ export class MemoryAuthStore implements AuthStore {
     for (const m of this.memberships.values()) {
       if (m.siteId !== siteId) continue;
       const u = this.users.get(m.userId);
-      out.push({ ...m, email: u ? u.email : '', name: u ? u.name : '' });
+      out.push({
+        ...m, email: u ? u.email : '', name: u ? u.name : '', authUserId: u?.authUserId ?? null
+      });
     }
     return out.sort((x, y) => x.email.localeCompare(y.email));
   }
   async revoke(siteId: string, userId: string) {
     return this.memberships.delete(siteId + '|' + userId);
+  }
+  async changeMemberRole(siteId: string, userId: string, role: Role): Promise<MemberChangeResult> {
+    const current = await this.membership(siteId, userId);
+    if (!current) return { status: 'missing' };
+    const owners = [...this.memberships.values()].filter(item =>
+      item.siteId === siteId && item.role === 'owner');
+    if (current.role === 'owner' && role !== 'owner' && owners.length === 1) {
+      return { status: 'last_owner' };
+    }
+    return { status: 'updated', membership: await this.grant(siteId, userId, role) };
+  }
+  async removeMember(siteId: string, userId: string): Promise<MemberRemovalResult> {
+    const current = await this.membership(siteId, userId);
+    if (!current) return { status: 'missing' };
+    const owners = [...this.memberships.values()].filter(item =>
+      item.siteId === siteId && item.role === 'owner');
+    if (current.role === 'owner' && owners.length === 1) return { status: 'last_owner' };
+    await this.revoke(siteId, userId);
+    return { status: 'removed' };
+  }
+  async inviteEmail(_email: string, _redirectTo: string): Promise<InviteDeliveryResult> {
+    return 'sent';
   }
   async createManualImportCredential(input: Omit<ManualImportCredential,
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {
