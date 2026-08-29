@@ -195,7 +195,8 @@ test('WordPress mode boots the shared editor and saves a native fallback through
     role: 'owner', siteName: 'Fixture WordPress',
     page: { id: 42, title: 'Native landing page', slug: 'native-landing-page' },
     user: { id: '7', name: 'Admin' },
-    capabilities: ['edit_document', 'edit_structure', 'manage_pages', 'restore_revisions'],
+    capabilities: ['edit_document', 'edit_structure', 'manage_pages', 'manage_settings', 'restore_revisions'],
+    designSettings: { maxWidth: '1180px', size: '17px' },
     previewUrl: 'http://localhost/native-landing-page/', pagesUrl: 'http://localhost/wp-admin/edit.php?post_type=page'
   };
   const marker = '<script>\n/* =====================================================================';
@@ -246,6 +247,15 @@ test('WordPress mode boots the shared editor and saves a native fallback through
   a.equal(dom.window.__CORE.state.pages[0].name, 'Native landing page');
   a.equal(dom.window.__CORE.state.pages[0].slug, 'native-landing-page');
   a.equal(dom.window.__CORE.state.pages[0].tree.length, 0, 'new WordPress page started with demo content');
+  a.equal(dom.window.__CORE.state.meta.maxWidth, '1180px', 'WordPress design settings did not override page-local defaults');
+  dom.window.projectModal();
+  a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Pagecraft design settings');
+  a.ok(doc.querySelector('#mMax'), 'WordPress design settings must include layout defaults');
+  a.ok(doc.querySelector('#mColors'), 'WordPress design settings must include shared colours');
+  a.equal(doc.querySelector('#mBase'), null, 'WordPress owns the site URL outside Pagecraft settings');
+  a.equal(doc.querySelector('#mLang'), null, 'WordPress owns the site language outside Pagecraft settings');
+  a.equal(doc.querySelector('#mHeadHtml'), null, 'WordPress settings must not expose Cloud head injection');
+  doc.querySelector('#mClose').click();
 
   await dom.window.writeNow();
   const saveUntil = Date.now() + 1500;
@@ -465,6 +475,8 @@ test('status messages and narrow-workspace controls expose accessible hooks', as
   a.ok(doc.querySelector('#right .panelClose'), 'the narrow inspector has a dismiss control');
 
   const html = readFileSync(BUILT, 'utf8');
+  a.match(html, /\.unit>\.pc-custom-select-trigger\{[\s\S]*?width:72px;flex:0 0 72px;min-width:72px/,
+    'enhanced unit selects must preserve room for their numeric value');
   a.match(html, /@media\(max-width:900px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/);
   a.match(html, /@media\(max-width:600px\)[\s\S]*?\.left,\.right\{[\s\S]*?position:absolute/);
 });

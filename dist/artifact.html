@@ -673,6 +673,14 @@ select.ctl{
   width:72px;flex:0 0 72px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
   background-position:right 6px center;background-size:9px 9px;
 }
+/* Enhanced selects are buttons rather than the native select. The generic trigger is full
+   width, which used to consume this whole flex row and collapse the numeric value to zero.
+   Keep every value + suffix control on the same two-part contract as its native fallback. */
+.unit>.pc-custom-select-trigger{
+  width:72px;flex:0 0 72px;min-width:72px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
+}
+.unit>.pc-custom-select-trigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.unit>.pc-custom-select-trigger>svg{right:6px;width:9px;height:9px;flex-basis:9px}
 .sld{display:flex;align-items:center;gap:var(--sp-4)}
 .sld input[type=range]{flex:1;accent-color:var(--green);height:4px}
 .sld .num{width:60px;flex:0 0 60px}
@@ -16663,6 +16671,23 @@ const HOST_FEATURES = HOST ? HOST.features : Object.freeze({
   preview: 'pagecraft', publishing: false, globals: 'pagecraft', dynamicContent: 'pagecraft'
 });
 
+/* WordPress owns sitewide design settings independently from any one Pagecraft document.
+   Only visual-system fields cross this boundary; WordPress continues to own the site title,
+   language, URL, Site Icon, publishing, users and all other administration. */
+const WORDPRESS_DESIGN_KEYS = ['maxWidth', 'font', 'headFont', 'size', 'css', 'tokens'];
+function wordPressDesignSettings() {
+  const out = {};
+  WORDPRESS_DESIGN_KEYS.forEach(key => { out[key] = clone(state.meta[key]); });
+  return out;
+}
+function applyWordPressDesignSettings() {
+  if (!IS_WORDPRESS || !WP.designSettings || typeof WP.designSettings !== 'object') return;
+  WORDPRESS_DESIGN_KEYS.forEach(key => {
+    if (Object.prototype.hasOwnProperty.call(WP.designSettings, key)) state.meta[key] = clone(WP.designSettings[key]);
+  });
+  if (!state.meta.tokens) state.meta.tokens = defaultTokens(state.meta);
+}
+
 /* Product shape belongs to the host contract, not to CSS loaded after the editor. Removing
    unavailable controls before mounting also prevents keyboard and event seams from reviving
    Cloud behavior inside WordPress. */
@@ -17272,6 +17297,7 @@ function load() {
       state.pages[0].name = WP.page && WP.page.title || 'Untitled page';
       state.pages[0].slug = WP.page && WP.page.slug || 'page';
       state.meta.name = WP.siteName || 'WordPress';
+      applyWordPressDesignSettings();
       return;
     }
     try { d = PC_UI.adoptHostDocument(SRV.doc); } catch (error) { loadError = error; }
@@ -17281,6 +17307,7 @@ function load() {
       state.header = d.header || []; state.footer = d.footer || [];
       state.pages = d.pages;
       state.cur = 0;
+      applyWordPressDesignSettings();
       return;
     }
     /* A document the server holds and this build cannot read is not a case to paper over
@@ -19838,21 +19865,23 @@ function newPageModal() {
 
 function projectModal() {
   const m = state.meta;
-  openModal('Project settings', `
+  const wordpressPageWasDirty = IS_WORDPRESS && typeof wordpressSaveState !== 'undefined'
+    ? wordpressSaveState.dirty : false;
+  openModal(IS_WORDPRESS ? 'Pagecraft design settings' : 'Project settings', `
     <div class="fgrid">
-      <div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(m.name)}"></div>
+      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(m.name)}"></div>`}
       <div class="f"><label for="mMax">Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
       <div class="f"><label>Body font</label><div id="mFontBox"></div></div>
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
       <div class="f"><label for="mSize">Base font size</label>${unitField('mSize', m.size, ['px', 'rem', '%'])}</div>
-      <div class="f"><label for="mLang">Language</label>${langSelect('mLang', m.lang)}</div>
+      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mLang">Language</label>${langSelect('mLang', m.lang)}</div>
       <div class="f"><label for="mBase">Site URL <span style="color:var(--text-3);font-weight:400">— enables canonical tags and a sitemap</span></label>
-        <input class="ctl" id="mBase" value="${esc(m.baseUrl)}" placeholder="https://example.com"></div>
+        <input class="ctl" id="mBase" value="${esc(m.baseUrl)}" placeholder="https://example.com"></div>`}
     </div>
-    <div class="fgrid">
+    ${IS_WORDPRESS ? `<div class="note" style="margin:0 0 var(--gap-3)">These visual defaults belong to this WordPress site. WordPress continues to manage the site title, language, URL, Site Icon and publishing.</div>` : `<div class="fgrid">
       <div class="f"><label>Favicon</label><div id="mFavBox"></div></div>
       <div class="f"><label>Social share image <span style="color:var(--text-3);font-weight:400">— when a page has none</span></label><div id="mOgBox"></div></div>
-    </div>
+    </div>`}
 
     <div class="f"><label>Colours <span style="color:var(--text-3);font-weight:500">— change one here and every element linked to it follows</span></label>
       <div id="mColors"></div></div>
@@ -19863,9 +19892,9 @@ function projectModal() {
     <div class="f"><label>Style classes <span style="color:var(--text-3);font-weight:500">— any reusable styling; later in the list wins</span></label>
       <div id="mClasses"></div></div>
 
-    <div class="f"><label for="mCss">Global CSS — injected into every exported page</label>
+    <div class="f"><label for="mCss">${IS_WORDPRESS ? 'Global CSS — applied to every Pagecraft page' : 'Global CSS — injected into every exported page'}</label>
       <textarea class="ctl" id="mCss" style="min-height:88px">${esc(m.css)}</textarea></div>
-    <div class="f"><label for="mHeadHtml">Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
+    ${IS_WORDPRESS ? '' : `<div class="f"><label for="mHeadHtml">Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
       <textarea class="ctl" id="mHeadHtml" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>
     <div class="f"><label>Webfonts</label>
       <label class="swrow"><input type="checkbox" id="mSelfHost"${m.selfHostFonts ? ' checked' : ''}>
@@ -19874,7 +19903,9 @@ function projectModal() {
         no request to <code>fonts.googleapis.com</code>, which is a round trip before any text
         renders and, in the EU, a transfer of your visitor's IP address. Latin and Latin Extended
         only. Applies to the <b>separate files</b> export and the archive; one self-contained file
-        has nowhere to put them.</div></div>`, `
+        has nowhere to put them.</div></div>`}`, IS_WORDPRESS ? `
+    <span style="flex:1"></span>
+    <button class="btn primary" id="mDone">Save settings</button>` : `
     <button class="btn" id="mBlank" title="Clear the pages and global regions, keep your colours and styles">Start an empty site</button>
     <button class="btn danger" id="mReset">Reset to demo content</button>
     <span style="flex:1"></span>
@@ -19908,14 +19939,16 @@ function projectModal() {
 
   /* app/src/ui/AssetField.tsx. Each box has one writer, so the component owns the div
      and redraws itself — there is nothing here to keep in step with it. */
-  ui().mountAssetField('mFavBox', {
-    get: () => m.favicon, set: v => { tx('project:favicon'); m.favicon = v; endTx(); save(); },
-    note: 'Exported as a &lt;link rel="icon"&gt;.'
-  });
-  ui().mountAssetField('mOgBox', {
-    get: () => m.ogImage, set: v => { tx('project:ogImage'); m.ogImage = v; endTx(); save(); },
-    note: 'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.'
-  });
+  if (!IS_WORDPRESS) {
+    ui().mountAssetField('mFavBox', {
+      get: () => m.favicon, set: v => { tx('project:favicon'); m.favicon = v; endTx(); save(); },
+      note: 'Exported as a &lt;link rel="icon"&gt;.'
+    });
+    ui().mountAssetField('mOgBox', {
+      get: () => m.ogImage, set: v => { tx('project:ogImage'); m.ogImage = v; endTx(); save(); },
+      note: 'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.'
+    });
+  }
   wire('mCss', v => { m.css = v; });
   wire('mHeadHtml', v => { m.headHtml = v; });
   {
@@ -19944,11 +19977,35 @@ function projectModal() {
 
   /* ---- image manager ---- */
 
-  $('#mDone').addEventListener('click', () => { closeModal(); render(); });
+  $('#mDone').addEventListener('click', async () => {
+    if (!IS_WORDPRESS) { closeModal(); render(); return; }
+    const button = $('#mDone');
+    button.disabled = true;
+    button.textContent = 'Saving…';
+    try {
+      const design = wordPressDesignSettings();
+      await HOST.settings.write({
+        design,
+        globalCss: assetsToBlob(wordpressStyles(page()).global)
+      });
+      WP.designSettings = clone(design);
+      if (!wordpressPageWasDirty && typeof wordpressSaveState !== 'undefined') {
+        wordpressSaveState.dirty = false;
+        if (typeof syncWordPressSaveButton === 'function') syncWordPressSaveButton();
+      }
+      closeModal(); render();
+      toast('Pagecraft settings saved');
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = 'Save settings';
+      toast(error && error.message || 'WordPress could not save these settings.');
+    }
+  });
   /* Naming the site *is* the confirmation: cancelling the name cancels the whole
      thing, so there is one dialog rather than a warning followed by a prompt — and
      naming it is what you were going to do next anyway. */
-  $('#mBlank').addEventListener('click', async () => {
+  const blankButton = $('#mBlank');
+  if (blankButton) blankButton.addEventListener('click', async () => {
     const name = await askText('Start an empty site', 'Site name', '', {
       ok: 'Start empty',
       placeholder: state.meta.name === 'Pagecraft' ? 'My site' : state.meta.name,
@@ -19963,7 +20020,8 @@ function projectModal() {
     showPanel('add');
   });
 
-  $('#mReset').addEventListener('click', async () => {
+  const resetButton = $('#mReset');
+  if (resetButton) resetButton.addEventListener('click', async () => {
     if (!await askConfirm('Replace everything?', '<b>Your current pages are lost.</b> Export a project JSON first to keep them.', { ok: 'Replace with demo' })) return;
     hist.u.push(clone(doc()));
     seed(); selSet([]); closeModal(); render(); writeNow(); toast('Demo content restored');
