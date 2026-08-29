@@ -13582,13 +13582,16 @@ var PC_UI = (() => {
   var declCount = (css) => ["d", "t", "m"].reduce((k3, b2) => k3 + Object.keys(css[b2] || {}).length, 0);
   function StyleClasses() {
     const list2 = C2.classes();
-    if (!list2.length) {
-      return /* @__PURE__ */ u2("div", { class: "note", children: [
-        "No classes yet. Select an element, open ",
-        /* @__PURE__ */ u2("b", { children: "Style" }),
-        ", and save its styling as a class."
-      ] });
-    }
+    const add = async () => {
+      const name = await L2.askText("New class style", "Class name", "New class", {
+        ok: "Add class",
+        note: "Apply it to an element, then edit its shared styling from the Style tab."
+      });
+      if (name === null) return;
+      C2.edit(() => C2.classAdd(name));
+      repaint("classes");
+      L2.toast("Class style added");
+    };
     const remove = async (id) => {
       const c3 = C2.findClass(id);
       if (!c3) return;
@@ -13603,6 +13606,11 @@ var PC_UI = (() => {
       L2.toast("Class deleted, looks kept");
     };
     return /* @__PURE__ */ u2(S, { children: [
+      !list2.length && /* @__PURE__ */ u2("div", { class: "note", children: [
+        "No class styles yet. Add one here, then apply it to an element and edit its shared styling from the ",
+        /* @__PURE__ */ u2("b", { children: "Style" }),
+        " tab."
+      ] }),
       list2.map((c3, i3) => {
         const props = declCount(c3.css);
         return /* @__PURE__ */ u2("div", { class: "arow", children: [
@@ -13662,6 +13670,10 @@ var PC_UI = (() => {
           )
         ] }, c3.id);
       }),
+      /* @__PURE__ */ u2("button", { class: "btn block", style: { fontSize: "var(--fs-1)" }, onClick: add, children: [
+        /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+        " Add class style"
+      ] }),
       /* @__PURE__ */ u2("div", { class: "note", children: "Lower overrides higher. Element styling wins." })
     ] });
   }

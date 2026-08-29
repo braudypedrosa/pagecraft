@@ -839,3 +839,18 @@ test('page, token, class, and text-style typing closes one undo transaction on b
   a.ok(r.names().includes('tx'));
   a.ok(r.names().includes('endTx'));
 });
+
+test('style classes can be created from project settings', async () => {
+  const before = C.classes().length;
+  r.draw(() => <StyleClasses />, 'classes');
+  const add = r.$$('button').find(button => button.textContent?.includes('Add class style'));
+  a.ok(add, 'project settings expose an add-class action');
+
+  r.click(add!);
+  await Promise.resolve();
+
+  a.equal(C.classes().length, before + 1);
+  a.equal(C.classes().at(-1)?.name, 'Stub name');
+  a.ok(r.names().includes('askText'));
+  a.ok(r.names().includes('toast'));
+});

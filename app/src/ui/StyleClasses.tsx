@@ -14,10 +14,16 @@ const declCount = (css: { d: object; t: object; m: object }) =>
 export function StyleClasses() {
   const list = C.classes();
 
-  if (!list.length) {
-    return <div class="note">No classes yet. Select an element, open <b>Style</b>, and
-      save its styling as a class.</div>;
-  }
+  const add = async () => {
+    const name = await L.askText('New class style', 'Class name', 'New class', {
+      ok: 'Add class',
+      note: 'Apply it to an element, then edit its shared styling from the Style tab.'
+    });
+    if (name === null) return;
+    C.edit(() => C.classAdd(name));
+    repaint('classes');
+    L.toast('Class style added');
+  };
 
   const remove = async (id: string) => {
     const c = C.findClass(id);
@@ -33,6 +39,8 @@ export function StyleClasses() {
 
   return (
     <>
+      {!list.length && <div class="note">No class styles yet. Add one here, then apply it
+        to an element and edit its shared styling from the <b>Style</b> tab.</div>}
       {list.map((c, i) => {
         const props = declCount(c.css);
         return (
@@ -60,6 +68,9 @@ export function StyleClasses() {
           </div>
         );
       })}
+      <button class="btn block" style={{ fontSize: 'var(--fs-1)' }} onClick={add}>
+        <Icon name="plus" size={12} /> Add class style
+      </button>
       <div class="note">Lower overrides higher. Element styling wins.</div>
     </>
   );
