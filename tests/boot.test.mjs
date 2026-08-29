@@ -214,6 +214,11 @@ test('WordPress mode boots the shared editor and saves a native fallback through
         if (String(url).endsWith('/media')) {
           return { ok: true, status: 200, json: async () => [] };
         }
+        if (String(url).endsWith('/pages/42/revisions') && (opts.method || 'GET') === 'GET') {
+          return { ok: true, status: 200, json: async () => [{
+            id: 'revision-1', version: 1, createdAt: '2026-08-29T00:00:00Z', current: true
+          }] };
+        }
         if (String(url).endsWith('/pages/42/document') && opts.method === 'PUT') {
           return { ok: true, status: 200, json: async () => ({ version: 1 }) };
         }
@@ -233,6 +238,10 @@ test('WordPress mode boots the shared editor and saves a native fallback through
     a.equal(doc.querySelector(selector), null, `${selector} must not enter the WordPress render tree`);
   }
   a.equal(doc.querySelector('#publishLabel')?.textContent.trim(), 'Done');
+  a.equal([...doc.querySelectorAll('#paneAdd .pitem')].some(item => item.textContent.trim() === 'Collection'), false,
+    'the Cloud Collection widget must not enter the WordPress element library');
+  a.doesNotMatch(doc.querySelector('#modebar')?.textContent || '', /Native landing page|\/native-landing-page/,
+    'WordPress already owns the page title and permalink outside the canvas toolbar');
   a.equal(dom.window.__CORE.state.pages.length, 1, 'new WordPress page did not start as one local page');
   a.equal(dom.window.__CORE.state.pages[0].name, 'Native landing page');
   a.equal(dom.window.__CORE.state.pages[0].slug, 'native-landing-page');
@@ -254,8 +263,17 @@ test('WordPress mode boots the shared editor and saves a native fallback through
   a.ok(calls.every(([url]) => String(url).startsWith('http://localhost/wp-json/pagecraft/v1/')),
     'WordPress editing must stay on its same-origin REST adapter when Cloud is unavailable');
   doc.querySelector('#reviewBtn').click();
-  a.equal(doc.querySelector('#mTitle').textContent, 'Review');
+  a.equal(doc.querySelector('#rightAux').hidden, false, 'WordPress Review opens in the inspector column');
+  a.ok(doc.querySelector('#rightReview'), 'the Review component is mounted in the side panel');
+  a.equal(doc.querySelector('#modal').hidden, true, 'WordPress Review must not interrupt with a modal');
   a.equal(doc.querySelector('#exZip'), null, 'WordPress Review must not mount static export controls');
+  doc.querySelector('#rightSurfaceClose').click();
+  a.equal(doc.querySelector('#rightAux').hidden, true, 'closing Review returns to the inspector');
+  doc.querySelector('#historyBtn').click();
+  await new Promise(r => setTimeout(r, 0));
+  a.equal(doc.querySelector('#rightAux').hidden, false, 'WordPress History opens in the inspector column');
+  a.match(doc.querySelector('#rightAux').textContent, /Version history/);
+  a.equal(doc.querySelector('#modal').hidden, true, 'WordPress History must not interrupt with a modal');
   a.deepEqual(errors, []);
   dom.window.close();
 });

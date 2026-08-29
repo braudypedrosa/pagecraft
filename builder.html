@@ -291,6 +291,13 @@ body.preview .rail{display:none}
    to be told explicitly. Without this the attribute looks set and nothing moves. */
 .right[hidden]{display:none}
 body.preview .left,body.preview .right{display:none}
+.sidePanelBody{flex:1;min-height:0;overflow:auto;padding:14px}
+.rightAux .review{margin:0}
+.rightAux .historyRow{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-3);padding:12px 0}
+.rightAux .historyMeta{grid-column:1}
+.rightAux .historyRow .btn,.rightAux .historyCurrent{grid-column:2;grid-row:1/4;align-self:center}
+.rightAux .alert{margin:0}
+.rightAux .panelClose{display:grid}
 .panelHead{
   display:flex;align-items:center;gap:var(--sp-4);height:44px;flex:0 0 44px;padding:0 14px;
   border-bottom:1px solid var(--line);font-size:var(--fs-4);font-weight:600;letter-spacing:-.01em;
@@ -1325,6 +1332,7 @@ pre.code{
 
     <!-- ============ RIGHT ============ -->
     <aside class="right" id="right"></aside>
+    <aside class="right rightAux" id="rightAux" aria-label="Workbench details" hidden></aside>
   </div>
 </div>
 
@@ -1545,7 +1553,7 @@ function wireHistory() {
   const btn = $('#historyBtn');
   if (!btn || !HOST || !HOST_FEATURES.revisions || (!IS_WORDPRESS && SRV.role !== 'owner')) return;
   btn.hidden = false;
-  btn.addEventListener('click', historyModal);
+  btn.addEventListener('click', IS_WORDPRESS ? historyPanel : historyModal);
 }
 
 const historyDate = value => {
@@ -1554,6 +1562,93 @@ const historyDate = value => {
     dateStyle: 'medium', timeStyle: 'short'
   }).format(date);
 };
+
+let rightSurfaceTrigger = null;
+function openRightSurface(title, description, content, trigger) {
+  if (!IS_WORDPRESS) return null;
+  const inspector = $('#right'), panel = $('#rightAux');
+  if (!inspector || !panel) return null;
+  rightSurfaceTrigger = trigger || null;
+  inspector.hidden = true;
+  panel.hidden = false;
+  panel.innerHTML = `<div class="sHead">
+    <span class="ic">${svg('page', 14)}</span>
+    <span class="tt"><b>${esc(title)}</b><small>${esc(description)}</small></span>
+    <button class="iconbtn panelClose" id="rightSurfaceClose" title="Close ${esc(title)}" aria-label="Close ${esc(title)}">${svg('close', 13)}</button>
+  </div><div class="sidePanelBody">${content}</div>`;
+  for (const button of [$('#reviewBtn'), $('#historyBtn')]) {
+    if (!button) continue;
+    const active = button === trigger;
+    button.classList.toggle('on', active);
+    button.setAttribute('aria-pressed', String(active));
+  }
+  $('#rightSurfaceClose').addEventListener('click', closeRightSurface);
+  layoutCanvas();
+  requestAnimationFrame(() => $('#rightSurfaceClose')?.focus());
+  return panel;
+}
+
+function closeRightSurface() {
+  const panel = $('#rightAux');
+  if (!panel || panel.hidden) return;
+  panel.hidden = true;
+  panel.replaceChildren();
+  for (const button of [$('#reviewBtn'), $('#historyBtn')]) {
+    if (!button) continue;
+    button.classList.remove('on');
+    button.setAttribute('aria-pressed', 'false');
+  }
+  const trigger = rightSurfaceTrigger;
+  rightSurfaceTrigger = null;
+  renderRight();
+  layoutCanvas();
+  if (trigger && document.contains(trigger)) trigger.focus();
+}
+
+function closeReviewSurface() {
+  if (IS_WORDPRESS) closeRightSurface();
+  else closeModal();
+}
+
+async function historyPanel() {
+  const panel = openRightSurface('Version history', 'WordPress revisions',
+    '<div class="note" id="rightHistory">Loading saved versions…</div>', $('#historyBtn'));
+  if (!panel) return;
+  const host = $('#rightHistory');
+  try {
+    const revisions = await HOST.revisions.list();
+    if (!host || panel.hidden) return;
+    host.outerHTML = revisions.length ? `<div class="historyList" id="rightHistory">${revisions.map(revision => {
+      const current = revision.version === SRV.version;
+      const author = revision.author && (revision.author.name || revision.author.email);
+      return `<div class="historyRow">
+        <div class="historyVersion">Version ${revision.version}</div>
+        <div class="historyMeta">${esc(historyDate(revision.createdAt))}</div>
+        <div class="historyMeta">${esc(author || 'Imported version')}</div>
+        ${current ? '<span class="historyCurrent">Current</span>' : `<button class="btn tiny" data-restore="${revision.version}">Restore</button>`}
+      </div>`;
+    }).join('')}</div>` : '<div class="note" id="rightHistory">No saved versions yet.</div>';
+    $$('[data-restore]', panel).forEach(button => button.addEventListener('click', async () => {
+      const version = Number(button.dataset.restore);
+      if (!await askConfirm(`Restore version ${version}?`,
+        'Your current page will remain in WordPress revisions. Restoring creates a new revision and reloads the editor.',
+        { ok: 'Restore version ' + version, danger: true })) return;
+      button.disabled = true;
+      button.textContent = 'Restoring…';
+      try {
+        await HOST.revisions.restore(version, SRV.version);
+        location.reload();
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = 'Restore';
+        toast(error.message || String(error));
+      }
+    }));
+  } catch (error) {
+    if (!host || panel.hidden) return;
+    host.outerHTML = `<div class="alert" id="rightHistory"><b>History is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
+  }
+}
 
 async function historyModal() {
   openModal('Version history', '<div class="note">Loading saved versions…</div>',
@@ -1748,6 +1843,13 @@ function reviewModal() {
     '<span style="flex:1"></span><button class="btn primary" id="reviewClose">Close</button>');
   ui().mountReview();
   $('#reviewClose').addEventListener('click', closeModal);
+}
+
+function reviewPanel() {
+  if (editing.on) exitEdit();
+  const panel = openRightSurface('Review', 'Checks for this WordPress page',
+    '<div class="review" id="rightReview"></div>', $('#reviewBtn'));
+  if (panel) ui().mountReview('rightReview');
 }
 
 /* May this session change the shape of the site, as opposed to its words?
@@ -2627,6 +2729,7 @@ function select(id, opts = {}) {
   document.body.classList.toggle('library-focus', !state.ui.sel);
   paintSel();
   renderRight();
+  renderModebar();
   renderLayers();
   drawBlocks();
   if (opts.scroll && state.ui.sel && cdoc) {
@@ -3329,12 +3432,13 @@ const ui = () => UI || (UI = PC_UI.mount(
   /* __CORE is generated by build.mjs from the core bundle's own export list, so it
      cannot drift from what the core actually exports. See the note there. */
   __CORE,
-  { canStructure, wordpressContent, select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
+  { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent, wordpressContent,
+    select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
     askText, askConfirm, cmsModal, saveBlockFlow, toast, startDrag, appendSmart,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    closeModal,
+    closeModal, closeReviewSurface,
     newPageModal, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
@@ -3719,17 +3823,17 @@ function renderModebar() {
   const R = regions().find(x => x.kind === scope) || { label: '' };
   $('#modebar').innerHTML =
     (scope === 'main'
-      ? `<span class="pill">${svg('page', 11)} ${esc(page().name)}</span>`
-        + (isFront(page()) ? '' : `<span class="crumb">/${esc(page().slug)}</span>`)
+      ? (IS_WORDPRESS ? '' : `<span class="pill">${svg('page', 11)} ${esc(page().name)}</span>`
+        + (isFront(page()) ? '' : `<span class="crumb">/${esc(page().slug)}</span>`))
       : scope === 'component'
         ? `<span class="pill g">${svg('component', 11)} Editing ${esc(R.label.replace('Component — ', ''))} — ${cUsageLabel()}</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`
         : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — shared by all ${state.pages.length} pages</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`) +
-    `<span class="spacer"></span>` +
-    (crumbs.length ? `<span class="crumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
+    (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
+    (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
     itemBarHtml() +
-    `<span class="pill">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+    `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
   $$('.itemBar', $('#modebar')).forEach(ib => $$('button', ib).forEach(b => b.addEventListener('click', () => {
     state.ui.item = state.ui.item || {};
     state.ui.item[b.dataset.col] = +b.dataset.i;
@@ -3825,6 +3929,7 @@ let reviewCounts = null;
 const refreshReview = dbounce(() => {
   try { reviewCounts = lintCounts(lint()); } catch (e) { reviewCounts = null; }
   paintReview();
+  if ($('#rightReview')) ui().mountReview('rightReview');
 }, 700);
 function paintReview() {
   const dot = $('#reviewDot'), txt = $('#reviewText');
@@ -4908,6 +5013,7 @@ function hotkey(e) {
   if (meta && k === 'e') {
     e.preventDefault();
     if (HOST_FEATURES.projectExport) exportModal();
+    else if (IS_WORDPRESS) reviewPanel();
     else reviewModal();
     return;
   }
@@ -4944,6 +5050,7 @@ function hotkey(e) {
     if (n && DEF[n.node.type].edit) { e.preventDefault(); enterEdit(state.ui.sel); return; }
   }
   if (k === 'escape') {
+    if (IS_WORDPRESS && !$('#rightAux')?.hidden) { closeRightSurface(); return; }
     /* one step per press: back to a single element first, then up the tree.
        Doing both at once would lose the set before you could see what you had. */
     if (multiOn()) { select(state.ui.sel); return; }
@@ -4997,7 +5104,7 @@ function bindTop() {
     primary.setAttribute('aria-label', returnLabel);
     primaryLabel.textContent = 'Done';
     primary.addEventListener('click', () => finishWordPress(primary));
-    $('#reviewBtn').addEventListener('click', reviewModal);
+    $('#reviewBtn').addEventListener('click', reviewPanel);
   } else if (SRV) {
     if (SRV.role === 'owner') {
       primary.title = 'Publish this draft';

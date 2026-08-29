@@ -227,6 +227,15 @@ test('a list of words survives the filter, because the list is where the words a
 
 /* ------------------------------------------------------------ templates */
 
+test('WordPress does not offer Pagecraft Cloud collections as new elements', () => {
+  const wordpress = rig({ dynamicContentProvider: 'wordpress' });
+  wordpress.draw(<Add />);
+  const labels = wordpress.$$('.pitem span').map(item => item.textContent);
+  a.equal(labels.includes('Collection'), false);
+  a.ok(labels.includes('Section'), 'the rest of the visual element library remains available');
+  wordpress.host.remove();
+});
+
 test('every template group is offered from the page, header and footer alike', () => {
   /* The first version filtered the list by the current region, which meant the Header and
      Footer groups did not exist until you had already switched to editing that region —

@@ -57,6 +57,9 @@ export interface Legacy {
       accounts. The server refuses a structural save either way — this is so the panels do
       not offer one. */
   canStructure(): boolean;
+  /** Which product owns dynamic content in this host. The existing Collection widget is
+      Pagecraft's in-document CMS and must not be offered when WordPress owns queries. */
+  dynamicContentProvider(): false | 'pagecraft' | 'wordpress';
   /** Native WordPress pages/posts available as link destinations. Empty in the
       standalone build. Returning a snapshot keeps the UI read-only by construction. */
   wordpressContent(): readonly WordPressContentTarget[];
@@ -124,6 +127,9 @@ export interface Legacy {
   writeNow(): void;
   /** dismiss whichever dialog is open */
   closeModal(): void;
+  /** dismiss the surface that currently owns Review. In WordPress that is the inspector
+      side panel; in the hosted editor it remains the Publish/Review dialog. */
+  closeReviewSurface(): void;
 
   /* History. `tx` opens a coalescing transaction keyed by field, so a run of
      keystrokes is one undo step; `endTx` closes it on blur. Anything that moves

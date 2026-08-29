@@ -57,9 +57,13 @@ type AddTab = (typeof TABS)[number][0];
 const tab = () => C.state.ui.atab || 'widgets';
 
 function Widgets() {
+  const groups = PAL.map(group => ({
+    ...group,
+    items: group.items.filter(([key]) => key !== 'list' || L.dynamicContentProvider() === 'pagecraft')
+  }));
   return (
     <>
-      {PAL.map(g => (
+      {groups.map(g => (
         <>
           <div class="plabel">{g.g}</div>
           <div class="pgrid">

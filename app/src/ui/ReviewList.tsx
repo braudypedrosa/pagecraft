@@ -28,7 +28,7 @@ export function ReviewList() {
     const pi = C.state.pages.findIndex(p => p.slug === f.where.slug);
     if (pi > -1) C.state.cur = pi;
     C.state.ui.mode = (REGION_MODE[f.where.region || ''] || 'page') as 'page' | 'header' | 'footer';
-    L.closeModal();
+    L.closeReviewSurface();
     L.appRender();
     L.select(f.nodeId, { scroll: true });
     if (!C.locate(f.nodeId)) L.toast('That element is no longer in the project');

@@ -13,6 +13,7 @@ import { install, registerPainter, type Legacy } from '../app/src/ui/ctx';
 export type Call = [string, ...any[]];
 type StubOptions = {
   canStructure?: boolean;
+  dynamicContentProvider?: ReturnType<Legacy['dynamicContentProvider']>;
   wordpressContent?: ReturnType<Legacy['wordpressContent']>;
 };
 
@@ -24,6 +25,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     /* True by default, because that is the single-file build and most cases are not about
        roles. `stubLegacy(calls, { canStructure: false })` is how a case asks for the other. */
     canStructure: () => opts.canStructure !== false,
+    dynamicContentProvider: () => opts.dynamicContentProvider || 'pagecraft',
     wordpressContent: () => opts.wordpressContent || [],
     select: rec('select'),
     /* records *and* switches, because the real one does: `tree()` reads the mode, so a
@@ -65,6 +67,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     appRender: rec('appRender'),
     writeNow: rec('writeNow'),
     closeModal: rec('closeModal'),
+    closeReviewSurface: rec('closeReviewSurface'),
     tx: rec('tx'),
     endTx: rec('endTx'),
     paint: rec('paint'),
