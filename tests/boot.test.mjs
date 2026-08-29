@@ -481,6 +481,8 @@ test('status messages and narrow-workspace controls expose accessible hooks', as
     'numeric values and their unit selectors render as one compound control');
   a.match(html, /id="wpAddElementsReturn"[\s\S]*?<span>Add elements<\/span>/,
     'the WordPress Navigator exposes an explicit return to the Add panel');
+  a.match(html, /\.panelHead \.panelHeadAction\{[\s\S]*?align-items:center;justify-content:center/,
+    'the Navigator return action centers its icon and label as one control');
   a.match(html, /@media\(max-width:900px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/);
   a.match(html, /@media\(max-width:600px\)[\s\S]*?\.left,\.right\{[\s\S]*?position:absolute/);
 });

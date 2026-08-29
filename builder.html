@@ -304,13 +304,14 @@ body.preview .left,body.preview .right{display:none}
 }
 .panelHead .spacer{flex:1}
 .panelHead .panelHeadAction{
-  margin-left:auto;height:28px;padding:0 9px;display:inline-flex;align-items:center;gap:var(--sp-2);
+  margin-left:auto;height:28px;padding:0 9px;display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);
   border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel);color:var(--text-2);
-  font:inherit;font-family:var(--label);font-size:var(--fs-2);font-weight:600;cursor:pointer;
+  font:inherit;font-family:var(--label);font-size:var(--fs-2);font-weight:600;line-height:1;text-align:center;cursor:pointer;
 }
 .panelHead .panelHeadAction:hover{border-color:var(--ink);color:var(--ink);background:var(--field)}
 .panelHead .panelHeadAction:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .panelHead .panelHeadAction svg{width:12px;height:12px;flex:0 0 12px}
+.panelHead .panelHeadAction span{display:block;line-height:1}
 .pane{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 .pane[hidden]{display:none}
 /* The Add library alternates between short empty states and long scrolling lists.

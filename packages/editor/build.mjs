@@ -51,7 +51,7 @@ writeFileSync(
 );
 writeFileSync(join(dist, 'contract.json'), JSON.stringify({
   format: 'pagecraft.editor-contract.v1',
-  editorVersion: '0.2.10',
+  editorVersion: '0.2.11',
   schemaVersion: Core.SCHEMA,
   rendererVersion: `pagecraft-core-${Core.SCHEMA}`,
   hosts: {
