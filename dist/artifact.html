@@ -13573,7 +13573,6 @@ var PC_UI = (() => {
   var esc6 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/StyleClasses.tsx
-  var declCount = (css) => ["d", "t", "m"].reduce((k3, b2) => k3 + Object.keys(css[b2] || {}).length, 0);
   function StyleClasses() {
     const list2 = C2.classes();
     const add = async () => {
@@ -13606,7 +13605,6 @@ var PC_UI = (() => {
         " tab."
       ] }),
       list2.map((c3, i3) => {
-        const props = declCount(c3.css);
         return /* @__PURE__ */ u2("div", { class: "arow", children: [
           /* @__PURE__ */ u2("span", { style: {
             flex: "0 0 34px",
@@ -13636,10 +13634,6 @@ var PC_UI = (() => {
               "aria-label": "Class name"
             }
           ) }),
-          /* @__PURE__ */ u2("span", { class: "rowmeta", title: `${props} declaration${props === 1 ? "" : "s"} in this class`, children: [
-            props,
-            " decl"
-          ] }),
           /* @__PURE__ */ u2(
             "button",
             {

@@ -854,3 +854,10 @@ test('style classes can be created from project settings', async () => {
   a.ok(r.names().includes('askText'));
   a.ok(r.names().includes('toast'));
 });
+
+test('style-class rows omit implementation-detail declaration counts', () => {
+  C.classAdd('Card');
+  r.draw(() => <StyleClasses />, 'classes');
+  a.equal(r.$('.rowmeta'), null);
+  a.equal(/\b\d+ decl\b/.test(r.host.textContent || ''), false);
+});

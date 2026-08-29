@@ -6,11 +6,6 @@
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 
-/** How many declarations a class carries, across all three breakpoints. It is the only
-    number that tells you whether a class is doing anything. */
-const declCount = (css: { d: object; t: object; m: object }) =>
-  (['d', 't', 'm'] as const).reduce((k, b) => k + Object.keys(css[b] || {}).length, 0);
-
 export function StyleClasses() {
   const list = C.classes();
 
@@ -42,7 +37,6 @@ export function StyleClasses() {
       {!list.length && <div class="note">No class styles yet. Add one here, then apply it
         to an element and edit its shared styling from the <b>Style</b> tab.</div>}
       {list.map((c, i) => {
-        const props = declCount(c.css);
         return (
           <div class="arow" key={c.id}>
             <span style={{
@@ -56,9 +50,6 @@ export function StyleClasses() {
                   const cls = C.findClass(c.id);
                   if (cls) { cls.name = (e.target as HTMLInputElement).value; L.save(); }
                 }} onBlur={L.endTx} aria-label="Class name" />
-            </span>
-            <span class="rowmeta" title={`${props} declaration${props === 1 ? '' : 's'} in this class`}>
-              {props} decl
             </span>
             <button class="iconbtn" title="Raise precedence" disabled={i === 0}
               onClick={() => { C.edit(() => C.classMove(c.id, -1)); repaint('classes'); }}>
