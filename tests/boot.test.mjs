@@ -228,6 +228,10 @@ test('WordPress mode boots the shared editor and saves a native fallback through
     await new Promise(r => setTimeout(r, 25));
   }
   if (doc.querySelector('#savedTag')?.textContent === '—') dom.window.bindTop();
+  a.equal(doc.documentElement.dataset.pagecraftHost, 'wordpress');
+  for (const selector of ['#sitesBtn', '#shareBtn', '#accountBtn', '#leftRail', '#panePages', '#paneCms', '[data-act="project"]']) {
+    a.equal(doc.querySelector(selector), null, `${selector} must not enter the WordPress render tree`);
+  }
   a.equal(doc.querySelector('#publishLabel')?.textContent.trim(), 'Done');
   a.equal(dom.window.__CORE.state.pages.length, 1, 'new WordPress page did not start as one local page');
   a.equal(dom.window.__CORE.state.pages[0].name, 'Native landing page');
@@ -247,6 +251,11 @@ test('WordPress mode boots the shared editor and saves a native fallback through
   a.equal(typeof payload.compiled.globalCss, 'string');
   a.equal(typeof payload.compiled.pageCss, 'string');
   a.equal(new Headers(save[3]).get('X-WP-Nonce'), 'wp-rest-nonce');
+  a.ok(calls.every(([url]) => String(url).startsWith('http://localhost/wp-json/pagecraft/v1/')),
+    'WordPress editing must stay on its same-origin REST adapter when Cloud is unavailable');
+  doc.querySelector('#reviewBtn').click();
+  a.equal(doc.querySelector('#mTitle').textContent, 'Review');
+  a.equal(doc.querySelector('#exZip'), null, 'WordPress Review must not mount static export controls');
   a.deepEqual(errors, []);
   dom.window.close();
 });

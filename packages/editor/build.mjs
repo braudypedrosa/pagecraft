@@ -17,7 +17,8 @@ const editorSource = join(root, 'index.html');
 const editor = readFileSync(editorSource, 'utf8');
 
 if (!editor.includes('window.PC_WORDPRESS') || !editor.includes('createWordPressHostAdapter')
-  || !editor.includes('documentPath: WP.documentPath') || !editor.includes('WP.returnLabel')) {
+  || !editor.includes('documentPath: WP.documentPath') || !editor.includes('HOST.features')
+  || !editor.includes('applyHostFeatures')) {
   throw new Error('The Pagecraft build does not expose the WordPress host adapter.');
 }
 
@@ -50,9 +51,13 @@ writeFileSync(
 );
 writeFileSync(join(dist, 'contract.json'), JSON.stringify({
   format: 'pagecraft.editor-contract.v1',
-  editorVersion: '0.2.5',
+  editorVersion: '0.2.6',
   schemaVersion: Core.SCHEMA,
   rendererVersion: `pagecraft-core-${Core.SCHEMA}`,
+  hosts: {
+    wordpress: 'explicit-feature-contract',
+    web: 'explicit-feature-contract'
+  },
   packages: {
     site: SITE_PACKAGE_FORMAT_V1,
     page: PAGE_PACKAGE_FORMAT_V1,

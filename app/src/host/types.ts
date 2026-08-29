@@ -2,6 +2,31 @@ import type { Doc, UnknownDocumentInput } from '../core/types';
 
 export type HostKind = 'web' | 'wordpress';
 
+export type HostFeatureProvider = false | 'pagecraft' | 'wordpress';
+
+/**
+ * Product capabilities are separate from authorization capabilities. A WordPress
+ * administrator may be allowed to publish a page, for example, while hosted Pagecraft
+ * publishing must still be absent from the WordPress workbench.
+ */
+export interface HostFeatures {
+  readonly sites: boolean;
+  readonly account: boolean;
+  readonly billing: boolean;
+  readonly sharing: boolean;
+  readonly hostedPublishing: boolean;
+  readonly cloudPageManager: boolean;
+  readonly projectExport: boolean;
+  readonly pages: HostFeatureProvider;
+  readonly media: HostFeatureProvider;
+  readonly menus: HostFeatureProvider;
+  readonly revisions: HostFeatureProvider;
+  readonly preview: HostFeatureProvider;
+  readonly publishing: HostFeatureProvider;
+  readonly globals: HostFeatureProvider;
+  readonly dynamicContent: HostFeatureProvider;
+}
+
 export type HostCapability =
   | 'edit_document'
   | 'edit_structure'
@@ -92,6 +117,23 @@ export interface HostMedia {
   height?: number;
 }
 
+export interface HostContentSource {
+  id: string;
+  label: string;
+  restBase?: string;
+}
+
+export interface HostContentItem {
+  id: string;
+  source: string;
+  title: string;
+  slug: string;
+  status: string;
+  url?: string;
+  modifiedAt?: string;
+  excerpt?: string;
+}
+
 export type HostSettings = Readonly<Record<string, unknown>>;
 
 export interface HostAuthenticationAdapter {
@@ -134,12 +176,19 @@ export interface HostSettingsAdapter {
   write(settings: Record<string, unknown>): Promise<HostSettings>;
 }
 
+export interface HostContentAdapter {
+  sources(): Promise<readonly HostContentSource[]>;
+  list(source: string, query?: { search?: string; page?: number; perPage?: number }): Promise<readonly HostContentItem[]>;
+  get(source: string, id: string): Promise<HostContentItem>;
+}
+
 /**
  * Everything the shared editor is allowed to know about its host. Core document behavior,
  * compilation, rendering, components and migrations intentionally do not import this module.
  */
 export interface PagecraftHostAdapter {
   readonly kind: HostKind;
+  readonly features: Readonly<HostFeatures>;
   readonly authentication: HostAuthenticationAdapter;
   readonly documents: HostDocumentAdapter;
   readonly pages: HostPageAdapter;
@@ -147,6 +196,8 @@ export interface PagecraftHostAdapter {
   readonly revisions: HostRevisionAdapter;
   readonly assets: HostAssetAdapter;
   readonly settings: HostSettingsAdapter;
+  /** Host-backed dynamic content. Pagecraft's in-document collections do not need this adapter. */
+  readonly content?: HostContentAdapter;
 }
 
 export interface WebRelease {
@@ -172,6 +223,7 @@ export interface WebHostAdapter extends PagecraftHostAdapter {
 
 export interface WordPressHostAdapter extends PagecraftHostAdapter {
   readonly kind: 'wordpress';
+  readonly content: HostContentAdapter;
   /** Replace a REST nonce after WordPress refreshes it. The value remains transport-only. */
   setNonce(nonce: string): void;
 }

@@ -1,6 +1,6 @@
-import { assetAdapter, authenticationAdapter, documentAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
+import { assetAdapter, authenticationAdapter, contentAdapter, documentAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
 import { FetchHostTransport, type FetchLike, type HostTransport } from './transport';
-import type { HostCapability, HostSession, WordPressHostAdapter } from './types';
+import type { HostCapability, HostFeatures, HostSession, WordPressHostAdapter } from './types';
 
 export interface WordPressHostOptions {
   restUrl?: string;
@@ -16,6 +16,24 @@ export interface WordPressHostOptions {
 }
 
 const normalizeRestUrl = (value: string) => value.replace(/\/+$/, '');
+
+export const WORDPRESS_HOST_FEATURES: Readonly<HostFeatures> = Object.freeze({
+  sites: false,
+  account: false,
+  billing: false,
+  sharing: false,
+  hostedPublishing: false,
+  cloudPageManager: false,
+  projectExport: false,
+  pages: 'wordpress',
+  media: 'wordpress',
+  menus: 'wordpress',
+  revisions: 'wordpress',
+  preview: 'wordpress',
+  publishing: 'wordpress',
+  globals: 'wordpress',
+  dynamicContent: 'wordpress'
+});
 
 export function createWordPressHostAdapter(options: WordPressHostOptions): WordPressHostAdapter {
   let nonce = options.nonce;
@@ -42,6 +60,7 @@ export function createWordPressHostAdapter(options: WordPressHostOptions): WordP
 
   return {
     kind: 'wordpress',
+    features: WORDPRESS_HOST_FEATURES,
     authentication,
     documents: documentAdapter(transport, documentPath),
     pages: pageAdapter(transport, '/pages'),
@@ -49,6 +68,7 @@ export function createWordPressHostAdapter(options: WordPressHostOptions): WordP
     revisions: revisionAdapter(transport, revisionsPath),
     assets: assetAdapter(transport, '/media'),
     settings: settingsAdapter(transport, '/settings'),
+    content: contentAdapter(transport, '/content'),
     setNonce(value) { nonce = value; }
   };
 }

@@ -1,5 +1,6 @@
 import type {
-  HostAssetAdapter, HostAuthenticationAdapter, HostCapability, HostDocumentAdapter,
+  HostAssetAdapter, HostAuthenticationAdapter, HostCapability, HostContentAdapter, HostContentItem,
+  HostContentSource, HostDocumentAdapter,
   HostMedia, HostMenu, HostMenuAdapter, HostPage, HostPageAdapter, HostPageWrite,
   HostRevision, HostRevisionAdapter, HostSession, HostSettings, HostSettingsAdapter
 } from './types';
@@ -105,6 +106,25 @@ export function settingsAdapter(transport: HostTransport, path: string): HostSet
     async read() { return (await transport.request<HostSettings>({ path })).body; },
     async write(settings) {
       return (await transport.request<HostSettings>({ method: 'PUT', path, body: settings })).body;
+    }
+  };
+}
+
+export function contentAdapter(transport: HostTransport, root: string): HostContentAdapter {
+  return {
+    async sources() {
+      return (await transport.request<HostContentSource[]>({ path: `${root}/sources` })).body;
+    },
+    async list(source, query = {}) {
+      const params = new URLSearchParams();
+      if (query.search) params.set('search', query.search);
+      if (query.page) params.set('page', String(query.page));
+      if (query.perPage) params.set('per_page', String(query.perPage));
+      const suffix = params.size ? `?${params}` : '';
+      return (await transport.request<HostContentItem[]>({ path: `${root}/${encodePath(source)}${suffix}` })).body;
+    },
+    async get(source, id) {
+      return (await transport.request<HostContentItem>({ path: `${root}/${encodePath(source)}/${encodePath(id)}` })).body;
     }
   };
 }

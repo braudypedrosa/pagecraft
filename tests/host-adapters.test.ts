@@ -62,6 +62,15 @@ function wordpressFetch(doc: Doc) {
     if (path === '/media/51' && method === 'DELETE') return json({ removed: '51' });
     if (path === '/settings' && method === 'GET') return json({ theme: 'pagecraft', editor: true });
     if (path === '/settings' && method === 'PUT') return json({ theme: 'pagecraft', editor: false });
+    if (path === '/content/sources' && method === 'GET') return json([
+      { id: 'post', label: 'Posts', restBase: 'posts' }
+    ]);
+    if (path === '/content/post' && method === 'GET') return json([
+      { id: '73', source: 'post', title: 'News', slug: 'news', status: 'publish' }
+    ]);
+    if (path === '/content/post/73' && method === 'GET') return json({
+      id: '73', source: 'post', title: 'News', slug: 'news', status: 'publish'
+    });
     throw new Error(`Unhandled fixture request: ${method} ${path}`);
   };
   return { calls, fetcher };
@@ -81,6 +90,10 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   });
 
   a.equal(host.kind, 'wordpress');
+  a.equal(host.features.hostedPublishing, false);
+  a.equal(host.features.projectExport, false);
+  a.equal(host.features.media, 'wordpress');
+  a.equal(host.features.dynamicContent, 'wordpress');
   a.equal(host.authentication.can('edit_document'), true);
   a.equal(host.authentication.can('manage_pages'), false);
   const session = await host.authentication.session();
@@ -117,6 +130,11 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
 
   a.equal((await host.settings.read()).theme, 'pagecraft');
   a.equal((await host.settings.write({ editor: false })).editor, false);
+
+  a.equal((await host.content.sources())[0].id, 'post');
+  a.equal((await host.content.list('post', { search: 'News', page: 2, perPage: 10 }))[0].id, '73');
+  a.equal(new URL(fixture.calls.at(-1)!.url).search, '?search=News&page=2&per_page=10');
+  a.equal((await host.content.get('post', '73')).title, 'News');
 
   const firstHeaders = new Headers(fixture.calls[0].init.headers);
   a.equal(firstHeaders.get('X-WP-Nonce'), 'nonce-one');
@@ -168,6 +186,9 @@ test('web and WordPress hosts adopt and compile the identical document identical
     siteId: 'site-1', role: 'owner', document: doc, version: 4,
     fetch: async () => { throw new Error('the injected web document should not make a request'); }
   });
+  a.equal(web.features.hostedPublishing, true);
+  a.equal(web.features.projectExport, true);
+  a.equal(web.features.pages, 'pagecraft');
   const fixture = wordpressFetch(doc);
   const wordpress = createWordPressHostAdapter({
     restUrl: 'https://wp.test/wp-json/pagecraft/v1', pageId: 42, nonce: 'n', fetch: fixture.fetcher

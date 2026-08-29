@@ -16332,8 +16332,43 @@ var PC_UI = (() => {
       }
     };
   }
+  function contentAdapter(transport, root) {
+    return {
+      async sources() {
+        return (await transport.request({ path: `${root}/sources` })).body;
+      },
+      async list(source, query = {}) {
+        const params = new URLSearchParams();
+        if (query.search) params.set("search", query.search);
+        if (query.page) params.set("page", String(query.page));
+        if (query.perPage) params.set("per_page", String(query.perPage));
+        const suffix = params.size ? `?${params}` : "";
+        return (await transport.request({ path: `${root}/${encodePath(source)}${suffix}` })).body;
+      },
+      async get(source, id) {
+        return (await transport.request({ path: `${root}/${encodePath(source)}/${encodePath(id)}` })).body;
+      }
+    };
+  }
 
   // app/src/host/web.ts
+  var WEB_HOST_FEATURES = Object.freeze({
+    sites: true,
+    account: true,
+    billing: true,
+    sharing: true,
+    hostedPublishing: true,
+    cloudPageManager: true,
+    projectExport: true,
+    pages: "pagecraft",
+    media: "pagecraft",
+    menus: "pagecraft",
+    revisions: "pagecraft",
+    preview: "pagecraft",
+    publishing: "pagecraft",
+    globals: "pagecraft",
+    dynamicContent: "pagecraft"
+  });
   var webCapabilities = (role) => role === "content" ? ["edit_document"] : [
     "edit_document",
     "edit_structure",
@@ -16370,6 +16405,7 @@ var PC_UI = (() => {
     });
     return {
       kind: "web",
+      features: WEB_HOST_FEATURES,
       authentication: authenticationAdapter(session),
       documents: {
         async load() {
@@ -16424,6 +16460,23 @@ var PC_UI = (() => {
 
   // app/src/host/wordpress.ts
   var normalizeRestUrl = (value) => value.replace(/\/+$/, "");
+  var WORDPRESS_HOST_FEATURES = Object.freeze({
+    sites: false,
+    account: false,
+    billing: false,
+    sharing: false,
+    hostedPublishing: false,
+    cloudPageManager: false,
+    projectExport: false,
+    pages: "wordpress",
+    media: "wordpress",
+    menus: "wordpress",
+    revisions: "wordpress",
+    preview: "wordpress",
+    publishing: "wordpress",
+    globals: "wordpress",
+    dynamicContent: "wordpress"
+  });
   function createWordPressHostAdapter(options) {
     let nonce = options.nonce;
     const capabilities = [...options.capabilities || []];
@@ -16448,6 +16501,7 @@ var PC_UI = (() => {
     });
     return {
       kind: "wordpress",
+      features: WORDPRESS_HOST_FEATURES,
       authentication,
       documents: documentAdapter(transport, documentPath),
       pages: pageAdapter(transport, "/pages"),
@@ -16455,6 +16509,7 @@ var PC_UI = (() => {
       revisions: revisionAdapter(transport, revisionsPath),
       assets: assetAdapter(transport, "/media"),
       settings: settingsAdapter(transport, "/settings"),
+      content: contentAdapter(transport, "/content"),
       setNonce(value) {
         nonce = value;
       }
@@ -16589,6 +16644,33 @@ const HOST = WP ? PC_UI.createWordPressHostAdapter({
   fetch: fetch.bind(window)
 }) : null;
 
+const HOST_FEATURES = HOST ? HOST.features : Object.freeze({
+  sites: false, account: false, billing: false, sharing: false,
+  hostedPublishing: false, cloudPageManager: true, projectExport: true,
+  pages: 'pagecraft', media: 'pagecraft', menus: 'pagecraft', revisions: false,
+  preview: 'pagecraft', publishing: false, globals: 'pagecraft', dynamicContent: 'pagecraft'
+});
+
+/* Product shape belongs to the host contract, not to CSS loaded after the editor. Removing
+   unavailable controls before mounting also prevents keyboard and event seams from reviving
+   Cloud behavior inside WordPress. */
+function applyHostFeatures() {
+  document.documentElement.dataset.pagecraftHost = HOST ? HOST.kind : 'standalone';
+  const remove = selector => document.querySelector(selector)?.remove();
+  if (!HOST_FEATURES.sites) remove('#sitesBtn');
+  if (!HOST_FEATURES.sharing) remove('#shareBtn');
+  if (!HOST_FEATURES.account) {
+    remove('#accountBtn');
+    remove('#accountPop');
+  }
+  if (!HOST_FEATURES.cloudPageManager) {
+    remove('#leftRail');
+    remove('#panePages');
+    remove('#paneCms');
+  }
+  if (!HOST_FEATURES.projectExport) remove('[data-act="project"]');
+}
+
 /* WordPress's native-content index is only a link catalogue. Treat the injected payload as
    data at the seam: reject malformed targets, non-HTTPS links outside local testing,
    cross-origin links, duplicate ids,
@@ -16665,6 +16747,7 @@ const wordpressContent = () => WORDPRESS_CONTENT;
    a local run over plain http is not, so the toast carries the URL either way. */
 function wireShare() {
   const btn = $('#shareBtn');
+  if (!HOST_FEATURES.sharing) return;
   const url = IS_WORDPRESS ? WP.previewUrl : SRV && SRV.url;
   if (!btn || !url) return;
   btn.hidden = false;
@@ -16681,7 +16764,7 @@ function wireShare() {
 
 function wireHistory() {
   const btn = $('#historyBtn');
-  if (!btn || !SRV || (!IS_WORDPRESS && SRV.role !== 'owner')) return;
+  if (!btn || !HOST || !HOST_FEATURES.revisions || (!IS_WORDPRESS && SRV.role !== 'owner')) return;
   btn.hidden = false;
   btn.addEventListener('click', historyModal);
 }
@@ -16878,6 +16961,14 @@ function publishModal() {
   $('#releaseWordPress').addEventListener('click', wordpressPublishModal);
   const publish = $('#releasePublish');
   if (publish) publish.addEventListener('click', () => publishDraft(publish));
+}
+
+function reviewModal() {
+  if (editing.on) exitEdit();
+  openModal('Review', '<div class="review" id="exReview"></div>',
+    '<span style="flex:1"></span><button class="btn primary" id="reviewClose">Close</button>');
+  ui().mountReview();
+  $('#reviewClose').addEventListener('click', closeModal);
 }
 
 /* May this session change the shape of the site, as opposed to its words?
@@ -20029,8 +20120,18 @@ function hotkey(e) {
     return;
   }
   if (meta && k === 'f') { e.preventDefault(); findModal(); return; }
-  if (meta && k === 'p') { e.preventDefault(); togglePreview(); return; }
-  if (meta && k === 'e') { e.preventDefault(); exportModal(); return; }
+  if (meta && k === 'p') {
+    e.preventDefault();
+    if (HOST_FEATURES.preview === 'wordpress' && WP.previewUrl) window.open(WP.previewUrl, '_blank', 'noopener');
+    else togglePreview();
+    return;
+  }
+  if (meta && k === 'e') {
+    e.preventDefault();
+    if (HOST_FEATURES.projectExport) exportModal();
+    else reviewModal();
+    return;
+  }
   if (meta && k === 's') { e.preventDefault(); save(); toast('Saved locally'); return; }
   if (!meta && (k === 'backspace' || k === 'delete')) {
     const ids = selIds();
@@ -20082,7 +20183,7 @@ function bindTop() {
     accountPop.hidden = !open;
     accountButton.setAttribute('aria-expanded', String(open));
   };
-  if (SRV && !IS_WORDPRESS) {
+  if (SRV && HOST_FEATURES.sites) {
     sitesButton.hidden = false;
     sitesButton.addEventListener('click', () => { location.href = '/'; });
     if (SRV.user) {
@@ -20102,7 +20203,13 @@ function bindTop() {
   $$('#devSeg button').forEach(b => b.addEventListener('click', () => setDev(b.dataset.dev)));
   $('#undoBtn').addEventListener('click', undo);
   $('#redoBtn').addEventListener('click', redo);
-  $('#previewBtn').addEventListener('click', togglePreview);
+  if (HOST_FEATURES.preview === 'wordpress' && WP.previewUrl) {
+    $('#previewBtn').title = 'Preview this WordPress page';
+    $('#previewBtn').setAttribute('aria-label', 'Preview this WordPress page');
+    $('#previewBtn').addEventListener('click', () => window.open(WP.previewUrl, '_blank', 'noopener'));
+  } else {
+    $('#previewBtn').addEventListener('click', togglePreview);
+  }
   const primary = $('#exportBtn');
   const primaryLabel = $('#publishLabel');
   if (IS_WORDPRESS) {
@@ -20111,7 +20218,7 @@ function bindTop() {
     primary.setAttribute('aria-label', returnLabel);
     primaryLabel.textContent = 'Done';
     primary.addEventListener('click', () => finishWordPress(primary));
-    $('#reviewBtn').addEventListener('click', exportModal);
+    $('#reviewBtn').addEventListener('click', reviewModal);
   } else if (SRV) {
     if (SRV.role === 'owner') {
       primary.title = 'Publish this draft';
@@ -20140,7 +20247,10 @@ function bindTop() {
     document.body.classList.add('library-focus');
     state.ui.tab = t;
     $$('#leftRail button[data-t]').forEach(x => x.classList.toggle('on', x.dataset.t === t));
-    ['add', 'layers', 'pages', 'cms'].forEach(k => { $('#pane' + k[0].toUpperCase() + k.slice(1)).hidden = k !== t; });
+    ['add', 'layers', 'pages', 'cms'].forEach(k => {
+      const pane = $('#pane' + k[0].toUpperCase() + k.slice(1));
+      if (pane) pane.hidden = k !== t;
+    });
     renderPanelHead();
     renderCms();
     requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
@@ -20173,6 +20283,7 @@ HOOKS.save = () => save();
 HOOKS.note = msg => toast(msg);
 
 (async function boot() {
+  applyHostFeatures();
   await assetsLoad();
   load();
   await mountCanvas();

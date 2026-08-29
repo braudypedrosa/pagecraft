@@ -2,7 +2,7 @@ import type { UnknownDocumentInput } from '../core/types';
 import { authenticationAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
 import { FetchHostTransport, type FetchLike, type HostTransport } from './transport';
 import { adoptHostDocument } from './schema';
-import type { HostCapability, HostMedia, HostSession, WebHostAdapter } from './types';
+import type { HostCapability, HostFeatures, HostMedia, HostSession, WebHostAdapter } from './types';
 
 export interface WebHostOptions {
   siteId: string;
@@ -16,6 +16,24 @@ export interface WebHostOptions {
   fetch?: FetchLike;
   transport?: HostTransport;
 }
+
+export const WEB_HOST_FEATURES: Readonly<HostFeatures> = Object.freeze({
+  sites: true,
+  account: true,
+  billing: true,
+  sharing: true,
+  hostedPublishing: true,
+  cloudPageManager: true,
+  projectExport: true,
+  pages: 'pagecraft',
+  media: 'pagecraft',
+  menus: 'pagecraft',
+  revisions: 'pagecraft',
+  preview: 'pagecraft',
+  publishing: 'pagecraft',
+  globals: 'pagecraft',
+  dynamicContent: 'pagecraft'
+});
 
 const webCapabilities = (role: WebHostOptions['role']): HostCapability[] => role === 'content'
   ? ['edit_document']
@@ -49,6 +67,7 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
   });
   return {
     kind: 'web',
+    features: WEB_HOST_FEATURES,
     authentication: authenticationAdapter(session),
     documents: {
       async load() {
