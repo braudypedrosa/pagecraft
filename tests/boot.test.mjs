@@ -477,6 +477,10 @@ test('status messages and narrow-workspace controls expose accessible hooks', as
   const html = readFileSync(BUILT, 'utf8');
   a.match(html, /\.unit>\.pc-custom-select-trigger\{[\s\S]*?width:72px;flex:0 0 72px;min-width:72px/,
     'enhanced unit selects must preserve room for their numeric value');
+  a.match(html, /\.unit\{display:flex;gap:0\}/,
+    'numeric values and their unit selectors render as one compound control');
+  a.match(html, /id="wpAddElementsReturn"[\s\S]*?<span>Add elements<\/span>/,
+    'the WordPress Navigator exposes an explicit return to the Add panel');
   a.match(html, /@media\(max-width:900px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/);
   a.match(html, /@media\(max-width:600px\)[\s\S]*?\.left,\.right\{[\s\S]*?position:absolute/);
 });

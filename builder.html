@@ -303,6 +303,14 @@ body.preview .left,body.preview .right{display:none}
   border-bottom:1px solid var(--line);font-size:var(--fs-4);font-weight:600;letter-spacing:-.01em;
 }
 .panelHead .spacer{flex:1}
+.panelHead .panelHeadAction{
+  margin-left:auto;height:28px;padding:0 9px;display:inline-flex;align-items:center;gap:var(--sp-2);
+  border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel);color:var(--text-2);
+  font:inherit;font-family:var(--label);font-size:var(--fs-2);font-weight:600;cursor:pointer;
+}
+.panelHead .panelHeadAction:hover{border-color:var(--ink);color:var(--ink);background:var(--field)}
+.panelHead .panelHeadAction:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.panelHead .panelHeadAction svg{width:12px;height:12px;flex:0 0 12px}
 .pane{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 .pane[hidden]{display:none}
 /* The Add library alternates between short empty states and long scrolling lists.
@@ -667,20 +675,25 @@ select.ctl{
 }
 /* the unit sits under the boxes on its own, pushed right, now that the names are above */
 .row4u{display:flex;justify-content:flex-end;margin-top:4px}
-.unit{display:flex;gap:var(--sp-3)}
-.unit input{flex:1;min-width:0}
+.unit{display:flex;gap:0}
+.unit input{
+  flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;
+}
 .unit select{
-  width:72px;flex:0 0 72px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
+  width:72px;flex:0 0 72px;margin-left:-1px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
+  border-top-left-radius:0;border-bottom-left-radius:0;
   background-position:right 6px center;background-size:9px 9px;
 }
 /* Enhanced selects are buttons rather than the native select. The generic trigger is full
    width, which used to consume this whole flex row and collapse the numeric value to zero.
    Keep every value + suffix control on the same two-part contract as its native fallback. */
 .unit>.pc-custom-select-trigger{
-  width:72px;flex:0 0 72px;min-width:72px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
+  width:72px;flex:0 0 72px;min-width:72px;margin-left:-1px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
+  border-top-left-radius:0;border-bottom-left-radius:0;
 }
 .unit>.pc-custom-select-trigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .unit>.pc-custom-select-trigger>svg{right:6px;width:9px;height:9px;flex-basis:9px}
+.unit input:focus,.unit>.pc-custom-select-trigger:focus-visible,.unit>.pc-custom-select-trigger[aria-expanded="true"]{position:relative;z-index:1}
 .sld{display:flex;align-items:center;gap:var(--sp-4)}
 .sld input[type=range]{flex:1;accent-color:var(--green);height:4px}
 .sld .num{width:60px;flex:0 0 60px}
@@ -3890,7 +3903,16 @@ function itemBarHtml() {
 const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Pages and SEO', cms: 'Content' };
 function renderPanelHead() {
   const h = $('#panelHead');
-  if (h) h.innerHTML = `<span>${esc(PANEL_TITLE[state.ui.tab] || '')}</span>`;
+  if (!h) return;
+  h.innerHTML = `<span>${esc(PANEL_TITLE[state.ui.tab] || '')}</span>`
+    + (IS_WORDPRESS && state.ui.tab === 'layers'
+      ? `<button class="panelHeadAction" id="wpAddElementsReturn" type="button" title="Return to Add elements"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span>Add elements</span></button>`
+      : '');
+  const addReturn = $('#wpAddElementsReturn');
+  if (addReturn) addReturn.addEventListener('click', () => {
+    window.showPanel('add');
+    renderModebar();
+  });
 }
 function renderDoc() {
   const d = $('#docName');
