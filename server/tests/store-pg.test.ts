@@ -493,6 +493,37 @@ test('the role column refuses a role nobody defined', async () => {
     /check constraint|violates/i);
 });
 
+test('API credentials are digest-only, owner-scoped, usage-tracked, and revocable', async () => {
+  const { auth } = await fresh();
+  const owner = await auth.createUser('api-owner@example.test');
+  const other = await auth.createUser('api-other@example.test');
+  const token = 'pc_live_pg_test';
+  const credential = await auth.createApiCredential({
+    id: randomUUID(), ownerId: owner.id, name: 'Local client',
+    tokenDigest: hashToken(token), tokenPrefix: token.slice(0, 12)
+  });
+  a.equal(credential.lastUsedAt, null);
+  a.equal((await auth.apiCredentialsForOwner(owner.id))[0].name, 'Local client');
+  a.deepEqual(await auth.apiCredentialsForOwner(other.id), []);
+  a.equal(await auth.apiCredentialByAccess(hashToken('wrong')), null);
+  const used = await auth.apiCredentialByAccess(hashToken(token));
+  a.equal(used?.ownerId, owner.id);
+  a.ok(used?.lastUsedAt);
+  a.equal(await auth.revokeApiCredential(credential.id, other.id), false);
+  a.equal(await auth.revokeApiCredential(credential.id, owner.id), true);
+  a.equal(await auth.apiCredentialByAccess(hashToken(token)), null);
+
+  const wordpress = await auth.createManualImportCredential({
+    id: randomUUID(), ownerId: owner.id, installationId: 'wp-pg-test',
+    accessTokenDigest: hashToken('wp-access'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: hashToken('wp-refresh')
+  });
+  a.deepEqual((await auth.manualImportsForOwner(owner.id)).map(item => item.id), [wordpress.id]);
+  a.equal(await auth.revokeManualImportCredentialForOwner(wordpress.id, other.id), false);
+  a.equal(await auth.revokeManualImportCredentialForOwner(wordpress.id, owner.id), true);
+  a.deepEqual(await auth.manualImportsForOwner(owner.id), []);
+});
+
 test('deleting a site or a person takes the memberships with them', async () => {
   const { db, sites, auth } = await fresh();
   const site = await sites.create({ host: 'acme.test', name: 'Acme', doc: demo() });

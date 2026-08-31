@@ -898,6 +898,131 @@ test("account settings shows profile, security, providers, and real free-plan us
   );
 });
 
+test("account integrations create, verify, list, and revoke a read-only API token", async () => {
+  const { request, accountAuth, auth, store } = rig();
+  accountAuth.current = {
+    authUserId: "auth-integrations",
+    email: "integrations@example.test",
+    name: "Integrations",
+    providers: ["email"],
+  };
+  const owner = await auth.ensureAuthUser(
+    "auth-integrations",
+    "integrations@example.test",
+    "Integrations",
+  );
+  const site = await store.create({
+    host: "integrations.test",
+    name: "Integration site",
+    doc: doc(),
+  });
+  await auth.grant(site.id, owner.id, "owner");
+
+  const page = await request("/account?tab=integrations");
+  a.equal(page.status, 200);
+  const initial = await page.text();
+  a.match(initial, /data-settings-tab="integrations" aria-selected="true"/);
+  a.match(initial, /Connect Pagecraft to WordPress, MCP clients, and your own tools/);
+  a.match(initial, /No active tokens/);
+  a.match(initial, /No connected WordPress sites/);
+
+  const created = await request("/account/integrations/tokens", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ name: "Claude Desktop" }),
+  });
+  a.equal(created.status, 200);
+  const html = await created.text();
+  const token = html.match(/<code data-new-token>(pc_live_[A-Za-z0-9_-]+)<\/code>/)?.[1];
+  a.ok(token);
+  a.match(html, /It will not be shown again/);
+  a.match(html, /Claude Desktop/);
+  a.match(html, /http:\/\/admin\.test\/mcp/);
+
+  const connection = await request("/v1/integrations/connection", {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  a.equal(connection.status, 200);
+  a.deepEqual(await connection.json(), {
+    connected: true,
+    type: "access_token",
+    name: "Claude Desktop",
+    scopes: ["projects:read", "packages:read"],
+    createdAt: (await auth.apiCredentialsForOwner(owner.id))[0].createdAt &&
+      new Date((await auth.apiCredentialsForOwner(owner.id))[0].createdAt).toISOString(),
+  });
+  const catalog = await request("/v1/integrations/wordpress/catalog", {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  a.equal(catalog.status, 200);
+  a.deepEqual(
+    (await catalog.json() as { projects: Array<{ id: string }> }).projects.map(item => item.id),
+    [site.id],
+  );
+  const mcp = await request("/mcp", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+      accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+  });
+  a.equal(mcp.status, 200, await mcp.clone().text());
+  const mcpBody = await mcp.text();
+  for (const tool of [
+    "pagecraft_list_projects",
+    "pagecraft_list_pages",
+    "pagecraft_get_page",
+  ]) a.match(mcpBody, new RegExp(tool));
+
+  const credential = (await auth.apiCredentialsForOwner(owner.id))[0];
+  a.ok(credential.lastUsedAt);
+  const revoked = await request(`/account/integrations/tokens/${credential.id}/revoke`, {
+    method: "POST",
+  });
+  a.equal(revoked.status, 303);
+  a.equal(revoked.headers.get("location"), "/account?tab=integrations&message=Access+token+revoked.");
+  a.equal((await request("/v1/integrations/connection", {
+    headers: { authorization: `Bearer ${token}` },
+  })).status, 401);
+});
+
+test("account integrations lists and disconnects WordPress imports owned by the account", async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = {
+    authUserId: "auth-wordpress",
+    email: "wordpress@example.test",
+    name: "WordPress",
+    providers: ["google"],
+  };
+  const owner = await auth.ensureAuthUser(
+    "auth-wordpress",
+    "wordpress@example.test",
+    "WordPress",
+  );
+  const credential = await auth.createManualImportCredential({
+    id: "wordpress-credential-1",
+    ownerId: owner.id,
+    installationId: "wp-installation-123",
+    accessTokenDigest: "a".repeat(64),
+    accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: "b".repeat(64),
+  });
+  const page = await request("/account?tab=integrations");
+  const html = await page.text();
+  a.match(html, /wp-installation-123/);
+  a.match(html, new RegExp(`/account/integrations/wordpress/${credential.id}/revoke`));
+
+  const disconnected = await request(
+    `/account/integrations/wordpress/${credential.id}/revoke`,
+    { method: "POST" },
+  );
+  a.equal(disconnected.status, 303);
+  a.equal(disconnected.headers.get("location"), "/account?tab=integrations&message=WordPress+disconnected.");
+  a.deepEqual(await auth.manualImportsForOwner(owner.id), []);
+});
+
 test("account profile updates the local name and starts verified email change", async () => {
   const { request, accountAuth, auth } = rig();
   accountAuth.current = {

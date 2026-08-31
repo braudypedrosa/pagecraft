@@ -15,6 +15,7 @@ import {
   MAX_BYTES,
 } from "./assets.ts";
 import {
+  type ApiCredential,
   type AuthStore,
   type InvitationDrainResult,
   type InvitationProvisionResult,
@@ -1521,6 +1522,17 @@ interface ManualImportWire {
   updated_at: string;
   revoked_at: string | null;
 }
+interface ApiCredentialWire {
+  id: string;
+  owner_id: string;
+  name: string;
+  token_digest: string;
+  token_prefix: string;
+  status: "active" | "revoked";
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+}
 const toManualImport = (row: ManualImportWire): ManualImportCredential => ({
   id: row.id,
   ownerId: row.owner_id,
@@ -1531,6 +1543,17 @@ const toManualImport = (row: ManualImportWire): ManualImportCredential => ({
   status: row.status,
   createdAt: new Date(row.created_at).getTime(),
   updatedAt: new Date(row.updated_at).getTime(),
+  revokedAt: row.revoked_at ? new Date(row.revoked_at).getTime() : null,
+});
+const toApiCredential = (row: ApiCredentialWire): ApiCredential => ({
+  id: row.id,
+  ownerId: row.owner_id,
+  name: row.name,
+  tokenDigest: row.token_digest,
+  tokenPrefix: row.token_prefix,
+  status: row.status,
+  createdAt: new Date(row.created_at).getTime(),
+  lastUsedAt: row.last_used_at ? new Date(row.last_used_at).getTime() : null,
   revokedAt: row.revoked_at ? new Date(row.revoked_at).getTime() : null,
 });
 
@@ -1953,6 +1976,51 @@ export class GatewayAuthStore implements AuthStore {
     return this.gateway.call<boolean>("auth.manualImport.revoke", {
       id,
       refreshDigest,
+    });
+  }
+  async manualImportsForOwner(ownerId: string) {
+    const rows = await this.gateway.call<ManualImportWire[]>(
+      "auth.manualImport.forOwner",
+      { ownerId },
+    );
+    return rows.map(toManualImport);
+  }
+  revokeManualImportCredentialForOwner(id: string, ownerId: string) {
+    return this.gateway.call<boolean>("auth.manualImport.revokeForOwner", {
+      id,
+      ownerId,
+    });
+  }
+  async createApiCredential(
+    input: Omit<
+      ApiCredential,
+      "status" | "createdAt" | "lastUsedAt" | "revokedAt"
+    >,
+  ) {
+    return toApiCredential(
+      await this.gateway.call<ApiCredentialWire>("auth.apiCredential.create", {
+        input,
+      }),
+    );
+  }
+  async apiCredentialByAccess(digest: string) {
+    const row = await this.gateway.call<ApiCredentialWire | null>(
+      "auth.apiCredential.byAccess",
+      { digest },
+    );
+    return row ? toApiCredential(row) : null;
+  }
+  async apiCredentialsForOwner(ownerId: string) {
+    const rows = await this.gateway.call<ApiCredentialWire[]>(
+      "auth.apiCredential.forOwner",
+      { ownerId },
+    );
+    return rows.map(toApiCredential);
+  }
+  revokeApiCredential(id: string, ownerId: string) {
+    return this.gateway.call<boolean>("auth.apiCredential.revoke", {
+      id,
+      ownerId,
     });
   }
 }

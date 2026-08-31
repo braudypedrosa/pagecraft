@@ -2,6 +2,14 @@
 
 Pagecraft Cloud exposes one read-only integration contract for WordPress and MCP clients.
 
+## Access tokens
+
+Signed-in customers can create and revoke personal access tokens from Account settings →
+Integrations. A token is shown once and can be used with the catalog, package, connection, and
+MCP endpoints. Tokens are stored only as SHA-256 digests and are limited to read-only scopes.
+
+`GET /v1/integrations/connection` checks a bearer token without changing any project data.
+
 ## Discovery
 
 `GET /.well-known/pagecraft-integrations` returns the current authorization, token,
@@ -30,6 +38,6 @@ It exposes three read-only tools:
 All reads are scoped to the account that approved the credential. MCP clients do not receive
 package-write, publish, synchronization, or deletion access.
 
-The first version intentionally reuses an existing Pagecraft integration token. A standalone
-interactive OAuth or dynamic client-registration flow for third-party MCP hosts is separate
+MCP accepts either a personal access token or the short-lived access token issued to WordPress.
+Interactive OAuth and dynamic client registration for third-party MCP hosts remain separate
 future work.

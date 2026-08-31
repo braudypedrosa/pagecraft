@@ -29,7 +29,7 @@ import {
   AUTH_SCHEMA, normalEmail, type AuthStore, type InviteDeliveryResult,
   type InvitationDrainResult, type InvitationProvisionResult,
   type MemberChangeResult, type MemberRemovalResult, type Role, type Session,
-  type ManualImportCredential, type User
+  type ApiCredential, type ManualImportCredential, type User
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -2146,6 +2146,19 @@ export class PgAuthStore implements AuthStore {
        where id = $1 and refresh_token_digest = $2 returning id`, [id, refreshDigest]);
     return rows.length > 0;
   }
+  async manualImportsForOwner(ownerId: string) {
+    const { rows } = await this.db.query<any>(
+      `select * from wordpress_import_credentials
+       where owner_id = $1 and status = 'active' order by created_at desc`, [ownerId]);
+    return rows.map(row => this.manualCredential(row));
+  }
+  async revokeManualImportCredentialForOwner(id: string, ownerId: string) {
+    const { rows } = await this.db.query<{ id:string }>(
+      `update wordpress_import_credentials
+       set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+       where id = $1 and owner_id = $2 and status = 'active' returning id`, [id, ownerId]);
+    return rows.length > 0;
+  }
   private manualCredential(row: any): ManualImportCredential {
     return {
       id: row.id, ownerId: row.owner_id, installationId: row.installation_id,
@@ -2153,6 +2166,41 @@ export class PgAuthStore implements AuthStore {
       refreshTokenDigest: row.refresh_token_digest, status: row.status,
       createdAt: ms(row.created_at), updatedAt: ms(row.updated_at),
       revokedAt: row.revoked_at ? ms(row.revoked_at) : null
+    };
+  }
+  async createApiCredential(input: Omit<ApiCredential,
+    'status' | 'createdAt' | 'lastUsedAt' | 'revokedAt'>) {
+    const { rows } = await this.db.query<any>(
+      `insert into api_credentials (id, owner_id, name, token_digest, token_prefix)
+       values ($1, $2, $3, $4, $5) returning *`,
+      [input.id, input.ownerId, input.name, input.tokenDigest, input.tokenPrefix]);
+    return this.apiCredential(rows[0]);
+  }
+  async apiCredentialByAccess(digest: string) {
+    const { rows } = await this.db.query<any>(
+      `update api_credentials set last_used_at = now()
+       where token_digest = $1 and status = 'active' returning *`, [digest]);
+    return rows[0] ? this.apiCredential(rows[0]) : null;
+  }
+  async apiCredentialsForOwner(ownerId: string) {
+    const { rows } = await this.db.query<any>(
+      `select * from api_credentials
+       where owner_id = $1 and status = 'active' order by created_at desc`, [ownerId]);
+    return rows.map(row => this.apiCredential(row));
+  }
+  async revokeApiCredential(id: string, ownerId: string) {
+    const { rows } = await this.db.query<{ id:string }>(
+      `update api_credentials set status = 'revoked', revoked_at = coalesce(revoked_at, now())
+       where id = $1 and owner_id = $2 and status = 'active' returning id`, [id, ownerId]);
+    return rows.length > 0;
+  }
+  private apiCredential(row: any): ApiCredential {
+    return {
+      id: row.id, ownerId: row.owner_id, name: row.name,
+      tokenDigest: row.token_digest, tokenPrefix: row.token_prefix,
+      status: row.status, createdAt: ms(row.created_at),
+      lastUsedAt: row.last_used_at ? ms(row.last_used_at) : null,
+      revokedAt: row.revoked_at ? ms(row.revoked_at) : null,
     };
   }
   /** Sessions a revoked person still holds are harmless — access is checked per request

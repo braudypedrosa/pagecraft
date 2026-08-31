@@ -56,6 +56,17 @@ export interface ManualImportCredential {
   updatedAt: number;
   revokedAt: number | null;
 }
+export interface ApiCredential {
+  id: string;
+  ownerId: string;
+  name: string;
+  tokenDigest: string;
+  tokenPrefix: string;
+  status: 'active' | 'revoked';
+  createdAt: number;
+  lastUsedAt: number | null;
+  revokedAt: number | null;
+}
 
 /** Fifteen minutes. Long enough to find the email, short enough that a leaked one is stale. */
 export const LINK_TTL_MS = 15 * 60 * 1000;
@@ -131,6 +142,14 @@ export interface AuthStore {
   manualImportByRefresh(digest: string): Promise<ManualImportCredential | null>;
   rotateManualImportAccess(id: string, digest: string, expiresAt: number): Promise<ManualImportCredential | null>;
   revokeManualImportCredential(id: string, refreshDigest: string): Promise<boolean>;
+  manualImportsForOwner(ownerId: string): Promise<ManualImportCredential[]>;
+  revokeManualImportCredentialForOwner(id: string, ownerId: string): Promise<boolean>;
+
+  createApiCredential(input: Omit<ApiCredential,
+    'status' | 'createdAt' | 'lastUsedAt' | 'revokedAt'>): Promise<ApiCredential>;
+  apiCredentialByAccess(digest: string): Promise<ApiCredential | null>;
+  apiCredentialsForOwner(ownerId: string): Promise<ApiCredential[]>;
+  revokeApiCredential(id: string, ownerId: string): Promise<boolean>;
 }
 
 /** The auth half of the schema, beside the site half in `store-pg.ts`. */
@@ -200,6 +219,20 @@ create table if not exists wordpress_import_credentials (
 );
 create index if not exists wordpress_import_credentials_owner_idx
   on wordpress_import_credentials (owner_id, status);
+
+create table if not exists api_credentials (
+  id text primary key,
+  owner_id text not null references users (id) on delete cascade,
+  name text not null,
+  token_digest text not null unique,
+  token_prefix text not null,
+  status text not null check (status in ('active', 'revoked')) default 'active',
+  created_at timestamptz not null default now(),
+  last_used_at timestamptz,
+  revoked_at timestamptz
+);
+create index if not exists api_credentials_owner_idx
+  on api_credentials (owner_id, status, created_at desc);
 `;
 
 /**
@@ -222,6 +255,7 @@ export class MemoryAuthStore implements AuthStore {
   private sessions = new Map<string, Session>();
   private memberships = new Map<string, Membership>();
   private manualImports = new Map<string, ManualImportCredential>();
+  private apiCredentials = new Map<string, ApiCredential>();
   private seq = 0;
 
   async userByEmail(email: string) {
@@ -432,6 +466,51 @@ export class MemoryAuthStore implements AuthStore {
     if (item.status === 'revoked') return true;
     item.status = 'revoked';
     item.revokedAt = item.updatedAt = Date.now();
+    return true;
+  }
+  async manualImportsForOwner(ownerId: string) {
+    return [...this.manualImports.values()]
+      .filter(item => item.ownerId === ownerId && item.status === 'active')
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map(item => ({ ...item }));
+  }
+  async revokeManualImportCredentialForOwner(id: string, ownerId: string) {
+    const item = this.manualImports.get(id);
+    if (!item || item.ownerId !== ownerId || item.status !== 'active') return false;
+    item.status = 'revoked';
+    item.revokedAt = item.updatedAt = Date.now();
+    return true;
+  }
+  async createApiCredential(input: Omit<ApiCredential,
+    'status' | 'createdAt' | 'lastUsedAt' | 'revokedAt'>) {
+    const credential: ApiCredential = {
+      ...input,
+      status: 'active',
+      createdAt: Date.now(),
+      lastUsedAt: null,
+      revokedAt: null,
+    };
+    this.apiCredentials.set(input.id, credential);
+    return { ...credential };
+  }
+  async apiCredentialByAccess(digest: string) {
+    const item = [...this.apiCredentials.values()].find(candidate =>
+      candidate.status === 'active' && candidate.tokenDigest === digest);
+    if (!item) return null;
+    item.lastUsedAt = Date.now();
+    return { ...item };
+  }
+  async apiCredentialsForOwner(ownerId: string) {
+    return [...this.apiCredentials.values()]
+      .filter(item => item.ownerId === ownerId && item.status === 'active')
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map(item => ({ ...item }));
+  }
+  async revokeApiCredential(id: string, ownerId: string) {
+    const item = this.apiCredentials.get(id);
+    if (!item || item.ownerId !== ownerId || item.status !== 'active') return false;
+    item.status = 'revoked';
+    item.revokedAt = Date.now();
     return true;
   }
 }

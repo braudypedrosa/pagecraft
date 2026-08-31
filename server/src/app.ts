@@ -1303,6 +1303,28 @@ export function createApp(o: Options) {
       return c.redirect("/sign-in", 303);
     });
 
+    const settingsData = async (user: User, identity: VerifiedIdentity) => {
+      const mine = await visibleSites(user);
+      const [storage, apiCredentials, wordpressConnections] = await Promise.all([
+        o.assets
+          ? o.assets.usage(user.id, FREE_STORAGE_BYTES)
+          : Promise.resolve({ usedBytes: 0, limitBytes: FREE_STORAGE_BYTES }),
+        o.auth.apiCredentialsForOwner(user.id),
+        o.auth.manualImportsForOwner(user.id),
+      ]);
+      return {
+        providers: identity.providers || [],
+        createdAt: identity.createdAt || user.createdAt,
+        ownerCount: mine.filter((item) => item.role === "owner").length,
+        storage,
+        apiCredentials,
+        wordpressConnections,
+        integrationOrigin: integrationOriginValue(),
+      };
+    };
+    const integrationOriginValue = () =>
+      (o.editorOrigin || "").replace(/\/+$/, "");
+
     app.get("/account", async (c) => {
       const [user, identity] = await Promise.all([
         who(c),
@@ -1310,19 +1332,11 @@ export function createApp(o: Options) {
       ]);
       if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
       const requestedTab = c.req.query("tab");
-      const tab = requestedTab === "security" || requestedTab === "plan"
+      const tab = requestedTab === "security" ||
+          requestedTab === "integrations" || requestedTab === "plan"
         ? requestedTab
         : "profile";
-      const mine = await visibleSites(user);
-      const storage = o.assets
-        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
-        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
-      return c.html(accountSettingsPage(user, {
-        providers: identity.providers || [],
-        createdAt: identity.createdAt || user.createdAt,
-        ownerCount: mine.filter((item) => item.role === "owner").length,
-        storage,
-      }, {
+      return c.html(accountSettingsPage(user, await settingsData(user, identity), {
         error: c.req.query("error"),
         message: c.req.query("message"),
         tab,
@@ -1415,6 +1429,78 @@ export function createApp(o: Options) {
           : c.redirect("/account?tab=security&error=password_current", 303);
       },
     );
+
+    app.post(
+      "/account/integrations/tokens",
+      bodyLimit({
+        maxSize: 8 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const [user, identity] = await Promise.all([
+          who(c),
+          o.accountAuth!.identity(c),
+        ]);
+        if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
+        const body = await form(c);
+        const name = String(body.name || "").trim().slice(0, 60);
+        if (name.length < 2) {
+          return c.redirect("/account?tab=integrations&error=integration_name", 303);
+        }
+        if (!accountChangeLimit.take(`${requestSource(c)}|api-token`)) {
+          return c.redirect("/account?tab=integrations&error=password_rate", 303);
+        }
+        const active = await o.auth.apiCredentialsForOwner(user.id);
+        if (active.length >= 10) {
+          return c.redirect("/account?tab=integrations&error=integration_limit", 303);
+        }
+        const token = `pc_live_${newToken()}`;
+        try {
+          await o.auth.createApiCredential({
+            id: crypto.randomUUID(),
+            ownerId: user.id,
+            name,
+            tokenDigest: hashToken(token),
+            tokenPrefix: token.slice(0, 15),
+          });
+        } catch (error) {
+          console.error("could not create API credential", (error as Error).message);
+          return c.redirect("/account?tab=integrations&error=integration_create", 303);
+        }
+        return c.html(accountSettingsPage(
+          user,
+          await settingsData(user, identity),
+          { tab: "integrations", apiToken: token },
+        ));
+      },
+    );
+
+    app.post("/account/integrations/tokens/:id/revoke", async (c) => {
+      const user = await who(c);
+      if (!user) return c.redirect("/sign-in?next=%2Faccount");
+      const revoked = await o.auth.revokeApiCredential(c.req.param("id"), user.id);
+      return c.redirect(
+        revoked
+          ? "/account?tab=integrations&message=Access+token+revoked."
+          : "/account?tab=integrations&error=integration_missing",
+        303,
+      );
+    });
+
+    app.post("/account/integrations/wordpress/:id/revoke", async (c) => {
+      const user = await who(c);
+      if (!user) return c.redirect("/sign-in?next=%2Faccount");
+      const revoked = await o.auth.revokeManualImportCredentialForOwner(
+        c.req.param("id"),
+        user.id,
+      );
+      return c.redirect(
+        revoked
+          ? "/account?tab=integrations&message=WordPress+disconnected."
+          : "/account?tab=integrations&error=integration_missing",
+        303,
+      );
+    });
   }
 
   app.get("/auth/me", async (c) => {
@@ -2996,7 +3082,8 @@ export function createApp(o: Options) {
   ): Promise<ManualImportCatalogRead> => {
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.catalog(digest);
-    const credential = await o.auth.manualImportByAccess(digest);
+    const credential = await o.auth.manualImportByAccess(digest) ||
+      await o.auth.apiCredentialByAccess(digest);
     if (!credential) return { authorized: false };
     const [sites, memberships] = await Promise.all([
       o.store.list(),
@@ -3026,7 +3113,8 @@ export function createApp(o: Options) {
     const digest = manualImportAccessDigest(c.req.header("authorization"));
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.project(digest, siteId);
-    const credential = await o.auth.manualImportByAccess(digest);
+    const credential = await o.auth.manualImportByAccess(digest) ||
+      await o.auth.apiCredentialByAccess(digest);
     if (!credential) return { authorized: false };
     const membership = await o.auth.membership(siteId, credential.ownerId);
     return {
@@ -3055,6 +3143,29 @@ export function createApp(o: Options) {
       installationId: credential.installationId,
       scopes: ["projects:read", "packages:read"],
       accessExpiresAt: new Date(credential.accessExpiresAt).toISOString(),
+    });
+  });
+
+  app.get("/v1/integrations/connection", async (c) => {
+    const digest = manualImportAccessDigest(c.req.header("authorization"));
+    if (!digest) return c.json({ error: "unauthorized" }, 401);
+    const apiCredential = await o.auth.apiCredentialByAccess(digest);
+    if (apiCredential) {
+      return c.json({
+        connected: true,
+        type: "access_token",
+        name: apiCredential.name,
+        scopes: ["projects:read", "packages:read"],
+        createdAt: new Date(apiCredential.createdAt).toISOString(),
+      });
+    }
+    const wordpress = await o.auth.manualImportByAccess(digest);
+    if (!wordpress) return c.json({ error: "unauthorized" }, 401);
+    return c.json({
+      connected: true,
+      type: "wordpress",
+      scopes: ["projects:read", "packages:read"],
+      accessExpiresAt: new Date(wordpress.accessExpiresAt).toISOString(),
     });
   });
 

@@ -2756,16 +2756,25 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       return "failed";
     }
     case "manualImport.catalog": {
+      await sql`
+        update api_credentials set last_used_at = now()
+        where token_digest = ${text(args.digest)} and status = 'active'
+      `;
       const rows = await sql`
-        select credential.owner_id, s.*
-        from wordpress_import_credentials credential
+        with credential as (
+          select owner_id from wordpress_import_credentials
+          where access_token_digest = ${text(args.digest)}
+            and status = 'active' and access_expires_at > now()
+          union all
+          select owner_id from api_credentials
+          where token_digest = ${text(args.digest)} and status = 'active'
+          limit 1
+        )
+        select credential.owner_id, s.* from credential
         left join site_users membership
           on membership.user_id = credential.owner_id
           and membership.role = 'owner'
         left join sites s on s.id = membership.site_id
-        where credential.access_token_digest = ${text(args.digest)}
-          and credential.status = 'active'
-          and credential.access_expires_at > now()
         order by s.name
       `;
       const credential = one(rows);
@@ -2782,18 +2791,27 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       };
     }
     case "manualImport.project": {
+      await sql`
+        update api_credentials set last_used_at = now()
+        where token_digest = ${text(args.digest)} and status = 'active'
+      `;
       const credential = one(
         await sql`
-        select credential.owner_id, s.*
-        from wordpress_import_credentials credential
+        with credential as (
+          select owner_id from wordpress_import_credentials
+          where access_token_digest = ${text(args.digest)}
+            and status = 'active' and access_expires_at > now()
+          union all
+          select owner_id from api_credentials
+          where token_digest = ${text(args.digest)} and status = 'active'
+          limit 1
+        )
+        select credential.owner_id, s.* from credential
         left join site_users membership
           on membership.user_id = credential.owner_id
           and membership.role = 'owner'
           and membership.site_id = ${text(args.projectId)}
         left join sites s on s.id = membership.site_id
-        where credential.access_token_digest = ${text(args.digest)}
-          and credential.status = 'active'
-          and credential.access_expires_at > now()
         limit 1
       `,
       );
@@ -2865,6 +2883,50 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         where id = ${text(args.id)} and refresh_token_digest = ${
         text(args.refreshDigest)
       } returning id
+      `).length > 0;
+    case "auth.manualImport.forOwner":
+      return await sql`
+        select * from wordpress_import_credentials
+        where owner_id = ${text(args.ownerId)} and status = 'active'
+        order by created_at desc
+      `;
+    case "auth.manualImport.revokeForOwner":
+      return (await sql`
+        update wordpress_import_credentials
+        set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+        where id = ${text(args.id)} and owner_id = ${text(args.ownerId)}
+          and status = 'active' returning id
+      `).length > 0;
+    case "auth.apiCredential.create": {
+      const input = (args.input && typeof args.input === "object" &&
+          !Array.isArray(args.input))
+        ? args.input as Record<string, unknown>
+        : {};
+      return one(await sql`
+        insert into api_credentials (id, owner_id, name, token_digest, token_prefix)
+        values (${text(input.id)}, ${text(input.ownerId)}, ${text(input.name)},
+          ${text(input.tokenDigest)}, ${text(input.tokenPrefix)})
+        returning *
+      `);
+    }
+    case "auth.apiCredential.byAccess":
+      return one(await sql`
+        update api_credentials set last_used_at = now()
+        where token_digest = ${text(args.digest)} and status = 'active'
+        returning *
+      `);
+    case "auth.apiCredential.forOwner":
+      return await sql`
+        select * from api_credentials
+        where owner_id = ${text(args.ownerId)} and status = 'active'
+        order by created_at desc
+      `;
+    case "auth.apiCredential.revoke":
+      return (await sql`
+        update api_credentials
+        set status = 'revoked', revoked_at = coalesce(revoked_at, now())
+        where id = ${text(args.id)} and owner_id = ${text(args.ownerId)}
+          and status = 'active' returning id
       `).length > 0;
     default:
       throw Object.assign(new Error("unknown gateway operation"), {

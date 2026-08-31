@@ -29,12 +29,17 @@ const errorResult = (message: string) => ({
 });
 
 export const integrationDiscovery = (origin: string) => ({
-  version: "2026-08-31",
+  version: "2026-09-01",
   authorization: {
     type: "oauth2-authorization-code-pkce",
     authorizationEndpoint: `${origin}/v1/integrations/wordpress/authorize`,
     tokenEndpoint: `${origin}/v1/integrations/wordpress/token`,
     revocationEndpoint: `${origin}/v1/integrations/wordpress/revoke`,
+    scopesSupported: PAGECRAFT_INTEGRATION_SCOPES,
+  },
+  accessTokens: {
+    accountSettings: `${origin}/account?tab=integrations`,
+    connectionEndpoint: `${origin}/v1/integrations/connection`,
     scopesSupported: PAGECRAFT_INTEGRATION_SCOPES,
   },
   wordpress: {
