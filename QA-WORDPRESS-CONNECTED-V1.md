@@ -59,4 +59,3 @@ The local sites were exercised through the built-in browser, not a separate Chro
 - No production root or release private key is committed. Generate the offline root/release pair, store only runtime release-key secrets in the server environment, and inject only the root public key into signed WordPress packages.
 - No hosted WordPress credentials were supplied, so installation, pairing, real webhook delivery, cache-plugin clearing, SMTP delivery, and public desktop/mobile verification remain unclaimed.
 - No production deployment was performed during this implementation pass.
-- The externally published Claude artifact is six commits stale and was deliberately not republished or stamped as current.

@@ -1,5 +1,5 @@
 /* The new build, alongside the old one.
-   `build.mjs` still produces the shipping artifact from builder.html; this produces
+   `build.mjs` still produces the legacy standalone editor from builder.html; this produces
    the Preact/TypeScript successor into dist/next/. Both exist until the port is
    finished, which is the point of a strangler — neither has to be broken to make
    progress on the other.

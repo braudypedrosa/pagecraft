@@ -17,7 +17,11 @@ Namecheap blocks outbound PostgreSQL ports. The Node process therefore calls the
 Supabase Edge Function over HTTPS. The function exposes a fixed operation list and parameterized
 queries; it never accepts caller-provided SQL.
 
-## Source of truth
+## Production authority
+
+The authoritative Cloud product is the live application at
+`https://build.itspagecraft.com`. There is no separately published Cloud or Claude artifact.
+The repository sources below produce that deployment:
 
 - Node transport: `server/src/store-gateway.ts`
 - Edge Function: `supabase/functions/pagecraft-db/`

@@ -3,15 +3,7 @@
  *   node --experimental-strip-types tools/demo-site.mjs
  *
  * Writes `dist/demo/index.html`: one self-contained file, which is what the "images inlined"
- * export mode produces. That is the artifact published from this repo alongside the builder —
- * the builder is the tool, this is what the tool makes.
- *
- *   builder   https://claude.ai/code/artifact/16d1f437-f2ca-44df-aff7-02875acdd2c2
- *   this page https://claude.ai/code/artifact/adda4e09-131d-4c1c-84e3-393254a0fa72
- *
- * `npm run publish:check` guards the builder's copy only. This one needs no guard: it is one
- * command to regenerate and the page is a demonstration rather than the product, so a stale
- * copy costs a rebuild rather than a wrong answer.
+ * export mode produces. It is a local integration fixture, not a separately published product.
  *
  * ## Why a script and not a saved project
  *
@@ -341,29 +333,7 @@ const out = join(repo, 'dist', 'demo');
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, 'index.html'), html);
 
-/* ---- and again, as an Artifact fragment -------------------------------
- * An Artifact is published as page *content*: the host supplies the doctype, `<html>` and
- * `<head>`, so this keeps the title, the font links and the stylesheet and drops the wrapper.
- * The canonical, `og:*` and JSON-LD go too — they name `pagecraft.example`, and publishing a
- * page that claims a canonical URL it does not have is worse than publishing one with none.
- */
-const fragment = (doc) => {
-  const pick = re => (doc.match(re) || [''])[0];
-  const body = doc.slice(doc.indexOf('<body>') + 6, doc.lastIndexOf('</body>'));
-  return [
-    pick(/<title>[\s\S]*?<\/title>/),
-    pick(/<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com">/),
-    pick(/<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com"[^>]*>/),
-    pick(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/),
-    pick(/<style>[\s\S]*?<\/style>/),
-    body.trim()
-  ].filter(Boolean).join('\n');
-};
-const frag = fragment(html);
-writeFileSync(join(out, 'artifact.html'), frag);
-
 const kb = n => Math.round(n / 1024) + ' KB';
-console.log(`\ndist/demo/artifact.html — ${kb(frag.length)} (page content, for publishing)`);
-console.log(`dist/demo/index.html — ${kb(html.length)}`);
+console.log(`\ndist/demo/index.html — ${kb(html.length)}`);
 console.log(`  ${C.components().length} component, ${C.componentUsage(C.components()[0].id)} instances`);
 console.log(`  ${C.collections()[0].items.length} collection items, ${findings.length} findings`);

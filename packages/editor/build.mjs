@@ -133,4 +133,4 @@ mkdirSync(join(dist, 'fixtures'), { recursive: true });
 writeFileSync(join(dist, 'fixtures', 'page.pagecraft-page.zip'), fixturePackage.bytes);
 writeFileSync(join(dist, 'fixtures', 'site.pagecraft-site.zip'), fixtureSitePackage.bytes);
 
-console.log(`@pagecraft/editor artifacts written to ${dist}`);
+console.log(`@pagecraft/editor bundle files written to ${dist}`);

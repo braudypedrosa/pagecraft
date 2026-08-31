@@ -160,64 +160,14 @@ nothing fights the DOM value.
 
 ## What this is
 
-A visual page builder that exports static HTML, built on the **Pagecraft** brand system.
-Dependency-free: one HTML file, no framework, no build step for the user, autosaves in the
-browser. Lives at `~/Documents/Braudy/pagecraft-singlefile/`.
+A visual page builder built on the **Pagecraft** brand system. The authoritative Cloud product
+is the deployed application at `https://build.itspagecraft.com`. The repository builds and
+deploys that application directly; there is no separate downloadable or Claude-hosted Cloud
+artifact to publish, stamp, compare, or keep current.
 
-Published privately to a hosted copy. `dist/PUBLISHED.json` holds the URL — to update it,
-publish `dist/artifact.html` and pass that same URL, or the link changes.
-**Republish after any change to `builder.html`.**
-
-**You no longer have to remember any of this.** `dist/PUBLISHED.json` records the sha256 of
-the copy that was actually published, and every `npm run build` / `npm test` ends with one
-line saying whether the live artifact matches what the repo would produce:
-
-```
-Artifact: up to date — published 2026-08-19 from ad1eeff
-Artifact is STALE — 3 commits behind (published from ad1eeff).
-  live   https://…  (the URL from PUBLISHED.json)
-  fix    republish dist/artifact.html to that URL, then: npm run publish:stamp
-  keep   capabilities ["downloads"] · contract 0.2.4 · favicon 📐
-```
-
-The comparison is sound because the build is **byte-deterministic** — same `builder.html`
-and same vendored fonts, same output, no timestamps. Three runs hashing identically is what
-was actually checked, and `tests/pubcheck.test.mjs` covers the message states and the exit
-codes. Those cases deliberately never assert the artifact *is* published: doing so would fail
-the suite whenever someone edits `builder.html`, which is the coupling this check was kept
-out of `npm test` to avoid.
-
-| | |
-|---|---|
-| `npm run publish:check` | exits **1** when stale, so it can gate anything |
-| `npm run publish:stamp -- <url>` | run this **immediately after** a real publish |
-| `npm run hooks` | installs the tracked `post-commit`, which repeats the warning when a commit touches `builder.html`. Refuses if `core.hooksPath` is taken or `.git/hooks` holds anything real — this repo is shared with an unrelated app |
-
-Three things the stale message carries because they are not recoverable from the repo:
-
-- **Favicon 📐**, title from the fragment's own `<title>Pagecraft Builder</title>`. Keep both
-  stable; a changed tab icon reads as a different page.
-- **`capabilities: {downloads}` on contract `0.2.4`.** Publishing without an explicit
-  `capabilities` argument carries it forward, which is what you want — the viewer blocks a
-  page-initiated download otherwise, and every export button here is one. `capabilities: {}`
-  would break all of them silently.
-- **A republish 409s** until the live copy has been read. Fetch the URL and look
-  at what is on it *before* publishing. Do not reach for `force` first: it discards whatever
-  is live, and only checking made it safe last time.
-
-Deliberately **not** wired into `npm test`: a stale artifact is not a broken build, and
-failing 261 passing tests over a publishing chore would train everyone to ignore the check.
-It reports on every build and gates only where asked.
-
-Why any of this exists: the live copy went stale twice. The second time it predated the whole
-CMS — no collections, no Collection list, no detail pages, no zip export — while the repo was
-six commits ahead. Both times the cause was the same, and it is not forgetfulness:
-**republishing is a separate act from committing, and nothing connected the two.** Now
-something does.
-
-> The repo it sits in (`braudyp.dev`) is an unrelated Next.js finance app. This builder is
-> standalone and does not touch it. It lives on the **`page-builder`** branch; the generated
-> `index.html` and `dist/` are committed too, so a clone can just open the file.
+`builder.html` and the generated `index.html` remain a legacy development path while the
+TypeScript/Preact migration is completed. They are implementation inputs and local build
+outputs, not an alternate product surface.
 
 ## State as of this handoff
 
@@ -296,15 +246,13 @@ deleting two pages plus a 21-node header and footer by hand.
 
 ```bash
 cd ~/Projects/braudyp.dev/page-builder
-npm test            # rebuild + 325 cases, and reports the Artifact's freshness
+npm test            # rebuild + test suite
 npm run serve       # static server on :4877
 open index.html     # or just open the file
-npm run publish:check   # exits 1 if the published Artifact is behind
-npm run hooks           # one-time: post-commit repeats that warning
 ```
 
-`npm run build` regenerates `index.html`, `dist/artifact.html` and `dist/core.cjs` from
-`builder.html`. **Only edit `builder.html`** — the other three are generated.
+`npm run build` regenerates `index.html` and `dist/core.cjs` from `builder.html`.
+**Only edit `builder.html`** — the other two are generated.
 
 ## Vendored code
 

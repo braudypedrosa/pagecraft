@@ -12,10 +12,7 @@
     "test": "node build.mjs && tsc --noEmit && vitest run",
     "typecheck": "tsc --noEmit",
     "serve": "python3 -m http.server 4877",
-    "smoke": "node tools/smoke.mjs",
-    "publish:check": "node tools/pubcheck.mjs",
-    "publish:stamp": "node tools/pubcheck.mjs stamp",
-    "hooks": "node tools/install-hooks.mjs"
+    "smoke": "node tools/smoke.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.7",

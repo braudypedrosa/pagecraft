@@ -13,9 +13,6 @@
 # **`npm ci`, not `npm install`.** The lockfile is the point: esbuild ships a platform binary
 # and a resolution that drifts is a build that differs from the one that was tested.
 #
-# What is deliberately *not* here: `publish:check`. Republishing the Artifact is a manual step
-# with no CLI, so gating a push on it would fail every commit until somebody clicked something.
-# The post-commit hook is where that belongs, and it says so at the moment it can be acted on.
 name: test
 
 on:
@@ -49,7 +46,7 @@ jobs:
       # empty, because a build that writes nothing passes every test above.
       - name: the build wrote something
         run: |
-          for f in index.html dist/artifact.html dist/demo/index.html; do
+          for f in index.html dist/demo/index.html; do
             test -s "$f" || { echo "missing or empty: $f"; exit 1; }
             echo "$f — $(wc -c < "$f") bytes"
           done
