@@ -146,6 +146,15 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   const projects = await projectsResponse.json() as { projects:Array<{id:string;pageCount:number}> };
   a.deepEqual(projects.projects.map(item => item.id), [site.id]);
   a.ok(projects.projects[0].pageCount > 0);
+  const catalogResponse = await request(second, '/v1/wordpress-import/catalog', { headers: bearer });
+  a.equal(catalogResponse.status, 200);
+  const catalog = await catalogResponse.json() as {
+    projects:Array<{id:string;sourceVersion:number;pages:Array<{id:string;sourceVersion:number}>}>
+  };
+  a.deepEqual(catalog.projects.map(item => item.id), [site.id]);
+  a.equal(catalog.projects[0].sourceVersion, site.version);
+  a.ok(catalog.projects[0].pages.length > 0);
+  a.equal(catalog.projects[0].pages[0].sourceVersion, site.version);
   const projectPackageResponse = await request(second,
     `/v1/wordpress-import/projects/${site.id}/package`, { headers: bearer });
   a.equal(projectPackageResponse.status, 200, await projectPackageResponse.clone().text());

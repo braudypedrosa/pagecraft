@@ -8,6 +8,7 @@ import {
   GatewayAuthStore,
   GatewayConnectedStore,
   GatewayHostedPublishPreparer,
+  GatewayManualImportReader,
   GatewayStore,
   PagecraftGateway,
 } from "../src/store-gateway.ts";
@@ -206,6 +207,45 @@ test("gateway manual-import credentials never expose plaintext token material to
     "gateway timestamps cross the HTTPS boundary as ISO-8601 strings",
   );
   a.equal(JSON.stringify(calls).includes("access-secret"), false);
+});
+
+test("gateway manual imports resolve the catalog and one owned project in one operation each", async () => {
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op === "manualImport.catalog") {
+      return { authorized: true, owner_id: "u1", sites: [siteRow] };
+    }
+    if (call.op === "manualImport.project") {
+      return call.args.projectId === "s1"
+        ? { authorized: true, owner_id: "u1", site: siteRow }
+        : { authorized: true, owner_id: "u1", site: null };
+    }
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const reader = new GatewayManualImportReader(gateway);
+  const catalog = await reader.catalog("access-digest");
+  a.equal(catalog.authorized, true);
+  if (catalog.authorized) {
+    a.equal(catalog.ownerId, "u1");
+    a.deepEqual(catalog.sites.map((site) => site.id), ["s1"]);
+  }
+  const project = await reader.project("access-digest", "s1");
+  a.equal(project.authorized, true);
+  if (project.authorized) {
+    a.equal(project.ownerId, "u1");
+    a.equal(project.site?.id, "s1");
+  }
+  const missing = await reader.project("access-digest", "missing");
+  a.equal(missing.authorized && missing.site === null, true);
+  a.deepEqual(calls, [{
+    op: "manualImport.catalog",
+    args: { digest: "access-digest" },
+  }, {
+    op: "manualImport.project",
+    args: { digest: "access-digest", projectId: "s1" },
+  }, {
+    op: "manualImport.project",
+    args: { digest: "access-digest", projectId: "missing" },
+  }]);
 });
 
 test("gateway site metadata excludes documents and hot public lookups are boundedly cached", async () => {

@@ -2917,11 +2917,6 @@ export function createApp(o: Options) {
     return token ? hashToken(token) : "";
   };
 
-  const manualImportBearer = async (c: Context) => {
-    const digest = manualImportAccessDigest(c);
-    return digest ? o.auth.manualImportByAccess(digest) : null;
-  };
-
   const manualImportCatalogRead = async (
     c: Context,
   ): Promise<ManualImportCatalogRead> => {
