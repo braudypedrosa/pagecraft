@@ -83,6 +83,8 @@ test('the chrome drew', async () => {
   a.ok(doc.querySelectorAll('.rail button, .rail [data-p]').length >= 4, 'the tool rail is empty');
   a.ok(doc.querySelectorAll('.topbar button, #top button').length >= 5, 'the top bar is empty');
   a.ok(doc.querySelector('iframe'), 'the canvas frame is missing');
+  a.equal(doc.querySelector('#brandHome')?.hasAttribute('href'), false,
+    'the standalone build must not invent a dashboard destination');
 });
 
 test('the standalone build makes Export its primary action', async () => {
@@ -151,6 +153,9 @@ test('server mode separates draft saving from explicit release publication', asy
   a.equal(doc.querySelector('[data-act="project"] span').textContent.trim(), 'Settings');
   a.equal(doc.querySelector('#accountBtn').hidden, false);
   a.equal(doc.querySelector('#accountInitials').textContent.trim(), 'BP');
+  a.equal(doc.querySelector('#brandHome')?.getAttribute('href'), '/');
+  a.equal(doc.querySelector('#brandHome')?.getAttribute('aria-label'), 'Pagecraft dashboard');
+  a.equal(doc.querySelector('#brandHome')?.getAttribute('target'), '_top');
   doc.querySelector('#accountBtn').click();
   a.equal(doc.querySelector('#accountPop').hidden, false);
   a.equal(doc.querySelector('#accountEmail').textContent.trim(), 'braudy@example.test');
@@ -236,6 +241,8 @@ test('WordPress mode boots the shared editor and saves a native fallback through
     a.equal(doc.querySelector(selector), null, `${selector} must not enter the WordPress render tree`);
   }
   a.equal(doc.querySelector('#publishLabel')?.textContent.trim(), 'Done');
+  a.equal(doc.querySelector('#brandHome')?.getAttribute('href'), config.pagesUrl);
+  a.equal(doc.querySelector('#brandHome')?.getAttribute('aria-label'), 'Back to WordPress pages');
   a.equal([...doc.querySelectorAll('#paneAdd .pitem')].some(item => item.textContent.trim() === 'Collection'), false,
     'the Cloud Collection widget must not enter the WordPress element library');
   a.doesNotMatch(doc.querySelector('#modebar')?.textContent || '', /Native landing page|\/native-landing-page/,

@@ -36,6 +36,7 @@ import {
   PgOwnedSiteStore,
 } from "./accounts.ts";
 import { FileHostedPublicationStore } from "./publications.ts";
+import { FileSiteTemplateStore } from "./site-templates.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
@@ -48,6 +49,13 @@ const EDITOR_HOST = process.env.EDITOR_HOST || "localhost";
 const editorPath = join(repo, "index.html");
 const editorHtml = existsSync(editorPath)
   ? readFileSync(editorPath, "utf8")
+  : undefined;
+const siteTemplateRoot = process.env.PAGECRAFT_TEMPLATE_ROOT ||
+  (process.env.NODE_ENV === "production"
+    ? join(repo, "..", "pagecraft-template-library")
+    : join(repo, "premade-sites"));
+const siteTemplates = existsSync(join(siteTemplateRoot, "catalog.json"))
+  ? new FileSiteTemplateStore(siteTemplateRoot)
   : undefined;
 if (!editorHtml) {
   console.warn(`no editor at ${editorPath} — run \`node build.mjs\``);
@@ -485,6 +493,7 @@ const app = createApp({
   packages,
   accountAuth,
   ownedSites: owned,
+  siteTemplates,
   challenge,
   turnstileSiteKey,
   publications,

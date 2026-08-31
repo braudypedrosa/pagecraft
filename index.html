@@ -112,8 +112,10 @@ input,select,textarea{font:inherit;color:inherit}
 }
 .brand{
   display:flex;align-items:center;gap:var(--sp-4);height:52px;padding:0 18px 0 16px;
-  font-weight:600;font-size:var(--fs-5);letter-spacing:-.02em;flex:0 0 auto;
+  color:inherit;text-decoration:none;font-weight:600;font-size:var(--fs-5);letter-spacing:-.02em;flex:0 0 auto;
 }
+.brand[href]{cursor:pointer}
+.brand[href]:hover{background:#ffffff0f}
 .brand svg{width:17px;height:22px;display:block;flex:0 0 17px}
 .topsep{width:1px;height:22px;background:var(--rail-line);flex:0 0 1px}
 .docname{
@@ -433,14 +435,51 @@ body.content-only .s-hud [data-x=down]{display:none}
 .pv-g{fill:var(--green)}
 .pv-i{fill:#22251f}
 .pvcard:hover .pvw{background:var(--panel)}
-.tplgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);margin-top:var(--gap-1)}
-.tpl{
-  text-align:left;padding:14px;border:1px solid var(--line-2);border-radius:var(--r-md);
-  background:var(--panel);display:flex;flex-direction:column;gap:var(--sp-2);
+.templateChooser{display:grid;gap:var(--sp-6)}
+.templateControls{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(260px,1fr);gap:var(--sp-6);align-items:end}
+.templateControls>.f,.templateControls>.f:last-child{margin-bottom:0}
+.templateFilters{display:flex;flex-wrap:wrap;gap:var(--sp-3)}
+.templateFilter{
+  min-height:32px;padding:0 11px;border:1px solid var(--line-2);border-radius:var(--r-pill);
+  background:var(--panel);color:var(--text-2);font-family:var(--label);font-size:var(--fs-2);font-weight:600;
 }
-.tpl:hover{border-color:var(--ink);background:var(--field)}
-.tpl b{font-size:var(--fs-3);font-weight:600}
-.tpl span{font-family:var(--label);font-size:var(--fs-2);color:var(--text-3);line-height:1.45}
+.templateFilter:hover{border-color:var(--ink);color:var(--text)}
+.templateFilter[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.templateFilter:focus-visible,.tpl:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.templateSummary{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-5);min-height:20px;color:var(--text-3);font-family:var(--label);font-size:var(--fs-2)}
+.templateSummary b{color:var(--text-2);font-weight:600}
+.templateSummary button{color:var(--text-2);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.templateSummary button:hover{color:var(--ink)}
+.tplgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-5)}
+.tpl{
+  min-width:0;text-align:left;padding:0;border:1px solid var(--line-2);border-radius:var(--r-md);
+  background:var(--panel);display:flex;flex-direction:column;overflow:hidden;
+  transition:border-color .14s,background .14s,transform .1s ease-out,box-shadow .14s;
+}
+.tpl:hover{border-color:var(--ink);background:var(--field);box-shadow:0 8px 22px rgba(17,19,17,.08);transform:translateY(-2px)}
+.tpl[hidden]{display:none}
+.templatePreviewWrap{padding:10px;background:var(--field);border-bottom:1px solid var(--line)}
+.templatePreview{display:block;width:100%;height:auto}
+.templatePreview .tp-paper{fill:#fffefa}
+.templatePreview .tp-ink{fill:#22251f}
+.templatePreview .tp-line{fill:#c6c0af}
+.templatePreview .tp-card{fill:#eeeae0}
+.templatePreview .tp-media{fill:#ded9cc}
+.templatePreview .tp-accent{fill:var(--green)}
+.templatePreview .tp-outline{fill:none;stroke:#c6c0af;stroke-width:1.5}
+.templateCardCopy{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-4);padding:12px 13px 13px}
+.templateCardCopy>span{min-width:0}
+.tpl b{display:block;margin-bottom:4px;font-size:var(--fs-3);font-weight:600;color:var(--text)}
+.tpl small{display:block;font-family:var(--label);font-size:var(--fs-2);color:var(--text-3);line-height:1.45}
+.templateCategory{align-self:start;padding:3px 7px;border-radius:var(--r-pill);background:var(--field-2);color:var(--text-2);font-family:var(--label);font-size:var(--fs-1);font-weight:600;white-space:nowrap}
+.templateEmpty{padding:32px;border:1px dashed var(--line-2);border-radius:var(--r-md);text-align:center;color:var(--text-2)}
+.templateEmpty b{display:block;margin-bottom:5px;color:var(--text);font-size:var(--fs-4)}
+.templateEmpty span{font-family:var(--label);font-size:var(--fs-2)}
+@media(max-width:760px){
+  .templateControls{grid-template-columns:1fr}
+  .tplgrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){.tplgrid{grid-template-columns:1fr}.templateCardCopy{padding:11px 12px 12px}}
 .pitem{
   width:100%;font:inherit;color:inherit;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
@@ -1253,10 +1292,10 @@ pre.code{
 <body>
 <div id="app">
   <div class="topbar">
-    <div class="brand">
+    <a class="brand" id="brandHome" aria-label="Pagecraft" target="_top">
       <svg width="17" height="22" viewBox="0 0 73 95" aria-hidden="true"><path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill="#b7f34a" fill-rule="evenodd"/></svg>
       <span class="brandLabel">Pagecraft</span>
-    </div>
+    </a>
     <span class="topsep"></span>
     <span class="docname" id="docName"></span>
     <button class="iconbtn" id="sitesBtn" title="Back to sites" aria-label="Sites" hidden>
@@ -7388,17 +7427,39 @@ var carded = (row) => {
   row.children.forEach((col) => classApply(col, cardClass().id));
   return row;
 };
+var templatePreview = (id) => {
+  const header = '<rect class="tp-line" x="22" y="18" width="46" height="6" rx="3"/><rect class="tp-line" x="246" y="18" width="28" height="5" rx="2.5"/><rect class="tp-line" x="282" y="18" width="28" height="5" rx="2.5"/><rect class="tp-accent" x="318" y="14" width="24" height="13" rx="3"/>';
+  const art = {
+    blank: '<rect class="tp-outline" x="22" y="48" width="320" height="148" rx="5"/>',
+    landing: '<rect class="tp-ink" x="22" y="54" width="130" height="12" rx="3"/><rect class="tp-ink" x="22" y="72" width="104" height="12" rx="3"/><rect class="tp-line" x="22" y="96" width="112" height="6" rx="3"/><rect class="tp-accent" x="22" y="116" width="46" height="16" rx="4"/><rect class="tp-media" x="186" y="48" width="156" height="88" rx="6"/><rect class="tp-line" x="22" y="160" width="92" height="30" rx="5"/><rect class="tp-line" x="136" y="160" width="92" height="30" rx="5"/><rect class="tp-line" x="250" y="160" width="92" height="30" rx="5"/>',
+    pricing: '<rect class="tp-ink" x="127" y="48" width="110" height="12" rx="3"/><rect class="tp-line" x="144" y="68" width="76" height="6" rx="3"/><rect class="tp-card" x="22" y="94" width="96" height="96" rx="6"/><rect class="tp-card" x="134" y="86" width="96" height="104" rx="6"/><rect class="tp-card" x="246" y="94" width="96" height="96" rx="6"/><rect class="tp-accent" x="154" y="160" width="56" height="14" rx="4"/>',
+    contact: '<rect class="tp-ink" x="22" y="56" width="106" height="14" rx="3"/><rect class="tp-line" x="22" y="82" width="120" height="6" rx="3"/><rect class="tp-line" x="22" y="94" width="92" height="6" rx="3"/><rect class="tp-card" x="184" y="48" width="158" height="142" rx="6"/><rect class="tp-outline" x="198" y="68" width="130" height="20" rx="3"/><rect class="tp-outline" x="198" y="98" width="130" height="44" rx="3"/><rect class="tp-accent" x="198" y="154" width="54" height="16" rx="4"/>',
+    about: '<rect class="tp-ink" x="22" y="50" width="124" height="12" rx="3"/><rect class="tp-line" x="22" y="72" width="116" height="6" rx="3"/><rect class="tp-media" x="22" y="102" width="126" height="68" rx="5"/><rect class="tp-ink" x="176" y="108" width="78" height="9" rx="3"/><rect class="tp-line" x="176" y="128" width="150" height="6" rx="3"/><rect class="tp-line" x="176" y="140" width="126" height="6" rx="3"/><rect class="tp-accent" x="176" y="158" width="44" height="14" rx="4"/>',
+    services: '<rect class="tp-ink" x="122" y="48" width="120" height="12" rx="3"/><rect class="tp-line" x="140" y="68" width="84" height="6" rx="3"/><rect class="tp-card" x="22" y="98" width="96" height="74" rx="6"/><rect class="tp-card" x="134" y="98" width="96" height="74" rx="6"/><rect class="tp-card" x="246" y="98" width="96" height="74" rx="6"/><circle class="tp-accent" cx="48" cy="120" r="8"/><circle class="tp-accent" cx="160" cy="120" r="8"/><circle class="tp-accent" cx="272" cy="120" r="8"/>',
+    work: '<rect class="tp-ink" x="22" y="48" width="116" height="12" rx="3"/><rect class="tp-line" x="22" y="68" width="138" height="6" rx="3"/><rect class="tp-media" x="22" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="134" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="246" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="22" y="152" width="96" height="38" rx="5"/><rect class="tp-media" x="134" y="152" width="96" height="38" rx="5"/><rect class="tp-media" x="246" y="152" width="96" height="38" rx="5"/>',
+    case: '<rect class="tp-ink" x="22" y="46" width="150" height="12" rx="3"/><rect class="tp-line" x="22" y="66" width="112" height="6" rx="3"/><rect class="tp-media" x="22" y="88" width="320" height="68" rx="6"/><rect class="tp-line" x="22" y="174" width="84" height="16" rx="4"/><rect class="tp-line" x="140" y="174" width="84" height="16" rx="4"/><rect class="tp-accent" x="258" y="174" width="84" height="16" rx="4"/>',
+    faq: '<rect class="tp-ink" x="22" y="48" width="100" height="12" rx="3"/><rect class="tp-line" x="22" y="70" width="136" height="6" rx="3"/><rect class="tp-card" x="22" y="96" width="320" height="22" rx="4"/><rect class="tp-card" x="22" y="128" width="320" height="22" rx="4"/><rect class="tp-card" x="22" y="160" width="320" height="22" rx="4"/>',
+    blog: '<rect class="tp-ink" x="22" y="48" width="104" height="12" rx="3"/><rect class="tp-line" x="22" y="68" width="124" height="6" rx="3"/><rect class="tp-media" x="22" y="98" width="88" height="38" rx="5"/><rect class="tp-line" x="128" y="102" width="116" height="8" rx="3"/><rect class="tp-line" x="128" y="118" width="190" height="6" rx="3"/><rect class="tp-media" x="22" y="150" width="88" height="38" rx="5"/><rect class="tp-line" x="128" y="154" width="98" height="8" rx="3"/><rect class="tp-line" x="128" y="170" width="174" height="6" rx="3"/>',
+    article: '<rect class="tp-line" x="128" y="48" width="64" height="5" rx="2.5"/><rect class="tp-ink" x="92" y="66" width="180" height="13" rx="3"/><rect class="tp-line" x="118" y="88" width="128" height="6" rx="3"/><rect class="tp-media" x="70" y="108" width="224" height="46" rx="5"/><rect class="tp-line" x="96" y="170" width="172" height="5" rx="2.5"/><rect class="tp-line" x="96" y="182" width="146" height="5" rx="2.5"/>',
+    soon: '<rect class="tp-ink" x="97" y="62" width="170" height="13" rx="3"/><rect class="tp-line" x="122" y="86" width="120" height="6" rx="3"/><rect class="tp-outline" x="88" y="116" width="134" height="24" rx="4"/><rect class="tp-accent" x="230" y="116" width="48" height="24" rx="4"/><rect class="tp-line" x="136" y="158" width="92" height="5" rx="2.5"/>'
+  };
+  return `<svg class="templatePreview" viewBox="0 0 364 214" role="img" aria-label="${id} page layout preview"><rect class="tp-paper" width="364" height="214" rx="8"/>${header}${art[id] || art.blank}</svg>`;
+};
 var TEMPLATES = [
   {
     id: "blank",
     name: "Blank",
     desc: "An empty page.",
+    category: "Start",
+    keywords: ["empty", "canvas"],
     build: () => []
   },
   {
     id: "landing",
     name: "Landing page",
     desc: "Hero, three features, closing call to action.",
+    category: "Marketing",
+    keywords: ["home", "hero", "features", "cta"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px" }, [
         cols(1, [[
@@ -7426,6 +7487,8 @@ var TEMPLATES = [
     id: "pricing",
     name: "Pricing",
     desc: "Intro and three plan columns.",
+    category: "Marketing",
+    keywords: ["plans", "packages", "subscriptions"],
     build: () => [
       T_SEC({ "background-color": cvar("bg") }, [
         cols(1, [[
@@ -7445,6 +7508,8 @@ var TEMPLATES = [
     id: "contact",
     name: "Contact",
     desc: "Short intro beside a working form.",
+    category: "Company",
+    keywords: ["form", "inquiry", "lead"],
     build: () => [
       T_SEC({ "background-color": cvar("bg") }, [
         cols(2, [
@@ -7461,6 +7526,8 @@ var TEMPLATES = [
     id: "about",
     name: "About",
     desc: "The story, a stats row and a closing action.",
+    category: "Company",
+    keywords: ["story", "team", "company"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px" }, [
         cols(1, [[
@@ -7496,6 +7563,8 @@ var TEMPLATES = [
     id: "services",
     name: "Services",
     desc: "What you offer, how it works, then an action.",
+    category: "Company",
+    keywords: ["offer", "process", "business"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px" }, [
         cols(1, [[
@@ -7529,6 +7598,8 @@ var TEMPLATES = [
     id: "work",
     name: "Work",
     desc: "A grid of projects with room for captions.",
+    category: "Portfolio",
+    keywords: ["projects", "gallery", "portfolio"],
     build: () => {
       const card = (i) => [
         N("image", { src: "", alt: "" }, { d: { "border-radius": "14px", height: "220px", "object-fit": "cover", "margin-bottom": "14px" }, m: { height: "180px" } }),
@@ -7553,6 +7624,8 @@ var TEMPLATES = [
     id: "case",
     name: "Case study",
     desc: "One project: the brief, the work, the result.",
+    category: "Portfolio",
+    keywords: ["project", "results", "client"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "40px" }, [
         cols(1, [[
@@ -7596,6 +7669,8 @@ var TEMPLATES = [
     id: "faq",
     name: "FAQ",
     desc: "Questions and answers, plus a way to ask more.",
+    category: "Company",
+    keywords: ["questions", "answers", "support"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "40px" }, [
         cols(1, [[
@@ -7634,6 +7709,8 @@ var TEMPLATES = [
     id: "blog",
     name: "Blog index",
     desc: "A list of posts with dates and summaries.",
+    category: "Content",
+    keywords: ["posts", "news", "articles"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "40px" }, [
         cols(1, [[
@@ -7658,6 +7735,8 @@ var TEMPLATES = [
     id: "article",
     name: "Article",
     desc: "A single post at a readable measure.",
+    category: "Content",
+    keywords: ["post", "story", "editorial"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "32px" }, [
         cols(1, [[
@@ -7682,6 +7761,8 @@ var TEMPLATES = [
     id: "soon",
     name: "Coming soon",
     desc: "A centred hero with a signup form.",
+    category: "Marketing",
+    keywords: ["launch", "signup", "waitlist"],
     build: () => [
       T_SEC({ "background-color": cvar("ink"), "padding-top": "132px", "padding-bottom": "132px" }, [
         cols(1, [[
@@ -9427,6 +9508,7 @@ var __CORE = {
   styleSeen,
   styles,
   tableGrid,
+  templatePreview,
   textSlots,
   tgtIsClass,
   tgtObj,
@@ -16671,6 +16753,12 @@ let lastCloudDocument = null;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+const brandHome = $('#brandHome');
+if (brandHome) {
+  const brandDestination = IS_WORDPRESS ? (WP.pagesUrl || WP.exitUrl || '') : (SRV ? '/' : '');
+  if (brandDestination) brandHome.setAttribute('href', brandDestination);
+  brandHome.setAttribute('aria-label', IS_WORDPRESS ? 'Back to WordPress pages' : (SRV ? 'Pagecraft dashboard' : 'Pagecraft'));
+}
 
 /* The server transport is a typed adapter compiled with the ported UI. WordPress creates the
    sibling adapter; both stop at the same document/schema boundary and neither reaches into
@@ -17319,10 +17407,15 @@ function load() {
     let d = null, loadError = null;
     if (IS_WORDPRESS && !SRV.doc) {
       blankProject(WP.page && WP.page.title || 'Untitled page');
-      state.pages[0].name = WP.page && WP.page.title || 'Untitled page';
-      state.pages[0].slug = WP.page && WP.page.slug || 'page';
       state.meta.name = WP.siteName || 'WordPress';
       applyWordPressDesignSettings();
+      const initialTemplate = TEMPLATES.find(template => template.id === WP.initialTemplate);
+      if (initialTemplate && initialTemplate.id !== 'blank') {
+        state.pages = [];
+        state.pages.push(pageFromTemplate(initialTemplate.id, WP.page && WP.page.title || initialTemplate.name));
+      }
+      state.pages[0].name = WP.page && WP.page.title || (initialTemplate ? initialTemplate.name : 'Untitled page');
+      state.pages[0].slug = WP.page && WP.page.slug || slugify(state.pages[0].name) || 'page';
       return;
     }
     try { d = PC_UI.adoptHostDocument(SRV.doc); } catch (error) { loadError = error; }
@@ -19877,15 +19970,55 @@ function langSelect(id, val) {
 
 /* A new page starts from a template built out of this project's own tokens. */
 function newPageModal() {
+  const categories = ['All', ...new Set(TEMPLATES.map(t => t.category))];
   openModal('New page', `
-    <div class="f"><label>Page name</label><input class="ctl" id="npName" value="" placeholder="About"></div>
-    <div class="tplgrid">${TEMPLATES.map(t => `
-      <button class="tpl" data-tpl="${t.id}">
-        <b>${esc(t.name)}</b><span>${esc(t.desc)}</span>
-      </button>`).join('')}</div>`, '');
+    <div class="templateChooser">
+      <div class="templateControls">
+        <div class="f"><label for="npName">Page name</label><input class="ctl" id="npName" value="" placeholder="Uses the template name"></div>
+        <div class="f"><label for="templateSearch">Find a page</label><input class="ctl" id="templateSearch" type="search" autocomplete="off" placeholder="Search landing, portfolio, article…"></div>
+      </div>
+      <div class="templateFilters" role="toolbar" aria-label="Filter page templates">
+        ${categories.map((category, index) => `<button type="button" class="templateFilter" data-template-filter="${esc(category)}" aria-pressed="${index === 0 ? 'true' : 'false'}">${esc(category)}</button>`).join('')}
+      </div>
+      <div class="templateSummary"><span id="templateCount" aria-live="polite"><b>${TEMPLATES.length}</b> Pagecraft templates</span><button type="button" id="templateClear" hidden>Clear filters</button></div>
+      <div class="tplgrid">${TEMPLATES.map(t => `
+        <button type="button" class="tpl" data-tpl="${esc(t.id)}" data-category="${esc(t.category)}" data-search="${esc([t.name, t.desc, t.category, ...t.keywords].join(' ').toLowerCase())}">
+          <span class="templatePreviewWrap">${templatePreview(t.id)}</span>
+          <span class="templateCardCopy"><span><b>${esc(t.name)}</b><small>${esc(t.desc)}</small></span><span class="templateCategory">${esc(t.category)}</span></span>
+        </button>`).join('')}</div>
+      <div class="templateEmpty" id="templateEmpty" hidden><b>No templates match</b><span>Try a different search or clear the category filter.</span></div>
+    </div>`, '', 'lg');
   const nameEl = $('#npName');
+  const searchEl = $('#templateSearch');
+  let category = 'All';
+  const filterButtons = $$('[data-template-filter]', $('#modal'));
+  const templateButtons = $$('[data-tpl]', $('#modal'));
+  const applyFilter = () => {
+    const query = searchEl.value.trim().toLowerCase();
+    let shown = 0;
+    templateButtons.forEach(button => {
+      const visible = (category === 'All' || button.dataset.category === category)
+        && (!query || button.dataset.search.includes(query));
+      button.hidden = !visible;
+      if (visible) shown++;
+    });
+    $('#templateCount').innerHTML = `<b>${shown}</b> ${shown === 1 ? 'Pagecraft template' : 'Pagecraft templates'}`;
+    $('#templateEmpty').hidden = shown !== 0;
+    $('#templateClear').hidden = category === 'All' && !query;
+  };
+  filterButtons.forEach(button => button.addEventListener('click', () => {
+    category = button.dataset.templateFilter;
+    filterButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    applyFilter();
+  }));
+  searchEl.addEventListener('input', applyFilter);
+  $('#templateClear').addEventListener('click', () => {
+    category = 'All'; searchEl.value = '';
+    filterButtons.forEach((item, index) => item.setAttribute('aria-pressed', String(index === 0)));
+    applyFilter(); searchEl.focus();
+  });
   nameEl.focus();
-  $$('[data-tpl]', $('#modal')).forEach(b => b.addEventListener('click', () => {
+  templateButtons.forEach(b => b.addEventListener('click', () => {
     const tid = b.dataset.tpl;
     closeModal();
     edit(() => {

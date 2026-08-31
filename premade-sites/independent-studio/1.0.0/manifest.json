@@ -1,0 +1,40 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "independent-studio",
+  "version": "1.0.0",
+  "name": "Independent Studio",
+  "sampleName": "Northline Studio",
+  "description": "An editorial four-page site for independent studios and thoughtful service businesses.",
+  "categories": [
+    "Studio",
+    "Services",
+    "Editorial"
+  ],
+  "pages": [
+    {
+      "id": "page-home",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "page-about",
+      "name": "About",
+      "slug": "about"
+    },
+    {
+      "id": "page-services",
+      "name": "Services",
+      "slug": "services"
+    },
+    {
+      "id": "page-contact",
+      "name": "Contact",
+      "slug": "contact"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "c1862add821a2db5c5b2620fd3b5b273a61228691e8914f8029759dc3a75c417",
+  "previewPage": "index.html",
+  "assetCount": 4,
+  "assetBytes": 524722
+}
