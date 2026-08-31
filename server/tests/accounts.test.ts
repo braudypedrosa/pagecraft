@@ -887,8 +887,37 @@ test("account settings shows profile, security, providers, and real free-plan us
   a.match(html, /panel\.hidden=panel\.dataset\.settingsPanel!==name/);
   a.match(
     html,
-    /\.pc-settings-links\{margin-top:auto;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/,
+    /\.pc-workspace:has\(\.pc-settings-content\)\{scrollbar-gutter:stable\}/,
   );
+  a.match(
+    html,
+    /\.pc-settings-layout\{display:grid;grid-template-columns:190px minmax\(0,1fr\)/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-main\{min-width:0;width:100%;max-width:720px\}/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-links\{margin-top:auto;padding-top:40px\}/,
+  );
+  for (const selector of [
+    "pc-settings-head",
+    "pc-settings-section",
+    "pc-settings-links",
+    "pc-provider",
+    "pc-plan-list",
+    "pc-integration-block",
+    "pc-integration-list",
+    "pc-integration-row",
+    "pc-empty-line",
+  ]) {
+    a.doesNotMatch(
+      html,
+      new RegExp(`\\.${selector}\\{[^}]*border(?:-top|-bottom)?:`),
+      `${selector} should use spacing instead of decorative separators`,
+    );
+  }
 
   const planResponse = await request("/account?tab=plan");
   const planHtml = await planResponse.text();
