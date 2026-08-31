@@ -1405,20 +1405,32 @@ function codeSpans(src: unknown, lang?: string): string {
 
 /** The copy button is rendered hidden and the script reveals it: a button that cannot
     copy is worse than no button, and a reader with no JavaScript should not see one. */
-/* The arrows, and nothing else about the slider. They arrive hidden so a reader without
-   JavaScript never sees a control that cannot work — swiping and scrolling still do.
+/* The arrows and pagination dots arrive hidden so a reader without JavaScript never sees
+   controls that cannot work — swiping and scrolling still do.
    A scroll of 90% of the visible width leaves a sliver of the old view on screen, which
    is what tells you the strip moved rather than jumped. */
 const SLIDE_JS = `<script>
 (function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
 Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
-var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]');
-if(!t||!p||!n)return;p.removeAttribute('hidden');n.removeAttribute('hidden');
+var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]'),d=box.querySelector('[data-slide-dots]');
+if(!t||!p||!n||!d)return;p.removeAttribute('hidden');n.removeAttribute('hidden');d.removeAttribute('hidden');
 function go(d){t.scrollBy({left:d*t.clientWidth*0.9,behavior:rm.matches?'auto':'smooth'});}
 p.addEventListener('click',function(){go(-1);});n.addEventListener('click',function(){go(1);});
-function ends(){var max=t.scrollWidth-t.clientWidth-2;
-p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;}
-ends();t.addEventListener('scroll',ends,{passive:true});addEventListener('resize',ends);});})();
+var slides=[].slice.call(t.children),targets=[],dots=[];
+function positions(){var max=Math.max(0,t.scrollWidth-t.clientWidth),next=[];
+slides.forEach(function(slide){var target=Math.min(max,Math.max(0,slide.offsetLeft-t.offsetLeft));
+if(!next.some(function(value){return Math.abs(value-target)<3;}))next.push(target);});return next;}
+function active(){if(!targets.length)return;var current=0,distance=Infinity;
+targets.forEach(function(target,index){var delta=Math.abs(t.scrollLeft-target);if(delta<distance){distance=delta;current=index;}});
+dots.forEach(function(dot,index){if(index===current)dot.setAttribute('aria-current','true');else dot.removeAttribute('aria-current');});}
+function rebuild(){targets=positions();d.replaceChildren();dots=targets.map(function(target,index){
+var dot=document.createElement('button');function seek(){t.scrollTo({left:target,behavior:rm.matches?'auto':'smooth'});}
+dot.type='button';dot.className='pagecraft-slider-dot';dot.setAttribute('aria-label','Go to carousel position '+(index+1)+' of '+targets.length);
+if(t.id)dot.setAttribute('aria-controls',t.id);dot.addEventListener('click',seek);dot.addEventListener('keydown',function(event){
+if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();seek();});d.appendChild(dot);return dot;});active();}
+function update(){var max=t.scrollWidth-t.clientWidth-2;p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;active();}
+var queued=false;t.addEventListener('scroll',function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;update();});},{passive:true});
+addEventListener('resize',function(){rebuild();update();});addEventListener('load',function(){rebuild();update();},{once:true});rebuild();update();});})();
 <\/script>
 `;
 
@@ -6459,8 +6471,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   display:flex;gap:var(--sl-gap,24px);width:100%;
   overflow-x:auto;overscroll-behavior-x:contain;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;padding-bottom:2px;
+  scrollbar-width:none;padding-bottom:0;
 }
+.pagecraft-slider::-webkit-scrollbar{display:none;width:0;height:0}
 .pagecraft-slider>[class]{flex:0 0 var(--sl-w,100%);scroll-snap-align:start;min-width:0}
 .pagecraft-slider>*{scroll-snap-align:start;min-width:0}
 .pagecraft-slider:focus-visible{outline:3px solid currentColor;outline-offset:3px}
@@ -6474,6 +6487,14 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-slide-btn.n{right:-8px;rotate:-90deg}
 .pagecraft-slide-btn[hidden]{display:none}
 .pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
+.pagecraft-slider-dots{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px}
+.pagecraft-slider-dots[hidden]{display:none}
+.pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
+.pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
+.pagecraft-slider-dot:hover::before{opacity:.68}
+.pagecraft-slider-dot[aria-current=true]::before{background:var(--c-brand,#111311);opacity:1;transform:scale(1.25)}
+.pagecraft-slider-dot:focus-visible{outline:2px solid var(--c-brand,#111311);outline-offset:0}
+@media(max-width:767px){.pagecraft-slider-dots{margin-top:10px}.pagecraft-slider-dot{width:44px;height:44px}}
 .pagecraft-crumbs ol{
   display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
   list-style:none;margin:0;padding:0;
@@ -7125,7 +7146,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>`
         + `${svg('caret', 15)}</button>`;
       return `<div class="pagecraft-slider-box" data-slider>${track}`
-        + btn('p', 'Previous slides') + btn('n', 'Next slides') + '</div>';
+        + btn('p', 'Previous slides') + btn('n', 'Next slides')
+        + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
     }
     case 'list': {
       const lc = n.src ? findCollection(n.src) : null;

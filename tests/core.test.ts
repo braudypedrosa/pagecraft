@@ -4898,6 +4898,8 @@ test('the scrolling and the snapping are CSS, with no script in sight', () => {
   a.equal(/<script/i.test(html), false, 'a slider with no arrows ships nothing to run');
   const css = C.baseCss(false);
   a.match(css, /\.pagecraft-slider\{[^}]*scroll-snap-type:x mandatory/);
+  a.match(css, /\.pagecraft-slider\{[^}]*scrollbar-width:none/);
+  a.match(css, /\.pagecraft-slider::-webkit-scrollbar\{display:none/);
   /* `[class]` rather than `*`: a slide is a column, and a column's own rule is one class.
      A tie on specificity would be settled by source order, and the node's CSS comes last. */
   a.match(css, /\.pagecraft-slider>\[class\]\{flex:0 0 var\(--sl-w,100%\)/);
@@ -4922,8 +4924,10 @@ test('the arrows arrive hidden, and their script only where they are', () => {
   /* counted in the markup, not in the script that also names them */
   a.equal((on.match(/class="pagecraft-slide-btn /g) || []).length, 2);
   a.match(on, /class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden/);
+  a.match(on, /class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden/);
   a.match(on, /data-slides/);
   a.match(on, /scrollBy/, 'the script that reveals them');
+  a.match(on, /Go to carousel position/, 'the script builds responsive pagination dots');
   n.props.arrows = 0;
   const off = C.buildPage(pg);
   a.equal(/data-slide-/.test(off), false);
