@@ -10,6 +10,7 @@ describe('@pagecraft/editor package', () => {
   it('bundles the WordPress host seam and a contract matching the canonical schema', () => {
     const html = readFileSync(resolve(root, 'packages/editor/dist/editor.html'), 'utf8');
     const contract = JSON.parse(readFileSync(resolve(root, 'packages/editor/dist/contract.json'), 'utf8'));
+    const catalog = JSON.parse(readFileSync(resolve(root, 'packages/editor/dist/templates.json'), 'utf8'));
 
     expect(html).toContain('window.PC_WORDPRESS');
     expect(html).toContain('createWordPressHostAdapter');
@@ -25,5 +26,17 @@ describe('@pagecraft/editor package', () => {
         page: PAGE_PACKAGE_FORMAT_V1
       }
     });
+    expect(catalog).toMatchObject({
+      format: 'pagecraft.template-catalog.v1',
+      templates: expect.arrayContaining([
+        expect.objectContaining({ id: 'blank', category: 'Start' }),
+        expect.objectContaining({ id: 'landing', category: 'Marketing' }),
+        expect.objectContaining({ id: 'about', category: 'Company' }),
+        expect.objectContaining({ id: 'work', category: 'Portfolio' }),
+        expect.objectContaining({ id: 'article', category: 'Content' })
+      ])
+    });
+    expect(catalog.templates).toHaveLength(12);
+    expect(catalog.templates.every((template: any) => template.preview.includes('<svg'))).toBe(true);
   });
 });

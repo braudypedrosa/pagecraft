@@ -367,6 +367,7 @@ __export(index_exports, {
   styleSeen: () => styleSeen,
   styles: () => styles,
   tableGrid: () => tableGrid,
+  templatePreview: () => templatePreview,
   textSlots: () => textSlots,
   tgtIsClass: () => tgtIsClass,
   tgtObj: () => tgtObj,
@@ -6377,17 +6378,39 @@ var carded = (row) => {
   row.children.forEach((col) => classApply(col, cardClass().id));
   return row;
 };
+var templatePreview = (id) => {
+  const header = '<rect class="tp-line" x="22" y="18" width="46" height="6" rx="3"/><rect class="tp-line" x="246" y="18" width="28" height="5" rx="2.5"/><rect class="tp-line" x="282" y="18" width="28" height="5" rx="2.5"/><rect class="tp-accent" x="318" y="14" width="24" height="13" rx="3"/>';
+  const art = {
+    blank: '<rect class="tp-outline" x="22" y="48" width="320" height="148" rx="5"/>',
+    landing: '<rect class="tp-ink" x="22" y="54" width="130" height="12" rx="3"/><rect class="tp-ink" x="22" y="72" width="104" height="12" rx="3"/><rect class="tp-line" x="22" y="96" width="112" height="6" rx="3"/><rect class="tp-accent" x="22" y="116" width="46" height="16" rx="4"/><rect class="tp-media" x="186" y="48" width="156" height="88" rx="6"/><rect class="tp-line" x="22" y="160" width="92" height="30" rx="5"/><rect class="tp-line" x="136" y="160" width="92" height="30" rx="5"/><rect class="tp-line" x="250" y="160" width="92" height="30" rx="5"/>',
+    pricing: '<rect class="tp-ink" x="127" y="48" width="110" height="12" rx="3"/><rect class="tp-line" x="144" y="68" width="76" height="6" rx="3"/><rect class="tp-card" x="22" y="94" width="96" height="96" rx="6"/><rect class="tp-card" x="134" y="86" width="96" height="104" rx="6"/><rect class="tp-card" x="246" y="94" width="96" height="96" rx="6"/><rect class="tp-accent" x="154" y="160" width="56" height="14" rx="4"/>',
+    contact: '<rect class="tp-ink" x="22" y="56" width="106" height="14" rx="3"/><rect class="tp-line" x="22" y="82" width="120" height="6" rx="3"/><rect class="tp-line" x="22" y="94" width="92" height="6" rx="3"/><rect class="tp-card" x="184" y="48" width="158" height="142" rx="6"/><rect class="tp-outline" x="198" y="68" width="130" height="20" rx="3"/><rect class="tp-outline" x="198" y="98" width="130" height="44" rx="3"/><rect class="tp-accent" x="198" y="154" width="54" height="16" rx="4"/>',
+    about: '<rect class="tp-ink" x="22" y="50" width="124" height="12" rx="3"/><rect class="tp-line" x="22" y="72" width="116" height="6" rx="3"/><rect class="tp-media" x="22" y="102" width="126" height="68" rx="5"/><rect class="tp-ink" x="176" y="108" width="78" height="9" rx="3"/><rect class="tp-line" x="176" y="128" width="150" height="6" rx="3"/><rect class="tp-line" x="176" y="140" width="126" height="6" rx="3"/><rect class="tp-accent" x="176" y="158" width="44" height="14" rx="4"/>',
+    services: '<rect class="tp-ink" x="122" y="48" width="120" height="12" rx="3"/><rect class="tp-line" x="140" y="68" width="84" height="6" rx="3"/><rect class="tp-card" x="22" y="98" width="96" height="74" rx="6"/><rect class="tp-card" x="134" y="98" width="96" height="74" rx="6"/><rect class="tp-card" x="246" y="98" width="96" height="74" rx="6"/><circle class="tp-accent" cx="48" cy="120" r="8"/><circle class="tp-accent" cx="160" cy="120" r="8"/><circle class="tp-accent" cx="272" cy="120" r="8"/>',
+    work: '<rect class="tp-ink" x="22" y="48" width="116" height="12" rx="3"/><rect class="tp-line" x="22" y="68" width="138" height="6" rx="3"/><rect class="tp-media" x="22" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="134" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="246" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="22" y="152" width="96" height="38" rx="5"/><rect class="tp-media" x="134" y="152" width="96" height="38" rx="5"/><rect class="tp-media" x="246" y="152" width="96" height="38" rx="5"/>',
+    case: '<rect class="tp-ink" x="22" y="46" width="150" height="12" rx="3"/><rect class="tp-line" x="22" y="66" width="112" height="6" rx="3"/><rect class="tp-media" x="22" y="88" width="320" height="68" rx="6"/><rect class="tp-line" x="22" y="174" width="84" height="16" rx="4"/><rect class="tp-line" x="140" y="174" width="84" height="16" rx="4"/><rect class="tp-accent" x="258" y="174" width="84" height="16" rx="4"/>',
+    faq: '<rect class="tp-ink" x="22" y="48" width="100" height="12" rx="3"/><rect class="tp-line" x="22" y="70" width="136" height="6" rx="3"/><rect class="tp-card" x="22" y="96" width="320" height="22" rx="4"/><rect class="tp-card" x="22" y="128" width="320" height="22" rx="4"/><rect class="tp-card" x="22" y="160" width="320" height="22" rx="4"/>',
+    blog: '<rect class="tp-ink" x="22" y="48" width="104" height="12" rx="3"/><rect class="tp-line" x="22" y="68" width="124" height="6" rx="3"/><rect class="tp-media" x="22" y="98" width="88" height="38" rx="5"/><rect class="tp-line" x="128" y="102" width="116" height="8" rx="3"/><rect class="tp-line" x="128" y="118" width="190" height="6" rx="3"/><rect class="tp-media" x="22" y="150" width="88" height="38" rx="5"/><rect class="tp-line" x="128" y="154" width="98" height="8" rx="3"/><rect class="tp-line" x="128" y="170" width="174" height="6" rx="3"/>',
+    article: '<rect class="tp-line" x="128" y="48" width="64" height="5" rx="2.5"/><rect class="tp-ink" x="92" y="66" width="180" height="13" rx="3"/><rect class="tp-line" x="118" y="88" width="128" height="6" rx="3"/><rect class="tp-media" x="70" y="108" width="224" height="46" rx="5"/><rect class="tp-line" x="96" y="170" width="172" height="5" rx="2.5"/><rect class="tp-line" x="96" y="182" width="146" height="5" rx="2.5"/>',
+    soon: '<rect class="tp-ink" x="97" y="62" width="170" height="13" rx="3"/><rect class="tp-line" x="122" y="86" width="120" height="6" rx="3"/><rect class="tp-outline" x="88" y="116" width="134" height="24" rx="4"/><rect class="tp-accent" x="230" y="116" width="48" height="24" rx="4"/><rect class="tp-line" x="136" y="158" width="92" height="5" rx="2.5"/>'
+  };
+  return `<svg class="templatePreview" viewBox="0 0 364 214" role="img" aria-label="${id} page layout preview"><rect class="tp-paper" width="364" height="214" rx="8"/>${header}${art[id] || art.blank}</svg>`;
+};
 var TEMPLATES = [
   {
     id: "blank",
     name: "Blank",
     desc: "An empty page.",
+    category: "Start",
+    keywords: ["empty", "canvas"],
     build: () => []
   },
   {
     id: "landing",
     name: "Landing page",
     desc: "Hero, three features, closing call to action.",
+    category: "Marketing",
+    keywords: ["home", "hero", "features", "cta"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px" }, [
         cols(1, [[
@@ -6415,6 +6438,8 @@ var TEMPLATES = [
     id: "pricing",
     name: "Pricing",
     desc: "Intro and three plan columns.",
+    category: "Marketing",
+    keywords: ["plans", "packages", "subscriptions"],
     build: () => [
       T_SEC({ "background-color": cvar("bg") }, [
         cols(1, [[
@@ -6434,6 +6459,8 @@ var TEMPLATES = [
     id: "contact",
     name: "Contact",
     desc: "Short intro beside a working form.",
+    category: "Company",
+    keywords: ["form", "inquiry", "lead"],
     build: () => [
       T_SEC({ "background-color": cvar("bg") }, [
         cols(2, [
@@ -6450,6 +6477,8 @@ var TEMPLATES = [
     id: "about",
     name: "About",
     desc: "The story, a stats row and a closing action.",
+    category: "Company",
+    keywords: ["story", "team", "company"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px" }, [
         cols(1, [[
@@ -6485,6 +6514,8 @@ var TEMPLATES = [
     id: "services",
     name: "Services",
     desc: "What you offer, how it works, then an action.",
+    category: "Company",
+    keywords: ["offer", "process", "business"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px" }, [
         cols(1, [[
@@ -6518,6 +6549,8 @@ var TEMPLATES = [
     id: "work",
     name: "Work",
     desc: "A grid of projects with room for captions.",
+    category: "Portfolio",
+    keywords: ["projects", "gallery", "portfolio"],
     build: () => {
       const card = (i) => [
         N("image", { src: "", alt: "" }, { d: { "border-radius": "14px", height: "220px", "object-fit": "cover", "margin-bottom": "14px" }, m: { height: "180px" } }),
@@ -6542,6 +6575,8 @@ var TEMPLATES = [
     id: "case",
     name: "Case study",
     desc: "One project: the brief, the work, the result.",
+    category: "Portfolio",
+    keywords: ["project", "results", "client"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "40px" }, [
         cols(1, [[
@@ -6585,6 +6620,8 @@ var TEMPLATES = [
     id: "faq",
     name: "FAQ",
     desc: "Questions and answers, plus a way to ask more.",
+    category: "Company",
+    keywords: ["questions", "answers", "support"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "40px" }, [
         cols(1, [[
@@ -6623,6 +6660,8 @@ var TEMPLATES = [
     id: "blog",
     name: "Blog index",
     desc: "A list of posts with dates and summaries.",
+    category: "Content",
+    keywords: ["posts", "news", "articles"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "40px" }, [
         cols(1, [[
@@ -6647,6 +6686,8 @@ var TEMPLATES = [
     id: "article",
     name: "Article",
     desc: "A single post at a readable measure.",
+    category: "Content",
+    keywords: ["post", "story", "editorial"],
     build: () => [
       T_SEC({ "background-color": cvar("bg"), "padding-top": "104px", "padding-bottom": "32px" }, [
         cols(1, [[
@@ -6671,6 +6712,8 @@ var TEMPLATES = [
     id: "soon",
     name: "Coming soon",
     desc: "A centred hero with a signup form.",
+    category: "Marketing",
+    keywords: ["launch", "signup", "waitlist"],
     build: () => [
       T_SEC({ "background-color": cvar("ink"), "padding-top": "132px", "padding-bottom": "132px" }, [
         cols(1, [[
@@ -8416,6 +8459,7 @@ ${ANIM_JS}
   styleSeen,
   styles,
   tableGrid,
+  templatePreview,
   textSlots,
   tgtIsClass,
   tgtObj,
