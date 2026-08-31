@@ -80,7 +80,8 @@ export function mount(core: Core, legacy: Legacy) {
   const mountColors = inBox('mColors', () => <ColorTokens />);
   const mountClasses = inBox('mClasses', () => <StyleClasses />);
   const mountStyles = inBox('mStyles', () => <TextStyles />);
-  const mountReview = (hostId = 'exReview') => inBox(hostId, () => <ReviewList />)();
+  const mountReview = (hostId = 'exReview', defaultOpen = false) =>
+    inBox(hostId, () => <ReviewList defaultOpen={defaultOpen} />)();
   registerPainter('colors', mountColors);
   registerPainter('classes', mountClasses);
   registerPainter('styles', mountStyles);

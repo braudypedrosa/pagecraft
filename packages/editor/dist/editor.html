@@ -520,7 +520,7 @@ body.dragging .lrow{cursor:grabbing}
 /* ---- canvas ------------------------------------------------------------ */
 .stage{
   flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;
-  background:var(--stage);overflow:auto;padding:14px 16px 0;position:relative;
+  background:var(--stage);overflow:auto;padding:14px 16px 12px;position:relative;
 }
 .stage>.modebar{width:100%}
 body.preview .stage{padding:0}
@@ -565,11 +565,17 @@ body.preview .modebar{display:none}
 .itemBar button:disabled{opacity:var(--dim);cursor:default}
 /* dimension readout, kept close to the working surface */
 .dim{
-  position:absolute;left:16px;bottom:12px;z-index:12;display:flex;align-items:center;gap:var(--sp-4);
+  position:static;align-self:flex-start;flex:0 0 auto;z-index:12;display:flex;align-items:center;gap:var(--sp-4);
+  margin-top:8px;
   padding:5px 10px;border-radius:var(--r-pill);background:var(--panel);border:1px solid var(--line);
-  box-shadow:var(--shadow);font-family:var(--label);font-size:var(--fs-2);font-weight:500;color:var(--text-2);
+  box-shadow:var(--shadow);font-family:var(--label);font-size:var(--fs-2);font-weight:500;color:var(--text-2);white-space:nowrap;
 }
-.dim b{color:var(--text);font-weight:600}
+.dim b{color:var(--text);font-weight:600;white-space:nowrap}
+.dim>.pc-custom-select-trigger{
+  width:auto;min-height:0;padding:3px 7px;gap:var(--sp-2);border-color:transparent;background:transparent;
+}
+.dim>.pc-custom-select-trigger:hover{background:var(--field);border-color:var(--line-2)}
+.dim>.pc-custom-select-trigger>svg{width:10px;height:10px;flex-basis:10px}
 body.preview .dim{display:none}
 
 /* ---- inspector --------------------------------------------------------- */
@@ -1217,8 +1223,7 @@ pre.code{
   .left{left:48px;width:min(300px,calc(100vw - 48px))}
   .right{right:0;width:min(318px,calc(100vw - 48px))}
   .sHead .panelClose{display:grid}
-  .stage{padding:10px 8px 0}
-  .dim{left:8px;bottom:8px}
+  .stage{padding:10px 8px 8px}
   .mask,#ask{padding:8px}
   .modal{max-height:calc(100vh - 16px);border-radius:var(--r-md)}
   .mh{padding:13px 14px}
@@ -14048,10 +14053,10 @@ var PC_UI = (() => {
     "global header": "header",
     "global footer": "footer"
   };
-  function ReviewList() {
+  function ReviewList({ defaultOpen = false }) {
     const findings = C2.lint();
     const counts = C2.lintCounts(findings);
-    const [open, setOpen] = d2(counts.error > 0);
+    const [open, setOpen] = d2(defaultOpen || counts.error > 0);
     const clean = !findings.length;
     const goTo = (f4) => {
       if (!f4.nodeId) return;
@@ -16612,7 +16617,7 @@ var PC_UI = (() => {
     const mountColors = inBox("mColors", () => /* @__PURE__ */ u2(ColorTokens, {}));
     const mountClasses = inBox("mClasses", () => /* @__PURE__ */ u2(StyleClasses, {}));
     const mountStyles = inBox("mStyles", () => /* @__PURE__ */ u2(TextStyles, {}));
-    const mountReview = (hostId = "exReview") => inBox(hostId, () => /* @__PURE__ */ u2(ReviewList, {}))();
+    const mountReview = (hostId = "exReview", defaultOpen = false) => inBox(hostId, () => /* @__PURE__ */ u2(ReviewList, { defaultOpen }))();
     registerPainter("colors", mountColors);
     registerPainter("classes", mountClasses);
     registerPainter("styles", mountStyles);
@@ -16658,6 +16663,7 @@ const LS_LEGACY = 'slate.project.v1';       // pre-rebrand key
 const TABID = Math.random().toString(36).slice(2, 10);
 let saveState = 'idle';                 // idle | ok | failed
 let saveWarned = false;
+let lastCloudDocument = null;
 
 /* Set by the server when it serves the editor; absent in the single-file build. `version`
    is the one mutable field: every accepted save returns the next one, and sending a stale
@@ -16992,18 +16998,6 @@ function renderReleasePanel(payload = {}) {
   host.setAttribute('aria-busy', 'false');
 }
 
-async function loadReleasePanel() {
-  const host = $('#releasePanel');
-  if (host) host.setAttribute('aria-busy', 'true');
-  try {
-    const payload = await HOST.releases.list();
-    renderReleasePanel(payload);
-  } catch (error) {
-    if (host) host.innerHTML = `<div class="alert"><b>Release status is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
-    if (host) host.setAttribute('aria-busy', 'false');
-  }
-}
-
 async function flushDraft() {
   await writeServer();
   const until = Date.now() + 20000;
@@ -17053,7 +17047,6 @@ async function publishDraft(button) {
     toast(payload.status === 'unchanged' ? 'This version is already published' : 'Published to Pagecraft');
     button.textContent = 'Published';
     setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish to Pagecraft'; } }, 900);
-    await loadReleasePanel();
   } catch (error) {
     if (error && error.status === 409) {
       warnStale(error.payload || {});
@@ -17100,13 +17093,16 @@ function publishModal() {
   const mayPublish = SRV.role === 'owner' && !counts.error;
   openModal('Publish', `
     <div class="review" id="exReview"></div>
-    <div id="releasePanel" role="status" aria-live="polite" aria-atomic="true" aria-busy="true"><div class="releaseEmpty">Loading release status…</div></div>`, `
+    <div id="releasePanel" role="status" aria-live="polite" aria-atomic="true" aria-busy="false"></div>`, `
     <button class="btn" id="releaseWordPress">Publish on WordPress</button>
     <span style="flex:1"></span>
     <button class="btn" id="releaseClose">Close</button>
     ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
-  ui().mountReview();
-  loadReleasePanel();
+  ui().mountReview('exReview', true);
+  /* The editor page already carries the current publication identity and version. Rendering
+     that injected state avoids a second authenticated database round trip just to open this
+     dialog; a successful publish replaces it with the API's fresh response below. */
+  renderReleasePanel();
   $('#releaseClose').addEventListener('click', closeModal);
   $('#releaseWordPress').addEventListener('click', wordpressPublishModal);
   const publish = $('#releasePublish');
@@ -17169,6 +17165,8 @@ let saving = false, saveAgain = false;
 
 async function writeServer() {
   if (saving) { saveAgain = true; return; }
+  const cloudDocument = !IS_WORDPRESS ? JSON.stringify(doc()) : null;
+  if (!IS_WORDPRESS && saveState === 'ok' && cloudDocument === lastCloudDocument) return;
   saving = true;
   stamp('Saving…', false);
   try {
@@ -17182,6 +17180,7 @@ async function writeServer() {
       } } : {})
     });
     SRV.version = body.version;
+    if (!IS_WORDPRESS) lastCloudDocument = cloudDocument;
     saveState = 'ok';
     stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
   } catch (e) {
@@ -19443,7 +19442,7 @@ $('#modal').addEventListener('keydown', e => trapDialogKey(e, $('#modalBox'), cl
    Replaces native prompt() and confirm(). Those were unstyled OS chrome in the
    middle of an art-directed tool, and — the reason this had to change — sandboxed
    iframes refuse them outright, so naming a class or a colour silently did
-   nothing in the published Artifact.
+   nothing in an embedded editor.
    Both return a promise: a string / true on confirm, null / false on any exit. */
 let askDone = null;
 let askReturnFocus = null;
@@ -20490,6 +20489,10 @@ HOOKS.note = msg => toast(msg);
   applyHostFeatures();
   await assetsLoad();
   load();
+  if (SRV && !IS_WORDPRESS) {
+    lastCloudDocument = JSON.stringify(doc());
+    saveState = 'ok';
+  }
   await mountCanvas();
   bindTop();
   renderPalette();

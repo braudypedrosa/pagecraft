@@ -101,7 +101,8 @@ test('the standalone build makes Export its primary action', async () => {
 test('server mode separates draft saving from explicit release publication', async () => {
   const base = await boot();
   const server = {
-    siteId: 'site-release', version: 7, publishedVersion: 5, role: 'owner',
+    siteId: 'site-release', version: 7, publishedVersion: 5,
+    publishedPublicationId: 'publication-5', role: 'owner',
     user: { id: 'user-1', name: 'Braudy Pedrosa', email: 'braudy@example.test' },
     editorSessionToken: 'scoped-editor-session',
     doc: base.window.__CORE.clone(base.window.__CORE.doc())
@@ -155,13 +156,9 @@ test('server mode separates draft saving from explicit release publication', asy
   a.equal(doc.querySelector('#accountEmail').textContent.trim(), 'braudy@example.test');
   a.match(doc.querySelector('#accountPop').textContent, /Sign out/);
   doc.querySelector('#exportBtn').click();
-  await new Promise(r => setTimeout(r, 0));
   a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Publish');
-  a.ok(calls.some(([url, method]) => url === '/api/sites/site-release/publication' && method === 'GET'));
-  const targetUntil = Date.now() + 1000;
-  while (!doc.querySelector('.releaseLead') && Date.now() < targetUntil) {
-    await new Promise(r => setTimeout(r, 20));
-  }
+  a.equal(calls.some(([url]) => url === '/api/sites/site-release/publication'), false,
+    'opening Publish must use the publication state already injected with the editor');
   a.match(doc.querySelector('.releaseLead')?.textContent || '', /Published on Pagecraft/);
   a.equal(doc.querySelector('#releaseWordPress')?.textContent.trim(), 'Publish on WordPress');
   a.equal(doc.querySelector('#releasePanel')?.getAttribute('role'), 'status');
@@ -180,11 +177,11 @@ test('server mode separates draft saving from explicit release publication', asy
   const post = calls.find(([url, method]) => url === '/api/sites/site-release/publish' && method === 'POST');
   a.ok(post, 'Publish promotes the saved draft through the hosted publication API');
   const body = JSON.parse(post[2]);
-  a.equal(body.sourceVersion, 8, 'the publication freezes the version returned by the draft save');
+  a.equal(body.sourceVersion, 7, 'a clean publication reuses the already-saved draft version');
   a.equal(typeof body.acknowledgeWarnings, 'boolean');
   a.equal(post[3]['X-Pagecraft-Editor-Session'], 'scoped-editor-session');
   const save = calls.find(([url, method]) => url === '/api/sites/site-release' && method === 'PUT');
-  a.equal(save?.[3]['X-Pagecraft-Editor-Session'], 'scoped-editor-session');
+  a.equal(save, undefined, 'publishing a clean draft must not create an identical revision');
   a.deepEqual(errors, []);
   dom.window.close();
 });

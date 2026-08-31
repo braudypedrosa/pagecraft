@@ -5,8 +5,8 @@
    imperative, because that is what it is. This part is a list with a disclosure and a
    jump button, which is what a component is for.
 
-   Problems open the list themselves and suggestions do not: an error you have not seen
-   is worth interrupting for, a suggestion is not. */
+   Problems open the list themselves. A host may also request an initially open list when
+   review is the primary task, such as the Publish dialog. */
 import { useState } from 'preact/hooks';
 import { C, L } from './ctx';
 import type { Finding } from '../core/types';
@@ -15,10 +15,10 @@ const REGION_MODE: Record<string, string> = {
   page: 'page', 'global header': 'header', 'global footer': 'footer'
 };
 
-export function ReviewList() {
+export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const findings = C.lint();
   const counts = C.lintCounts(findings);
-  const [open, setOpen] = useState(counts.error > 0);
+  const [open, setOpen] = useState(defaultOpen || counts.error > 0);
   const clean = !findings.length;
 
   /* Jumping to a finding may cross a page or a global region, so the scope moves first

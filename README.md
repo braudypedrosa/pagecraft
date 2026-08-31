@@ -3,6 +3,13 @@
 Build a website visually and export real, static HTML — no accounts, no build step, no
 dependencies.
 
+## Repository ownership
+
+This repository owns Pagecraft Cloud and the shared editor source. The separately released
+WordPress plugin and theme live in `braudypedrosa/pagecraft-wordpress`; they consume an exact
+`@pagecraft/editor` package produced here. See [REPOSITORY-BOUNDARIES.md](REPOSITORY-BOUNDARIES.md)
+before preparing either product for release.
+
 ## Run it
 
 ```bash
