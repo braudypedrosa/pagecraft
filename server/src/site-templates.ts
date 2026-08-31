@@ -33,6 +33,19 @@ export interface SiteTemplateStore {
   preview(id: string, version: string, path: string): Promise<{ bytes: Uint8Array; mediaType: string } | null>;
 }
 
+export const latestSiteTemplates = (templates: SiteTemplateSummary[]) => {
+  const latest = new Map<string, SiteTemplateSummary>();
+  for (const template of templates) {
+    const current = latest.get(template.id);
+    if (!current || template.version.localeCompare(
+      current.version,
+      undefined,
+      { numeric: true },
+    ) > 0) latest.set(template.id, template);
+  }
+  return [...latest.values()].sort((a, b) => a.name.localeCompare(b.name));
+};
+
 const HASH = /^[a-f0-9]{64}$/;
 const SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const VERSION = /^\d+\.\d+\.\d+$/;

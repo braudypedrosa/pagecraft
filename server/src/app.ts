@@ -116,7 +116,7 @@ import {
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
 import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
-import type { SiteTemplateStore } from "./site-templates.ts";
+import { latestSiteTemplates, type SiteTemplateStore } from "./site-templates.ts";
 import {
   accountSettingsPage,
   dashboardPage,
@@ -1463,10 +1463,10 @@ export function createApp(o: Options) {
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
         : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
-      const templates = o.siteTemplates ? await o.siteTemplates.list().catch(error => {
+      const templates = o.siteTemplates ? latestSiteTemplates(await o.siteTemplates.list().catch(error => {
         console.error('site template catalog unavailable', error);
         return [];
-      }) : [];
+      })) : [];
       return c.html(dashboardPage(
         user,
         mine.map(({ site, role }) => ({

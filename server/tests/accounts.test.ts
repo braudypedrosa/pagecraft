@@ -459,7 +459,7 @@ test("a curated site installs all pages and remapped media without charging the 
     body: JSON.stringify({
       name: "Client Studio",
       templateId: "independent-studio",
-      templateVersion: "1.0.0",
+      templateVersion: "1.0.1",
     }),
   });
   a.equal(created.status, 201, await created.clone().text());
@@ -489,15 +489,16 @@ test("a curated site installs all pages and remapped media without charging the 
   const dashboard = await request("/");
   const html = await dashboard.text();
   a.match(html, /Independent Studio/);
-  a.match(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
+  a.match(html, /name="siteTemplate" value="independent-studio@1\.0\.1"/);
+  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
   a.match(
     html,
-    /\/templates\/independent-studio\/1\.0\.0\/preview\/index\.html/,
+    /\/templates\/independent-studio\/1\.0\.1\/preview\/index\.html/,
   );
   a.match(html, /Blank site/);
 
   const preview = await request(
-    "/templates/independent-studio/1.0.0/preview/index.html",
+    "/templates/independent-studio/1.0.1/preview/index.html",
   );
   a.equal(preview.status, 200);
   a.match(preview.headers.get("content-security-policy") || "", /script-src/);
@@ -505,11 +506,16 @@ test("a curated site installs all pages and remapped media without charging the 
   const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
   a.ok(packagedAsset);
   const media = await request(
-    `/templates/independent-studio/1.0.0/preview/${packagedAsset[1]}`,
+    `/templates/independent-studio/1.0.1/preview/${packagedAsset[1]}`,
   );
   a.equal(media.status, 200);
   a.equal(media.headers.get("content-type"), "image/webp");
   a.match(media.headers.get("cache-control") || "", /immutable/);
+
+  const priorVersion = await request(
+    "/templates/independent-studio/1.0.0/preview/index.html",
+  );
+  a.equal(priorVersion.status, 200);
 });
 
 test("site overview is protected, membership-scoped, and exposes working management actions", async () => {
