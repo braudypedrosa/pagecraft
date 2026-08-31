@@ -1,6 +1,7 @@
 import { createPrivateKey } from 'node:crypto';
 import { test, vi } from 'vitest';
 import a from 'node:assert/strict';
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, hashToken } from '../src/auth.ts';
@@ -98,6 +99,11 @@ const connection = (siteId: string, ownerId: string, environment: 'staging' | 'p
 
 test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and action-only', async () => {
   const { site, first, second, admin, request } = await rig();
+  const discovery = await request(first, '/.well-known/pagecraft-integrations');
+  a.equal(discovery.status, 200);
+  a.deepEqual((await discovery.json() as { mcp:{ tools:string[] } }).mcp.tools, [
+    'pagecraft_list_projects', 'pagecraft_list_pages', 'pagecraft_get_page'
+  ]);
   const verifier = 'm'.repeat(64);
   const challenge = base64url(Buffer.from(hashToken(verifier), 'hex'));
   const callback = 'http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback';
@@ -117,7 +123,7 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   const anonymous = await request(first, `/v1/wordpress-import/authorize?${query}`);
   a.equal(anonymous.status, 302);
   a.match(anonymous.headers.get('location') || '', /^\/sign-in\?next=/);
-  const consent = await admin(first, `/v1/wordpress-import/authorize?${query}`);
+  const consent = await admin(first, `/v1/integrations/wordpress/authorize?${query}`);
   a.equal(consent.status, 200);
   a.match(await consent.clone().text(), /read-only access to projects you own/);
   a.match(await consent.clone().text(), /Imports are manual and do not stay in sync/);
@@ -126,13 +132,13 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   a.match(await consent.clone().text(), /pagecraft-wordpress-qa\.local/);
   const csrf = (await consent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
   a.ok(csrf);
-  const approved = await admin(second, '/v1/wordpress-import/authorize', {
+  const approved = await admin(second, '/v1/integrations/wordpress/authorize', {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ csrf: csrf! })
   });
   a.equal(approved.status, 302);
   const code = new URL(approved.headers.get('location')!).searchParams.get('code')!;
-  const tokenResponse = await request(first, '/v1/wordpress-import/token', {
+  const tokenResponse = await request(first, '/v1/integrations/wordpress/token', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ grant_type: 'authorization_code', code, code_verifier: verifier, redirect_uri: callback })
   });
@@ -141,12 +147,20 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
     access_token:string; refresh_token:string; credential_id:string;
   };
   const bearer = { authorization: `Bearer ${tokens.access_token}` };
+  const connectionResponse = await request(first, '/v1/integrations/wordpress/connection', {
+    headers: bearer
+  });
+  a.equal(connectionResponse.status, 200);
+  a.deepEqual(
+    (await connectionResponse.json() as { scopes:string[] }).scopes,
+    ['projects:read', 'packages:read']
+  );
   const projectsResponse = await request(second, '/v1/wordpress-import/projects', { headers: bearer });
   a.equal(projectsResponse.status, 200);
   const projects = await projectsResponse.json() as { projects:Array<{id:string;pageCount:number}> };
   a.deepEqual(projects.projects.map(item => item.id), [site.id]);
   a.ok(projects.projects[0].pageCount > 0);
-  const catalogResponse = await request(second, '/v1/wordpress-import/catalog', { headers: bearer });
+  const catalogResponse = await request(second, '/v1/integrations/wordpress/catalog', { headers: bearer });
   a.equal(catalogResponse.status, 200);
   const catalog = await catalogResponse.json() as {
     projects:Array<{id:string;sourceVersion:number;pages:Array<{id:string;sourceVersion:number}>}>
@@ -156,7 +170,7 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   a.ok(catalog.projects[0].pages.length > 0);
   a.equal(catalog.projects[0].pages[0].sourceVersion, site.version);
   const projectPackageResponse = await request(second,
-    `/v1/wordpress-import/projects/${site.id}/package`, { headers: bearer });
+    `/v1/integrations/wordpress/projects/${site.id}/package`, { headers: bearer });
   a.equal(projectPackageResponse.status, 200, await projectPackageResponse.clone().text());
   const projectPackage = validatePortablePackage(new Uint8Array(await projectPackageResponse.arrayBuffer()));
   a.equal(projectPackage.manifest.kind, 'site');
@@ -168,21 +182,55 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   a.ok(pages.pages.length > 0);
   a.match(pages.pages[0].previewUrl, /^http:\/\//);
   const packageResponse = await request(first,
-    `/v1/wordpress-import/projects/${site.id}/pages/${pages.pages[0].id}/package`, { headers: bearer });
+    `/v1/integrations/wordpress/projects/${site.id}/pages/${pages.pages[0].id}/package`, {
+      headers: bearer
+    });
   a.equal(packageResponse.status, 200, await packageResponse.clone().text());
   a.equal(validatePortablePackage(new Uint8Array(await packageResponse.arrayBuffer())).manifest.kind, 'page');
 
-  const refreshed = await request(second, '/v1/wordpress-import/token', {
+  a.equal((await request(first, '/mcp', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' })
+  })).status, 401);
+  const mcpTransport = new StreamableHTTPClientTransport(new URL('http://admin.test/mcp'), {
+    authProvider: { token: async () => tokens.access_token },
+    fetch: async (input, init) => {
+      const headers = new Headers(init?.headers);
+      headers.set('host', 'admin.test');
+      return second.fetch(new Request(input, { ...init, headers }));
+    }
+  });
+  const mcp = new Client({ name: 'pagecraft-test', version: '1.0.0' });
+  await mcp.connect(mcpTransport);
+  a.deepEqual((await mcp.listTools()).tools.map(tool => tool.name), [
+    'pagecraft_list_projects', 'pagecraft_list_pages', 'pagecraft_get_page'
+  ]);
+  const projectTool = await mcp.callTool({ name: 'pagecraft_list_projects', arguments: {} });
+  a.deepEqual(
+    (projectTool.structuredContent as { projects:Array<{id:string}> }).projects.map(item => item.id),
+    [site.id]
+  );
+  const pageTool = await mcp.callTool({
+    name: 'pagecraft_list_pages', arguments: { projectId: site.id }
+  });
+  a.equal((pageTool.structuredContent as { pages:Array<{id:string}> }).pages[0].id, pages.pages[0].id);
+  const readTool = await mcp.callTool({
+    name: 'pagecraft_get_page', arguments: { projectId: site.id, pageId: pages.pages[0].id }
+  });
+  a.equal((readTool.structuredContent as { page:{id:string} }).page.id, pages.pages[0].id);
+  await mcp.close();
+
+  const refreshed = await request(second, '/v1/integrations/wordpress/token', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
   });
   a.equal(refreshed.status, 200);
-  const revoked = await request(first, '/v1/wordpress-import/revoke', {
+  const revoked = await request(first, '/v1/integrations/wordpress/revoke', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ credential_id: tokens.credential_id, refresh_token: tokens.refresh_token })
   });
   a.equal(revoked.status, 200);
-  const afterRevoke = await request(second, '/v1/wordpress-import/token', {
+  const afterRevoke = await request(second, '/v1/integrations/wordpress/token', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
   });
