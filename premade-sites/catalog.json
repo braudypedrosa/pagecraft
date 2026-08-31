@@ -80,6 +80,46 @@
       "previewPage": "index.html",
       "assetCount": 4,
       "assetBytes": 524722
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.0",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "e04125f3ede933febe978f42ae947ab66bdf43ffd91acb93ac9ba328c9a20edb",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
     }
   ]
 }

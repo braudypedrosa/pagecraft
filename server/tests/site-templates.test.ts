@@ -12,26 +12,26 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'prema
 test('curated site catalog exposes the immutable four-page studio package', async () => {
   const store = new FileSiteTemplateStore(root);
   const templates = await store.list();
-  a.deepEqual(templates.map(template => template.version), ['1.0.0', '1.0.1']);
+  a.deepEqual(templates.map(template => template.version), ['1.0.0', '1.0.1', '2.0.0']);
   const [template] = latestSiteTemplates(templates);
   a.equal(template.id, 'independent-studio');
-  a.equal(template.version, '1.0.1');
+  a.equal(template.version, '2.0.0');
   a.deepEqual(template.pages.map(page => page.slug), ['index', 'about', 'services', 'contact']);
   const bytes = new Uint8Array(await readFile(resolve(root, template.id, template.version, template.packageFile)));
   const validated = validatePortablePackage(bytes);
   a.equal(validated.sha256, template.packageSha256);
   a.equal(validated.manifest.kind, 'site');
-  a.equal(validated.dependencies.assets.length, 4);
+  a.equal(validated.dependencies.assets.length, 5);
 });
 
 test('each site installation receives independent asset identities and remains renderable', async () => {
   const store = new FileSiteTemplateStore(root);
   const first = await store.instantiate('independent-studio');
-  const second = await store.instantiate('independent-studio', '1.0.1');
+  const second = await store.instantiate('independent-studio', '2.0.0');
   a.ok(first && second);
-  a.equal(first.template.version, '1.0.1');
+  a.equal(first.template.version, '2.0.0');
   a.equal(first.document.pages.length, 4);
-  a.equal(first.assets.length, 4);
+  a.equal(first.assets.length, 5);
   a.notDeepEqual(first.assets.map(asset => asset.id), second.assets.map(asset => asset.id));
   a.equal(JSON.stringify(first.document).includes('asset:northline-'), false);
   for (const asset of first.assets) a.match(JSON.stringify(first.document), new RegExp(`asset:${asset.id}`));
@@ -44,7 +44,7 @@ test('each site installation receives independent asset identities and remains r
 
 test('template preview serves package HTML and its packaged media only', async () => {
   const store = new FileSiteTemplateStore(root);
-  const page = await store.preview('independent-studio', '1.0.1', 'index.html');
+  const page = await store.preview('independent-studio', '2.0.0', 'index.html');
   a.ok(page);
   a.equal(page.mediaType, 'text/html; charset=utf-8');
   a.match(new TextDecoder().decode(page.bytes), /<!doctype html>/i);
@@ -58,5 +58,6 @@ test('template preview serves package HTML and its packaged media only', async (
   a.equal(asset.mediaType, 'image/webp');
   a.ok(asset.bytes.byteLength > 20_000);
   a.equal(await store.preview(template.id, template.version, '../../catalog.json'), null);
+  a.ok(await store.preview('independent-studio', '1.0.1', 'index.html'));
   a.ok(await store.preview('independent-studio', '1.0.0', 'index.html'));
 });

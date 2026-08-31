@@ -3,18 +3,19 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dimensions, sniff, type Asset } from '../server/src/assets.ts';
 import { createSitePackage } from '../server/src/portable-packages.ts';
-import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/1.0.1/source.ts';
+import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/2.0.0/source.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = resolve(root, 'premade-sites');
 const templateId = 'independent-studio';
-const version = '1.0.1';
+const version = '2.0.0';
 const directory = resolve(templateRoot, templateId, version);
 const assetSpecs = [
-  ['northline-hero', 'hero.webp'],
-  ['northline-about', 'about.webp'],
-  ['northline-services', 'services.webp'],
-  ['northline-contact', 'contact.webp']
+  ['northline-system-hero', 'hero-studio-system.webp'],
+  ['northline-identity-artifacts', 'identity-artifacts.webp'],
+  ['northline-digital-prototype', 'digital-prototype.webp'],
+  ['northline-editorial-production', 'editorial-production.webp'],
+  ['northline-closing-studio', 'closing-studio.webp']
 ] as const;
 
 const assets: Asset[] = [];
@@ -45,8 +46,8 @@ const manifest = {
   version,
   name: 'Independent Studio',
   sampleName: 'Northline Studio',
-  description: 'An editorial four-page site for independent studios and thoughtful service businesses.',
-  categories: ['Studio', 'Services', 'Editorial'],
+  description: 'A high-contrast four-page studio system for independent creative practices.',
+  categories: ['Studio', 'Services', 'Creative'],
   pages: document.pages.map(page => ({ id: page.id, name: page.name, slug: page.slug })),
   packageFile: 'site.pagecraft-site.zip',
   packageSha256: built.sha256,

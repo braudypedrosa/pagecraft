@@ -459,7 +459,7 @@ test("a curated site installs all pages and remapped media without charging the 
     body: JSON.stringify({
       name: "Client Studio",
       templateId: "independent-studio",
-      templateVersion: "1.0.1",
+      templateVersion: "2.0.0",
     }),
   });
   a.equal(created.status, 201, await created.clone().text());
@@ -477,7 +477,7 @@ test("a curated site installs all pages and remapped media without charging the 
   a.ok(result.files.includes("index.html"));
   a.ok(result.files.includes("about.html"));
   const installed = await assets.list(site.id);
-  a.equal(installed.length, 4);
+  a.equal(installed.length, 5);
   a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
   const serialized = JSON.stringify(site.doc);
   a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
@@ -489,16 +489,17 @@ test("a curated site installs all pages and remapped media without charging the 
   const dashboard = await request("/");
   const html = await dashboard.text();
   a.match(html, /Independent Studio/);
-  a.match(html, /name="siteTemplate" value="independent-studio@1\.0\.1"/);
+  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.0"/);
+  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.1"/);
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
   a.match(
     html,
-    /\/templates\/independent-studio\/1\.0\.1\/preview\/index\.html/,
+    /\/templates\/independent-studio\/2\.0\.0\/preview\/index\.html/,
   );
   a.match(html, /Blank site/);
 
   const preview = await request(
-    "/templates/independent-studio/1.0.1/preview/index.html",
+    "/templates/independent-studio/2.0.0/preview/index.html",
   );
   a.equal(preview.status, 200);
   a.match(preview.headers.get("content-security-policy") || "", /script-src/);
@@ -506,11 +507,16 @@ test("a curated site installs all pages and remapped media without charging the 
   const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
   a.ok(packagedAsset);
   const media = await request(
-    `/templates/independent-studio/1.0.1/preview/${packagedAsset[1]}`,
+    `/templates/independent-studio/2.0.0/preview/${packagedAsset[1]}`,
   );
   a.equal(media.status, 200);
   a.equal(media.headers.get("content-type"), "image/webp");
   a.match(media.headers.get("cache-control") || "", /immutable/);
+
+  const previousVersion = await request(
+    "/templates/independent-studio/1.0.1/preview/index.html",
+  );
+  a.equal(previousVersion.status, 200);
 
   const priorVersion = await request(
     "/templates/independent-studio/1.0.0/preview/index.html",
