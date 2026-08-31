@@ -62,6 +62,23 @@ test('Google font bytes freeze deterministically once into shared signed CSS', a
   a.notEqual(changedBuilt.artifactHash, built.artifactHash,
     'different fetched bytes produce a different signed artifact hash');
 });
+test('font stylesheet requests negotiate the WOFF2 response expected by the freezer', async () => {
+  let userAgent = '';
+  const fetcher = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    if (url.hostname === 'fonts.googleapis.com') {
+      userAgent = new Headers(init?.headers).get('user-agent') || '';
+      return new Response(css, { headers: { 'content-type': 'text/css' } });
+    }
+    return new Response(Buffer.from('wOF2browser-negotiated-font'), {
+      headers: { 'content-type': 'font/woff2' }
+    });
+  }) as typeof fetch;
+
+  await freezeGoogleFontStylesheets(new Map([['index.html', page('home')]]), fetcher);
+  a.match(userAgent, /(?:Chrome|Chromium)\/\d+/,
+    'Google Fonts otherwise serves legacy TTF files to a product-specific user agent');
+});
 test('font freezing rejects redirect and dependency host escapes', async () => {
   const files = new Map([['index.html', page('home')]]);
   const redirected = (async () => new Response(null, {

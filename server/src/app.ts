@@ -13,55 +13,210 @@
 
    `app.ts` takes its stores and its editor file as arguments. That is what makes it testable
    without a database or a build — `index.ts` is the part that reads the environment. */
-import { Hono, type Context } from 'hono';
-import { serveStatic } from '@hono/node-server/serve-static';
-import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
-import { bodyLimit } from 'hono/body-limit';
-import { cmsItemKey, validHost, validSlug, type Site, type Store } from './store.ts';
-import { adopt, blankDoc, hostedHtml, publicPath, renderSite, resolvePath } from './render.ts';
-import { contentOnly } from './content.ts';
-import { assertTypedCmsWrite } from './cms-values.ts';
-import { throttle } from './mail.ts';
+import { type Context, Hono } from "hono";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { bodyLimit } from "hono/body-limit";
 import {
-  type AssetStore, type Asset, type AssetRecord,
-  metaOf, sniff, MAX_BYTES, ALLOWED, FREE_STORAGE_BYTES, AssetQuotaError
-} from './assets.ts';
-import { optimizeImage, optimizedName, type OptimizedImage } from './image-optimization.ts';
-import type { Doc } from '../../app/src/core/types.ts';
-import { assetFile } from '../../app/src/core/index.ts';
+  cmsItemKey,
+  type Site,
+  type SiteRevision,
+  type Store,
+  validHost,
+  validSlug,
+} from "./store.ts";
 import {
-  type AuthStore, type User, type Role, roleAllows, newToken, hashToken,
-  normalEmail, validEmail, LINK_TTL_MS, SESSION_TTL_MS, logLink, type LinkSender
-} from './auth.ts';
+  adopt,
+  blankDoc,
+  hostedHtml,
+  publicPath,
+  renderSite,
+  resolvePath,
+} from "./render.ts";
+import { contentOnly } from "./content.ts";
+import { assertTypedCmsWrite } from "./cms-values.ts";
+import { throttle } from "./mail.ts";
 import {
-  type ConnectedStore, type DeploymentStatus, type ReleaseAudit, type SiteRelease, type SiteReleaseSummary,
-  type WordPressConnection, type WordPressContentIndexItem
-} from './release-store.ts';
+  ALLOWED,
+  type Asset,
+  AssetQuotaError,
+  type AssetRecord,
+  type AssetStore,
+  FREE_STORAGE_BYTES,
+  MAX_BYTES,
+  metaOf,
+  sniff,
+} from "./assets.ts";
 import {
-  base64url, buildReleaseArtifact, canonicalJson, canonicalOrigin, canonicalTargetPath,
-  decodeReleaseManifest, deploymentForTarget, fromBase64url, manifestForRelease,
-  authoredCssAtRuleIssues, authoredStylesheetIssues, existingThemeCssIssues,
+  type OptimizedImage,
+  optimizedName,
+  optimizeImage,
+} from "./image-optimization.ts";
+import type { Doc } from "../../app/src/core/types.ts";
+import { assetFile } from "../../app/src/core/index.ts";
+import {
+  type AuthStore,
+  hashToken,
+  LINK_TTL_MS,
+  type LinkSender,
+  logLink,
+  newToken,
+  normalEmail,
+  type Role,
+  roleAllows,
+  SESSION_TTL_MS,
+  type User,
+  validEmail,
+} from "./auth.ts";
+import {
+  type ConnectedStore,
+  type DeploymentStatus,
+  type ReleaseAudit,
+  type SiteRelease,
+  type SiteReleaseSummary,
+  type WordPressConnection,
+  type WordPressContentIndexItem,
+} from "./release-store.ts";
+import {
+  authoredCssAtRuleIssues,
+  authoredStylesheetIssues,
+  base64url,
+  buildReleaseArtifact,
+  canonicalJson,
+  canonicalOrigin,
+  canonicalTargetPath,
+  decodeReleaseManifest,
+  deploymentForTarget,
+  existingThemeCssIssues,
+  fromBase64url,
+  type KeysetEnvelopeV1,
+  manifestForRelease,
   migrateIndexedWordPressLinks,
-  parseReleaseArtifact, releaseStylesheetLinks,
+  parseReleaseArtifact,
+  type ReleaseSigningKey,
+  releaseStylesheetLinks,
   replaceHostedSeoOwnershipTags,
-  sha256, signDeploymentEnvelope, signReleaseManifest, utf8ByteCompare,
+  sha256,
+  signDeploymentEnvelope,
   signReleaseAvailableWebhook,
-  type KeysetEnvelopeV1, type ReleaseSigningKey
-} from './releases.ts';
-import { freezeGoogleFontStylesheets } from './font-freeze.ts';
-import type { PackageRegistry } from './packages.ts';
-import type { HostedPublicationStore, PublicationSummary } from './publications.ts';
-import { createPagePackage, createSitePackage, portableAssetIds } from './portable-packages.ts';
-import type { AccountAuth } from './account-auth.ts';
-import type { HumanChallenge } from './turnstile.ts';
-import type { OwnedSiteStore } from './accounts.ts';
+  signReleaseManifest,
+  utf8ByteCompare,
+} from "./releases.ts";
+import { freezeGoogleFontStylesheets } from "./font-freeze.ts";
+import type { PackageRegistry } from "./packages.ts";
+import type {
+  HostedPublicationStore,
+  PublicationSummary,
+} from "./publications.ts";
 import {
-  accountSettingsPage, dashboardPage, forgotPage, privacyPage, resetPage, signInPage as accountSignInPage,
-  signUpPage, siteOverviewPage, sitePeoplePage, siteSettingsPage, termsPage
-} from './account-pages.ts';
-import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
+  createPagePackage,
+  createSitePackage,
+  portableAssetIds,
+} from "./portable-packages.ts";
+import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
+import type { HumanChallenge } from "./turnstile.ts";
+import type { OwnedSiteStore } from "./accounts.ts";
+import {
+  accountSettingsPage,
+  dashboardPage,
+  forgotPage,
+  privacyPage,
+  resetPage,
+  signInPage as accountSignInPage,
+  signUpPage,
+  siteOverviewPage,
+  sitePeoplePage,
+  siteSettingsPage,
+  termsPage,
+} from "./account-pages.ts";
+import {
+  CUSTOM_SELECT_BOOT_SCRIPT,
+  CUSTOM_SELECT_CSS,
+} from "../../shared/custom-select.js";
 
-export const SESSION_COOKIE = 'pc_session';
+export const SESSION_COOKIE = "pc_session";
+
+export type HostedPublishPreparation =
+  | {
+    status: "ok";
+    user: User;
+    role: Role;
+    site: Site;
+    revision: SiteRevision | null;
+    assets: AssetRecord[];
+  }
+  | { status: "missing" | "forbidden" };
+
+export interface HostedPublishPreparer {
+  prepare(
+    input: { siteId: string; identity: VerifiedIdentity },
+  ): Promise<HostedPublishPreparation>;
+}
+
+export type CloudSaveResult =
+  | { status: "saved"; site: Site }
+  | { status: "missing" }
+  | { status: "forbidden" }
+  | { status: "conflict"; currentVersion: number };
+
+export type CloudPublishResult =
+  | { status: "published"; site: Site }
+  | { status: "missing" }
+  | { status: "forbidden" }
+  | { status: "conflict"; currentVersion: number };
+
+/** Production-only fast path. Cached source material is never trusted for authorization: every
+ * write re-checks the verified identity, current membership, and optimistic version atomically
+ * inside the gateway. */
+export interface CloudMutationFastPath {
+  cachedSaveSource(siteId: string, sourceVersion: number): {
+    site: Site;
+    assets: AssetRecord[];
+  } | null;
+  saveAuthorized(input: {
+    siteId: string;
+    sourceVersion: number;
+    doc: Doc;
+    identity: VerifiedIdentity;
+    requiredRole: "write" | "admin";
+  }): Promise<CloudSaveResult>;
+  cachedPublishSource(input: {
+    siteId: string;
+    sourceVersion: number;
+    identity: VerifiedIdentity;
+  }):
+    | Omit<
+      Extract<HostedPublishPreparation, { status: "ok" }>,
+      "status" | "role"
+    >
+    | null;
+  publishAuthorized(input: {
+    siteId: string;
+    sourceVersion: number;
+    publicationId: string;
+    contentHash: string;
+    createdAt: string;
+    identity: VerifiedIdentity;
+  }): Promise<CloudPublishResult>;
+}
+
+export type ManualImportCatalogRead =
+  | { authorized: false }
+  | { authorized: true; ownerId: string; sites: Site[] };
+
+export type ManualImportProjectRead =
+  | { authorized: false }
+  | { authorized: true; ownerId: string; site: Site | null };
+
+/** Production gateway fast path for manual WordPress imports. Access-token validity,
+ * current ownership, and the requested site are resolved in one HTTPS crossing. */
+export interface ManualImportReadFastPath {
+  catalog(accessDigest: string): Promise<ManualImportCatalogRead>;
+  project(
+    accessDigest: string,
+    projectId: string,
+  ): Promise<ManualImportProjectRead>;
+}
 
 /* Authorization-code exchange is retryable because the callback crosses two durable systems:
    Pagecraft and WordPress. Deriving the credentials from the high-entropy code + PKCE verifier
@@ -69,10 +224,19 @@ export const SESSION_COOKIE = 'pc_session';
    Pagecraft. The domain and connection binding prevent either token role or another connection
    from sharing key material. */
 const oauthCredential = (
-  kind: 'access' | 'refresh', connectionId: string, code: string, verifier: string
-) => base64url(Buffer.from(hashToken(
-  ['pagecraft-oauth-code-v1', kind, connectionId, code, verifier].join('\0')
-), 'hex'));
+  kind: "access" | "refresh",
+  connectionId: string,
+  code: string,
+  verifier: string,
+) =>
+  base64url(Buffer.from(
+    hashToken(
+      ["pagecraft-oauth-code-v1", kind, connectionId, code, verifier].join(
+        "\0",
+      ),
+    ),
+    "hex",
+  ));
 
 export interface Options {
   store: Store;
@@ -103,6 +267,12 @@ export interface Options {
   packages?: PackageRegistry;
   /** Immutable, materialized hosted releases and their atomic public pointers. */
   publications?: HostedPublicationStore;
+  /** Production gateway fast path: authenticate and load one hosted publish source in one call. */
+  hostedPublish?: HostedPublishPreparer;
+  /** Cached-source + atomic-write path that removes redundant production gateway crossings. */
+  cloudMutations?: CloudMutationFastPath;
+  /** Current manual-import authorization and project data in one production gateway call. */
+  manualImports?: ManualImportReadFastPath;
   /** Injectable only so font freezing can be proven without a live third-party dependency. */
   fontFetch?: typeof fetch;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -115,18 +285,21 @@ export interface Options {
 }
 
 const TYPES: Record<string, string> = {
-  html: 'text/html; charset=utf-8',
-  xml: 'application/xml; charset=utf-8',
-  txt: 'text/plain; charset=utf-8',
-  json: 'application/json; charset=utf-8'
+  html: "text/html; charset=utf-8",
+  xml: "application/xml; charset=utf-8",
+  txt: "text/plain; charset=utf-8",
+  json: "application/json; charset=utf-8",
 };
-const typeOf = (path: string) => TYPES[(path.split('.').pop() || '').toLowerCase()] || 'application/octet-stream';
+const typeOf = (path: string) =>
+  TYPES[(path.split(".").pop() || "").toLowerCase()] ||
+  "application/octet-stream";
 
 export function createApp(o: Options) {
   const app = new Hono();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
-  const requestSource = (c: Context) => c.req.header('cf-connecting-ip')
-    || (c.req.header('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+  const requestSource = (c: Context) =>
+    c.req.header("cf-connecting-ip") ||
+    (c.req.header("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
   /* Invitations can send transactional email and create pending access records. These limits
      are deliberately independent: rotating addresses must not evade the source/account limit,
      while rotating callers must not mail-bomb one recipient. The short recipient cooldown
@@ -139,79 +312,112 @@ export function createApp(o: Options) {
 
   /* Baseline browser hardening. Published HTML adds a sandbox below because it may contain an
      owner's intentional scripts; the editor itself must never be framed by another site. */
-  app.use('*', async (c, next) => {
+  app.use("*", async (c, next) => {
     await next();
-    c.header('x-content-type-options', 'nosniff');
-    c.header('referrer-policy', 'strict-origin-when-cross-origin');
-    c.header('permissions-policy', 'camera=(), microphone=(), geolocation=()');
-    if (isEditorHost(c.req.header('host'), o) && !c.res.headers.has('content-security-policy')) {
-      c.header('content-security-policy', "frame-ancestors 'none'; base-uri 'none'; object-src 'none'");
+    c.header("x-content-type-options", "nosniff");
+    c.header("referrer-policy", "strict-origin-when-cross-origin");
+    c.header("permissions-policy", "camera=(), microphone=(), geolocation=()");
+    if (
+      isEditorHost(c.req.header("host"), o) &&
+      !c.res.headers.has("content-security-policy")
+    ) {
+      c.header(
+        "content-security-policy",
+        "frame-ancestors 'none'; base-uri 'none'; object-src 'none'",
+      );
     }
     const path = new URL(c.req.url).pathname;
-    const privateRoute = !path.startsWith('/v1/wordpress-distribution/')
-      && /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path)
-      || /^\/account(?:\/|$)/.test(path)
-      || (path === '/' && isEditorHost(c.req.header('host'), o));
-    if (privateRoute) c.header('cache-control', 'private, no-store');
+    const privateRoute = !path.startsWith("/v1/wordpress-distribution/") &&
+        /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path) ||
+      /^\/account(?:\/|$)/.test(path) ||
+      (path === "/" && isEditorHost(c.req.header("host"), o));
+    if (privateRoute) c.header("cache-control", "private, no-store");
     /* `secureCookies` is the production signal already passed by the entry point. Browsers
        ignore HSTS over HTTP; over HTTPS this closes the first-visit downgrade gap. Deliberately
        no includeSubDomains until every unrelated subdomain is known to be HTTPS-only. */
-    if (o.secureCookies) c.header('strict-transport-security', 'max-age=31536000');
+    if (o.secureCookies) {
+      c.header("strict-transport-security", "max-age=31536000");
+    }
   });
 
   /* Auth and administration exist on the editor host only. Besides narrowing the attack
      surface, this prevents a custom site's Host header from becoming a magic-link origin. */
   const editorOnly = async (c: Context, next: () => Promise<void>) => {
-    if (!isEditorHost(c.req.header('host'), o)) return c.notFound();
+    if (!isEditorHost(c.req.header("host"), o)) return c.notFound();
     await next();
   };
-  app.use('/auth/*', editorOnly);
-  app.use('/api/*', editorOnly);
-  app.use('/v1/*', editorOnly);
-  app.use('/sign-up', editorOnly);
-  app.use('/sign-in', editorOnly);
-  app.use('/forgot-password', editorOnly);
-  app.use('/reset-password', editorOnly);
-  app.use('/account', editorOnly);
-  app.use('/account/*', editorOnly);
-  app.use('/sites/*', editorOnly);
-  app.use('/privacy', editorOnly);
-  app.use('/terms', editorOnly);
-  app.get('/brand/pagecraft-logo.svg', editorOnly, serveStatic({
-    path: './brand/logo/pagecraft-logo-primary-dark.svg'
-  }));
-  app.get('/brand/pagecraft-favicon.svg', editorOnly, serveStatic({
-    path: './brand/pagecraft-favicon.svg'
-  }));
-  app.use('/api/*', bodyLimit({
-    maxSize: 16 * 1024 * 1024,
-    onError: c => c.json({ error: 'request is too large' }, 413)
-  }));
-  app.use('/v1/*', bodyLimit({
-    maxSize: 16 * 1024 * 1024,
-    onError: c => c.json({ error: 'request is too large' }, 413)
-  }));
-  app.use('/sites/*', bodyLimit({
-    maxSize: 16 * 1024,
-    onError: c => c.text('Request too large', 413)
-  }));
+  app.use("/auth/*", editorOnly);
+  app.use("/api/*", editorOnly);
+  app.use("/v1/*", editorOnly);
+  app.use("/sign-up", editorOnly);
+  app.use("/sign-in", editorOnly);
+  app.use("/forgot-password", editorOnly);
+  app.use("/reset-password", editorOnly);
+  app.use("/account", editorOnly);
+  app.use("/account/*", editorOnly);
+  app.use("/sites/*", editorOnly);
+  app.use("/privacy", editorOnly);
+  app.use("/terms", editorOnly);
+  app.get(
+    "/brand/pagecraft-logo.svg",
+    editorOnly,
+    serveStatic({
+      path: "./brand/logo/pagecraft-logo-primary-dark.svg",
+    }),
+  );
+  app.get(
+    "/brand/pagecraft-favicon.svg",
+    editorOnly,
+    serveStatic({
+      path: "./brand/pagecraft-favicon.svg",
+    }),
+  );
+  app.use(
+    "/api/*",
+    bodyLimit({
+      maxSize: 16 * 1024 * 1024,
+      onError: (c) => c.json({ error: "request is too large" }, 413),
+    }),
+  );
+  app.use(
+    "/v1/*",
+    bodyLimit({
+      maxSize: 16 * 1024 * 1024,
+      onError: (c) => c.json({ error: "request is too large" }, 413),
+    }),
+  );
+  app.use(
+    "/sites/*",
+    bodyLimit({
+      maxSize: 16 * 1024,
+      onError: (c) => c.text("Request too large", 413),
+    }),
+  );
   if (o.accountAuth) {
-    app.use('*', async (c, next) => {
+    app.use("*", async (c, next) => {
       const method = c.req.method.toUpperCase();
       const path = new URL(c.req.url).pathname;
-      const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method)
-        && (/^\/(?:auth|api|account|sites)(?:\/|$)/.test(path));
-      const bearer = /^Bearer\s+/i.test(c.req.header('authorization') || '')
-        || !!c.req.header('x-pagecraft-editor-session');
+      const mutating = !["GET", "HEAD", "OPTIONS"].includes(method) &&
+        (/^\/(?:auth|api|account|sites)(?:\/|$)/.test(path));
+      const bearer = /^Bearer\s+/i.test(c.req.header("authorization") || "") ||
+        !!c.req.header("x-pagecraft-editor-session");
       if (mutating && !bearer) {
         const expected = new URL(o.editorOrigin || c.req.url).origin;
-        const origin = c.req.header('origin') || (() => {
-          try { return new URL(c.req.header('referer') || '').origin; } catch { return ''; }
+        const origin = c.req.header("origin") || (() => {
+          try {
+            return new URL(c.req.header("referer") || "").origin;
+          } catch {
+            return "";
+          }
         })();
-        if (!origin || origin !== expected) return c.json({ error: 'origin_not_allowed' }, 403);
+        if (!origin || origin !== expected) {
+          return c.json({ error: "origin_not_allowed" }, 403);
+        }
       }
       /* The old cookie is deliberately cleared throughout the cutover release. */
-      if (getCookie(c, SESSION_COOKIE)) deleteCookie(c, SESSION_COOKIE, { path: '/' });
+      if (getCookie(c, SESSION_COOKIE)) {
+        deleteCookie(c, SESSION_COOKIE, { path: "/" });
+      }
       await next();
     });
   }
@@ -220,15 +426,17 @@ export function createApp(o: Options) {
      demo project is 69 KB of HTML — and rendering is about 5 ms, so holding them costs
      little and means a visitor never waits for a render. */
   const built = new Map<string, {
-    version: number; releaseId: string | null; files: Map<string, string>;
+    version: number;
+    releaseId: string | null;
+    files: Map<string, string>;
   }>();
   type OAuthConsent = {
     userId: string;
     request: {
       suggestedSiteId: string;
       installationId: string;
-      environment: 'staging' | 'production';
-      profile: 'existing-theme' | 'pagecraft-theme';
+      environment: "staging" | "production";
+      profile: "existing-theme" | "pagecraft-theme";
       targetOrigin: string;
       targetPath: string;
       redirectUri: string;
@@ -255,35 +463,53 @@ export function createApp(o: Options) {
        is in the table already, so render it as it stands rather than take the site down. */
     /* The renderer reads ids and names only. Keep its existing Asset input contract while the
        stores correctly keep image bodies out of metadata listings. */
-    const refs: Asset[] = assets.map(asset => ({
-      ...asset, bytes: new Uint8Array()
+    const refs: Asset[] = assets.map((asset) => ({
+      ...asset,
+      bytes: new Uint8Array(),
     }));
     const adopted = adopt(doc);
-    if (!adopted) throw new Error('document schema is newer than this Pagecraft renderer');
+    if (!adopted) {
+      throw new Error("document schema is newer than this Pagecraft renderer");
+    }
     return renderSite(adopted, refs);
   };
   const assetsOf = async (id: string) => o.assets ? o.assets.list(id) : [];
-  const assetBodiesOf = async (id: string, onlyIds?: ReadonlySet<string>) => {
+  const assetBodiesOf = async (
+    id: string,
+    onlyIds?: ReadonlySet<string>,
+    knownMetadata?: AssetRecord[],
+  ) => {
     if (!o.assets) return [] as Asset[];
+    const selected = (knownMetadata || await o.assets.list(id))
+      .filter((meta) => !onlyIds || onlyIds.has(meta.id));
     const out: Asset[] = [];
-    for (const meta of await o.assets.list(id)) {
-      if (onlyIds && !onlyIds.has(meta.id)) continue;
+    for (const meta of selected) {
       const asset = await o.assets.get(id, meta.id);
       if (asset) out.push(asset);
     }
     return out;
   };
-  const releaseAssetIds = (doc: Doc, files: Map<string, string>, assets: AssetRecord[]) => {
+  const releaseAssetIds = (
+    doc: Doc,
+    files: Map<string, string>,
+    assets: AssetRecord[],
+  ) => {
     const referenced = new Set<string>();
-    const rendered = [...files.values()].join('\n');
+    const rendered = [...files.values()].join("\n");
     for (const asset of assets) {
       if (rendered.includes(assetFile(asset))) referenced.add(asset.id);
     }
     for (const collection of doc.meta.collections || []) {
-      const imageFields = new Set(collection.fields.filter(field => field.type === 'image').map(field => field.id));
+      const imageFields = new Set(
+        collection.fields.filter((field) => field.type === "image").map(
+          (field) => field.id,
+        ),
+      );
       for (const item of collection.items) {
         for (const fieldId of imageFields) {
-          const match = String(item.values[fieldId] || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?$/);
+          const match = String(item.values[fieldId] || "").match(
+            /^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?$/,
+          );
           if (match) referenced.add(match[1]);
         }
       }
@@ -292,14 +518,20 @@ export function createApp(o: Options) {
   };
   const remember = (site: Site, out: ReturnType<typeof render>) => {
     built.set(site.id, {
-      version: site.publishedVersion, releaseId: site.publishedReleaseId, files: out.files
+      version: site.publishedVersion,
+      releaseId: site.publishedReleaseId,
+      files: out.files,
     });
     return out;
   };
   const candidate = (doc: Doc, assets: AssetRecord[]) => {
-    try { return render(doc, assets); }
-    catch (caught) {
-      console.warn('invalid Pagecraft document rejected:', String((caught as Error).message || caught));
+    try {
+      return render(doc, assets);
+    } catch (caught) {
+      console.warn(
+        "invalid Pagecraft document rejected:",
+        String((caught as Error).message || caught),
+      );
       return null;
     }
   };
@@ -311,7 +543,11 @@ export function createApp(o: Options) {
     if (o.accountAuth) {
       const identity = await o.accountAuth.identity(c);
       if (!identity) return null;
-      return o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
+      return o.auth.ensureAuthUser(
+        identity.authUserId,
+        identity.email,
+        identity.name,
+      );
     }
     const token = getCookie(c, SESSION_COOKIE);
     if (!token) return null;
@@ -320,19 +556,20 @@ export function createApp(o: Options) {
 
   const visibleSites = async (user: User) => {
     const [sites, memberships] = await Promise.all([
-      o.store.listMeta(), o.auth.membershipsForUser(user.id)
+      o.store.listMeta(),
+      o.auth.membershipsForUser(user.id),
     ]);
-    const roles = new Map(memberships.map(m => [m.siteId, m.role]));
-    return sites.flatMap(site => {
+    const roles = new Map(memberships.map((m) => [m.siteId, m.role]));
+    return sites.flatMap((site) => {
       const role = roles.get(site.id);
       return role ? [{ site, role }] : [];
     });
   };
 
   const storageOwner = async (siteId: string, actor: User, role: Role) => {
-    if (role === 'owner') return actor.id;
+    if (role === "owner") return actor.id;
     const owners = (await o.auth.members(siteId))
-      .filter(member => member.role === 'owner')
+      .filter((member) => member.role === "owner")
       .sort((a, b) => a.userId.localeCompare(b.userId));
     return owners[0]?.userId || null;
   };
@@ -341,16 +578,28 @@ export function createApp(o: Options) {
    * May this person do this to this site? Every answer comes from here, so a route cannot
    * forget the membership half and check only that somebody is logged in.
    */
-  const allowed = async (c: Context, siteId: string, verb: 'read' | 'write' | 'admin') => {
-    const scoped = c.req.header('x-pagecraft-editor-session');
+  const allowed = async (
+    c: Context,
+    siteId: string,
+    verb: "read" | "write" | "admin",
+  ) => {
+    const scoped = c.req.header("x-pagecraft-editor-session");
     if (scoped) {
-      const credential = await o.connected?.editorCredential(hashToken(scoped), new Date().toISOString());
+      const credential = await o.connected?.editorCredential(
+        hashToken(scoped),
+        new Date().toISOString(),
+      );
       if (!credential) return { ok: false as const, status: 401 as const };
-      if (credential.siteId !== siteId) return { ok: false as const, status: 404 as const };
+      if (credential.siteId !== siteId) {
+        return { ok: false as const, status: 404 as const };
+      }
       const [user, membership] = await Promise.all([
-        o.auth.userById(credential.ownerId), o.auth.membership(siteId, credential.ownerId)
+        o.auth.userById(credential.ownerId),
+        o.auth.membership(siteId, credential.ownerId),
       ]);
-      if (!user || membership?.role !== 'owner') return { ok: false as const, status: 403 as const };
+      if (!user || membership?.role !== "owner") {
+        return { ok: false as const, status: 403 as const };
+      }
       return { ok: true as const, user, role: membership.role };
     }
     if (o.accountAuth) {
@@ -358,7 +607,9 @@ export function createApp(o: Options) {
       if (!user) return { ok: false as const, status: 401 as const };
       const membership = await o.auth.membership(siteId, user.id);
       if (!membership) return { ok: false as const, status: 404 as const };
-      if (!roleAllows(membership.role, verb)) return { ok: false as const, status: 403 as const };
+      if (!roleAllows(membership.role, verb)) {
+        return { ok: false as const, status: 403 as const };
+      }
       return { ok: true as const, user, role: membership.role };
     } else {
       const token = getCookie(c, SESSION_COOKIE);
@@ -366,25 +617,41 @@ export function createApp(o: Options) {
       const access = await o.auth.accessForSession(hashToken(token), siteId);
       if (!access) return { ok: false as const, status: 401 as const };
       if (!access.role) return { ok: false as const, status: 404 as const }; // conceal existence
-      if (!roleAllows(access.role, verb)) return { ok: false as const, status: 403 as const };
+      if (!roleAllows(access.role, verb)) {
+        return { ok: false as const, status: 403 as const };
+      }
       return { ok: true as const, user: access.user, role: access.role };
     }
   };
 
   const deny = (c: Context, status: 401 | 403 | 404) =>
-    c.json({ error: status === 401 ? 'sign in' : status === 403 ? 'not allowed' : 'no such site' }, status);
+    c.json({
+      error: status === 401
+        ? "sign in"
+        : status === 403
+        ? "not allowed"
+        : "no such site",
+    }, status);
 
   const bearerConnection = async (c: Context) => {
     if (!o.connected) return null;
-    const match = (c.req.header('authorization') || '').match(/^Bearer\s+([^\s]+)$/i);
+    const match = (c.req.header("authorization") || "").match(
+      /^Bearer\s+([^\s]+)$/i,
+    );
     if (!match) return null;
-    return o.connected.connectionByAccessToken(hashToken(match[1]), new Date().toISOString());
+    return o.connected.connectionByAccessToken(
+      hashToken(match[1]),
+      new Date().toISOString(),
+    );
   };
-  const releaseReady = () => !!(o.connected && o.releaseSigning && o.keysetEnvelope);
-  const releaseUnavailable = (c: Context) => c.json({
-    error: 'release signing is unavailable',
-    detail: 'Connected publishing requires a release private key and an offline root-signed keyset.'
-  }, 503);
+  const releaseReady = () =>
+    !!(o.connected && o.releaseSigning && o.keysetEnvelope);
+  const releaseUnavailable = (c: Context) =>
+    c.json({
+      error: "release signing is unavailable",
+      detail:
+        "Connected publishing requires a release private key and an offline root-signed keyset.",
+    }, 503);
   const publicConnection = (connection: WordPressConnection) => ({
     id: connection.id,
     installationId: connection.installationId,
@@ -399,68 +666,110 @@ export function createApp(o: Options) {
     activeHash: connection.activeHash,
     nextSequence: connection.nextSequence,
     lastAcknowledgedSequence: connection.lastAcknowledgedSequence,
-    updatedAt: connection.updatedAt
+    updatedAt: connection.updatedAt,
   });
   const wordpressContentForSite = async (siteId: string) => {
     if (!o.connected) return [];
     const [connections, snapshots] = await Promise.all([
-      o.connected.connectionsForSite(siteId), o.connected.wordpressContentIndexesForSite(siteId)
+      o.connected.connectionsForSite(siteId),
+      o.connected.wordpressContentIndexesForSite(siteId),
     ]);
-    const byId = new Map(connections.filter(item => item.status === 'active').map(item => [item.id, item]));
-    return snapshots.flatMap(snapshot => {
+    const byId = new Map(
+      connections.filter((item) => item.status === "active").map(
+        (item) => [item.id, item],
+      ),
+    );
+    return snapshots.flatMap((snapshot) => {
       const connection = byId.get(snapshot.connectionId);
-      return connection ? [{
-        connectionId: connection.id,
-        environment: connection.environment,
-        profile: connection.profile,
-        targetOrigin: connection.targetOrigin,
-        targetPath: connection.targetPath,
-        generation: snapshot.generation,
-        syncedAt: snapshot.syncedAt,
-        /* The index is a link catalogue, not a second WordPress editor. */
-        items: snapshot.items.map(item => ({ ...item }))
-      }] : [];
-    }).sort((a, b) => utf8ByteCompare(a.environment, b.environment)
-      || utf8ByteCompare(a.targetOrigin, b.targetOrigin));
+      return connection
+        ? [{
+          connectionId: connection.id,
+          environment: connection.environment,
+          profile: connection.profile,
+          targetOrigin: connection.targetOrigin,
+          targetPath: connection.targetPath,
+          generation: snapshot.generation,
+          syncedAt: snapshot.syncedAt,
+          /* The index is a link catalogue, not a second WordPress editor. */
+          items: snapshot.items.map((item) => ({ ...item })),
+        }]
+        : [];
+    }).sort((a, b) =>
+      utf8ByteCompare(a.environment, b.environment) ||
+      utf8ByteCompare(a.targetOrigin, b.targetOrigin)
+    );
   };
-  const issueTarget = async (release: SiteReleaseSummary, connection: WordPressConnection, desired: boolean) => {
-    if (!o.connected || !o.releaseSigning) throw new Error('release signing unavailable');
+  const issueTarget = async (
+    release: SiteReleaseSummary,
+    connection: WordPressConnection,
+    desired: boolean,
+  ) => {
+    if (!o.connected || !o.releaseSigning) {
+      throw new Error("release signing unavailable");
+    }
     const ensureQueued = async (target: { sequence: number }) => {
       const history = (await o.connected!.deploymentsForRelease(release.id))
-        .filter(item => item.connectionId === connection.id && item.sequence === target.sequence);
+        .filter((item) =>
+          item.connectionId === connection.id &&
+          item.sequence === target.sequence
+        );
       if (history.length) return;
       const queued = {
         connectionId: connection.id,
         releaseId: release.id,
         sequence: target.sequence,
-        status: 'queued' as const,
+        status: "queued" as const,
         activeHash: null,
         error: null,
-        detail: { stage: 'queued', message: 'Release is available for this target.' },
-        idempotencyKey: `target:${connection.id}:${release.id}`
+        detail: {
+          stage: "queued",
+          message: "Release is available for this target.",
+        },
+        idempotencyKey: `target:${connection.id}:${release.id}`,
       };
       const bodyHash = sha256(new TextEncoder().encode(canonicalJson(queued)));
-      const recorded = await o.connected!.recordDeployment({ ...queued, bodyHash });
-      if (!recorded.ok) throw new Error(`could not queue release target: ${recorded.error}`);
+      const recorded = await o.connected!.recordDeployment({
+        ...queued,
+        bodyHash,
+      });
+      if (!recorded.ok) {
+        throw new Error(`could not queue release target: ${recorded.error}`);
+      }
     };
-    const announce = async (target: { sequence: number; createdAt: string }) => {
-      const eventId = `pcw_${sha256(new TextEncoder().encode(`${connection.id}:${release.id}`)).slice(0, 40)}`;
+    const announce = async (
+      target: { sequence: number; createdAt: string },
+    ) => {
+      const eventId = `pcw_${
+        sha256(new TextEncoder().encode(`${connection.id}:${release.id}`))
+          .slice(0, 40)
+      }`;
       const event = {
-        type: 'release.available' as const,
-        eventId, connectionId: connection.id, releaseId: release.id,
-        sequence: target.sequence, occurredAt: target.createdAt
+        type: "release.available" as const,
+        eventId,
+        connectionId: connection.id,
+        releaseId: release.id,
+        sequence: target.sequence,
+        occurredAt: target.createdAt,
       };
       const signed = signReleaseAvailableWebhook(event, o.releaseSigning!);
       try {
         await o.connected!.enqueueWebhook({
-          eventId, connectionId: connection.id, releaseId: release.id,
-          targetSequence: target.sequence, webhookUrl: connection.webhookUrl,
-          payload: signed.payload, bodyHash: signed.bodyHash,
-          signature: signed.signature, keyId: signed.keyId
+          eventId,
+          connectionId: connection.id,
+          releaseId: release.id,
+          targetSequence: target.sequence,
+          webhookUrl: connection.webhookUrl,
+          payload: signed.payload,
+          bodyHash: signed.bodyHash,
+          signature: signed.signature,
+          keyId: signed.keyId,
         });
       } catch (error) {
         /* Polling reconciles even if the announcement queue is temporarily unavailable. */
-        console.error('WordPress release webhook could not be queued:', (error as Error).message);
+        console.error(
+          "WordPress release webhook could not be queued:",
+          (error as Error).message,
+        );
       }
     };
     const existing = await o.connected.target(connection.id, release.id);
@@ -485,22 +794,35 @@ export function createApp(o: Options) {
       targetOrigin: connection.targetOrigin,
       targetPath: connection.targetPath,
       targetSequence: connection.nextSequence,
-      issuedAt
+      issuedAt,
     });
     const signed = signDeploymentEnvelope(envelope, o.releaseSigning);
     const made = await o.connected.createTarget({
-      releaseId: release.id, connectionId: connection.id, sequence: connection.nextSequence,
-      envelope: signed.envelope, signature: signed.signature, keyId: signed.keyId, createdAt: issuedAt
+      releaseId: release.id,
+      connectionId: connection.id,
+      sequence: connection.nextSequence,
+      envelope: signed.envelope,
+      signature: signed.signature,
+      keyId: signed.keyId,
+      createdAt: issuedAt,
     }, desired);
     await ensureQueued(made.target);
     await announce(made.target);
     return made.target;
   };
-  const stageReleaseIfIdle = async (release: SiteReleaseSummary, connections?: WordPressConnection[]) => {
+  const stageReleaseIfIdle = async (
+    release: SiteReleaseSummary,
+    connections?: WordPressConnection[],
+  ) => {
     if (!o.connected) return false;
-    const targets = connections || await o.connected.connectionsForSite(release.siteId);
-    const staging = targets.find(item => item.environment === 'staging' && item.status === 'active');
-    const production = targets.find(item => item.environment === 'production' && item.status === 'active');
+    const targets = connections ||
+      await o.connected.connectionsForSite(release.siteId);
+    const staging = targets.find((item) =>
+      item.environment === "staging" && item.status === "active"
+    );
+    const production = targets.find((item) =>
+      item.environment === "production" && item.status === "active"
+    );
     if (!staging || production?.desiredReleaseId) return false;
     if (staging.desiredReleaseId) {
       if (staging.desiredReleaseId !== release.id) return false;
@@ -519,17 +841,28 @@ export function createApp(o: Options) {
         await issueTarget(parent, staging, true);
         return true;
       }
-      const stagingHistory = (await o.connected.deploymentsForRelease(parent.id))
-        .filter(item => item.connectionId === staging.id);
+      const stagingHistory =
+        (await o.connected.deploymentsForRelease(parent.id))
+          .filter((item) => item.connectionId === staging.id);
       const stagingLast = stagingHistory[stagingHistory.length - 1];
-      if (!stagingLast || !['live', 'failed', 'rolled_back'].includes(stagingLast.status)) return false;
-      if (stagingLast.status === 'live' && production) {
-        const productionTarget = await o.connected.target(production.id, parent.id);
+      if (
+        !stagingLast ||
+        !["live", "failed", "rolled_back"].includes(stagingLast.status)
+      ) return false;
+      if (stagingLast.status === "live" && production) {
+        const productionTarget = await o.connected.target(
+          production.id,
+          parent.id,
+        );
         if (!productionTarget) return false;
-        const productionHistory = (await o.connected.deploymentsForRelease(parent.id))
-          .filter(item => item.connectionId === production.id);
+        const productionHistory =
+          (await o.connected.deploymentsForRelease(parent.id))
+            .filter((item) => item.connectionId === production.id);
         const productionLast = productionHistory[productionHistory.length - 1];
-        if (!productionLast || !['live', 'failed', 'rolled_back'].includes(productionLast.status)) return false;
+        if (
+          !productionLast ||
+          !["live", "failed", "rolled_back"].includes(productionLast.status)
+        ) return false;
       }
     }
     /* Do not let staging get ahead of production. One release traverses both targets before
@@ -542,17 +875,24 @@ export function createApp(o: Options) {
     if (!o.connected) return null;
     const connections = await o.connected.connectionsForSite(siteId);
     const releases = (await o.connected.releasesForSite(siteId))
-      .filter(item => item.sequence > afterSequence)
+      .filter((item) => item.sequence > afterSequence)
       .sort((a, b) => a.sequence - b.sequence);
     for (const release of releases) {
-      const staging = connections.find(item => item.environment === 'staging' && item.status === 'active');
+      const staging = connections.find((item) =>
+        item.environment === "staging" && item.status === "active"
+      );
       if (!staging) break;
       const existing = await o.connected.target(staging.id, release.id);
       if (existing) {
         const history = (await o.connected.deploymentsForRelease(release.id))
-          .filter(item => item.connectionId === staging.id && item.sequence === existing.sequence);
+          .filter((item) =>
+            item.connectionId === staging.id &&
+            item.sequence === existing.sequence
+          );
         const last = history.at(-1);
-        if (last && ['live', 'failed', 'rolled_back'].includes(last.status)) continue;
+        if (last && ["live", "failed", "rolled_back"].includes(last.status)) {
+          continue;
+        }
         if (!staging.desiredReleaseId) {
           await issueTarget(release, staging, true);
           return release;
@@ -567,11 +907,13 @@ export function createApp(o: Options) {
   const currentStagingPromotion = async (siteId: string) => {
     if (!o.connected) return null;
     const connections = await o.connected.connectionsForSite(siteId);
-    const staging = connections.find(item => item.environment === 'staging' && item.status === 'active');
+    const staging = connections.find((item) =>
+      item.environment === "staging" && item.status === "active"
+    );
     if (!staging?.activeReleaseId) return null;
     const release = await o.connected.release(staging.activeReleaseId);
     if (!release) {
-      throw new Error('the active staging release could not be loaded safely');
+      throw new Error("the active staging release could not be loaded safely");
     }
     return { staging, release, connections };
   };
@@ -585,192 +927,384 @@ export function createApp(o: Options) {
      mail, which is the point. */
   const limit = o.loginLimit || throttle();
   const sourceLimit = throttle(30, 15 * 60 * 1000, 5000);
-  app.get('/privacy', c => c.html(privacyPage()));
-  app.get('/terms', c => c.html(termsPage()));
-  if (!o.accountAuth) app.post('/auth/login', bodyLimit({
-    maxSize: 8 * 1024,
-    onError: c => c.json({ error: 'request is too large' }, 413)
-  }), async c => {
-    const body = await c.req.json().catch(() => null) as { email?: string } | null;
-    const email = normalEmail(body?.email || '');
-    if (!validEmail(email)) return c.json({ error: 'a valid email address is required' }, 400);
+  app.get("/privacy", (c) => c.html(privacyPage()));
+  app.get("/terms", (c) => c.html(termsPage()));
+  if (!o.accountAuth) {
+    app.post(
+      "/auth/login",
+      bodyLimit({
+        maxSize: 8 * 1024,
+        onError: (c) => c.json({ error: "request is too large" }, 413),
+      }),
+      async (c) => {
+        const body = await c.req.json().catch(() => null) as
+          | { email?: string }
+          | null;
+        const email = normalEmail(body?.email || "");
+        if (!validEmail(email)) {
+          return c.json({ error: "a valid email address is required" }, 400);
+        }
 
-    const source = c.req.header('cf-connecting-ip')
-      || (c.req.header('x-forwarded-for') || '').split(',')[0].trim()
-      || 'unknown';
-    if (sourceLimit.take(source) && limit.take(email) && await o.auth.userByEmail(email)) {
-      const token = newToken();
-      await o.auth.putLink(hashToken(token), email, Date.now() + LINK_TTL_MS);
-      const origin = o.editorOrigin || new URL(c.req.url).origin;
-      /* Awaited, so a mail server that is refusing is a 500 here rather than a silent
+        const source = c.req.header("cf-connecting-ip") ||
+          (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
+          "unknown";
+        if (
+          sourceLimit.take(source) && limit.take(email) &&
+          await o.auth.userByEmail(email)
+        ) {
+          const token = newToken();
+          await o.auth.putLink(
+            hashToken(token),
+            email,
+            Date.now() + LINK_TTL_MS,
+          );
+          const origin = o.editorOrigin || new URL(c.req.url).origin;
+          /* Awaited, so a mail server that is refusing is a 500 here rather than a silent
          nothing — a person staring at "check your email" is owed the truth. */
-      try {
-        await (o.sendLink || logLink)(email, `${origin}/auth/callback?token=${token}`);
-      } catch (e) {
-        console.error('the login link could not be sent:', (e as Error).message);
-        return c.json({ error: 'the link could not be sent — try again shortly' }, 502);
-      }
-    }
-    return c.json({ sent: true });
-  });
+          try {
+            await (o.sendLink || logLink)(
+              email,
+              `${origin}/auth/callback?token=${token}`,
+            );
+          } catch (e) {
+            console.error(
+              "the login link could not be sent:",
+              (e as Error).message,
+            );
+            return c.json({
+              error: "the link could not be sent — try again shortly",
+            }, 502);
+          }
+        }
+        return c.json({ sent: true });
+      },
+    );
+  }
 
-  app.get('/auth/callback', async c => {
+  app.get("/auth/callback", async (c) => {
     if (o.accountAuth) return c.notFound();
-    const token = c.req.query('token') || '';
+    const token = c.req.query("token") || "";
     const link = token ? await o.auth.useLink(hashToken(token)) : null;
-    if (!link) return c.text('That link has expired or has already been used.', 400);
+    if (!link) {
+      return c.text("That link has expired or has already been used.", 400);
+    }
 
     const user = await o.auth.userByEmail(link.email);
-    if (!user) return c.text('That link has expired or has already been used.', 400);
+    if (!user) {
+      return c.text("That link has expired or has already been used.", 400);
+    }
 
     const session = newToken();
-    await o.auth.putSession(hashToken(session), user.id, Date.now() + SESSION_TTL_MS);
+    await o.auth.putSession(
+      hashToken(session),
+      user.id,
+      Date.now() + SESSION_TTL_MS,
+    );
     setCookie(c, SESSION_COOKIE, session, {
-      httpOnly: true, sameSite: 'Lax', path: '/',
-      secure: !!o.secureCookies, maxAge: Math.floor(SESSION_TTL_MS / 1000)
+      httpOnly: true,
+      sameSite: "Lax",
+      path: "/",
+      secure: !!o.secureCookies,
+      maxAge: Math.floor(SESSION_TTL_MS / 1000),
     });
-    return c.redirect('/');
+    return c.redirect("/");
   });
 
-  if (!o.accountAuth) app.post('/auth/logout', async c => {
-    const token = getCookie(c, SESSION_COOKIE);
-    if (token) await o.auth.dropSession(hashToken(token));
-    deleteCookie(c, SESSION_COOKIE, { path: '/' });
-    return c.json({ ok: true });
-  });
+  if (!o.accountAuth) {
+    app.post("/auth/logout", async (c) => {
+      const token = getCookie(c, SESSION_COOKIE);
+      if (token) await o.auth.dropSession(hashToken(token));
+      deleteCookie(c, SESSION_COOKIE, { path: "/" });
+      return c.json({ ok: true });
+    });
+  }
 
   if (o.accountAuth) {
-    const siteKey = o.turnstileSiteKey || '';
+    const siteKey = o.turnstileSiteKey || "";
     const safeNext = (raw: unknown) => {
-      const value = String(raw || '');
-      return value.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : '/';
+      const value = String(raw || "");
+      return value.startsWith("/") && !value.startsWith("//") &&
+          !value.includes("\\")
+        ? value
+        : "/";
     };
     const form = async (c: Context) => {
-      const type = c.req.header('content-type') || '';
-      if (type.includes('application/json')) return await c.req.json().catch(() => ({})) as Record<string, unknown>;
-      return await c.req.parseBody().catch(() => ({})) as Record<string, unknown>;
+      const type = c.req.header("content-type") || "";
+      if (type.includes("application/json")) {
+        return await c.req.json().catch(() => ({})) as Record<string, unknown>;
+      }
+      return await c.req.parseBody().catch(() => ({})) as Record<
+        string,
+        unknown
+      >;
     };
     const authSourceLimit = throttle(30, 15 * 60 * 1000, 5000);
     const authEmailLimit = throttle(8, 15 * 60 * 1000, 5000);
     const accountChangeLimit = throttle(8, 15 * 60 * 1000, 5000);
-    const challengeToken = async (c: Context, body: Record<string, unknown>, action: 'signup' | 'login' | 'forgot') => {
-      const token = String(body['cf-turnstile-response'] || body.turnstileToken || '');
-      return o.challenge && await o.challenge.verify({ token, ip: requestSource(c), action }) ? token : '';
+    const challengeToken = async (
+      c: Context,
+      body: Record<string, unknown>,
+      action: "signup" | "login" | "forgot",
+    ) => {
+      const token = String(
+        body["cf-turnstile-response"] || body.turnstileToken || "",
+      );
+      return o.challenge &&
+          await o.challenge.verify({ token, ip: requestSource(c), action })
+        ? token
+        : "";
     };
 
-    app.get('/sign-up', c => c.html(signUpPage(siteKey, { error: c.req.query('error'), message: c.req.query('message') })));
-    app.get('/sign-in', c => c.html(accountSignInPage(siteKey, {
-      error: c.req.query('error'), message: c.req.query('message'), next: safeNext(c.req.query('next'))
-    })));
-    app.get('/forgot-password', c => c.html(forgotPage(siteKey, { error: c.req.query('error'), message: c.req.query('message') })));
-    app.get('/reset-password', async c => {
+    app.get(
+      "/sign-up",
+      (c) =>
+        c.html(
+          signUpPage(siteKey, {
+            error: c.req.query("error"),
+            message: c.req.query("message"),
+          }),
+        ),
+    );
+    app.get("/sign-in", (c) =>
+      c.html(accountSignInPage(siteKey, {
+        error: c.req.query("error"),
+        message: c.req.query("message"),
+        next: safeNext(c.req.query("next")),
+      })));
+    app.get(
+      "/forgot-password",
+      (c) =>
+        c.html(
+          forgotPage(siteKey, {
+            error: c.req.query("error"),
+            message: c.req.query("message"),
+          }),
+        ),
+    );
+    app.get("/reset-password", async (c) => {
       const user = await who(c);
-      return user ? c.html(resetPage({
-        error: c.req.query('error'), next: safeNext(c.req.query('next'))
-      })) : c.redirect('/sign-in?error=reset');
+      return user
+        ? c.html(resetPage({
+          error: c.req.query("error"),
+          next: safeNext(c.req.query("next")),
+        }))
+        : c.redirect("/sign-in?error=reset");
     });
 
-    app.post('/auth/signup', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
-      const body = await form(c);
-      const email = normalEmail(String(body.email || ''));
-      const name = String(body.name || '').trim().slice(0, 120);
-      const password = String(body.password || '');
-      const confirmation = String(body.passwordConfirm || '');
-      if (!validEmail(email) || !name) return c.redirect('/sign-up?error=invalid', 303);
-      if (password.length < 12) return c.redirect('/sign-up?error=password', 303);
-      if (password !== confirmation) return c.redirect('/sign-up?error=mismatch', 303);
-      if (!authSourceLimit.take(requestSource(c)) || !authEmailLimit.take(email)) {
-        return c.redirect('/sign-up?message=Check+your+email+to+finish+creating+your+account.', 303);
-      }
-      const captchaToken = await challengeToken(c, body, 'signup');
-      if (!captchaToken) return c.redirect('/sign-up?error=challenge', 303);
-      const origin = o.editorOrigin || new URL(c.req.url).origin;
-      await o.accountAuth!.signUp(c, { email, password, name, redirectTo: `${origin}/auth/confirm`, captchaToken });
-      return c.redirect('/sign-in?message=Check+your+email+to+confirm+your+account.', 303);
-    });
-
-    app.post('/auth/login', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
-      const body = await form(c);
-      const email = normalEmail(String(body.email || ''));
-      const password = String(body.password || '');
-      const next = safeNext(body.next);
-      const limited = !authSourceLimit.take(requestSource(c)) || !authEmailLimit.take(email);
-      const captchaToken = await challengeToken(c, body, 'login');
-      if (!validEmail(email) || !password || limited || !captchaToken) {
-        return c.redirect(`/sign-in?error=${limited ? 'auth' : 'challenge'}&next=${encodeURIComponent(next)}`, 303);
-      }
-      const identity = await o.accountAuth!.signIn(c, { email, password, captchaToken });
-      if (!identity) return c.redirect(`/sign-in?error=auth&next=${encodeURIComponent(next)}`, 303);
-      await o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
-      return c.redirect(next, 303);
-    });
-
-    app.post('/auth/google', bodyLimit({ maxSize: 4 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
-      const body = await form(c);
-      const next = safeNext(body.next);
-      if (!authSourceLimit.take(requestSource(c))) {
-        return c.redirect(`/sign-in?error=oauth&next=${encodeURIComponent(next)}`, 303);
-      }
-      const origin = o.editorOrigin || new URL(c.req.url).origin;
-      const redirectTo = `${origin}/auth/confirm?next=${encodeURIComponent(next)}`;
-      const url = await o.accountAuth!.oauth(c, { provider: 'google', redirectTo });
-      return url ? c.redirect(url, 303)
-        : c.redirect(`/sign-in?error=oauth&next=${encodeURIComponent(next)}`, 303);
-    });
-
-    app.get('/auth/confirm', async c => {
-      const type = c.req.query('type');
-      const next = safeNext(c.req.query('next'));
-      const identity = await o.accountAuth!.confirm(c, {
-        code: c.req.query('code'), tokenHash: c.req.query('token_hash'), type
-      });
-      if (!identity) return c.redirect('/sign-in?error=expired', 303);
-      await o.auth.ensureAuthUser(identity.authUserId, identity.email, identity.name);
-      return c.redirect(type === 'recovery' || type === 'invite'
-        ? `/reset-password?next=${encodeURIComponent(next)}`
-        : next, 303);
-    });
-
-    app.post('/auth/forgot-password', bodyLimit({ maxSize: 16 * 1024, onError: c => c.text('Request too large', 413) }), async c => {
-      const body = await form(c);
-      const email = normalEmail(String(body.email || ''));
-      const captchaToken = await challengeToken(c, body, 'forgot');
-      const allowedRequest = validEmail(email) && authSourceLimit.take(requestSource(c)) && authEmailLimit.take(email)
-        && !!captchaToken;
-      if (allowedRequest) {
+    app.post(
+      "/auth/signup",
+      bodyLimit({
+        maxSize: 16 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const body = await form(c);
+        const email = normalEmail(String(body.email || ""));
+        const name = String(body.name || "").trim().slice(0, 120);
+        const password = String(body.password || "");
+        const confirmation = String(body.passwordConfirm || "");
+        if (!validEmail(email) || !name) {
+          return c.redirect("/sign-up?error=invalid", 303);
+        }
+        if (password.length < 12) {
+          return c.redirect("/sign-up?error=password", 303);
+        }
+        if (password !== confirmation) {
+          return c.redirect("/sign-up?error=mismatch", 303);
+        }
+        if (
+          !authSourceLimit.take(requestSource(c)) || !authEmailLimit.take(email)
+        ) {
+          return c.redirect(
+            "/sign-up?message=Check+your+email+to+finish+creating+your+account.",
+            303,
+          );
+        }
+        const captchaToken = await challengeToken(c, body, "signup");
+        if (!captchaToken) {
+          return c.redirect("/sign-up?error=challenge", 303);
+        }
         const origin = o.editorOrigin || new URL(c.req.url).origin;
-        await o.accountAuth!.forgot(c, {
-          email, redirectTo: `${origin}/auth/confirm?type=recovery`, captchaToken
-        }).catch(() => undefined);
+        await o.accountAuth!.signUp(c, {
+          email,
+          password,
+          name,
+          redirectTo: `${origin}/auth/confirm`,
+          captchaToken,
+        });
+        return c.redirect(
+          "/sign-in?message=Check+your+email+to+confirm+your+account.",
+          303,
+        );
+      },
+    );
+
+    app.post(
+      "/auth/login",
+      bodyLimit({
+        maxSize: 16 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const body = await form(c);
+        const email = normalEmail(String(body.email || ""));
+        const password = String(body.password || "");
+        const next = safeNext(body.next);
+        const limited = !authSourceLimit.take(requestSource(c)) ||
+          !authEmailLimit.take(email);
+        const captchaToken = await challengeToken(c, body, "login");
+        if (!validEmail(email) || !password || limited || !captchaToken) {
+          return c.redirect(
+            `/sign-in?error=${limited ? "auth" : "challenge"}&next=${
+              encodeURIComponent(next)
+            }`,
+            303,
+          );
+        }
+        const identity = await o.accountAuth!.signIn(c, {
+          email,
+          password,
+          captchaToken,
+        });
+        if (!identity) {
+          return c.redirect(
+            `/sign-in?error=auth&next=${encodeURIComponent(next)}`,
+            303,
+          );
+        }
+        await o.auth.ensureAuthUser(
+          identity.authUserId,
+          identity.email,
+          identity.name,
+        );
+        return c.redirect(next, 303);
+      },
+    );
+
+    app.post(
+      "/auth/google",
+      bodyLimit({
+        maxSize: 4 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const body = await form(c);
+        const next = safeNext(body.next);
+        if (!authSourceLimit.take(requestSource(c))) {
+          return c.redirect(
+            `/sign-in?error=oauth&next=${encodeURIComponent(next)}`,
+            303,
+          );
+        }
+        const origin = o.editorOrigin || new URL(c.req.url).origin;
+        const redirectTo = `${origin}/auth/confirm?next=${
+          encodeURIComponent(next)
+        }`;
+        const url = await o.accountAuth!.oauth(c, {
+          provider: "google",
+          redirectTo,
+        });
+        return url ? c.redirect(url, 303) : c.redirect(
+          `/sign-in?error=oauth&next=${encodeURIComponent(next)}`,
+          303,
+        );
+      },
+    );
+
+    app.get("/auth/confirm", async (c) => {
+      const type = c.req.query("type");
+      const next = safeNext(c.req.query("next"));
+      const identity = await o.accountAuth!.confirm(c, {
+        code: c.req.query("code"),
+        tokenHash: c.req.query("token_hash"),
+        type,
+      });
+      if (!identity) {
+        return c.redirect("/sign-in?error=expired", 303);
       }
-      return c.redirect('/forgot-password?message=If+an+account+matches,+reset+instructions+are+on+the+way.', 303);
+      await o.auth.ensureAuthUser(
+        identity.authUserId,
+        identity.email,
+        identity.name,
+      );
+      return c.redirect(
+        type === "recovery" || type === "invite"
+          ? `/reset-password?next=${encodeURIComponent(next)}`
+          : next,
+        303,
+      );
     });
 
-    app.post('/auth/reset-password', async c => {
+    app.post(
+      "/auth/forgot-password",
+      bodyLimit({
+        maxSize: 16 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const body = await form(c);
+        const email = normalEmail(String(body.email || ""));
+        const captchaToken = await challengeToken(c, body, "forgot");
+        const allowedRequest = validEmail(email) &&
+          authSourceLimit.take(requestSource(c)) &&
+          authEmailLimit.take(email) &&
+          !!captchaToken;
+        if (allowedRequest) {
+          const origin = o.editorOrigin || new URL(c.req.url).origin;
+          await o.accountAuth!.forgot(c, {
+            email,
+            redirectTo: `${origin}/auth/confirm?type=recovery`,
+            captchaToken,
+          }).catch(() => undefined);
+        }
+        return c.redirect(
+          "/forgot-password?message=If+an+account+matches,+reset+instructions+are+on+the+way.",
+          303,
+        );
+      },
+    );
+
+    app.post("/auth/reset-password", async (c) => {
       const body = await form(c);
-      const password = String(body.password || '');
+      const password = String(body.password || "");
       const next = safeNext(body.next);
       if (password.length < 12) {
-        return c.redirect(`/reset-password?error=password&next=${encodeURIComponent(next)}`, 303);
+        return c.redirect(
+          `/reset-password?error=password&next=${encodeURIComponent(next)}`,
+          303,
+        );
       }
-      if (password !== String(body.passwordConfirm || '')) {
-        return c.redirect(`/reset-password?error=mismatch&next=${encodeURIComponent(next)}`, 303);
+      if (password !== String(body.passwordConfirm || "")) {
+        return c.redirect(
+          `/reset-password?error=mismatch&next=${encodeURIComponent(next)}`,
+          303,
+        );
       }
-      if (!await o.accountAuth!.reset(c, password)) return c.redirect('/sign-in?error=reset', 303);
-      return c.redirect(`${next}${next.includes('?') ? '&' : '?'}message=Password+updated.`, 303);
+      if (!await o.accountAuth!.reset(c, password)) {
+        return c.redirect("/sign-in?error=reset", 303);
+      }
+      return c.redirect(
+        `${next}${next.includes("?") ? "&" : "?"}message=Password+updated.`,
+        303,
+      );
     });
 
-    app.post('/auth/logout', async c => {
+    app.post("/auth/logout", async (c) => {
       await o.accountAuth!.signOut(c);
-      deleteCookie(c, SESSION_COOKIE, { path: '/' });
-      return c.redirect('/sign-in', 303);
+      deleteCookie(c, SESSION_COOKIE, { path: "/" });
+      return c.redirect("/sign-in", 303);
     });
 
-    app.get('/account', async c => {
-      const [user, identity] = await Promise.all([who(c), o.accountAuth!.identity(c)]);
-      if (!user || !identity) return c.redirect('/sign-in?next=%2Faccount');
-      const requestedTab = c.req.query('tab');
-      const tab = requestedTab === 'security' || requestedTab === 'plan' ? requestedTab : 'profile';
+    app.get("/account", async (c) => {
+      const [user, identity] = await Promise.all([
+        who(c),
+        o.accountAuth!.identity(c),
+      ]);
+      if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
+      const requestedTab = c.req.query("tab");
+      const tab = requestedTab === "security" || requestedTab === "plan"
+        ? requestedTab
+        : "profile";
       const mine = await visibleSites(user);
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
@@ -778,110 +1312,170 @@ export function createApp(o: Options) {
       return c.html(accountSettingsPage(user, {
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
-        ownerCount: mine.filter(item => item.role === 'owner').length,
-        storage
-      }, { error: c.req.query('error'), message: c.req.query('message'), tab }));
+        ownerCount: mine.filter((item) => item.role === "owner").length,
+        storage,
+      }, {
+        error: c.req.query("error"),
+        message: c.req.query("message"),
+        tab,
+      }));
     });
 
-    app.post('/account/profile', bodyLimit({
-      maxSize: 16 * 1024, onError: c => c.text('Request too large', 413)
-    }), async c => {
-      const [user, identity] = await Promise.all([who(c), o.accountAuth!.identity(c)]);
-      if (!user || !identity) return c.redirect('/sign-in?next=%2Faccount');
-      const body = await form(c);
-      const name = String(body.name || '').trim().slice(0, 120);
-      const email = normalEmail(String(body.email || ''));
-      if (!name || !validEmail(email)) return c.redirect('/account?tab=profile&error=profile', 303);
-      if (!accountChangeLimit.take(`${requestSource(c)}|profile`)) {
-        return c.redirect('/account?tab=profile&error=password_rate', 303);
-      }
-      const updated = await o.auth.updateProfile(user.id, { name });
-      if (!updated) return c.redirect('/account?tab=profile&error=account', 303);
-      if (email === identity.email) return c.redirect('/account?tab=profile&message=Profile+updated.', 303);
-      const conflict = await o.auth.userByEmail(email);
-      if (conflict && conflict.id !== user.id) {
-        return c.redirect('/account?tab=profile&error=email_conflict', 303);
-      }
-      const origin = o.editorOrigin || new URL(c.req.url).origin;
-      const accepted = await o.accountAuth!.updateEmail(c, {
-        email, redirectTo: `${origin}/auth/confirm?next=%2Faccount`
-      });
-      return accepted
-        ? c.redirect('/account?tab=profile&message=Profile+updated.+Confirm+the+new+email+address+to+finish+the+change.', 303)
-        : c.redirect('/account?tab=profile&error=email_update', 303);
-    });
+    app.post(
+      "/account/profile",
+      bodyLimit({
+        maxSize: 16 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const [user, identity] = await Promise.all([
+          who(c),
+          o.accountAuth!.identity(c),
+        ]);
+        if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
+        const body = await form(c);
+        const name = String(body.name || "").trim().slice(0, 120);
+        const email = normalEmail(String(body.email || ""));
+        if (!name || !validEmail(email)) {
+          return c.redirect("/account?tab=profile&error=profile", 303);
+        }
+        if (!accountChangeLimit.take(`${requestSource(c)}|profile`)) {
+          return c.redirect("/account?tab=profile&error=password_rate", 303);
+        }
+        const updated = await o.auth.updateProfile(user.id, { name });
+        if (!updated) {
+          return c.redirect("/account?tab=profile&error=account", 303);
+        }
+        if (email === identity.email) {
+          return c.redirect(
+            "/account?tab=profile&message=Profile+updated.",
+            303,
+          );
+        }
+        const conflict = await o.auth.userByEmail(email);
+        if (conflict && conflict.id !== user.id) {
+          return c.redirect("/account?tab=profile&error=email_conflict", 303);
+        }
+        const origin = o.editorOrigin || new URL(c.req.url).origin;
+        const accepted = await o.accountAuth!.updateEmail(c, {
+          email,
+          redirectTo: `${origin}/auth/confirm?next=%2Faccount`,
+        });
+        return accepted
+          ? c.redirect(
+            "/account?tab=profile&message=Profile+updated.+Confirm+the+new+email+address+to+finish+the+change.",
+            303,
+          )
+          : c.redirect("/account?tab=profile&error=email_update", 303);
+      },
+    );
 
-    app.post('/account/password', bodyLimit({
-      maxSize: 16 * 1024, onError: c => c.text('Request too large', 413)
-    }), async c => {
-      const identity = await o.accountAuth!.identity(c);
-      if (!identity) return c.redirect('/sign-in?next=%2Faccount');
-      if (!accountChangeLimit.take(`${requestSource(c)}|password`)) {
-        return c.redirect('/account?tab=security&error=password_rate', 303);
-      }
-      const body = await form(c);
-      const password = String(body.password || '');
-      const currentPassword = String(body.currentPassword || '');
-      if (password.length < 12) return c.redirect('/account?tab=security&error=password', 303);
-      if (password !== String(body.passwordConfirm || '')) {
-        return c.redirect('/account?tab=security&error=mismatch', 303);
-      }
-      const hasPassword = (identity.providers || []).includes('email');
-      if (hasPassword && !currentPassword) {
-        return c.redirect('/account?tab=security&error=password_current', 303);
-      }
-      const changed = await o.accountAuth!.updatePassword(c, {
-        password, ...(hasPassword ? { currentPassword } : {})
-      });
-      return changed
-        ? c.redirect('/account?tab=security&message=Password+updated.', 303)
-        : c.redirect('/account?tab=security&error=password_current', 303);
-    });
+    app.post(
+      "/account/password",
+      bodyLimit({
+        maxSize: 16 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const identity = await o.accountAuth!.identity(c);
+        if (!identity) return c.redirect("/sign-in?next=%2Faccount");
+        if (!accountChangeLimit.take(`${requestSource(c)}|password`)) {
+          return c.redirect("/account?tab=security&error=password_rate", 303);
+        }
+        const body = await form(c);
+        const password = String(body.password || "");
+        const currentPassword = String(body.currentPassword || "");
+        if (password.length < 12) {
+          return c.redirect("/account?tab=security&error=password", 303);
+        }
+        if (password !== String(body.passwordConfirm || "")) {
+          return c.redirect("/account?tab=security&error=mismatch", 303);
+        }
+        const hasPassword = (identity.providers || []).includes("email");
+        if (hasPassword && !currentPassword) {
+          return c.redirect(
+            "/account?tab=security&error=password_current",
+            303,
+          );
+        }
+        const changed = await o.accountAuth!.updatePassword(c, {
+          password,
+          ...(hasPassword ? { currentPassword } : {}),
+        });
+        return changed
+          ? c.redirect("/account?tab=security&message=Password+updated.", 303)
+          : c.redirect("/account?tab=security&error=password_current", 303);
+      },
+    );
   }
 
-  app.get('/auth/me', async c => {
+  app.get("/auth/me", async (c) => {
     const user = await who(c);
     if (!user) return c.json({ user: null });
     const mine = (await visibleSites(user)).map(({ site, role }) => ({
-      id: site.id, host: site.host, slug: site.slug,
-      url: shareUrl(c, o, site), name: site.name, role
+      id: site.id,
+      host: site.host,
+      slug: site.slug,
+      url: shareUrl(c, o, site),
+      name: site.name,
+      role,
     }));
-    const storage = o.assets ? await o.assets.usage(user.id, FREE_STORAGE_BYTES) : null;
+    const storage = o.assets
+      ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
+      : null;
     return c.json({
-      user: { id: user.id, email: user.email, name: user.name, plan: user.plan || 'free' },
-      sites: mine, storage
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        plan: user.plan || "free",
+      },
+      sites: mine,
+      storage,
     });
   });
 
   /* ---------------------------------------------------------------- the editor */
 
-  app.get('/', async c => {
-    if (!isEditorHost(c.req.header('host'), o)) {
-      const host = (c.req.header('host') || '').split(':')[0];
+  app.get("/", async (c) => {
+    if (!isEditorHost(c.req.header("host"), o)) {
+      const host = (c.req.header("host") || "").split(":")[0];
       if (o.publications) {
         const publication = await o.publications.currentByHost(host);
         return publication
-          ? serveHostedPublication(c, o.publications, publication, '/', false)
+          ? serveHostedPublication(c, o.publications, publication, "/", false)
           : c.text(`No published site for host ${host}`, 404);
       }
       const site = await o.store.byHost(host);
       if (!site) return c.text(`No site for host ${host}`, 404);
-      return serveSite(c, o, built, render, '/', site);
+      return serveSite(c, o, built, render, "/", site);
     }
     const user = await who(c);
     if (o.accountAuth) {
-      if (!user) return c.redirect('/sign-in');
+      if (!user) return c.redirect("/sign-in");
       const mine = (await visibleSites(user)).sort((a, b) =>
-        new Date(b.site.updatedAt).getTime() - new Date(a.site.updatedAt).getTime());
+        new Date(b.site.updatedAt).getTime() -
+        new Date(a.site.updatedAt).getTime()
+      );
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
         : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
-      return c.html(dashboardPage(user, mine.map(({ site, role }) => ({
-        id: site.id, name: site.name, role, updatedAt: site.updatedAt,
-        url: shareUrl(c, o, site),
-        published: !!site.publishedPublicationId && site.version === site.publishedVersion
-      })), mine.filter(item => item.role === 'owner').length, storage,
-      c.req.query('error'), c.req.query('message')));
+      return c.html(dashboardPage(
+        user,
+        mine.map(({ site, role }) => ({
+          id: site.id,
+          name: site.name,
+          role,
+          updatedAt: site.updatedAt,
+          url: shareUrl(c, o, site),
+          published: !!site.publishedPublicationId &&
+            site.version === site.publishedVersion,
+        })),
+        mine.filter((item) => item.role === "owner").length,
+        storage,
+        c.req.query("error"),
+        c.req.query("message"),
+      ));
     }
     if (!user) return c.html(signInPage());
 
@@ -892,183 +1486,307 @@ export function createApp(o: Options) {
     /* `where` rather than the host: a site with no domain has a placeholder one that never
        resolves, and printing `unclaimed-3f2a….invalid` under its name would be the picker lying
        about where the site is. */
-    return c.html(pickerPage(user.email, mine.map(m => ({
-      id: m.site.id, name: m.site.name, role: m.role,
-      where: /\.invalid$/.test(m.site.host) ? `/${m.site.slug}/` : m.site.host
-    }))));
+    return c.html(pickerPage(
+      user.email,
+      mine.map((m) => ({
+        id: m.site.id,
+        name: m.site.name,
+        role: m.role,
+        where: /\.invalid$/.test(m.site.host)
+          ? `/${m.site.slug}/`
+          : m.site.host,
+      })),
+    ));
   });
 
-  app.get('/sites/:id', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
-    if (!gate.ok) return gate.status === 401
-      ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
-      : deny(c, gate.status);
+  app.get("/sites/:id", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) {
+      return gate.status === 401
+        ? c.redirect(
+          `/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`,
+        )
+        : deny(c, gate.status);
+    }
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     const publishedRevision = site.publishedVersion > 0
       ? await o.store.revision(site.id, site.publishedVersion)
       : null;
     return c.html(siteOverviewPage(gate.user, {
-      id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt,
-      url: shareUrl(c, o, site), published: site.version === site.publishedVersion,
-      version: site.version, publishedVersion: site.publishedVersion,
+      id: site.id,
+      name: site.name,
+      slug: site.slug,
+      role: gate.role,
+      updatedAt: site.updatedAt,
+      url: shareUrl(c, o, site),
+      published: site.version === site.publishedVersion,
+      version: site.version,
+      publishedVersion: site.publishedVersion,
       publishedAt: publishedRevision?.createdAt,
-      customDomain: /\.invalid$/.test(site.host) ? undefined : site.host
+      customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
     }));
   });
 
-  app.get('/sites/:id/people', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
-    if (!gate.ok) return gate.status === 401
-      ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
-      : deny(c, gate.status);
+  app.get("/sites/:id/people", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) {
+      return gate.status === 401
+        ? c.redirect(
+          `/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`,
+        )
+        : deny(c, gate.status);
+    }
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
-    const members = gate.role === 'owner'
-      ? await o.auth.members(id)
-      : [{
-          userId: gate.user.id, email: gate.user.email, name: gate.user.name,
-          role: gate.role, authUserId: gate.user.authUserId
-        }];
-    return c.html(sitePeoplePage(gate.user, {
-      id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt,
-      url: shareUrl(c, o, site), published: site.version === site.publishedVersion,
-      version: site.version, publishedVersion: site.publishedVersion
-    }, members.map(member => ({
-      userId: member.userId, email: member.email, name: member.name, role: member.role,
-      active: !!member.authUserId
-    })), { error: c.req.query('error'), message: c.req.query('message') }));
+    const members = gate.role === "owner" ? await o.auth.members(id) : [{
+      userId: gate.user.id,
+      email: gate.user.email,
+      name: gate.user.name,
+      role: gate.role,
+      authUserId: gate.user.authUserId,
+    }];
+    return c.html(sitePeoplePage(
+      gate.user,
+      {
+        id: site.id,
+        name: site.name,
+        slug: site.slug,
+        role: gate.role,
+        updatedAt: site.updatedAt,
+        url: shareUrl(c, o, site),
+        published: site.version === site.publishedVersion,
+        version: site.version,
+        publishedVersion: site.publishedVersion,
+      },
+      members.map((member) => ({
+        userId: member.userId,
+        email: member.email,
+        name: member.name,
+        role: member.role,
+        active: !!member.authUserId,
+      })),
+      { error: c.req.query("error"), message: c.req.query("message") },
+    ));
   });
 
-  app.post('/sites/:id/people/invite', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/sites/:id/people/invite", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
-    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
-    const email = normalEmail(String(body.email || ''));
-    const role = String(body.role || '') as Role;
+    const body = await c.req.parseBody().catch(() => ({})) as Record<
+      string,
+      string | File
+    >;
+    const email = normalEmail(String(body.email || ""));
+    const role = String(body.role || "") as Role;
     const base = `/sites/${encodeURIComponent(id)}/people`;
-    if (!validEmail(email)) return c.redirect(`${base}?error=people_email`, 303);
-    if (role !== 'owner' && role !== 'content') return c.redirect(`${base}?error=people_role`, 303);
-    const allowedInvitation = inviteSourceLimit.take(requestSource(c))
-      && inviteAccountLimit.take(gate.user.id)
-      && inviteSiteLimit.take(id)
-      && inviteEmailLimit.take(email)
-      && inviteCooldown.take(`${id}|${email}`);
+    if (!validEmail(email)) {
+      return c.redirect(`${base}?error=people_email`, 303);
+    }
+    if (role !== "owner" && role !== "content") {
+      return c.redirect(`${base}?error=people_role`, 303);
+    }
+    const allowedInvitation = inviteSourceLimit.take(requestSource(c)) &&
+      inviteAccountLimit.take(gate.user.id) &&
+      inviteSiteLimit.take(id) &&
+      inviteEmailLimit.take(email) &&
+      inviteCooldown.take(`${id}|${email}`);
     if (!allowedInvitation) {
-      c.header('retry-after', '60');
+      c.header("retry-after", "60");
       return c.redirect(`${base}?error=people_rate`, 303);
     }
 
-    const genericSuccess = `${base}?message=Access+updated.+An+invitation+was+sent+if+needed.`;
+    const genericSuccess =
+      `${base}?message=Access+updated.+An+invitation+was+sent+if+needed.`;
     const origin = o.editorOrigin || new URL(c.req.url).origin;
     const next = `/sites/${id}/people`;
     const provisioned = await o.auth.provisionInvitation({
-      siteId: id, actorUserId: gate.user.id, email, role,
-      redirectTo: `${origin}/auth/confirm?type=invite&next=${encodeURIComponent(next)}`
+      siteId: id,
+      actorUserId: gate.user.id,
+      email,
+      role,
+      redirectTo: `${origin}/auth/confirm?type=invite&next=${
+        encodeURIComponent(next)
+      }`,
     });
-    if (provisioned.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
-    if (provisioned.status === 'forbidden') return deny(c, 404);
+    if (provisioned.status === "last_owner") {
+      return c.redirect(`${base}?error=people_last_owner`, 303);
+    }
+    if (provisioned.status === "forbidden") return deny(c, 404);
     /* Delivery is best-effort here. The durable outbox is also drained on an interval, so a
        transient Supabase/SMTP failure cannot roll back or strand the membership grant. */
-    await o.auth.drainInvitationOutbox(`request-${crypto.randomUUID()}`, 5).catch(error => {
-      console.error('collaborator invitation outbox could not be drained:', (error as Error).message);
-    });
+    await o.auth.drainInvitationOutbox(`request-${crypto.randomUUID()}`, 5)
+      .catch((error) => {
+        console.error(
+          "collaborator invitation outbox could not be drained:",
+          (error as Error).message,
+        );
+      });
     return c.redirect(genericSuccess, 303);
   });
 
-  app.post('/sites/:id/people/:userId/role', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/sites/:id/people/:userId/role", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
-    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
-    const role = String(body.role || '') as Role;
+    const body = await c.req.parseBody().catch(() => ({})) as Record<
+      string,
+      string | File
+    >;
+    const role = String(body.role || "") as Role;
     const base = `/sites/${encodeURIComponent(id)}/people`;
-    if (role !== 'owner' && role !== 'content') return c.redirect(`${base}?error=people_role`, 303);
-    if (c.req.param('userId') === gate.user.id && role !== 'owner') {
+    if (role !== "owner" && role !== "content") {
+      return c.redirect(`${base}?error=people_role`, 303);
+    }
+    if (c.req.param("userId") === gate.user.id && role !== "owner") {
       return c.redirect(`${base}?error=people_last_owner`, 303);
     }
-    const changed = await o.auth.changeMemberRole(id, c.req.param('userId'), role);
-    if (changed.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
-    if (changed.status === 'missing') return c.redirect(`${base}?error=people_missing`, 303);
+    const changed = await o.auth.changeMemberRole(
+      id,
+      c.req.param("userId"),
+      role,
+    );
+    if (changed.status === "last_owner") {
+      return c.redirect(`${base}?error=people_last_owner`, 303);
+    }
+    if (changed.status === "missing") {
+      return c.redirect(`${base}?error=people_missing`, 303);
+    }
     return c.redirect(`${base}?message=Role+updated.`, 303);
   });
 
-  app.post('/sites/:id/people/:userId/remove', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/sites/:id/people/:userId/remove", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
     const base = `/sites/${encodeURIComponent(id)}/people`;
-    const removed = await o.auth.removeMember(id, c.req.param('userId'));
-    if (removed.status === 'last_owner') return c.redirect(`${base}?error=people_last_owner`, 303);
-    if (removed.status === 'missing') return c.redirect(`${base}?error=people_missing`, 303);
+    const removed = await o.auth.removeMember(id, c.req.param("userId"));
+    if (removed.status === "last_owner") {
+      return c.redirect(`${base}?error=people_last_owner`, 303);
+    }
+    if (removed.status === "missing") {
+      return c.redirect(`${base}?error=people_missing`, 303);
+    }
     return c.redirect(`${base}?message=Collaborator+removed.`, 303);
   });
 
-  app.get('/sites/:id/settings', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
-    if (!gate.ok) return gate.status === 401
-      ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
-      : deny(c, gate.status);
+  app.get("/sites/:id/settings", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) {
+      return gate.status === 401
+        ? c.redirect(
+          `/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`,
+        )
+        : deny(c, gate.status);
+    }
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     const publishedRevision = site.publishedVersion > 0
       ? await o.store.revision(site.id, site.publishedVersion)
       : null;
     return c.html(siteSettingsPage(gate.user, {
-      id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt,
-      url: shareUrl(c, o, site), published: site.version === site.publishedVersion,
-      version: site.version, publishedVersion: site.publishedVersion,
+      id: site.id,
+      name: site.name,
+      slug: site.slug,
+      role: gate.role,
+      updatedAt: site.updatedAt,
+      url: shareUrl(c, o, site),
+      published: site.version === site.publishedVersion,
+      version: site.version,
+      publishedVersion: site.publishedVersion,
       publishedAt: publishedRevision?.createdAt,
-      customDomain: /\.invalid$/.test(site.host) ? undefined : site.host
-    }, { error: c.req.query('error'), message: c.req.query('message') }));
+      customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
+    }, { error: c.req.query("error"), message: c.req.query("message") }));
   });
 
-  app.post('/sites/:id/settings/name', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/sites/:id/settings/name", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
-    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
-    const name = String(body.name || '').trim();
-    if (!name || name.length > 120) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_name`, 303);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<
+      string,
+      string | File
+    >;
+    const name = String(body.name || "").trim();
+    if (!name || name.length > 120) {
+      return c.redirect(
+        `/sites/${encodeURIComponent(id)}/settings?error=site_name`,
+        303,
+      );
+    }
     const changed = await o.store.setName(id, name);
-    if (!changed) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_settings`, 303);
-    return c.redirect(`/sites/${encodeURIComponent(id)}/settings?message=Site+name+updated.`, 303);
+    if (!changed) {
+      return c.redirect(
+        `/sites/${encodeURIComponent(id)}/settings?error=site_settings`,
+        303,
+      );
+    }
+    return c.redirect(
+      `/sites/${encodeURIComponent(id)}/settings?message=Site+name+updated.`,
+      303,
+    );
   });
 
-  app.post('/sites/:id/settings/slug', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/sites/:id/settings/slug", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
-    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
-    const slug = validSlug(body.slug || '');
-    if (!slug) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_slug`, 303);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<
+      string,
+      string | File
+    >;
+    const slug = validSlug(body.slug || "");
+    if (!slug) {
+      return c.redirect(
+        `/sites/${encodeURIComponent(id)}/settings?error=site_slug`,
+        303,
+      );
+    }
     const moved = await o.store.setSlug(id, slug);
-    if (!moved) return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_slug_taken`, 303);
+    if (!moved) {
+      return c.redirect(
+        `/sites/${encodeURIComponent(id)}/settings?error=site_slug_taken`,
+        303,
+      );
+    }
     built.delete(id);
-    return c.redirect(`/sites/${encodeURIComponent(id)}/settings?message=Pagecraft+address+updated.`, 303);
+    return c.redirect(
+      `/sites/${
+        encodeURIComponent(id)
+      }/settings?message=Pagecraft+address+updated.`,
+      303,
+    );
   });
 
-  app.post('/sites/:id/settings/delete', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/sites/:id/settings/delete", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
-    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
-    if (String(body.confirmation || '') !== site.name) {
-      return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_delete_confirm`, 303);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<
+      string,
+      string | File
+    >;
+    if (String(body.confirmation || "") !== site.name) {
+      return c.redirect(
+        `/sites/${encodeURIComponent(id)}/settings?error=site_delete_confirm`,
+        303,
+      );
     }
-    const memberIds = (await o.auth.members(id)).map(member => member.userId);
+    const memberIds = (await o.auth.members(id)).map((member) => member.userId);
     if (!await o.store.delete(id)) return deny(c, 404);
     /* Postgres removes memberships through the site's cascading foreign key. The in-memory
        development stores are separate objects, so mirror that cleanup after the site is gone. */
-    await Promise.all(memberIds.map(userId => o.auth.revoke(id, userId).catch(() => false)));
+    await Promise.all(
+      memberIds.map((userId) => o.auth.revoke(id, userId).catch(() => false)),
+    );
     built.delete(id);
-    return c.redirect('/?message=Site+deleted.', 303);
+    return c.redirect("/?message=Site+deleted.", 303);
   });
 
   /* The editor, with the document already in the page.
@@ -1076,24 +1794,33 @@ export function createApp(o: Options) {
      Injecting it rather than having the editor fetch it keeps `load()` synchronous, which is
      what it is in the single-file build — the editor boots from a document that is already
      there, and the only difference is where the page got it. One build serves both. */
-  app.get('/edit/:id', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
-    if (!gate.ok) return gate.status === 401
-      ? (o.accountAuth
-        ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
-        : c.html(signInPage()))
-      : deny(c, gate.status);
+  app.get("/edit/:id", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) {
+      return gate.status === 401
+        ? (o.accountAuth
+          ? c.redirect(
+            `/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`,
+          )
+          : c.html(signInPage()))
+        : deny(c, gate.status);
+    }
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
-    if (!o.editorHtml) return c.text('No editor build. Run `node build.mjs` first.', 503);
+    if (!o.editorHtml) {
+      return c.text("No editor build. Run `node build.mjs` first.", 503);
+    }
 
     const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
     const storage = o.assets && mediaOwnerId
       ? await o.assets.usage(mediaOwnerId, FREE_STORAGE_BYTES)
       : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
     const config = {
-      siteId: site.id, host: site.host, slug: site.slug, name: site.name,
+      siteId: site.id,
+      host: site.host,
+      slug: site.slug,
+      name: site.name,
       /* the link to send somebody, worked out once here rather than assembled in the editor:
          only the server knows whether this site has a domain of its own yet */
       url: shareUrl(c, o, site),
@@ -1102,55 +1829,73 @@ export function createApp(o: Options) {
       publishedReleaseId: site.publishedReleaseId,
       publishedPublicationId: site.publishedPublicationId,
       schemaVersion: site.doc.schemaVersion,
-      connectedApiBase: '/v1',
+      connectedApiBase: "/v1",
       connectedPublishingAvailable: releaseReady(),
       role: gate.role,
       user: { id: gate.user.id, name: gate.user.name, email: gate.user.email },
       storage,
       doc: site.doc,
-      wordpressContent: await wordpressContentForSite(site.id)
+      wordpressContent: await wordpressContentForSite(site.id),
     };
     return c.html(inject(o.editorHtml, config));
   });
 
   /* The list is per person: a site nobody granted you is a site you do not know exists. */
-  app.get('/api/sites', async c => {
+  app.get("/api/sites", async (c) => {
     const user = await who(c);
     if (!user) return deny(c, 401);
     const out = (await visibleSites(user)).map(({ site, role }) => ({
-      id: site.id, host: site.host, slug: site.slug, url: shareUrl(c, o, site), name: site.name,
-      version: site.version, publishedVersion: site.publishedVersion,
+      id: site.id,
+      host: site.host,
+      slug: site.slug,
+      url: shareUrl(c, o, site),
+      name: site.name,
+      version: site.version,
+      publishedVersion: site.publishedVersion,
       publishedReleaseId: site.publishedReleaseId,
       publishedPublicationId: site.publishedPublicationId,
-      updatedAt: site.updatedAt, role,
-      publishState: site.publishedPublicationId && site.version === site.publishedVersion
-        ? 'published' : 'draft_changes'
-    })).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      updatedAt: site.updatedAt,
+      role,
+      publishState:
+        site.publishedPublicationId && site.version === site.publishedVersion
+          ? "published"
+          : "draft_changes",
+    })).sort((a, b) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
     return c.json(out);
   });
 
-  app.get('/api/storage', async c => {
+  app.get("/api/storage", async (c) => {
     const user = await who(c);
     if (!user) return deny(c, 401);
-    if (!o.assets) return c.json({ usedBytes: 0, limitBytes: FREE_STORAGE_BYTES });
+    if (!o.assets) {
+      return c.json({ usedBytes: 0, limitBytes: FREE_STORAGE_BYTES });
+    }
     return c.json(await o.assets.usage(user.id, FREE_STORAGE_BYTES));
   });
 
-  app.get('/api/sites/:id', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/api/sites/:id", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     return c.json({
-      id: site.id, host: site.host, slug: site.slug, url: shareUrl(c, o, site),
-      name: site.name, version: site.version, role: gate.role, doc: site.doc
+      id: site.id,
+      host: site.host,
+      slug: site.slug,
+      url: shareUrl(c, o, site),
+      name: site.name,
+      version: site.version,
+      role: gate.role,
+      doc: site.doc,
     });
   });
 
-  app.get('/api/sites/:id/publication', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/api/sites/:id/publication", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
@@ -1163,248 +1908,476 @@ export function createApp(o: Options) {
       publicationId: publication?.id ?? null,
       publishedAt: publication?.createdAt ?? null,
       publicUrl: publication ? shareUrl(c, o, site) : null,
-      status: publication ? (publication.sourceVersion === site.version ? 'published' : 'draft_changes') : 'draft'
+      status: publication
+        ? (publication.sourceVersion === site.version
+          ? "published"
+          : "draft_changes")
+        : "draft",
     });
   });
 
-  app.post('/api/sites/:id/publish', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
-    if (!gate.ok) return deny(c, gate.status);
-    if (!o.publications) return c.json({ error: 'hosted publication storage is unavailable' }, 503);
-    const site = await o.store.byId(id);
-    if (!site) return deny(c, 404);
+  app.post("/api/sites/:id/publish", async (c) => {
+    const id = c.req.param("id");
+    if (!o.publications) {
+      return c.json(
+        { error: "hosted publication storage is unavailable" },
+        503,
+      );
+    }
     const body = await c.req.json().catch(() => null) as {
-      sourceVersion?: number; acknowledgeWarnings?: boolean;
+      sourceVersion?: number;
+      acknowledgeWarnings?: boolean;
     } | null;
     const sourceVersion = body?.sourceVersion;
     if (!Number.isInteger(sourceVersion) || Number(sourceVersion) < 1) {
-      return c.json({ error: 'a valid sourceVersion is required' }, 400);
+      return c.json({ error: "a valid sourceVersion is required" }, 400);
+    }
+    let publisher: User;
+    let site: Site;
+    let preparedRevision: SiteRevision | null | undefined;
+    let preparedAssets: AssetRecord[] | undefined;
+    let publishIdentity: VerifiedIdentity | undefined;
+    if (o.hostedPublish && o.accountAuth) {
+      const identity = await o.accountAuth.identity(c);
+      if (!identity) return deny(c, 401);
+      publishIdentity = identity;
+      const cached = o.cloudMutations?.cachedPublishSource({
+        siteId: id,
+        sourceVersion: Number(sourceVersion),
+        identity,
+      });
+      const prepared: HostedPublishPreparation = cached
+        ? { status: "ok", role: "owner", ...cached }
+        : await o.hostedPublish.prepare({ siteId: id, identity });
+      if (prepared.status !== "ok") {
+        return deny(c, prepared.status === "missing" ? 404 : 403);
+      }
+      publisher = prepared.user;
+      site = prepared.site;
+      preparedRevision = prepared.revision;
+      preparedAssets = prepared.assets;
+    } else {
+      const gate = await allowed(c, id, "admin");
+      if (!gate.ok) return deny(c, gate.status);
+      const stored = await o.store.byId(id);
+      if (!stored) return deny(c, 404);
+      publisher = gate.user;
+      site = stored;
     }
     if (sourceVersion !== site.version) {
       return c.json({
-        error: 'stale_source_version', sourceVersion, currentVersion: site.version
+        error: "stale_source_version",
+        sourceVersion,
+        currentVersion: site.version,
       }, 409);
     }
 
     if (site.publishedPublicationId) {
-      const current = await o.publications.byId(id, site.publishedPublicationId);
-      if (current?.sourceVersion === sourceVersion
-        && current.slug === site.slug && current.host === site.host.toLowerCase()) {
-        try { await o.publications.promote(current); }
-        catch (error) {
-          c.header('retry-after', '5');
+      const current = await o.publications.byId(
+        id,
+        site.publishedPublicationId,
+      );
+      if (
+        current?.sourceVersion === sourceVersion &&
+        current.slug === site.slug && current.host === site.host.toLowerCase()
+      ) {
+        try {
+          await o.publications.promote(current);
+        } catch (error) {
+          c.header("retry-after", "5");
           return c.json({
-            error: 'publication_pointer_unavailable', retryable: true,
-            detail: String((error as Error).message)
+            error: "publication_pointer_unavailable",
+            retryable: true,
+            detail: String((error as Error).message),
           }, 503);
         }
         return c.json({
-          status: 'unchanged', publicationId: current.id, sourceVersion,
-          publishedAt: current.createdAt, publicUrl: shareUrl(c, o, site)
+          status: "unchanged",
+          publicationId: current.id,
+          sourceVersion,
+          publishedAt: current.createdAt,
+          publicUrl: shareUrl(c, o, site),
         });
       }
     }
 
-    const revision = await o.store.revision(id, sourceVersion);
-    if (!revision) return c.json({ error: 'source_revision_not_found' }, 404);
+    const revision = preparedRevision === undefined
+      ? await o.store.revision(id, sourceVersion)
+      : preparedRevision;
+    if (!revision) return c.json({ error: "source_revision_not_found" }, 404);
     let document: Doc | null;
-    try { document = adopt(revision.doc); }
-    catch (error) {
-      return c.json({ error: 'publication_validation_failed', detail: String((error as Error).message) }, 422);
+    try {
+      document = adopt(revision.doc);
+    } catch (error) {
+      return c.json({
+        error: "publication_validation_failed",
+        detail: String((error as Error).message),
+      }, 422);
     }
-    if (!document) return c.json({
-      error: 'publication_schema_unsupported', detail: 'This document needs a newer Pagecraft server.'
-    }, 422);
+    if (!document) {
+      return c.json({
+        error: "publication_schema_unsupported",
+        detail: "This document needs a newer Pagecraft server.",
+      }, 422);
+    }
 
-    const metadata = await assetsOf(id);
+    const metadata = preparedAssets || await assetsOf(id);
     let rendered: ReturnType<typeof render>;
     try {
       rendered = render(document, metadata);
       if (releaseStylesheetLinks(rendered.files).length) {
-        rendered.files = await freezeGoogleFontStylesheets(rendered.files, o.fontFetch || fetch);
+        rendered.files = await freezeGoogleFontStylesheets(
+          rendered.files,
+          o.fontFetch || fetch,
+        );
       }
     } catch (error) {
-      return c.json({ error: 'publication_compile_failed', detail: String((error as Error).message) }, 422);
+      return c.json({
+        error: "publication_compile_failed",
+        detail: String((error as Error).message),
+      }, 422);
     }
     const remainingStylesheets = releaseStylesheetLinks(rendered.files);
-    if (remainingStylesheets.length) return c.json({
-      error: 'publication_validation_failed', errorCodes: ['unfrozen-stylesheet'],
-      stylesheets: remainingStylesheets
-    }, 422);
-    const errors = rendered.findings.filter(finding => finding.level === 'error');
-    const warnings = rendered.findings.filter(finding => finding.level === 'warn');
-    if (errors.length) return c.json({
-      error: 'publication_validation_failed',
-      findings: errors.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where }))
-    }, 422);
-    if (warnings.length && body?.acknowledgeWarnings !== true) return c.json({
-      error: 'warning_acknowledgement_required',
-      findings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where }))
-    }, 409);
+    if (remainingStylesheets.length) {
+      return c.json({
+        error: "publication_validation_failed",
+        errorCodes: ["unfrozen-stylesheet"],
+        stylesheets: remainingStylesheets,
+      }, 422);
+    }
+    const errors = rendered.findings.filter((finding) =>
+      finding.level === "error"
+    );
+    const warnings = rendered.findings.filter((finding) =>
+      finding.level === "warn"
+    );
+    if (errors.length) {
+      return c.json({
+        error: "publication_validation_failed",
+        findings: errors.map((finding) => ({
+          code: finding.code,
+          message: finding.msg,
+          where: finding.where,
+        })),
+      }, 422);
+    }
+    if (warnings.length && body?.acknowledgeWarnings !== true) {
+      return c.json({
+        error: "warning_acknowledgement_required",
+        findings: warnings.map((finding) => ({
+          code: finding.code,
+          message: finding.msg,
+          where: finding.where,
+        })),
+      }, 409);
+    }
 
-    const assets = await assetBodiesOf(id, releaseAssetIds(document, rendered.files, metadata));
+    const assets = await assetBodiesOf(
+      id,
+      releaseAssetIds(document, rendered.files, metadata),
+      preparedAssets,
+    );
     const files = [
       ...[...rendered.files].map(([path, content]) => ({
-        path, mediaType: typeOf(path), bytes: new TextEncoder().encode(content)
+        path,
+        mediaType: typeOf(path),
+        bytes: new TextEncoder().encode(content),
       })),
-      ...assets.map(asset => ({ path: assetFile(asset), mediaType: asset.type, bytes: asset.bytes }))
+      ...assets.map((asset) => ({
+        path: assetFile(asset),
+        mediaType: asset.type,
+        bytes: asset.bytes,
+      })),
     ];
     let publication: PublicationSummary;
     try {
       publication = await o.publications.create({
-        siteId: id, slug: site.slug, host: site.host, sourceVersion, files
+        siteId: id,
+        slug: site.slug,
+        host: site.host,
+        sourceVersion,
+        files,
       });
     } catch (error) {
-      return c.json({ error: 'publication_write_failed', detail: String((error as Error).message) }, 503);
+      return c.json({
+        error: "publication_write_failed",
+        detail: String((error as Error).message),
+      }, 503);
     }
-    const committed = await o.store.publishHosted({
-      id, version: sourceVersion, publicationId: publication.id,
-      contentHash: publication.contentHash, createdBy: gate.user.id, createdAt: publication.createdAt
-    });
-    if (!committed) return c.json({ error: 'publication_commit_failed', retryable: true }, 409);
+    let committed: Site | null;
+    if (o.cloudMutations && publishIdentity) {
+      const result = await o.cloudMutations.publishAuthorized({
+        siteId: id,
+        sourceVersion,
+        publicationId: publication.id,
+        contentHash: publication.contentHash,
+        createdAt: publication.createdAt,
+        identity: publishIdentity,
+      });
+      if (result.status !== "published") {
+        await o.publications.discard(publication).catch(() => undefined);
+        if (result.status === "missing") return deny(c, 404);
+        if (result.status === "forbidden") return deny(c, 403);
+        if (result.status !== "conflict") {
+          return c.json({ error: "publication_commit_failed" }, 409);
+        }
+        return c.json({
+          error: "stale_source_version",
+          sourceVersion,
+          currentVersion: result.currentVersion,
+        }, 409);
+      }
+      committed = result.site;
+    } else {
+      committed = await o.store.publishHosted({
+        id,
+        version: sourceVersion,
+        publicationId: publication.id,
+        contentHash: publication.contentHash,
+        createdBy: publisher.id,
+        createdAt: publication.createdAt,
+      });
+      if (!committed) {
+        await o.publications.discard(publication).catch(() => undefined);
+        return c.json(
+          { error: "publication_commit_failed", retryable: true },
+          409,
+        );
+      }
+    }
     const effective = committed.publishedPublicationId === publication.id
       ? publication
-      : await o.publications.byId(id, committed.publishedPublicationId || '');
-    if (!effective) return c.json({
-      error: 'publication_winner_unavailable', retryable: true,
-      detail: 'The database selected a concurrent publication whose files are not available yet.'
-    }, 503);
-    try { await o.publications.promote(effective); }
-    catch (error) {
-      c.header('retry-after', '5');
+      : await o.publications.byId(id, committed.publishedPublicationId || "");
+    if (!effective) {
       return c.json({
-        error: 'publication_pointer_unavailable', retryable: true,
-        publicationId: effective.id, detail: String((error as Error).message)
+        error: "publication_winner_unavailable",
+        retryable: true,
+        detail:
+          "The database selected a concurrent publication whose files are not available yet.",
+      }, 503);
+    }
+    try {
+      await o.publications.promote(effective);
+    } catch (error) {
+      c.header("retry-after", "5");
+      return c.json({
+        error: "publication_pointer_unavailable",
+        retryable: true,
+        publicationId: effective.id,
+        detail: String((error as Error).message),
       }, 503);
     }
     return c.json({
-      status: effective.id === publication.id ? 'published' : 'unchanged',
-      publicationId: effective.id, sourceVersion,
-      publishedAt: effective.createdAt, publicUrl: shareUrl(c, o, committed)
+      status: effective.id === publication.id ? "published" : "unchanged",
+      publicationId: effective.id,
+      sourceVersion,
+      publishedAt: effective.createdAt,
+      publicUrl: shareUrl(c, o, committed),
     });
   });
 
   /* Creating a site is not something a client does, so it needs a signed-in person and
      grants them ownership of what they made. */
-  app.post('/api/sites', async c => {
+  app.post("/api/sites", async (c) => {
     const user = await who(c);
     if (!user) return deny(c, 401);
-    const htmlForm = (c.req.header('content-type') || '').includes('application/x-www-form-urlencoded')
-      || (c.req.header('content-type') || '').includes('multipart/form-data');
-    const body = (htmlForm ? await c.req.parseBody().catch(() => null) : await c.req.json().catch(() => null)) as
-      { host?: string; slug?: string; name?: string; doc?: Doc } | null;
-    if (!body) return c.json({ error: 'a JSON body is required' }, 400);
+    const htmlForm = (c.req.header("content-type") || "").includes(
+      "application/x-www-form-urlencoded",
+    ) ||
+      (c.req.header("content-type") || "").includes("multipart/form-data");
+    const body = (htmlForm
+      ? await c.req.parseBody().catch(() =>
+        null
+      )
+      : await c.req.json().catch(() => null)) as {
+        host?: string;
+        slug?: string;
+        name?: string;
+        doc?: Doc;
+      } | null;
+    if (!body) return c.json({ error: "a JSON body is required" }, 400);
     /* A document is optional. It used to be required, which meant the only way to make a site
        was to already have one — so a fresh deployment's owner signed in, was told to ask whoever
        set it up, and had nowhere to go. They *are* whoever set it up. A name is enough now, and
        the server starts them where the builder's own "Start an empty site" does. */
-    const name = String(body.name || '').trim() || 'Untitled site';
-    const requestedSlug = String(body.slug || '').trim();
+    const name = String(body.name || "").trim() || "Untitled site";
+    const requestedSlug = String(body.slug || "").trim();
     if (requestedSlug && !validSlug(requestedSlug)) {
-      return htmlForm
-        ? c.redirect('/?error=slug', 303)
-        : c.json({
-          error: 'invalid_slug',
-          detail: 'Use lowercase letters, numbers, and single hyphens. Maximum 40 characters.'
-        }, 422);
+      return htmlForm ? c.redirect("/?error=slug", 303) : c.json({
+        error: "invalid_slug",
+        detail:
+          "Use lowercase letters, numbers, and single hyphens. Maximum 40 characters.",
+      }, 422);
     }
     const doc0 = body.doc || blankDoc(name);
     /* A host is no longer required to have a site. It used to be the only way to reach one, so
        making a site meant inventing a domain first; a slug is enough, and the host is what you
        add when the site earns a domain. The placeholder is unique and never resolves, which is
        the honest value for "no domain yet". */
-    const requestedHost = String(body.host || '').trim();
-    const host = requestedHost ? validHost(requestedHost) : `unclaimed-${crypto.randomUUID()}.invalid`;
+    const requestedHost = String(body.host || "").trim();
+    const host = requestedHost
+      ? validHost(requestedHost)
+      : `unclaimed-${crypto.randomUUID()}.invalid`;
     if (!host) {
       return c.json({
-        error: 'that is not a domain',
-        detail: 'A hostname on its own — acme.com or www.acme.com. No scheme, no port, no path.'
+        error: "that is not a domain",
+        detail:
+          "A hostname on its own — acme.com or www.acme.com. No scheme, no port, no path.",
       }, 400);
     }
     /* Stored at this build's schema, so the row starts where the save path expects it. */
     let doc: Doc | null = null;
     let malformed = false;
-    try { doc = adopt(doc0); } catch { malformed = true; }
+    try {
+      doc = adopt(doc0);
+    } catch {
+      malformed = true;
+    }
     if (malformed) {
-      return c.json({ error: 'invalid document', detail: 'The document is not a Pagecraft project.' }, 422);
+      return c.json({
+        error: "invalid document",
+        detail: "The document is not a Pagecraft project.",
+      }, 422);
     }
     if (!doc) {
       return c.json({
-        error: 'newer', detail: 'This document was written by a newer version of the editor than this server runs. Reload the editor, or deploy the server.'
+        error: "newer",
+        detail:
+          "This document was written by a newer version of the editor than this server runs. Reload the editor, or deploy the server.",
       }, 409);
     }
     /* Render before the first durable write. A document that cannot produce its files is not a
        site, and returning an error after inserting it leaves an unrecoverable row behind. */
     const preview = candidate(doc, []);
-    if (!preview) return c.json({ error: 'invalid document', detail: 'The document is not a renderable Pagecraft project.' }, 422);
+    if (!preview) {
+      return c.json({
+        error: "invalid document",
+        detail: "The document is not a renderable Pagecraft project.",
+      }, 422);
+    }
     try {
       const created = o.accountAuth
-        ? await o.ownedSites?.create({ ownerId: user.id, host, slug: requestedSlug || undefined, name, doc })
+        ? await o.ownedSites?.create({
+          ownerId: user.id,
+          host,
+          slug: requestedSlug || undefined,
+          name,
+          doc,
+        })
         : null;
       if (o.accountAuth && !created) {
-        return htmlForm
-          ? c.redirect('/?error=creation', 303)
-          : c.json({
-            error: 'site_creation_unavailable',
-            detail: 'Site creation is temporarily unavailable. Your existing sites are still available.'
-          }, 503);
+        return htmlForm ? c.redirect("/?error=creation", 303) : c.json({
+          error: "site_creation_unavailable",
+          detail:
+            "Site creation is temporarily unavailable. Your existing sites are still available.",
+        }, 503);
       }
       if (created && !created.ok) {
-        if (created.reason === 'site_limit_reached') {
+        if (created.reason === "site_limit_reached") {
           return htmlForm
-            ? c.redirect('/?error=limit', 303)
-            : c.json({ error: 'site_limit_reached', limit: 3 }, 409);
+            ? c.redirect("/?error=limit", 303)
+            : c.json({ error: "site_limit_reached", limit: 3 }, 409);
         }
-        return htmlForm
-          ? c.redirect('/?error=account', 303)
-          : c.json({
-            error: 'profile_missing',
-            detail: 'Your Pagecraft profile is not ready. Sign out and sign in again, or contact support.'
-          }, 409);
+        return htmlForm ? c.redirect("/?error=account", 303) : c.json({
+          error: "profile_missing",
+          detail:
+            "Your Pagecraft profile is not ready. Sign out and sign in again, or contact support.",
+        }, 409);
       }
-      const site = created?.ok
-        ? created.site
-        : await o.store.create({ host, slug: requestedSlug || undefined, name, doc, savedBy: user.id });
-      if (!o.accountAuth) await o.auth.grant(site.id, user.id, 'owner');
+      const site = created?.ok ? created.site : await o.store.create({
+        host,
+        slug: requestedSlug || undefined,
+        name,
+        doc,
+        savedBy: user.id,
+      });
+      if (!o.accountAuth) await o.auth.grant(site.id, user.id, "owner");
       const out = remember(site, preview);
-      if (htmlForm) return c.redirect(`/edit/${encodeURIComponent(site.id)}`, 303);
+      if (htmlForm) {
+        return c.redirect(
+          `/edit/${encodeURIComponent(site.id)}`,
+          303,
+        );
+      }
       return c.json({
-        id: site.id, slug: site.slug, version: site.version,
+        id: site.id,
+        slug: site.slug,
+        version: site.version,
         /* where to send somebody, said once by the server rather than assembled by every
            caller that wants to show a link */
         url: shareUrl(c, o, site),
-        files: [...out.files.keys()]
+        files: [...out.files.keys()],
       }, 201);
     } catch (e) {
       const message = String((e as Error).message || e);
       if (/already taken|duplicate|unique/i.test(message)) {
-        return htmlForm
-          ? c.redirect('/?error=slug_taken', 303)
-          : c.json({
-            error: 'slug_taken',
-            detail: 'That site address is already in use. Choose another.'
-          }, 409);
+        return htmlForm ? c.redirect("/?error=slug_taken", 303) : c.json({
+          error: "slug_taken",
+          detail: "That site address is already in use. Choose another.",
+        }, 409);
       }
-      return htmlForm
-        ? c.redirect('/?error=creation', 303)
-        : c.json({ error: 'site_creation_failed', detail: 'We could not create that site. Try again.' }, 409);
+      return htmlForm ? c.redirect("/?error=creation", 303) : c.json({
+        error: "site_creation_failed",
+        detail: "We could not create that site. Try again.",
+      }, 409);
     }
   });
 
   /* The save. This is the endpoint that makes the whole thing worth building: it is what
      `writeNow()` in the builder used to give localStorage. */
-  app.put('/api/sites/:id', async c => {
-    const id = c.req.param('id');
-    const [gate, site] = await Promise.all([allowed(c, id, 'write'), o.store.byId(id)]);
-    if (!gate.ok) return deny(c, gate.status);
-    if (!site) return deny(c, 404);
+  app.put("/api/sites/:id", async (c) => {
+    const id = c.req.param("id");
+    let gate: Awaited<ReturnType<typeof allowed>> | undefined;
+    let fastIdentity: VerifiedIdentity | undefined;
+    const accountFastPath = o.cloudMutations && o.accountAuth &&
+      !c.req.header("x-pagecraft-editor-session");
 
-    const body = await c.req.json().catch(() => null) as { doc?: Doc; version?: number } | null;
-    if (!body || !body.doc || !Number.isInteger(body.version) || body.version! < 1) {
-      return c.json({ error: 'doc and version are required' }, 400);
+    /* Preserve authentication-first behavior. Besides avoiding needless parsing work, this
+       keeps unauthenticated requests from learning which payloads the save endpoint accepts. */
+    if (accountFastPath) {
+      const identity = await o.accountAuth!.identity(c);
+      if (!identity) return deny(c, 401);
+      fastIdentity = identity;
+    } else {
+      gate = await allowed(c, id, "write");
+      if (!gate.ok) return deny(c, gate.status);
+    }
+
+    const body = await c.req.json().catch(() => null) as {
+      doc?: Doc;
+      version?: number;
+    } | null;
+    if (
+      !body || !body.doc || !Number.isInteger(body.version) || body.version! < 1
+    ) {
+      return c.json({ error: "doc and version are required" }, 400);
     }
     const version = body.version as number;
+    let site: Site;
+    let siteAssets: AssetRecord[];
+    if (accountFastPath) {
+      const cached = o.cloudMutations!.cachedSaveSource(id, version);
+      if (cached) {
+        site = cached.site;
+        siteAssets = cached.assets;
+      } else {
+        const loaded = await Promise.all([
+          allowed(c, id, "write"),
+          o.store.byId(id),
+          assetsOf(id),
+        ]);
+        gate = loaded[0];
+        if (!gate.ok) return deny(c, gate.status);
+        if (!loaded[1]) return deny(c, 404);
+        site = loaded[1];
+        siteAssets = loaded[2];
+      }
+    } else {
+      const loaded = await Promise.all([o.store.byId(id), assetsOf(id)]);
+      if (!loaded[0]) return deny(c, 404);
+      site = loaded[0];
+      siteAssets = loaded[1];
+    }
 
     /* Both documents, brought to the same schema before anything compares them. The incoming
        one because that is what gets stored, and the stored one because the editor migrated it
@@ -1413,114 +2386,203 @@ export function createApp(o: Options) {
        an older server, which is a deployment to finish rather than a document to store. */
     let incoming: Doc | null = null;
     let malformed = false;
-    try { incoming = adopt(body.doc); } catch { malformed = true; }
+    try {
+      incoming = adopt(body.doc);
+    } catch {
+      malformed = true;
+    }
     if (malformed) {
-      return c.json({ error: 'invalid document', detail: 'The document is not a Pagecraft project.' }, 422);
+      return c.json({
+        error: "invalid document",
+        detail: "The document is not a Pagecraft project.",
+      }, 422);
     }
     if (!incoming) {
       return c.json({
-        error: 'newer', detail: 'This document was written by a newer version of the editor than this server runs. Reload the editor, or deploy the server.'
+        error: "newer",
+        detail:
+          "This document was written by a newer version of the editor than this server runs. Reload the editor, or deploy the server.",
       }, 409);
     }
     body.doc = incoming;
     const stored = adopt(site.doc) || site.doc;
-    /* Needed by both the content-role allowlist and the pre-commit render; fetch it once. */
-    const siteAssets = await assetsOf(id);
+
+    const preview = candidate(body.doc, siteAssets);
+    if (!preview) {
+      return c.json({
+        error: "invalid document",
+        detail: "The document is not a renderable Pagecraft project.",
+      }, 422);
+    }
 
     /* A content role may save, and only content. The check is against what is stored rather
        than against what the editor thinks it loaded, so a stale client cannot smuggle a
        structural change through by sending an old skeleton. */
-    if (gate.role === 'content') {
-      /* the site's own asset ids, so an image may be swapped for another upload of theirs and
-         not for a URL or for somebody else's id */
-      const ids = new Set(siteAssets.map(x => x.id));
-      const check = contentOnly(stored, body.doc, ids);
-      if (!check.ok) {
+    /* The same comparison determines the minimum role passed to the atomic Cloud write. The
+       gateway checks the current membership again, so a stale cache cannot grant authority. */
+    const ids = new Set(siteAssets.map((x) => x.id));
+    const contentCheck = contentOnly(stored, body.doc, ids);
+    if (gate?.ok && gate.role === "content" && !contentCheck.ok) {
+      return c.json({
+        error: "content only",
+        detail:
+          "This account can change text and CMS content. Layout, styling and page structure are not editable here.",
+      }, 403);
+    }
+
+    const saved = fastIdentity
+      ? await o.cloudMutations!.saveAuthorized({
+        siteId: id,
+        sourceVersion: version,
+        doc: body.doc,
+        identity: fastIdentity,
+        requiredRole: contentCheck.ok ? "write" : "admin",
+      })
+      : await o.store.save(
+        id,
+        body.doc,
+        version,
+        gate?.ok ? gate.user.id : undefined,
+      );
+    let savedSite: Site;
+    if ("status" in saved) {
+      if (saved.status === "missing") return deny(c, 404);
+      if (saved.status === "forbidden") return deny(c, 403);
+      if (saved.status === "conflict") {
         return c.json({
-          error: 'content only',
-          detail: 'This account can change text and CMS content. Layout, styling and page structure are not editable here.'
-        }, 403);
+          error: "stale",
+          conflict: { yours: version, theirs: saved.currentVersion },
+        }, 409);
       }
-    }
-
-    const preview = candidate(body.doc, siteAssets);
-    if (!preview) {
-      return c.json({ error: 'invalid document', detail: 'The document is not a renderable Pagecraft project.' }, 422);
-    }
-
-    const res = await o.store.save(id, body.doc, version, gate.user.id);
-    if (!res.ok) {
-      /* A stale version is not an error the editor should swallow. Someone else saved, and
+      savedSite = saved.site;
+    } else {
+      if (!saved.ok) {
+        /* A stale version is not an error the editor should swallow. Someone else saved, and
          overwriting them silently is the one thing a store must never do. */
-      return c.json({ error: 'stale', conflict: res.conflict }, 409);
+        return c.json({ error: "stale", conflict: saved.conflict }, 409);
+      }
+      savedSite = saved.site!;
     }
 
     /* Saving advances only the draft. The public cache remains keyed to the published
        revision and is invalidated only by an explicit release. */
     const out = preview;
     return c.json({
-      version: res.site!.version,
+      version: savedSite.version,
       files: [...out.files.keys()],
       /* the same review the builder shows, so a save can say what it noticed */
-      findings: out.findings.map(f => ({ level: f.level, code: f.code, msg: f.msg }))
+      findings: out.findings.map((f) => ({
+        level: f.level,
+        code: f.code,
+        msg: f.msg,
+      })),
     });
   });
 
   /* Durable history. Every accepted save is immutable; restoring an old document goes
      through the normal optimistic save and therefore creates a new version rather than
      deleting the versions that came after it. */
-  app.get('/api/sites/:id/history', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/api/sites/:id/history", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     const revisions = await o.store.history(id);
-    const authorIds = [...new Set(revisions.flatMap(revision => revision.savedBy ? [revision.savedBy] : []))];
-    const authors = new Map((await o.auth.usersByIds(authorIds)).map(user => [user.id, user]));
-    return c.json(revisions.map(revision => {
+    const authorIds = [
+      ...new Set(
+        revisions.flatMap((revision) =>
+          revision.savedBy ? [revision.savedBy] : []
+        ),
+      ),
+    ];
+    const authors = new Map(
+      (await o.auth.usersByIds(authorIds)).map((user) => [user.id, user]),
+    );
+    return c.json(revisions.map((revision) => {
       const author = revision.savedBy ? authors.get(revision.savedBy) : null;
       return {
-        version: revision.version, createdAt: revision.createdAt,
+        version: revision.version,
+        createdAt: revision.createdAt,
         savedBy: revision.savedBy,
-        author: author ? { name: author.name, email: author.email } : null
+        author: author ? { name: author.name, email: author.email } : null,
       };
     }));
   });
 
-  app.get('/api/sites/:id/history/:version', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/api/sites/:id/history/:version", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
-    const version = Number(c.req.param('version'));
-    if (!Number.isInteger(version) || version < 1) return c.json({ error: 'invalid version' }, 400);
+    const version = Number(c.req.param("version"));
+    if (!Number.isInteger(version) || version < 1) {
+      return c.json({ error: "invalid version" }, 400);
+    }
     const revision = await o.store.revision(id, version);
     if (!revision) return deny(c, 404);
-    return c.json({ version: revision.version, createdAt: revision.createdAt, doc: revision.doc });
+    return c.json({
+      version: revision.version,
+      createdAt: revision.createdAt,
+      doc: revision.doc,
+    });
   });
 
-  app.post('/api/sites/:id/history/:version/restore', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/api/sites/:id/history/:version/restore", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
-    const version = Number(c.req.param('version'));
-    const body = await c.req.json().catch(() => null) as { currentVersion?: number } | null;
+    const version = Number(c.req.param("version"));
+    const body = await c.req.json().catch(() => null) as {
+      currentVersion?: number;
+    } | null;
     const currentVersion = body?.currentVersion;
-    if (!Number.isInteger(version) || version < 1
-      || !Number.isInteger(currentVersion) || currentVersion! < 1) {
-      return c.json({ error: 'version and currentVersion are required' }, 400);
+    if (
+      !Number.isInteger(version) || version < 1 ||
+      !Number.isInteger(currentVersion) || currentVersion! < 1
+    ) {
+      return c.json({ error: "version and currentVersion are required" }, 400);
     }
     const revision = await o.store.revision(id, version);
     if (!revision) return deny(c, 404);
     let restored: Doc | null = null;
     let malformed = false;
-    try { restored = adopt(revision.doc); } catch { malformed = true; }
-    if (malformed) return c.json({ error: 'invalid document', detail: 'That revision is not a Pagecraft project.' }, 422);
-    if (!restored) return c.json({ error: 'newer', detail: 'That version needs a newer Pagecraft build.' }, 409);
+    try {
+      restored = adopt(revision.doc);
+    } catch {
+      malformed = true;
+    }
+    if (malformed) {
+      return c.json({
+        error: "invalid document",
+        detail: "That revision is not a Pagecraft project.",
+      }, 422);
+    }
+    if (!restored) {
+      return c.json({
+        error: "newer",
+        detail: "That version needs a newer Pagecraft build.",
+      }, 409);
+    }
     const preview = candidate(restored, await assetsOf(id));
-    if (!preview) return c.json({ error: 'invalid document', detail: 'That revision is not renderable.' }, 422);
-    const result = await o.store.save(id, restored, currentVersion as number, gate.user.id);
-    if (!result.ok) return c.json({ error: 'stale', conflict: result.conflict }, 409);
+    if (!preview) {
+      return c.json({
+        error: "invalid document",
+        detail: "That revision is not renderable.",
+      }, 422);
+    }
+    const result = await o.store.save(
+      id,
+      restored,
+      currentVersion as number,
+      gate.user.id,
+    );
+    if (!result.ok) {
+      return c.json({ error: "stale", conflict: result.conflict }, 409);
+    }
     const out = preview;
-    return c.json({ version: result.site!.version, restoredFrom: version, files: [...out.files.keys()] });
+    return c.json({
+      version: result.site!.version,
+      restoredFrom: version,
+      files: [...out.files.keys()],
+    });
   });
 
   /* ------------------------------------------------------------- the domain
@@ -1535,41 +2597,61 @@ export function createApp(o: Options) {
   /* Change where a site lives under the shared host. Admin, not write: the path is the URL
      people have been given, and moving it breaks every link to it — the same argument the host
      route makes, at a smaller scale. */
-  app.put('/api/sites/:id/slug', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.put("/api/sites/:id/slug", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
 
-    const body = await c.req.json().catch(() => null) as { slug?: string } | null;
-    const want = validSlug(body?.slug || '');
+    const body = await c.req.json().catch(() => null) as
+      | { slug?: string }
+      | null;
+    const want = validSlug(body?.slug || "");
     if (!want) {
       return c.json({
-        error: 'that is not a usable path',
-        detail: 'Lowercase letters, digits and hyphens, up to 40 characters — and not a name '
-          + 'this server already uses, like api or auth.'
+        error: "that is not a usable path",
+        detail:
+          "Lowercase letters, digits and hyphens, up to 40 characters — and not a name " +
+          "this server already uses, like api or auth.",
       }, 400);
     }
     const moved = await o.store.setSlug(id, want);
-    if (!moved) return c.json({ error: `/${want} already answers for another site` }, 409);
-    return c.json({ id: moved.id, slug: moved.slug, url: shareUrl(c, o, moved) });
+    if (!moved) {
+      return c.json(
+        { error: `/${want} already answers for another site` },
+        409,
+      );
+    }
+    return c.json({
+      id: moved.id,
+      slug: moved.slug,
+      url: shareUrl(c, o, moved),
+    });
   });
 
-  app.put('/api/sites/:id/host', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.put("/api/sites/:id/host", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
 
-    const body = await c.req.json().catch(() => null) as { host?: string } | null;
-    const host = validHost(body?.host || '');
+    const body = await c.req.json().catch(() => null) as
+      | { host?: string }
+      | null;
+    const host = validHost(body?.host || "");
     if (!host) {
       return c.json({
-        error: 'that is not a domain',
-        detail: 'A hostname on its own — acme.com or www.acme.com. No scheme, no port, no path.'
+        error: "that is not a domain",
+        detail:
+          "A hostname on its own — acme.com or www.acme.com. No scheme, no port, no path.",
       }, 400);
     }
 
     const moved = await o.store.setHost(id, host);
-    if (!moved) return c.json({ error: 'another site already answers on that domain' }, 409);
+    if (!moved) {
+      return c.json(
+        { error: "another site already answers on that domain" },
+        409,
+      );
+    }
     /* The rendered files do not change, but the base URL in them might, so the cache for this
        site is dropped rather than left to serve pages that name the old address. */
     built.delete(id);
@@ -1591,17 +2673,17 @@ export function createApp(o: Options) {
      the app to 127.0.0.1 in production would do the same job at the socket, and both together
      is the belt and the braces. */
 
-  app.get('/internal/tls-check', async c => {
-    const via = c.req.header('x-forwarded-for');
+  app.get("/internal/tls-check", async (c) => {
+    const via = c.req.header("x-forwarded-for");
     /* A `X-Forwarded-For` means somebody outside reached this, because the proxy does not set
        one on its own `ask`. That is enough to refuse, and cheaper than parsing addresses. */
-    if (via) return c.text('no', 403);
+    if (via) return c.text("no", 403);
 
-    const domain = validHost(c.req.query('domain') || '');
-    if (!domain) return c.text('no', 400);
+    const domain = validHost(c.req.query("domain") || "");
+    if (!domain) return c.text("no", 400);
     const site = await o.store.byHost(domain);
     /* 200 is "yes, get a certificate for this". Anything else is "do not". */
-    return site ? c.text('ok', 200) : c.text('no', 404);
+    return site ? c.text("ok", 200) : c.text("no", 404);
   });
 
   /* ---------------------------------------------------------------- the people
@@ -1613,62 +2695,98 @@ export function createApp(o: Options) {
      Only an owner may do any of this: `admin` is the verb, and `roleAllows` gives it to owners
      alone. */
 
-  app.get('/api/sites/:id/people', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.get("/api/sites/:id/people", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
     const list = await o.auth.members(id);
-    return c.json(list.map(m => ({ userId: m.userId, email: m.email, name: m.name, role: m.role })));
+    return c.json(
+      list.map((m) => ({
+        userId: m.userId,
+        email: m.email,
+        name: m.name,
+        role: m.role,
+      })),
+    );
   });
 
-  app.post('/api/sites/:id/people', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.post("/api/sites/:id/people", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
 
-    const body = await c.req.json().catch(() => null) as { email?: string; role?: Role } | null;
-    const email = normalEmail(body?.email || '');
-    if (body?.role !== undefined && body.role !== 'owner' && body.role !== 'content') {
-      return c.json({ error: 'role must be owner or content' }, 400);
+    const body = await c.req.json().catch(() => null) as {
+      email?: string;
+      role?: Role;
+    } | null;
+    const email = normalEmail(body?.email || "");
+    if (
+      body?.role !== undefined && body.role !== "owner" &&
+      body.role !== "content"
+    ) {
+      return c.json({ error: "role must be owner or content" }, 400);
     }
-    const role: Role = body?.role === 'owner' ? 'owner' : 'content';
-    if (!validEmail(email)) return c.json({ error: 'a valid email address is required' }, 400);
+    const role: Role = body?.role === "owner" ? "owner" : "content";
+    if (!validEmail(email)) {
+      return c.json({ error: "a valid email address is required" }, 400);
+    }
 
     /* An owner changing their own role is how a site ends up with nobody who can manage it. */
     const existing = await o.auth.userByEmail(email);
-    if (existing && existing.id === gate.user.id && role !== 'owner') {
-      return c.json({ error: 'you would be giving up your own ownership — ask another owner to do it' }, 409);
+    if (existing && existing.id === gate.user.id && role !== "owner") {
+      return c.json({
+        error:
+          "you would be giving up your own ownership — ask another owner to do it",
+      }, 409);
     }
 
     const user = existing || await o.auth.createUser(email);
     const current = await o.auth.membership(id, user.id);
     if (current) {
       const changed = await o.auth.changeMemberRole(id, user.id, role);
-      if (changed.status === 'last_owner') {
-        return c.json({ error: 'the last owner cannot give up ownership' }, 409);
+      if (changed.status === "last_owner") {
+        return c.json(
+          { error: "the last owner cannot give up ownership" },
+          409,
+        );
       }
-      if (changed.status === 'missing') return c.json({ error: 'they had no access to update' }, 404);
-      if (changed.status === 'updated') {
+      if (changed.status === "missing") {
+        return c.json({ error: "they had no access to update" }, 404);
+      }
+      if (changed.status === "updated") {
         return c.json({
-          userId: user.id, email: user.email, name: user.name, role: changed.membership.role
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          role: changed.membership.role,
         }, 201);
       }
     }
     const granted = await o.auth.grant(id, user.id, role);
-    return c.json({ userId: user.id, email: user.email, name: user.name, role: granted.role }, 201);
+    return c.json({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: granted.role,
+    }, 201);
   });
 
-  app.delete('/api/sites/:id/people/:userId', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+  app.delete("/api/sites/:id/people/:userId", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
 
-    const target = c.req.param('userId');
+    const target = c.req.param("userId");
     const removed = await o.auth.removeMember(id, target);
-    if (removed.status === 'last_owner') {
-      return c.json({ error: 'the last owner cannot be removed — a site with no owner cannot be managed' }, 409);
+    if (removed.status === "last_owner") {
+      return c.json({
+        error:
+          "the last owner cannot be removed — a site with no owner cannot be managed",
+      }, 409);
     }
-    if (removed.status === 'missing') return c.json({ error: 'they had no access to remove' }, 404);
+    if (removed.status === "missing") {
+      return c.json({ error: "they had no access to remove" }, 404);
+    }
     /* Their sessions stay valid and are harmless: access is checked per request against the
        membership, so a membership that is gone is access that is gone. */
     return c.json({ removed: target });
@@ -1676,59 +2794,81 @@ export function createApp(o: Options) {
 
   /* ---------------------------------------------------------------- the assets */
 
-  app.get('/api/sites/:id/assets', async c => {
-    const gate = await allowed(c, c.req.param('id'), 'read');
+  app.get("/api/sites/:id/assets", async (c) => {
+    const gate = await allowed(c, c.req.param("id"), "read");
     if (!gate.ok) return deny(c, gate.status);
     if (!o.assets) return c.json([]);
-    return c.json((await o.assets.list(c.req.param('id'))).map(metaOf));
+    return c.json((await o.assets.list(c.req.param("id"))).map(metaOf));
   });
 
   /* Uploading is a write, so a content account may do it: swapping a photograph is a content
      edit in every sense that matters. What it may not do is point an element at the new
      image — that is a prop, and `contentOnly` refuses it. Worth naming as the next thing to
      fix rather than a subtlety to enjoy. */
-  app.post('/api/sites/:id/assets', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'write');
+  app.post("/api/sites/:id/assets", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "write");
     if (!gate.ok) return deny(c, gate.status);
-    if (!o.assets) return c.json({ error: 'this server stores no assets' }, 501);
+    if (!o.assets) {
+      return c.json({ error: "this server stores no assets" }, 501);
+    }
 
     const form = await c.req.formData().catch(() => null);
-    const file = form?.get('file');
-    if (!(file instanceof File)) return c.json({ error: 'a file is required' }, 400);
-    if (file.size > MAX_BYTES) return c.json({ error: `too large — the limit is ${MAX_BYTES} bytes` }, 413);
+    const file = form?.get("file");
+    if (!(file instanceof File)) {
+      return c.json({ error: "a file is required" }, 400);
+    }
+    if (file.size > MAX_BYTES) {
+      return c.json(
+        { error: `too large — the limit is ${MAX_BYTES} bytes` },
+        413,
+      );
+    }
 
     const bytes = new Uint8Array(await file.arrayBuffer());
     /* Sniffed, not trusted. A caller can put anything in Content-Type, and `image/png` on
        arbitrary bytes is a way to host arbitrary content on somebody else's domain. */
     const type = sniff(bytes);
-    if (!type || !ALLOWED.has(type)) return c.json({ error: 'that is not an image this server serves' }, 415);
+    if (!type || !ALLOWED.has(type)) {
+      return c.json({ error: "that is not an image this server serves" }, 415);
+    }
     const ownerId = await storageOwner(id, gate.user, gate.role);
-    if (!ownerId) return c.json({ error: 'this site has no storage owner' }, 409);
+    if (!ownerId) {
+      return c.json({ error: "this site has no storage owner" }, 409);
+    }
     let output: OptimizedImage;
     try {
       output = await optimizeAsset(bytes, type);
     } catch {
       return c.json({
-        error: 'image_optimization_failed',
-        detail: 'Pagecraft could not optimize this image. Try exporting it as PNG, JPEG, WebP, or SVG.'
+        error: "image_optimization_failed",
+        detail:
+          "Pagecraft could not optimize this image. Try exporting it as PNG, JPEG, WebP, or SVG.",
       }, 422);
     }
     let saved: AssetRecord;
     try {
       saved = await o.assets.put({
-        siteId: id, name: optimizedName(file.name || 'image', output.extension),
-        type: output.type, bytes: output.bytes, w: output.w, h: output.h,
-        contentHash: sha256(bytes)
+        siteId: id,
+        name: optimizedName(file.name || "image", output.extension),
+        type: output.type,
+        bytes: output.bytes,
+        w: output.w,
+        h: output.h,
+        contentHash: sha256(bytes),
       }, {
-        ownerId, limitBytes: FREE_STORAGE_BYTES,
-        originalBytes: file.size, optimized: true
+        ownerId,
+        limitBytes: FREE_STORAGE_BYTES,
+        originalBytes: file.size,
+        optimized: true,
       });
     } catch (error) {
       if (error instanceof AssetQuotaError) {
         return c.json({
-          error: 'storage_limit_reached', ...error.usage,
-          detail: 'Your free account has used its 100 MB media allowance. Remove unused images and try again.'
+          error: "storage_limit_reached",
+          ...error.usage,
+          detail:
+            "Your free account has used its 100 MB media allowance. Remove unused images and try again.",
         }, 409);
       }
       throw error;
@@ -1740,25 +2880,28 @@ export function createApp(o: Options) {
 
   /* The editor's view of an asset, by id. The site serves the same bytes at `assets/<name>`;
      this exists because the editor holds ids and knows nothing about names. */
-  app.get('/api/sites/:id/assets/:aid', async c => {
-    const gate = await allowed(c, c.req.param('id'), 'read');
+  app.get("/api/sites/:id/assets/:aid", async (c) => {
+    const gate = await allowed(c, c.req.param("id"), "read");
     if (!gate.ok) return deny(c, gate.status);
     if (!o.assets) return c.notFound();
-    const a = await o.assets.get(c.req.param('id'), c.req.param('aid'));
+    const a = await o.assets.get(c.req.param("id"), c.req.param("aid"));
     if (!a) return c.notFound();
     return c.body(a.bytes as unknown as ArrayBuffer, 200, {
-      ...assetHeaders(a), 'cache-control': 'private, max-age=3600'
+      ...assetHeaders(a),
+      "cache-control": "private, max-age=3600",
     });
   });
 
-  app.delete('/api/sites/:id/assets/:aid', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'write');
+  app.delete("/api/sites/:id/assets/:aid", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "write");
     if (!gate.ok) return deny(c, gate.status);
-    if (!o.assets) return c.json({ error: 'this server stores no assets' }, 501);
-    const aid = c.req.param('aid');
+    if (!o.assets) {
+      return c.json({ error: "this server stores no assets" }, 501);
+    }
+    const aid = c.req.param("aid");
     const removed = await o.assets.remove(id, aid);
-    if (!removed) return c.json({ error: 'no such asset' }, 404);
+    if (!removed) return c.json({ error: "no such asset" }, 404);
     /* A referenced image deliberately becomes the same placeholder the renderer uses for any
        missing id. The editor warns before that destructive choice; the API makes it durable. */
     built.delete(id);
@@ -1767,282 +2910,546 @@ export function createApp(o: Options) {
 
   /* -------------------------------------------------------- Manual WordPress import */
 
-  const manualImportBearer = async (c: Context) => {
-    const token = (c.req.header('authorization') || '').match(/^Bearer\s+([^\s]+)$/i)?.[1] || '';
-    return token ? o.auth.manualImportByAccess(hashToken(token)) : null;
+  const manualImportAccessDigest = (c: Context) => {
+    const token =
+      (c.req.header("authorization") || "").match(/^Bearer\s+([^\s]+)$/i)
+        ?.[1] || "";
+    return token ? hashToken(token) : "";
   };
 
-  app.get('/v1/wordpress-import/authorize', async c => {
-    if (!o.connected) return c.json({ error: 'manual import persistence is unavailable' }, 503);
+  const manualImportBearer = async (c: Context) => {
+    const digest = manualImportAccessDigest(c);
+    return digest ? o.auth.manualImportByAccess(digest) : null;
+  };
+
+  const manualImportCatalogRead = async (
+    c: Context,
+  ): Promise<ManualImportCatalogRead> => {
+    const digest = manualImportAccessDigest(c);
+    if (!digest) return { authorized: false };
+    if (o.manualImports) return o.manualImports.catalog(digest);
+    const credential = await o.auth.manualImportByAccess(digest);
+    if (!credential) return { authorized: false };
+    const [sites, memberships] = await Promise.all([
+      o.store.list(),
+      o.auth.membershipsForUser(credential.ownerId),
+    ]);
+    const allowedIds = new Set(
+      memberships.filter((item) => item.role === "owner").map((item) =>
+        item.siteId
+      ),
+    );
+    return {
+      authorized: true,
+      ownerId: credential.ownerId,
+      sites: sites.filter((site) => allowedIds.has(site.id)),
+    };
+  };
+
+  const manualImportProjectRead = async (
+    c: Context,
+    siteId: string,
+  ): Promise<ManualImportProjectRead> => {
+    const digest = manualImportAccessDigest(c);
+    if (!digest) return { authorized: false };
+    if (o.manualImports) return o.manualImports.project(digest, siteId);
+    const credential = await o.auth.manualImportByAccess(digest);
+    if (!credential) return { authorized: false };
+    const membership = await o.auth.membership(siteId, credential.ownerId);
+    return {
+      authorized: true,
+      ownerId: credential.ownerId,
+      site: membership?.role === "owner" ? await o.store.byId(siteId) : null,
+    };
+  };
+
+  app.get("/v1/wordpress-import/authorize", async (c) => {
+    if (!o.connected) {
+      return c.json({ error: "manual import persistence is unavailable" }, 503);
+    }
     const user = await who(c);
-    if (!user) return c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
+    if (!user) {
+      return c.redirect(
+        `/sign-in?next=${
+          encodeURIComponent(
+            new URL(c.req.url).pathname + new URL(c.req.url).search,
+          )
+        }`,
+        302,
+      );
+    }
     const q = c.req.query();
-    const installationId = String(q.installation_id || '');
-    const redirectUri = String(q.redirect_uri || '');
-    const codeChallenge = String(q.code_challenge || '');
-    const state = String(q.state || '');
-    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(installationId)
-      || !/^[A-Za-z0-9_-]{43}$/.test(codeChallenge)
-      || !/^[A-Za-z0-9_-]{16,256}$/.test(state)
-      || String(q.code_challenge_method || '') !== 'S256') {
-      return c.json({ error: 'installation, state, and PKCE S256 parameters are required' }, 400);
+    const installationId = String(q.installation_id || "");
+    const redirectUri = String(q.redirect_uri || "");
+    const codeChallenge = String(q.code_challenge || "");
+    const state = String(q.state || "");
+    if (
+      !/^[A-Za-z0-9._:-]{8,160}$/.test(installationId) ||
+      !/^[A-Za-z0-9_-]{43}$/.test(codeChallenge) ||
+      !/^[A-Za-z0-9_-]{16,256}$/.test(state) ||
+      String(q.code_challenge_method || "") !== "S256"
+    ) {
+      return c.json({
+        error: "installation, state, and PKCE S256 parameters are required",
+      }, 400);
     }
     let redirect: URL;
     try {
       redirect = new URL(redirectUri);
-      const localDevelopment = redirect.protocol === 'http:'
-        && (redirect.hostname === 'localhost' || redirect.hostname === '127.0.0.1'
-          || redirect.hostname === '[::1]' || redirect.hostname.endsWith('.local'));
-      if ((redirect.protocol !== 'https:' && !localDevelopment)
-        || redirect.username || redirect.password || redirect.hash
-        || redirect.pathname !== '/wp-admin/admin-post.php'
-        || redirect.searchParams.get('action') !== 'pagecraft_cloud_callback'
-        || [...redirect.searchParams.keys()].some(key => key !== 'action')) throw new Error();
+      const localDevelopment = redirect.protocol === "http:" &&
+        (redirect.hostname === "localhost" ||
+          redirect.hostname === "127.0.0.1" ||
+          redirect.hostname === "[::1]" ||
+          redirect.hostname.endsWith(".local"));
+      if (
+        (redirect.protocol !== "https:" && !localDevelopment) ||
+        redirect.username || redirect.password || redirect.hash ||
+        redirect.pathname !== "/wp-admin/admin-post.php" ||
+        redirect.searchParams.get("action") !== "pagecraft_cloud_callback" ||
+        [...redirect.searchParams.keys()].some((key) => key !== "action")
+      ) throw new Error();
     } catch {
-      return c.json({ error: 'redirect_uri must be the exact HTTPS Pagecraft callback in WordPress admin' }, 400);
+      return c.json({
+        error:
+          "redirect_uri must be the exact HTTPS Pagecraft callback in WordPress admin",
+      }, 400);
     }
-    const projects = (await visibleSites(user)).filter(item => item.role === 'owner');
-    if (!projects.length) return c.json({ error: 'this account owns no Pagecraft projects' }, 403);
+    const projects = (await visibleSites(user)).filter((item) =>
+      item.role === "owner"
+    );
+    if (!projects.length) {
+      return c.json({ error: "this account owns no Pagecraft projects" }, 403);
+    }
     const csrf = newToken();
     const consent: ManualImportConsent = {
-      userId: user.id, installationId, redirectUri: redirect.href, codeChallenge, state
+      userId: user.id,
+      installationId,
+      redirectUri: redirect.href,
+      codeChallenge,
+      state,
     };
     await o.connected.putGrant({
-      digest: hashToken(csrf), kind: 'manual-import-consent', siteId: null, connectionId: null,
+      digest: hashToken(csrf),
+      kind: "manual-import-consent",
+      siteId: null,
+      connectionId: null,
       payload: consent as unknown as Record<string, unknown>,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     });
-    return c.html(shell('Connect Pagecraft', `<section class="consent">
+    return c.html(shell(
+      "Connect Pagecraft",
+      `<section class="consent">
       <header class="consent__header">
         <div class="consent__brand"><img src="/brand/pagecraft-favicon.svg" alt=""><span>Pagecraft</span></div>
-        <h1>Let this WordPress site import a Pagecraft project?</h1>
-        <p>This grants read-only, manual import access to ${projects.length} ${projects.length === 1 ? 'project' : 'projects'} you own.</p>
+        <h1>Allow this WordPress site to import from Pagecraft?</h1>
+        <p>${
+        projects.length === 1
+          ? "You can choose your project after approving."
+          : `You can choose from ${projects.length} projects after approving.`
+      }</p>
       </header>
       <div class="consent__body">
-        <dl class="consent__details">
-          <div><dt>WordPress destination</dt><dd class="consent__destination">${escapeHtml(redirect.origin)}</dd></div>
-          <div><dt>How it works</dt><dd>Independent copies only</dd><small>No webhooks, polling, background updates, or WordPress password access.</small></div>
-        </dl>
+        <div class="consent__destination"><span>WordPress site</span><strong>${
+        escapeHtml(redirect.origin)
+      }</strong></div>
+        <p class="consent__note">This gives the WordPress site read-only access to projects you own. Imports are manual and do not stay in sync. Pagecraft does not receive your WordPress password.</p>
         <form class="consent__actions" method="post" action="/v1/wordpress-import/authorize">
           <input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
-          <button type="submit">Approve manual import</button>
+          <button class="pc-btn primary" type="submit">Approve</button>
         </form>
       </div>
-    </section>`));
+    </section>`,
+    ));
   });
 
-  app.post('/v1/wordpress-import/authorize', async c => {
-    if (!o.connected) return c.json({ error: 'manual import persistence is unavailable' }, 503);
+  app.post("/v1/wordpress-import/authorize", async (c) => {
+    if (!o.connected) {
+      return c.json({ error: "manual import persistence is unavailable" }, 503);
+    }
     const user = await who(c);
-    if (!user) return c.json({ error: 'sign in' }, 401);
-    const body = await c.req.parseBody().catch(() => null) as Record<string, unknown> | null;
+    if (!user) return c.json({ error: "sign in" }, 401);
+    const body = await c.req.parseBody().catch(() => null) as
+      | Record<string, unknown>
+      | null;
     const grant = body?.csrf
-      ? await o.connected.consumeGrant(hashToken(String(body.csrf)), 'manual-import-consent', new Date().toISOString())
+      ? await o.connected.consumeGrant(
+        hashToken(String(body.csrf)),
+        "manual-import-consent",
+        new Date().toISOString(),
+      )
       : null;
-    const consent = grant?.payload as unknown as ManualImportConsent | undefined;
-    if (!consent || consent.userId !== user.id) return c.json({ error: 'consent expired or already used' }, 400);
+    const consent = grant?.payload as unknown as
+      | ManualImportConsent
+      | undefined;
+    if (!consent || consent.userId !== user.id) {
+      return c.json({ error: "consent expired or already used" }, 400);
+    }
     const code = newToken();
     await o.connected.putGrant({
-      digest: hashToken(code), kind: 'manual-import-code', siteId: null, connectionId: null,
+      digest: hashToken(code),
+      kind: "manual-import-code",
+      siteId: null,
+      connectionId: null,
       payload: consent as unknown as Record<string, unknown>,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     });
     const redirect = new URL(consent.redirectUri);
-    redirect.searchParams.set('code', code);
-    redirect.searchParams.set('state', consent.state);
+    redirect.searchParams.set("code", code);
+    redirect.searchParams.set("state", consent.state);
     return c.redirect(redirect.href, 302);
   });
 
-  app.post('/v1/wordpress-import/token', async c => {
-    if (!o.connected) return c.json({ error: 'manual import persistence is unavailable' }, 503);
-    const body = await c.req.json().catch(() => null) as Record<string, unknown> | null;
-    const grantType = String(body?.grant_type || '');
-    if (grantType === 'authorization_code') {
-      const code = String(body?.code || '');
-      const verifier = String(body?.code_verifier || '');
+  app.post("/v1/wordpress-import/token", async (c) => {
+    if (!o.connected) {
+      return c.json({ error: "manual import persistence is unavailable" }, 503);
+    }
+    const body = await c.req.json().catch(() => null) as
+      | Record<string, unknown>
+      | null;
+    const grantType = String(body?.grant_type || "");
+    if (grantType === "authorization_code") {
+      const code = String(body?.code || "");
+      const verifier = String(body?.code_verifier || "");
       const grant = code
-        ? await o.connected.consumeGrant(hashToken(code), 'manual-import-code', new Date().toISOString()) : null;
-      const consent = grant?.payload as unknown as ManualImportConsent | undefined;
-      const challenge = base64url(new Uint8Array(Buffer.from(hashToken(verifier), 'hex')));
-      if (!consent || consent.redirectUri !== String(body?.redirect_uri || '') || challenge !== consent.codeChallenge) {
-        return c.json({ error: 'invalid_grant' }, 400);
+        ? await o.connected.consumeGrant(
+          hashToken(code),
+          "manual-import-code",
+          new Date().toISOString(),
+        )
+        : null;
+      const consent = grant?.payload as unknown as
+        | ManualImportConsent
+        | undefined;
+      const challenge = base64url(
+        new Uint8Array(Buffer.from(hashToken(verifier), "hex")),
+      );
+      if (
+        !consent || consent.redirectUri !== String(body?.redirect_uri || "") ||
+        challenge !== consent.codeChallenge
+      ) {
+        return c.json({ error: "invalid_grant" }, 400);
       }
-      const accessToken = newToken(), refreshToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
+      const accessToken = newToken(),
+        refreshToken = newToken(),
+        expiresAt = Date.now() + 15 * 60 * 1000;
       const credential = await o.auth.createManualImportCredential({
-        id: crypto.randomUUID(), ownerId: consent.userId, installationId: consent.installationId,
-        accessTokenDigest: hashToken(accessToken), accessExpiresAt: expiresAt,
-        refreshTokenDigest: hashToken(refreshToken)
+        id: crypto.randomUUID(),
+        ownerId: consent.userId,
+        installationId: consent.installationId,
+        accessTokenDigest: hashToken(accessToken),
+        accessExpiresAt: expiresAt,
+        refreshTokenDigest: hashToken(refreshToken),
       });
       return c.json({
-        token_type: 'Bearer', access_token: accessToken, expires_in: 15 * 60,
-        refresh_token: refreshToken, credential_id: credential.id, scope: 'projects:read packages:read'
+        token_type: "Bearer",
+        access_token: accessToken,
+        expires_in: 15 * 60,
+        refresh_token: refreshToken,
+        credential_id: credential.id,
+        scope: "projects:read packages:read",
       });
     }
-    if (grantType === 'refresh_token') {
-      const refreshToken = String(body?.refresh_token || '');
-      const credential = await o.auth.manualImportByRefresh(hashToken(refreshToken));
-      if (!credential) return c.json({ error: 'invalid_grant', reconnect: true }, 401);
+    if (grantType === "refresh_token") {
+      const refreshToken = String(body?.refresh_token || "");
+      const credential = await o.auth.manualImportByRefresh(
+        hashToken(refreshToken),
+      );
+      if (!credential) {
+        return c.json({ error: "invalid_grant", reconnect: true }, 401);
+      }
       const accessToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
-      const rotated = await o.auth.rotateManualImportAccess(credential.id, hashToken(accessToken), expiresAt);
-      if (!rotated) return c.json({ error: 'invalid_grant', reconnect: true }, 401);
-      return c.json({ token_type: 'Bearer', access_token: accessToken, expires_in: 15 * 60 });
+      const rotated = await o.auth.rotateManualImportAccess(
+        credential.id,
+        hashToken(accessToken),
+        expiresAt,
+      );
+      if (!rotated) {
+        return c.json({ error: "invalid_grant", reconnect: true }, 401);
+      }
+      return c.json({
+        token_type: "Bearer",
+        access_token: accessToken,
+        expires_in: 15 * 60,
+      });
     }
-    return c.json({ error: 'unsupported_grant_type' }, 400);
+    return c.json({ error: "unsupported_grant_type" }, 400);
   });
 
-  app.get('/v1/wordpress-import/projects', async c => {
-    const credential = await manualImportBearer(c);
-    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
-    const memberships = (await o.auth.membershipsForUser(credential.ownerId)).filter(item => item.role === 'owner');
-    const allowedIds = new Set(memberships.map(item => item.siteId));
-    const projects = (await o.store.listMeta()).filter(site => allowedIds.has(site.id)).map(site => ({
-      id: site.id, name: site.name, pageCount: 0, modifiedAt: site.updatedAt, sourceVersion: site.version
-    }));
-    for (const project of projects) {
-      const site = await o.store.byId(project.id);
-      project.pageCount = site?.doc.pages.length || 0;
+  app.get("/v1/wordpress-import/projects", async (c) => {
+    const read = await manualImportCatalogRead(c);
+    if (!read.authorized) {
+      return c.json({ error: "unauthorized", reconnect: true }, 401);
     }
+    const projects = read.sites.map((site) => ({
+      id: site.id,
+      name: site.name,
+      pageCount: site.doc.pages.length,
+      modifiedAt: site.updatedAt,
+      sourceVersion: site.version,
+    }));
     return c.json({ projects });
   });
 
-  const manualImportSite = async (credential: { ownerId:string }, siteId: string) => {
-    const membership = await o.auth.membership(siteId, credential.ownerId);
-    return membership?.role === 'owner' ? o.store.byId(siteId) : null;
-  };
+  app.get("/v1/wordpress-import/catalog", async (c) => {
+    const read = await manualImportCatalogRead(c);
+    if (!read.authorized) {
+      return c.json({ error: "unauthorized", reconnect: true }, 401);
+    }
+    return c.json({
+      projects: read.sites.map((site) => {
+        const base = shareUrl(c, o, site);
+        return {
+          id: site.id,
+          name: site.name,
+          pageCount: site.doc.pages.length,
+          modifiedAt: site.updatedAt,
+          sourceVersion: site.version,
+          pages: site.doc.pages.map((page) => ({
+            id: page.id,
+            name: page.name || page.title || "Untitled page",
+            slug: page.slug,
+            previewUrl: new URL(
+              page.slug === "index" ? "./" : `./${page.slug}`,
+              base,
+            ).href,
+            modifiedAt: site.updatedAt,
+            sourceVersion: site.version,
+          })),
+        };
+      }),
+    });
+  });
 
-  app.get('/v1/wordpress-import/projects/:projectId/package', async c => {
-    const credential = await manualImportBearer(c);
-    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
-    const site = await manualImportSite(credential, c.req.param('projectId'));
+  app.get("/v1/wordpress-import/projects/:projectId/package", async (c) => {
+    const read = await manualImportProjectRead(
+      c,
+      c.req.param("projectId"),
+    );
+    if (!read.authorized) {
+      return c.json({ error: "unauthorized", reconnect: true }, 401);
+    }
+    const site = read.site;
     if (!site) return c.notFound();
     try {
       const assetIds = new Set(portableAssetIds(site.doc));
-      return portableDownload(c, createSitePackage({
-        document: site.doc,
-        assets: await assetBodiesOf(site.id, assetIds),
-        provenance: {
-          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud', sourceId: site.id,
-          sourceVersion: site.version, exportedBy: credential.ownerId
-        }
-      }));
+      return portableDownload(
+        c,
+        createSitePackage({
+          document: site.doc,
+          assets: await assetBodiesOf(site.id, assetIds),
+          provenance: {
+            format: "pagecraft.provenance.v1",
+            origin: "pagecraft-cloud",
+            sourceId: site.id,
+            sourceVersion: site.version,
+            exportedBy: read.ownerId,
+          },
+        }),
+      );
     } catch (error) {
       return c.json({ error: (error as Error).message }, 422);
     }
   });
 
   /* Retained for one rollback release. The active WordPress UI uses the whole-project route. */
-  app.get('/v1/wordpress-import/projects/:id/pages', async c => {
-    const credential = await manualImportBearer(c);
-    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
-    const site = await manualImportSite(credential, c.req.param('id'));
+  app.get("/v1/wordpress-import/projects/:id/pages", async (c) => {
+    const read = await manualImportProjectRead(c, c.req.param("id"));
+    if (!read.authorized) {
+      return c.json({ error: "unauthorized", reconnect: true }, 401);
+    }
+    const site = read.site;
     if (!site) return c.notFound();
     const base = shareUrl(c, o, site);
-    return c.json({ project: { id: site.id, name: site.name, sourceVersion: site.version }, pages: site.doc.pages.map(page => ({
-      id: page.id, name: page.name || page.title || 'Untitled page', slug: page.slug,
-      previewUrl: new URL(page.slug === 'index' ? './' : `./${page.slug}`, base).href,
-      modifiedAt: site.updatedAt, sourceVersion: site.version
-    })) });
+    return c.json({
+      project: { id: site.id, name: site.name, sourceVersion: site.version },
+      pages: site.doc.pages.map((page) => ({
+        id: page.id,
+        name: page.name || page.title || "Untitled page",
+        slug: page.slug,
+        previewUrl:
+          new URL(page.slug === "index" ? "./" : `./${page.slug}`, base).href,
+        modifiedAt: site.updatedAt,
+        sourceVersion: site.version,
+      })),
+    });
   });
 
-  app.get('/v1/wordpress-import/projects/:id/pages/:pageId/package', async c => {
-    const credential = await manualImportBearer(c);
-    if (!credential) return c.json({ error: 'unauthorized', reconnect: true }, 401);
-    const site = await manualImportSite(credential, c.req.param('id'));
-    if (!site) return c.notFound();
-    try {
-      const pageId = c.req.param('pageId');
-      const assetIds = new Set(portableAssetIds(site.doc, pageId));
-      return portableDownload(c, createPagePackage({
-        document: site.doc, pageId, assets: await assetBodiesOf(site.id, assetIds),
-        provenance: {
-          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud', sourceId: site.id,
-          sourceVersion: site.version, exportedBy: credential.ownerId
-        }
-      }));
-    } catch (error) {
-      return c.json({ error: (error as Error).message }, 422);
-    }
-  });
+  app.get(
+    "/v1/wordpress-import/projects/:id/pages/:pageId/package",
+    async (c) => {
+      const read = await manualImportProjectRead(c, c.req.param("id"));
+      if (!read.authorized) {
+        return c.json({
+          error: "unauthorized",
+          reconnect: true,
+        }, 401);
+      }
+      const site = read.site;
+      if (!site) return c.notFound();
+      try {
+        const pageId = c.req.param("pageId");
+        const assetIds = new Set(portableAssetIds(site.doc, pageId));
+        return portableDownload(
+          c,
+          createPagePackage({
+            document: site.doc,
+            pageId,
+            assets: await assetBodiesOf(site.id, assetIds),
+            provenance: {
+              format: "pagecraft.provenance.v1",
+              origin: "pagecraft-cloud",
+              sourceId: site.id,
+              sourceVersion: site.version,
+              exportedBy: read.ownerId,
+            },
+          }),
+        );
+      } catch (error) {
+        return c.json({ error: (error as Error).message }, 422);
+      }
+    },
+  );
 
-  app.post('/v1/wordpress-import/revoke', async c => {
-    const body = await c.req.json().catch(() => null) as { refresh_token?:string; credential_id?:string } | null;
-    const refreshDigest = hashToken(String(body?.refresh_token || ''));
+  app.post("/v1/wordpress-import/revoke", async (c) => {
+    const body = await c.req.json().catch(() => null) as {
+      refresh_token?: string;
+      credential_id?: string;
+    } | null;
+    const refreshDigest = hashToken(String(body?.refresh_token || ""));
     const credential = await o.auth.manualImportByRefresh(refreshDigest);
-    if (!credential || credential.id !== String(body?.credential_id || '')) return c.json({ revoked: true });
+    if (!credential || credential.id !== String(body?.credential_id || "")) {
+      return c.json({ revoked: true });
+    }
     await o.auth.revokeManualImportCredential(credential.id, refreshDigest);
     return c.json({ revoked: true });
   });
 
   /* -------------------------------------------------------- Retained Connected WordPress checkpoint */
 
-  app.get('/v1/oauth/authorize', async c => {
+  app.get("/v1/oauth/authorize", async (c) => {
     if (!o.connected) return releaseUnavailable(c);
     const q = c.req.query();
     const user = await who(c);
-    if (!user) return c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
+    if (!user) {
+      return c.redirect(
+        `/sign-in?next=${
+          encodeURIComponent(
+            new URL(c.req.url).pathname + new URL(c.req.url).search,
+          )
+        }`,
+        302,
+      );
+    }
     const exact = (camel: string, snake?: string) => {
       const a = q[camel], b = snake ? q[snake] : undefined;
-      if (a && b && a !== b) throw new Error(`${camel} was supplied twice with different values`);
-      return String(a || b || '');
+      if (a && b && a !== b) {
+        throw new Error(`${camel} was supplied twice with different values`);
+      }
+      return String(a || b || "");
     };
-    let siteId = '', installationId = '', environment = '', profile = '', targetOrigin = '',
-      targetPath = '', redirectUri = '', webhookUrl = '', codeChallenge = '', state = '', scope = '';
+    let siteId = "",
+      installationId = "",
+      environment = "",
+      profile = "",
+      targetOrigin = "",
+      targetPath = "",
+      redirectUri = "",
+      webhookUrl = "",
+      codeChallenge = "",
+      state = "",
+      scope = "";
     try {
-      siteId = exact('siteId', 'site_id');
-      installationId = exact('installationId', 'installation_id');
-      environment = exact('environment');
-      profile = exact('profile');
-      targetOrigin = exact('targetOrigin', 'target_origin');
-      targetPath = exact('targetPath', 'target_path');
-      redirectUri = exact('redirectUri', 'redirect_uri');
-      webhookUrl = exact('webhookUrl', 'webhook_url');
-      codeChallenge = exact('codeChallenge', 'code_challenge');
-      state = exact('state');
-      scope = exact('scope');
-      if (exact('codeChallengeMethod', 'code_challenge_method') !== 'S256') throw new Error('PKCE S256 is required');
+      siteId = exact("siteId", "site_id");
+      installationId = exact("installationId", "installation_id");
+      environment = exact("environment");
+      profile = exact("profile");
+      targetOrigin = exact("targetOrigin", "target_origin");
+      targetPath = exact("targetPath", "target_path");
+      redirectUri = exact("redirectUri", "redirect_uri");
+      webhookUrl = exact("webhookUrl", "webhook_url");
+      codeChallenge = exact("codeChallenge", "code_challenge");
+      state = exact("state");
+      scope = exact("scope");
+      if (exact("codeChallengeMethod", "code_challenge_method") !== "S256") {
+        throw new Error("PKCE S256 is required");
+      }
     } catch (error) {
       return c.json({ error: String((error as Error).message) }, 400);
     }
     if (!/^[A-Za-z0-9_-]{43}$/.test(codeChallenge)) {
-      return c.json({ error: 'PKCE S256 codeChallenge is required' }, 400);
+      return c.json({ error: "PKCE S256 codeChallenge is required" }, 400);
     }
     if (!/^[A-Za-z0-9._:-]{8,160}$/.test(installationId)) {
-      return c.json({ error: 'a stable installationId is required' }, 400);
+      return c.json({ error: "a stable installationId is required" }, 400);
     }
-    if (environment !== 'staging' && environment !== 'production') {
-      return c.json({ error: 'environment must be staging or production' }, 400);
+    if (environment !== "staging" && environment !== "production") {
+      return c.json(
+        { error: "environment must be staging or production" },
+        400,
+      );
     }
-    if (profile !== 'pagecraft-theme' && profile !== 'existing-theme') {
-      return c.json({ error: 'profile must be pagecraft-theme or existing-theme' }, 400);
+    if (profile !== "pagecraft-theme" && profile !== "existing-theme") {
+      return c.json({
+        error: "profile must be pagecraft-theme or existing-theme",
+      }, 400);
     }
     if (!/^[A-Za-z0-9_-]{16,256}$/.test(state)) {
-      return c.json({ error: 'OAuth state is required' }, 400);
+      return c.json({ error: "OAuth state is required" }, 400);
     }
-    const requiredScopes = ['release:read', 'deploy:ack', 'cms:write', 'editor:open', 'content:index'];
+    const requiredScopes = [
+      "release:read",
+      "deploy:ack",
+      "cms:write",
+      "editor:open",
+      "content:index",
+    ];
     const scopes = [...new Set(scope.split(/[\s,]+/).filter(Boolean))].sort();
-    if (scopes.join(' ') !== [...requiredScopes].sort().join(' ')) {
-      return c.json({ error: `scope must be exactly: ${requiredScopes.join(' ')}` }, 400);
+    if (scopes.join(" ") !== [...requiredScopes].sort().join(" ")) {
+      return c.json({
+        error: `scope must be exactly: ${requiredScopes.join(" ")}`,
+      }, 400);
     }
     let redirect: URL, webhook: URL;
     try {
       targetOrigin = canonicalOrigin(targetOrigin);
-      targetPath = canonicalTargetPath(targetPath || '/');
+      targetPath = canonicalTargetPath(targetPath || "/");
       redirect = new URL(redirectUri);
-      if (redirect.origin !== targetOrigin || (redirect.protocol !== 'https:' && redirect.hostname !== 'localhost')) {
-        throw new Error('redirectUri must belong to the paired HTTPS origin');
+      if (
+        redirect.origin !== targetOrigin ||
+        (redirect.protocol !== "https:" && redirect.hostname !== "localhost")
+      ) {
+        throw new Error("redirectUri must belong to the paired HTTPS origin");
       }
-      if (redirect.username || redirect.password || redirect.hash) throw new Error('redirectUri may not contain credentials or a fragment');
+      if (redirect.username || redirect.password || redirect.hash) {
+        throw new Error(
+          "redirectUri may not contain credentials or a fragment",
+        );
+      }
       webhook = new URL(webhookUrl);
-      if (webhook.origin !== targetOrigin || webhook.username || webhook.password || webhook.search || webhook.hash
-        || !webhook.pathname.endsWith('/wp-json/pagecraft/v1/releases/available')) {
-        throw new Error('webhookUrl must be the Pagecraft REST endpoint on the paired origin');
+      if (
+        webhook.origin !== targetOrigin || webhook.username ||
+        webhook.password || webhook.search || webhook.hash ||
+        !webhook.pathname.endsWith("/wp-json/pagecraft/v1/releases/available")
+      ) {
+        throw new Error(
+          "webhookUrl must be the Pagecraft REST endpoint on the paired origin",
+        );
       }
     } catch (error) {
       return c.json({ error: String((error as Error).message) }, 400);
     }
-    const projects = (await visibleSites(user)).filter(item => roleAllows(item.role, 'admin'));
-    if (!projects.length) return c.json({ error: 'no project can be connected by this account' }, 403);
-    if (siteId && !projects.some(item => item.site.id === siteId)) return c.notFound();
+    const projects = (await visibleSites(user)).filter((item) =>
+      roleAllows(item.role, "admin")
+    );
+    if (!projects.length) {
+      return c.json(
+        { error: "no project can be connected by this account" },
+        403,
+      );
+    }
+    if (siteId && !projects.some((item) => item.site.id === siteId)) {
+      return c.notFound();
+    }
     const csrf = newToken();
     const consent: OAuthConsent = {
       userId: user.id,
@@ -2057,43 +3464,67 @@ export function createApp(o: Options) {
         webhookUrl: webhook.href,
         codeChallenge,
         state,
-        scopes: requiredScopes
-      }
+        scopes: requiredScopes,
+      },
     };
     await o.connected.putGrant({
-      digest: hashToken(csrf), kind: 'oauth-consent', siteId: siteId || null,
-      connectionId: null, payload: consent as unknown as Record<string, unknown>,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      digest: hashToken(csrf),
+      kind: "oauth-consent",
+      siteId: siteId || null,
+      connectionId: null,
+      payload: consent as unknown as Record<string, unknown>,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     });
-    const options = projects.map(item => `<option value="${escapeHtml(item.site.id)}"${item.site.id === siteId ? ' selected' : ''}>${escapeHtml(item.site.name)}</option>`).join('');
-    return c.html(shell('Connect WordPress', `<h1>Connect this WordPress site?</h1>
+    const options = projects.map((item) =>
+      `<option value="${escapeHtml(item.site.id)}"${
+        item.site.id === siteId ? " selected" : ""
+      }>${escapeHtml(item.site.name)}</option>`
+    ).join("");
+    return c.html(
+      shell(
+        "Connect WordPress",
+        `<h1>Connect this WordPress site?</h1>
       <p>Review the exact destination and choose the Pagecraft project. Nothing is connected until you approve.</p>
-      <div class="ok"><strong>${escapeHtml(targetOrigin + targetPath)}</strong><br>
-      <small>${escapeHtml(environment)} · ${escapeHtml(profile)}<br>${requiredScopes.map(escapeHtml).join(' · ')}</small></div>
+      <div class="ok"><strong>${
+          escapeHtml(targetOrigin + targetPath)
+        }</strong><br>
+      <small>${escapeHtml(environment)} · ${escapeHtml(profile)}<br>${
+          requiredScopes.map(escapeHtml).join(" · ")
+        }</small></div>
       <form method="post" action="/v1/oauth/authorize">
         <input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
         <label for="siteId">Pagecraft project</label>
         <select id="siteId" name="siteId" required>${options}</select>
         <button type="submit">Approve connection</button>
-      </form>`));
+      </form>`,
+      ),
+    );
   });
 
-  app.post('/v1/oauth/authorize', async c => {
+  app.post("/v1/oauth/authorize", async (c) => {
     if (!o.connected) return releaseUnavailable(c);
     const user = await who(c);
-    if (!user) return c.json({ error: 'sign in' }, 401);
-    const body = await c.req.parseBody().catch(() => null) as Record<string, unknown> | null;
-    const csrf = String(body?.csrf || '');
+    if (!user) return c.json({ error: "sign in" }, 401);
+    const body = await c.req.parseBody().catch(() => null) as
+      | Record<string, unknown>
+      | null;
+    const csrf = String(body?.csrf || "");
     const grant = csrf
-      ? await o.connected.consumeGrant(hashToken(csrf), 'oauth-consent', new Date().toISOString())
+      ? await o.connected.consumeGrant(
+        hashToken(csrf),
+        "oauth-consent",
+        new Date().toISOString(),
+      )
       : null;
     const consent = grant?.payload as unknown as OAuthConsent | undefined;
     if (!consent || consent.userId !== user.id) {
-      return c.json({ error: 'consent expired or already used' }, 400);
+      return c.json({ error: "consent expired or already used" }, 400);
     }
-    const siteId = String(body?.siteId || '');
+    const siteId = String(body?.siteId || "");
     const membership = await o.auth.membership(siteId, user.id);
-    if (!membership || !roleAllows(membership.role, 'admin')) return c.notFound();
+    if (!membership || !roleAllows(membership.role, "admin")) {
+      return c.notFound();
+    }
     const request = consent.request;
     const code = newToken(), connectionId = crypto.randomUUID();
     try {
@@ -2109,10 +3540,11 @@ export function createApp(o: Options) {
         redirectUri: request.redirectUri,
         webhookUrl: request.webhookUrl,
         scopes: request.scopes,
-        status: 'pending',
+        status: "pending",
         codeChallenge: request.codeChallenge,
         authorizationCodeDigest: hashToken(code),
-        authorizationCodeExpiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        authorizationCodeExpiresAt: new Date(Date.now() + 10 * 60 * 1000)
+          .toISOString(),
         authorizationCodeUsedAt: null,
         confirmationExpiresAt: null,
         confirmedAt: null,
@@ -2124,339 +3556,529 @@ export function createApp(o: Options) {
         nextSequence: 1,
         lastAcknowledgedSequence: 0,
         activeReleaseId: null,
-        activeHash: null
+        activeHash: null,
       });
     } catch (error) {
       return c.json({ error: String((error as Error).message) }, 409);
     }
     const redirect = new URL(request.redirectUri);
-    redirect.searchParams.set('code', code);
-    redirect.searchParams.set('state', request.state);
+    redirect.searchParams.set("code", code);
+    redirect.searchParams.set("state", request.state);
     return c.redirect(redirect.href, 302);
   });
 
-  app.post('/v1/oauth/token', async c => {
+  app.post("/v1/oauth/token", async (c) => {
     if (!releaseReady()) return releaseUnavailable(c);
-    const contentType = c.req.header('content-type') || '';
-    const body = contentType.includes('application/json')
+    const contentType = c.req.header("content-type") || "";
+    const body = contentType.includes("application/json")
       ? await c.req.json().catch(() => null) as Record<string, unknown> | null
-      : await c.req.parseBody().catch(() => null) as Record<string, unknown> | null;
-    if (!body) return c.json({ error: 'invalid_request' }, 400);
-    const grantType = String(body.grant_type || body.grantType || '');
-    const tokenReply = (connection: WordPressConnection, accessToken: string, refreshToken?: string) => {
+      : await c.req.parseBody().catch(() => null) as
+        | Record<string, unknown>
+        | null;
+    if (!body) return c.json({ error: "invalid_request" }, 400);
+    const grantType = String(body.grant_type || body.grantType || "");
+    const tokenReply = (
+      connection: WordPressConnection,
+      accessToken: string,
+      refreshToken?: string,
+    ) => {
       const here = o.editorOrigin || new URL(c.req.url).origin;
       return {
-        tokenType: 'Bearer', accessToken, expiresIn: 15 * 60,
+        tokenType: "Bearer",
+        accessToken,
+        expiresIn: 15 * 60,
         ...(refreshToken ? { refreshToken } : {}),
-        connectionId: connection.id, siteId: connection.siteId, scopes: connection.scopes,
-        environment: connection.environment, profile: connection.profile,
-        editorSessionUrl: `${here}/v1/connections/${encodeURIComponent(connection.id)}/editor-sessions`,
-        keysetEnvelope: o.keysetEnvelope
+        connectionId: connection.id,
+        siteId: connection.siteId,
+        scopes: connection.scopes,
+        environment: connection.environment,
+        profile: connection.profile,
+        editorSessionUrl: `${here}/v1/connections/${
+          encodeURIComponent(connection.id)
+        }/editor-sessions`,
+        keysetEnvelope: o.keysetEnvelope,
       };
     };
-    if (grantType === 'authorization_code') {
-      const code = String(body.code || '');
-      const verifier = String(body.code_verifier || body.codeVerifier || '');
+    if (grantType === "authorization_code") {
+      const code = String(body.code || "");
+      const verifier = String(body.code_verifier || body.codeVerifier || "");
       const digest = hashToken(code);
       const now = new Date().toISOString();
       const pending = await o.connected!.authorizationConnection(digest, now);
-      if (!pending || pending.redirectUri !== String(body.redirect_uri || body.redirectUri || '')) {
-        return c.json({ error: 'invalid_grant' }, 400);
+      if (
+        !pending ||
+        pending.redirectUri !==
+          String(body.redirect_uri || body.redirectUri || "")
+      ) {
+        return c.json({ error: "invalid_grant" }, 400);
       }
-      const challenge = base64url(new Uint8Array(Buffer.from(hashToken(verifier), 'hex')));
-      if (challenge !== pending.codeChallenge) return c.json({ error: 'invalid_grant' }, 400);
+      const challenge = base64url(
+        new Uint8Array(Buffer.from(hashToken(verifier), "hex")),
+      );
+      if (challenge !== pending.codeChallenge) {
+        return c.json({ error: "invalid_grant" }, 400);
+      }
       const consumed = await o.connected!.useAuthorizationCode(digest, now);
-      if (!consumed) return c.json({ error: 'invalid_grant' }, 400);
-      const accessToken = oauthCredential('access', consumed.id, code, verifier);
-      const refreshToken = oauthCredential('refresh', consumed.id, code, verifier);
+      if (!consumed) return c.json({ error: "invalid_grant" }, 400);
+      const accessToken = oauthCredential(
+        "access",
+        consumed.id,
+        code,
+        verifier,
+      );
+      const refreshToken = oauthCredential(
+        "refresh",
+        consumed.id,
+        code,
+        verifier,
+      );
       const provisioned = await o.connected!.provisionConnection(consumed.id, {
         accessTokenDigest: hashToken(accessToken),
-        accessTokenExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        accessTokenExpiresAt: new Date(Date.now() + 15 * 60 * 1000)
+          .toISOString(),
         refreshTokenDigest: hashToken(refreshToken),
-        confirmationExpiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+        confirmationExpiresAt: new Date(Date.now() + 30 * 60 * 1000)
+          .toISOString(),
       });
-      if (!provisioned) return c.json({ error: 'invalid_grant' }, 400);
+      if (!provisioned) return c.json({ error: "invalid_grant" }, 400);
       return c.json(tokenReply(provisioned, accessToken, refreshToken));
     }
-    if (grantType === 'refresh_token') {
-      const connection = await o.connected!.connectionByRefreshToken(hashToken(String(body.refresh_token || body.refreshToken || '')));
-      if (!connection) return c.json({ error: 'invalid_grant' }, 400);
+    if (grantType === "refresh_token") {
+      const connection = await o.connected!.connectionByRefreshToken(
+        hashToken(String(body.refresh_token || body.refreshToken || "")),
+      );
+      if (!connection) return c.json({ error: "invalid_grant" }, 400);
       const accessToken = newToken();
       const rotated = await o.connected!.rotateAccessToken(
-        connection.id, hashToken(accessToken), new Date(Date.now() + 15 * 60 * 1000).toISOString());
-      if (!rotated) return c.json({ error: 'invalid_grant' }, 400);
+        connection.id,
+        hashToken(accessToken),
+        new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      );
+      if (!rotated) return c.json({ error: "invalid_grant" }, 400);
       return c.json(tokenReply(rotated, accessToken));
     }
-    return c.json({ error: 'unsupported_grant_type' }, 400);
+    return c.json({ error: "unsupported_grant_type" }, 400);
   });
 
-  app.post('/v1/connections/:id/confirm', async c => {
-    if (!o.connected) return c.json({ error: 'connected persistence is unavailable' }, 503);
-    const bearer = (c.req.header('authorization') || '').match(/^Bearer\s+([^\s]+)$/i)?.[1] || '';
-    const idempotencyKey = String(c.req.header('idempotency-key') || '');
-    if (!bearer) return c.json({ error: 'unauthorized' }, 401);
-    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)) {
-      return c.json({ error: 'a stable Idempotency-Key header is required' }, 400);
+  app.post("/v1/connections/:id/confirm", async (c) => {
+    if (!o.connected) {
+      return c.json({ error: "connected persistence is unavailable" }, 503);
     }
-    const body = await c.req.json().catch(() => null) as { installationId?: string } | null;
-    if (!body?.installationId) return c.json({ error: 'installationId is required' }, 400);
-    const result = await o.connected.confirmConnection({
-      id: c.req.param('id'), accessTokenDigest: hashToken(bearer),
-      installationId: body.installationId, now: new Date().toISOString()
-    });
-    if (!result) return c.json({ error: 'unauthorized or expired confirmation' }, 401);
-    return c.json({
-      connectionId: result.connection.id, status: 'active',
-      confirmedAt: result.connection.confirmedAt, alreadyConfirmed: result.alreadyConfirmed
-    });
-  });
-
-  app.post('/v1/connections/:id/editor-sessions', async c => {
-    const connection = await bearerConnection(c);
-    if (!connection || connection.id !== c.req.param('id') || !connection.scopes.includes('editor:open')) {
-      return c.json({ error: 'unauthorized' }, 401);
+    const bearer =
+      (c.req.header("authorization") || "").match(/^Bearer\s+([^\s]+)$/i)
+        ?.[1] || "";
+    const idempotencyKey = String(c.req.header("idempotency-key") || "");
+    if (!bearer) return c.json({ error: "unauthorized" }, 401);
+    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)) {
+      return c.json(
+        { error: "a stable Idempotency-Key header is required" },
+        400,
+      );
     }
     const body = await c.req.json().catch(() => null) as {
-      installationId?: string; pageId?: string; returnUrl?: string;
+      installationId?: string;
+    } | null;
+    if (!body?.installationId) {
+      return c.json({ error: "installationId is required" }, 400);
+    }
+    const result = await o.connected.confirmConnection({
+      id: c.req.param("id"),
+      accessTokenDigest: hashToken(bearer),
+      installationId: body.installationId,
+      now: new Date().toISOString(),
+    });
+    if (!result) {
+      return c.json({ error: "unauthorized or expired confirmation" }, 401);
+    }
+    return c.json({
+      connectionId: result.connection.id,
+      status: "active",
+      confirmedAt: result.connection.confirmedAt,
+      alreadyConfirmed: result.alreadyConfirmed,
+    });
+  });
+
+  app.post("/v1/connections/:id/editor-sessions", async (c) => {
+    const connection = await bearerConnection(c);
+    if (
+      !connection || connection.id !== c.req.param("id") ||
+      !connection.scopes.includes("editor:open")
+    ) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    const body = await c.req.json().catch(() => null) as {
+      installationId?: string;
+      pageId?: string;
+      returnUrl?: string;
     } | null;
     if (!body || body.installationId !== connection.installationId) {
-      return c.json({ error: 'installationId does not match this connection' }, 403);
+      return c.json(
+        { error: "installationId does not match this connection" },
+        403,
+      );
     }
     let returnUrl: string | null = null;
     if (body.returnUrl) {
       try {
         const candidate = new URL(body.returnUrl);
-        if (candidate.origin !== connection.targetOrigin || candidate.username || candidate.password) throw new Error();
+        if (
+          candidate.origin !== connection.targetOrigin || candidate.username ||
+          candidate.password
+        ) throw new Error();
         returnUrl = candidate.href;
       } catch {
-        return c.json({ error: 'returnUrl must belong to the paired WordPress origin' }, 400);
+        return c.json({
+          error: "returnUrl must belong to the paired WordPress origin",
+        }, 400);
       }
     }
-    const code = newToken(), expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString();
+    const code = newToken(),
+      expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString();
     await o.connected!.putGrant({
-      digest: hashToken(code), kind: 'editor-code', siteId: connection.siteId,
+      digest: hashToken(code),
+      kind: "editor-code",
+      siteId: connection.siteId,
       connectionId: connection.id,
       payload: {
-        installationId: connection.installationId, targetOrigin: connection.targetOrigin,
+        installationId: connection.installationId,
+        targetOrigin: connection.targetOrigin,
         ownerId: connection.createdBy,
         pageId: body.pageId ? String(body.pageId).slice(0, 160) : null,
-        returnUrl
+        returnUrl,
       },
-      expiresAt
+      expiresAt,
     });
     const here = o.editorOrigin || new URL(c.req.url).origin;
     return c.json({
       url: `${here}/v1/editor/session?code=${encodeURIComponent(code)}`,
-      expiresAt
+      expiresAt,
     }, 201);
   });
 
-  app.get('/v1/editor/session', async c => {
-    const code = c.req.query('code') || '';
+  app.get("/v1/editor/session", async (c) => {
+    const code = c.req.query("code") || "";
     const digest = hashToken(code);
     const grant = code && o.connected
-      ? await o.connected.consumeGrant(digest, 'editor-code', new Date().toISOString())
+      ? await o.connected.consumeGrant(
+        digest,
+        "editor-code",
+        new Date().toISOString(),
+      )
       : null;
-    const ticket = grant ? {
-      connectionId: grant.connectionId!, siteId: grant.siteId!,
-      installationId: String(grant.payload.installationId || ''),
-      targetOrigin: String(grant.payload.targetOrigin || ''),
-      ownerId: String(grant.payload.ownerId || ''),
-      pageId: grant.payload.pageId == null ? null : String(grant.payload.pageId),
-      returnUrl: grant.payload.returnUrl == null ? null : String(grant.payload.returnUrl)
-    } : null;
-    if (!ticket) return c.json({ error: 'editor code expired or already used' }, 401);
-    let browserOrigin = '';
+    const ticket = grant
+      ? {
+        connectionId: grant.connectionId!,
+        siteId: grant.siteId!,
+        installationId: String(grant.payload.installationId || ""),
+        targetOrigin: String(grant.payload.targetOrigin || ""),
+        ownerId: String(grant.payload.ownerId || ""),
+        pageId: grant.payload.pageId == null
+          ? null
+          : String(grant.payload.pageId),
+        returnUrl: grant.payload.returnUrl == null
+          ? null
+          : String(grant.payload.returnUrl),
+      }
+      : null;
+    if (!ticket) {
+      return c.json({ error: "editor code expired or already used" }, 401);
+    }
+    let browserOrigin = "";
     try {
-      const supplied = c.req.header('origin') || c.req.header('referer') || '';
+      const supplied = c.req.header("origin") || c.req.header("referer") || "";
       browserOrigin = new URL(supplied).origin;
     } catch { /* fail closed below */ }
-    if (browserOrigin !== ticket.targetOrigin) return c.json({ error: 'editor code belongs to another origin' }, 403);
+    if (browserOrigin !== ticket.targetOrigin) {
+      return c.json({ error: "editor code belongs to another origin" }, 403);
+    }
     const connection = await o.connected?.connection(ticket.connectionId);
-    if (!connection || connection.status !== 'active' || connection.installationId !== ticket.installationId) {
-      return c.json({ error: 'connection is no longer active' }, 401);
+    if (
+      !connection || connection.status !== "active" ||
+      connection.installationId !== ticket.installationId
+    ) {
+      return c.json({ error: "connection is no longer active" }, 401);
     }
     const site = await o.store.byId(connection.siteId);
     if (!site || !o.editorHtml) return c.notFound();
     const editorSessionToken = newToken();
-    const editorSessionExpiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString();
+    const editorSessionExpiresAt = new Date(Date.now() + 20 * 60 * 1000)
+      .toISOString();
     await o.connected!.putEditorCredential({
-      digest: hashToken(editorSessionToken), connectionId: connection.id, siteId: connection.siteId,
-      ownerId: ticket.ownerId, expiresAt: editorSessionExpiresAt
+      digest: hashToken(editorSessionToken),
+      connectionId: connection.id,
+      siteId: connection.siteId,
+      ownerId: ticket.ownerId,
+      expiresAt: editorSessionExpiresAt,
     });
-    c.header('content-security-policy', `frame-ancestors ${connection.targetOrigin}; base-uri 'none'; object-src 'none'`);
-    c.header('vary', 'Origin, Referer');
-    c.header('cache-control', 'private, no-store');
+    c.header(
+      "content-security-policy",
+      `frame-ancestors ${connection.targetOrigin}; base-uri 'none'; object-src 'none'`,
+    );
+    c.header("vary", "Origin, Referer");
+    c.header("cache-control", "private, no-store");
     return c.html(inject(o.editorHtml, {
-      siteId: site.id, host: site.host, slug: site.slug, name: site.name,
-      url: shareUrl(c, o, site), version: site.version,
-      publishedVersion: site.publishedVersion, schemaVersion: site.doc.schemaVersion,
-      role: 'owner', doc: site.doc, connectionId: connection.id,
-      editorSessionToken, editorSessionExpiresAt,
-      pageId: ticket.pageId, returnUrl: ticket.returnUrl,
-      wordpressContent: await wordpressContentForSite(site.id)
+      siteId: site.id,
+      host: site.host,
+      slug: site.slug,
+      name: site.name,
+      url: shareUrl(c, o, site),
+      version: site.version,
+      publishedVersion: site.publishedVersion,
+      schemaVersion: site.doc.schemaVersion,
+      role: "owner",
+      doc: site.doc,
+      connectionId: connection.id,
+      editorSessionToken,
+      editorSessionExpiresAt,
+      pageId: ticket.pageId,
+      returnUrl: ticket.returnUrl,
+      wordpressContent: await wordpressContentForSite(site.id),
     }));
   });
 
-  app.put('/v1/connections/:id/content-index', async c => {
+  app.put("/v1/connections/:id/content-index", async (c) => {
     const connection = await bearerConnection(c);
-    if (!connection || connection.id !== c.req.param('id') || !connection.scopes.includes('content:index')) {
-      return c.json({ error: 'unauthorized' }, 401);
+    if (
+      !connection || connection.id !== c.req.param("id") ||
+      !connection.scopes.includes("content:index")
+    ) {
+      return c.json({ error: "unauthorized" }, 401);
     }
     const body = await c.req.json().catch(() => null) as {
-      installationId?: string; generation?: number; items?: unknown[];
+      installationId?: string;
+      generation?: number;
+      items?: unknown[];
     } | null;
     if (!body || body.installationId !== connection.installationId) {
-      return c.json({ error: 'installationId does not match this connection' }, 403);
+      return c.json(
+        { error: "installationId does not match this connection" },
+        403,
+      );
     }
     if (!Number.isSafeInteger(body.generation) || Number(body.generation) < 1) {
-      return c.json({ error: 'generation must be a positive safe integer' }, 400);
+      return c.json(
+        { error: "generation must be a positive safe integer" },
+        400,
+      );
     }
     if (!Array.isArray(body.items) || body.items.length > 2000) {
-      return c.json({ error: 'items must be an array containing at most 2000 entries' }, 400);
+      return c.json({
+        error: "items must be an array containing at most 2000 entries",
+      }, 400);
     }
     const items: WordPressContentIndexItem[] = [];
     const ids = new Set<string>();
     for (const raw of body.items) {
-      if (!raw || typeof raw !== 'object') return c.json({ error: 'every content item must be an object' }, 400);
-      const item = raw as Record<string, unknown>;
-      const id = String(item.id || '').trim();
-      const objectType = String(item.objectType || '');
-      const title = String(item.title || '').trim();
-      const urlText = String(item.url || '').trim();
-      const modified = new Date(String(item.modifiedAt || ''));
-      if (!/^[A-Za-z0-9._:-]{1,160}$/.test(id) || ids.has(id)) {
-        return c.json({ error: 'content item IDs must be unique stable identifiers' }, 400);
+      if (!raw || typeof raw !== "object") {
+        return c.json({ error: "every content item must be an object" }, 400);
       }
-      if (objectType !== 'page' && objectType !== 'post') {
-        return c.json({ error: 'content item objectType must be page or post' }, 400);
+      const item = raw as Record<string, unknown>;
+      const id = String(item.id || "").trim();
+      const objectType = String(item.objectType || "");
+      const title = String(item.title || "").trim();
+      const urlText = String(item.url || "").trim();
+      const modified = new Date(String(item.modifiedAt || ""));
+      if (!/^[A-Za-z0-9._:-]{1,160}$/.test(id) || ids.has(id)) {
+        return c.json({
+          error: "content item IDs must be unique stable identifiers",
+        }, 400);
+      }
+      if (objectType !== "page" && objectType !== "post") {
+        return c.json(
+          { error: "content item objectType must be page or post" },
+          400,
+        );
       }
       if (!title || title.length > 240 || /[\u0000-\u001f\u007f]/.test(title)) {
-        return c.json({ error: 'content item titles must be 1 to 240 visible characters' }, 400);
+        return c.json({
+          error: "content item titles must be 1 to 240 visible characters",
+        }, 400);
       }
       let url: URL;
-      try { url = new URL(urlText); } catch { return c.json({ error: 'content item URLs must be absolute' }, 400); }
-      const pathRoot = connection.targetPath === '/' ? '/' : connection.targetPath.replace(/\/$/, '');
-      if (url.origin !== connection.targetOrigin || url.username || url.password || url.hash || url.search
-        || (url.protocol !== 'https:' && url.hostname !== 'localhost')
-        || (pathRoot !== '/' && url.pathname !== pathRoot && !url.pathname.startsWith(`${pathRoot}/`))
-        || url.href.length > 2048) {
-        return c.json({ error: 'content item URLs must belong to the paired WordPress target' }, 400);
+      try {
+        url = new URL(urlText);
+      } catch {
+        return c.json({ error: "content item URLs must be absolute" }, 400);
+      }
+      const pathRoot = connection.targetPath === "/"
+        ? "/"
+        : connection.targetPath.replace(/\/$/, "");
+      if (
+        url.origin !== connection.targetOrigin || url.username ||
+        url.password || url.hash || url.search ||
+        (url.protocol !== "https:" && url.hostname !== "localhost") ||
+        (pathRoot !== "/" && url.pathname !== pathRoot &&
+          !url.pathname.startsWith(`${pathRoot}/`)) ||
+        url.href.length > 2048
+      ) {
+        return c.json({
+          error: "content item URLs must belong to the paired WordPress target",
+        }, 400);
       }
       if (Number.isNaN(modified.getTime())) {
-        return c.json({ error: 'content item modifiedAt must be an ISO date' }, 400);
+        return c.json(
+          { error: "content item modifiedAt must be an ISO date" },
+          400,
+        );
       }
       ids.add(id);
-      items.push({ id, objectType, title, url: url.href, modifiedAt: modified.toISOString() });
+      items.push({
+        id,
+        objectType,
+        title,
+        url: url.href,
+        modifiedAt: modified.toISOString(),
+      });
     }
-    items.sort((a, b) => utf8ByteCompare(a.objectType, b.objectType)
-      || utf8ByteCompare(a.title, b.title) || utf8ByteCompare(a.id, b.id));
+    items.sort((a, b) =>
+      utf8ByteCompare(a.objectType, b.objectType) ||
+      utf8ByteCompare(a.title, b.title) || utf8ByteCompare(a.id, b.id)
+    );
     const generation = Number(body.generation);
     const result = await o.connected!.replaceWordPressContentIndex({
-      connectionId: connection.id, generation,
-      bodyHash: sha256(new TextEncoder().encode(canonicalJson({ generation, items }))),
-      items, syncedAt: new Date().toISOString()
+      connectionId: connection.id,
+      generation,
+      bodyHash: sha256(
+        new TextEncoder().encode(canonicalJson({ generation, items })),
+      ),
+      items,
+      syncedAt: new Date().toISOString(),
     });
     if (!result.ok) {
-      if (result.error === 'unknown-connection' || result.error === 'connection-inactive') {
+      if (
+        result.error === "unknown-connection" ||
+        result.error === "connection-inactive"
+      ) {
         return c.json({ error: result.error }, 401);
       }
       return c.json({ error: result.error }, 409);
     }
     return c.json({
-      generation: result.snapshot.generation, itemCount: result.snapshot.items.length,
-      syncedAt: result.snapshot.syncedAt, duplicate: result.duplicate
+      generation: result.snapshot.generation,
+      itemCount: result.snapshot.items.length,
+      syncedAt: result.snapshot.syncedAt,
+      duplicate: result.duplicate,
     }, result.duplicate ? 200 : 201);
   });
 
-  app.get('/v1/sites/:id/wordpress-content', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/v1/sites/:id/wordpress-content", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     if (!await o.store.byId(id)) return deny(c, 404);
     return c.json({ targets: await wordpressContentForSite(id) });
   });
 
-  const portableDownload = (c: Context, pkg: ReturnType<typeof createSitePackage>) => c.body(
-    pkg.bytes as unknown as ArrayBuffer, 200, {
-      'content-type': 'application/zip',
-      'content-length': String(pkg.bytes.byteLength),
-      'content-disposition': `attachment; filename="${pkg.filename}"`,
-      'x-pagecraft-content-sha256': pkg.sha256,
-      'cache-control': 'private, no-store'
-    }
-  );
+  const portableDownload = (
+    c: Context,
+    pkg: ReturnType<typeof createSitePackage>,
+  ) =>
+    c.body(
+      pkg.bytes as unknown as ArrayBuffer,
+      200,
+      {
+        "content-type": "application/zip",
+        "content-length": String(pkg.bytes.byteLength),
+        "content-disposition": `attachment; filename="${pkg.filename}"`,
+        "x-pagecraft-content-sha256": pkg.sha256,
+        "cache-control": "private, no-store",
+      },
+    );
 
-  app.get('/v1/sites/:id/packages/site', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/v1/sites/:id/packages/site", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     try {
       const assetIds = new Set(portableAssetIds(site.doc));
-      return portableDownload(c, createSitePackage({
-        document: site.doc,
-        assets: await assetBodiesOf(id, assetIds),
-        provenance: {
-          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud',
-          sourceId: site.id, sourceVersion: site.version, exportedBy: gate.user.id
-        }
-      }));
+      return portableDownload(
+        c,
+        createSitePackage({
+          document: site.doc,
+          assets: await assetBodiesOf(id, assetIds),
+          provenance: {
+            format: "pagecraft.provenance.v1",
+            origin: "pagecraft-cloud",
+            sourceId: site.id,
+            sourceVersion: site.version,
+            exportedBy: gate.user.id,
+          },
+        }),
+      );
     } catch (error) {
       return c.json({ error: (error as Error).message }, 422);
     }
   });
 
-  app.get('/v1/sites/:id/packages/pages/:pageId', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/v1/sites/:id/packages/pages/:pageId", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     try {
-      const pageId = c.req.param('pageId');
+      const pageId = c.req.param("pageId");
       const assetIds = new Set(portableAssetIds(site.doc, pageId));
-      return portableDownload(c, createPagePackage({
-        document: site.doc,
-        pageId,
-        assets: await assetBodiesOf(id, assetIds),
-        provenance: {
-          format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud',
-          sourceId: site.id, sourceVersion: site.version, exportedBy: gate.user.id
-        }
-      }));
+      return portableDownload(
+        c,
+        createPagePackage({
+          document: site.doc,
+          pageId,
+          assets: await assetBodiesOf(id, assetIds),
+          provenance: {
+            format: "pagecraft.provenance.v1",
+            origin: "pagecraft-cloud",
+            sourceId: site.id,
+            sourceVersion: site.version,
+            exportedBy: gate.user.id,
+          },
+        }),
+      );
     } catch (error) {
       return c.json({ error: (error as Error).message }, 422);
     }
   });
 
-  app.get('/v1/sites/:id/connections', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/v1/sites/:id/connections", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     if (!o.connected) return c.json({ connections: [] });
-    return c.json({ connections: (await o.connected.connectionsForSite(id)).map(publicConnection) });
+    return c.json({
+      connections: (await o.connected.connectionsForSite(id)).map(
+        publicConnection,
+      ),
+    });
   });
 
-  app.get('/v1/sites/:id/releases', async c => {
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'read');
+  app.get("/v1/sites/:id/releases", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
     if (!o.connected) return c.json({ publishedVersion: null, releases: [] });
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     const [releases, connections] = await Promise.all([
-      o.connected.releasesForSite(id), o.connected.connectionsForSite(id)
+      o.connected.releasesForSite(id),
+      o.connected.connectionsForSite(id),
     ]);
-    const out = await Promise.all(releases.map(async release => {
+    const out = await Promise.all(releases.map(async (release) => {
       const deployments = await o.connected!.deploymentsForRelease(release.id);
       return {
-        releaseId: release.id, sequence: release.sequence, sourceVersion: release.sourceVersion,
-        schemaVersion: release.schemaVersion, parentReleaseId: release.parentReleaseId,
-        artifactHash: release.artifactHash, audit: release.audit, createdAt: release.createdAt,
-        targets: connections.map(connection => {
-          const history = deployments.filter(item => item.connectionId === connection.id);
+        releaseId: release.id,
+        sequence: release.sequence,
+        sourceVersion: release.sourceVersion,
+        schemaVersion: release.schemaVersion,
+        parentReleaseId: release.parentReleaseId,
+        artifactHash: release.artifactHash,
+        audit: release.audit,
+        createdAt: release.createdAt,
+        targets: connections.map((connection) => {
+          const history = deployments.filter((item) =>
+            item.connectionId === connection.id
+          );
           return {
             connection: publicConnection(connection),
             desired: connection.desiredReleaseId === release.id,
@@ -2464,145 +4086,249 @@ export function createApp(o: Options) {
             active: connection.activeReleaseId === release.id,
             status: history.at(-1)?.status || null,
             detail: history.at(-1)?.detail || null,
-            updatedAt: history.at(-1)?.createdAt || null
+            updatedAt: history.at(-1)?.createdAt || null,
           };
-        })
+        }),
       };
     }));
     return c.json({
-      draftVersion: site.version, publishedVersion: site.publishedVersion,
-      publishedReleaseId: site.publishedReleaseId, releases: out
+      draftVersion: site.version,
+      publishedVersion: site.publishedVersion,
+      publishedReleaseId: site.publishedReleaseId,
+      releases: out,
     });
   });
 
-  app.post('/v1/sites/:id/releases', async c => {
+  app.post("/v1/sites/:id/releases", async (c) => {
     if (!releaseReady()) return releaseUnavailable(c);
-    const id = c.req.param('id');
-    const gate = await allowed(c, id, 'admin');
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
     const body = await c.req.json().catch(() => null) as {
-      sourceVersion?: number; idempotencyKey?: string; acknowledgeWarnings?: boolean;
+      sourceVersion?: number;
+      idempotencyKey?: string;
+      acknowledgeWarnings?: boolean;
     } | null;
     const sourceVersion = body?.sourceVersion ?? site.version;
-    const idempotencyKey = String(body?.idempotencyKey || c.req.header('idempotency-key') || '');
-    if (!Number.isInteger(sourceVersion) || sourceVersion < 1 || !/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)) {
-      return c.json({ error: 'sourceVersion and a stable idempotencyKey are required' }, 400);
+    const idempotencyKey = String(
+      body?.idempotencyKey || c.req.header("idempotency-key") || "",
+    );
+    if (
+      !Number.isInteger(sourceVersion) || sourceVersion < 1 ||
+      !/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)
+    ) {
+      return c.json({
+        error: "sourceVersion and a stable idempotencyKey are required",
+      }, 400);
     }
     /* If a prior worker committed the hosted pointer but lost the response before recording
        the delivery finalization, reconcile that safe ordering edge before reserving a child. */
     if (site.publishedReleaseId) {
       try {
-        if (!await o.connected!.markReleasePublished(site.publishedReleaseId, site.updatedAt)) {
-          return c.json({ error: 'the current public release has an invalid finalization state' }, 409);
+        if (
+          !await o.connected!.markReleasePublished(
+            site.publishedReleaseId,
+            site.updatedAt,
+          )
+        ) {
+          return c.json({
+            error:
+              "the current public release has an invalid finalization state",
+          }, 409);
         }
       } catch (error) {
-        c.header('retry-after', '5');
+        c.header("retry-after", "5");
         return c.json({
-          error: 'the current publication is still being finalized', retryable: true,
-          detail: String((error as Error).message)
+          error: "the current publication is still being finalized",
+          retryable: true,
+          detail: String((error as Error).message),
         }, 503);
       }
     }
     const revision = await o.store.revision(id, sourceVersion);
-    if (!revision) return c.json({ error: 'no such source revision' }, 404);
+    if (!revision) return c.json({ error: "no such source revision" }, 404);
     let document: Doc | null = null;
-    try { document = adopt(revision.doc); } catch (error) {
-      return c.json({ error: 'invalid document', detail: String((error as Error).message) }, 422);
-    }
-    if (!document) return c.json({ error: 'newer schema', detail: 'This release needs a newer Pagecraft server.' }, 409);
-    const [connections, connectionHistory] = await Promise.all([
-      o.connected!.connectionsForSite(id), o.connected!.connectionHistoryForSite(id)
-    ]);
-    const activeConnections = connections.filter(connection => connection.status === 'active');
-    if (new Set(activeConnections.map(connection => connection.profile)).size > 1) {
+    try {
+      document = adopt(revision.doc);
+    } catch (error) {
       return c.json({
-        error: 'incompatible WordPress setup profiles',
-        detail: 'Staging and production must both use Existing Theme or both use Pagecraft Theme.'
+        error: "invalid document",
+        detail: String((error as Error).message),
+      }, 422);
+    }
+    if (!document) {
+      return c.json({
+        error: "newer schema",
+        detail: "This release needs a newer Pagecraft server.",
+      }, 409);
+    }
+    const [connections, connectionHistory] = await Promise.all([
+      o.connected!.connectionsForSite(id),
+      o.connected!.connectionHistoryForSite(id),
+    ]);
+    const activeConnections = connections.filter((connection) =>
+      connection.status === "active"
+    );
+    if (
+      new Set(activeConnections.map((connection) => connection.profile)).size >
+        1
+    ) {
+      return c.json({
+        error: "incompatible WordPress setup profiles",
+        detail:
+          "Staging and production must both use Existing Theme or both use Pagecraft Theme.",
       }, 409);
     }
     /* The first Connected picker stored an absolute indexed permalink. Compile those
        exact legacy values through the same target-neutral contract as new editor writes,
        so an untouched staging selection cannot enter the production release. */
     const indexedWordPressTargets = await wordpressContentForSite(id);
-    const migratedWordPressLinks = migrateIndexedWordPressLinks(document, connectionHistory.map(connection => {
-      const indexed = indexedWordPressTargets.find(target => target.connectionId === connection.id);
-      return {
-        targetOrigin: connection.targetOrigin,
-        targetPath: connection.targetPath,
-        items: indexed?.items || []
-      };
-    }));
-    if (migratedWordPressLinks.unsafeTargetUrls.length) return c.json({
-      error: 'Connected WordPress link preflight failed',
-      errorCodes: ['wordpress-link-target-specific'],
-      detail: 'A link still points directly at a paired WordPress target but is not in its current content index. Choose a current WordPress page or post in Pagecraft, or replace it with a portable custom destination.',
-      urls: migratedWordPressLinks.unsafeTargetUrls
-    }, 422);
-    document = migratedWordPressLinks.document;
-    const stylesheetIssues = [...new Set([
-      ...authoredStylesheetIssues(document), ...authoredCssAtRuleIssues(document)
-    ])].sort();
-    if (stylesheetIssues.length) return c.json({
-      error: 'release stylesheet preflight failed',
-      errorCodes: stylesheetIssues,
-      detail: 'Connected releases cannot reference stylesheet bytes that are not frozen into the signed artifact.'
-    }, 422);
-    if (activeConnections.some(connection => connection.profile === 'existing-theme')) {
-      const cssIssues = existingThemeCssIssues(document);
-      if (cssIssues.length) return c.json({
-        error: 'Existing Theme CSS preflight failed',
-        errorCodes: cssIssues,
-        detail: 'Authored global CSS must be isolated before this release can enter an existing WordPress theme.'
+    const migratedWordPressLinks = migrateIndexedWordPressLinks(
+      document,
+      connectionHistory.map((connection) => {
+        const indexed = indexedWordPressTargets.find((target) =>
+          target.connectionId === connection.id
+        );
+        return {
+          targetOrigin: connection.targetOrigin,
+          targetPath: connection.targetPath,
+          items: indexed?.items || [],
+        };
+      }),
+    );
+    if (migratedWordPressLinks.unsafeTargetUrls.length) {
+      return c.json({
+        error: "Connected WordPress link preflight failed",
+        errorCodes: ["wordpress-link-target-specific"],
+        detail:
+          "A link still points directly at a paired WordPress target but is not in its current content index. Choose a current WordPress page or post in Pagecraft, or replace it with a portable custom destination.",
+        urls: migratedWordPressLinks.unsafeTargetUrls,
       }, 422);
+    }
+    document = migratedWordPressLinks.document;
+    const stylesheetIssues = [
+      ...new Set([
+        ...authoredStylesheetIssues(document),
+        ...authoredCssAtRuleIssues(document),
+      ]),
+    ].sort();
+    if (stylesheetIssues.length) {
+      return c.json({
+        error: "release stylesheet preflight failed",
+        errorCodes: stylesheetIssues,
+        detail:
+          "Connected releases cannot reference stylesheet bytes that are not frozen into the signed artifact.",
+      }, 422);
+    }
+    if (
+      activeConnections.some((connection) =>
+        connection.profile === "existing-theme"
+      )
+    ) {
+      const cssIssues = existingThemeCssIssues(document);
+      if (cssIssues.length) {
+        return c.json({
+          error: "Existing Theme CSS preflight failed",
+          errorCodes: cssIssues,
+          detail:
+            "Authored global CSS must be isolated before this release can enter an existing WordPress theme.",
+        }, 422);
+      }
     }
     const assetMetadata = await assetsOf(id);
     const rendered = render(document, assetMetadata);
     if (releaseStylesheetLinks(rendered.files).length) {
       try {
-        rendered.files = await freezeGoogleFontStylesheets(rendered.files, o.fontFetch || fetch);
+        rendered.files = await freezeGoogleFontStylesheets(
+          rendered.files,
+          o.fontFetch || fetch,
+        );
       } catch (error) {
         return c.json({
-          error: 'release stylesheet preflight failed',
-          errorCodes: ['font-freeze-failed'],
-          detail: String((error as Error).message)
+          error: "release stylesheet preflight failed",
+          errorCodes: ["font-freeze-failed"],
+          detail: String((error as Error).message),
         }, 422);
       }
     }
     const linkedStylesheets = releaseStylesheetLinks(rendered.files);
-    if (linkedStylesheets.length) return c.json({
-      error: 'release stylesheet preflight failed',
-      errorCodes: ['unfrozen-stylesheet'], stylesheets: linkedStylesheets,
-      detail: 'The renderer left a stylesheet outside the signed artifact.'
-    }, 422);
-    const errors = rendered.findings.filter(finding => finding.level === 'error');
-    const warnings = rendered.findings.filter(finding => finding.level === 'warn');
-    const errorCodes = [...new Set(errors.map(finding => finding.code))].sort();
-    const warningCodes = [...new Set(warnings.map(finding => finding.code))].sort();
-    if (errors.length) return c.json({
-      error: 'release validation failed', errorCount: errors.length, errorCodes,
-      findings: errors.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where }))
-    }, 422);
-    if (warnings.length && body?.acknowledgeWarnings !== true) return c.json({
-      error: 'warning acknowledgement required', warningCount: warnings.length, warningCodes,
-      findings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where }))
-    }, 409);
-    const production = activeConnections.find(connection => connection.environment === 'production');
-    const staging = activeConnections.find(connection => connection.environment === 'staging');
-    if (production && !staging) return c.json({
-      error: 'a staging connection is required',
-      detail: 'Connected v1 promotes the identical signed release through staging before production.'
-    }, 409);
-    const assets = await assetBodiesOf(id, releaseAssetIds(document, rendered.files, assetMetadata));
+    if (linkedStylesheets.length) {
+      return c.json({
+        error: "release stylesheet preflight failed",
+        errorCodes: ["unfrozen-stylesheet"],
+        stylesheets: linkedStylesheets,
+        detail: "The renderer left a stylesheet outside the signed artifact.",
+      }, 422);
+    }
+    const errors = rendered.findings.filter((finding) =>
+      finding.level === "error"
+    );
+    const warnings = rendered.findings.filter((finding) =>
+      finding.level === "warn"
+    );
+    const errorCodes = [...new Set(errors.map((finding) => finding.code))]
+      .sort();
+    const warningCodes = [...new Set(warnings.map((finding) => finding.code))]
+      .sort();
+    if (errors.length) {
+      return c.json({
+        error: "release validation failed",
+        errorCount: errors.length,
+        errorCodes,
+        findings: errors.map((finding) => ({
+          code: finding.code,
+          message: finding.msg,
+          where: finding.where,
+        })),
+      }, 422);
+    }
+    if (warnings.length && body?.acknowledgeWarnings !== true) {
+      return c.json({
+        error: "warning acknowledgement required",
+        warningCount: warnings.length,
+        warningCodes,
+        findings: warnings.map((finding) => ({
+          code: finding.code,
+          message: finding.msg,
+          where: finding.where,
+        })),
+      }, 409);
+    }
+    const production = activeConnections.find((connection) =>
+      connection.environment === "production"
+    );
+    const staging = activeConnections.find((connection) =>
+      connection.environment === "staging"
+    );
+    if (production && !staging) {
+      return c.json({
+        error: "a staging connection is required",
+        detail:
+          "Connected v1 promotes the identical signed release through staging before production.",
+      }, 409);
+    }
+    const assets = await assetBodiesOf(
+      id,
+      releaseAssetIds(document, rendered.files, assetMetadata),
+    );
     const proposedReleaseId = crypto.randomUUID();
     let builtRelease: ReturnType<typeof buildReleaseArtifact>;
     try {
       builtRelease = buildReleaseArtifact({
-        releaseId: proposedReleaseId, siteId: id, sourceVersion, document, files: rendered.files, assets
+        releaseId: proposedReleaseId,
+        siteId: id,
+        sourceVersion,
+        document,
+        files: rendered.files,
+        assets,
       });
     } catch (error) {
-      return c.json({ error: 'release compilation failed', detail: String((error as Error).message) }, 422);
+      return c.json({
+        error: "release compilation failed",
+        detail: String((error as Error).message),
+      }, 422);
     }
     /* Compile before reserving a sequence so a deterministic validation failure cannot leave
        a permanent hole in the ordered target queue. An idempotent retry may recover an older
@@ -2610,55 +4336,105 @@ export function createApp(o: Options) {
     let reservation;
     try {
       reservation = await o.connected!.reserveRelease({
-        siteId: id, idempotencyKey, releaseId: proposedReleaseId, createdBy: gate.user.id
+        siteId: id,
+        idempotencyKey,
+        releaseId: proposedReleaseId,
+        createdBy: gate.user.id,
       });
     } catch (error) {
       const detail = String((error as Error).message);
       if (/still being finalized|retry shortly/i.test(detail)) {
-        c.header('retry-after', '5');
+        c.header("retry-after", "5");
         return c.json({
-          error: 'another release is still being finalized', retryable: true,
-          detail: 'Retry this same publish after the in-progress release finishes or its lease expires.'
+          error: "another release is still being finalized",
+          retryable: true,
+          detail:
+            "Retry this same publish after the in-progress release finishes or its lease expires.",
         }, 409);
       }
-      return c.json({ error: 'release sequence could not be reserved', detail }, 409);
+      return c.json(
+        { error: "release sequence could not be reserved", detail },
+        409,
+      );
     }
     const releaseId = reservation.releaseId;
     const createdAt = reservation.createdAt;
     if (releaseId !== proposedReleaseId) {
       builtRelease = buildReleaseArtifact({
-        releaseId, siteId: id, sourceVersion, document, files: rendered.files, assets
+        releaseId,
+        siteId: id,
+        sourceVersion,
+        document,
+        files: rendered.files,
+        assets,
       });
     }
     const audit: ReleaseAudit = {
       acknowledgeWarnings: body?.acknowledgeWarnings === true,
-      warningCodes, warningCount: warnings.length, errorCodes, errorCount: errors.length
+      warningCodes,
+      warningCount: warnings.length,
+      errorCodes,
+      errorCount: errors.length,
     };
     const manifest = manifestForRelease({
-      releaseId, siteId: id, sequence: reservation.sequence, sourceVersion, schemaVersion: document.schemaVersion,
-      parentReleaseId: reservation.parentReleaseId, createdAt, audit, built: builtRelease
+      releaseId,
+      siteId: id,
+      sequence: reservation.sequence,
+      sourceVersion,
+      schemaVersion: document.schemaVersion,
+      parentReleaseId: reservation.parentReleaseId,
+      createdAt,
+      audit,
+      built: builtRelease,
     });
     const signed = signReleaseManifest(manifest, o.releaseSigning!);
     const proposed: SiteRelease = {
-      id: releaseId, siteId: id, sequence: reservation.sequence, sourceVersion, schemaVersion: document.schemaVersion,
-      parentReleaseId: reservation.parentReleaseId, artifactHash: builtRelease.artifactHash,
-      artifactBytes: builtRelease.artifactBytes.byteLength, artifact: builtRelease.artifactBytes,
-      hostedFiles: [...rendered.files].sort(([a], [b]) => utf8ByteCompare(a, b)).map(([path, content]) => {
-        const bytes = new TextEncoder().encode(content);
-        return { path, content, bytes: bytes.byteLength, hash: sha256(bytes) };
-      }),
-      manifest: signed.manifest, manifestHash: sha256(fromBase64url(signed.manifest)),
-      signature: signed.signature, keyId: signed.keyId,
-      files: builtRelease.files, pages: builtRelease.pages, cms: builtRelease.cms,
-      assets: builtRelease.assets, scripts: builtRelease.scripts,
-      audit, idempotencyKey, createdBy: gate.user.id, createdAt
+      id: releaseId,
+      siteId: id,
+      sequence: reservation.sequence,
+      sourceVersion,
+      schemaVersion: document.schemaVersion,
+      parentReleaseId: reservation.parentReleaseId,
+      artifactHash: builtRelease.artifactHash,
+      artifactBytes: builtRelease.artifactBytes.byteLength,
+      artifact: builtRelease.artifactBytes,
+      hostedFiles: [...rendered.files].sort(([a], [b]) => utf8ByteCompare(a, b))
+        .map(([path, content]) => {
+          const bytes = new TextEncoder().encode(content);
+          return {
+            path,
+            content,
+            bytes: bytes.byteLength,
+            hash: sha256(bytes),
+          };
+        }),
+      manifest: signed.manifest,
+      manifestHash: sha256(fromBase64url(signed.manifest)),
+      signature: signed.signature,
+      keyId: signed.keyId,
+      files: builtRelease.files,
+      pages: builtRelease.pages,
+      cms: builtRelease.cms,
+      assets: builtRelease.assets,
+      scripts: builtRelease.scripts,
+      audit,
+      idempotencyKey,
+      createdBy: gate.user.id,
+      createdAt,
     };
     let made: { release: SiteRelease; created: boolean };
-    try { made = await o.connected!.createRelease(proposed); }
-    catch (error) { return c.json({ error: String((error as Error).message) }, 409); }
-    if (!made.created && (made.release.sourceVersion !== sourceVersion
-      || JSON.stringify(made.release.audit) !== JSON.stringify(audit))) {
-      return c.json({ error: 'idempotency key was already used for a different release' }, 409);
+    try {
+      made = await o.connected!.createRelease(proposed);
+    } catch (error) {
+      return c.json({ error: String((error as Error).message) }, 409);
+    }
+    if (
+      !made.created && (made.release.sourceVersion !== sourceVersion ||
+        JSON.stringify(made.release.audit) !== JSON.stringify(audit))
+    ) {
+      return c.json({
+        error: "idempotency key was already used for a different release",
+      }, 409);
     }
     /* The hosted pointer is the canonical commit and deliberately precedes both the durable
        publication marker and every target/webhook mutation. Store.publish is a monotonic CAS,
@@ -2666,77 +4442,117 @@ export function createApp(o: Options) {
     let published;
     try {
       published = await o.connected!.commitReleasePublication({
-        siteId: id, releaseId: made.release.id, sourceVersion: made.release.sourceVersion,
-        releaseSequence: made.release.sequence, publishedAt: new Date().toISOString()
-      }, () => o.store.publish(
-        id, made.release.sourceVersion, made.release.id, made.release.sequence
-      ));
+        siteId: id,
+        releaseId: made.release.id,
+        sourceVersion: made.release.sourceVersion,
+        releaseSequence: made.release.sequence,
+        publishedAt: new Date().toISOString(),
+      }, () =>
+        o.store.publish(
+          id,
+          made.release.sourceVersion,
+          made.release.id,
+          made.release.sequence,
+        ));
     } catch (error) {
       /* The immutable artifact is left unfinalized. Release traversal and target creation
          exclude it, and a later publish gives the stale identity a terminal tombstone. */
       return c.json({
-        error: 'source revision could not be published', retryable: true,
-        detail: String((error as Error).message)
+        error: "source revision could not be published",
+        retryable: true,
+        detail: String((error as Error).message),
       }, 503);
     }
-    if (!published) return c.json({ error: 'source revision could not be published' }, 409);
+    if (!published) {
+      return c.json({ error: "source revision could not be published" }, 409);
+    }
     built.delete(id);
-    let reconciliation: { status: 'not-required' | 'issued' | 'pending'; detail?: string } = {
-      status: activeConnections.some(connection => connection.environment === 'staging')
-        ? 'pending' : 'not-required'
+    let reconciliation: {
+      status: "not-required" | "issued" | "pending";
+      detail?: string;
+    } = {
+      status: activeConnections.some((connection) =>
+          connection.environment === "staging"
+        )
+        ? "pending"
+        : "not-required",
     };
     try {
       if (published.publishedReleaseId !== made.release.id) {
         reconciliation = {
-          status: 'not-required', detail: 'A newer release already owns the public pointer.'
+          status: "not-required",
+          detail: "A newer release already owns the public pointer.",
         };
       } else if (await stageReleaseIfIdle(made.release, activeConnections)) {
-        reconciliation = { status: 'issued' };
+        reconciliation = { status: "issued" };
       }
     } catch (error) {
       /* The release and public pointer are already durable. Polling and an idempotent Publish
          retry reconcile target creation/queueing without turning a committed publication into
          a reported failure that invites the owner to publish different content. */
-      reconciliation = { status: 'pending', detail: String((error as Error).message) };
-      console.error('WordPress release delivery is pending:', (error as Error).message);
+      reconciliation = {
+        status: "pending",
+        detail: String((error as Error).message),
+      };
+      console.error(
+        "WordPress release delivery is pending:",
+        (error as Error).message,
+      );
     }
     return c.json({
-      releaseId: made.release.id, sequence: made.release.sequence,
-      sourceVersion: made.release.sourceVersion, schemaVersion: made.release.schemaVersion,
-      publishedVersion: published.publishedVersion, artifactHash: made.release.artifactHash,
-      audit: made.release.audit, createdAt: made.release.createdAt,
+      releaseId: made.release.id,
+      sequence: made.release.sequence,
+      sourceVersion: made.release.sourceVersion,
+      schemaVersion: made.release.schemaVersion,
+      publishedVersion: published.publishedVersion,
+      artifactHash: made.release.artifactHash,
+      audit: made.release.audit,
+      createdAt: made.release.createdAt,
       reconciliation,
-      targets: (await o.connected!.connectionsForSite(id)).map(publicConnection)
+      targets: (await o.connected!.connectionsForSite(id)).map(
+        publicConnection,
+      ),
     }, made.created ? 201 : 200);
   });
 
-  app.get('/v1/connections/:id/desired-release', async c => {
+  app.get("/v1/connections/:id/desired-release", async (c) => {
     if (!releaseReady()) return releaseUnavailable(c);
     let connection = await bearerConnection(c);
-    if (!connection || connection.id !== c.req.param('id')) return c.json({ error: 'unauthorized' }, 401);
-    if (connection.environment === 'production') {
-      const staging = (await o.connected!.connectionsForSite(connection.siteId)).find(item =>
-        item.environment === 'staging' && item.status === 'active');
+    if (!connection || connection.id !== c.req.param("id")) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    if (connection.environment === "production") {
+      const staging = (await o.connected!.connectionsForSite(connection.siteId))
+        .find((item) =>
+          item.environment === "staging" && item.status === "active"
+        );
       if (staging && staging.profile !== connection.profile) {
         return c.json({
-          error: 'incompatible WordPress setup profiles',
-          detail: 'Staging and production must use the same Connected setup profile.'
+          error: "incompatible WordPress setup profiles",
+          detail:
+            "Staging and production must use the same Connected setup profile.",
         }, 409);
       }
     }
     /* `pendingReleaseId` is a durable promotion job. Production polling reconciles a worker
        failure that happened after staging committed live but before its target was issued. */
-    if (connection.environment === 'production' && connection.pendingReleaseId
-      && !connection.desiredReleaseId && connection.activeReleaseId !== connection.pendingReleaseId) {
+    if (
+      connection.environment === "production" && connection.pendingReleaseId &&
+      !connection.desiredReleaseId &&
+      connection.activeReleaseId !== connection.pendingReleaseId
+    ) {
       const pending = await o.connected!.release(connection.pendingReleaseId);
-      if (!pending) return c.json({ error: 'pending release no longer exists' }, 409);
+      if (!pending) {
+        return c.json({ error: "pending release no longer exists" }, 409);
+      }
       try {
         await issueTarget(pending, connection, true);
       } catch (error) {
-        c.header('retry-after', '5');
+        c.header("retry-after", "5");
         return c.json({
-          error: 'production promotion is pending', retryable: true,
-          detail: String((error as Error).message)
+          error: "production promotion is pending",
+          retryable: true,
+          detail: String((error as Error).message),
         }, 503);
       }
       connection = await o.connected!.connection(connection.id) || connection;
@@ -2745,61 +4561,82 @@ export function createApp(o: Options) {
        pending pointer from the original staging acknowledgement. Polling is the durable
        reconciliation path: derive only from staging's *current* active release, never from a
        historical ACK body, and never move production backward in global release order. */
-    if (connection.environment === 'production' && !connection.desiredReleaseId
-      && !connection.pendingReleaseId) {
+    if (
+      connection.environment === "production" && !connection.desiredReleaseId &&
+      !connection.pendingReleaseId
+    ) {
       try {
         const promotion = await currentStagingPromotion(connection.siteId);
         if (promotion) {
           if (promotion.staging.profile !== connection.profile) {
             return c.json({
-              error: 'incompatible WordPress setup profiles',
-              detail: 'Staging and production must use the same Connected setup profile.'
+              error: "incompatible WordPress setup profiles",
+              detail:
+                "Staging and production must use the same Connected setup profile.",
             }, 409);
           }
           const active = connection.activeReleaseId
-            ? await o.connected!.release(connection.activeReleaseId) : null;
+            ? await o.connected!.release(connection.activeReleaseId)
+            : null;
           if (connection.activeReleaseId && !active) {
-            throw new Error('the active production release order could not be verified safely');
+            throw new Error(
+              "the active production release order could not be verified safely",
+            );
           }
           if (!active || active.sequence < promotion.release.sequence) {
             await issueTarget(promotion.release, connection, true);
-            connection = await o.connected!.connection(connection.id) || connection;
+            connection = await o.connected!.connection(connection.id) ||
+              connection;
           }
         }
       } catch (error) {
-        c.header('retry-after', '5');
+        c.header("retry-after", "5");
         return c.json({
-          error: 'production promotion is pending', retryable: true,
-          detail: String((error as Error).message)
+          error: "production promotion is pending",
+          retryable: true,
+          detail: String((error as Error).message),
         }, 503);
       }
     }
     let desired = await o.connected!.desiredTarget(connection.id);
-    if (!desired && connection.environment === 'staging') {
+    if (!desired && connection.environment === "staging") {
       const hosted = await o.store.byId(connection.siteId);
       let canonicalPublished: SiteReleaseSummary | null = null;
       if (hosted?.publishedReleaseId) {
         try {
-          if (!await o.connected!.markReleasePublished(hosted.publishedReleaseId, hosted.updatedAt)) {
-            throw new Error('hosted release was finalized as abandoned');
+          if (
+            !await o.connected!.markReleasePublished(
+              hosted.publishedReleaseId,
+              hosted.updatedAt,
+            )
+          ) {
+            throw new Error("hosted release was finalized as abandoned");
           }
-          canonicalPublished = await o.connected!.release(hosted.publishedReleaseId);
+          canonicalPublished = await o.connected!.release(
+            hosted.publishedReleaseId,
+          );
           if (!canonicalPublished) {
-            throw new Error('the canonical hosted release could not be loaded safely');
+            throw new Error(
+              "the canonical hosted release could not be loaded safely",
+            );
           }
         } catch (error) {
-          c.header('retry-after', '5');
+          c.header("retry-after", "5");
           return c.json({
-            error: 'hosted publication finalization is pending', retryable: true,
-            detail: String((error as Error).message)
+            error: "hosted publication finalization is pending",
+            retryable: true,
+            detail: String((error as Error).message),
           }, 503);
         }
       }
       const active = connection.activeReleaseId
-        ? await o.connected!.release(connection.activeReleaseId) : null;
+        ? await o.connected!.release(connection.activeReleaseId)
+        : null;
       try {
         if (connection.activeReleaseId && !active) {
-          throw new Error('the active staging release order could not be verified safely');
+          throw new Error(
+            "the active staging release order could not be verified safely",
+          );
         }
         if (!active && canonicalPublished) {
           /* A newly paired or re-paired target has no per-connection history. Its baseline is
@@ -2812,10 +4649,11 @@ export function createApp(o: Options) {
           await stageNextRelease(connection.siteId, active.sequence);
         }
       } catch (error) {
-        c.header('retry-after', '5');
+        c.header("retry-after", "5");
         return c.json({
-          error: 'staging delivery is pending', retryable: true,
-          detail: String((error as Error).message)
+          error: "staging delivery is pending",
+          retryable: true,
+          detail: String((error as Error).message),
         }, 503);
       }
       connection = await o.connected!.connection(connection.id) || connection;
@@ -2827,236 +4665,389 @@ export function createApp(o: Options) {
       await issueTarget(desired.release, desired.connection, true);
       desired = await o.connected!.desiredTarget(connection.id) || desired;
     } catch (error) {
-      c.header('retry-after', '5');
+      c.header("retry-after", "5");
       return c.json({
-        error: 'release target is not ready', retryable: true,
-        detail: String((error as Error).message)
+        error: "release target is not ready",
+        retryable: true,
+        detail: String((error as Error).message),
       }, 503);
     }
-    const etag = `"${desired.release.id}:${desired.target.sequence}:${desired.release.manifestHash}"`;
-    if (c.req.header('if-none-match') === etag) return c.body(null, 304, { etag });
+    const etag =
+      `"${desired.release.id}:${desired.target.sequence}:${desired.release.manifestHash}"`;
+    if (c.req.header("if-none-match") === etag) {
+      return c.body(null, 304, { etag });
+    }
     const here = o.editorOrigin || new URL(c.req.url).origin;
-    c.header('etag', etag);
+    c.header("etag", etag);
     return c.json({
       release: {
-        manifest: desired.release.manifest, signature: desired.release.signature,
+        manifest: desired.release.manifest,
+        signature: desired.release.signature,
         keyId: desired.release.keyId,
         artifact: {
-          url: `${here}/v1/releases/${encodeURIComponent(desired.release.id)}/artifact`,
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString()
-        }
+          url: `${here}/v1/releases/${
+            encodeURIComponent(desired.release.id)
+          }/artifact`,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        },
       },
       deployment: {
-        envelope: desired.target.envelope, signature: desired.target.signature, keyId: desired.target.keyId
+        envelope: desired.target.envelope,
+        signature: desired.target.signature,
+        keyId: desired.target.keyId,
       },
-      keysetEnvelope: o.keysetEnvelope
+      keysetEnvelope: o.keysetEnvelope,
     });
   });
 
-  app.delete('/v1/connections/:id', async c => {
-    if (!o.connected) return c.json({ error: 'connected persistence is unavailable' }, 503);
-    const bearer = (c.req.header('authorization') || '').match(/^Bearer\s+([^\s]+)$/i)?.[1] || '';
-    const refresh = String(c.req.header('x-pagecraft-refresh-token') || '');
-    const idempotencyKey = String(c.req.header('idempotency-key') || '');
-    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)) {
-      return c.json({ error: 'a stable Idempotency-Key header is required' }, 400);
+  app.delete("/v1/connections/:id", async (c) => {
+    if (!o.connected) {
+      return c.json({ error: "connected persistence is unavailable" }, 503);
     }
-    if (!bearer && !refresh) return c.json({ error: 'unauthorized' }, 401);
+    const bearer =
+      (c.req.header("authorization") || "").match(/^Bearer\s+([^\s]+)$/i)
+        ?.[1] || "";
+    const refresh = String(c.req.header("x-pagecraft-refresh-token") || "");
+    const idempotencyKey = String(c.req.header("idempotency-key") || "");
+    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)) {
+      return c.json(
+        { error: "a stable Idempotency-Key header is required" },
+        400,
+      );
+    }
+    if (!bearer && !refresh) return c.json({ error: "unauthorized" }, 401);
     const result = await o.connected.revokeConnection({
-      id: c.req.param('id'), accessTokenDigest: bearer ? hashToken(bearer) : null,
-      refreshTokenDigest: refresh ? hashToken(refresh) : null, idempotencyKey,
-      now: new Date().toISOString()
+      id: c.req.param("id"),
+      accessTokenDigest: bearer ? hashToken(bearer) : null,
+      refreshTokenDigest: refresh ? hashToken(refresh) : null,
+      idempotencyKey,
+      now: new Date().toISOString(),
     });
     if (!result.ok) {
-      return c.json({ error: result.error }, result.error === 'unauthorized' ? 401 : 409);
+      return c.json(
+        { error: result.error },
+        result.error === "unauthorized" ? 401 : 409,
+      );
     }
     return c.json({
-      connectionId: result.connection.id, status: 'revoked',
-      revokedAt: result.connection.revokedAt, alreadyRevoked: result.alreadyRevoked
+      connectionId: result.connection.id,
+      status: "revoked",
+      revokedAt: result.connection.revokedAt,
+      alreadyRevoked: result.alreadyRevoked,
     });
   });
 
-  app.get('/v1/releases/:id/artifact', async c => {
+  app.get("/v1/releases/:id/artifact", async (c) => {
     const connection = await bearerConnection(c);
-    if (!connection || !o.connected) return c.json({ error: 'unauthorized' }, 401);
-    const release = await o.connected.release(c.req.param('id'));
-    const target = release ? await o.connected.target(connection.id, release.id) : null;
-    if (!release || !target || release.siteId !== connection.siteId) return c.notFound();
-    if (c.req.header('if-none-match') === `"${release.artifactHash}"`) {
+    if (!connection || !o.connected) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    const release = await o.connected.release(c.req.param("id"));
+    const target = release
+      ? await o.connected.target(connection.id, release.id)
+      : null;
+    if (!release || !target || release.siteId !== connection.siteId) {
+      return c.notFound();
+    }
+    if (c.req.header("if-none-match") === `"${release.artifactHash}"`) {
       return c.body(null, 304, { etag: `"${release.artifactHash}"` });
     }
     return c.body(release.artifact as unknown as ArrayBuffer, 200, {
-      'content-type': 'application/vnd.pagecraft.wordpress-artifact+json',
-      'content-length': String(release.artifactBytes),
+      "content-type": "application/vnd.pagecraft.wordpress-artifact+json",
+      "content-length": String(release.artifactBytes),
       etag: `"${release.artifactHash}"`,
-      'cache-control': 'private, no-store'
+      "cache-control": "private, no-store",
     });
   });
 
-  app.get('/v1/wordpress-distribution/stable', async c => {
+  app.get("/v1/wordpress-distribution/stable", async (c) => {
     const origin = o.editorOrigin || new URL(c.req.url).origin;
     const distribution = o.packages?.stable(origin);
-    if (!distribution) return c.json({ error: 'signed WordPress distribution is unavailable' }, 503);
+    if (!distribution) {
+      return c.json(
+        { error: "signed WordPress distribution is unavailable" },
+        503,
+      );
+    }
     return c.json(distribution, 200, {
-      'cache-control': 'public, max-age=300, must-revalidate'
+      "cache-control": "public, max-age=300, must-revalidate",
     });
   });
 
-  app.get('/v1/wordpress-distribution/packages/:slug/:archive', async c => {
-    const pkg = o.packages?.get(c.req.param('slug'));
-    const match = c.req.param('archive').match(/^([a-f0-9]{64})\.zip$/);
-    if (!pkg || !match || pkg.hash !== match[1]
-      || !['pagecraft-importer', 'pagecraft-builder', 'pagecraft-theme'].includes(pkg.slug)) {
+  app.get("/v1/wordpress-distribution/packages/:slug/:archive", async (c) => {
+    const pkg = o.packages?.get(c.req.param("slug"));
+    const match = c.req.param("archive").match(/^([a-f0-9]{64})\.zip$/);
+    if (
+      !pkg || !match || pkg.hash !== match[1] ||
+      !["pagecraft-importer", "pagecraft-builder", "pagecraft-theme"].includes(
+        pkg.slug,
+      )
+    ) {
       return c.notFound();
     }
     const etag = `"${pkg.hash}"`;
     const headers = {
-      'content-type': 'application/zip', 'content-length': String(pkg.bytes.byteLength),
-      'content-disposition': `attachment; filename="${pkg.slug}-${pkg.version}.zip"`,
-      'x-pagecraft-content-sha256': pkg.hash, etag,
-      'cache-control': 'public, max-age=31536000, immutable'
+      "content-type": "application/zip",
+      "content-length": String(pkg.bytes.byteLength),
+      "content-disposition":
+        `attachment; filename="${pkg.slug}-${pkg.version}.zip"`,
+      "x-pagecraft-content-sha256": pkg.hash,
+      etag,
+      "cache-control": "public, max-age=31536000, immutable",
     };
-    if (c.req.header('if-none-match') === etag) return c.body(null, 304, headers);
+    if (c.req.header("if-none-match") === etag) {
+      return c.body(null, 304, headers);
+    }
     return c.body(pkg.bytes as unknown as ArrayBuffer, 200, headers);
   });
 
-  app.get('/v1/packages/:slug', async c => {
+  app.get("/v1/packages/:slug", async (c) => {
     const connection = await bearerConnection(c);
-    if (!connection || !connection.scopes.includes('release:read')) return c.json({ error: 'unauthorized' }, 401);
-    const pkg = o.packages?.get(c.req.param('slug'));
+    if (!connection || !connection.scopes.includes("release:read")) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    const pkg = o.packages?.get(c.req.param("slug"));
     if (!pkg) return c.notFound();
-    const token = newToken(), expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    const token = newToken(),
+      expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
     await o.connected!.putGrant({
-      digest: hashToken(token), kind: 'package-download', siteId: connection.siteId,
-      connectionId: connection.id, payload: { slug: pkg.slug, hash: pkg.hash }, expiresAt
+      digest: hashToken(token),
+      kind: "package-download",
+      siteId: connection.siteId,
+      connectionId: connection.id,
+      payload: { slug: pkg.slug, hash: pkg.hash },
+      expiresAt,
     });
-    const metadata = JSON.parse(new TextDecoder().decode(fromBase64url(pkg.manifest))) as Record<string, unknown>;
+    const metadata = JSON.parse(
+      new TextDecoder().decode(fromBase64url(pkg.manifest)),
+    ) as Record<string, unknown>;
     const here = o.editorOrigin || new URL(c.req.url).origin;
     return c.json({
       package: metadata,
-      signed: { manifest: pkg.manifest, signature: pkg.signature, keyId: pkg.keyId },
+      signed: {
+        manifest: pkg.manifest,
+        signature: pkg.signature,
+        keyId: pkg.keyId,
+      },
       keysetEnvelope: pkg.keysetEnvelope,
       download: {
-        url: `${here}/v1/packages/${encodeURIComponent(pkg.slug)}/download?token=${encodeURIComponent(token)}`,
-        expiresAt
-      }
+        url: `${here}/v1/packages/${
+          encodeURIComponent(pkg.slug)
+        }/download?token=${encodeURIComponent(token)}`,
+        expiresAt,
+      },
     });
   });
 
-  app.get('/v1/packages/:slug/download', async c => {
-    const token = c.req.query('token') || '';
+  app.get("/v1/packages/:slug/download", async (c) => {
+    const token = c.req.query("token") || "";
     const grant = token && o.connected
-      ? await o.connected.consumeGrant(hashToken(token), 'package-download', new Date().toISOString())
+      ? await o.connected.consumeGrant(
+        hashToken(token),
+        "package-download",
+        new Date().toISOString(),
+      )
       : null;
-    const pkg = o.packages?.get(c.req.param('slug'));
-    if (!grant || !pkg || grant.payload.slug !== pkg.slug || grant.payload.hash !== pkg.hash) {
-      return c.json({ error: 'download authorization expired or invalid' }, 401);
+    const pkg = o.packages?.get(c.req.param("slug"));
+    if (
+      !grant || !pkg || grant.payload.slug !== pkg.slug ||
+      grant.payload.hash !== pkg.hash
+    ) {
+      return c.json(
+        { error: "download authorization expired or invalid" },
+        401,
+      );
     }
-    const connection = grant.connectionId ? await o.connected?.connection(grant.connectionId) : null;
-    if (!connection || connection.status !== 'active') return c.json({ error: 'connection is no longer active' }, 401);
+    const connection = grant.connectionId
+      ? await o.connected?.connection(grant.connectionId)
+      : null;
+    if (!connection || connection.status !== "active") {
+      return c.json({ error: "connection is no longer active" }, 401);
+    }
     return c.body(pkg.bytes as unknown as ArrayBuffer, 200, {
-      'content-type': 'application/zip',
-      'content-length': String(pkg.bytes.byteLength),
-      'content-disposition': `attachment; filename="${pkg.slug}-${pkg.version}.zip"`,
-      'x-pagecraft-content-sha256': pkg.hash,
-      'cache-control': 'private, no-store'
+      "content-type": "application/zip",
+      "content-length": String(pkg.bytes.byteLength),
+      "content-disposition":
+        `attachment; filename="${pkg.slug}-${pkg.version}.zip"`,
+      "x-pagecraft-content-sha256": pkg.hash,
+      "cache-control": "private, no-store",
     });
   });
 
-  app.post('/v1/connections/:id/deployments', async c => {
+  app.post("/v1/connections/:id/deployments", async (c) => {
     const connection = await bearerConnection(c);
-    if (!connection || connection.id !== c.req.param('id') || !o.connected) {
-      return c.json({ error: 'unauthorized' }, 401);
+    if (!connection || connection.id !== c.req.param("id") || !o.connected) {
+      return c.json({ error: "unauthorized" }, 401);
     }
     const body = await c.req.json().catch(() => null) as {
-      releaseId?: string; targetSequence?: number; sequence?: number; status?: DeploymentStatus;
-      activeHash?: string | null; error?: string; idempotencyKey?: string;
-      detail?: { code?: string; message?: string; action?: string; stage?: string };
+      releaseId?: string;
+      targetSequence?: number;
+      sequence?: number;
+      status?: DeploymentStatus;
+      activeHash?: string | null;
+      error?: string;
+      idempotencyKey?: string;
+      detail?: {
+        code?: string;
+        message?: string;
+        action?: string;
+        stage?: string;
+      };
     } | null;
     const statuses = new Set<DeploymentStatus>([
-      'queued', 'downloading', 'staged', 'needs_approval', 'activating',
-      'verifying', 'live', 'failed', 'rolled_back'
+      "queued",
+      "downloading",
+      "staged",
+      "needs_approval",
+      "activating",
+      "verifying",
+      "live",
+      "failed",
+      "rolled_back",
     ]);
     const sequence = body?.targetSequence ?? body?.sequence;
-    const idempotencyKey = String(body?.idempotencyKey || c.req.header('idempotency-key') || '');
-    if (!body?.releaseId || !Number.isInteger(sequence) || !body.status || !statuses.has(body.status)
-      || !/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)) {
-      return c.json({ error: 'releaseId, targetSequence, status, and idempotencyKey are required' }, 400);
+    const idempotencyKey = String(
+      body?.idempotencyKey || c.req.header("idempotency-key") || "",
+    );
+    if (
+      !body?.releaseId || !Number.isInteger(sequence) || !body.status ||
+      !statuses.has(body.status) ||
+      !/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)
+    ) {
+      return c.json({
+        error:
+          "releaseId, targetSequence, status, and idempotencyKey are required",
+      }, 400);
     }
     const acknowledgement = {
-      connectionId: connection.id, releaseId: body.releaseId, sequence: sequence as number,
-      status: body.status, activeHash: body.activeHash || null,
+      connectionId: connection.id,
+      releaseId: body.releaseId,
+      sequence: sequence as number,
+      status: body.status,
+      activeHash: body.activeHash || null,
       error: body.error ? String(body.error).slice(0, 2000) : null,
-      detail: body.detail || null, idempotencyKey
+      detail: body.detail || null,
+      idempotencyKey,
     };
     const result = await o.connected.recordDeployment({
       ...acknowledgement,
-      bodyHash: sha256(new TextEncoder().encode(canonicalJson(acknowledgement)))
+      bodyHash: sha256(
+        new TextEncoder().encode(canonicalJson(acknowledgement)),
+      ),
     });
-    if (!result.ok) return c.json({ error: result.error }, result.error === 'unknown-target' ? 404 : 409);
-    const acknowledgedConnection = result.connection;
-    if (!acknowledgedConnection || acknowledgedConnection.status !== 'active') {
-      return c.json({ error: 'connection-inactive' }, 409);
+    if (!result.ok) {
+      return c.json(
+        { error: result.error },
+        result.error === "unknown-target" ? 404 : 409,
+      );
     }
-    let reconciliation: { status: 'not-required' | 'issued' | 'pending'; detail?: string } = {
-      status: 'not-required'
+    const acknowledgedConnection = result.connection;
+    if (!acknowledgedConnection || acknowledgedConnection.status !== "active") {
+      return c.json({ error: "connection-inactive" }, 409);
+    }
+    let reconciliation: {
+      status: "not-required" | "issued" | "pending";
+      detail?: string;
+    } = {
+      status: "not-required",
     };
     try {
-      if (acknowledgedConnection.environment === 'staging' && body.status === 'live') {
+      if (
+        acknowledgedConnection.environment === "staging" &&
+        body.status === "live"
+      ) {
         /* Exact ACK replay is read-only in the store, but follow-up may run again after staging
            has advanced. Promote the current active staging release, not the historical body,
            so a delayed duplicate can neither roll production back nor strand a late-paired
            production target on an older release. */
-        const promotion = await currentStagingPromotion(acknowledgedConnection.siteId);
+        const promotion = await currentStagingPromotion(
+          acknowledgedConnection.siteId,
+        );
         if (promotion) {
           const release = promotion.release;
-          const production = promotion.connections.find(item =>
-            item.environment === 'production' && item.status === 'active');
+          const production = promotion.connections.find((item) =>
+            item.environment === "production" && item.status === "active"
+          );
           if (production && production.profile !== promotion.staging.profile) {
-            throw new Error('staging and production setup profiles are incompatible');
+            throw new Error(
+              "staging and production setup profiles are incompatible",
+            );
           }
           const activeProductionRelease = production?.activeReleaseId
-            ? await o.connected.release(production.activeReleaseId) : null;
-          const productionOrderUnknown = !!production?.activeReleaseId && !activeProductionRelease;
-          const productionIsNewer = !!activeProductionRelease
-            && activeProductionRelease.sequence >= release.sequence;
-          if (production && !productionOrderUnknown && !productionIsNewer
-            && production.activeReleaseId !== release.id) {
-            if (!production.desiredReleaseId || production.desiredReleaseId === release.id) {
+            ? await o.connected.release(production.activeReleaseId)
+            : null;
+          const productionOrderUnknown = !!production?.activeReleaseId &&
+            !activeProductionRelease;
+          const productionIsNewer = !!activeProductionRelease &&
+            activeProductionRelease.sequence >= release.sequence;
+          if (
+            production && !productionOrderUnknown && !productionIsNewer &&
+            production.activeReleaseId !== release.id
+          ) {
+            if (
+              !production.desiredReleaseId ||
+              production.desiredReleaseId === release.id
+            ) {
               await issueTarget(release, production, true);
-              reconciliation = { status: 'issued' };
+              reconciliation = { status: "issued" };
             } else {
               reconciliation = {
-                status: 'pending', detail: 'Production is still completing the prior ordered release.'
+                status: "pending",
+                detail:
+                  "Production is still completing the prior ordered release.",
               };
             }
           } else if (productionOrderUnknown) {
             reconciliation = {
-              status: 'pending', detail: 'Production release order could not be verified safely.'
+              status: "pending",
+              detail: "Production release order could not be verified safely.",
             };
           } else if (!production) {
-            await stageNextRelease(acknowledgedConnection.siteId, release.sequence);
+            await stageNextRelease(
+              acknowledgedConnection.siteId,
+              release.sequence,
+            );
           }
         }
-      } else if (acknowledgedConnection.environment === 'production' && body.status === 'live') {
+      } else if (
+        acknowledgedConnection.environment === "production" &&
+        body.status === "live"
+      ) {
         const release = await o.connected.release(body.releaseId);
-        if (release) await stageNextRelease(acknowledgedConnection.siteId, release.sequence);
-      } else if ((body.status === 'failed' || body.status === 'rolled_back')) {
+        if (release) {
+          await stageNextRelease(
+            acknowledgedConnection.siteId,
+            release.sequence,
+          );
+        }
+      } else if ((body.status === "failed" || body.status === "rolled_back")) {
         const release = await o.connected.release(body.releaseId);
-        if (release) await stageNextRelease(acknowledgedConnection.siteId, release.sequence);
+        if (release) {
+          await stageNextRelease(
+            acknowledgedConnection.siteId,
+            release.sequence,
+          );
+        }
       }
     } catch (error) {
       /* The acknowledgement is already durable. Never turn a committed `live` into an
          ambiguous failure that prompts WordPress to roll back its verified local release.
          The production pending pointer / desired target is a durable reconciliation job. */
-      reconciliation = { status: 'pending', detail: String((error as Error).message) };
-      console.error('WordPress deployment follow-up is pending:', (error as Error).message);
+      reconciliation = {
+        status: "pending",
+        detail: String((error as Error).message),
+      };
+      console.error(
+        "WordPress deployment follow-up is pending:",
+        (error as Error).message,
+      );
     }
     return c.json({
-      deployment: result.deployment, duplicate: !!result.duplicate,
+      deployment: result.deployment,
+      duplicate: !!result.duplicate,
       activeReleaseId: result.connection?.activeReleaseId || null,
       activeHash: result.connection?.activeHash || null,
-      reconciliation
+      reconciliation,
     }, result.duplicate ? 200 : 201);
   });
 
@@ -3064,81 +5055,135 @@ export function createApp(o: Options) {
      connector uploads its exact bytes first, then writes the returned `asset:<id>` into the
      ordinary Pagecraft draft. The id is derived from the connection + idempotency key so a
      timed-out WordPress worker can retry without creating a second remote asset. */
-  app.post('/v1/sites/:id/cms-assets', async c => {
+  app.post("/v1/sites/:id/cms-assets", async (c) => {
     const connection = await bearerConnection(c);
-    const id = c.req.param('id');
-    if (!connection || connection.siteId !== id || !connection.scopes.includes('cms:write')) {
-      return c.json({ error: 'unauthorized' }, 401);
+    const id = c.req.param("id");
+    if (
+      !connection || connection.siteId !== id ||
+      !connection.scopes.includes("cms:write")
+    ) {
+      return c.json({ error: "unauthorized" }, 401);
     }
-    if (connection.environment !== 'production') {
-      return c.json({ error: 'CMS media write-back is production-only' }, 403);
+    if (connection.environment !== "production") {
+      return c.json({ error: "CMS media write-back is production-only" }, 403);
     }
-    if (!o.assets) return c.json({ error: 'this server stores no assets' }, 501);
-    const idempotencyKey = String(c.req.header('idempotency-key') || '');
-    const filename = String(c.req.header('x-pagecraft-filename') || '');
-    const claimedHash = String(c.req.header('x-pagecraft-content-sha256') || '').toLowerCase();
-    if (!/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)
-      || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$/.test(filename)
-      || filename === '.' || filename === '..' || !/^[a-f0-9]{64}$/.test(claimedHash)) {
+    if (!o.assets) {
+      return c.json({ error: "this server stores no assets" }, 501);
+    }
+    const idempotencyKey = String(c.req.header("idempotency-key") || "");
+    const filename = String(c.req.header("x-pagecraft-filename") || "");
+    const claimedHash = String(c.req.header("x-pagecraft-content-sha256") || "")
+      .toLowerCase();
+    if (
+      !/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey) ||
+      !/^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$/.test(filename) ||
+      filename === "." || filename === ".." ||
+      !/^[a-f0-9]{64}$/.test(claimedHash)
+    ) {
       return c.json({
-        error: 'valid Idempotency-Key, X-Pagecraft-Filename, and X-Pagecraft-Content-SHA256 headers are required'
+        error:
+          "valid Idempotency-Key, X-Pagecraft-Filename, and X-Pagecraft-Content-SHA256 headers are required",
       }, 400);
     }
-    const lengthHeader = String(c.req.header('content-length') || '');
+    const lengthHeader = String(c.req.header("content-length") || "");
     if (!/^\d+$/.test(lengthHeader) || Number(lengthHeader) < 1) {
-      return c.json({ error: 'an exact positive Content-Length is required' }, 411);
+      return c.json(
+        { error: "an exact positive Content-Length is required" },
+        411,
+      );
     }
     const declaredLength = Number(lengthHeader);
     if (declaredLength > MAX_BYTES) {
-      return c.json({ error: `too large — the limit is ${MAX_BYTES} bytes` }, 413);
+      return c.json(
+        { error: `too large — the limit is ${MAX_BYTES} bytes` },
+        413,
+      );
     }
     const bytes = new Uint8Array(await c.req.arrayBuffer());
     if (bytes.byteLength !== declaredLength) {
-      return c.json({ error: 'Content-Length does not match the received image bytes' }, 400);
+      return c.json({
+        error: "Content-Length does not match the received image bytes",
+      }, 400);
     }
     if (bytes.byteLength > MAX_BYTES) {
-      return c.json({ error: `too large — the limit is ${MAX_BYTES} bytes` }, 413);
+      return c.json(
+        { error: `too large — the limit is ${MAX_BYTES} bytes` },
+        413,
+      );
     }
     const bodyHash = sha256(bytes);
-    if (bodyHash !== claimedHash) return c.json({ error: 'image content hash does not match' }, 422);
-    const type = sniff(bytes);
-    if (!type || !ALLOWED.has(type)) return c.json({ error: 'that is not an image this server serves' }, 415);
-    const declaredType = String(c.req.header('content-type') || '').split(';', 1)[0].trim().toLowerCase();
-    if (!declaredType || declaredType !== type) {
-      return c.json({ error: 'the declared content type does not match the image bytes' }, 415);
+    if (bodyHash !== claimedHash) {
+      return c.json({ error: "image content hash does not match" }, 422);
     }
-    const assetId = 'wp' + sha256(new TextEncoder().encode(`${connection.id}\0${idempotencyKey}`)).slice(0, 48);
+    const type = sniff(bytes);
+    if (!type || !ALLOWED.has(type)) {
+      return c.json({ error: "that is not an image this server serves" }, 415);
+    }
+    const declaredType = String(c.req.header("content-type") || "").split(
+      ";",
+      1,
+    )[0].trim().toLowerCase();
+    if (!declaredType || declaredType !== type) {
+      return c.json({
+        error: "the declared content type does not match the image bytes",
+      }, 415);
+    }
+    const assetId = "wp" +
+      sha256(new TextEncoder().encode(`${connection.id}\0${idempotencyKey}`))
+        .slice(0, 48);
     const existing = await o.assets.get(id, assetId);
     if (existing) {
       if (existing.contentHash !== bodyHash) {
-        return c.json({ error: 'the idempotency key was already used for different media' }, 409);
+        return c.json({
+          error: "the idempotency key was already used for different media",
+        }, 409);
       }
       return c.json({
-        ...metaOf(existing), assetId, reference: `asset:${assetId}`, hash: bodyHash,
-        bytes: existing.bytes.byteLength, mime: existing.type, duplicate: true
+        ...metaOf(existing),
+        assetId,
+        reference: `asset:${assetId}`,
+        hash: bodyHash,
+        bytes: existing.bytes.byteLength,
+        mime: existing.type,
+        duplicate: true,
       });
     }
     let output: OptimizedImage;
-    try { output = await optimizeAsset(bytes, type); }
-    catch { return c.json({ error: 'image optimization failed' }, 422); }
+    try {
+      output = await optimizeAsset(bytes, type);
+    } catch {
+      return c.json({ error: "image optimization failed" }, 422);
+    }
     let saved: AssetRecord | null;
     try {
-      saved = await o.assets.putConnected({
-        id: assetId, siteId: id, name: optimizedName(filename, output.extension),
-        type: output.type, bytes: output.bytes, w: output.w, h: output.h,
-        contentHash: bodyHash
-      }, connection.id, async () => {
-        const current = await o.connected!.connection(connection.id);
-        return current?.status === 'active'
-          && !!current.accessTokenExpiresAt
-          && new Date(current.accessTokenExpiresAt).getTime() > Date.now();
-      }, {
-        ownerId: connection.createdBy, limitBytes: FREE_STORAGE_BYTES,
-        originalBytes: bytes.byteLength, optimized: true
-      });
+      saved = await o.assets.putConnected(
+        {
+          id: assetId,
+          siteId: id,
+          name: optimizedName(filename, output.extension),
+          type: output.type,
+          bytes: output.bytes,
+          w: output.w,
+          h: output.h,
+          contentHash: bodyHash,
+        },
+        connection.id,
+        async () => {
+          const current = await o.connected!.connection(connection.id);
+          return current?.status === "active" &&
+            !!current.accessTokenExpiresAt &&
+            new Date(current.accessTokenExpiresAt).getTime() > Date.now();
+        },
+        {
+          ownerId: connection.createdBy,
+          limitBytes: FREE_STORAGE_BYTES,
+          originalBytes: bytes.byteLength,
+          optimized: true,
+        },
+      );
     } catch (error) {
       if (error instanceof AssetQuotaError) {
-        return c.json({ error: 'storage_limit_reached', ...error.usage }, 409);
+        return c.json({ error: "storage_limit_reached", ...error.usage }, 409);
       }
       throw error;
     }
@@ -3149,96 +5194,159 @@ export function createApp(o: Options) {
       const current = await o.assets.get(id, assetId);
       if (current) {
         if (current.contentHash !== bodyHash) {
-          return c.json({ error: 'the idempotency key was already used for different media' }, 409);
+          return c.json({
+            error: "the idempotency key was already used for different media",
+          }, 409);
         }
         return c.json({
-          ...metaOf(current), assetId, reference: `asset:${assetId}`, hash: bodyHash,
-          bytes: current.bytes.byteLength, mime: current.type, duplicate: true
+          ...metaOf(current),
+          assetId,
+          reference: `asset:${assetId}`,
+          hash: bodyHash,
+          bytes: current.bytes.byteLength,
+          mime: current.type,
+          duplicate: true,
         });
       }
       const stillActive = await o.connected!.connection(connection.id);
-      if (stillActive?.status === 'active' && stillActive.accessTokenExpiresAt
-        && new Date(stillActive.accessTokenExpiresAt).getTime() > Date.now()) {
-        return c.json({ error: 'the idempotency key was already used for different media or site' }, 409);
+      if (
+        stillActive?.status === "active" && stillActive.accessTokenExpiresAt &&
+        new Date(stillActive.accessTokenExpiresAt).getTime() > Date.now()
+      ) {
+        return c.json({
+          error:
+            "the idempotency key was already used for different media or site",
+        }, 409);
       }
-      return c.json({ error: 'connection-inactive' }, 401);
+      return c.json({ error: "connection-inactive" }, 401);
     }
     built.delete(id);
     return c.json({
-      ...metaOf(saved), assetId, reference: `asset:${assetId}`, hash: bodyHash,
-      bytes: saved.storedBytes ?? output.bytes.byteLength, mime: saved.type, duplicate: false
+      ...metaOf(saved),
+      assetId,
+      reference: `asset:${assetId}`,
+      hash: bodyHash,
+      bytes: saved.storedBytes ?? output.bytes.byteLength,
+      mime: saved.type,
+      duplicate: false,
     }, 201);
   });
 
-  app.patch('/v1/sites/:id/cms', async c => {
+  app.patch("/v1/sites/:id/cms", async (c) => {
     const connection = await bearerConnection(c);
-    const id = c.req.param('id');
-    if (!connection || connection.siteId !== id || !connection.scopes.includes('cms:write')) {
-      return c.json({ error: 'unauthorized' }, 401);
+    const id = c.req.param("id");
+    if (
+      !connection || connection.siteId !== id ||
+      !connection.scopes.includes("cms:write")
+    ) {
+      return c.json({ error: "unauthorized" }, 401);
     }
-    if (connection.environment !== 'production') {
-      return c.json({ error: 'CMS write-back is production-only' }, 403);
+    if (connection.environment !== "production") {
+      return c.json({ error: "CMS write-back is production-only" }, 403);
     }
     const body = await c.req.json().catch(() => null) as {
       baseVersion?: number;
       writes?: Array<{
-        collectionId?: string; itemId?: string; writeSequence?: number;
-        values?: Record<string, unknown>; draft?: boolean;
+        collectionId?: string;
+        itemId?: string;
+        writeSequence?: number;
+        values?: Record<string, unknown>;
+        draft?: boolean;
       }>;
     } | null;
-    const idempotencyKey = String(c.req.header('idempotency-key') || '');
-    if (!body || (body.baseVersion !== undefined && !Number.isInteger(body.baseVersion))
-      || !Array.isArray(body.writes) || !body.writes.length || body.writes.length > 100
-      || !/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)) {
+    const idempotencyKey = String(c.req.header("idempotency-key") || "");
+    if (
+      !body ||
+      (body.baseVersion !== undefined && !Number.isInteger(body.baseVersion)) ||
+      !Array.isArray(body.writes) || !body.writes.length ||
+      body.writes.length > 100 ||
+      !/^[A-Za-z0-9._:-]{8,160}$/.test(idempotencyKey)
+    ) {
       return c.json({
-        error: 'Idempotency-Key and between 1 and 100 sequenced writes are required'
+        error:
+          "Idempotency-Key and between 1 and 100 sequenced writes are required",
       }, 400);
     }
     const normalized: Array<{
-      collectionId: string; itemId: string; writeSequence: number;
-      values: Record<string, string>; draft?: boolean; bodyHash: string; itemKey: string;
+      collectionId: string;
+      itemId: string;
+      writeSequence: number;
+      values: Record<string, string>;
+      draft?: boolean;
+      bodyHash: string;
+      itemKey: string;
     }> = [];
     const itemKeys = new Set<string>();
     for (const write of body.writes) {
-      const collectionId = typeof write.collectionId === 'string' ? write.collectionId : '';
-      const itemId = typeof write.itemId === 'string' ? write.itemId : '';
+      const collectionId = typeof write.collectionId === "string"
+        ? write.collectionId
+        : "";
+      const itemId = typeof write.itemId === "string" ? write.itemId : "";
       const values = write.values || {};
       const itemKey = cmsItemKey(collectionId, itemId);
-      if (!collectionId || !itemId || !Number.isSafeInteger(write.writeSequence)
-        || Number(write.writeSequence) < 1 || !values || typeof values !== 'object' || Array.isArray(values)
-        || Object.values(values).some(value => typeof value !== 'string')
-        || (write.draft !== undefined && typeof write.draft !== 'boolean')
-        || (!Object.keys(values).length && write.draft === undefined) || itemKeys.has(itemKey)) {
-        return c.json({ error: 'each item needs one unique positive writeSequence and typed values or draft state' }, 400);
+      if (
+        !collectionId || !itemId ||
+        !Number.isSafeInteger(write.writeSequence) ||
+        Number(write.writeSequence) < 1 || !values ||
+        typeof values !== "object" || Array.isArray(values) ||
+        Object.values(values).some((value) => typeof value !== "string") ||
+        (write.draft !== undefined && typeof write.draft !== "boolean") ||
+        (!Object.keys(values).length && write.draft === undefined) ||
+        itemKeys.has(itemKey)
+      ) {
+        return c.json({
+          error:
+            "each item needs one unique positive writeSequence and typed values or draft state",
+        }, 400);
       }
       itemKeys.add(itemKey);
       const stable = {
-        collectionId, itemId, writeSequence: Number(write.writeSequence),
-        values: values as Record<string, string>, draft: write.draft ?? null
+        collectionId,
+        itemId,
+        writeSequence: Number(write.writeSequence),
+        values: values as Record<string, string>,
+        draft: write.draft ?? null,
       };
       normalized.push({
-        ...stable, draft: write.draft, itemKey,
-        bodyHash: sha256(new TextEncoder().encode(canonicalJson(stable)))
+        ...stable,
+        draft: write.draft,
+        itemKey,
+        bodyHash: sha256(new TextEncoder().encode(canonicalJson(stable))),
       });
     }
     for (let attempt = 0; attempt < 5; attempt++) {
       const site = await o.store.byId(id);
       if (!site) return c.notFound();
-      const currentAssetIds = new Set((await assetsOf(id)).map(asset => asset.id));
+      const currentAssetIds = new Set(
+        (await assetsOf(id)).map((asset) => asset.id),
+      );
       try {
         /* Validate even an apparent replay against the current canonical schema. A connection
            must not retain authority to write a removed field merely because it has an older
            sequence receipt. The retry loop repeats this check after every save conflict. */
         for (const write of normalized) {
-          assertTypedCmsWrite(site.doc, write.collectionId, write.itemId, write.values, currentAssetIds);
+          assertTypedCmsWrite(
+            site.doc,
+            write.collectionId,
+            write.itemId,
+            write.values,
+            currentAssetIds,
+          );
         }
       } catch (error) {
         return c.json({ error: String((error as Error).message) }, 422);
       }
-      const heads = await o.store.cmsWriteHeads(id, connection.id, [...itemKeys]);
-      const headByItem = new Map(heads.map(head => [cmsItemKey(head.collectionId, head.itemId), head]));
+      const heads = await o.store.cmsWriteHeads(id, connection.id, [
+        ...itemKeys,
+      ]);
+      const headByItem = new Map(
+        heads.map((head) => [cmsItemKey(head.collectionId, head.itemId), head]),
+      );
       const stale: Array<{
-        collectionId: string; itemId: string; writeSequence: number; currentSequence: number;
+        collectionId: string;
+        itemId: string;
+        writeSequence: number;
+        currentSequence: number;
       }> = [];
       const conflicts: typeof stale = [];
       const duplicates = new Set<string>();
@@ -3247,54 +5355,93 @@ export function createApp(o: Options) {
         if (!head) continue;
         if (write.writeSequence < head.writeSequence) {
           stale.push({
-            collectionId: write.collectionId, itemId: write.itemId,
-            writeSequence: write.writeSequence, currentSequence: head.writeSequence
+            collectionId: write.collectionId,
+            itemId: write.itemId,
+            writeSequence: write.writeSequence,
+            currentSequence: head.writeSequence,
           });
         } else if (write.writeSequence === head.writeSequence) {
-          if (write.bodyHash === head.bodyHash && idempotencyKey === head.idempotencyKey) {
+          if (
+            write.bodyHash === head.bodyHash &&
+            idempotencyKey === head.idempotencyKey
+          ) {
             duplicates.add(write.itemKey);
           } else {
             conflicts.push({
-              collectionId: write.collectionId, itemId: write.itemId,
-              writeSequence: write.writeSequence, currentSequence: head.writeSequence
+              collectionId: write.collectionId,
+              itemId: write.itemId,
+              writeSequence: write.writeSequence,
+              currentSequence: head.writeSequence,
             });
           }
         }
       }
-      if (stale.length) return c.json({ error: 'stale-write', retryable: false, stale }, 409);
-      if (conflicts.length) {
-        return c.json({ error: 'write-sequence-conflict', retryable: false, conflicts }, 409);
+      if (stale.length) {
+        return c.json({ error: "stale-write", retryable: false, stale }, 409);
       }
-      const pending = normalized.filter(write => !duplicates.has(write.itemKey));
-      if (!pending.length) return c.json({
-        status: 'duplicate', baseVersion: body.baseVersion ?? null,
-        version: site.version, publishedVersion: site.publishedVersion,
-        writes: normalized.map(write => ({
-          collectionId: write.collectionId, itemId: write.itemId, writeSequence: write.writeSequence
-        }))
-      });
+      if (conflicts.length) {
+        return c.json({
+          error: "write-sequence-conflict",
+          retryable: false,
+          conflicts,
+        }, 409);
+      }
+      const pending = normalized.filter((write) =>
+        !duplicates.has(write.itemKey)
+      );
+      if (!pending.length) {
+        return c.json({
+          status: "duplicate",
+          baseVersion: body.baseVersion ?? null,
+          version: site.version,
+          publishedVersion: site.publishedVersion,
+          writes: normalized.map((write) => ({
+            collectionId: write.collectionId,
+            itemId: write.itemId,
+            writeSequence: write.writeSequence,
+          })),
+        });
+      }
       const document = structuredClone(site.doc);
       const overwritten: Array<{
-        collectionId: string; itemId: string; writeSequence: number; fieldId: string;
-        previous: string | boolean | null; next: string | boolean;
+        collectionId: string;
+        itemId: string;
+        writeSequence: number;
+        fieldId: string;
+        previous: string | boolean | null;
+        next: string | boolean;
       }> = [];
       try {
         for (const write of pending) {
           const { collection, item } = assertTypedCmsWrite(
-            document, write.collectionId, write.itemId, write.values, currentAssetIds
+            document,
+            write.collectionId,
+            write.itemId,
+            write.values,
+            currentAssetIds,
           );
           for (const [fieldId, value] of Object.entries(write.values || {})) {
             overwritten.push({
-              collectionId: collection.id, itemId: item.id, writeSequence: write.writeSequence, fieldId,
-              previous: Object.prototype.hasOwnProperty.call(item.values, fieldId) ? item.values[fieldId] : null,
-              next: value
+              collectionId: collection.id,
+              itemId: item.id,
+              writeSequence: write.writeSequence,
+              fieldId,
+              previous:
+                Object.prototype.hasOwnProperty.call(item.values, fieldId)
+                  ? item.values[fieldId]
+                  : null,
+              next: value,
             });
             item.values[fieldId] = value;
           }
           if (write.draft === true || write.draft === false) {
             overwritten.push({
-              collectionId: collection.id, itemId: item.id, writeSequence: write.writeSequence, fieldId: '$draft',
-              previous: !!item.draft, next: write.draft
+              collectionId: collection.id,
+              itemId: item.id,
+              writeSequence: write.writeSequence,
+              fieldId: "$draft",
+              previous: !!item.draft,
+              next: write.draft,
             });
             if (write.draft) item.draft = 1;
             else delete item.draft;
@@ -3303,39 +5450,60 @@ export function createApp(o: Options) {
       } catch (error) {
         return c.json({ error: String((error as Error).message) }, 422);
       }
-      const saved = await o.store.saveConnectedCms(id, document, site.version, connection.createdBy, connection.id, {
-        source: 'wordpress-cms-write',
-        connectionId: connection.id,
-        installationId: connection.installationId,
-        baseVersion: body.baseVersion ?? null,
-        appliedToVersion: site.version,
-        overwritten,
-        cmsWrites: pending.map(write => ({
-          connectionId: connection.id, collectionId: write.collectionId, itemId: write.itemId,
-          writeSequence: write.writeSequence, idempotencyKey, bodyHash: write.bodyHash,
-          overwritten: overwritten.filter(entry => entry.collectionId === write.collectionId
-            && entry.itemId === write.itemId && entry.writeSequence === write.writeSequence)
-        }))
-      }, async () => {
-        const current = await o.connected!.connection(connection.id);
-        return current?.status === 'active'
-          && !!current.accessTokenExpiresAt
-          && new Date(current.accessTokenExpiresAt).getTime() > Date.now();
-      });
-      if (saved.ok) return c.json({
-        status: 'applied',
-        baseVersion: body.baseVersion ?? null,
-        version: saved.site!.version,
-        publishedVersion: saved.site!.publishedVersion,
-        overwrittenCount: overwritten.length,
-        writes: normalized.map(write => ({
-          collectionId: write.collectionId, itemId: write.itemId, writeSequence: write.writeSequence
-        }))
-      });
-      if (saved.guarded) return c.json({ error: 'connection-inactive' }, 401);
+      const saved = await o.store.saveConnectedCms(
+        id,
+        document,
+        site.version,
+        connection.createdBy,
+        connection.id,
+        {
+          source: "wordpress-cms-write",
+          connectionId: connection.id,
+          installationId: connection.installationId,
+          baseVersion: body.baseVersion ?? null,
+          appliedToVersion: site.version,
+          overwritten,
+          cmsWrites: pending.map((write) => ({
+            connectionId: connection.id,
+            collectionId: write.collectionId,
+            itemId: write.itemId,
+            writeSequence: write.writeSequence,
+            idempotencyKey,
+            bodyHash: write.bodyHash,
+            overwritten: overwritten.filter((entry) =>
+              entry.collectionId === write.collectionId &&
+              entry.itemId === write.itemId &&
+              entry.writeSequence === write.writeSequence
+            ),
+          })),
+        },
+        async () => {
+          const current = await o.connected!.connection(connection.id);
+          return current?.status === "active" &&
+            !!current.accessTokenExpiresAt &&
+            new Date(current.accessTokenExpiresAt).getTime() > Date.now();
+        },
+      );
+      if (saved.ok) {
+        return c.json({
+          status: "applied",
+          baseVersion: body.baseVersion ?? null,
+          version: saved.site!.version,
+          publishedVersion: saved.site!.publishedVersion,
+          overwrittenCount: overwritten.length,
+          writes: normalized.map((write) => ({
+            collectionId: write.collectionId,
+            itemId: write.itemId,
+            writeSequence: write.writeSequence,
+          })),
+        });
+      }
+      if (saved.guarded) return c.json({ error: "connection-inactive" }, 401);
       if (!saved.conflict) return c.notFound();
     }
-    return c.json({ error: 'CMS write could not settle after concurrent saves; retry safely' }, 409);
+    return c.json({
+      error: "CMS write could not settle after concurrent saves; retry safely",
+    }, 409);
   });
 
   /* ------------------------------------------------------------------ the sites */
@@ -3350,41 +5518,63 @@ export function createApp(o: Options) {
 
      On any other host it is a custom domain, matched the way it always was. A site can have
      both; the slug is the one it gets for free. */
-  app.get('*', async c => {
+  app.get("*", async (c) => {
     const url = new URL(c.req.url);
-    if (isEditorHost(c.req.header('host'), o)) {
-      const [, first, ...rest] = url.pathname.split('/');
+    if (isEditorHost(c.req.header("host"), o)) {
+      const [, first, ...rest] = url.pathname.split("/");
       const slug = first ? validSlug(first) : null;
       if (o.publications) {
-        const publication = slug ? await o.publications.currentBySlug(slug) : null;
-        if (!publication) return c.text(first
-          ? `No published site at /${first}`
-          : 'No site here. Sign in to the editor to make one.', 404);
-        if (!rest.length && !url.pathname.endsWith('/')) {
+        const publication = slug
+          ? await o.publications.currentBySlug(slug)
+          : null;
+        if (!publication) {
+          return c.text(
+            first
+              ? `No published site at /${first}`
+              : "No site here. Sign in to the editor to make one.",
+            404,
+          );
+        }
+        if (!rest.length && !url.pathname.endsWith("/")) {
           return c.redirect(`/${publication.slug}/${url.search}`, 308);
         }
-        return serveHostedPublication(c, o.publications, publication, '/' + rest.join('/'), true);
+        return serveHostedPublication(
+          c,
+          o.publications,
+          publication,
+          "/" + rest.join("/"),
+          true,
+        );
       }
       const site = slug ? await o.store.bySlug(slug) : null;
       if (!site) {
-        return c.text(first
-          ? `No site at /${first}`
-          : 'No site here. Sign in to the editor to make one.', 404);
+        return c.text(
+          first
+            ? `No site at /${first}`
+            : "No site here. Sign in to the editor to make one.",
+          404,
+        );
       }
       /* A site root is directory-shaped. Keep one canonical URL so analytics, caches and search
          engines do not split `/acme` and `/acme/`; retain the query exactly. */
-      if (!rest.length && !url.pathname.endsWith('/')) {
+      if (!rest.length && !url.pathname.endsWith("/")) {
         return c.redirect(`/${site.slug}/${url.search}`, 308);
       }
       /* The path within the site. A bare `/acme` is that site's index, which is why the empty
          remainder becomes `/` rather than falling through to a 404. */
-      return serveSite(c, o, built, render, '/' + rest.join('/'), site);
+      return serveSite(c, o, built, render, "/" + rest.join("/"), site);
     }
-    const host = (c.req.header('host') || '').split(':')[0];
+    const host = (c.req.header("host") || "").split(":")[0];
     if (o.publications) {
       const publication = await o.publications.currentByHost(host);
       return publication
-        ? serveHostedPublication(c, o.publications, publication, url.pathname, false)
+        ? serveHostedPublication(
+          c,
+          o.publications,
+          publication,
+          url.pathname,
+          false,
+        )
         : c.text(`No published site for host ${host}`, 404);
     }
     const site = await o.store.byHost(host);
@@ -3399,13 +5589,14 @@ export function createApp(o: Options) {
    `</script>` — in a code block, say, which this builder now has a widget for — would
    otherwise close the tag it is inside and the rest of the page would be script. */
 function inject(html: string, config: unknown) {
-  const json = JSON.stringify(config).replace(/</g, '\\u003c');
+  const json = JSON.stringify(config).replace(/</g, "\\u003c");
   const tag = `<script>window.PC_SERVER=${json};<\/script>\n`;
-  const at = html.indexOf('<script');
+  const at = html.indexOf("<script");
   return at < 0 ? tag + html : html.slice(0, at) + tag + html.slice(at);
 }
 
-const shell = (title: string, body: string) => `<!doctype html>
+const shell = (title: string, body: string) =>
+  `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
@@ -3434,34 +5625,38 @@ const shell = (title: string, body: string) => `<!doctype html>
   .consent h1{max-width:24ch;margin-bottom:10px;font-size:28px;line-height:1.18;letter-spacing:-.025em}
   .consent__header p{max-width:58ch;margin:0;font-size:14px}
   .consent__body{padding:28px 36px 36px}
-  .consent__details{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);margin:0 0 28px;
-                    border:1px solid #e5e1d6;border-radius:8px;background:#fff}
-  .consent__details>div{min-width:0;padding:20px 22px}
-  .consent__details>div+div{border-left:1px solid #e5e1d6}
-  .consent__details dt{margin:0 0 7px;color:#5f6660;font-size:11px;font-weight:700;letter-spacing:.045em;text-transform:uppercase}
-  .consent__details dd{margin:0;font-size:14px;font-weight:700;line-height:1.4}
-  .consent__details small{display:block;margin-top:5px;line-height:1.5}
-  .consent__destination{overflow-wrap:anywhere}
+  .consent__destination{padding-bottom:20px;border-bottom:1px solid #e5e1d6}
+  .consent__destination span{display:block;color:#5f6660;font-size:12px;font-weight:600}
+  .consent__destination strong{display:block;margin-top:5px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+  .consent__note{max-width:58ch;margin:18px 0 24px;font-size:13px;line-height:1.55}
   .consent__actions{margin:0}
-  .consent__actions button{min-height:46px;border-radius:4px}
-  .consent__actions button:hover{background:#a9e63c}
-  .consent__actions button:focus-visible{outline:3px solid #111311;outline-offset:3px}
-  ${'@'}media(max-width:560px){
+  .consent__actions .pc-btn{height:44px;padding:0 18px;border:1px solid #b7f34a;border-radius:7px;
+                           background:#b7f34a;color:#111311;display:inline-flex;align-items:center;justify-content:center;
+                           font-size:.82rem;font-weight:600}
+  .consent__actions .pc-btn:hover{background:#c5fa63;border-color:#c5fa63}
+  .consent__actions .pc-btn:focus-visible{outline:2px solid #b7f34a;outline-offset:2px}
+  ${"@"}media(max-width:560px){
     .card--consent{width:min(calc(100vw - 24px),620px)}
     .consent__header{padding:26px 24px 24px}
     .consent__brand{margin-bottom:22px}
     .consent h1{font-size:24px}
     .consent__body{padding:24px}
-    .consent__details{grid-template-columns:1fr}
-    .consent__details>div{padding:18px}
-    .consent__details>div+div{border-top:1px solid #e5e1d6;border-left:0}
   }
-  ${body.includes('<select') ? CUSTOM_SELECT_CSS : ''}
-</style></head><body><div class="card${body.includes('class="consent"') ? ' card--consent' : ''}">${body}</div>${body.includes('<select') ? `<script>${CUSTOM_SELECT_BOOT_SCRIPT}<\/script>` : ''}</body></html>`;
+  ${body.includes("<select") ? CUSTOM_SELECT_CSS : ""}
+</style></head><body><div class="card${
+    body.includes('class="consent"') ? " card--consent" : ""
+  }">${body}</div>${
+    body.includes("<select")
+      ? `<script>${CUSTOM_SELECT_BOOT_SCRIPT}<\/script>`
+      : ""
+  }</body></html>`;
 
 /* No framework for four screens' worth of markup. If this grows past a form and a list it
    should become part of the editor bundle rather than more strings in here. */
-const signInPage = () => shell('Sign in — Pagecraft', `
+const signInPage = () =>
+  shell(
+    "Sign in — Pagecraft",
+    `
   <h1>Pagecraft</h1>
   <p>Enter your email and we will send a link that signs you in.</p>
   <form id="f"><label for="e">Email</label>
@@ -3490,7 +5685,8 @@ const signInPage = () => shell('Sign in — Pagecraft', `
         error.hidden = false; button.disabled = false; button.textContent = 'Send me a link';
       }
     });
-  <\/script>`);
+  <\/script>`,
+  );
 
 /* The first screen of a new deployment, and it used to be a dead end: "ask whoever set it up to
    grant you one", shown to the person who had just set it up. There was no way to make a site
@@ -3523,27 +5719,44 @@ const newSiteForm = (label: string) => `
     });
   <\/script>`;
 
-const emptyPage = (email: string) => shell('No sites — Pagecraft', `
+const emptyPage = (email: string) =>
+  shell(
+    "No sites — Pagecraft",
+    `
   <h1>Make your first site</h1>
-  <p>Signed in as ${escapeHtml(email)}. Nothing here yet — name something and start.</p>
-  ${newSiteForm('Site name')}`);
+  <p>Signed in as ${
+      escapeHtml(email)
+    }. Nothing here yet — name something and start.</p>
+  ${newSiteForm("Site name")}`,
+  );
 
-const pickerPage = (email: string, sites: { id: string; name: string; where: string; role: string }[]) =>
-  shell('Your sites — Pagecraft', `
+const pickerPage = (
+  email: string,
+  sites: { id: string; name: string; where: string; role: string }[],
+) =>
+  shell(
+    "Your sites — Pagecraft",
+    `
   <h1>Your sites</h1>
   <p>Signed in as ${escapeHtml(email)}</p>
-  ${sites.map(s => `<a href="/edit/${encodeURIComponent(s.id)}">
+  ${
+      sites.map((s) =>
+        `<a href="/edit/${encodeURIComponent(s.id)}">
     <span>${escapeHtml(s.name)}<br><small>${escapeHtml(s.where)}</small></span>
-    <small>${escapeHtml(s.role)}</small></a>`).join('')}
-  ${newSiteForm('Another site')}`);
+    <small>${escapeHtml(s.role)}</small></a>`
+      ).join("")
+    }
+  ${newSiteForm("Another site")}`,
+  );
 
-const escapeHtml = (v: string) => String(v)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+const escapeHtml = (v: string) =>
+  String(v)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 function isEditorHost(host: string | undefined, o: Options) {
-  if (!o.editorHost) return true;                       // no split configured: everything is the editor
-  return (host || '').split(':')[0] === o.editorHost;
+  if (!o.editorHost) return true; // no split configured: everything is the editor
+  return (host || "").split(":")[0] === o.editorHost;
 }
 
 /**
@@ -3562,11 +5775,16 @@ function isEditorHost(host: string | undefined, o: Options) {
  */
 /** Where a site can be linked. Its own domain once it has one, the shared host and its path
     until then — and the scheme comes from the request, so a local run says `http`. */
-function shareUrl(c: Context, o: Options, site: Pick<Site, 'host' | 'slug'>): string {
-  const proto = c.req.header('x-forwarded-proto') || new URL(c.req.url).protocol.replace(':', '');
+function shareUrl(
+  c: Context,
+  o: Options,
+  site: Pick<Site, "host" | "slug">,
+): string {
+  const proto = c.req.header("x-forwarded-proto") ||
+    new URL(c.req.url).protocol.replace(":", "");
   const real = !/\.invalid$/.test(site.host);
   if (real) return `${proto}://${site.host}/`;
-  const here = c.req.header('host') || o.editorHost || 'localhost';
+  const here = c.req.header("host") || o.editorHost || "localhost";
   return `${proto}://${here}/${site.slug}/`;
 }
 
@@ -3578,161 +5796,234 @@ async function serveHostedPublication(
   publications: HostedPublicationStore,
   publication: PublicationSummary,
   urlPath: string,
-  sharedHost: boolean
+  sharedHost: boolean,
 ) {
   const path = resolvePath(urlPath);
-  const prefix = sharedHost ? publication.slug : '';
-  const records = new Map(publication.files.map(file => [file.path, file]));
-  const renderedPaths = new Map(publication.files.map(file => [file.path, '']));
+  const prefix = sharedHost ? publication.slug : "";
+  const records = new Map(publication.files.map((file) => [file.path, file]));
+  const renderedPaths = new Map(
+    publication.files.map((file) => [file.path, ""]),
+  );
 
-  if (/(^|\/)index(?:\.html)?$/i.test(urlPath.replace(/\/+$/, '')) && records.has(path)) {
-    return c.redirect(publicPath(path, prefix) + new URL(c.req.url).search, 308);
+  if (
+    /(^|\/)index(?:\.html)?$/i.test(urlPath.replace(/\/+$/, "")) &&
+    records.has(path)
+  ) {
+    return c.redirect(
+      publicPath(path, prefix) + new URL(c.req.url).search,
+      308,
+    );
   }
   if (/\.html$/i.test(urlPath) && records.has(path)) {
-    return c.redirect(publicPath(path, prefix) + new URL(c.req.url).search, 308);
+    return c.redirect(
+      publicPath(path, prefix) + new URL(c.req.url).search,
+      308,
+    );
   }
 
   let status: 200 | 404 = 200;
   let record = records.get(path);
   if (!record) {
-    record = records.get('404.html');
+    record = records.get("404.html");
     if (!record) return c.text(`Not found: /${path}`, 404);
     status = 404;
   }
   const bytes = await publications.file(publication, record.path);
-  if (!bytes) return c.text('Published file unavailable', 503);
-  const html = record.mediaType.startsWith('text/html');
+  if (!bytes) return c.text("Published file unavailable", 503);
+  const html = record.mediaType.startsWith("text/html");
   let body: string | Uint8Array = bytes;
   if (html) {
     try {
-      body = hostedHtml(new TextDecoder().decode(bytes), record.path, renderedPaths, prefix);
-    } catch { return c.text('Published HTML unavailable', 503); }
+      body = hostedHtml(
+        new TextDecoder().decode(bytes),
+        record.path,
+        renderedPaths,
+        prefix,
+      );
+    } catch {
+      return c.text("Published HTML unavailable", 503);
+    }
   }
-  const etag = `"${sha256(typeof body === 'string' ? new TextEncoder().encode(body) : body)}"`;
+  const etag = `"${
+    sha256(typeof body === "string" ? new TextEncoder().encode(body) : body)
+  }"`;
   const headers: Record<string, string> = html
     ? {
-        ...publishedHeaders(record.mediaType), etag,
-        'cache-control': 'public, max-age=0, must-revalidate'
-      }
+      ...publishedHeaders(record.mediaType),
+      etag,
+      "cache-control": "public, max-age=0, must-revalidate",
+    }
     : {
-        ...publicationAssetHeaders(record.mediaType, record.path), etag,
-        'cache-control': 'public, max-age=31536000, immutable'
-      };
-  if (c.req.header('if-none-match')?.split(',').map(value => value.trim()).includes(etag)) {
+      ...publicationAssetHeaders(record.mediaType, record.path),
+      etag,
+      "cache-control": "public, max-age=31536000, immutable",
+    };
+  if (
+    c.req.header("if-none-match")?.split(",").map((value) => value.trim())
+      .includes(etag)
+  ) {
     return c.body(null, 304, headers);
   }
-  if (typeof body === 'string') return c.body(body, status, headers);
+  if (typeof body === "string") return c.body(body, status, headers);
   return c.body(body as unknown as ArrayBuffer, status, {
-    ...headers, 'content-length': String(body.byteLength)
+    ...headers,
+    "content-length": String(body.byteLength),
   });
 }
 
-const publicationAssetHeaders = (mediaType: string, path: string): Record<string, string> =>
-  mediaType === 'image/svg+xml'
+const publicationAssetHeaders = (
+  mediaType: string,
+  path: string,
+): Record<string, string> =>
+  mediaType === "image/svg+xml"
     ? {
-        'content-type': mediaType,
-        'content-security-policy': "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
-        'content-disposition': `inline; filename="${path.split('/').at(-1)!.replace(/["\\\r\n]/g, '_')}"`,
-        'x-content-type-options': 'nosniff'
-      }
-    : { 'content-type': mediaType, 'x-content-type-options': 'nosniff' };
+      "content-type": mediaType,
+      "content-security-policy":
+        "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
+      "content-disposition": `inline; filename="${
+        path.split("/").at(-1)!.replace(/["\\\r\n]/g, "_")
+      }"`,
+      "x-content-type-options": "nosniff",
+    }
+    : { "content-type": mediaType, "x-content-type-options": "nosniff" };
 
 async function serveSite(
   c: Context,
   o: Options,
-  built: Map<string, { version: number; releaseId: string | null; files: Map<string, string> }>,
+  built: Map<
+    string,
+    { version: number; releaseId: string | null; files: Map<string, string> }
+  >,
   render: (doc: Doc, assets?: AssetRecord[]) => { files: Map<string, string> },
   urlPath: string,
-  site: Site
+  site: Site,
 ) {
   /* A restart empties the cache, so the first request after one renders. Cheaper than
      writing files to the volume and keeping them in step with the document. */
   const path = resolvePath(urlPath);
-  const shared = isEditorHost(c.req.header('host'), o);
-  const prefix = shared ? site.slug : '';
+  const shared = isEditorHost(c.req.header("host"), o);
+  const prefix = shared ? site.slug : "";
 
   /* Images come from the asset store rather than the rendered map: the map holds strings, and
      putting megabytes of binary in it would make every render carry them. */
-  if (path.startsWith('assets/')) {
+  if (path.startsWith("assets/")) {
     /* Once a signed release exists, its content-addressed bytes are the public truth. A later
        draft upload or replacement cannot mutate what visitors receive before Publish. */
     if (site.publishedReleaseId && o.connected) {
       const release = await o.connected.release(site.publishedReleaseId);
-      if (!release) return c.text('Published release unavailable', 503);
+      if (!release) return c.text("Published release unavailable", 503);
       let artifact: ReturnType<typeof parseReleaseArtifact>;
       try {
-        if (release.artifact.byteLength !== release.artifactBytes
-          || sha256(release.artifact) !== release.artifactHash) throw new Error('artifact integrity mismatch');
+        if (
+          release.artifact.byteLength !== release.artifactBytes ||
+          sha256(release.artifact) !== release.artifactHash
+        ) throw new Error("artifact integrity mismatch");
         artifact = parseReleaseArtifact(release.artifact);
+      } catch {
+        return c.text("Published release artifact unavailable", 503);
       }
-      catch { return c.text('Published release artifact unavailable', 503); }
-      const frozen = artifact.assets.find(asset => asset.filename === path);
+      const frozen = artifact.assets.find((asset) => asset.filename === path);
       if (!frozen) return c.notFound();
       let bytes: Uint8Array;
       try {
         bytes = fromBase64url(frozen.content);
-        if (bytes.byteLength !== frozen.bytes || sha256(bytes) !== frozen.hash) {
-          throw new Error('asset integrity mismatch');
+        if (
+          bytes.byteLength !== frozen.bytes || sha256(bytes) !== frozen.hash
+        ) {
+          throw new Error("asset integrity mismatch");
         }
-      } catch { return c.text('Published release asset unavailable', 503); }
+      } catch {
+        return c.text("Published release asset unavailable", 503);
+      }
       return c.body(bytes as unknown as ArrayBuffer, 200, {
         ...assetHeaders({ type: frozen.mime, name: frozen.filename }),
-        'content-length': String(frozen.bytes),
-        'cache-control': 'public, max-age=31536000, immutable'
+        "content-length": String(frozen.bytes),
+        "cache-control": "public, max-age=31536000, immutable",
       });
     }
     const a = o.assets ? await o.assets.byPath(site.id, path) : null;
-    if (a) return c.body(a.bytes as unknown as ArrayBuffer, 200, {
-      ...assetHeaders(a),
-      /* the path is the filename, and the filename changes when the image does, so this is
+    if (a) {
+      return c.body(a.bytes as unknown as ArrayBuffer, 200, {
+        ...assetHeaders(a),
+        /* the path is the filename, and the filename changes when the image does, so this is
          safe to cache hard — a replaced image is a different path */
-      'cache-control': 'public, max-age=31536000, immutable'
-    });
+        "cache-control": "public, max-age=31536000, immutable",
+      });
+    }
   }
 
   let cached = built.get(site.id);
   /* Version-aware rather than process-invalidation-only. Another Passenger worker may save the
      site; once this store lookup observes that version, this worker cannot keep serving its old
      rendered map indefinitely. */
-  if (!cached || cached.version !== site.publishedVersion
-    || cached.releaseId !== site.publishedReleaseId) {
+  if (
+    !cached || cached.version !== site.publishedVersion ||
+    cached.releaseId !== site.publishedReleaseId
+  ) {
     if (site.publishedReleaseId) {
-      if (!o.connected) return c.text('Published release store unavailable', 503);
+      if (!o.connected) {
+        return c.text("Published release store unavailable", 503);
+      }
       const release = await o.connected.release(site.publishedReleaseId);
-      if (!release || release.siteId !== site.id || release.sourceVersion !== site.publishedVersion) {
-        return c.text('Published release unavailable', 503);
+      if (
+        !release || release.siteId !== site.id ||
+        release.sourceVersion !== site.publishedVersion
+      ) {
+        return c.text("Published release unavailable", 503);
       }
       const files = new Map<string, string>();
       try {
-        if (!Array.isArray(release.hostedFiles) || !release.hostedFiles.length) {
-          throw new Error('release has no hosted export');
+        if (
+          !Array.isArray(release.hostedFiles) || !release.hostedFiles.length
+        ) {
+          throw new Error("release has no hosted export");
         }
         for (const file of release.hostedFiles) {
-          if (!file || typeof file.path !== 'string' || typeof file.content !== 'string'
-            || files.has(file.path)) throw new Error('invalid or duplicate hosted path');
+          if (
+            !file || typeof file.path !== "string" ||
+            typeof file.content !== "string" ||
+            files.has(file.path)
+          ) throw new Error("invalid or duplicate hosted path");
           const bytes = new TextEncoder().encode(file.content);
           if (bytes.byteLength !== file.bytes || sha256(bytes) !== file.hash) {
-            throw new Error('hosted file integrity mismatch');
+            throw new Error("hosted file integrity mismatch");
           }
           files.set(file.path, file.content);
         }
       } catch (error) {
-        console.error('published release could not be served:', String((error as Error).message || error));
-        return c.text('Published release export unavailable', 503);
+        console.error(
+          "published release could not be served:",
+          String((error as Error).message || error),
+        );
+        return c.text("Published release export unavailable", 503);
       }
       cached = { version: site.publishedVersion, releaseId: release.id, files };
     } else {
       const revision = await o.store.revision(site.id, site.publishedVersion);
       /* Sites created before signed releases have an explicit immutable revision bootstrap.
          Once a release pointer exists, only its frozen export is accepted above. */
-      if (!revision) return c.text('Published revision unavailable', 503);
+      if (!revision) return c.text("Published revision unavailable", 503);
       let out: { files: Map<string, string> };
-      try { out = render(revision.doc, o.assets ? await o.assets.list(site.id) : []); }
-      catch (error) {
-        console.error('published revision could not be rendered:', String((error as Error).message || error));
-        return c.text('Published revision requires a newer Pagecraft renderer', 503);
+      try {
+        out = render(
+          revision.doc,
+          o.assets ? await o.assets.list(site.id) : [],
+        );
+      } catch (error) {
+        console.error(
+          "published revision could not be rendered:",
+          String((error as Error).message || error),
+        );
+        return c.text(
+          "Published revision requires a newer Pagecraft renderer",
+          503,
+        );
       }
-      cached = { version: site.publishedVersion, releaseId: null, files: out.files };
+      cached = {
+        version: site.publishedVersion,
+        releaseId: null,
+        files: out.files,
+      };
     }
     built.set(site.id, cached);
   }
@@ -3740,44 +6031,83 @@ async function serveSite(
 
   /* `/index`, `/index.html`, and nested equivalents are duplicate directory URLs. Redirect
      only when that exact rendered index exists; a user-authored non-page path remains a 404. */
-  if (/(^|\/)index(?:\.html)?$/i.test(urlPath.replace(/\/+$/, '')) && files.has(path)) {
-    return c.redirect(publicPath(path, prefix) + new URL(c.req.url).search, 308);
+  if (
+    /(^|\/)index(?:\.html)?$/i.test(urlPath.replace(/\/+$/, "")) &&
+    files.has(path)
+  ) {
+    return c.redirect(
+      publicPath(path, prefix) + new URL(c.req.url).search,
+      308,
+    );
   }
 
   /* Old bookmarks still arrive, but the implementation filename must not remain visible.
      Redirect only when that exact rendered page exists, so `/made-up.html` stays a real 404
      instead of becoming a misleading redirect followed by one. */
   if (/\.html$/i.test(urlPath) && files.has(path)) {
-    return c.redirect(publicPath(path, prefix) + new URL(c.req.url).search, 308);
+    return c.redirect(
+      publicPath(path, prefix) + new URL(c.req.url).search,
+      308,
+    );
   }
 
   const body = files.get(path);
   /* A site's own 404 page if it has one — the convention the builder already exports. */
   if (body === undefined) {
-    const notFound = files.get('404.html');
+    const notFound = files.get("404.html");
     if (notFound !== undefined) {
-      return c.body(hostedHtml(notFound, '404.html', files, prefix), 404, publishedHeaders(TYPES.html));
+      return c.body(
+        hostedHtml(notFound, "404.html", files, prefix),
+        404,
+        publishedHeaders(TYPES.html),
+      );
     }
     return c.text(`Not found: /${path}`, 404);
   }
   const type = typeOf(path);
-  let served = type.startsWith('text/html') ? hostedHtml(body, path, files, prefix) : body;
-  if (type.startsWith('text/html') && o.connected) {
+  let served = type.startsWith("text/html")
+    ? hostedHtml(body, path, files, prefix)
+    : body;
+  if (type.startsWith("text/html") && o.connected) {
     const production = await o.connected.canonicalProductionConnection(site.id);
-    if (production) served = wordpressCanonicalHtml(served, production.targetOrigin, production.targetPath, path);
+    if (production) {
+      served = wordpressCanonicalHtml(
+        served,
+        production.targetOrigin,
+        production.targetPath,
+        path,
+      );
+    }
   }
-  return c.body(served, 200, type.startsWith('text/html') ? publishedHeaders(type) : { 'content-type': type });
+  return c.body(
+    served,
+    200,
+    type.startsWith("text/html")
+      ? publishedHeaders(type)
+      : { "content-type": type },
+  );
 }
 
 /** As soon as an owner pairs a production WordPress target, Pagecraft's hosted copy becomes a
  * review/fallback surface and must not compete in search, even before the first deployment.
  * Disconnect freezes WordPress content but does not reclaim canonical ownership, so the last
  * consented production origin/path remains here until an explicit future owner-reclaim flow. */
-function wordpressCanonicalHtml(html: string, origin: string, targetPath: string, file: string) {
-  const basePath = ('/' + targetPath.replace(/^\/+|\/+$/g, '') + '/').replace(/^\/\/$/, '/');
-  const relative = publicPath(file).replace(/^\/+/, '');
+function wordpressCanonicalHtml(
+  html: string,
+  origin: string,
+  targetPath: string,
+  file: string,
+) {
+  const basePath = ("/" + targetPath.replace(/^\/+|\/+$/g, "") + "/").replace(
+    /^\/\/$/,
+    "/",
+  );
+  const relative = publicPath(file).replace(/^\/+/, "");
   const canonical = new URL(basePath + relative, origin).href;
-  const tags = `<meta name="robots" content="noindex,follow">\n<link rel="canonical" href="${canonical.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">\n`;
+  const tags =
+    `<meta name="robots" content="noindex,follow">\n<link rel="canonical" href="${
+      canonical.replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+    }">\n`;
   return replaceHostedSeoOwnershipTags(html, tags);
 }
 
@@ -3785,18 +6115,24 @@ function wordpressCanonicalHtml(html: string, origin: string, targetPath: string
     CSP sandbox without `allow-same-origin` gives it an opaque origin while retaining the site
     features owners asked for. */
 const publishedHeaders = (type: string): Record<string, string> => ({
-  'content-type': type,
-  'content-security-policy': 'sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads'
+  "content-type": type,
+  "content-security-policy":
+    "sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads",
 });
 
 /** SVG remains supported. If opened directly, the response itself is sandboxed and cannot run
     script or navigate the editor; as an <img>, browsers already treat it as an image document. */
-const assetHeaders = (asset: Pick<Asset, 'type' | 'name'>): Record<string, string> =>
-  asset.type === 'image/svg+xml'
-  ? {
-      'content-type': asset.type,
-      'content-security-policy': "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
-      'content-disposition': `inline; filename="${asset.name.replace(/["\\\r\n]/g, '_')}"`,
-      'x-content-type-options': 'nosniff'
+const assetHeaders = (
+  asset: Pick<Asset, "type" | "name">,
+): Record<string, string> =>
+  asset.type === "image/svg+xml"
+    ? {
+      "content-type": asset.type,
+      "content-security-policy":
+        "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
+      "content-disposition": `inline; filename="${
+        asset.name.replace(/["\\\r\n]/g, "_")
+      }"`,
+      "x-content-type-options": "nosniff",
     }
-  : { 'content-type': asset.type, 'x-content-type-options': 'nosniff' };
+    : { "content-type": asset.type, "x-content-type-options": "nosniff" };

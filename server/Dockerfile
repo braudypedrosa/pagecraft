@@ -24,11 +24,9 @@ WORKDIR /repo
 # is off on purpose — esbuild's install script is what fetches its platform binary.
 COPY package.json package-lock.json ./
 RUN npm install --no-audit --no-fund
-# Everything build.mjs reads: the legacy shell, the core, the fonts it inlines, and pubcheck,
-# which it imports to report whether the published artifact is still current.
+# Everything build.mjs reads: the legacy shell, the core, and the fonts it inlines.
 COPY build.mjs ./
 COPY builder.html ./
-COPY tools ./tools
 COPY app ./app
 COPY brand ./brand
 COPY shared ./shared

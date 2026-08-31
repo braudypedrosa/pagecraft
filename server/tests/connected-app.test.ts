@@ -119,7 +119,10 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   a.match(anonymous.headers.get('location') || '', /^\/sign-in\?next=/);
   const consent = await admin(first, `/v1/wordpress-import/authorize?${query}`);
   a.equal(consent.status, 200);
-  a.match(await consent.clone().text(), /No webhooks, polling, background updates/);
+  a.match(await consent.clone().text(), /read-only access to projects you own/);
+  a.match(await consent.clone().text(), /Imports are manual and do not stay in sync/);
+  a.match(await consent.clone().text(), /Pagecraft does not receive your WordPress password/);
+  a.match(await consent.clone().text(), />Approve<\/button>/);
   a.match(await consent.clone().text(), /pagecraft-wordpress-qa\.local/);
   const csrf = (await consent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
   a.ok(csrf);

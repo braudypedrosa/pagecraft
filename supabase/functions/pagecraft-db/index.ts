@@ -204,6 +204,66 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       return one(
         await sql`select * from sites where id = ${text(args.id)} limit 1`,
       );
+    case "site.prepareHostedPublish":
+      return await sql.begin(async (transaction) => {
+        const existing = await transaction`
+          update users set
+            email = ${text(args.email)},
+            name = case when name = '' then ${text(args.name)} else name end
+          where auth_user_id = ${text(args.authUserId)}
+          returning id, email, name, auth_user_id, plan, created_at
+        `;
+        const made = existing[0] ? existing : await transaction`
+            insert into users (id, email, name, auth_user_id)
+            values (${text(args.newUserId)}, ${text(args.email)}, ${
+          text(args.name)
+        }, ${text(args.authUserId)})
+            on conflict (email) do update set
+              auth_user_id = excluded.auth_user_id,
+              name = case when users.name = '' then excluded.name else users.name end
+            where users.auth_user_id is null or users.auth_user_id = excluded.auth_user_id
+            returning id, email, name, auth_user_id, plan, created_at
+          `;
+        const user = made[0];
+        if (!user) {
+          throw Object.assign(
+            new Error("that email is already linked to another identity"),
+            { status: 409, code: "AUTH_IDENTITY_CONFLICT" },
+          );
+        }
+        const access = one(
+          await transaction`
+            select s.*, m.role
+            from sites s join site_users m on m.site_id = s.id
+            where s.id = ${text(args.id)} and m.user_id = ${text(user.id)}
+            limit 1
+          `,
+        );
+        if (!access) return { status: "missing" };
+        if (text(access.role) !== "owner") return { status: "forbidden" };
+        const revision = one(
+          await transaction`
+            select * from site_revisions
+            where site_id = ${text(args.id)} and version = ${
+            integer(access.version)
+          }
+            limit 1
+          `,
+        );
+        const assets = await transaction`
+          select id, site_id, name, type, w, h, owner_id, storage_path,
+            stored_bytes, original_bytes, content_hash, optimized
+          from assets where site_id = ${text(args.id)} order by name
+        `;
+        return {
+          status: "ok",
+          user,
+          role: "owner",
+          site: access,
+          revision,
+          assets,
+        };
+      });
     case "site.create":
       return await sql.begin(async (transaction) =>
         one(
@@ -325,6 +385,72 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `,
         )
       );
+    case "site.saveAuthorized":
+      return await sql.begin(async (transaction) => {
+        const existing = await transaction`
+          update users set
+            email = ${text(args.email)},
+            name = case when name = '' then ${text(args.name)} else name end
+          where auth_user_id = ${text(args.authUserId)}
+          returning id, email, name, auth_user_id, plan, created_at
+        `;
+        const made = existing[0] ? existing : await transaction`
+          insert into users (id, email, name, auth_user_id)
+          values (${text(args.newUserId)}, ${text(args.email)}, ${
+          text(args.name)
+        }, ${text(args.authUserId)})
+          on conflict (email) do update set
+            auth_user_id = excluded.auth_user_id,
+            name = case when users.name = '' then excluded.name else users.name end
+          where users.auth_user_id is null or users.auth_user_id = excluded.auth_user_id
+          returning id, email, name, auth_user_id, plan, created_at
+        `;
+        const user = made[0];
+        if (!user) {
+          throw Object.assign(
+            new Error("that email is already linked to another identity"),
+            { status: 409, code: "AUTH_IDENTITY_CONFLICT" },
+          );
+        }
+        const membership = one(
+          await transaction`
+            select role from site_users
+            where site_id = ${text(args.id)} and user_id = ${text(user.id)}
+            limit 1
+          `,
+        );
+        if (!membership) return { status: "missing" };
+        const role = text(membership.role);
+        const requiredRole = text(args.requiredRole);
+        if (
+          role !== "owner" &&
+          !(role === "content" && requiredRole === "write")
+        ) return { status: "forbidden" };
+        const site = one(
+          await transaction`
+            with changed as (
+              update sites set doc = ${
+            transaction.json(jsonValue(args.doc))
+          }, version = version + 1, updated_at = now()
+              where id = ${text(args.id)} and version = ${
+            integer(args.version)
+          } returning *
+            ), recorded as (
+              insert into site_revisions (site_id, version, doc, saved_by, created_at)
+              select id, version, doc, ${text(user.id)}, updated_at from changed
+            ) select * from changed
+          `,
+        );
+        if (site) return { status: "saved", user, role, site };
+        const current = one(
+          await transaction`
+            select version from sites where id = ${text(args.id)} limit 1
+          `,
+        );
+        return current
+          ? { status: "conflict", currentVersion: integer(current.version) }
+          : { status: "missing" };
+      });
     case "site.saveConnectedCms": {
       const connectionId = text(args.connectionId);
       if (!connectionId) throw new Error("connectionId is required");
@@ -469,6 +595,80 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         `,
         )
       );
+
+    case "site.publishHostedAuthorized":
+      return await sql.begin(async (transaction) => {
+        const existing = await transaction`
+          update users set
+            email = ${text(args.email)},
+            name = case when name = '' then ${text(args.name)} else name end
+          where auth_user_id = ${text(args.authUserId)}
+          returning id, email, name, auth_user_id, plan, created_at
+        `;
+        const made = existing[0] ? existing : await transaction`
+          insert into users (id, email, name, auth_user_id)
+          values (${text(args.newUserId)}, ${text(args.email)}, ${
+          text(args.name)
+        }, ${text(args.authUserId)})
+          on conflict (email) do update set
+            auth_user_id = excluded.auth_user_id,
+            name = case when users.name = '' then excluded.name else users.name end
+          where users.auth_user_id is null or users.auth_user_id = excluded.auth_user_id
+          returning id, email, name, auth_user_id, plan, created_at
+        `;
+        const user = made[0];
+        if (!user) {
+          throw Object.assign(
+            new Error("that email is already linked to another identity"),
+            { status: 409, code: "AUTH_IDENTITY_CONFLICT" },
+          );
+        }
+        const membership = one(
+          await transaction`
+            select role from site_users
+            where site_id = ${text(args.id)} and user_id = ${text(user.id)}
+            limit 1
+          `,
+        );
+        if (!membership) return { status: "missing" };
+        if (text(membership.role) !== "owner") {
+          return { status: "forbidden" };
+        }
+        const current = one(
+          await transaction`
+            select version from sites where id = ${text(args.id)} for update
+          `,
+        );
+        if (!current) return { status: "missing" };
+        if (integer(current.version) !== integer(args.version)) {
+          return {
+            status: "conflict",
+            currentVersion: integer(current.version),
+          };
+        }
+        const site = one(
+          await transaction`
+            with recorded as (
+              insert into hosted_publications
+                (id, site_id, source_version, content_hash, storage_key, created_by, created_at)
+              values (${text(args.publicationId)}::uuid, ${text(args.id)}, ${
+            integer(args.version)
+          },
+                ${text(args.contentHash)}, ${text(args.publicationId)}, ${
+            text(user.id)
+          },
+                ${text(args.createdAt)}::timestamptz)
+              on conflict (site_id, source_version, content_hash)
+                do update set content_hash = excluded.content_hash returning id
+            ), changed as (
+              update sites set published_version = ${integer(args.version)},
+                published_publication_id = (select id from recorded), updated_at = now()
+              where id = ${text(args.id)} returning *
+            ) select * from changed
+          `,
+        );
+        return { status: "published", user, site };
+      });
 
     case "connection.create": {
       const i = jsonValue(args.input) as Record<string, JsonValue>;
@@ -2554,6 +2754,55 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       }
       console.error("could not send collaborator invitation", error);
       return "failed";
+    }
+    case "manualImport.catalog": {
+      const credential = one(
+        await sql`
+          select owner_id from wordpress_import_credentials
+          where access_token_digest = ${text(args.digest)}
+            and status = 'active' and access_expires_at > now()
+          limit 1
+        `,
+      );
+      if (!credential) return { authorized: false };
+      const sites = await sql`
+        select s.* from sites s
+        join site_users membership on membership.site_id = s.id
+        where membership.user_id = ${String(credential.owner_id)}
+          and membership.role = 'owner'
+        order by s.name
+      `;
+      return {
+        authorized: true,
+        owner_id: credential.owner_id,
+        sites,
+      };
+    }
+    case "manualImport.project": {
+      const credential = one(
+        await sql`
+          select owner_id from wordpress_import_credentials
+          where access_token_digest = ${text(args.digest)}
+            and status = 'active' and access_expires_at > now()
+          limit 1
+        `,
+      );
+      if (!credential) return { authorized: false };
+      const site = one(
+        await sql`
+          select s.* from sites s
+          join site_users membership on membership.site_id = s.id
+          where s.id = ${text(args.projectId)}
+            and membership.user_id = ${String(credential.owner_id)}
+            and membership.role = 'owner'
+          limit 1
+        `,
+      );
+      return {
+        authorized: true,
+        owner_id: credential.owner_id,
+        site,
+      };
     }
     case "auth.manualImport.create": {
       const input = (args.input && typeof args.input === "object" &&

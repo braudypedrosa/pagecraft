@@ -9,6 +9,10 @@ const MAX_CSS_BYTES = 512 * 1024;
 const MAX_FONT_FILES = 128;
 const MAX_FONT_BYTES = 2 * 1024 * 1024;
 const MAX_TOTAL_FONT_BYTES = 32 * 1024 * 1024;
+/* Google Fonts selects the font format from the user agent. A product-specific agent gets
+ * legacy TTF responses, while the release format intentionally accepts only WOFF2. */
+const WOFF2_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+  + 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 function attribute(tag: string, name: string) {
@@ -80,7 +84,7 @@ async function strictFetch(
       redirect: 'manual',
       headers: {
         accept: label === 'font stylesheet' ? 'text/css' : 'font/woff2',
-        'user-agent': 'Pagecraft Connected Release/1.0'
+        'user-agent': WOFF2_USER_AGENT
       }
     });
     if (response.status >= 300 && response.status < 400) {
