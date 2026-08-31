@@ -118,6 +118,10 @@ import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
 import { latestSiteTemplates, type SiteTemplateStore } from "./site-templates.ts";
 import {
+  integrationDiscovery,
+  pagecraftMcpResponse,
+} from "./integrations.ts";
+import {
   accountSettingsPage,
   dashboardPage,
   forgotPage,
@@ -333,6 +337,7 @@ export function createApp(o: Options) {
     const privateRoute = !path.startsWith("/v1/wordpress-distribution/") &&
         /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path) ||
       /^\/account(?:\/|$)/.test(path) ||
+      path === "/mcp" ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
     if (privateRoute) c.header("cache-control", "private, no-store");
     /* `secureCookies` is the production signal already passed by the entry point. Browsers
@@ -2981,17 +2986,14 @@ export function createApp(o: Options) {
 
   /* -------------------------------------------------------- Manual WordPress import */
 
-  const manualImportAccessDigest = (c: Context) => {
-    const token =
-      (c.req.header("authorization") || "").match(/^Bearer\s+([^\s]+)$/i)
-        ?.[1] || "";
+  const manualImportAccessDigest = (authorization = "") => {
+    const token = authorization.match(/^Bearer\s+([^\s]+)$/i)?.[1] || "";
     return token ? hashToken(token) : "";
   };
 
-  const manualImportCatalogRead = async (
-    c: Context,
+  const manualImportCatalogReadDigest = async (
+    digest: string,
   ): Promise<ManualImportCatalogRead> => {
-    const digest = manualImportAccessDigest(c);
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.catalog(digest);
     const credential = await o.auth.manualImportByAccess(digest);
@@ -3012,11 +3014,16 @@ export function createApp(o: Options) {
     };
   };
 
+  const manualImportCatalogRead = (c: Context) =>
+    manualImportCatalogReadDigest(
+      manualImportAccessDigest(c.req.header("authorization")),
+    );
+
   const manualImportProjectRead = async (
     c: Context,
     siteId: string,
   ): Promise<ManualImportProjectRead> => {
-    const digest = manualImportAccessDigest(c);
+    const digest = manualImportAccessDigest(c.req.header("authorization"));
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.project(digest, siteId);
     const credential = await o.auth.manualImportByAccess(digest);
@@ -3028,6 +3035,55 @@ export function createApp(o: Options) {
       site: membership?.role === "owner" ? await o.store.byId(siteId) : null,
     };
   };
+
+  const integrationOrigin = (c: Context) =>
+    (o.editorOrigin || new URL(c.req.url).origin).replace(/\/+$/, "");
+
+  app.get("/.well-known/pagecraft-integrations", (c) =>
+    c.json(integrationDiscovery(integrationOrigin(c))));
+
+  app.get("/v1/integrations/wordpress/connection", async (c) => {
+    const digest = manualImportAccessDigest(c.req.header("authorization"));
+    const credential = digest
+      ? await o.auth.manualImportByAccess(digest)
+      : null;
+    if (!credential) {
+      return c.json({ error: "unauthorized", reconnect: true }, 401);
+    }
+    return c.json({
+      connected: true,
+      installationId: credential.installationId,
+      scopes: ["projects:read", "packages:read"],
+      accessExpiresAt: new Date(credential.accessExpiresAt).toISOString(),
+    });
+  });
+
+  app.all("/mcp", async (c) => {
+    if (!isEditorHost(c.req.header("host"), o)) return c.notFound();
+    const digest = manualImportAccessDigest(c.req.header("authorization"));
+    const read = await manualImportCatalogReadDigest(digest);
+    if (!read.authorized) {
+      return c.json({
+        error: "invalid_token",
+        error_description: "Connect Pagecraft and supply a valid integration token.",
+      }, 401, {
+        "www-authenticate":
+          'Bearer realm="Pagecraft", scope="projects:read packages:read"',
+      });
+    }
+    return pagecraftMcpResponse(c.req.raw, read);
+  });
+
+  /* The integration namespace is the stable public contract. Keep the original import paths
+     as the implementation and rollback surface for one compatibility release. */
+  app.all("/v1/integrations/wordpress/*", (c) => {
+    const target = new URL(c.req.url);
+    target.pathname = target.pathname.replace(
+      "/v1/integrations/wordpress/",
+      "/v1/wordpress-import/",
+    );
+    return app.fetch(new Request(target, c.req.raw));
+  });
 
   app.get("/v1/wordpress-import/authorize", async (c) => {
     if (!o.connected) {
