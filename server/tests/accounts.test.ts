@@ -899,25 +899,30 @@ test("account settings shows profile, security, providers, and real free-plan us
   );
   a.match(
     html,
-    /\.pc-settings-links\{margin-top:auto;padding-top:40px\}/,
+    /\.pc-settings-head\{padding-bottom:26px;border-bottom:1px solid var\(--pc-line\)\}/,
   );
-  for (const selector of [
-    "pc-settings-head",
-    "pc-settings-section",
-    "pc-settings-links",
-    "pc-provider",
-    "pc-plan-list",
-    "pc-integration-block",
-    "pc-integration-list",
-    "pc-integration-row",
-    "pc-empty-line",
-  ]) {
-    a.doesNotMatch(
-      html,
-      new RegExp(`\\.${selector}\\{[^}]*border(?:-top|-bottom)?:`),
-      `${selector} should use spacing instead of decorative separators`,
-    );
-  }
+  a.match(
+    html,
+    /\.pc-integration-block\{[^}]*border-top:1px solid var\(--pc-line\)\}/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-title\+\.pc-integration-block,\.pc-token-reveal\+\.pc-integration-block\{margin-top:0;padding-top:0;border-top:0\}/,
+  );
+  a.match(
+    html,
+    /\.pc-integration-row:not\(:last-child\)\{border-bottom:1px solid var\(--pc-line\)\}/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-links\{margin-top:40px;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-title \.pc-plan-badge\{justify-self:start\}/,
+  );
+  a.doesNotMatch(html, /\.pc-settings-layout\{flex:1/);
+  a.doesNotMatch(html, /\.pc-empty-line\{[^}]*border/);
 
   const planResponse = await request("/account?tab=plan");
   const planHtml = await planResponse.text();
