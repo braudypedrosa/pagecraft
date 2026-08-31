@@ -19,6 +19,7 @@ describe('@pagecraft/editor package', () => {
     expect(html).toContain('WP.returnLabel');
     expect(html).toContain('id="brandHome"');
     expect(html).toContain("WP.pagesUrl || WP.exitUrl || ''");
+    expect(html).toContain('.templateControls>.f,.templateControls>.f:last-child{margin-bottom:0}');
     expect(contract).toMatchObject({
       format: 'pagecraft.editor-contract.v1',
       schemaVersion: SCHEMA,
