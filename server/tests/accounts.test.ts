@@ -13,6 +13,12 @@ import { TestHumanChallenge } from "../src/turnstile.ts";
 import type { AccountAuth, VerifiedIdentity } from "../src/account-auth.ts";
 import type { Context } from "hono";
 import { MemoryHostedPublicationStore } from "../src/publications.ts";
+import { MemoryAssetStore, type AssetStore } from "../src/assets.ts";
+import {
+  FileSiteTemplateStore,
+  type SiteTemplateStore,
+} from "../src/site-templates.ts";
+import { resolve } from "node:path";
 
 const doc = () => {
   Core.seed();
@@ -88,7 +94,9 @@ class FakeAccountAuth implements AccountAuth {
   }
 }
 
-const rig = () => {
+const rig = (
+  options: { assets?: AssetStore; siteTemplates?: SiteTemplateStore } = {},
+) => {
   const store = new MemoryStore(),
     auth = new MemoryAuthStore(),
     accountAuth = new FakeAccountAuth();
@@ -102,6 +110,8 @@ const rig = () => {
     editorHost: "admin.test",
     editorOrigin: "http://admin.test",
     editorHtml: "<title>Builder</title>",
+    assets: options.assets,
+    siteTemplates: options.siteTemplates,
   });
   const request = (path: string, init: RequestInit = {}) =>
     app.request(
@@ -424,6 +434,82 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /pc-custom-select-popover/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
+});
+
+test("a curated site installs all pages and remapped media without charging the owner quota", async () => {
+  const assets = new MemoryAssetStore();
+  const siteTemplates = new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  );
+  const { request, accountAuth, auth, store } = rig({ assets, siteTemplates });
+  accountAuth.current = {
+    authUserId: "auth-1",
+    email: "builder@example.test",
+    name: "Builder",
+  };
+  const owner = await auth.ensureAuthUser(
+    "auth-1",
+    "builder@example.test",
+    "Builder",
+  );
+
+  const created = await request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      name: "Client Studio",
+      templateId: "independent-studio",
+      templateVersion: "1.0.0",
+    }),
+  });
+  a.equal(created.status, 201, await created.clone().text());
+  const result = await created.json() as { id: string; files: string[] };
+  const site = await store.byId(result.id);
+  a.ok(site);
+  a.equal(site.name, "Client Studio");
+  a.equal(site.doc.meta.name, "Client Studio");
+  a.deepEqual(site.doc.pages.map((page) => page.name), [
+    "Home",
+    "About",
+    "Services",
+    "Contact",
+  ]);
+  a.ok(result.files.includes("index.html"));
+  a.ok(result.files.includes("about.html"));
+  const installed = await assets.list(site.id);
+  a.equal(installed.length, 4);
+  a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
+  const serialized = JSON.stringify(site.doc);
+  a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
+  a.deepEqual(await assets.usage(owner.id), {
+    usedBytes: 0,
+    limitBytes: 100 * 1024 * 1024,
+  });
+
+  const dashboard = await request("/");
+  const html = await dashboard.text();
+  a.match(html, /Independent Studio/);
+  a.match(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
+  a.match(
+    html,
+    /\/templates\/independent-studio\/1\.0\.0\/preview\/index\.html/,
+  );
+  a.match(html, /Blank site/);
+
+  const preview = await request(
+    "/templates/independent-studio/1.0.0/preview/index.html",
+  );
+  a.equal(preview.status, 200);
+  a.match(preview.headers.get("content-security-policy") || "", /script-src/);
+  const previewHtml = await preview.text();
+  const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
+  a.ok(packagedAsset);
+  const media = await request(
+    `/templates/independent-studio/1.0.0/preview/${packagedAsset[1]}`,
+  );
+  a.equal(media.status, 200);
+  a.equal(media.headers.get("content-type"), "image/webp");
+  a.match(media.headers.get("cache-control") || "", /immutable/);
 });
 
 test("site overview is protected, membership-scoped, and exposes working management actions", async () => {

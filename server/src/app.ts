@@ -116,6 +116,7 @@ import {
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
 import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
+import type { SiteTemplateStore } from "./site-templates.ts";
 import {
   accountSettingsPage,
   dashboardPage,
@@ -279,6 +280,8 @@ export interface Options {
   accountAuth?: AccountAuth;
   /** Atomic site creation and owner grant, including the owned-site quota. */
   ownedSites?: OwnedSiteStore;
+  /** Immutable, Pagecraft-curated full-site packages. */
+  siteTemplates?: SiteTemplateStore;
   /** Cloudflare Turnstile verifier for public account forms. */
   challenge?: HumanChallenge;
   turnstileSiteKey?: string;
@@ -1460,6 +1463,10 @@ export function createApp(o: Options) {
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
         : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+      const templates = o.siteTemplates ? await o.siteTemplates.list().catch(error => {
+        console.error('site template catalog unavailable', error);
+        return [];
+      }) : [];
       return c.html(dashboardPage(
         user,
         mine.map(({ site, role }) => ({
@@ -1473,6 +1480,7 @@ export function createApp(o: Options) {
         })),
         mine.filter((item) => item.role === "owner").length,
         storage,
+        templates,
         c.req.query("error"),
         c.req.query("message"),
       ));
@@ -1497,6 +1505,31 @@ export function createApp(o: Options) {
           : m.site.host,
       })),
     ));
+  });
+
+  app.get("/templates/:id/:version/preview/*", async (c) => {
+    if (!o.siteTemplates) return c.notFound();
+    const prefix = `/templates/${encodeURIComponent(c.req.param("id"))}/${encodeURIComponent(c.req.param("version"))}/preview/`;
+    let path = "";
+    try {
+      path = decodeURIComponent(new URL(c.req.url).pathname.slice(prefix.length)) ||
+        "index.html";
+    } catch {
+      return c.notFound();
+    }
+    const file = await o.siteTemplates.preview(
+      c.req.param("id"),
+      c.req.param("version"),
+      path,
+    ).catch(() => null);
+    if (!file) return c.notFound();
+    c.header("content-type", file.mediaType);
+    c.header("cache-control", "public, max-age=31536000, immutable");
+    c.header(
+      "content-security-policy",
+      "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'",
+    );
+    return c.body(file.bytes.slice().buffer);
   });
 
   app.get("/sites/:id", async (c) => {
@@ -2194,6 +2227,8 @@ export function createApp(o: Options) {
         slug?: string;
         name?: string;
         doc?: Doc;
+        templateId?: string;
+        templateVersion?: string;
       } | null;
     if (!body) return c.json({ error: "a JSON body is required" }, 400);
     /* A document is optional. It used to be required, which meant the only way to make a site
@@ -2209,7 +2244,26 @@ export function createApp(o: Options) {
           "Use lowercase letters, numbers, and single hyphens. Maximum 40 characters.",
       }, 422);
     }
-    const doc0 = body.doc || blankDoc(name);
+    const templateId = String(body.templateId || "").trim();
+    const templateVersion = String(body.templateVersion || "").trim();
+    let templateInstall = null;
+    if (templateId) {
+      if (!o.siteTemplates) {
+        return c.json({ error: "site_templates_unavailable" }, 503);
+      }
+      templateInstall = await o.siteTemplates.instantiate(
+        templateId,
+        templateVersion || undefined,
+      ).catch(() => null);
+      if (!templateInstall) {
+        return c.json({ error: "site_template_not_found" }, 422);
+      }
+      if (templateInstall.assets.length && !o.assets) {
+        return c.json({ error: "site_templates_unavailable" }, 503);
+      }
+    }
+    const doc0 = body.doc || templateInstall?.document || blankDoc(name);
+    if (templateInstall) doc0.meta.name = name;
     /* A host is no longer required to have a site. It used to be the only way to reach one, so
        making a site meant inventing a domain first; a slug is enough, and the host is what you
        add when the site earns a domain. The placeholder is unique and never resolves, which is
@@ -2248,7 +2302,7 @@ export function createApp(o: Options) {
     }
     /* Render before the first durable write. A document that cannot produce its files is not a
        site, and returning an error after inserting it leaves an unrecoverable row behind. */
-    const preview = candidate(doc, []);
+    const preview = candidate(doc, templateInstall?.assets || []);
     if (!preview) {
       return c.json({
         error: "invalid document",
@@ -2292,6 +2346,23 @@ export function createApp(o: Options) {
         savedBy: user.id,
       });
       if (!o.accountAuth) await o.auth.grant(site.id, user.id, "owner");
+      const installedAssetIds: string[] = [];
+      try {
+        for (const asset of templateInstall?.assets || []) {
+          await o.assets!.put({ ...asset, siteId: site.id });
+          installedAssetIds.push(asset.id);
+        }
+      } catch (error) {
+        for (const assetId of installedAssetIds) {
+          await o.assets!.remove(site.id, assetId).catch(() => false);
+        }
+        await o.store.delete(site.id).catch(() => false);
+        console.error("site template asset installation failed", error);
+        return c.json({
+          error: "site_template_install_failed",
+          detail: "The curated site could not be installed. Nothing was kept.",
+        }, 500);
+      }
       const out = remember(site, preview);
       if (htmlForm) {
         return c.redirect(
