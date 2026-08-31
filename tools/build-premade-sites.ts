@@ -3,13 +3,14 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dimensions, sniff, type Asset } from '../server/src/assets.ts';
 import { createSitePackage } from '../server/src/portable-packages.ts';
-import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/2.0.0/source.ts';
+import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/2.0.1/source.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = resolve(root, 'premade-sites');
 const templateId = 'independent-studio';
-const version = '2.0.0';
+const version = '2.0.1';
 const directory = resolve(templateRoot, templateId, version);
+const assetDirectory = resolve(templateRoot, templateId, '2.0.0', 'assets');
 const assetSpecs = [
   ['northline-system-hero', 'hero-studio-system.webp'],
   ['northline-identity-artifacts', 'identity-artifacts.webp'],
@@ -20,7 +21,7 @@ const assetSpecs = [
 
 const assets: Asset[] = [];
 for (const [id, name] of assetSpecs) {
-  const bytes = new Uint8Array(await readFile(resolve(directory, 'assets', name)));
+  const bytes = new Uint8Array(await readFile(resolve(assetDirectory, name)));
   const type = sniff(bytes);
   if (type !== 'image/webp') throw new Error(`${name} is not a WebP image`);
   const { w, h } = dimensions(bytes, type);
