@@ -5763,13 +5763,36 @@ function cardClass() {
 }
 const carded = (row: any) => { row.children.forEach((col: any) => classApply(col, cardClass()!.id)); return row; };
 
+/* The catalog belongs to the shared editor contract, not to either host. Cloud and
+   WordPress both render these exact labels, categories and previews, while `build`
+   remains the canonical document factory. The preview is deliberately geometric:
+   it communicates page rhythm without inventing customer copy or imagery. */
+const templatePreview = (id: string): string => {
+  const header = '<rect class="tp-line" x="22" y="18" width="46" height="6" rx="3"/><rect class="tp-line" x="246" y="18" width="28" height="5" rx="2.5"/><rect class="tp-line" x="282" y="18" width="28" height="5" rx="2.5"/><rect class="tp-accent" x="318" y="14" width="24" height="13" rx="3"/>';
+  const art: Record<string, string> = {
+    blank: '<rect class="tp-outline" x="22" y="48" width="320" height="148" rx="5"/>',
+    landing: '<rect class="tp-ink" x="22" y="54" width="130" height="12" rx="3"/><rect class="tp-ink" x="22" y="72" width="104" height="12" rx="3"/><rect class="tp-line" x="22" y="96" width="112" height="6" rx="3"/><rect class="tp-accent" x="22" y="116" width="46" height="16" rx="4"/><rect class="tp-media" x="186" y="48" width="156" height="88" rx="6"/><rect class="tp-line" x="22" y="160" width="92" height="30" rx="5"/><rect class="tp-line" x="136" y="160" width="92" height="30" rx="5"/><rect class="tp-line" x="250" y="160" width="92" height="30" rx="5"/>',
+    pricing: '<rect class="tp-ink" x="127" y="48" width="110" height="12" rx="3"/><rect class="tp-line" x="144" y="68" width="76" height="6" rx="3"/><rect class="tp-card" x="22" y="94" width="96" height="96" rx="6"/><rect class="tp-card" x="134" y="86" width="96" height="104" rx="6"/><rect class="tp-card" x="246" y="94" width="96" height="96" rx="6"/><rect class="tp-accent" x="154" y="160" width="56" height="14" rx="4"/>',
+    contact: '<rect class="tp-ink" x="22" y="56" width="106" height="14" rx="3"/><rect class="tp-line" x="22" y="82" width="120" height="6" rx="3"/><rect class="tp-line" x="22" y="94" width="92" height="6" rx="3"/><rect class="tp-card" x="184" y="48" width="158" height="142" rx="6"/><rect class="tp-outline" x="198" y="68" width="130" height="20" rx="3"/><rect class="tp-outline" x="198" y="98" width="130" height="44" rx="3"/><rect class="tp-accent" x="198" y="154" width="54" height="16" rx="4"/>',
+    about: '<rect class="tp-ink" x="22" y="50" width="124" height="12" rx="3"/><rect class="tp-line" x="22" y="72" width="116" height="6" rx="3"/><rect class="tp-media" x="22" y="102" width="126" height="68" rx="5"/><rect class="tp-ink" x="176" y="108" width="78" height="9" rx="3"/><rect class="tp-line" x="176" y="128" width="150" height="6" rx="3"/><rect class="tp-line" x="176" y="140" width="126" height="6" rx="3"/><rect class="tp-accent" x="176" y="158" width="44" height="14" rx="4"/>',
+    services: '<rect class="tp-ink" x="122" y="48" width="120" height="12" rx="3"/><rect class="tp-line" x="140" y="68" width="84" height="6" rx="3"/><rect class="tp-card" x="22" y="98" width="96" height="74" rx="6"/><rect class="tp-card" x="134" y="98" width="96" height="74" rx="6"/><rect class="tp-card" x="246" y="98" width="96" height="74" rx="6"/><circle class="tp-accent" cx="48" cy="120" r="8"/><circle class="tp-accent" cx="160" cy="120" r="8"/><circle class="tp-accent" cx="272" cy="120" r="8"/>',
+    work: '<rect class="tp-ink" x="22" y="48" width="116" height="12" rx="3"/><rect class="tp-line" x="22" y="68" width="138" height="6" rx="3"/><rect class="tp-media" x="22" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="134" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="246" y="96" width="96" height="44" rx="5"/><rect class="tp-media" x="22" y="152" width="96" height="38" rx="5"/><rect class="tp-media" x="134" y="152" width="96" height="38" rx="5"/><rect class="tp-media" x="246" y="152" width="96" height="38" rx="5"/>',
+    case: '<rect class="tp-ink" x="22" y="46" width="150" height="12" rx="3"/><rect class="tp-line" x="22" y="66" width="112" height="6" rx="3"/><rect class="tp-media" x="22" y="88" width="320" height="68" rx="6"/><rect class="tp-line" x="22" y="174" width="84" height="16" rx="4"/><rect class="tp-line" x="140" y="174" width="84" height="16" rx="4"/><rect class="tp-accent" x="258" y="174" width="84" height="16" rx="4"/>',
+    faq: '<rect class="tp-ink" x="22" y="48" width="100" height="12" rx="3"/><rect class="tp-line" x="22" y="70" width="136" height="6" rx="3"/><rect class="tp-card" x="22" y="96" width="320" height="22" rx="4"/><rect class="tp-card" x="22" y="128" width="320" height="22" rx="4"/><rect class="tp-card" x="22" y="160" width="320" height="22" rx="4"/>',
+    blog: '<rect class="tp-ink" x="22" y="48" width="104" height="12" rx="3"/><rect class="tp-line" x="22" y="68" width="124" height="6" rx="3"/><rect class="tp-media" x="22" y="98" width="88" height="38" rx="5"/><rect class="tp-line" x="128" y="102" width="116" height="8" rx="3"/><rect class="tp-line" x="128" y="118" width="190" height="6" rx="3"/><rect class="tp-media" x="22" y="150" width="88" height="38" rx="5"/><rect class="tp-line" x="128" y="154" width="98" height="8" rx="3"/><rect class="tp-line" x="128" y="170" width="174" height="6" rx="3"/>',
+    article: '<rect class="tp-line" x="128" y="48" width="64" height="5" rx="2.5"/><rect class="tp-ink" x="92" y="66" width="180" height="13" rx="3"/><rect class="tp-line" x="118" y="88" width="128" height="6" rx="3"/><rect class="tp-media" x="70" y="108" width="224" height="46" rx="5"/><rect class="tp-line" x="96" y="170" width="172" height="5" rx="2.5"/><rect class="tp-line" x="96" y="182" width="146" height="5" rx="2.5"/>',
+    soon: '<rect class="tp-ink" x="97" y="62" width="170" height="13" rx="3"/><rect class="tp-line" x="122" y="86" width="120" height="6" rx="3"/><rect class="tp-outline" x="88" y="116" width="134" height="24" rx="4"/><rect class="tp-accent" x="230" y="116" width="48" height="24" rx="4"/><rect class="tp-line" x="136" y="158" width="92" height="5" rx="2.5"/>'
+  };
+  return `<svg class="templatePreview" viewBox="0 0 364 214" role="img" aria-label="${id} page layout preview"><rect class="tp-paper" width="364" height="214" rx="8"/>${header}${art[id] || art.blank}</svg>`;
+};
+
 const TEMPLATES = [
   {
-    id: 'blank', name: 'Blank', desc: 'An empty page.',
+    id: 'blank', name: 'Blank', desc: 'An empty page.', category: 'Start', keywords: ['empty', 'canvas'],
     build: () => []
   },
   {
-    id: 'landing', name: 'Landing page', desc: 'Hero, three features, closing call to action.',
+    id: 'landing', name: 'Landing page', desc: 'Hero, three features, closing call to action.', category: 'Marketing', keywords: ['home', 'hero', 'features', 'cta'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg'), 'padding-top': '104px' }, [
         cols(1, [[
@@ -5794,7 +5817,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'pricing', name: 'Pricing', desc: 'Intro and three plan columns.',
+    id: 'pricing', name: 'Pricing', desc: 'Intro and three plan columns.', category: 'Marketing', keywords: ['plans', 'packages', 'subscriptions'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg') }, [
         cols(1, [[
@@ -5811,7 +5834,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'contact', name: 'Contact', desc: 'Short intro beside a working form.',
+    id: 'contact', name: 'Contact', desc: 'Short intro beside a working form.', category: 'Company', keywords: ['form', 'inquiry', 'lead'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg') }, [
         cols(2, [
@@ -5824,7 +5847,7 @@ const TEMPLATES = [
   }
 ,
   {
-    id: 'about', name: 'About', desc: 'The story, a stats row and a closing action.',
+    id: 'about', name: 'About', desc: 'The story, a stats row and a closing action.', category: 'Company', keywords: ['story', 'team', 'company'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg'), 'padding-top': '104px' }, [
         cols(1, [[
@@ -5855,7 +5878,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'services', name: 'Services', desc: 'What you offer, how it works, then an action.',
+    id: 'services', name: 'Services', desc: 'What you offer, how it works, then an action.', category: 'Company', keywords: ['offer', 'process', 'business'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg'), 'padding-top': '104px' }, [
         cols(1, [[
@@ -5886,7 +5909,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'work', name: 'Work', desc: 'A grid of projects with room for captions.',
+    id: 'work', name: 'Work', desc: 'A grid of projects with room for captions.', category: 'Portfolio', keywords: ['projects', 'gallery', 'portfolio'],
     build: () => {
       const card = (i: number) => [
         N('image', { src: '', alt: '' }, { d: { 'border-radius': '14px', height: '220px', 'object-fit': 'cover', 'margin-bottom': '14px' }, m: { height: '180px' } }),
@@ -5908,7 +5931,7 @@ const TEMPLATES = [
     }
   },
   {
-    id: 'case', name: 'Case study', desc: 'One project: the brief, the work, the result.',
+    id: 'case', name: 'Case study', desc: 'One project: the brief, the work, the result.', category: 'Portfolio', keywords: ['project', 'results', 'client'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg'), 'padding-top': '104px', 'padding-bottom': '40px' }, [
         cols(1, [[
@@ -5949,7 +5972,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'faq', name: 'FAQ', desc: 'Questions and answers, plus a way to ask more.',
+    id: 'faq', name: 'FAQ', desc: 'Questions and answers, plus a way to ask more.', category: 'Company', keywords: ['questions', 'answers', 'support'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg'), 'padding-top': '104px', 'padding-bottom': '40px' }, [
         cols(1, [[
@@ -5977,7 +6000,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'blog', name: 'Blog index', desc: 'A list of posts with dates and summaries.',
+    id: 'blog', name: 'Blog index', desc: 'A list of posts with dates and summaries.', category: 'Content', keywords: ['posts', 'news', 'articles'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg'), 'padding-top': '104px', 'padding-bottom': '40px' }, [
         cols(1, [[
@@ -5996,7 +6019,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'article', name: 'Article', desc: 'A single post at a readable measure.',
+    id: 'article', name: 'Article', desc: 'A single post at a readable measure.', category: 'Content', keywords: ['post', 'story', 'editorial'],
     build: () => [
       T_SEC({ 'background-color': cvar('bg'), 'padding-top': '104px', 'padding-bottom': '32px' }, [
         cols(1, [[
@@ -6018,7 +6041,7 @@ const TEMPLATES = [
     ]
   },
   {
-    id: 'soon', name: 'Coming soon', desc: 'A centred hero with a signup form.',
+    id: 'soon', name: 'Coming soon', desc: 'A centred hero with a signup form.', category: 'Marketing', keywords: ['launch', 'signup', 'waitlist'],
     build: () => [
       T_SEC({ 'background-color': cvar('ink'), 'padding-top': '132px', 'padding-bottom': '132px' }, [
         cols(1, [[
@@ -7790,5 +7813,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
 };

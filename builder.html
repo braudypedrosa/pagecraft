@@ -428,14 +428,50 @@ body.content-only .s-hud [data-x=down]{display:none}
 .pv-g{fill:var(--green)}
 .pv-i{fill:#22251f}
 .pvcard:hover .pvw{background:var(--panel)}
-.tplgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);margin-top:var(--gap-1)}
-.tpl{
-  text-align:left;padding:14px;border:1px solid var(--line-2);border-radius:var(--r-md);
-  background:var(--panel);display:flex;flex-direction:column;gap:var(--sp-2);
+.templateChooser{display:grid;gap:var(--sp-6)}
+.templateControls{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(260px,1fr);gap:var(--sp-6);align-items:end}
+.templateFilters{display:flex;flex-wrap:wrap;gap:var(--sp-3)}
+.templateFilter{
+  min-height:32px;padding:0 11px;border:1px solid var(--line-2);border-radius:var(--r-pill);
+  background:var(--panel);color:var(--text-2);font-family:var(--label);font-size:var(--fs-2);font-weight:600;
 }
-.tpl:hover{border-color:var(--ink);background:var(--field)}
-.tpl b{font-size:var(--fs-3);font-weight:600}
-.tpl span{font-family:var(--label);font-size:var(--fs-2);color:var(--text-3);line-height:1.45}
+.templateFilter:hover{border-color:var(--ink);color:var(--text)}
+.templateFilter[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.templateFilter:focus-visible,.tpl:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.templateSummary{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-5);min-height:20px;color:var(--text-3);font-family:var(--label);font-size:var(--fs-2)}
+.templateSummary b{color:var(--text-2);font-weight:600}
+.templateSummary button{color:var(--text-2);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.templateSummary button:hover{color:var(--ink)}
+.tplgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-5)}
+.tpl{
+  min-width:0;text-align:left;padding:0;border:1px solid var(--line-2);border-radius:var(--r-md);
+  background:var(--panel);display:flex;flex-direction:column;overflow:hidden;
+  transition:border-color .14s,background .14s,transform .1s ease-out,box-shadow .14s;
+}
+.tpl:hover{border-color:var(--ink);background:var(--field);box-shadow:0 8px 22px rgba(17,19,17,.08);transform:translateY(-2px)}
+.tpl[hidden]{display:none}
+.templatePreviewWrap{padding:10px;background:var(--field);border-bottom:1px solid var(--line)}
+.templatePreview{display:block;width:100%;height:auto}
+.templatePreview .tp-paper{fill:#fffefa}
+.templatePreview .tp-ink{fill:#22251f}
+.templatePreview .tp-line{fill:#c6c0af}
+.templatePreview .tp-card{fill:#eeeae0}
+.templatePreview .tp-media{fill:#ded9cc}
+.templatePreview .tp-accent{fill:var(--green)}
+.templatePreview .tp-outline{fill:none;stroke:#c6c0af;stroke-width:1.5}
+.templateCardCopy{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-4);padding:12px 13px 13px}
+.templateCardCopy>span{min-width:0}
+.tpl b{display:block;margin-bottom:4px;font-size:var(--fs-3);font-weight:600;color:var(--text)}
+.tpl small{display:block;font-family:var(--label);font-size:var(--fs-2);color:var(--text-3);line-height:1.45}
+.templateCategory{align-self:start;padding:3px 7px;border-radius:var(--r-pill);background:var(--field-2);color:var(--text-2);font-family:var(--label);font-size:var(--fs-1);font-weight:600;white-space:nowrap}
+.templateEmpty{padding:32px;border:1px dashed var(--line-2);border-radius:var(--r-md);text-align:center;color:var(--text-2)}
+.templateEmpty b{display:block;margin-bottom:5px;color:var(--text);font-size:var(--fs-4)}
+.templateEmpty span{font-family:var(--label);font-size:var(--fs-2)}
+@media(max-width:760px){
+  .templateControls{grid-template-columns:1fr}
+  .tplgrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){.tplgrid{grid-template-columns:1fr}.templateCardCopy{padding:11px 12px 12px}}
 .pitem{
   width:100%;font:inherit;color:inherit;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
@@ -2082,10 +2118,15 @@ function load() {
     let d = null, loadError = null;
     if (IS_WORDPRESS && !SRV.doc) {
       blankProject(WP.page && WP.page.title || 'Untitled page');
-      state.pages[0].name = WP.page && WP.page.title || 'Untitled page';
-      state.pages[0].slug = WP.page && WP.page.slug || 'page';
       state.meta.name = WP.siteName || 'WordPress';
       applyWordPressDesignSettings();
+      const initialTemplate = TEMPLATES.find(template => template.id === WP.initialTemplate);
+      if (initialTemplate && initialTemplate.id !== 'blank') {
+        state.pages = [];
+        state.pages.push(pageFromTemplate(initialTemplate.id, WP.page && WP.page.title || initialTemplate.name));
+      }
+      state.pages[0].name = WP.page && WP.page.title || (initialTemplate ? initialTemplate.name : 'Untitled page');
+      state.pages[0].slug = WP.page && WP.page.slug || slugify(state.pages[0].name) || 'page';
       return;
     }
     try { d = PC_UI.adoptHostDocument(SRV.doc); } catch (error) { loadError = error; }
@@ -4640,15 +4681,55 @@ function langSelect(id, val) {
 
 /* A new page starts from a template built out of this project's own tokens. */
 function newPageModal() {
+  const categories = ['All', ...new Set(TEMPLATES.map(t => t.category))];
   openModal('New page', `
-    <div class="f"><label>Page name</label><input class="ctl" id="npName" value="" placeholder="About"></div>
-    <div class="tplgrid">${TEMPLATES.map(t => `
-      <button class="tpl" data-tpl="${t.id}">
-        <b>${esc(t.name)}</b><span>${esc(t.desc)}</span>
-      </button>`).join('')}</div>`, '');
+    <div class="templateChooser">
+      <div class="templateControls">
+        <div class="f"><label for="npName">Page name</label><input class="ctl" id="npName" value="" placeholder="Uses the template name"></div>
+        <div class="f"><label for="templateSearch">Find a page</label><input class="ctl" id="templateSearch" type="search" autocomplete="off" placeholder="Search landing, portfolio, article…"></div>
+      </div>
+      <div class="templateFilters" role="toolbar" aria-label="Filter page templates">
+        ${categories.map((category, index) => `<button type="button" class="templateFilter" data-template-filter="${esc(category)}" aria-pressed="${index === 0 ? 'true' : 'false'}">${esc(category)}</button>`).join('')}
+      </div>
+      <div class="templateSummary"><span id="templateCount" aria-live="polite"><b>${TEMPLATES.length}</b> Pagecraft templates</span><button type="button" id="templateClear" hidden>Clear filters</button></div>
+      <div class="tplgrid">${TEMPLATES.map(t => `
+        <button type="button" class="tpl" data-tpl="${esc(t.id)}" data-category="${esc(t.category)}" data-search="${esc([t.name, t.desc, t.category, ...t.keywords].join(' ').toLowerCase())}">
+          <span class="templatePreviewWrap">${templatePreview(t.id)}</span>
+          <span class="templateCardCopy"><span><b>${esc(t.name)}</b><small>${esc(t.desc)}</small></span><span class="templateCategory">${esc(t.category)}</span></span>
+        </button>`).join('')}</div>
+      <div class="templateEmpty" id="templateEmpty" hidden><b>No templates match</b><span>Try a different search or clear the category filter.</span></div>
+    </div>`, '', 'lg');
   const nameEl = $('#npName');
+  const searchEl = $('#templateSearch');
+  let category = 'All';
+  const filterButtons = $$('[data-template-filter]', $('#modal'));
+  const templateButtons = $$('[data-tpl]', $('#modal'));
+  const applyFilter = () => {
+    const query = searchEl.value.trim().toLowerCase();
+    let shown = 0;
+    templateButtons.forEach(button => {
+      const visible = (category === 'All' || button.dataset.category === category)
+        && (!query || button.dataset.search.includes(query));
+      button.hidden = !visible;
+      if (visible) shown++;
+    });
+    $('#templateCount').innerHTML = `<b>${shown}</b> ${shown === 1 ? 'Pagecraft template' : 'Pagecraft templates'}`;
+    $('#templateEmpty').hidden = shown !== 0;
+    $('#templateClear').hidden = category === 'All' && !query;
+  };
+  filterButtons.forEach(button => button.addEventListener('click', () => {
+    category = button.dataset.templateFilter;
+    filterButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    applyFilter();
+  }));
+  searchEl.addEventListener('input', applyFilter);
+  $('#templateClear').addEventListener('click', () => {
+    category = 'All'; searchEl.value = '';
+    filterButtons.forEach((item, index) => item.setAttribute('aria-pressed', String(index === 0)));
+    applyFilter(); searchEl.focus();
+  });
   nameEl.focus();
-  $$('[data-tpl]', $('#modal')).forEach(b => b.addEventListener('click', () => {
+  templateButtons.forEach(b => b.addEventListener('click', () => {
     const tid = b.dataset.tpl;
     closeModal();
     edit(() => {
