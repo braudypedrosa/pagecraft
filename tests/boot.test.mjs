@@ -271,7 +271,13 @@ test('WordPress mode boots the shared editor and saves a native fallback through
     'WordPress editing must stay on its same-origin REST adapter when Cloud is unavailable');
   doc.querySelector('#reviewBtn').click();
   a.equal(doc.querySelector('#rightAux').hidden, false, 'WordPress Review opens in the inspector column');
-  a.ok(doc.querySelector('#rightReview'), 'the Review component is mounted in the side panel');
+  const review = doc.querySelector('#rightReview');
+  a.ok(review, 'the Review component is mounted in the side panel');
+  a.match(review.querySelector('.reset')?.textContent || '', /Hide details/,
+    'WordPress Review shows its findings by default');
+  a.ok(review.querySelectorAll('li').length > 0, 'WordPress Review renders every current finding');
+  a.notEqual(dom.window.getComputedStyle(review.querySelector('ul')).overflowY, 'auto',
+    'Review findings use the inspector scroll surface instead of a nested scrollbar');
   a.equal(doc.querySelector('#modal').hidden, true, 'WordPress Review must not interrupt with a modal');
   a.equal(doc.querySelector('#exZip'), null, 'WordPress Review must not mount static export controls');
   doc.querySelector('#rightSurfaceClose').click();

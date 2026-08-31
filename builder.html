@@ -1160,7 +1160,7 @@ pre.code{
 .review .rh .dot.bad{background:var(--danger)}
 .review .rh .dot.warn{background:var(--warn)}
 .review .rh .spacer{flex:1}
-.review ul{list-style:none;margin:0;padding:0;max-height:230px;overflow:auto}
+.review ul{list-style:none;margin:0;padding:0}
 .review li{display:flex;gap:var(--sp-4);align-items:flex-start;padding:10px 14px;border-top:1px solid var(--line);font-size:var(--fs-2)}
 .review .lv{width:7px;height:7px;border-radius:50%;margin-top:5px;flex:0 0 7px}
 .review .lv.error{background:var(--danger)}
@@ -1884,7 +1884,7 @@ function reviewPanel() {
   if (editing.on) exitEdit();
   const panel = openRightSurface('Review', 'Checks for this WordPress page',
     '<div class="review" id="rightReview"></div>', $('#reviewBtn'));
-  if (panel) ui().mountReview('rightReview');
+  if (panel) ui().mountReview('rightReview', true);
 }
 
 /* May this session change the shape of the site, as opposed to its words?
