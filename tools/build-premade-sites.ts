@@ -3,12 +3,12 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dimensions, sniff, type Asset } from '../server/src/assets.ts';
 import { createSitePackage } from '../server/src/portable-packages.ts';
-import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/2.0.4/source.ts';
+import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/2.0.5/source.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = resolve(root, 'premade-sites');
 const templateId = 'independent-studio';
-const version = '2.0.4';
+const version = '2.0.5';
 const directory = resolve(templateRoot, templateId, version);
 const assetDirectory = resolve(templateRoot, templateId, '2.0.0', 'assets');
 const assetSpecs = [

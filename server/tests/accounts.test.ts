@@ -459,7 +459,7 @@ test("a curated site installs all pages and remapped media without charging the 
     body: JSON.stringify({
       name: "Client Studio",
       templateId: "independent-studio",
-      templateVersion: "2.0.4",
+      templateVersion: "2.0.5",
     }),
   });
   a.equal(created.status, 201, await created.clone().text());
@@ -489,7 +489,8 @@ test("a curated site installs all pages and remapped media without charging the 
   const dashboard = await request("/");
   const html = await dashboard.text();
   a.match(html, /Independent Studio/);
-  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.4"/);
+  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.5"/);
+  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.4"/);
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.3"/);
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.2"/);
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.1"/);
@@ -498,12 +499,12 @@ test("a curated site installs all pages and remapped media without charging the 
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
   a.match(
     html,
-    /\/templates\/independent-studio\/2\.0\.4\/preview\/index\.html/,
+    /\/templates\/independent-studio\/2\.0\.5\/preview\/index\.html/,
   );
   a.match(html, /Blank site/);
 
   const preview = await request(
-    "/templates/independent-studio/2.0.4/preview/index.html",
+    "/templates/independent-studio/2.0.5/preview/index.html",
   );
   a.equal(preview.status, 200);
   a.match(preview.headers.get("content-security-policy") || "", /script-src/);
@@ -512,15 +513,22 @@ test("a curated site installs all pages and remapped media without charging the 
   a.match(previewHtml, /Direction is made in the open\./);
   a.match(previewHtml, /nl-loop-editorial/);
   a.match(previewHtml, /font-size:clamp\(44px,5vw,64px\)/);
+  a.match(previewHtml, /nl-disciplines-intro/);
+  a.doesNotMatch(previewHtml, /Three connected disciplines/);
   a.doesNotMatch(previewHtml, /class="[^"]*\bnl-loop-card\b/);
   const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
   a.ok(packagedAsset);
   const media = await request(
-    `/templates/independent-studio/2.0.4/preview/${packagedAsset[1]}`,
+    `/templates/independent-studio/2.0.5/preview/${packagedAsset[1]}`,
   );
   a.equal(media.status, 200);
   a.equal(media.headers.get("content-type"), "image/webp");
   a.match(media.headers.get("cache-control") || "", /immutable/);
+
+  const v204 = await request(
+    "/templates/independent-studio/2.0.4/preview/index.html",
+  );
+  a.equal(v204.status, 200);
 
   const v203 = await request(
     "/templates/independent-studio/2.0.3/preview/index.html",
