@@ -17,6 +17,8 @@ describe('@pagecraft/editor package', () => {
     expect(html).toContain('documentPath: WP.documentPath');
     expect(html).toContain('revisionsPath: WP.revisionsPath');
     expect(html).toContain('WP.returnLabel');
+    expect(html).toContain('id="brandHome"');
+    expect(html).toContain("WP.pagesUrl || WP.exitUrl || ''");
     expect(contract).toMatchObject({
       format: 'pagecraft.editor-contract.v1',
       schemaVersion: SCHEMA,

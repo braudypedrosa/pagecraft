@@ -107,8 +107,10 @@ input,select,textarea{font:inherit;color:inherit}
 }
 .brand{
   display:flex;align-items:center;gap:var(--sp-4);height:52px;padding:0 18px 0 16px;
-  font-weight:600;font-size:var(--fs-5);letter-spacing:-.02em;flex:0 0 auto;
+  color:inherit;text-decoration:none;font-weight:600;font-size:var(--fs-5);letter-spacing:-.02em;flex:0 0 auto;
 }
+.brand[href]{cursor:pointer}
+.brand[href]:hover{background:#ffffff0f}
 .brand svg{width:17px;height:22px;display:block;flex:0 0 17px}
 .topsep{width:1px;height:22px;background:var(--rail-line);flex:0 0 1px}
 .docname{
@@ -1278,10 +1280,10 @@ pre.code{
 
 <div id="app">
   <div class="topbar">
-    <div class="brand">
+    <a class="brand" id="brandHome" aria-label="Pagecraft" target="_top">
       <svg width="17" height="22" viewBox="0 0 73 95" aria-hidden="true"><path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill="#b7f34a" fill-rule="evenodd"/></svg>
       <span class="brandLabel">Pagecraft</span>
-    </div>
+    </a>
     <span class="topsep"></span>
     <span class="docname" id="docName"></span>
     <button class="iconbtn" id="sitesBtn" title="Back to sites" aria-label="Sites" hidden>
@@ -1470,6 +1472,12 @@ let lastCloudDocument = null;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+const brandHome = $('#brandHome');
+if (brandHome) {
+  const brandDestination = IS_WORDPRESS ? (WP.pagesUrl || WP.exitUrl || '') : (SRV ? '/' : '');
+  if (brandDestination) brandHome.setAttribute('href', brandDestination);
+  brandHome.setAttribute('aria-label', IS_WORDPRESS ? 'Back to WordPress pages' : (SRV ? 'Pagecraft dashboard' : 'Pagecraft'));
+}
 
 /* The server transport is a typed adapter compiled with the ported UI. WordPress creates the
    sibling adapter; both stop at the same document/schema boundary and neither reaches into
