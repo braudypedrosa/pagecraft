@@ -2756,22 +2756,25 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       return "failed";
     }
     case "manualImport.catalog": {
-      const credential = one(
-        await sql`
-          select owner_id from wordpress_import_credentials
-          where access_token_digest = ${text(args.digest)}
-            and status = 'active' and access_expires_at > now()
-          limit 1
-        `,
-      );
-      if (!credential) return { authorized: false };
-      const sites = await sql`
-        select s.* from sites s
-        join site_users membership on membership.site_id = s.id
-        where membership.user_id = ${String(credential.owner_id)}
+      const rows = await sql`
+        select credential.owner_id, s.*
+        from wordpress_import_credentials credential
+        left join site_users membership
+          on membership.user_id = credential.owner_id
           and membership.role = 'owner'
+        left join sites s on s.id = membership.site_id
+        where credential.access_token_digest = ${text(args.digest)}
+          and credential.status = 'active'
+          and credential.access_expires_at > now()
         order by s.name
       `;
+      const credential = one(rows);
+      if (!credential) return { authorized: false };
+      const sites = rows.flatMap((row) => {
+        if (!row.id) return [];
+        const { owner_id: _ownerId, ...site } = row;
+        return [site];
+      });
       return {
         authorized: true,
         owner_id: credential.owner_id,
@@ -2781,27 +2784,25 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     case "manualImport.project": {
       const credential = one(
         await sql`
-          select owner_id from wordpress_import_credentials
-          where access_token_digest = ${text(args.digest)}
-            and status = 'active' and access_expires_at > now()
-          limit 1
-        `,
+        select credential.owner_id, s.*
+        from wordpress_import_credentials credential
+        left join site_users membership
+          on membership.user_id = credential.owner_id
+          and membership.role = 'owner'
+          and membership.site_id = ${text(args.projectId)}
+        left join sites s on s.id = membership.site_id
+        where credential.access_token_digest = ${text(args.digest)}
+          and credential.status = 'active'
+          and credential.access_expires_at > now()
+        limit 1
+      `,
       );
       if (!credential) return { authorized: false };
-      const site = one(
-        await sql`
-          select s.* from sites s
-          join site_users membership on membership.site_id = s.id
-          where s.id = ${text(args.projectId)}
-            and membership.user_id = ${String(credential.owner_id)}
-            and membership.role = 'owner'
-          limit 1
-        `,
-      );
+      const { owner_id: ownerId, ...project } = credential;
       return {
         authorized: true,
-        owner_id: credential.owner_id,
-        site,
+        owner_id: ownerId,
+        site: project.id ? project : null,
       };
     }
     case "auth.manualImport.create": {
