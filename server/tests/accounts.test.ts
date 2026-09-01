@@ -923,13 +923,26 @@ test("account settings shows profile, security, providers, and real free-plan us
   );
   a.match(
     html,
-    /\.pc-settings-links\{margin-top:40px;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/,
+    /\.pc-settings-content\{min-height:100%;display:flex;flex-direction:column\}/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-footer\{display:grid;grid-template-columns:190px minmax\(0,720px\);[^}]*margin-top:40px\}/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-links\{grid-column:2;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/,
   );
   a.match(
     html,
     /\.pc-settings-title \.pc-plan-badge\{justify-self:start\}/,
   );
-  a.doesNotMatch(html, /\.pc-settings-layout\{flex:1/);
+  a.match(html, /\.pc-settings-layout\{flex:1\}/);
+  a.match(
+    html,
+    /<\/div><\/div><footer class="pc-settings-footer"><div class="pc-settings-links">/,
+  );
+  a.doesNotMatch(html, /\.pc-settings-main\{[^}]*display:flex/);
   a.doesNotMatch(html, /\.pc-empty-line\{[^}]*border/);
 
   const planResponse = await request("/account?tab=plan");
