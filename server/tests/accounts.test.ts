@@ -903,6 +903,14 @@ test("account settings shows profile, security, providers, and real free-plan us
   );
   a.match(
     html,
+    /\.pc-settings-nav button\{border:1px solid var\(--pc-line\);background:#eeece4\}/,
+  );
+  a.match(
+    html,
+    /\.pc-settings-nav button\[aria-selected="true"\]\{border-color:var\(--pc-green\);background:var\(--pc-green\)\}/,
+  );
+  a.match(
+    html,
     /\.pc-integration-block\{[^}]*border-top:1px solid var\(--pc-line\)\}/,
   );
   a.match(
