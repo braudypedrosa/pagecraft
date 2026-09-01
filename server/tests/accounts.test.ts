@@ -459,7 +459,7 @@ test("a curated site installs all pages and remapped media without charging the 
     body: JSON.stringify({
       name: "Client Studio",
       templateId: "independent-studio",
-      templateVersion: "2.0.7",
+      templateVersion: "2.0.8",
     }),
   });
   a.equal(created.status, 201, await created.clone().text());
@@ -489,7 +489,8 @@ test("a curated site installs all pages and remapped media without charging the 
   const dashboard = await request("/");
   const html = await dashboard.text();
   a.match(html, /Independent Studio/);
-  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.7"/);
+  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.8"/);
+  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.6"/);
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.5"/);
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.4"/);
@@ -501,12 +502,12 @@ test("a curated site installs all pages and remapped media without charging the 
   a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
   a.match(
     html,
-    /\/templates\/independent-studio\/2\.0\.7\/preview\/index\.html/,
+    /\/templates\/independent-studio\/2\.0\.8\/preview\/index\.html/,
   );
   a.match(html, /Blank site/);
 
   const preview = await request(
-    "/templates/independent-studio/2.0.7/preview/index.html",
+    "/templates/independent-studio/2.0.8/preview/index.html",
   );
   a.equal(preview.status, 200);
   a.match(preview.headers.get("content-security-policy") || "", /script-src/);
@@ -522,11 +523,16 @@ test("a curated site installs all pages and remapped media without charging the 
   const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
   a.ok(packagedAsset);
   const media = await request(
-    `/templates/independent-studio/2.0.7/preview/${packagedAsset[1]}`,
+    `/templates/independent-studio/2.0.8/preview/${packagedAsset[1]}`,
   );
   a.equal(media.status, 200);
   a.equal(media.headers.get("content-type"), "image/webp");
   a.match(media.headers.get("cache-control") || "", /immutable/);
+
+  const v207 = await request(
+    "/templates/independent-studio/2.0.7/preview/index.html",
+  );
+  a.equal(v207.status, 200);
 
   const v206 = await request(
     "/templates/independent-studio/2.0.6/preview/index.html",

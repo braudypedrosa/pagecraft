@@ -3,13 +3,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dimensions, sniff, type Asset } from '../server/src/assets.ts';
 import { createSitePackage } from '../server/src/portable-packages.ts';
-import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/2.0.7/source.ts';
-import { assertPremadeDesignContractV1 } from '../premade-sites/lib/v1/design-contract.ts';
+import { buildIndependentStudioDocument } from '../premade-sites/independent-studio/2.0.8/source.ts';
+import { assertPremadeDesignContractV2 } from '../premade-sites/lib/v2/design-contract.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = resolve(root, 'premade-sites');
 const templateId = 'independent-studio';
-const version = '2.0.7';
+const version = '2.0.8';
 const directory = resolve(templateRoot, templateId, version);
 const assetDirectory = resolve(templateRoot, templateId, '2.0.0', 'assets');
 const assetSpecs = [
@@ -30,7 +30,7 @@ for (const [id, name] of assetSpecs) {
 }
 
 const document = buildIndependentStudioDocument();
-assertPremadeDesignContractV1(document);
+assertPremadeDesignContractV2(document);
 const built = createSitePackage({
   document,
   assets,
