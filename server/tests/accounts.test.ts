@@ -903,11 +903,11 @@ test("account settings shows profile, security, providers, and real free-plan us
   );
   a.match(
     html,
-    /\.pc-settings-nav button\{border:1px solid var\(--pc-line\);background:#eeece4\}/,
+    /\.pc-settings-nav button\{border:1px solid transparent;background:#eeece4;color:var\(--pc-text\)\}/,
   );
   a.match(
     html,
-    /\.pc-settings-nav button\[aria-selected="true"\]\{border-color:var\(--pc-green\);background:var\(--pc-green\)\}/,
+    /\.pc-settings-nav button\[aria-selected="true"\]\{border-color:transparent;background:var\(--pc-green\)\}/,
   );
   a.match(
     html,
