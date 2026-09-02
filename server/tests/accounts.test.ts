@@ -431,6 +431,12 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /createModal\.showModal\(\)/);
   a.match(html, /data-create-close/);
   a.match(html, /addEventListener\('cancel'/);
+  a.match(html, /data-start-blank aria-pressed="true"/);
+  a.match(html, /data-template-open aria-pressed="false"/);
+  a.match(html, /data-template-modal/);
+  a.match(html, /data-template-form/);
+  a.match(html, /startPremade\.dataset\.templateValue=selected\.value/);
+  a.match(html, /startPremade\?\.dataset\.templateValue\|\|data\.get\('siteTemplate'\)/);
   a.doesNotMatch(html, /<details class="pc-create-card"/);
   a.match(html, /href="\/account">Account settings<\/a>/);
   a.match(html, /name="slug"/);
@@ -454,13 +460,40 @@ test("dashboard create modal independently keeps only the latest template versio
     templates,
   );
 
-  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.8" checked/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.7"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
-  a.equal((html.match(/<input type="radio" name="siteTemplate"/g) || []).length, 2);
-  a.match(html, /<dialog class="pc-create-modal"/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.8" data-template-name="Independent Studio" checked/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
+  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, 1);
+  a.equal((html.match(/<dialog class="pc-create-modal/g) || []).length, 2);
+  a.match(html, /pc-template-picker is-single/);
   a.match(html, /<legend>Choose a starting point<\/legend>/);
   a.match(html, /<strong>Blank site<\/strong>/);
+  a.match(html, /<strong>Choose from premade templates<\/strong>/);
+  a.match(html, /name="siteTemplate" value="" data-site-template/);
+});
+
+test("premade library includes the latest release of every curated site", async () => {
+  const templates = await new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  ).list();
+  const source = templates.find((template) => template.version === "2.0.8");
+  a.ok(source);
+  const html = dashboardPage(
+    { id: "user-1", email: "builder@example.test", name: "Builder" },
+    [],
+    0,
+    { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
+    [
+      ...templates,
+      { ...source, id: "editorial-journal", name: "Editorial Journal", version: "1.0.0" },
+      { ...source, id: "editorial-journal", name: "Editorial Journal", version: "1.1.0" },
+    ],
+  );
+
+  a.match(html, /premadeTemplate" value="editorial-journal@1\.1\.0"/);
+  a.doesNotMatch(html, /premadeTemplate" value="editorial-journal@1\.0\.0"/);
+  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, 2);
+  a.doesNotMatch(html, /pc-template-picker is-single/);
 });
 
 test("a curated site installs all pages and remapped media without charging the owner quota", async () => {
@@ -516,17 +549,17 @@ test("a curated site installs all pages and remapped media without charging the 
   const dashboard = await request("/");
   const html = await dashboard.text();
   a.match(html, /Independent Studio/);
-  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.8"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.7"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.6"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.5"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.4"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.3"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.2"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.1"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.0"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.1"/);
-  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.6"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.5"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.4"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.3"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.2"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.1"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.0"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.1"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
   a.match(
     html,
     /\/templates\/independent-studio\/2\.0\.8\/preview\/index\.html/,
