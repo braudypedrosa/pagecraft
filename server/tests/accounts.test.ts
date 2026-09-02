@@ -18,6 +18,7 @@ import {
   FileSiteTemplateStore,
   type SiteTemplateStore,
 } from "../src/site-templates.ts";
+import { dashboardPage } from "../src/account-pages.ts";
 import { resolve } from "node:path";
 
 const doc = () => {
@@ -425,7 +426,12 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /No sites match your search/);
   a.match(html, /No shared sites yet/);
   a.match(html, /No owned sites yet/);
-  a.match(html, />Add new site<\/a>/);
+  a.match(html, /data-create-open>Add new site<\/button>/);
+  a.match(html, /<dialog class="pc-create-modal"/);
+  a.match(html, /createModal\.showModal\(\)/);
+  a.match(html, /data-create-close/);
+  a.match(html, /addEventListener\('cancel'/);
+  a.doesNotMatch(html, /<details class="pc-create-card"/);
   a.match(html, /href="\/account">Account settings<\/a>/);
   a.match(html, /name="slug"/);
   a.match(html, /data-create-error/);
@@ -434,6 +440,27 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /pc-custom-select-popover/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
+});
+
+test("dashboard create modal independently keeps only the latest template version", async () => {
+  const templates = await new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  ).list();
+  const html = dashboardPage(
+    { id: "user-1", email: "builder@example.test", name: "Builder" },
+    [],
+    0,
+    { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
+    templates,
+  );
+
+  a.match(html, /name="siteTemplate" value="independent-studio@2\.0\.8" checked/);
+  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@2\.0\.7"/);
+  a.doesNotMatch(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
+  a.equal((html.match(/<input type="radio" name="siteTemplate"/g) || []).length, 2);
+  a.match(html, /<dialog class="pc-create-modal"/);
+  a.match(html, /<legend>Choose a starting point<\/legend>/);
+  a.match(html, /<strong>Blank site<\/strong>/);
 });
 
 test("a curated site installs all pages and remapped media without charging the owner quota", async () => {
