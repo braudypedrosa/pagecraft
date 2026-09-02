@@ -29,6 +29,9 @@ test('memory publications remain private until atomically promoted', async () =>
   await store.promote(publication);
   assert.equal((await store.currentBySlug('site-one'))?.id, publication.id);
   assert.deepEqual(await store.file(publication, 'assets/logo.png'), Uint8Array.of(1, 2, 3));
+  assert.equal(await store.preview(publication), null);
+  await store.putPreview(publication, Uint8Array.of(8, 9, 10));
+  assert.deepEqual(await store.preview(publication), Uint8Array.of(8, 9, 10));
 
   const moved = await store.create({ ...input(), slug: 'site-moved', host: 'site-moved.test' });
   await store.promote(moved);
@@ -50,6 +53,9 @@ test('file publications survive a new store process and never escape their root'
     assert.ok(bytes);
     assert.equal(new TextDecoder().decode(bytes), '<h1>Hello</h1>');
     assert.equal(await reader.file(current!, '../../manifest.json'), null);
+    assert.equal(await reader.preview(current!), null);
+    await writer.putPreview(publication, Uint8Array.of(4, 5, 6));
+    assert.deepEqual(await reader.preview(current!), Uint8Array.of(4, 5, 6));
 
     const moved = await writer.create({ ...input(), slug: 'site-moved', host: 'site-moved.test' });
     await writer.promote(moved);

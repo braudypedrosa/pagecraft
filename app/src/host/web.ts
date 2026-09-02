@@ -108,6 +108,11 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
         return (await transport.request<unknown>({
           method: 'POST', path: `/api/sites/${site}/publish`, body: { ...input }
         })).body;
+      },
+      async savePreview(input) {
+        await transport.request<unknown>({
+          method: 'POST', path: `/api/sites/${site}/publication-preview`, body: input
+        });
       }
     }
   };

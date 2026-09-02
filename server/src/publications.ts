@@ -58,6 +58,14 @@ export interface HostedPublicationStore {
     publication: PublicationSummary,
     path: string,
   ): Promise<Uint8Array | null>;
+  /** Dashboard artwork is derived from a release but is not part of the immutable site files. */
+  preview(
+    publication: PublicationSummary,
+  ): Promise<Uint8Array | null>;
+  putPreview(
+    publication: PublicationSummary,
+    bytes: Uint8Array,
+  ): Promise<void>;
 }
 
 const sha256 = (bytes: Uint8Array | string) =>
@@ -171,6 +179,7 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
   private slugs = new Map<string, string>();
   private hosts = new Map<string, string>();
   private siteAliases = new Map<string, { slug: string; host: string }>();
+  private previews = new Map<string, Uint8Array>();
 
   async create(input: {
     siteId: string;
@@ -251,6 +260,19 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
     if (!path || row?.summary.siteId !== publication.siteId) return null;
     return row.files.get(path)?.slice() || null;
   }
+
+  async preview(publication: PublicationSummary) {
+    const row = this.publications.get(publication.id);
+    if (row?.summary.siteId !== publication.siteId) return null;
+    return this.previews.get(publication.id)?.slice() || null;
+  }
+
+  async putPreview(publication: PublicationSummary, bytes: Uint8Array) {
+    if (!await this.byId(publication.siteId, publication.id)) {
+      throw new Error("publication does not exist");
+    }
+    this.previews.set(publication.id, bytes.slice());
+  }
 }
 
 export class FileHostedPublicationStore implements HostedPublicationStore {
@@ -278,6 +300,10 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
 
   private siteAliasPath(siteId: string) {
     return join(this.root, "pointers", "site", `${sha256(siteId)}.json`);
+  }
+
+  private previewPath(siteId: string, publicationId: string) {
+    return join(this.root, "previews", sha256(siteId), `${publicationId}.webp`);
   }
 
   private async atomicJson(path: string, value: unknown) {
@@ -462,5 +488,37 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
     } catch {
       return null;
     }
+  }
+
+  async preview(publication: PublicationSummary) {
+    if (!await this.byId(publication.siteId, publication.id)) return null;
+    try {
+      const bytes = new Uint8Array(
+        await readFile(this.previewPath(publication.siteId, publication.id)),
+      );
+      return bytes.byteLength ? bytes : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async putPreview(publication: PublicationSummary, bytes: Uint8Array) {
+    if (!await this.byId(publication.siteId, publication.id)) {
+      throw new Error("publication does not exist");
+    }
+    if (!(bytes instanceof Uint8Array) || !bytes.byteLength) {
+      throw new Error("preview is empty");
+    }
+    const destination = this.previewPath(publication.siteId, publication.id);
+    await mkdir(dirname(destination), { recursive: true, mode: 0o700 });
+    const temporary = `${destination}.${randomUUID()}.tmp`;
+    const handle = await open(temporary, "wx", 0o600);
+    try {
+      await handle.writeFile(bytes);
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    await rename(temporary, destination);
   }
 }

@@ -1480,6 +1480,9 @@ export function createApp(o: Options) {
           role,
           updatedAt: site.updatedAt,
           url: shareUrl(c, o, site),
+          previewUrl: site.publishedPublicationId
+            ? `/api/sites/${encodeURIComponent(site.id)}/publication-preview/${encodeURIComponent(site.publishedPublicationId)}`
+            : undefined,
           published: !!site.publishedPublicationId &&
             site.version === site.publishedVersion,
         })),
@@ -1952,6 +1955,73 @@ export function createApp(o: Options) {
           : "draft_changes")
         : "draft",
     });
+  });
+
+  app.get("/api/sites/:id/publication-preview/:publication", async (c) => {
+    if (!o.publications) return c.notFound();
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site || site.publishedPublicationId !== c.req.param("publication")) {
+      return c.notFound();
+    }
+    const publication = await o.publications.byId(
+      id,
+      c.req.param("publication"),
+    );
+    if (!publication) return c.notFound();
+    const bytes = await o.publications.preview(publication);
+    if (!bytes) return c.notFound();
+    return c.body(bytes.slice().buffer, 200, {
+      "content-type": "image/webp",
+      "content-length": String(bytes.byteLength),
+      "x-content-type-options": "nosniff",
+    });
+  });
+
+  app.post("/api/sites/:id/publication-preview", async (c) => {
+    if (!o.publications) {
+      return c.json({ error: "hosted publication storage is unavailable" }, 503);
+    }
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.json().catch(() => null) as {
+      publicationId?: string;
+      snapshot?: string;
+    } | null;
+    const publicationId = String(body?.publicationId || "");
+    const match = String(body?.snapshot || "").match(
+      /^data:(image\/(?:webp|png));base64,([A-Za-z0-9+/]+={0,2})$/,
+    );
+    if (!/^[0-9a-f-]{36}$/i.test(publicationId) || !match) {
+      return c.json({ error: "invalid_publication_preview" }, 400);
+    }
+    if (match[2].length > 2 * 1024 * 1024) {
+      return c.json({ error: "publication_preview_too_large" }, 413);
+    }
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    if (site.publishedPublicationId !== publicationId) {
+      return c.json({ error: "stale_publication_preview" }, 409);
+    }
+    const publication = await o.publications.byId(id, publicationId);
+    if (!publication) return c.notFound();
+    try {
+      const source = new Uint8Array(Buffer.from(match[2], "base64"));
+      const optimized = await optimizeAsset(source, match[1]);
+      if (
+        !optimized.w || !optimized.h || optimized.w < 480 ||
+        optimized.h < 300 || optimized.bytes.byteLength > 1024 * 1024
+      ) {
+        return c.json({ error: "invalid_publication_preview" }, 400);
+      }
+      await o.publications.putPreview(publication, optimized.bytes);
+      return c.json({ status: "stored", publicationId });
+    } catch {
+      return c.json({ error: "invalid_publication_preview" }, 400);
+    }
   });
 
   app.post("/api/sites/:id/publish", async (c) => {

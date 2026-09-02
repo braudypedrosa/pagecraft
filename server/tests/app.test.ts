@@ -32,7 +32,10 @@ const rig = async (role: Role = 'owner', hostedPublications = false) => {
   let sent = '';
   const app = createApp({
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
-    editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications
+    editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications,
+    optimizeAsset: hostedPublications
+      ? async bytes => ({ bytes, type: 'image/webp', w: 960, h: 600, extension: 'webp' })
+      : undefined
   });
   const fixture = demo();
   if (hostedPublications) {
@@ -195,6 +198,32 @@ test('hosted publishing promotes immutable bytes and public reads bypass the app
   }, cookie);
   a.equal(unchanged.status, 200);
   a.equal((await unchanged.json() as { status: string }).status, 'unchanged');
+
+  const previewUpload = await admin(`/api/sites/${site.id}/publication-preview`, {
+    method: 'POST',
+    body: JSON.stringify({
+      publicationId: result.publicationId,
+      snapshot: 'data:image/webp;base64,AQIDBA=='
+    })
+  }, cookie);
+  a.equal(previewUpload.status, 200, await previewUpload.clone().text());
+  const preview = await admin(
+    `/api/sites/${site.id}/publication-preview/${result.publicationId}`,
+    {},
+    cookie
+  );
+  a.equal(preview.status, 200);
+  a.equal(preview.headers.get('content-type'), 'image/webp');
+  a.deepEqual(new Uint8Array(await preview.arrayBuffer()), Uint8Array.of(1, 2, 3, 4));
+
+  const stalePreview = await admin(`/api/sites/${site.id}/publication-preview`, {
+    method: 'POST',
+    body: JSON.stringify({
+      publicationId: '11111111-1111-4111-8111-111111111111',
+      snapshot: 'data:image/webp;base64,AQIDBA=='
+    })
+  }, cookie);
+  a.equal(stalePreview.status, 409);
 
   store.byHost = async () => { throw new Error('public rendering queried the site database'); };
   store.bySlug = async () => { throw new Error('public rendering queried the site database'); };

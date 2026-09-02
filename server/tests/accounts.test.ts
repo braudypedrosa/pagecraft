@@ -411,6 +411,8 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /class="pc-site-card"/);
   a.match(html, /class="pc-site-preview"/);
   a.match(html, /class="pc-preview-fallback"/);
+  a.match(html, /Preview saved after publishing/);
+  a.doesNotMatch(html, /<iframe src="http:\/\/admin\.test\/braudy\/"/);
   a.match(html, /data-copy-site/);
   a.match(html, />Manage site<\/a>/);
   a.match(html, />Braudy<\/div>/);
@@ -431,12 +433,15 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /createModal\.showModal\(\)/);
   a.match(html, /data-create-close/);
   a.match(html, /addEventListener\('cancel'/);
-  a.match(html, /data-start-blank aria-pressed="true"/);
-  a.match(html, /data-template-open aria-pressed="false"/);
-  a.match(html, /data-template-modal/);
-  a.match(html, /data-template-form/);
-  a.match(html, /startPremade\.dataset\.templateValue=selected\.value/);
-  a.match(html, /startPremade\?\.dataset\.templateValue\|\|data\.get\('siteTemplate'\)/);
+  a.match(html, /data-start-blank/);
+  a.match(html, /data-template-open/);
+  a.match(html, /data-create-step="start"/);
+  a.match(html, /data-create-step="templates" hidden/);
+  a.match(html, /data-create-step="details" hidden/);
+  a.match(html, /data-create-back hidden/);
+  a.match(html, /setCreateStep\('templates'\)/);
+  a.doesNotMatch(html, /data-template-modal/);
+  a.doesNotMatch(html, /data-template-form/);
   a.doesNotMatch(html, /<details class="pc-create-card"/);
   a.match(html, /href="\/account">Account settings<\/a>/);
   a.match(html, /name="slug"/);
@@ -464,20 +469,39 @@ test("dashboard create modal independently keeps only the latest template versio
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
   a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, 1);
-  a.equal((html.match(/<dialog class="pc-create-modal/g) || []).length, 2);
-  a.match(html, /pc-template-picker is-single/);
-  a.match(html, /<legend>Starting point<\/legend>/);
+  a.equal((html.match(/<dialog class="pc-create-modal/g) || []).length, 1);
+  a.doesNotMatch(html, /pc-template-picker is-single/);
   a.match(html, /<strong>Blank site<\/strong>/);
-  a.match(html, /<strong>Choose from premade templates<\/strong>/);
-  a.match(html, /id="site-details-title">Site details<\/h3>/);
-  a.match(html, /pc-start-choice-check/);
-  a.match(html, /pc-start-choice-chevron/);
-  a.match(html, /\.pc-start-picker legend\{[^}]*margin:0 0 16px/);
-  a.match(html, /\.pc-start-options\{[^}]*grid-template-columns:1fr/);
-  a.match(html, /\.pc-create-fields\{[^}]*grid-template-columns:1fr/);
+  a.match(html, /<strong>Premade templates<\/strong>/);
+  a.match(html, /<h3>Site details<\/h3>/);
+  a.match(html, /pc-path-grid/);
+  a.match(html, /\.pc-template-picker\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  a.match(html, /\.pc-details-layout\{[^}]*grid-template-columns:170px minmax\(0,1fr\)/);
   a.match(html, /data-create-title/);
   a.doesNotMatch(html, /Shown in your Pagecraft dashboard/);
   a.match(html, /name="siteTemplate" value="" data-site-template/);
+  a.doesNotMatch(html, /<dialog[^>]+pc-template-modal/);
+});
+
+test("dashboard cards use a stored publication image instead of loading the live site", () => {
+  const html = dashboardPage(
+    { id: "user-1", email: "builder@example.test", name: "Builder" },
+    [{
+      id: "site-1",
+      name: "Snapshot site",
+      url: "https://public.example.test/",
+      role: "owner",
+      updatedAt: new Date().toISOString(),
+      published: true,
+      previewUrl: "/api/sites/site-1/publication-preview/publication-1",
+    }],
+    1,
+    { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
+  );
+  a.match(html, /<img src="\/api\/sites\/site-1\/publication-preview\/publication-1" loading="lazy" alt="">/);
+  a.doesNotMatch(html, /<iframe src="https:\/\/public\.example\.test\//);
+  a.match(html, /querySelector\('img'\)/);
+  a.doesNotMatch(html, /setTimeout\(.*7000/);
 });
 
 test("premade library includes the latest release of every curated site", async () => {

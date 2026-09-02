@@ -3783,13 +3783,25 @@ function codeSpans(src, lang) {
 var SLIDE_JS = `<script>
 (function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
 Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
-var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]');
-if(!t||!p||!n)return;p.removeAttribute('hidden');n.removeAttribute('hidden');
+var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]'),d=box.querySelector('[data-slide-dots]');
+if(!t||!p||!n||!d)return;p.removeAttribute('hidden');n.removeAttribute('hidden');d.removeAttribute('hidden');
 function go(d){t.scrollBy({left:d*t.clientWidth*0.9,behavior:rm.matches?'auto':'smooth'});}
 p.addEventListener('click',function(){go(-1);});n.addEventListener('click',function(){go(1);});
-function ends(){var max=t.scrollWidth-t.clientWidth-2;
-p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;}
-ends();t.addEventListener('scroll',ends,{passive:true});addEventListener('resize',ends);});})();
+var slides=[].slice.call(t.children),targets=[],dots=[];
+function positions(){var max=Math.max(0,t.scrollWidth-t.clientWidth),next=[];
+slides.forEach(function(slide){var target=Math.min(max,Math.max(0,slide.offsetLeft-t.offsetLeft));
+if(!next.some(function(value){return Math.abs(value-target)<3;}))next.push(target);});return next;}
+function active(){if(!targets.length)return;var current=0,distance=Infinity;
+targets.forEach(function(target,index){var delta=Math.abs(t.scrollLeft-target);if(delta<distance){distance=delta;current=index;}});
+dots.forEach(function(dot,index){if(index===current)dot.setAttribute('aria-current','true');else dot.removeAttribute('aria-current');});}
+function rebuild(){targets=positions();d.replaceChildren();dots=targets.map(function(target,index){
+var dot=document.createElement('button');function seek(){t.scrollTo({left:target,behavior:rm.matches?'auto':'smooth'});}
+dot.type='button';dot.className='pagecraft-slider-dot';dot.setAttribute('aria-label','Go to carousel position '+(index+1)+' of '+targets.length);
+if(t.id)dot.setAttribute('aria-controls',t.id);dot.addEventListener('click',seek);dot.addEventListener('keydown',function(event){
+if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();seek();});d.appendChild(dot);return dot;});active();}
+function update(){var max=t.scrollWidth-t.clientWidth-2;p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;active();}
+var queued=false;t.addEventListener('scroll',function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;update();});},{passive:true});
+addEventListener('resize',function(){rebuild();update();});addEventListener('load',function(){rebuild();update();},{once:true});rebuild();update();});})();
 <\/script>
 `;
 var CODE_JS = `<script>
@@ -8110,8 +8122,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   display:flex;gap:var(--sl-gap,24px);width:100%;
   overflow-x:auto;overscroll-behavior-x:contain;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;padding-bottom:2px;
+  scrollbar-width:none;padding-bottom:0;
 }
+.pagecraft-slider::-webkit-scrollbar{display:none;width:0;height:0}
 .pagecraft-slider>[class]{flex:0 0 var(--sl-w,100%);scroll-snap-align:start;min-width:0}
 .pagecraft-slider>*{scroll-snap-align:start;min-width:0}
 .pagecraft-slider:focus-visible{outline:3px solid currentColor;outline-offset:3px}
@@ -8125,6 +8138,14 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-slide-btn.n{right:-8px;rotate:-90deg}
 .pagecraft-slide-btn[hidden]{display:none}
 .pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
+.pagecraft-slider-dots{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px}
+.pagecraft-slider-dots[hidden]{display:none}
+.pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
+.pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
+.pagecraft-slider-dot:hover::before{opacity:.68}
+.pagecraft-slider-dot[aria-current=true]::before{background:var(--c-brand,#111311);opacity:1;transform:scale(1.25)}
+.pagecraft-slider-dot:focus-visible{outline:2px solid var(--c-brand,#111311);outline-offset:0}
+@media(max-width:767px){.pagecraft-slider-dots{margin-top:10px}.pagecraft-slider-dot{width:44px;height:44px}}
 .pagecraft-crumbs ol{
   display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
   list-style:none;margin:0;padding:0;
@@ -8680,7 +8701,7 @@ function renderNode(n, o) {
       const track = `<div ${at} ${cx("pagecraft-slider")} data-slides role="group" aria-label="${esc(String(p.aria || "Slides"))}" tabindex="0">` + (kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes a slide</div>` : "")) + "</div>";
       if (!p.arrows) return track;
       const btn = (dir, label) => `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>${svg("caret", 15)}</button>`;
-      return `<div class="pagecraft-slider-box" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + "</div>";
+      return `<div class="pagecraft-slider-box" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
     }
     case "list": {
       const lc = n.src ? findCollection(n.src) : null;
@@ -9575,7 +9596,7 @@ var PC_UI = (() => {
     mount: () => mount
   });
 
-  // node_modules/preact/dist/preact.module.js
+  // ../pagecraft-cloud-api/node_modules/preact/dist/preact.module.js
   var n;
   var l;
   var u;
@@ -9848,7 +9869,7 @@ var PC_UI = (() => {
     if (fn) fn();
   };
 
-  // node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
+  // ../pagecraft-cloud-api/node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
   var f2 = 0;
   function u2(e3, t3, n2, o3, i3, u4) {
     t3 || (t3 = {});
@@ -10857,7 +10878,7 @@ var PC_UI = (() => {
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-  // node_modules/preact/hooks/dist/hooks.module.js
+  // ../pagecraft-cloud-api/node_modules/preact/hooks/dist/hooks.module.js
   var t2;
   var r2;
   var u3;
@@ -16586,6 +16607,13 @@ var PC_UI = (() => {
             path: `/api/sites/${site}/publish`,
             body: { ...input }
           })).body;
+        },
+        async savePreview(input) {
+          await transport.request({
+            method: "POST",
+            path: `/api/sites/${site}/publication-preview`,
+            body: input
+          });
         }
       }
     };
@@ -17094,6 +17122,71 @@ async function flushDraft() {
   if (saveState !== 'ok') throw new Error('The draft was not saved, so it was not published.');
 }
 
+/* The dashboard must never load the public site just to draw a card. Capture the canvas that
+   is already open while the publication request is in flight, then attach that image to the
+   exact immutable publication that won. A failed thumbnail is deliberately non-fatal: the
+   release is the user's work, while this image is only dashboard furniture. */
+async function publicationPreviewSnapshot() {
+  if (!cdoc || /jsdom/i.test(navigator.userAgent || '')) return null;
+  const source = cdoc.getElementById('s-root');
+  if (!source || typeof XMLSerializer !== 'function') return null;
+  const asDataUrl = blob => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+  const embedded = async raw => {
+    if (!raw || /^(?:data:|#)/i.test(raw)) return raw;
+    try {
+      const response = await fetch(new URL(raw, cdoc.baseURI), { credentials: 'same-origin' });
+      if (!response.ok) return raw;
+      const blob = await response.blob();
+      return blob.size <= 4 * 1024 * 1024 ? await asDataUrl(blob) : raw;
+    } catch { return raw; }
+  };
+  const clone = source.cloneNode(true);
+  const sourceImages = [...source.querySelectorAll('img')];
+  const cloneImages = [...clone.querySelectorAll('img')];
+  await Promise.all(sourceImages.map(async (image, index) => {
+    const src = image.currentSrc || image.src;
+    if (!src || src.startsWith('data:')) return;
+    try {
+      const data = await embedded(src);
+      cloneImages[index]?.setAttribute('src', data);
+      cloneImages[index]?.removeAttribute('srcset');
+    } catch { /* The layout is still useful when an optional image cannot be embedded. */ }
+  }));
+  let css = [...cdoc.querySelectorAll('style')].map(style => style.textContent || '').join('\n');
+  const cssUrls = [...new Set([...css.matchAll(/url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/gi)]
+    .map(match => match[2]).filter(value => !/^(?:data:|#)/i.test(value)))];
+  await Promise.all(cssUrls.map(async raw => {
+    const data = await embedded(raw);
+    if (data !== raw) css = css.split(raw).join(data);
+  }));
+  const width = 1200, height = 750, outputWidth = 960, outputHeight = 600;
+  const markup = new XMLSerializer().serializeToString(clone);
+  const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>html,body{width:${width}px;height:${height}px;margin:0;overflow:hidden;background:#fff}${css}</style>${markup}</div></foreignObject></svg>`;
+  const url = URL.createObjectURL(new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' }));
+  try {
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = url;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, outputWidth, outputHeight);
+    context.drawImage(image, 0, 0, outputWidth, outputHeight);
+    return canvas.toDataURL('image/webp', .78);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function finishWordPress(button) {
   button.disabled = true;
   button.textContent = 'Saving…';
@@ -17125,10 +17218,14 @@ async function publishDraft(button) {
   $('#releasePanel')?.setAttribute('aria-busy', 'true');
   try {
     await flushDraft();
+    const preview = publicationPreviewSnapshot().catch(() => null);
     const payload = await HOST.releases.publish({
       sourceVersion: SRV.version,
       acknowledgeWarnings: counts.warn > 0
     });
+    void preview.then(snapshot => snapshot && payload.publicationId
+      ? HOST.releases.savePreview({ publicationId: payload.publicationId, snapshot })
+      : undefined).catch(() => undefined);
     SRV.publishedPublicationId = payload.publicationId;
     SRV.publishedVersion = payload.sourceVersion ?? SRV.publishedVersion;
     renderReleasePanel(payload);
