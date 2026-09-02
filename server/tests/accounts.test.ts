@@ -475,6 +475,9 @@ test("dashboard create modal independently keeps only the latest template versio
   a.match(html, /<strong>Premade templates<\/strong>/);
   a.match(html, /<h3>Site details<\/h3>/);
   a.match(html, /pc-path-grid/);
+  a.match(html, /\.pc-path-visual iframe\{[^}]*height:352px/);
+  a.match(html, /\.pc-path-visual iframe\{height:290px\}/);
+  a.match(html, /\.pc-path-visual iframe\{height:216px\}/);
   a.match(html, /\.pc-template-picker\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   a.match(html, /\.pc-details-layout\{[^}]*grid-template-columns:170px minmax\(0,1fr\)/);
   a.match(html, /data-create-title/);
