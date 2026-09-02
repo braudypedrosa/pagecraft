@@ -466,9 +466,17 @@ test("dashboard create modal independently keeps only the latest template versio
   a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, 1);
   a.equal((html.match(/<dialog class="pc-create-modal/g) || []).length, 2);
   a.match(html, /pc-template-picker is-single/);
-  a.match(html, /<legend>Choose a starting point<\/legend>/);
+  a.match(html, /<legend>Starting point<\/legend>/);
   a.match(html, /<strong>Blank site<\/strong>/);
   a.match(html, /<strong>Choose from premade templates<\/strong>/);
+  a.match(html, /id="site-details-title">Site details<\/h3>/);
+  a.match(html, /pc-start-choice-check/);
+  a.match(html, /pc-start-choice-chevron/);
+  a.match(html, /\.pc-start-picker legend\{[^}]*margin:0 0 16px/);
+  a.match(html, /\.pc-start-options\{[^}]*grid-template-columns:1fr/);
+  a.match(html, /\.pc-create-fields\{[^}]*grid-template-columns:1fr/);
+  a.match(html, /data-create-title/);
+  a.doesNotMatch(html, /Shown in your Pagecraft dashboard/);
   a.match(html, /name="siteTemplate" value="" data-site-template/);
 });
 
