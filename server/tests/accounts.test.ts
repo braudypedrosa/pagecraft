@@ -479,7 +479,7 @@ test("dashboard create modal independently keeps only the latest template versio
   a.match(html, /\.pc-create-modal \.pc-template-choice:has\(input:checked\)\{border-color:var\(--pc-text\);box-shadow:none\}/);
   a.match(html, /\.pc-template-picker\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-layout\{grid-template-columns:1fr;gap:24px\}/);
-  a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-summary\{[^}]*border-bottom:1px solid var\(--pc-line\);border-radius:0;background:transparent\}/);
+  a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-summary\{[^}]*flex-direction:row;[^}]*border-bottom:1px solid var\(--pc-line\);border-radius:0;background:transparent\}/);
   a.match(html, /data-create-title/);
   a.doesNotMatch(html, /Shown in your Pagecraft dashboard/);
   a.match(html, /name="siteTemplate" value="" data-site-template/);
