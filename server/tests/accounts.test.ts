@@ -129,6 +129,41 @@ const rig = (
   return { store, auth, accountAuth, app, request };
 };
 
+class ConcurrentAssetStore extends MemoryAssetStore {
+  active = 0;
+  peak = 0;
+
+  override async put(...args: Parameters<MemoryAssetStore["put"]>) {
+    this.active++;
+    this.peak = Math.max(this.peak, this.active);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    try {
+      return await super.put(...args);
+    } finally {
+      this.active--;
+    }
+  }
+}
+
+class FailingConcurrentAssetStore extends MemoryAssetStore {
+  active = 0;
+  peak = 0;
+  siteIds = new Set<string>();
+
+  override async put(...args: Parameters<MemoryAssetStore["put"]>) {
+    this.active++;
+    this.peak = Math.max(this.peak, this.active);
+    this.siteIds.add(args[0].siteId);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    try {
+      if (args[0].name === "digital-prototype.webp") throw new Error("simulated asset failure");
+      return await super.put(...args);
+    } finally {
+      this.active--;
+    }
+  }
+}
+
 test("anonymous visitors are sent to sign in and a verified identity always sees the dashboard", async () => {
   const { request, accountAuth } = rig();
   const root = await request("/");
@@ -534,7 +569,7 @@ test("premade library includes the latest release of every curated site", async 
 });
 
 test("a curated site installs all pages and remapped media without charging the owner quota", async () => {
-  const assets = new MemoryAssetStore();
+  const assets = new ConcurrentAssetStore();
   const siteTemplates = new FileSiteTemplateStore(
     resolve(process.cwd(), "premade-sites"),
   );
@@ -575,6 +610,7 @@ test("a curated site installs all pages and remapped media without charging the 
   a.ok(result.files.includes("about.html"));
   const installed = await assets.list(site.id);
   a.equal(installed.length, 5);
+  a.equal(assets.peak, 5, "independent template assets install concurrently");
   a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
   a.ok(installed.every((asset) => /^[a-f0-9]{64}$/.test(asset.contentHash || "")),
     "curated assets retain the content hash required by the production gateway");
@@ -703,6 +739,44 @@ test("a curated site installs all pages and remapped media without charging the 
     "/templates/independent-studio/1.0.0/preview/index.html",
   );
   a.equal(priorVersion.status, 200);
+});
+
+test("a failed concurrent template install waits for every asset and leaves no partial site", async () => {
+  const assets = new FailingConcurrentAssetStore();
+  const siteTemplates = new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  );
+  const { request, accountAuth, auth, store } = rig({ assets, siteTemplates });
+  accountAuth.current = {
+    authUserId: "auth-rollback",
+    email: "rollback@example.test",
+    name: "Rollback",
+  };
+  await auth.ensureAuthUser(
+    "auth-rollback",
+    "rollback@example.test",
+    "Rollback",
+  );
+
+  const response = await request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      name: "Rollback Studio",
+      slug: "rollback-studio",
+      templateId: "independent-studio",
+      templateVersion: "2.0.9",
+    }),
+  });
+
+  a.equal(response.status, 500);
+  a.deepEqual(await response.json(), {
+    error: "site_template_install_failed",
+    detail: "The curated site could not be installed. Nothing was kept.",
+  });
+  a.equal(assets.peak, 5, "failure still waits for all concurrent uploads to settle");
+  a.equal(await store.bySlug("rollback-studio"), null);
+  for (const siteId of assets.siteIds) a.deepEqual(await assets.list(siteId), []);
 });
 
 test("site overview is protected, membership-scoped, and exposes working management actions", async () => {

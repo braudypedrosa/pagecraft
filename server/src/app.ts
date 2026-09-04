@@ -2421,18 +2421,26 @@ export function createApp(o: Options) {
         savedBy: user.id,
       });
       if (!o.accountAuth) await o.auth.grant(site.id, user.id, "owner");
-      const installedAssetIds: string[] = [];
-      try {
-        for (const asset of templateInstall?.assets || []) {
-          await o.assets!.put({ ...asset, siteId: site.id });
-          installedAssetIds.push(asset.id);
-        }
-      } catch (error) {
+      /* A curated package's assets are independent immutable blobs. Installing them one at a
+         time multiplied gateway latency by the image count (the five-image studio template
+         could leave the create dialog spinning for nearly a minute). Let every upload settle
+         together, then roll back only after no write remains in flight. `allSettled` matters:
+         an early `Promise.all` rejection would race cleanup against the other uploads. */
+      const assetResults = await Promise.allSettled(
+        (templateInstall?.assets || []).map(asset =>
+          o.assets!.put({ ...asset, siteId: site.id })
+        ),
+      );
+      const installedAssetIds = assetResults.flatMap(result =>
+        result.status === "fulfilled" ? [result.value.id] : []
+      );
+      const failedAsset = assetResults.find(result => result.status === "rejected");
+      if (failedAsset?.status === "rejected") {
         for (const assetId of installedAssetIds) {
           await o.assets!.remove(site.id, assetId).catch(() => false);
         }
         await o.store.delete(site.id).catch(() => false);
-        console.error("site template asset installation failed", error);
+        console.error("site template asset installation failed", failedAsset.reason);
         return c.json({
           error: "site_template_install_failed",
           detail: "The curated site could not be installed. Nothing was kept.",
