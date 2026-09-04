@@ -39,7 +39,7 @@ test('curated site catalog exposes each immutable package', async () => {
   a.equal(validated.sha256, template.packageSha256);
   a.equal(validated.manifest.kind, 'site');
   a.equal(validated.dependencies.assets.length, 5);
-  a.equal(coastal.version, '1.0.0');
+  a.equal(coastal.version, '1.0.1');
   a.deepEqual(coastal.pages.map(page => page.slug), [
     'index', 'stays', 'stone-cove-house', 'pine-court-house', 'harbor-studio',
     'garden-casita', 'services', 'about', 'contact',
@@ -74,7 +74,7 @@ test('each site installation receives independent asset identities and remains r
 
 test('vacation-rental template installs as an editable nine-page Pagecraft site', async () => {
   const store = new FileSiteTemplateStore(root);
-  const installed = await store.instantiate('coastal-rentals', '1.0.0');
+  const installed = await store.instantiate('coastal-rentals', '1.0.1');
   a.ok(installed);
   a.equal(installed.document.pages.length, 9);
   a.equal(installed.assets.length, 7);
