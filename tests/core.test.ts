@@ -519,6 +519,13 @@ test('safeUrl passes real links and drops script schemes', () => {
     .forEach(u => a.equal(C.safeUrl(u), '', u + ' should be blocked'));
 });
 
+test('the editor positioning fallback yields to authored layout classes', () => {
+  const css = C.baseCss(true);
+  a.match(css, /:where\(\[data-id\]\)\{position:relative\}/);
+  a.equal(css.includes('\n[data-id]{position:relative}'), false,
+    'the canvas fallback must not override authored sticky or absolute positioning');
+});
+
 test('a blocked href renders no link at all', () => {
   blank();
   const b = insert('button', null, 0);

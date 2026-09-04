@@ -7338,7 +7338,7 @@ ${m.css || ""}
   }
 }
 ` + (editing ? `
-[data-id]{position:relative}
+:where([data-id]){position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
 .s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
