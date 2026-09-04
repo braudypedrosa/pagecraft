@@ -59,6 +59,7 @@ test("gateway asset listing is metadata-only while id/path reads carry only one 
     type: "image/png",
     w: 10,
     h: 20,
+    signed_url: "https://storage.example.test/signed/photo.png?token=preview",
   };
   const { gateway, calls } = fakeGateway((call) => {
     if (call.op === "asset.list") return [meta];
@@ -74,6 +75,8 @@ test("gateway asset listing is metadata-only while id/path reads carry only one 
 
   const listed = await assets.list("s1");
   a.equal("bytes" in listed[0], false);
+  a.equal(listed[0].editorUrl, meta.signed_url,
+    "the editor can load a private thumbnail straight from Storage");
   a.deepEqual([...(await assets.get("s1", "a1"))!.bytes], [1, 2, 250]);
   a.deepEqual([...(await assets.byPath("s1", "assets/photo-a1.png"))!.bytes], [
     1,
@@ -107,6 +110,35 @@ test("gateway asset listing is metadata-only while id/path reads carry only one 
     "Photo.png",
     "the human-readable name remains intact",
   );
+});
+
+test("gateway asset listing warms bounded editor previews and coalesces the first read", async () => {
+  const bytes = Buffer.from([8, 9, 10]).toString("base64");
+  const meta = {
+    id: "preview-one", site_id: "site-one", name: "Preview.webp", type: "image/webp",
+    w: 320, h: 240, stored_bytes: 3,
+  };
+  let reads = 0;
+  const { gateway } = fakeGateway((call) => {
+    if (call.op === "asset.list") return [meta];
+    if (call.op === "asset.get") {
+      reads++;
+      return { ...meta, bytes };
+    }
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const assets = new GatewayAssetStore(gateway);
+
+  await assets.list("site-one");
+  const loaded = await Promise.all([
+    assets.get("site-one", "preview-one"),
+    assets.get("site-one", "preview-one"),
+  ]);
+  a.equal(reads, 1, "background warmup and browser requests share one gateway read");
+  a.deepEqual([...loaded[0]!.bytes], [8, 9, 10]);
+  a.equal(await assets.get("site-one", "preview-one"), loaded[0],
+    "the warmed body remains local for later thumbnails and canvas renders");
+  a.equal(reads, 1);
 });
 
 test("gateway connected asset finalization carries its connection guard", async () => {

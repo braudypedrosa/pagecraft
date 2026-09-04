@@ -1284,6 +1284,7 @@ interface AssetMetaWire {
   original_bytes?: number | string | null;
   content_hash?: string | null;
   optimized?: boolean;
+  signed_url?: string | null;
 }
 interface AssetWire extends AssetMetaWire {
   bytes: string;
@@ -1303,6 +1304,7 @@ const toAssetRecord = (row: AssetMetaWire): AssetRecord => ({
     : Number(row.original_bytes),
   contentHash: row.content_hash || undefined,
   optimized: row.optimized,
+  editorUrl: row.signed_url || undefined,
 });
 
 const toAsset = (row: AssetWire): Asset => ({
@@ -1326,6 +1328,11 @@ export class GatewayAssetStore implements AssetStore {
   private gateway: PagecraftGateway;
   private listed = new Map<string, { until: number; assets: AssetRecord[] }>();
   private cacheMs = EDITOR_SOURCE_CACHE_MS;
+  private bodies = new Map<string, { until: number; asset: Asset }>();
+  private bodyLoads = new Map<string, Promise<Asset | null>>();
+  private bodyBytes = 0;
+  private readonly bodyCacheBytes = 32 * 1024 * 1024;
+  private readonly prefetchBytes = 4 * 1024 * 1024;
   constructor(gateway: PagecraftGateway) {
     this.gateway = gateway;
   }
@@ -1338,6 +1345,17 @@ export class GatewayAssetStore implements AssetStore {
         toAssetRecord,
       );
     this.acceptList(siteId, assets);
+    /* Current gateways may not yet return signed Storage URLs. Warm a small, bounded set
+       without delaying the editor document so opening Media does not start an N-request
+       waterfall. Once signed URLs are available this fallback naturally does no work. */
+    let remaining = this.prefetchBytes;
+    const warm = assets.filter((asset) => {
+      const size = Number(asset.storedBytes || 0);
+      if (asset.editorUrl || !size || size > remaining) return false;
+      remaining -= size;
+      return true;
+    });
+    if (warm.length) void Promise.allSettled(warm.map((asset) => this.get(siteId, asset.id)));
     return assets;
   }
   cachedList(siteId: string) {
@@ -1354,19 +1372,66 @@ export class GatewayAssetStore implements AssetStore {
       assets: structuredClone(assets),
     });
   }
+  private bodyKey(siteId: string, id: string) {
+    return `${siteId}\n${id}`;
+  }
+  private cachedBody(siteId: string, id: string) {
+    const key = this.bodyKey(siteId, id);
+    const hit = this.bodies.get(key);
+    if (!hit) return null;
+    if (hit.until <= Date.now()) {
+      this.bodies.delete(key);
+      this.bodyBytes -= hit.asset.bytes.byteLength;
+      return null;
+    }
+    /* Map insertion order is the eviction order. Refresh it on a hit. */
+    this.bodies.delete(key);
+    this.bodies.set(key, hit);
+    return hit.asset;
+  }
+  private acceptBody(asset: Asset) {
+    if (asset.bytes.byteLength > this.prefetchBytes) return asset;
+    const key = this.bodyKey(asset.siteId, asset.id);
+    const prior = this.bodies.get(key);
+    if (prior) this.bodyBytes -= prior.asset.bytes.byteLength;
+    this.bodies.delete(key);
+    this.bodies.set(key, { until: Date.now() + this.cacheMs, asset });
+    this.bodyBytes += asset.bytes.byteLength;
+    while (this.bodyBytes > this.bodyCacheBytes) {
+      const oldest = this.bodies.entries().next().value as
+        | [string, { until: number; asset: Asset }]
+        | undefined;
+      if (!oldest) break;
+      this.bodies.delete(oldest[0]);
+      this.bodyBytes -= oldest[1].asset.bytes.byteLength;
+    }
+    return asset;
+  }
+  private forgetBody(siteId: string, id: string) {
+    const key = this.bodyKey(siteId, id);
+    const prior = this.bodies.get(key);
+    if (!prior) return;
+    this.bodies.delete(key);
+    this.bodyBytes -= prior.asset.bytes.byteLength;
+  }
   async get(siteId: string, id: string) {
-    const row = await this.gateway.call<AssetWire | null>("asset.get", {
-      siteId,
-      id,
-    });
-    return row ? toAsset(row) : null;
+    const cached = this.cachedBody(siteId, id);
+    if (cached) return cached;
+    const key = this.bodyKey(siteId, id);
+    const active = this.bodyLoads.get(key);
+    if (active) return active;
+    const load = this.gateway.call<AssetWire | null>("asset.get", { siteId, id })
+      .then((row) => row ? this.acceptBody(toAsset(row)) : null)
+      .finally(() => this.bodyLoads.delete(key));
+    this.bodyLoads.set(key, load);
+    return load;
   }
   async byPath(siteId: string, path: string) {
     const row = await this.gateway.call<AssetWire | null>("asset.byPath", {
       siteId,
       path,
     });
-    return row ? toAsset(row) : null;
+    return row ? this.acceptBody(toAsset(row)) : null;
   }
   async put(asset: Omit<Asset, "id"> & { id?: string }, quota?: AssetQuota) {
     if (asset.bytes.byteLength > MAX_BYTES) {
@@ -1403,7 +1468,9 @@ export class GatewayAssetStore implements AssetStore {
         },
       });
       this.listed.delete(asset.siteId);
-      return toAssetRecord(row);
+      const saved = toAssetRecord(row);
+      this.acceptBody({ ...saved, bytes: asset.bytes });
+      return saved;
     } catch (error) {
       if (
         error instanceof GatewayError && error.code === "STORAGE_LIMIT" && quota
@@ -1457,7 +1524,10 @@ export class GatewayAssetStore implements AssetStore {
         },
       );
       this.listed.delete(asset.siteId);
-      return row ? toAssetRecord(row) : null;
+      if (!row) return null;
+      const saved = toAssetRecord(row);
+      this.acceptBody({ ...saved, bytes: asset.bytes });
+      return saved;
     } catch (error) {
       if (
         error instanceof GatewayError && error.code === "STORAGE_LIMIT" && quota
@@ -1474,7 +1544,10 @@ export class GatewayAssetStore implements AssetStore {
       siteId,
       id,
     });
-    if (removed) this.listed.delete(siteId);
+    if (removed) {
+      this.listed.delete(siteId);
+      this.forgetBody(siteId, id);
+    }
     return removed;
   }
   async usage(ownerId: string, limitBytes = FREE_STORAGE_BYTES) {

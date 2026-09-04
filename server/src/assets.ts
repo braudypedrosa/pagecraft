@@ -32,6 +32,9 @@ export interface AssetRecord {
   ownerId?: string;
   contentHash?: string;
   optimized?: boolean;
+  /** Short-lived direct read URL for editor previews. Persistence stores omit it; the
+      production gateway may attach one while listing private Storage objects. */
+  editorUrl?: string;
 }
 
 export interface Asset extends AssetRecord {
@@ -39,12 +42,16 @@ export interface Asset extends AssetRecord {
 }
 
 /** What a listing hands back: everything except the bytes. */
-export type AssetMeta = Omit<AssetRecord, 'siteId'> & { path: string };
+export type AssetMeta = Omit<AssetRecord, 'siteId' | 'editorUrl'> & {
+  path: string;
+  url?: string;
+};
 
 export const metaOf = (a: AssetRecord): AssetMeta =>
   ({
     id: a.id, name: a.name, type: a.type, w: a.w, h: a.h,
     path: assetFile(a),
+    ...(a.editorUrl ? { url: a.editorUrl } : {}),
     ...(a.storedBytes == null ? {} : { storedBytes: a.storedBytes }),
     ...(a.originalBytes == null ? {} : { originalBytes: a.originalBytes }),
     ...(a.optimized == null ? {} : { optimized: a.optimized })
