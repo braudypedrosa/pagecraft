@@ -1,0 +1,25 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "independent-studio",
+  "version": "2.0.9",
+  "name": "Independent Studio",
+  "sampleName": "Northline Studio",
+  "description": "A high-contrast four-page studio system for independent creative practices.",
+  "categories": [
+    "Studio",
+    "Services",
+    "Creative"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildIndependentStudioDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "northline-system-hero", "file": "../2.0.0/assets/hero-studio-system.webp" },
+    { "id": "northline-identity-artifacts", "file": "../2.0.0/assets/identity-artifacts.webp" },
+    { "id": "northline-digital-prototype", "file": "../2.0.0/assets/digital-prototype.webp" },
+    { "id": "northline-editorial-production", "file": "../2.0.0/assets/editorial-production.webp" },
+    { "id": "northline-closing-studio", "file": "../2.0.0/assets/closing-studio.webp" }
+  ],
+  "customCssPolicy": "reviewed-exception",
+  "customCssReason": "Legacy Northline interaction rules for the full-screen navigation, hover motion, and scroll-linked reveal. Layout, spacing, borders, typography, and sticky behavior remain native Pagecraft values."
+}
