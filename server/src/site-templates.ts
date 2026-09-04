@@ -152,10 +152,13 @@ export class FileSiteTemplateStore implements SiteTemplateStore {
     const validated = await this.load(template);
     const idMap = new Map(validated.dependencies.assets.map(id => [id, crypto.randomUUID()]));
     const document = replaceAssets(structuredClone(validated.document), idMap) as Doc;
-    const assets: Asset[] = validated.manifest.files.filter(file => file.role === 'asset').map(file => ({
-      id: idMap.get(file.asset!.id)!, siteId: '', name: file.asset!.name, type: file.mediaType,
-      w: file.asset!.width, h: file.asset!.height, bytes: new Uint8Array(validated.files.get(file.path)!)
-    }));
+    const assets: Asset[] = validated.manifest.files.filter(file => file.role === 'asset').map(file => {
+      const bytes = new Uint8Array(validated.files.get(file.path)!);
+      return {
+        id: idMap.get(file.asset!.id)!, siteId: '', name: file.asset!.name, type: file.mediaType,
+        w: file.asset!.width, h: file.asset!.height, bytes, contentHash: sha256(bytes)
+      };
+    });
     return { template: structuredClone(template), document, assets };
   }
 

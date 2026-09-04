@@ -8,6 +8,7 @@ import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import { FileSiteTemplateStore, latestSiteTemplates } from '../src/site-templates.ts';
 import { validatePortablePackage } from '../src/portable-packages.ts';
+import { sha256 } from '../src/releases.ts';
 import { renderSite } from '../src/render.ts';
 import {
   PREMADE_DESIGN_CONTRACT_V1,
@@ -42,6 +43,8 @@ test('each site installation receives independent asset identities and remains r
   a.equal(first.template.version, '2.0.8');
   a.equal(first.document.pages.length, 4);
   a.equal(first.assets.length, 5);
+  a.ok(first.assets.every(asset => asset.contentHash === sha256(asset.bytes)),
+    'every template image carries the stored-byte hash required by cloud persistence');
   a.notDeepEqual(first.assets.map(asset => asset.id), second.assets.map(asset => asset.id));
   a.equal(JSON.stringify(first.document).includes('asset:northline-'), false);
   for (const asset of first.assets) a.match(JSON.stringify(first.document), new RegExp(`asset:${asset.id}`));

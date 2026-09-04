@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import a from "node:assert/strict";
 import * as Core from "../../app/src/core/index.ts";
+import type { Node as PageNode } from "../../app/src/core/types.ts";
 import {
   type CloudMutationFastPath,
   createApp,
@@ -574,12 +575,39 @@ test("a curated site installs all pages and remapped media without charging the 
   const installed = await assets.list(site.id);
   a.equal(installed.length, 5);
   a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
+  a.ok(installed.every((asset) => /^[a-f0-9]{64}$/.test(asset.contentHash || "")),
+    "curated assets retain the content hash required by the production gateway");
   const serialized = JSON.stringify(site.doc);
   a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
   a.deepEqual(await assets.usage(owner.id), {
     usedBytes: 0,
     limitBytes: 100 * 1024 * 1024,
   });
+
+  const edited = structuredClone(site.doc);
+  const pending: PageNode[] = [...edited.pages[0].tree];
+  let hero: PageNode | undefined;
+  while (pending.length) {
+    const node = pending.shift()!;
+    if (node.id === "northline-v2-node-0011") {
+      hero = node;
+      break;
+    }
+    pending.push(...node.children);
+  }
+  a.equal(hero?.type, "heading");
+  if (!hero || hero.type !== "heading") throw new Error("template hero heading is missing");
+  hero.props.text = "Editable in Pagecraft Cloud.";
+  const saved = await request(`/api/sites/${site.id}`, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ doc: edited, version: site.version }),
+  });
+  a.equal(saved.status, 200, await saved.clone().text());
+  const reloaded = await store.byId(site.id);
+  a.ok(reloaded);
+  a.match(JSON.stringify(reloaded.doc), /Editable in Pagecraft Cloud\./,
+    "a template node remains editable and persists through the normal cloud save route");
 
   const dashboard = await request("/");
   const html = await dashboard.text();
