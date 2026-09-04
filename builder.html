@@ -820,6 +820,12 @@ select.ctl{
 .pick button svg{width:13px;height:13px}
 .pick button:hover{color:var(--text);background:var(--panel)}
 .pick button.on{background:var(--ink);color:var(--paper)}
+.borderpick button{position:relative}
+.borderpick button.set::after{
+  content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.borderpick button.on.set::after{background:var(--paper)}
+.borderctl>.f{margin-bottom:var(--gap-3)}
 .sw-tog{
   width:36px;height:20px;flex:0 0 36px;border-radius:var(--r-pill);background:var(--line-2);
   border:none;position:relative;transition:background .16s;

@@ -444,7 +444,7 @@ export interface Handle {
 /** Every control kind the inspector can draw. */
 export type ControlKind =
   | 'text' | 'area' | 'select' | 'unit' | 'slider' | 'color' | 'pick' | 'toggle'
-  | 'box' | 'img' | 'opt' | 'dims' | 'link' | 'rich' | 'tstyle' | 'source'
+  | 'box' | 'border' | 'img' | 'opt' | 'dims' | 'link' | 'rich' | 'tstyle' | 'source'
   | 'items' | 'fields' | 'qa' | 'imgs' | 'icon' | 'cols';
 
 export interface Control {

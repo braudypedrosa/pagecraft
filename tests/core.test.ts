@@ -4784,22 +4784,12 @@ test('a gradient counts as a background, since it is one', () => {
   a.equal(offered(sec, 'background-position'), true);
 });
 
-test('a border width waits for a style, because a width alone renders nothing', () => {
-  const sec = one('section');
-  a.equal(offered(sec, 'border-style'), true, 'the gate is always there');
-  a.equal(offered(sec, 'border-width'), false);
-  a.equal(offered(sec, 'border-color'), false);
-  C.setCss(sec, 'border-style', 'solid');
-  a.equal(offered(sec, 'border-width'), true);
-  a.equal(offered(sec, 'border-color'), true);
-  C.setCss(sec, 'border-style', 'none');
-  a.equal(offered(sec, 'border-width'), false, '“none” is a border that will not draw');
-});
-
-test('the style group reads in the order it has to be filled in', () => {
-  const items = must(C.COMMON_STYLE.find((g: any) => g.g === 'Border & shadow'), 'the border group').items.map((i: any) => i.c);
-  a.ok(items.indexOf('border-style') < items.indexOf('border-width'), 'the gate comes first');
-  a.ok(items.indexOf('border-style') < items.indexOf('border-color'));
+test('borders have one inspector control for uniform and edge-specific declarations', () => {
+  const items = must(C.COMMON_STYLE.find((g: any) => g.g === 'Border & shadow'), 'the border group').items;
+  a.equal(items[0].t, 'border');
+  a.equal(items[0].label, 'Border');
+  a.equal(items.some((item: Control) => item.c === 'border-style'), false,
+    'the old all-sides-only control would hide template separators');
 });
 
 test('a declaration counts wherever it was made — another breakpoint, a state, a class', () => {
@@ -4808,13 +4798,13 @@ test('a declaration counts wherever it was made — another breakpoint, a state,
   a.equal(offered(sec, 'background-position'), true, 'set on mobile, still editable on desktop');
   blank();
   const b = insert('section', null, 0);
-  b.st = { hover: { d: { 'border-style': 'dashed' }, t: {}, m: {} } };
-  a.equal(offered(b, 'border-width'), true, 'a border that only appears on hover still needs a width');
+  b.st = { hover: { d: { 'border-top-style': 'dashed' }, t: {}, m: {} } };
+  a.equal(C.styleSeen(b, 'border-top-style'), 'dashed', 'an edge in another state is discoverable');
   blank();
   const c = insert('section', null, 0);
-  const id = C.classAdd('framed', { d: { 'border-style': 'solid' } });
+  const id = C.classAdd('framed', { d: { 'border-bottom-style': 'solid' } });
   C.classApply(c, id);
-  a.equal(offered(c, 'border-width'), true, 'the class it wears declared it');
+  a.equal(C.styleSeen(c, 'border-bottom-style'), 'solid', 'an edge on a class is discoverable');
 });
 
 test('a widget\u2019s own style group is called what those controls actually are', () => {

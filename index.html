@@ -825,6 +825,12 @@ select.ctl{
 .pick button svg{width:13px;height:13px}
 .pick button:hover{color:var(--text);background:var(--panel)}
 .pick button.on{background:var(--ink);color:var(--paper)}
+.borderpick button{position:relative}
+.borderpick button.set::after{
+  content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.borderpick button.on.set::after{background:var(--paper)}
+.borderctl>.f{margin-bottom:var(--gap-3)}
 .sw-tog{
   width:36px;height:20px;flex:0 0 36px;border-radius:var(--r-pill);background:var(--line-2);
   border:none;position:relative;transition:background .16s;
@@ -3842,10 +3848,6 @@ function styleSeen(n, prop) {
 }
 var canDo = (n, cap) => (DEF[n.type].caps || []).includes(cap);
 var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
-var hasBorder = (n) => {
-  const v = styleSeen(n, "border-style");
-  return !!v && v !== "none";
-};
 function notASlide(n) {
   const pid = parentOf(n.id);
   const h = pid ? locate(pid) : null;
@@ -3873,9 +3875,10 @@ var COMMON_STYLE = [
     g: "Border & shadow",
     cap: "decoration",
     items: [
-      { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
-      { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
-      { t: "color", c: "border-color", label: "Border colour", when: hasBorder },
+      /* One control owns both uniform and edge-specific borders. Templates regularly use a
+         top rule as a separator; exposing only `border-style` made that stored Pagecraft value
+         render on the canvas while the inspector appeared to say there was no border. */
+      { t: "border", label: "Border" },
       { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
       { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
@@ -9382,7 +9385,6 @@ var __CORE = {
   gridTracks,
   guessBindings,
   hasBackdrop,
-  hasBorder,
   hex2rgb,
   hist,
   holds,
@@ -12253,6 +12255,57 @@ var PC_UI = (() => {
       ) })
     ] });
   }
+  var BORDER_TARGETS = [
+    ["all", "All"],
+    ["top", "Top"],
+    ["right", "Right"],
+    ["bottom", "Bottom"],
+    ["left", "Left"]
+  ];
+  var borderPrefix = (side) => side === "all" ? "border" : `border-${side}`;
+  var initialBorderTarget = (n2) => {
+    for (const [side] of BORDER_TARGETS) {
+      if (C2.styleSeen(n2, borderPrefix(side) + "-style") || C2.styleSeen(n2, borderPrefix(side) + "-width") || C2.styleSeen(n2, borderPrefix(side) + "-color")) return side;
+    }
+    return "all";
+  };
+  function BorderCtl({ n: n2 }) {
+    const [choice, setChoice] = d2(() => ({
+      nodeId: n2.id,
+      side: initialBorderTarget(n2)
+    }));
+    const side = choice.nodeId === n2.id ? choice.side : initialBorderTarget(n2);
+    const prefix = borderPrefix(side);
+    const sideLabel = BORDER_TARGETS.find(([value]) => value === side)?.[1] || "All";
+    const setOn = (value) => !!(C2.styleSeen(n2, borderPrefix(value) + "-style") || C2.styleSeen(n2, borderPrefix(value) + "-width") || C2.styleSeen(n2, borderPrefix(value) + "-color"));
+    return /* @__PURE__ */ u2("div", { class: "borderctl", children: [
+      /* @__PURE__ */ u2("div", { class: "f", children: [
+        /* @__PURE__ */ u2("label", { children: "Border edge" }),
+        /* @__PURE__ */ u2("div", { class: "pick borderpick", role: "group", "aria-label": "Border edge", children: BORDER_TARGETS.map(([value, label]) => /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: (side === value ? "on" : "") + (setOn(value) ? " set" : ""),
+            "aria-pressed": side === value ? "true" : "false",
+            "data-border-side": value,
+            onClick: () => setChoice({ nodeId: n2.id, side: value }),
+            children: label
+          },
+          value
+        )) }),
+        /* @__PURE__ */ u2("div", { class: "note", children: "A dot marks an edge with a stored value." })
+      ] }),
+      /* @__PURE__ */ u2(SelectCtl, { n: n2, c: {
+        t: "select",
+        c: prefix + "-style",
+        label: sideLabel + " style",
+        r: 1,
+        opts: [["", "Inherit"], ["none", "None"], ["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]]
+      } }),
+      /* @__PURE__ */ u2(UnitCtl, { n: n2, c: { t: "unit", c: prefix + "-width", label: sideLabel + " width", r: 1, units: C2.U.border } }),
+      /* @__PURE__ */ u2(ColorCtl, { n: n2, c: { t: "color", c: prefix + "-color", label: sideLabel + " colour", r: 1 } })
+    ] });
+  }
   function useFilePicker(take, multiple = false) {
     const takeFiles = async (files) => {
       for (const file of Array.from(files || [])) {
@@ -12827,6 +12880,7 @@ var PC_UI = (() => {
     pick: PickCtl,
     toggle: ToggleCtl,
     box: BoxCtl,
+    border: BorderCtl,
     img: ImgCtl,
     opt: OptCtl,
     dims: DimsCtl,
@@ -15918,10 +15972,6 @@ var PC_UI = (() => {
     return "";
   }
   var hasBackdrop = (n2) => !!(styleSeen(n2, "background-image") || styleSeen(n2, "background"));
-  var hasBorder = (n2) => {
-    const v3 = styleSeen(n2, "border-style");
-    return !!v3 && v3 !== "none";
-  };
   function notASlide(n2) {
     const pid = parentOf(n2.id);
     const h3 = pid ? locate(pid) : null;
@@ -15949,9 +15999,10 @@ var PC_UI = (() => {
       g: "Border & shadow",
       cap: "decoration",
       items: [
-        { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
-        { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
-        { t: "color", c: "border-color", label: "Border colour", when: hasBorder },
+        /* One control owns both uniform and edge-specific borders. Templates regularly use a
+           top rule as a separator; exposing only `border-style` made that stored Pagecraft value
+           render on the canvas while the inspector appeared to say there was no border. */
+        { t: "border", label: "Border" },
         { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
         { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
       ]

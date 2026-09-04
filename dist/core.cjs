@@ -220,7 +220,6 @@ __export(index_exports, {
   gridTracks: () => gridTracks,
   guessBindings: () => guessBindings,
   hasBackdrop: () => hasBackdrop,
-  hasBorder: () => hasBorder,
   hex2rgb: () => hex2rgb,
   hist: () => hist,
   holds: () => holds,
@@ -2793,10 +2792,6 @@ function styleSeen(n, prop) {
 }
 var canDo = (n, cap) => (DEF[n.type].caps || []).includes(cap);
 var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
-var hasBorder = (n) => {
-  const v = styleSeen(n, "border-style");
-  return !!v && v !== "none";
-};
 function notASlide(n) {
   const pid = parentOf(n.id);
   const h = pid ? locate(pid) : null;
@@ -2824,9 +2819,10 @@ var COMMON_STYLE = [
     g: "Border & shadow",
     cap: "decoration",
     items: [
-      { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
-      { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
-      { t: "color", c: "border-color", label: "Border colour", when: hasBorder },
+      /* One control owns both uniform and edge-specific borders. Templates regularly use a
+         top rule as a separator; exposing only `border-style` made that stored Pagecraft value
+         render on the canvas while the inspector appeared to say there was no border. */
+      { t: "border", label: "Border" },
       { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
       { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
@@ -8333,7 +8329,6 @@ ${ANIM_JS}
   gridTracks,
   guessBindings,
   hasBackdrop,
-  hasBorder,
   hex2rgb,
   hist,
   holds,

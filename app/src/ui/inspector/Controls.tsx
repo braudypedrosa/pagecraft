@@ -259,6 +259,63 @@ function BoxCtl({ n, c }: P) {
   </Field>;
 }
 
+type BorderTarget = 'all' | 'top' | 'right' | 'bottom' | 'left';
+
+const BORDER_TARGETS: Array<[BorderTarget, string]> = [
+  ['all', 'All'], ['top', 'Top'], ['right', 'Right'], ['bottom', 'Bottom'], ['left', 'Left']
+];
+
+const borderPrefix = (side: BorderTarget) => side === 'all' ? 'border' : `border-${side}`;
+
+const initialBorderTarget = (n: PcNode): BorderTarget => {
+  for (const [side] of BORDER_TARGETS) {
+    if (C.styleSeen(n, borderPrefix(side) + '-style')
+      || C.styleSeen(n, borderPrefix(side) + '-width')
+      || C.styleSeen(n, borderPrefix(side) + '-color')) return side;
+  }
+  return 'all';
+};
+
+/** Border declarations may apply to the whole box or to one edge. A single edge is a common
+    template separator, and hiding those longhands behind Advanced CSS made the canvas and the
+    inspector disagree. The side picker keeps all five targets editable without twelve fields
+    competing for attention at once. */
+function BorderCtl({ n }: P) {
+  const [choice, setChoice] = useState<{ nodeId: string; side: BorderTarget }>(() => ({
+    nodeId: n.id, side: initialBorderTarget(n)
+  }));
+  /* Inspector components can survive a selection change. Deriving the default for a new node
+     avoids a late effect resetting the edge the author just chose on the current one. */
+  const side = choice.nodeId === n.id ? choice.side : initialBorderTarget(n);
+  const prefix = borderPrefix(side);
+  const sideLabel = BORDER_TARGETS.find(([value]) => value === side)?.[1] || 'All';
+  const setOn = (value: BorderTarget) => !!(
+    C.styleSeen(n, borderPrefix(value) + '-style')
+    || C.styleSeen(n, borderPrefix(value) + '-width')
+    || C.styleSeen(n, borderPrefix(value) + '-color')
+  );
+
+  return <div class="borderctl">
+    <div class="f">
+      <label>Border edge</label>
+      <div class="pick borderpick" role="group" aria-label="Border edge">
+        {BORDER_TARGETS.map(([value, label]) => (
+          <button type="button" key={value} class={(side === value ? 'on' : '') + (setOn(value) ? ' set' : '')}
+            aria-pressed={side === value ? 'true' : 'false'} data-border-side={value}
+            onClick={() => setChoice({ nodeId: n.id, side: value })}>{label}</button>
+        ))}
+      </div>
+      <div class="note">A dot marks an edge with a stored value.</div>
+    </div>
+    <SelectCtl n={n} c={{
+      t: 'select', c: prefix + '-style', label: sideLabel + ' style', r: 1,
+      opts: [['', 'Inherit'], ['none', 'None'], ['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']]
+    }} />
+    <UnitCtl n={n} c={{ t: 'unit', c: prefix + '-width', label: sideLabel + ' width', r: 1, units: C.U.border }} />
+    <ColorCtl n={n} c={{ t: 'color', c: prefix + '-color', label: sideLabel + ' colour', r: 1 }} />
+  </div>;
+}
+
 /** One file into the library and onto a prop. Shared so the type check, the
     large-image warning and the toast are identical everywhere. */
 function useFilePicker(take: (id: string) => void, multiple = false) {
@@ -664,7 +721,7 @@ function ColsCtl({ n, c }: P) {
 
 const KINDS: Record<string, (p: P) => any> = {
   text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, slider: SliderCtl,
-  color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, img: ImgCtl,
+  color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, border: BorderCtl, img: ImgCtl,
   opt: OptCtl, dims: DimsCtl, link: LinkCtl, rich: RichCtl, tstyle: TstyleCtl,
   source: SourceCtl, items: ItemsCtl, fields: FieldsCtl, qa: QaCtl, imgs: ImgsCtl,
   icon: IconCtl, cols: ColsCtl

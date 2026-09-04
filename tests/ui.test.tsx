@@ -106,6 +106,38 @@ test('every declared inspector control has a renderer and every declared choice 
   a.ok(choices >= 250, `expected every declared choice, got ${choices}`);
 });
 
+test('the border control exposes a template top rule and can add another edge responsively', async () => {
+  const n = C.N('box');
+  n.css.d = {
+    'border-top-style': 'solid',
+    'border-top-width': '1px',
+    'border-top-color': '#abcdef'
+  };
+  C.selSet([n.id]);
+  const border = C.COMMON_STYLE
+    .find(group => group.g === 'Border & shadow')!.items
+    .find(control => control.t === 'border')!;
+
+  r.draw(<Ctl n={n} c={border} />);
+  a.equal(r.$('[data-border-side="top"]')!.getAttribute('aria-pressed'), 'true');
+  a.equal(r.$('[data-border-side="top"]')!.classList.contains('set'), true);
+  a.equal((r.$('select') as HTMLSelectElement).value, 'solid');
+  a.equal((r.$('input[type=number]') as HTMLInputElement).value, '1');
+  a.equal((r.$('input.hex') as HTMLInputElement).value, '#abcdef');
+
+  C.state.ui.dev = 'tablet';
+  await act(async () => { r.click(r.$('[data-border-side="bottom"]')); });
+  a.equal(r.$('[data-border-side="bottom"]')!.getAttribute('aria-pressed'), 'true');
+  r.pick(r.$('select')!, 'dashed');
+  r.type(r.$('input[type=number]')!, '3');
+  r.type(r.$('input.hex')!, '#123456');
+
+  a.equal(n.css.t['border-bottom-style'], 'dashed');
+  a.equal(n.css.t['border-bottom-width'], '3px');
+  a.equal(n.css.t['border-bottom-color'], '#123456');
+  a.equal(n.css.d['border-top-width'], '1px', 'the existing top separator is untouched');
+});
+
 /* A repeater's rows, typed. `items` is a different shape per widget, so the test that
    built the node says which it has. */
 const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
