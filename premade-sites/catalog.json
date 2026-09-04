@@ -133,6 +133,71 @@
     },
     {
       "format": "pagecraft.site-template.v1",
+      "id": "coastal-rentals",
+      "version": "1.0.2",
+      "name": "Coastal Rental Collection",
+      "sampleName": "Marea",
+      "description": "A calm, image-led multi-property site for independent vacation-rental hosts.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality",
+        "Travel"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-stays",
+          "name": "Stays",
+          "slug": "stays"
+        },
+        {
+          "id": "page-stone-cove-house",
+          "name": "Stone Cove House",
+          "slug": "stone-cove-house"
+        },
+        {
+          "id": "page-pine-court-house",
+          "name": "Pine Court House",
+          "slug": "pine-court-house"
+        },
+        {
+          "id": "page-harbor-studio",
+          "name": "Harbor Studio",
+          "slug": "harbor-studio"
+        },
+        {
+          "id": "page-garden-casita",
+          "name": "Garden Casita",
+          "slug": "garden-casita"
+        },
+        {
+          "id": "page-services",
+          "name": "Guest services",
+          "slug": "services"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "9846e686249f72d1abb2d93c46ebc6cc1d8e4df2ac78caa4bd729648807dc867",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 1683264
+    },
+    {
+      "format": "pagecraft.site-template.v1",
       "id": "independent-studio",
       "version": "1.0.0",
       "name": "Independent Studio",
