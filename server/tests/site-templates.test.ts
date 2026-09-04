@@ -21,12 +21,17 @@ import {
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'premade-sites');
 
-test('curated site catalog exposes the immutable four-page studio package', async () => {
+test('curated site catalog exposes each immutable package', async () => {
   const store = new FileSiteTemplateStore(root);
   const templates = await store.list();
-  a.deepEqual(templates.map(template => template.version), ['1.0.0', '1.0.1', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7', '2.0.8', '2.0.9']);
-  const [template] = latestSiteTemplates(templates);
-  a.equal(template.id, 'independent-studio');
+  a.deepEqual(
+    templates.filter(template => template.id === 'independent-studio').map(template => template.version),
+    ['1.0.0', '1.0.1', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7', '2.0.8', '2.0.9'],
+  );
+  const latest = latestSiteTemplates(templates);
+  const template = latest.find(candidate => candidate.id === 'independent-studio');
+  const coastal = latest.find(candidate => candidate.id === 'coastal-rentals');
+  a.ok(template && coastal);
   a.equal(template.version, '2.0.9');
   a.deepEqual(template.pages.map(page => page.slug), ['index', 'about', 'services', 'contact']);
   const bytes = new Uint8Array(await readFile(resolve(root, template.id, template.version, template.packageFile)));
@@ -34,6 +39,15 @@ test('curated site catalog exposes the immutable four-page studio package', asyn
   a.equal(validated.sha256, template.packageSha256);
   a.equal(validated.manifest.kind, 'site');
   a.equal(validated.dependencies.assets.length, 5);
+  a.equal(coastal.version, '1.0.0');
+  a.deepEqual(coastal.pages.map(page => page.slug), [
+    'index', 'stays', 'stone-cove-house', 'pine-court-house', 'harbor-studio',
+    'garden-casita', 'services', 'about', 'contact',
+  ]);
+  const coastalBytes = new Uint8Array(await readFile(resolve(root, coastal.id, coastal.version, coastal.packageFile)));
+  const coastalPackage = validatePortablePackage(coastalBytes);
+  a.equal(coastalPackage.sha256, coastal.packageSha256);
+  a.equal(coastalPackage.dependencies.assets.length, 7);
 });
 
 test('each site installation receives independent asset identities and remains renderable', async () => {
@@ -54,6 +68,45 @@ test('each site installation receives independent asset identities and remains r
   const rendered = renderSite(first.document, first.assets);
   a.deepEqual([...rendered.files.keys()].filter(path => path.endsWith('.html')).sort(), ['about.html', 'contact.html', 'index.html', 'services.html']);
   for (const html of [...rendered.files.values()].filter(value => value.includes('<!doctype html>'))) {
+    a.doesNotMatch(html, /pagecraft-placeholder/);
+  }
+});
+
+test('vacation-rental template installs as an editable nine-page Pagecraft site', async () => {
+  const store = new FileSiteTemplateStore(root);
+  const installed = await store.instantiate('coastal-rentals', '1.0.0');
+  a.ok(installed);
+  a.equal(installed.document.pages.length, 9);
+  a.equal(installed.assets.length, 7);
+  a.equal(String(installed.document.meta.css || ''), '');
+  a.ok(installed.document.pages.every(page => page.tree.length > 0));
+  a.ok(installed.assets.every(asset => asset.contentHash === sha256(asset.bytes)));
+  a.equal(JSON.stringify(installed.document).includes('asset:marea-'), false);
+  for (const asset of installed.assets) a.match(JSON.stringify(installed.document), new RegExp(`asset:${asset.id}`));
+
+  const nativeSticky = findNodes(
+    installed.document.pages.flatMap(page => page.tree),
+    node => String(node.adv?.cls || '').includes('marea-sticky-story'),
+  );
+  a.equal(nativeSticky.length, 4);
+  for (const node of nativeSticky) {
+    a.deepEqual(
+      ['d', 't'].map(breakpoint => [
+        node.css[breakpoint as 'd' | 't'].position,
+        node.css[breakpoint as 'd' | 't'].top,
+      ]),
+      [['sticky', '104px'], ['static', '0px']],
+    );
+    a.equal(String(node.adv.css || ''), '');
+  }
+
+  const rendered = renderSite(installed.document, installed.assets);
+  a.deepEqual([...rendered.files.keys()].filter(path => path.endsWith('.html')).sort(), [
+    'about.html', 'contact.html', 'garden-casita.html', 'harbor-studio.html', 'index.html',
+    'pine-court-house.html', 'services.html', 'stays.html', 'stone-cove-house.html',
+  ]);
+  for (const html of [...rendered.files.values()].filter(value => value.includes('<!doctype html>'))) {
+    a.doesNotMatch(html, /asset:marea-/);
     a.doesNotMatch(html, /pagecraft-placeholder/);
   }
 });
@@ -96,7 +149,8 @@ test('template preview serves package HTML and its packaged media only', async (
   a.equal(dom.window.getComputedStyle(stickyIntro).position, 'sticky');
   a.equal(dom.window.getComputedStyle(stickyIntro).top, '104px');
 
-  const template = latestSiteTemplates(await store.list())[0];
+  const template = latestSiteTemplates(await store.list()).find(candidate => candidate.id === 'independent-studio');
+  a.ok(template);
   const installed = await store.instantiate(template.id, template.version);
   a.ok(installed);
   a.deepEqual(validatePremadeDesignContractV2(installed.document), []);

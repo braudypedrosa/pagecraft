@@ -17,6 +17,7 @@ import { MemoryHostedPublicationStore } from "../src/publications.ts";
 import { MemoryAssetStore, type AssetStore } from "../src/assets.ts";
 import {
   FileSiteTemplateStore,
+  latestSiteTemplates,
   type SiteTemplateStore,
 } from "../src/site-templates.ts";
 import { dashboardPage } from "../src/account-pages.ts";
@@ -501,11 +502,12 @@ test("dashboard create modal independently keeps only the latest template versio
     templates,
   );
 
-  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Independent Studio" checked/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Independent Studio"/);
+  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.0" data-template-name="Coastal Rental Collection" checked/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
-  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, 1);
+  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, latestSiteTemplates(templates).length);
   a.equal((html.match(/<dialog class="pc-create-modal/g) || []).length, 1);
   a.doesNotMatch(html, /pc-template-picker is-single/);
   a.match(html, /<strong>Blank site<\/strong>/);
@@ -564,7 +566,7 @@ test("premade library includes the latest release of every curated site", async 
 
   a.match(html, /premadeTemplate" value="editorial-journal@1\.1\.0"/);
   a.doesNotMatch(html, /premadeTemplate" value="editorial-journal@1\.0\.0"/);
-  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, 2);
+  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, latestSiteTemplates(templates).length + 1);
   a.doesNotMatch(html, /pc-template-picker is-single/);
 });
 
