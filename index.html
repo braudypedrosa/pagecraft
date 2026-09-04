@@ -11067,10 +11067,12 @@ var PC_UI = (() => {
         L2.tx(key + ":clear");
         const o3 = C2.tgtObj(n2);
         const dest = C2.stWrite(o3);
-        if (c3.t === "box") ["top", "right", "bottom", "left"].forEach((s3) => {
-          delete dest[C2.dk()][c3.c + "-" + s3];
-        });
-        else delete dest[C2.dk()][c3.c];
+        if (c3.t === "box") {
+          delete dest[C2.dk()][c3.c];
+          ["top", "right", "bottom", "left"].forEach((s3) => {
+            delete dest[C2.dk()][c3.c + "-" + s3];
+          });
+        } else delete dest[C2.dk()][c3.c];
         L2.endTx();
         L2.paintCss();
         L2.save();
@@ -11107,7 +11109,7 @@ var PC_UI = (() => {
     const dev = C2.dk();
     const o3 = C2.tgtObj(n2);
     const src = C2.stRead(o3);
-    const owns = !!(c3.c && src[dev] && (c3.t === "box" ? BOX_SIDES.some((s3) => src[dev][c3.c + "-" + s3] !== void 0) : src[dev][c3.c] !== void 0));
+    const owns = !!(c3.c && src[dev] && (c3.t === "box" ? src[dev][c3.c] !== void 0 || BOX_SIDES.some((s3) => src[dev][c3.c + "-" + s3] !== void 0) : src[dev][c3.c] !== void 0));
     const clearable = owns && dev !== "d";
     const w3 = writer(n2, c3);
     return /* @__PURE__ */ u2(
@@ -12211,14 +12213,54 @@ var PC_UI = (() => {
     ] }) });
   }
   var SIDES = ["top", "right", "bottom", "left"];
+  function boxParts(value) {
+    const parts = [];
+    let part = "";
+    let depth = 0;
+    for (const ch of String(value || "").trim()) {
+      if (/\s/.test(ch) && depth === 0) {
+        if (part) {
+          parts.push(part);
+          part = "";
+        }
+        continue;
+      }
+      if (ch === "(") depth++;
+      if (ch === ")") depth = Math.max(0, depth - 1);
+      part += ch;
+    }
+    if (part) parts.push(part);
+    return parts;
+  }
+  function expandBox(value) {
+    const parts = boxParts(value);
+    const [a3 = "", b2 = a3, c3 = a3, d3 = b2] = parts;
+    if (parts.length === 2) return [a3, b2, a3, b2];
+    if (parts.length === 3) return [a3, b2, c3, b2];
+    return [a3, b2, c3, d3];
+  }
+  function boxValues(n2, base) {
+    const css = C2.stRead(C2.tgtObj(n2));
+    const breakpoints = C2.dk() === "d" ? ["d"] : C2.dk() === "t" ? ["d", "t"] : ["d", "t", "m"];
+    const values = ["", "", "", ""];
+    for (const breakpoint of breakpoints) {
+      for (const [property, value] of Object.entries(css[breakpoint] || {})) {
+        if (property === base) values.splice(0, 4, ...expandBox(String(value)));
+        const side = SIDES.findIndex((candidate) => property === base + "-" + candidate);
+        if (side >= 0) values[side] = String(value);
+      }
+    }
+    return values;
+  }
   function BoxCtl({ n: n2, c: c3 }) {
     const key = n2.id + "|" + (c3.c || c3.k || c3.t);
-    const vals = SIDES.map((s3) => C2.parseU(C2.cssVal(C2.tgtObj(n2), c3.c + "-" + s3, !!c3.r).v));
+    const vals = boxValues(n2, c3.c).map(C2.parseU);
     const withUnit = vals.find((x2) => x2.u);
     const u4 = withUnit ? withUnit.u : "px";
     const push = (root) => {
       L2.tx(key);
       const unit = root.querySelector("select").value;
+      delete C2.stWrite(C2.tgtObj(n2))[C2.dk()][c3.c];
       root.querySelectorAll("input").forEach((inp, i3) => {
         const v3 = String(inp.value).trim();
         C2.setCss(C2.tgtObj(n2), c3.c + "-" + SIDES[i3], v3 === "" ? "" : v3 + unit, !!c3.r);

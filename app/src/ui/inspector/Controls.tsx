@@ -219,9 +219,52 @@ function ToggleCtl({ n, c }: P) {
 
 const SIDES = ['top', 'right', 'bottom', 'left'];
 
+/** Split a CSS box shorthand without breaking a calc() expression that contains spaces. */
+function boxParts(value: string): string[] {
+  const parts: string[] = [];
+  let part = '';
+  let depth = 0;
+  for (const ch of String(value || '').trim()) {
+    if (/\s/.test(ch) && depth === 0) {
+      if (part) { parts.push(part); part = ''; }
+      continue;
+    }
+    if (ch === '(') depth++;
+    if (ch === ')') depth = Math.max(0, depth - 1);
+    part += ch;
+  }
+  if (part) parts.push(part);
+  return parts;
+}
+
+function expandBox(value: string): string[] {
+  const parts = boxParts(value);
+  const [a = '', b = a, c = a, d = b] = parts;
+  if (parts.length === 2) return [a, b, a, b];
+  if (parts.length === 3) return [a, b, c, b];
+  return [a, b, c, d];
+}
+
+/** Resolve shorthand and longhand declarations in the same order the responsive stylesheet
+    applies them. This is what makes imported `padding: 28px 0 44px` visible as four fields. */
+function boxValues(n: PcNode, base: string): string[] {
+  const css = C.stRead(C.tgtObj(n));
+  const breakpoints: Array<'d' | 't' | 'm'> = C.dk() === 'd'
+    ? ['d'] : C.dk() === 't' ? ['d', 't'] : ['d', 't', 'm'];
+  const values = ['', '', '', ''];
+  for (const breakpoint of breakpoints) {
+    for (const [property, value] of Object.entries(css[breakpoint] || {})) {
+      if (property === base) values.splice(0, 4, ...expandBox(String(value)));
+      const side = SIDES.findIndex(candidate => property === base + '-' + candidate);
+      if (side >= 0) values[side] = String(value);
+    }
+  }
+  return values;
+}
+
 function BoxCtl({ n, c }: P) {
   const key = n.id + '|' + (c.c || c.k || c.t);
-  const vals = SIDES.map(s => C.parseU(C.cssVal(C.tgtObj(n), c.c + '-' + s, !!c.r).v));
+  const vals = boxValues(n, c.c!).map(C.parseU);
   const withUnit = vals.find(x => x.u);
   const u = withUnit ? withUnit.u : 'px';
 
@@ -230,6 +273,9 @@ function BoxCtl({ n, c }: P) {
   const push = (root: HTMLElement) => {
     L.tx(key);
     const unit = (root.querySelector('select') as HTMLSelectElement).value;
+    /* Once an author edits any side, materialize all four and remove the shorthand from this
+       breakpoint. The inspector and the generated CSS now have one unambiguous source. */
+    delete C.stWrite(C.tgtObj(n))[C.dk()][c.c!];
     root.querySelectorAll('input').forEach((inp, i) => {
       const v = String((inp as HTMLInputElement).value).trim();
       C.setCss(C.tgtObj(n), c.c + '-' + SIDES[i], v === '' ? '' : v + unit, !!c.r);

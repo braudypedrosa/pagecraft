@@ -533,10 +533,32 @@ test('a box control clears all four sides, not one', () => {
   const n = heading();
   C.selSet([n.id]);
   C.state.ui.dev = 'mobile';
-  n.css.m = { 'padding-top': '4px', 'padding-right': '4px', 'padding-bottom': '4px', 'padding-left': '4px' };
+  n.css.m = { padding: '4px', 'padding-top': '5px', 'padding-right': '4px', 'padding-bottom': '4px', 'padding-left': '4px' };
   r.draw(<Ctl n={n} c={{ t: 'box', c: 'padding', label: 'Padding', r: 1 }} />);
   r.click(r.$('.rsp'));
   a.deepEqual(n.css.m, {}, 'every side went');
+});
+
+test('a box shorthand is shown as four sides and materialized when one side changes', () => {
+  const n = heading();
+  C.selSet([n.id]);
+  n.css.d = { padding: '28px 0 44px' };
+  C.state.ui.dev = 'tablet';
+  r.draw(<Ctl n={n} c={{ t: 'box', c: 'padding', label: 'Padding', r: 1 }} />);
+
+  a.deepEqual(r.$$('input[type=number]').map(input => (input as HTMLInputElement).value),
+    ['28', '0', '44', '0']);
+  a.equal(r.$('.rsp')!.classList.contains('ovr'), false, 'tablet inherits the desktop shorthand');
+
+  r.type(r.$$('input[type=number]')[0], '36');
+  a.equal(n.css.t.padding, undefined);
+  a.deepEqual(n.css.t, {
+    'padding-top': '36px',
+    'padding-right': '0px',
+    'padding-bottom': '44px',
+    'padding-left': '0px'
+  });
+  a.equal(n.css.d.padding, '28px 0 44px', 'the desktop base remains unchanged');
 });
 
 /* ------------------------------------------------------------------ binding */
