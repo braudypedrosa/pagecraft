@@ -281,7 +281,7 @@ function ImgCtl({ n, c }: P) {
   const w = writer(n, c);
   const val = String(valueOf(n, c) || '');
   const rawv = c.bg ? val.replace(/^url\(["']?|["']?\)$/g, '') : val;
-  const ref = rawv.match(/^asset:([a-z0-9]+)$/);
+  const ref = rawv.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
   const wrap = (v: string) => c.bg ? (v ? `url("${v}")` : '') : v;
 

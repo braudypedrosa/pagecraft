@@ -31,6 +31,22 @@ afterEach(() => { r.host.remove(); });
 
 const heading = () => C.insert('heading', null, 0)!;
 
+test('image controls recognize canonical asset ids that contain hyphens', () => {
+  r.host.remove();
+  const assetId = '9bcfc1c5-5f1b-4580-87fd-d511f44d43';
+  r = rig({ asset: id => id === assetId
+    ? { url: 'blob:template-image', name: 'template.webp', size: 82_000, w: 1024, h: 1536 }
+    : null });
+  const image = C.N('image');
+  image.props.src = `asset:${assetId}`;
+  const source = C.DEF.image.controls.content.find(control => control.k === 'src')!;
+
+  r.draw(<Ctl n={image} c={source} />);
+
+  a.equal(r.$('.imgset.missing'), null);
+  a.match(r.$('.imgset')!.textContent || '', /template\.webp/);
+});
+
 test('every declared inspector control has a renderer and every declared choice is operable', () => {
   const declared: Array<{ owner: string; n: any; c: Control }> = [];
   for (const [type, def] of Object.entries(C.DEF)) {

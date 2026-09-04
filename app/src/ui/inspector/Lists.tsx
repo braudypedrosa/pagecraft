@@ -338,7 +338,7 @@ export function ImgsCtl({ n, c }: P) {
 
   return <Field n={n} c={c}>
     {arr.map((it, k) => {
-      const ref = String(it.src || '').match(/^asset:([a-z0-9]+)$/);
+      const ref = String(it.src || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
       const a = ref ? L.asset(ref[1]) : null;
       return (
         <div class="gtile" key={k}>

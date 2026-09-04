@@ -45,6 +45,8 @@ test('each site installation receives independent asset identities and remains r
   a.equal(first.assets.length, 5);
   a.ok(first.assets.every(asset => asset.contentHash === sha256(asset.bytes)),
     'every template image carries the stored-byte hash required by cloud persistence');
+  a.ok(first.assets.every(asset => /^a[a-f0-9]{12}$/.test(asset.id)),
+    'template images use the editor-native asset id format');
   a.notDeepEqual(first.assets.map(asset => asset.id), second.assets.map(asset => asset.id));
   a.equal(JSON.stringify(first.document).includes('asset:northline-'), false);
   for (const asset of first.assets) a.match(JSON.stringify(first.document), new RegExp(`asset:${asset.id}`));

@@ -512,7 +512,8 @@ test('element tags come from a whitelist', () => {
 });
 
 test('safeUrl passes real links and drops script schemes', () => {
-  ['https://x.com/a', 'pricing.html', '#contact', '/index.html', './a.html', 'mailto:a@b.c', 'tel:+1', 'example.com/x']
+  ['https://x.com/a', 'pricing.html', '#contact', '/index.html', './a.html', 'mailto:a@b.c', 'tel:+1',
+    'example.com/x', 'asset:9bcfc1c5-5f1b-4580-87fd-d511f44d43']
     .forEach(u => a.equal(C.safeUrl(u), u, u + ' should be allowed'));
   ['javascript:alert(1)', 'JavaScript:alert(1)', 'vbscript:x', 'data:text/html,<script>', ' javascript:alert(1)']
     .forEach(u => a.equal(C.safeUrl(u), '', u + ' should be blocked'));

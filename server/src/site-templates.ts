@@ -150,7 +150,10 @@ export class FileSiteTemplateStore implements SiteTemplateStore {
     const template = matches.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }))[0];
     if (!template) return null;
     const validated = await this.load(template);
-    const idMap = new Map(validated.dependencies.assets.map(id => [id, crypto.randomUUID()]));
+    const idMap = new Map(validated.dependencies.assets.map(id => [
+      id,
+      `a${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`,
+    ]));
     const document = replaceAssets(structuredClone(validated.document), idMap) as Doc;
     const assets: Asset[] = validated.manifest.files.filter(file => file.role === 'asset').map(file => {
       const bytes = new Uint8Array(validated.files.get(file.path)!);

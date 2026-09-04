@@ -2254,7 +2254,7 @@ var safeUrl = (u) => {
   const v = String(u == null ? "" : u).trim();
   if (!v) return "";
   if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[a-z0-9]+$/i.test(v)) return v;
+  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
   return "";
 };
@@ -10448,7 +10448,7 @@ var PC_UI = (() => {
 
   // app/src/ui/AssetField.tsx
   function AssetField({ value, note, onChange }) {
-    const ref = String(value || "").match(/^asset:([a-z0-9]+)$/);
+    const ref = String(value || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
     const a3 = ref ? L2.asset(ref[1]) : null;
     const take = async (file) => {
       if (!file) return;
@@ -11886,7 +11886,7 @@ var PC_UI = (() => {
     };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       arr.map((it, k3) => {
-        const ref = String(it.src || "").match(/^asset:([a-z0-9]+)$/);
+        const ref = String(it.src || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
         const a3 = ref ? L2.asset(ref[1]) : null;
         return /* @__PURE__ */ u2("div", { class: "gtile", children: [
           /* @__PURE__ */ u2("span", { class: "gthumb", children: a3 ? /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }) : /* @__PURE__ */ u2("span", { children: [
@@ -12276,7 +12276,7 @@ var PC_UI = (() => {
     const w3 = writer(n2, c3);
     const val = String(valueOf(n2, c3) || "");
     const rawv = c3.bg ? val.replace(/^url\(["']?|["']?\)$/g, "") : val;
-    const ref = rawv.match(/^asset:([a-z0-9]+)$/);
+    const ref = rawv.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
     const a3 = ref ? L2.asset(ref[1]) : null;
     const wrap = (v3) => c3.bg ? v3 ? `url("${v3}")` : "" : v3;
     const use = (id) => {

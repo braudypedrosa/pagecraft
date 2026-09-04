@@ -1205,7 +1205,7 @@ var safeUrl = (u) => {
   const v = String(u == null ? "" : u).trim();
   if (!v) return "";
   if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[a-z0-9]+$/i.test(v)) return v;
+  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
   return "";
 };
