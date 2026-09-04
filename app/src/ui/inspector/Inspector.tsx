@@ -351,10 +351,10 @@ function Motion({ n }: { n: PcNode }) {
 
 /* The Advanced tab's fixed control list. It is not part of any widget definition
    because every widget gets the same one. */
-const advControls = (n: PcNode): Control[] => [
+export const advControls = (n: PcNode): Control[] => [
   { t: 'text', k: '_id', label: 'HTML id', ph: C.autoId(n), note: 'What a link anchor targets. Auto unless you set one.' },
   { t: 'text', k: '_cls', label: 'CSS classes', ph: 'hero card--dark' },
-  { t: 'select', c: 'position', label: 'Position', opts: [['', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
+  { t: 'select', c: 'position', label: 'Position', r: 1, opts: [['static', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
   { t: 'unit', c: 'top', label: 'Top', r: 1, units: ['px', '%', 'rem'] },
   { t: 'unit', c: 'z-index', label: 'Z-index', units: [''] },
   { t: 'select', c: 'overflow', label: 'Overflow', opts: [['', 'Visible'], ['hidden', 'Hidden'], ['auto', 'Auto']] },

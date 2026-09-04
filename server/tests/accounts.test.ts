@@ -466,7 +466,8 @@ test("dashboard create modal independently keeps only the latest template versio
     templates,
   );
 
-  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.8" data-template-name="Independent Studio" checked/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Independent Studio" checked/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
   a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, 1);
@@ -512,7 +513,7 @@ test("premade library includes the latest release of every curated site", async 
   const templates = await new FileSiteTemplateStore(
     resolve(process.cwd(), "premade-sites"),
   ).list();
-  const source = templates.find((template) => template.version === "2.0.8");
+  const source = templates.find((template) => template.version === "2.0.9");
   a.ok(source);
   const html = dashboardPage(
     { id: "user-1", email: "builder@example.test", name: "Builder" },
@@ -555,7 +556,7 @@ test("a curated site installs all pages and remapped media without charging the 
     body: JSON.stringify({
       name: "Client Studio",
       templateId: "independent-studio",
-      templateVersion: "2.0.8",
+      templateVersion: "2.0.9",
     }),
   });
   a.equal(created.status, 201, await created.clone().text());
@@ -612,7 +613,8 @@ test("a curated site installs all pages and remapped media without charging the 
   const dashboard = await request("/");
   const html = await dashboard.text();
   a.match(html, /Independent Studio/);
-  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.6"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.5"/);
@@ -625,12 +627,12 @@ test("a curated site installs all pages and remapped media without charging the 
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
   a.match(
     html,
-    /\/templates\/independent-studio\/2\.0\.8\/preview\/index\.html/,
+    /\/templates\/independent-studio\/2\.0\.9\/preview\/index\.html/,
   );
   a.match(html, /Blank site/);
 
   const preview = await request(
-    "/templates/independent-studio/2.0.8/preview/index.html",
+    "/templates/independent-studio/2.0.9/preview/index.html",
   );
   a.equal(preview.status, 200);
   a.match(preview.headers.get("content-security-policy") || "", /script-src/);
@@ -646,7 +648,7 @@ test("a curated site installs all pages and remapped media without charging the 
   const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
   a.ok(packagedAsset);
   const media = await request(
-    `/templates/independent-studio/2.0.8/preview/${packagedAsset[1]}`,
+    `/templates/independent-studio/2.0.9/preview/${packagedAsset[1]}`,
   );
   a.equal(media.status, 200);
   a.equal(media.headers.get("content-type"), "image/webp");

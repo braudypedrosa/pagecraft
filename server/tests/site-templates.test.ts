@@ -12,6 +12,7 @@ import { sha256 } from '../src/releases.ts';
 import { renderSite } from '../src/render.ts';
 import {
   PREMADE_DESIGN_CONTRACT_V1,
+  findNodes,
 } from '../../premade-sites/lib/v1/design-contract.ts';
 import {
   PREMADE_DESIGN_CONTRACT_V2,
@@ -23,10 +24,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'prema
 test('curated site catalog exposes the immutable four-page studio package', async () => {
   const store = new FileSiteTemplateStore(root);
   const templates = await store.list();
-  a.deepEqual(templates.map(template => template.version), ['1.0.0', '1.0.1', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7', '2.0.8']);
+  a.deepEqual(templates.map(template => template.version), ['1.0.0', '1.0.1', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7', '2.0.8', '2.0.9']);
   const [template] = latestSiteTemplates(templates);
   a.equal(template.id, 'independent-studio');
-  a.equal(template.version, '2.0.8');
+  a.equal(template.version, '2.0.9');
   a.deepEqual(template.pages.map(page => page.slug), ['index', 'about', 'services', 'contact']);
   const bytes = new Uint8Array(await readFile(resolve(root, template.id, template.version, template.packageFile)));
   const validated = validatePortablePackage(bytes);
@@ -38,9 +39,9 @@ test('curated site catalog exposes the immutable four-page studio package', asyn
 test('each site installation receives independent asset identities and remains renderable', async () => {
   const store = new FileSiteTemplateStore(root);
   const first = await store.instantiate('independent-studio');
-  const second = await store.instantiate('independent-studio', '2.0.8');
+  const second = await store.instantiate('independent-studio', '2.0.9');
   a.ok(first && second);
-  a.equal(first.template.version, '2.0.8');
+  a.equal(first.template.version, '2.0.9');
   a.equal(first.document.pages.length, 4);
   a.equal(first.assets.length, 5);
   a.ok(first.assets.every(asset => asset.contentHash === sha256(asset.bytes)),
@@ -59,7 +60,7 @@ test('each site installation receives independent asset identities and remains r
 
 test('template preview serves package HTML and its packaged media only', async () => {
   const store = new FileSiteTemplateStore(root);
-  const page = await store.preview('independent-studio', '2.0.8', 'index.html');
+  const page = await store.preview('independent-studio', '2.0.9', 'index.html');
   a.ok(page);
   a.equal(page.mediaType, 'text/html; charset=utf-8');
   const previewHtml = new TextDecoder().decode(page.bytes);
@@ -74,13 +75,15 @@ test('template preview serves package HTML and its packaged media only', async (
   a.doesNotMatch(previewHtml, /class="[^"]*\bnl-loop-card\b/);
   a.match(previewHtml, new RegExp(PREMADE_DESIGN_CONTRACT_V1.cardShell));
   a.match(previewHtml, new RegExp(PREMADE_DESIGN_CONTRACT_V2.dividerList));
+  a.doesNotMatch(previewHtml, /\bnl-sticky\b/);
 
   const dom = new JSDOM(previewHtml, { pretendToBeVisual: true });
   const dividerGroup = dom.window.document.querySelector(`.${PREMADE_DESIGN_CONTRACT_V2.dividerList}`);
   const dividerItems = [...dom.window.document.querySelectorAll(`.${PREMADE_DESIGN_CONTRACT_V2.dividerItem}`)];
   const card = dom.window.document.querySelector(`.${PREMADE_DESIGN_CONTRACT_V1.cardShell}`);
   const cardMedia = dom.window.document.querySelector(`.${PREMADE_DESIGN_CONTRACT_V1.cardMedia}`);
-  a.ok(dividerGroup && card && cardMedia);
+  const stickyIntro = dom.window.document.querySelector('#pagecraft-column-orthline-v2-node-0049');
+  a.ok(dividerGroup && card && cardMedia && stickyIntro);
   a.equal(dividerItems.length, 3);
   a.equal(dom.window.getComputedStyle(dividerGroup).borderTopWidth, '0px');
   a.equal(dom.window.getComputedStyle(dividerGroup).borderBottomWidth, '0px');
@@ -90,11 +93,26 @@ test('template preview serves package HTML and its packaged media only', async (
   a.equal(dom.window.getComputedStyle(card).borderTopWidth, '1px');
   a.equal(dom.window.getComputedStyle(cardMedia).borderTopWidth, '0px');
   a.equal(dom.window.document.querySelectorAll(`.${PREMADE_DESIGN_CONTRACT_V1.sectionIntro}`).length, 1);
+  a.equal(dom.window.getComputedStyle(stickyIntro).position, 'sticky');
+  a.equal(dom.window.getComputedStyle(stickyIntro).top, '104px');
 
   const template = latestSiteTemplates(await store.list())[0];
   const installed = await store.instantiate(template.id, template.version);
   a.ok(installed);
   a.deepEqual(validatePremadeDesignContractV2(installed.document), []);
+  const installedSticky = findNodes(
+    installed.document.pages.flatMap(page => page.tree),
+    node => node.id === 'northline-v2-node-0049',
+  )[0];
+  a.ok(installedSticky);
+  a.deepEqual(
+    ['d', 't', 'm'].map(breakpoint => [
+      installedSticky.css[breakpoint as 'd' | 't' | 'm'].position,
+      installedSticky.css[breakpoint as 'd' | 't' | 'm'].top,
+    ]),
+    [['sticky', '104px'], ['sticky', '104px'], ['static', '0px']],
+  );
+  a.equal(String(installedSticky.adv.cls || '').includes('nl-sticky'), false);
   a.equal(JSON.stringify(installed.document).match(/pc-section-intro-v1/g)?.length, 4);
   const original = validatePortablePackage(new Uint8Array(await readFile(resolve(root, template.id, template.version, template.packageFile))));
   const assetPath = original.manifest.files.find(file => file.role === 'asset')!.path;
@@ -104,6 +122,7 @@ test('template preview serves package HTML and its packaged media only', async (
   a.ok(asset.bytes.byteLength > 20_000);
   a.equal(await store.preview(template.id, template.version, '../../catalog.json'), null);
   a.ok(await store.preview('independent-studio', '2.0.7', 'index.html'));
+  a.ok(await store.preview('independent-studio', '2.0.8', 'index.html'));
   a.ok(await store.preview('independent-studio', '2.0.6', 'index.html'));
   a.ok(await store.preview('independent-studio', '2.0.5', 'index.html'));
   a.ok(await store.preview('independent-studio', '2.0.4', 'index.html'));

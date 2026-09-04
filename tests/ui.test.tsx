@@ -15,7 +15,7 @@ import * as C from '../app/src/core/index';
 import { CONTROL_KINDS, Ctl, Dropzone } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
 import { Add } from '../app/src/ui/Add';
-import { Inspector } from '../app/src/ui/inspector/Inspector';
+import { Inspector, advControls } from '../app/src/ui/inspector/Inspector';
 import { Pages } from '../app/src/ui/Pages';
 import { Cms } from '../app/src/ui/Cms';
 import { ColorTokens } from '../app/src/ui/ColorTokens';
@@ -479,6 +479,21 @@ test('clicking the badge clears only this breakpoint', () => {
   r.click(r.$('.rsp'));
   a.equal('font-size' in n.css.m, false, 'the override is gone');
   a.equal(n.css.d['font-size'], '48px', 'and the base is untouched');
+});
+
+test('Position writes a native override at the breakpoint being edited', () => {
+  const n = heading();
+  C.selSet([n.id]);
+  n.css.d = { position: 'sticky' };
+  C.state.ui.dev = 'mobile';
+  const position = advControls(n).find(control => control.c === 'position')!;
+
+  a.equal(position.r, 1, 'the Advanced Position control must use the responsive style model');
+  r.draw(<Ctl n={n} c={position} />);
+  r.pick(r.$('select')!, 'static');
+
+  a.equal(n.css.d.position, 'sticky', 'desktop remains sticky');
+  a.equal(n.css.m.position, 'static', 'mobile owns the static override');
 });
 
 test('a box control clears all four sides, not one', () => {
