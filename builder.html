@@ -1277,9 +1277,61 @@ pre.code{
   .frameWrap{transition:none}
 }
 </style>
+<style>
+#builderLoading{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:var(--ink,#111311);color:#f8f6ef;padding:24px;text-align:center}
+#builderLoading[hidden]{display:none}
+#builderLoading .boot-content{display:flex;flex-direction:column;align-items:center;gap:20px;max-width:32ch}
+#builderLoading svg{width:44px;height:58px;display:block}
+#builderLoading p{margin:0;font:500 14px/1.5 var(--sans,system-ui,sans-serif);color:#aeb5ad}
+#builderLoading button{border:1px solid #aeb5ad;border-radius:6px;background:transparent;color:#f8f6ef;padding:10px 16px;cursor:pointer}
+#builderLoading button:focus-visible{outline:2px solid #b7f34a;outline-offset:4px}
+.boot-progress{width:96px;height:2px;background:#34402c;overflow:hidden}
+.boot-progress::after{content:"";display:block;width:40%;height:100%;background:#b7f34a;animation:boot-progress 1.4s ease-in-out infinite alternate}
+@keyframes boot-progress{to{transform:translateX(150%)}}
+@media(prefers-reduced-motion:reduce){.boot-progress::after{animation:none;width:100%}}
+#app[aria-busy="true"]{visibility:hidden}
+</style>
+<div id="builderLoading" aria-label="Pagecraft builder loading">
+ <div class="boot-content">
+  <svg viewBox="0 0 73 95" role="img" aria-label="Pagecraft"><path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill="#b7f34a" fill-rule="evenodd"/></svg>
+  <div class="boot-progress" aria-hidden="true"></div>
+  <p id="builderLoadingStatus" role="status">Loading your builder…</p>
+  <button id="builderLoadingRetry" type="button" hidden>Reload builder</button>
+  <noscript>Enable JavaScript to use the Pagecraft builder.</noscript>
+ </div>
+</div>
+<script id="builder-loading-controller">
+(() => {
+ const started = performance.now();
+ const screen = document.getElementById('builderLoading');
+ const status = document.getElementById('builderLoadingStatus');
+ const retry = document.getElementById('builderLoadingRetry');
+ const slow = setTimeout(() => {
+  status.textContent = 'This is taking longer than usual. You can keep waiting or reload.';
+  retry.hidden = false;
+ }, 20000);
+ retry.addEventListener('click', () => location.reload());
+ window.PC_BUILDER_LOADING = {
+  async ready() {
+   clearTimeout(slow);
+   await new Promise(resolve => setTimeout(resolve, Math.max(0, 450 - (performance.now() - started))));
+   const app = document.getElementById('app');
+   app.removeAttribute('inert');
+   app.setAttribute('aria-busy', 'false');
+   screen.hidden = true;
+  },
+  fail() {
+   clearTimeout(slow);
+   status.textContent = 'The builder could not finish loading. Please reload to try again.';
+   screen.querySelector('.boot-progress').hidden = true;
+   retry.hidden = false;
+  }
+ };
+})();
+</script>
 <!--PAGECRAFT-FONTS-->
 
-<div id="app">
+<div id="app" inert aria-busy="true">
   <div class="topbar">
     <a class="brand" id="brandHome" aria-label="Pagecraft" target="_top">
       <svg width="17" height="22" viewBox="0 0 73 95" aria-hidden="true"><path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill="#b7f34a" fill-rule="evenodd"/></svg>
@@ -1990,8 +2042,14 @@ async function writeServer() {
     SRV.version = body.version;
     if (!IS_WORDPRESS) lastCloudDocument = cloudDocument;
     saveState = 'ok';
+    saveWarned = false;
     stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
   } catch (e) {
+    // A failed write needs a deliberate retry, not a queued automatic replay.
+    saveAgain = false;
+    if (e && e.status === 409 && e.payload?.retryable === true && !e.payload.conflict) {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnSaveBusy(); return;
+    }
     if (e && e.status === 409) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
     }
@@ -2005,6 +2063,25 @@ async function writeServer() {
     saving = false;
     if (saveAgain) { saveAgain = false; writeServer(); }
   }
+}
+
+// A lock is temporary, not proof that the document version has changed.
+function warnSaveBusy() {
+  // Do not suppress a later real conflict after this warning is dismissed.
+  saveWarned = false;
+  openModal('Saving is temporarily busy', `
+    <div class="alert">
+      <b>Another operation is saving this content.</b>
+      <span>Your changes have not been saved. They are still here in this tab.</span>
+    </div>
+    <p class="note">Keep this tab open. Wait a moment, then try saving again.</p>`, `
+    <button class="btn" id="busyBackup">Download my copy</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" id="busyRetry">Try saving again</button>`);
+  $('#busyBackup').addEventListener('click', () => backupJson());
+  $('#busyRetry').addEventListener('click', () => {
+    closeModal(); writeNow();
+  });
 }
 
 /* Somebody else saved between this editor loading and this editor saving. Reloading is the
@@ -5241,7 +5318,28 @@ function bindTop() {
   };
   if (SRV && HOST_FEATURES.sites) {
     sitesButton.hidden = false;
-    sitesButton.addEventListener('click', () => { location.href = '/'; });
+    const brandLink = $('#brandHome');
+    brandLink.href = '/';
+    let leaving = false;
+    const returnToDashboard = async event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (leaving) return;
+      leaving = true;
+      brandLink.setAttribute('aria-busy', 'true');
+      sitesButton.disabled = true;
+      try {
+        await flushDraft();
+        location.href = '/';
+      } catch (error) {
+        leaving = false;
+        brandLink.removeAttribute('aria-busy');
+        sitesButton.disabled = false;
+        toast('Your draft could not finish saving. Please try again before leaving.');
+      }
+    };
+    sitesButton.addEventListener('click', returnToDashboard);
+    brandLink.addEventListener('click', returnToDashboard);
     if (SRV.user) {
       const accountName = String(SRV.user.name || SRV.user.email || 'Pagecraft');
       const initials = accountName.trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
@@ -5351,5 +5449,10 @@ HOOKS.note = msg => toast(msg);
   renderPalette();
   setDev(state.ui.dev);
   stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ? 'Draft ready' : 'Ready'), false);
-})();
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  await window.PC_BUILDER_LOADING.ready();
+})().catch(error => {
+  console.error('Pagecraft builder startup failed', error);
+  window.PC_BUILDER_LOADING.fail();
+});
 </script>
