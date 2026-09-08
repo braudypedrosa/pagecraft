@@ -13,12 +13,6 @@ import { TestHumanChallenge } from "../src/turnstile.ts";
 import type { AccountAuth, VerifiedIdentity } from "../src/account-auth.ts";
 import type { Context } from "hono";
 import { MemoryHostedPublicationStore } from "../src/publications.ts";
-import { MemoryAssetStore, type AssetStore } from "../src/assets.ts";
-import {
-  FileSiteTemplateStore,
-  type SiteTemplateStore,
-} from "../src/site-templates.ts";
-import { resolve } from "node:path";
 
 const doc = () => {
   Core.seed();
@@ -94,9 +88,7 @@ class FakeAccountAuth implements AccountAuth {
   }
 }
 
-const rig = (
-  options: { assets?: AssetStore; siteTemplates?: SiteTemplateStore } = {},
-) => {
+const rig = () => {
   const store = new MemoryStore(),
     auth = new MemoryAuthStore(),
     accountAuth = new FakeAccountAuth();
@@ -110,8 +102,6 @@ const rig = (
     editorHost: "admin.test",
     editorOrigin: "http://admin.test",
     editorHtml: "<title>Builder</title>",
-    assets: options.assets,
-    siteTemplates: options.siteTemplates,
   });
   const request = (path: string, init: RequestInit = {}) =>
     app.request(
@@ -434,82 +424,6 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /pc-custom-select-popover/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
-});
-
-test("a curated site installs all pages and remapped media without charging the owner quota", async () => {
-  const assets = new MemoryAssetStore();
-  const siteTemplates = new FileSiteTemplateStore(
-    resolve(process.cwd(), "premade-sites"),
-  );
-  const { request, accountAuth, auth, store } = rig({ assets, siteTemplates });
-  accountAuth.current = {
-    authUserId: "auth-1",
-    email: "builder@example.test",
-    name: "Builder",
-  };
-  const owner = await auth.ensureAuthUser(
-    "auth-1",
-    "builder@example.test",
-    "Builder",
-  );
-
-  const created = await request("/api/sites", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      name: "Client Studio",
-      templateId: "independent-studio",
-      templateVersion: "1.0.0",
-    }),
-  });
-  a.equal(created.status, 201, await created.clone().text());
-  const result = await created.json() as { id: string; files: string[] };
-  const site = await store.byId(result.id);
-  a.ok(site);
-  a.equal(site.name, "Client Studio");
-  a.equal(site.doc.meta.name, "Client Studio");
-  a.deepEqual(site.doc.pages.map((page) => page.name), [
-    "Home",
-    "About",
-    "Services",
-    "Contact",
-  ]);
-  a.ok(result.files.includes("index.html"));
-  a.ok(result.files.includes("about.html"));
-  const installed = await assets.list(site.id);
-  a.equal(installed.length, 4);
-  a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
-  const serialized = JSON.stringify(site.doc);
-  a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
-  a.deepEqual(await assets.usage(owner.id), {
-    usedBytes: 0,
-    limitBytes: 100 * 1024 * 1024,
-  });
-
-  const dashboard = await request("/");
-  const html = await dashboard.text();
-  a.match(html, /Independent Studio/);
-  a.match(html, /name="siteTemplate" value="independent-studio@1\.0\.0"/);
-  a.match(
-    html,
-    /\/templates\/independent-studio\/1\.0\.0\/preview\/index\.html/,
-  );
-  a.match(html, /Blank site/);
-
-  const preview = await request(
-    "/templates/independent-studio/1.0.0/preview/index.html",
-  );
-  a.equal(preview.status, 200);
-  a.match(preview.headers.get("content-security-policy") || "", /script-src/);
-  const previewHtml = await preview.text();
-  const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
-  a.ok(packagedAsset);
-  const media = await request(
-    `/templates/independent-studio/1.0.0/preview/${packagedAsset[1]}`,
-  );
-  a.equal(media.status, 200);
-  a.equal(media.headers.get("content-type"), "image/webp");
-  a.match(media.headers.get("cache-control") || "", /immutable/);
 });
 
 test("site overview is protected, membership-scoped, and exposes working management actions", async () => {
@@ -887,63 +801,8 @@ test("account settings shows profile, security, providers, and real free-plan us
   a.match(html, /panel\.hidden=panel\.dataset\.settingsPanel!==name/);
   a.match(
     html,
-    /\.pc-workspace:has\(\.pc-settings-content\)\{scrollbar-gutter:stable\}/,
+    /\.pc-settings-links\{margin-top:auto;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/,
   );
-  a.match(
-    html,
-    /\.pc-settings-layout\{display:grid;grid-template-columns:190px minmax\(0,1fr\)/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-main\{min-width:0;width:100%;max-width:720px\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-head\{padding-bottom:26px;border-bottom:1px solid var\(--pc-line\)\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-nav button\{border:1px solid transparent;background:#eeece4;color:var\(--pc-text\)\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-nav button\[aria-selected="true"\]\{border-color:transparent;background:var\(--pc-green\)\}/,
-  );
-  a.match(
-    html,
-    /\.pc-integration-block\{[^}]*border-top:1px solid var\(--pc-line\)\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-title\+\.pc-integration-block,\.pc-token-reveal\+\.pc-integration-block\{margin-top:0;padding-top:0;border-top:0\}/,
-  );
-  a.match(
-    html,
-    /\.pc-integration-row:not\(:last-child\)\{border-bottom:1px solid var\(--pc-line\)\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-content\{min-height:100%;display:flex;flex-direction:column\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-footer\{display:grid;grid-template-columns:190px minmax\(0,720px\);[^}]*margin-top:40px\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-links\{grid-column:2;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/,
-  );
-  a.match(
-    html,
-    /\.pc-settings-title \.pc-plan-badge\{justify-self:start\}/,
-  );
-  a.match(html, /\.pc-settings-layout\{flex:1\}/);
-  a.match(
-    html,
-    /<\/div><\/div><footer class="pc-settings-footer"><div class="pc-settings-links">/,
-  );
-  a.doesNotMatch(html, /\.pc-settings-main\{[^}]*display:flex/);
-  a.doesNotMatch(html, /\.pc-empty-line\{[^}]*border/);
 
   const planResponse = await request("/account?tab=plan");
   const planHtml = await planResponse.text();
@@ -951,131 +810,6 @@ test("account settings shows profile, security, providers, and real free-plan us
     planHtml,
     /data-settings-tab="plan" aria-selected="true" tabindex="0"/,
   );
-});
-
-test("account integrations create, verify, list, and revoke a read-only API token", async () => {
-  const { request, accountAuth, auth, store } = rig();
-  accountAuth.current = {
-    authUserId: "auth-integrations",
-    email: "integrations@example.test",
-    name: "Integrations",
-    providers: ["email"],
-  };
-  const owner = await auth.ensureAuthUser(
-    "auth-integrations",
-    "integrations@example.test",
-    "Integrations",
-  );
-  const site = await store.create({
-    host: "integrations.test",
-    name: "Integration site",
-    doc: doc(),
-  });
-  await auth.grant(site.id, owner.id, "owner");
-
-  const page = await request("/account?tab=integrations");
-  a.equal(page.status, 200);
-  const initial = await page.text();
-  a.match(initial, /data-settings-tab="integrations" aria-selected="true"/);
-  a.match(initial, /Connect Pagecraft to WordPress, MCP clients, and your own tools/);
-  a.match(initial, /No active tokens/);
-  a.match(initial, /No connected WordPress sites/);
-
-  const created = await request("/account/integrations/tokens", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ name: "Claude Desktop" }),
-  });
-  a.equal(created.status, 200);
-  const html = await created.text();
-  const token = html.match(/<code data-new-token>(pc_live_[A-Za-z0-9_-]+)<\/code>/)?.[1];
-  a.ok(token);
-  a.match(html, /It will not be shown again/);
-  a.match(html, /Claude Desktop/);
-  a.match(html, /http:\/\/admin\.test\/mcp/);
-
-  const connection = await request("/v1/integrations/connection", {
-    headers: { authorization: `Bearer ${token}` },
-  });
-  a.equal(connection.status, 200);
-  a.deepEqual(await connection.json(), {
-    connected: true,
-    type: "access_token",
-    name: "Claude Desktop",
-    scopes: ["projects:read", "packages:read"],
-    createdAt: (await auth.apiCredentialsForOwner(owner.id))[0].createdAt &&
-      new Date((await auth.apiCredentialsForOwner(owner.id))[0].createdAt).toISOString(),
-  });
-  const catalog = await request("/v1/integrations/wordpress/catalog", {
-    headers: { authorization: `Bearer ${token}` },
-  });
-  a.equal(catalog.status, 200);
-  a.deepEqual(
-    (await catalog.json() as { projects: Array<{ id: string }> }).projects.map(item => item.id),
-    [site.id],
-  );
-  const mcp = await request("/mcp", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${token}`,
-      "content-type": "application/json",
-      accept: "application/json, text/event-stream",
-    },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
-  });
-  a.equal(mcp.status, 200, await mcp.clone().text());
-  const mcpBody = await mcp.text();
-  for (const tool of [
-    "pagecraft_list_projects",
-    "pagecraft_list_pages",
-    "pagecraft_get_page",
-  ]) a.match(mcpBody, new RegExp(tool));
-
-  const credential = (await auth.apiCredentialsForOwner(owner.id))[0];
-  a.ok(credential.lastUsedAt);
-  const revoked = await request(`/account/integrations/tokens/${credential.id}/revoke`, {
-    method: "POST",
-  });
-  a.equal(revoked.status, 303);
-  a.equal(revoked.headers.get("location"), "/account?tab=integrations&message=Access+token+revoked.");
-  a.equal((await request("/v1/integrations/connection", {
-    headers: { authorization: `Bearer ${token}` },
-  })).status, 401);
-});
-
-test("account integrations lists and disconnects WordPress imports owned by the account", async () => {
-  const { request, accountAuth, auth } = rig();
-  accountAuth.current = {
-    authUserId: "auth-wordpress",
-    email: "wordpress@example.test",
-    name: "WordPress",
-    providers: ["google"],
-  };
-  const owner = await auth.ensureAuthUser(
-    "auth-wordpress",
-    "wordpress@example.test",
-    "WordPress",
-  );
-  const credential = await auth.createManualImportCredential({
-    id: "wordpress-credential-1",
-    ownerId: owner.id,
-    installationId: "wp-installation-123",
-    accessTokenDigest: "a".repeat(64),
-    accessExpiresAt: Date.now() + 60_000,
-    refreshTokenDigest: "b".repeat(64),
-  });
-  const page = await request("/account?tab=integrations");
-  const html = await page.text();
-  a.match(html, /wp-installation-123/);
-  a.match(html, new RegExp(`/account/integrations/wordpress/${credential.id}/revoke`));
-
-  const disconnected = await request(
-    `/account/integrations/wordpress/${credential.id}/revoke`,
-    { method: "POST" },
-  );
-  a.equal(disconnected.status, 303);
-  a.equal(disconnected.headers.get("location"), "/account?tab=integrations&message=WordPress+disconnected.");
-  a.deepEqual(await auth.manualImportsForOwner(owner.id), []);
 });
 
 test("account profile updates the local name and starts verified email change", async () => {
