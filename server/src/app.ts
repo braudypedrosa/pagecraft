@@ -2053,14 +2053,10 @@ export function createApp(o: Options) {
       const identity = await o.accountAuth.identity(c);
       if (!identity) return deny(c, 401);
       publishIdentity = identity;
-      const cached = o.cloudMutations?.cachedPublishSource({
-        siteId: id,
-        sourceVersion: Number(sourceVersion),
-        identity,
-      });
-      const prepared: HostedPublishPreparation = cached
-        ? { status: "ok", role: "owner", ...cached }
-        : await o.hostedPublish.prepare({ siteId: id, identity });
+      // Publishing must recheck the authoritative version and membership, even when the
+      // draft appears unchanged. Another worker may have published or revoked access
+      // since this process cached the site; that cache is only suitable for draft work.
+      const prepared = await o.hostedPublish.prepare({ siteId: id, identity });
       if (prepared.status !== "ok") {
         return deny(c, prepared.status === "missing" ? 404 : 403);
       }

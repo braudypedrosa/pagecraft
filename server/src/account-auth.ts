@@ -151,7 +151,7 @@ export class SupabaseAccountAuth implements AccountAuth {
   async updatePassword(c: Context, input: { password: string; currentPassword?: string }) {
     const { error } = await this.client(c).auth.updateUser({
       password: input.password,
-      ...(input.currentPassword ? { currentPassword: input.currentPassword } : {})
+      ...(input.currentPassword ? { current_password: input.currentPassword } : {})
     });
     return !error;
   }
