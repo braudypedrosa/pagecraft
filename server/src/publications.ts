@@ -53,11 +53,21 @@ export interface HostedPublicationStore {
   currentBySlug(slug: string): Promise<PublicationSummary | null>;
   currentByHost(host: string): Promise<PublicationSummary | null>;
   promote(publication: PublicationSummary): Promise<void>;
+  relocate(siteId: string, slug: string, host: string): Promise<void>;
+  removeSite(siteId: string): Promise<void>;
   discard(publication: PublicationSummary): Promise<void>;
   file(
     publication: PublicationSummary,
     path: string,
   ): Promise<Uint8Array | null>;
+  /** Dashboard artwork is derived from a release but is not part of the immutable site files. */
+  preview(
+    publication: PublicationSummary,
+  ): Promise<Uint8Array | null>;
+  putPreview(
+    publication: PublicationSummary,
+    bytes: Uint8Array,
+  ): Promise<void>;
 }
 
 const sha256 = (bytes: Uint8Array | string) =>
@@ -164,6 +174,7 @@ function validSummary(value: unknown): value is PublicationSummary {
 }
 
 export class MemoryHostedPublicationStore implements HostedPublicationStore {
+  private readonly deletedSites = new Set<string>();
   private publications = new Map<
     string,
     { summary: PublicationSummary; files: Map<string, Uint8Array> }
@@ -171,6 +182,7 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
   private slugs = new Map<string, string>();
   private hosts = new Map<string, string>();
   private siteAliases = new Map<string, { slug: string; host: string }>();
+  private previews = new Map<string, Uint8Array>();
 
   async create(input: {
     siteId: string;
@@ -197,19 +209,45 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
 
   async currentBySlug(slug: string) {
     const id = this.slugs.get(slug);
-    return id
+    const publication = id
       ? this.byId(this.publications.get(id)?.summary.siteId || "", id)
       : null;
+    return this.routed(await publication);
   }
 
   async currentByHost(host: string) {
     const id = this.hosts.get(host.toLowerCase());
-    return id
+    const publication = id
       ? this.byId(this.publications.get(id)?.summary.siteId || "", id)
       : null;
+    return this.routed(await publication);
+  }
+
+  private routed(publication: PublicationSummary | null) {
+    if (!publication || this.deletedSites.has(publication.siteId)) return null;
+    const aliases = this.siteAliases.get(publication.siteId);
+    return aliases ? { ...publication, ...aliases } : null;
+  }
+
+  async relocate(siteId: string, slug: string, host: string) {
+    const aliases = this.siteAliases.get(siteId);
+    const current = aliases ? await this.currentBySlug(aliases.slug) : null;
+    if (aliases && current?.siteId !== siteId) throw new Error("current publication is unavailable");
+    if (current?.siteId === siteId) await this.promote({ ...current, slug, host });
+  }
+
+  async removeSite(siteId: string) {
+    this.deletedSites.add(siteId);
+    const aliases = this.siteAliases.get(siteId);
+    if (aliases) {
+      if (this.publications.get(this.slugs.get(aliases.slug) || '')?.summary.siteId === siteId) this.slugs.delete(aliases.slug);
+      if (this.publications.get(this.hosts.get(aliases.host) || '')?.summary.siteId === siteId) this.hosts.delete(aliases.host);
+    }
+    this.siteAliases.delete(siteId);
   }
 
   async promote(publication: PublicationSummary) {
+    if (this.deletedSites.has(publication.siteId)) throw new Error("site was deleted");
     if (!await this.byId(publication.siteId, publication.id)) {
       throw new Error("publication does not exist");
     }
@@ -251,6 +289,19 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
     if (!path || row?.summary.siteId !== publication.siteId) return null;
     return row.files.get(path)?.slice() || null;
   }
+
+  async preview(publication: PublicationSummary) {
+    const row = this.publications.get(publication.id);
+    if (row?.summary.siteId !== publication.siteId) return null;
+    return this.previews.get(publication.id)?.slice() || null;
+  }
+
+  async putPreview(publication: PublicationSummary, bytes: Uint8Array) {
+    if (!await this.byId(publication.siteId, publication.id)) {
+      throw new Error("publication does not exist");
+    }
+    this.previews.set(publication.id, bytes.slice());
+  }
 }
 
 export class FileHostedPublicationStore implements HostedPublicationStore {
@@ -278,6 +329,24 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
 
   private siteAliasPath(siteId: string) {
     return join(this.root, "pointers", "site", `${sha256(siteId)}.json`);
+  }
+
+  private previewPath(siteId: string, publicationId: string) {
+    return join(this.root, "previews", sha256(siteId), `${publicationId}.webp`);
+  }
+
+  private deletionPath(siteId: string) {
+    return join(this.root, "pointers", "deleted", `${sha256(siteId)}.json`);
+  }
+
+  private async deleted(siteId: string) {
+    try {
+      await stat(this.deletionPath(siteId));
+      return true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false;
+      throw error;
+    }
   }
 
   private async atomicJson(path: string, value: unknown) {
@@ -370,7 +439,12 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
         pointer.value !== value.toLowerCase() || !pointer.siteId ||
         !pointer.publicationId
       ) return null;
-      return this.byId(pointer.siteId, pointer.publicationId);
+      const aliases = await this.aliases(pointer.siteId);
+      if (!aliases || await this.deleted(pointer.siteId) || aliases[kind] !== value.toLowerCase()) return null;
+      // Keep serving the previous release until the site routing record commits.
+      // Older alias files lack publicationId, so retain that on-disk compatibility.
+      const publication = await this.byId(pointer.siteId, aliases.publicationId || pointer.publicationId);
+      return publication ? { ...publication, slug: aliases.slug!, host: aliases.host! } : null;
     } catch {
       return null;
     }
@@ -383,6 +457,27 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
     return this.current("host", host.toLowerCase());
   }
 
+  private async aliases(siteId: string): Promise<{ slug?: string; host?: string; publicationId?: string } | null> {
+    try {
+      return JSON.parse(decoder.decode(await readFile(this.siteAliasPath(siteId))));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw error;
+    }
+  }
+
+  async relocate(siteId: string, slug: string, host: string) {
+    const aliases = await this.aliases(siteId);
+    const current = aliases?.slug ? await this.currentBySlug(aliases.slug) : null;
+    if (aliases && current?.siteId !== siteId) throw new Error("current publication is unavailable");
+    if (current?.siteId === siteId) await this.promote({ ...current, slug, host });
+  }
+
+  async removeSite(siteId: string) {
+    // Persistent tombstone keeps old pointers and in-flight publications unavailable.
+    await this.atomicJson(this.deletionPath(siteId), { deleted: true });
+  }
+
   async promote(publication: PublicationSummary) {
     if (!await this.byId(publication.siteId, publication.id)) {
       throw new Error("publication does not exist");
@@ -391,12 +486,8 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
       siteId: publication.siteId,
       publicationId: publication.id,
     };
-    let previous: { slug?: string; host?: string } = {};
-    try {
-      previous = JSON.parse(
-        decoder.decode(await readFile(this.siteAliasPath(publication.siteId))),
-      );
-    } catch { /* The first publication has no prior aliases. */ }
+    const previous = await this.aliases(publication.siteId) || {};
+    if (await this.deleted(publication.siteId)) throw new Error("site was deleted");
     await Promise.all([
       this.atomicJson(this.pointerPath("slug", publication.slug), {
         ...pointer,
@@ -406,12 +497,14 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
         ...pointer,
         value: publication.host.toLowerCase(),
       }),
-      this.atomicJson(this.siteAliasPath(publication.siteId), {
-        siteId: publication.siteId,
-        slug: publication.slug,
-        host: publication.host.toLowerCase(),
-      }),
     ]);
+    if (await this.deleted(publication.siteId)) throw new Error("site was deleted");
+    await this.atomicJson(this.siteAliasPath(publication.siteId), {
+      siteId: publication.siteId,
+      publicationId: publication.id,
+      slug: publication.slug,
+      host: publication.host.toLowerCase(),
+    });
     await Promise.all([
       previous.slug && previous.slug !== publication.slug
         ? this.removeOwnedPointer("slug", previous.slug, publication.siteId)
@@ -462,5 +555,37 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
     } catch {
       return null;
     }
+  }
+
+  async preview(publication: PublicationSummary) {
+    if (!await this.byId(publication.siteId, publication.id)) return null;
+    try {
+      const bytes = new Uint8Array(
+        await readFile(this.previewPath(publication.siteId, publication.id)),
+      );
+      return bytes.byteLength ? bytes : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async putPreview(publication: PublicationSummary, bytes: Uint8Array) {
+    if (!await this.byId(publication.siteId, publication.id)) {
+      throw new Error("publication does not exist");
+    }
+    if (!(bytes instanceof Uint8Array) || !bytes.byteLength) {
+      throw new Error("preview is empty");
+    }
+    const destination = this.previewPath(publication.siteId, publication.id);
+    await mkdir(dirname(destination), { recursive: true, mode: 0o700 });
+    const temporary = `${destination}.${randomUUID()}.tmp`;
+    const handle = await open(temporary, "wx", 0o600);
+    try {
+      await handle.writeFile(bytes);
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    await rename(temporary, destination);
   }
 }

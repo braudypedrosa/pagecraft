@@ -214,6 +214,10 @@ export interface WebReleaseAdapter {
     sourceVersion: number;
     acknowledgeWarnings: boolean;
   }): Promise<unknown>;
+  savePreview(input: {
+    publicationId: string;
+    snapshot: string;
+  }): Promise<void>;
 }
 
 export interface WebHostAdapter extends PagecraftHostAdapter {

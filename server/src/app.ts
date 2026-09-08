@@ -116,7 +116,7 @@ import {
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
 import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
-import type { SiteTemplateStore } from "./site-templates.ts";
+import { latestSiteTemplates, type SiteTemplateStore } from "./site-templates.ts";
 import {
   integrationDiscovery,
   pagecraftMcpResponse,
@@ -1303,28 +1303,6 @@ export function createApp(o: Options) {
       return c.redirect("/sign-in", 303);
     });
 
-    const settingsData = async (user: User, identity: VerifiedIdentity) => {
-      const mine = await visibleSites(user);
-      const [storage, apiCredentials, wordpressConnections] = await Promise.all([
-        o.assets
-          ? o.assets.usage(user.id, FREE_STORAGE_BYTES)
-          : Promise.resolve({ usedBytes: 0, limitBytes: FREE_STORAGE_BYTES }),
-        o.auth.apiCredentialsForOwner(user.id),
-        o.auth.manualImportsForOwner(user.id),
-      ]);
-      return {
-        providers: identity.providers || [],
-        createdAt: identity.createdAt || user.createdAt,
-        ownerCount: mine.filter((item) => item.role === "owner").length,
-        storage,
-        apiCredentials,
-        wordpressConnections,
-        integrationOrigin: integrationOriginValue(),
-      };
-    };
-    const integrationOriginValue = () =>
-      (o.editorOrigin || "").replace(/\/+$/, "");
-
     app.get("/account", async (c) => {
       const [user, identity] = await Promise.all([
         who(c),
@@ -1332,11 +1310,19 @@ export function createApp(o: Options) {
       ]);
       if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
       const requestedTab = c.req.query("tab");
-      const tab = requestedTab === "security" ||
-          requestedTab === "integrations" || requestedTab === "plan"
+      const tab = requestedTab === "security" || requestedTab === "plan"
         ? requestedTab
         : "profile";
-      return c.html(accountSettingsPage(user, await settingsData(user, identity), {
+      const mine = await visibleSites(user);
+      const storage = o.assets
+        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
+        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+      return c.html(accountSettingsPage(user, {
+        providers: identity.providers || [],
+        createdAt: identity.createdAt || user.createdAt,
+        ownerCount: mine.filter((item) => item.role === "owner").length,
+        storage,
+      }, {
         error: c.req.query("error"),
         message: c.req.query("message"),
         tab,
@@ -1429,78 +1415,6 @@ export function createApp(o: Options) {
           : c.redirect("/account?tab=security&error=password_current", 303);
       },
     );
-
-    app.post(
-      "/account/integrations/tokens",
-      bodyLimit({
-        maxSize: 8 * 1024,
-        onError: (c) => c.text("Request too large", 413),
-      }),
-      async (c) => {
-        const [user, identity] = await Promise.all([
-          who(c),
-          o.accountAuth!.identity(c),
-        ]);
-        if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
-        const body = await form(c);
-        const name = String(body.name || "").trim().slice(0, 60);
-        if (name.length < 2) {
-          return c.redirect("/account?tab=integrations&error=integration_name", 303);
-        }
-        if (!accountChangeLimit.take(`${requestSource(c)}|api-token`)) {
-          return c.redirect("/account?tab=integrations&error=password_rate", 303);
-        }
-        const active = await o.auth.apiCredentialsForOwner(user.id);
-        if (active.length >= 10) {
-          return c.redirect("/account?tab=integrations&error=integration_limit", 303);
-        }
-        const token = `pc_live_${newToken()}`;
-        try {
-          await o.auth.createApiCredential({
-            id: crypto.randomUUID(),
-            ownerId: user.id,
-            name,
-            tokenDigest: hashToken(token),
-            tokenPrefix: token.slice(0, 15),
-          });
-        } catch (error) {
-          console.error("could not create API credential", (error as Error).message);
-          return c.redirect("/account?tab=integrations&error=integration_create", 303);
-        }
-        return c.html(accountSettingsPage(
-          user,
-          await settingsData(user, identity),
-          { tab: "integrations", apiToken: token },
-        ));
-      },
-    );
-
-    app.post("/account/integrations/tokens/:id/revoke", async (c) => {
-      const user = await who(c);
-      if (!user) return c.redirect("/sign-in?next=%2Faccount");
-      const revoked = await o.auth.revokeApiCredential(c.req.param("id"), user.id);
-      return c.redirect(
-        revoked
-          ? "/account?tab=integrations&message=Access+token+revoked."
-          : "/account?tab=integrations&error=integration_missing",
-        303,
-      );
-    });
-
-    app.post("/account/integrations/wordpress/:id/revoke", async (c) => {
-      const user = await who(c);
-      if (!user) return c.redirect("/sign-in?next=%2Faccount");
-      const revoked = await o.auth.revokeManualImportCredentialForOwner(
-        c.req.param("id"),
-        user.id,
-      );
-      return c.redirect(
-        revoked
-          ? "/account?tab=integrations&message=WordPress+disconnected."
-          : "/account?tab=integrations&error=integration_missing",
-        303,
-      );
-    });
   }
 
   app.get("/auth/me", async (c) => {
@@ -1554,10 +1468,10 @@ export function createApp(o: Options) {
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
         : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
-      const templates = o.siteTemplates ? await o.siteTemplates.list().catch(error => {
+      const templates = o.siteTemplates ? latestSiteTemplates(await o.siteTemplates.list().catch(error => {
         console.error('site template catalog unavailable', error);
         return [];
-      }) : [];
+      })) : [];
       return c.html(dashboardPage(
         user,
         mine.map(({ site, role }) => ({
@@ -1566,6 +1480,9 @@ export function createApp(o: Options) {
           role,
           updatedAt: site.updatedAt,
           url: shareUrl(c, o, site),
+          previewUrl: site.publishedPublicationId
+            ? `/api/sites/${encodeURIComponent(site.id)}/publication-preview/${encodeURIComponent(site.publishedPublicationId)}`
+            : undefined,
           published: !!site.publishedPublicationId &&
             site.version === site.publishedVersion,
         })),
@@ -1877,6 +1794,7 @@ export function createApp(o: Options) {
         303,
       );
     }
+    await o.publications?.relocate(id, moved.slug, moved.host);
     built.delete(id);
     return c.redirect(
       `/sites/${
@@ -1903,6 +1821,9 @@ export function createApp(o: Options) {
       );
     }
     const memberIds = (await o.auth.members(id)).map((member) => member.userId);
+    // Fail closed: do not report deletion or remove management access while public
+    // routing is still active. A retry is safe if the database delete then fails.
+    await o.publications?.removeSite(id);
     if (!await o.store.delete(id)) return deny(c, 404);
     /* Postgres removes memberships through the site's cascading foreign key. The in-memory
        development stores are separate objects, so mirror that cleanup after the site is gone. */
@@ -2038,6 +1959,73 @@ export function createApp(o: Options) {
           : "draft_changes")
         : "draft",
     });
+  });
+
+  app.get("/api/sites/:id/publication-preview/:publication", async (c) => {
+    if (!o.publications) return c.notFound();
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site || site.publishedPublicationId !== c.req.param("publication")) {
+      return c.notFound();
+    }
+    const publication = await o.publications.byId(
+      id,
+      c.req.param("publication"),
+    );
+    if (!publication) return c.notFound();
+    const bytes = await o.publications.preview(publication);
+    if (!bytes) return c.notFound();
+    return c.body(bytes.slice().buffer, 200, {
+      "content-type": "image/webp",
+      "content-length": String(bytes.byteLength),
+      "x-content-type-options": "nosniff",
+    });
+  });
+
+  app.post("/api/sites/:id/publication-preview", async (c) => {
+    if (!o.publications) {
+      return c.json({ error: "hosted publication storage is unavailable" }, 503);
+    }
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.json().catch(() => null) as {
+      publicationId?: string;
+      snapshot?: string;
+    } | null;
+    const publicationId = String(body?.publicationId || "");
+    const match = String(body?.snapshot || "").match(
+      /^data:(image\/(?:webp|png));base64,([A-Za-z0-9+/]+={0,2})$/,
+    );
+    if (!/^[0-9a-f-]{36}$/i.test(publicationId) || !match) {
+      return c.json({ error: "invalid_publication_preview" }, 400);
+    }
+    if (match[2].length > 2 * 1024 * 1024) {
+      return c.json({ error: "publication_preview_too_large" }, 413);
+    }
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    if (site.publishedPublicationId !== publicationId) {
+      return c.json({ error: "stale_publication_preview" }, 409);
+    }
+    const publication = await o.publications.byId(id, publicationId);
+    if (!publication) return c.notFound();
+    try {
+      const source = new Uint8Array(Buffer.from(match[2], "base64"));
+      const optimized = await optimizeAsset(source, match[1]);
+      if (
+        !optimized.w || !optimized.h || optimized.w < 480 ||
+        optimized.h < 300 || optimized.bytes.byteLength > 1024 * 1024
+      ) {
+        return c.json({ error: "invalid_publication_preview" }, 400);
+      }
+      await o.publications.putPreview(publication, optimized.bytes);
+      return c.json({ status: "stored", publicationId });
+    } catch {
+      return c.json({ error: "invalid_publication_preview" }, 400);
+    }
   });
 
   app.post("/api/sites/:id/publish", async (c) => {
@@ -2437,18 +2425,26 @@ export function createApp(o: Options) {
         savedBy: user.id,
       });
       if (!o.accountAuth) await o.auth.grant(site.id, user.id, "owner");
-      const installedAssetIds: string[] = [];
-      try {
-        for (const asset of templateInstall?.assets || []) {
-          await o.assets!.put({ ...asset, siteId: site.id });
-          installedAssetIds.push(asset.id);
-        }
-      } catch (error) {
+      /* A curated package's assets are independent immutable blobs. Installing them one at a
+         time multiplied gateway latency by the image count (the five-image studio template
+         could leave the create dialog spinning for nearly a minute). Let every upload settle
+         together, then roll back only after no write remains in flight. `allSettled` matters:
+         an early `Promise.all` rejection would race cleanup against the other uploads. */
+      const assetResults = await Promise.allSettled(
+        (templateInstall?.assets || []).map(asset =>
+          o.assets!.put({ ...asset, siteId: site.id })
+        ),
+      );
+      const installedAssetIds = assetResults.flatMap(result =>
+        result.status === "fulfilled" ? [result.value.id] : []
+      );
+      const failedAsset = assetResults.find(result => result.status === "rejected");
+      if (failedAsset?.status === "rejected") {
         for (const assetId of installedAssetIds) {
           await o.assets!.remove(site.id, assetId).catch(() => false);
         }
         await o.store.delete(site.id).catch(() => false);
-        console.error("site template asset installation failed", error);
+        console.error("site template asset installation failed", failedAsset.reason);
         return c.json({
           error: "site_template_install_failed",
           detail: "The curated site could not be installed. Nothing was kept.",
@@ -2783,6 +2779,7 @@ export function createApp(o: Options) {
         409,
       );
     }
+    await o.publications?.relocate(id, moved.slug, moved.host);
     return c.json({
       id: moved.id,
       slug: moved.slug,
@@ -2816,6 +2813,7 @@ export function createApp(o: Options) {
     }
     /* The rendered files do not change, but the base URL in them might, so the cache for this
        site is dropped rather than left to serve pages that name the old address. */
+    await o.publications?.relocate(id, moved.slug, moved.host);
     built.delete(id);
     return c.json({ id: moved.id, host: moved.host });
   });
@@ -3082,8 +3080,7 @@ export function createApp(o: Options) {
   ): Promise<ManualImportCatalogRead> => {
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.catalog(digest);
-    const credential = await o.auth.manualImportByAccess(digest) ||
-      await o.auth.apiCredentialByAccess(digest);
+    const credential = await o.auth.manualImportByAccess(digest);
     if (!credential) return { authorized: false };
     const [sites, memberships] = await Promise.all([
       o.store.list(),
@@ -3113,8 +3110,7 @@ export function createApp(o: Options) {
     const digest = manualImportAccessDigest(c.req.header("authorization"));
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.project(digest, siteId);
-    const credential = await o.auth.manualImportByAccess(digest) ||
-      await o.auth.apiCredentialByAccess(digest);
+    const credential = await o.auth.manualImportByAccess(digest);
     if (!credential) return { authorized: false };
     const membership = await o.auth.membership(siteId, credential.ownerId);
     return {
@@ -3143,29 +3139,6 @@ export function createApp(o: Options) {
       installationId: credential.installationId,
       scopes: ["projects:read", "packages:read"],
       accessExpiresAt: new Date(credential.accessExpiresAt).toISOString(),
-    });
-  });
-
-  app.get("/v1/integrations/connection", async (c) => {
-    const digest = manualImportAccessDigest(c.req.header("authorization"));
-    if (!digest) return c.json({ error: "unauthorized" }, 401);
-    const apiCredential = await o.auth.apiCredentialByAccess(digest);
-    if (apiCredential) {
-      return c.json({
-        connected: true,
-        type: "access_token",
-        name: apiCredential.name,
-        scopes: ["projects:read", "packages:read"],
-        createdAt: new Date(apiCredential.createdAt).toISOString(),
-      });
-    }
-    const wordpress = await o.auth.manualImportByAccess(digest);
-    if (!wordpress) return c.json({ error: "unauthorized" }, 401);
-    return c.json({
-      connected: true,
-      type: "wordpress",
-      scopes: ["projects:read", "packages:read"],
-      accessExpiresAt: new Date(wordpress.accessExpiresAt).toISOString(),
     });
   });
 
@@ -3237,9 +3210,11 @@ export function createApp(o: Options) {
       if (
         (redirect.protocol !== "https:" && !localDevelopment) ||
         redirect.username || redirect.password || redirect.hash ||
-        redirect.pathname !== "/wp-admin/admin-post.php" ||
+        // WordPress admin_url() includes the installation directory on subdirectory installs.
+        // Keep the exact admin endpoint and ordinary path segments; do not admit encoded separators.
+        !/^\/(?:[A-Za-z0-9._~-]+\/)*wp-admin\/admin-post\.php$/.test(redirect.pathname) ||
         redirect.searchParams.get("action") !== "pagecraft_cloud_callback" ||
-        [...redirect.searchParams.keys()].some((key) => key !== "action")
+        redirect.searchParams.size !== 1
       ) throw new Error();
     } catch {
       return c.json({

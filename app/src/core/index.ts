@@ -33,7 +33,7 @@ const safeUrl = (u: unknown) => {
   const v = String(u == null ? '' : u).trim();
   if (!v) return '';
   if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[a-z0-9]+$/i.test(v)) return v;
+  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;            // page.html, example.com/x
   return '';
 };
@@ -1405,20 +1405,32 @@ function codeSpans(src: unknown, lang?: string): string {
 
 /** The copy button is rendered hidden and the script reveals it: a button that cannot
     copy is worse than no button, and a reader with no JavaScript should not see one. */
-/* The arrows, and nothing else about the slider. They arrive hidden so a reader without
-   JavaScript never sees a control that cannot work — swiping and scrolling still do.
+/* The arrows and pagination dots arrive hidden so a reader without JavaScript never sees
+   controls that cannot work — swiping and scrolling still do.
    A scroll of 90% of the visible width leaves a sliver of the old view on screen, which
    is what tells you the strip moved rather than jumped. */
 const SLIDE_JS = `<script>
 (function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
 Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
-var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]');
-if(!t||!p||!n)return;p.removeAttribute('hidden');n.removeAttribute('hidden');
+var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]'),d=box.querySelector('[data-slide-dots]');
+if(!t||!p||!n||!d)return;p.removeAttribute('hidden');n.removeAttribute('hidden');d.removeAttribute('hidden');
 function go(d){t.scrollBy({left:d*t.clientWidth*0.9,behavior:rm.matches?'auto':'smooth'});}
 p.addEventListener('click',function(){go(-1);});n.addEventListener('click',function(){go(1);});
-function ends(){var max=t.scrollWidth-t.clientWidth-2;
-p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;}
-ends();t.addEventListener('scroll',ends,{passive:true});addEventListener('resize',ends);});})();
+var slides=[].slice.call(t.children),targets=[],dots=[];
+function positions(){var max=Math.max(0,t.scrollWidth-t.clientWidth),next=[];
+slides.forEach(function(slide){var target=Math.min(max,Math.max(0,slide.offsetLeft-t.offsetLeft));
+if(!next.some(function(value){return Math.abs(value-target)<3;}))next.push(target);});return next;}
+function active(){if(!targets.length)return;var current=0,distance=Infinity;
+targets.forEach(function(target,index){var delta=Math.abs(t.scrollLeft-target);if(delta<distance){distance=delta;current=index;}});
+dots.forEach(function(dot,index){if(index===current)dot.setAttribute('aria-current','true');else dot.removeAttribute('aria-current');});}
+function rebuild(){targets=positions();d.replaceChildren();dots=targets.map(function(target,index){
+var dot=document.createElement('button');function seek(){t.scrollTo({left:target,behavior:rm.matches?'auto':'smooth'});}
+dot.type='button';dot.className='pagecraft-slider-dot';dot.setAttribute('aria-label','Go to carousel position '+(index+1)+' of '+targets.length);
+if(t.id)dot.setAttribute('aria-controls',t.id);dot.addEventListener('click',seek);dot.addEventListener('keydown',function(event){
+if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();seek();});d.appendChild(dot);return dot;});active();}
+function update(){var max=t.scrollWidth-t.clientWidth-2;p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;active();}
+var queued=false;t.addEventListener('scroll',function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;update();});},{passive:true});
+addEventListener('resize',function(){rebuild();update();});addEventListener('load',function(){rebuild();update();},{once:true});rebuild();update();});})();
 <\/script>
 `;
 
@@ -1507,7 +1519,6 @@ const canDo = (n: PcNode, cap: Capability) => (DEF[n.type].caps || []).includes(
 
 /** A gradient counts: it is a background image as far as size and position are concerned. */
 const hasBackdrop = (n: PcNode) => !!(styleSeen(n, 'background-image') || styleSeen(n, 'background'));
-const hasBorder = (n: PcNode) => { const v = styleSeen(n, 'border-style'); return !!v && v !== 'none'; };
 
 /** Is this column an ordinary one rather than a slide? A slider sizes its children itself,
     so the controls that would compete with it are not offered inside one.
@@ -1538,9 +1549,10 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
   },
   {
     g: 'Border & shadow', cap: 'decoration', items: [
-      { t: 'select', c: 'border-style', label: 'Border style', opts: [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted'], ['none', 'None']] },
-      { t: 'unit', c: 'border-width', label: 'Border width', units: U.border, when: hasBorder },
-      { t: 'color', c: 'border-color', label: 'Border colour', when: hasBorder },
+      /* One control owns both uniform and edge-specific borders. Templates regularly use a
+         top rule as a separator; exposing only `border-style` made that stored Pagecraft value
+         render on the canvas while the inspector appeared to say there was no border. */
+      { t: 'border', label: 'Border' },
       { t: 'unit', c: 'border-radius', label: 'Radius', r: 1, units: U.radius },
       { t: 'opt', c: 'box-shadow', label: 'Shadow', opts: SHADOWS, ph: '0 20px 40px -12px rgba(17,19,17,.2)' }
     ]
@@ -6459,8 +6471,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   display:flex;gap:var(--sl-gap,24px);width:100%;
   overflow-x:auto;overscroll-behavior-x:contain;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;padding-bottom:2px;
+  scrollbar-width:none;padding-bottom:0;
 }
+.pagecraft-slider::-webkit-scrollbar{display:none;width:0;height:0}
 .pagecraft-slider>[class]{flex:0 0 var(--sl-w,100%);scroll-snap-align:start;min-width:0}
 .pagecraft-slider>*{scroll-snap-align:start;min-width:0}
 .pagecraft-slider:focus-visible{outline:3px solid currentColor;outline-offset:3px}
@@ -6474,6 +6487,14 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-slide-btn.n{right:-8px;rotate:-90deg}
 .pagecraft-slide-btn[hidden]{display:none}
 .pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
+.pagecraft-slider-dots{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px}
+.pagecraft-slider-dots[hidden]{display:none}
+.pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
+.pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
+.pagecraft-slider-dot:hover::before{opacity:.68}
+.pagecraft-slider-dot[aria-current=true]::before{background:var(--c-brand,#111311);opacity:1;transform:scale(1.25)}
+.pagecraft-slider-dot:focus-visible{outline:2px solid var(--c-brand,#111311);outline-offset:0}
+@media(max-width:767px){.pagecraft-slider-dots{margin-top:10px}.pagecraft-slider-dot{width:44px;height:44px}}
 .pagecraft-crumbs ol{
   display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
   list-style:none;margin:0;padding:0;
@@ -6715,7 +6736,7 @@ ${m.css || ''}
   }
 }
 ` + (editing ? `
-[data-id]{position:relative}
+:where([data-id]){position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
 .s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
@@ -7125,7 +7146,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>`
         + `${svg('caret', 15)}</button>`;
       return `<div class="pagecraft-slider-box" data-slider>${track}`
-        + btn('p', 'Previous slides') + btn('n', 'Next slides') + '</div>';
+        + btn('p', 'Previous slides') + btn('n', 'Next slides')
+        + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
     }
     case 'list': {
       const lc = n.src ? findCollection(n.src) : null;
@@ -7813,5 +7835,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, hasBorder, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
 };

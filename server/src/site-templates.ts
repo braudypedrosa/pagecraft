@@ -33,6 +33,19 @@ export interface SiteTemplateStore {
   preview(id: string, version: string, path: string): Promise<{ bytes: Uint8Array; mediaType: string } | null>;
 }
 
+export const latestSiteTemplates = (templates: SiteTemplateSummary[]) => {
+  const latest = new Map<string, SiteTemplateSummary>();
+  for (const template of templates) {
+    const current = latest.get(template.id);
+    if (!current || template.version.localeCompare(
+      current.version,
+      undefined,
+      { numeric: true },
+    ) > 0) latest.set(template.id, template);
+  }
+  return [...latest.values()].sort((a, b) => a.name.localeCompare(b.name));
+};
+
 const HASH = /^[a-f0-9]{64}$/;
 const SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
@@ -137,12 +150,18 @@ export class FileSiteTemplateStore implements SiteTemplateStore {
     const template = matches.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }))[0];
     if (!template) return null;
     const validated = await this.load(template);
-    const idMap = new Map(validated.dependencies.assets.map(id => [id, crypto.randomUUID()]));
+    const idMap = new Map(validated.dependencies.assets.map(id => [
+      id,
+      `a${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`,
+    ]));
     const document = replaceAssets(structuredClone(validated.document), idMap) as Doc;
-    const assets: Asset[] = validated.manifest.files.filter(file => file.role === 'asset').map(file => ({
-      id: idMap.get(file.asset!.id)!, siteId: '', name: file.asset!.name, type: file.mediaType,
-      w: file.asset!.width, h: file.asset!.height, bytes: new Uint8Array(validated.files.get(file.path)!)
-    }));
+    const assets: Asset[] = validated.manifest.files.filter(file => file.role === 'asset').map(file => {
+      const bytes = new Uint8Array(validated.files.get(file.path)!);
+      return {
+        id: idMap.get(file.asset!.id)!, siteId: '', name: file.asset!.name, type: file.mediaType,
+        w: file.asset!.width, h: file.asset!.height, bytes, contentHash: sha256(bytes)
+      };
+    });
     return { template: structuredClone(template), document, assets };
   }
 
