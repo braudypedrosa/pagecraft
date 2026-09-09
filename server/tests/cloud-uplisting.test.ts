@@ -9,7 +9,7 @@ import { cloudIntegrationRoutes } from '../src/cloud-integrations-routes.ts';
 import { MemoryStore } from '../src/store.ts';
 import { siteIntegrationsPage } from '../src/account-pages.ts';
 
-const payload = () => ({ data: [{ id: '42', type: 'properties', attributes: { name: 'QA Waterline', description: 'A woodland stay.', bedrooms: 2, bathrooms: 1.5, maximum_capacity: 4, wifi_password: 'never-import', currency: 'USD' }, relationships: {
+const payload = () => ({ data: [{ id: '42', type: 'properties', attributes: { name: 'QA Waterline', description: 'A woodland stay.\nSpace & quiet. <script>unsafe</script>', bedrooms: 2, bathrooms: 1.5, maximum_capacity: 4, wifi_password: 'never-import', currency: 'USD' }, relationships: {
   address: { data: { id: 'a', type: 'addresses' } }, photos: { data: [{ id: 'p1', type: 'photos' }, { id: 'p2', type: 'photos' }] }, amenities: { data: [{ id: 'k', type: 'amenities' }] },
 } }], included: [
   { id: 'a', type: 'addresses', attributes: { city: 'Test City', country: 'Test Country', street: 'private street' } },

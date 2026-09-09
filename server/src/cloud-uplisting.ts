@@ -2,6 +2,7 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, open, readFile, rename, unlink, link } from 'node:fs/promises';
 import { join } from 'node:path';
+import { cleanRichHtml } from './safe-html.ts';
 import { RELEASE_LIMITS_V1 } from './releases.ts';
 import type { Doc, Field } from '../../app/src/core/types.ts';
 
@@ -101,7 +102,7 @@ export function parseProperties(payload: unknown): Property[] {
     const sortedPhotos = Array.isArray(photos) ? photos.map(resolve).sort((a, b) => Number(a.order || 0) - Number(b.order || 0)) : [];
     return { id: p.id, values: {
       title: plain(a.name, 500) || `Property ${p.id}`,
-      description: typeof a.description === 'string' ? '<p>' + a.description.slice(0, 10000).replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</p>' : '',
+      description: typeof a.description === 'string' ? cleanRichHtml('<p>' + a.description.slice(0, 10000).replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</p>') : '',
       image: sortedPhotos.map(p => picture(p.url)).find(Boolean) || '',
       property_type: plain(a.type, 200), guests: count(a.maximum_capacity), bedrooms: count(a.bedrooms), beds: count(a.beds), bathrooms: count(a.bathrooms),
       city: plain(location.city, 200), country: plain(location.country, 200),
