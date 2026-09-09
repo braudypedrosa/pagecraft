@@ -528,3 +528,27 @@ test('a site is loadable and saveable by id, and the document round-trips', asyn
   a.equal(body.version, 1);
   a.deepEqual(body.doc, site.doc, 'what the editor loads is what the store holds');
 });
+
+
+test('dashboard previews are private, script-free saved drafts that update without publishing', async () => {
+  const { site, admin, signIn, put } = await rig();
+  const path = `/api/sites/${site.id}/dashboard-preview/index.html`;
+  a.notEqual((await admin(path)).status, 200);
+  const { cookie } = await signIn();
+  const before = await admin(path, {}, cookie);
+  a.equal(before.status, 200);
+  a.match(before.headers.get('cache-control') || '', /private, no-store/);
+  a.match(before.headers.get('content-security-policy') || '', /script-src 'none'/);
+  a.match(before.headers.get('content-security-policy') || '', /sandbox allow-same-origin/);
+  a.match(before.headers.get('content-security-policy') || '', /frame-ancestors 'self'/);
+  a.match(await before.text(), /data-dashboard-preview="ready"/);
+  const doc = structuredClone(site.doc);
+  let touched = false;
+  Core.eachNode(doc.pages[0].tree, (n: { type: string; props: Record<string, unknown> }) => {
+    if (!touched && n.type === 'heading') { n.props.text = 'Saved preview revision'; touched = true; }
+  });
+  a.ok(touched);
+  a.equal((await put(site.id, doc, site.version, cookie)).status, 200);
+  a.match(await (await admin(path, {}, cookie)).text(), /Saved preview revision/);
+  a.equal((await admin(`/api/sites/${site.id}/dashboard-preview/other.html`, {}, cookie)).status, 404);
+});

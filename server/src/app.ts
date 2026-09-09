@@ -1484,9 +1484,8 @@ export function createApp(o: Options) {
           role,
           updatedAt: site.updatedAt,
           url: shareUrl(c, o, site),
-          previewUrl: site.publishedPublicationId
-            ? `/api/sites/${encodeURIComponent(site.id)}/publication-preview/${encodeURIComponent(site.publishedPublicationId)}`
-            : undefined,
+          draftPreviewUrl: `/api/sites/${encodeURIComponent(site.id)}/dashboard-preview/index.html?v=${site.version}`,
+          previewVersion: `${site.version}:${site.publishedPublicationId || ''}`,
           published: !!site.publishedPublicationId &&
             site.version === site.publishedVersion,
         })),
@@ -1972,6 +1971,30 @@ export function createApp(o: Options) {
           : "draft_changes")
         : "draft",
     });
+  });
+
+  // Private saved-draft previews: no publication, screenshot upload or background worker required.
+  app.get("/api/sites/:id/dashboard-preview/*", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site) return c.notFound();
+    c.header("cache-control", "private, no-store");
+    c.header("x-robots-tag", "noindex, nofollow");
+    const prefix = `/api/sites/${encodeURIComponent(id)}/dashboard-preview/`;
+    const path = decodeURIComponent(new URL(c.req.url).pathname.slice(prefix.length));
+    if (path.startsWith("assets/")) {
+      const asset = await o.assets?.byPath(id, path);
+      if (!asset) return c.notFound();
+      return c.body(asset.bytes as unknown as ArrayBuffer, 200, assetHeaders(asset));
+    }
+    if (path !== "index.html") return c.notFound();
+    const rendered = candidate(site.doc, await assetsOf(id));
+    const html = rendered?.files.get("index.html");
+    if (!html) return c.text("Preview unavailable", 422);
+    c.header("content-security-policy", "sandbox allow-same-origin; default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; font-src 'self' https://fonts.gstatic.com data:; frame-src 'none'; form-action 'none'; frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
+    return c.html(html.replace('<html', '<html data-dashboard-preview="ready"').replace('</head>', '<style>html,body{overflow:hidden!important}*,*::before,*::after{animation:none!important;transition:none!important}</style></head>'));
   });
 
   app.get("/api/sites/:id/publication-preview/:publication", async (c) => {

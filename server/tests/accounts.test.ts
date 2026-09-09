@@ -451,7 +451,9 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /class="pc-site-card"/);
   a.match(html, /class="pc-site-preview"/);
   a.match(html, /class="pc-preview-fallback"/);
-  a.match(html, /Preview saved after publishing/);
+  a.match(html, /Loading preview…/);
+  a.match(html, /class="pc-draft-preview"/);
+  a.match(html, /sandbox="allow-same-origin"/);
   a.doesNotMatch(html, /<iframe src="http:\/\/admin\.test\/braudy\/"/);
   a.match(html, /data-copy-site/);
   a.match(html, />Manage site<\/a>/);
