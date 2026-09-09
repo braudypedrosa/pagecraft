@@ -1069,6 +1069,8 @@ test("site settings let only owners rename, change the Pagecraft address, and de
   );
   await auth.grant(site.id, content.id, "content");
   a.equal((await request(`/sites/${site.id}/settings`)).status, 403);
+  a.equal((await form(`/sites/${site.id}/settings/delete`, { confirmation: "Studio site" })).status, 403);
+  a.ok(await store.byId(site.id));
   a.equal(
     (await form(`/sites/${site.id}/settings/name`, { name: "Not allowed" }))
       .status,
