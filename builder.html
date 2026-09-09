@@ -595,9 +595,17 @@ body.preview .modebar{display:none}
 }
 .pill.g{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .pill.g svg{color:var(--green)}
-.itemBar button{padding:0 4px;color:var(--text-3);font-size:var(--fs-3);line-height:1}
-.itemBar button:hover{color:var(--text)}
-.itemBar button:disabled{opacity:var(--dim);cursor:default}
+/* Preview is a compact toolbar control, not a full-size form field. */
+.modebar{flex-wrap:wrap}
+.modebar>.pill{min-height:var(--h-row)}
+.modebar>.itemBar{--h-ctl:var(--ic-md);min-width:0;max-width:100%;padding:2px 8px;gap:var(--sp-2);flex-shrink:0}
+.itemBar>svg{flex:0 0 auto}
+.itemBarLabel{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.itemBar>button[data-i]{width:var(--h-ctl);height:var(--h-ctl);padding:0;display:grid;place-items:center;flex:0 0 var(--h-ctl);border-radius:var(--r-sm);color:var(--text-2)}
+.itemBar>button:not(:disabled):hover{background:var(--field);color:var(--text)}
+.itemBar>button:disabled{opacity:var(--dim);cursor:default}
+.itemBar>.pc-custom-select-trigger,.itemBar>select:not(.pc-custom-select-native){width:130px;min-width:0;min-height:var(--h-ctl);height:var(--h-ctl);padding:0 6px;border:0;border-radius:var(--r-sm);background:transparent;font-size:var(--fs-2);line-height:1.4;color:var(--text)}
+.itemBar>small{flex:0 0 auto;font:inherit;font-size:var(--fs-1);font-variant-numeric:tabular-nums;color:var(--text-3);white-space:nowrap}
 /* dimension readout, kept close to the working surface */
 .dim{
   position:static;align-self:flex-start;flex:0 0 auto;z-index:12;display:flex;align-items:center;gap:var(--sp-4);
@@ -4153,11 +4161,11 @@ function itemBarHtml() {
     const col = findCollection(id);
     if (!col.items.length) return `<span class="pill">${svg('cms', 11)} ${esc(col.name)} — no items yet</span>`;
     const at = Math.min(previewIndex(id), col.items.length - 1);
-    return `<span class="pill itemBar" data-col="${esc(id)}" style="gap:var(--sp-2)">${svg('cms', 11)} ${esc(col.name)}
-      <button data-col="${id}" data-i="${Math.max(0, at - 1)}" title="Previous item"${at === 0 ? ' disabled' : ''}>‹</button>
+    return `<span class="pill itemBar" data-col="${esc(id)}" role="group" aria-label="Preview entry from ${esc(col.name)}">${svg('cms', 11)} <span class="itemBarLabel" title="Preview entry from ${esc(col.name)}">Preview entry · ${esc(col.name)}</span>
+      <button data-col="${id}" data-i="${Math.max(0, at - 1)}" type="button" title="Previous item" aria-label="Previous preview entry"${at === 0 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 4-4 4 4 4"/></svg></button>
       <select data-col="${esc(id)}" aria-label="Preview entry from ${esc(col.name)}">${col.items.map((item,i) => `<option value="${i}"${i === at ? ' selected' : ''}>${esc(itemTitle(col,item))}${item.draft ? ' · Draft preview' : ''}</option>`).join('')}</select>
-      <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" title="Next item"${at === col.items.length - 1 ? ' disabled' : ''}>›</button>
-      <small style="color:var(--text-3)">${at + 1}/${col.items.length}</small></span>`;
+      <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" type="button" title="Next item" aria-label="Next preview entry"${at === col.items.length - 1 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg></button>
+      <small aria-label="Entry ${at + 1} of ${col.items.length}">${at + 1}/${col.items.length}</small></span>`;
   }).join('');
 }
 

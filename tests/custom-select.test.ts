@@ -33,6 +33,19 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   a.equal(trigger.textContent?.trim(), 'Name');
   a.equal(menu.hidden, true);
 
+  // Closing a menu must not also invoke the builder's Escape-to-select-parent shortcut.
+  let escapedToEditor = 0;
+  const editorShortcut = (event: KeyboardEvent) => { if (event.key === 'Escape') escapedToEditor++; };
+  document.addEventListener('keydown', editorShortcut);
+  trigger.click();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  menu.querySelector('button')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  a.equal(menu.hidden, true);
+  a.equal(document.activeElement, trigger);
+  a.equal(escapedToEditor, 0);
+  a.equal(select.value, 'name', 'Escape does not change the previewed entry');
+  document.removeEventListener('keydown', editorShortcut);
+
   const dynamic = document.createElement('select');
   dynamic.setAttribute('aria-label', 'Unit');
   dynamic.innerHTML = '<option>px</option><option>%</option>';

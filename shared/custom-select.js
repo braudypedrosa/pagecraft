@@ -232,7 +232,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     trigger.addEventListener('keydown', event => {
       const options = enabledOptions(select);
       const currentIndex = Math.max(0, options.indexOf(selectedOption(select)));
-      if (event.key === 'Escape') { close(record, true); return; }
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(record, true); return; }
       if (event.key === 'Tab') { close(record); return; }
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
@@ -261,7 +261,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     menu.addEventListener('keydown', event => {
       const buttons = [...menu.querySelectorAll('.pc-custom-select-option:not(:disabled)')];
       const index = Math.max(0, buttons.indexOf(document.activeElement));
-      if (event.key === 'Escape' || event.key === 'Tab') { close(record, event.key === 'Escape'); return; }
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(record, true); return; }
+      if (event.key === 'Tab') { close(record); return; }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
         event.preventDefault();
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
