@@ -110,7 +110,7 @@ export function cmsPilot(source: Doc): Doc {
   C.eachNode([box], (n) => {
     if (n.type === 'heading' && n.bind?.text?.path === 'title')
       n.props.level = 'h1';
-    if (n.props.link === 'cms:item') n.props.link = '/cabins';
+    if (n.props.link === 'cms:item') n.props.link = 'cabins.html';
   });
   section.children.push(box);
   for (const field of ['guests', 'bedrooms']) {

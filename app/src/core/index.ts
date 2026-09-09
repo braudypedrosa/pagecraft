@@ -2888,6 +2888,12 @@ function lint() {
     [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
     idsBySlug[pg.slug + '.html'] = ids;
   });
+  // Generated detail and pagination URLs are real publication targets too.
+  for (const target of exportTargets()) {
+    const ids = new Set<string>();
+    [state.header, target.pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
+    idsBySlug[target.path] = ids;
+  }
   const pageOf = (slug: string) => idsBySlug[slug];
 
   /* ---- per page: links, headings, images, contrast ---- */

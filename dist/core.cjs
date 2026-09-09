@@ -3847,6 +3847,11 @@ function lint() {
     [state.header, pg2.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
     idsBySlug[pg2.slug + ".html"] = ids;
   });
+  for (const target of exportTargets()) {
+    const ids = /* @__PURE__ */ new Set();
+    [state.header, target.pg.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
+    idsBySlug[target.path] = ids;
+  }
   const pageOf = (slug) => idsBySlug[slug];
   state.pages.forEach((pg2) => {
     const here = pg2.slug + ".html";

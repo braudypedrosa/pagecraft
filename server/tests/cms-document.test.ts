@@ -165,3 +165,13 @@ test('native CMS document round-trip retains bindings; portable v1 rejects rathe
     }),
   ).toThrow(/CMS/);
 });
+
+test('publication review recognizes generated detail URLs and excludes drafts', () => {
+ const doc = fixture();
+ doc.pages.push({...structuredClone(doc.pages[0]), id:'detail', slug:'detail', collection:'cabins', tree:[]});
+ const link = C.N('button'); link.props.link = 'cabins/a.html';
+ doc.pages[0].tree = [link]; C.restore(doc);
+ expect(C.lint().filter(f=>f.code==='dead-link')).toHaveLength(0);
+ doc.meta.collections![0].items[0].draft = 1; C.restore(doc);
+ expect(C.lint().filter(f=>f.code==='dead-link')).toHaveLength(1);
+});

@@ -75,5 +75,31 @@ const app = createApp({
     '.pagecraft-local/cms-qa/publications',
   ),
 });
-serve({ fetch: app.fetch, port, hostname: '127.0.0.1' });
+serve({
+  fetch: async (request) => {
+    const url = new URL(request.url);
+    if (url.pathname === '/qa-viewport') {
+      const width = Number(url.searchParams.get('width'));
+      if (![390, 768, 1280].includes(width))
+        return new Response('Unsupported QA viewport', { status: 400 });
+      return new Response(
+        `<meta charset="utf-8"><title>CMS QA — ${width}px</title><style>body{margin:0;background:#ddd}iframe{display:block;border:0;width:${width}px;height:900px}</style><iframe title="CMS responsive QA" src="/edit/${site.id}"></iframe>`,
+        { headers: { 'content-type': 'text/html' } },
+      );
+    }
+    const response = await app.fetch(request);
+    // Local-only iframe harness for real CSS viewport checks; production CSP is unchanged.
+    if (url.pathname.startsWith('/edit/')) {
+      const headers = new Headers(response.headers);
+      headers.set(
+        'content-security-policy',
+        "frame-ancestors 'self'; base-uri 'none'; object-src 'none'",
+      );
+      return new Response(response.body, { status: response.status, headers });
+    }
+    return response;
+  },
+  port,
+  hostname: '127.0.0.1',
+});
 console.log(`CMS QA http://localhost:${port}/edit/${site.id}`);
