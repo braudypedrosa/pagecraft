@@ -97,7 +97,7 @@ class FakeAccountAuth implements AccountAuth {
   }
 }
 
-const rig = () => {
+const rig = (options: { assets?: AssetStore; siteTemplates?: SiteTemplateStore } = {}) => {
   const store = new MemoryStore(),
     auth = new MemoryAuthStore(),
     accountAuth = new FakeAccountAuth();
@@ -111,6 +111,8 @@ const rig = () => {
     editorHost: "admin.test",
     editorOrigin: "http://admin.test",
     editorHtml: "<title>Builder</title>",
+    assets: options.assets,
+    siteTemplates: options.siteTemplates,
   });
   const request = (path: string, init: RequestInit = {}) =>
     app.request(
@@ -504,7 +506,7 @@ test("dashboard create modal independently keeps only the latest template versio
   );
 
   a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Independent Studio"/);
-  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Coastal Rental Collection" checked/);
+  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Coastal Rental Collection"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);

@@ -651,6 +651,11 @@ body.preview .dim{display:none}
 .group.closed .gb{display:none}
 .gb{padding:0 14px 14px}
 .f{margin-bottom:var(--gap-2)}
+/* Instance variant controls use the same inset and rhythm as inspector groups. */
+#inspector-panel > .f{padding:var(--gap-3);margin-bottom:0}
+#inspector-panel > .f > .row{display:flex;flex-wrap:wrap;gap:var(--gap-1)}
+#inspector-panel > .f > .note{margin-top:var(--gap-1)}
+
 .f:last-child{margin-bottom:2px}
 /* a checkbox and its label on one line. Dialogs had no such row until the webfont
    setting needed one — the CMS table's checkboxes sit in cells and carry no label. */
@@ -825,6 +830,12 @@ select.ctl{
 .pick button svg{width:13px;height:13px}
 .pick button:hover{color:var(--text);background:var(--panel)}
 .pick button.on{background:var(--ink);color:var(--paper)}
+.borderpick button{position:relative}
+.borderpick button.set::after{
+  content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.borderpick button.on.set::after{background:var(--paper)}
+.borderctl>.f{margin-bottom:var(--gap-3)}
 .sw-tog{
   width:36px;height:20px;flex:0 0 36px;border-radius:var(--r-pill);background:var(--line-2);
   border:none;position:relative;transition:background .16s;
@@ -9663,7 +9674,7 @@ var PC_UI = (() => {
     mount: () => mount
   });
 
-  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/dist/preact.module.js
+  // node_modules/preact/dist/preact.module.js
   var n;
   var l;
   var u;
@@ -9936,7 +9947,7 @@ var PC_UI = (() => {
     if (fn) fn();
   };
 
-  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
+  // node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
   var f2 = 0;
   function u2(e3, t3, n2, o3, i3, u4) {
     t3 || (t3 = {});
@@ -10945,7 +10956,7 @@ var PC_UI = (() => {
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/hooks/dist/hooks.module.js
+  // node_modules/preact/hooks/dist/hooks.module.js
   var t2;
   var r2;
   var u3;
@@ -17525,7 +17536,7 @@ async function writeServer() {
       document: doc(),
       version: SRV.version,
       ...(IS_WORDPRESS ? { compiled: {
-        html: buildPage(page()),
+        html: assetsToBlob(buildPage(page())),
         globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
         pageCss: assetsToBlob(treeCss([page().tree], false))
       } } : {})

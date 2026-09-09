@@ -1,4 +1,4 @@
-import {test} from 'node:test';
+import {test} from 'vitest';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 test('generated editor places the attributed app root inside body and preserves deployed preview capture',()=>{

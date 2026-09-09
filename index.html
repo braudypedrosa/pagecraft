@@ -830,6 +830,12 @@ select.ctl{
 .pick button svg{width:13px;height:13px}
 .pick button:hover{color:var(--text);background:var(--panel)}
 .pick button.on{background:var(--ink);color:var(--paper)}
+.borderpick button{position:relative}
+.borderpick button.set::after{
+  content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.borderpick button.on.set::after{background:var(--paper)}
+.borderctl>.f{margin-bottom:var(--gap-3)}
 .sw-tog{
   width:36px;height:20px;flex:0 0 36px;border-radius:var(--r-pill);background:var(--line-2);
   border:none;position:relative;transition:background .16s;
@@ -9668,7 +9674,7 @@ var PC_UI = (() => {
     mount: () => mount
   });
 
-  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/dist/preact.module.js
+  // node_modules/preact/dist/preact.module.js
   var n;
   var l;
   var u;
@@ -9941,7 +9947,7 @@ var PC_UI = (() => {
     if (fn) fn();
   };
 
-  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
+  // node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
   var f2 = 0;
   function u2(e3, t3, n2, o3, i3, u4) {
     t3 || (t3 = {});
@@ -10950,7 +10956,7 @@ var PC_UI = (() => {
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/hooks/dist/hooks.module.js
+  // node_modules/preact/hooks/dist/hooks.module.js
   var t2;
   var r2;
   var u3;
@@ -20956,8 +20962,5 @@ HOOKS.note = msg => toast(msg);
   window.PC_BUILDER_LOADING.fail();
 });
 </script>
-</head>
-<body>
-
 </body>
 </html>
