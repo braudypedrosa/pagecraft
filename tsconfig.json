@@ -30,5 +30,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["app/src", "server", "tests", "vite.config.ts"]
+  "include": ["app/src", "server", "tests", "vite.config.ts", "tools/premade-sites.ts"]
 }

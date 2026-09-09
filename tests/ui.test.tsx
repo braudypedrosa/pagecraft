@@ -15,7 +15,7 @@ import * as C from '../app/src/core/index';
 import { CONTROL_KINDS, Ctl, Dropzone } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
 import { Add } from '../app/src/ui/Add';
-import { Inspector } from '../app/src/ui/inspector/Inspector';
+import { Inspector, advControls } from '../app/src/ui/inspector/Inspector';
 import { Pages } from '../app/src/ui/Pages';
 import { Cms } from '../app/src/ui/Cms';
 import { ColorTokens } from '../app/src/ui/ColorTokens';
@@ -30,6 +30,22 @@ beforeEach(() => { r = rig(); });
 afterEach(() => { r.host.remove(); });
 
 const heading = () => C.insert('heading', null, 0)!;
+
+test('image controls recognize canonical asset ids that contain hyphens', () => {
+  r.host.remove();
+  const assetId = '9bcfc1c5-5f1b-4580-87fd-d511f44d43';
+  r = rig({ asset: id => id === assetId
+    ? { url: 'blob:template-image', name: 'template.webp', size: 82_000, w: 1024, h: 1536 }
+    : null });
+  const image = C.N('image');
+  image.props.src = `asset:${assetId}`;
+  const source = C.DEF.image.controls.content.find(control => control.k === 'src')!;
+
+  r.draw(<Ctl n={image} c={source} />);
+
+  a.equal(r.$('.imgset.missing'), null);
+  a.match(r.$('.imgset')!.textContent || '', /template\.webp/);
+});
 
 test('every declared inspector control has a renderer and every declared choice is operable', () => {
   const declared: Array<{ owner: string; n: any; c: Control }> = [];
@@ -88,6 +104,38 @@ test('every declared inspector control has a renderer and every declared choice 
     'the renderer registry and the controls declared by the product must stay exhaustive together');
   a.ok(declared.length >= 230, `expected the complete inspector surface, got ${declared.length} rows`);
   a.ok(choices >= 250, `expected every declared choice, got ${choices}`);
+});
+
+test('the border control exposes a template top rule and can add another edge responsively', async () => {
+  const n = C.N('box');
+  n.css.d = {
+    'border-top-style': 'solid',
+    'border-top-width': '1px',
+    'border-top-color': '#abcdef'
+  };
+  C.selSet([n.id]);
+  const border = C.COMMON_STYLE
+    .find(group => group.g === 'Border & shadow')!.items
+    .find(control => control.t === 'border')!;
+
+  r.draw(<Ctl n={n} c={border} />);
+  a.equal(r.$('[data-border-side="top"]')!.getAttribute('aria-pressed'), 'true');
+  a.equal(r.$('[data-border-side="top"]')!.classList.contains('set'), true);
+  a.equal((r.$('select') as HTMLSelectElement).value, 'solid');
+  a.equal((r.$('input[type=number]') as HTMLInputElement).value, '1');
+  a.equal((r.$('input.hex') as HTMLInputElement).value, '#abcdef');
+
+  C.state.ui.dev = 'tablet';
+  await act(async () => { r.click(r.$('[data-border-side="bottom"]')); });
+  a.equal(r.$('[data-border-side="bottom"]')!.getAttribute('aria-pressed'), 'true');
+  r.pick(r.$('select')!, 'dashed');
+  r.type(r.$('input[type=number]')!, '3');
+  r.type(r.$('input.hex')!, '#123456');
+
+  a.equal(n.css.t['border-bottom-style'], 'dashed');
+  a.equal(n.css.t['border-bottom-width'], '3px');
+  a.equal(n.css.t['border-bottom-color'], '#123456');
+  a.equal(n.css.d['border-top-width'], '1px', 'the existing top separator is untouched');
 });
 
 /* A repeater's rows, typed. `items` is a different shape per widget, so the test that
@@ -465,15 +513,52 @@ test('clicking the badge clears only this breakpoint', () => {
   a.equal(n.css.d['font-size'], '48px', 'and the base is untouched');
 });
 
+test('Position writes a native override at the breakpoint being edited', () => {
+  const n = heading();
+  C.selSet([n.id]);
+  n.css.d = { position: 'sticky' };
+  C.state.ui.dev = 'mobile';
+  const position = advControls(n).find(control => control.c === 'position')!;
+
+  a.equal(position.r, 1, 'the Advanced Position control must use the responsive style model');
+  r.draw(<Ctl n={n} c={position} />);
+  r.pick(r.$('select')!, 'static');
+
+  a.equal(n.css.d.position, 'sticky', 'desktop remains sticky');
+  a.equal(n.css.m.position, 'static', 'mobile owns the static override');
+});
+
 test('a box control clears all four sides, not one', () => {
   /* three sides surviving as a phantom override is the failure this guards */
   const n = heading();
   C.selSet([n.id]);
   C.state.ui.dev = 'mobile';
-  n.css.m = { 'padding-top': '4px', 'padding-right': '4px', 'padding-bottom': '4px', 'padding-left': '4px' };
+  n.css.m = { padding: '4px', 'padding-top': '5px', 'padding-right': '4px', 'padding-bottom': '4px', 'padding-left': '4px' };
   r.draw(<Ctl n={n} c={{ t: 'box', c: 'padding', label: 'Padding', r: 1 }} />);
   r.click(r.$('.rsp'));
   a.deepEqual(n.css.m, {}, 'every side went');
+});
+
+test('a box shorthand is shown as four sides and materialized when one side changes', () => {
+  const n = heading();
+  C.selSet([n.id]);
+  n.css.d = { padding: '28px 0 44px' };
+  C.state.ui.dev = 'tablet';
+  r.draw(<Ctl n={n} c={{ t: 'box', c: 'padding', label: 'Padding', r: 1 }} />);
+
+  a.deepEqual(r.$$('input[type=number]').map(input => (input as HTMLInputElement).value),
+    ['28', '0', '44', '0']);
+  a.equal(r.$('.rsp')!.classList.contains('ovr'), false, 'tablet inherits the desktop shorthand');
+
+  r.type(r.$$('input[type=number]')[0], '36');
+  a.equal(n.css.t.padding, undefined);
+  a.deepEqual(n.css.t, {
+    'padding-top': '36px',
+    'padding-right': '0px',
+    'padding-bottom': '44px',
+    'padding-left': '0px'
+  });
+  a.equal(n.css.d.padding, '28px 0 44px', 'the desktop base remains unchanged');
 });
 
 /* ------------------------------------------------------------------ binding */

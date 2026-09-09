@@ -3,6 +3,331 @@
   "templates": [
     {
       "format": "pagecraft.site-template.v1",
+      "id": "coastal-rentals",
+      "version": "1.0.0",
+      "name": "Coastal Rental Collection",
+      "sampleName": "Marea",
+      "description": "A calm, image-led multi-property site for independent vacation-rental hosts.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality",
+        "Travel"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-stays",
+          "name": "Stays",
+          "slug": "stays"
+        },
+        {
+          "id": "page-stone-cove-house",
+          "name": "Stone Cove House",
+          "slug": "stone-cove-house"
+        },
+        {
+          "id": "page-pine-court-house",
+          "name": "Pine Court House",
+          "slug": "pine-court-house"
+        },
+        {
+          "id": "page-harbor-studio",
+          "name": "Harbor Studio",
+          "slug": "harbor-studio"
+        },
+        {
+          "id": "page-garden-casita",
+          "name": "Garden Casita",
+          "slug": "garden-casita"
+        },
+        {
+          "id": "page-services",
+          "name": "Guest services",
+          "slug": "services"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "ee89c8d9289d446f51fb7852ed6e9f8931cf456b19f4083a605a36db6861d161",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 1683264
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "coastal-rentals",
+      "version": "1.0.1",
+      "name": "Coastal Rental Collection",
+      "sampleName": "Marea",
+      "description": "A calm, image-led multi-property site for independent vacation-rental hosts.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality",
+        "Travel"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-stays",
+          "name": "Stays",
+          "slug": "stays"
+        },
+        {
+          "id": "page-stone-cove-house",
+          "name": "Stone Cove House",
+          "slug": "stone-cove-house"
+        },
+        {
+          "id": "page-pine-court-house",
+          "name": "Pine Court House",
+          "slug": "pine-court-house"
+        },
+        {
+          "id": "page-harbor-studio",
+          "name": "Harbor Studio",
+          "slug": "harbor-studio"
+        },
+        {
+          "id": "page-garden-casita",
+          "name": "Garden Casita",
+          "slug": "garden-casita"
+        },
+        {
+          "id": "page-services",
+          "name": "Guest services",
+          "slug": "services"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "5f5547e0ae17e6fbe8be7b56bbd57117e64b434bd696a784570aa24bbec6c004",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 1683264
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "coastal-rentals",
+      "version": "1.0.2",
+      "name": "Coastal Rental Collection",
+      "sampleName": "Marea",
+      "description": "A calm, image-led multi-property site for independent vacation-rental hosts.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality",
+        "Travel"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-stays",
+          "name": "Stays",
+          "slug": "stays"
+        },
+        {
+          "id": "page-stone-cove-house",
+          "name": "Stone Cove House",
+          "slug": "stone-cove-house"
+        },
+        {
+          "id": "page-pine-court-house",
+          "name": "Pine Court House",
+          "slug": "pine-court-house"
+        },
+        {
+          "id": "page-harbor-studio",
+          "name": "Harbor Studio",
+          "slug": "harbor-studio"
+        },
+        {
+          "id": "page-garden-casita",
+          "name": "Garden Casita",
+          "slug": "garden-casita"
+        },
+        {
+          "id": "page-services",
+          "name": "Guest services",
+          "slug": "services"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "9846e686249f72d1abb2d93c46ebc6cc1d8e4df2ac78caa4bd729648807dc867",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 1683264
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "coastal-rentals",
+      "version": "1.0.3",
+      "name": "Coastal Rental Collection",
+      "sampleName": "Marea",
+      "description": "A calm, image-led multi-property site for independent vacation-rental hosts.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality",
+        "Travel"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-stays",
+          "name": "Stays",
+          "slug": "stays"
+        },
+        {
+          "id": "page-stone-cove-house",
+          "name": "Stone Cove House",
+          "slug": "stone-cove-house"
+        },
+        {
+          "id": "page-pine-court-house",
+          "name": "Pine Court House",
+          "slug": "pine-court-house"
+        },
+        {
+          "id": "page-harbor-studio",
+          "name": "Harbor Studio",
+          "slug": "harbor-studio"
+        },
+        {
+          "id": "page-garden-casita",
+          "name": "Garden Casita",
+          "slug": "garden-casita"
+        },
+        {
+          "id": "page-services",
+          "name": "Guest services",
+          "slug": "services"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "5264407a16487a8e34cd10d4fb5697841f272f2f5acdc6b892a9d9a949da7d96",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 1683264
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "coastal-rentals",
+      "version": "1.0.4",
+      "name": "Coastal Rental Collection",
+      "sampleName": "Marea",
+      "description": "A calm, image-led multi-property site for independent vacation-rental hosts.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality",
+        "Travel"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-stays",
+          "name": "Stays",
+          "slug": "stays"
+        },
+        {
+          "id": "page-stone-cove-house",
+          "name": "Stone Cove House",
+          "slug": "stone-cove-house"
+        },
+        {
+          "id": "page-pine-court-house",
+          "name": "Pine Court House",
+          "slug": "pine-court-house"
+        },
+        {
+          "id": "page-harbor-studio",
+          "name": "Harbor Studio",
+          "slug": "harbor-studio"
+        },
+        {
+          "id": "page-garden-casita",
+          "name": "Garden Casita",
+          "slug": "garden-casita"
+        },
+        {
+          "id": "page-services",
+          "name": "Guest services",
+          "slug": "services"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "1e4a5ac1dd1d738e600101395c6de678695938acd8d9f75a5b55d0b2f6d61f3c",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 1683264
+    },
+    {
+      "format": "pagecraft.site-template.v1",
       "id": "independent-studio",
       "version": "1.0.0",
       "name": "Independent Studio",
@@ -40,6 +365,608 @@
       "previewPage": "index.html",
       "assetCount": 4,
       "assetBytes": 524722
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "1.0.1",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "An editorial four-page site for independent studios and thoughtful service businesses.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Editorial"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "0841858069da152aa708a55aad7a74315b9666251e484e0f637f179087449196",
+      "previewPage": "index.html",
+      "assetCount": 4,
+      "assetBytes": 524722
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.0",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "e04125f3ede933febe978f42ae947ab66bdf43ffd91acb93ac9ba328c9a20edb",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.1",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "c57ae26b90ac136a30fd270a0bc7217adcf703f441c44e986abc0a7fbfcc7d5c",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.2",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "d458c05357c537664e5edf38f14f188f1eb6b17daafbaec61e210e1a2e14e182",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.3",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "c154d181a6e95238979d79952cac6db60cd886441c07d942a76310c3f97e8463",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.4",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "c2edfd9de6a251ba15d33ef247b89c0b8128b101eb98526585c1b37247f81db1",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.5",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "a2bfd9412e8ab7d54a3d634f8fedcf33b3f0c74a8e9484d4ea2b5676fe25750b",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.6",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "dd4d24810f75908834f5dbe1a9f4a209f28cb7805b953b0665bd04678864c0b2",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.7",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "81a894801749534afc162395cc96726c3b02d43239caa59534ea22b6c7c2ad8a",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.8",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "6a531b5a9efd48613024ee46b2be7558b726d88b6d56c4272279c16c7814b1b9",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "independent-studio",
+      "version": "2.0.9",
+      "name": "Independent Studio",
+      "sampleName": "Northline Studio",
+      "description": "A high-contrast four-page studio system for independent creative practices.",
+      "categories": [
+        "Studio",
+        "Services",
+        "Creative"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "61467fdc9507c40ca7aeabc2d60b8d61b35d05bfe7717a3674589d1407f55340",
+      "previewPage": "index.html",
+      "assetCount": 5,
+      "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "architecture-studio",
+      "version": "1.0.0",
+      "name": "Architecture Studio",
+      "sampleName": "Common Ground",
+      "description": "Common Ground: a six-page architecture studio pilot in the selected Index direction. Native editable project records, shared styling, and demonstration content.",
+      "categories": [
+        "Architecture",
+        "Design"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-projects",
+          "name": "Projects",
+          "slug": "projects"
+        },
+        {
+          "id": "page-project-detail",
+          "name": "Project Detail",
+          "slug": "project-detail"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+      "previewPage": "index.html",
+      "assetCount": 2,
+      "assetBytes": 5995933
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "salt-house",
+      "version": "1.0.0",
+      "name": "Vacation Rental Collection",
+      "sampleName": "Salt House",
+      "description": "A coastal collection with six native pages, reusable holiday-home listings, property galleries and clear booking-provider setup.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality"
+      ],
+      "pages": [
+        {
+          "id": "salt-page-index",
+          "name": "Coastal vacation rentals",
+          "slug": "index"
+        },
+        {
+          "id": "salt-page-homes",
+          "name": "The Homes",
+          "slug": "homes"
+        },
+        {
+          "id": "salt-page-dune-house",
+          "name": "Dune House",
+          "slug": "dune-house"
+        },
+        {
+          "id": "salt-page-blue-shutter-cottage",
+          "name": "Blue Shutter Cottage",
+          "slug": "blue-shutter-cottage"
+        },
+        {
+          "id": "salt-page-coast",
+          "name": "The Coast",
+          "slug": "coast"
+        },
+        {
+          "id": "salt-page-plan-your-stay",
+          "name": "Plan Your Stay",
+          "slug": "plan-your-stay"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 18697454
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "stillwood",
+      "version": "1.0.0",
+      "name": "Woodland Cabin Retreats",
+      "sampleName": "Stillwood",
+      "description": "Nine-page woodland vacation rental collection with twelve varied homepage sections, native cabin and review sliders, galleries, forms and configurable booking placeholders.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality"
+      ],
+      "pages": [
+        {
+          "id": "stillwood-page-index",
+          "name": "Woodland cabin stays",
+          "slug": "index"
+        },
+        {
+          "id": "stillwood-page-cabins",
+          "name": "Find your cabin",
+          "slug": "cabins"
+        },
+        {
+          "id": "stillwood-page-the-a-frame",
+          "name": "The A-frame",
+          "slug": "the-a-frame"
+        },
+        {
+          "id": "stillwood-page-waterline",
+          "name": "Waterline",
+          "slug": "waterline"
+        },
+        {
+          "id": "stillwood-page-meadow-house",
+          "name": "Meadow House",
+          "slug": "meadow-house"
+        },
+        {
+          "id": "stillwood-page-experiences",
+          "name": "The slower days",
+          "slug": "experiences"
+        },
+        {
+          "id": "stillwood-page-field-guide",
+          "name": "Field guide",
+          "slug": "field-guide"
+        },
+        {
+          "id": "stillwood-page-our-story",
+          "name": "Our story",
+          "slug": "our-story"
+        },
+        {
+          "id": "stillwood-page-contact",
+          "name": "Plan your stay",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+      "previewPage": "index.html",
+      "assetCount": 15,
+      "assetBytes": 5044060
     }
   ]
 }

@@ -1,0 +1,71 @@
+{
+  "format": "pagecraft.direction-review.v1",
+  "at": "2026-09-07T16:27:40.874005+00:00",
+  "audienceDecision": {
+    "actor": "user",
+    "quote": "Small vacation-rental collection"
+  },
+  "assessment": {
+    "actor": "agent",
+    "recommendation": "coastline",
+    "reason": "Strongest branded opening with a clear native comparison of two homes. Guestbook is more narrative; Collection prioritizes immediate inventory."
+  },
+  "scope": "Three native direction studies. Hero and meaningful body inspected at desktop and mobile. No full-site or two-host compatibility acceptance yet.",
+  "selection": {
+    "actor": "user",
+    "direction": "coastline",
+    "quote": "proceed",
+    "scope": "Reply to the recommendation to focus on Salt House using Coastline. Full-site implementation authorized.",
+    "recordedAt": "2026-09-07T16:39:42.447153+00:00"
+  },
+  "screenshots": [
+    {
+      "path": "directions/coastline-1440.png",
+      "sha256": "1dd6c45a6a1aa0be3e6a9801d82a20ad05a18328daae228c1dd2ae6fec97dfe2"
+    },
+    {
+      "path": "directions/coastline-390.png",
+      "sha256": "4a66187e7a00434e7540bde5a35e96e9121665301bc15e29de3af2c51f15476a"
+    },
+    {
+      "path": "directions/coastline-body-1440.png",
+      "sha256": "ed690d012b65d811fe6336290e08750477ba7feaaa165dd2fd42d24e50e9c4fd"
+    },
+    {
+      "path": "directions/coastline-body-390.png",
+      "sha256": "8715e8540eb3050c6887aaef88cece4f440028a9116a6c001361565ffc8dcad0"
+    },
+    {
+      "path": "directions/collection-1440.png",
+      "sha256": "abf5d46acc952f5383229b2bc10344a0d6f62a30e063e8e136f58f56d59384c3"
+    },
+    {
+      "path": "directions/collection-390.png",
+      "sha256": "9120f4fddb468243681b1cb612f1db5f1dacbea5da28d809538de3d89f23c1d8"
+    },
+    {
+      "path": "directions/collection-body-1440.png",
+      "sha256": "b5d609f211023084815cd78b098b11773e91c4cffac8e503581a306ff8cb2fca"
+    },
+    {
+      "path": "directions/collection-body-390.png",
+      "sha256": "2277f662b1ac02f3d3a17bceca79fbee177813b6a820464397380caeef1c9728"
+    },
+    {
+      "path": "directions/guestbook-1440.png",
+      "sha256": "9265a3750a6703d7e45727a42c747414b5ea219a552606dd97c9198522881bcb"
+    },
+    {
+      "path": "directions/guestbook-390.png",
+      "sha256": "658a2d6eb1cfe16429cb3daffefeda561d53d245c1861519db0231b1c47d2955"
+    },
+    {
+      "path": "directions/guestbook-body-1440.png",
+      "sha256": "9cda59045c5d9adf872446e89b23e7815d25dbe655fa544fa4bfb3e4f4ba61da"
+    },
+    {
+      "path": "directions/guestbook-body-390.png",
+      "sha256": "fd0746769c253ac8bf498f38882ed385deb128d55c1c606ee88fa9af05eee11d"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "packageSha256": "5a43baa972fed388d38e10f90c6bd59978ddeb2228e868a4e37dd0f22cc997c5",
+  "wordpress": "7.1",
+  "php": "8.5.2",
+  "wordpressHostRevision": "83114212952d80b7cd59359018fb2edfaca40bb3",
+  "wordpressEditorVersion": "0.2.14",
+  "wordpressEditorSha256": "9ef845d9be7ec0302920666d3ac2b6e3975ff2eb87130d225560fdb6ca479951",
+  "cloudHostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+  "cloudEditorVersion": "0.2.15",
+  "status": "incomplete - host defects reproduced",
+  "site": "http://127.0.0.1:4892",
+  "pageId": 8
+}

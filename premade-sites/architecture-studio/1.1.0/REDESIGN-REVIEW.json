@@ -1,0 +1,68 @@
+{
+  "format": "pagecraft.redesign-review.v1",
+  "version": "1.1.0",
+  "packageSha256": "64f9502e61aa7c9f3dc712eaf6b92e41a1021b004be5712ad347740e2b293e1d",
+  "at": "2026-09-07T16:24:35.074893Z",
+  "userFeedback": [
+    {
+      "quote": "Common ground is a terrible site. Does this look good enough for you?",
+      "scope": "Rejects rendered 1.0.0 design; does not revoke immutable artifact history."
+    },
+    {
+      "quote": "I leave it up to you. Use your new capabilities in GPT6",
+      "scope": "Delegates redesign direction selection; not final visual approval."
+    },
+    {
+      "quote": "Okay, let's upload this template.",
+      "scope": "Upload authorization for reviewed beaa62e candidate. A later native mobile crop correction produced 64f9502; exact final-package approval remains pending."
+    }
+  ],
+  "direction": "Architecture monograph / foldout",
+  "visualReview": {
+    "actor": "independent-agent",
+    "disposition": "ship",
+    "scope": "Current package, both isolated hosts. Distinct from final user approval."
+  },
+  "hosts": {
+    "cloud": {
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+      "editorVersion": "0.2.15"
+    },
+    "wordpress": {
+      "hostRevision": "83114212952d80b7cd59359018fb2edfaca40bb3+local-patch:8d384edaa84a34cd5dbf3cde0fe3328c031e299eabf0b09a8021c09c52b7546f",
+      "editorVersion": "0.2.14"
+    }
+  },
+  "checks": {
+    "automation": "13 focused template tests passed; package check passed; full WordPress npm test passed.",
+    "nativeEditing": "Current package in both hosts: shared fonts/colors, independent project fields, 1/3/7 items, deletion/reordering, long title, uneven descriptions, optional and replacement imagery, responsive inspector, save/reopen, local published output. Restored base content and styling.",
+    "responsive": "Six pages at 390/768/1024/1440 and 767/769/1023/1025. Independent desktop/mobile visual pass.",
+    "forms": "Current package: disabled unconfigured form verified; disposable native endpoint configured and actual local HTTPS receipt obtained in each host. No email sent."
+  },
+  "limitations": [
+    "WordPress depends on unreleased isolated v5 host patch. Native font loading after save, managed grid preservation, and image-loading behavior fixed in host; no template CSS workaround.",
+    "After import in tested WordPress host, open Site Settings and Save settings to generate selected font resources; confirm visible fonts before publishing.",
+    "Cloud fixture harness acceptance does not certify production auth/database.",
+    "Cloud media size label may show 1 KB while actual media files are intact."
+  ],
+  "approval": null,
+  "evidence": [
+    {
+      "path": "evidence/current-independent-review.json",
+      "sha256": "4c2688288297cb549f1978533aa2e987f2eed5de79267502f428eea2d8238682"
+    },
+    {
+      "path": "evidence/wordpress-host-patch-v5.json",
+      "sha256": "2127728becdd56db92c0a9f1460771a3e147ef2e24fd2832cc13859bf5841c0c"
+    },
+    {
+      "path": "evidence/current-cloud-form-receipt.txt",
+      "sha256": "5938ea638eb1b32292e6304d5b94a27fed40035fb93ec630a4cc9e3af6c89aed"
+    },
+    {
+      "path": "evidence/current-wordpress-form-receipt.txt",
+      "sha256": "5938ea638eb1b32292e6304d5b94a27fed40035fb93ec630a4cc9e3af6c89aed"
+    }
+  ],
+  "historicalEvidence": "evidence/historical-redesign-review-beaa62e.json"
+}

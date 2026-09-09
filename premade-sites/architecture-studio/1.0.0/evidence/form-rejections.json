@@ -1,0 +1,10 @@
+[
+  {
+    "host": "wordpress",
+    "text": "- heading \"Submission rejected\" [level=1]\n- paragraph: Name, email and project details are required. Nothing was stored."
+  },
+  {
+    "host": "cloud",
+    "text": "- heading \"Submission rejected\" [level=1]\n- paragraph: Name, email and project details are required. Nothing was stored."
+  }
+]

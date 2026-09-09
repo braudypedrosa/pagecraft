@@ -1,0 +1,218 @@
+[
+  {
+    "host": "cloud",
+    "slug": "index",
+    "height": 2862,
+    "images": false,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "homes",
+    "height": 1804,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "dune-house",
+    "height": 3649,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "blue-shutter-cottage",
+    "height": 3649,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "coast",
+    "height": 2506,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "plan-your-stay",
+    "height": 1657,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "index",
+    "height": 3088,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "homes",
+    "height": 2429,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "dune-house",
+    "height": 3020,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "blue-shutter-cottage",
+    "height": 3076,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "coast",
+    "height": 2487,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "plan-your-stay",
+    "height": 2037,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "index",
+    "height": 2587,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "homes",
+    "height": 1904,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "dune-house",
+    "height": 2965,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "blue-shutter-cottage",
+    "height": 2992,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "coast",
+    "height": 2299,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "plan-your-stay",
+    "height": 1688,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "index",
+    "height": 2563,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "homes",
+    "height": 1853,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "dune-house",
+    "height": 3004,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "blue-shutter-cottage",
+    "height": 3058,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "coast",
+    "height": 2162,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "plan-your-stay",
+    "height": 1561,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  }
+]

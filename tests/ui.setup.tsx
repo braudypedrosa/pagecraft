@@ -15,6 +15,7 @@ type StubOptions = {
   canStructure?: boolean;
   dynamicContentProvider?: ReturnType<Legacy['dynamicContentProvider']>;
   wordpressContent?: ReturnType<Legacy['wordpressContent']>;
+  asset?: Legacy['asset'];
 };
 
 /** Every Legacy entry, recording its name and arguments. Fields that must return a
@@ -79,8 +80,8 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     renderDim: rec('renderDim'),
     bindModal: rec('bindModal'),
     enterEdit: rec('enterEdit'),
-    asset: () => null,
-    assetCount: () => 0,
+    asset: opts.asset || (() => null),
+    assetCount: () => opts.asset ? 1 : 0,
     mediaTake: async () => null,
     mediaPicker: async () => null,
     assetsToBlob: (v: string) => v,

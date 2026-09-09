@@ -1,0 +1,10 @@
+[
+  {
+    "host": "wordpress",
+    "text": "- heading \"Submission could not be stored\" [level=1]\n- paragraph: No success has been recorded. Please retry."
+  },
+  {
+    "host": "cloud",
+    "text": "- heading \"Submission could not be stored\" [level=1]\n- paragraph: No success has been recorded. Please retry."
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "expanded": "true",
+    "html": "<button class=\"pagecraft-nav-toggle\" data-nav-t=\"\" type=\"button\" aria-expanded=\"true\"><span class=\"pagecraft-nav-icon\"></span></button>",
+    "label": null,
+    "text": ""
+  },
+  {
+    "expanded": null,
+    "html": "<button type=\"button\" class=\"pagecraft-form-button\" disabled=\"\">Send inquiry</button>",
+    "label": null,
+    "text": "Send inquiry"
+  }
+]

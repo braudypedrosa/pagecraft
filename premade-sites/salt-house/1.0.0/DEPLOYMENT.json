@@ -1,0 +1,56 @@
+{
+  "deployedAt": "2026-09-08T03:10:16.449068+00:00",
+  "url": "https://build.itspagecraft.com/templates/salt-house/1.0.0/preview/index.html",
+  "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+  "wordpressRevision": "47fa59e3447368174e435716f05f241828a0b9e3",
+  "wordpressProducts": {
+    "importer": {
+      "slug": "pagecraft-importer",
+      "version": "0.2.1",
+      "sha256": "128495955bf8a1d759deceb43f01770aca697a239479228da6704de900585c28",
+      "size": 17503,
+      "downloadPath": "/v1/wordpress-distribution/packages/pagecraft-importer/128495955bf8a1d759deceb43f01770aca697a239479228da6704de900585c28.zip",
+      "requirements": {
+        "php": ">=8.1",
+        "wordpress": ">=6.6"
+      },
+      "downloadUrl": "https://build.itspagecraft.com/v1/wordpress-distribution/packages/pagecraft-importer/128495955bf8a1d759deceb43f01770aca697a239479228da6704de900585c28.zip"
+    },
+    "builder": {
+      "slug": "pagecraft-builder",
+      "version": "0.2.1",
+      "sha256": "7fedeace93208360a41b9dd2dbaaddcbde5587a955e41bbdece54143baddeae7",
+      "size": 556262,
+      "downloadPath": "/v1/wordpress-distribution/packages/pagecraft-builder/7fedeace93208360a41b9dd2dbaaddcbde5587a955e41bbdece54143baddeae7.zip",
+      "requirements": {
+        "importer": ">=0.2.1",
+        "php": ">=8.1",
+        "theme": "=0.2.1",
+        "wordpress": ">=6.6"
+      },
+      "downloadUrl": "https://build.itspagecraft.com/v1/wordpress-distribution/packages/pagecraft-builder/7fedeace93208360a41b9dd2dbaaddcbde5587a955e41bbdece54143baddeae7.zip"
+    },
+    "theme": {
+      "slug": "pagecraft-theme",
+      "version": "0.2.1",
+      "sha256": "fde218eb22c65ecc487a530c857e7d3ff0f2f2eb5b52951c11b83c08960a07ad",
+      "size": 18521,
+      "downloadPath": "/v1/wordpress-distribution/packages/pagecraft-theme/fde218eb22c65ecc487a530c857e7d3ff0f2f2eb5b52951c11b83c08960a07ad.zip",
+      "requirements": {
+        "importer": ">=0.2.1",
+        "php": ">=8.1",
+        "wordpress": ">=6.6"
+      },
+      "downloadUrl": "https://build.itspagecraft.com/v1/wordpress-distribution/packages/pagecraft-theme/fde218eb22c65ecc487a530c857e7d3ff0f2f2eb5b52951c11b83c08960a07ad.zip"
+    }
+  },
+  "checks": [
+    "All six public previews HTTP 200",
+    "All three public WordPress downloads match tested SHA256",
+    "Built-in browser homepage 390/1440: zero missing images or horizontal overflow",
+    "Mobile menu keyboard Enter opens, Escape closes",
+    "No material public console errors",
+    "18 existing catalog entries preserved"
+  ],
+  "scope": "Template library and WordPress package configuration only. Main Cloud and WordPress dirty working trees were not deployed."
+}

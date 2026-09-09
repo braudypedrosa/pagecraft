@@ -1,0 +1,69 @@
+- navigation "Toolbar":
+  - menu:
+    - menuitem "About WordPress":
+      - generic: About WordPress
+    - menuitem "Salt House Template QA"
+    - menuitem "Customize"
+    - menuitem "0 Comments in moderation":
+      - generic: "0"
+      - generic: 0 Comments in moderation
+    - menuitem "New":
+      - generic: New
+    - menuitem "Edit Page"
+  - menu:
+    - menuitem "Howdy, architectureqa"
+    - menuitem "Search":
+      - textbox "Search"
+      - generic: Search
+- link "Skip to content":
+  - /url: "#pagecraft-main"
+- banner:
+  - link "Salt House":
+    - /url: /
+  - navigation "Main navigation":
+    - list:
+      - link "The homes":
+        - /url: http://127.0.0.1:4894/homes/
+      - link "The coast":
+        - /url: http://127.0.0.1:4894/coast/
+      - link "Plan your stay":
+        - /url: http://127.0.0.1:4894/plan-your-stay/
+- main:
+  - article:
+    - heading "Start with your people." [level=1]
+    - paragraph: Choose the space you need, then confirm the dates and details with the host.
+    - heading "Before you make plans." [level=2]
+    - paragraph: Straight answers to the practical questions.
+    - generic "How do I check dates and prices?":
+      - generic: How do I check dates and prices?
+    - generic "What should I confirm before booking?":
+      - generic: What should I confirm before booking?
+    - generic "Can I send an inquiry here?":
+      - generic: Can I send an inquiry here?
+    - generic "Are these real properties?" [active]:
+      - generic: Are these real properties?
+    - paragraph: No. Salt House is a fictional collection with example details and AI-generated imagery.
+    - heading "Tell us what you have in mind." [level=2]:
+      - text: Tell us what
+      - text: you have in mind.
+    - paragraph: Include your preferred home, approximate dates and group size. Leave payment details and sensitive documents out of your message.
+    - paragraph: This demo form is not connected. No inquiry can be sent until a receiving service is configured.
+    - group "Stay inquiry":
+      - generic: Name *
+      - textbox "Name" [disabled]
+      - generic: Email *
+      - textbox "Email" [disabled]
+      - generic: Home, dates and guests *
+      - textbox "Home, dates and guests" [disabled]
+      - button "Send inquiry" [disabled]
+      - paragraph: This form is not configured to receive submissions.
+- contentinfo:
+  - heading "See you by the sea." [level=2]
+  - link "Find your home":
+    - /url: /homes/
+    - generic: Find your home
+  - link "Plan your stay":
+    - /url: /plan-your-stay/
+    - generic: Plan your stay
+  - generic: SALT HOUSE
+  - paragraph: Fictional collection · AI-generated demonstration images

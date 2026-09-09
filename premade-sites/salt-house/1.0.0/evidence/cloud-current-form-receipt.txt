@@ -1,0 +1,2 @@
+- heading "Submission rejected" [level=1]
+- paragraph: Name, email and project details are required. Nothing was stored.

@@ -1,0 +1,98 @@
+[
+  {
+    "slug": "index",
+    "height": 2897,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "slug": "projects",
+    "height": 2569,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "slug": "project-detail",
+    "height": 2610,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "slug": "about",
+    "height": 2154,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "slug": "services",
+    "height": 1956,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "slug": "contact",
+    "height": 1430,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "slug": "index",
+    "height": 3333,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "slug": "projects",
+    "height": 2838,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "slug": "project-detail",
+    "height": 2483,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "slug": "about",
+    "height": 2139,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "slug": "services",
+    "height": 2269,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "slug": "contact",
+    "height": 1731,
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  }
+]

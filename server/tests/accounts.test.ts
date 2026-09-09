@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import a from "node:assert/strict";
 import * as Core from "../../app/src/core/index.ts";
+import type { Node as PageNode } from "../../app/src/core/types.ts";
 import {
   type CloudMutationFastPath,
   createApp,
@@ -13,6 +14,14 @@ import { TestHumanChallenge } from "../src/turnstile.ts";
 import type { AccountAuth, VerifiedIdentity } from "../src/account-auth.ts";
 import type { Context } from "hono";
 import { MemoryHostedPublicationStore } from "../src/publications.ts";
+import { MemoryAssetStore, type AssetStore } from "../src/assets.ts";
+import {
+  FileSiteTemplateStore,
+  latestSiteTemplates,
+  type SiteTemplateStore,
+} from "../src/site-templates.ts";
+import { dashboardPage } from "../src/account-pages.ts";
+import { resolve } from "node:path";
 
 const doc = () => {
   Core.seed();
@@ -116,6 +125,41 @@ const rig = () => {
     );
   return { store, auth, accountAuth, app, request };
 };
+
+class ConcurrentAssetStore extends MemoryAssetStore {
+  active = 0;
+  peak = 0;
+
+  override async put(...args: Parameters<MemoryAssetStore["put"]>) {
+    this.active++;
+    this.peak = Math.max(this.peak, this.active);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    try {
+      return await super.put(...args);
+    } finally {
+      this.active--;
+    }
+  }
+}
+
+class FailingConcurrentAssetStore extends MemoryAssetStore {
+  active = 0;
+  peak = 0;
+  siteIds = new Set<string>();
+
+  override async put(...args: Parameters<MemoryAssetStore["put"]>) {
+    this.active++;
+    this.peak = Math.max(this.peak, this.active);
+    this.siteIds.add(args[0].siteId);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    try {
+      if (args[0].name === "digital-prototype.webp") throw new Error("simulated asset failure");
+      return await super.put(...args);
+    } finally {
+      this.active--;
+    }
+  }
+}
 
 test("anonymous visitors are sent to sign in and a verified identity always sees the dashboard", async () => {
   const { request, accountAuth } = rig();
@@ -405,6 +449,8 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /class="pc-site-card"/);
   a.match(html, /class="pc-site-preview"/);
   a.match(html, /class="pc-preview-fallback"/);
+  a.match(html, /Preview saved after publishing/);
+  a.doesNotMatch(html, /<iframe src="http:\/\/admin\.test\/braudy\/"/);
   a.match(html, /data-copy-site/);
   a.match(html, />Manage site<\/a>/);
   a.match(html, />Braudy<\/div>/);
@@ -420,7 +466,21 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /No sites match your search/);
   a.match(html, /No shared sites yet/);
   a.match(html, /No owned sites yet/);
-  a.match(html, />Add new site<\/a>/);
+  a.match(html, /data-create-open>Add new site<\/button>/);
+  a.match(html, /<dialog class="pc-create-modal"/);
+  a.match(html, /createModal\.showModal\(\)/);
+  a.match(html, /data-create-close/);
+  a.match(html, /addEventListener\('cancel'/);
+  a.match(html, /data-start-blank/);
+  a.match(html, /data-template-open/);
+  a.match(html, /data-create-step="start"/);
+  a.match(html, /data-create-step="templates" hidden/);
+  a.match(html, /data-create-step="details" hidden/);
+  a.match(html, /data-create-back hidden/);
+  a.match(html, /setCreateStep\('templates'\)/);
+  a.doesNotMatch(html, /data-template-modal/);
+  a.doesNotMatch(html, /data-template-form/);
+  a.doesNotMatch(html, /<details class="pc-create-card"/);
   a.match(html, /href="\/account">Account settings<\/a>/);
   a.match(html, /name="slug"/);
   a.match(html, /data-create-error/);
@@ -429,6 +489,297 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /pc-custom-select-popover/);
   a.match(html, /\.pc-site-grid\{align-items:stretch\}/);
   a.match(html, /\.pc-site-card,\.pc-create-card\{height:100%\}/);
+});
+
+test("dashboard create modal independently keeps only the latest template version", async () => {
+  const templates = await new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  ).list();
+  const html = dashboardPage(
+    { id: "user-1", email: "builder@example.test", name: "Builder" },
+    [],
+    0,
+    { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
+    templates,
+  );
+
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Independent Studio"/);
+  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Coastal Rental Collection" checked/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
+  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, latestSiteTemplates(templates).length);
+  a.equal((html.match(/<dialog class="pc-create-modal/g) || []).length, 1);
+  a.doesNotMatch(html, /pc-template-picker is-single/);
+  a.match(html, /<strong>Blank site<\/strong>/);
+  a.match(html, /<strong>Premade templates<\/strong>/);
+  a.match(html, /<h3>Site details<\/h3>/);
+  a.match(html, /pc-path-grid/);
+  a.match(html, /pc-path-template-sheet/);
+  a.match(html, /\.pc-create-modal \.pc-template-choice:has\(input:checked\)\{border-color:var\(--pc-text\);box-shadow:none\}/);
+  a.match(html, /\.pc-template-picker\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-layout\{grid-template-columns:1fr;gap:24px\}/);
+  a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-summary\{[^}]*flex-direction:row;[^}]*border-bottom:1px solid var\(--pc-line\);border-radius:0;background:transparent\}/);
+  a.match(html, /data-create-title/);
+  a.doesNotMatch(html, /Shown in your Pagecraft dashboard/);
+  a.match(html, /name="siteTemplate" value="" data-site-template/);
+  a.doesNotMatch(html, /<dialog[^>]+pc-template-modal/);
+});
+
+test("dashboard cards use a stored publication image instead of loading the live site", () => {
+  const html = dashboardPage(
+    { id: "user-1", email: "builder@example.test", name: "Builder" },
+    [{
+      id: "site-1",
+      name: "Snapshot site",
+      url: "https://public.example.test/",
+      role: "owner",
+      updatedAt: new Date().toISOString(),
+      published: true,
+      previewUrl: "/api/sites/site-1/publication-preview/publication-1",
+    }],
+    1,
+    { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
+  );
+  a.match(html, /<img src="\/api\/sites\/site-1\/publication-preview\/publication-1" loading="lazy" alt="">/);
+  a.doesNotMatch(html, /<iframe src="https:\/\/public\.example\.test\//);
+  a.match(html, /querySelector\('img'\)/);
+  a.doesNotMatch(html, /setTimeout\(.*7000/);
+});
+
+test("premade library includes the latest release of every curated site", async () => {
+  const templates = await new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  ).list();
+  const source = templates.find((template) => template.version === "2.0.9");
+  a.ok(source);
+  const html = dashboardPage(
+    { id: "user-1", email: "builder@example.test", name: "Builder" },
+    [],
+    0,
+    { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
+    [
+      ...templates,
+      { ...source, id: "editorial-journal", name: "Editorial Journal", version: "1.0.0" },
+      { ...source, id: "editorial-journal", name: "Editorial Journal", version: "1.1.0" },
+    ],
+  );
+
+  a.match(html, /premadeTemplate" value="editorial-journal@1\.1\.0"/);
+  a.doesNotMatch(html, /premadeTemplate" value="editorial-journal@1\.0\.0"/);
+  a.equal((html.match(/<input type="radio" name="premadeTemplate"/g) || []).length, latestSiteTemplates(templates).length + 1);
+  a.doesNotMatch(html, /pc-template-picker is-single/);
+});
+
+test("a curated site installs all pages and remapped media without charging the owner quota", async () => {
+  const assets = new ConcurrentAssetStore();
+  const siteTemplates = new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  );
+  const { request, accountAuth, auth, store } = rig({ assets, siteTemplates });
+  accountAuth.current = {
+    authUserId: "auth-1",
+    email: "builder@example.test",
+    name: "Builder",
+  };
+  const owner = await auth.ensureAuthUser(
+    "auth-1",
+    "builder@example.test",
+    "Builder",
+  );
+
+  const created = await request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      name: "Client Studio",
+      templateId: "independent-studio",
+      templateVersion: "2.0.9",
+    }),
+  });
+  a.equal(created.status, 201, await created.clone().text());
+  const result = await created.json() as { id: string; files: string[] };
+  const site = await store.byId(result.id);
+  a.ok(site);
+  a.equal(site.name, "Client Studio");
+  a.equal(site.doc.meta.name, "Client Studio");
+  a.deepEqual(site.doc.pages.map((page) => page.name), [
+    "Home",
+    "About",
+    "Services",
+    "Contact",
+  ]);
+  a.ok(result.files.includes("index.html"));
+  a.ok(result.files.includes("about.html"));
+  const installed = await assets.list(site.id);
+  a.equal(installed.length, 5);
+  a.equal(assets.peak, 5, "independent template assets install concurrently");
+  a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
+  a.ok(installed.every((asset) => /^[a-f0-9]{64}$/.test(asset.contentHash || "")),
+    "curated assets retain the content hash required by the production gateway");
+  const serialized = JSON.stringify(site.doc);
+  a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
+  a.deepEqual(await assets.usage(owner.id), {
+    usedBytes: 0,
+    limitBytes: 100 * 1024 * 1024,
+  });
+
+  const edited = structuredClone(site.doc);
+  const pending: PageNode[] = [...edited.pages[0].tree];
+  let hero: PageNode | undefined;
+  while (pending.length) {
+    const node = pending.shift()!;
+    if (node.id === "northline-v2-node-0011") {
+      hero = node;
+      break;
+    }
+    pending.push(...node.children);
+  }
+  a.equal(hero?.type, "heading");
+  if (!hero || hero.type !== "heading") throw new Error("template hero heading is missing");
+  hero.props.text = "Editable in Pagecraft Cloud.";
+  const saved = await request(`/api/sites/${site.id}`, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ doc: edited, version: site.version }),
+  });
+  a.equal(saved.status, 200, await saved.clone().text());
+  const reloaded = await store.byId(site.id);
+  a.ok(reloaded);
+  a.match(JSON.stringify(reloaded.doc), /Editable in Pagecraft Cloud\./,
+    "a template node remains editable and persists through the normal cloud save route");
+
+  const dashboard = await request("/");
+  const html = await dashboard.text();
+  a.match(html, /Independent Studio/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.6"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.5"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.4"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.3"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.2"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.1"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.0"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.1"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
+  a.match(
+    html,
+    /\/templates\/independent-studio\/2\.0\.9\/preview\/index\.html/,
+  );
+  a.match(html, /Blank site/);
+
+  const preview = await request(
+    "/templates/independent-studio/2.0.9/preview/index.html",
+  );
+  a.equal(preview.status, 200);
+  a.match(preview.headers.get("content-security-policy") || "", /script-src/);
+  const previewHtml = await preview.text();
+  a.match(previewHtml, /scrollbar-width:none/);
+  a.match(previewHtml, /Direction is made in the open\./);
+  a.match(previewHtml, /nl-loop-editorial/);
+  a.match(previewHtml, /font-size:clamp\(44px,5vw,64px\)/);
+  a.match(previewHtml, /nl-disciplines-intro/);
+  a.doesNotMatch(previewHtml, /Three connected disciplines/);
+  a.match(previewHtml, /border-radius:12px/);
+  a.doesNotMatch(previewHtml, /class="[^"]*\bnl-loop-card\b/);
+  const packagedAsset = previewHtml.match(/src="(assets\/[^"]+\.webp)"/);
+  a.ok(packagedAsset);
+  const media = await request(
+    `/templates/independent-studio/2.0.9/preview/${packagedAsset[1]}`,
+  );
+  a.equal(media.status, 200);
+  a.equal(media.headers.get("content-type"), "image/webp");
+  a.match(media.headers.get("cache-control") || "", /immutable/);
+
+  const v207 = await request(
+    "/templates/independent-studio/2.0.7/preview/index.html",
+  );
+  a.equal(v207.status, 200);
+
+  const v206 = await request(
+    "/templates/independent-studio/2.0.6/preview/index.html",
+  );
+  a.equal(v206.status, 200);
+
+  const v205 = await request(
+    "/templates/independent-studio/2.0.5/preview/index.html",
+  );
+  a.equal(v205.status, 200);
+
+  const v204 = await request(
+    "/templates/independent-studio/2.0.4/preview/index.html",
+  );
+  a.equal(v204.status, 200);
+
+  const v203 = await request(
+    "/templates/independent-studio/2.0.3/preview/index.html",
+  );
+  a.equal(v203.status, 200);
+
+  const v202 = await request(
+    "/templates/independent-studio/2.0.2/preview/index.html",
+  );
+  a.equal(v202.status, 200);
+
+  const v201 = await request(
+    "/templates/independent-studio/2.0.1/preview/index.html",
+  );
+  a.equal(v201.status, 200);
+
+  const v200 = await request(
+    "/templates/independent-studio/2.0.0/preview/index.html",
+  );
+  a.equal(v200.status, 200);
+
+  const previousVersion = await request(
+    "/templates/independent-studio/1.0.1/preview/index.html",
+  );
+  a.equal(previousVersion.status, 200);
+
+  const priorVersion = await request(
+    "/templates/independent-studio/1.0.0/preview/index.html",
+  );
+  a.equal(priorVersion.status, 200);
+});
+
+test("a failed concurrent template install waits for every asset and leaves no partial site", async () => {
+  const assets = new FailingConcurrentAssetStore();
+  const siteTemplates = new FileSiteTemplateStore(
+    resolve(process.cwd(), "premade-sites"),
+  );
+  const { request, accountAuth, auth, store } = rig({ assets, siteTemplates });
+  accountAuth.current = {
+    authUserId: "auth-rollback",
+    email: "rollback@example.test",
+    name: "Rollback",
+  };
+  await auth.ensureAuthUser(
+    "auth-rollback",
+    "rollback@example.test",
+    "Rollback",
+  );
+
+  const response = await request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      name: "Rollback Studio",
+      slug: "rollback-studio",
+      templateId: "independent-studio",
+      templateVersion: "2.0.9",
+    }),
+  });
+
+  a.equal(response.status, 500);
+  a.deepEqual(await response.json(), {
+    error: "site_template_install_failed",
+    detail: "The curated site could not be installed. Nothing was kept.",
+  });
+  a.equal(assets.peak, 5, "failure still waits for all concurrent uploads to settle");
+  a.equal(await store.bySlug("rollback-studio"), null);
+  for (const siteId of assets.siteIds) a.deepEqual(await assets.list(siteId), []);
 });
 
 test("site overview is protected, membership-scoped, and exposes working management actions", async () => {

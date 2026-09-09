@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Projects/pagecraft-premade-sites
+
+
+ Test Files  2 passed (2)
+      Tests  644 passed (644)
+   Start at  21:05:09
+   Duration  732ms (transform 583ms, setup 0ms, import 690ms, tests 428ms, environment 0ms)
+

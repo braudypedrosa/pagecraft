@@ -1,0 +1,22 @@
+{
+  "packageSha256": "710467e3141833bde86d5c71f7a66661a8a406f309e3bbd6c0e8d96e4f3cffda",
+  "status": "homepage review draft; release acceptance incomplete",
+  "verified": [
+    "TypeScript passed",
+    "5 native-template tests passed",
+    "Native document, asset and package checks passed",
+    "Six rendered pages at 390, 767, 768, 1024 and 1440: no overflow, missing images or visible text below 14px",
+    "Homepage comparison anchor and native FAQ click verified",
+    "Final headline checked at 390 and 1440",
+    "Final package accepted by isolated WordPress importer"
+  ],
+  "evidence": "evidence/rental-homepage/",
+  "research": "HOMEPAGE-RESEARCH.md",
+  "limitations": [
+    "No live booking search, prices, calendar or configured inquiry receiver",
+    "Current full Cloud/WordPress release matrix and independent review pending",
+    "User visual approval pending"
+  ],
+  "previousEvidence": "evidence/rejected-mediterranean/; does not apply to this package",
+  "published": false
+}

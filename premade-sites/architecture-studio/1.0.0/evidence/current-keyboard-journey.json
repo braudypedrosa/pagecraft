@@ -1,0 +1,12 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "cloud": {
+    "menuExpanded": "true",
+    "journey": "Home menu -> Projects -> Courtyard detail -> Contact, Enter on native controls",
+    "destination": "- link \"Skip to content\":\n  - /url: \"#pagecraft-main\"\n- link \"Common Ground\":\n  - /url: /common-ground-native-fields-qa/\n- navigation \"Main navigation\":\n  - button \"Main navigation menu\"\n- main:\n  - heading \"Tell us about your place.\" [level=1]\n  - paragraph: Start with the location, the building as it is now, and what you would like to change.\n  - form \"Project inquiry\":\n    - generic: Name *\n    - textbox \"Name\"\n    - generic: Email *\n    - textbox \"Email\"\n    - generic: About the project *\n    - textbox \"About the project\"\n    - button \"Send inquiry\"\n  - heading \"A useful first message.\" [level=2]\n  - paragraph: Include the location, whether this is an existing building or a new site, and the main change you want to make. Avoid sending sensitive documents until you have agreed how they will be handled.\n  - paragraph: This demonstration form is not connected to a receiving service. The template owner must configure and test delivery before accepting inquiries.\n- paragraph: Common Ground is a fictional architecture practice. Projects and AI-generated imagery are demonstration content, not completed commissions.\n- link \"Explore the projects\":\n  - /url: /common-ground-native-fields-qa/projects\n  - generic: Explore the projects"
+  },
+  "wordpress": {
+    "menuExpanded": "true",
+    "journey": "Home menu -> Projects -> Courtyard detail -> Contact, Enter on native controls; Contact heading and native form verified"
+  }
+}

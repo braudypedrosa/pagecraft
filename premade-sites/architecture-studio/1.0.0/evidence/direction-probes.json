@@ -1,0 +1,134 @@
+[
+  {
+    "page": "index",
+    "clientWidth": 375,
+    "headings": [
+      "Homes shaped by everyday life."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 375,
+    "width": 390
+  },
+  {
+    "page": "index",
+    "clientWidth": 753,
+    "headings": [
+      "Homes shaped by everyday life."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 753,
+    "width": 768
+  },
+  {
+    "page": "index",
+    "clientWidth": 1009,
+    "headings": [
+      "Homes shaped by everyday life."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 1009,
+    "width": 1024
+  },
+  {
+    "page": "index",
+    "clientWidth": 1425,
+    "headings": [
+      "Homes shaped by everyday life."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 1425,
+    "width": 1440
+  },
+  {
+    "page": "journal",
+    "clientWidth": 375,
+    "headings": [
+      "Old spaces.New uses."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 375,
+    "width": 390
+  },
+  {
+    "page": "journal",
+    "clientWidth": 753,
+    "headings": [
+      "Old spaces.New uses."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 753,
+    "width": 768
+  },
+  {
+    "page": "journal",
+    "clientWidth": 1009,
+    "headings": [
+      "Old spaces.New uses."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 1009,
+    "width": 1024
+  },
+  {
+    "page": "journal",
+    "clientWidth": 1425,
+    "headings": [
+      "Old spaces.New uses."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 1425,
+    "width": 1440
+  },
+  {
+    "page": "index-study",
+    "clientWidth": 375,
+    "headings": [
+      "Homes andshared places."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 375,
+    "width": 390
+  },
+  {
+    "page": "index-study",
+    "clientWidth": 753,
+    "headings": [
+      "Homes andshared places."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 753,
+    "width": 768
+  },
+  {
+    "page": "index-study",
+    "clientWidth": 1009,
+    "headings": [
+      "Homes andshared places."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 1009,
+    "width": 1024
+  },
+  {
+    "page": "index-study",
+    "clientWidth": 1425,
+    "headings": [
+      "Homes andshared places."
+    ],
+    "imagesLoaded": true,
+    "minText": 14,
+    "scrollWidth": 1425,
+    "width": 1440
+  }
+]

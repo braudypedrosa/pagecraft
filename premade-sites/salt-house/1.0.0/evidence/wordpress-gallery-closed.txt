@@ -1,0 +1,75 @@
+- navigation "Toolbar":
+  - menu:
+    - menuitem "About WordPress":
+      - generic: About WordPress
+    - menuitem "Salt House Template QA"
+    - menuitem "Customize"
+    - menuitem "0 Comments in moderation":
+      - generic: "0"
+      - generic: 0 Comments in moderation
+    - menuitem "New":
+      - generic: New
+    - menuitem "Edit Page"
+  - menu:
+    - menuitem "Howdy, architectureqa"
+    - menuitem "Search":
+      - textbox "Search"
+      - generic: Search
+- link "Skip to content":
+  - /url: "#pagecraft-main"
+- banner:
+  - link "Salt House":
+    - /url: /
+  - navigation "Main navigation":
+    - list:
+      - link "The homes":
+        - /url: http://127.0.0.1:4894/homes/
+      - link "The coast":
+        - /url: http://127.0.0.1:4894/coast/
+      - link "Plan your stay":
+        - /url: http://127.0.0.1:4894/plan-your-stay/
+- main:
+  - article:
+    - heading "Blue Shutter Cottage" [level=1]
+    - paragraph: Blue shutters, pale linen and a slower village rhythm.
+    - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+    - heading "A home between village and sea." [level=2]
+    - paragraph: A shaded living room opens toward the coast. This example cottage is a smaller base for a couple or family, with two bedrooms and village life nearby.
+    - paragraph: Fictional homes and example details. Images are AI-generated; no real rental availability is offered.
+    - heading "At a glance" [level=2]
+    - heading "Guests" [level=3]
+    - paragraph: Up to 4
+    - heading "Bedrooms" [level=3]
+    - paragraph: 2 bedrooms
+    - heading "Bathrooms" [level=3]
+    - paragraph: 1 bathroom
+    - link "Ask about this home":
+      - /url: /plan-your-stay/#inquiry
+      - generic: Ask about this home
+    - paragraph: Demonstration only. Booking is not connected.
+    - heading "The everyday details." [level=2]
+    - paragraph: Useful information makes choosing easier.
+    - paragraph: "Two example bedrooms: one double and one twin."
+    - paragraph: "Example amenities: equipped kitchen, dining space, Wi-Fi and washing machine."
+    - paragraph: Village setting with a living room for afternoons indoors. Confirm steps, parking and access with the host before booking.
+    - heading "A closer look." [level=2]
+    - figure "The village setting":
+      - link "Fictional Blue Shutter Cottage exterior beside a coastal village lane" [active]:
+        - /url: http://127.0.0.1:4894/wp-content/uploads/2026/09/exterior.png
+        - img "Fictional Blue Shutter Cottage exterior beside a coastal village lane"
+      - generic: The village setting
+    - heading "A different kind of stay." [level=2]
+    - paragraph: Need an extra bedroom and more outdoor space? Meet Dune House.
+    - link "Explore Dune House":
+      - /url: /dune-house/
+      - generic: Explore Dune House
+- contentinfo:
+  - heading "See you by the sea." [level=2]
+  - link "Find your home":
+    - /url: /homes/
+    - generic: Find your home
+  - link "Plan your stay":
+    - /url: /plan-your-stay/
+    - generic: Plan your stay
+  - generic: SALT HOUSE
+  - paragraph: Fictional collection · AI-generated demonstration images

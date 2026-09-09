@@ -1,0 +1,63 @@
+- navigation "Toolbar":
+  - menu:
+    - menuitem "About WordPress":
+      - generic: About WordPress
+    - menuitem "Architecture Template QA"
+    - menuitem "Customize"
+    - menuitem "0 Comments in moderation":
+      - generic: "0"
+      - generic: 0 Comments in moderation
+    - menuitem "New":
+      - generic: New
+    - menuitem "Edit Page"
+  - menu:
+    - menuitem "Howdy, architectureqa"
+    - menuitem "Search":
+      - textbox "Search"
+      - generic: Search
+- link "Skip to content":
+  - /url: "#pagecraft-main"
+- banner:
+  - link "Common Ground":
+    - /url: /
+  - navigation "Main navigation":
+    - list:
+      - link "Projects":
+        - /url: http://127.0.0.1:4892/projects/
+      - link "Practice":
+        - /url: http://127.0.0.1:4892/about/
+      - link "Services":
+        - /url: http://127.0.0.1:4892/services/
+      - link "Contact":
+        - /url: http://127.0.0.1:4892/contact/
+- main:
+  - article:
+    - heading "Tell us about your place." [level=1]:
+      - text: Tell us about
+      - text: your place.
+    - paragraph: What is there now, and what could it become? Start with the location, the building and the change you have in mind.
+    - group "Project inquiry":
+      - generic: Name *
+      - textbox "Name" [disabled]
+      - generic: Email *
+      - textbox "Email" [disabled]
+      - generic: About the project *
+      - textbox "About the project" [disabled]
+      - button "Send inquiry" [disabled]
+      - paragraph: This form is not configured to receive submissions.
+    - heading "A useful first message." [level=2]
+    - paragraph: Include the location, current use, and the main change you would like to make. Avoid sensitive documents until you have agreed how they will be handled.
+    - paragraph: This demonstration form needs a receiving service. The template owner must configure and test delivery before accepting inquiries.
+- contentinfo:
+  - heading "Let’s make room for what comes next." [level=2]:
+    - text: Let’s make room
+    - text: for what comes next.
+  - paragraph: A home to change. A building to reuse. A place to share.
+  - link "Start a conversation":
+    - /url: /contact/
+    - generic: Start a conversation
+  - paragraph: Common Ground
+  - paragraph: Fictional practice · AI-generated design studies
+  - link "About the practice":
+    - /url: /about/
+    - generic: About the practice

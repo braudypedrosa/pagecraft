@@ -1,0 +1,41 @@
+[
+  {
+    "exercise": "native-inspector-save-reopen",
+    "source": "Browser inspector name edits and duplicate; browser reload and authoritative saved host response",
+    "instances": 3,
+    "longName": true,
+    "independent": true,
+    "version": 18
+  },
+  {
+    "exercise": "stress-save-reopen",
+    "count": 1,
+    "version": 11,
+    "sharedStyle": "22px",
+    "font": "Georgia, serif"
+  },
+  {
+    "exercise": "stress-save-reopen",
+    "count": 3,
+    "version": 12,
+    "sharedStyle": "22px",
+    "font": "Georgia, serif"
+  },
+  {
+    "exercise": "stress-save-reopen",
+    "count": 7,
+    "version": 13,
+    "sharedStyle": "22px",
+    "font": "Georgia, serif"
+  },
+  {
+    "exercise": "restore-and-publish",
+    "result": {
+      "status": "published",
+      "publicationId": "fdeb1857-9edf-4b17-b398-55226d5f7574",
+      "sourceVersion": 15,
+      "publishedAt": "2026-09-08T02:47:28.042Z",
+      "publicUrl": "http://localhost:4897/salt-house-release/"
+    }
+  }
+]

@@ -1,0 +1,48 @@
+{
+    "phpPackageValidation": "pass",
+    "pages": [
+        {
+            "id": "cove-page-index",
+            "htmlBytes": 66196,
+            "cssBytes": 12593
+        },
+        {
+            "id": "cove-page-stays",
+            "htmlBytes": 44863,
+            "cssBytes": 3682
+        },
+        {
+            "id": "cove-page-cove-house",
+            "htmlBytes": 55203,
+            "cssBytes": 7826
+        },
+        {
+            "id": "cove-page-palm-terrace",
+            "htmlBytes": 55194,
+            "cssBytes": 7826
+        },
+        {
+            "id": "cove-page-the-lookout",
+            "htmlBytes": 55164,
+            "cssBytes": 7826
+        },
+        {
+            "id": "cove-page-the-coast",
+            "htmlBytes": 41966,
+            "cssBytes": 3547
+        },
+        {
+            "id": "cove-page-our-story",
+            "htmlBytes": 41086,
+            "cssBytes": 3027
+        },
+        {
+            "id": "cove-page-contact",
+            "htmlBytes": 45828,
+            "cssBytes": 3977
+        }
+    ],
+    "newSliderPropertyPreserved": true,
+    "newFormColumnsPreserved": true,
+    "scope": "Offline PHP package parser only; no WordPress login\/import\/editor\/runtime acceptance"
+}

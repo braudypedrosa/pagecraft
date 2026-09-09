@@ -1,0 +1,39 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "checks": [
+    {
+      "color": "rgb(36, 44, 39)",
+      "font": "Arial, sans-serif",
+      "images": [
+        {
+          "loaded": true,
+          "padding": "0px",
+          "src": "/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "padding": "0px",
+          "src": "/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "url": "http://localhost:4890/common-ground-native-fields-qa/"
+    },
+    {
+      "color": "rgb(36, 44, 39)",
+      "font": "Arial, sans-serif",
+      "images": [
+        {
+          "loaded": false,
+          "padding": "0px",
+          "src": "6"
+        },
+        {
+          "loaded": true,
+          "padding": "0px",
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "url": "http://127.0.0.1:4892/"
+    }
+  ]
+}

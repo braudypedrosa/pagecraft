@@ -1,0 +1,1491 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Small vacation-rental collection, explicitly selected by user",
+    "primaryAction": "Compare homes, inspect property details, then use configured inquiry or booking-provider link",
+    "pages": [
+      "index",
+      "homes",
+      "dune-house",
+      "blue-shutter-cottage",
+      "coast",
+      "plan-your-stay"
+    ],
+    "content": "Six native pages with fictional property facts and explicitly labeled example nightly rates. No live availability, reviews, real hosts or operating credentials invented.",
+    "imagery": "Coastal terrace introduces place; cottage interior and exterior clarify setting; Dune bedroom adds complementary detail.",
+    "provenance": [
+      {
+        "asset": "terrace",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-f6514c50-8ac0-4943-b5fd-04bc4360350e.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "cottage",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-0aaa59b2-5026-496b-bcd4-f640fdd7031c.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "exterior",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-1327b140-f37b-4281-b01b-a63e5bc5c604.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "bedroom",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-8a90544a-a056-465a-93c0-2f8cc7d2ef06.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      }
+    ]
+  },
+  "directions": [
+    {
+      "id": "coastline",
+      "thesis": "Open coastal brand and useful property comparison",
+      "fingerprint": {
+        "header": "compact chalk navigation",
+        "hero": "oversized centered brand above full-bleed panorama",
+        "textAnchor": "centered brand",
+        "inventory": "two attached image plates on sand",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "oversized centered brand above full-bleed panorama",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "two attached image plates on sand",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    },
+    {
+      "id": "guestbook",
+      "thesis": "Warm editorial home-by-home narrative",
+      "fingerprint": {
+        "header": "compact plain navigation",
+        "hero": "ochre text and tall terrace image",
+        "textAnchor": "left reading groups",
+        "inventory": "sequential featured-home story",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "ochre text and tall terrace image",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "sequential featured-home story",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    },
+    {
+      "id": "collection",
+      "thesis": "Property-first browsing for practical decisions",
+      "fingerprint": {
+        "header": "navy navigation",
+        "hero": "compact introduction then property inventory",
+        "textAnchor": "left reading groups",
+        "inventory": "immediate paired facts and photographs",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "compact introduction then property inventory",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "immediate paired facts and photographs",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "directionId": "coastline",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "proceed",
+      "at": "2026-09-07T17:01:20.711192Z",
+      "evidence": "Recorded from task conversation after explicit recommendation to build complete Salt House using Coastline. Implementation authorization, not final visual approval."
+    }
+  },
+  "targets": {
+    "cloud": {
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944+qa-harness:e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+      "editorVersion": "0.2.15"
+    },
+    "wordpress": {
+      "hostRevision": "47fa59e3447368174e435716f05f241828a0b9e3",
+      "editorVersion": "0.2.14"
+    }
+  },
+  "findings": [],
+  "qa": [
+    {
+      "host": "cloud",
+      "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944+qa-harness:e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+      "editorVersion": "0.2.15",
+      "at": "2026-09-08T03:06:05.015Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "Homepage 767, 769, 1023, 1025 passed; detailed methods and limitations in REPORT.json.",
+      "evidence": [
+        {
+          "path": "evidence/release-qa/REPORT.json",
+          "sha256": "d4400d75ee92c057e84d4e464fbbef1cb1b72577efa56af88d88e3b958ab67db"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-1024.png",
+          "sha256": "49d8681e4bf1b41513c3ec7bcc7af540da5d204fad6346267487f2f6b8da9b14"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-1440.png",
+          "sha256": "e8806e86496ff93cb937d7efa17cedf895a19da2ea611655f4e2d288cc0eab3b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-390.png",
+          "sha256": "2a63ef8b2360702ff790bbb8124726856a0ef4f29848715feb8f04e35718a232"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-768.png",
+          "sha256": "061acd47e378552b19220516529ed8e562f6e4f60934de0422d8b84bad94cb5b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-1024.png",
+          "sha256": "cf8b437e81e03a43d7a44ff8cc04954a885a33d1ae9ac8b6576b4d7322423fde"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-1440.png",
+          "sha256": "0442f836fb26b781f32077a678f8d196767ea25d5feb6500530ff2432efa1ee6"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-390.png",
+          "sha256": "182cf408d4a9dfdce47c8f6d7e41a973d903a5d4619cf1c23fbc3ab77b62a8f9"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-768.png",
+          "sha256": "4a151a467c892634499d30d7c0888ee4781f688eaba0a4a9be5dce036ea74f12"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-1024.png",
+          "sha256": "64df34cf01a3e53ab6d416bb82164d365069c69176f6ef33743ea85e6750f96d"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-1440.png",
+          "sha256": "ed832209adf04568cb217685b3bb56051440bc5cbc843bff868c1d837c7eee98"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-390.png",
+          "sha256": "df598a46f426279891829c1ab464084d756555a344038834b8a5ecc17ed4cc68"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-768.png",
+          "sha256": "526e801af0a3ce890e87bce2334f58b8bc73ba63b8b35ea817587a6e7e85dbb1"
+        },
+        {
+          "path": "evidence/release-qa/cloud-editor.txt",
+          "sha256": "32c9f8cf4d8e82d5ebcd58db8fff734cf6f2a4d9f7575227289208372fc15389"
+        },
+        {
+          "path": "evidence/release-qa/cloud-exercises.json",
+          "sha256": "da520a179a30b78b8527d3c4c943a09bd6c59f80d1f5aa8b94c6e3b27783eb35"
+        },
+        {
+          "path": "evidence/release-qa/cloud-form-receipt.png",
+          "sha256": "457f157ef4cc3e84109fc24e1e4078d138af3ea63df25b411c279e934255be7b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-1024.png",
+          "sha256": "8f8ac933dc9c2297ac8363a0e7a84698bb1a1e33e5b55f31b5284c3214ab6fba"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-1440.png",
+          "sha256": "4693c56b53fe359c290f718f830ded51aec9569cbeea3f0c448c3cd055ef1970"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-390.png",
+          "sha256": "ac66141dfaa9e395e14ae9ec54d6f0d7fd7ca96b92e29d806e611bb0631c0809"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-768.png",
+          "sha256": "530dc5ac5200cb7dc72fb2f378e83d7b3f170894b767a45bb9476ea38229d5a8"
+        },
+        {
+          "path": "evidence/release-qa/cloud-image-replacement.json",
+          "sha256": "1194e1ea6eb27e0eab6daf9aa20d9a88ee71e168b135aa30eee3d4a5af002f0b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-1024.png",
+          "sha256": "8a2a4ae3c4a97405b052a81f05ece7c33f87e51386bf897612c7a59739e9b24b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-1440.png",
+          "sha256": "2c1ce322446ea2ef6d2d473fd42649cfb45f35d5cc3a97b64af613757ef54583"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-390.png",
+          "sha256": "c1e24827f5406f506ade0969b396e1eb24a1f40bc2f0a5f255985d28daa871ae"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-768.png",
+          "sha256": "f8efab7d13d586c1058374af7ad83a362b6390ded685c51d78e0340859f5b504"
+        },
+        {
+          "path": "evidence/release-qa/cloud-keyboard-faq.png",
+          "sha256": "6c4ba968a57ba1318bc9bbc87fe2e892d819292e4c9bf9eadc8f13d067ac597e"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-1024.png",
+          "sha256": "916fc667934d1a0f370d7d7f3101db9089a47d17371edb477f7d0c916ad0f03d"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-1440.png",
+          "sha256": "4fac0ea98e6f3859ff0cfeeaaebcbf1de907f04695916a13eff1bd6b50272ab9"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-390.png",
+          "sha256": "b17a53d46c353897cfdc8b4c33168a8699af2f81f37875f24553e9f98ea35062"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-768.png",
+          "sha256": "9e01d35235c0e5e643b71e03aaba1bf47111438ea56d1db06c25c264630ff3e7"
+        },
+        {
+          "path": "evidence/release-qa/host-responsive.json",
+          "sha256": "32e1c60d62fa3934fedf0bb3425069478d361e4ca97c4707b22091b9ad181dcc"
+        },
+        {
+          "path": "evidence/release-qa/independent-review.json",
+          "sha256": "48be508575bb71fc9d1adb55b1d4672f7c1687ee91f94228ae718127cd7437eb"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-editor.txt",
+          "sha256": "0540cb45d5c9c4161c5f5b72140b6c6ee385919ea23a71aa92e97e62dfc1cb7d"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-form-receipt.png",
+          "sha256": "e04a1c8efa3abd3aad61923d5aac5141752f8e918c813979d91a315acf288372"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-one-item-reopened.txt",
+          "sha256": "f9278d79e948b4f977d8eba2f77ea88166c1d61b8dc755ea986faec9fe353c55"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-one-item.png",
+          "sha256": "36c443db47acdb358c1641f63fc3e952471e58066148d865736747b87341a2de"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-seven-items.png",
+          "sha256": "0264fce10ad7fb764b47da801d095d2bd2ac028c7d37bdde74d4de1e7209aeb7"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-1024.png",
+          "sha256": "1c09687e74db43179a281956a995c2876844af9b76e532f3fd400188f1d28c0b"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-1440.png",
+          "sha256": "74ea0919a5298aa03a72d5198048c20d0da3b18bd64d5a46445af803b119b40e"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-390.png",
+          "sha256": "3a6022a099cef41112e9d8564aee8c584be5536bb3ae16200cefdd0c8b1c11c8"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-768.png",
+          "sha256": "f4cf5fb8a05687b6907152cd86c6fa07fed707875bfce54ddbe4044836f39b8a"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-mobile-loaded.png",
+          "sha256": "910051b5bc58fe41d29d619fc38b6c265f302abf655b52cd67f6324c2d3e53c2"
+        },
+        {
+          "path": "evidence/release-qa/wp-booking-1440-viewport.png",
+          "sha256": "f2d4383e3861510321ea3a1ed4d178b6a3e256ac452a0e7c20b34cfb8cf87ca8"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-1024.png",
+          "sha256": "96ed2107868c80398d7dc4db2dd9a8f3434f21635cbbdde88a268aea616f290e"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-1440.png",
+          "sha256": "ca419db1ec63787439e26e9f45fd4fbdd93a4b774fba41119e6a443ba37a36e5"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-390.png",
+          "sha256": "1698b144354e341d88f231d6375638f7faa38bc7f0518f49711435ac49742738"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-768.png",
+          "sha256": "f857c7e36f3973c799941f87a769fbf8a945f98acc234239563c68af56687af8"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-mobile-loaded.png",
+          "sha256": "6b7d3ad25f8610da8fc788f0005c1b1d357330cea9c1f5e535c4aef3e93db953"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-1024.png",
+          "sha256": "26545f8c08f4010473c7144928e3418052df99ac3e32f61656ceabb3c5fee896"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-1440.png",
+          "sha256": "10f69e51cebc34b33ccd47096c595736e0d1bf83e134b0d84e14226146a4075e"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-390.png",
+          "sha256": "9ab8b1b5ff61dcbf83e27dcc004680d849f41756c3c78dabde1c856b14c445ba"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-768.png",
+          "sha256": "a4c47c1d1d276887f58daee03e08b5ff57f6a132df7ab33db6570210bce24dce"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-mobile-loaded.png",
+          "sha256": "6b6c922f718066421e95e0adaf255f210d4d5f8f479aaa3859c039820c87d2b4"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-1024.png",
+          "sha256": "c75d978b5517f581cef673fc30bc1900dfe762ea7486fa96c6ae47c997f8bf58"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-1440.png",
+          "sha256": "2cdbc64e1ebf3347c5c4058de36da2549153f0420ece463bc42504115d4d262e"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-390.png",
+          "sha256": "de97ba7ce43574b15b2e9b3c0eae1020da257e196e1c1491214983e48e75cce9"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-768.png",
+          "sha256": "8af152d0fb050d257c3a04e4323e73ddaf1b0816cbfe28549973773f56f418ad"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-1024.png",
+          "sha256": "d6c8ff3d90ebc854d209f173cda753a6bdcd1c3fef11a71a108207b55a9061e0"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-1440.png",
+          "sha256": "fb574c26467e8a2dd28ae5c92e8b448394a700ad72cba3bd76fe30985b38623c"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-390.png",
+          "sha256": "c6a9823f17eeb8440fba002ba171b96004a70a4d74b92b12753e8f4575f87a4f"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-768.png",
+          "sha256": "a8ab128d745f568046d52470f50ac31b08a1c4f7443a34620bee9413c9c848cc"
+        },
+        {
+          "path": "evidence/release-qa/wp-keyboard-faq.png",
+          "sha256": "1874a8eb955e0fb768768c9be1095aa7b25d0bd2623b2e325cb468f201278cbe"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-1024.png",
+          "sha256": "808d5ad801a764126fe9e08418acc81e4ec8daca31195998e62fa189e3b63269"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-1440.png",
+          "sha256": "4ce4ec1751207e3fd70804f2fc468c0d0e5d4f6aaf80c15f639a33ecd316cb59"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-390.png",
+          "sha256": "d71489e3767a22d587e45c205eddd943aa7eee37c1abbc14b4d15e6f1c4e1464"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-768.png",
+          "sha256": "3c5eddb0d9612cce9f7e8ae0956eb89b7958d94d7507144c92dbbc29b25b665c"
+        }
+      ]
+    },
+    {
+      "host": "wordpress",
+      "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+      "hostRevision": "47fa59e3447368174e435716f05f241828a0b9e3",
+      "editorVersion": "0.2.14",
+      "at": "2026-09-08T03:06:05.015Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "Homepage 767, 769, 1023, 1025 passed; detailed methods and limitations in REPORT.json.",
+      "evidence": [
+        {
+          "path": "evidence/release-qa/REPORT.json",
+          "sha256": "d4400d75ee92c057e84d4e464fbbef1cb1b72577efa56af88d88e3b958ab67db"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-1024.png",
+          "sha256": "49d8681e4bf1b41513c3ec7bcc7af540da5d204fad6346267487f2f6b8da9b14"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-1440.png",
+          "sha256": "e8806e86496ff93cb937d7efa17cedf895a19da2ea611655f4e2d288cc0eab3b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-390.png",
+          "sha256": "2a63ef8b2360702ff790bbb8124726856a0ef4f29848715feb8f04e35718a232"
+        },
+        {
+          "path": "evidence/release-qa/cloud-blue-shutter-cottage-768.png",
+          "sha256": "061acd47e378552b19220516529ed8e562f6e4f60934de0422d8b84bad94cb5b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-1024.png",
+          "sha256": "cf8b437e81e03a43d7a44ff8cc04954a885a33d1ae9ac8b6576b4d7322423fde"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-1440.png",
+          "sha256": "0442f836fb26b781f32077a678f8d196767ea25d5feb6500530ff2432efa1ee6"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-390.png",
+          "sha256": "182cf408d4a9dfdce47c8f6d7e41a973d903a5d4619cf1c23fbc3ab77b62a8f9"
+        },
+        {
+          "path": "evidence/release-qa/cloud-coast-768.png",
+          "sha256": "4a151a467c892634499d30d7c0888ee4781f688eaba0a4a9be5dce036ea74f12"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-1024.png",
+          "sha256": "64df34cf01a3e53ab6d416bb82164d365069c69176f6ef33743ea85e6750f96d"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-1440.png",
+          "sha256": "ed832209adf04568cb217685b3bb56051440bc5cbc843bff868c1d837c7eee98"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-390.png",
+          "sha256": "df598a46f426279891829c1ab464084d756555a344038834b8a5ecc17ed4cc68"
+        },
+        {
+          "path": "evidence/release-qa/cloud-dune-house-768.png",
+          "sha256": "526e801af0a3ce890e87bce2334f58b8bc73ba63b8b35ea817587a6e7e85dbb1"
+        },
+        {
+          "path": "evidence/release-qa/cloud-editor.txt",
+          "sha256": "32c9f8cf4d8e82d5ebcd58db8fff734cf6f2a4d9f7575227289208372fc15389"
+        },
+        {
+          "path": "evidence/release-qa/cloud-exercises.json",
+          "sha256": "da520a179a30b78b8527d3c4c943a09bd6c59f80d1f5aa8b94c6e3b27783eb35"
+        },
+        {
+          "path": "evidence/release-qa/cloud-form-receipt.png",
+          "sha256": "457f157ef4cc3e84109fc24e1e4078d138af3ea63df25b411c279e934255be7b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-1024.png",
+          "sha256": "8f8ac933dc9c2297ac8363a0e7a84698bb1a1e33e5b55f31b5284c3214ab6fba"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-1440.png",
+          "sha256": "4693c56b53fe359c290f718f830ded51aec9569cbeea3f0c448c3cd055ef1970"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-390.png",
+          "sha256": "ac66141dfaa9e395e14ae9ec54d6f0d7fd7ca96b92e29d806e611bb0631c0809"
+        },
+        {
+          "path": "evidence/release-qa/cloud-homes-768.png",
+          "sha256": "530dc5ac5200cb7dc72fb2f378e83d7b3f170894b767a45bb9476ea38229d5a8"
+        },
+        {
+          "path": "evidence/release-qa/cloud-image-replacement.json",
+          "sha256": "1194e1ea6eb27e0eab6daf9aa20d9a88ee71e168b135aa30eee3d4a5af002f0b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-1024.png",
+          "sha256": "8a2a4ae3c4a97405b052a81f05ece7c33f87e51386bf897612c7a59739e9b24b"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-1440.png",
+          "sha256": "2c1ce322446ea2ef6d2d473fd42649cfb45f35d5cc3a97b64af613757ef54583"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-390.png",
+          "sha256": "c1e24827f5406f506ade0969b396e1eb24a1f40bc2f0a5f255985d28daa871ae"
+        },
+        {
+          "path": "evidence/release-qa/cloud-index-768.png",
+          "sha256": "f8efab7d13d586c1058374af7ad83a362b6390ded685c51d78e0340859f5b504"
+        },
+        {
+          "path": "evidence/release-qa/cloud-keyboard-faq.png",
+          "sha256": "6c4ba968a57ba1318bc9bbc87fe2e892d819292e4c9bf9eadc8f13d067ac597e"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-1024.png",
+          "sha256": "916fc667934d1a0f370d7d7f3101db9089a47d17371edb477f7d0c916ad0f03d"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-1440.png",
+          "sha256": "4fac0ea98e6f3859ff0cfeeaaebcbf1de907f04695916a13eff1bd6b50272ab9"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-390.png",
+          "sha256": "b17a53d46c353897cfdc8b4c33168a8699af2f81f37875f24553e9f98ea35062"
+        },
+        {
+          "path": "evidence/release-qa/cloud-plan-your-stay-768.png",
+          "sha256": "9e01d35235c0e5e643b71e03aaba1bf47111438ea56d1db06c25c264630ff3e7"
+        },
+        {
+          "path": "evidence/release-qa/host-responsive.json",
+          "sha256": "32e1c60d62fa3934fedf0bb3425069478d361e4ca97c4707b22091b9ad181dcc"
+        },
+        {
+          "path": "evidence/release-qa/independent-review.json",
+          "sha256": "48be508575bb71fc9d1adb55b1d4672f7c1687ee91f94228ae718127cd7437eb"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-editor.txt",
+          "sha256": "0540cb45d5c9c4161c5f5b72140b6c6ee385919ea23a71aa92e97e62dfc1cb7d"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-form-receipt.png",
+          "sha256": "e04a1c8efa3abd3aad61923d5aac5141752f8e918c813979d91a315acf288372"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-one-item-reopened.txt",
+          "sha256": "f9278d79e948b4f977d8eba2f77ea88166c1d61b8dc755ea986faec9fe353c55"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-one-item.png",
+          "sha256": "36c443db47acdb358c1641f63fc3e952471e58066148d865736747b87341a2de"
+        },
+        {
+          "path": "evidence/release-qa/wordpress-seven-items.png",
+          "sha256": "0264fce10ad7fb764b47da801d095d2bd2ac028c7d37bdde74d4de1e7209aeb7"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-1024.png",
+          "sha256": "1c09687e74db43179a281956a995c2876844af9b76e532f3fd400188f1d28c0b"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-1440.png",
+          "sha256": "74ea0919a5298aa03a72d5198048c20d0da3b18bd64d5a46445af803b119b40e"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-390.png",
+          "sha256": "3a6022a099cef41112e9d8564aee8c584be5536bb3ae16200cefdd0c8b1c11c8"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-768.png",
+          "sha256": "f4cf5fb8a05687b6907152cd86c6fa07fed707875bfce54ddbe4044836f39b8a"
+        },
+        {
+          "path": "evidence/release-qa/wp-blue-shutter-cottage-mobile-loaded.png",
+          "sha256": "910051b5bc58fe41d29d619fc38b6c265f302abf655b52cd67f6324c2d3e53c2"
+        },
+        {
+          "path": "evidence/release-qa/wp-booking-1440-viewport.png",
+          "sha256": "f2d4383e3861510321ea3a1ed4d178b6a3e256ac452a0e7c20b34cfb8cf87ca8"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-1024.png",
+          "sha256": "96ed2107868c80398d7dc4db2dd9a8f3434f21635cbbdde88a268aea616f290e"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-1440.png",
+          "sha256": "ca419db1ec63787439e26e9f45fd4fbdd93a4b774fba41119e6a443ba37a36e5"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-390.png",
+          "sha256": "1698b144354e341d88f231d6375638f7faa38bc7f0518f49711435ac49742738"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-768.png",
+          "sha256": "f857c7e36f3973c799941f87a769fbf8a945f98acc234239563c68af56687af8"
+        },
+        {
+          "path": "evidence/release-qa/wp-coast-mobile-loaded.png",
+          "sha256": "6b7d3ad25f8610da8fc788f0005c1b1d357330cea9c1f5e535c4aef3e93db953"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-1024.png",
+          "sha256": "26545f8c08f4010473c7144928e3418052df99ac3e32f61656ceabb3c5fee896"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-1440.png",
+          "sha256": "10f69e51cebc34b33ccd47096c595736e0d1bf83e134b0d84e14226146a4075e"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-390.png",
+          "sha256": "9ab8b1b5ff61dcbf83e27dcc004680d849f41756c3c78dabde1c856b14c445ba"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-768.png",
+          "sha256": "a4c47c1d1d276887f58daee03e08b5ff57f6a132df7ab33db6570210bce24dce"
+        },
+        {
+          "path": "evidence/release-qa/wp-dune-house-mobile-loaded.png",
+          "sha256": "6b6c922f718066421e95e0adaf255f210d4d5f8f479aaa3859c039820c87d2b4"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-1024.png",
+          "sha256": "c75d978b5517f581cef673fc30bc1900dfe762ea7486fa96c6ae47c997f8bf58"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-1440.png",
+          "sha256": "2cdbc64e1ebf3347c5c4058de36da2549153f0420ece463bc42504115d4d262e"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-390.png",
+          "sha256": "de97ba7ce43574b15b2e9b3c0eae1020da257e196e1c1491214983e48e75cce9"
+        },
+        {
+          "path": "evidence/release-qa/wp-homes-768.png",
+          "sha256": "8af152d0fb050d257c3a04e4323e73ddaf1b0816cbfe28549973773f56f418ad"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-1024.png",
+          "sha256": "d6c8ff3d90ebc854d209f173cda753a6bdcd1c3fef11a71a108207b55a9061e0"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-1440.png",
+          "sha256": "fb574c26467e8a2dd28ae5c92e8b448394a700ad72cba3bd76fe30985b38623c"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-390.png",
+          "sha256": "c6a9823f17eeb8440fba002ba171b96004a70a4d74b92b12753e8f4575f87a4f"
+        },
+        {
+          "path": "evidence/release-qa/wp-index-768.png",
+          "sha256": "a8ab128d745f568046d52470f50ac31b08a1c4f7443a34620bee9413c9c848cc"
+        },
+        {
+          "path": "evidence/release-qa/wp-keyboard-faq.png",
+          "sha256": "1874a8eb955e0fb768768c9be1095aa7b25d0bd2623b2e325cb468f201278cbe"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-1024.png",
+          "sha256": "808d5ad801a764126fe9e08418acc81e4ec8daca31195998e62fa189e3b63269"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-1440.png",
+          "sha256": "4ce4ec1751207e3fd70804f2fc468c0d0e5d4f6aaf80c15f639a33ecd316cb59"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-390.png",
+          "sha256": "d71489e3767a22d587e45c205eddd943aa7eee37c1abbc14b4d15e6f1c4e1464"
+        },
+        {
+          "path": "evidence/release-qa/wp-plan-your-stay-768.png",
+          "sha256": "3c5eddb0d9612cce9f7e8ae0956eb89b7958d94d7507144c92dbbc29b25b665c"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+    "verdict": "pass",
+    "rationale": "Independent rendered review passed against user-approved composition; 46 screenshot records. User approval is recorded separately.",
+    "evidence": [
+      {
+        "path": "evidence/release-qa/independent-review.json",
+        "sha256": "48be508575bb71fc9d1adb55b1d4672f7c1687ee91f94228ae718127cd7437eb"
+      }
+    ]
+  },
+  "approval": {
+    "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Okay better, this is good for prod deployment",
+      "at": "2026-09-08T02:30:57.895004Z",
+      "evidence": "User approval and production deployment authorization in task 01a07abf-feba-7391-bf0e-1bd23d7add8e after section-feedback homepage review."
+    }
+  },
+  "redesign": {
+    "status": "release-verified",
+    "userFeedback": "Terrible site. Are we serious here?",
+    "scope": "complete Coastline candidate",
+    "archive": "evidence/rejected-coastline",
+    "compatibility": "Passed exact Cloud revision and WordPress 0.2.1; see evidence/release-qa/REPORT.json",
+    "approval": "user-approved",
+    "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+    "report": "QA-REPORT.json",
+    "research": "HOMEPAGE-RESEARCH.md"
+  }
+}

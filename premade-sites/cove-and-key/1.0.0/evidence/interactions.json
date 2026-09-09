@@ -1,0 +1,12 @@
+{
+  "browser": "Codex built-in",
+  "mobileMenu": "opens; Escape closes; aria-expanded true then false",
+  "propertyCarousel": "position 2 of 3 active after click",
+  "reviewCarousel": "position 2 reached; previous enabled and next disabled",
+  "faq": "answer expanded on click",
+  "gallery": "Cove House opens dialog with image, next, previous and Close",
+  "forms": "unconfigured and disabled as requested; no delivery claimed",
+  "automatedTests": "3 passed: eight pages, internal routes and anchors, home comparison, disabled booking, native logo and distinct images",
+  "cloudHost": "Local isolated server started on4898, but built-in browser returned ERR_BLOCKED_BY_CLIENT for both loopback hostnames; no host acceptance recorded",
+  "wordpressHost": "Not accessed: no WP account supplied for this task"
+}

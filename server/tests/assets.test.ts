@@ -83,6 +83,16 @@ test('server asset metadata uses a collision-safe immutable path', () => {
   a.equal(Core.assetFile({ id: 'a2' }), 'assets/a2', 'the id when there is no name');
 });
 
+test('server asset metadata exposes an ephemeral editor preview without persisting storage details', () => {
+  const meta = metaOf({
+    id: 'a1', siteId: 's1', name: 'Preview.webp', type: 'image/webp', w: 800, h: 600,
+    editorUrl: 'https://storage.example.test/signed/preview.webp?token=short-lived'
+  });
+  a.equal(meta.url, 'https://storage.example.test/signed/preview.webp?token=short-lived');
+  a.equal('editorUrl' in meta, false);
+  a.equal('siteId' in meta, false);
+});
+
 test('a token becomes a path, and one with nothing behind it becomes the placeholder', () => {
   const get = (id: string) => id === 'a1' ? { id: 'a1', name: 'logo.png' }
     : id === 'hero-image.v2' ? { id: 'hero-image.v2', name: 'hero.png' } : null;

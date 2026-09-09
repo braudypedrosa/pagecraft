@@ -1,0 +1,23 @@
+[
+  {
+    "h1": "Georgia, \"Times New Roman\", serif",
+    "headings": [
+      "Workshop reading room for a neighborhood gathering around a shared table",
+      "Work with what is there.",
+      "Have a place in mind?"
+    ],
+    "ink": "#293d58",
+    "url": "http://127.0.0.1:4892/"
+  },
+  {
+    "h1": "Arial, sans-serif",
+    "headings": [
+      "Listen before drawing.",
+      "Look carefully at what remains.",
+      "Make the decisions legible.",
+      "Have a place in mind?"
+    ],
+    "ink": "#242c27",
+    "url": "http://127.0.0.1:4892/about/"
+  }
+]

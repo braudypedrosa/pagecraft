@@ -1,0 +1,110 @@
+{
+  "packageSha256": "beaa62e7f69360b7636afb1ff47aad5036c8778b4ad07b6711d5d7a6d5389c1d",
+  "exercise": "Imported current package into both isolated hosts, lengthened native project title, saved, reopened and verified persisted title, restored title, saved and viewed frontend.",
+  "rows": [
+    {
+      "host": "cloud",
+      "width": 1440,
+      "result": {
+        "overflow": false,
+        "sections": [
+          {
+            "id": "pagecraft-section-cg2-header-11",
+            "padding": "24px 48px"
+          },
+          {
+            "id": "pagecraft-section-cg2-image-opening-21",
+            "padding": "0px 48px"
+          },
+          {
+            "id": "pagecraft-section-cg2-opening-title-25",
+            "padding": "32px 48px 72px"
+          },
+          {
+            "id": "pagecraft-section-cg2-selected-projects-31",
+            "padding": "72px 48px"
+          }
+        ],
+        "width": 1440
+      }
+    },
+    {
+      "host": "cloud",
+      "width": 390,
+      "result": {
+        "overflow": false,
+        "sections": [
+          {
+            "id": "pagecraft-section-cg2-header-11",
+            "padding": "20px"
+          },
+          {
+            "id": "pagecraft-section-cg2-image-opening-21",
+            "padding": "0px 20px"
+          },
+          {
+            "id": "pagecraft-section-cg2-opening-title-25",
+            "padding": "40px 20px"
+          },
+          {
+            "id": "pagecraft-section-cg2-selected-projects-31",
+            "padding": "40px 20px"
+          }
+        ],
+        "width": 390
+      }
+    },
+    {
+      "host": "wordpress",
+      "width": 1440,
+      "result": {
+        "overflow": false,
+        "sections": [
+          {
+            "id": "pagecraft-section-cg2-header-11",
+            "padding": "24px 48px"
+          },
+          {
+            "id": "pagecraft-section-cg2-image-opening-21",
+            "padding": "0px 48px"
+          },
+          {
+            "id": "pagecraft-section-cg2-opening-title-25",
+            "padding": "32px 48px 72px"
+          },
+          {
+            "id": "pagecraft-section-cg2-selected-projects-31",
+            "padding": "72px 48px"
+          }
+        ],
+        "width": 1440
+      }
+    },
+    {
+      "host": "wordpress",
+      "width": 390,
+      "result": {
+        "overflow": false,
+        "sections": [
+          {
+            "id": "pagecraft-section-cg2-header-11",
+            "padding": "20px"
+          },
+          {
+            "id": "pagecraft-section-cg2-image-opening-21",
+            "padding": "0px 20px"
+          },
+          {
+            "id": "pagecraft-section-cg2-opening-title-25",
+            "padding": "40px 20px"
+          },
+          {
+            "id": "pagecraft-section-cg2-selected-projects-31",
+            "padding": "40px 20px"
+          }
+        ],
+        "width": 390
+      }
+    }
+  ]
+}

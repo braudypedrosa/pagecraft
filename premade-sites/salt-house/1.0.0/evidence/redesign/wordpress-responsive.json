@@ -1,0 +1,194 @@
+[
+  {
+    "client": 375,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 375,
+    "url": "/",
+    "width": 390
+  },
+  {
+    "client": 375,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 375,
+    "url": "/homes/",
+    "width": 390
+  },
+  {
+    "client": 375,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 375,
+    "url": "/dune-house/",
+    "width": 390
+  },
+  {
+    "client": 375,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 375,
+    "url": "/blue-shutter-cottage/",
+    "width": 390
+  },
+  {
+    "client": 375,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 375,
+    "url": "/coast/",
+    "width": 390
+  },
+  {
+    "client": 375,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 375,
+    "url": "/plan-your-stay/",
+    "width": 390
+  },
+  {
+    "client": 753,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 753,
+    "url": "/",
+    "width": 768
+  },
+  {
+    "client": 753,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 753,
+    "url": "/homes/",
+    "width": 768
+  },
+  {
+    "client": 753,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 753,
+    "url": "/dune-house/",
+    "width": 768
+  },
+  {
+    "client": 753,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 753,
+    "url": "/blue-shutter-cottage/",
+    "width": 768
+  },
+  {
+    "client": 753,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 753,
+    "url": "/coast/",
+    "width": 768
+  },
+  {
+    "client": 753,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 753,
+    "url": "/plan-your-stay/",
+    "width": 768
+  },
+  {
+    "client": 1009,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1009,
+    "url": "/",
+    "width": 1024
+  },
+  {
+    "client": 1009,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1009,
+    "url": "/homes/",
+    "width": 1024
+  },
+  {
+    "client": 1009,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1009,
+    "url": "/dune-house/",
+    "width": 1024
+  },
+  {
+    "client": 1009,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1009,
+    "url": "/blue-shutter-cottage/",
+    "width": 1024
+  },
+  {
+    "client": 1009,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1009,
+    "url": "/coast/",
+    "width": 1024
+  },
+  {
+    "client": 1009,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1009,
+    "url": "/plan-your-stay/",
+    "width": 1024
+  },
+  {
+    "client": 1425,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1425,
+    "url": "/",
+    "width": 1440
+  },
+  {
+    "client": 1425,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1425,
+    "url": "/homes/",
+    "width": 1440
+  },
+  {
+    "client": 1425,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1425,
+    "url": "/dune-house/",
+    "width": 1440
+  },
+  {
+    "client": 1425,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1425,
+    "url": "/blue-shutter-cottage/",
+    "width": 1440
+  },
+  {
+    "client": 1425,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1425,
+    "url": "/coast/",
+    "width": 1440
+  },
+  {
+    "client": 1425,
+    "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+    "images": [],
+    "scroll": 1425,
+    "url": "/plan-your-stay/",
+    "width": 1440
+  }
+]

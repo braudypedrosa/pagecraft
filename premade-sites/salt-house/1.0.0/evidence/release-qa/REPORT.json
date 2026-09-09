@@ -1,0 +1,31 @@
+{
+  "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+  "passed": true,
+  "at": "2026-09-08T03:06:04.998Z",
+  "targets": {
+    "cloud": {
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944+qa-harness:e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+      "editorVersion": "0.2.15"
+    },
+    "wordpress": {
+      "hostRevision": "47fa59e3447368174e435716f05f241828a0b9e3",
+      "editorVersion": "0.2.14"
+    }
+  },
+  "wordpress": {
+    "packageVersion": "0.2.1",
+    "wordpressVersion": "7.1",
+    "phpVersion": "8.5.2",
+    "releaseTests": "Complete npm test suite passed including actual WordPress KSES integration and deterministic package checks.",
+    "exercises": "Native inspector changed global font/color, long heading/rate, independent duplicate and missing image, desktop/tablet/mobile padding. Saved and reopened. Seven items reordered then deleted to one with explicit selection, image replaced via media library, saved/reopened and published. Original package reimported after stress."
+  },
+  "cloud": {
+    "exercises": "Native inspector changed global color, text, independent duplicates, missing image and three viewport settings. Fresh duplicate/name save/reopen confirmed three independent items. API exercised one/three/seven reordered items, shared style/font, doubled heading and uneven description, missing optional image and replacement. Native save/readback and publish routes passed.",
+    "limitation": "Isolated fixture authentication and in-memory storage; not production authentication/database acceptance."
+  },
+  "rendering": "All six pages inspected at 390, 768, 1024 and 1440. Homepage also 767, 769, 1023 and 1025. Initial offscreen WordPress image measurements were taken before loading; follow-up loaded images and viewport screenshots passed. No material frontend console errors. Mobile menu Enter/Escape and native FAQ keyboard interaction passed.",
+  "forms": "Packaged form deliberately unconfigured; Cloud correctly refuses publishing until configured or removed. Disposable installed copies configured with local HTTPS receiver. Real browser submission from both hosts reached receiver; receipt screenshots retained. No email delivery or real booking tested.",
+  "restoration": "Approved package untouched. Stress changes confined to isolated copies. Published QA copies retain local form endpoints only.",
+  "visualReview": "Independent agent reviewed 46 screenshots and passed. Agent assessment is separate from recorded user approval.",
+  "compatibilityLimit": "Verified exact revisions above; no claim for other releases."
+}

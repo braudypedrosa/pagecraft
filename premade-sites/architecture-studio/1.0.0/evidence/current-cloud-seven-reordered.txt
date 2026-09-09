@@ -1,0 +1,265 @@
+- link "Pagecraft dashboard":
+  - /url: /
+  - generic: Pagecraft
+- generic: Common Ground current-package QA
+- generic: · Home
+- button "Sites":
+- button "Desktop":
+- button "Tablet":
+- button "Mobile" [active] [pressed]:
+- button "Undo":
+- button "Redo" [disabled]:
+- button "Keyboard shortcuts":
+- generic: Draft saved 19:15
+- button "Review this project"
+- button "Version history":
+- button "Preview":
+- button "Copy the link to this site":
+- button "Publish this draft":
+  - generic: Publish
+- navigation "Tools":
+  - button "Add":
+    - generic: Add
+  - button "Navigator":
+    - generic: Navigator
+  - button "Pages":
+    - generic: Pages
+  - button "CMS":
+    - generic: CMS
+  - button "Media":
+    - generic: Media
+  - button "Settings":
+    - generic: Settings
+  - button "Account":
+    - strong: TQ
+    - generic: Account
+- complementary:
+  - generic: Add elements
+  - tablist "Add category":
+    - tab "Elements" [selected]:
+      - generic: Elements
+    - tab "Templates":
+      - generic: Templates
+    - tab "Components":
+      - generic: Components
+    - tab "Blocks":
+      - generic: Blocks
+  - generic: Basic elements for building a page
+  - tabpanel "Elements":
+    - generic: Layout
+    - button "Section":
+      - generic: Section
+    - button "Columns":
+      - generic: Columns
+    - button "Row":
+      - generic: Row
+    - button "Flex":
+      - generic: Flex
+    - button "Grid":
+      - generic: Grid
+    - button "Box":
+      - generic: Box
+    - button "Link block":
+      - generic: Link block
+    - button "Slider":
+      - generic: Slider
+    - button "Collection":
+      - generic: Collection
+    - generic: Content
+    - button "Heading":
+      - generic: Heading
+    - button "WYSIWYG":
+      - generic: WYSIWYG
+    - button "Quote":
+      - generic: Quote
+    - button "Table":
+      - generic: Table
+    - button "Code":
+      - generic: Code
+    - button "Image":
+      - generic: Image
+    - button "Gallery":
+      - generic: Gallery
+    - button "Video":
+      - generic: Video
+    - button "Icon":
+      - generic: Icon
+    - generic: Interactive
+    - button "Button":
+      - generic: Button
+    - button "Nav menu":
+      - generic: Nav menu
+    - button "Breadcrumb":
+      - generic: Breadcrumb
+    - button "Form":
+      - generic: Form
+    - button "Accordion":
+      - generic: Accordion
+    - button "Tabs":
+      - generic: Tabs
+    - button "Embed":
+      - generic: Embed
+    - generic: Spacing
+    - button "Divider":
+      - generic: Divider
+    - button "Spacer":
+      - generic: Spacer
+- text: Home
+- generic: Section › Box
+- text: Mobile override
+- iframe [id="canvas"]:
+  - text: Global header
+  - button "Edit header":
+    - text: Edit header
+  - link "Common Ground":
+    - /url: index.html
+  - navigation "Main navigation":
+    - button "Main navigation menu"
+  - text: Page content
+  - heading "Homes and shared places." [level=1]:
+    - text: Homes and
+    - text: shared places.
+  - paragraph: An architecture practice working across homes and places shared by a neighborhood.
+  - link "Courtyard house":
+    - /url: project-detail.html
+    - generic: Courtyard house
+  - link "Workshop reading room":
+    - /url: projects.html#reading-room
+    - generic: Workshop reading room
+  - img "Fictional pale-brick courtyard house with oak-framed openings"
+  - paragraph: Courtyard house · Residential study
+  - heading "Independent project 7" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Workshop reading room for a neighborhood gathering around a shared table" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Independent project 2" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Independent project 3" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Independent project 4" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Independent project 5" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Independent project 6" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Work with what is there." [level=2]
+  - paragraph: "A useful starting point is the place itself: how daylight enters, what can be retained, and how people move through the day. This sample practice uses those observations to shape homes and shared buildings."
+  - heading "Have a place in mind?" [level=2]
+  - paragraph: Tell us what is there now and what you would like to change.
+  - link "Start a project conversation":
+    - /url: contact.html
+    - generic: Start a project conversation
+  - text: Global footer
+  - button "Edit footer":
+    - text: Edit footer
+  - paragraph: Common Ground is a fictional architecture practice. Projects and AI-generated imagery are demonstration content, not completed commissions.
+  - link "Explore the projects":
+    - /url: projects.html
+    - generic: Explore the projects
+  - generic: Box
+  - button "Drag to move":
+  - button "Select parent (esc)":
+  - button "Move to the top (⌘⇧↑)":
+  - button "Move to the bottom (⌘⇧↓)":
+  - button "Duplicate (⌘D)":
+  - button "Delete (⌫)":
+  - button "Everything else — or right-click the element":
+- generic: Mobile
+- generic: 414 PX
+- combobox "Canvas zoom":
+  - generic: Fit · 100%
+- complementary:
+  - generic: Box
+  - text: "#pagecraft-box-587b562f"
+  - button "Copy this element's styling (⌘⇧C)":
+  - button "Select parent (esc)":
+  - tablist "Inspector section":
+    - tab "Content" [selected]
+    - tab "Style"
+    - tab "Advanced"
+  - tabpanel "Content":
+    - generic: Variant
+    - button "Save as variant"
+    - button "Back to the defaults"
+    - generic: 7 values are set on this instance.
+    - button "Project record" [expanded]:
+      - text: Project record
+    - group "Project title":
+      - generic: Project title
+      - textbox: Independent project 7
+    - group "Project type":
+      - generic: Project type
+      - button "Edit on canvas":
+        - text: Edit on canvas
+      - generic: Or double-click on the canvas.
+    - group "Project description":
+      - generic: Project description
+      - button "Edit on canvas":
+        - text: Edit on canvas
+      - generic: Or double-click on the canvas.
+    - group "Project image":
+      - generic: Project image
+      - button "Upload an image":
+        - generic: Drop an image here
+        - generic: or choose a file
+      - button "Upload":
+        - text: Upload
+      - button "Library":
+        - text: Library
+      - generic: Exported inline, or as a file beside the page.
+    - group "Image description":
+      - generic: Image description
+      - textbox: Fictional reading room beneath retained oak trusses
+    - group "Project destination":
+      - generic: Project destination
+      - combobox "Project destination":
+        - generic: A page in this project
+      - combobox "Project destination":
+        - generic: Contact · /contact
+      - combobox "Project destination":
+        - generic: Top of the page
+      - generic: Open in a new tab
+      - switch "Open in a new tab"
+    - group "Project action":
+      - generic: Project action
+      - textbox: Discuss a similar project
+  - button "Duplicate":
+    - text: Duplicate
+  - button "Delete":
+    - text: Delete
+- status

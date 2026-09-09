@@ -1,0 +1,169 @@
+- link "Pagecraft dashboard":
+  - /url: /
+  - generic: Pagecraft
+- generic: Common Ground six-page QA
+- generic: · Home
+- button "Sites":
+- button "Desktop" [pressed]:
+- button "Tablet":
+- button "Mobile":
+- button "Undo" [disabled]:
+- button "Redo" [disabled]:
+- button "Keyboard shortcuts":
+- generic: Draft ready
+- button "Review this project"
+- button "Version history":
+- button "Preview":
+- button "Copy the link to this site":
+- button "Publish this draft":
+  - generic: Publish
+- navigation "Tools":
+  - button "Add":
+    - generic: Add
+  - button "Navigator":
+    - generic: Navigator
+  - button "Pages" [active]:
+    - generic: Pages
+  - button "CMS":
+    - generic: CMS
+  - button "Media":
+    - generic: Media
+  - button "Settings":
+    - generic: Settings
+  - button "Account":
+    - strong: TQ
+    - generic: Account
+- complementary:
+  - generic: Pages and SEO
+  - button "Home the front page":
+    - generic: Home
+    - generic: the front page
+  - button "Move up" [disabled]:
+  - button "Move down":
+  - button "Duplicate page":
+  - button "Delete page":
+  - button "Projects /projects":
+    - generic: Projects
+    - generic: /projects
+  - button "Move up":
+  - button "Move down":
+  - button "Duplicate page":
+  - button "Delete page":
+  - button "Project Detail /project-detail":
+    - generic: Project Detail
+    - generic: /project-detail
+  - button "Move up":
+  - button "Move down":
+  - button "Duplicate page":
+  - button "Delete page":
+  - button "About /about":
+    - generic: About
+    - generic: /about
+  - button "Move up":
+  - button "Move down":
+  - button "Duplicate page":
+  - button "Delete page":
+  - button "Services /services":
+    - generic: Services
+    - generic: /services
+  - button "Move up":
+  - button "Move down":
+  - button "Duplicate page":
+  - button "Delete page":
+  - button "Contact /contact":
+    - generic: Contact
+    - generic: /contact
+  - button "Move up":
+  - button "Move down" [disabled]:
+  - button "Duplicate page":
+  - button "Delete page":
+  - button "New page":
+    - text: New page
+  - generic: Current page
+  - generic: Page name
+  - textbox "Page name": Home
+  - generic: Slug
+  - textbox "Slug" [disabled]: index
+  - text: Fixed at
+  - code: index
+  - text: — a host serves it at the root.
+  - generic: Browser title
+  - textbox "Browser title":
+    - /placeholder: Home
+    - text: Common Ground — Homes and shared places
+  - generic: Meta description
+  - textbox "Meta description": A fictional architecture practice exploring homes and adaptive reuse.
+  - generic: Social share image
+  - generic: courtyard-house.png
+  - generic: 1 KB · 1536 × 1024
+  - button "Remove":
+  - button "Replace":
+    - text: Replace
+  - button "Library":
+    - text: Library
+  - generic: Falls back to the project image when empty.
+  - generic: Extra <head> HTML
+  - textbox "Extra <head> HTML":
+    - /placeholder: <meta name="robots" content="noindex">
+  - generic: This page only, after the project's block.
+  - text: Detail template
+  - generic: — one page per item
+  - combobox "Detail template — one page per item":
+    - generic: — An ordinary page —
+- text: Home
+- text: Desktop base
+- iframe [id="canvas"]:
+  - text: Global header
+  - button "Edit header":
+    - text: Edit header
+  - link "Common Ground":
+    - /url: index.html
+  - navigation "Main navigation":
+    - list:
+      - link "Projects":
+        - /url: projects.html
+      - link "About":
+        - /url: about.html
+      - link "Services":
+        - /url: services.html
+      - link "Contact":
+        - /url: contact.html
+  - text: Page content
+  - heading "Homes and shared places." [level=1]:
+    - text: Homes and
+    - text: shared places.
+  - paragraph: An architecture practice working across homes and places shared by a neighborhood.
+  - link "Courtyard house":
+    - /url: project-detail.html
+    - generic: Courtyard house
+  - link "Workshop reading room":
+    - /url: projects.html#reading-room
+    - generic: Workshop reading room
+  - img "Fictional pale-brick courtyard house with oak-framed openings"
+  - paragraph: Courtyard house · Residential study
+  - heading "Workshop reading room" [level=2]
+  - paragraph: Adaptive reuse
+  - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+  - link "Discuss a similar project":
+    - /url: contact.html
+    - generic: Discuss a similar project
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Work with what is there." [level=2]
+  - paragraph: "A useful starting point is the place itself: how daylight enters, what can be retained, and how people move through the day. This sample practice uses those observations to shape homes and shared buildings."
+  - heading "Have a place in mind?" [level=2]
+  - paragraph: Tell us what is there now and what you would like to change.
+  - link "Start a project conversation":
+    - /url: contact.html
+    - generic: Start a project conversation
+  - text: Global footer
+  - button "Edit footer":
+    - text: Edit footer
+  - paragraph: Common Ground is a fictional architecture practice. Projects and AI-generated imagery are demonstration content, not completed commissions.
+  - link "Explore the projects":
+    - /url: projects.html
+    - generic: Explore the projects
+- generic: Desktop
+- generic: 1320 PX
+- combobox "Canvas zoom":
+  - generic: Fit · 69%
+- status

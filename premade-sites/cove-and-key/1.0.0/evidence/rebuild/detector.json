@@ -1,0 +1,13 @@
+[
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/braudypedorsa/Projects/pagecraft-premade-sites/premade-sites/cove-and-key/1.0.0/source.ts",
+    "line": 23,
+    "snippet": "Undocumented color rgba(7,36,52,.96) is outside DESIGN.md colors",
+    "ignoreValue": "rgba(7,36,52,.96)"
+  }
+]

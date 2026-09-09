@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-09-08",
+  "approvedDirection": "../directions/B.png",
+  "generator": "OpenAI built-in image_gen",
+  "provenance": "AI-generated fictional demonstration properties. These images do not document real properties, amenities, locations, or bookable accommodations.",
+  "review": "All five images visually inspected at generation resolution; distinct scenes, natural photographic detail, no text, no UI, no people.",
+  "assets": [
+    {
+      "file": "hero.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "png",
+      "transparent": false,
+      "promptFile": "hero.prompt.txt",
+      "promptEmbedded": true,
+      "prompt": "Use case: photorealistic-natural. Create one premium architectural travel photograph, wide landscape 3:2, for the fictional Cove & Key demo vacation-rental website. Panoramic tropical coastal villa: white modern stucco architecture on left, open shaded dining terrace with natural teak furniture and woven pendant lamps, cream loungers, a turquoise infinity pool across lower center, deep blue sea and lush distant coastal headlands across center-right, palms delicately framing the edges. Bright clear natural morning light, rich but realistic sea blue, pale sandstone paving, detailed foliage, candid believable architectural photography with a 28mm lens and accurate perspective. Match the scenic coastal luxury mood of the approved direction, but this is a fresh full-resolution photograph ONLY. Horizon in upper third, strongest villa and pool content in central horizontal band so wide hero crop works. No people, no text, no logos, no UI, no frame, no watermarks. Fictional property, no recognizable real resort. High detail, natural texture and restrained color grading.",
+      "source": "/Users/braudypedorsa/.codex/generated_images/01a080ab-dd5b-7e32-b97f-96356f71ec44/exec-c09bf512-97da-486e-91f4-529a71637067.png",
+      "usage": "Hero and Cove House listing",
+      "crop": "Wide cover crop, object-position 50% 58%; preserve pool, left villa, and ocean."
+    },
+    {
+      "file": "terrace.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "png",
+      "transparent": false,
+      "promptFile": "terrace.prompt.txt",
+      "promptEmbedded": true,
+      "prompt": "Use case: photorealistic-natural. Create one premium architectural travel photograph, wide landscape 3:2, for the fictional Cove & Key demo vacation-rental website. A distinctive palm-shaded vacation home terrace, a different property from a white infinity-pool villa. Intimate tropical courtyard terrace with warm limewashed sand walls, timber pergola casting delicate filtered shadows, deep linen-cushioned teak sofa and two woven lounge chairs around a low wood table, large potted palms and dense lush gardens, a small glimpse of blue sea between greenery at right. No swimming pool. Camera at seated eye level looking diagonally through terrace, interesting foreground palm leaves, plenty of natural material texture. Sophisticated quiet relaxed architectural magazine photography, late morning sunlight, natural greens, cream linen, blue sky and weathered wood, 35mm lens and realistic perspective. Fresh full-resolution photograph ONLY. Useful central crop for property slider. No people, no text, no logos, no UI, no frame, no watermarks. Fictional property, no recognizable real resort.",
+      "source": "/Users/braudypedorsa/.codex/generated_images/01a080ab-dd5b-7e32-b97f-96356f71ec44/exec-a12368e3-2f40-46fe-8912-2fcc2c0cafbb.png",
+      "usage": "Palm Terrace listing",
+      "crop": "Landscape cover crop, object-position center."
+    },
+    {
+      "file": "bedroom.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "png",
+      "transparent": false,
+      "promptFile": "bedroom.prompt.txt",
+      "promptEmbedded": true,
+      "prompt": "Use case: photorealistic-natural. Create one premium architectural interior travel photograph, wide landscape 3:2, for the fictional Cove & Key demo vacation-rental website. Third distinct vacation property: serene elevated coastal bedroom opening onto a balcony and expansive ocean view. An airy white linen bed on left foreground with a sand-colored textured coverlet, warm oak platform base, a simple ceramic bedside lamp, ivory plaster walls, wide fully open sliding glass doors in center-right, sheer white curtains lightly moving, slender timber balcony railing and distant blue bay far below with tropical headlands. No pool, no terrace sofa. Natural afternoon light enters from balcony, delicate linen texture, warm quiet materials, strong ocean view and believable architecture. High-end editorial photography using a 28mm lens without extreme distortion; fresh full-resolution photograph ONLY, balanced interior exposure with clear sea outside, useful center crop for property slider. No people, no text, no logos, no UI, no frame, no watermarks. Fictional property, no recognizable real resort.",
+      "source": "/Users/braudypedorsa/.codex/generated_images/01a080ab-dd5b-7e32-b97f-96356f71ec44/exec-31d5d367-3418-4a86-b9e2-29b4dc5dba81.png",
+      "usage": "The Lookout listing",
+      "crop": "Landscape cover crop, object-position center."
+    },
+    {
+      "file": "coast.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "png",
+      "transparent": false,
+      "promptFile": "coast.prompt.txt",
+      "promptEmbedded": true,
+      "prompt": "Use case: photorealistic-natural. Create one premium editorial travel photograph, landscape 3:2, for a fictional coastal vacation rental demonstration website. A quiet tropical bay viewed from a gently elevated coastal path: clear turquoise water near a small pale sand crescent, deep blue sea farther out, green tropical headlands and a few palms framing the foreground. No buildings as centerpiece, no resorts, no people or boats. Sophisticated natural coastal travel photography, clear soft morning sunshine, natural green and blue palette, realistic rock and foliage detail, subtle atmospheric distance. Wide open composition with beach and headland centered, high quality full-resolution photograph only. No text, logos, UI, borders or watermarks. Fictional coastline, no claim to depict a real destination.",
+      "source": "/Users/braudypedorsa/.codex/generated_images/01a080ab-dd5b-7e32-b97f-96356f71ec44/exec-471046ef-3a57-4f05-9c92-3650189e096b.png",
+      "usage": "Coast destination section",
+      "crop": "Landscape cover crop, object-position center."
+    },
+    {
+      "file": "dining.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "png",
+      "transparent": false,
+      "promptFile": "dining.prompt.txt",
+      "promptEmbedded": true,
+      "prompt": "Use case: photorealistic-natural. Create one premium editorial architectural lifestyle photograph, landscape 3:2, for a fictional coastal vacation rental demonstration website. Outdoor breakfast table beneath a warm timber pergola with a subtle ocean and tropical garden glimpse beyond. Beautiful natural oak dining table for four, softly creased ivory linen runner, simple ceramic plates, one large bowl of fresh tropical fruit including mango papaya and pineapple pieces, a small bread basket, clear water glasses and ceramic coffee cups. Woven chairs, warm cream plaster wall at left, a potted palm and lush garden edge. Believable carefully composed relaxed breakfast setting, no people. Filtered early morning light from pergola, natural shadows and tactile linen and wood, editorial hospitality photography, realistic perspective and restrained colors. Full-resolution photograph only, balanced central composition for landscape website section crop. No text, logos, UI, borders or watermarks. Fictional demonstration property, no claim to depict an existing accommodation.",
+      "source": "/Users/braudypedorsa/.codex/generated_images/01a080ab-dd5b-7e32-b97f-96356f71ec44/exec-0f52df71-744a-4ad7-8295-76678855854c.png",
+      "usage": "Hospitality/story section",
+      "crop": "Landscape cover crop, object-position center."
+    }
+  ],
+  "semanticElements": "All logos, text, navigation, inquiry form fields, buttons and slider controls remain semantic implementation; none are rasterized here."
+}

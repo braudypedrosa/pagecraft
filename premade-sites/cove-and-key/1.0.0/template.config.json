@@ -1,0 +1,46 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "cove-and-key",
+  "version": "1.0.0",
+  "name": "Coastal Vacation Rentals",
+  "sampleName": "Cove & Key",
+  "description": "Eight-page coastal vacation rental template with native hero inquiry, property and review sliders, individual home galleries, and configurable PMS booking placeholders.",
+  "categories": [
+    "Vacation rentals",
+    "Hospitality"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "hero",
+      "file": "assets/hero.png"
+    },
+    {
+      "id": "terrace",
+      "file": "assets/terrace.png"
+    },
+    {
+      "id": "bedroom",
+      "file": "assets/bedroom.png"
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.png"
+    },
+    {
+      "id": "symbol",
+      "file": "assets/symbol.png"
+    },
+    {
+      "id": "coast",
+      "file": "assets/coast.png"
+    },
+    {
+      "id": "dining",
+      "file": "assets/dining.png"
+    }
+  ],
+  "customCssPolicy": "native-only"
+}

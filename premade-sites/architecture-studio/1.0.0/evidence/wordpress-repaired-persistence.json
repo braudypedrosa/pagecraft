@@ -1,0 +1,16 @@
+{
+    "css": {
+        "d": {
+            "padding-top": "24px"
+        },
+        "m": {
+            "padding-top": "12px"
+        },
+        "t": {
+            "padding-top": "18px"
+        }
+    },
+    "vals": {
+        "title": "Reading room \u2014 edited after resetting defaults"
+    }
+}

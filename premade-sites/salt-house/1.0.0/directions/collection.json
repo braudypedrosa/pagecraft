@@ -1,0 +1,1444 @@
+{
+  "schemaVersion": 13,
+  "meta": {
+    "name": "Salt House",
+    "maxWidth": "1400px",
+    "font": "'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headFont": "'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "size": "18px",
+    "css": "",
+    "headHtml": "",
+    "lang": "en",
+    "baseUrl": "",
+    "ogImage": "",
+    "favicon": "",
+    "blocks": [],
+    "tokens": {
+      "classes": [],
+      "colors": [
+        {
+          "id": "bg",
+          "name": "Chalk",
+          "value": "#faf9f4"
+        },
+        {
+          "id": "ink",
+          "name": "Sea ink",
+          "value": "#173f65"
+        },
+        {
+          "id": "text",
+          "name": "Text",
+          "value": "#18384c"
+        },
+        {
+          "id": "brand",
+          "name": "Blue",
+          "value": "#173f65"
+        },
+        {
+          "id": "surface",
+          "name": "Sand",
+          "value": "#efeadb"
+        },
+        {
+          "id": "muted",
+          "name": "Secondary",
+          "value": "#51606a"
+        },
+        {
+          "id": "line",
+          "name": "Divider",
+          "value": "#c0c7c8"
+        }
+      ],
+      "text": [
+        {
+          "id": "display",
+          "name": "Display",
+          "tag": "h1",
+          "css": {
+            "d": {
+              "font-size": "58px",
+              "font-weight": "600",
+              "line-height": ".96",
+              "letter-spacing": "-.04em",
+              "color": "var(--c-ink)"
+            },
+            "t": {
+              "font-size": "44px"
+            },
+            "m": {
+              "font-size": "33px"
+            }
+          }
+        },
+        {
+          "id": "title",
+          "name": "Section title",
+          "tag": "h2",
+          "css": {
+            "d": {
+              "font-size": "38px",
+              "font-weight": "600",
+              "line-height": "1.05",
+              "letter-spacing": "-.035em",
+              "color": "var(--c-ink)"
+            },
+            "t": {
+              "font-size": "32px"
+            },
+            "m": {
+              "font-size": "27px"
+            }
+          }
+        },
+        {
+          "id": "subtitle",
+          "name": "Card title",
+          "tag": "h3",
+          "css": {
+            "d": {
+              "font-size": "19px",
+              "font-weight": "700",
+              "line-height": "1.3",
+              "color": "var(--c-ink)"
+            },
+            "t": {},
+            "m": {
+              "font-size": "18px"
+            }
+          }
+        },
+        {
+          "id": "lead",
+          "name": "Lead paragraph",
+          "tag": "p",
+          "css": {
+            "d": {
+              "font-size": "18px",
+              "line-height": "1.65",
+              "color": "var(--c-muted)"
+            },
+            "t": {},
+            "m": {
+              "font-size": "16px"
+            }
+          }
+        },
+        {
+          "id": "body",
+          "name": "Body",
+          "tag": "p",
+          "css": {
+            "d": {
+              "font-size": "16px",
+              "line-height": "1.7",
+              "color": "var(--c-text)"
+            },
+            "t": {},
+            "m": {
+              "font-size": "15px"
+            }
+          }
+        },
+        {
+          "id": "small",
+          "name": "Small",
+          "tag": "p",
+          "css": {
+            "d": {
+              "font-size": "14px",
+              "line-height": "1.65",
+              "color": "var(--c-muted)"
+            },
+            "t": {},
+            "m": {}
+          }
+        },
+        {
+          "id": "eyebrow",
+          "name": "Eyebrow",
+          "tag": "div",
+          "css": {
+            "d": {
+              "font-family": "'DM Sans',system-ui,sans-serif",
+              "font-size": "12px",
+              "font-weight": "500",
+              "letter-spacing": ".04em",
+              "text-transform": "uppercase",
+              "color": "var(--c-muted)"
+            },
+            "t": {},
+            "m": {}
+          }
+        },
+        {
+          "id": "btn",
+          "name": "Button label",
+          "css": {
+            "d": {
+              "font-size": "15px",
+              "font-weight": "600",
+              "letter-spacing": "0em"
+            },
+            "t": {},
+            "m": {}
+          }
+        }
+      ]
+    },
+    "components": [],
+    "collections": []
+  },
+  "header": [
+    {
+      "id": "nf33k27cr1",
+      "type": "section",
+      "props": {
+        "tag": "section",
+        "width": "boxed",
+        "inner": ""
+      },
+      "css": {
+        "d": {
+          "padding-top": "24px",
+          "padding-right": "48px",
+          "padding-bottom": "24px",
+          "padding-left": "48px",
+          "color": "#fff",
+          "background-color": "#173f65"
+        },
+        "t": {},
+        "m": {
+          "padding-top": "20px",
+          "padding-right": "20px",
+          "padding-bottom": "20px",
+          "padding-left": "20px"
+        }
+      },
+      "hide": {},
+      "cls": [],
+      "adv": {
+        "htmlId": "",
+        "cls": "",
+        "css": ""
+      },
+      "children": [
+        {
+          "id": "nf33k27bd4",
+          "type": "box",
+          "props": {
+            "layout": "block",
+            "tag": "div",
+            "link": "",
+            "target": ""
+          },
+          "css": {
+            "d": {
+              "display": "flex",
+              "justify-content": "space-between",
+              "align-items": "center",
+              "gap": "24px"
+            },
+            "t": {},
+            "m": {}
+          },
+          "hide": {},
+          "cls": [],
+          "adv": {
+            "htmlId": "",
+            "cls": "",
+            "css": ""
+          },
+          "children": [
+            {
+              "id": "nf33k27a8w",
+              "type": "heading",
+              "props": {
+                "text": "Salt House",
+                "level": "div",
+                "link": "",
+                "target": "",
+                "ts": ""
+              },
+              "css": {
+                "d": {
+                  "text-align": "left",
+                  "margin-bottom": "0",
+                  "font-family": "inherit",
+                  "font-size": "28px",
+                  "font-weight": "600",
+                  "line-height": "1.3",
+                  "margin-top": "0",
+                  "margin-right": "0",
+                  "margin-left": "0",
+                  "letter-spacing": "-.04em",
+                  "white-space": "nowrap",
+                  "flex-shrink": "0"
+                },
+                "t": {},
+                "m": {}
+              },
+              "hide": {},
+              "cls": [],
+              "adv": {
+                "htmlId": "",
+                "cls": "",
+                "css": ""
+              },
+              "children": []
+            },
+            {
+              "id": "nf33k279u6",
+              "type": "nav",
+              "props": {
+                "items": [
+                  {
+                    "label": "The homes",
+                    "href": "#homes"
+                  },
+                  {
+                    "label": "The coast",
+                    "href": "#coast"
+                  },
+                  {
+                    "label": "Plan your stay",
+                    "href": "#plan"
+                  }
+                ],
+                "collapse": "mobile",
+                "aria": "Main navigation"
+              },
+              "css": {
+                "d": {
+                  "font-size": "16px",
+                  "font-weight": "500",
+                  "color": "inherit",
+                  "align-self": "center",
+                  "justify-content": "flex-end",
+                  "width": "100%",
+                  "--nav-hover": "var(--c-ink)",
+                  "--nav-gap": "32px",
+                  "--nav-panel": "#173f65"
+                },
+                "t": {},
+                "m": {}
+              },
+              "hide": {},
+              "cls": [],
+              "adv": {
+                "htmlId": "",
+                "cls": "",
+                "css": ""
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "footer": [
+    {
+      "id": "nf33k288w",
+      "type": "section",
+      "props": {
+        "tag": "section",
+        "width": "boxed",
+        "inner": ""
+      },
+      "css": {
+        "d": {
+          "padding-top": "72px",
+          "padding-right": "48px",
+          "padding-bottom": "72px",
+          "padding-left": "48px",
+          "background-color": "#173f65",
+          "color": "#fff"
+        },
+        "t": {},
+        "m": {
+          "padding-top": "40px",
+          "padding-right": "20px",
+          "padding-bottom": "40px",
+          "padding-left": "20px"
+        }
+      },
+      "hide": {},
+      "cls": [],
+      "adv": {
+        "htmlId": "plan",
+        "cls": "",
+        "css": ""
+      },
+      "children": [
+        {
+          "id": "nf33k285cd",
+          "type": "heading",
+          "props": {
+            "text": "Start with a place.",
+            "level": "h2",
+            "link": "",
+            "target": "",
+            "ts": ""
+          },
+          "css": {
+            "d": {
+              "text-align": "left",
+              "margin-bottom": "0",
+              "font-family": "inherit",
+              "font-size": "40px",
+              "font-weight": "400",
+              "line-height": "1.3",
+              "margin-top": "0",
+              "margin-right": "0",
+              "margin-left": "0",
+              "letter-spacing": "-.03em"
+            },
+            "t": {},
+            "m": {
+              "font-size": "32px"
+            }
+          },
+          "hide": {},
+          "cls": [],
+          "adv": {
+            "htmlId": "",
+            "cls": "",
+            "css": ""
+          },
+          "children": []
+        },
+        {
+          "id": "nf33k286yx",
+          "type": "heading",
+          "props": {
+            "text": "Choose a home, then check dates and final prices with its booking provider.",
+            "level": "p",
+            "link": "",
+            "target": "",
+            "ts": ""
+          },
+          "css": {
+            "d": {
+              "text-align": "left",
+              "margin-bottom": "0",
+              "font-family": "inherit",
+              "font-size": "18px",
+              "font-weight": "400",
+              "line-height": "1.3",
+              "margin-top": "20px",
+              "margin-right": "0",
+              "margin-left": "0",
+              "max-width": "48ch"
+            },
+            "t": {},
+            "m": {}
+          },
+          "hide": {},
+          "cls": [],
+          "adv": {
+            "htmlId": "",
+            "cls": "",
+            "css": ""
+          },
+          "children": []
+        },
+        {
+          "id": "nf33k28767",
+          "type": "heading",
+          "props": {
+            "text": "Salt House · Fictional collection · AI-generated demonstration images",
+            "level": "p",
+            "link": "",
+            "target": "",
+            "ts": ""
+          },
+          "css": {
+            "d": {
+              "text-align": "left",
+              "margin-bottom": "0",
+              "font-family": "inherit",
+              "font-size": "14px",
+              "font-weight": "400",
+              "line-height": "1.3",
+              "margin-top": "40px",
+              "margin-right": "0",
+              "margin-left": "0"
+            },
+            "t": {},
+            "m": {}
+          },
+          "hide": {},
+          "cls": [],
+          "adv": {
+            "htmlId": "",
+            "cls": "",
+            "css": ""
+          },
+          "children": []
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "id": "home",
+      "slug": "index",
+      "name": "Home",
+      "title": "Salt House — collection",
+      "desc": "A fictional small vacation-rental collection.",
+      "tree": [
+        {
+          "id": "nf33k27tpy",
+          "type": "section",
+          "props": {
+            "tag": "section",
+            "width": "boxed",
+            "inner": ""
+          },
+          "css": {
+            "d": {
+              "padding-top": "48px",
+              "padding-right": "48px",
+              "padding-bottom": "48px",
+              "padding-left": "48px"
+            },
+            "t": {},
+            "m": {
+              "padding-top": "40px",
+              "padding-right": "20px",
+              "padding-bottom": "40px",
+              "padding-left": "20px"
+            }
+          },
+          "hide": {},
+          "cls": [],
+          "adv": {
+            "htmlId": "homes",
+            "cls": "",
+            "css": ""
+          },
+          "children": [
+            {
+              "id": "nf33k27hsf",
+              "type": "box",
+              "props": {
+                "layout": "block",
+                "tag": "div",
+                "link": "",
+                "target": ""
+              },
+              "css": {
+                "d": {
+                  "display": "grid",
+                  "grid-template-columns": "1.2fr 1fr",
+                  "gap": "48px",
+                  "align-items": "end"
+                },
+                "t": {},
+                "m": {
+                  "grid-template-columns": "1fr",
+                  "gap": "24px"
+                }
+              },
+              "hide": {},
+              "cls": [],
+              "adv": {
+                "htmlId": "",
+                "cls": "",
+                "css": ""
+              },
+              "children": [
+                {
+                  "id": "nf33k27dmn",
+                  "type": "heading",
+                  "props": {
+                    "text": "Good places.\nGreat days.",
+                    "level": "h1",
+                    "link": "",
+                    "target": "",
+                    "ts": ""
+                  },
+                  "css": {
+                    "d": {
+                      "text-align": "left",
+                      "margin-bottom": "0",
+                      "font-family": "inherit",
+                      "font-size": "72px",
+                      "font-weight": "500",
+                      "line-height": "1.02",
+                      "margin-top": "0",
+                      "margin-right": "0",
+                      "margin-left": "0",
+                      "letter-spacing": "-.055em"
+                    },
+                    "t": {},
+                    "m": {
+                      "font-size": "48px"
+                    }
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": []
+                },
+                {
+                  "id": "nf33k27glz",
+                  "type": "box",
+                  "props": {
+                    "layout": "block",
+                    "tag": "div",
+                    "link": "",
+                    "target": ""
+                  },
+                  "css": {
+                    "d": {},
+                    "t": {},
+                    "m": {}
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": [
+                    {
+                      "id": "nf33k27et1",
+                      "type": "heading",
+                      "props": {
+                        "text": "Find the home that fits your people, your pace and your plans.",
+                        "level": "p",
+                        "link": "",
+                        "target": "",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "text-align": "left",
+                          "margin-bottom": "0",
+                          "font-family": "inherit",
+                          "font-size": "22px",
+                          "font-weight": "400",
+                          "line-height": "1.3",
+                          "margin-top": "0",
+                          "margin-right": "0",
+                          "margin-left": "0",
+                          "max-width": "30ch"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27fwz",
+                      "type": "button",
+                      "props": {
+                        "text": "Compare the homes",
+                        "link": "#homes",
+                        "target": "",
+                        "variant": "outline",
+                        "icon": "none",
+                        "align": "flex-start",
+                        "wrap": "inline-flex",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "padding-top": "16px",
+                          "padding-right": "24px",
+                          "padding-bottom": "16px",
+                          "padding-left": "24px",
+                          "border-radius": "0",
+                          "background-color": "#173f65",
+                          "color": "#fff",
+                          "align-self": "flex-start",
+                          "font-size": "16px",
+                          "font-family": "inherit",
+                          "font-weight": "500",
+                          "border-width": "0",
+                          "min-height": "48px",
+                          "margin-top": "24px"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "nf33k27s50",
+              "type": "box",
+              "props": {
+                "layout": "block",
+                "tag": "div",
+                "link": "",
+                "target": ""
+              },
+              "css": {
+                "d": {
+                  "display": "grid",
+                  "grid-template-columns": "1fr 1fr",
+                  "gap": "48px",
+                  "margin-top": "48px"
+                },
+                "t": {},
+                "m": {
+                  "grid-template-columns": "1fr",
+                  "gap": "24px"
+                }
+              },
+              "hide": {},
+              "cls": [],
+              "adv": {
+                "htmlId": "",
+                "cls": "",
+                "css": ""
+              },
+              "children": [
+                {
+                  "id": "nf33k27mos",
+                  "type": "box",
+                  "props": {
+                    "layout": "block",
+                    "tag": "div",
+                    "link": "",
+                    "target": ""
+                  },
+                  "css": {
+                    "d": {},
+                    "t": {},
+                    "m": {}
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": [
+                    {
+                      "id": "nf33k27ied",
+                      "type": "image",
+                      "props": {
+                        "src": "../assets/terrace.png",
+                        "alt": "Demonstration coastal holiday-home terrace overlooking the sea",
+                        "link": "",
+                        "target": "",
+                        "caption": "",
+                        "lazy": 0,
+                        "w": "",
+                        "h": "",
+                        "decorative": 0
+                      },
+                      "css": {
+                        "d": {
+                          "width": "100%",
+                          "max-width": "100%",
+                          "border-radius": "0",
+                          "object-fit": "cover",
+                          "align-self": "flex-start",
+                          "display": "block",
+                          "height": "360px"
+                        },
+                        "t": {},
+                        "m": {
+                          "height": "300px"
+                        }
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27j56",
+                      "type": "heading",
+                      "props": {
+                        "text": "Dune House",
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "text-align": "left",
+                          "margin-bottom": "0",
+                          "font-family": "inherit",
+                          "font-size": "28px",
+                          "font-weight": "400",
+                          "line-height": "1.3",
+                          "margin-top": "24px",
+                          "margin-right": "0",
+                          "margin-left": "0",
+                          "letter-spacing": "-.02em"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27k89",
+                      "type": "heading",
+                      "props": {
+                        "text": "6 guests · 3 bedrooms · Terrace",
+                        "level": "p",
+                        "link": "",
+                        "target": "",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "text-align": "left",
+                          "margin-bottom": "0",
+                          "font-family": "inherit",
+                          "font-size": "16px",
+                          "font-weight": "400",
+                          "line-height": "1.3",
+                          "margin-top": "8px",
+                          "margin-right": "0",
+                          "margin-left": "0"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27lvo",
+                      "type": "button",
+                      "props": {
+                        "text": "Explore this home",
+                        "link": "#plan",
+                        "target": "",
+                        "variant": "outline",
+                        "icon": "none",
+                        "align": "flex-start",
+                        "wrap": "inline-flex",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "padding-top": "12px",
+                          "padding-right": "0",
+                          "padding-bottom": "12px",
+                          "padding-left": "0",
+                          "border-radius": "0",
+                          "background-color": "transparent",
+                          "color": "#173f65",
+                          "align-self": "flex-start",
+                          "font-size": "16px",
+                          "font-family": "inherit",
+                          "font-weight": "500",
+                          "border-width": "0",
+                          "min-height": "48px",
+                          "margin-top": "20px",
+                          "text-decoration": "underline"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "nf33k27rwz",
+                  "type": "box",
+                  "props": {
+                    "layout": "block",
+                    "tag": "div",
+                    "link": "",
+                    "target": ""
+                  },
+                  "css": {
+                    "d": {},
+                    "t": {},
+                    "m": {}
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": [
+                    {
+                      "id": "nf33k27nso",
+                      "type": "image",
+                      "props": {
+                        "src": "../assets/cottage.png",
+                        "alt": "Demonstration cottage living room with blue shutters",
+                        "link": "",
+                        "target": "",
+                        "caption": "",
+                        "lazy": 0,
+                        "w": "",
+                        "h": "",
+                        "decorative": 0
+                      },
+                      "css": {
+                        "d": {
+                          "width": "100%",
+                          "max-width": "100%",
+                          "border-radius": "0",
+                          "object-fit": "cover",
+                          "align-self": "flex-start",
+                          "display": "block",
+                          "height": "360px"
+                        },
+                        "t": {},
+                        "m": {
+                          "height": "300px"
+                        }
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27opj",
+                      "type": "heading",
+                      "props": {
+                        "text": "Blue Shutter Cottage",
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "text-align": "left",
+                          "margin-bottom": "0",
+                          "font-family": "inherit",
+                          "font-size": "28px",
+                          "font-weight": "400",
+                          "line-height": "1.3",
+                          "margin-top": "24px",
+                          "margin-right": "0",
+                          "margin-left": "0",
+                          "letter-spacing": "-.02em"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27p7d",
+                      "type": "heading",
+                      "props": {
+                        "text": "4 guests · 2 bedrooms · Village",
+                        "level": "p",
+                        "link": "",
+                        "target": "",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "text-align": "left",
+                          "margin-bottom": "0",
+                          "font-family": "inherit",
+                          "font-size": "16px",
+                          "font-weight": "400",
+                          "line-height": "1.3",
+                          "margin-top": "8px",
+                          "margin-right": "0",
+                          "margin-left": "0"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27qta",
+                      "type": "button",
+                      "props": {
+                        "text": "Explore this home",
+                        "link": "#plan",
+                        "target": "",
+                        "variant": "outline",
+                        "icon": "none",
+                        "align": "flex-start",
+                        "wrap": "inline-flex",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "padding-top": "12px",
+                          "padding-right": "0",
+                          "padding-bottom": "12px",
+                          "padding-left": "0",
+                          "border-radius": "0",
+                          "background-color": "transparent",
+                          "color": "#173f65",
+                          "align-self": "flex-start",
+                          "font-size": "16px",
+                          "font-family": "inherit",
+                          "font-weight": "500",
+                          "border-width": "0",
+                          "min-height": "48px",
+                          "margin-top": "20px",
+                          "text-decoration": "underline"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "nf33k280rx",
+          "type": "section",
+          "props": {
+            "tag": "section",
+            "width": "boxed",
+            "inner": ""
+          },
+          "css": {
+            "d": {
+              "padding-top": "72px",
+              "padding-right": "48px",
+              "padding-bottom": "72px",
+              "padding-left": "48px",
+              "background-color": "#efeadb"
+            },
+            "t": {},
+            "m": {
+              "padding-top": "40px",
+              "padding-right": "20px",
+              "padding-bottom": "40px",
+              "padding-left": "20px"
+            }
+          },
+          "hide": {},
+          "cls": [],
+          "adv": {
+            "htmlId": "",
+            "cls": "",
+            "css": ""
+          },
+          "children": [
+            {
+              "id": "nf33k27z44",
+              "type": "box",
+              "props": {
+                "layout": "block",
+                "tag": "div",
+                "link": "",
+                "target": ""
+              },
+              "css": {
+                "d": {
+                  "display": "grid",
+                  "grid-template-columns": "1fr 1fr",
+                  "gap": "48px"
+                },
+                "t": {},
+                "m": {
+                  "grid-template-columns": "1fr",
+                  "gap": "24px"
+                }
+              },
+              "hide": {},
+              "cls": [],
+              "adv": {
+                "htmlId": "",
+                "cls": "",
+                "css": ""
+              },
+              "children": [
+                {
+                  "id": "nf33k27uai",
+                  "type": "heading",
+                  "props": {
+                    "text": "Less planning.\nMore being here.",
+                    "level": "h2",
+                    "link": "",
+                    "target": "",
+                    "ts": ""
+                  },
+                  "css": {
+                    "d": {
+                      "text-align": "left",
+                      "margin-bottom": "0",
+                      "font-family": "inherit",
+                      "font-size": "48px",
+                      "font-weight": "400",
+                      "line-height": "1.3",
+                      "margin-top": "0",
+                      "margin-right": "0",
+                      "margin-left": "0",
+                      "letter-spacing": "-.04em"
+                    },
+                    "t": {},
+                    "m": {
+                      "font-size": "34px"
+                    }
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": []
+                },
+                {
+                  "id": "nf33k27yqx",
+                  "type": "box",
+                  "props": {
+                    "layout": "block",
+                    "tag": "div",
+                    "link": "",
+                    "target": ""
+                  },
+                  "css": {
+                    "d": {},
+                    "t": {},
+                    "m": {}
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": [
+                    {
+                      "id": "nf33k27v1d",
+                      "type": "heading",
+                      "props": {
+                        "text": "Every home, clearly explained.",
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "text-align": "left",
+                          "margin-bottom": "0",
+                          "font-family": "inherit",
+                          "font-size": "24px",
+                          "font-weight": "400",
+                          "line-height": "1.3",
+                          "margin-top": "0",
+                          "margin-right": "0",
+                          "margin-left": "0"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27w52",
+                      "type": "heading",
+                      "props": {
+                        "text": "Sleeping arrangements, practical amenities and arrival details help you choose with confidence. Availability and final prices come directly from the booking provider.",
+                        "level": "p",
+                        "link": "",
+                        "target": "",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "text-align": "left",
+                          "margin-bottom": "0",
+                          "font-family": "inherit",
+                          "font-size": "18px",
+                          "font-weight": "400",
+                          "line-height": "1.3",
+                          "margin-top": "20px",
+                          "margin-right": "0",
+                          "margin-left": "0"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    },
+                    {
+                      "id": "nf33k27xm7",
+                      "type": "button",
+                      "props": {
+                        "text": "How to plan your stay",
+                        "link": "#plan",
+                        "target": "",
+                        "variant": "outline",
+                        "icon": "none",
+                        "align": "flex-start",
+                        "wrap": "inline-flex",
+                        "ts": ""
+                      },
+                      "css": {
+                        "d": {
+                          "padding-top": "16px",
+                          "padding-right": "24px",
+                          "padding-bottom": "16px",
+                          "padding-left": "24px",
+                          "border-radius": "0",
+                          "background-color": "#173f65",
+                          "color": "#fff",
+                          "align-self": "flex-start",
+                          "font-size": "16px",
+                          "font-family": "inherit",
+                          "font-weight": "500",
+                          "border-width": "0",
+                          "min-height": "48px",
+                          "margin-top": "24px"
+                        },
+                        "t": {},
+                        "m": {}
+                      },
+                      "hide": {},
+                      "cls": [],
+                      "adv": {
+                        "htmlId": "",
+                        "cls": "",
+                        "css": ""
+                      },
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "nf33k2841a",
+          "type": "section",
+          "props": {
+            "tag": "section",
+            "width": "boxed",
+            "inner": ""
+          },
+          "css": {
+            "d": {
+              "padding-top": "48px",
+              "padding-right": "48px",
+              "padding-bottom": "48px",
+              "padding-left": "48px"
+            },
+            "t": {},
+            "m": {
+              "padding-top": "40px",
+              "padding-right": "20px",
+              "padding-bottom": "40px",
+              "padding-left": "20px"
+            }
+          },
+          "hide": {},
+          "cls": [],
+          "adv": {
+            "htmlId": "coast",
+            "cls": "",
+            "css": ""
+          },
+          "children": [
+            {
+              "id": "nf33k2831u",
+              "type": "box",
+              "props": {
+                "layout": "block",
+                "tag": "div",
+                "link": "",
+                "target": ""
+              },
+              "css": {
+                "d": {},
+                "t": {},
+                "m": {}
+              },
+              "hide": {},
+              "cls": [],
+              "adv": {
+                "htmlId": "",
+                "cls": "",
+                "css": ""
+              },
+              "children": [
+                {
+                  "id": "nf33k281fl",
+                  "type": "heading",
+                  "props": {
+                    "text": "A coast to make your own.",
+                    "level": "h2",
+                    "link": "",
+                    "target": "",
+                    "ts": ""
+                  },
+                  "css": {
+                    "d": {
+                      "text-align": "left",
+                      "margin-bottom": "0",
+                      "font-family": "inherit",
+                      "font-size": "44px",
+                      "font-weight": "400",
+                      "line-height": "1.3",
+                      "margin-top": "0",
+                      "margin-right": "0",
+                      "margin-left": "0",
+                      "letter-spacing": "-.03em"
+                    },
+                    "t": {},
+                    "m": {
+                      "font-size": "32px"
+                    }
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": []
+                },
+                {
+                  "id": "nf33k2821f",
+                  "type": "heading",
+                  "props": {
+                    "text": "Morning swims, village lunches and an unhurried walk home. Find a favourite stretch of sand and a new reason to come back.",
+                    "level": "p",
+                    "link": "",
+                    "target": "",
+                    "ts": ""
+                  },
+                  "css": {
+                    "d": {
+                      "text-align": "left",
+                      "margin-bottom": "0",
+                      "font-family": "inherit",
+                      "font-size": "18px",
+                      "font-weight": "400",
+                      "line-height": "1.3",
+                      "margin-top": "16px",
+                      "margin-right": "0",
+                      "margin-left": "0",
+                      "max-width": "48ch"
+                    },
+                    "t": {},
+                    "m": {}
+                  },
+                  "hide": {},
+                  "cls": [],
+                  "adv": {
+                    "htmlId": "",
+                    "cls": "",
+                    "css": ""
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

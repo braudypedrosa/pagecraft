@@ -1,0 +1,218 @@
+[
+  {
+    "host": "cloud",
+    "slug": "index",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "projects",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "project-detail",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "about",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "services",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "contact",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1440
+  },
+  {
+    "host": "cloud",
+    "slug": "index",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "projects",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "project-detail",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "about",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "services",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "contact",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1024
+  },
+  {
+    "host": "cloud",
+    "slug": "index",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "projects",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "project-detail",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "about",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "services",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "contact",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 768
+  },
+  {
+    "host": "cloud",
+    "slug": "index",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "projects",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "project-detail",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "about",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "services",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  },
+  {
+    "host": "cloud",
+    "slug": "contact",
+    "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 390
+  }
+]

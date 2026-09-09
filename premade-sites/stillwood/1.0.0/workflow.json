@@ -1,0 +1,120 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Couples, small groups and families seeking woodland cabin stays",
+    "primaryAction": "Explore cabins and plan a stay",
+    "pages": [
+      "index",
+      "cabins",
+      "the-a-frame",
+      "waterline",
+      "meadow-house",
+      "experiences",
+      "field-guide",
+      "our-story",
+      "contact"
+    ],
+    "content": "Nine pages; twelve varied homepage sections, three cabins, four illustrative reviews, guides and booking placeholders.",
+    "imagery": "Original generated woodland cabin photography and geometric graphic logo",
+    "provenance": [
+      {
+        "asset": "forest",
+        "source": "Built-in image generation; see ASSETS.md",
+        "license": "Original generated demonstration asset"
+      },
+      {
+        "asset": "lake",
+        "source": "Built-in image generation; see ASSETS.md",
+        "license": "Original generated demonstration asset"
+      },
+      {
+        "asset": "interior",
+        "source": "Built-in image generation; see ASSETS.md",
+        "license": "Original generated demonstration asset"
+      },
+      {
+        "asset": "meadow",
+        "source": "Built-in image generation; see ASSETS.md",
+        "license": "Original generated demonstration asset"
+      }
+    ]
+  },
+  "directions": [],
+  "selection": null,
+  "targets": {
+    "cloud": {
+      "hostRevision": "Production build.itspagecraft.com; deployed native template importer 2026-09-09",
+      "editorVersion": "sha256:4e69d120107926f5f07beb363e11fbcedd6d9b8d73a18d7760aca066d85b4c2d"
+    },
+    "wordpress": {
+      "hostRevision": "WordPress 7.1 isolated stillwoodreleasewebp_ QA; plugin header 0.2.0",
+      "editorVersion": "sha256:4ebccb40ecb5ef37ffdc0d3e3cf6805b59cd11e450744497e105a61ac2eeb144"
+    }
+  },
+  "findings": [],
+  "qa": [
+    {
+      "host": "cloud",
+      "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+      "hostRevision": "Production build.itspagecraft.com; deployed native template importer 2026-09-09",
+      "editorVersion": "sha256:4e69d120107926f5f07beb363e11fbcedd6d9b8d73a18d7760aca066d85b4c2d",
+      "at": "2026-09-09T09:59:55.238677Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "responsive-inspector",
+        "save-reopen",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [],
+      "breakpointChecks": "See evidence: basic DOM checks only; complete visual/input matrix pending.",
+      "evidence": [
+        {
+          "path": "evidence/release-import-2026-09-09.md",
+          "sha256": "277379468e8c5f0797f1a43c2c670b3a5de89f2f4274121d90c3a1f97efa8218"
+        }
+      ]
+    },
+    {
+      "host": "wordpress",
+      "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+      "hostRevision": "WordPress 7.1 isolated stillwoodreleasewebp_ QA; plugin header 0.2.0",
+      "editorVersion": "sha256:4ebccb40ecb5ef37ffdc0d3e3cf6805b59cd11e450744497e105a61ac2eeb144",
+      "at": "2026-09-09T09:59:55.239086Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "responsive-inspector",
+        "save-reopen",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [],
+      "breakpointChecks": "See evidence: basic DOM checks only; complete visual/input matrix pending.",
+      "evidence": [
+        {
+          "path": "evidence/release-import-2026-09-09.md",
+          "sha256": "277379468e8c5f0797f1a43c2c670b3a5de89f2f4274121d90c3a1f97efa8218"
+        }
+      ]
+    }
+  ],
+  "visualReview": null,
+  "approval": {
+    "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Publish stillwood, and then test import on both cloud and WP",
+      "at": "2026-09-09T09:16:07.247480Z",
+      "evidence": "Current conversation: explicit publish request plus approval to back up/replace Cloud target and retain disabled demo forms; WebP conversion fixes production storage compatibility without changing approved layout."
+    }
+  }
+}

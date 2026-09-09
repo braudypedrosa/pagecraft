@@ -1,0 +1,55 @@
+{
+  "packageSha256": "6a22da9af5224cf59273504f573f38289e9d052006dcdd72c1fd1cdd5eed861f",
+  "status": "redesign-ready-for-visual-review; release acceptance incomplete",
+  "date": "2026-09-08",
+  "design": "Mediterranean retreat: cinematic cove, Outfit, olive and terracotta, property dossiers, native galleries, coastal photo essay, evening closing image",
+  "verified": {
+    "automated": "13 tests passed; TypeScript passed; package check passed",
+    "preview": "6 pages at 390, 768, 1024, 1440; no overflow, missing imagery or visible text below 14px",
+    "wordpress": "Final package imported job 99; 6 pages locally published and checked at four widths; native settings exposed; current Outfit and terracotta rendered",
+    "cloud": "Final package installed on isolated localhost:4896; longer component name persisted after reload and restored",
+    "interactions": "Preview mobile menu; gallery keyboard opening and Escape; FAQ opening; inquiry disabled without endpoint",
+    "nativeSave": "WordPress longer property name saved, reopened and restored on preceding candidate 480c2ed6; final candidate only normalizes hero secondary-button border longhands"
+  },
+  "findings": [
+    {
+      "page": "Home and Coast",
+      "node": "Hero heading",
+      "viewport": "all",
+      "issue": "WordPress importer rejects native scroll-animation attributes as executable markup",
+      "correction": "Entrance animation removed. Native hover remains. No host safety bypass. Separate host follow-up required."
+    },
+    {
+      "page": "Home",
+      "node": "Meet the coast action",
+      "viewport": "all",
+      "issue": "Border shorthand conflicting with inherited border-width during native save",
+      "correction": "Final source uses explicit border width, style and color."
+    },
+    {
+      "page": "all",
+      "node": "WordPress global design",
+      "viewport": "all",
+      "issue": "Old disposable site settings overrode imported design",
+      "correction": "Prior local test options backed up and reset; native Site Settings saved. Existing-site user settings are intentionally preserved on import."
+    }
+  ],
+  "pending": [
+    "Full release editability exercise matrix for final checksum including image replacement, inspector spacing, duplicate/reorder/delete and configured form receipt",
+    "Independent rendered review of final checksum",
+    "User final visual approval"
+  ],
+  "hosts": {
+    "cloud": {
+      "baseline": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+      "harnessSha256": "e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+      "scope": "Fixture identity, isolated in-memory store; no production authentication or database claim"
+    },
+    "wordpress": {
+      "manifest": "evidence/wordpress-host.json",
+      "scope": "Existing isolated unreleased v5 host patch; WordPress 7.1, PHP 8.5.2, MySQL 8.0.35; no public-release compatibility claim"
+    }
+  },
+  "evidence": "evidence/redesign/",
+  "published": false
+}

@@ -1,0 +1,336 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "checks": [
+    {
+      "menu": "flex",
+      "scroll": 767,
+      "small": [],
+      "url": "http://127.0.0.1:4892/",
+      "width": 767
+    },
+    {
+      "menu": "flex",
+      "scroll": 767,
+      "small": [],
+      "url": "http://127.0.0.1:4892/projects/",
+      "width": 767
+    },
+    {
+      "menu": "flex",
+      "scroll": 767,
+      "small": [],
+      "url": "http://127.0.0.1:4892/project-detail/",
+      "width": 767
+    },
+    {
+      "menu": "flex",
+      "scroll": 767,
+      "small": [],
+      "url": "http://127.0.0.1:4892/about/",
+      "width": 767
+    },
+    {
+      "menu": "flex",
+      "scroll": 767,
+      "small": [],
+      "url": "http://127.0.0.1:4892/services/",
+      "width": 767
+    },
+    {
+      "menu": "flex",
+      "scroll": 767,
+      "small": [],
+      "url": "http://127.0.0.1:4892/contact/",
+      "width": 767
+    },
+    {
+      "menu": "none",
+      "scroll": 899,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/",
+      "width": 899
+    },
+    {
+      "menu": "none",
+      "scroll": 899,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/projects/",
+      "width": 899
+    },
+    {
+      "menu": "none",
+      "scroll": 899,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/project-detail/",
+      "width": 899
+    },
+    {
+      "menu": "none",
+      "scroll": 899,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/about/",
+      "width": 899
+    },
+    {
+      "menu": "none",
+      "scroll": 899,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/services/",
+      "width": 899
+    },
+    {
+      "menu": "none",
+      "scroll": 899,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/contact/",
+      "width": 899
+    },
+    {
+      "menu": "none",
+      "scroll": 900,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/",
+      "width": 900
+    },
+    {
+      "menu": "none",
+      "scroll": 900,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/projects/",
+      "width": 900
+    },
+    {
+      "menu": "none",
+      "scroll": 900,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/project-detail/",
+      "width": 900
+    },
+    {
+      "menu": "none",
+      "scroll": 900,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/about/",
+      "width": 900
+    },
+    {
+      "menu": "none",
+      "scroll": 900,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/services/",
+      "width": 900
+    },
+    {
+      "menu": "none",
+      "scroll": 900,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/contact/",
+      "width": 900
+    },
+    {
+      "menu": "none",
+      "scroll": 1023,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/",
+      "width": 1023
+    },
+    {
+      "menu": "none",
+      "scroll": 1023,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/projects/",
+      "width": 1023
+    },
+    {
+      "menu": "none",
+      "scroll": 1023,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/project-detail/",
+      "width": 1023
+    },
+    {
+      "menu": "none",
+      "scroll": 1023,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/about/",
+      "width": 1023
+    },
+    {
+      "menu": "none",
+      "scroll": 1023,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/services/",
+      "width": 1023
+    },
+    {
+      "menu": "none",
+      "scroll": 1023,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/contact/",
+      "width": 1023
+    },
+    {
+      "menu": "none",
+      "scroll": 1025,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/",
+      "width": 1025
+    },
+    {
+      "menu": "none",
+      "scroll": 1025,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/projects/",
+      "width": 1025
+    },
+    {
+      "menu": "none",
+      "scroll": 1025,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/project-detail/",
+      "width": 1025
+    },
+    {
+      "menu": "none",
+      "scroll": 1025,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/about/",
+      "width": 1025
+    },
+    {
+      "menu": "none",
+      "scroll": 1025,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/services/",
+      "width": 1025
+    },
+    {
+      "menu": "none",
+      "scroll": 1025,
+      "small": [
+        "Search"
+      ],
+      "url": "http://127.0.0.1:4892/contact/",
+      "width": 1025
+    },
+    {
+      "scroll": 769,
+      "small": [],
+      "url": "http://127.0.0.1:4892/",
+      "width": 769
+    },
+    {
+      "scroll": 769,
+      "small": [],
+      "url": "http://127.0.0.1:4892/projects/",
+      "width": 769
+    },
+    {
+      "scroll": 769,
+      "small": [],
+      "url": "http://127.0.0.1:4892/project-detail/",
+      "width": 769
+    },
+    {
+      "scroll": 769,
+      "small": [],
+      "url": "http://127.0.0.1:4892/about/",
+      "width": 769
+    },
+    {
+      "scroll": 769,
+      "small": [],
+      "url": "http://127.0.0.1:4892/services/",
+      "width": 769
+    },
+    {
+      "scroll": 769,
+      "small": [],
+      "url": "http://127.0.0.1:4892/contact/",
+      "width": 769
+    },
+    {
+      "scroll": 901,
+      "small": [],
+      "url": "http://127.0.0.1:4892/",
+      "width": 901
+    },
+    {
+      "scroll": 901,
+      "small": [],
+      "url": "http://127.0.0.1:4892/projects/",
+      "width": 901
+    },
+    {
+      "scroll": 901,
+      "small": [],
+      "url": "http://127.0.0.1:4892/project-detail/",
+      "width": 901
+    },
+    {
+      "scroll": 901,
+      "small": [],
+      "url": "http://127.0.0.1:4892/about/",
+      "width": 901
+    },
+    {
+      "scroll": 901,
+      "small": [],
+      "url": "http://127.0.0.1:4892/services/",
+      "width": 901
+    },
+    {
+      "scroll": 901,
+      "small": [],
+      "url": "http://127.0.0.1:4892/contact/",
+      "width": 901
+    }
+  ],
+  "note": "Search labels below 14px belong to the logged-in WordPress admin toolbar, outside the template. No template text or overflow findings."
+}

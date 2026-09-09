@@ -1,0 +1,372 @@
+- button "Save and return to the WordPress editor":
+- generic: Pagecraft
+- generic: Home
+- button "Edit WordPress page title":
+- button "Desktop" [pressed]:
+- button "Tablet":
+- button "Mobile":
+- button "Undo":
+- button "Redo" [disabled]:
+- button "Keyboard shortcuts":
+- generic: Draft saved 10:49
+- button "Review this project"
+- button "Version history":
+- button "Preview this WordPress page":
+- button "Save page" [disabled]:
+  - generic: Save
+- complementary:
+  - generic: Add elements
+  - tablist "Add category":
+    - tab "Elements" [selected]:
+      - generic: Elements
+    - tab "Templates":
+      - generic: Templates
+    - tab "Components":
+      - generic: Components
+    - tab "Blocks":
+      - generic: Blocks
+  - generic: Basic elements for building a page
+  - tabpanel "Elements":
+    - generic: Layout
+    - button "Section":
+      - generic: Section
+    - button "Columns":
+      - generic: Columns
+    - button "Row":
+      - generic: Row
+    - button "Flex":
+      - generic: Flex
+    - button "Grid":
+      - generic: Grid
+    - button "Box":
+      - generic: Box
+    - button "Link block":
+      - generic: Link block
+    - button "Slider":
+      - generic: Slider
+    - generic: Content
+    - button "Heading":
+      - generic: Heading
+    - button "WYSIWYG":
+      - generic: WYSIWYG
+    - button "Quote":
+      - generic: Quote
+    - button "Table":
+      - generic: Table
+    - button "Code":
+      - generic: Code
+    - button "Image":
+      - generic: Image
+    - button "Gallery":
+      - generic: Gallery
+    - button "Video":
+      - generic: Video
+    - button "Icon":
+      - generic: Icon
+    - generic: Interactive
+    - button "Button":
+      - generic: Button
+    - button "Nav menu":
+      - generic: Nav menu
+    - button "Breadcrumb":
+      - generic: Breadcrumb
+    - button "Form":
+      - generic: Form
+    - button "Accordion":
+      - generic: Accordion
+    - button "Tabs":
+      - generic: Tabs
+    - button "Embed":
+      - generic: Embed
+    - generic: Spacing
+    - button "Divider":
+      - generic: Divider
+    - button "Spacer":
+      - generic: Spacer
+- generic: Section › Box › Box › Box
+- text: Desktop base
+- button "Navigator":
+- button "Site Settings":
+- iframe [id="canvas"]:
+  - text: Global header
+  - button "Edit header":
+    - text: Edit header
+  - link "Salt House":
+    - /url: index.html
+  - navigation "Main navigation":
+    - list:
+      - link "The homes":
+        - /url: "%%PAGECRAFT_WP_CONTENT:page:L2hvbWVzLw%%"
+      - link "The coast":
+        - /url: "%%PAGECRAFT_WP_CONTENT:page:L2NvYXN0Lw%%"
+      - link "Plan your stay":
+        - /url: "%%PAGECRAFT_WP_CONTENT:page:L3BsYW4teW91ci1zdGF5Lw%%"
+  - text: Page content
+  - heading "Stay by the sea." [level=1]
+  - paragraph: Coastal holiday homes with room to cook, gather and settle in. Find the space that suits your people.
+  - link "Find your holiday home":
+    - /url: "#homes"
+    - generic: Find your holiday home
+  - link "Compare the homes":
+    - /url: "#compare"
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - img "Fictional Dune House bedroom with blue linen and coastal views"
+  - heading "Two homes. Two ways to stay." [level=2]
+  - paragraph: Choose outdoor space for the whole group, or a smaller home with the village at your door.
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Independent WordPress home" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - paragraph: Example nightly rate
+  - paragraph: €275 / night
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Independent WordPress home" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - paragraph: Example nightly rate
+  - paragraph: €275 / night
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Independent WordPress home" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - paragraph: Example nightly rate
+  - paragraph: €275 / night
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Independent WordPress home" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - paragraph: Example nightly rate
+  - paragraph: €275 / night
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Independent WordPress home" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - paragraph: Example nightly rate
+  - paragraph: €275 / night
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Dune House for long summer holidays together" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - paragraph: Example nightly rate
+  - paragraph: €275 / night
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Blue Shutter Cottage" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: An easy village base, with the sea beyond the shutters.
+  - paragraph: Example nightly rate
+  - paragraph: €165 / night
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - paragraph: Fictional homes and example details. Images are AI-generated; no real rental availability is offered.
+  - heading "A little more space. Or a little more village." [level=2]:
+    - text: A little more space.
+    - text: Or a little more village.
+  - paragraph: Find your kind of holiday.
+  - heading "Bring everyone together." [level=3]
+  - paragraph: Long lunches on the terrace, room to spread out and an open view of the sea.
+  - paragraph: Up to 6 guests · 3 bedrooms · 2 bathrooms
+  - link "Dune House":
+    - /url: dune-house.html
+    - generic: Dune House
+  - heading "Stay close to village life." [level=3]
+  - paragraph: A smaller base for slow mornings, village walks and afternoons behind blue shutters.
+  - paragraph: Up to 4 guests · 2 bedrooms · 1 bathroom
+  - link "Blue Shutter Cottage":
+    - /url: blue-shutter-cottage.html
+    - generic: Blue Shutter Cottage
+  - img "Illustrative Mediterranean cove with clear water and a limestone house"
+  - heading "A coast worth getting to know." [level=2]
+  - paragraph: A morning swim, lunch in the village or a day that never leaves the terrace. Discover the setting around the homes before choosing your base.
+  - link "Explore the coast":
+    - /url: coast.html
+    - generic: Explore the coast
+  - paragraph: Illustrative Mediterranean setting. Real directions and local recommendations should come from your host.
+  - img "Illustrative sheltered Mediterranean cove at dusk"
+  - text: Drop anything here
+  - heading "Your holiday, in three simple steps." [level=2]
+  - heading "Find your place" [level=3]
+  - paragraph: Choose the space, setting and sleeping arrangements that suit your people.
+  - heading "Make a plan" [level=3]
+  - paragraph: Ask your host about dates, the full price and the details that matter to you.
+  - heading "Make it yours" [level=3]
+  - paragraph: Confirm with the host’s booking provider, then look forward to getting away.
+  - link "Plan your stay":
+    - /url: plan-your-stay.html#inquiry
+    - generic: Plan your stay
+  - heading "Before you make plans." [level=2]:
+    - text: Before you
+    - text: make plans.
+  - paragraph: A few practical details, so you can start looking forward to your stay.
+  - link "More planning information":
+    - /url: plan-your-stay.html
+    - generic: More planning information
+  - generic "Which home is right for my group?":
+    - generic: Which home is right for my group?
+  - generic "How do I find prices and available dates?":
+    - generic: How do I find prices and available dates?
+  - generic "What should I check before I book?":
+    - generic: What should I check before I book?
+  - text: Global footer
+  - button "Edit footer":
+    - text: Edit footer
+  - generic: Salt House
+  - link "The homes":
+    - /url: homes.html
+    - generic: The homes
+  - link "The coast":
+    - /url: coast.html
+    - generic: The coast
+  - link "Plan your stay":
+    - /url: plan-your-stay.html
+    - generic: Plan your stay
+  - paragraph: A fictional holiday collection. Example property details and AI-generated images.
+  - generic: Box
+  - button "Drag to move":
+  - button "Select parent (esc)":
+  - button "Move to the top (⌘⇧↑)":
+  - button "Move to the bottom (⌘⇧↓)":
+  - button "Duplicate (⌘D)":
+  - button "Delete (⌫)":
+  - button "Everything else — or right-click the element":
+- generic: Desktop
+- generic: 1520 PX
+- combobox "Canvas zoom":
+  - generic: Fit · 43%
+- complementary:
+  - generic: Box
+  - text: "#pagecraft-box-2ml1844r"
+  - button "Copy this element's styling (⌘⇧C)":
+  - button "Select parent (esc)":
+  - tablist "Inspector section":
+    - tab "Content"
+    - tab "Style" [selected]
+    - tab "Advanced"
+  - tabpanel "Style":
+    - generic: State
+    - button "Resting" [pressed]
+    - button "Hover"
+    - button "Focus"
+    - button "Styling" [expanded]:
+      - text: Styling
+    - button "This element"
+    - combobox "Style":
+      - generic: Add a class…
+    - generic: This element only.
+    - button "Spacing" [expanded]:
+      - text: Spacing
+    - group "Padding":
+      - text: Padding
+      - generic "Editing the desktop base value":
+      - generic: top
+      - generic: right
+      - generic: bottom
+      - generic: left
+      - spinbutton "top": "24"
+      - spinbutton "right"
+      - spinbutton "bottom"
+      - spinbutton "left"
+      - combobox "Padding":
+        - generic: px
+    - group "Margin":
+      - text: Margin
+      - generic "Editing the desktop base value":
+      - generic: top
+      - generic: right
+      - generic: bottom
+      - generic: left
+      - spinbutton "top"
+      - spinbutton "right"
+      - spinbutton "bottom"
+      - spinbutton "left"
+      - combobox "Margin":
+        - generic: px
+    - button "Background" [expanded]:
+      - text: Background
+    - group "Colour":
+      - generic: Colour
+      - button "Pick a colour"
+      - textbox "inherit"
+      - button "Clear":
+      - button "Chalk"
+      - button "Olive ink"
+      - button "Body text"
+      - button "Terracotta"
+      - button "Sand"
+      - button "Secondary text"
+      - button "Divider"
+      - button "Save this colour as a new token":
+    - group "Image":
+      - generic: Image
+      - button "Upload an image":
+        - generic: Drop an image here
+        - generic: or choose a file
+      - button "Upload":
+        - text: Upload
+      - button "Library":
+        - text: Library
+      - generic: Exported inline, or as a file beside the page.
+    - group "Gradient / shorthand":
+      - generic: Gradient / shorthand
+      - textbox "linear-gradient(...)"
+    - button "Border & shadow" [expanded]:
+      - text: Border & shadow
+    - group "Border style":
+      - generic: Border style
+      - combobox "Border style":
+        - generic: Choose an option
+    - group "Radius":
+      - text: Radius
+      - generic "Editing the desktop base value":
+      - spinbutton
+      - combobox "Radius":
+        - generic: px
+    - group "Shadow":
+      - generic: Shadow
+      - combobox "Shadow":
+        - generic: None
+    - button "Effects" [expanded]:
+      - text: Effects
+    - group "Opacity":
+      - generic: Opacity
+      - slider: "1"
+      - spinbutton: "1"
+    - group "Transform":
+      - generic: Transform
+      - textbox "translateY(-4px) rotate(2deg)"
+    - button "Motion" [expanded]:
+      - text: Motion
+    - generic: When it changes
+    - group "Transition":
+      - generic: Transition
+      - combobox "Transition":
+        - generic: None
+      - generic: Animates a hover, a focus, or a class change.
+    - generic: When it enters the view
+    - generic: Animation
+    - combobox "Style":
+      - generic: — none —
+  - button "Duplicate":
+    - text: Duplicate
+  - button "Delete":
+    - text: Delete
+- status: Page saved

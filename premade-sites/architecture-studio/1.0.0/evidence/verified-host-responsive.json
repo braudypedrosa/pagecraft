@@ -1,0 +1,1334 @@
+{
+  "packageSha256": "ea99c939e95566106e3cb9c9318c25065b2cbe1005180a04dfc6979161b89454",
+  "note": "WP tab has 110% browser zoom; emulation dimensions compensate to measured CSS viewport. Viewport-only screenshots.",
+  "probes": [
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 390,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+        }
+      ],
+      "scrollWidth": 376,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 767,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 754,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 768,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 755,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 899,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 900,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 886,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 1023,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 1024,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": false,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": false,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1010,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 1440,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1426,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 390,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 376,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 767,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 754,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 768,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 755,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 899,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 900,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 886,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 1023,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 1024,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1010,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 1440,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1426,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 390,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 376,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 767,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 754,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 768,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 755,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 899,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 900,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 886,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 1023,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 1024,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 1010,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 1440,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 1426,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 390,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 376,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 767,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 754,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 768,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 755,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 899,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 900,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 886,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 1023,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 1024,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 1010,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 1440,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 1426,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 390,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 376,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 767,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 754,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 768,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 755,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 899,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 900,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 886,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 1023,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 1024,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 1010,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 1440,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 1426,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 390,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 376,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 767,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 754,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 768,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 755,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 899,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 900,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 886,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 1023,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 1024,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 1010,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 1440,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 1426,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 390,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 375,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 767,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 752,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 768,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 753,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 899,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 884,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 900,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 1023,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 1008,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 1024,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 1440,
+      "heading": "Homes andshared places.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 1425,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 390,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 375,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 767,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 752,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 768,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 753,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 899,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 884,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 900,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 1023,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 1008,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 1024,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 1440,
+      "heading": "Two places. Different starting points.",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/reading-room-acab1cf35dc1a.png"
+        }
+      ],
+      "scrollWidth": 1425,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 390,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 375,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 767,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 752,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 768,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 753,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 899,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 884,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 900,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 1023,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 1008,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 1024,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 1440,
+      "heading": "Courtyard house",
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-final-package-qa/assets/courtyard-house-abd9808d4fcaf.png"
+        }
+      ],
+      "scrollWidth": 1425,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 390,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 375,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 767,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 752,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 768,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 753,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 899,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 884,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 900,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 1023,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 1008,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 1024,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 1440,
+      "heading": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 1425,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 390,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 375,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 767,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 752,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 768,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 753,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 899,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 884,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 900,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 1023,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 1008,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 1024,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 1440,
+      "heading": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 1425,
+      "small": [],
+      "width": 1440
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 390,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 375,
+      "small": [],
+      "width": 390
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 767,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 752,
+      "small": [],
+      "width": 767
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 768,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 753,
+      "small": [],
+      "width": 768
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 899,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 884,
+      "small": [],
+      "width": 899
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 900,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 885,
+      "small": [],
+      "width": 900
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 1023,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 1008,
+      "small": [],
+      "width": 1023
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 1024,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 1009,
+      "small": [],
+      "width": 1024
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 1440,
+      "heading": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 1425,
+      "small": [],
+      "width": 1440
+    }
+  ]
+}

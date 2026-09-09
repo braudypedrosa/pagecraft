@@ -1987,12 +1987,39 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `;
       return true;
 
-    case "asset.list":
-      return await sql`
+    case "asset.list": {
+      const rows = await sql<Record<string, unknown>[]>`
         select id, site_id, name, type, w, h, owner_id, storage_path,
           stored_bytes, original_bytes, content_hash, optimized
         from assets where site_id = ${text(args.siteId)} order by name
       `;
+      const paths = rows.map((row) =>
+        row.storage_path && text(row.storage_path)
+      )
+        .filter((path): path is string => Boolean(path));
+      if (!paths.length) return rows;
+
+      /* The authenticated Node API still decides who may list this site's media. Once it
+         has, let the browser fetch the private objects from Storage's CDN rather than
+         sending every thumbnail through a separate Edge Function and Node round trip. */
+      const signed = await storage.from(ASSET_BUCKET).createSignedUrls(
+        paths,
+        7 * 24 * 60 * 60,
+      );
+      if (signed.error || !signed.data) {
+        console.error("could not sign editor asset previews", signed.error);
+        return rows;
+      }
+      const urls = new Map(
+        signed.data.map((item) => [item.path, item.signedUrl]),
+      );
+      return rows.map((row) => ({
+        ...row,
+        signed_url: row.storage_path
+          ? urls.get(text(row.storage_path)) || null
+          : null,
+      }));
+    }
     case "asset.get": {
       const row = one(
         await sql`

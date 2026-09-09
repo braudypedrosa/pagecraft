@@ -1,0 +1,47 @@
+- link "Skip to content":
+  - /url: "#pagecraft-main"
+- link "Salt House":
+  - /url: /salt-house/
+- navigation "Main navigation":
+  - list:
+    - link "The homes":
+      - /url: /salt-house/homes
+    - link "The coast":
+      - /url: /salt-house/coast
+    - link "Plan your stay":
+      - /url: /salt-house/plan-your-stay
+- main:
+  - heading "Start with your people." [level=1]
+  - paragraph: Choose the space you need, then confirm the dates and details with the host.
+  - heading "Before you make plans." [level=2]
+  - paragraph: Straight answers to the practical questions.
+  - generic "How do I check dates and prices?":
+    - generic: How do I check dates and prices?
+  - generic "What should I confirm before booking?":
+    - generic: What should I confirm before booking?
+  - generic "Can I send an inquiry here?":
+    - generic: Can I send an inquiry here?
+  - generic "Are these real properties?":
+    - generic: Are these real properties?
+  - heading "Tell us what you have in mind." [level=2]:
+    - text: Tell us what
+    - text: you have in mind.
+  - paragraph: Include your preferred home, approximate dates and group size. Leave payment details and sensitive documents out of your message.
+  - paragraph: This demo form is not connected. No inquiry can be sent until a receiving service is configured.
+  - form "Stay inquiry":
+    - generic: Name *
+    - textbox "Name"
+    - generic: Email *
+    - textbox "Email"
+    - generic: Home, dates and guests *
+    - textbox "Home, dates and guests"
+    - button "Send inquiry"
+- heading "See you by the sea." [level=2]
+- link "Find your home":
+  - /url: /salt-house/homes
+  - generic: Find your home
+- link "Plan your stay":
+  - /url: /salt-house/plan-your-stay
+  - generic: Plan your stay
+- generic: SALT HOUSE
+- paragraph: Fictional collection · AI-generated demonstration images
