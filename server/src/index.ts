@@ -374,9 +374,12 @@ async function drainWordPressWebhooks() {
     webhookDrainRunning = false;
   }
 }
-const webhookTimer = setInterval(drainWordPressWebhooks, 15_000);
-webhookTimer.unref();
-void drainWordPressWebhooks();
+const backgroundWorkers = process.env.PAGECRAFT_BACKGROUND_WORKERS !== "0";
+if (backgroundWorkers) {
+  const webhookTimer = setInterval(drainWordPressWebhooks, 15_000);
+  webhookTimer.unref();
+  void drainWordPressWebhooks();
+}
 
 const invitationWorker =
   `pagecraft-invites-${process.pid}-${crypto.randomUUID()}`;
@@ -395,9 +398,11 @@ async function drainCollaboratorInvitations() {
     invitationDrainRunning = false;
   }
 }
-const invitationTimer = setInterval(drainCollaboratorInvitations, 60_000);
-invitationTimer.unref();
-void drainCollaboratorInvitations();
+if (backgroundWorkers) {
+  const invitationTimer = setInterval(drainCollaboratorInvitations, 60_000);
+  invitationTimer.unref();
+  void drainCollaboratorInvitations();
+}
 
 /* One site, seeded, when the store is empty and we are running on memory. Without it the
    first thing a new checkout shows is "No site for host localhost", which reads as broken

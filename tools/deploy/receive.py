@@ -39,14 +39,17 @@ try:
  appcfg=next(v['users']['itspbuku']['applications'][app] for v in cfg['available_versions'].values() if app in v.get('users',{}).get('itspbuku',{}).get('applications',{}))
  env={**os.environ,**appcfg['env_vars']}
  if env.get('EDITOR_HOST')!=domain:raise ValueError('Environment host mismatch')
- if branch=='development' and env.get('SUPABASE_URL')=='https://pwgwvicrdbjiecjxiyvl.supabase.co':raise ValueError('Staging cannot use production Supabase')
+ if branch=='development' and env.get('SUPABASE_URL')=='https://pwgwvicrdbjiecjxiyvl.supabase.co':
+  if env.get('PAGECRAFT_ALLOW_SHARED_DATABASE')!='1':raise ValueError('Shared staging database requires explicit opt-in')
+  if env.get('PAGECRAFT_BACKGROUND_WORKERS')!='0':raise ValueError('Shared staging must not drain production queues')
+  if env.get('PAGECRAFT_PUBLICATION_ROOT')!='/home/itspbuku/pagecraft-staging-publications':raise ValueError('Staging publications must remain separate')
  node=HOME/'nodevenv'/app/'24/bin/node';npm=HOME/'nodevenv'/app/'24/bin/npm'
  env['PATH']=str(node.parent)+':'+os.environ.get('PATH','/usr/bin:/bin')
  # Production dependencies are installed on the target OS in the new release.
  run([str(npm),'ci','--omit=dev','--no-audit','--no-fund'],cwd=release,env=env)
  env['PAGECRAFT_TEMPLATE_ROOT']=str(release/'premade-sites')
  with socket.socket() as s:s.bind(('127.0.0.1',0));port=s.getsockname()[1]
- env.update(PORT=str(port),BIND_HOST='127.0.0.1')
+ env.update(PORT=str(port),BIND_HOST='127.0.0.1',PAGECRAFT_BACKGROUND_WORKERS='0')
  process=subprocess.Popen([str(node),'server/src/index.ts'],cwd=release,env=env,stdout=log,stderr=log)
  try:
   for attempt in range(45):
