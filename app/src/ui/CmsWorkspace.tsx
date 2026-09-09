@@ -405,7 +405,7 @@ export function CmsWorkspace({
                 void saveSchema();
               }}
             >
-              <fieldset disabled={busy} class="cms-entry-fields">
+              <fieldset disabled={busy} class="cms-entry-fields cms-schema">
                 <div class="cms-field">
                   <label htmlFor="cms-name">Collection name</label>
                   <input
@@ -452,7 +452,7 @@ export function CmsWorkspace({
                         </select>
                       </label>
                       {f.type === 'option' && (
-                        <label>
+                        <label class="cms-schema-extra">
                           Choices, separated by commas
                           <input
                             class="ctl"
@@ -464,7 +464,7 @@ export function CmsWorkspace({
                         </label>
                       )}
                       {f.type === 'ref' && (
-                        <label>
+                        <label class="cms-schema-extra">
                           Reference collection
                           <select
                             class="ctl"
@@ -498,6 +498,8 @@ export function CmsWorkspace({
                         class="btn"
                         type="button"
                         disabled={at === 0}
+                        title="Move field up"
+                        aria-label={'Move ' + f.name + ' up'}
                         onClick={() => {
                           const fields = [...schema.fields];
                           [fields[at - 1], fields[at]] = [
@@ -507,12 +509,14 @@ export function CmsWorkspace({
                           setSchema({ ...schema, fields });
                         }}
                       >
-                        Move up
+                        <Icon name="caretUp" size={14} />
                       </button>
                       <button
                         class="btn"
                         type="button"
                         disabled={schema.fields.length === 1}
+                        title="Delete field"
+                        aria-label={'Delete field ' + f.name}
                         onClick={() => {
                           if (
                             window.confirm(
@@ -532,7 +536,7 @@ export function CmsWorkspace({
                             });
                         }}
                       >
-                        Delete field
+                        <Icon name="trash" size={14} />
                       </button>
                     </div>
                   </div>

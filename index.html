@@ -1325,6 +1325,15 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
 .cms-workspace .ctl:focus{border-color:var(--ink);box-shadow:none;outline:2px solid var(--ink);outline-offset:2px}
 .cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-field>label{font-weight:600}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.cms-schema>.cms-field{margin-bottom:12px;max-width:480px}
+.cms-schema>.note{margin-bottom:8px}
+.cms-schema-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:14px 0;align-items:start}
+.cms-schema-inputs{grid-template-columns:minmax(140px,1fr) minmax(130px,.7fr) auto;gap:10px;margin-bottom:0;align-items:end}
+.cms-schema-inputs>.cms-check{grid-column:3;grid-row:1;min-height:36px;gap:6px;white-space:nowrap}
+.cms-schema-extra{grid-column:1 / -1}
+.cms-schema-field>.cms-actions{padding-top:23px;gap:4px;flex-wrap:nowrap}
+.cms-schema .ctl,.cms-schema .pc-custom-select-trigger{--h-ctl:36px;min-height:36px;height:36px}
+.cms-schema-field>.cms-actions>.btn{min-height:36px;height:36px;width:32px;padding:0;justify-content:center}
 @media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
 
 </style>
@@ -10955,7 +10964,7 @@ var PC_UI = (() => {
                     void saveSchema();
                   },
                   children: [
-                    /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields", children: [
+                    /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields cms-schema", children: [
                       /* @__PURE__ */ u2("div", { class: "cms-field", children: [
                         /* @__PURE__ */ u2("label", { htmlFor: "cms-name", children: "Collection name" }),
                         /* @__PURE__ */ u2(
@@ -10997,7 +11006,7 @@ var PC_UI = (() => {
                               }
                             )
                           ] }),
-                          f4.type === "option" && /* @__PURE__ */ u2("label", { children: [
+                          f4.type === "option" && /* @__PURE__ */ u2("label", { class: "cms-schema-extra", children: [
                             "Choices, separated by commas",
                             /* @__PURE__ */ u2(
                               "input",
@@ -11008,7 +11017,7 @@ var PC_UI = (() => {
                               }
                             )
                           ] }),
-                          f4.type === "ref" && /* @__PURE__ */ u2("label", { children: [
+                          f4.type === "ref" && /* @__PURE__ */ u2("label", { class: "cms-schema-extra", children: [
                             "Reference collection",
                             /* @__PURE__ */ u2(
                               "select",
@@ -11044,6 +11053,8 @@ var PC_UI = (() => {
                               class: "btn",
                               type: "button",
                               disabled: at === 0,
+                              title: "Move field up",
+                              "aria-label": "Move " + f4.name + " up",
                               onClick: () => {
                                 const fields = [...schema.fields];
                                 [fields[at - 1], fields[at]] = [
@@ -11052,7 +11063,7 @@ var PC_UI = (() => {
                                 ];
                                 setSchema({ ...schema, fields });
                               },
-                              children: "Move up"
+                              children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 14 })
                             }
                           ),
                           /* @__PURE__ */ u2(
@@ -11061,6 +11072,8 @@ var PC_UI = (() => {
                               class: "btn",
                               type: "button",
                               disabled: schema.fields.length === 1,
+                              title: "Delete field",
+                              "aria-label": "Delete field " + f4.name,
                               onClick: () => {
                                 if (window.confirm(
                                   `Delete ${f4.name} and its stored values? ${bindingImpact(id, f4.id)}`
@@ -11077,7 +11090,7 @@ var PC_UI = (() => {
                                     })
                                   });
                               },
-                              children: "Delete field"
+                              children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 14 })
                             }
                           )
                         ] })
