@@ -539,23 +539,27 @@ body.dragging .lrow{cursor:grabbing}
 /* ---- pages ------------------------------------------------------------- */
 .pagelist{padding:10px}
 .pagerow{
-  display:flex;align-items:center;gap:var(--sp-4);padding:9px 10px;border-radius:var(--r-md);
-  border:1px solid var(--line);margin-bottom:var(--gap-1);cursor:pointer;background:var(--panel);
+  position:relative;display:flex;align-items:flex-start;gap:8px;padding:12px 10px;border-radius:var(--r-md);
+  border:1px solid var(--line);margin-bottom:var(--gap-1);background:var(--panel);
 }
-.pagerow-main{display:flex;align-items:center;gap:var(--sp-4);flex:1;min-width:0;text-align:left}
+.pagerow-main{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0;text-align:left}
+.pagerow-main>svg{flex-shrink:0;margin-top:3px}
 .pagerow:hover{border-color:var(--text-3)}
 .pagerow.on{border-color:var(--ink);background:var(--field)}
-.pagerow.on::before{content:"";width:3px;height:22px;border-radius:2px;background:var(--green);margin-left:-4px}
 .pagerow .pn{flex:1;min-width:0}
-.pagerow .pn b{display:block;font-size:var(--fs-3);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pagerow .pn small{display:block;color:var(--text-3);font-size:var(--fs-2);font-family:var(--label)}
-.pagerow .cms-page-badge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;color:var(--text-2);font-size:var(--fs-1);line-height:1.4}
-.pagerow .act{display:flex;gap:var(--sp-1);opacity:0}
-.pagerow:hover .act{opacity:1}
-.pagerow .act button{width:var(--ic-sm);height:var(--ic-sm);display:grid;place-items:center;border-radius:var(--r-sm);color:var(--text-3)}
-.pagerow .act button:hover{background:var(--line);color:var(--text)}
-.pagerow .act button[data-act=up] svg{transform:rotate(180deg)}
-.pagerow .act button[disabled]{opacity:.25;cursor:default}
+.pagerow .pn b{display:block;font-size:var(--fs-3);font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.pagerow .pn small{display:block;margin-top:3px;color:var(--text-3);font-size:var(--fs-2);font-family:var(--label);overflow-wrap:anywhere}
+.pagerow .cms-page-badge{display:inline-flex;align-items:center;gap:4px;margin-top:6px;color:var(--text-2);font-size:var(--fs-1);line-height:1.4;overflow-wrap:anywhere}
+.page-actions{position:relative;flex-shrink:0}
+.page-actions summary{display:grid;place-items:center;width:26px;height:26px;margin-top:-3px;border-radius:var(--r-sm);color:var(--text-3);cursor:pointer;list-style:none}
+.page-actions summary::-webkit-details-marker{display:none}
+.page-actions summary:hover,.page-actions[open] summary{background:var(--line);color:var(--text)}
+.page-actions summary:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.pagerow .act{position:absolute;right:0;top:29px;z-index:20;display:flex;flex-direction:column;gap:2px;width:140px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md)}
+.page-actions:not([open]) .act{display:none}
+.pagerow .act button{width:100%;min-height:32px;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r-sm);color:var(--text-2);text-align:left}
+.pagerow .act button:hover{background:var(--field);color:var(--text)}
+.pagerow .act button[disabled]{opacity:.35;cursor:default}
 .pagerow .act button[disabled]:hover{background:none;color:var(--text-3)}
 
 /* ---- canvas ------------------------------------------------------------ */
@@ -11832,6 +11836,7 @@ var PC_UI = (() => {
     const collection = p3.collection ? C2.findCollection(p3.collection) : null;
     const act = async (e3, name) => {
       e3.stopPropagation();
+      e3.currentTarget.closest("details")?.removeAttribute("open");
       if (name === "up" || name === "down") {
         C2.edit(() => C2.pageMove(i3, name === "up" ? -1 : 1));
         return;
@@ -11878,12 +11883,47 @@ var PC_UI = (() => {
           ]
         }
       ),
-      /* @__PURE__ */ u2("span", { class: "act", children: [
-        /* @__PURE__ */ u2("button", { type: "button", title: "Move up", disabled: i3 === 0, onClick: (e3) => act(e3, "up"), children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 12 }) }),
-        /* @__PURE__ */ u2("button", { type: "button", title: "Move down", disabled: last, onClick: (e3) => act(e3, "down"), children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 12 }) }),
-        /* @__PURE__ */ u2("button", { type: "button", title: "Duplicate page", onClick: (e3) => act(e3, "dup"), children: /* @__PURE__ */ u2(Icon, { name: "copy", size: 12 }) }),
-        C2.state.pages.length > 1 && /* @__PURE__ */ u2("button", { type: "button", title: "Delete page", onClick: (e3) => act(e3, "del"), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
-      ] })
+      /* @__PURE__ */ u2(
+        "details",
+        {
+          class: "page-actions",
+          onBlur: (e3) => {
+            if (!e3.currentTarget.contains(e3.relatedTarget)) e3.currentTarget.removeAttribute("open");
+          },
+          onKeyDown: (e3) => {
+            if (e3.key !== "Escape") return;
+            e3.preventDefault();
+            e3.stopPropagation();
+            e3.currentTarget.removeAttribute("open");
+            e3.currentTarget.querySelector("summary")?.focus();
+          },
+          children: [
+            /* @__PURE__ */ u2("summary", { "aria-label": "Actions for " + p3.name, title: "Actions for " + p3.name, children: /* @__PURE__ */ u2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true", children: [
+              /* @__PURE__ */ u2("circle", { cx: "3", cy: "8", r: "1" }),
+              /* @__PURE__ */ u2("circle", { cx: "8", cy: "8", r: "1" }),
+              /* @__PURE__ */ u2("circle", { cx: "13", cy: "8", r: "1" })
+            ] }) }),
+            /* @__PURE__ */ u2("span", { class: "act", children: [
+              /* @__PURE__ */ u2("button", { type: "button", title: "Move up", disabled: i3 === 0, onClick: (e3) => act(e3, "up"), children: [
+                /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 12 }),
+                " Move up"
+              ] }),
+              /* @__PURE__ */ u2("button", { type: "button", title: "Move down", disabled: last, onClick: (e3) => act(e3, "down"), children: [
+                /* @__PURE__ */ u2(Icon, { name: "caret", size: 12 }),
+                " Move down"
+              ] }),
+              /* @__PURE__ */ u2("button", { type: "button", title: "Duplicate page", onClick: (e3) => act(e3, "dup"), children: [
+                /* @__PURE__ */ u2(Icon, { name: "copy", size: 12 }),
+                " Duplicate"
+              ] }),
+              C2.state.pages.length > 1 && /* @__PURE__ */ u2("button", { type: "button", title: "Delete page", onClick: (e3) => act(e3, "del"), children: [
+                /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }),
+                " Delete"
+              ] })
+            ] })
+          ]
+        }
+      )
     ] });
   }
   function DetailBindings({ colId }) {

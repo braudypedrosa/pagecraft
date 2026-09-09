@@ -19,6 +19,7 @@ function PageRow({ i }: { i: number }) {
 
   const act = async (e: MouseEvent, name: string) => {
     e.stopPropagation();
+    (e.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
     if (name === 'up' || name === 'down') { C.edit(() => C.pageMove(i, name === 'up' ? -1 : 1)); return; }
     if (name === 'dup') { C.edit(() => C.pageDup(i)); return; }
     const ok = await L.askConfirm('Delete this page?',
@@ -50,18 +51,32 @@ function PageRow({ i }: { i: number }) {
           </span>}
         </span>
       </button>
+      <details class="page-actions"
+        onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) e.currentTarget.removeAttribute('open'); }}
+        onKeyDown={e => {
+          if (e.key !== 'Escape') return;
+          e.preventDefault(); e.stopPropagation();
+          e.currentTarget.removeAttribute('open');
+          e.currentTarget.querySelector('summary')?.focus();
+        }}>
+        <summary aria-label={'Actions for ' + p.name} title={'Actions for ' + p.name}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <circle cx="3" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="13" cy="8" r="1" />
+          </svg>
+        </summary>
       <span class="act">
         <button type="button" title="Move up" disabled={i === 0} onClick={e => act(e, 'up')}>
-          <Icon name="caretUp" size={12} /></button>
+          <Icon name="caretUp" size={12} /> Move up</button>
         <button type="button" title="Move down" disabled={last} onClick={e => act(e, 'down')}>
-          <Icon name="caret" size={12} /></button>
+          <Icon name="caret" size={12} /> Move down</button>
         <button type="button" title="Duplicate page" onClick={e => act(e, 'dup')}>
-          <Icon name="copy" size={12} /></button>
+          <Icon name="copy" size={12} /> Duplicate</button>
         {C.state.pages.length > 1 && (
           <button type="button" title="Delete page" onClick={e => act(e, 'del')}>
-            <Icon name="trash" size={12} /></button>
+            <Icon name="trash" size={12} /> Delete</button>
         )}
       </span>
+      </details>
     </div>
   );
 }
