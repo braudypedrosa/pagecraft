@@ -512,10 +512,18 @@ test('element tags come from a whitelist', () => {
 });
 
 test('safeUrl passes real links and drops script schemes', () => {
-  ['https://x.com/a', 'pricing.html', '#contact', '/index.html', './a.html', 'mailto:a@b.c', 'tel:+1', 'example.com/x']
+  ['https://x.com/a', 'pricing.html', '#contact', '/index.html', './a.html', 'mailto:a@b.c', 'tel:+1',
+    'example.com/x', 'asset:9bcfc1c5-5f1b-4580-87fd-d511f44d43']
     .forEach(u => a.equal(C.safeUrl(u), u, u + ' should be allowed'));
   ['javascript:alert(1)', 'JavaScript:alert(1)', 'vbscript:x', 'data:text/html,<script>', ' javascript:alert(1)']
     .forEach(u => a.equal(C.safeUrl(u), '', u + ' should be blocked'));
+});
+
+test('the editor positioning fallback yields to authored layout classes', () => {
+  const css = C.baseCss(true);
+  a.match(css, /:where\(\[data-id\]\)\{position:relative\}/);
+  a.equal(css.includes('\n[data-id]{position:relative}'), false,
+    'the canvas fallback must not override authored sticky or absolute positioning');
 });
 
 test('a blocked href renders no link at all', () => {
@@ -4686,7 +4694,7 @@ test('every responsive inspector declaration round-trips and compiles at all thr
         `${owner} ${c.label || c.c || c.k} did not compile ${bucket}`);
     }
   }
-  a.equal(declarations.length, 84,
+  a.equal(declarations.length, 87,
     'adding or removing a responsive inspector row requires updating the exhaustive acceptance count');
 });
 
@@ -4776,22 +4784,12 @@ test('a gradient counts as a background, since it is one', () => {
   a.equal(offered(sec, 'background-position'), true);
 });
 
-test('a border width waits for a style, because a width alone renders nothing', () => {
-  const sec = one('section');
-  a.equal(offered(sec, 'border-style'), true, 'the gate is always there');
-  a.equal(offered(sec, 'border-width'), false);
-  a.equal(offered(sec, 'border-color'), false);
-  C.setCss(sec, 'border-style', 'solid');
-  a.equal(offered(sec, 'border-width'), true);
-  a.equal(offered(sec, 'border-color'), true);
-  C.setCss(sec, 'border-style', 'none');
-  a.equal(offered(sec, 'border-width'), false, '“none” is a border that will not draw');
-});
-
-test('the style group reads in the order it has to be filled in', () => {
-  const items = must(C.COMMON_STYLE.find((g: any) => g.g === 'Border & shadow'), 'the border group').items.map((i: any) => i.c);
-  a.ok(items.indexOf('border-style') < items.indexOf('border-width'), 'the gate comes first');
-  a.ok(items.indexOf('border-style') < items.indexOf('border-color'));
+test('borders have one inspector control for uniform and edge-specific declarations', () => {
+  const items = must(C.COMMON_STYLE.find((g: any) => g.g === 'Border & shadow'), 'the border group').items;
+  a.equal(items[0].t, 'border');
+  a.equal(items[0].label, 'Border');
+  a.equal(items.some((item: Control) => item.c === 'border-style'), false,
+    'the old all-sides-only control would hide template separators');
 });
 
 test('a declaration counts wherever it was made — another breakpoint, a state, a class', () => {
@@ -4800,13 +4798,13 @@ test('a declaration counts wherever it was made — another breakpoint, a state,
   a.equal(offered(sec, 'background-position'), true, 'set on mobile, still editable on desktop');
   blank();
   const b = insert('section', null, 0);
-  b.st = { hover: { d: { 'border-style': 'dashed' }, t: {}, m: {} } };
-  a.equal(offered(b, 'border-width'), true, 'a border that only appears on hover still needs a width');
+  b.st = { hover: { d: { 'border-top-style': 'dashed' }, t: {}, m: {} } };
+  a.equal(C.styleSeen(b, 'border-top-style'), 'dashed', 'an edge in another state is discoverable');
   blank();
   const c = insert('section', null, 0);
-  const id = C.classAdd('framed', { d: { 'border-style': 'solid' } });
+  const id = C.classAdd('framed', { d: { 'border-bottom-style': 'solid' } });
   C.classApply(c, id);
-  a.equal(offered(c, 'border-width'), true, 'the class it wears declared it');
+  a.equal(C.styleSeen(c, 'border-bottom-style'), 'solid', 'an edge on a class is discoverable');
 });
 
 test('a widget\u2019s own style group is called what those controls actually are', () => {
@@ -4898,6 +4896,8 @@ test('the scrolling and the snapping are CSS, with no script in sight', () => {
   a.equal(/<script/i.test(html), false, 'a slider with no arrows ships nothing to run');
   const css = C.baseCss(false);
   a.match(css, /\.pagecraft-slider\{[^}]*scroll-snap-type:x mandatory/);
+  a.match(css, /\.pagecraft-slider\{[^}]*scrollbar-width:none/);
+  a.match(css, /\.pagecraft-slider::-webkit-scrollbar\{display:none/);
   /* `[class]` rather than `*`: a slide is a column, and a column's own rule is one class.
      A tie on specificity would be settled by source order, and the node's CSS comes last. */
   a.match(css, /\.pagecraft-slider>\[class\]\{flex:0 0 var\(--sl-w,100%\)/);
@@ -4922,8 +4922,10 @@ test('the arrows arrive hidden, and their script only where they are', () => {
   /* counted in the markup, not in the script that also names them */
   a.equal((on.match(/class="pagecraft-slide-btn /g) || []).length, 2);
   a.match(on, /class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden/);
+  a.match(on, /class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden/);
   a.match(on, /data-slides/);
   a.match(on, /scrollBy/, 'the script that reveals them');
+  a.match(on, /Go to carousel position/, 'the script builds responsive pagination dots');
   n.props.arrows = 0;
   const off = C.buildPage(pg);
   a.equal(/data-slide-/.test(off), false);
@@ -8461,4 +8463,16 @@ test('a font used only inside a saved block is not shipped to every page', () =>
   /* place it, and now it is */
   blockInsert(bid, null, 0);
   a.equal(C.usedFamilies().some(f => /Playfair/.test(f)), true, 'placed, so it ships');
+});
+
+test('decorative empty overlays stay selectable without an empty-content prompt', () => {
+  blank();
+  const n = insert('box', null, 0);
+  n.children = [];
+  a.match(C.renderNode(n, { edit: true }), /Drop anything here/);
+  n.css.d = {position: 'absolute', inset: '0', 'background-color': 'rgba(0,0,0,.5)'};
+  const html = C.renderNode(n, { edit: true });
+  a.doesNotMatch(html, /Drop anything here/);
+  a.match(html, /data-id=/);
+  a.doesNotMatch(C.renderNode(n, {edit: false}), /s-empty/);
 });

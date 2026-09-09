@@ -219,9 +219,52 @@ function ToggleCtl({ n, c }: P) {
 
 const SIDES = ['top', 'right', 'bottom', 'left'];
 
+/** Split a CSS box shorthand without breaking a calc() expression that contains spaces. */
+function boxParts(value: string): string[] {
+  const parts: string[] = [];
+  let part = '';
+  let depth = 0;
+  for (const ch of String(value || '').trim()) {
+    if (/\s/.test(ch) && depth === 0) {
+      if (part) { parts.push(part); part = ''; }
+      continue;
+    }
+    if (ch === '(') depth++;
+    if (ch === ')') depth = Math.max(0, depth - 1);
+    part += ch;
+  }
+  if (part) parts.push(part);
+  return parts;
+}
+
+function expandBox(value: string): string[] {
+  const parts = boxParts(value);
+  const [a = '', b = a, c = a, d = b] = parts;
+  if (parts.length === 2) return [a, b, a, b];
+  if (parts.length === 3) return [a, b, c, b];
+  return [a, b, c, d];
+}
+
+/** Resolve shorthand and longhand declarations in the same order the responsive stylesheet
+    applies them. This is what makes imported `padding: 28px 0 44px` visible as four fields. */
+function boxValues(n: PcNode, base: string): string[] {
+  const css = C.stRead(C.tgtObj(n));
+  const breakpoints: Array<'d' | 't' | 'm'> = C.dk() === 'd'
+    ? ['d'] : C.dk() === 't' ? ['d', 't'] : ['d', 't', 'm'];
+  const values = ['', '', '', ''];
+  for (const breakpoint of breakpoints) {
+    for (const [property, value] of Object.entries(css[breakpoint] || {})) {
+      if (property === base) values.splice(0, 4, ...expandBox(String(value)));
+      const side = SIDES.findIndex(candidate => property === base + '-' + candidate);
+      if (side >= 0) values[side] = String(value);
+    }
+  }
+  return values;
+}
+
 function BoxCtl({ n, c }: P) {
   const key = n.id + '|' + (c.c || c.k || c.t);
-  const vals = SIDES.map(s => C.parseU(C.cssVal(C.tgtObj(n), c.c + '-' + s, !!c.r).v));
+  const vals = boxValues(n, c.c!).map(C.parseU);
   const withUnit = vals.find(x => x.u);
   const u = withUnit ? withUnit.u : 'px';
 
@@ -230,6 +273,9 @@ function BoxCtl({ n, c }: P) {
   const push = (root: HTMLElement) => {
     L.tx(key);
     const unit = (root.querySelector('select') as HTMLSelectElement).value;
+    /* Once an author edits any side, materialize all four and remove the shorthand from this
+       breakpoint. The inspector and the generated CSS now have one unambiguous source. */
+    delete C.stWrite(C.tgtObj(n))[C.dk()][c.c!];
     root.querySelectorAll('input').forEach((inp, i) => {
       const v = String((inp as HTMLInputElement).value).trim();
       C.setCss(C.tgtObj(n), c.c + '-' + SIDES[i], v === '' ? '' : v + unit, !!c.r);
@@ -259,6 +305,63 @@ function BoxCtl({ n, c }: P) {
   </Field>;
 }
 
+type BorderTarget = 'all' | 'top' | 'right' | 'bottom' | 'left';
+
+const BORDER_TARGETS: Array<[BorderTarget, string]> = [
+  ['all', 'All'], ['top', 'Top'], ['right', 'Right'], ['bottom', 'Bottom'], ['left', 'Left']
+];
+
+const borderPrefix = (side: BorderTarget) => side === 'all' ? 'border' : `border-${side}`;
+
+const initialBorderTarget = (n: PcNode): BorderTarget => {
+  for (const [side] of BORDER_TARGETS) {
+    if (C.styleSeen(n, borderPrefix(side) + '-style')
+      || C.styleSeen(n, borderPrefix(side) + '-width')
+      || C.styleSeen(n, borderPrefix(side) + '-color')) return side;
+  }
+  return 'all';
+};
+
+/** Border declarations may apply to the whole box or to one edge. A single edge is a common
+    template separator, and hiding those longhands behind Advanced CSS made the canvas and the
+    inspector disagree. The side picker keeps all five targets editable without twelve fields
+    competing for attention at once. */
+function BorderCtl({ n }: P) {
+  const [choice, setChoice] = useState<{ nodeId: string; side: BorderTarget }>(() => ({
+    nodeId: n.id, side: initialBorderTarget(n)
+  }));
+  /* Inspector components can survive a selection change. Deriving the default for a new node
+     avoids a late effect resetting the edge the author just chose on the current one. */
+  const side = choice.nodeId === n.id ? choice.side : initialBorderTarget(n);
+  const prefix = borderPrefix(side);
+  const sideLabel = BORDER_TARGETS.find(([value]) => value === side)?.[1] || 'All';
+  const setOn = (value: BorderTarget) => !!(
+    C.styleSeen(n, borderPrefix(value) + '-style')
+    || C.styleSeen(n, borderPrefix(value) + '-width')
+    || C.styleSeen(n, borderPrefix(value) + '-color')
+  );
+
+  return <div class="borderctl">
+    <div class="f">
+      <label>Border edge</label>
+      <div class="pick borderpick" role="group" aria-label="Border edge">
+        {BORDER_TARGETS.map(([value, label]) => (
+          <button type="button" key={value} class={(side === value ? 'on' : '') + (setOn(value) ? ' set' : '')}
+            aria-pressed={side === value ? 'true' : 'false'} data-border-side={value}
+            onClick={() => setChoice({ nodeId: n.id, side: value })}>{label}</button>
+        ))}
+      </div>
+      <div class="note">A dot marks an edge with a stored value.</div>
+    </div>
+    <SelectCtl n={n} c={{
+      t: 'select', c: prefix + '-style', label: sideLabel + ' style', r: 1,
+      opts: [['', 'Inherit'], ['none', 'None'], ['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']]
+    }} />
+    <UnitCtl n={n} c={{ t: 'unit', c: prefix + '-width', label: sideLabel + ' width', r: 1, units: C.U.border }} />
+    <ColorCtl n={n} c={{ t: 'color', c: prefix + '-color', label: sideLabel + ' colour', r: 1 }} />
+  </div>;
+}
+
 /** One file into the library and onto a prop. Shared so the type check, the
     large-image warning and the toast are identical everywhere. */
 function useFilePicker(take: (id: string) => void, multiple = false) {
@@ -281,7 +384,7 @@ function ImgCtl({ n, c }: P) {
   const w = writer(n, c);
   const val = String(valueOf(n, c) || '');
   const rawv = c.bg ? val.replace(/^url\(["']?|["']?\)$/g, '') : val;
-  const ref = rawv.match(/^asset:([a-z0-9]+)$/);
+  const ref = rawv.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
   const wrap = (v: string) => c.bg ? (v ? `url("${v}")` : '') : v;
 
@@ -664,7 +767,7 @@ function ColsCtl({ n, c }: P) {
 
 const KINDS: Record<string, (p: P) => any> = {
   text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, slider: SliderCtl,
-  color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, img: ImgCtl,
+  color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, border: BorderCtl, img: ImgCtl,
   opt: OptCtl, dims: DimsCtl, link: LinkCtl, rich: RichCtl, tstyle: TstyleCtl,
   source: SourceCtl, items: ItemsCtl, fields: FieldsCtl, qa: QaCtl, imgs: ImgsCtl,
   icon: IconCtl, cols: ColsCtl

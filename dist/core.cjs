@@ -220,7 +220,6 @@ __export(index_exports, {
   gridTracks: () => gridTracks,
   guessBindings: () => guessBindings,
   hasBackdrop: () => hasBackdrop,
-  hasBorder: () => hasBorder,
   hex2rgb: () => hex2rgb,
   hist: () => hist,
   holds: () => holds,
@@ -1205,7 +1204,7 @@ var safeUrl = (u) => {
   const v = String(u == null ? "" : u).trim();
   if (!v) return "";
   if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[a-z0-9]+$/i.test(v)) return v;
+  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
   if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
   return "";
 };
@@ -1591,6 +1590,7 @@ var DEF = {
           ]
         },
         { t: "unit", c: "--sl-gap", label: "Gap", r: 1, units: U.space },
+        { t: "select", k: "controlsPosition", label: "Controls position", opts: [["sides", "Beside slides"], ["bottom", "Centered below"]] },
         {
           t: "toggle",
           k: "arrows",
@@ -2112,6 +2112,9 @@ var DEF = {
         { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
       ],
       style: [
+        { t: "select", c: "--f-layout", label: "Field layout", r: 1, opts: [["flex", "Wrapped fields"], ["grid", "Grid"]] },
+        { t: "select", c: "--f-columns", label: "Grid columns", r: 1, opts: [["1fr", "One"], ["repeat(2,minmax(0,1fr))", "Two"], ["repeat(3,minmax(0,1fr))", "Three"], ["repeat(4,minmax(0,1fr))", "Four"]] },
+        { t: "select", c: "--f-button-align", label: "Button alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
         { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
         { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
         { t: "color", c: "--f-bg", label: "Field background" },
@@ -2734,13 +2737,25 @@ function codeSpans(src, lang) {
 var SLIDE_JS = `<script>
 (function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
 Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
-var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]');
-if(!t||!p||!n)return;p.removeAttribute('hidden');n.removeAttribute('hidden');
+var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]'),d=box.querySelector('[data-slide-dots]');
+if(!t||!p||!n||!d)return;p.removeAttribute('hidden');n.removeAttribute('hidden');d.removeAttribute('hidden');
 function go(d){t.scrollBy({left:d*t.clientWidth*0.9,behavior:rm.matches?'auto':'smooth'});}
 p.addEventListener('click',function(){go(-1);});n.addEventListener('click',function(){go(1);});
-function ends(){var max=t.scrollWidth-t.clientWidth-2;
-p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;}
-ends();t.addEventListener('scroll',ends,{passive:true});addEventListener('resize',ends);});})();
+var slides=[].slice.call(t.children),targets=[],dots=[];
+function positions(){var max=Math.max(0,t.scrollWidth-t.clientWidth),next=[];
+slides.forEach(function(slide){var target=Math.min(max,Math.max(0,slide.offsetLeft-t.offsetLeft));
+if(!next.some(function(value){return Math.abs(value-target)<3;}))next.push(target);});return next;}
+function active(){if(!targets.length)return;var current=0,distance=Infinity;
+targets.forEach(function(target,index){var delta=Math.abs(t.scrollLeft-target);if(delta<distance){distance=delta;current=index;}});
+dots.forEach(function(dot,index){if(index===current)dot.setAttribute('aria-current','true');else dot.removeAttribute('aria-current');});}
+function rebuild(){targets=positions();d.replaceChildren();dots=targets.map(function(target,index){
+var dot=document.createElement('button');function seek(){t.scrollTo({left:target,behavior:rm.matches?'auto':'smooth'});}
+dot.type='button';dot.className='pagecraft-slider-dot';dot.setAttribute('aria-label','Go to carousel position '+(index+1)+' of '+targets.length);
+if(t.id)dot.setAttribute('aria-controls',t.id);dot.addEventListener('click',seek);dot.addEventListener('keydown',function(event){
+if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();seek();});d.appendChild(dot);return dot;});active();}
+function update(){var max=t.scrollWidth-t.clientWidth-2;p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft>=max;active();}
+var queued=false;t.addEventListener('scroll',function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;update();});},{passive:true});
+addEventListener('resize',function(){rebuild();update();});addEventListener('load',function(){rebuild();update();},{once:true});rebuild();update();});})();
 </script>
 `;
 var CODE_JS = `<script>
@@ -2781,10 +2796,6 @@ function styleSeen(n, prop) {
 }
 var canDo = (n, cap) => (DEF[n.type].caps || []).includes(cap);
 var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
-var hasBorder = (n) => {
-  const v = styleSeen(n, "border-style");
-  return !!v && v !== "none";
-};
 function notASlide(n) {
   const pid = parentOf(n.id);
   const h = pid ? locate(pid) : null;
@@ -2812,9 +2823,10 @@ var COMMON_STYLE = [
     g: "Border & shadow",
     cap: "decoration",
     items: [
-      { t: "select", c: "border-style", label: "Border style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"], ["none", "None"]] },
-      { t: "unit", c: "border-width", label: "Border width", units: U.border, when: hasBorder },
-      { t: "color", c: "border-color", label: "Border colour", when: hasBorder },
+      /* One control owns both uniform and edge-specific borders. Templates regularly use a
+         top rule as a separator; exposing only `border-style` made that stored Pagecraft value
+         render on the canvas while the inspector appeared to say there was no border. */
+      { t: "border", label: "Border" },
       { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
       { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
@@ -7061,8 +7073,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   display:flex;gap:var(--sl-gap,24px);width:100%;
   overflow-x:auto;overscroll-behavior-x:contain;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;padding-bottom:2px;
+  scrollbar-width:none;padding-bottom:0;
 }
+.pagecraft-slider::-webkit-scrollbar{display:none;width:0;height:0}
 .pagecraft-slider>[class]{flex:0 0 var(--sl-w,100%);scroll-snap-align:start;min-width:0}
 .pagecraft-slider>*{scroll-snap-align:start;min-width:0}
 .pagecraft-slider:focus-visible{outline:3px solid currentColor;outline-offset:3px}
@@ -7076,6 +7089,20 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-slide-btn.n{right:-8px;rotate:-90deg}
 .pagecraft-slide-btn[hidden]{display:none}
 .pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
+.pagecraft-slider-dots{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px}
+.pagecraft-slider-dots[hidden]{display:none}
+.pagecraft-slider-box.controls-bottom{display:grid;grid-template-columns:1fr auto 1fr;column-gap:16px;row-gap:20px;align-items:center}
+.controls-bottom>[data-slides]{grid-column:1 / -1}
+.controls-bottom>.pagecraft-slide-btn{position:static;translate:none;width:44px;height:44px;grid-row:2}
+.controls-bottom>.pagecraft-slide-btn.p{grid-column:1;justify-self:end}
+.controls-bottom>.pagecraft-slide-btn.n{grid-column:3;justify-self:start}
+.controls-bottom>.pagecraft-slider-dots{grid-column:2;grid-row:2;margin-top:0}
+.pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
+.pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
+.pagecraft-slider-dot:hover::before{opacity:.68}
+.pagecraft-slider-dot[aria-current=true]::before{background:var(--c-brand,#111311);opacity:1;transform:scale(1.25)}
+.pagecraft-slider-dot:focus-visible{outline:2px solid var(--c-brand,#111311);outline-offset:0}
+@media(max-width:767px){.pagecraft-slider-dots{margin-top:10px}.pagecraft-slider-dot{width:44px;height:44px}}
 .pagecraft-crumbs ol{
   display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
   list-style:none;margin:0;padding:0;
@@ -7198,7 +7225,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 [data-nav].is-open .pagecraft-nav-icon{background-color:transparent}
 [data-nav].is-open .pagecraft-nav-icon::before{transform:rotate(45deg)}
 [data-nav].is-open .pagecraft-nav-icon::after{transform:rotate(-45deg)}
-.pagecraft-form{display:flex;flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
+.pagecraft-form{display:var(--f-layout,flex);grid-template-columns:var(--f-columns,1fr);flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
 .pagecraft-field{display:flex;flex-direction:column;gap:5px;flex:1 1 100%;min-width:0}
 .pagecraft-field.half{flex:1 1 calc(50% - var(--f-gap,16px) / 2);min-width:12rem}
 .pagecraft-field label{font-size:.82em;font-weight:500;color:var(--f-label,inherit)}
@@ -7213,12 +7240,12 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
-  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:flex-start;flex:0 0 auto;
+  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
 }
 .pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
-.pagecraft-form-status{flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
+.pagecraft-form-status{grid-column:1 / -1;flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
 
@@ -7317,7 +7344,7 @@ ${m.css || ""}
   }
 }
 ` + (editing ? `
-[data-id]{position:relative}
+:where([data-id]){position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
 .s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
@@ -7620,7 +7647,8 @@ function renderNode(n, o) {
     case "box": {
       const mode = p.layout === "flex" || p.layout === "grid" ? " l-" + p.layout : "";
       const href = pageHref(p.link, o);
-      const inner2 = kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
+      const decorative = n.css.d?.position === "absolute" && !!(n.css.d?.["background-image"] || n.css.d?.["background-color"] || n.css.d?.background);
+      const inner2 = kids || (o.edit && !decorative ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
       if (href) {
         return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${inner2}</a>`;
       }
@@ -7631,7 +7659,7 @@ function renderNode(n, o) {
       const track = `<div ${at} ${cx("pagecraft-slider")} data-slides role="group" aria-label="${esc(String(p.aria || "Slides"))}" tabindex="0">` + (kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes a slide</div>` : "")) + "</div>";
       if (!p.arrows) return track;
       const btn = (dir, label) => `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>${svg("caret", 15)}</button>`;
-      return `<div class="pagecraft-slider-box" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + "</div>";
+      return `<div class="pagecraft-slider-box${p.controlsPosition === "bottom" ? " controls-bottom" : ""}" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
     }
     case "list": {
       const lc = n.src ? findCollection(n.src) : null;
@@ -8312,7 +8340,6 @@ ${ANIM_JS}
   gridTracks,
   guessBindings,
   hasBackdrop,
-  hasBorder,
   hex2rgb,
   hist,
   holds,

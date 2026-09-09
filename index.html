@@ -651,6 +651,11 @@ body.preview .dim{display:none}
 .group.closed .gb{display:none}
 .gb{padding:0 14px 14px}
 .f{margin-bottom:var(--gap-2)}
+/* Instance variant controls use the same inset and rhythm as inspector groups. */
+#inspector-panel > .f{padding:var(--gap-3);margin-bottom:0}
+#inspector-panel > .f > .row{display:flex;flex-wrap:wrap;gap:var(--gap-1)}
+#inspector-panel > .f > .note{margin-top:var(--gap-1)}
+
 .f:last-child{margin-bottom:2px}
 /* a checkbox and its label on one line. Dialogs had no such row until the webfont
    setting needed one — the CMS table's checkboxes sit in cells and carry no label. */
@@ -825,12 +830,6 @@ select.ctl{
 .pick button svg{width:13px;height:13px}
 .pick button:hover{color:var(--text);background:var(--panel)}
 .pick button.on{background:var(--ink);color:var(--paper)}
-.borderpick button{position:relative}
-.borderpick button.set::after{
-  content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
-}
-.borderpick button.on.set::after{background:var(--paper)}
-.borderctl>.f{margin-bottom:var(--gap-3)}
 .sw-tog{
   width:36px;height:20px;flex:0 0 36px;border-radius:var(--r-pill);background:var(--line-2);
   border:none;position:relative;transition:background .16s;
@@ -937,8 +936,10 @@ select.ctl{
 .gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
 .irow .x[data-x=ix] svg{transform:none}
 
-.frow-a{display:grid;grid-template-columns:1fr 96px var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
-.frow-b{display:grid;grid-template-columns:1fr 1fr 44px;gap:var(--sp-2);align-items:center;margin-top:4px}
+.frow-a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
+.frow-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sp-2);align-items:center;margin-top:4px}
+.frow-options{grid-column:1 / -1;display:flex;gap:var(--sp-2)}
+.frow-options .freq{padding:0 8px}
 .freq{
   height:26px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--panel);
   font-family:var(--label);font-size:var(--fs-1);font-weight:500;color:var(--text-3);
@@ -1287,6 +1288,12 @@ pre.code{
   *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
   .frameWrap{transition:none}
 }
+.borderpick button{position:relative}
+.borderpick button.set::after{
+  content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.borderpick button.on.set::after{background:var(--paper)}
+.borderctl>.f{margin-bottom:var(--gap-3)}
 </style>
 <style>
 #builderLoading{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:var(--ink,#111311);color:#f8f6ef;padding:24px;text-align:center}
@@ -2698,6 +2705,7 @@ var DEF = {
           ]
         },
         { t: "unit", c: "--sl-gap", label: "Gap", r: 1, units: U.space },
+        { t: "select", k: "controlsPosition", label: "Controls position", opts: [["sides", "Beside slides"], ["bottom", "Centered below"]] },
         {
           t: "toggle",
           k: "arrows",
@@ -3219,6 +3227,9 @@ var DEF = {
         { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
       ],
       style: [
+        { t: "select", c: "--f-layout", label: "Field layout", r: 1, opts: [["flex", "Wrapped fields"], ["grid", "Grid"]] },
+        { t: "select", c: "--f-columns", label: "Grid columns", r: 1, opts: [["1fr", "One"], ["repeat(2,minmax(0,1fr))", "Two"], ["repeat(3,minmax(0,1fr))", "Three"], ["repeat(4,minmax(0,1fr))", "Four"]] },
+        { t: "select", c: "--f-button-align", label: "Button alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
         { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
         { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
         { t: "color", c: "--f-bg", label: "Field background" },
@@ -8195,6 +8206,12 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
 .pagecraft-slider-dots{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px}
 .pagecraft-slider-dots[hidden]{display:none}
+.pagecraft-slider-box.controls-bottom{display:grid;grid-template-columns:1fr auto 1fr;column-gap:16px;row-gap:20px;align-items:center}
+.controls-bottom>[data-slides]{grid-column:1 / -1}
+.controls-bottom>.pagecraft-slide-btn{position:static;translate:none;width:44px;height:44px;grid-row:2}
+.controls-bottom>.pagecraft-slide-btn.p{grid-column:1;justify-self:end}
+.controls-bottom>.pagecraft-slide-btn.n{grid-column:3;justify-self:start}
+.controls-bottom>.pagecraft-slider-dots{grid-column:2;grid-row:2;margin-top:0}
 .pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
 .pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
 .pagecraft-slider-dot:hover::before{opacity:.68}
@@ -8323,7 +8340,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 [data-nav].is-open .pagecraft-nav-icon{background-color:transparent}
 [data-nav].is-open .pagecraft-nav-icon::before{transform:rotate(45deg)}
 [data-nav].is-open .pagecraft-nav-icon::after{transform:rotate(-45deg)}
-.pagecraft-form{display:flex;flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
+.pagecraft-form{display:var(--f-layout,flex);grid-template-columns:var(--f-columns,1fr);flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
 .pagecraft-field{display:flex;flex-direction:column;gap:5px;flex:1 1 100%;min-width:0}
 .pagecraft-field.half{flex:1 1 calc(50% - var(--f-gap,16px) / 2);min-width:12rem}
 .pagecraft-field label{font-size:.82em;font-weight:500;color:var(--f-label,inherit)}
@@ -8338,12 +8355,12 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
-  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:flex-start;flex:0 0 auto;
+  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
 }
 .pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
-.pagecraft-form-status{flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
+.pagecraft-form-status{grid-column:1 / -1;flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
 
@@ -8745,7 +8762,8 @@ function renderNode(n, o) {
     case "box": {
       const mode = p.layout === "flex" || p.layout === "grid" ? " l-" + p.layout : "";
       const href = pageHref(p.link, o);
-      const inner2 = kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
+      const decorative = n.css.d?.position === "absolute" && !!(n.css.d?.["background-image"] || n.css.d?.["background-color"] || n.css.d?.background);
+      const inner2 = kids || (o.edit && !decorative ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
       if (href) {
         return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${inner2}</a>`;
       }
@@ -8756,7 +8774,7 @@ function renderNode(n, o) {
       const track = `<div ${at} ${cx("pagecraft-slider")} data-slides role="group" aria-label="${esc(String(p.aria || "Slides"))}" tabindex="0">` + (kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes a slide</div>` : "")) + "</div>";
       if (!p.arrows) return track;
       const btn = (dir, label) => `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>${svg("caret", 15)}</button>`;
-      return `<div class="pagecraft-slider-box" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
+      return `<div class="pagecraft-slider-box${p.controlsPosition === "bottom" ? " controls-bottom" : ""}" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
     }
     case "list": {
       const lc = n.src ? findCollection(n.src) : null;
@@ -9650,7 +9668,7 @@ var PC_UI = (() => {
     mount: () => mount
   });
 
-  // ../pagecraft-cloud-api/node_modules/preact/dist/preact.module.js
+  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/dist/preact.module.js
   var n;
   var l;
   var u;
@@ -9923,7 +9941,7 @@ var PC_UI = (() => {
     if (fn) fn();
   };
 
-  // ../pagecraft-cloud-api/node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
+  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
   var f2 = 0;
   function u2(e3, t3, n2, o3, i3, u4) {
     t3 || (t3 = {});
@@ -10932,7 +10950,7 @@ var PC_UI = (() => {
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-  // ../pagecraft-cloud-api/node_modules/preact/hooks/dist/hooks.module.js
+  // ../../../Users/braudypedorsa/Projects/pagecraft-cloud-api/node_modules/preact/hooks/dist/hooks.module.js
   var t2;
   var r2;
   var u3;
@@ -11801,6 +11819,7 @@ var PC_UI = (() => {
     ["email", "Email"],
     ["tel", "Phone"],
     ["number", "Number"],
+    ["date", "Date"],
     ["textarea", "Long text"],
     ["select", "Dropdown"],
     ["checkbox", "Checkbox"]
@@ -11816,6 +11835,7 @@ var PC_UI = (() => {
             "select",
             {
               class: "ctl",
+              "aria-label": "Field type",
               value: f4.type || "text",
               onChange: (e3) => {
                 L2.tx(key);
@@ -11843,30 +11863,32 @@ var PC_UI = (() => {
             }
           ),
           f4.type === "select" ? /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "opts", placeholder: "Option one, Option two" }) : /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "ph", placeholder: "Placeholder" }),
-          /* @__PURE__ */ u2(
-            "button",
-            {
-              class: "freq" + (f4.required ? " on" : ""),
-              title: "Required",
-              onClick: () => C2.edit(() => {
-                const a3 = rows(n2, c3);
-                a3[k3].required = a3[k3].required ? 0 : 1;
-              }),
-              children: "Req"
-            }
-          ),
-          /* @__PURE__ */ u2(
-            "button",
-            {
-              class: "freq" + (f4.half ? " on" : ""),
-              title: "Half width \u2014 shares a row",
-              onClick: () => C2.edit(() => {
-                const a3 = rows(n2, c3);
-                a3[k3].half = a3[k3].half ? 0 : 1;
-              }),
-              children: "\xBD"
-            }
-          )
+          /* @__PURE__ */ u2("div", { class: "frow-options", children: [
+            /* @__PURE__ */ u2(
+              "button",
+              {
+                class: "freq" + (f4.required ? " on" : ""),
+                title: "Required",
+                onClick: () => C2.edit(() => {
+                  const a3 = rows(n2, c3);
+                  a3[k3].required = a3[k3].required ? 0 : 1;
+                }),
+                children: "Required"
+              }
+            ),
+            /* @__PURE__ */ u2(
+              "button",
+              {
+                class: "freq" + (f4.half ? " on" : ""),
+                title: "Half width \u2014 shares a row",
+                onClick: () => C2.edit(() => {
+                  const a3 = rows(n2, c3);
+                  a3[k3].half = a3[k3].half ? 0 : 1;
+                }),
+                children: "Half width"
+              }
+            )
+          ] })
         ] })
       ] }, k3)),
       /* @__PURE__ */ u2(
@@ -15056,6 +15078,7 @@ var PC_UI = (() => {
             ]
           },
           { t: "unit", c: "--sl-gap", label: "Gap", r: 1, units: U.space },
+          { t: "select", k: "controlsPosition", label: "Controls position", opts: [["sides", "Beside slides"], ["bottom", "Centered below"]] },
           {
             t: "toggle",
             k: "arrows",
@@ -15577,6 +15600,9 @@ var PC_UI = (() => {
           { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
         ],
         style: [
+          { t: "select", c: "--f-layout", label: "Field layout", r: 1, opts: [["flex", "Wrapped fields"], ["grid", "Grid"]] },
+          { t: "select", c: "--f-columns", label: "Grid columns", r: 1, opts: [["1fr", "One"], ["repeat(2,minmax(0,1fr))", "Two"], ["repeat(3,minmax(0,1fr))", "Three"], ["repeat(4,minmax(0,1fr))", "Four"]] },
+          { t: "select", c: "--f-button-align", label: "Button alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
           { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
           { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
           { t: "color", c: "--f-bg", label: "Field background" },
@@ -17504,7 +17530,7 @@ async function writeServer() {
       document: doc(),
       version: SRV.version,
       ...(IS_WORDPRESS ? { compiled: {
-        html: buildPage(page()),
+        html: assetsToBlob(buildPage(page())),
         globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
         pageCss: assetsToBlob(treeCss([page().tree], false))
       } } : {})
@@ -18103,13 +18129,13 @@ const previewScriptBody = source => {
   if (!/^\s*<script[>\s]/i.test(text)) return text;
   return text.slice(text.indexOf('>') + 1, text.toLowerCase().lastIndexOf('<'));
 };
-function runPreviewRuntime(html) {
+function runPreviewRuntime(html, editing = false) {
   previewDispose();
   previewDispose = () => {};
-  if (!cdoc || !document.body.classList.contains('preview')) return;
+  if (!cdoc) return;
 
   let runtimeStyle = null;
-  if (/\bbp-animate\b/.test(html)) {
+  if (!editing && /\bbp-animate\b/.test(html)) {
     runtimeStyle = cdoc.createElement('style');
     runtimeStyle.id = 's-preview-runtime';
     runtimeStyle.textContent = ANIM_CSS + '\n' + ANIM_CALM;
@@ -18149,7 +18175,7 @@ function runPreviewRuntime(html) {
   ];
   try {
     scripts.forEach(([used, source]) => {
-      if (!used) return;
+      if (!used || (editing && source !== SLIDE_JS)) return;
       const script = cdoc.createElement('script');
       script.textContent = previewScriptBody(source);
       cdoc.body.appendChild(script);
@@ -18176,6 +18202,7 @@ function paint() {
   previewDispose();
   previewDispose = () => {};
   const editing = !document.body.classList.contains('preview');
+  const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
   const css = treeCss(curSets(), editing);
 
@@ -18212,7 +18239,8 @@ function paint() {
   syncFonts();
   cdoc.getElementById('s-css').textContent = assetsToBlob(css);
   cdoc.getElementById('s-root').innerHTML = assetsToBlob(html);
-  if (!editing) runPreviewRuntime(html);
+  $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
+  runPreviewRuntime(html, editing);
   positionHud();
 }
 
@@ -18512,6 +18540,7 @@ function bindCanvas() {
 
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
+    if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots]')) return;
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (hudBtn) {
       e.preventDefault();
@@ -18639,6 +18668,7 @@ function bindCanvas() {
     openCtx(toScreen(e.clientX, fr.left), toScreen(e.clientY, fr.top), selIds());
   });
   cdoc.addEventListener('keydown', e => {
+    if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots], [data-slides]') && ['ArrowLeft', 'ArrowRight', ' ', 'Enter'].includes(e.key)) return;
     if (editing.on) {
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
       return;

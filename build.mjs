@@ -162,7 +162,8 @@ const fragOut = (() => {
 })();
 
 /* ---- 1. standalone page ------------------------------------------------ */
-const cut = fragOut.indexOf('<div id="app">');
+const cut = fragOut.search(/<div\s+id="app"(?:\s|>)/);
+if (cut < 0) throw new Error('editor app root missing from builder.html');
 writeFileSync(join(here, 'index.html'), cleanGenerated(withFonts(`<!doctype html>
 <html lang="en">
 <head>

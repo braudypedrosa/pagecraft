@@ -63,7 +63,10 @@ export function writer(n: PcNode, c: Control): Writer {
       const dest = C.stWrite(o);
       /* a box control writes four declarations, so clearing it has to clear all four
          or three sides survive as a phantom override */
-      if (c.t === 'box') ['top', 'right', 'bottom', 'left'].forEach(s => { delete dest[C.dk()][c.c + '-' + s]; });
+      if (c.t === 'box') {
+        delete dest[C.dk()][c.c!];
+        ['top', 'right', 'bottom', 'left'].forEach(s => { delete dest[C.dk()][c.c + '-' + s]; });
+      }
       else delete dest[C.dk()][c.c!];
       L.endTx(); L.paintCss(); L.save();
       repaint('right');

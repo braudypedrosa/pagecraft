@@ -229,7 +229,7 @@ export function ItemsCtl({ n, c }: P) {
 }
 
 const FIELD_TYPES: string[][] = [['text', 'Text'], ['email', 'Email'], ['tel', 'Phone'],
-  ['number', 'Number'], ['textarea', 'Long text'], ['select', 'Dropdown'], ['checkbox', 'Checkbox']];
+  ['number', 'Number'], ['date', 'Date'], ['textarea', 'Long text'], ['select', 'Dropdown'], ['checkbox', 'Checkbox']];
 
 export function FieldsCtl({ n, c }: P) {
   const arr = list(n, c);
@@ -241,7 +241,7 @@ export function FieldsCtl({ n, c }: P) {
           <RowInput n={n} c={c} k={k} prop="label" placeholder="Label" />
           {/* changing the type changes which second-row input is drawn, so this one
               commits and re-renders rather than coalescing */}
-          <select class="ctl" value={f.type || 'text'}
+          <select class="ctl" aria-label="Field type" value={f.type || 'text'}
             onChange={e => {
               L.tx(key);
               rows(n, c)[k].type = (e.target as HTMLSelectElement).value;
@@ -259,11 +259,11 @@ export function FieldsCtl({ n, c }: P) {
           {f.type === 'select'
             ? <RowInput n={n} c={c} k={k} prop="opts" placeholder="Option one, Option two" />
             : <RowInput n={n} c={c} k={k} prop="ph" placeholder="Placeholder" />}
-          <button class={'freq' + (f.required ? ' on' : '')} title="Required"
+          <div class="frow-options"><button class={'freq' + (f.required ? ' on' : '')} title="Required"
             onClick={() => C.edit(() => {
               const a = rows(n, c);
               a[k].required = a[k].required ? 0 : 1;
-            })}>Req</button>
+            })}>Required</button>
           {/* Two fields on one row — Name beside Email, which is what a contact form looks like
               and what this could not do. Beside `Req` because it is the same kind of switch on
               the same field, and it collapses to a full row on a phone without being asked. */}
@@ -271,7 +271,7 @@ export function FieldsCtl({ n, c }: P) {
             onClick={() => C.edit(() => {
               const a = rows(n, c);
               a[k].half = a[k].half ? 0 : 1;
-            })}>½</button>
+            })}>Half width</button></div>
         </div>
       </div>
     ))}
@@ -338,7 +338,7 @@ export function ImgsCtl({ n, c }: P) {
 
   return <Field n={n} c={c}>
     {arr.map((it, k) => {
-      const ref = String(it.src || '').match(/^asset:([a-z0-9]+)$/);
+      const ref = String(it.src || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
       const a = ref ? L.asset(ref[1]) : null;
       return (
         <div class="gtile" key={k}>

@@ -646,6 +646,11 @@ body.preview .dim{display:none}
 .group.closed .gb{display:none}
 .gb{padding:0 14px 14px}
 .f{margin-bottom:var(--gap-2)}
+/* Instance variant controls use the same inset and rhythm as inspector groups. */
+#inspector-panel > .f{padding:var(--gap-3);margin-bottom:0}
+#inspector-panel > .f > .row{display:flex;flex-wrap:wrap;gap:var(--gap-1)}
+#inspector-panel > .f > .note{margin-top:var(--gap-1)}
+
 .f:last-child{margin-bottom:2px}
 /* a checkbox and its label on one line. Dialogs had no such row until the webfont
    setting needed one — the CMS table's checkboxes sit in cells and carry no label. */
@@ -926,8 +931,10 @@ select.ctl{
 .gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
 .irow .x[data-x=ix] svg{transform:none}
 
-.frow-a{display:grid;grid-template-columns:1fr 96px var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
-.frow-b{display:grid;grid-template-columns:1fr 1fr 44px;gap:var(--sp-2);align-items:center;margin-top:4px}
+.frow-a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
+.frow-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sp-2);align-items:center;margin-top:4px}
+.frow-options{grid-column:1 / -1;display:flex;gap:var(--sp-2)}
+.frow-options .freq{padding:0 8px}
 .freq{
   height:26px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--panel);
   font-family:var(--label);font-size:var(--fs-1);font-weight:500;color:var(--text-3);
@@ -1276,6 +1283,12 @@ pre.code{
   *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important}
   .frameWrap{transition:none}
 }
+.borderpick button{position:relative}
+.borderpick button.set::after{
+  content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.borderpick button.on.set::after{background:var(--paper)}
+.borderctl>.f{margin-bottom:var(--gap-3)}
 </style>
 <style>
 #builderLoading{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:var(--ink,#111311);color:#f8f6ef;padding:24px;text-align:center}
@@ -1866,6 +1879,71 @@ async function flushDraft() {
   if (saveState !== 'ok') throw new Error('The draft was not saved, so it was not published.');
 }
 
+/* The dashboard must never load the public site just to draw a card. Capture the canvas that
+   is already open while the publication request is in flight, then attach that image to the
+   exact immutable publication that won. A failed thumbnail is deliberately non-fatal: the
+   release is the user's work, while this image is only dashboard furniture. */
+async function publicationPreviewSnapshot() {
+  if (!cdoc || /jsdom/i.test(navigator.userAgent || '')) return null;
+  const source = cdoc.getElementById('s-root');
+  if (!source || typeof XMLSerializer !== 'function') return null;
+  const asDataUrl = blob => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+  const embedded = async raw => {
+    if (!raw || /^(?:data:|#)/i.test(raw)) return raw;
+    try {
+      const response = await fetch(new URL(raw, cdoc.baseURI), { credentials: 'same-origin' });
+      if (!response.ok) return raw;
+      const blob = await response.blob();
+      return blob.size <= 4 * 1024 * 1024 ? await asDataUrl(blob) : raw;
+    } catch { return raw; }
+  };
+  const clone = source.cloneNode(true);
+  const sourceImages = [...source.querySelectorAll('img')];
+  const cloneImages = [...clone.querySelectorAll('img')];
+  await Promise.all(sourceImages.map(async (image, index) => {
+    const src = image.currentSrc || image.src;
+    if (!src || src.startsWith('data:')) return;
+    try {
+      const data = await embedded(src);
+      cloneImages[index]?.setAttribute('src', data);
+      cloneImages[index]?.removeAttribute('srcset');
+    } catch { /* The layout is still useful when an optional image cannot be embedded. */ }
+  }));
+  let css = [...cdoc.querySelectorAll('style')].map(style => style.textContent || '').join('\n');
+  const cssUrls = [...new Set([...css.matchAll(/url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/gi)]
+    .map(match => match[2]).filter(value => !/^(?:data:|#)/i.test(value)))];
+  await Promise.all(cssUrls.map(async raw => {
+    const data = await embedded(raw);
+    if (data !== raw) css = css.split(raw).join(data);
+  }));
+  const width = 1200, height = 750, outputWidth = 960, outputHeight = 600;
+  const markup = new XMLSerializer().serializeToString(clone);
+  const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>html,body{width:${width}px;height:${height}px;margin:0;overflow:hidden;background:#fff}${css}</style>${markup}</div></foreignObject></svg>`;
+  const url = URL.createObjectURL(new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' }));
+  try {
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = url;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, outputWidth, outputHeight);
+    context.drawImage(image, 0, 0, outputWidth, outputHeight);
+    return canvas.toDataURL('image/webp', .78);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function finishWordPress(button) {
   button.disabled = true;
   button.textContent = 'Saving…';
@@ -1897,10 +1975,14 @@ async function publishDraft(button) {
   $('#releasePanel')?.setAttribute('aria-busy', 'true');
   try {
     await flushDraft();
+    const preview = publicationPreviewSnapshot().catch(() => null);
     const payload = await HOST.releases.publish({
       sourceVersion: SRV.version,
       acknowledgeWarnings: counts.warn > 0
     });
+    void preview.then(snapshot => snapshot && payload.publicationId
+      ? HOST.releases.savePreview({ publicationId: payload.publicationId, snapshot })
+      : undefined).catch(() => undefined);
     SRV.publishedPublicationId = payload.publicationId;
     SRV.publishedVersion = payload.sourceVersion ?? SRV.publishedVersion;
     renderReleasePanel(payload);
@@ -2034,7 +2116,7 @@ async function writeServer() {
       document: doc(),
       version: SRV.version,
       ...(IS_WORDPRESS ? { compiled: {
-        html: buildPage(page()),
+        html: assetsToBlob(buildPage(page())),
         globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
         pageCss: assetsToBlob(treeCss([page().tree], false))
       } } : {})
@@ -2633,13 +2715,13 @@ const previewScriptBody = source => {
   if (!/^\s*<script[>\s]/i.test(text)) return text;
   return text.slice(text.indexOf('>') + 1, text.toLowerCase().lastIndexOf('<'));
 };
-function runPreviewRuntime(html) {
+function runPreviewRuntime(html, editing = false) {
   previewDispose();
   previewDispose = () => {};
-  if (!cdoc || !document.body.classList.contains('preview')) return;
+  if (!cdoc) return;
 
   let runtimeStyle = null;
-  if (/\bbp-animate\b/.test(html)) {
+  if (!editing && /\bbp-animate\b/.test(html)) {
     runtimeStyle = cdoc.createElement('style');
     runtimeStyle.id = 's-preview-runtime';
     runtimeStyle.textContent = ANIM_CSS + '\n' + ANIM_CALM;
@@ -2679,7 +2761,7 @@ function runPreviewRuntime(html) {
   ];
   try {
     scripts.forEach(([used, source]) => {
-      if (!used) return;
+      if (!used || (editing && source !== SLIDE_JS)) return;
       const script = cdoc.createElement('script');
       script.textContent = previewScriptBody(source);
       cdoc.body.appendChild(script);
@@ -2706,6 +2788,7 @@ function paint() {
   previewDispose();
   previewDispose = () => {};
   const editing = !document.body.classList.contains('preview');
+  const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
   const css = treeCss(curSets(), editing);
 
@@ -2742,7 +2825,8 @@ function paint() {
   syncFonts();
   cdoc.getElementById('s-css').textContent = assetsToBlob(css);
   cdoc.getElementById('s-root').innerHTML = assetsToBlob(html);
-  if (!editing) runPreviewRuntime(html);
+  $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
+  runPreviewRuntime(html, editing);
   positionHud();
 }
 
@@ -3042,6 +3126,7 @@ function bindCanvas() {
 
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
+    if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots]')) return;
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (hudBtn) {
       e.preventDefault();
@@ -3169,6 +3254,7 @@ function bindCanvas() {
     openCtx(toScreen(e.clientX, fr.left), toScreen(e.clientY, fr.top), selIds());
   });
   cdoc.addEventListener('keydown', e => {
+    if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots], [data-slides]') && ['ArrowLeft', 'ArrowRight', ' ', 'Enter'].includes(e.key)) return;
     if (editing.on) {
       if (e.key === 'Escape') { e.preventDefault(); exitEdit(); }
       return;

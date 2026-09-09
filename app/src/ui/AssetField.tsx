@@ -16,7 +16,7 @@ export function AssetField({ value, note, onChange }: {
   note?: string;
   onChange: (v: string) => void;
 }) {
-  const ref = String(value || '').match(/^asset:([a-z0-9]+)$/);
+  const ref = String(value || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
 
   const take = async (file: File | undefined) => {

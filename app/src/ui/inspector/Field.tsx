@@ -28,7 +28,7 @@ function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
      declaration they are talking about */
   const src = C.stRead(o);
   const owns = !!(c.c && src[dev] && (c.t === 'box'
-    ? BOX_SIDES.some(s => src[dev][c.c + '-' + s] !== undefined)
+    ? (src[dev][c.c] !== undefined || BOX_SIDES.some(s => src[dev][c.c + '-' + s] !== undefined))
     : src[dev][c.c] !== undefined));
   const clearable = owns && dev !== 'd';
   const w = writer(n, c);
