@@ -10668,6 +10668,10 @@ var PC_UI = (() => {
       const validation = validateCmsEntry(C2.doc(), col, next, assets);
       if (Object.keys(validation).length) {
         setErrors(validation);
+        requestAnimationFrame(() => {
+          const field = Object.keys(validation)[0];
+          document.getElementById(field === "_slug" ? "cms-slug" : "cms-value-" + field)?.focus();
+        });
         return;
       }
       const old = col.items.find((i3) => i3.id === next.id);
@@ -10739,6 +10743,13 @@ var PC_UI = (() => {
         ref: root,
         onKeyDown: (e3) => {
           e3.stopPropagation();
+          if ((e3.metaKey || e3.ctrlKey) && e3.key.toLowerCase() === "s") {
+            e3.preventDefault();
+            if (!busy) {
+              if (entry) void saveEntry();
+              else if (schema) void saveSchema();
+            }
+          }
           if (e3.key === "Escape") {
             e3.stopPropagation();
             leave();
@@ -10780,6 +10791,8 @@ var PC_UI = (() => {
                   if (discard()) {
                     setId(c3.id);
                     reset();
+                    setNotice("");
+                    setStatus("all");
                     setSearch("");
                     setPage(0);
                   }
@@ -10794,7 +10807,7 @@ var PC_UI = (() => {
               /* @__PURE__ */ u2("div", { class: "cms-title", children: [
                 /* @__PURE__ */ u2("div", { children: [
                   /* @__PURE__ */ u2("h2", { children: col.name }),
-                  /* @__PURE__ */ u2("p", { children: entry ? "Edit entry" : schema ? "Collection settings" : `${col.items.length} entries` })
+                  /* @__PURE__ */ u2("p", { children: entry ? col.items.some((i3) => i3.id === entry.id) ? "Edit entry" : "New entry" : schema ? "Collection settings" : `${col.items.length} entries` })
                 ] }),
                 !entry && !schema && /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
                   L2.canStructure() && /* @__PURE__ */ u2(
@@ -10813,7 +10826,8 @@ var PC_UI = (() => {
                   /* @__PURE__ */ u2("button", { class: "btn primary", onClick: () => openEntry(), children: "New entry" })
                 ] })
               ] }),
-              notice && /* @__PURE__ */ u2("p", { class: "cms-notice", role: "status", children: notice }),
+              dirty && /* @__PURE__ */ u2("p", { class: "cms-notice", role: "status", children: "Unsaved changes" }),
+              notice && !dirty && /* @__PURE__ */ u2("p", { class: "cms-notice", role: "status", children: notice }),
               Object.keys(errors).length > 0 && /* @__PURE__ */ u2("div", { class: "cms-errors", role: "alert", children: Object.entries(errors).map(([key, message]) => /* @__PURE__ */ u2("p", { children: [
                 key.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key)?.name || key}: `,
                 message
@@ -10843,6 +10857,8 @@ var PC_UI = (() => {
                           EntryValue,
                           {
                             field: f4,
+                            disabled: busy,
+                            error: errors[f4.id],
                             value: entry.values[f4.id] || "",
                             onChange: (value) => setEntry({
                               ...entry,
@@ -10850,7 +10866,7 @@ var PC_UI = (() => {
                             })
                           }
                         ),
-                        errors[f4.id] && /* @__PURE__ */ u2("small", { class: "cms-error", children: errors[f4.id] })
+                        errors[f4.id] && /* @__PURE__ */ u2("small", { class: "cms-error", id: "cms-error-" + f4.id, children: errors[f4.id] })
                       ] }, f4.id)),
                       /* @__PURE__ */ u2("div", { class: "cms-field", children: [
                         /* @__PURE__ */ u2("label", { htmlFor: "cms-slug", children: "URL slug" }),
@@ -11226,11 +11242,15 @@ var PC_UI = (() => {
   function EntryValue({
     field: f4,
     value,
-    onChange
+    onChange,
+    disabled,
+    error
   }) {
     const props = {
       id: "cms-value-" + f4.id,
-      "aria-labelledby": "cms-label-" + f4.id
+      "aria-labelledby": "cms-label-" + f4.id,
+      "aria-invalid": !!error,
+      "aria-describedby": error ? "cms-error-" + f4.id : void 0
     };
     if (f4.type === "image")
       return /* @__PURE__ */ u2(AssetField, { value, onChange });
@@ -11240,6 +11260,8 @@ var PC_UI = (() => {
         {
           id: props.id,
           label: props["aria-labelledby"],
+          disabled,
+          error: error ? "cms-error-" + f4.id : void 0,
           value,
           onChange
         }
@@ -11298,7 +11320,9 @@ var PC_UI = (() => {
     id,
     label,
     value,
-    onChange
+    onChange,
+    disabled,
+    error
   }) {
     const editor = A2(null);
     h2(() => {
@@ -11308,6 +11332,7 @@ var PC_UI = (() => {
       }
     }, []);
     const command = (cmd, arg) => {
+      if (disabled) return;
       editor.current?.focus();
       document.execCommand(cmd, false, arg);
       onChange(editor.current?.innerHTML || "");
@@ -11337,8 +11362,13 @@ var PC_UI = (() => {
           role: "textbox",
           "aria-labelledby": label,
           "aria-multiline": "true",
-          contentEditable: true,
-          onInput: () => onChange(editor.current?.innerHTML || ""),
+          "aria-disabled": disabled,
+          "aria-invalid": !!error,
+          "aria-describedby": error,
+          contentEditable: disabled ? "false" : "true",
+          onInput: () => {
+            if (!disabled) onChange(editor.current?.innerHTML || "");
+          },
           onPaste: (e3) => {
             e3.preventDefault();
             command("insertText", e3.clipboardData?.getData("text/plain") || "");

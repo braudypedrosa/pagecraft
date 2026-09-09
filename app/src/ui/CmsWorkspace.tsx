@@ -111,6 +111,12 @@ export function CmsWorkspace({
     const validation = validateCmsEntry(C.doc(), col, next, assets);
     if (Object.keys(validation).length) {
       setErrors(validation);
+      requestAnimationFrame(() => {
+        const field = Object.keys(validation)[0];
+        document
+          .getElementById(field === '_slug' ? 'cms-slug' : 'cms-value-' + field)
+          ?.focus();
+      });
       return;
     }
     const old = col.items.find((i) => i.id === next.id);
@@ -194,6 +200,13 @@ export function CmsWorkspace({
       ref={root}
       onKeyDown={(e) => {
         e.stopPropagation();
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          if (!busy) {
+            if (entry) void saveEntry();
+            else if (schema) void saveSchema();
+          }
+        }
         if (e.key === 'Escape') {
           e.stopPropagation();
           leave();
@@ -241,6 +254,8 @@ export function CmsWorkspace({
                 if (discard()) {
                   setId(c.id);
                   reset();
+                  setNotice('');
+                  setStatus('all');
                   setSearch('');
                   setPage(0);
                 }
@@ -257,7 +272,9 @@ export function CmsWorkspace({
               <h2>{col.name}</h2>
               <p>
                 {entry
-                  ? 'Edit entry'
+                  ? col.items.some((i) => i.id === entry.id)
+                    ? 'Edit entry'
+                    : 'New entry'
                   : schema
                     ? 'Collection settings'
                     : `${col.items.length} entries`}
@@ -284,7 +301,12 @@ export function CmsWorkspace({
               </div>
             )}
           </div>
-          {notice && (
+          {dirty && (
+            <p class="cms-notice" role="status">
+              Unsaved changes
+            </p>
+          )}
+          {notice && !dirty && (
             <p class="cms-notice" role="status">
               {notice}
             </p>
@@ -320,6 +342,8 @@ export function CmsWorkspace({
                     </label>
                     <EntryValue
                       field={f}
+                      disabled={busy}
+                      error={errors[f.id]}
                       value={entry.values[f.id] || ''}
                       onChange={(value) =>
                         setEntry({
@@ -329,7 +353,9 @@ export function CmsWorkspace({
                       }
                     />
                     {errors[f.id] && (
-                      <small class="cms-error">{errors[f.id]}</small>
+                      <small class="cms-error" id={'cms-error-' + f.id}>
+                        {errors[f.id]}
+                      </small>
                     )}
                   </div>
                 ))}
@@ -697,7 +723,11 @@ function EntryValue({
   field: f,
   value,
   onChange,
+  disabled,
+  error,
 }: {
+  disabled: boolean;
+  error?: string;
   field: Field;
   value: string;
   onChange(value: string): void;
@@ -705,6 +735,8 @@ function EntryValue({
   const props = {
     id: 'cms-value-' + f.id,
     'aria-labelledby': 'cms-label-' + f.id,
+    'aria-invalid': !!error,
+    'aria-describedby': error ? 'cms-error-' + f.id : undefined,
   };
   if (f.type === 'image')
     return <AssetField value={value} onChange={onChange} />;
@@ -713,6 +745,8 @@ function EntryValue({
       <RichValue
         id={props.id}
         label={props['aria-labelledby']}
+        disabled={disabled}
+        error={error ? 'cms-error-' + f.id : undefined}
         value={value}
         onChange={onChange}
       />
@@ -774,7 +808,11 @@ function RichValue({
   label,
   value,
   onChange,
+  disabled,
+  error,
 }: {
+  disabled: boolean;
+  error?: string;
   id: string;
   label: string;
   value: string;
@@ -788,6 +826,7 @@ function RichValue({
     }
   }, []);
   const command = (cmd: string, arg?: string) => {
+    if (disabled) return;
     editor.current?.focus();
     document.execCommand(cmd, false, arg);
     onChange(editor.current?.innerHTML || '');
@@ -818,8 +857,13 @@ function RichValue({
         role="textbox"
         aria-labelledby={label}
         aria-multiline="true"
-        contentEditable
-        onInput={() => onChange(editor.current?.innerHTML || '')}
+        aria-disabled={disabled}
+        aria-invalid={!!error}
+        aria-describedby={error}
+        contentEditable={disabled ? 'false' : 'true'}
+        onInput={() => {
+          if (!disabled) onChange(editor.current?.innerHTML || '');
+        }}
         onPaste={(e) => {
           e.preventDefault();
           command('insertText', e.clipboardData?.getData('text/plain') || '');

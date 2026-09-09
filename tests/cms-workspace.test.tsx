@@ -99,3 +99,53 @@ test('cancel warns and does not add an entry', async () => {
   expect(window.confirm).toHaveBeenCalled();
   expect(col.items).toHaveLength(0);
 });
+
+test('CMS save shortcut persists the entry and later edits replace the saved notice', async () => {
+  start();
+  await click('New entry');
+  await act(() => r.type(r.$('#cms-value-title')!, 'Keyboard cabin'));
+  const key = new KeyboardEvent('keydown', {
+    key: 's',
+    metaKey: true,
+    bubbles: true,
+    cancelable: true,
+  });
+  await act(async () => {
+    r.$('#cms-value-title')!.dispatchEvent(key);
+  });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  expect(key.defaultPrevented).toBe(true);
+  expect(C.collections()[0].items[0].values.title).toBe('Keyboard cabin');
+  expect(r.$('[role="status"]')?.textContent).toContain(
+    'Saved to the site draft',
+  );
+  await act(() => r.type(r.$('#cms-value-title')!, 'Changed again'));
+  expect(r.$('[role="status"]')?.textContent).toBe('Unsaved changes');
+  expect(r.host.textContent).not.toContain('Saved to the site draft');
+});
+
+test('rich text is read-only while an entry save is pending', async () => {
+  const col = C.collectionAdd('Cabins');
+  col.fields.push({ id: 'body', name: 'Body', type: 'rich' });
+  r.draw(<CmsWorkspace collectionId={col.id} close={() => {}} />);
+  let done!: () => void;
+  L.cmsCommit = () =>
+    new Promise<void>((resolve) => {
+      done = resolve;
+    });
+  await click('New entry');
+  await act(() => r.type(r.$('#cms-value-title')!, 'Pending cabin'));
+  await act(async () => {
+    r.$('form')!.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true }),
+    );
+  });
+  expect(r.$('#cms-value-body')?.getAttribute('contenteditable')).toBe('false');
+  expect(r.$('#cms-value-body')?.getAttribute('aria-disabled')).toBe('true');
+  await act(async () => {
+    done();
+  });
+  expect(r.$('#cms-value-body')?.getAttribute('contenteditable')).toBe('true');
+});

@@ -46,3 +46,7 @@ A checksummed package fixture declaring CMS content was rejected by the installe
 - `f013b83`: generated detail URLs recognized by publication review, with draft-route regression coverage; staging `/__deployment` verified before the publication test.
 
 Scheduling, approvals, bulk editing, revision comparison, galleries/multiple references and a headless API remain deferred.
+
+## Cloud refinement
+
+Cloud is the active CMS development target; WordPress CMS work is paused at the user's request. The workspace distinguishes new entries, displays unsaved changes after edits, supports Command/Control+S, associates validation messages with inputs and focuses the first invalid field. Rich text is explicitly read-only during persistence, including its paste and formatting paths. Collection navigation clears stale notices and filters.
