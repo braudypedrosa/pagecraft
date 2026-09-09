@@ -15,6 +15,39 @@ const input = () => ({
   ]
 });
 
+for (const backend of ['memory', 'file'] as const) {
+  test(`${backend}: address changes preserve immutable files and deletion survives restart`, async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pagecraft-lifecycle-'));
+    try {
+      const store = backend === 'file' ? new FileHostedPublicationStore(root) : new MemoryHostedPublicationStore();
+      const publication = await store.create(input());
+      await store.promote(publication);
+      await store.relocate(publication.siteId, 'new-address', 'new.test');
+      const reader = backend === 'file' ? new FileHostedPublicationStore(root) : store;
+      assert.equal(await reader.currentBySlug('site-one'), null);
+      assert.equal(await reader.currentByHost('site-one.test'), null);
+      const moved = await reader.currentBySlug('new-address');
+      assert.equal(moved?.slug, 'new-address');
+      assert.equal(moved?.host, 'new.test');
+      assert.equal(moved?.id, publication.id);
+      assert.equal((await reader.byId(publication.siteId, publication.id))?.slug, 'site-one', 'manifest is not rewritten');
+      assert.deepEqual(await reader.file(moved!, 'assets/logo.png'), Uint8Array.of(1, 2, 3));
+      await store.removeSite(publication.siteId);
+      await store.removeSite(publication.siteId); // retry-safe
+      assert.equal(await reader.currentBySlug('new-address'), null);
+      assert.equal(await reader.currentByHost('new.test'), null);
+      await assert.rejects(() => reader.promote(publication), /deleted/);
+      assert.ok(await reader.byId(publication.siteId, publication.id), 'private release bytes are retained');
+      const replacement = await reader.create({ ...input(), siteId: 'replacement' });
+      await reader.promote(replacement);
+      await store.removeSite(publication.siteId);
+      assert.equal((await reader.currentBySlug('site-one'))?.siteId, 'replacement');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+}
+
 test('publication paths reject traversal and ambiguous segments', () => {
   assert.equal(safePublicationPath('../secret'), null);
   assert.equal(safePublicationPath('assets//logo.png'), null);

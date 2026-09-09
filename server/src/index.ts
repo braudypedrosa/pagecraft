@@ -495,7 +495,7 @@ const app = createApp({
   ownedSites: owned,
   siteTemplates,
   challenge,
-  turnstileSiteKey,
+  turnstileSiteKey: testAuth ? "pagecraft-local-test" : turnstileSiteKey,
   publications,
   hostedPublish,
   cloudMutations,
@@ -503,7 +503,7 @@ const app = createApp({
   ...signing,
 });
 
-serve({ fetch: app.fetch, port: PORT }, (info) => {
+serve({ fetch: app.fetch, port: PORT, hostname: process.env.BIND_HOST }, (info) => {
   console.log(`editor   http://${EDITOR_HOST}:${info.port}/`);
   console.log(`api      http://${EDITOR_HOST}:${info.port}/api/sites`);
   store.listMeta().then((sites) =>
