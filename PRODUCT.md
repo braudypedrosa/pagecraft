@@ -21,7 +21,7 @@ Pagecraft separates a portable, versioned document from the environment that own
 ## Operating Context
 
 - Authors work in Pagecraft Cloud or through the same full-page editor embedded in WordPress Admin.
-- Cloud import is optional and whole-project only. WordPress uses a revocable PKCE connection to download the internal project package; there is no user-facing project upload or page-by-page Cloud import.
+- Cloud connection is optional and revocable through PKCE. The WordPress transfer flow separates choosing a Cloud project from choosing **Replace this site** or **Replace a page**, followed by an explicit impact review. There is no user-facing package upload in this flow.
 - Imported pages are native WordPress `page` records. The Pagecraft document is stored in post metadata and compiled fallback HTML is stored in `post_content`.
 - WordPress Pages is the canonical page library. Pagecraft adds badges, filters, and “Edit with Pagecraft” actions instead of a duplicate Pages screen.
 - Pagecraft navigation is converted to a native WordPress menu and bound back to the imported navigation component; WordPress owns menu content while Pagecraft owns presentation.
@@ -49,7 +49,8 @@ The product is Pagecraft. Its established interface is a calm editorial workbenc
 ## Product Principles
 
 - An import is a copy and an ownership handoff, never an implied synchronization relationship.
-- Reimport is manual and whole-project. It matches immutable source IDs, creates revisions before updates, adds new pages, and marks missing Cloud pages without deleting them.
+- Replacement is manual, never synchronization. Site replacement publishes the incoming page collection, replaces Pagecraft navigation/header/footer/homepage, and archives displaced WordPress pages without permanently deleting them. Posts, products, users, plugins and unrelated media remain. A single-page replacement retains its destination URL, title and status and uses page-scoped Cloud header/footer elements. Recovery data is retained privately; an administrator-assisted restore is required until a recovery UI is implemented.
+- The legacy programmatic whole-project importer retains merge semantics; it is not labelled as site replacement. The new replacement service adds stale-review rejection, editor locks, transactional database writes and explicit scope boundaries. Hosted acceptance is required before release.
 - Stable Pagecraft identities, versioned schemas, deterministic compilation, and file hashes make packages auditable and repeatable.
 - Existing WordPress content, navigation, and media are never silently overwritten.
 - Published pages retain compiled HTML and CSS so disabling the builder does not blank the site.

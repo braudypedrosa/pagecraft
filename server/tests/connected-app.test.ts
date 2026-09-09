@@ -96,11 +96,15 @@ const connection = (siteId: string, ownerId: string, environment: 'staging' | 'p
   activeReleaseId: null, activeHash: null
 });
 
-test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and action-only', async () => {
+test.each([
+  'http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
+  'https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
+  'https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
+  'https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
+])('manual WordPress import preserves PKCE and ownership for callback %s', async (callback) => {
   const { site, first, second, admin, request } = await rig();
   const verifier = 'm'.repeat(64);
   const challenge = base64url(Buffer.from(hashToken(verifier), 'hex'));
-  const callback = 'http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback';
   const query = new URLSearchParams({
     installation_id: 'wordpress-manual-import-1', redirect_uri: callback,
     code_challenge: challenge, code_challenge_method: 'S256', state: 'manual-import-state-0001'
@@ -109,6 +113,13 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
     'https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback&next=https://evil.test',
     'https://wordpress.test/wp-admin/admin.php?page=pagecraft',
     'http://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
+    'http://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
+    'https://wordpress.test/wordpress-qa/wp-admin/admin-post.php/extra?action=pagecraft_cloud_callback',
+    'https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=other',
+    'https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback&action=other',
+    'https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback#fragment',
+    'https://user:password@wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
+    'https://wordpress.test/wordpress%2fqa/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
   ]) {
     const rejected = new URLSearchParams(query);
     rejected.set('redirect_uri', redirectUri);
@@ -123,7 +134,7 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
   a.match(await consent.clone().text(), /Imports are manual and do not stay in sync/);
   a.match(await consent.clone().text(), /Pagecraft does not receive your WordPress password/);
   a.match(await consent.clone().text(), />Approve<\/button>/);
-  a.match(await consent.clone().text(), /pagecraft-wordpress-qa\.local/);
+  a.ok((await consent.clone().text()).includes(new URL(callback).hostname));
   const csrf = (await consent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
   a.ok(csrf);
   const approved = await admin(second, '/v1/wordpress-import/authorize', {
@@ -131,7 +142,12 @@ test('manual WordPress import is PKCE-authorized, owner-scoped, revocable and ac
     body: new URLSearchParams({ csrf: csrf! })
   });
   a.equal(approved.status, 302);
-  const code = new URL(approved.headers.get('location')!).searchParams.get('code')!;
+  const returned = new URL(approved.headers.get('location')!);
+  a.equal(returned.origin, new URL(callback).origin);
+  a.equal(returned.pathname, new URL(callback).pathname);
+  a.equal(returned.searchParams.get('action'), 'pagecraft_cloud_callback');
+  a.equal(returned.searchParams.get('state'), 'manual-import-state-0001');
+  const code = returned.searchParams.get('code')!;
   const tokenResponse = await request(first, '/v1/wordpress-import/token', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ grant_type: 'authorization_code', code, code_verifier: verifier, redirect_uri: callback })

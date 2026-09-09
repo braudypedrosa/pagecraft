@@ -12,7 +12,9 @@
     "test": "node build.mjs && tsc --noEmit && vitest run",
     "typecheck": "tsc --noEmit",
     "serve": "python3 -m http.server 4877",
-    "smoke": "node tools/smoke.mjs"
+    "smoke": "node tools/smoke.mjs",
+    "local": "node tools/local-app.mjs",
+    "local:stop": "supabase stop"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.7",

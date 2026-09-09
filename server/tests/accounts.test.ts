@@ -239,7 +239,7 @@ test("hosted publishing uses one prepared source instead of serial auth and site
   a.equal(preparations, 1);
 });
 
-test("Cloud save and publish reuse a verified cached source with one atomic write each", async () => {
+test("Cloud saves reuse cached drafts but publishing revalidates before its atomic write", async () => {
   const store = new MemoryStore(),
     auth = new MemoryAuthStore(),
     accountAuth = new FakeAccountAuth();
@@ -268,7 +268,7 @@ test("Cloud save and publish reuse a verified cached source with one atomic writ
     name: user.name,
   };
   let cachedSite = original;
-  let atomicSaves = 0, atomicPublishes = 0;
+  let atomicSaves = 0, atomicPublishes = 0, preparations = 0;
   const cloudMutations: CloudMutationFastPath = {
     cachedSaveSource(siteId, sourceVersion) {
       return siteId === cachedSite.id && sourceVersion === cachedSite.version
@@ -330,9 +330,13 @@ test("Cloud save and publish reuse a verified cached source with one atomic writ
   };
   const hostedPublish: HostedPublishPreparer = {
     async prepare() {
-      throw new Error(
-        "cached publish unexpectedly used the preparation round trip",
-      );
+      preparations++;
+      const site = await store.byId(original.id);
+      if (!site) return { status: "missing" };
+      return {
+        status: "ok", role: "owner", user, site,
+        revision: await store.revision(site.id, site.version), assets: [],
+      };
     },
   };
   const app = createApp({
@@ -375,6 +379,7 @@ test("Cloud save and publish reuse a verified cached source with one atomic writ
   a.equal(publish.status, 200, await publish.clone().text());
   a.equal(atomicSaves, 1);
   a.equal(atomicPublishes, 1);
+  a.equal(preparations, 1);
 });
 
 test("dashboard renders searchable builder-style site cards and the owner quota", async () => {

@@ -206,6 +206,42 @@ test('hosted publishing promotes immutable bytes and public reads bypass the app
   a.equal(notModified.status, 304);
 });
 
+test('hosted addresses move immediately and deleting the site revokes both public routes', async () => {
+  const { site, store, publications, get, admin, signIn } = await rig('owner', true);
+  const { cookie } = await signIn();
+  const published = await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
+  }, cookie);
+  a.equal(published.status, 200, await published.text());
+  const move = await admin(`/api/sites/${site.id}/slug`, { method: 'PUT', body: JSON.stringify({ slug: 'new-address' }) }, cookie);
+  a.equal(move.status, 200);
+  a.equal((await admin(`/${site.slug}/`)).status, 404);
+  a.equal((await admin('/new-address/')).status, 200);
+  a.equal((await admin('/new-address')).headers.get('location'), '/new-address/');
+  const movedAgain = await admin(`/sites/${site.id}/settings/slug`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'slug=final-address'
+  }, cookie);
+  a.equal(movedAgain.status, 303);
+  a.equal((await admin('/new-address/')).status, 404);
+  a.equal((await admin('/final-address/')).status, 200);
+  const host = await admin(`/api/sites/${site.id}/host`, { method: 'PUT', body: JSON.stringify({ host: 'moved.test' }) }, cookie);
+  a.equal(host.status, 200);
+  a.equal((await get('/')).status, 404);
+  a.equal((await get('/', 'moved.test')).status, 200);
+  const removeSite = publications!.removeSite.bind(publications);
+  publications!.removeSite = async () => { throw new Error('fixture pointer failure'); };
+  const deleteRequest = () => admin(`/sites/${site.id}/settings/delete`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ confirmation: site.name }).toString()
+  }, cookie);
+  a.equal((await deleteRequest()).status, 500);
+  a.ok(await store.byId(site.id), 'failed public revocation must not remove management access');
+  publications!.removeSite = removeSite;
+  a.equal((await deleteRequest()).status, 303);
+  a.equal(await store.byId(site.id), null);
+  a.equal((await admin('/final-address/')).status, 404);
+  a.equal((await get('/', 'moved.test')).status, 404);
+});
+
 test('a save carrying a stale version is refused rather than winning', async () => {
   const { site, put, signIn } = await rig();
   const { cookie } = await signIn();

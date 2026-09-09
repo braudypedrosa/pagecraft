@@ -5,6 +5,12 @@ Cloudflare proxies the public hostname.
 
 ## Production topology
 
+Hosted-site deletion writes a persistent routing tombstone under the publication root before
+removing the database record. Keep these tombstones with the publication data: they prevent
+stale pointers or delayed publishing jobs from making deleted sites public again. Immutable
+release files remain private; this operation revokes public routing, not archival storage.
+Address changes update the routing aliases without modifying immutable release manifests.
+
 - Public URL: `https://build.itspagecraft.com`
 - Node 24 application: `/home/itspbuku/pagecraft-app`
 - Runtime: CloudLinux Node selector and LiteSpeed Passenger

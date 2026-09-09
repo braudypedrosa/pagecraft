@@ -116,6 +116,11 @@ import {
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
 import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
+import { latestSiteTemplates, type SiteTemplateStore } from "./site-templates.ts";
+import {
+  integrationDiscovery,
+  pagecraftMcpResponse,
+} from "./integrations.ts";
 import {
   accountSettingsPage,
   dashboardPage,
@@ -279,6 +284,8 @@ export interface Options {
   accountAuth?: AccountAuth;
   /** Atomic site creation and owner grant, including the owned-site quota. */
   ownedSites?: OwnedSiteStore;
+  /** Immutable, Pagecraft-curated full-site packages. */
+  siteTemplates?: SiteTemplateStore;
   /** Cloudflare Turnstile verifier for public account forms. */
   challenge?: HumanChallenge;
   turnstileSiteKey?: string;
@@ -330,6 +337,7 @@ export function createApp(o: Options) {
     const privateRoute = !path.startsWith("/v1/wordpress-distribution/") &&
         /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path) ||
       /^\/account(?:\/|$)/.test(path) ||
+      path === "/mcp" ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
     if (privateRoute) c.header("cache-control", "private, no-store");
     /* `secureCookies` is the production signal already passed by the entry point. Browsers
@@ -1460,6 +1468,10 @@ export function createApp(o: Options) {
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
         : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+      const templates = o.siteTemplates ? latestSiteTemplates(await o.siteTemplates.list().catch(error => {
+        console.error('site template catalog unavailable', error);
+        return [];
+      })) : [];
       return c.html(dashboardPage(
         user,
         mine.map(({ site, role }) => ({
@@ -1468,11 +1480,15 @@ export function createApp(o: Options) {
           role,
           updatedAt: site.updatedAt,
           url: shareUrl(c, o, site),
+          previewUrl: site.publishedPublicationId
+            ? `/api/sites/${encodeURIComponent(site.id)}/publication-preview/${encodeURIComponent(site.publishedPublicationId)}`
+            : undefined,
           published: !!site.publishedPublicationId &&
             site.version === site.publishedVersion,
         })),
         mine.filter((item) => item.role === "owner").length,
         storage,
+        templates,
         c.req.query("error"),
         c.req.query("message"),
       ));
@@ -1497,6 +1513,31 @@ export function createApp(o: Options) {
           : m.site.host,
       })),
     ));
+  });
+
+  app.get("/templates/:id/:version/preview/*", async (c) => {
+    if (!o.siteTemplates) return c.notFound();
+    const prefix = `/templates/${encodeURIComponent(c.req.param("id"))}/${encodeURIComponent(c.req.param("version"))}/preview/`;
+    let path = "";
+    try {
+      path = decodeURIComponent(new URL(c.req.url).pathname.slice(prefix.length)) ||
+        "index.html";
+    } catch {
+      return c.notFound();
+    }
+    const file = await o.siteTemplates.preview(
+      c.req.param("id"),
+      c.req.param("version"),
+      path,
+    ).catch(() => null);
+    if (!file) return c.notFound();
+    c.header("content-type", file.mediaType);
+    c.header("cache-control", "public, max-age=31536000, immutable");
+    c.header(
+      "content-security-policy",
+      "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'",
+    );
+    return c.body(file.bytes.slice().buffer);
   });
 
   app.get("/sites/:id", async (c) => {
@@ -1920,6 +1961,73 @@ export function createApp(o: Options) {
     });
   });
 
+  app.get("/api/sites/:id/publication-preview/:publication", async (c) => {
+    if (!o.publications) return c.notFound();
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) return deny(c, gate.status);
+    const site = await o.store.byId(id);
+    if (!site || site.publishedPublicationId !== c.req.param("publication")) {
+      return c.notFound();
+    }
+    const publication = await o.publications.byId(
+      id,
+      c.req.param("publication"),
+    );
+    if (!publication) return c.notFound();
+    const bytes = await o.publications.preview(publication);
+    if (!bytes) return c.notFound();
+    return c.body(bytes.slice().buffer, 200, {
+      "content-type": "image/webp",
+      "content-length": String(bytes.byteLength),
+      "x-content-type-options": "nosniff",
+    });
+  });
+
+  app.post("/api/sites/:id/publication-preview", async (c) => {
+    if (!o.publications) {
+      return c.json({ error: "hosted publication storage is unavailable" }, 503);
+    }
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.json().catch(() => null) as {
+      publicationId?: string;
+      snapshot?: string;
+    } | null;
+    const publicationId = String(body?.publicationId || "");
+    const match = String(body?.snapshot || "").match(
+      /^data:(image\/(?:webp|png));base64,([A-Za-z0-9+/]+={0,2})$/,
+    );
+    if (!/^[0-9a-f-]{36}$/i.test(publicationId) || !match) {
+      return c.json({ error: "invalid_publication_preview" }, 400);
+    }
+    if (match[2].length > 2 * 1024 * 1024) {
+      return c.json({ error: "publication_preview_too_large" }, 413);
+    }
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    if (site.publishedPublicationId !== publicationId) {
+      return c.json({ error: "stale_publication_preview" }, 409);
+    }
+    const publication = await o.publications.byId(id, publicationId);
+    if (!publication) return c.notFound();
+    try {
+      const source = new Uint8Array(Buffer.from(match[2], "base64"));
+      const optimized = await optimizeAsset(source, match[1]);
+      if (
+        !optimized.w || !optimized.h || optimized.w < 480 ||
+        optimized.h < 300 || optimized.bytes.byteLength > 1024 * 1024
+      ) {
+        return c.json({ error: "invalid_publication_preview" }, 400);
+      }
+      await o.publications.putPreview(publication, optimized.bytes);
+      return c.json({ status: "stored", publicationId });
+    } catch {
+      return c.json({ error: "invalid_publication_preview" }, 400);
+    }
+  });
+
   app.post("/api/sites/:id/publish", async (c) => {
     const id = c.req.param("id");
     if (!o.publications) {
@@ -1945,10 +2053,14 @@ export function createApp(o: Options) {
       const identity = await o.accountAuth.identity(c);
       if (!identity) return deny(c, 401);
       publishIdentity = identity;
-      // Publishing must recheck the authoritative version and membership, even when the
-      // draft appears unchanged. Another worker may have published or revoked access
-      // since this process cached the site; that cache is only suitable for draft work.
-      const prepared = await o.hostedPublish.prepare({ siteId: id, identity });
+      const cached = o.cloudMutations?.cachedPublishSource({
+        siteId: id,
+        sourceVersion: Number(sourceVersion),
+        identity,
+      });
+      const prepared: HostedPublishPreparation = cached
+        ? { status: "ok", role: "owner", ...cached }
+        : await o.hostedPublish.prepare({ siteId: id, identity });
       if (prepared.status !== "ok") {
         return deny(c, prepared.status === "missing" ? 404 : 403);
       }
@@ -2194,6 +2306,8 @@ export function createApp(o: Options) {
         slug?: string;
         name?: string;
         doc?: Doc;
+        templateId?: string;
+        templateVersion?: string;
       } | null;
     if (!body) return c.json({ error: "a JSON body is required" }, 400);
     /* A document is optional. It used to be required, which meant the only way to make a site
@@ -2209,7 +2323,26 @@ export function createApp(o: Options) {
           "Use lowercase letters, numbers, and single hyphens. Maximum 40 characters.",
       }, 422);
     }
-    const doc0 = body.doc || blankDoc(name);
+    const templateId = String(body.templateId || "").trim();
+    const templateVersion = String(body.templateVersion || "").trim();
+    let templateInstall = null;
+    if (templateId) {
+      if (!o.siteTemplates) {
+        return c.json({ error: "site_templates_unavailable" }, 503);
+      }
+      templateInstall = await o.siteTemplates.instantiate(
+        templateId,
+        templateVersion || undefined,
+      ).catch(() => null);
+      if (!templateInstall) {
+        return c.json({ error: "site_template_not_found" }, 422);
+      }
+      if (templateInstall.assets.length && !o.assets) {
+        return c.json({ error: "site_templates_unavailable" }, 503);
+      }
+    }
+    const doc0 = body.doc || templateInstall?.document || blankDoc(name);
+    if (templateInstall) doc0.meta.name = name;
     /* A host is no longer required to have a site. It used to be the only way to reach one, so
        making a site meant inventing a domain first; a slug is enough, and the host is what you
        add when the site earns a domain. The placeholder is unique and never resolves, which is
@@ -2248,7 +2381,7 @@ export function createApp(o: Options) {
     }
     /* Render before the first durable write. A document that cannot produce its files is not a
        site, and returning an error after inserting it leaves an unrecoverable row behind. */
-    const preview = candidate(doc, []);
+    const preview = candidate(doc, templateInstall?.assets || []);
     if (!preview) {
       return c.json({
         error: "invalid document",
@@ -2292,6 +2425,31 @@ export function createApp(o: Options) {
         savedBy: user.id,
       });
       if (!o.accountAuth) await o.auth.grant(site.id, user.id, "owner");
+      /* A curated package's assets are independent immutable blobs. Installing them one at a
+         time multiplied gateway latency by the image count (the five-image studio template
+         could leave the create dialog spinning for nearly a minute). Let every upload settle
+         together, then roll back only after no write remains in flight. `allSettled` matters:
+         an early `Promise.all` rejection would race cleanup against the other uploads. */
+      const assetResults = await Promise.allSettled(
+        (templateInstall?.assets || []).map(asset =>
+          o.assets!.put({ ...asset, siteId: site.id })
+        ),
+      );
+      const installedAssetIds = assetResults.flatMap(result =>
+        result.status === "fulfilled" ? [result.value.id] : []
+      );
+      const failedAsset = assetResults.find(result => result.status === "rejected");
+      if (failedAsset?.status === "rejected") {
+        for (const assetId of installedAssetIds) {
+          await o.assets!.remove(site.id, assetId).catch(() => false);
+        }
+        await o.store.delete(site.id).catch(() => false);
+        console.error("site template asset installation failed", failedAsset.reason);
+        return c.json({
+          error: "site_template_install_failed",
+          detail: "The curated site could not be installed. Nothing was kept.",
+        }, 500);
+      }
       const out = remember(site, preview);
       if (htmlForm) {
         return c.redirect(
@@ -2912,17 +3070,14 @@ export function createApp(o: Options) {
 
   /* -------------------------------------------------------- Manual WordPress import */
 
-  const manualImportAccessDigest = (c: Context) => {
-    const token =
-      (c.req.header("authorization") || "").match(/^Bearer\s+([^\s]+)$/i)
-        ?.[1] || "";
+  const manualImportAccessDigest = (authorization = "") => {
+    const token = authorization.match(/^Bearer\s+([^\s]+)$/i)?.[1] || "";
     return token ? hashToken(token) : "";
   };
 
-  const manualImportCatalogRead = async (
-    c: Context,
+  const manualImportCatalogReadDigest = async (
+    digest: string,
   ): Promise<ManualImportCatalogRead> => {
-    const digest = manualImportAccessDigest(c);
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.catalog(digest);
     const credential = await o.auth.manualImportByAccess(digest);
@@ -2943,11 +3098,16 @@ export function createApp(o: Options) {
     };
   };
 
+  const manualImportCatalogRead = (c: Context) =>
+    manualImportCatalogReadDigest(
+      manualImportAccessDigest(c.req.header("authorization")),
+    );
+
   const manualImportProjectRead = async (
     c: Context,
     siteId: string,
   ): Promise<ManualImportProjectRead> => {
-    const digest = manualImportAccessDigest(c);
+    const digest = manualImportAccessDigest(c.req.header("authorization"));
     if (!digest) return { authorized: false };
     if (o.manualImports) return o.manualImports.project(digest, siteId);
     const credential = await o.auth.manualImportByAccess(digest);
@@ -2959,6 +3119,55 @@ export function createApp(o: Options) {
       site: membership?.role === "owner" ? await o.store.byId(siteId) : null,
     };
   };
+
+  const integrationOrigin = (c: Context) =>
+    (o.editorOrigin || new URL(c.req.url).origin).replace(/\/+$/, "");
+
+  app.get("/.well-known/pagecraft-integrations", (c) =>
+    c.json(integrationDiscovery(integrationOrigin(c))));
+
+  app.get("/v1/integrations/wordpress/connection", async (c) => {
+    const digest = manualImportAccessDigest(c.req.header("authorization"));
+    const credential = digest
+      ? await o.auth.manualImportByAccess(digest)
+      : null;
+    if (!credential) {
+      return c.json({ error: "unauthorized", reconnect: true }, 401);
+    }
+    return c.json({
+      connected: true,
+      installationId: credential.installationId,
+      scopes: ["projects:read", "packages:read"],
+      accessExpiresAt: new Date(credential.accessExpiresAt).toISOString(),
+    });
+  });
+
+  app.all("/mcp", async (c) => {
+    if (!isEditorHost(c.req.header("host"), o)) return c.notFound();
+    const digest = manualImportAccessDigest(c.req.header("authorization"));
+    const read = await manualImportCatalogReadDigest(digest);
+    if (!read.authorized) {
+      return c.json({
+        error: "invalid_token",
+        error_description: "Connect Pagecraft and supply a valid integration token.",
+      }, 401, {
+        "www-authenticate":
+          'Bearer realm="Pagecraft", scope="projects:read packages:read"',
+      });
+    }
+    return pagecraftMcpResponse(c.req.raw, read);
+  });
+
+  /* The integration namespace is the stable public contract. Keep the original import paths
+     as the implementation and rollback surface for one compatibility release. */
+  app.all("/v1/integrations/wordpress/*", (c) => {
+    const target = new URL(c.req.url);
+    target.pathname = target.pathname.replace(
+      "/v1/integrations/wordpress/",
+      "/v1/wordpress-import/",
+    );
+    return app.fetch(new Request(target, c.req.raw));
+  });
 
   app.get("/v1/wordpress-import/authorize", async (c) => {
     if (!o.connected) {
