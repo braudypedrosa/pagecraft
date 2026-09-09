@@ -483,6 +483,7 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'source', label: 'Collection' },
+        { t: 'select', k: 'collectionLayout', label: 'Layout', opts: [['grid', 'Grid'], ['slider', 'Slider']] },
         {
           t: 'select', k: 'sort', label: 'Sort by',
           opts: n => [['', 'The order in the CMS'],
@@ -4310,9 +4311,7 @@ const previewIndex = (colId: string) => ((state.ui.item || (state.ui.item = {}))
    template — there is nothing else to show, and showing nothing looks like a bug. */
 function previewItem(col: Collection | null) {
   if (!col || !col.items.length) return null;
-  const live = published(col);
-  const pool = live.length ? live : col.items;
-  return pool[Math.min(previewIndex(col.id), pool.length - 1)];
+  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
 /* ---- reading a field, and following a reference ----------------------
    A reference field holds an item id in another collection, so displaying anything from it
@@ -6340,6 +6339,11 @@ const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:fl
 function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string },
   parent: PcNode | null = null, detachedComponentRoot = false) {
   acc.d += bucket(n, 'd', editing, parent, detachedComponentRoot);
+  if (n.type === 'list' && n.props.collectionLayout === 'slider') {
+    const selector = selOf(n);
+    acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
+    acc.m += `${selector}>*{flex-basis:80%}`;
+  }
   if (n.type === 'nav') {
     const c = n.props.collapse;
     if (c === 'tablet') acc.t += navCollapse(n);      // ≤1024 already covers mobile
@@ -7186,7 +7190,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
 
       const reps = rows.map((it, k) =>
         kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join('')).join('');
-      const body = `<div ${at} ${cx('pagecraft-list')}>${reps}</div>`;
+      const body = p.collectionLayout === 'slider'
+        ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at} ${cx('pagecraft-list pagecraft-slider')} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg('caret',15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg('caret',15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>`
+        : `<div ${at} ${cx('pagecraft-list')}>${reps}</div>`;
       return mine && total > 1 ? body + pager(o.pg!, at1, total, o) : body;
     }
     case 'column':

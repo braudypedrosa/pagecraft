@@ -516,7 +516,7 @@ test('project and CMS text fields close their undo transactions on blur', async 
   doc.querySelector('#mClose').click();
 
   const col = C.collectionAdd('Undo fields');
-  w.cmsModal(col.id);
+  w.legacyCmsModal(col.id);
   doc.querySelector('#cmsTabs [data-c="fields"]').click();
   const fieldName = doc.querySelector('#mBody [data-fname]');
   const cmsHistory = C.hist.u.length;

@@ -84,6 +84,7 @@ export interface SectionProps { tag?: string; width?: string; inner?: string }
 export interface RowProps { }
 export interface ColumnProps { }
 export interface ListProps {
+  collectionLayout?: 'grid' | 'slider';
   sort?: string; dir?: string; limit?: string;
   /** the field a filter tests, empty for no filter */
   where?: string;

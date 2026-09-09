@@ -1623,6 +1623,7 @@ var DEF = {
     controls: {
       content: [
         { t: "source", label: "Collection" },
+        { t: "select", k: "collectionLayout", label: "Layout", opts: [["grid", "Grid"], ["slider", "Slider"]] },
         {
           t: "select",
           k: "sort",
@@ -4980,9 +4981,7 @@ function bindScope(id) {
 var previewIndex = (colId) => (state.ui.item || (state.ui.item = {}))[colId] || 0;
 function previewItem(col) {
   if (!col || !col.items.length) return null;
-  const live = published(col);
-  const pool = live.length ? live : col.items;
-  return pool[Math.min(previewIndex(col.id), pool.length - 1)];
+  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
 var REF_DEPTH = 4;
 var fieldValue = (col, item, path, depth = 0) => {
@@ -6975,6 +6974,11 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
+  if (n.type === "list" && n.props.collectionLayout === "slider") {
+    const selector = selOf(n);
+    acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
+    acc.m += `${selector}>*{flex-basis:80%}`;
+  }
   if (n.type === "nav") {
     const c = n.props.collapse;
     if (c === "tablet") acc.t += navCollapse(n);
@@ -7675,7 +7679,7 @@ function renderNode(n, o) {
       const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
       const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
       const reps = rows.map((it, k) => kidz.map((c) => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join("")).join("");
-      const body = `<div ${at} ${cx("pagecraft-list")}>${reps}</div>`;
+      const body = p.collectionLayout === "slider" ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at} ${cx("pagecraft-list pagecraft-slider")} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg("caret", 15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg("caret", 15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>` : `<div ${at} ${cx("pagecraft-list")}>${reps}</div>`;
       return mine && total > 1 ? body + pager(o.pg, at1, total, o) : body;
     }
     case "column":

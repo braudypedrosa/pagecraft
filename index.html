@@ -1300,6 +1300,15 @@ pre.code{
 }
 .borderpick button.on.set::after{background:var(--paper)}
 .borderctl>.f{margin-bottom:var(--gap-3)}
+.cms-workspace{position:fixed;inset:0;z-index:150;background:var(--panel);color:var(--text);display:flex;flex-direction:column;font-family:inherit;font-size:14px}
+.cms-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 28px;border-bottom:1px solid var(--line)}
+.cms-workspace h1{font-size:22px;margin:0}.cms-workspace h2{font-size:24px;margin:0}.cms-workspace h3{font-size:17px;margin:0 0 8px}.cms-workspace p{line-height:1.5;margin:6px 0;color:var(--text-2)}
+.cms-workspace-layout{display:grid;grid-template-columns:220px minmax(0,1fr);flex:1;min-height:0}.cms-collections{padding:24px 16px;border-right:1px solid var(--line);overflow:auto}.cms-collections .btn{justify-content:space-between;margin-bottom:8px}
+.cms-content{padding:28px 36px;overflow:auto;min-width:0}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:16px;margin-bottom:20px}.cms-list-tools label,.cms-schema-inputs label{display:grid;gap:8px}.cms-workspace .ctl{min-height:40px}
+.cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}.cms-connections{border-top:1px solid var(--line);padding-top:24px;margin-top:32px}.cms-connections .cms-actions{margin-top:16px}
+.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-field>label{font-weight:600}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-schema-field{border-bottom:1px solid var(--line);padding:20px 0}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+@media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:flex-start}.cms-list-tools,.cms-schema-inputs{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
+
 </style>
 <style>
 #builderLoading{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:var(--ink,#111311);color:#f8f6ef;padding:24px;text-align:center}
@@ -2744,6 +2753,7 @@ var DEF = {
     controls: {
       content: [
         { t: "source", label: "Collection" },
+        { t: "select", k: "collectionLayout", label: "Layout", opts: [["grid", "Grid"], ["slider", "Slider"]] },
         {
           t: "select",
           k: "sort",
@@ -6101,9 +6111,7 @@ function bindScope(id) {
 var previewIndex = (colId) => (state.ui.item || (state.ui.item = {}))[colId] || 0;
 function previewItem(col) {
   if (!col || !col.items.length) return null;
-  const live = published(col);
-  const pool = live.length ? live : col.items;
-  return pool[Math.min(previewIndex(col.id), pool.length - 1)];
+  return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
 var REF_DEPTH = 4;
 var fieldValue = (col, item, path, depth = 0) => {
@@ -8096,6 +8104,11 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
+  if (n.type === "list" && n.props.collectionLayout === "slider") {
+    const selector = selOf(n);
+    acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
+    acc.m += `${selector}>*{flex-basis:80%}`;
+  }
   if (n.type === "nav") {
     const c = n.props.collapse;
     if (c === "tablet") acc.t += navCollapse(n);
@@ -8796,7 +8809,7 @@ function renderNode(n, o) {
       const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
       const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
       const reps = rows.map((it, k) => kidz.map((c) => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join("")).join("");
-      const body = `<div ${at} ${cx("pagecraft-list")}>${reps}</div>`;
+      const body = p.collectionLayout === "slider" ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at} ${cx("pagecraft-list pagecraft-slider")} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg("caret", 15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg("caret", 15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>` : `<div ${at} ${cx("pagecraft-list")}>${reps}</div>`;
       return mine && total > 1 ? body + pager(o.pg, at1, total, o) : body;
     }
     case "column":
@@ -10113,7 +10126,15 @@ var PC_UI = (() => {
         { ok: "Delete collection" }
       );
       if (!ok) return;
-      C2.edit(() => C2.collectionDelete(col.id));
+      if (L2.dynamicContentProvider() !== "pagecraft") {
+        C2.edit(() => C2.collectionDelete(col.id));
+        return;
+      }
+      try {
+        await L2.cmsCommit(C2.collections().filter((c3) => c3.id !== col.id));
+      } catch (error) {
+        L2.toast(error instanceof Error ? error.message : "Collection could not be deleted.");
+      }
     };
     return /* @__PURE__ */ u2("div", { class: "brow", children: [
       /* @__PURE__ */ u2(
@@ -10149,11 +10170,21 @@ var PC_UI = (() => {
         { ok: "Create", note: "Plural reads best \u2014 Projects, Posts, Team." }
       );
       if (!name) return;
-      let made = null;
-      C2.edit(() => {
-        made = C2.collectionAdd(name);
-      });
-      if (made) L2.cmsModal(made.id);
+      if (L2.dynamicContentProvider() !== "pagecraft") {
+        let made = null;
+        C2.edit(() => {
+          made = C2.collectionAdd(name);
+        });
+        if (made) L2.cmsModal(made.id);
+        return;
+      }
+      const id = C2.uniqueId(name, C2.collections().map((c3) => c3.id));
+      try {
+        await L2.cmsCommit([...C2.collections(), { id, name, slug: id, detail: "", fields: [{ id: "title", name: "Title", type: "text", required: 1 }], items: [] }]);
+        L2.cmsModal(id);
+      } catch (error) {
+        L2.toast(error instanceof Error ? error.message : "Collection could not be created.");
+      }
     };
     return /* @__PURE__ */ u2(S, { children: [
       L2.canStructure() ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px 0" }, children: [
@@ -10174,6 +10205,780 @@ var PC_UI = (() => {
     ] });
   }
   var esc = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
+  // node_modules/preact/hooks/dist/hooks.module.js
+  var t2;
+  var r2;
+  var u3;
+  var i2;
+  var o2 = 0;
+  var f3 = [];
+  var c2 = l;
+  var e2 = c2.__b;
+  var a2 = c2.__r;
+  var v2 = c2.diffed;
+  var l2 = c2.__c;
+  var m2 = c2.unmount;
+  var p2 = c2.__;
+  function s2(n2, t3) {
+    c2.__h && c2.__h(r2, n2, o2 || t3), o2 = 0;
+    var u4 = r2.__H || (r2.__H = { __: [], __h: [] });
+    return n2 >= u4.__.length && u4.__.push({}), u4.__[n2];
+  }
+  function d2(n2) {
+    return o2 = 1, y2(D2, n2);
+  }
+  function y2(n2, u4, i3) {
+    var o3 = s2(t2++, 2);
+    if (o3.t = n2, !o3.__c && (o3.__ = [i3 ? i3(u4) : D2(void 0, u4), function(n3) {
+      var t3 = o3.__N ? o3.__N[0] : o3.__[0], r3 = o3.t(t3, n3);
+      t3 !== r3 && (o3.__N = [r3, o3.__[1]], o3.__c.setState({}));
+    }], o3.__c = r2, !r2.__f)) {
+      var f4 = function(n3, t3, r3) {
+        if (!o3.__c.__H) return true;
+        var u5 = false, i4 = o3.__c.props !== n3;
+        if (o3.__c.__H.__.some(function(n4) {
+          if (n4.__N) {
+            u5 = true;
+            var t4 = n4.__[0];
+            n4.__ = n4.__N, n4.__N = void 0, t4 !== n4.__[0] && (i4 = true);
+          }
+        }), c3) {
+          var f5 = c3.call(this, n3, t3, r3);
+          return u5 ? f5 || i4 : f5;
+        }
+        return !u5 || i4;
+      };
+      r2.__f = true;
+      var c3 = r2.shouldComponentUpdate, e3 = r2.componentWillUpdate;
+      r2.componentWillUpdate = function(n3, t3, r3) {
+        if (this.__e) {
+          var u5 = c3;
+          c3 = void 0, f4(n3, t3, r3), c3 = u5;
+        }
+        e3 && e3.call(this, n3, t3, r3);
+      }, r2.shouldComponentUpdate = f4;
+    }
+    return o3.__N || o3.__;
+  }
+  function h2(n2, u4) {
+    var i3 = s2(t2++, 3);
+    !c2.__s && C3(i3.__H, u4) && (i3.__ = n2, i3.u = u4, r2.__H.__h.push(i3));
+  }
+  function A2(n2) {
+    return o2 = 5, T2(function() {
+      return { current: n2 };
+    }, []);
+  }
+  function T2(n2, r3) {
+    var u4 = s2(t2++, 7);
+    return C3(u4.__H, r3) && (u4.__ = n2(), u4.__H = r3, u4.__h = n2), u4.__;
+  }
+  function g2() {
+    var n2 = s2(t2++, 11);
+    if (!n2.__) {
+      for (var u4 = r2.__v; null !== u4 && !u4.__m && null !== u4.__; ) u4 = u4.__;
+      var i3 = u4.__m || (u4.__m = [0, 0]);
+      n2.__ = "P" + i3[0] + "-" + i3[1]++;
+    }
+    return n2.__;
+  }
+  function j2() {
+    for (var n2; n2 = f3.shift(); ) {
+      var t3 = n2.__H;
+      if (n2.__P && t3) try {
+        t3.__h.some(z2), t3.__h.some(B2), t3.__h = [];
+      } catch (r3) {
+        t3.__h = [], c2.__e(r3, n2.__v);
+      }
+    }
+  }
+  c2.__b = function(n2) {
+    r2 = null, e2 && e2(n2);
+  }, c2.__ = function(n2, t3) {
+    n2 && t3.__k && t3.__k.__m && (n2.__m = t3.__k.__m), p2 && p2(n2, t3);
+  }, c2.__r = function(n2) {
+    a2 && a2(n2), t2 = 0;
+    var i3 = (r2 = n2.__c).__H;
+    i3 && (u3 === r2 ? (i3.__h = [], r2.__h = [], i3.__.some(function(n3) {
+      n3.__N && (n3.__ = n3.__N), n3.u = n3.__N = void 0;
+    })) : (i3.__h.some(z2), i3.__h.some(B2), i3.__h = [], t2 = 0)), u3 = r2;
+  }, c2.diffed = function(n2) {
+    v2 && v2(n2);
+    var t3 = n2.__c;
+    t3 && t3.__H && (t3.__H.__h.length && (1 !== f3.push(t3) && i2 === c2.requestAnimationFrame || ((i2 = c2.requestAnimationFrame) || w2)(j2)), t3.__H.__.some(function(n3) {
+      n3.u && (n3.__H = n3.u, n3.u = void 0);
+    })), u3 = r2 = null;
+  }, c2.__c = function(n2, t3) {
+    t3.some(function(n3) {
+      try {
+        n3.__h.some(z2), n3.__h = n3.__h.filter(function(n4) {
+          return !n4.__ || B2(n4);
+        });
+      } catch (r3) {
+        t3.some(function(n4) {
+          n4.__h && (n4.__h = []);
+        }), t3 = [], c2.__e(r3, n3.__v);
+      }
+    }), l2 && l2(n2, t3);
+  }, c2.unmount = function(n2) {
+    m2 && m2(n2);
+    var t3, r3 = n2.__c;
+    r3 && r3.__H && (r3.__H.__.some(function(n3) {
+      try {
+        z2(n3);
+      } catch (n4) {
+        t3 = n4;
+      }
+    }), r3.__H = void 0, t3 && c2.__e(t3, r3.__v));
+  };
+  var k2 = "function" == typeof requestAnimationFrame;
+  function w2(n2) {
+    var t3, r3 = function() {
+      clearTimeout(u4), k2 && cancelAnimationFrame(t3), setTimeout(n2);
+    }, u4 = setTimeout(r3, 35);
+    k2 && (t3 = requestAnimationFrame(r3));
+  }
+  function z2(n2) {
+    var t3 = r2, u4 = n2.__c;
+    "function" == typeof u4 && (n2.__c = void 0, u4()), r2 = t3;
+  }
+  function B2(n2) {
+    var t3 = r2;
+    n2.__c = n2.__(), r2 = t3;
+  }
+  function C3(n2, t3) {
+    return !n2 || n2.length !== t3.length || t3.some(function(t4, r3) {
+      return t4 !== n2[r3];
+    });
+  }
+  function D2(n2, t3) {
+    return "function" == typeof t3 ? t3(n2) : t3;
+  }
+
+  // app/src/core/cms-validation.ts
+  var cmsBoolean = (value) => ["1", "true", "yes"].includes(String(value).toLowerCase());
+  var cmsChoices = (value) => (value || "").split(",").map((s3) => s3.trim()).filter(Boolean);
+  function cmsSafeRich(value) {
+    const tags = /* @__PURE__ */ new Set(["p", "br", "h2", "h3", "blockquote", "ul", "ol", "li", "b", "strong", "i", "em", "u", "s", "strike", "a", "div"]);
+    if (/\x3c!--|\x3c!|\x3c\?|[\u0000-\u0008]/.test(value)) return false;
+    let rest = value.replace(/<\/?([a-z][a-z0-9]*)([^<>]*)>/gi, (whole, tag, attrs) => {
+      if (!tags.has(tag.toLowerCase())) return whole;
+      if (/^<\//.test(whole)) return attrs.trim() ? whole : "";
+      if (!attrs.trim() || tag.toLowerCase() === "br" && attrs.trim() === "/") return "";
+      if (tag.toLowerCase() !== "a") return whole;
+      const match = attrs.match(/^\s+href=(?:"([^"]*)"|'([^']*)')\s*$/i);
+      const href = match && (match[1] ?? match[2]);
+      return href != null && !/[&\u0000-\u0020]/.test(href) && /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(href) ? "" : whole;
+    });
+    return !/[<>]/.test(rest);
+  }
+  function validateCmsEntry(doc, col, item, assets, richSafe = cmsSafeRich) {
+    const errors = {};
+    if (!item.id || col.items.filter((i3) => i3.id === item.id).length > 1) errors._entry = "Entry IDs must be unique.";
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug) || ["index", "assets", "admin", "api", "edit", "templates", "content", "robots", "sitemap"].includes(item.slug)) errors._slug = "Use a non-reserved URL slug with lowercase letters, numbers and hyphens.";
+    if (col.items.some((i3) => i3.id !== item.id && i3.slug === item.slug) || doc.pages.some((p3) => !p3.collection && p3.slug === `${col.slug}/${item.slug}`)) errors._slug = "This URL is already in use.";
+    for (const key of Object.keys(item.values)) if (!col.fields.some((f4) => f4.id === key)) errors[key] = "This field no longer exists.";
+    for (const f4 of col.fields) {
+      const value = item.values[f4.id] ?? "";
+      const fail = (message) => {
+        errors[f4.id] = message;
+      };
+      if (typeof value !== "string") {
+        fail("Use a text-encoded field value.");
+        continue;
+      }
+      if (f4.required && !value.trim()) {
+        fail(`${f4.name} is required.`);
+        continue;
+      }
+      if (!value) continue;
+      if (new TextEncoder().encode(value).length > (f4.type === "rich" ? 1e5 : 5e3)) {
+        fail("This value is too long.");
+        continue;
+      }
+      if (f4.type !== "rich" && /[\u0000-\u001f\u007f]/.test(value)) {
+        fail("Remove unsupported control characters.");
+        continue;
+      }
+      switch (f4.type) {
+        case "rich":
+          if (!richSafe(value)) fail("Use supported text formatting only.");
+          break;
+        case "number":
+          if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value) || !Number.isFinite(Number(value))) fail("Enter a valid number.");
+          break;
+        case "date":
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) fail("Enter a valid date.");
+          break;
+        case "bool":
+          if (!["0", "1", "true", "false", "yes", "no"].includes(value.toLowerCase())) fail("Choose yes or no.");
+          break;
+        case "option":
+          if (!cmsChoices(f4.opts).includes(value)) fail("Choose one of the configured options.");
+          break;
+        case "ref":
+          if (!doc.meta.collections?.find((c3) => c3.id === f4.ref)?.items.some((i3) => i3.id === value)) fail("Choose an existing entry.");
+          break;
+        case "image": {
+          const id = value.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?$/)?.[1];
+          if (!id || !assets.has(id)) fail("Choose an image from this site\u2019s media library.");
+          break;
+        }
+        case "link":
+          if (!/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(value) || /[\s<>]/.test(value)) fail("Enter a safe URL, site path or anchor.");
+          break;
+        case "text":
+          break;
+        default:
+          fail("Unsupported field type.");
+      }
+    }
+    return errors;
+  }
+
+  // app/src/ui/AssetField.tsx
+  function AssetField({ value, note, onChange }) {
+    const ref = String(value || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
+    const a3 = ref ? L2.asset(ref[1]) : null;
+    const take = async (file) => {
+      if (!file) return;
+      const id = await L2.mediaTake(file);
+      if (id) onChange("asset:" + id);
+    };
+    const choose = () => {
+      const fi = document.createElement("input");
+      fi.type = "file";
+      fi.accept = "image/*";
+      fi.onchange = () => void take(fi.files ? fi.files[0] : void 0);
+      fi.click();
+    };
+    const commit = (v3) => {
+      onChange(v3);
+      L2.writeNow();
+    };
+    const over = (e3, on) => {
+      e3.preventDefault();
+      e3.currentTarget.classList.toggle("over", on);
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      a3 ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
+        /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }),
+        /* @__PURE__ */ u2("span", { class: "an", children: [
+          /* @__PURE__ */ u2("b", { children: a3.name }),
+          /* @__PURE__ */ u2("small", { children: [
+            C2.kb(a3.size),
+            a3.w ? ` \xB7 ${a3.w} \xD7 ${a3.h}` : ""
+          ] })
+        ] }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Remove", onClick: () => commit(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
+      ] }) : /* @__PURE__ */ u2(
+        "div",
+        {
+          class: "imgdrop",
+          role: "button",
+          tabIndex: 0,
+          "aria-label": "Upload an image",
+          onClick: choose,
+          onKeyDown: (e3) => {
+            if (e3.key !== "Enter" && e3.key !== " ") return;
+            e3.preventDefault();
+            choose();
+          },
+          onDragEnter: (e3) => over(e3, true),
+          onDragOver: (e3) => over(e3, true),
+          onDragLeave: (e3) => over(e3, false),
+          onDrop: (e3) => {
+            over(e3, false);
+            void take(e3.dataTransfer?.files[0]);
+          },
+          children: [
+            /* @__PURE__ */ u2("b", { children: "Drop an image here" }),
+            /* @__PURE__ */ u2("span", { children: "or choose a file" })
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2("div", { style: { display: "flex", gap: "6px", marginTop: "var(--gap-1)" }, children: [
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn grow", onClick: choose, children: [
+          /* @__PURE__ */ u2(Icon, { name: "image", size: 13 }),
+          " ",
+          a3 ? "Replace" : "Upload"
+        ] }),
+        L2.assetCount() ? /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "btn grow",
+            title: "Pick from the Media library",
+            onClick: async () => {
+              const id = await L2.mediaPicker();
+              if (id) commit("asset:" + id);
+            },
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
+              " Library"
+            ]
+          }
+        ) : null
+      ] }),
+      note ? /* @__PURE__ */ u2("div", { class: "note", dangerouslySetInnerHTML: { __html: note } }) : null
+    ] });
+  }
+
+  // app/src/ui/CmsWorkspace.tsx
+  var copy = (value) => JSON.parse(JSON.stringify(value));
+  var PAGE_SIZE = 25;
+  function CmsWorkspace({ collectionId, close }) {
+    const [id, setId] = d2(collectionId);
+    const [revision, refresh] = d2(0);
+    const col = C2.findCollection(id);
+    const [entry, setEntry] = d2(null);
+    const [schema, setSchema] = d2(null);
+    const [baseline, setBaseline] = d2("");
+    const [search, setSearch] = d2("");
+    const [status, setStatus] = d2("all");
+    const [page2, setPage] = d2(0);
+    const [busy, setBusy] = d2(false);
+    const [errors, setErrors] = d2({});
+    const [notice, setNotice] = d2("");
+    const root = A2(null);
+    const dirty = !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
+    const discard = () => !dirty || window.confirm("Discard your unsaved CMS changes?");
+    const leave = () => {
+      if (!busy && discard()) close();
+    };
+    h2(() => {
+      const before = (e3) => {
+        if (dirty || busy) {
+          e3.preventDefault();
+          e3.returnValue = "";
+        }
+      };
+      window.addEventListener("beforeunload", before);
+      return () => window.removeEventListener("beforeunload", before);
+    }, [dirty, busy]);
+    h2(() => {
+      root.current?.focus();
+    }, []);
+    const reset = () => {
+      setEntry(null);
+      setSchema(null);
+      setErrors({});
+      setBaseline("");
+    };
+    const openEntry = (item) => {
+      if (!discard()) return;
+      const next = item ? copy(item) : { id: C2.uid(), slug: "", draft: 1, values: {} };
+      reset();
+      setEntry(next);
+      setBaseline(item ? JSON.stringify(next) : "");
+      setNotice("");
+    };
+    const commit = async (next) => {
+      setBusy(true);
+      setErrors({});
+      try {
+        await L2.cmsCommit(next);
+        refresh(revision + 1);
+        setNotice("Saved to the site draft. Publish the site to make it public.");
+        return true;
+      } catch (e3) {
+        setErrors({ _save: e3 instanceof Error ? e3.message : "Could not save. Your changes are still here." });
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    };
+    const saveEntry = async () => {
+      if (!entry) return;
+      const next = copy(entry);
+      next.slug = next.slug || C2.slugify(next.values[C2.titleField(col)?.id || "title"] || "");
+      next.slugLocked = 1;
+      const assets = /* @__PURE__ */ new Set();
+      for (const f4 of col.fields) if (f4.type === "image") {
+        const asset = next.values[f4.id]?.match(/^asset:([^@]+)/)?.[1];
+        if (asset && L2.asset(asset)) assets.add(asset);
+      }
+      const validation = validateCmsEntry(C2.doc(), col, next, assets);
+      if (Object.keys(validation).length) {
+        setErrors(validation);
+        return;
+      }
+      const old = col.items.find((i3) => i3.id === next.id);
+      if (old && old.slug !== next.slug && !window.confirm(`Change /${col.slug}/${old.slug} to /${col.slug}/${next.slug}? Existing links will stop working; no redirect is created.`)) return;
+      const collections2 = copy(C2.collections());
+      const target = collections2.find((c3) => c3.id === id);
+      const at = target.items.findIndex((i3) => i3.id === next.id);
+      if (at < 0) target.items.push(next);
+      else target.items[at] = next;
+      if (await commit(collections2)) {
+        setEntry(next);
+        setBaseline(JSON.stringify(next));
+      }
+    };
+    const saveSchema = async () => {
+      if (!schema) return;
+      const invalid = {};
+      if (!schema.name.trim()) invalid._schema = "Give this collection a name.";
+      schema.fields.forEach((f4) => {
+        if (!f4.name.trim()) invalid[f4.id] = "Give the field a name.";
+        if (f4.type === "option" && !cmsChoices(f4.opts).length) invalid[f4.id] = "Add at least one choice.";
+        if (f4.type === "ref" && !C2.findCollection(f4.ref || "")) invalid[f4.id] = "Choose a reference collection.";
+      });
+      if (Object.keys(invalid).length) {
+        setErrors(invalid);
+        return;
+      }
+      const next = copy(C2.collections());
+      next[next.findIndex((c3) => c3.id === id)] = copy(schema);
+      if (await commit(next)) setBaseline(JSON.stringify(schema));
+    };
+    const removeEntry = async (item) => {
+      if (!window.confirm(`Delete \u201C${C2.itemTitle(col, item) || item.slug}\u201D? References to this entry will need updating. Its public page is removed on the next site publish.`)) return;
+      const next = copy(C2.collections());
+      next.find((c3) => c3.id === id).items = col.items.filter((i3) => i3.id !== item.id);
+      await commit(next);
+    };
+    const updateField = (fid, changes) => setSchema((old) => old && { ...old, fields: old.fields.map((f4) => f4.id === fid ? { ...f4, ...changes } : f4) });
+    const filtered = col.items.filter((i3) => (status === "all" || (status === "draft" ? !!i3.draft : !i3.draft)) && [i3.slug, ...Object.values(i3.values)].join(" ").toLowerCase().includes(search.toLowerCase()));
+    const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const current = Math.min(page2, pages - 1);
+    return /* @__PURE__ */ u2(
+      "section",
+      {
+        class: "cms-workspace",
+        role: "dialog",
+        "aria-modal": "true",
+        "aria-label": "CMS workspace",
+        tabIndex: -1,
+        ref: root,
+        onKeyDown: (e3) => {
+          e3.stopPropagation();
+          if (e3.key === "Escape") {
+            e3.stopPropagation();
+            leave();
+          }
+          if (e3.key === "Tab" && document.querySelector("#modal:not([hidden]),#askLayer:not([hidden])") == null) {
+            const focusable = [...root.current.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]')].filter((el) => el.getClientRects().length);
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            if (e3.shiftKey && document.activeElement === first) {
+              e3.preventDefault();
+              last?.focus();
+            }
+            if (!e3.shiftKey && document.activeElement === last) {
+              e3.preventDefault();
+              first?.focus();
+            }
+          }
+        },
+        children: [
+          /* @__PURE__ */ u2("header", { class: "cms-workspace-header", children: [
+            /* @__PURE__ */ u2("div", { children: [
+              /* @__PURE__ */ u2("h1", { children: "CMS" }),
+              /* @__PURE__ */ u2("p", { children: "Manage content, then connect it to your pages." })
+            ] }),
+            /* @__PURE__ */ u2("button", { class: "btn", disabled: busy, onClick: leave, children: "Back to builder" })
+          ] }),
+          /* @__PURE__ */ u2("div", { class: "cms-workspace-layout", children: [
+            /* @__PURE__ */ u2("nav", { class: "cms-collections", "aria-label": "Collections", children: C2.collections().map((c3) => /* @__PURE__ */ u2("button", { class: "btn block " + (c3.id === id ? "primary" : ""), disabled: busy, onClick: () => {
+              if (discard()) {
+                setId(c3.id);
+                reset();
+                setSearch("");
+                setPage(0);
+              }
+            }, children: [
+              c3.name,
+              /* @__PURE__ */ u2("span", { children: c3.items.length })
+            ] })) }),
+            /* @__PURE__ */ u2("main", { class: "cms-content", "aria-busy": busy, children: [
+              /* @__PURE__ */ u2("div", { class: "cms-title", children: [
+                /* @__PURE__ */ u2("div", { children: [
+                  /* @__PURE__ */ u2("h2", { children: col.name }),
+                  /* @__PURE__ */ u2("p", { children: entry ? "Edit entry" : schema ? "Collection settings" : `${col.items.length} entries` })
+                ] }),
+                !entry && !schema && /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
+                  L2.canStructure() && /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
+                    const next = copy(col);
+                    setSchema(next);
+                    setBaseline(JSON.stringify(next));
+                    setNotice("");
+                  }, children: "Settings" }),
+                  /* @__PURE__ */ u2("button", { class: "btn primary", onClick: () => openEntry(), children: "New entry" })
+                ] })
+              ] }),
+              notice && /* @__PURE__ */ u2("p", { class: "cms-notice", role: "status", children: notice }),
+              Object.keys(errors).length > 0 && /* @__PURE__ */ u2("div", { class: "cms-errors", role: "alert", children: Object.entries(errors).map(([key, message]) => /* @__PURE__ */ u2("p", { children: [
+                key.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key)?.name || key}: `,
+                message
+              ] })) }),
+              entry ? /* @__PURE__ */ u2("form", { onSubmit: (e3) => {
+                e3.preventDefault();
+                void saveEntry();
+              }, children: [
+                /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields", children: [
+                  col.fields.map((f4) => /* @__PURE__ */ u2("div", { class: "cms-field", children: [
+                    /* @__PURE__ */ u2("label", { id: "cms-label-" + f4.id, htmlFor: "cms-value-" + f4.id, children: [
+                      f4.name,
+                      f4.required ? " *" : ""
+                    ] }),
+                    /* @__PURE__ */ u2(EntryValue, { field: f4, value: entry.values[f4.id] || "", onChange: (value) => setEntry({ ...entry, values: { ...entry.values, [f4.id]: value } }) }),
+                    errors[f4.id] && /* @__PURE__ */ u2("small", { class: "cms-error", children: errors[f4.id] })
+                  ] }, f4.id)),
+                  /* @__PURE__ */ u2("div", { class: "cms-field", children: [
+                    /* @__PURE__ */ u2("label", { htmlFor: "cms-slug", children: "URL slug" }),
+                    /* @__PURE__ */ u2("input", { class: "ctl", id: "cms-slug", value: entry.slug, placeholder: "Generated from the title on first save", onInput: (e3) => setEntry({ ...entry, slug: e3.currentTarget.value }) }),
+                    /* @__PURE__ */ u2("small", { children: [
+                      "/",
+                      col.slug,
+                      "/",
+                      entry.slug || "entry-slug"
+                    ] })
+                  ] }),
+                  /* @__PURE__ */ u2("label", { class: "cms-check", children: [
+                    /* @__PURE__ */ u2("input", { type: "checkbox", checked: !entry.draft, onChange: (e3) => setEntry({ ...entry, draft: e3.currentTarget.checked ? void 0 : 1 }) }),
+                    "Include on next publish"
+                  ] }),
+                  /* @__PURE__ */ u2("p", { class: "note", children: "Unchecked entries remain drafts and are hidden from the public site." })
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
+                  /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, type: "submit", children: busy ? "Saving\u2026" : "Save entry" }),
+                  /* @__PURE__ */ u2("button", { type: "button", class: "btn", disabled: busy, onClick: () => {
+                    if (discard()) reset();
+                  }, children: "Cancel" })
+                ] })
+              ] }) : schema ? /* @__PURE__ */ u2("form", { onSubmit: (e3) => {
+                e3.preventDefault();
+                void saveSchema();
+              }, children: [
+                /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields", children: [
+                  /* @__PURE__ */ u2("div", { class: "cms-field", children: [
+                    /* @__PURE__ */ u2("label", { htmlFor: "cms-name", children: "Collection name" }),
+                    /* @__PURE__ */ u2("input", { id: "cms-name", class: "ctl", value: schema.name, onInput: (e3) => setSchema({ ...schema, name: e3.currentTarget.value }) })
+                  ] }),
+                  /* @__PURE__ */ u2("p", { class: "note", children: "Field IDs and the collection URL stay stable when names change. Populated fields cannot change type." }),
+                  schema.fields.map((f4, at) => /* @__PURE__ */ u2("div", { class: "cms-schema-field", children: [
+                    /* @__PURE__ */ u2("div", { class: "cms-schema-inputs", children: [
+                      /* @__PURE__ */ u2("label", { children: [
+                        "Field name",
+                        /* @__PURE__ */ u2("input", { class: "ctl", value: f4.name, onInput: (e3) => updateField(f4.id, { name: e3.currentTarget.value }) })
+                      ] }),
+                      /* @__PURE__ */ u2("label", { children: [
+                        "Type",
+                        /* @__PURE__ */ u2("select", { class: "ctl", value: f4.type, disabled: col.items.some((i3) => !!i3.values[f4.id]), onChange: (e3) => updateField(f4.id, { type: e3.currentTarget.value }), children: C2.FIELD_TYPES.map(([value, label]) => /* @__PURE__ */ u2("option", { value, children: label })) })
+                      ] }),
+                      f4.type === "option" && /* @__PURE__ */ u2("label", { children: [
+                        "Choices, separated by commas",
+                        /* @__PURE__ */ u2("input", { class: "ctl", value: f4.opts || "", onInput: (e3) => updateField(f4.id, { opts: e3.currentTarget.value }) })
+                      ] }),
+                      f4.type === "ref" && /* @__PURE__ */ u2("label", { children: [
+                        "Reference collection",
+                        /* @__PURE__ */ u2("select", { class: "ctl", value: f4.ref || "", onChange: (e3) => updateField(f4.id, { ref: e3.currentTarget.value }), children: [
+                          /* @__PURE__ */ u2("option", { value: "", children: "Choose a collection" }),
+                          C2.collections().map((c3) => /* @__PURE__ */ u2("option", { value: c3.id, children: c3.name }))
+                        ] })
+                      ] }),
+                      /* @__PURE__ */ u2("label", { class: "cms-check", children: [
+                        /* @__PURE__ */ u2("input", { type: "checkbox", checked: !!f4.required, onChange: (e3) => updateField(f4.id, { required: e3.currentTarget.checked ? 1 : 0 }) }),
+                        "Required"
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
+                      /* @__PURE__ */ u2("button", { class: "btn", type: "button", disabled: at === 0, onClick: () => {
+                        const fields = [...schema.fields];
+                        [fields[at - 1], fields[at]] = [fields[at], fields[at - 1]];
+                        setSchema({ ...schema, fields });
+                      }, children: "Move up" }),
+                      /* @__PURE__ */ u2("button", { class: "btn", type: "button", disabled: schema.fields.length === 1, onClick: () => {
+                        if (window.confirm(`Delete ${f4.name} and its stored values? ${bindingImpact(id, f4.id)}`)) setSchema({ ...schema, fields: schema.fields.filter((x2) => x2.id !== f4.id), items: schema.items.map((i3) => {
+                          const values = { ...i3.values };
+                          delete values[f4.id];
+                          return { ...i3, values };
+                        }) });
+                      }, children: "Delete field" })
+                    ] })
+                  ] }, f4.id)),
+                  /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: () => setSchema({ ...schema, fields: [...schema.fields, { id: C2.uniqueId("field", schema.fields.map((f4) => f4.id)), name: "New field", type: "text" }] }), children: "Add field" })
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
+                  /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, children: "Save settings" }),
+                  /* @__PURE__ */ u2("button", { class: "btn", type: "button", disabled: busy, onClick: () => {
+                    if (discard()) reset();
+                  }, children: "Cancel" })
+                ] })
+              ] }) : /* @__PURE__ */ u2(S, { children: [
+                /* @__PURE__ */ u2("div", { class: "cms-list-tools", children: [
+                  /* @__PURE__ */ u2("label", { children: [
+                    "Search entries",
+                    /* @__PURE__ */ u2("input", { type: "search", class: "ctl", value: search, onInput: (e3) => {
+                      setSearch(e3.currentTarget.value);
+                      setPage(0);
+                    } })
+                  ] }),
+                  /* @__PURE__ */ u2("label", { children: [
+                    "Status",
+                    /* @__PURE__ */ u2("select", { class: "ctl", value: status, onChange: (e3) => {
+                      setStatus(e3.currentTarget.value);
+                      setPage(0);
+                    }, children: [
+                      /* @__PURE__ */ u2("option", { value: "all", children: "All entries" }),
+                      /* @__PURE__ */ u2("option", { value: "draft", children: "Drafts" }),
+                      /* @__PURE__ */ u2("option", { value: "ready", children: "Included on next publish" })
+                    ] })
+                  ] })
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "cms-entry-list", children: [
+                  filtered.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE).map((item) => /* @__PURE__ */ u2("div", { class: "cms-entry-row", children: [
+                    /* @__PURE__ */ u2("button", { class: "cms-entry-open", onClick: () => openEntry(item), children: [
+                      /* @__PURE__ */ u2("b", { children: C2.itemTitle(col, item) || "Untitled entry" }),
+                      /* @__PURE__ */ u2("small", { children: [
+                        "/",
+                        col.slug,
+                        "/",
+                        item.slug
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ u2("span", { children: item.draft ? "Draft" : "Included on next publish" }),
+                    /* @__PURE__ */ u2("button", { class: "btn", "aria-label": "Delete " + (C2.itemTitle(col, item) || "entry"), disabled: busy, onClick: () => void removeEntry(item), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 14 }) })
+                  ] }, item.id)),
+                  !filtered.length && /* @__PURE__ */ u2("p", { class: "empty", children: col.items.length ? "No entries match your search." : "No entries yet. Create your first entry, then connect it to a page." })
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "cms-actions cms-pagination", children: [
+                  /* @__PURE__ */ u2("button", { class: "btn", disabled: current === 0, onClick: () => setPage(current - 1), children: "Previous" }),
+                  /* @__PURE__ */ u2("span", { children: [
+                    "Page ",
+                    current + 1,
+                    " of ",
+                    pages,
+                    " \xB7 ",
+                    filtered.length,
+                    " entries"
+                  ] }),
+                  /* @__PURE__ */ u2("button", { class: "btn", disabled: current + 1 >= pages, onClick: () => setPage(current + 1), children: "Next" })
+                ] }),
+                L2.canStructure() && /* @__PURE__ */ u2("div", { class: "cms-connections", children: [
+                  /* @__PURE__ */ u2("h3", { children: "Connect this collection" }),
+                  /* @__PURE__ */ u2("p", { children: "Use one card design for every entry, and one detail template for every entry\u2019s page." }),
+                  /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
+                    /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
+                      connectList(col);
+                      close();
+                    }, children: "Add collection grid" }),
+                    /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
+                      connectList(col, true);
+                      close();
+                    }, children: "Add collection slider" }),
+                    /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
+                      connectDetail(col);
+                      close();
+                    }, children: "Open detail template" })
+                  ] })
+                ] })
+              ] })
+            ] })
+          ] })
+        ]
+      }
+    );
+  }
+  function EntryValue({ field: f4, value, onChange }) {
+    const props = { id: "cms-value-" + f4.id, "aria-labelledby": "cms-label-" + f4.id };
+    if (f4.type === "image") return /* @__PURE__ */ u2(AssetField, { value, onChange });
+    if (f4.type === "rich") return /* @__PURE__ */ u2(RichValue, { id: props.id, label: props["aria-labelledby"], value, onChange });
+    if (f4.type === "bool") return /* @__PURE__ */ u2("select", { ...props, class: "ctl", value: value === "" ? "" : cmsBoolean(value) ? "1" : "0", onChange: (e3) => onChange(e3.currentTarget.value), children: [
+      /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
+      /* @__PURE__ */ u2("option", { value: "1", children: "Yes" }),
+      /* @__PURE__ */ u2("option", { value: "0", children: "No" })
+    ] });
+    if (f4.type === "option" || f4.type === "ref") {
+      const options = f4.type === "option" ? cmsChoices(f4.opts).map((v3) => [v3, v3]) : (C2.findCollection(f4.ref || "")?.items || []).map((i3) => [i3.id, C2.itemTitle(C2.findCollection(f4.ref), i3) + (i3.draft ? " (draft)" : "")]);
+      return /* @__PURE__ */ u2("select", { ...props, class: "ctl", value, onChange: (e3) => onChange(e3.currentTarget.value), children: [
+        /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
+        value && !options.some(([v3]) => v3 === value) && /* @__PURE__ */ u2("option", { value, children: [
+          "Unavailable: ",
+          value
+        ] }),
+        options.map(([v3, label]) => /* @__PURE__ */ u2("option", { value: v3, children: label }))
+      ] });
+    }
+    return /* @__PURE__ */ u2("input", { ...props, class: "ctl", type: f4.type === "number" ? "number" : f4.type === "date" ? "date" : "text", step: f4.type === "number" ? "any" : void 0, value, onInput: (e3) => onChange(e3.currentTarget.value) });
+  }
+  function RichValue({ id, label, value, onChange }) {
+    const editor = A2(null);
+    h2(() => {
+      if (editor.current && editor.current.innerHTML !== value) {
+        if (cmsSafeRich(value)) editor.current.innerHTML = value;
+        else editor.current.textContent = value;
+      }
+    }, []);
+    const command = (cmd, arg) => {
+      editor.current?.focus();
+      document.execCommand(cmd, false, arg);
+      onChange(editor.current?.innerHTML || "");
+    };
+    return /* @__PURE__ */ u2("div", { class: "cms-rich", children: [
+      /* @__PURE__ */ u2("div", { class: "cms-actions", role: "toolbar", "aria-label": "Text formatting", children: [["bold", "Bold"], ["italic", "Italic"], ["insertUnorderedList", "Bullet list"], ["insertOrderedList", "Numbered list"]].map(([cmd, title]) => /* @__PURE__ */ u2("button", { class: "btn", type: "button", onMouseDown: (e3) => e3.preventDefault(), onClick: () => command(cmd), children: title })) }),
+      /* @__PURE__ */ u2("div", { ref: editor, id, role: "textbox", "aria-labelledby": label, "aria-multiline": "true", contentEditable: true, onInput: () => onChange(editor.current?.innerHTML || ""), onPaste: (e3) => {
+        e3.preventDefault();
+        command("insertText", e3.clipboardData?.getData("text/plain") || "");
+      } })
+    ] });
+  }
+  function card(col) {
+    const box = C2.N("box");
+    const title = C2.N("heading");
+    C2.bindSet(title, "text", C2.bindField(C2.titleField(col)?.id || ""));
+    box.children.push(title);
+    const image = col.fields.find((f4) => f4.type === "image");
+    if (image) {
+      const node = C2.N("image");
+      C2.bindSet(node, "src", C2.bindField(image.id));
+      box.children.unshift(node);
+    }
+    const button = C2.N("button");
+    button.props.text = "View details";
+    button.props.link = "cms:item";
+    box.children.push(button);
+    return box;
+  }
+  function connectList(col, slider = false) {
+    C2.edit(() => {
+      const section = C2.N("section");
+      const list2 = C2.N("list");
+      list2.src = col.id;
+      list2.css.d = { "display": "grid", "grid-template-columns": "repeat(3,minmax(0,1fr))", gap: "24px" };
+      list2.css.t = { "grid-template-columns": "repeat(2,minmax(0,1fr))" };
+      list2.css.m = { "grid-template-columns": "1fr" };
+      if (slider) list2.props.collectionLayout = "slider";
+      list2.children.push(card(col));
+      section.children.push(list2);
+      C2.page().tree.push(section);
+      L2.select(list2.id);
+    });
+  }
+  function connectDetail(col) {
+    C2.edit(() => {
+      let at = C2.state.pages.findIndex((p3) => p3.collection === col.id);
+      if (at < 0) {
+        const section = C2.N("section");
+        section.children.push(card(col));
+        C2.state.pages.push({ id: C2.uid(), name: col.name + " detail", slug: C2.uniqueId(col.id + "-detail", C2.state.pages.map((p3) => p3.slug)), collection: col.id, title: "", desc: "", tree: [section] });
+        at = C2.state.pages.length - 1;
+      }
+      C2.state.cur = at;
+    });
+    L2.appRender();
+  }
+  function bindingImpact(collectionId, fieldId) {
+    const affected = /* @__PURE__ */ new Set();
+    for (const page2 of C2.state.pages) {
+      if (page2.collection === collectionId && [page2.bindTitle, page2.bindDesc].includes(fieldId)) affected.add(page2.name + " (SEO)");
+      C2.eachNode(page2.tree, (n2) => {
+        if (Object.values(n2.bind || {}).some((b2) => b2.src === "field" && (b2.path === fieldId || b2.path.startsWith(fieldId + ".")))) affected.add(page2.name + " / " + C2.nameOf(n2));
+      });
+    }
+    return affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
+  }
 
   // app/src/ui/Add.tsx
   var PAL = [
@@ -10524,94 +11329,6 @@ var PC_UI = (() => {
   }
   var esc2 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-  // app/src/ui/AssetField.tsx
-  function AssetField({ value, note, onChange }) {
-    const ref = String(value || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
-    const a3 = ref ? L2.asset(ref[1]) : null;
-    const take = async (file) => {
-      if (!file) return;
-      const id = await L2.mediaTake(file);
-      if (id) onChange("asset:" + id);
-    };
-    const choose = () => {
-      const fi = document.createElement("input");
-      fi.type = "file";
-      fi.accept = "image/*";
-      fi.onchange = () => void take(fi.files ? fi.files[0] : void 0);
-      fi.click();
-    };
-    const commit = (v3) => {
-      onChange(v3);
-      L2.writeNow();
-    };
-    const over = (e3, on) => {
-      e3.preventDefault();
-      e3.currentTarget.classList.toggle("over", on);
-    };
-    return /* @__PURE__ */ u2(S, { children: [
-      a3 ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
-        /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }),
-        /* @__PURE__ */ u2("span", { class: "an", children: [
-          /* @__PURE__ */ u2("b", { children: a3.name }),
-          /* @__PURE__ */ u2("small", { children: [
-            C2.kb(a3.size),
-            a3.w ? ` \xB7 ${a3.w} \xD7 ${a3.h}` : ""
-          ] })
-        ] }),
-        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Remove", onClick: () => commit(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
-      ] }) : /* @__PURE__ */ u2(
-        "div",
-        {
-          class: "imgdrop",
-          role: "button",
-          tabIndex: 0,
-          "aria-label": "Upload an image",
-          onClick: choose,
-          onKeyDown: (e3) => {
-            if (e3.key !== "Enter" && e3.key !== " ") return;
-            e3.preventDefault();
-            choose();
-          },
-          onDragEnter: (e3) => over(e3, true),
-          onDragOver: (e3) => over(e3, true),
-          onDragLeave: (e3) => over(e3, false),
-          onDrop: (e3) => {
-            over(e3, false);
-            void take(e3.dataTransfer?.files[0]);
-          },
-          children: [
-            /* @__PURE__ */ u2("b", { children: "Drop an image here" }),
-            /* @__PURE__ */ u2("span", { children: "or choose a file" })
-          ]
-        }
-      ),
-      /* @__PURE__ */ u2("div", { style: { display: "flex", gap: "6px", marginTop: "var(--gap-1)" }, children: [
-        /* @__PURE__ */ u2("button", { type: "button", class: "btn grow", onClick: choose, children: [
-          /* @__PURE__ */ u2(Icon, { name: "image", size: 13 }),
-          " ",
-          a3 ? "Replace" : "Upload"
-        ] }),
-        L2.assetCount() ? /* @__PURE__ */ u2(
-          "button",
-          {
-            type: "button",
-            class: "btn grow",
-            title: "Pick from the Media library",
-            onClick: async () => {
-              const id = await L2.mediaPicker();
-              if (id) commit("asset:" + id);
-            },
-            children: [
-              /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
-              " Library"
-            ]
-          }
-        ) : null
-      ] }),
-      note ? /* @__PURE__ */ u2("div", { class: "note", dangerouslySetInnerHTML: { __html: note } }) : null
-    ] });
-  }
-
   // app/src/ui/Pages.tsx
   function PageRow({ i: i3 }) {
     const p3 = C2.state.pages[i3];
@@ -10956,156 +11673,6 @@ var PC_UI = (() => {
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-  // node_modules/preact/hooks/dist/hooks.module.js
-  var t2;
-  var r2;
-  var u3;
-  var i2;
-  var o2 = 0;
-  var f3 = [];
-  var c2 = l;
-  var e2 = c2.__b;
-  var a2 = c2.__r;
-  var v2 = c2.diffed;
-  var l2 = c2.__c;
-  var m2 = c2.unmount;
-  var p2 = c2.__;
-  function s2(n2, t3) {
-    c2.__h && c2.__h(r2, n2, o2 || t3), o2 = 0;
-    var u4 = r2.__H || (r2.__H = { __: [], __h: [] });
-    return n2 >= u4.__.length && u4.__.push({}), u4.__[n2];
-  }
-  function d2(n2) {
-    return o2 = 1, y2(D2, n2);
-  }
-  function y2(n2, u4, i3) {
-    var o3 = s2(t2++, 2);
-    if (o3.t = n2, !o3.__c && (o3.__ = [i3 ? i3(u4) : D2(void 0, u4), function(n3) {
-      var t3 = o3.__N ? o3.__N[0] : o3.__[0], r3 = o3.t(t3, n3);
-      t3 !== r3 && (o3.__N = [r3, o3.__[1]], o3.__c.setState({}));
-    }], o3.__c = r2, !r2.__f)) {
-      var f4 = function(n3, t3, r3) {
-        if (!o3.__c.__H) return true;
-        var u5 = false, i4 = o3.__c.props !== n3;
-        if (o3.__c.__H.__.some(function(n4) {
-          if (n4.__N) {
-            u5 = true;
-            var t4 = n4.__[0];
-            n4.__ = n4.__N, n4.__N = void 0, t4 !== n4.__[0] && (i4 = true);
-          }
-        }), c3) {
-          var f5 = c3.call(this, n3, t3, r3);
-          return u5 ? f5 || i4 : f5;
-        }
-        return !u5 || i4;
-      };
-      r2.__f = true;
-      var c3 = r2.shouldComponentUpdate, e3 = r2.componentWillUpdate;
-      r2.componentWillUpdate = function(n3, t3, r3) {
-        if (this.__e) {
-          var u5 = c3;
-          c3 = void 0, f4(n3, t3, r3), c3 = u5;
-        }
-        e3 && e3.call(this, n3, t3, r3);
-      }, r2.shouldComponentUpdate = f4;
-    }
-    return o3.__N || o3.__;
-  }
-  function h2(n2, u4) {
-    var i3 = s2(t2++, 3);
-    !c2.__s && C3(i3.__H, u4) && (i3.__ = n2, i3.u = u4, r2.__H.__h.push(i3));
-  }
-  function A2(n2) {
-    return o2 = 5, T2(function() {
-      return { current: n2 };
-    }, []);
-  }
-  function T2(n2, r3) {
-    var u4 = s2(t2++, 7);
-    return C3(u4.__H, r3) && (u4.__ = n2(), u4.__H = r3, u4.__h = n2), u4.__;
-  }
-  function g2() {
-    var n2 = s2(t2++, 11);
-    if (!n2.__) {
-      for (var u4 = r2.__v; null !== u4 && !u4.__m && null !== u4.__; ) u4 = u4.__;
-      var i3 = u4.__m || (u4.__m = [0, 0]);
-      n2.__ = "P" + i3[0] + "-" + i3[1]++;
-    }
-    return n2.__;
-  }
-  function j2() {
-    for (var n2; n2 = f3.shift(); ) {
-      var t3 = n2.__H;
-      if (n2.__P && t3) try {
-        t3.__h.some(z2), t3.__h.some(B2), t3.__h = [];
-      } catch (r3) {
-        t3.__h = [], c2.__e(r3, n2.__v);
-      }
-    }
-  }
-  c2.__b = function(n2) {
-    r2 = null, e2 && e2(n2);
-  }, c2.__ = function(n2, t3) {
-    n2 && t3.__k && t3.__k.__m && (n2.__m = t3.__k.__m), p2 && p2(n2, t3);
-  }, c2.__r = function(n2) {
-    a2 && a2(n2), t2 = 0;
-    var i3 = (r2 = n2.__c).__H;
-    i3 && (u3 === r2 ? (i3.__h = [], r2.__h = [], i3.__.some(function(n3) {
-      n3.__N && (n3.__ = n3.__N), n3.u = n3.__N = void 0;
-    })) : (i3.__h.some(z2), i3.__h.some(B2), i3.__h = [], t2 = 0)), u3 = r2;
-  }, c2.diffed = function(n2) {
-    v2 && v2(n2);
-    var t3 = n2.__c;
-    t3 && t3.__H && (t3.__H.__h.length && (1 !== f3.push(t3) && i2 === c2.requestAnimationFrame || ((i2 = c2.requestAnimationFrame) || w2)(j2)), t3.__H.__.some(function(n3) {
-      n3.u && (n3.__H = n3.u, n3.u = void 0);
-    })), u3 = r2 = null;
-  }, c2.__c = function(n2, t3) {
-    t3.some(function(n3) {
-      try {
-        n3.__h.some(z2), n3.__h = n3.__h.filter(function(n4) {
-          return !n4.__ || B2(n4);
-        });
-      } catch (r3) {
-        t3.some(function(n4) {
-          n4.__h && (n4.__h = []);
-        }), t3 = [], c2.__e(r3, n3.__v);
-      }
-    }), l2 && l2(n2, t3);
-  }, c2.unmount = function(n2) {
-    m2 && m2(n2);
-    var t3, r3 = n2.__c;
-    r3 && r3.__H && (r3.__H.__.some(function(n3) {
-      try {
-        z2(n3);
-      } catch (n4) {
-        t3 = n4;
-      }
-    }), r3.__H = void 0, t3 && c2.__e(t3, r3.__v));
-  };
-  var k2 = "function" == typeof requestAnimationFrame;
-  function w2(n2) {
-    var t3, r3 = function() {
-      clearTimeout(u4), k2 && cancelAnimationFrame(t3), setTimeout(n2);
-    }, u4 = setTimeout(r3, 35);
-    k2 && (t3 = requestAnimationFrame(r3));
-  }
-  function z2(n2) {
-    var t3 = r2, u4 = n2.__c;
-    "function" == typeof u4 && (n2.__c = void 0, u4()), r2 = t3;
-  }
-  function B2(n2) {
-    var t3 = r2;
-    n2.__c = n2.__(), r2 = t3;
-  }
-  function C3(n2, t3) {
-    return !n2 || n2.length !== t3.length || t3.some(function(t4, r3) {
-      return t4 !== n2[r3];
-    });
-  }
-  function D2(n2, t3) {
-    return "function" == typeof t3 ? t3(n2) : t3;
-  }
-
   // app/src/ui/inspector/ctl.ts
   function bound(n2, c3) {
     const scope = c3.k ? C2.bindScope(n2.id) : null;
@@ -11202,7 +11769,9 @@ var PC_UI = (() => {
     const scope = C2.bindScope(n2.id);
     if (!scope) return null;
     const fid = C2.boundField(n2, c3.k);
-    const paths = C2.fieldPaths(scope.col);
+    const allPaths = C2.fieldPaths(scope.col);
+    const kinds = c3.t === "img" ? ["image"] : c3.t === "rich" ? ["rich", "text"] : c3.k === "link" ? ["link"] : ["text", "number", "date", "option"];
+    const paths = allPaths.filter((field) => kinds.includes(field.type));
     const shown2 = paths.find((x2) => x2.path === fid);
     const pick = async () => {
       const chosen = await L2.askPick(
@@ -11221,6 +11790,15 @@ var PC_UI = (() => {
     return /* @__PURE__ */ u2(
       "span",
       {
+        role: "button",
+        tabIndex: 0,
+        "aria-label": fid ? shown2 ? `Bound to ${shown2.label}` : `Broken binding: ${fid}. Choose another field.` : "Connect a CMS field",
+        onKeyDown: (e3) => {
+          if (e3.key === "Enter" || e3.key === " ") {
+            e3.preventDefault();
+            void pick();
+          }
+        },
         class: "bnd" + (fid ? " on" : ""),
         onClick: pick,
         title: fid ? shown2 ? `Bound to ${shown2.label} \u2014 click to change` : "Bound to a field that no longer exists" : `Bind to a field in ${scope.col.name}`,
@@ -14419,9 +14997,9 @@ var PC_UI = (() => {
       const concise = owner?.querySelector(".sr-only")?.textContent;
       let ownerText = "";
       if (owner && !concise) {
-        const copy = owner.cloneNode(true);
-        copy.querySelectorAll("select,.pc-custom-select-trigger").forEach((node) => node.remove());
-        ownerText = copy.textContent || "";
+        const copy2 = owner.cloneNode(true);
+        copy2.querySelectorAll("select,.pc-custom-select-trigger").forEach((node) => node.remove());
+        ownerText = copy2.textContent || "";
       }
       const group = select.closest("[aria-labelledby]");
       const groupText = group?.getAttribute("aria-labelledby")?.split(/\s+/).map((id) => document.getElementById(id)?.textContent || "").join(" ").trim();
@@ -15117,6 +15695,7 @@ var PC_UI = (() => {
       controls: {
         content: [
           { t: "source", label: "Collection" },
+          { t: "select", k: "collectionLayout", label: "Layout", opts: [["grid", "Grid"], ["slider", "Slider"]] },
           {
             t: "select",
             k: "sort",
@@ -16927,7 +17506,23 @@ var PC_UI = (() => {
       );
       draw();
     };
-    return { ...painters2, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
+    const openCms = (collectionId) => {
+      let host = document.getElementById("cms-workspace-host");
+      if (!host) {
+        host = document.createElement("div");
+        host.id = "cms-workspace-host";
+        document.body.append(host);
+      }
+      const previous = document.activeElement;
+      const app = document.getElementById("app");
+      if (app) app.inert = true;
+      R(/* @__PURE__ */ u2(CmsWorkspace, { collectionId, close: () => {
+        R(null, host);
+        if (app) app.inert = false;
+        previous?.focus();
+      } }, collectionId), host);
+    };
+    return { ...painters2, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
   }
   return __toCommonJS(index_exports);
 })();
@@ -19107,7 +19702,7 @@ const ui = () => UI || (UI = PC_UI.mount(
   __CORE,
   { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent, wordpressContent,
     select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
-    askText, askConfirm, cmsModal, saveBlockFlow, toast, startDrag, appendSmart,
+    askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
@@ -19289,8 +19884,37 @@ function mediaModal() {
 function renderCms() { ui().renderCms(); }
 
 /* The content editor: schema on the left, items on the right. */
-let cmsTab = 'items';
+async function cmsCommit(collections) {
+  // Wait for the existing write queue before using its acknowledged version.
+  while (saving) await new Promise(resolve => setTimeout(resolve, 25));
+  if (saveState === 'failed') throw new Error('Resolve the draft save error in the builder before saving CMS changes. Your entry is still here.');
+  const next = JSON.parse(JSON.stringify(doc()));
+  next.meta.collections = collections;
+  saving = true;
+  try {
+    if (SRV) {
+      const result = await HOST.documents.save({ document: next, version: SRV.version });
+      SRV.version = result.version;
+      lastCloudDocument = JSON.stringify(next);
+    } else {
+      localStorage.setItem(LS, JSON.stringify({ ...next, v: SCHEMA, cur: state.cur, tab: TABID }));
+    }
+    edit(() => { state.meta.collections = collections; });
+    saveState = 'ok';
+    stamp('Draft saved — not published', false);
+  } catch (error) {
+    throw new Error(error?.status === 409 ? 'The site changed in another session. Copy your edits before reloading; nothing was overwritten.' : error?.message || 'Entry could not be saved. Your changes are still here.');
+  } finally {
+    saving = false;
+    if (saveAgain) { saveAgain = false; writeNow(); }
+  }
+}
 function cmsModal(colId) {
+  if (IS_WORDPRESS) return legacyCmsModal(colId);
+  ui().openCms(colId);
+}
+let cmsTab = 'items';
+function legacyCmsModal(colId) {
   if (editing.on) exitEdit();
   const draw = () => {
     const col = findCollection(colId);
@@ -19507,6 +20131,9 @@ function renderModebar() {
     (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
     itemBarHtml() +
     `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+  $$('.itemBar select', $('#modebar')).forEach(select => select.addEventListener('change', () => {
+    state.ui.item = state.ui.item || {}; state.ui.item[select.dataset.col] = +select.value; paint(); renderModebar();
+  }));
   $$('.itemBar', $('#modebar')).forEach(ib => $$('button', ib).forEach(b => b.addEventListener('click', () => {
     state.ui.item = state.ui.item || {};
     state.ui.item[b.dataset.col] = +b.dataset.i;
@@ -19527,7 +20154,7 @@ function itemBarHtml() {
     const at = Math.min(previewIndex(id), col.items.length - 1);
     return `<span class="pill itemBar" data-col="${esc(id)}" style="gap:var(--sp-2)">${svg('cms', 11)} ${esc(col.name)}
       <button data-col="${id}" data-i="${Math.max(0, at - 1)}" title="Previous item"${at === 0 ? ' disabled' : ''}>‹</button>
-      <b style="font-weight:600">${esc(itemTitle(col, col.items[at]))}</b>
+      <select data-col="${esc(id)}" aria-label="Preview entry from ${esc(col.name)}">${col.items.map((item,i) => `<option value="${i}"${i === at ? ' selected' : ''}>${esc(itemTitle(col,item))}${item.draft ? ' · Draft preview' : ''}</option>`).join('')}</select>
       <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" title="Next item"${at === col.items.length - 1 ? ' disabled' : ''}>›</button>
       <small style="color:var(--text-3)">${at + 1}/${col.items.length}</small></span>`;
   }).join('');

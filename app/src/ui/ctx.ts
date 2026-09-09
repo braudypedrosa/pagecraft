@@ -94,6 +94,8 @@ export interface Legacy {
     opts?: { ok?: string; danger?: boolean }): Promise<boolean>;
   /** the full-screen content editor for one collection */
   cmsModal(collectionId: string): void;
+  /** Persist a CMS candidate before changing the live document or undo history. */
+  cmsCommit(collections: import('../core/types').Collection[]): Promise<void>;
   /** the save-as-block flow, which asks for a name and whether it is global */
   saveBlockFlow(nodeId: string): void;
   /** a short confirmation in the corner */

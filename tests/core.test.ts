@@ -1722,12 +1722,13 @@ test('filter, sort and limit compose in that order', () => {
   a.equal(C.FILTER_OPS.length, 5, 'and the operator list the control offers is the one tested here');
 });
 
-test('the canvas previews a published item, and falls back rather than showing nothing', () => {
+test('the canvas can preview a draft without changing public eligibility', () => {
   const { col, add } = cmsFixture();
   const a1 = add('One', 'x', '1');
   const a2 = add('Two', 'x', '2');
   C.itemDraft(col.id, a1.id, true);
-  a.equal(must(C.previewItem(col), 'preview').id, a2.id, 'skips the draft');
+  a.equal(must(C.previewItem(col), 'preview').id, a1.id, 'selected draft can be previewed');
+  a.deepEqual(C.published(col).map(i=>i.id), [a2.id]);
   C.itemDraft(col.id, a2.id, true);
   a.equal(must(C.previewItem(col), 'preview').id, a1.id, 'all drafts: show one anyway');
 });

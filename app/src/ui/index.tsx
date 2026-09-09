@@ -8,6 +8,7 @@ import { render } from 'preact';
 import { install, registerPainter, type Core, type Legacy } from './ctx';
 import { Layers } from './Layers';
 import { Cms } from './Cms';
+import { CmsWorkspace } from './CmsWorkspace';
 import { Add } from './Add';
 import { Pages } from './Pages';
 import { Inspector } from './inspector/Inspector';
@@ -97,5 +98,13 @@ export function mount(core: Core, legacy: Legacy) {
     draw();
   };
 
-  return { ...painters, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
+  const openCms = (collectionId: string) => {
+    let host = document.getElementById('cms-workspace-host');
+    if (!host) { host = document.createElement('div'); host.id = 'cms-workspace-host'; document.body.append(host); }
+    const previous = document.activeElement as HTMLElement | null;
+    const app = document.getElementById('app');
+    if (app) app.inert = true;
+    render(<CmsWorkspace key={collectionId} collectionId={collectionId} close={() => { render(null, host!); if (app) app.inert = false; previous?.focus(); }} />, host);
+  };
+  return { ...painters, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
 }

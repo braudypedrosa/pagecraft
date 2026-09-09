@@ -17,7 +17,9 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
       `<b>${esc(col.name)}</b> and its ${n(col.items.length, 'item')}. Anything bound to its `
       + 'fields falls back to placeholder text.', { ok: 'Delete collection' });
     if (!ok) return;
-    C.edit(() => C.collectionDelete(col.id));
+    if (L.dynamicContentProvider() !== 'pagecraft') { C.edit(() => C.collectionDelete(col.id)); return; }
+    try { await L.cmsCommit(C.collections().filter(c => c.id !== col.id)); }
+    catch (error) { L.toast(error instanceof Error ? error.message : 'Collection could not be deleted.'); }
   };
 
   return (
@@ -48,9 +50,18 @@ export function Cms() {
     const name = await L.askText('New collection', 'Name', 'Projects',
       { ok: 'Create', note: 'Plural reads best — Projects, Posts, Team.' });
     if (!name) return;
-    let made: { id: string } | null = null;
-    C.edit(() => { made = C.collectionAdd(name); });
-    if (made) L.cmsModal((made as { id: string }).id);
+    if (L.dynamicContentProvider() !== 'pagecraft') {
+      let made: { id:string } | null = null;
+      C.edit(() => { made = C.collectionAdd(name); });
+      if (made) L.cmsModal((made as {id:string}).id);
+      return;
+    }
+    const id = C.uniqueId(name, C.collections().map(c => c.id));
+    try {
+      await L.cmsCommit([...C.collections(), {id,name,slug:id,detail:'',fields:[{id:'title',name:'Title',type:'text',required:1}],items:[]}]);
+      L.cmsModal(id);
+    } catch (error) { L.toast(error instanceof Error ? error.message : 'Collection could not be created.'); }
+
   };
 
   return (

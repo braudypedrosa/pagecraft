@@ -1,3 +1,4 @@
+import { cmsDocumentErrors } from './cms-document.ts';
 /* The server, as routes.
 
    Two jobs, deliberately kept apart:
@@ -2575,6 +2576,8 @@ export function createApp(o: Options) {
     /* The same comparison determines the minimum role passed to the atomic Cloud write. The
        gateway checks the current membership again, so a stale cache cannot grant authority. */
     const ids = new Set(siteAssets.map((x) => x.id));
+    const cmsErrors = cmsDocumentErrors(stored, body.doc, ids);
+    if (cmsErrors.length) return c.json({ error: 'invalid CMS content', detail: cmsErrors.join(' ') }, 422);
     const contentCheck = contentOnly(stored, body.doc, ids);
     if (gate?.ok && gate.role === "content" && !contentCheck.ok) {
       return c.json({

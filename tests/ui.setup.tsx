@@ -57,6 +57,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     askConfirm: async (...a: any[]) => { calls.push(['askConfirm', ...a]); return true; },
     askPick: async (...a: any[]) => { calls.push(['askPick', ...a]); return ''; },
     cmsModal: rec('cmsModal'),
+    cmsCommit: async collections => { C.edit(() => { C.state.meta.collections = collections; }); },
     saveBlockFlow: rec('saveBlockFlow'),
     toast: rec('toast'),
     startDrag: rec('startDrag'),

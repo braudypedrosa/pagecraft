@@ -681,18 +681,18 @@ test('a client rewrites an item and the detail page it generates changes with it
   a.equal(/The first note, renamed/.test(afterHtml), false, 'the draft value must not leak publicly');
 });
 
-test('a client cannot add an item, delete one, or change the schema', async () => {
-  /* Words are content. How many things there are, and what fields they have, is the site. */
+test('a client can manage entries but cannot change the schema', async () => {
+  /* Entry membership is content; the collection schema is structural. */
   const base = notesSite();
   const col = (d: Doc) => (d.meta.collections || [])[0];
 
   const added = structuredClone(base);
   col(added).items.push({ id: 'nnew', slug: 'third', values: {} });
-  a.equal(contentOnly(base, added).ok, false, 'adding an item is structure');
+  a.equal(contentOnly(base, added).ok, true, 'entry membership is content');
 
   const removed = structuredClone(base);
   col(removed).items.pop();
-  a.equal(contentOnly(base, removed).ok, false, 'and so is removing one');
+  a.equal(contentOnly(base, removed).ok, true, 'entry deletion is content');
 
   const schema = structuredClone(base);
   col(schema).fields.push({ id: 'extra', name: 'Extra', type: 'text', required: 0 });

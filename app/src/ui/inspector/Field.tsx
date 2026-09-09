@@ -52,7 +52,9 @@ function BindBadge({ n, c }: { n: PcNode; c: Control }) {
      through it, so the picker offers `Author → Name` beside the collection's own fields. The
      label of whatever is bound comes from the same list, so a two-hop binding reads back as
      the path it is rather than as a field id that does not exist here. */
-  const paths = C.fieldPaths(scope.col);
+  const allPaths = C.fieldPaths(scope.col);
+  const kinds = c.t === 'img' ? ['image'] : c.t === 'rich' ? ['rich','text'] : c.k === 'link' ? ['link'] : ['text','number','date','option'];
+  const paths = allPaths.filter(field => kinds.includes(field.type));
   const shown = paths.find(x => x.path === fid);
 
   const pick = async () => {
@@ -66,7 +68,7 @@ function BindBadge({ n, c }: { n: PcNode; c: Control }) {
   };
 
   return (
-    <span class={'bnd' + (fid ? ' on' : '')} onClick={pick}
+    <span role="button" tabIndex={0} aria-label={fid ? (shown ? `Bound to ${shown.label}` : `Broken binding: ${fid}. Choose another field.`) : 'Connect a CMS field'} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void pick(); } }} class={'bnd' + (fid ? ' on' : '')} onClick={pick}
       title={fid ? (shown ? `Bound to ${shown.label} — click to change` : 'Bound to a field that no longer exists')
         : `Bind to a field in ${scope.col.name}`}>
       <Icon name="cms" size={9} />
