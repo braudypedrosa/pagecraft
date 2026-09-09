@@ -9,6 +9,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSync, transformSync } from 'esbuild';
+import { UI_TOKENS_CSS } from './shared/ui-tokens.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const frag = readFileSync(join(here, 'builder.html'), 'utf8');
@@ -29,7 +30,7 @@ const FONT_CSS = [
 ].join('\n');
 const withFonts = html => {
   if (!html.includes(FONT_SLOT)) throw new Error('font slot ' + FONT_SLOT + ' missing from builder.html');
-  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n</style>`);
+  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n${UI_TOKENS_CSS}\n</style>`);
 };
 /* esbuild preserves indentation inside block comments, including indentation-only blank
    lines. Strip that generated whitespace so rebuilding does not make `git diff --check`
