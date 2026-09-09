@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-07T12:01:29.556535+00:00",
+  "packageSha256": "ea99c939e95566106e3cb9c9318c25065b2cbe1005180a04dfc6979161b89454",
+  "scope": "Native form endpoint configuration and successful local receiving; not email delivery or complete host acceptance",
+  "endpoint": "https://pagecraft-wordpress-qa.local:4891/",
+  "browser": "Codex built-in browser",
+  "certificate": "macOS verification successful; HTTPS opened without certificate errors",
+  "wordpress": {
+    "baseline": "83114212952d80b7cd59359018fb2edfaca40bb3",
+    "patchManifestSha256": "4402e77075ac3a6c48ce162a71fb2cb3105a350a9afe28f5614560fe47d151ec",
+    "wordpressVersion": "7.1",
+    "pageId": 58,
+    "inspectorConfigured": true,
+    "saveConfirmed": true,
+    "frontendUrl": "http://127.0.0.1:4892/contact/",
+    "requiredFieldsBlocked": true
+  },
+  "cloud": {
+    "baseline": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+    "environment": "local fixture identity and in-memory data with real Cloud installation/editor/publication paths",
+    "inspectorConfigured": true,
+    "autosaveConfirmed": true,
+    "localPublicationId": "e3dda65f-0199-4fc3-be75-61c0d2fd8262",
+    "frontendUrl": "http://localhost:4890/common-ground-final-package-qa/contact",
+    "requiredFieldsBlocked": true
+  },
+  "receipts": [
+    {
+      "at": "2026-09-07T11:57:23.918Z",
+      "fields": {
+        "name": "WordPress QA",
+        "email": "wordpress-qa@example.test",
+        "project": "Local architecture pilot form receipt verification. No real inquiry or email delivery."
+      }
+    },
+    {
+      "at": "2026-09-07T12:00:50.676Z",
+      "fields": {
+        "name": "Cloud QA",
+        "email": "cloud-qa@example.test",
+        "project": "Local Cloud architecture pilot form receipt verification. No real inquiry or email delivery."
+      }
+    }
+  ],
+  "pending": [
+    "Receiver rejection and storage failure UI exercises",
+    "Complete current-package host editing and responsive acceptance",
+    "Independent visual review and final user approval"
+  ],
+  "packageUnchanged": true
+}

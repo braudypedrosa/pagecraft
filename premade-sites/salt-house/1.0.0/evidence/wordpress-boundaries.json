@@ -1,0 +1,194 @@
+[
+  {
+    "host": "wordpress",
+    "slug": "index",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 767
+  },
+  {
+    "host": "wordpress",
+    "slug": "homes",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 767
+  },
+  {
+    "host": "wordpress",
+    "slug": "dune-house",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 767
+  },
+  {
+    "host": "wordpress",
+    "slug": "blue-shutter-cottage",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 767
+  },
+  {
+    "host": "wordpress",
+    "slug": "coast",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 767
+  },
+  {
+    "host": "wordpress",
+    "slug": "plan-your-stay",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 767
+  },
+  {
+    "host": "wordpress",
+    "slug": "index",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 769
+  },
+  {
+    "host": "wordpress",
+    "slug": "homes",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 769
+  },
+  {
+    "host": "wordpress",
+    "slug": "dune-house",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 769
+  },
+  {
+    "host": "wordpress",
+    "slug": "blue-shutter-cottage",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 769
+  },
+  {
+    "host": "wordpress",
+    "slug": "coast",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 769
+  },
+  {
+    "host": "wordpress",
+    "slug": "plan-your-stay",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 769
+  },
+  {
+    "host": "wordpress",
+    "slug": "index",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1023
+  },
+  {
+    "host": "wordpress",
+    "slug": "homes",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1023
+  },
+  {
+    "host": "wordpress",
+    "slug": "dune-house",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1023
+  },
+  {
+    "host": "wordpress",
+    "slug": "blue-shutter-cottage",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1023
+  },
+  {
+    "host": "wordpress",
+    "slug": "coast",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1023
+  },
+  {
+    "host": "wordpress",
+    "slug": "plan-your-stay",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1023
+  },
+  {
+    "host": "wordpress",
+    "slug": "index",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1025
+  },
+  {
+    "host": "wordpress",
+    "slug": "homes",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1025
+  },
+  {
+    "host": "wordpress",
+    "slug": "dune-house",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1025
+  },
+  {
+    "host": "wordpress",
+    "slug": "blue-shutter-cottage",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1025
+  },
+  {
+    "host": "wordpress",
+    "slug": "coast",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1025
+  },
+  {
+    "host": "wordpress",
+    "slug": "plan-your-stay",
+    "images": true,
+    "overflow": false,
+    "small": 0,
+    "width": 1025
+  }
+]

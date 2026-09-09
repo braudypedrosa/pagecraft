@@ -1,0 +1,6 @@
+{
+  "baselineRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+  "editorVersion": "0.2.15",
+  "qaHarnessSha256": "e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+  "scope": "Separate loopback Cloud QA at4893; actual template install, native editor, save and publication using fixture identity and in-memory storage. No production auth/database acceptance."
+}

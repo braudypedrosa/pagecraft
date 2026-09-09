@@ -1,0 +1,64 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "stillwood",
+  "version": "1.0.0",
+  "name": "Woodland Cabin Retreats",
+  "sampleName": "Stillwood",
+  "description": "Nine-page woodland vacation rental collection with twelve varied homepage sections, native cabin and review sliders, galleries, forms and configurable booking placeholders.",
+  "categories": [
+    "Vacation rentals",
+    "Hospitality"
+  ],
+  "pages": [
+    {
+      "id": "stillwood-page-index",
+      "name": "Woodland cabin stays",
+      "slug": "index"
+    },
+    {
+      "id": "stillwood-page-cabins",
+      "name": "Find your cabin",
+      "slug": "cabins"
+    },
+    {
+      "id": "stillwood-page-the-a-frame",
+      "name": "The A-frame",
+      "slug": "the-a-frame"
+    },
+    {
+      "id": "stillwood-page-waterline",
+      "name": "Waterline",
+      "slug": "waterline"
+    },
+    {
+      "id": "stillwood-page-meadow-house",
+      "name": "Meadow House",
+      "slug": "meadow-house"
+    },
+    {
+      "id": "stillwood-page-experiences",
+      "name": "The slower days",
+      "slug": "experiences"
+    },
+    {
+      "id": "stillwood-page-field-guide",
+      "name": "Field guide",
+      "slug": "field-guide"
+    },
+    {
+      "id": "stillwood-page-our-story",
+      "name": "Our story",
+      "slug": "our-story"
+    },
+    {
+      "id": "stillwood-page-contact",
+      "name": "Plan your stay",
+      "slug": "contact"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+  "previewPage": "index.html",
+  "assetCount": 15,
+  "assetBytes": 5044060
+}

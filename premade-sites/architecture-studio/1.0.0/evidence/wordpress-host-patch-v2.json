@@ -1,0 +1,35 @@
+{
+  "baselineRevision": "83114212952d80b7cd59359018fb2edfaca40bb3",
+  "patchManifestSha256": "daa5cfcf8332b4c8f1a30c9cfb3670cc37e96c3fb42ce422ac12ab6ae352d0d9",
+  "files": {
+    "pagecraft-builder/assets/pagecraft-block-editor.js": "cfc17127d4744661058d2508bb0c17b5b30434e099cff3a13e3ce6064bece63e",
+    "pagecraft-builder/assets/pagecraft-editor.html": "ad0e038302f1c9c9457b6467ea9f80616b10594ca409af636e2fff2b1a56bfbd",
+    "pagecraft-builder/includes/Admin.php": "12574ac8deed15cf1162e142302b3b7cbb7c3a028c7470833bb8223940979588",
+    "pagecraft-builder/includes/DesignSettings.php": "621be62ad3bceb9409b30efca43d5105c7eabb2133879e37b43acdb86836a0b6",
+    "pagecraft-builder/includes/DocumentJson.php": "9a99edde0ffd1c7d5aec03529f4104685f881e021fd40a9146a64be3e5b042cb",
+    "pagecraft-builder/includes/FallbackCompiler.php": "1d022670b4c693d86063ddc56f4cf2789c813bd115a366691bb3fb618a8f41a8",
+    "pagecraft-builder/includes/GlobalElement.php": "68a76eba1aa6c6c5bf421b907aac47c8d74796538c642d9ad877d0de44629d57",
+    "pagecraft-builder/includes/GlobalElementEditor.php": "225d371f763922605673bac64d845949ba2dc0702942f49258b88cab5adacfa1",
+    "pagecraft-builder/includes/MediaImportResult.php": "72d38f9780cf447577ef79763283f768ae3773542cd3c97f74c23c06e85e0547",
+    "pagecraft-builder/includes/PageEditor.php": "0de5eaafced514339355caf9741042ec198d9ccfcb97da87d3f2fc9fb4c04c38",
+    "pagecraft-builder/includes/RestController.php": "542fc95bfcf80c0d9986d2150b941f7d5b9033d6da53243d021392155fdd825c",
+    "pagecraft-theme/inc/pagecraft-integration.php": "9085c2c456ac9bb3429140c2aaf50ed00f68dfe8d5a91fdbb039074ab7a9e872",
+    "tests/README.md": "34848e0a5fa80cc898ac916d110b214ed7aa7c6a92138d23341b53b447e31f02",
+    "tests/document-json.php": "457399a03d2f635103c2f40cc8ddaf57e4128dbf8623a90f3cf850bf5a7f5920",
+    "tests/lint.sh": "80ad994fb6cc2201673c6efd1400942230bf26174bbb8e5a86303596352b23df",
+    "tests/theme-managed-fallback.php": "8aecbe13662434a041ebfce8ffd8bd7077fb85b5bb0dd10ec7134bda8aa990ac",
+    "tests/wordpress-accessibility.php": "8cc4445c2c7972536660a2944f2c2ca0bceaf106b38f680c80a7ec7fdeef3396",
+    "tools/wordpress-editor.mjs": "ba47f2c3307da8c9aa4d6070c31aab3fb52694b0c1edc3d9127e9f9b33f584da"
+  },
+  "wordpressVersion": "7.1",
+  "phpVersion": "8.5.2",
+  "editorVersion": "0.2.14",
+  "editorSourceRevision": "93f1ed2dbdc9",
+  "scope": "Uncommitted isolated host fixes, including stylesheet ownership in local customization and theme. Not a released editor or production compatibility claim.",
+  "tests": [
+    "npm test passed including generated theme asset order regression",
+    "Built-in browser: Home and About both changed to Georgia and ink #293d58 after shared settings save",
+    "Built-in browser: seven independent project instances, reorder, save/reopen, delete through three to one",
+    "Built-in browser: media library replacement and 24/18/12 device padding persisted after reopening"
+  ]
+}

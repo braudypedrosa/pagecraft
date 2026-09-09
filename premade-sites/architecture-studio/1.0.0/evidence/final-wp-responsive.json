@@ -1,0 +1,661 @@
+{
+  "packageSha256": "ea99c939e95566106e3cb9c9318c25065b2cbe1005180a04dfc6979161b89454",
+  "probes": [
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+        }
+      ],
+      "scrollWidth": 341,
+      "smallText": [],
+      "width": 355
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+        }
+      ],
+      "scrollWidth": 684,
+      "smallText": [],
+      "width": 697
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+        }
+      ],
+      "scrollWidth": 685,
+      "smallText": [],
+      "width": 698
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": false,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": false,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 804,
+      "smallText": [],
+      "width": 817
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 805,
+      "smallText": [],
+      "width": 818
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 916,
+      "smallText": [],
+      "width": 930
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 917,
+      "smallText": [],
+      "width": 931
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "h1": "Homes andshared places.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": false,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": false,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1295,
+      "smallText": [],
+      "width": 1309
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 341,
+      "smallText": [],
+      "width": 355
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 684,
+      "smallText": [],
+      "width": 697
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 685,
+      "smallText": [],
+      "width": 698
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 804,
+      "smallText": [],
+      "width": 817
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 805,
+      "smallText": [],
+      "width": 818
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 916,
+      "smallText": [],
+      "width": 930
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 917,
+      "smallText": [],
+      "width": 931
+    },
+    {
+      "host": "wordpress",
+      "page": "projects/",
+      "h1": "Two places. Different starting points.",
+      "images": [
+        {
+          "alt": "Fictional pale-brick courtyard house with oak-framed openings",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "alt": "Fictional reading room beneath retained oak trusses",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1295,
+      "smallText": [],
+      "width": 1309
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 341,
+      "smallText": [],
+      "width": 355
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 684,
+      "smallText": [],
+      "width": 697
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 685,
+      "smallText": [],
+      "width": 698
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 804,
+      "smallText": [],
+      "width": 817
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 805,
+      "smallText": [],
+      "width": 818
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 916,
+      "smallText": [],
+      "width": 930
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 917,
+      "smallText": [],
+      "width": 931
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail/",
+      "h1": "Courtyard house",
+      "images": [
+        {
+          "alt": "Fictional courtyard study: pale brick, oak-framed openings and a planted gravel court",
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 1295,
+      "smallText": [],
+      "width": 1309
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 341,
+      "smallText": [],
+      "width": 355
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 684,
+      "smallText": [],
+      "width": 697
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 685,
+      "smallText": [],
+      "width": 698
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 804,
+      "smallText": [],
+      "width": 817
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 805,
+      "smallText": [],
+      "width": 818
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 916,
+      "smallText": [],
+      "width": 930
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 917,
+      "smallText": [],
+      "width": 931
+    },
+    {
+      "host": "wordpress",
+      "page": "about/",
+      "h1": "Work with what is there.",
+      "images": [],
+      "scrollWidth": 1295,
+      "smallText": [],
+      "width": 1309
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 341,
+      "smallText": [],
+      "width": 355
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 684,
+      "smallText": [],
+      "width": 697
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 685,
+      "smallText": [],
+      "width": 698
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 804,
+      "smallText": [],
+      "width": 817
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 805,
+      "smallText": [],
+      "width": 818
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 916,
+      "smallText": [],
+      "width": 930
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 917,
+      "smallText": [],
+      "width": 931
+    },
+    {
+      "host": "wordpress",
+      "page": "services/",
+      "h1": "From a first question to a clear brief.",
+      "images": [],
+      "scrollWidth": 1295,
+      "smallText": [],
+      "width": 1309
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 341,
+      "smallText": [],
+      "width": 355
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 684,
+      "smallText": [],
+      "width": 697
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 685,
+      "smallText": [],
+      "width": 698
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 804,
+      "smallText": [],
+      "width": 817
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 805,
+      "smallText": [],
+      "width": 818
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 916,
+      "smallText": [],
+      "width": 930
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 917,
+      "smallText": [],
+      "width": 931
+    },
+    {
+      "host": "wordpress",
+      "page": "contact/",
+      "h1": "Tell us about your place.",
+      "images": [],
+      "scrollWidth": 1295,
+      "smallText": [],
+      "width": 1309
+    }
+  ]
+}

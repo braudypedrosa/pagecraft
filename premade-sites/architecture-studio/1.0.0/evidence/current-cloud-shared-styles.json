@@ -1,0 +1,17 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "checks": [
+    {
+      "bodyText": "rgb(41, 61, 88)",
+      "font": "Georgia, \"Times New Roman\", serif",
+      "link": "rgb(41, 61, 88)",
+      "url": "http://localhost:4890/common-ground-native-fields-qa/"
+    },
+    {
+      "bodyText": "rgb(41, 61, 88)",
+      "font": "Georgia, \"Times New Roman\", serif",
+      "link": "rgb(41, 61, 88)",
+      "url": "http://localhost:4890/common-ground-native-fields-qa/about"
+    }
+  ]
+}

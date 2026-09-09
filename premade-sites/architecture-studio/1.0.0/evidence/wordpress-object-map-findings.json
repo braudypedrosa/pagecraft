@@ -1,0 +1,438 @@
+{
+    "postId": 8,
+    "version": 6,
+    "findings": [
+        {
+            "page": "index",
+            "node": "cg-project-directory-24",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-directory-20",
+            "viewport": "desktop",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-directory-20",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-directory-20",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-heading-15",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-heading-15",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-16",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-16",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-project-index-19",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-project-index-19",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-link-17",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-link-17",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-link-18",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-link-18",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-featured-project-23",
+            "viewport": "desktop",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-featured-project-23",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-featured-project-23",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-22",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-22",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-project-instance-26",
+            "viewport": "desktop",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-project-instance-26",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-project-instance-26",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-heading-28",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-heading-28",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-29",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-29",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-heading-31",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-heading-31",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-32",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-copy-32",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-inquiry-form-33",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "index",
+            "node": "cg-inquiry-form-33",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-header",
+            "node": "cg-header-row-10",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-header",
+            "node": "cg-header-row-10",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-header",
+            "node": "cg-wordmark-8",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-header",
+            "node": "cg-wordmark-8",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-header",
+            "node": "cg-navigation-9",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-header",
+            "node": "cg-navigation-9",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-footer",
+            "node": "cg-copy-12",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-footer",
+            "node": "cg-copy-12",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-footer",
+            "node": "cg-link-13",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "global-footer",
+            "node": "cg-link-13",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-project-record-7",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-project-facts-6",
+            "viewport": "desktop",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-project-facts-6",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-project-facts-6",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-heading-1",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-heading-1",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-copy-2",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-copy-2",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-copy-3",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-copy-3",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-link-5",
+            "viewport": "tablet",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        },
+        {
+            "page": "component:project-record",
+            "node": "cg-link-5",
+            "viewport": "mobile",
+            "code": "style-map-is-array",
+            "detail": "The editor response represents a CSS property map as a JSON array; named style edits will be omitted by JSON.stringify.",
+            "correction": "Preserve schema object maps across WordPress load, save and restore. Retest inspector edit, save, reopen and frontend output."
+        }
+    ]
+}

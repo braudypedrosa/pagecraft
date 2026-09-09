@@ -1,0 +1,1474 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Small vacation-rental collection, explicitly selected by user",
+    "primaryAction": "Compare homes, inspect property details, then use configured inquiry or booking-provider link",
+    "pages": [
+      "index",
+      "homes",
+      "dune-house",
+      "blue-shutter-cottage",
+      "coast",
+      "plan-your-stay"
+    ],
+    "content": "Six native pages with clearly fictional property facts. No prices, live availability, reviews, real hosts or operating credentials invented.",
+    "imagery": "Coastal terrace introduces place; cottage interior and exterior clarify setting; Dune bedroom adds complementary detail.",
+    "provenance": [
+      {
+        "asset": "terrace",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-f6514c50-8ac0-4943-b5fd-04bc4360350e.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "cottage",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-0aaa59b2-5026-496b-bcd4-f640fdd7031c.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "exterior",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-1327b140-f37b-4281-b01b-a63e5bc5c604.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "bedroom",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-8a90544a-a056-465a-93c0-2f8cc7d2ef06.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      }
+    ]
+  },
+  "directions": [
+    {
+      "id": "coastline",
+      "thesis": "Open coastal brand and useful property comparison",
+      "fingerprint": {
+        "header": "compact chalk navigation",
+        "hero": "oversized centered brand above full-bleed panorama",
+        "textAnchor": "centered brand",
+        "inventory": "two attached image plates on sand",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "oversized centered brand above full-bleed panorama",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "two attached image plates on sand",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    },
+    {
+      "id": "guestbook",
+      "thesis": "Warm editorial home-by-home narrative",
+      "fingerprint": {
+        "header": "compact plain navigation",
+        "hero": "ochre text and tall terrace image",
+        "textAnchor": "left reading groups",
+        "inventory": "sequential featured-home story",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "ochre text and tall terrace image",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "sequential featured-home story",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    },
+    {
+      "id": "collection",
+      "thesis": "Property-first browsing for practical decisions",
+      "fingerprint": {
+        "header": "navy navigation",
+        "hero": "compact introduction then property inventory",
+        "textAnchor": "left reading groups",
+        "inventory": "immediate paired facts and photographs",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "compact introduction then property inventory",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "immediate paired facts and photographs",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "directionId": "coastline",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "proceed",
+      "at": "2026-09-07T17:01:20.711192Z",
+      "evidence": "Recorded from task conversation after explicit recommendation to build complete Salt House using Coastline. Implementation authorization, not final visual approval."
+    }
+  },
+  "targets": {
+    "cloud": {
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944+qa-harness:e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+      "editorVersion": "0.2.15"
+    },
+    "wordpress": {
+      "hostRevision": "83114212952d80b7cd59359018fb2edfaca40bb3+local-patch:8d384edaa84a34cd5dbf3cde0fe3328c031e299eabf0b09a8021c09c52b7546f",
+      "editorVersion": "0.2.14"
+    }
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "page": "all",
+      "node": "WordPress host",
+      "viewport": "all",
+      "detail": "Tested on unreleased isolated v5 host patch only.",
+      "correction": "Release and verify host fixes separately before claiming compatibility with public WordPress builds.",
+      "resolved": false
+    },
+    {
+      "severity": "warning",
+      "page": "plan-your-stay",
+      "node": "stay-inquiry",
+      "viewport": "all",
+      "detail": "Portable package intentionally leaves inquiry endpoint unconfigured; booking provider not connected.",
+      "correction": "Owner must supply tested receiving endpoint or real provider URL and update demonstration notices before operating the site.",
+      "resolved": false
+    }
+  ],
+  "qa": [
+    {
+      "host": "cloud",
+      "packageSha256": "7c5bb766ba94d4f7f5137d3c7877c32ca86ec149d762bb94bad95bd7d7f20d3c",
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944+qa-harness:e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+      "editorVersion": "0.2.15",
+      "at": "2026-09-07T17:01:20.711192Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "All six pages at767/769/1023/1025. Native menu keyboard activation during navigation; no overflow or sub14px text. Initial Cloud Home image-load observation superseded by cloud-home-painted.json. Native property galleries activate by Enter and close by Escape; local inquiry receipts recorded.",
+      "evidence": [
+        {
+          "path": "evidence/cloud-blue-shutter-cottage-1024.png",
+          "sha256": "aa83ce1476dbd6b371d7bb0d63f58d583b2d385e3e89467d3e9da70b4265e2c0"
+        },
+        {
+          "path": "evidence/cloud-blue-shutter-cottage-1440.png",
+          "sha256": "39eed137013b67b64cba56bc20ae33c76ebe6241b6c8ead58c4d253b436b9b70"
+        },
+        {
+          "path": "evidence/cloud-blue-shutter-cottage-390.png",
+          "sha256": "70ee208a8ea7d8481df46005940fc12010bd83566f1928e65b6a5b52db738af9"
+        },
+        {
+          "path": "evidence/cloud-blue-shutter-cottage-768.png",
+          "sha256": "873cbaa8915e29ec1b58f9757cd058a24d6f9ba69febc407231f88964d1a45e1"
+        },
+        {
+          "path": "evidence/cloud-boundaries.json",
+          "sha256": "920742c27b1808e3fe3f989e3438e0d6a4cb74a13e3e89dc37490b360854c731"
+        },
+        {
+          "path": "evidence/cloud-coast-1024.png",
+          "sha256": "f243a744e834886f6e303a5a2dadfc50730210ca49950edef82a6ea1eb975aad"
+        },
+        {
+          "path": "evidence/cloud-coast-1440.png",
+          "sha256": "02832e81a591d7d3f67863c62fad7669948e098c96518d672b632354934a81b2"
+        },
+        {
+          "path": "evidence/cloud-coast-390.png",
+          "sha256": "ba29975f397e7018cd3b6c9c48bb904eb5a61a2b94a41f80ca494641d7ddf7e3"
+        },
+        {
+          "path": "evidence/cloud-coast-768.png",
+          "sha256": "27ba0b1da3f09c5de16ed89ddceb8b692d1d5a7d16e652bbb9aa8638906d519d"
+        },
+        {
+          "path": "evidence/cloud-console.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "path": "evidence/cloud-current-form-receipt.txt",
+          "sha256": "3a08b146341eb8ebde03ec08d0ccb5b341f7093fe8b9d30a3f9141df595e12b0"
+        },
+        {
+          "path": "evidence/cloud-current-image-replaced.txt",
+          "sha256": "dc5bc4e92a87b3596b81b221c41a38323a962530a02cdfb3896a1c793865b538"
+        },
+        {
+          "path": "evidence/cloud-current-inspector.txt",
+          "sha256": "40af7126b5439483b8a6a3632d27086310d7e2c60dd5767f8a40e36b8188cd35"
+        },
+        {
+          "path": "evidence/cloud-current-one.txt",
+          "sha256": "8d89ab4784f6e93ee962d3fa15bc2d9101ed3810dd9dff017c6b37dd2d64227f"
+        },
+        {
+          "path": "evidence/cloud-current-optional-image.txt",
+          "sha256": "75fad8ae66463adb4f044aca422df777face32d419702950641fcdc8294cc59a"
+        },
+        {
+          "path": "evidence/cloud-current-seven-reopened.txt",
+          "sha256": "88be3ba8918861de2ead7d67ddf2242452fff2c1fa7a6fa9eafed972462ab040"
+        },
+        {
+          "path": "evidence/cloud-current-shared-reopened.txt",
+          "sha256": "f0d1f4e1c53ea32957e98306d64951d8a0a19f7854c5acd8982c19619fd5ad26"
+        },
+        {
+          "path": "evidence/cloud-dune-house-1024.png",
+          "sha256": "9a963a054250897cf4c85d567e8825b0f6aba67861f89c86bfbb19035440e883"
+        },
+        {
+          "path": "evidence/cloud-dune-house-1440.png",
+          "sha256": "1eda053c5cbb1179e6727d4d3ebad8e2ce8bded4b713458859776b933addeee5"
+        },
+        {
+          "path": "evidence/cloud-dune-house-390.png",
+          "sha256": "e3e310fc00ac9decb1825bc137633ba0d6ad21ed8b7f901533f7ee1e27fe52bd"
+        },
+        {
+          "path": "evidence/cloud-dune-house-768.png",
+          "sha256": "1c9b71d6d7c31f36a9588d7b9076680530542495bace45d6bedd40edb56ac4ff"
+        },
+        {
+          "path": "evidence/cloud-faq-open.txt",
+          "sha256": "a880b67b76db75c8cf5dc057fac1642749c394292cde22227ab18c022af02536"
+        },
+        {
+          "path": "evidence/cloud-gallery-closed.txt",
+          "sha256": "34a93ee6d476a46840299a7ff80b8a748c75ababe066c4d2f568bd70b938b501"
+        },
+        {
+          "path": "evidence/cloud-gallery-open.txt",
+          "sha256": "1eec18210f2afa465c03649700c286570cccb24d657bde3b7a70bec2d7e6fe25"
+        },
+        {
+          "path": "evidence/cloud-home-painted.json",
+          "sha256": "25f922d49d9263e20eb9250fbffc398f2bb8296a7ab5e7e50fbd548405a36961"
+        },
+        {
+          "path": "evidence/cloud-homes-1024.png",
+          "sha256": "1da43761a698d40d76928d04e5232b2b9e946d77f3c0c6fc1eb9c7f294becca2"
+        },
+        {
+          "path": "evidence/cloud-homes-1440.png",
+          "sha256": "80cc02de7abcd7230d948a6c4dda63c4bab847944a73a5b70e84ca518e7f96ac"
+        },
+        {
+          "path": "evidence/cloud-homes-390.png",
+          "sha256": "c9fc244c2653f8f92ecfa01fcc15cd1708457b6eea403725dedda9da6c9a4bde"
+        },
+        {
+          "path": "evidence/cloud-homes-768.png",
+          "sha256": "2dbffa40b5850a1039138992b09a03cfe4624f9ee7002a5a9e7726d925444e91"
+        },
+        {
+          "path": "evidence/cloud-host.json",
+          "sha256": "8d8f4d37041eb87ba36ab9982c2ed6eec696cee4d2f7dd3bcc5d1e80007ef327"
+        },
+        {
+          "path": "evidence/cloud-index-1024.png",
+          "sha256": "55bc5f91c2bff8e4874200444af02469ce310f0e442408b1b2f217ed983f6030"
+        },
+        {
+          "path": "evidence/cloud-index-1440.png",
+          "sha256": "241b0805ce015e4d9053eb424256a5fdd7a850d321d5fc6c106f277226025c7d"
+        },
+        {
+          "path": "evidence/cloud-index-390.png",
+          "sha256": "8a13068a1f6e4caeb9afeadc9056ca57ab2bf47eb4cf7d75a922d07265902981"
+        },
+        {
+          "path": "evidence/cloud-index-768.png",
+          "sha256": "967fd558b3731ecb47b4bdd46d38aac7cb44ee5ce01c865ca066bf3829172f33"
+        },
+        {
+          "path": "evidence/cloud-matrix.json",
+          "sha256": "fc6d259f82dbdbc78f6379607b2953b4641644f690440902fe5adf0ca24bd837"
+        },
+        {
+          "path": "evidence/cloud-plan-your-stay-1024.png",
+          "sha256": "9365ad8bc8e79a4a365e4c46192c82d383a3602d167a9b7d422db6b6af6ed729"
+        },
+        {
+          "path": "evidence/cloud-plan-your-stay-1440.png",
+          "sha256": "dc33b7360e082c224c7ff3e4c5971a52f1e3879cf4e85c866bc069f7893a2293"
+        },
+        {
+          "path": "evidence/cloud-plan-your-stay-390.png",
+          "sha256": "1cb6b5a728727e30e7a5a794e0ba75eecc930ec250e5cf60732459b542c23a2a"
+        },
+        {
+          "path": "evidence/cloud-plan-your-stay-768.png",
+          "sha256": "9e4b113e632f2f41fe15a85d32095f7a92f8d3b6073db6ffcfa3a76fe7624ba1"
+        }
+      ]
+    },
+    {
+      "host": "wordpress",
+      "packageSha256": "7c5bb766ba94d4f7f5137d3c7877c32ca86ec149d762bb94bad95bd7d7f20d3c",
+      "hostRevision": "83114212952d80b7cd59359018fb2edfaca40bb3+local-patch:8d384edaa84a34cd5dbf3cde0fe3328c031e299eabf0b09a8021c09c52b7546f",
+      "editorVersion": "0.2.14",
+      "at": "2026-09-07T17:01:20.711192Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "All six pages at767/769/1023/1025. Native menu keyboard activation during navigation; no overflow or sub14px text. Initial Cloud Home image-load observation superseded by cloud-home-painted.json. Native property galleries activate by Enter and close by Escape; local inquiry receipts recorded.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-blue-shutter-cottage-1024.png",
+          "sha256": "85ea2462d50baf292f9ac37df460c988d9779d5b1b27b06d064be1f3fcc96e98"
+        },
+        {
+          "path": "evidence/wordpress-blue-shutter-cottage-1440.png",
+          "sha256": "e6d42258f8881c1bb2e7c17e76776a0d0e82f770af210d958dcea683c9c471f1"
+        },
+        {
+          "path": "evidence/wordpress-blue-shutter-cottage-390.png",
+          "sha256": "0f85c2785e17dbb7c3748bec65bead26cc9f539d7371e2fdfc6997b3347570df"
+        },
+        {
+          "path": "evidence/wordpress-blue-shutter-cottage-768.png",
+          "sha256": "e76d52909b69f05b57e7f35732361aa53b6f9dfd40c50bde3c42ab3a1b43a3f7"
+        },
+        {
+          "path": "evidence/wordpress-boundaries.json",
+          "sha256": "fcb02703a0104d0ad453270e5ac008318ec978cff094241c679b57b35bf7ce0b"
+        },
+        {
+          "path": "evidence/wordpress-coast-1024.png",
+          "sha256": "c2156cd42264c85d083b9b58ac77c1fea7c8b75f5bfc022e453ea66b61a42ac0"
+        },
+        {
+          "path": "evidence/wordpress-coast-1440.png",
+          "sha256": "02937967cd9fb92d08b47a9c486c54ccb6e415c5484c462ff96e10a6cf30b6ae"
+        },
+        {
+          "path": "evidence/wordpress-coast-390.png",
+          "sha256": "71610f3155293643b3d3c7cb90b5794f037976769a0225b556fc2e1357bb4442"
+        },
+        {
+          "path": "evidence/wordpress-coast-768.png",
+          "sha256": "a5d67650bda342bab848955c945f4d7652af7543538a7d9c84d8c63c149799df"
+        },
+        {
+          "path": "evidence/wordpress-coast-painted-1440.png",
+          "sha256": "53b03ae437caf7d629e7f6e798209e360e2ab5bb7d2dacdeda0113ea46627f01"
+        },
+        {
+          "path": "evidence/wordpress-console.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "path": "evidence/wordpress-current-form-receipt.txt",
+          "sha256": "3a08b146341eb8ebde03ec08d0ccb5b341f7093fe8b9d30a3f9141df595e12b0"
+        },
+        {
+          "path": "evidence/wordpress-current-image-replaced.txt",
+          "sha256": "a58bf152e8f3a0e55d785ce33b473a114decbf48406e118dafefb2392b23b3b2"
+        },
+        {
+          "path": "evidence/wordpress-current-inspector.txt",
+          "sha256": "e9c8ef5b601f2ed7cf22568bcf46309d187e661147cf73aabc15cd670785afef"
+        },
+        {
+          "path": "evidence/wordpress-current-one.txt",
+          "sha256": "6b539694fad4d673bc8f8ad2a0f25ed57fdf212fb543257733670acdfaf7a48a"
+        },
+        {
+          "path": "evidence/wordpress-current-optional-image.txt",
+          "sha256": "77fc2d77a43748d573162af5651d06fb4e3fcc0a4c8851de17dc876b6dd0505e"
+        },
+        {
+          "path": "evidence/wordpress-current-seven-reopened.txt",
+          "sha256": "b88f0e8b960045537357393bf2917f22605ff3c48d2089cbc789680be1686476"
+        },
+        {
+          "path": "evidence/wordpress-current-shared-reopened.txt",
+          "sha256": "cafe816f32aaedc9a065cb547404dba6f218fce17a9d0251fbdac2af47d97820"
+        },
+        {
+          "path": "evidence/wordpress-dune-house-1024.png",
+          "sha256": "d8971e58892e5e6e9bf149355773e333105392af9764ca282ad39aea98eff7e0"
+        },
+        {
+          "path": "evidence/wordpress-dune-house-1440.png",
+          "sha256": "b02a000004ba8468ac6a995437adf70515119962dccee8ff53cc91d8e6020c13"
+        },
+        {
+          "path": "evidence/wordpress-dune-house-390.png",
+          "sha256": "0d472503158411efde91dc9e409f7bff2d9a89ee4b21fc78b40a0c1e2ba83eed"
+        },
+        {
+          "path": "evidence/wordpress-dune-house-768.png",
+          "sha256": "65f3d65b6694ac30dc8dd55d04ceb33028574bf98fc40f28f346c0a1c45fa780"
+        },
+        {
+          "path": "evidence/wordpress-faq-open.txt",
+          "sha256": "2ea3cc218fe57a080bc3354838af466bc4afad2bc9ad358448b51d1f155c3f6a"
+        },
+        {
+          "path": "evidence/wordpress-gallery-closed.txt",
+          "sha256": "54b1ed17f460033e5a34033d952b1f691acd0736b0d6657023ae3176de4a26ea"
+        },
+        {
+          "path": "evidence/wordpress-gallery-open.txt",
+          "sha256": "3a62b7c95a29accaa209efdc0ec4dd64e9fb08b9362aecc579ded9ff399f467b"
+        },
+        {
+          "path": "evidence/wordpress-homes-1024.png",
+          "sha256": "7f521d6d516d83804d785a2d49aafd1bf6522aa430a335c71f7bb2962c4a0d9a"
+        },
+        {
+          "path": "evidence/wordpress-homes-1440.png",
+          "sha256": "655afb23d5fc6b96ee9c90266a964e50be3f9ca5d88d5360133348c3b60f94ae"
+        },
+        {
+          "path": "evidence/wordpress-homes-390.png",
+          "sha256": "853cba73806b4eb0e71ab71ed28b811865a48bd26b4dcdb2324609f354c2d6a2"
+        },
+        {
+          "path": "evidence/wordpress-homes-768.png",
+          "sha256": "6895dee806323686cc308f5315dd47ccae7f2ea1f133765a6605af9397da9c31"
+        },
+        {
+          "path": "evidence/wordpress-host.json",
+          "sha256": "0c9ebb112d1dfb1daa04173ab3ed5f378a459783cc1f12c6209c5c958928fd54"
+        },
+        {
+          "path": "evidence/wordpress-index-1024.png",
+          "sha256": "01905f3baa6b2ad927a454119bdf7aea8613c11186b0c02ea65edeedfeecbb30"
+        },
+        {
+          "path": "evidence/wordpress-index-1440.png",
+          "sha256": "db460ace7c067b5f8a9ffd29c4cb11aa241714172226a221c7c8d85ae5083af1"
+        },
+        {
+          "path": "evidence/wordpress-index-390.png",
+          "sha256": "f1bb50b3684d07df56755fd7c83bfafca5c7959633a878494923209f0c7ab2ed"
+        },
+        {
+          "path": "evidence/wordpress-index-768.png",
+          "sha256": "137ca0ca5bc01fa27d9666221cf7e362829cf3e397614c24177fb0cc6c0d8f6b"
+        },
+        {
+          "path": "evidence/wordpress-matrix.json",
+          "sha256": "4623c35587a56e420d820304fd9ff6082fc6ac812ae87f5263daf19004ad712d"
+        },
+        {
+          "path": "evidence/wordpress-plan-your-stay-1024.png",
+          "sha256": "0c7bbfe9b3745703df1e9e094c748f4ed7895aec4e9526bdeab2559652f41ed6"
+        },
+        {
+          "path": "evidence/wordpress-plan-your-stay-1440.png",
+          "sha256": "d9df128742c3fc9b10d87ce29ce13e0d820a1240194a0e0475271bb9e77c750d"
+        },
+        {
+          "path": "evidence/wordpress-plan-your-stay-390.png",
+          "sha256": "2c4ae8d7a3bb0482524b57c05d4bbf4c60281a65dd46b0d170dbbc501c64e84e"
+        },
+        {
+          "path": "evidence/wordpress-plan-your-stay-768.png",
+          "sha256": "ab2ccb619fd50edcf9c4c48435802b6a2e23b32e8454580d32d115f9a4cda826"
+        },
+        {
+          "path": "evidence/wordpress-reopened.txt",
+          "sha256": "8fc57a9d93dbb047b65a725ef55fd95bfd7b5ac210b3f835f78f93ed1ec77c92"
+        },
+        {
+          "path": "evidence/wordpress-unconfigured-form.txt",
+          "sha256": "623a36e9f313b8652e0f86df0b6c27730c838e2a8117f9e61912006ffd471128"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "packageSha256": "7c5bb766ba94d4f7f5137d3c7877c32ca86ec149d762bb94bad95bd7d7f20d3c",
+    "verdict": "pass",
+    "rationale": "Independent reviewer redesign_review: no material visual findings remain across Cloud and WordPress renders. Duplicate opening photographs replaced by complementary views; mobile cottage crop corrected. WordPress coast image paint gap closed with native viewport proof. This is agent assessment, not user approval.",
+    "evidence": [
+      {
+        "path": "evidence/cloud-blue-shutter-cottage-1024.png",
+        "sha256": "aa83ce1476dbd6b371d7bb0d63f58d583b2d385e3e89467d3e9da70b4265e2c0"
+      },
+      {
+        "path": "evidence/cloud-blue-shutter-cottage-1440.png",
+        "sha256": "39eed137013b67b64cba56bc20ae33c76ebe6241b6c8ead58c4d253b436b9b70"
+      },
+      {
+        "path": "evidence/cloud-blue-shutter-cottage-390.png",
+        "sha256": "70ee208a8ea7d8481df46005940fc12010bd83566f1928e65b6a5b52db738af9"
+      },
+      {
+        "path": "evidence/cloud-blue-shutter-cottage-768.png",
+        "sha256": "873cbaa8915e29ec1b58f9757cd058a24d6f9ba69febc407231f88964d1a45e1"
+      },
+      {
+        "path": "evidence/cloud-coast-1024.png",
+        "sha256": "f243a744e834886f6e303a5a2dadfc50730210ca49950edef82a6ea1eb975aad"
+      },
+      {
+        "path": "evidence/cloud-coast-1440.png",
+        "sha256": "02832e81a591d7d3f67863c62fad7669948e098c96518d672b632354934a81b2"
+      },
+      {
+        "path": "evidence/cloud-coast-390.png",
+        "sha256": "ba29975f397e7018cd3b6c9c48bb904eb5a61a2b94a41f80ca494641d7ddf7e3"
+      },
+      {
+        "path": "evidence/cloud-coast-768.png",
+        "sha256": "27ba0b1da3f09c5de16ed89ddceb8b692d1d5a7d16e652bbb9aa8638906d519d"
+      },
+      {
+        "path": "evidence/cloud-dune-house-1024.png",
+        "sha256": "9a963a054250897cf4c85d567e8825b0f6aba67861f89c86bfbb19035440e883"
+      },
+      {
+        "path": "evidence/cloud-dune-house-1440.png",
+        "sha256": "1eda053c5cbb1179e6727d4d3ebad8e2ce8bded4b713458859776b933addeee5"
+      },
+      {
+        "path": "evidence/cloud-dune-house-390.png",
+        "sha256": "e3e310fc00ac9decb1825bc137633ba0d6ad21ed8b7f901533f7ee1e27fe52bd"
+      },
+      {
+        "path": "evidence/cloud-dune-house-768.png",
+        "sha256": "1c9b71d6d7c31f36a9588d7b9076680530542495bace45d6bedd40edb56ac4ff"
+      },
+      {
+        "path": "evidence/cloud-homes-1024.png",
+        "sha256": "1da43761a698d40d76928d04e5232b2b9e946d77f3c0c6fc1eb9c7f294becca2"
+      },
+      {
+        "path": "evidence/cloud-homes-1440.png",
+        "sha256": "80cc02de7abcd7230d948a6c4dda63c4bab847944a73a5b70e84ca518e7f96ac"
+      },
+      {
+        "path": "evidence/cloud-homes-390.png",
+        "sha256": "c9fc244c2653f8f92ecfa01fcc15cd1708457b6eea403725dedda9da6c9a4bde"
+      },
+      {
+        "path": "evidence/cloud-homes-768.png",
+        "sha256": "2dbffa40b5850a1039138992b09a03cfe4624f9ee7002a5a9e7726d925444e91"
+      },
+      {
+        "path": "evidence/cloud-index-1024.png",
+        "sha256": "55bc5f91c2bff8e4874200444af02469ce310f0e442408b1b2f217ed983f6030"
+      },
+      {
+        "path": "evidence/cloud-index-1440.png",
+        "sha256": "241b0805ce015e4d9053eb424256a5fdd7a850d321d5fc6c106f277226025c7d"
+      },
+      {
+        "path": "evidence/cloud-index-390.png",
+        "sha256": "8a13068a1f6e4caeb9afeadc9056ca57ab2bf47eb4cf7d75a922d07265902981"
+      },
+      {
+        "path": "evidence/cloud-index-768.png",
+        "sha256": "967fd558b3731ecb47b4bdd46d38aac7cb44ee5ce01c865ca066bf3829172f33"
+      },
+      {
+        "path": "evidence/cloud-plan-your-stay-1024.png",
+        "sha256": "9365ad8bc8e79a4a365e4c46192c82d383a3602d167a9b7d422db6b6af6ed729"
+      },
+      {
+        "path": "evidence/cloud-plan-your-stay-1440.png",
+        "sha256": "dc33b7360e082c224c7ff3e4c5971a52f1e3879cf4e85c866bc069f7893a2293"
+      },
+      {
+        "path": "evidence/cloud-plan-your-stay-390.png",
+        "sha256": "1cb6b5a728727e30e7a5a794e0ba75eecc930ec250e5cf60732459b542c23a2a"
+      },
+      {
+        "path": "evidence/cloud-plan-your-stay-768.png",
+        "sha256": "9e4b113e632f2f41fe15a85d32095f7a92f8d3b6073db6ffcfa3a76fe7624ba1"
+      },
+      {
+        "path": "evidence/wordpress-blue-shutter-cottage-1024.png",
+        "sha256": "85ea2462d50baf292f9ac37df460c988d9779d5b1b27b06d064be1f3fcc96e98"
+      },
+      {
+        "path": "evidence/wordpress-blue-shutter-cottage-1440.png",
+        "sha256": "e6d42258f8881c1bb2e7c17e76776a0d0e82f770af210d958dcea683c9c471f1"
+      },
+      {
+        "path": "evidence/wordpress-blue-shutter-cottage-390.png",
+        "sha256": "0f85c2785e17dbb7c3748bec65bead26cc9f539d7371e2fdfc6997b3347570df"
+      },
+      {
+        "path": "evidence/wordpress-blue-shutter-cottage-768.png",
+        "sha256": "e76d52909b69f05b57e7f35732361aa53b6f9dfd40c50bde3c42ab3a1b43a3f7"
+      },
+      {
+        "path": "evidence/wordpress-coast-1024.png",
+        "sha256": "c2156cd42264c85d083b9b58ac77c1fea7c8b75f5bfc022e453ea66b61a42ac0"
+      },
+      {
+        "path": "evidence/wordpress-coast-1440.png",
+        "sha256": "02937967cd9fb92d08b47a9c486c54ccb6e415c5484c462ff96e10a6cf30b6ae"
+      },
+      {
+        "path": "evidence/wordpress-coast-390.png",
+        "sha256": "71610f3155293643b3d3c7cb90b5794f037976769a0225b556fc2e1357bb4442"
+      },
+      {
+        "path": "evidence/wordpress-coast-768.png",
+        "sha256": "a5d67650bda342bab848955c945f4d7652af7543538a7d9c84d8c63c149799df"
+      },
+      {
+        "path": "evidence/wordpress-coast-painted-1440.png",
+        "sha256": "53b03ae437caf7d629e7f6e798209e360e2ab5bb7d2dacdeda0113ea46627f01"
+      },
+      {
+        "path": "evidence/wordpress-dune-house-1024.png",
+        "sha256": "d8971e58892e5e6e9bf149355773e333105392af9764ca282ad39aea98eff7e0"
+      },
+      {
+        "path": "evidence/wordpress-dune-house-1440.png",
+        "sha256": "b02a000004ba8468ac6a995437adf70515119962dccee8ff53cc91d8e6020c13"
+      },
+      {
+        "path": "evidence/wordpress-dune-house-390.png",
+        "sha256": "0d472503158411efde91dc9e409f7bff2d9a89ee4b21fc78b40a0c1e2ba83eed"
+      },
+      {
+        "path": "evidence/wordpress-dune-house-768.png",
+        "sha256": "65f3d65b6694ac30dc8dd55d04ceb33028574bf98fc40f28f346c0a1c45fa780"
+      },
+      {
+        "path": "evidence/wordpress-homes-1024.png",
+        "sha256": "7f521d6d516d83804d785a2d49aafd1bf6522aa430a335c71f7bb2962c4a0d9a"
+      },
+      {
+        "path": "evidence/wordpress-homes-1440.png",
+        "sha256": "655afb23d5fc6b96ee9c90266a964e50be3f9ca5d88d5360133348c3b60f94ae"
+      },
+      {
+        "path": "evidence/wordpress-homes-390.png",
+        "sha256": "853cba73806b4eb0e71ab71ed28b811865a48bd26b4dcdb2324609f354c2d6a2"
+      },
+      {
+        "path": "evidence/wordpress-homes-768.png",
+        "sha256": "6895dee806323686cc308f5315dd47ccae7f2ea1f133765a6605af9397da9c31"
+      },
+      {
+        "path": "evidence/wordpress-index-1024.png",
+        "sha256": "01905f3baa6b2ad927a454119bdf7aea8613c11186b0c02ea65edeedfeecbb30"
+      },
+      {
+        "path": "evidence/wordpress-index-1440.png",
+        "sha256": "db460ace7c067b5f8a9ffd29c4cb11aa241714172226a221c7c8d85ae5083af1"
+      },
+      {
+        "path": "evidence/wordpress-index-390.png",
+        "sha256": "f1bb50b3684d07df56755fd7c83bfafca5c7959633a878494923209f0c7ab2ed"
+      },
+      {
+        "path": "evidence/wordpress-index-768.png",
+        "sha256": "137ca0ca5bc01fa27d9666221cf7e362829cf3e397614c24177fb0cc6c0d8f6b"
+      },
+      {
+        "path": "evidence/wordpress-plan-your-stay-1024.png",
+        "sha256": "0c7bbfe9b3745703df1e9e094c748f4ed7895aec4e9526bdeab2559652f41ed6"
+      },
+      {
+        "path": "evidence/wordpress-plan-your-stay-1440.png",
+        "sha256": "d9df128742c3fc9b10d87ce29ce13e0d820a1240194a0e0475271bb9e77c750d"
+      },
+      {
+        "path": "evidence/wordpress-plan-your-stay-390.png",
+        "sha256": "2c4ae8d7a3bb0482524b57c05d4bbf4c60281a65dd46b0d170dbbc501c64e84e"
+      },
+      {
+        "path": "evidence/wordpress-plan-your-stay-768.png",
+        "sha256": "ab2ccb619fd50edcf9c4c48435802b6a2e23b32e8454580d32d115f9a4cda826"
+      }
+    ]
+  },
+  "approval": null
+}

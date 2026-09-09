@@ -1,0 +1,368 @@
+- link:
+  - /url: /
+  - generic: Pagecraft
+- generic: Common Ground redesign
+- generic: · Home
+- button:
+- button [pressed]:
+- button:
+- button:
+- button [disabled]:
+- button [disabled]:
+- button:
+- generic: Draft ready
+- button
+- button:
+- button:
+- button:
+- button:
+  - generic: Publish
+- navigation:
+  - button:
+    - generic: Add
+  - button:
+    - generic: Navigator
+  - button:
+    - generic: Pages
+  - button:
+    - generic: CMS
+  - button:
+    - generic: Media
+  - button:
+    - generic: Settings
+  - button:
+    - strong: TQ
+    - generic: Account
+- complementary:
+  - generic: Add elements
+  - tablist:
+    - tab [selected]:
+      - generic: Elements
+    - tab:
+      - generic: Templates
+    - tab:
+      - generic: Components
+    - tab:
+      - generic: Blocks
+  - generic: Basic elements for building a page
+  - tabpanel:
+    - generic: Layout
+    - button:
+      - generic: Section
+    - button:
+      - generic: Columns
+    - button:
+      - generic: Row
+    - button:
+      - generic: Flex
+    - button:
+      - generic: Grid
+    - button:
+      - generic: Box
+    - button:
+      - generic: Link block
+    - button:
+      - generic: Slider
+    - button:
+      - generic: Collection
+    - generic: Content
+    - button:
+      - generic: Heading
+    - button:
+      - generic: WYSIWYG
+    - button:
+      - generic: Quote
+    - button:
+      - generic: Table
+    - button:
+      - generic: Code
+    - button:
+      - generic: Image
+    - button:
+      - generic: Gallery
+    - button:
+      - generic: Video
+    - button:
+      - generic: Icon
+    - generic: Interactive
+    - button:
+      - generic: Button
+    - button:
+      - generic: Nav menu
+    - button:
+      - generic: Breadcrumb
+    - button:
+      - generic: Form
+    - button:
+      - generic: Accordion
+    - button:
+      - generic: Tabs
+    - button:
+      - generic: Embed
+    - generic: Spacing
+    - button:
+      - generic: Divider
+    - button:
+      - generic: Spacer
+- text: Home
+- text: Desktop base
+- iframe [id="canvas"]:
+  - text: Global header
+  - button "Edit header":
+    - text: Edit header
+  - link "Common Ground":
+    - /url: index.html
+  - navigation "Main navigation":
+    - list:
+      - link "Projects":
+        - /url: projects.html
+      - link "Practice":
+        - /url: about.html
+      - link "Services":
+        - /url: services.html
+      - link "Contact":
+        - /url: contact.html
+  - text: Page content
+  - img "Fictional pale-brick courtyard house with oak-framed openings"
+  - heading "Architecture, close to life." [level=1]
+  - paragraph: Homes, shared spaces and a thoughtful second life for existing buildings.
+  - link "Discover the project studies":
+    - /url: projects.html
+    - generic: Discover the project studies
+  - heading "Two places. Two possibilities." [level=2]
+  - paragraph: Studies in making more of what is already there.
+  - img "Fictional oak-framed room looking into the brick courtyard"
+  - heading "Courtyard house — a sheltered garden at the center of everyday life" [level=2]
+  - paragraph: Residential / Design study
+  - paragraph: An outdoor room at the center of the home. Brick gives it enclosure; oak openings connect the rooms to the garden.
+  - link "Explore the study":
+    - /url: project-detail.html
+    - generic: Explore the study
+  - img "Fictional oak-framed room looking into the brick courtyard"
+  - heading "Independent final Cloud duplicate" [level=2]
+  - paragraph: Residential / Design study
+  - paragraph: An outdoor room at the center of the home. Brick gives it enclosure; oak openings connect the rooms to the garden.
+  - link "Explore the study":
+    - /url: project-detail.html
+    - generic: Explore the study
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Workshop reading room" [level=2]
+  - paragraph: Adaptive reuse / Design study
+  - paragraph: "A long table beneath an existing roof. A shared room shaped by what the workshop already offers: structure, light and a garden edge."
+  - link "Read the reuse study":
+    - /url: projects.html#reading-room
+    - generic: Read the reuse study
+  - img "Fictional architecture worktable with courtyard model and material samples"
+  - heading "Look closely. Build thoughtfully." [level=2]:
+    - text: Look closely.
+    - text: Build thoughtfully.
+  - paragraph: The starting point is a place and the people who will use it. How the light moves. What a wall holds. Where the day comes together.
+  - paragraph: "These observations shape the two demonstration studies: a house around an open court, and a workshop given a shared purpose."
+  - link "Inside the practice":
+    - /url: about.html
+    - generic: Inside the practice
+  - text: Global footer
+  - button "Edit footer":
+    - text: Edit footer
+  - heading "Let’s make room for what comes next." [level=2]:
+    - text: Let’s make room
+    - text: for what comes next.
+  - paragraph: A home to change. A building to reuse. A place to share.
+  - link "Start a conversation":
+    - /url: contact.html
+    - generic: Start a conversation
+  - paragraph: Common Ground
+  - paragraph: Fictional practice · AI-generated design studies
+  - link "About the practice":
+    - /url: about.html
+    - generic: About the practice
+- generic: Desktop
+- generic: 1464 PX
+- combobox:
+  - generic: Fit · 62%
+- status
+- dialog "Project settings":
+  - generic: Project settings
+  - button "Close dialog" [active]:
+  - generic: Project name
+  - textbox "Project name": Common Ground redesign
+  - generic: Container max width
+  - spinbutton "Container max width": "1344"
+  - combobox "Unit":
+    - generic: px
+  - generic: Body font
+  - combobox "Body font":
+    - generic: DM Sans
+  - generic: Heading font
+  - combobox "Heading font":
+    - generic: Newsreader
+  - generic: Base font size
+  - spinbutton "Base font size": "18"
+  - combobox "Unit":
+    - generic: px
+  - generic: Language
+  - combobox "Language":
+    - generic: English — en
+  - text: Site URL
+  - generic: — enables canonical tags and a sitemap
+  - textbox "Site URL — enables canonical tags and a sitemap":
+    - /placeholder: https://example.com
+  - generic: Favicon
+  - button "Upload an image":
+    - generic: Drop an image here
+    - generic: or choose a file
+  - button "Upload":
+    - text: Upload
+  - button "Library":
+    - text: Library
+  - generic: Exported as a <link rel="icon">.
+  - text: Social share image
+  - generic: — when a page has none
+  - generic: courtyard-house.png
+  - generic: 1 KB · 1536 × 1024
+  - button "Remove":
+  - button "Replace":
+    - text: Replace
+  - button "Library":
+    - text: Library
+  - generic: Crawlers need an absolute URL, so this works once a Site URL is set and you export with images as separate files.
+  - text: Colours
+  - generic: — change one here and every element linked to it follows
+  - textbox "Page background colour": "#f8f5ef"
+  - textbox "Colour token name": Page background
+  - textbox "Page background colour value": "#f8f5ef"
+  - generic "Built in — part of the brand, so it cannot be deleted":
+  - textbox "Paper colour": "#f8f5ef"
+  - textbox "Colour token name": Paper
+  - textbox "Paper colour value": "#f8f5ef"
+  - button "Delete — usages keep this colour as a literal":
+  - textbox "Heading ink colour": "#462822"
+  - textbox "Colour token name": Heading ink
+  - textbox "Heading ink colour value": "#462822"
+  - button "Delete — usages keep this colour as a literal":
+  - textbox "Body text colour": "#382e29"
+  - textbox "Colour token name": Body text
+  - textbox "Body text colour value": "#382e29"
+  - generic "Built in — part of the brand, so it cannot be deleted":
+  - textbox "Brick colour": "#304c45"
+  - textbox "Colour token name": Brick
+  - textbox "Brick colour value": "#304c45"
+  - generic "Built in — part of the brand, so it cannot be deleted":
+  - textbox "Linen colour": "#e9e0d3"
+  - textbox "Colour token name": Linen
+  - textbox "Linen colour value": "#e9e0d3"
+  - button "Delete — usages keep this colour as a literal":
+  - textbox "Secondary text colour": "#6e5a4e"
+  - textbox "Colour token name": Secondary text
+  - textbox "Secondary text colour value": "#6e5a4e"
+  - button "Delete — usages keep this colour as a literal":
+  - textbox "Divider colour": "#c8b6a3"
+  - textbox "Colour token name": Divider
+  - textbox "Divider colour value": "#c8b6a3"
+  - button "Delete — usages keep this colour as a literal":
+  - button "Add colour":
+    - text: Add colour
+  - text: Text styles
+  - generic: — reusable typography, edited from any element that uses one
+  - generic: Aa
+  - textbox "Text style name": Display
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Section title
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Card title
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Lead paragraph
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Body
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Small
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Eyebrow
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Medium 500
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Button label
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Practice name
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Closing title
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - button "Add text style":
+    - text: Add text style
+  - text: Style classes
+  - generic: — any reusable styling; later in the list wins
+  - generic: No class styles yet. Add one here, then apply it to an element and edit its shared styling from the Style tab.
+  - button "Add class style":
+    - text: Add class style
+  - generic: Lower overrides higher. Element styling wins.
+  - generic: Global CSS — injected into every exported page
+  - textbox "Global CSS — injected into every exported page"
+  - generic: Extra <head> HTML — web fonts, analytics, favicons
+  - textbox "Extra <head> HTML — web fonts, analytics, favicons":
+    - /placeholder: <link rel="stylesheet" href="https://fonts.googleapis.com/…">
+  - generic: Webfonts
+  - checkbox "Ship the font files with the site"
+  - generic: Ship the font files with the site
+  - text: On, the archive carries the woff2 files and each page declares them itself — no request to
+  - code: fonts.googleapis.com
+  - text: ", which is a round trip before any text renders and, in the EU, a transfer of your visitor's IP address. Latin and Latin Extended only. Applies to the separate files export and the archive; one self-contained file has nowhere to put them."
+  - button "Start an empty site"
+  - button "Reset to demo content"
+  - button "Done"

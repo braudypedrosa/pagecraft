@@ -1,0 +1,51 @@
+{
+  "at": "2026-09-07T14:01:11.146632+00:00",
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "url": "https://build.itspagecraft.com/templates/architecture-studio/1.0.0/preview/index.html",
+  "priorCatalogEntriesPreserved": 17,
+  "remotePackageHashMatched": true,
+  "httpChecks": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "bytes": 33537
+    },
+    {
+      "path": "projects.html",
+      "status": 200,
+      "bytes": 31615
+    },
+    {
+      "path": "project-detail.html",
+      "status": 200,
+      "bytes": 34085
+    },
+    {
+      "path": "about.html",
+      "status": 200,
+      "bytes": 32638
+    },
+    {
+      "path": "services.html",
+      "status": 200,
+      "bytes": 34073
+    },
+    {
+      "path": "contact.html",
+      "status": 200,
+      "bytes": 29755
+    },
+    {
+      "path": "assets/courtyard-house-courtyardhouse.png",
+      "status": 200,
+      "bytes": 3469858
+    },
+    {
+      "path": "assets/reading-room-readingroom.png",
+      "status": 200,
+      "bytes": 2526075
+    }
+  ],
+  "smoke": "All observable checks passed; authenticated Secure cookie check skipped.",
+  "scope": "Template library package and catalog only. Cloud application and isolated WordPress compatibility patches not deployed."
+}

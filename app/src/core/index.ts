@@ -460,6 +460,7 @@ const DEF: Record<string, WidgetDef> = {
           ]
         },
         { t: 'unit', c: '--sl-gap', label: 'Gap', r: 1, units: U.space },
+        { t: 'select', k: 'controlsPosition', label: 'Controls position', opts: [['sides', 'Beside slides'], ['bottom', 'Centered below']] },
         { t: 'toggle', k: 'arrows', label: 'Arrow buttons',
           note: 'Hidden without JavaScript, where swiping and scrolling still work' },
         { t: 'text', k: 'aria', label: 'Region name', ph: 'Slides',
@@ -864,6 +865,9 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Contact form' }
       ],
       style: [
+        { t: 'select', c: '--f-layout', label: 'Field layout', r: 1, opts: [['flex', 'Wrapped fields'], ['grid', 'Grid']] },
+        { t: 'select', c: '--f-columns', label: 'Grid columns', r: 1, opts: [['1fr', 'One'], ['repeat(2,minmax(0,1fr))', 'Two'], ['repeat(3,minmax(0,1fr))', 'Three'], ['repeat(4,minmax(0,1fr))', 'Four']] },
+        { t: 'select', c: '--f-button-align', label: 'Button alignment', r: 1, opts: [['flex-start', 'Top'], ['end', 'Bottom']] },
         { t: 'unit', c: '--f-gap', label: 'Field spacing', r: 1, units: U.space },
         { t: 'unit', c: 'font-size', label: 'Size', r: 1, units: U.size },
         { t: 'color', c: '--f-bg', label: 'Field background' },
@@ -6489,6 +6493,12 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
 .pagecraft-slider-dots{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px}
 .pagecraft-slider-dots[hidden]{display:none}
+.pagecraft-slider-box.controls-bottom{display:grid;grid-template-columns:1fr auto 1fr;column-gap:16px;row-gap:20px;align-items:center}
+.controls-bottom>[data-slides]{grid-column:1 / -1}
+.controls-bottom>.pagecraft-slide-btn{position:static;translate:none;width:44px;height:44px;grid-row:2}
+.controls-bottom>.pagecraft-slide-btn.p{grid-column:1;justify-self:end}
+.controls-bottom>.pagecraft-slide-btn.n{grid-column:3;justify-self:start}
+.controls-bottom>.pagecraft-slider-dots{grid-column:2;grid-row:2;margin-top:0}
 .pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
 .pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
 .pagecraft-slider-dot:hover::before{opacity:.68}
@@ -6617,7 +6627,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 [data-nav].is-open .pagecraft-nav-icon{background-color:transparent}
 [data-nav].is-open .pagecraft-nav-icon::before{transform:rotate(45deg)}
 [data-nav].is-open .pagecraft-nav-icon::after{transform:rotate(-45deg)}
-.pagecraft-form{display:flex;flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
+.pagecraft-form{display:var(--f-layout,flex);grid-template-columns:var(--f-columns,1fr);flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
 .pagecraft-field{display:flex;flex-direction:column;gap:5px;flex:1 1 100%;min-width:0}
 .pagecraft-field.half{flex:1 1 calc(50% - var(--f-gap,16px) / 2);min-width:12rem}
 .pagecraft-field label{font-size:.82em;font-weight:500;color:var(--f-label,inherit)}
@@ -6632,12 +6642,12 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
-  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:flex-start;flex:0 0 auto;
+  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
 }
 .pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
-.pagecraft-form-status{flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
+.pagecraft-form-status{grid-column:1 / -1;flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
 
@@ -7145,7 +7155,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const btn = (dir: string, label: string) =>
         `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>`
         + `${svg('caret', 15)}</button>`;
-      return `<div class="pagecraft-slider-box" data-slider>${track}`
+      return `<div class="pagecraft-slider-box${p.controlsPosition === 'bottom' ? ' controls-bottom' : ''}" data-slider>${track}`
         + btn('p', 'Previous slides') + btn('n', 'Next slides')
         + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
     }

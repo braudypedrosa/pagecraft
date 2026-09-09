@@ -1,0 +1,49 @@
+{
+  "packageSha256": "beaa62e7f69360b7636afb1ff47aad5036c8778b4ad07b6711d5d7a6d5389c1d",
+  "host": "wordpress",
+  "status": "open",
+  "pages": [
+    "Home",
+    "Projects",
+    "Project Detail",
+    "About",
+    "Services",
+    "Contact"
+  ],
+  "nodes": "Global heading/body typography and practice wordmark",
+  "viewports": [
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "finding": "Native font-family settings are retained, but generated frontend stylesheets contain no font-face rules or Google font stylesheet. The browser renders fallback fonts after native save. Computed font-family alone is not proof of font loading.",
+  "correction": "Separate WordPress host follow-up: preserve/load native font resources through page import, editor save and shared design settings save. Re-test actual rendered fonts after changing settings, reopening and publishing. No hidden template CSS workaround.",
+  "sheets": [
+    {
+      "url": "http://127.0.0.1:4892/wp-content/themes/pagecraft/style.css?ver=0.2.0",
+      "fontFaceCount": 0,
+      "instrumentSerifReferenced": false
+    },
+    {
+      "url": "http://127.0.0.1:4892/wp-content/uploads/pagecraft/global-6b9cda7505991d3c3b180f673f93cc2287084b0f2a82743890d0fa3ebf0a119f.css?ver=6b9cda750599",
+      "fontFaceCount": 0,
+      "instrumentSerifReferenced": true
+    },
+    {
+      "url": "http://127.0.0.1:4892/wp-content/uploads/pagecraft/global-215dbd862d578f9e63bef523f1993c76d52d89f4977d6dc253ba07582fdde5de.css?ver=215dbd862d57",
+      "fontFaceCount": 0,
+      "instrumentSerifReferenced": true
+    },
+    {
+      "url": "http://127.0.0.1:4892/wp-content/uploads/pagecraft/global-df772dda7a88f7b137fd7116742d56659b5003ff68d4f092824b4fa01e034381.css?ver=df772dda7a88",
+      "fontFaceCount": 0,
+      "instrumentSerifReferenced": true
+    },
+    {
+      "url": "http://127.0.0.1:4892/wp-content/uploads/pagecraft/page-a20ed1f0b3533f12bb6bd05a6d2ff1d9a4ad6b3f0169ecdb08479b7400369c85.css?ver=a20ed1f0b353",
+      "fontFaceCount": 0,
+      "instrumentSerifReferenced": false
+    }
+  ]
+}

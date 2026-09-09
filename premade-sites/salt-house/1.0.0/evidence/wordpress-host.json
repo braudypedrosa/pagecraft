@@ -1,0 +1,40 @@
+{
+  "baselineRevision": "83114212952d80b7cd59359018fb2edfaca40bb3",
+  "patchManifestSha256": "8d384edaa84a34cd5dbf3cde0fe3328c031e299eabf0b09a8021c09c52b7546f",
+  "files": {
+    "package.json": "1f3c8e40711a7682dc4c4ceb54eb31731312b3138463a764e8683ce2f28a0726",
+    "pagecraft-builder/assets/pagecraft-block-editor.js": "cfc17127d4744661058d2508bb0c17b5b30434e099cff3a13e3ce6064bece63e",
+    "pagecraft-builder/assets/pagecraft-editor.html": "76f27b02074ad2cac92bf46bee1a666627089d567e3882b39f7c6fe3f400d640",
+    "pagecraft-builder/includes/Admin.php": "12574ac8deed15cf1162e142302b3b7cbb7c3a028c7470833bb8223940979588",
+    "pagecraft-builder/includes/DesignSettings.php": "6423d8c8e34cc2b5ff6b252a3af5b75eae237a92c010b36b626ad3a59e3fd41d",
+    "pagecraft-builder/includes/DocumentJson.php": "9a99edde0ffd1c7d5aec03529f4104685f881e021fd40a9146a64be3e5b042cb",
+    "pagecraft-builder/includes/FallbackCompiler.php": "1d022670b4c693d86063ddc56f4cf2789c813bd115a366691bb3fb618a8f41a8",
+    "pagecraft-builder/includes/GlobalElement.php": "68a76eba1aa6c6c5bf421b907aac47c8d74796538c642d9ad877d0de44629d57",
+    "pagecraft-builder/includes/GlobalElementEditor.php": "225d371f763922605673bac64d845949ba2dc0702942f49258b88cab5adacfa1",
+    "pagecraft-builder/includes/MediaImportResult.php": "72d38f9780cf447577ef79763283f768ae3773542cd3c97f74c23c06e85e0547",
+    "pagecraft-builder/includes/PageEditor.php": "0de5eaafced514339355caf9741042ec198d9ccfcb97da87d3f2fc9fb4c04c38",
+    "pagecraft-builder/includes/RestController.php": "542fc95bfcf80c0d9986d2150b941f7d5b9033d6da53243d021392155fdd825c",
+    "pagecraft-theme/inc/pagecraft-integration.php": "23057bdd139949fbc983f9503d19038ef7334147c3ba0366b074bb007b172b0b",
+    "pagecraft-theme/template-parts/content-page.php": "d1cc03eb38b4b28617f5c5c60d364d30b3e6d5d33594f198589b217a603c89b9",
+    "tests/README.md": "34848e0a5fa80cc898ac916d110b214ed7aa7c6a92138d23341b53b447e31f02",
+    "tests/document-json.php": "457399a03d2f635103c2f40cc8ddaf57e4128dbf8623a90f3cf850bf5a7f5920",
+    "tests/lint.sh": "80ad994fb6cc2201673c6efd1400942230bf26174bbb8e5a86303596352b23df",
+    "tests/theme-managed-fallback.php": "fe834f3c874062bc7290cd2fbf9ce8654f1c4edf6b5c42236c0ff2c3af8fc6cb",
+    "tests/wordpress-accessibility.php": "8cc4445c2c7972536660a2944f2c2ca0bceaf106b38f680c80a7ec7fdeef3396",
+    "tests/wordpress-editor.test.mjs": "d21ba97ca0bd33da81dd87d9fe541f3c4a6283aa372dd296c286234e4e536da3",
+    "tests/wordpress-font-loader.test.mjs": "c44630fc4753241da70ad8867b2f4010477194d0519ce5bfa72a425677e3d549",
+    "tools/wordpress-editor.mjs": "2bf19b5af84d5ce6fe2aafdd77ae76d8cb943f59029e82f231389c863e4f583a",
+    "tools/wordpress-font-loader.mjs": "f7c6a1cac076cb9c4454648a9f88e8d6681142aee87ade3b74f7c640bfbb4abc"
+  },
+  "wordpressVersion": "7.1",
+  "phpVersion": "8.5.2",
+  "editorVersion": "0.2.14",
+  "editorSourceRevision": "93f1ed2dbdc9",
+  "scope": "Salt House tested in a separate WordPress database/site at 4894, using the same isolated unreleased v5 host patch. No public WordPress release compatibility claim.",
+  "tests": [
+    "Salt House native import, save/reopen, shared body-font/color changes, independent 1/3/7 property items, missing/replacement images, responsive inspector, local publication, gallery/FAQ and actual local form receipt.",
+    "Six pages at 390/768/1024/1440 plus 767/769/1023/1025; independent rendered visual pass."
+  ],
+  "packageSha256": "7c5bb766ba94d4f7f5137d3c7877c32ca86ec149d762bb94bad95bd7d7f20d3c",
+  "at": "2026-09-07T17:01:20.711192Z"
+}

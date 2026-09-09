@@ -1,0 +1,183 @@
+- link "Pagecraft dashboard":
+  - /url: /
+  - generic: Pagecraft
+- generic: Common Ground redesign
+- generic: · Home
+- button "Sites":
+- button "Desktop" [pressed]:
+- button "Tablet":
+- button "Mobile":
+- button "Undo" [disabled]:
+- button "Redo" [disabled]:
+- button "Keyboard shortcuts":
+- generic: Draft ready
+- button "Review this project"
+- button "Version history":
+- button "Preview":
+- button "Copy the link to this site":
+- button "Publish this draft":
+  - generic: Publish
+- navigation "Tools":
+  - button "Add":
+    - generic: Add
+  - button "Navigator":
+    - generic: Navigator
+  - button "Pages":
+    - generic: Pages
+  - button "CMS":
+    - generic: CMS
+  - button "Media":
+    - generic: Media
+  - button "Settings":
+    - generic: Settings
+  - button "Account":
+    - strong: TQ
+    - generic: Account
+- complementary:
+  - generic: Add elements
+  - tablist "Add category":
+    - tab "Elements" [selected]:
+      - generic: Elements
+    - tab "Templates":
+      - generic: Templates
+    - tab "Components":
+      - generic: Components
+    - tab "Blocks":
+      - generic: Blocks
+  - generic: Basic elements for building a page
+  - tabpanel "Elements":
+    - generic: Layout
+    - button "Section":
+      - generic: Section
+    - button "Columns":
+      - generic: Columns
+    - button "Row":
+      - generic: Row
+    - button "Flex":
+      - generic: Flex
+    - button "Grid":
+      - generic: Grid
+    - button "Box":
+      - generic: Box
+    - button "Link block":
+      - generic: Link block
+    - button "Slider":
+      - generic: Slider
+    - button "Collection":
+      - generic: Collection
+    - generic: Content
+    - button "Heading":
+      - generic: Heading
+    - button "WYSIWYG":
+      - generic: WYSIWYG
+    - button "Quote":
+      - generic: Quote
+    - button "Table":
+      - generic: Table
+    - button "Code":
+      - generic: Code
+    - button "Image":
+      - generic: Image
+    - button "Gallery":
+      - generic: Gallery
+    - button "Video":
+      - generic: Video
+    - button "Icon":
+      - generic: Icon
+    - generic: Interactive
+    - button "Button":
+      - generic: Button
+    - button "Nav menu":
+      - generic: Nav menu
+    - button "Breadcrumb":
+      - generic: Breadcrumb
+    - button "Form":
+      - generic: Form
+    - button "Accordion":
+      - generic: Accordion
+    - button "Tabs":
+      - generic: Tabs
+    - button "Embed":
+      - generic: Embed
+    - generic: Spacing
+    - button "Divider":
+      - generic: Divider
+    - button "Spacer":
+      - generic: Spacer
+- text: Home
+- text: Desktop base
+- iframe [id="canvas"]:
+  - text: Global header
+  - button "Edit header":
+    - text: Edit header
+  - link "Common Ground":
+    - /url: index.html
+  - navigation "Main navigation":
+    - list:
+      - link "Projects":
+        - /url: projects.html
+      - link "Practice":
+        - /url: about.html
+      - link "Services":
+        - /url: services.html
+      - link "Contact":
+        - /url: contact.html
+  - text: Page content
+  - img "Fictional pale-brick courtyard house with oak-framed openings"
+  - heading "Architecture, close to life." [level=1]
+  - paragraph: Homes, shared spaces and a thoughtful second life for existing buildings.
+  - link "Discover the project studies":
+    - /url: projects.html
+    - generic: Discover the project studies
+  - heading "Two places. Two possibilities." [level=2]
+  - paragraph: Studies in making more of what is already there.
+  - img "Fictional oak-framed room looking into the brick courtyard"
+  - heading "Courtyard house — a sheltered garden at the center of everyday life" [level=2]
+  - paragraph: Residential / Design study
+  - paragraph: An outdoor room at the center of the home. Brick gives it enclosure; oak openings connect the rooms to the garden.
+  - link "Explore the study":
+    - /url: project-detail.html
+    - generic: Explore the study
+  - img "Fictional oak-framed room looking into the brick courtyard"
+  - heading "Independent final Cloud duplicate" [level=2]
+  - paragraph: Residential / Design study
+  - paragraph: An outdoor room at the center of the home. Brick gives it enclosure; oak openings connect the rooms to the garden.
+  - link "Explore the study":
+    - /url: project-detail.html
+    - generic: Explore the study
+  - img "Fictional reading room beneath retained oak trusses"
+  - heading "Workshop reading room" [level=2]
+  - paragraph: Adaptive reuse / Design study
+  - paragraph: "A long table beneath an existing roof. A shared room shaped by what the workshop already offers: structure, light and a garden edge."
+  - link "Read the reuse study":
+    - /url: projects.html#reading-room
+    - generic: Read the reuse study
+  - img "Fictional architecture worktable with courtyard model and material samples"
+  - heading "Look closely. Build thoughtfully." [level=2]:
+    - text: Look closely.
+    - text: Build thoughtfully.
+  - paragraph: The starting point is a place and the people who will use it. How the light moves. What a wall holds. Where the day comes together.
+  - paragraph: "These observations shape the two demonstration studies: a house around an open court, and a workshop given a shared purpose."
+  - link "Inside the practice":
+    - /url: about.html
+    - generic: Inside the practice
+  - text: Global footer
+  - button "Edit footer":
+    - text: Edit footer
+  - heading "Let’s make room for what comes next." [level=2]:
+    - text: Let’s make room
+    - text: for what comes next.
+  - paragraph: A home to change. A building to reuse. A place to share.
+  - link "Start a conversation":
+    - /url: contact.html
+    - generic: Start a conversation
+  - paragraph: Common Ground
+  - paragraph: Fictional practice · AI-generated design studies
+  - link "About the practice":
+    - /url: about.html
+    - generic: About the practice
+- generic: Desktop
+- generic: 1464 PX
+- combobox "Canvas zoom":
+  - generic: Fit · 41%
+- status

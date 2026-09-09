@@ -1,0 +1,24 @@
+{
+  "headerTop": 0,
+  "height": 2905,
+  "images": [
+    {
+      "loaded": true,
+      "src": "http://localhost:4890/common-ground-release/assets/courtyard-house-ac8ff607b3f4a.png"
+    },
+    {
+      "loaded": true,
+      "src": "http://localhost:4890/common-ground-release/assets/courtyard-interior-a49a984a46076.png"
+    },
+    {
+      "loaded": true,
+      "src": "http://localhost:4890/common-ground-release/assets/reading-room-af47483653326.png"
+    },
+    {
+      "loaded": true,
+      "src": "http://localhost:4890/common-ground-release/assets/studio-table-a7decaaa03009.png"
+    }
+  ],
+  "scrollY": 0,
+  "width": 1440
+}

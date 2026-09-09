@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "reviewer": {
+    "type": "agent",
+    "name": "Independent release visual reviewer",
+    "independentFromImplementation": true
+  },
+  "reviewedAt": "2026-09-08T02:55:41.806525+00:00",
+  "templateId": "salt-house",
+  "version": "1.0.0",
+  "packageChecksum": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+  "verdict": "pass",
+  "scope": "Rendered visual regression review of all six pages at desktop and mobile in current isolated Cloud and WordPress hosts, with representative intermediate homepage widths. Compared against approved section-feedback draft screenshots and unchanged secondary-page rental-homepage screenshots. Preserves user-approved identity; does not independently approve deployment.",
+  "method": "Inspected rendered screenshots directly without treating design generation rationale as evidence. Ran layout detector only after visual assessment. No browser interaction or source mutation performed by this reviewer.",
+  "evidence": [
+    {
+      "path": "evidence/release-qa/wp-index-390.png",
+      "sha256": "c6a9823f17eeb8440fba002ba171b96004a70a4d74b92b12753e8f4575f87a4f"
+    },
+    {
+      "path": "evidence/release-qa/wp-index-1440.png",
+      "sha256": "fb574c26467e8a2dd28ae5c92e8b448394a700ad72cba3bd76fe30985b38623c"
+    },
+    {
+      "path": "evidence/release-qa/wp-homes-390.png",
+      "sha256": "de97ba7ce43574b15b2e9b3c0eae1020da257e196e1c1491214983e48e75cce9"
+    },
+    {
+      "path": "evidence/release-qa/wp-homes-1440.png",
+      "sha256": "2cdbc64e1ebf3347c5c4058de36da2549153f0420ece463bc42504115d4d262e"
+    },
+    {
+      "path": "evidence/release-qa/wp-dune-house-390.png",
+      "sha256": "9ab8b1b5ff61dcbf83e27dcc004680d849f41756c3c78dabde1c856b14c445ba"
+    },
+    {
+      "path": "evidence/release-qa/wp-dune-house-1440.png",
+      "sha256": "10f69e51cebc34b33ccd47096c595736e0d1bf83e134b0d84e14226146a4075e"
+    },
+    {
+      "path": "evidence/release-qa/wp-blue-shutter-cottage-390.png",
+      "sha256": "3a6022a099cef41112e9d8564aee8c584be5536bb3ae16200cefdd0c8b1c11c8"
+    },
+    {
+      "path": "evidence/release-qa/wp-blue-shutter-cottage-1440.png",
+      "sha256": "74ea0919a5298aa03a72d5198048c20d0da3b18bd64d5a46445af803b119b40e"
+    },
+    {
+      "path": "evidence/release-qa/wp-coast-390.png",
+      "sha256": "1698b144354e341d88f231d6375638f7faa38bc7f0518f49711435ac49742738"
+    },
+    {
+      "path": "evidence/release-qa/wp-coast-1440.png",
+      "sha256": "ca419db1ec63787439e26e9f45fd4fbdd93a4b774fba41119e6a443ba37a36e5"
+    },
+    {
+      "path": "evidence/release-qa/wp-plan-your-stay-390.png",
+      "sha256": "d71489e3767a22d587e45c205eddd943aa7eee37c1abbc14b4d15e6f1c4e1464"
+    },
+    {
+      "path": "evidence/release-qa/wp-plan-your-stay-1440.png",
+      "sha256": "4ce4ec1751207e3fd70804f2fc468c0d0e5d4f6aaf80c15f639a33ecd316cb59"
+    },
+    {
+      "path": "evidence/release-qa/cloud-index-390.png",
+      "sha256": "c1e24827f5406f506ade0969b396e1eb24a1f40bc2f0a5f255985d28daa871ae"
+    },
+    {
+      "path": "evidence/release-qa/cloud-index-1440.png",
+      "sha256": "2c1ce322446ea2ef6d2d473fd42649cfb45f35d5cc3a97b64af613757ef54583"
+    },
+    {
+      "path": "evidence/release-qa/cloud-homes-390.png",
+      "sha256": "ac66141dfaa9e395e14ae9ec54d6f0d7fd7ca96b92e29d806e611bb0631c0809"
+    },
+    {
+      "path": "evidence/release-qa/cloud-homes-1440.png",
+      "sha256": "4693c56b53fe359c290f718f830ded51aec9569cbeea3f0c448c3cd055ef1970"
+    },
+    {
+      "path": "evidence/release-qa/cloud-dune-house-390.png",
+      "sha256": "df598a46f426279891829c1ab464084d756555a344038834b8a5ecc17ed4cc68"
+    },
+    {
+      "path": "evidence/release-qa/cloud-dune-house-1440.png",
+      "sha256": "ed832209adf04568cb217685b3bb56051440bc5cbc843bff868c1d837c7eee98"
+    },
+    {
+      "path": "evidence/release-qa/cloud-blue-shutter-cottage-390.png",
+      "sha256": "2a63ef8b2360702ff790bbb8124726856a0ef4f29848715feb8f04e35718a232"
+    },
+    {
+      "path": "evidence/release-qa/cloud-blue-shutter-cottage-1440.png",
+      "sha256": "e8806e86496ff93cb937d7efa17cedf895a19da2ea611655f4e2d288cc0eab3b"
+    },
+    {
+      "path": "evidence/release-qa/cloud-coast-390.png",
+      "sha256": "182cf408d4a9dfdce47c8f6d7e41a973d903a5d4619cf1c23fbc3ab77b62a8f9"
+    },
+    {
+      "path": "evidence/release-qa/cloud-coast-1440.png",
+      "sha256": "0442f836fb26b781f32077a678f8d196767ea25d5feb6500530ff2432efa1ee6"
+    },
+    {
+      "path": "evidence/release-qa/cloud-plan-your-stay-390.png",
+      "sha256": "b17a53d46c353897cfdc8b4c33168a8699af2f81f37875f24553e9f98ea35062"
+    },
+    {
+      "path": "evidence/release-qa/cloud-plan-your-stay-1440.png",
+      "sha256": "4fac0ea98e6f3859ff0cfeeaaebcbf1de907f04695916a13eff1bd6b50272ab9"
+    },
+    {
+      "path": "evidence/release-qa/wp-index-768.png",
+      "sha256": "a8ab128d745f568046d52470f50ac31b08a1c4f7443a34620bee9413c9c848cc"
+    },
+    {
+      "path": "evidence/release-qa/wp-index-1024.png",
+      "sha256": "d6c8ff3d90ebc854d209f173cda753a6bdcd1c3fef11a71a108207b55a9061e0"
+    },
+    {
+      "path": "evidence/release-qa/cloud-index-768.png",
+      "sha256": "f8efab7d13d586c1058374af7ad83a362b6390ded685c51d78e0340859f5b504"
+    },
+    {
+      "path": "evidence/release-qa/wp-booking-1440-viewport.png",
+      "sha256": "f2d4383e3861510321ea3a1ed4d178b6a3e256ac452a0e7c20b34cfb8cf87ca8"
+    },
+    {
+      "path": "evidence/release-qa/wp-dune-house-mobile-loaded.png",
+      "sha256": "6b6c922f718066421e95e0adaf255f210d4d5f8f479aaa3859c039820c87d2b4"
+    },
+    {
+      "path": "evidence/release-qa/wp-blue-shutter-cottage-mobile-loaded.png",
+      "sha256": "910051b5bc58fe41d29d619fc38b6c265f302abf655b52cd67f6324c2d3e53c2"
+    },
+    {
+      "path": "evidence/release-qa/wp-coast-mobile-loaded.png",
+      "sha256": "6b7d3ad25f8610da8fc788f0005c1b1d357330cea9c1f5e535c4aef3e93db953"
+    },
+    {
+      "path": "evidence/release-qa/wp-keyboard-faq.png",
+      "sha256": "1874a8eb955e0fb768768c9be1095aa7b25d0bd2623b2e325cb468f201278cbe"
+    },
+    {
+      "path": "evidence/release-qa/wordpress-one-item.png",
+      "sha256": "36c443db47acdb358c1641f63fc3e952471e58066148d865736747b87341a2de"
+    },
+    {
+      "path": "evidence/release-qa/wordpress-seven-items.png",
+      "sha256": "0264fce10ad7fb764b47da801d095d2bd2ac028c7d37bdde74d4de1e7209aeb7"
+    },
+    {
+      "path": "evidence/section-feedback/home-768.png",
+      "sha256": "f8efab7d13d586c1058374af7ad83a362b6390ded685c51d78e0340859f5b504"
+    },
+    {
+      "path": "evidence/section-feedback/faq-open-390.png",
+      "sha256": "19f428234592df851c3aa2348d15d29ef2006d183606258d4b30b94123da547a"
+    },
+    {
+      "path": "evidence/section-feedback/homes-390.png",
+      "sha256": "ac66141dfaa9e395e14ae9ec54d6f0d7fd7ca96b92e29d806e611bb0631c0809"
+    },
+    {
+      "path": "evidence/section-feedback/homes-1440.png",
+      "sha256": "4693c56b53fe359c290f718f830ded51aec9569cbeea3f0c448c3cd055ef1970"
+    },
+    {
+      "path": "evidence/section-feedback/dune-house-390.png",
+      "sha256": "df598a46f426279891829c1ab464084d756555a344038834b8a5ecc17ed4cc68"
+    },
+    {
+      "path": "evidence/section-feedback/dune-house-1440.png",
+      "sha256": "ed832209adf04568cb217685b3bb56051440bc5cbc843bff868c1d837c7eee98"
+    },
+    {
+      "path": "evidence/section-feedback/blue-shutter-cottage-390.png",
+      "sha256": "edce87bd555babf00e6d312d14e1c611ab6c9574b5cb97162b1faac47d23b654"
+    },
+    {
+      "path": "evidence/section-feedback/blue-shutter-cottage-1440.png",
+      "sha256": "e8806e86496ff93cb937d7efa17cedf895a19da2ea611655f4e2d288cc0eab3b"
+    },
+    {
+      "path": "evidence/rental-homepage/coast-390.jpg",
+      "sha256": "182cf408d4a9dfdce47c8f6d7e41a973d903a5d4619cf1c23fbc3ab77b62a8f9"
+    },
+    {
+      "path": "evidence/rental-homepage/coast-1440.jpg",
+      "sha256": "0442f836fb26b781f32077a678f8d196767ea25d5feb6500530ff2432efa1ee6"
+    },
+    {
+      "path": "evidence/rental-homepage/plan-your-stay-390.jpg",
+      "sha256": "87c0b51f062e2f15cae5f6ca802bd9bd5214298d53c1505657697a641d6a2a49"
+    },
+    {
+      "path": "evidence/rental-homepage/plan-your-stay-1440.jpg",
+      "sha256": "01ee39747bf46575b8fc4c39baa1ba04ace15fd219dbbce1a4a12bdf3f6ca412"
+    }
+  ],
+  "assessment": {
+    "readingOrder": "Home leads with the rental proposition and visible primary CTA, followed by image-led inventory with names, occupancy, descriptions and example prices. Detail pages move from home identity and gallery into practical facts and inquiry action. The same major groups remain identifiable at 390px.",
+    "grouping": "Listing facts and example nightly prices remain attached to their corresponding home. Booking icons, titles and descriptions form three clear peer groups; FAQ introduction and disclosures separate spatially on desktop and become one readable sequence on mobile.",
+    "rhythm": "Compact decision comparison follows the larger sage inventory block; coast imagery, darker photo booking section and olive FAQ create distinct section boundaries. Secondary pages use galleries and practical content at useful differing scales without introducing a new visual identity.",
+    "structure": "Two stable inventory columns suit two comparable rental homes and collapse to one. Comparison presents the actual two choices rather than a table. Repeated three-part practical groups describe related arrival and booking concerns. Form fields stay visibly associated with labels.",
+    "density": "Homepage exposes inventory soon after the introduction and keeps facts short. Detail pages contain sufficient practical examples without overwhelming the imagery. The small collection does not show fake availability/search controls.",
+    "adaptation": "390px layouts stack inventory, galleries, comparison, booking steps and FAQ groups in readable order; 768px and 1024px homepage evidence keeps text legible and columns separate. No visible clipping, collision or unintended overflow in reviewed states. Exact computed dimensions, DOM/focus order and fragile breakpoint measurements remain the main host QA responsibility.",
+    "extremes": "WordPress one-item and seven-item screenshots retain usable captions/actions, including doubled titles and absent optional images. The seven-item variant is less visually dense where images are intentionally absent but maintains readable grouping. Open FAQ mobile screenshot wraps the full answer within the page. This review does not independently certify every stress-test permutation.",
+    "imageryAndContrast": "Loaded-state captures confirm the requested booking photo behind readable light copy/icons, both recommendation images on mobile, and complete coast exterior imagery. Photos preserve relevant terrace/interior/coastal subjects. Olive FAQ text and disclosure marks remain distinct from their background.",
+    "businessTruth": "Example nightly labels remain visible beside illustrative prices. Fictional properties and generated images are disclosed. WordPress form explicitly shows unconfigured state. Cloud screenshots are of a disposable configured inquiry test copy per host QA operator; package configuration and actual submission behavior require the separate host acceptance record."
+  },
+  "findings": [],
+  "resolvedObservations": [
+    {
+      "page": "index",
+      "node": "booking steps photo",
+      "viewport": 1440,
+      "initialEvidence": "evidence/release-qa/wp-index-1440.png",
+      "observation": "Full-page capture initially showed flat fallback surface.",
+      "resolution": "In-viewport loaded capture shows the complete photo and readable copy; no design change required.",
+      "evidence": "evidence/release-qa/wp-booking-1440-viewport.png"
+    },
+    {
+      "page": "dune-house",
+      "node": "alternative home image",
+      "viewport": 390,
+      "initialEvidence": "evidence/release-qa/wp-dune-house-390.png",
+      "observation": "Full-page capture initially omitted deferred image.",
+      "resolution": "Loaded viewport capture confirms complete image.",
+      "evidence": "evidence/release-qa/wp-dune-house-mobile-loaded.png"
+    },
+    {
+      "page": "blue-shutter-cottage",
+      "node": "alternative home image",
+      "viewport": 390,
+      "initialEvidence": "evidence/release-qa/wp-blue-shutter-cottage-390.png",
+      "observation": "Full-page capture initially omitted deferred image.",
+      "resolution": "Loaded viewport capture confirms complete image.",
+      "evidence": "evidence/release-qa/wp-blue-shutter-cottage-mobile-loaded.png"
+    },
+    {
+      "page": "coast",
+      "node": "exterior image above Start on foot",
+      "viewport": 390,
+      "initialEvidence": "evidence/release-qa/wp-coast-390.png",
+      "observation": "Full-page capture initially painted only lower image strip.",
+      "resolution": "Loaded viewport capture confirms the complete intentional crop.",
+      "evidence": "evidence/release-qa/wp-coast-mobile-loaded.png"
+    }
+  ],
+  "mechanicalScan": {
+    "command": "node /Users/braudypedorsa/.codex/skills/impeccable/scripts/detect.mjs --json --scope layout premade-sites/salt-house/1.0.0/source.ts",
+    "exitCode": 0,
+    "findings": [],
+    "limitation": "Static detector is not proof of rendered layout or interaction correctness."
+  },
+  "limitations": [
+    "Agent assessment is distinct from user approval.",
+    "Screenshots alone do not establish keyboard operation, exact contrast ratios, computed minimum font size, console health, persistence or actual form delivery; rely on separate current host QA records.",
+    "Current host screenshots include a WordPress admin bar belonging to the isolated authenticated test session, not the template.",
+    "Did not inspect all secondary pages at both intermediate widths or reproduce every content extreme; full four-width and breakpoint matrix is recorded separately by host QA."
+  ]
+}

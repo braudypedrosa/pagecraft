@@ -166,6 +166,7 @@ export interface TabsProps { items?: TabPanel[] }
 /** A slider. The scrolling and the snapping are CSS — the only thing needing a script is
     the pair of arrow buttons, and a page without one still swipes and scrolls. */
 export interface SliderProps {
+  controlsPosition?: 'sides' | 'bottom';
   arrows?: 0 | 1;
   /** what a screen reader calls the scrollable region */
   aria?: string;

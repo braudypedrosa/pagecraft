@@ -1,0 +1,168 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Small vacation-rental collection, explicitly selected by user",
+    "primaryAction": "Compare homes, inspect property details, then use configured inquiry or booking-provider link",
+    "pages": [
+      "index",
+      "homes",
+      "dune-house",
+      "blue-shutter-cottage",
+      "coast",
+      "plan-your-stay"
+    ],
+    "content": "Six native pages with clearly fictional property facts. No prices, live availability, reviews, real hosts or operating credentials invented.",
+    "imagery": "Coastal terrace introduces place; cottage interior and exterior clarify setting; Dune bedroom adds complementary detail.",
+    "provenance": [
+      {
+        "asset": "terrace",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-f6514c50-8ac0-4943-b5fd-04bc4360350e.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "cottage",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-0aaa59b2-5026-496b-bcd4-f640fdd7031c.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "exterior",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-1327b140-f37b-4281-b01b-a63e5bc5c604.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "bedroom",
+        "source": "OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-8a90544a-a056-465a-93c0-2f8cc7d2ef06.png",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      }
+    ]
+  },
+  "directions": [
+    {
+      "id": "coastline",
+      "thesis": "Open coastal brand and useful property comparison",
+      "fingerprint": {
+        "header": "compact chalk navigation",
+        "hero": "oversized centered brand above full-bleed panorama",
+        "textAnchor": "centered brand",
+        "inventory": "two attached image plates on sand",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "oversized centered brand above full-bleed panorama",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "two attached image plates on sand",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    },
+    {
+      "id": "guestbook",
+      "thesis": "Warm editorial home-by-home narrative",
+      "fingerprint": {
+        "header": "compact plain navigation",
+        "hero": "ochre text and tall terrace image",
+        "textAnchor": "left reading groups",
+        "inventory": "sequential featured-home story",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "ochre text and tall terrace image",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "sequential featured-home story",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    },
+    {
+      "id": "collection",
+      "thesis": "Property-first browsing for practical decisions",
+      "fingerprint": {
+        "header": "navy navigation",
+        "hero": "compact introduction then property inventory",
+        "textAnchor": "left reading groups",
+        "inventory": "immediate paired facts and photographs",
+        "cta": "native in-flow booking/planning links",
+        "footer": "navy closing surface"
+      },
+      "comparison": "Rendered desktop/mobile studies retained in directions/. Compared with Marea and recent coastal history: avoids serif image-overlay hero and booking rail; gives Salt House a typographic brand opening. Familiar property facts remain usable.",
+      "sections": [
+        {
+          "purpose": "Introduce collection identity",
+          "archetype": "brand-led opening",
+          "composition": "compact introduction then property inventory",
+          "typography": "DM Sans scale contrast",
+          "imagery": "Fictional coastal terrace",
+          "action": "Browse homes"
+        },
+        {
+          "purpose": "Choose a suitable home",
+          "archetype": "property comparison or narrative",
+          "composition": "immediate paired facts and photographs",
+          "typography": "Readable property names and facts",
+          "imagery": "Fictional cottage and terrace",
+          "action": "Explore a home"
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "directionId": "coastline",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "proceed",
+      "at": "2026-09-07T17:01:20.711192Z",
+      "evidence": "Recorded from task conversation after explicit recommendation to build complete Salt House using Coastline. Implementation authorization, not final visual approval."
+    }
+  },
+  "targets": {
+    "cloud": {
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944+qa-harness:e87ad926c982d3cefdc5b932c3aa81f3ee104b1a012affdb552cd114a5c29cf9",
+      "editorVersion": "0.2.15"
+    },
+    "wordpress": {
+      "hostRevision": "83114212952d80b7cd59359018fb2edfaca40bb3+local-patch:8d384edaa84a34cd5dbf3cde0fe3328c031e299eabf0b09a8021c09c52b7546f",
+      "editorVersion": "0.2.14"
+    }
+  },
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null,
+  "redesign": {
+    "status": "visual-review-ready",
+    "userFeedback": "Terrible site. Are we serious here?",
+    "scope": "complete Coastline candidate",
+    "archive": "evidence/rejected-coastline",
+    "compatibility": "imports and representative native edits verified; complete release matrix pending",
+    "approval": "pending",
+    "packageSha256": "6a22da9af5224cf59273504f573f38289e9d052006dcdd72c1fd1cdd5eed861f",
+    "report": "QA-REPORT.json"
+  }
+}

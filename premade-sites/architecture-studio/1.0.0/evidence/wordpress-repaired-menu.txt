@@ -1,0 +1,59 @@
+- navigation "Toolbar":
+  - menu:
+    - menuitem "Architecture Template QA"
+    - menuitem "Customize"
+    - menuitem "New":
+      - generic: New
+    - menuitem "Edit Page"
+  - menu:
+    - menuitem "Howdy, architectureqa"
+- link "Skip to content":
+  - /url: "#pagecraft-main"
+- banner:
+  - link "Common Ground":
+    - /url: /
+  - navigation "Main navigation":
+    - button "Main navigation menu" [active]
+- main:
+  - article:
+    - heading "Homes and shared places." [level=1]:
+      - text: Homes and
+      - text: shared places.
+    - paragraph: An architecture practice working across homes and places shared by a neighborhood.
+    - link "Courtyard house":
+      - /url: "#courtyard"
+      - generic: Courtyard house
+    - link "Workshop reading room":
+      - /url: "#projects"
+      - generic: Workshop reading room
+    - img "Fictional pale-brick courtyard house with oak-framed openings"
+    - paragraph
+    - paragraph: Courtyard house · Residential study
+    - heading "Workshop reading room" [level=2]
+    - paragraph: Adaptive reuse
+    - paragraph: Retain the shell. Open the garden edge. Make one shared table the center of the plan.
+    - paragraph:
+      - link "Discuss a similar project":
+        - /url: "#contact"
+        - generic: Discuss a similar project
+    - paragraph:
+      - img "Fictional reading room beneath retained oak trusses"
+    - heading "Work with what is there." [level=2]
+    - paragraph: "A useful starting point is the place itself: how daylight enters, what can be retained, and how people move through the day. This sample practice uses those observations to shape homes and shared buildings."
+    - heading "Tell us about your place." [level=2]
+    - paragraph: Start with the location, the building as it is now, and what you would like to change.
+    - group "Project inquiry":
+      - generic: Name *
+      - textbox "Name" [disabled]
+      - generic: Email *
+      - textbox "Email" [disabled]
+      - generic: About the project *
+      - textbox "About the project" [disabled]
+      - paragraph:
+        - button "Send inquiry" [disabled]
+      - paragraph: This form is not configured to receive submissions.
+- contentinfo:
+  - paragraph: Common Ground is a fictional architecture practice. Projects and AI-generated imagery are demonstration content, not completed commissions.
+  - link "Back to the projects":
+    - /url: "#projects"
+    - generic: Back to the projects

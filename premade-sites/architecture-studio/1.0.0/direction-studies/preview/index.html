@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Common Ground — Gallery direction</title>
+<meta name="description" content="Architecture template direction A. Demonstration only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Common Ground — Gallery direction">
+<meta property="og:description" content="Architecture template direction A. Demonstration only.">
+<meta property="og:image" content="assets/courtyard-house-courtyardhouse.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{--c-text:#242c27;--c-bg:#faf9f6;--c-brand:#6c472f;--c-ink:#242c27;--c-muted:#586059;--c-muted-i:#b0b7b1;--c-slate:#6f7771;--c-line:#c7cbc5;--c-surface:#ffffff;--c-paper:#faf9f6}
+:root{--maxw:1200px;--accent:var(--c-brand)}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:Arial, sans-serif;font-size:18px;line-height:1.6;color:var(--c-text);background:var(--c-bg);-webkit-font-smoothing:antialiased}
+img,video,svg{max-width:100%}
+.pagecraft-skip{
+  position:fixed;left:12px;top:12px;z-index:2147483647;padding:10px 14px;
+  color:var(--c-bg);background:var(--c-ink);border-radius:6px;text-decoration:none;
+  transform:translateY(calc(-100% - 24px));transition:transform .15s ease;
+}
+.pagecraft-skip:focus{transform:translateY(0)}
+.pagecraft-section{position:relative;width:100%}
+.pagecraft-container{width:100%;max-width:var(--maxw);margin-left:auto;margin-right:auto;position:relative}
+.pagecraft-container.full{max-width:none}
+.pagecraft-row,.pagecraft-list{display:flex;flex-wrap:wrap;width:100%}
+.pagecraft-column{display:flex;flex-direction:column;min-width:0;flex-shrink:1;flex-basis:0%}
+.pagecraft-box{display:block;width:100%;min-width:0;position:relative}
+.pagecraft-box.l-flex{display:flex;flex-wrap:wrap}
+.pagecraft-box.l-grid{display:grid}
+.pagecraft-box>*{min-width:0}
+a.pagecraft-box{color:inherit;text-decoration:none}
+.pagecraft-heading{margin:0;font-family:Arial, sans-serif}
+.pagecraft-heading a{color:inherit;text-decoration:none}
+.pagecraft-wysiwyg>:first-child{margin-top:0}
+.pagecraft-wysiwyg>:last-child{margin-bottom:0}
+.pagecraft-wysiwyg a{text-decoration:underline;text-underline-offset:2px}
+.pagecraft-wysiwyg ul,.pagecraft-wysiwyg ol{padding-left:1.3em;margin:.7em 0}
+.pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:Arial, sans-serif}
+.pagecraft-wysiwyg blockquote{margin:1em 0;padding-left:1em;border-left:3px solid currentColor;opacity:.85}
+.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
+.pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
+.pagecraft-figure{margin:0;display:flex;flex-direction:column}
+.pagecraft-image{display:block;width:100%;height:auto}
+.pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
+.pagecraft-slider-box{position:relative;width:100%}
+.pagecraft-slider{
+  display:flex;gap:var(--sl-gap,24px);width:100%;
+  overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;padding-bottom:0;
+}
+.pagecraft-slider::-webkit-scrollbar{display:none;width:0;height:0}
+.pagecraft-slider>[class]{flex:0 0 var(--sl-w,100%);scroll-snap-align:start;min-width:0}
+.pagecraft-slider>*{scroll-snap-align:start;min-width:0}
+.pagecraft-slider:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-slide-btn{
+  position:absolute;top:50%;translate:0 -50%;z-index:2;
+  width:36px;height:36px;display:grid;place-items:center;cursor:pointer;
+  border:1px solid var(--c-line,#e5e1d6);border-radius:99px;
+  background:var(--c-bg,#fff);color:inherit;
+}
+.pagecraft-slide-btn.p{left:-8px;rotate:90deg}
+.pagecraft-slide-btn.n{right:-8px;rotate:-90deg}
+.pagecraft-slide-btn[hidden]{display:none}
+.pagecraft-slide-btn:disabled{opacity:.35;cursor:default}
+.pagecraft-slider-dots{display:flex;align-items:center;justify-content:center;gap:0;margin-top:16px}
+.pagecraft-slider-dots[hidden]{display:none}
+.pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
+.pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
+.pagecraft-slider-dot:hover::before{opacity:.68}
+.pagecraft-slider-dot[aria-current=true]::before{background:var(--c-brand,#111311);opacity:1;transform:scale(1.25)}
+.pagecraft-slider-dot:focus-visible{outline:2px solid var(--c-brand,#111311);outline-offset:0}
+@media(max-width:767px){.pagecraft-slider-dots{margin-top:10px}
+.pagecraft-slider-dot{width:44px;height:44px}
+}
+.pagecraft-crumbs ol{
+  display:flex;flex-wrap:wrap;align-items:center;gap:var(--cb-gap,8px);
+  list-style:none;margin:0;padding:0;
+  font-size:var(--cb-size,13px);font-weight:var(--cb-weight,500);
+}
+.pagecraft-crumbs li{display:flex;align-items:center;gap:var(--cb-gap,8px)}
+.pagecraft-crumbs a{color:var(--cb-color,#5f6660);text-decoration:none}
+.pagecraft-crumbs a:hover{text-decoration:underline}
+.pagecraft-crumbs [aria-current]{color:var(--cb-current,#111311)}
+.pagecraft-crumbs li+li::before{content:"›";color:var(--cb-color,#5f6660);opacity:.6}
+.pagecraft-crumbs[data-sep=slash] li+li::before{content:"/"}
+.pagecraft-crumbs[data-sep=dot] li+li::before{content:"·"}
+.pagecraft-crumbs[data-sep=dash] li+li::before{content:"—"}
+.pagecraft-code{
+  width:100%;margin:0;background:var(--cd-bg,#f4f2ea);color:var(--cd-text,#111311);
+  border-radius:var(--cd-radius,10px);overflow:hidden;
+}
+.pagecraft-code-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:.55em var(--cd-pad-x,18px);border-bottom:1px solid var(--cd-line,#e5e1d6);
+  font-family:var(--cd-ui,system-ui,sans-serif);font-size:.8em;opacity:.75;
+}
+.pagecraft-code-copy{
+  font:inherit;cursor:pointer;background:none;border:1px solid var(--cd-line,#e5e1d6);
+  border-radius:5px;padding:.2em .6em;color:inherit;
+}
+.pagecraft-code-copy:hover{background:#1113110d}
+.pagecraft-code-copy[hidden]{display:none}
+.pagecraft-code pre{
+  margin:0;padding:var(--cd-pad,16px 18px);overflow-x:auto;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:var(--cd-size,14px);line-height:1.55;tab-size:2;
+}
+.pagecraft-code[data-wrap] pre{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:visible}
+.pagecraft-code[data-numbers] pre{counter-reset:pcline}
+.pagecraft-code-line{display:block;counter-increment:pcline}
+.pagecraft-code-line::before{
+  content:counter(pcline);display:inline-block;width:2.2em;margin-right:1.1em;
+  text-align:right;opacity:.4;user-select:none;
+}
+.pc-c-com{color:var(--cd-com,#5f6660);font-style:italic}
+.pc-c-str{color:var(--cd-str,#2f6f5e)}
+.pc-c-kw{color:var(--cd-kw,#8a4b2a)}
+.pc-c-num{color:var(--cd-num,#3a5a9a)}
+.pc-c-key,.pc-c-fn{color:var(--cd-key,#5b4a8a)}
+.pagecraft-table-wrap{width:100%;overflow-x:auto}
+.pagecraft-table{
+  width:100%;border-collapse:collapse;font-size:var(--tbl-size,15px);
+  color:var(--tbl-text,#111311);text-align:left;
+}
+.pagecraft-table caption{
+  caption-side:bottom;padding-top:.7em;text-align:left;
+  font-size:var(--tbl-caption-size,13px);color:var(--tbl-caption-color,#5f6660);
+}
+.pagecraft-table th,.pagecraft-table td{padding:var(--tbl-pad,10px 12px);vertical-align:top}
+.pagecraft-table thead th{
+  background:var(--tbl-head-bg,transparent);color:var(--tbl-head-text,#111311);
+  font-weight:var(--tbl-head-weight,600);border-bottom:2px solid var(--tbl-line,#e5e1d6);
+}
+.pagecraft-table tbody th{font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
+.pagecraft-table[data-rules=rows] tbody tr+tr>*{border-top:1px solid var(--tbl-line,#e5e1d6)}
+.pagecraft-table[data-rules=all] th,.pagecraft-table[data-rules=all] td{border:1px solid var(--tbl-line,#e5e1d6)}
+.pagecraft-table[data-zebra] tbody tr:nth-child(even)>*{background:var(--tbl-zebra,#f8f6ef)}
+.pagecraft-tabs{width:100%}
+.pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
+.pagecraft-tab{
+  background:none;border:0;cursor:pointer;padding:var(--tb-pad,10px 2px);margin-bottom:-1px;
+  font:inherit;font-size:var(--tb-size,15px);font-weight:var(--tb-weight,500);
+  color:var(--tb-off,#5f6660);border-bottom:2px solid transparent;transition:color .16s,border-color .16s;
+}
+.pagecraft-tab.on{color:var(--tb-on,#111311);border-bottom-color:var(--tb-on,#111311)}
+.pagecraft-tab:focus-visible{outline:3px solid currentColor;outline-offset:2px}
+.pagecraft-tabpanel{padding-top:var(--tb-body-pad,20px);font-size:var(--tb-body-size,16px);color:var(--tb-body-color,#111311)}
+.pagecraft-tabpanel>:first-child{margin-top:0}
+.pagecraft-tabpanel>:last-child{margin-bottom:0}
+.pagecraft-tabs[data-tabs-ready] [data-tab-idle]{display:none}
+.pagecraft-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;margin-top:2.2em}
+.pagecraft-page{
+  display:inline-flex;align-items:center;justify-content:center;min-width:2.4em;padding:.5em .7em;
+  border:1px solid var(--c-line);border-radius:6px;text-decoration:none;color:inherit;font-size:.9em;line-height:1;
+}
+.pagecraft-page.on{background:var(--c-ink);color:var(--c-bg);border-color:var(--c-ink)}
+.pagecraft-page.off{opacity:.35}
+.pagecraft-page:focus-visible{outline:3px solid var(--c-brand);outline-offset:2px}
+.pagecraft-quote{margin:0;display:flex;flex-direction:column;border-left:0 solid transparent}
+.pagecraft-quote blockquote{margin:0}
+.pagecraft-quote p{margin:0}
+.pagecraft-quote p+p{margin-top:.6em}
+.pagecraft-quote p:first-of-type::before{content:"\201C"}
+.pagecraft-quote p:last-of-type::after{content:"\201D"}
+.pagecraft-attrib{font-size:.875rem;line-height:1.5;opacity:.72;margin-top:1em}
+.pagecraft-attrib a{color:inherit}
+.pagecraft-video{position:relative;width:100%;overflow:hidden}
+.pagecraft-video-play{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;cursor:pointer;background:var(--c-ink);display:block}
+.pagecraft-video-play img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.pagecraft-video-icon{
+  position:absolute;left:50%;top:50%;width:66px;height:66px;margin:-33px 0 0 -33px;border-radius:50%;
+  background:var(--c-brand);display:block;transition:transform .18s ease;
+}
+.pagecraft-video-play:focus-visible{outline:3px solid var(--c-brand);outline-offset:2px}
+.pagecraft-video-icon::after{
+  content:"";position:absolute;left:26px;top:21px;border-style:solid;
+  border-width:12px 0 12px 19px;border-color:transparent transparent transparent var(--c-ink);
+}
+.pagecraft-video-play:hover .pagecraft-video-icon{transform:scale(1.08)}
+.pagecraft-video>iframe,.pagecraft-video>video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover}
+.pagecraft-nav-menu{display:flex;align-items:center;position:relative}
+.pagecraft-nav-list{display:flex;align-items:center;gap:var(--nav-gap,26px);list-style:none;margin:0;padding:0}
+.pagecraft-nav-list li{position:relative}
+.pagecraft-nav-list .sub-menu{display:none;position:absolute;z-index:65;top:100%;left:0;min-width:190px;margin:0;padding:8px;list-style:none;background:var(--nav-panel,#fff);box-shadow:0 18px 38px -18px rgba(15,23,42,.36)}
+.pagecraft-nav-list li:hover>.sub-menu,.pagecraft-nav-list li:focus-within>.sub-menu{display:block}
+.pagecraft-nav-list .sub-menu .sub-menu{top:0;left:100%}
+.pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
+.pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
+.pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
+.pagecraft-nav-icon{position:relative;display:block;width:20px;height:2px;background:currentColor;border-radius:2px;transition:background-color .2s ease}
+.pagecraft-nav-icon::before,.pagecraft-nav-icon::after{content:"";position:absolute;left:0;width:20px;height:2px;background:currentColor;border-radius:2px;transition:transform .2s ease}
+.pagecraft-nav-icon::before{transform:translateY(-6px)}
+.pagecraft-nav-icon::after{transform:translateY(6px)}
+[data-nav].is-open .pagecraft-nav-icon{background-color:transparent}
+[data-nav].is-open .pagecraft-nav-icon::before{transform:rotate(45deg)}
+[data-nav].is-open .pagecraft-nav-icon::after{transform:rotate(-45deg)}
+.pagecraft-form{display:flex;flex-wrap:wrap;gap:var(--f-gap,16px);width:100%}
+.pagecraft-field{display:flex;flex-direction:column;gap:5px;flex:1 1 100%;min-width:0}
+.pagecraft-field.half{flex:1 1 calc(50% - var(--f-gap,16px) / 2);min-width:12rem}
+.pagecraft-field label{font-size:.82em;font-weight:500;color:var(--f-label,inherit)}
+.pagecraft-field input,.pagecraft-field textarea,.pagecraft-field select{
+  font:inherit;color:var(--f-text,inherit);background:var(--f-bg,#fff);
+  border:1px solid var(--f-border,#ddd);border-radius:var(--f-radius,8px);
+  padding:var(--f-pad,11px 13px);width:100%;
+}
+.pagecraft-field textarea{resize:vertical}
+.pagecraft-field input:focus,.pagecraft-field textarea:focus,.pagecraft-field select:focus{outline:2px solid var(--f-btn-bg,#333);outline-offset:1px}
+.pagecraft-field-check{flex-direction:row;align-items:center;gap:9px}
+.pagecraft-field-check input{width:auto;padding:0}
+.pagecraft-field-check label{font-size:1em}
+.pagecraft-form-button{
+  font:inherit;font-weight:600;cursor:pointer;border:0;align-self:flex-start;flex:0 0 auto;
+  background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
+  border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
+}
+.pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
+.pagecraft-form-status{flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
+.pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
+.pagecraft-spacer{width:100%;flex:0 0 auto}
+.pagecraft-accordion{display:flex;flex-direction:column;gap:var(--ac-gap,0px);width:100%}
+.pagecraft-accordion-item{border-top:1px solid var(--ac-line,currentColor);border-radius:var(--ac-radius,0px)}
+.pagecraft-accordion-item:last-child{border-bottom:1px solid var(--ac-line,currentColor)}
+.pagecraft-accordion-q{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;
+  padding:var(--ac-pad,18px) 0;list-style:none;
+  font-size:var(--ac-q-size,17px);font-weight:var(--ac-q-weight,600);
+  color:var(--ac-q-color,inherit);line-height:1.35;
+}
+.pagecraft-accordion-q::-webkit-details-marker{display:none}
+.pagecraft-accordion-q::marker{content:""}
+.pagecraft-accordion-a{
+  font-size:var(--ac-a-size,16px);color:var(--ac-a-color,inherit);
+  line-height:1.65;padding:0 0 var(--ac-pad,18px);max-width:72ch;
+}
+.pagecraft-accordion-a>:first-child{margin-top:0}
+.pagecraft-accordion-a>:last-child{margin-bottom:0}
+.pagecraft-accordion-a p{margin:0 0 .85em}
+.pagecraft-accordion-mark{
+  position:relative;flex:0 0 auto;width:16px;height:16px;
+  color:var(--ac-mark,currentColor);transition:transform .2s ease;
+}
+.pagecraft-accordion-mark::before,.pagecraft-accordion-mark::after{
+  content:"";position:absolute;left:50%;top:50%;background:currentColor;border-radius:1px;
+}
+.pagecraft-accordion-mark::before{width:15px;height:1.8px;margin:-.9px 0 0 -7.5px;transform:none}
+.pagecraft-accordion-mark::after{width:1.8px;height:15px;margin:-7.5px 0 0 -.9px;transform:none;transition:transform .2s ease}
+[data-marker=plus] [open]>.pagecraft-accordion-q .pagecraft-accordion-mark::after{transform:scaleY(0)}
+[data-marker=caret] .pagecraft-accordion-mark::before{
+  width:10.5px;height:1.8px;margin:-.9px 0 0 -8.9px;transform:rotate(45deg);transform-origin:right center;
+}
+[data-marker=caret] .pagecraft-accordion-mark::after{
+  width:10.5px;height:1.8px;margin:-.9px 0 0 -1.6px;transform:rotate(-45deg);transform-origin:left center;
+}
+[data-marker=caret] [open]>.pagecraft-accordion-q .pagecraft-accordion-mark{transform:rotate(180deg)}
+.pagecraft-embed{width:100%}
+.pagecraft-embed>*{max-width:100%}
+.pagecraft-embed-ratio{position:relative}
+.pagecraft-embed-ratio>iframe,.pagecraft-embed-ratio>video,.pagecraft-embed-ratio>embed,.pagecraft-embed-ratio>object{
+  position:absolute;inset:0;width:100%;height:100%;border:0;
+}
+.pagecraft-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:inherit;text-decoration:none}
+.pagecraft-icon-glyph{
+  display:block;flex:0 0 auto;box-sizing:content-box;
+  width:var(--icon-size,30px);height:var(--icon-size,30px);stroke-width:var(--icon-stroke,1.75);
+}
+.pagecraft-gallery{display:grid;grid-template-columns:repeat(var(--g-cols,3),minmax(0,1fr));gap:var(--g-gap,12px);width:100%}
+.pagecraft-gallery-item{margin:0;display:flex;flex-direction:column;min-width:0}
+.pagecraft-gallery-frame{
+  display:block;position:relative;overflow:hidden;
+  border-radius:var(--g-radius,10px);background:rgba(17,19,17,.05);
+}
+.pagecraft-gallery-img{display:block;width:100%;height:auto}
+.pagecraft-gallery-fixed .pagecraft-gallery-frame{aspect-ratio:var(--g-ratio,4 / 3)}
+.pagecraft-gallery-fixed .pagecraft-gallery-img{height:100%;object-fit:var(--g-fit,cover)}
+.pagecraft-gallery-caption{font-size:.82em;opacity:.7;margin-top:.5em}
+.pagecraft-lightbox{
+  padding:0;border:0;background:transparent;width:100%;height:100%;
+  max-width:100vw;max-height:100vh;overflow:hidden;
+}
+.pagecraft-lightbox::backdrop{background:rgba(10,12,10,.93)}
+.pagecraft-lightbox-fig{
+  margin:0;width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;padding:clamp(16px,4vw,48px);
+}
+.pagecraft-lightbox-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.pagecraft-lightbox-cap{margin:0;color:#f2f2ee;font-size:14px;line-height:1.5;text-align:center;max-width:64ch}
+.pagecraft-lightbox-btn{
+  position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
+  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;
+}
+.pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}
+.pagecraft-lightbox-prev{left:14px}
+.pagecraft-lightbox-next{right:14px}
+.pagecraft-lightbox-close{position:absolute;top:14px;right:14px;transform:none}
+.pagecraft-lightbox-btn[hidden]{display:none}
+.pagecraft-button:focus-visible,.pagecraft-form-button:focus-visible,
+.pagecraft-nav-list a:focus-visible,.pagecraft-nav-toggle:focus-visible,
+.pagecraft-heading a:focus-visible,.pagecraft-wysiwyg a:focus-visible,
+.pagecraft-figure:focus-visible,.pagecraft-icon:focus-visible,
+.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible,
+.pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;scroll-behavior:auto !important;
+  }
+}
+.ts-display{font-family:Arial, sans-serif;font-size:64px;font-weight:400;line-height:1.12;letter-spacing:-.035em;}
+.ts-title{font-family:Arial, sans-serif;font-size:34px;font-weight:400;line-height:1.12;letter-spacing:-.035em;}
+.ts-subtitle{font-family:Arial, sans-serif;font-size:24px;font-weight:400;line-height:1.6;letter-spacing:0;}
+.ts-lead{font-family:Arial, sans-serif;font-size:21px;font-weight:400;line-height:1.6;letter-spacing:0;}
+.ts-body{font-family:Arial, sans-serif;font-size:18px;font-weight:400;line-height:1.6;letter-spacing:0;}
+.ts-small{font-family:Arial, sans-serif;font-size:14px;font-weight:400;line-height:1.6;letter-spacing:0;}
+.ts-eyebrow{font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--c-muted);}
+.ts-btn{font-family:Arial, sans-serif;font-size:16px;font-weight:400;line-height:1.6;letter-spacing:0;}
+.pagecraft-cg-masthead-4{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;padding:24px 32px 20px;}
+.pagecraft-cg-masthead-content-3{display:flex;justify-content:space-between;align-items:center;gap:24px;}
+.pagecraft-cg-heading-1{text-align:left;margin-bottom:0px;margin:0;font-size:23px;letter-spacing:-.04em;white-space:nowrap;flex-shrink:0;}
+.pagecraft-cg-navigation-2{font-size:16px;font-weight:500;color:var(--c-ink);align-self:center;justify-content:flex-end;width:100%;--nav-hover:var(--c-brand);--nav-gap:28px;--nav-panel:var(--c-paper);}
+.pagecraft-cg-gallery-opening-10{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;padding:32px 32px 48px;}
+.pagecraft-cg-opening-copy-8{max-width:100%;margin-bottom:32px;}
+.pagecraft-cg-heading-5{text-align:left;margin-bottom:0px;margin:0;}
+.pagecraft-cg-copy-6{text-align:left;margin:0;max-width:46ch;margin-top:20px;}
+.pagecraft-cg-project-link-7{padding-top:13px;padding-right:26px;padding-bottom:13px;padding-left:26px;border-radius:0;background-color:transparent;color:var(--c-ink);align-self:start;padding:12px 0;border-width:0;min-height:44px;text-decoration:underline;text-underline-offset:5px;}
+.pagecraft-cg-courtyard-house-9{width:100%;max-width:100%;border-radius:0;object-fit:cover;align-self:flex-start;height:540px;display:block;}
+.pagecraft-cg-gallery-projects-15{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;padding:40px 32px 64px;background-color:var(--c-paper);}
+.pagecraft-cg-reading-room-11{width:100%;max-width:100%;border-radius:0;object-fit:cover;align-self:flex-start;height:510px;display:block;}
+.pagecraft-cg-heading-12{text-align:left;margin-bottom:0px;margin:0;margin-top:20px;}
+.pagecraft-cg-copy-13{text-align:left;margin:0;margin-top:12px;max-width:58ch;}
+.pagecraft-cg-practice-18{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;padding:32px;border-top-width:1px;border-top-style:solid;border-top-color:var(--c-line);}
+.pagecraft-cg-copy-16{text-align:left;margin:0;max-width:76ch;color:var(--c-muted);}
+.pagecraft-cg-copy-17{text-align:left;margin:0;margin-top:16px;}
+@media (max-width:1024px){.pagecraft-cg-masthead-4{padding:40px 24px;}
+.pagecraft-cg-gallery-opening-10{padding:40px 24px;}
+.pagecraft-cg-courtyard-house-9{height:400px;}
+.pagecraft-cg-gallery-projects-15{padding:40px 24px;}
+.pagecraft-cg-reading-room-11{height:400px;}
+.pagecraft-cg-practice-18{padding:40px 24px;}
+}
+@media (max-width:767px){.ts-display{font-size:38px;}
+.ts-title{font-size:28px;}
+.ts-subtitle{font-size:22px;}
+.ts-lead{font-size:19px;}
+.ts-body{font-size:17px;}
+.ts-small{font-size:14px;}
+.ts-btn{font-size:16px;}
+.pagecraft-cg-masthead-4{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;padding:20px;}
+.pagecraft-cg-masthead-content-3{flex-direction:row;justify-content:space-between;gap:12px;}
+.pagecraft-cg-navigation-2 .pagecraft-nav-toggle{display:flex}
+.pagecraft-cg-navigation-2 .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}
+.pagecraft-cg-navigation-2.is-open .pagecraft-nav-list{display:flex}
+.pagecraft-cg-navigation-2 .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}
+.pagecraft-cg-navigation-2 .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}
+.pagecraft-cg-gallery-opening-10{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;padding:32px 20px;}
+.pagecraft-cg-courtyard-house-9{height:350px;}
+.pagecraft-cg-gallery-projects-15{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;padding:32px 20px;}
+.pagecraft-cg-reading-room-11{height:300px;}
+.pagecraft-cg-practice-18{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;padding:32px 20px;}
+}
+</style>
+
+</head>
+<body>
+<a class="pagecraft-skip" href="#pagecraft-main">Skip to content</a>
+<!--PAGECRAFT_SHARED_HEADER_START--><!--PAGECRAFT_SHARED_HEADER_END--><main id="pagecraft-main" class="pagecraft-main"><section id="pagecraft-section-cg-masthead-4" class="pagecraft-section pagecraft-cg-masthead-4"><div class="pagecraft-container"><div id="pagecraft-box-cg-masthead-content-3" class="pagecraft-box pagecraft-cg-masthead-content-3"><h2 id="pagecraft-heading-cg-heading-1" class="pagecraft-heading pagecraft-cg-heading-1 ts-title">Common Ground</h2><nav id="pagecraft-nav-menu-cg-navigation-2" class="pagecraft-nav-menu pagecraft-cg-navigation-2" data-nav aria-label="Study navigation"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="pagecraft-nav-menu-cg-navigation-2-menu" aria-label="Study navigation menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="pagecraft-nav-menu-cg-navigation-2-menu" data-nav-l><li><a href="#projects">Projects</a></li><li><a href="#practice">Practice</a></li></ul></nav></div></div></section><section id="pagecraft-section-cg-gallery-opening-10" class="pagecraft-section pagecraft-cg-gallery-opening-10"><div class="pagecraft-container"><div id="pagecraft-box-cg-opening-copy-8" class="pagecraft-box pagecraft-cg-opening-copy-8"><h1 id="pagecraft-heading-cg-heading-5" class="pagecraft-heading pagecraft-cg-heading-5 ts-display">Homes shaped by everyday life.</h1><div id="pagecraft-wysiwyg-cg-copy-6" class="pagecraft-wysiwyg pagecraft-cg-copy-6 ts-lead"><p>Homes, shared places, and thoughtful ways to work with what is already here.</p></div><a id="pagecraft-button-cg-project-link-7" class="pagecraft-button pagecraft-cg-project-link-7 ts-btn" href="#projects"><span>Explore the projects</span></a></div><img id="pagecraft-image-cg-courtyard-house-9" src="assets/courtyard-house-courtyardhouse.png" alt="Fictional pale-brick courtyard house with a mature olive tree" width="1536" height="1024" class="pagecraft-image pagecraft-cg-courtyard-house-9"></div></section><section id="projects" class="pagecraft-section pagecraft-cg-gallery-projects-15"><div class="pagecraft-container"><img id="pagecraft-image-cg-reading-room-11" src="assets/reading-room-readingroom.png" alt="Fictional workshop converted into a neighborhood reading room" width="1536" height="1024" class="pagecraft-image pagecraft-cg-reading-room-11"><div id="pagecraft-box-cg-project-caption-14" class="pagecraft-box pagecraft-cg-project-caption-14"><h2 id="pagecraft-heading-cg-heading-12" class="pagecraft-heading pagecraft-cg-heading-12 ts-title">A workshop becomes a reading room.</h2><div id="pagecraft-wysiwyg-cg-copy-13" class="pagecraft-wysiwyg pagecraft-cg-copy-13 ts-body"><p>A study in keeping the brick shell, bringing daylight to the table, and giving a familiar building a different public life.</p></div></div></div></section><section id="practice" class="pagecraft-section pagecraft-cg-practice-18"><div class="pagecraft-container"><div id="pagecraft-wysiwyg-cg-copy-16" class="pagecraft-wysiwyg pagecraft-cg-copy-16 ts-small"><p>Common Ground is a fictional architecture practice. Projects and AI-generated imagery are demonstration content, not completed commissions.</p></div><div id="pagecraft-wysiwyg-cg-copy-17" class="pagecraft-wysiwyg pagecraft-cg-copy-17 ts-small"><p><a href="index.html">A · Gallery</a> &nbsp; / &nbsp; <a href="journal.html">B · Journal</a> &nbsp; / &nbsp; <a href="index-study.html">C · Index</a></p></div></div></section></main><!--PAGECRAFT_SHARED_FOOTER_START--><!--PAGECRAFT_SHARED_FOOTER_END-->
+<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
+var b=w.querySelector('[data-nav-t]');if(!b)return;
+function set(o){w.classList.toggle('is-open',o);b.setAttribute('aria-expanded',o?'true':'false');}
+b.addEventListener('click',function(e){e.stopPropagation();set(!w.classList.contains('is-open'));});
+Array.prototype.forEach.call(w.querySelectorAll('[data-nav-l] a'),function(a){a.addEventListener('click',function(){set(false);});});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
+document.addEventListener('click',function(e){if(!w.contains(e.target))set(false);});
+});})();
+</script>
+</body>
+</html>

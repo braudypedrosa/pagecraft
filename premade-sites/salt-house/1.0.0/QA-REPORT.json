@@ -1,0 +1,25 @@
+{
+  "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+  "status": "User approved for production; release gates incomplete",
+  "verified": [
+    "TypeScript and 5 existing native-template tests passed",
+    "Native document, assets, manifest and package checks passed",
+    "Homepage inspected at 390, 768, 1024 and 1440 pixels: no overflow, missing images or visible text below 14px",
+    "Collection and both property pages checked at 390 and 1440: no overflow or missing images; matching illustrative prices present",
+    "Native FAQ pricing answer opens; no browser console errors observed",
+    "Impeccable detector returned no findings"
+  ],
+  "evidence": "evidence/section-feedback/",
+  "limitations": [
+    "Prices are illustrative examples, not live quotes",
+    "Booking provider and inquiry receiver are not configured",
+    "Full Cloud and WordPress acceptance for this changed package remains pending"
+  ],
+  "previousEvidence": "evidence/pre-section-feedback/; acceptance does not apply to this changed package",
+  "published": false,
+  "userApproval": {
+    "quote": "Okay better, this is good for prod deployment",
+    "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849"
+  },
+  "releaseBlocker": "Existing WordPress acceptance targets an unreleased isolated host patch, not a released WordPress distribution. Current package also requires renewed dual-host acceptance and independent rendered review."
+}

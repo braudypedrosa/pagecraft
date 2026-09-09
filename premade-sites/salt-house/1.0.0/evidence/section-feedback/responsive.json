@@ -1,0 +1,86 @@
+[
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "smallText": 0,
+    "width": 390
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "smallText": 0,
+    "width": 768
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "smallText": 0,
+    "width": 1024
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "smallText": 0,
+    "width": 1440
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "prices": [
+      "€240 / night",
+      "€165 / night"
+    ],
+    "width": 390,
+    "page": "homes"
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "prices": [
+      "€240 / night",
+      "€165 / night"
+    ],
+    "width": 1440,
+    "page": "homes"
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "prices": [
+      "Example rate · €240 / night",
+      "€165 / night"
+    ],
+    "width": 390,
+    "page": "dune-house"
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "prices": [
+      "Example rate · €240 / night",
+      "€165 / night"
+    ],
+    "width": 1440,
+    "page": "dune-house"
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "prices": [
+      "Example rate · €165 / night",
+      "€240 / night"
+    ],
+    "width": 390,
+    "page": "blue-shutter-cottage"
+  },
+  {
+    "missingImages": 0,
+    "overflow": false,
+    "prices": [
+      "Example rate · €165 / night",
+      "€240 / night"
+    ],
+    "width": 1440,
+    "page": "blue-shutter-cottage"
+  }
+]

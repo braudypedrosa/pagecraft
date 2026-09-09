@@ -1,0 +1,54 @@
+- link "Skip to content":
+  - /url: "#pagecraft-main"
+- link "Salt House":
+  - /url: /salt-house/
+- navigation "Main navigation":
+  - button "Main navigation menu"
+- main:
+  - heading "Blue Shutter Cottage" [level=1]
+  - paragraph: Blue shutters, pale linen and a slower village rhythm.
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "A home between village and sea." [level=2]
+  - paragraph: A shaded living room opens toward the coast. This example cottage is a smaller base for a couple or family, with two bedrooms and village life nearby.
+  - paragraph: Fictional homes and example details. Images are AI-generated; no real rental availability is offered.
+  - heading "At a glance" [level=2]
+  - heading "Guests" [level=3]
+  - paragraph: Up to 4
+  - heading "Bedrooms" [level=3]
+  - paragraph: 2 bedrooms
+  - heading "Bathrooms" [level=3]
+  - paragraph: 1 bathroom
+  - link "Ask about this home":
+    - /url: /salt-house/plan-your-stay#inquiry
+    - generic: Ask about this home
+  - paragraph: Demonstration only. Booking is not connected.
+  - heading "The everyday details." [level=2]
+  - paragraph: Useful information makes choosing easier.
+  - paragraph: "Two example bedrooms: one double and one twin."
+  - paragraph: "Example amenities: equipped kitchen, dining space, Wi-Fi and washing machine."
+  - paragraph: Village setting with a living room for afternoons indoors. Confirm steps, parking and access with the host before booking.
+  - heading "A closer look." [level=2]
+  - figure "The village setting":
+    - link "Fictional Blue Shutter Cottage exterior beside a coastal village lane":
+      - /url: /salt-house/assets/exterior-aa68231df917b.png
+      - img "Fictional Blue Shutter Cottage exterior beside a coastal village lane"
+    - generic: The village setting
+  - heading "A different kind of stay." [level=2]
+  - paragraph: Need an extra bedroom and more outdoor space? Meet Dune House.
+  - link "Explore Dune House":
+    - /url: /salt-house/dune-house
+    - generic: Explore Dune House
+- heading "See you by the sea." [level=2]
+- link "Find your home":
+  - /url: /salt-house/homes
+  - generic: Find your home
+- link "Plan your stay":
+  - /url: /salt-house/plan-your-stay
+  - generic: Plan your stay
+- generic: SALT HOUSE
+- paragraph: Fictional collection · AI-generated demonstration images
+- dialog:
+  - figure:
+    - img "Fictional Blue Shutter Cottage exterior beside a coastal village lane"
+    - paragraph: The village setting
+  - button "Close" [active]: ×

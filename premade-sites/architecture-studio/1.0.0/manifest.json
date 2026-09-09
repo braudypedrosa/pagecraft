@@ -1,0 +1,49 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "architecture-studio",
+  "version": "1.0.0",
+  "name": "Architecture Studio",
+  "sampleName": "Common Ground",
+  "description": "Common Ground: a six-page architecture studio pilot in the selected Index direction. Native editable project records, shared styling, and demonstration content.",
+  "categories": [
+    "Architecture",
+    "Design"
+  ],
+  "pages": [
+    {
+      "id": "page-home",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "page-projects",
+      "name": "Projects",
+      "slug": "projects"
+    },
+    {
+      "id": "page-project-detail",
+      "name": "Project Detail",
+      "slug": "project-detail"
+    },
+    {
+      "id": "page-about",
+      "name": "About",
+      "slug": "about"
+    },
+    {
+      "id": "page-services",
+      "name": "Services",
+      "slug": "services"
+    },
+    {
+      "id": "page-contact",
+      "name": "Contact",
+      "slug": "contact"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "previewPage": "index.html",
+  "assetCount": 2,
+  "assetBytes": 5995933
+}

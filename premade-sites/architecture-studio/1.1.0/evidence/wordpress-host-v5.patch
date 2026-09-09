@@ -1,0 +1,563 @@
+diff --git a/package.json b/package.json
+index 4146b39..77e671e 100644
+--- a/package.json
++++ b/package.json
+@@ -9,7 +9,7 @@
+     "build:editor": "node tools/build-editor.mjs pagecraft-builder/assets/pagecraft-editor.html",
+     "build:runtime": "node tools/build-runtime.mjs pagecraft-builder/assets/pagecraft-runtime.js",
+     "verify:editor-source": "node tools/verify-editor-source.mjs",
+-    "test": "npm run verify:editor-source && bash tests/lint.sh && bash tests/packages.sh",
++    "test": "npm run verify:editor-source && node --test tests/wordpress-editor.test.mjs tests/wordpress-font-loader.test.mjs && bash tests/lint.sh && bash tests/packages.sh",
+     "audit": "npm audit --audit-level=high && composer audit",
+     "quality:php": "composer phpcs && composer phpstan",
+     "release": "bash tools/build-release-candidate.sh"
+diff --git a/pagecraft-builder/assets/pagecraft-block-editor.js b/pagecraft-builder/assets/pagecraft-block-editor.js
+index b384475..0d364a1 100644
+--- a/pagecraft-builder/assets/pagecraft-block-editor.js
++++ b/pagecraft-builder/assets/pagecraft-block-editor.js
+@@ -479,7 +479,10 @@
+       button.innerHTML = `${mark()}<span></span>`;
+       button.querySelector('span').textContent = labels.button;
+       button.setAttribute('aria-label', labels.button);
+-      button.addEventListener('click', () => openDialog(button));
++      button.addEventListener('click', () => {
++        if (config.editorUrl) window.location.assign(config.editorUrl);
++        else openDialog(button);
++      });
+       toolbar.append(button);
+     }
+ 
+diff --git a/pagecraft-builder/assets/pagecraft-editor.html b/pagecraft-builder/assets/pagecraft-editor.html
+index e30affd..6ed1aa7 100644
+--- a/pagecraft-builder/assets/pagecraft-editor.html
++++ b/pagecraft-builder/assets/pagecraft-editor.html
+@@ -8023,6 +8023,17 @@ function treeCss(lists, editing) {
+   const tk = tokenCss();
+   return baseCss(editing) + tk.d + acc.d + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : "") + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : "");
+ }
++function wordpressDesignCss() {
++  const m = state.meta, tk = tokenCss();
++  return tokenVars()
++    + ':root{--maxw:' + m.maxWidth + ';--accent:var(--c-brand)}'
++    + 'body{font-family:' + m.font + ';font-size:' + m.size + ';color:var(--c-text);background:var(--c-bg)}'
++    + '.pagecraft-heading{font-family:' + (m.headFont || 'inherit') + '}'
++    + '.pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{font-family:' + (m.headFont || 'inherit') + '}'
++    + tk.d + (tk.t ? MQ.t + '{' + tk.t + '}' : '') + (tk.m ? MQ.m + '{' + tk.m + '}' : '')
++    + (m.css || '');
++}
++
+ function wordpressStyles(pg2) {
+   const globalTrees = [state.header, state.footer];
+   const globalMoves = animUsed(globalTrees);
+@@ -17261,6 +17272,21 @@ function writeNow() {
+    sends the second PUT before the first returns, the second carries the version the first
+    is about to consume, and the server correctly calls it stale — so the editor would report
+    a conflict it caused itself. */
++
++let wordpressFontCache = { href: '', css: '' };
++async function wordpressFontCss() {
++  const href = gfontsHref();
++  if (!href) return '';
++  if (wordpressFontCache.href === href) return wordpressFontCache.css;
++  const response = await fetch(href);
++  if (!response.ok) throw new Error('The selected fonts could not be loaded. Please retry saving.');
++  const faces = parseFontCss(await response.text());
++  if (!faces.length) throw new Error('The selected fonts returned no usable font files. Please retry saving.');
++  const css = fontFaceCss(faces, face => face.url) + '\n';
++  wordpressFontCache = { href, css };
++  return css;
++}
++
+ let saving = false, saveAgain = false;
+ 
+ async function writeServer() {
+@@ -17274,9 +17300,9 @@ async function writeServer() {
+       document: doc(),
+       version: SRV.version,
+       ...(IS_WORDPRESS ? { compiled: {
+-        html: buildPage(page()),
+-        globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
+-        pageCss: assetsToBlob(treeCss([page().tree], false))
++        html: assetsToBlob(buildPage(page())),
++        globalCss: (await wordpressFontCss()) + assetsToBlob(wordpressStyles(page()).global),
++        pageCss: assetsToBlob(wordpressStyles(page()).page)
+       } } : {})
+     });
+     SRV.version = body.version;
+@@ -20211,7 +20237,7 @@ function projectModal() {
+       const design = wordPressDesignSettings();
+       await HOST.settings.write({
+         design,
+-        globalCss: assetsToBlob(wordpressStyles(page()).global)
++        globalCss: (await wordpressFontCss()) + assetsToBlob(wordpressDesignCss())
+       });
+       WP.designSettings = clone(design);
+       if (!wordpressPageWasDirty && typeof wordpressSaveState !== 'undefined') {
+diff --git a/pagecraft-builder/includes/Admin.php b/pagecraft-builder/includes/Admin.php
+index eac8fc3..a4f472c 100644
+--- a/pagecraft-builder/includes/Admin.php
++++ b/pagecraft-builder/includes/Admin.php
+@@ -121,6 +121,7 @@ final class Admin
+         $openCloudOnLoad = isset($_GET['pagecraft_cloud']) && absint($_GET['pagecraft_cloud']) === 1;
+         wp_localize_script('pagecraft-builder-block-editor', 'PAGECRAFT_BLOCK_EDITOR', [
+             'postId' => $postId,
++            'editorUrl' => $postId > 0 && ManagedPage::isManaged($postId) ? $this->editorUrl($postId) : '',
+             'prepareUrl' => admin_url('admin-post.php'),
+             'prepareNonce' => wp_create_nonce('pagecraft_prepare_page'),
+             'cloudPagesUrl' => admin_url('admin-ajax.php?action=pagecraft_cloud_pages'),
+@@ -835,12 +836,12 @@ final class Admin
+         $config = [
+             'restUrl' => untrailingslashit(rest_url(RestController::NAMESPACE)),
+             'nonce' => wp_create_nonce('wp_rest'),
+-            'doc' => $loaded['document'],
++            'doc' => is_array($loaded['document']) ? DocumentJson::document($loaded['document']) : null,
+             'version' => $loaded['version'],
+             'role' => 'owner',
+             'siteName' => get_bloginfo('name'),
+             'settingsOnly' => $settingsOnly,
+-            'designSettings' => (new DesignSettings())->read(),
++            'designSettings' => DocumentJson::design((new DesignSettings())->read()),
+             'themeTemplate' => $global ? [
+                 'kind' => (string) get_post_meta($postId, GlobalElement::KIND, true),
+                 'label' => GlobalElement::label((string) get_post_meta($postId, GlobalElement::KIND, true)),
+@@ -1383,7 +1384,10 @@ final class Admin
+         if ($post->post_type !== 'page' || !current_user_can(Capabilities::EDIT) || !current_user_can('edit_post', $post->ID)) {
+             return $actions;
+         }
+-        $pagecraft = '<a href="' . esc_url(add_query_arg('pagecraft_choose', '1', get_edit_post_link($post->ID, 'raw'))) . '">'
++        $url = ManagedPage::isManaged($post->ID)
++            ? $this->editorUrl($post->ID)
++            : add_query_arg('pagecraft_choose', '1', get_edit_post_link($post->ID, 'raw'));
++        $pagecraft = '<a href="' . esc_url($url) . '">'
+             . esc_html__('Edit with Pagecraft', 'pagecraft-builder') . '</a>';
+         return ['pagecraft' => $pagecraft] + $actions;
+     }
+diff --git a/pagecraft-builder/includes/DesignSettings.php b/pagecraft-builder/includes/DesignSettings.php
+index 37fe27a..25fea55 100644
+--- a/pagecraft-builder/includes/DesignSettings.php
++++ b/pagecraft-builder/includes/DesignSettings.php
+@@ -43,7 +43,8 @@ final class DesignSettings
+         if (!update_option(self::OPTION, $design, false) && get_option(self::OPTION, null) !== $design) {
+             throw new PackageException('WordPress could not save the Pagecraft design settings.');
+         }
+-        $this->applyGlobalStylesheet($asset);
++        // Keep the current foundation independently of page/global edit snapshots.
++        update_option('pagecraft_design_stylesheet_v1', $asset ?? [], false);
+ 
+         return ['design' => $design, 'globalCss' => $asset];
+     }
+@@ -110,25 +111,4 @@ final class DesignSettings
+         throw new PackageException('A Pagecraft design token value is invalid.');
+     }
+ 
+-    /** @param array{path:string,hash:string,bytes:int}|null $asset */
+-    private function applyGlobalStylesheet(?array $asset): void
+-    {
+-        $pageIds = get_posts([
+-            'post_type' => 'page',
+-            'post_status' => 'any',
+-            'posts_per_page' => -1,
+-            'fields' => 'ids',
+-            'meta_key' => ManagedPage::DOCUMENT,
+-            'meta_compare' => 'EXISTS',
+-            'no_found_rows' => true,
+-        ]);
+-        foreach ($pageIds as $pageId) {
+-            $id = (int) $pageId;
+-            if ($id <= 0 || !ManagedPage::isManaged($id)) {
+-                continue;
+-            }
+-            update_post_meta($id, ManagedPage::GLOBAL_CSS_PATH, wp_slash($asset['path'] ?? ''));
+-            update_post_meta($id, ManagedPage::GLOBAL_CSS_HASH, wp_slash($asset['hash'] ?? ''));
+-        }
+-    }
+ }
+diff --git a/pagecraft-builder/includes/FallbackCompiler.php b/pagecraft-builder/includes/FallbackCompiler.php
+index a3e252f..db77d63 100644
+--- a/pagecraft-builder/includes/FallbackCompiler.php
++++ b/pagecraft-builder/includes/FallbackCompiler.php
+@@ -172,9 +172,19 @@ final class FallbackCompiler
+     {
+         $global = [
+             'id' => true, 'class' => true, 'title' => true, 'role' => true, 'tabindex' => true,
+-            'aria-*' => true, 'data-*' => true, 'hidden' => true, 'dir' => true, 'lang' => true,
++            'data-*' => true, 'hidden' => true, 'dir' => true, 'lang' => true,
+             'style' => true
+         ];
++        // KSES supports data-* but requires explicit ARIA attribute names.
++        foreach ([
++            'label', 'labelledby', 'describedby', 'controls', 'expanded', 'hidden',
++            'selected', 'live', 'atomic', 'busy', 'pressed', 'current', 'disabled',
++            'orientation', 'haspopup', 'required', 'invalid', 'errormessage',
++            'checked', 'level', 'valuemin', 'valuemax', 'valuenow', 'valuetext',
++            'modal', 'owns', 'activedescendant', 'roledescription'
++        ] as $attribute) {
++            $global['aria-' . $attribute] = true;
++        }
+         $tags = [
+             'div', 'section', 'article', 'header', 'footer', 'aside', 'nav', 'span',
+             'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'strong', 'em', 'b', 'i', 'u', 's', 'small',
+diff --git a/pagecraft-builder/includes/GlobalElement.php b/pagecraft-builder/includes/GlobalElement.php
+index 7d50752..d1b92ef 100644
+--- a/pagecraft-builder/includes/GlobalElement.php
++++ b/pagecraft-builder/includes/GlobalElement.php
+@@ -108,7 +108,7 @@ final class GlobalElement
+             if (!is_array($sourceDocument)) {
+                 throw new PackageException('The Pagecraft project document cannot be prepared for global editing.');
+             }
+-            $document = $media->rewrite(CanonicalJson::encode(GlobalElementEditor::documentFromRegion(
++            $document = $media->rewrite(DocumentJson::encode(GlobalElementEditor::documentFromRegion(
+                 $sourceDocument,
+                 $kind,
+                 $kind === 'header' ? 'Pagecraft Header' : 'Pagecraft Footer'
+diff --git a/pagecraft-builder/includes/GlobalElementEditor.php b/pagecraft-builder/includes/GlobalElementEditor.php
+index 13171ac..40005cc 100644
+--- a/pagecraft-builder/includes/GlobalElementEditor.php
++++ b/pagecraft-builder/includes/GlobalElementEditor.php
+@@ -67,7 +67,7 @@ final class GlobalElementEditor
+                 . PageEditor::SCHEMA_VERSION . '. Upgrade Pagecraft Builder before saving.'
+             );
+         }
+-        $documentJson = CanonicalJson::encode($document);
++        $documentJson = DocumentJson::encode($document);
+         if (strlen($documentJson) > PageEditor::MAX_DOCUMENT_BYTES) {
+             throw new PackageException('The Pagecraft global document exceeds the WordPress editor limit.');
+         }
+diff --git a/pagecraft-builder/includes/MediaImportResult.php b/pagecraft-builder/includes/MediaImportResult.php
+index b7224b8..0f94ad8 100644
+--- a/pagecraft-builder/includes/MediaImportResult.php
++++ b/pagecraft-builder/includes/MediaImportResult.php
+@@ -30,7 +30,7 @@ final class MediaImportResult
+             throw new PackageException('The Pagecraft document could not be localized.');
+         }
+         $this->rewriteValue($document);
+-        return CanonicalJson::encode($document);
++        return DocumentJson::encode($document);
+     }
+ 
+     public function rewrite(string $source): string
+diff --git a/pagecraft-builder/includes/PageEditor.php b/pagecraft-builder/includes/PageEditor.php
+index 87fe5ea..056a155 100644
+--- a/pagecraft-builder/includes/PageEditor.php
++++ b/pagecraft-builder/includes/PageEditor.php
+@@ -68,7 +68,7 @@ final class PageEditor
+                 . self::SCHEMA_VERSION . '. Upgrade Pagecraft Builder before saving.'
+             );
+         }
+-        $documentJson = CanonicalJson::encode($document);
++        $documentJson = DocumentJson::encode($document);
+         if (strlen($documentJson) > self::MAX_DOCUMENT_BYTES) {
+             throw new PackageException('The Pagecraft document exceeds the WordPress editor limit.');
+         }
+diff --git a/pagecraft-builder/includes/RestController.php b/pagecraft-builder/includes/RestController.php
+index 05a5cdb..4591164 100644
+--- a/pagecraft-builder/includes/RestController.php
++++ b/pagecraft-builder/includes/RestController.php
+@@ -393,7 +393,7 @@ final class RestController
+             'theme' => (string) $theme->get_stylesheet(),
+             'editor' => true,
+             'wordpressVersion' => (string) get_bloginfo('version'),
+-            'design' => (new DesignSettings())->read(),
++            'design' => DocumentJson::design((new DesignSettings())->read()),
+         ]);
+     }
+ 
+@@ -403,7 +403,7 @@ final class RestController
+             $saved = (new DesignSettings())->save($request->get_json_params());
+             return new \WP_REST_Response([
+                 'editor' => true,
+-                'design' => $saved['design'],
++                'design' => DocumentJson::design($saved['design']),
+                 'globalCss' => $saved['globalCss'],
+             ]);
+         } catch (PackageException $error) {
+@@ -532,7 +532,11 @@ final class RestController
+     private function editorResponse(callable $operation): \WP_REST_Response
+     {
+         try {
+-            return new \WP_REST_Response($operation());
++            $result = $operation();
++            if (isset($result['document']) && is_array($result['document'])) {
++                $result['document'] = DocumentJson::document($result['document']);
++            }
++            return new \WP_REST_Response($result);
+         } catch (EditorConflict $error) {
+             return new \WP_REST_Response([
+                 'error' => $error->getMessage(),
+diff --git a/pagecraft-theme/inc/pagecraft-integration.php b/pagecraft-theme/inc/pagecraft-integration.php
+index 3a6534e..e7f5bad 100644
+--- a/pagecraft-theme/inc/pagecraft-integration.php
++++ b/pagecraft-theme/inc/pagecraft-integration.php
+@@ -25,6 +25,29 @@ function pagecraft_theme_is_managed_page( ?int $post_id = null ): bool {
+ 	return '' !== get_post_meta( $resolved, '_pagecraft_document', true );
+ }
+ 
++/** Render compiled native markup without adding paragraphs inside layout grids. */
++function pagecraft_theme_native_image_loading(): bool {
++	return false;
++}
++
++function pagecraft_theme_managed_content(): void {
++	$priority = has_filter( 'the_content', 'wpautop' );
++	if ( false !== $priority ) {
++		remove_filter( 'the_content', 'wpautop', $priority );
++	}
++	// Native markup already expresses the author's lazy/eager choice. Do not
++	// inject lazy loading into an image exported without the lazy attribute.
++	add_filter( 'wp_lazy_loading_enabled', 'pagecraft_theme_native_image_loading' );
++	try {
++		the_content();
++	} finally {
++		remove_filter( 'wp_lazy_loading_enabled', 'pagecraft_theme_native_image_loading', 10 );
++		if ( false !== $priority ) {
++			add_filter( 'the_content', 'wpautop', $priority );
++		}
++	}
++}
++
+ /**
+  * Keep saved Theme Builder records queryable if Builder is temporarily inactive.
+  * The plugin remains the owner of editing, capabilities, metadata and revisions.
+@@ -424,6 +447,17 @@ function pagecraft_theme_enqueue_generated_assets(): void {
+ 		$remember_style( $post_id, '_pagecraft_global_css' );
+ 	}
+ 	$remember_style( $template_id, '_pagecraft_global_css' );
++	/* WordPress-owned design settings outrank foundations captured in older globals.
++	 * This asset contains foundation/tokens only, never header/footer node rules. */
++	$design_asset = get_option( 'pagecraft_design_stylesheet_v1', array() );
++	if ( is_array( $design_asset ) && ( $page_id || $template_id || $global_ids ) ) {
++		$design_hash = (string) ( $design_asset['hash'] ?? '' );
++		$design_url = pagecraft_theme_generated_asset_url( (string) ( $design_asset['path'] ?? '' ), $design_hash, 'css' );
++		if ( '' !== $design_url ) {
++			unset( $styles[ $design_hash ] );
++			$styles[ $design_hash ] = $design_url;
++		}
++	}
+ 	$remember_style( $page_id, '_pagecraft_page_css' );
+ 
+ 	foreach ( array_unique( array_filter( array_merge( $global_ids, array( $template_id, $page_id ) ) ) ) as $post_id ) {
+diff --git a/pagecraft-theme/template-parts/content-page.php b/pagecraft-theme/template-parts/content-page.php
+index 5def214..b962484 100644
+--- a/pagecraft-theme/template-parts/content-page.php
++++ b/pagecraft-theme/template-parts/content-page.php
+@@ -10,7 +10,7 @@
+ <article id="post-<?php the_ID(); ?>" <?php post_class( $pagecraft_managed ? 'pagecraft-managed-page' : 'pagecraft-entry' ); ?>>
+ 	<?php if ( $pagecraft_managed ) : ?>
+ 		<div class="pagecraft-managed-content">
+-			<?php the_content(); ?>
++			<?php pagecraft_theme_managed_content(); ?>
+ 		</div>
+ 	<?php else : ?>
+ 		<header class="pagecraft-entry-header">
+diff --git a/tests/README.md b/tests/README.md
+index b38d12d..10b07e3 100644
+--- a/tests/README.md
++++ b/tests/README.md
+@@ -34,3 +34,21 @@ This proves the Builder/Theme archives are repeatable, have the required top-lev
+ ## Integration checks
+ 
+ The Connected staging/production Docker matrix is preserved on `bp/connected-v1-checkpoint` and is not an active release gate. A new single-site Pagecraft Theme matrix will be added with native package import, page ownership, menus, media, editor, fallback rendering, and uninstall-retention coverage under Issue #11.
++
++## Native document and accessibility regressions
++
++`tests/document-json.php` runs in the standard lint track. It verifies object-map repair across
++page trees, globals, saved blocks, components, variants, collections, and shared style tokens,
++including edits after associative JSON round trips. Genuine lists and generic canonical JSON
++semantics remain unchanged.
++
++On an isolated WordPress installation with this Builder checkout installed, run:
++
++```bash
++wp eval-file tests/wordpress-accessibility.php
++```
++
++This uses real WordPress KSES to verify native menu names, control relationships, live form
++status, and tab semantics while rejecting inline event handlers. Browser QA must additionally
++exercise the initial editor bootstrap, responsive inspector changes, reset-to-defaults,
++save/reopen, and frontend keyboard navigation; REST-only checks cannot cover the bootstrap.
+diff --git a/tests/lint.sh b/tests/lint.sh
+index 6c53171..f533dfe 100644
+--- a/tests/lint.sh
++++ b/tests/lint.sh
+@@ -26,6 +26,7 @@ echo "theme.json is valid\n";
+ 
+ php "${WORDPRESS_DIR}/tests/builder-contract.php"
+ php "${WORDPRESS_DIR}/tests/canonical-json.php"
++php "${WORDPRESS_DIR}/tests/document-json.php"
+ php "${WORDPRESS_DIR}/tests/template-conditions.php"
+ php "${WORDPRESS_DIR}/tests/template-resolver.php"
+ php "${WORDPRESS_DIR}/tests/importer-trust.php"
+diff --git a/tests/theme-managed-fallback.php b/tests/theme-managed-fallback.php
+index 1a10868..6607d04 100644
+--- a/tests/theme-managed-fallback.php
++++ b/tests/theme-managed-fallback.php
+@@ -88,8 +88,12 @@ $GLOBALS['pc_theme_options'] = [
+ 
+ function add_filter(string $hook, callable $callback, int $priority = 10): void
+ {
++    if ($hook === 'the_content' && $callback === 'wpautop') $GLOBALS['pc_autop_priority'] = $priority;
+     $GLOBALS['pc_theme_filters'][$hook][] = $callback;
+ }
++function wpautop(string $text): string { return $text; }
++function has_filter(string $hook, string $callback): int|false { return $GLOBALS['pc_autop_priority'] ?? false; }
++function remove_filter(string $hook, string $callback, int $priority): bool { if ($hook === 'the_content' && $callback === 'wpautop') unset($GLOBALS['pc_autop_priority']); return true; }
+ function add_action(string $hook, callable $callback, int $priority = 10): void
+ {
+     $GLOBALS['pc_theme_actions'][$hook][] = $callback;
+@@ -199,7 +203,7 @@ function wp_enqueue_script(
+     $GLOBALS['pc_theme_scripts'][$handle] = [$source, $version, $args];
+ }
+ function post_class(string $class): void { echo 'class="' . htmlspecialchars($class, ENT_QUOTES) . '"'; }
+-function the_content(): void { echo '<div data-pagecraft-fallback="1">Still visible</div>'; }
++function the_content(): void { $GLOBALS['pc_autop_during_render'] = has_filter('the_content', 'wpautop'); if (!empty($GLOBALS['pc_content_throws'])) throw new RuntimeException('Content filter failed'); echo '<div data-pagecraft-fallback="1">Still visible</div>'; }
+ function the_title(string $before = '', string $after = ''): void
+ {
+     $GLOBALS['pc_theme_title_calls']++;
+@@ -226,6 +230,22 @@ pc_theme_assert(
+     'Page-only CSS did not load after the active global presentation.'
+ );
+ 
++$designCss = ':root{--c-ink:#293d58}';
++$designHash = hash('sha256', $designCss);
++file_put_contents($assetDirectory . '/global-' . $designHash . '.css', $designCss);
++$GLOBALS['pc_theme_options']['pagecraft_design_stylesheet_v1'] = [
++    'path' => 'pagecraft/global-' . $designHash . '.css', 'hash' => $designHash,
++];
++$GLOBALS['pc_theme_styles'] = [];
++pagecraft_theme_enqueue_generated_assets();
++$ordered = array_keys($GLOBALS['pc_theme_styles']['enqueued']);
++pc_theme_assert($ordered === [
++    'pagecraft-generated-' . substr($sharedHash, 0, 12),
++    'pagecraft-generated-' . substr($designHash, 0, 12),
++    'pagecraft-generated-' . substr($pageHash, 0, 12),
++], 'Current Site Settings must outrank older global foundations and preserve page-specific overrides.');
++unset($GLOBALS['pc_theme_options']['pagecraft_design_stylesheet_v1']);
++
+ $GLOBALS['pc_theme_post'] = 43;
+ $GLOBALS['pc_theme_styles'] = [];
+ $GLOBALS['pc_theme_scripts'] = [];
+@@ -248,6 +268,7 @@ pc_theme_assert(pagecraft_theme_render_global('footer'), 'Stored Pagecraft foote
+ $footer = (string) ob_get_clean();
+ pc_theme_assert(str_contains($footer, '<footer') && str_contains($footer, 'Stored Pagecraft footer'), 'Stored footer lacks its landmark or markup.');
+ 
++$GLOBALS['pc_autop_priority'] = 7;
+ ob_start();
+ require dirname(__DIR__) . '/pagecraft-theme/template-parts/content-page.php';
+ $rendered = (string) ob_get_clean();
+@@ -255,6 +276,12 @@ pc_theme_assert(str_contains($rendered, 'Still visible'), 'Managed fallback cont
+ pc_theme_assert($GLOBALS['pc_theme_title_calls'] === 0, 'Managed fallback duplicated the Pagecraft title.');
+ pc_theme_assert(str_contains($rendered, 'pagecraft-managed-content'), 'Managed fallback wrapper is missing.');
+ 
++pc_theme_assert($GLOBALS['pc_autop_during_render'] === false, 'Managed markup still passed through automatic paragraph insertion.');
++pc_theme_assert($GLOBALS['pc_autop_priority'] === 7, 'Managed rendering did not restore the original content filter priority.');
++$GLOBALS['pc_content_throws'] = true;
++try { pagecraft_theme_managed_content(); } catch (RuntimeException $error) {}
++pc_theme_assert($GLOBALS['pc_autop_priority'] === 7, 'Content filter was not restored after a rendering exception.');
++$GLOBALS['pc_content_throws'] = false;
+ $GLOBALS['pc_theme_post'] = 43;
+ $routeCases = [
+     'page' => ['single_page', 82],
+diff --git a/tools/wordpress-editor.mjs b/tools/wordpress-editor.mjs
+index 1cff67b..25609ba 100644
+--- a/tools/wordpress-editor.mjs
++++ b/tools/wordpress-editor.mjs
+@@ -1,3 +1,4 @@
++import { wordpressFontLoader } from './wordpress-font-loader.mjs';
+ const replaceOnce = (source, needle, replacement, label) => {
+   const at = source.indexOf(needle);
+   if (at < 0 || source.indexOf(needle, at + needle.length) >= 0) {
+@@ -347,6 +348,41 @@ const bootReplacement = `  stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ?
+ })();`;
+ 
+ export function customizeWordPressEditor(html) {
++  // Media-library selections remain asset:<id> in the native document. Resolve
++  // those references for the published fallback before WordPress sanitizes HTML.
++  html = replaceOnce(html, 'html: buildPage(page()),',
++    'html: assetsToBlob(buildPage(page())),', 'WordPress fallback media URLs');
++  html = replaceOnce(html, 'function wordpressStyles(pg2) {', `function wordpressDesignCss() {
++  const m = state.meta, tk = tokenCss();
++  return tokenVars()
++    + ':root{--maxw:' + m.maxWidth + ';--accent:var(--c-brand)}'
++    + 'body{font-family:' + m.font + ';font-size:' + m.size + ';color:var(--c-text);background:var(--c-bg)}'
++    + '.pagecraft-heading{font-family:' + (m.headFont || 'inherit') + '}'
++    + '.pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{font-family:' + (m.headFont || 'inherit') + '}'
++    + tk.d + (tk.t ? MQ.t + '{' + tk.t + '}' : '') + (tk.m ? MQ.m + '{' + tk.m + '}' : '')
++    + (m.css || '');
++}
++
++function wordpressStyles(pg2) {`, 'WordPress design-only stylesheet compiler');
++  html = replaceOnce(html,
++    'globalCss: assetsToBlob(wordpressStyles(page()).global)',
++    'globalCss: assetsToBlob(wordpressDesignCss())',
++    'WordPress shared design foundation');
++  // The pinned editor's manual save path still uses treeCss for both files.
++  // That repeats the foundation in page CSS, overriding later Site Settings.
++  // Use the same split compiler already used by WordPress package exports.
++  html = replaceOnce(html,
++    'globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),\n        pageCss: assetsToBlob(treeCss([page().tree], false))',
++    'globalCss: assetsToBlob(wordpressStyles(page()).global),\n        pageCss: assetsToBlob(wordpressStyles(page()).page)',
++    'WordPress save stylesheet ownership');
++  // Font links in buildPage's head are intentionally not copied into WP content.
++  // Carry native font-face rules in generated stylesheets across both save paths.
++  html = replaceOnce(html, 'let saving = false, saveAgain = false;',
++    wordpressFontLoader + '\nlet saving = false, saveAgain = false;', 'WordPress native font loader');
++  html = replaceOnce(html, 'globalCss: assetsToBlob(wordpressStyles(page()).global)',
++    'globalCss: (await wordpressFontCss()) + assetsToBlob(wordpressStyles(page()).global)', 'WordPress saved page fonts');
++  html = replaceOnce(html, 'globalCss: assetsToBlob(wordpressDesignCss())',
++    'globalCss: (await wordpressFontCss()) + assetsToBlob(wordpressDesignCss())', 'WordPress saved design fonts');
+   let result = replaceOnce(
+     html,
+     '</style>\n<style id="pc-fonts">',
+diff --git a/tools/wordpress-font-loader.mjs b/tools/wordpress-font-loader.mjs
+new file mode 100644
+index 0000000..5083f86
+--- /dev/null
++++ b/tools/wordpress-font-loader.mjs
+@@ -0,0 +1,17 @@
++// Uses the pinned editor's native catalog, parser and font-face compiler.
++// No template-specific family names or user-authored head markup are involved.
++export const wordpressFontLoader = String.raw`
++let wordpressFontCache = { href: '', css: '' };
++async function wordpressFontCss() {
++  const href = gfontsHref();
++  if (!href) return '';
++  if (wordpressFontCache.href === href) return wordpressFontCache.css;
++  const response = await fetch(href);
++  if (!response.ok) throw new Error('The selected fonts could not be loaded. Please retry saving.');
++  const faces = parseFontCss(await response.text());
++  if (!faces.length) throw new Error('The selected fonts returned no usable font files. Please retry saving.');
++  const css = fontFaceCss(faces, face => face.url) + '\n';
++  wordpressFontCache = { href, css };
++  return css;
++}
++`;
+diff --git a/tests/wordpress-font-loader.test.mjs b/tests/wordpress-font-loader.test.mjs
+new file mode 100644
+index 0000000..c6ff4e4
+--- /dev/null
++++ b/tests/wordpress-font-loader.test.mjs
+@@ -0,0 +1,24 @@
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { wordpressFontLoader } from '../tools/wordpress-font-loader.mjs';
++
++test('native font loading caches by selection and retries failures without stale acceptance', async () => {
++  let href = '', requests = 0, ok = true;
++  const load = new Function('gfontsHref', 'fetch', 'parseFontCss', 'fontFaceCss',
++    wordpressFontLoader + '; return wordpressFontCss;')(
++    () => href,
++    async () => { requests++; return { ok, text: async () => href }; },
++    text => [{url: text + '.woff2'}],
++    (faces, url) => '@font-face{src:url(' + url(faces[0]) + ')}');
++  assert.equal(await load(), '');
++  assert.equal(requests, 0);
++  href = 'font-a';
++  assert.match(await load(), /font-a.woff2/);
++  await load();
++  assert.equal(requests, 1);
++  href = 'font-b'; ok = false;
++  await assert.rejects(load(), /retry saving/);
++  ok = true;
++  assert.match(await load(), /font-b.woff2/);
++  assert.equal(requests, 3);
++});

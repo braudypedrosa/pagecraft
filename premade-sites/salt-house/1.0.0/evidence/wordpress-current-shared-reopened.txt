@@ -1,0 +1,451 @@
+- navigation "Main menu":
+  - link "Skip to main content":
+    - /url: "#wpbody-content"
+  - link "Skip to toolbar":
+    - /url: "#wp-toolbar"
+  - list:
+    - link "Dashboard":
+      - /url: index.php
+      - generic: 
+      - generic: Dashboard
+    - list:
+      - link "Home":
+        - /url: index.php
+      - link "Updates":
+        - /url: update-core.php
+    - link "Posts":
+      - /url: edit.php
+      - generic: 
+      - generic: Posts
+    - list:
+      - link "All Posts":
+        - /url: edit.php
+      - link "Add Post":
+        - /url: post-new.php
+      - link "Categories":
+        - /url: edit-tags.php?taxonomy=category
+      - link "Tags":
+        - /url: edit-tags.php?taxonomy=post_tag
+    - link "Media":
+      - /url: upload.php
+      - generic: 
+      - generic: Media
+    - list:
+      - link "Library":
+        - /url: upload.php
+      - link "Add Media File":
+        - /url: media-new.php
+    - link "Pages":
+      - /url: edit.php?post_type=page
+      - generic: 
+      - generic: Pages
+    - list:
+      - link "All Pages":
+        - /url: edit.php?post_type=page
+      - link "Add Page":
+        - /url: post-new.php?post_type=page
+    - link "Comments":
+      - /url: edit-comments.php
+      - generic: 
+      - generic: Comments
+    - link "Pagecraft":
+      - /url: admin.php?page=pagecraft
+      - generic: Pagecraft
+    - list:
+      - link "Overview":
+        - /url: admin.php?page=pagecraft
+      - link "Theme Builder":
+        - /url: admin.php?page=pagecraft-globals
+      - link "Site Settings":
+        - /url: admin.php?page=pagecraft-site-settings
+      - link "Cloud Import":
+        - /url: admin.php?page=pagecraft-connect
+      - link "Settings":
+        - /url: admin.php?page=pagecraft-settings
+    - link "Appearance":
+      - /url: themes.php
+      - generic: 
+      - generic: Appearance
+    - list:
+      - link "Themes":
+        - /url: themes.php
+      - link "Design":
+        - /url: site-editor.php
+      - link "Customize":
+        - /url: customize.php?return=%2Fwp-admin%2Fadmin.php%3Fpage%3Dpagecraft-editor%26post%3D8%26qa%3D7c5bb766
+      - link "Fonts":
+        - /url: font-library.php
+      - link "Menus":
+        - /url: nav-menus.php
+      - link "Theme File Editor":
+        - /url: theme-editor.php
+    - link "Plugins":
+      - /url: plugins.php
+      - generic: 
+      - generic: Plugins
+    - list:
+      - link "Installed Plugins":
+        - /url: plugins.php
+      - link "Add Plugin":
+        - /url: plugin-install.php
+      - link "Plugin File Editor":
+        - /url: plugin-editor.php
+    - link "Users":
+      - /url: users.php
+      - generic: 
+      - generic: Users
+    - list:
+      - link "All Users":
+        - /url: users.php
+      - link "Add User":
+        - /url: user-new.php
+      - link "Profile":
+        - /url: profile.php
+    - link "Tools":
+      - /url: tools.php
+      - generic: 
+      - generic: Tools
+    - list:
+      - link "Available Tools":
+        - /url: tools.php
+      - link "Import":
+        - /url: import.php
+      - link "Export":
+        - /url: export.php
+      - link "Site Health":
+        - /url: site-health.php
+      - link "Export Personal Data":
+        - /url: export-personal-data.php
+      - link "Erase Personal Data":
+        - /url: erase-personal-data.php
+    - link "Settings":
+      - /url: options-general.php
+      - generic: 
+      - generic: Settings
+    - list:
+      - link "General":
+        - /url: options-general.php
+      - link "Connectors":
+        - /url: options-connectors.php
+      - link "Writing":
+        - /url: options-writing.php
+      - link "Reading":
+        - /url: options-reading.php
+      - link "Discussion":
+        - /url: options-discussion.php
+      - link "Media":
+        - /url: options-media.php
+      - link "Permalinks":
+        - /url: options-permalink.php
+      - link "Privacy":
+        - /url: options-privacy.php
+    - button "Collapse Main menu" [expanded]:
+      - generic: Collapse Menu
+- navigation "Toolbar":
+  - menu:
+    - menuitem "About WordPress":
+      - generic: About WordPress
+    - menuitem "Salt House Template QA"
+    - menuitem "⌘K Open command palette":
+      - text: ⌘K
+      - generic: Open command palette
+    - menuitem "0 Comments in moderation":
+      - generic: "0"
+      - generic: 0 Comments in moderation
+    - menuitem "New":
+      - generic: New
+  - menu:
+    - menuitem "Howdy, architectureqa"
+- main:
+  - iframe [active]:
+    - button:
+    - generic: Pagecraft
+    - generic: Home
+    - button:
+    - button [pressed]:
+    - button:
+    - button:
+    - button [disabled]:
+    - button [disabled]:
+    - button:
+    - generic: WordPress draft ready
+    - button
+    - button:
+    - button:
+    - button [disabled]:
+      - generic: Save
+    - complementary:
+      - generic: Add elements
+      - tablist:
+        - tab [selected]:
+          - generic: Elements
+        - tab:
+          - generic: Templates
+        - tab:
+          - generic: Components
+        - tab:
+          - generic: Blocks
+      - generic: Basic elements for building a page
+      - tabpanel:
+        - generic: Layout
+        - button:
+          - generic: Section
+        - button:
+          - generic: Columns
+        - button:
+          - generic: Row
+        - button:
+          - generic: Flex
+        - button:
+          - generic: Grid
+        - button:
+          - generic: Box
+        - button:
+          - generic: Link block
+        - button:
+          - generic: Slider
+        - generic: Content
+        - button:
+          - generic: Heading
+        - button:
+          - generic: WYSIWYG
+        - button:
+          - generic: Quote
+        - button:
+          - generic: Table
+        - button:
+          - generic: Code
+        - button:
+          - generic: Image
+        - button:
+          - generic: Gallery
+        - button:
+          - generic: Video
+        - button:
+          - generic: Icon
+        - generic: Interactive
+        - button:
+          - generic: Button
+        - button:
+          - generic: Nav menu
+        - button:
+          - generic: Breadcrumb
+        - button:
+          - generic: Form
+        - button:
+          - generic: Accordion
+        - button:
+          - generic: Tabs
+        - button:
+          - generic: Embed
+        - generic: Spacing
+        - button:
+          - generic: Divider
+        - button:
+          - generic: Spacer
+    - text: Desktop base
+    - button:
+    - button:
+    - iframe [id="canvas"]:
+      - text: Global header
+      - button "Edit header":
+        - text: Edit header
+      - link "Salt House":
+        - /url: index.html
+      - navigation "Main navigation":
+        - list:
+          - link "The homes":
+            - /url: "%%PAGECRAFT_WP_CONTENT:page:L2hvbWVzLw%%"
+          - link "The coast":
+            - /url: "%%PAGECRAFT_WP_CONTENT:page:L2NvYXN0Lw%%"
+          - link "Plan your stay":
+            - /url: "%%PAGECRAFT_WP_CONTENT:page:L3BsYW4teW91ci1zdGF5Lw%%"
+      - text: Page content
+      - heading "SALT HOUSE" [level=1]
+      - paragraph: A few good homes. A little closer to the sea.
+      - link "Find your coast":
+        - /url: homes.html
+        - generic: Find your coast
+      - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+      - heading "Your kind of coast." [level=2]
+      - paragraph: Room for slow mornings, salt on your skin and everyone around the same table.
+      - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+      - heading "Blue Shutter Cottage" [level=2]
+      - paragraph: 4 guests · 2 bedrooms · Village edge
+      - paragraph: An easy village base, with the sea beyond the shutters.
+      - link "Explore this home":
+        - /url: blue-shutter-cottage.html
+        - generic: Explore this home
+      - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+      - heading "Dune House" [level=2]
+      - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+      - paragraph: Space for a larger gathering, with mornings out on the terrace.
+      - link "Explore this home":
+        - /url: dune-house.html
+        - generic: Explore this home
+      - paragraph: Fictional homes and example details. Images are AI-generated; no real rental availability is offered.
+      - img "Fictional Blue Shutter Cottage exterior beside a coastal village lane"
+      - heading "Beyond the front door." [level=2]
+      - paragraph: A walk through the village. Lunch in the shade. A last look at the water before heading home.
+      - link "Meet the coast":
+        - /url: coast.html
+        - generic: Meet the coast
+      - text: Global footer
+      - button "Edit footer":
+        - text: Edit footer
+      - heading "See you by the sea." [level=2]
+      - link "Find your home":
+        - /url: homes.html
+        - generic: Find your home
+      - link "Plan your stay":
+        - /url: plan-your-stay.html
+        - generic: Plan your stay
+      - generic: SALT HOUSE
+      - paragraph: Fictional collection · AI-generated demonstration images
+    - generic: Desktop
+    - generic: 1520 PX
+    - combobox:
+      - generic: Fit · 64%
+    - status
+    - dialog "Site Settings":
+      - generic: Site Settings
+      - button "Close dialog" [active]:
+      - generic: Container max width
+      - spinbutton "Container max width"
+      - combobox "Unit":
+        - generic: px
+      - generic: Body font
+      - combobox "Body font":
+        - generic: Work Sans
+      - generic: Heading font
+      - combobox "Heading font":
+        - generic: DM Sans
+      - generic: Base font size
+      - spinbutton "Base font size"
+      - combobox "Unit":
+        - generic: px
+      - generic: These settings apply to all Pagecraft pages.
+      - text: Colours
+      - generic: — used across Pagecraft pages
+      - textbox "Chalk colour"
+      - textbox "Colour token name"
+      - textbox "Chalk colour value"
+      - generic "Built in — part of the brand, so it cannot be deleted":
+      - textbox "Sea ink colour"
+      - textbox "Colour token name"
+      - textbox "Sea ink colour value"
+      - button "Delete — usages keep this colour as a literal":
+      - textbox "Body text colour"
+      - textbox "Colour token name"
+      - textbox "Body text colour value"
+      - generic "Built in — part of the brand, so it cannot be deleted":
+      - textbox "Sea blue colour"
+      - textbox "Colour token name"
+      - textbox "Sea blue colour value"
+      - generic "Built in — part of the brand, so it cannot be deleted":
+      - textbox "Sand colour"
+      - textbox "Colour token name"
+      - textbox "Sand colour value"
+      - button "Delete — usages keep this colour as a literal":
+      - textbox "Secondary text colour"
+      - textbox "Colour token name"
+      - textbox "Secondary text colour value"
+      - button "Delete — usages keep this colour as a literal":
+      - textbox "Divider colour"
+      - textbox "Colour token name"
+      - textbox "Divider colour value"
+      - button "Delete — usages keep this colour as a literal":
+      - button "Add colour":
+        - text: Add colour
+      - text: Text styles
+      - generic: — used across Pagecraft pages
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Regular 400
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Regular 400
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Regular 400
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Regular 400
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Regular 400
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Regular 400
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Medium 500
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Regular 400
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - generic: Aa
+      - textbox "Text style name"
+      - textbox "Base size — expand the row to set a Tablet or Mobile override":
+        - /placeholder: auto
+      - combobox "Site Settings":
+        - generic: Semibold 600
+      - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+      - button "Delete — elements keep the look":
+      - button "Add text style":
+        - text: Add text style
+      - text: Style classes
+      - generic: — reusable styles for Pagecraft elements
+      - generic: No class styles yet. Add one here, then apply it to an element and edit its shared styling from the Style tab.
+      - button "Add class style":
+        - text: Add class style
+      - generic: Styles lower in the list take priority. Element styles override classes.
+      - generic: Global CSS — used across Pagecraft pages
+      - textbox "Global CSS — used across Pagecraft pages"
+      - button "Save settings"
+- contentinfo:
+  - paragraph:
+    - text: Thank you for creating with
+    - link "WordPress":
+      - /url: https://wordpress.org/
+    - text: .
+  - paragraph: Version 7.1

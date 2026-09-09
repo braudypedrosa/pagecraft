@@ -1,0 +1,253 @@
+{
+  "format": "pagecraft.redesign-review.v1",
+  "version": "1.1.0",
+  "packageSha256": "beaa62e7f69360b7636afb1ff47aad5036c8778b4ad07b6711d5d7a6d5389c1d",
+  "at": "2026-09-07T14:52:23.841801+00:00",
+  "userFeedback": [
+    {
+      "quote": "Common ground is a terrible site. Does this look good enough for you?",
+      "scope": "Rejects rendered 1.0.0 design; does not revoke immutable artifact history."
+    },
+    {
+      "quote": "I leave it up to you. Use your new capabilities in GPT6",
+      "scope": "Delegates redesign direction selection; not final visual approval."
+    }
+  ],
+  "direction": "Architecture monograph / foldout",
+  "visualReview": {
+    "actor": "independent-agent",
+    "disposition": "ship",
+    "resolved": [
+      "Project-intro spacing",
+      "Mobile model crop",
+      "Complementary courtyard plate",
+      "Repeated image on Projects",
+      "Clean capture of unfocused skip control"
+    ],
+    "userApproval": null,
+    "scope": "Independent composition review of clean preview captures before final native spacing normalization. Does not approve current WordPress font fallback or certify either host for release."
+  },
+  "hosts": {
+    "cloud": {
+      "baseline": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+      "editor": "0.2.15",
+      "scope": "Loopback QA harness using actual installation, native editor, save and publication; fixture identity and in-memory persistence. No deployed Cloud authentication or Supabase acceptance."
+    },
+    "wordpress": {
+      "baseline": "83114212952d80b7cd59359018fb2edfaca40bb3",
+      "editor": "0.2.14",
+      "wordpress": "7.1",
+      "php": "8.5.2",
+      "patch": "cd5576751b62fcb45b0eeea3948af92467fc92c8b0a9579b06d5a8d2562e4f77",
+      "scope": "Existing isolated v4 host patch, verified file-for-file unchanged. Not a released WordPress compatibility claim."
+    }
+  },
+  "checks": {
+    "sixPagesFourWidths": "Historical pre-normalization candidate: six pages at 390/768/1024/1440, geometry checks passed. These do not certify latest-package visual compatibility; WordPress actual fonts are a newly identified failure.",
+    "nativeEditing": "Latest package: native long project title saved, reopened, verified and restored in both hosts. Desktop and mobile section spacing matches after native saves. Earlier duplicate/missing-image/shared-setting evidence is historical; actual WordPress font loading fails.",
+    "forms": "Both native forms configured only in disposable installs; local HTTPS receipts confirmed. No email sent. Packaged form remains unconfigured/disabled.",
+    "automation": "5 redesign regression tests pass, TypeScript and current native document/package/asset checks pass. Earlier 12 workflow tests also passed before final spacing-only change.",
+    "visual": "All six page compositions inspected at desktop/mobile by independent reviewer. Final changes cleared; no final user approval.",
+    "spacingRoundtrip": "Current package, both hosts, 1440 and 390: header/image/title section padding matches after save/reopen; zero horizontal overflow. See spacing-roundtrip.json."
+  },
+  "limitations": [
+    "WordPress web-font loading fails after native save: font-family declarations remain, but font resources are missing. Separate host fix and rendered retest required before compatibility acceptance.",
+    "Cloud imported media size label can show 1 KB although actual files and pixels are intact.",
+    "Reusing an existing WP QA installation exposed old menu-name and slug collisions. Prior test pages and menu were archived/renamed; this does not prove import into an unrelated populated WordPress site.",
+    "The complete 1.0 release-gate exercise set, including repeated 1/3/7 inspector editing and fragile breakpoint sweeps in both hosts, is not newly certified by this redesign review. No release promotion is performed."
+  ],
+  "evidence": [
+    {
+      "path": "evidence/clean-index-1440.png",
+      "sha256": "4fb782fdc392ce16662a42a775b54b06915540ec4322a0cc6b42e03731aaea90"
+    },
+    {
+      "path": "evidence/clean-index-390.png",
+      "sha256": "59ddcb630d687b33868d53abb180ac25dfa86f8485164977a69211a7ad6d1466"
+    },
+    {
+      "path": "evidence/clean-projects-1440.png",
+      "sha256": "c240314eeca2bae8e9a136d72157f2f9c04e4fdb4905e998141cf4387ec2f2d8"
+    },
+    {
+      "path": "evidence/clean-projects-390.png",
+      "sha256": "9da942fb3e4e83ecc4e7cf03473277b06790d27ccadfcb22894a06452fdc63a1"
+    },
+    {
+      "path": "evidence/cloud-form-receipt.txt",
+      "sha256": "5938ea638eb1b32292e6304d5b94a27fed40035fb93ec630a4cc9e3af6c89aed"
+    },
+    {
+      "path": "evidence/cloud-home-1024.png",
+      "sha256": "ede5a6caa0a9ba426baff77297c07079385a00face160361922f07aeaff8c9fe"
+    },
+    {
+      "path": "evidence/cloud-home-1440.png",
+      "sha256": "ddb4cc650a61041609dff0d589aa9bb5ce64a76148b0f3df5fb22b91228017af"
+    },
+    {
+      "path": "evidence/cloud-home-390.png",
+      "sha256": "13491b024079433de77ae8a3ca76307ff5737c49df3b88d2b196c1600ac063b1"
+    },
+    {
+      "path": "evidence/cloud-home-768.png",
+      "sha256": "e4e7f81a62afd69ad8e6f36985fc4d14d5f724dd44abad6f46388cabf601197b"
+    },
+    {
+      "path": "evidence/cloud-native-reopened.txt",
+      "sha256": "ceaa6510de4da2045a5926a453f1b0da16dff5002febfd8bbd837786f2448692"
+    },
+    {
+      "path": "evidence/final-about-1440.png",
+      "sha256": "bc3b694a845c9e5cbeb8c44c8d33ee62745230aa30dcc61507a61a1e4dc1499c"
+    },
+    {
+      "path": "evidence/final-about-390.png",
+      "sha256": "79648d5d9fb793ba2cd027f5999bc8ace2985d1c8e0d626acf44529e77ae8fe2"
+    },
+    {
+      "path": "evidence/final-cloud-edit-reopened.txt",
+      "sha256": "baa0e865eb8cc8b4710b0440fa131b38291000eadfd26ed8c0048c2254867119"
+    },
+    {
+      "path": "evidence/final-cloud-shared-settings.txt",
+      "sha256": "d68987812b0a892a7e6cadd45c50b4015d0a3a1527a14817aeff8c7ee76e1501"
+    },
+    {
+      "path": "evidence/final-contact-1440.png",
+      "sha256": "8cbd7dea4439ec8b240300a5d11a3fcafd1ca5d0014a4cdd4f19623d8fc2661e"
+    },
+    {
+      "path": "evidence/final-contact-390.png",
+      "sha256": "fffb1f5c646ef4d1e9f955b902785ee3716ee2352490377e8bff214882d1de1c"
+    },
+    {
+      "path": "evidence/final-index-1440.png",
+      "sha256": "ba47bcdb9311b7e2085da2345c5ddf52f9552a42432e8b18c03731fdfaa71908"
+    },
+    {
+      "path": "evidence/final-index-390.png",
+      "sha256": "044a7bdc013aa06b7b259a1d3589d1535cdfc7c67013dd16582de82818c1c6ed"
+    },
+    {
+      "path": "evidence/final-project-detail-1440.png",
+      "sha256": "b80fe3f8dc63b622c03e5d7782555382f4b5b612f75d5f670f288c20088d8d2a"
+    },
+    {
+      "path": "evidence/final-project-detail-390.png",
+      "sha256": "28102548a3726c7f6cbc50d2838b868b0240d35e63349bc074df30f2d718fef2"
+    },
+    {
+      "path": "evidence/final-projects-1440.png",
+      "sha256": "e71463a4153fd2115b28e9051f9f91346179cd3e04aa0d081f65c3d2539b182b"
+    },
+    {
+      "path": "evidence/final-projects-390.png",
+      "sha256": "e8caad3984f7dd2d4264a9e8f888a31c65f5ad46a4028208fabf5f2bc72b775b"
+    },
+    {
+      "path": "evidence/final-services-1440.png",
+      "sha256": "df604710c079aca2f3d1b829d037cb11d6a7caeb914df9eac786058824695c08"
+    },
+    {
+      "path": "evidence/final-services-390.png",
+      "sha256": "2b0c8829c5b5b42fc992043f1e2d55eb00107638a895c793931d3472a5644d49"
+    },
+    {
+      "path": "evidence/final-wordpress-edit-reopened.txt",
+      "sha256": "19d594d33a1a80661eade43434aeb751c67e4a3b635f91409b7f4931c9e8d66c"
+    },
+    {
+      "path": "evidence/final-wp-shared-styles.json",
+      "sha256": "bec17f79bab57771969b00138939c04eb5fb6affd29162d0d7708790c0b0c77e"
+    },
+    {
+      "path": "evidence/home-desktop-full.png",
+      "sha256": "0c8717d251c378f724848d67ee0fdfd135a07d3e612d0aeef3967141622c78ec"
+    },
+    {
+      "path": "evidence/home-desktop.png",
+      "sha256": "617f53c24042098cea4ad2e61f6b1518d7eab313ce814f9c19817266225a3ae4"
+    },
+    {
+      "path": "evidence/home-mobile-full.png",
+      "sha256": "1df82e2f74f9cae06ad48b1d6ae568484ea6764840b409af2f6df607405d34cc"
+    },
+    {
+      "path": "evidence/home-mobile.png",
+      "sha256": "4a0daf6bf0a51323ad4f0e5103237374b652aab8e4288dcc1a43ffac82e32748"
+    },
+    {
+      "path": "evidence/host-matrix.json",
+      "sha256": "dd51ddab9e94f5c5ab31f4a8b6b5c48b778a38b99a163d39a2d4e7d1ee3a6e74"
+    },
+    {
+      "path": "evidence/preview-matrix.json",
+      "sha256": "cbfb214935955c6fa3ec8a51458d08509f0b4995c0fb72a63a96429801fc2796"
+    },
+    {
+      "path": "evidence/skip-resting-state.json",
+      "sha256": "2cf21c4bca309bd2c863f2cf85b1fc3dce009626148109f5ee051f81c7a0082b"
+    },
+    {
+      "path": "evidence/spacing-roundtrip.json",
+      "sha256": "e1080b54aa35efde023fcccee043bbe8218938864de2c5e1bcd881913c849e9f"
+    },
+    {
+      "path": "evidence/stable-cloud-1440.png",
+      "sha256": "297e745af110a17d99c384fe1de1941b493e5e498453fc4eb6f6a05f7f72e0e1"
+    },
+    {
+      "path": "evidence/stable-cloud-390.png",
+      "sha256": "99762c795f3eeeb53a35a85b8bfbc1ac72bdec995fe69b91819483bb202bbce7"
+    },
+    {
+      "path": "evidence/stable-wordpress-1440.png",
+      "sha256": "c20b8952754d5775e3537094e82380625bc30af1dd423330fc0f8e948f878d4c"
+    },
+    {
+      "path": "evidence/stable-wordpress-390.png",
+      "sha256": "b6ce6153b903716dda73024ee8454dc93a2b647560b755607c21418531d46629"
+    },
+    {
+      "path": "evidence/wordpress-font-loading-finding.json",
+      "sha256": "c0697528cf7268e326f8eae756d4e15129c79ec5a6a767dd7805d31c242f6279"
+    },
+    {
+      "path": "evidence/wordpress-form-receipt.txt",
+      "sha256": "5938ea638eb1b32292e6304d5b94a27fed40035fb93ec630a4cc9e3af6c89aed"
+    },
+    {
+      "path": "evidence/wordpress-home-1024.png",
+      "sha256": "c52f76d1b4e3c7d09448777da9300947608fb5f43e1741c562b8ea9805005bf9"
+    },
+    {
+      "path": "evidence/wordpress-home-1440.png",
+      "sha256": "24810157fdaed21fbeb2268828e1897af9c2394f6ab569036cd59fd3a337969a"
+    },
+    {
+      "path": "evidence/wordpress-home-390.png",
+      "sha256": "406d2c9027de993d928d1760adb0fce0b528a6ebc40a0a6c32738a0196a50eeb"
+    },
+    {
+      "path": "evidence/wordpress-home-768.png",
+      "sha256": "6051e7d27e884f7746aef7862114e8dba9b57c16ee0718080d83843608f11d17"
+    },
+    {
+      "path": "evidence/wordpress-native-reopened.txt",
+      "sha256": "7204240dfbae75404c5cffda34ee0029666e42bbe524e50c7882959ffb2479ca"
+    },
+    {
+      "path": "evidence/wp-restored-images.json",
+      "sha256": "c17caef7b09224b4b048fd324a901435664169e8a65de80008f1fec07dddbf19"
+    }
+  ],
+  "status": "design-review-ready; WordPress visual compatibility gate incomplete",
+  "historicalEvidence": {
+    "packageSha256": "4a2b7d98e92df24a9dd991f3b527787f930f8df5a83ea5d826fe6ba2c17a1933",
+    "scope": "Four-width matrices, form receipts, shared settings and duplicate/image exercises precede final spacing normalization. They are historical checks, not current-package release acceptance. Font-family propagation measurements did not prove actual web-font rendering."
+  },
+  "openFindings": [
+    "evidence/wordpress-font-loading-finding.json"
+  ]
+}

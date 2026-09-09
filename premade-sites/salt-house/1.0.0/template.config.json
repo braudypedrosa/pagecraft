@@ -1,0 +1,46 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "salt-house",
+  "version": "1.0.0",
+  "name": "Vacation Rental Collection",
+  "sampleName": "Salt House",
+  "description": "A coastal collection with six native pages, reusable holiday-home listings, property galleries and clear booking-provider setup.",
+  "categories": [
+    "Vacation rentals",
+    "Hospitality"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "terrace",
+      "file": "assets/terrace.png"
+    },
+    {
+      "id": "cottage",
+      "file": "assets/cottage.png"
+    },
+    {
+      "id": "exterior",
+      "file": "assets/exterior.png"
+    },
+    {
+      "id": "bedroom",
+      "file": "assets/bedroom.png"
+    },
+    {
+      "id": "cove",
+      "file": "assets/cove.png"
+    },
+    {
+      "id": "lunch",
+      "file": "assets/lunch.png"
+    },
+    {
+      "id": "evening",
+      "file": "assets/evening.png"
+    }
+  ],
+  "customCssPolicy": "native-only"
+}

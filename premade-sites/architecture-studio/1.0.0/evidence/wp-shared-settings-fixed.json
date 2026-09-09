@@ -1,0 +1,12 @@
+[
+  {
+    "page": "home",
+    "font": "Georgia, \"Times New Roman\", serif",
+    "ink": "#293d58"
+  },
+  {
+    "page": "about",
+    "font": "Georgia, \"Times New Roman\", serif",
+    "ink": "#293d58"
+  }
+]

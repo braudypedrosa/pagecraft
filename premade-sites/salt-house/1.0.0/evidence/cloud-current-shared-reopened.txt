@@ -1,0 +1,342 @@
+- link:
+  - /url: /
+  - generic: Pagecraft
+- generic: Salt House
+- generic: · Home
+- button:
+- button [pressed]:
+- button:
+- button:
+- button [disabled]:
+- button [disabled]:
+- button:
+- generic: Draft ready
+- button
+- button:
+- button:
+- button:
+- button:
+  - generic: Publish
+- navigation:
+  - button:
+    - generic: Add
+  - button:
+    - generic: Navigator
+  - button:
+    - generic: Pages
+  - button:
+    - generic: CMS
+  - button:
+    - generic: Media
+  - button:
+    - generic: Settings
+  - button:
+    - strong: TQ
+    - generic: Account
+- complementary:
+  - generic: Add elements
+  - tablist:
+    - tab [selected]:
+      - generic: Elements
+    - tab:
+      - generic: Templates
+    - tab:
+      - generic: Components
+    - tab:
+      - generic: Blocks
+  - generic: Basic elements for building a page
+  - tabpanel:
+    - generic: Layout
+    - button:
+      - generic: Section
+    - button:
+      - generic: Columns
+    - button:
+      - generic: Row
+    - button:
+      - generic: Flex
+    - button:
+      - generic: Grid
+    - button:
+      - generic: Box
+    - button:
+      - generic: Link block
+    - button:
+      - generic: Slider
+    - button:
+      - generic: Collection
+    - generic: Content
+    - button:
+      - generic: Heading
+    - button:
+      - generic: WYSIWYG
+    - button:
+      - generic: Quote
+    - button:
+      - generic: Table
+    - button:
+      - generic: Code
+    - button:
+      - generic: Image
+    - button:
+      - generic: Gallery
+    - button:
+      - generic: Video
+    - button:
+      - generic: Icon
+    - generic: Interactive
+    - button:
+      - generic: Button
+    - button:
+      - generic: Nav menu
+    - button:
+      - generic: Breadcrumb
+    - button:
+      - generic: Form
+    - button:
+      - generic: Accordion
+    - button:
+      - generic: Tabs
+    - button:
+      - generic: Embed
+    - generic: Spacing
+    - button:
+      - generic: Divider
+    - button:
+      - generic: Spacer
+- text: Home
+- text: Desktop base
+- iframe [id="canvas"]:
+  - text: Global header
+  - button "Edit header":
+    - text: Edit header
+  - link "Salt House":
+    - /url: index.html
+  - navigation "Main navigation":
+    - list:
+      - link "The homes":
+        - /url: homes.html
+      - link "The coast":
+        - /url: coast.html
+      - link "Plan your stay":
+        - /url: plan-your-stay.html
+  - text: Page content
+  - heading "SALT HOUSE" [level=1]
+  - paragraph: A few good homes. A little closer to the sea.
+  - link "Find your coast":
+    - /url: homes.html
+    - generic: Find your coast
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Your kind of coast." [level=2]
+  - paragraph: Room for slow mornings, salt on your skin and everyone around the same table.
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Blue Shutter Cottage" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: An easy village base, with the sea beyond the shutters.
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Dune House" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - paragraph: Fictional homes and example details. Images are AI-generated; no real rental availability is offered.
+  - img "Fictional Blue Shutter Cottage exterior beside a coastal village lane"
+  - heading "Beyond the front door." [level=2]
+  - paragraph: A walk through the village. Lunch in the shade. A last look at the water before heading home.
+  - link "Meet the coast":
+    - /url: coast.html
+    - generic: Meet the coast
+  - text: Global footer
+  - button "Edit footer":
+    - text: Edit footer
+  - heading "See you by the sea." [level=2]
+  - link "Find your home":
+    - /url: homes.html
+    - generic: Find your home
+  - link "Plan your stay":
+    - /url: plan-your-stay.html
+    - generic: Plan your stay
+  - generic: SALT HOUSE
+  - paragraph: Fictional collection · AI-generated demonstration images
+- generic: Desktop
+- generic: 1520 PX
+- combobox:
+  - generic: Fit · 60%
+- status
+- dialog "Project settings":
+  - generic: Project settings
+  - button "Close dialog" [active]:
+  - generic: Project name
+  - textbox "Project name": Salt House
+  - generic: Container max width
+  - spinbutton "Container max width": "1400"
+  - combobox "Unit":
+    - generic: px
+  - generic: Body font
+  - combobox "Body font":
+    - generic: Work Sans
+  - generic: Heading font
+  - combobox "Heading font":
+    - generic: DM Sans
+  - generic: Base font size
+  - spinbutton "Base font size": "18"
+  - combobox "Unit":
+    - generic: px
+  - generic: Language
+  - combobox "Language":
+    - generic: English — en
+  - text: Site URL
+  - generic: — enables canonical tags and a sitemap
+  - textbox "Site URL — enables canonical tags and a sitemap":
+    - /placeholder: https://example.com
+  - generic: Favicon
+  - button "Upload an image":
+    - generic: Drop an image here
+    - generic: or choose a file
+  - button "Upload":
+    - text: Upload
+  - button "Library":
+    - text: Library
+  - generic: Exported as a <link rel="icon">.
+  - text: Social share image
+  - generic: — when a page has none
+  - generic: terrace.png
+  - generic: 1 KB · 1536 × 1024
+  - button "Remove":
+  - button "Replace":
+    - text: Replace
+  - button "Library":
+    - text: Library
+  - generic: Crawlers need an absolute URL, so this works once a Site URL is set and you export with images as separate files.
+  - text: Colours
+  - generic: — change one here and every element linked to it follows
+  - textbox "Chalk colour": "#faf9f4"
+  - textbox "Colour token name": Chalk
+  - textbox "Chalk colour value": "#faf9f4"
+  - generic "Built in — part of the brand, so it cannot be deleted":
+  - textbox "Sea ink colour": "#173f65"
+  - textbox "Colour token name": Sea ink
+  - textbox "Sea ink colour value": "#173f65"
+  - button "Delete — usages keep this colour as a literal":
+  - textbox "Body text colour": "#18384c"
+  - textbox "Colour token name": Body text
+  - textbox "Body text colour value": "#18384c"
+  - generic "Built in — part of the brand, so it cannot be deleted":
+  - textbox "Sea blue colour": "#304c45"
+  - textbox "Colour token name": Sea blue
+  - textbox "Sea blue colour value": "#304c45"
+  - generic "Built in — part of the brand, so it cannot be deleted":
+  - textbox "Sand colour": "#efeadb"
+  - textbox "Colour token name": Sand
+  - textbox "Sand colour value": "#efeadb"
+  - button "Delete — usages keep this colour as a literal":
+  - textbox "Secondary text colour": "#51606a"
+  - textbox "Colour token name": Secondary text
+  - textbox "Secondary text colour value": "#51606a"
+  - button "Delete — usages keep this colour as a literal":
+  - textbox "Divider colour": "#c0c7c8"
+  - textbox "Colour token name": Divider
+  - textbox "Divider colour value": "#c0c7c8"
+  - button "Delete — usages keep this colour as a literal":
+  - button "Add colour":
+    - text: Add colour
+  - text: Text styles
+  - generic: — reusable typography, edited from any element that uses one
+  - generic: Aa
+  - textbox "Text style name": Display
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Section title
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Card title
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Lead paragraph
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Body
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Small
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Eyebrow
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Medium 500
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Button label
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Regular 400
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - generic: Aa
+  - textbox "Text style name": Hero brand
+  - textbox "Base size — expand the row to set a Tablet or Mobile override":
+    - /placeholder: auto
+  - combobox "Project settings":
+    - generic: Semibold 600
+  - button "Line height, letter spacing, colour, and per-breakpoint overrides":
+  - button "Delete — elements keep the look":
+  - button "Add text style":
+    - text: Add text style
+  - text: Style classes
+  - generic: — any reusable styling; later in the list wins
+  - generic: No class styles yet. Add one here, then apply it to an element and edit its shared styling from the Style tab.
+  - button "Add class style":
+    - text: Add class style
+  - generic: Lower overrides higher. Element styling wins.
+  - generic: Global CSS — injected into every exported page
+  - textbox "Global CSS — injected into every exported page"
+  - generic: Extra <head> HTML — web fonts, analytics, favicons
+  - textbox "Extra <head> HTML — web fonts, analytics, favicons":
+    - /placeholder: <link rel="stylesheet" href="https://fonts.googleapis.com/…">
+  - generic: Webfonts
+  - checkbox "Ship the font files with the site"
+  - generic: Ship the font files with the site
+  - text: On, the archive carries the woff2 files and each page declares them itself — no request to
+  - code: fonts.googleapis.com
+  - text: ", which is a round trip before any text renders and, in the EU, a transfer of your visitor's IP address. Latin and Latin Extended only. Applies to the separate files export and the archive; one self-contained file has nowhere to put them."
+  - button "Start an empty site"
+  - button "Reset to demo content"
+  - button "Done"

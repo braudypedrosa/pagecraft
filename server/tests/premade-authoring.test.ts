@@ -58,3 +58,12 @@ test('reviewed custom CSS requires an explicit migration reason', () => {
     customCssReason: 'Pseudo-element artwork pending native support.',
   }).customCssPolicy, 'reviewed-exception');
 });
+
+test('native contract also inspects reusable definitions and head HTML', () => {
+  const document = buildTemplateStarter('Definitions');
+  const node = { id: 'component-root', type: 'box' as const, props: {}, css: { d: {}, t: {}, m: {} }, hide: {}, cls: [], adv: { htmlId: '', cls: '', css: '&{padding:90px}' }, children: [] };
+  document.meta.components = [{ id: 'component-one', name: 'Example', node, props: [] }];
+  a.ok(validateTemplateDocument(document, config()).includes('component-root:advanced-css-is-not-builder-native'));
+  document.meta.headHtml = '<style>body{color:red}</style>';
+  a.ok(validateTemplateDocument(document, config()).includes('document:head-html-is-not-builder-native'));
+});

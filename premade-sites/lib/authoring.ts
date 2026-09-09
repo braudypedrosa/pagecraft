@@ -79,6 +79,8 @@ export function templateNodes(document: Doc): Node[] {
   visit(document.header || []);
   visit(document.footer || []);
   for (const page of document.pages || []) visit(page.tree || []);
+  for (const component of document.meta?.components || []) visit([component.node]);
+  for (const block of document.meta?.blocks || []) visit([block.node]);
   return out;
 }
 
@@ -100,7 +102,7 @@ const assetReferences = (value: unknown, refs = new Set<string>()): Set<string> 
  */
 export function validateTemplateDocument(document: Doc, config: TemplateSourceConfig): string[] {
   const findings: string[] = [];
-  if (!document || !Array.isArray(document.pages) || !document.pages.length) findings.push('document:missing-pages');
+  if (!document || !Array.isArray(document.pages) || !document.pages.length) return ['document:missing-pages'];
   const slugs = new Set<string>();
   for (const page of document.pages || []) {
     if (!SEGMENT.test(String(page.slug || ''))) findings.push(`${page.id}:invalid-page-slug`);
@@ -126,6 +128,8 @@ export function validateTemplateDocument(document: Doc, config: TemplateSourceCo
   if (String(document.meta?.css || '').trim() && config.customCssPolicy === 'native-only') {
     findings.push('document:custom-css-is-not-builder-native');
   }
+
+  if (String(document.meta?.headHtml || '').trim() && config.customCssPolicy === 'native-only') findings.push('document:head-html-is-not-builder-native');
 
   const configured = new Set(config.assets.map(asset => asset.id));
   for (const reference of assetReferences(document)) {

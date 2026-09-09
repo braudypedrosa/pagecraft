@@ -33,3 +33,7 @@ supabase/.temp/
 # Machine-local deployment access. Private keys remain in ~/.ssh and this
 # directory stores only ignored connection metadata for this checkout.
 .pagecraft-local/
+
+# Draft packages/previews are reproducible and must not be confused with releases.
+premade-sites/*/*/draft/
+premade-sites/.promotion-lock/

@@ -1,0 +1,287 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "checks": [
+    {
+      "host": "cloud",
+      "count": 1,
+      "device": "Desktop",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 1320,
+      "smallText": [],
+      "width": 1320
+    },
+    {
+      "host": "cloud",
+      "count": 1,
+      "device": "Tablet",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 834,
+      "smallText": [],
+      "width": 834
+    },
+    {
+      "host": "cloud",
+      "count": 1,
+      "device": "Mobile",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 414,
+      "smallText": [],
+      "width": 414
+    },
+    {
+      "host": "cloud",
+      "count": 3,
+      "device": "Desktop",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 1320,
+      "smallText": [],
+      "width": 1320
+    },
+    {
+      "host": "cloud",
+      "count": 3,
+      "device": "Tablet",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 834,
+      "smallText": [],
+      "width": 834
+    },
+    {
+      "host": "cloud",
+      "count": 3,
+      "device": "Mobile",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 414,
+      "smallText": [],
+      "width": 414
+    },
+    {
+      "host": "cloud",
+      "count": 7,
+      "device": "Desktop",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Independent project 4",
+        "Independent project 5",
+        "Independent project 6",
+        "Independent project 7",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 1320,
+      "smallText": [],
+      "width": 1320
+    },
+    {
+      "host": "cloud",
+      "count": 7,
+      "device": "Tablet",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Independent project 4",
+        "Independent project 5",
+        "Independent project 6",
+        "Independent project 7",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 834,
+      "smallText": [],
+      "width": 834
+    },
+    {
+      "host": "cloud",
+      "count": 7,
+      "device": "Mobile",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Independent project 4",
+        "Independent project 5",
+        "Independent project 6",
+        "Independent project 7",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 414,
+      "smallText": [],
+      "width": 414
+    },
+    {
+      "host": "wordpress",
+      "count": 1,
+      "device": "Desktop",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 1320,
+      "smallText": [],
+      "width": 1320
+    },
+    {
+      "host": "wordpress",
+      "count": 1,
+      "device": "Tablet",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 834,
+      "smallText": [],
+      "width": 834
+    },
+    {
+      "host": "wordpress",
+      "count": 1,
+      "device": "Mobile",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 414,
+      "smallText": [],
+      "width": 414
+    },
+    {
+      "host": "wordpress",
+      "count": 3,
+      "device": "Desktop",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 1320,
+      "smallText": [],
+      "width": 1320
+    },
+    {
+      "host": "wordpress",
+      "count": 3,
+      "device": "Tablet",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 834,
+      "smallText": [],
+      "width": 834
+    },
+    {
+      "host": "wordpress",
+      "count": 3,
+      "device": "Mobile",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 414,
+      "smallText": [],
+      "width": 414
+    },
+    {
+      "host": "wordpress",
+      "count": 7,
+      "device": "Desktop",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Independent project 4",
+        "Independent project 5",
+        "Independent project 6",
+        "Independent project 7",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 1320,
+      "smallText": [],
+      "width": 1320
+    },
+    {
+      "host": "wordpress",
+      "count": 7,
+      "device": "Tablet",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Independent project 4",
+        "Independent project 5",
+        "Independent project 6",
+        "Independent project 7",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 834,
+      "smallText": [],
+      "width": 834
+    },
+    {
+      "host": "wordpress",
+      "count": 7,
+      "device": "Mobile",
+      "headings": [
+        "Workshop reading room for a neighborhood gathering around a shared table",
+        "Independent project 2",
+        "Independent project 3",
+        "Independent project 4",
+        "Independent project 5",
+        "Independent project 6",
+        "Independent project 7",
+        "Work with what is there.",
+        "Have a place in mind?"
+      ],
+      "scrollWidth": 414,
+      "smallText": [],
+      "width": 414
+    }
+  ]
+}

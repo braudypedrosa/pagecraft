@@ -1,0 +1,28 @@
+{
+  "mobile": {
+    "images": [
+      {
+        "loaded": true
+      },
+      {
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 375,
+    "width": 390
+  },
+  "desktop": {
+    "images": [
+      {
+        "loaded": true
+      },
+      {
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 1425,
+    "width": 1440
+  },
+  "mobileNavigation": "Main navigation menu Enter then Projects link reached project index",
+  "errors": []
+}

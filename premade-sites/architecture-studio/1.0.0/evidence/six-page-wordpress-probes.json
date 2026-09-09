@@ -1,0 +1,750 @@
+{
+  "packageSha256": "642eccdc1fa435f5f92de35972c0d9049b85b714881ea05182da9f6df1a8cda5",
+  "matrix": [
+    {
+      "page": "index",
+      "fontSizes": [
+        "23px",
+        "36px",
+        "17px",
+        "16px",
+        "14px",
+        "28px",
+        "19px"
+      ],
+      "headings": [
+        "Homes andshared places."
+      ],
+      "images": [
+        {
+          "loaded": false
+        },
+        {
+          "loaded": false
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/projects/#reading-room",
+        "/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "page": "index",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "18px",
+        "14px",
+        "34px",
+        "21px"
+      ],
+      "headings": [
+        "Homes andshared places."
+      ],
+      "images": [
+        {
+          "loaded": true
+        },
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/projects/#reading-room",
+        "/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "page": "index",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "18px",
+        "14px",
+        "34px",
+        "21px"
+      ],
+      "headings": [
+        "Homes andshared places."
+      ],
+      "images": [
+        {
+          "loaded": false
+        },
+        {
+          "loaded": false
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/projects/#reading-room",
+        "/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1024
+    },
+    {
+      "page": "index",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "18px",
+        "14px",
+        "34px",
+        "21px"
+      ],
+      "headings": [
+        "Homes andshared places."
+      ],
+      "images": [
+        {
+          "loaded": false
+        },
+        {
+          "loaded": false
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/projects/#reading-room",
+        "/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1440
+    },
+    {
+      "page": "projects",
+      "fontSizes": [
+        "23px",
+        "36px",
+        "19px",
+        "28px",
+        "14px",
+        "17px",
+        "16px"
+      ],
+      "headings": [
+        "Two places. Different starting points."
+      ],
+      "images": [
+        {
+          "loaded": true
+        },
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "page": "projects",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "14px",
+        "18px"
+      ],
+      "headings": [
+        "Two places. Different starting points."
+      ],
+      "images": [
+        {
+          "loaded": true
+        },
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "page": "projects",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "14px",
+        "18px"
+      ],
+      "headings": [
+        "Two places. Different starting points."
+      ],
+      "images": [
+        {
+          "loaded": true
+        },
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1024
+    },
+    {
+      "page": "projects",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "14px",
+        "18px"
+      ],
+      "headings": [
+        "Two places. Different starting points."
+      ],
+      "images": [
+        {
+          "loaded": true
+        },
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/project-detail/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1440
+    },
+    {
+      "page": "project-detail",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "36px",
+        "14px",
+        "19px",
+        "28px",
+        "17px"
+      ],
+      "headings": [
+        "Courtyard house"
+      ],
+      "images": [
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "page": "project-detail",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "14px",
+        "21px",
+        "34px",
+        "18px"
+      ],
+      "headings": [
+        "Courtyard house"
+      ],
+      "images": [
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "page": "project-detail",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "14px",
+        "21px",
+        "34px",
+        "18px"
+      ],
+      "headings": [
+        "Courtyard house"
+      ],
+      "images": [
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1024
+    },
+    {
+      "page": "project-detail",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "14px",
+        "21px",
+        "34px",
+        "18px"
+      ],
+      "headings": [
+        "Courtyard house"
+      ],
+      "images": [
+        {
+          "loaded": true
+        }
+      ],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1440
+    },
+    {
+      "page": "about",
+      "fontSizes": [
+        "23px",
+        "36px",
+        "19px",
+        "16px",
+        "28px",
+        "17px",
+        "14px"
+      ],
+      "headings": [
+        "Work with what is there."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "page": "about",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "18px",
+        "14px"
+      ],
+      "headings": [
+        "Work with what is there."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "page": "about",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "18px",
+        "14px"
+      ],
+      "headings": [
+        "Work with what is there."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1024
+    },
+    {
+      "page": "about",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "18px",
+        "14px"
+      ],
+      "headings": [
+        "Work with what is there."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1440
+    },
+    {
+      "page": "services",
+      "fontSizes": [
+        "23px",
+        "36px",
+        "19px",
+        "28px",
+        "17px",
+        "22px",
+        "16px",
+        "14px"
+      ],
+      "headings": [
+        "From a first question to a clear brief."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "page": "services",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "18px",
+        "24px",
+        "14px"
+      ],
+      "headings": [
+        "From a first question to a clear brief."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "page": "services",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "18px",
+        "24px",
+        "14px"
+      ],
+      "headings": [
+        "From a first question to a clear brief."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1024
+    },
+    {
+      "page": "services",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "21px",
+        "34px",
+        "18px",
+        "24px",
+        "14px"
+      ],
+      "headings": [
+        "From a first question to a clear brief."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1440
+    },
+    {
+      "page": "contact",
+      "fontSizes": [
+        "23px",
+        "36px",
+        "17px",
+        "14.76px",
+        "18px",
+        "28px",
+        "14px",
+        "16px"
+      ],
+      "headings": [
+        "Tell us about your place."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 390
+    },
+    {
+      "page": "contact",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "18px",
+        "14.76px",
+        "34px",
+        "14px"
+      ],
+      "headings": [
+        "Tell us about your place."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "page": "contact",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "18px",
+        "14.76px",
+        "34px",
+        "14px"
+      ],
+      "headings": [
+        "Tell us about your place."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1024
+    },
+    {
+      "page": "contact",
+      "fontSizes": [
+        "23px",
+        "16px",
+        "48px",
+        "18px",
+        "14.76px",
+        "34px",
+        "14px"
+      ],
+      "headings": [
+        "Tell us about your place."
+      ],
+      "images": [],
+      "links": [
+        "/",
+        "http://127.0.0.1:4892/projects/",
+        "http://127.0.0.1:4892/about/",
+        "http://127.0.0.1:4892/services/",
+        "http://127.0.0.1:4892/contact/",
+        "/projects/"
+      ],
+      "overflow": false,
+      "width": 1440
+    }
+  ]
+}

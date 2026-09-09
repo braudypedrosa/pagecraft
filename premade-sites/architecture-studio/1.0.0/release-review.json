@@ -1,0 +1,1357 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent architecture practices presenting residential and adaptive reuse work to prospective clients",
+    "primaryAction": "Explore relevant projects, then contact the practice",
+    "pages": [
+      "index",
+      "projects",
+      "project-detail",
+      "about",
+      "services",
+      "contact"
+    ],
+    "content": "Fictional Common Ground practice, six native pages. Demonstration project narratives; no invented clients, awards, testimonials or contact details.",
+    "imagery": "Courtyard exterior explains enclosure and light; reading room interior explains adaptive reuse. Same two images across alternatives enable comparison of composition.",
+    "provenance": [
+      {
+        "asset": "courtyard-house",
+        "source": "OpenAI image generation, 2026-09-07, task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-9b9df3e0-bdc9-414f-84bd-88b24d055e9a.png",
+        "license": "AI-generated demonstration imagery; no claim of real architectural authorship or third-party photographer attribution."
+      },
+      {
+        "asset": "reading-room",
+        "source": "OpenAI image generation, 2026-09-07, task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-af12b493-1a8a-4f43-81e4-e5ade4d1bb9c.png",
+        "license": "AI-generated demonstration imagery; no claim of real architectural authorship or third-party photographer attribution."
+      }
+    ]
+  },
+  "directions": [
+    {
+      "id": "gallery",
+      "thesis": "Let complete architectural scenes lead a short, curated portfolio.",
+      "fingerprint": {
+        "header": "solid compact bar",
+        "hero": "framed wide exterior",
+        "textAnchor": "left thesis above media",
+        "inventory": "full-width project chapters",
+        "cta": "in-flow project link",
+        "footer": "compact colophon"
+      },
+      "comparison": "Full-width scenes and short attached captions; strongest image immersion. Compared with current Northline history: neither gallery nor journal repeats its evidence ledger or wordmark floor. Index shares a left editorial anchor but uses project navigation as functional context.",
+      "sections": [
+        {
+          "purpose": "Introduce the practice and orient project browsing",
+          "archetype": "HE02",
+          "composition": "framed wide exterior",
+          "typography": "Readable headline and paragraph in one reading group",
+          "imagery": "Generated architectural study, expressly fictional",
+          "action": "Jump to the project section"
+        },
+        {
+          "purpose": "Explain a specific project and its architectural decision",
+          "archetype": "I10",
+          "composition": "full-width project chapters",
+          "typography": "Readable headline and paragraph in one reading group",
+          "imagery": "Generated architectural study, expressly fictional",
+          "action": "Read project narrative"
+        }
+      ]
+    },
+    {
+      "id": "journal",
+      "thesis": "Explain the practice through the decisions embodied in existing buildings.",
+      "fingerprint": {
+        "header": "centered masthead",
+        "hero": "interior with attached editorial caption",
+        "textAnchor": "centered opening; reading-group body",
+        "inventory": "material narrative with paired explanation",
+        "cta": "contextual story links",
+        "footer": "editorial colophon"
+      },
+      "comparison": "Publication-like opening and material story; warmer and more narrative than the gallery. Compared with current Northline history: neither gallery nor journal repeats its evidence ledger or wordmark floor. Index shares a left editorial anchor but uses project navigation as functional context.",
+      "sections": [
+        {
+          "purpose": "Introduce the practice and orient project browsing",
+          "archetype": "HE02",
+          "composition": "interior with attached editorial caption",
+          "typography": "Readable headline and paragraph in one reading group",
+          "imagery": "Generated architectural study, expressly fictional",
+          "action": "Jump to the project section"
+        },
+        {
+          "purpose": "Explain a specific project and its architectural decision",
+          "archetype": "S08",
+          "composition": "material narrative with paired explanation",
+          "typography": "Readable headline and paragraph in one reading group",
+          "imagery": "Generated architectural study, expressly fictional",
+          "action": "Read project narrative"
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "thesis": "Help visitors scan project types before exploring selected architecture.",
+      "fingerprint": {
+        "header": "compact utility bar",
+        "hero": "portrait project beside actual directory",
+        "textAnchor": "left navigation and thesis",
+        "inventory": "aligned project records",
+        "cta": "project index anchors",
+        "footer": "quiet signature"
+      },
+      "comparison": "Directory and project records prioritize browsing. No decorative numbered rows or empty heading/copy split. Compared with current Northline history: neither gallery nor journal repeats its evidence ledger or wordmark floor. Index shares a left editorial anchor but uses project navigation as functional context.",
+      "sections": [
+        {
+          "purpose": "Introduce the practice and orient project browsing",
+          "archetype": "HE12",
+          "composition": "portrait project beside actual directory",
+          "typography": "Readable headline and paragraph in one reading group",
+          "imagery": "Generated architectural study, expressly fictional",
+          "action": "Jump to the project section"
+        },
+        {
+          "purpose": "Explain a specific project and its architectural decision",
+          "archetype": "I15",
+          "composition": "aligned project records",
+          "typography": "Readable headline and paragraph in one reading group",
+          "imagery": "Generated architectural study, expressly fictional",
+          "action": "Read project narrative"
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "directionId": "index",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "C",
+      "at": "2026-09-07T09:50:47.801323Z",
+      "evidence": "Task 01a07abf-feba-7391-bf0e-1bd23d7add8e, user reply C after the three-direction review; selects C Index, not final release approval."
+    }
+  },
+  "targets": {
+    "cloud": {
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+      "editorVersion": "0.2.15"
+    },
+    "wordpress": {
+      "hostRevision": "83114212952d80b7cd59359018fb2edfaca40bb3+local-patch:cd5576751b62fcb45b0eeea3948af92467fc92c8b0a9579b06d5a8d2562e4f77",
+      "editorVersion": "0.2.14"
+    }
+  },
+  "findings": [
+    {
+      "severity": "error",
+      "page": "all",
+      "node": "site",
+      "viewport": "all",
+      "detail": "Disposable WordPress QA administrator authorized and created. Native package import succeeded. Representative-page acceptance is blocked by WordPress serialization and frontend accessibility defects.",
+      "correction": "Resolve the separately identified WordPress host defects and repeat representative-page QA before extending the site. Fixed and regression-tested in the isolated WordPress checkout; evidence/wordpress-host-patch.json records exact file hashes. New six-page acceptance remains pending.",
+      "resolved": true
+    },
+    {
+      "severity": "error",
+      "page": "contact",
+      "node": "cg-inquiry-form-33",
+      "viewport": "all",
+      "detail": "Both native forms configured in isolated QA installs, stored actual local receipts, rejected whitespace names, and showed truthful errors on storage failure. No email sent.",
+      "correction": "Keep receiving endpoint out of reusable package; see evidence/form-delivery.json, form-rejections.json and form-storage-failures.json.",
+      "resolved": true
+    },
+    {
+      "severity": "warning",
+      "page": "contact",
+      "node": "cg-inquiry-form-33",
+      "viewport": "all",
+      "detail": "Initial representative used incorrect button variables and 13.94px form labels. Corrected to native --f-btn-bg/--f-btn-fg and 18px form typography; rendered labels now exceed 14px.",
+      "correction": "Retest corrected package in both hosts; previous Cloud editing observations belong to the earlier package.",
+      "resolved": true
+    },
+    {
+      "severity": "warning",
+      "page": "all",
+      "node": "media-library",
+      "viewport": "editor",
+      "detail": "Cloud QA media inspector displayed 1 KB for imported multi-megabyte images; loaded image pixels were correct. This is a host metadata finding, not evidence of asset corruption.",
+      "correction": "Trace imported asset size metadata as a separate shared-builder follow-up; validate actual package asset bytes during host import QA.",
+      "resolved": false
+    },
+    {
+      "severity": "error",
+      "page": "index",
+      "node": "cg-project-instance-26",
+      "viewport": "desktop/tablet/mobile",
+      "detail": "WordPress reports a successful save but new breakpoint styles disappear. The actual editor response contains 54 array-shaped CSS maps where objects are required. Explicit content values preserve instance titles but do not fix empty CSS maps.",
+      "correction": "Preserve document object/list types across WordPress import, editor load/save, global settings, and restore. Add real save/reopen tests for empty maps. See HOST-FOLLOWUP.md. Fixed and regression-tested in the isolated WordPress checkout; evidence/wordpress-host-patch.json records exact file hashes. New six-page acceptance remains pending.",
+      "resolved": true
+    },
+    {
+      "severity": "error",
+      "page": "global-header",
+      "node": "cg-navigation-9",
+      "viewport": "390",
+      "detail": "Published native mobile menu opens, but aria-label and aria-controls were removed. The button has no accessible name.",
+      "correction": "Explicitly allow supported ARIA attributes in WordPress HTML sanitization and verify keyboard operation and named controls. See HOST-FOLLOWUP.md. Fixed and regression-tested in the isolated WordPress checkout; evidence/wordpress-host-patch.json records exact file hashes. New six-page acceptance remains pending.",
+      "resolved": true
+    },
+    {
+      "severity": "warning",
+      "page": "index",
+      "node": "wordpress-edit-entry",
+      "viewport": "editor",
+      "detail": "The existing WordPress Edit with Pagecraft link opens the start chooser on the imported managed page. The existing direct editor route loads its document.",
+      "correction": "Route managed pages to the existing editor, retaining the chooser for unmanaged pages. Fixed and regression-tested in the isolated WordPress checkout; evidence/wordpress-host-patch.json records exact file hashes. New six-page acceptance remains pending.",
+      "resolved": true
+    },
+    {
+      "severity": "error",
+      "page": "all",
+      "node": "wordpress-shared-design-styles",
+      "viewport": "all",
+      "detail": "Page saves duplicated foundation styles and old global snapshots could override current Site Settings. Isolated host patch v3 separates page CSS and emits design-only settings CSS, preserving native header layout.",
+      "correction": "Use native split page/global CSS on save and current design-only stylesheet after shared assets. Existing pages saved with older compiler require resaving. See evidence/wordpress-host-patch-v3.json.",
+      "resolved": true
+    },
+    {
+      "severity": "warning",
+      "page": "index/projects",
+      "node": "project-record category/description",
+      "viewport": "editor",
+      "detail": "Rich component text fields did not enter an editable canvas state in either tested editor. Plain native component fields now expose category and description directly and persist independently.",
+      "correction": "Use the exposed plain-text component fields. Rendered output remains semantic paragraphs; no embeds or custom CSS. See native-fields stress and reopen evidence.",
+      "resolved": true
+    },
+    {
+      "severity": "error",
+      "page": "index",
+      "node": "cg-courtyard-house-21",
+      "viewport": "all",
+      "detail": "Restoring a WordPress media-library asset then saving compiled an unresolved asset:6 reference. WordPress sanitization reduced it to src=6, breaking the frontend image.",
+      "correction": "Resolved by isolated WordPress v4 native asset URL compilation before sanitization. Replacement and restoration both survive native save/reopen and frontend loading; see evidence/current-wordpress-media-save-fix.json.",
+      "resolved": true
+    }
+  ],
+  "qa": [
+    {
+      "host": "cloud",
+      "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+      "hostRevision": "0f7134b9560ae1cc53d34a88d25cf26ca608c944",
+      "editorVersion": "0.2.15",
+      "at": "2026-09-07T13:14:26.676151Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "All pages additionally measured at 767/769, 899/900/901 and 1023/1025px; no template overflow or text-floor failures. See current host breakpoint evidence.",
+      "evidence": [
+        {
+          "path": "evidence/current-host-matrix.json",
+          "sha256": "330b02d6a06fb293cc904859fabb6166b5ff7f3fc4d54ade5ae2a60a3d9f9ee3"
+        },
+        {
+          "path": "evidence/native-fields-stress.json",
+          "sha256": "3529385315d251eb2890f167311688e2a268b201e6fc1b7a374d53b33ce17ca3"
+        },
+        {
+          "path": "evidence/native-fields-reorder-persistence.json",
+          "sha256": "b8e613c3f82abc80d3c6115ffbf73f93e35e2ba680cb518f25579a23320b335f"
+        },
+        {
+          "path": "evidence/current-form-delivery.json",
+          "sha256": "f054598c5d8724091219b7b8db18c9d6183e4a25489d2aa6bbd11f44fd09813a"
+        },
+        {
+          "path": "evidence/current-keyboard-journey.json",
+          "sha256": "6f09d7f08c9b67fa5b4d7c50870d3f32947deda63ecf7eee04d247a396ac7b48"
+        },
+        {
+          "path": "evidence/current-responsive-inspector.json",
+          "sha256": "a5df236205ed3451223d423351a58e69d259470cbe89ded9267b3af010a389c7"
+        },
+        {
+          "path": "evidence/current-cloud-shared-styles.json",
+          "sha256": "4392fc53c43a1fa03699ba9ecf636c4e853cf3d5e82cc05d7ba8d702e6d7c991"
+        },
+        {
+          "path": "evidence/current-cloud-breakpoints.json",
+          "sha256": "53a89523f152e4097fb83fe7c3445f0238a402be69fcb3daa87939e3d73ad6f5"
+        },
+        {
+          "path": "evidence/current-cloud-console.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "path": "evidence/current-cloud-image-reopened.txt",
+          "sha256": "978b54d67303e7cd6fc2299868817e37cd50a419b1aedda60802e88180748054"
+        },
+        {
+          "path": "evidence/painted-cloud-about-1024.png",
+          "sha256": "f9c11d5448db2eaf9a32a76a3f6eacbd8ef4b489dcae99474c4992e41ef32da8"
+        },
+        {
+          "path": "evidence/painted-cloud-about-1440.png",
+          "sha256": "8891854772e0a82ab0d391a540818e3dd91a14397fe4a9179cf42f42525ec7e3"
+        },
+        {
+          "path": "evidence/painted-cloud-about-390.png",
+          "sha256": "94b87d50520edd0d53e0db1a7ccdf4fc94301c412d96bdbbfc03bc2de9524090"
+        },
+        {
+          "path": "evidence/painted-cloud-about-768.png",
+          "sha256": "15682eefcfc1f704f70ea2e3e2d7a29123d18609e7bc8fd82df7e66def58ae20"
+        },
+        {
+          "path": "evidence/painted-cloud-contact-1440.png",
+          "sha256": "aae8853a0e0409adf12116bf8083c2a605bc9cc8033d73d88d2297e1a7c451ba"
+        },
+        {
+          "path": "evidence/painted-cloud-contact-390.png",
+          "sha256": "d90c7d8e1831af80f5bed8d5b1464067bfea383824d3623f3e0462c09528fc03"
+        },
+        {
+          "path": "evidence/painted-cloud-home-390.png",
+          "sha256": "18e72c6f250901fe46eec8e0e34db0b8e430baefc640f506f1bdba099bd0d60e"
+        },
+        {
+          "path": "evidence/painted-cloud-index-1024.png",
+          "sha256": "a13bc5f1531e077d97aabd7f646011fdfbcc853eeebdd94a1445e2c231f43733"
+        },
+        {
+          "path": "evidence/painted-cloud-index-1440.png",
+          "sha256": "ab4a8d744114702f81266a5a0ba33697bea6b4f1f98cb8bcc1157004dc408fcd"
+        },
+        {
+          "path": "evidence/painted-cloud-index-390.png",
+          "sha256": "18e72c6f250901fe46eec8e0e34db0b8e430baefc640f506f1bdba099bd0d60e"
+        },
+        {
+          "path": "evidence/painted-cloud-index-768.png",
+          "sha256": "207ef9be498b090b26c1e15835e9f2aa03c96a67e562412ff64853db4c0fef16"
+        },
+        {
+          "path": "evidence/painted-cloud-project-detail-1024.png",
+          "sha256": "619df3350ab67b0a00384cc8956a7d358236086ae74e0c9e5816b531eec83381"
+        },
+        {
+          "path": "evidence/painted-cloud-project-detail-1440.png",
+          "sha256": "390db15ee1cdde072c7ae53e3e1ab61b57cf5ea0c0b5a4399e5441fbff502bd7"
+        },
+        {
+          "path": "evidence/painted-cloud-project-detail-390.png",
+          "sha256": "bfc269c22cff56f3f4c188632e278c3b603a42a41d07b0cfa8d783cf37f88e7f"
+        },
+        {
+          "path": "evidence/painted-cloud-project-detail-768.png",
+          "sha256": "1669eb9ba14c0ee547bd8a6ec91d2432724f8d36e67c16e00fbe872cbd894046"
+        },
+        {
+          "path": "evidence/painted-cloud-projects-1024.png",
+          "sha256": "4fe7f21918973f4faa058523903e849d0a364d6d2121b72d2a1646eb06132dd2"
+        },
+        {
+          "path": "evidence/painted-cloud-projects-1440.png",
+          "sha256": "5ac597d2bbbc3c7a08ed759cd8a7418951cc61606e6fd0e811e6d0fed13d6ff7"
+        },
+        {
+          "path": "evidence/painted-cloud-projects-390.png",
+          "sha256": "73bfc9f6352636bdce2a12a9e75a7c4b53857a6ac95a567c87cff68c257ca494"
+        },
+        {
+          "path": "evidence/painted-cloud-projects-768.png",
+          "sha256": "3695c873d568b9f7baf84e0c375a68836e5d8274ca6c19d9dda126ee7990e5db"
+        },
+        {
+          "path": "evidence/painted-cloud-services-1024.png",
+          "sha256": "53af10a105bd5e6560cde25a3b4e5dfc20107caff2fc621fd2ebb58729ce0dda"
+        },
+        {
+          "path": "evidence/painted-cloud-services-1440.png",
+          "sha256": "47cbfbd23c647d6b7380366bac16601eba193f05880fbf3d4c92df6d01e7ee00"
+        },
+        {
+          "path": "evidence/painted-cloud-services-390.png",
+          "sha256": "6b47ba09ac5d8f78c9baea493ecb6124d28b2bf400c4a2641a465a28fb6295da"
+        },
+        {
+          "path": "evidence/painted-cloud-services-768.png",
+          "sha256": "d87c3b98c027a69605ea0934e88172b6b48ae6c0783857d328ee9aba7879087d"
+        },
+        {
+          "path": "evidence/contact-cloud-1024-bottom.png",
+          "sha256": "59f55754e67899cead898b78c1407dc6d0642cd960e51c0256b3260a3a4acd27"
+        },
+        {
+          "path": "evidence/contact-cloud-1024-top.png",
+          "sha256": "7c23562a76921707dadfcfe9d239ed52794247f5ecc544e372de63a30645763e"
+        },
+        {
+          "path": "evidence/contact-cloud-768-bottom.png",
+          "sha256": "efec2e42a7533b42e0cca2d862fe919017a56e2b0c7cc668bdab1e635bad909a"
+        },
+        {
+          "path": "evidence/contact-cloud-768-top.png",
+          "sha256": "7f5205ae275ba85c93b24b14d195deadd05078d637fe30a177106a95eb351918"
+        },
+        {
+          "path": "RENDERED-REVIEW.md",
+          "sha256": "cc2f08feff50d1f4a9f5038be9cc43cea22df10583321e82f3f9c79644d80741"
+        }
+      ]
+    },
+    {
+      "host": "wordpress",
+      "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+      "hostRevision": "83114212952d80b7cd59359018fb2edfaca40bb3+local-patch:cd5576751b62fcb45b0eeea3948af92467fc92c8b0a9579b06d5a8d2562e4f77",
+      "editorVersion": "0.2.14",
+      "at": "2026-09-07T13:14:26.676151Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "All pages additionally measured at 767/769, 899/900/901 and 1023/1025px; no template overflow or text-floor failures. See current host breakpoint evidence.",
+      "evidence": [
+        {
+          "path": "evidence/current-host-matrix.json",
+          "sha256": "330b02d6a06fb293cc904859fabb6166b5ff7f3fc4d54ade5ae2a60a3d9f9ee3"
+        },
+        {
+          "path": "evidence/native-fields-stress.json",
+          "sha256": "3529385315d251eb2890f167311688e2a268b201e6fc1b7a374d53b33ce17ca3"
+        },
+        {
+          "path": "evidence/native-fields-reorder-persistence.json",
+          "sha256": "b8e613c3f82abc80d3c6115ffbf73f93e35e2ba680cb518f25579a23320b335f"
+        },
+        {
+          "path": "evidence/current-form-delivery.json",
+          "sha256": "f054598c5d8724091219b7b8db18c9d6183e4a25489d2aa6bbd11f44fd09813a"
+        },
+        {
+          "path": "evidence/current-keyboard-journey.json",
+          "sha256": "6f09d7f08c9b67fa5b4d7c50870d3f32947deda63ecf7eee04d247a396ac7b48"
+        },
+        {
+          "path": "evidence/current-responsive-inspector.json",
+          "sha256": "a5df236205ed3451223d423351a58e69d259470cbe89ded9267b3af010a389c7"
+        },
+        {
+          "path": "evidence/current-wordpress-shared-styles.json",
+          "sha256": "1dc2bda1ab9084f14018b97d08460a8bc5d6752617462155002de68b6d91bc15"
+        },
+        {
+          "path": "evidence/current-wordpress-breakpoints.json",
+          "sha256": "69c31030f26fa61b21eab6c3480a0c0c5fcbeb710970ec4ed9fedeb8635e6cba"
+        },
+        {
+          "path": "evidence/current-wordpress-console.json",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "path": "evidence/current-wordpress-image-reopened.txt",
+          "sha256": "d218273d6aa2a34a9e12507f3380ef6a89620723914a0cd9f3d5ac9d6f48b5d4"
+        },
+        {
+          "path": "evidence/painted-wordpress-about-1024.png",
+          "sha256": "956c30d2f4482efa8845d2d8a30ab7fbea58a95a7365bad11458915e660943df"
+        },
+        {
+          "path": "evidence/painted-wordpress-about-1440.png",
+          "sha256": "17bd8ddd0e6c97ed627df6fae15fa513500991036e0cc49effa970b6c1754abe"
+        },
+        {
+          "path": "evidence/painted-wordpress-about-390.png",
+          "sha256": "c937d7f18b78dd9bb2a797a6f099ea2eacefaee1fbd7201f95f81d2fb686155a"
+        },
+        {
+          "path": "evidence/painted-wordpress-about-768.png",
+          "sha256": "44b48b12d9f2a0bc69df522496942a4d6f6f1fbcace345b1ce5a15bcf916ce7b"
+        },
+        {
+          "path": "evidence/painted-wordpress-contact-1440.png",
+          "sha256": "7ed89235a7360ac2d6009c817224009c94ce6c5f167a88ce81233a3945a72dd8"
+        },
+        {
+          "path": "evidence/painted-wordpress-contact-390.png",
+          "sha256": "8325cced36fd2d8ddc0483f1107b3ccd563582f75644dd46e6d44f67d9f81707"
+        },
+        {
+          "path": "evidence/painted-wordpress-index-1024.png",
+          "sha256": "92f6ff3690943db50756f4a0009363842d3026a0e7a0d49a89a7d35bf04d1553"
+        },
+        {
+          "path": "evidence/painted-wordpress-index-1440.png",
+          "sha256": "e465fb19b65b4a14306716e3f6feebafd2dbda77867d89c5d1c293392b1b3a48"
+        },
+        {
+          "path": "evidence/painted-wordpress-index-390.png",
+          "sha256": "f80d1ba01ec97da7cfc3391dc925852d5d4d0314c9850e9079379bd76cb94636"
+        },
+        {
+          "path": "evidence/painted-wordpress-index-768.png",
+          "sha256": "58032e47bfef7c9a1d8139305080e2dbdd7543f66a9078cff36beb112b6c885e"
+        },
+        {
+          "path": "evidence/painted-wordpress-project-detail-1024.png",
+          "sha256": "352cdbdded2fae0d77fa78abf2166ac8bd49b1d2bea951ef653f1d86d1897d08"
+        },
+        {
+          "path": "evidence/painted-wordpress-project-detail-1440.png",
+          "sha256": "4fe34fcebd5b5950bc7596b85f4be7b0d34e1349e5b792ef5d4f453611b1718b"
+        },
+        {
+          "path": "evidence/painted-wordpress-project-detail-390.png",
+          "sha256": "9c7a1875c40032fd9f0921ccbb56dfe1ba224abbc7946feb2dd46d6f96cf80d6"
+        },
+        {
+          "path": "evidence/painted-wordpress-project-detail-768.png",
+          "sha256": "b525c7d1a2366d54c29222981b28d1a039e64b4497b5dda99b0d734b76c19912"
+        },
+        {
+          "path": "evidence/painted-wordpress-projects-1024.png",
+          "sha256": "4b0d815bb1dc8ce8257638303a9d92121aca453d685f7150ef1f9dbcef0f5e6c"
+        },
+        {
+          "path": "evidence/painted-wordpress-projects-1440.png",
+          "sha256": "3f0f3b7fd560471b15222bd63eb7266df4f0f10aeb98994fc38916140cc556f9"
+        },
+        {
+          "path": "evidence/painted-wordpress-projects-390.png",
+          "sha256": "74cabb861475bc4bae25f601fd29b7648174467a4dad5b5d1b97dbf50f28b371"
+        },
+        {
+          "path": "evidence/painted-wordpress-projects-768.png",
+          "sha256": "4232edd1819c95eb8fda3133c3de1d8cbdf3d21ee852268e3bb527c5140c5d27"
+        },
+        {
+          "path": "evidence/painted-wordpress-services-1024.png",
+          "sha256": "c4a5a94f4c98ec1d55790ceb4f4c1b0647d72531fd3ae9c5c2e4a14f044b23c3"
+        },
+        {
+          "path": "evidence/painted-wordpress-services-1440.png",
+          "sha256": "6ec9114482d89dee5cfd4dce362c3dc72566b2857b5efd035b10830ab7eb9274"
+        },
+        {
+          "path": "evidence/painted-wordpress-services-390.png",
+          "sha256": "e03c8678025198ec3e2a721f46519622d82f632418f7b9e317b20d14ca0f1018"
+        },
+        {
+          "path": "evidence/painted-wordpress-services-768.png",
+          "sha256": "d8bc6ab4940577eccab4c44d66d30b7031aad4bc6c520b70f8c80ea612f1a1c5"
+        },
+        {
+          "path": "evidence/contact-wordpress-1024-bottom.png",
+          "sha256": "d68143e869be9059f850b814a5ed2e6a397d133e296361fc27af54b2de2e7529"
+        },
+        {
+          "path": "evidence/contact-wordpress-1024-top.png",
+          "sha256": "90ebcbf471e750c141dcc02e03e6ddfc26d3b49cebb76169389cf5b5aa40e15b"
+        },
+        {
+          "path": "evidence/contact-wordpress-768-bottom.png",
+          "sha256": "dc78603ceb6f3148b232a742f805697f3a4c55603534bf83b1606b6395bb99b9"
+        },
+        {
+          "path": "evidence/contact-wordpress-768-top.png",
+          "sha256": "3263022446784673c4db6ab5f51f4950d92d03acd37469348757de885d2d63f3"
+        },
+        {
+          "path": "RENDERED-REVIEW.md",
+          "sha256": "cc2f08feff50d1f4a9f5038be9cc43cea22df10583321e82f3f9c79644d80741"
+        },
+        {
+          "path": "evidence/wordpress-host-patch-v4.json",
+          "sha256": "52ad65cc3ae8017f55acc4e028ea93394560b60b1e9378b8cbb09918ac5feae1"
+        },
+        {
+          "path": "evidence/current-wordpress-media-save-fix.json",
+          "sha256": "8bac651f4231b966ab24b8a581c9b95e56ccabc67891df44bcd54e0f69a0db1c"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+    "verdict": "pass",
+    "rationale": "Separate rendered pass on all six pages and four target widths; selected Index composition, intentional crops, text hierarchy and comparison to recent templates assessed. See RENDERED-REVIEW.md for observations, native host differences and exact scope. This is agent assessment, not user approval.",
+    "evidence": [
+      {
+        "path": "RENDERED-REVIEW.md",
+        "sha256": "cc2f08feff50d1f4a9f5038be9cc43cea22df10583321e82f3f9c79644d80741"
+      },
+      {
+        "path": "evidence/painted-cloud-index-1440.png",
+        "sha256": "ab4a8d744114702f81266a5a0ba33697bea6b4f1f98cb8bcc1157004dc408fcd"
+      },
+      {
+        "path": "evidence/painted-wordpress-index-390.png",
+        "sha256": "f80d1ba01ec97da7cfc3391dc925852d5d4d0314c9850e9079379bd76cb94636"
+      },
+      {
+        "path": "evidence/reference-northline-1440.png",
+        "sha256": "8fd476227351397dca432255af58eef99482f07770402ac727c399650c5c5279"
+      },
+      {
+        "path": "evidence/reference-marea-1440.png",
+        "sha256": "6005f2c19b9fb73cd40f76d492e54313d6ef9f0fa48a3f43957d6fc863da0115"
+      }
+    ]
+  },
+  "approval": {
+    "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "yes",
+      "at": "2026-09-07T13:54:40.913179Z",
+      "evidence": "Task 01a07abf-feba-7391-bf0e-1bd23d7add8e: direct yes to final question Do you approve this template for local catalog promotion? Approval covers the reviewed six-page package and documented isolated-host scope; no production deployment."
+    }
+  }
+}

@@ -805,6 +805,168 @@
       "previewPage": "index.html",
       "assetCount": 5,
       "assetBytes": 628582
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "architecture-studio",
+      "version": "1.0.0",
+      "name": "Architecture Studio",
+      "sampleName": "Common Ground",
+      "description": "Common Ground: a six-page architecture studio pilot in the selected Index direction. Native editable project records, shared styling, and demonstration content.",
+      "categories": [
+        "Architecture",
+        "Design"
+      ],
+      "pages": [
+        {
+          "id": "page-home",
+          "name": "Home",
+          "slug": "index"
+        },
+        {
+          "id": "page-projects",
+          "name": "Projects",
+          "slug": "projects"
+        },
+        {
+          "id": "page-project-detail",
+          "name": "Project Detail",
+          "slug": "project-detail"
+        },
+        {
+          "id": "page-about",
+          "name": "About",
+          "slug": "about"
+        },
+        {
+          "id": "page-services",
+          "name": "Services",
+          "slug": "services"
+        },
+        {
+          "id": "page-contact",
+          "name": "Contact",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+      "previewPage": "index.html",
+      "assetCount": 2,
+      "assetBytes": 5995933
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "salt-house",
+      "version": "1.0.0",
+      "name": "Vacation Rental Collection",
+      "sampleName": "Salt House",
+      "description": "A coastal collection with six native pages, reusable holiday-home listings, property galleries and clear booking-provider setup.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality"
+      ],
+      "pages": [
+        {
+          "id": "salt-page-index",
+          "name": "Coastal vacation rentals",
+          "slug": "index"
+        },
+        {
+          "id": "salt-page-homes",
+          "name": "The Homes",
+          "slug": "homes"
+        },
+        {
+          "id": "salt-page-dune-house",
+          "name": "Dune House",
+          "slug": "dune-house"
+        },
+        {
+          "id": "salt-page-blue-shutter-cottage",
+          "name": "Blue Shutter Cottage",
+          "slug": "blue-shutter-cottage"
+        },
+        {
+          "id": "salt-page-coast",
+          "name": "The Coast",
+          "slug": "coast"
+        },
+        {
+          "id": "salt-page-plan-your-stay",
+          "name": "Plan Your Stay",
+          "slug": "plan-your-stay"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+      "previewPage": "index.html",
+      "assetCount": 7,
+      "assetBytes": 18697454
+    },
+    {
+      "format": "pagecraft.site-template.v1",
+      "id": "stillwood",
+      "version": "1.0.0",
+      "name": "Woodland Cabin Retreats",
+      "sampleName": "Stillwood",
+      "description": "Nine-page woodland vacation rental collection with twelve varied homepage sections, native cabin and review sliders, galleries, forms and configurable booking placeholders.",
+      "categories": [
+        "Vacation rentals",
+        "Hospitality"
+      ],
+      "pages": [
+        {
+          "id": "stillwood-page-index",
+          "name": "Woodland cabin stays",
+          "slug": "index"
+        },
+        {
+          "id": "stillwood-page-cabins",
+          "name": "Find your cabin",
+          "slug": "cabins"
+        },
+        {
+          "id": "stillwood-page-the-a-frame",
+          "name": "The A-frame",
+          "slug": "the-a-frame"
+        },
+        {
+          "id": "stillwood-page-waterline",
+          "name": "Waterline",
+          "slug": "waterline"
+        },
+        {
+          "id": "stillwood-page-meadow-house",
+          "name": "Meadow House",
+          "slug": "meadow-house"
+        },
+        {
+          "id": "stillwood-page-experiences",
+          "name": "The slower days",
+          "slug": "experiences"
+        },
+        {
+          "id": "stillwood-page-field-guide",
+          "name": "Field guide",
+          "slug": "field-guide"
+        },
+        {
+          "id": "stillwood-page-our-story",
+          "name": "Our story",
+          "slug": "our-story"
+        },
+        {
+          "id": "stillwood-page-contact",
+          "name": "Plan your stay",
+          "slug": "contact"
+        }
+      ],
+      "packageFile": "site.pagecraft-site.zip",
+      "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+      "previewPage": "index.html",
+      "assetCount": 15,
+      "assetBytes": 5044060
     }
   ]
 }

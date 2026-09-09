@@ -1,0 +1,62 @@
+[
+  {
+    "width": 390,
+    "images": [
+      {
+        "complete": true,
+        "naturalWidth": 390,
+        "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+      },
+      {
+        "complete": true,
+        "naturalWidth": 390,
+        "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "images": [
+      {
+        "complete": true,
+        "naturalWidth": 768,
+        "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+      },
+      {
+        "complete": true,
+        "naturalWidth": 768,
+        "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "images": [
+      {
+        "complete": false,
+        "naturalWidth": 0,
+        "src": ""
+      },
+      {
+        "complete": false,
+        "naturalWidth": 0,
+        "src": ""
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "images": [
+      {
+        "complete": false,
+        "naturalWidth": 0,
+        "src": ""
+      },
+      {
+        "complete": false,
+        "naturalWidth": 0,
+        "src": ""
+      }
+    ]
+  }
+]

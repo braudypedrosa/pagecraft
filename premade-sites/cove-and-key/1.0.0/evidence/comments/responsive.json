@@ -1,0 +1,258 @@
+[
+  {
+    "page": "index",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "stays",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "cove-house",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "palm-terrace",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-lookout",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-coast",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "our-story",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "contact",
+    "width": 390,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "index",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "stays",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "cove-house",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "palm-terrace",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-lookout",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-coast",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "our-story",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "contact",
+    "width": 768,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "index",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "stays",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "cove-house",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "palm-terrace",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-lookout",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-coast",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "our-story",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "contact",
+    "width": 1024,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "index",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "stays",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "cove-house",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "palm-terrace",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-lookout",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "the-coast",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "our-story",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  },
+  {
+    "page": "contact",
+    "width": 1440,
+    "data": {
+      "broken": 0,
+      "overflow": false
+    }
+  }
+]

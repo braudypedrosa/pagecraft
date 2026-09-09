@@ -1,0 +1,241 @@
+- dialog "Publish":
+  - generic: Publish
+  - button "Close dialog" [active]:
+  - generic: 5 problems · 71 suggestions
+  - button "Hide details"
+  - list:
+    - text: A form in the page has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.
+    - emphasis: Coastal vacation rentals · page
+    - button "Show me"
+    - text: A form in the page has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.
+    - emphasis: Cove House · page
+    - button "Show me"
+    - text: A form in the page has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.
+    - emphasis: Palm Terrace · page
+    - button "Show me"
+    - text: A form in the page has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.
+    - emphasis: The Lookout · page
+    - button "Show me"
+    - text: A form in the page has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.
+    - emphasis: Plan your stay · page
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · global header
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Coastal vacation rentals · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Coastal vacation rentals · page
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · page
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · page
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Coastal vacation rentals · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Coastal vacation rentals · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Coastal vacation rentals · global footer
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: Find your stay · global header
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Find your stay · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Find your stay · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Find your stay · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Find your stay · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Find your stay · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Find your stay · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Find your stay · global footer
+    - button "Show me"
+    - text: Heading order jumps from H1 to H3 on “Find your stay”, which breaks screen-reader navigation.
+    - emphasis: Find your stay · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: Cove House · global header
+    - button "Show me"
+    - text: 2 images in a gallery in the page have no width/height, so the grid will shift as it loads.
+    - emphasis: Cove House · page
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: Cove House · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Cove House · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Cove House · page
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Cove House · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Cove House · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Cove House · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Cove House · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Cove House · global footer
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: Palm Terrace · global header
+    - button "Show me"
+    - text: 2 images in a gallery in the page have no width/height, so the grid will shift as it loads.
+    - emphasis: Palm Terrace · page
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: Palm Terrace · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Palm Terrace · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Palm Terrace · page
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: Palm Terrace · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Palm Terrace · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Palm Terrace · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Palm Terrace · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Palm Terrace · global footer
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: The Lookout · global header
+    - button "Show me"
+    - text: 2 images in a gallery in the page have no width/height, so the grid will shift as it loads.
+    - emphasis: The Lookout · page
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: The Lookout · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: The Lookout · page
+    - button "Show me"
+    - text: Text in the page sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: The Lookout · page
+    - button "Show me"
+    - text: An image in the page, in “Vacation home feature” has no width/height, so the page will shift as it loads.
+    - emphasis: The Lookout · page, in “Vacation home feature”
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: The Lookout · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: The Lookout · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: The Lookout · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: The Lookout · global footer
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: The coast · global header
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: The coast · page
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: The coast · page
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: The coast · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: The coast · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: The coast · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: The coast · global footer
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: Our story · global header
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: Our story · page
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Our story · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Our story · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Our story · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Our story · global footer
+    - button "Show me"
+    - text: An image in the global header has no width/height, so the page will shift as it loads.
+    - emphasis: Plan your stay · global header
+    - button "Show me"
+    - text: An image in the page has no width/height, so the page will shift as it loads.
+    - emphasis: Plan your stay · page
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Plan your stay · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 3:1 for this size.
+    - emphasis: Plan your stay · global footer
+    - button "Show me"
+    - text: Text in the global footer sits at 1.00:1 against its background — WCAG AA wants 4.5:1 for this size.
+    - emphasis: Plan your stay · global footer
+    - button "Show me"
+    - text: An image in the global footer has no width/height, so the page will shift as it loads.
+    - emphasis: Plan your stay · global footer
+    - button "Show me"
+  - status:
+    - heading "Nothing has been published yet" [level=3]
+    - paragraph: Autosave is protecting this draft, but visitors will not see it until an owner publishes it.
+    - generic: Draft
+  - button "Publish on WordPress"
+  - button "Close"
+  - button "Resolve problems first" [disabled]

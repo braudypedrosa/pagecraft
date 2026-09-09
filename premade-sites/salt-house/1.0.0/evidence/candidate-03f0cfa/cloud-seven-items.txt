@@ -1,0 +1,266 @@
+- link "Pagecraft dashboard":
+  - /url: /
+  - generic: Pagecraft
+- generic: Salt House
+- generic: · Home
+- button "Sites":
+- button "Desktop" [pressed]:
+- button "Tablet":
+- button "Mobile":
+- button "Undo":
+- button "Redo" [disabled]:
+- button "Keyboard shortcuts":
+- generic: Draft ready
+- button "Review this project"
+- button "Version history":
+- button "Preview":
+- button "Copy the link to this site":
+- button "Publish this draft":
+  - generic: Publish
+- navigation "Tools":
+  - button "Add":
+    - generic: Add
+  - button "Navigator":
+    - generic: Navigator
+  - button "Pages":
+    - generic: Pages
+  - button "CMS":
+    - generic: CMS
+  - button "Media":
+    - generic: Media
+  - button "Settings":
+    - generic: Settings
+  - button "Account":
+    - strong: TQ
+    - generic: Account
+- complementary:
+  - generic: Add elements
+  - tablist "Add category":
+    - tab "Elements" [selected]:
+      - generic: Elements
+    - tab "Templates":
+      - generic: Templates
+    - tab "Components":
+      - generic: Components
+    - tab "Blocks":
+      - generic: Blocks
+  - generic: Basic elements for building a page
+  - tabpanel "Elements":
+    - generic: Layout
+    - button "Section":
+      - generic: Section
+    - button "Columns":
+      - generic: Columns
+    - button "Row":
+      - generic: Row
+    - button "Flex":
+      - generic: Flex
+    - button "Grid":
+      - generic: Grid
+    - button "Box":
+      - generic: Box
+    - button "Link block":
+      - generic: Link block
+    - button "Slider":
+      - generic: Slider
+    - button "Collection":
+      - generic: Collection
+    - generic: Content
+    - button "Heading":
+      - generic: Heading
+    - button "WYSIWYG":
+      - generic: WYSIWYG
+    - button "Quote":
+      - generic: Quote
+    - button "Table":
+      - generic: Table
+    - button "Code":
+      - generic: Code
+    - button "Image":
+      - generic: Image
+    - button "Gallery":
+      - generic: Gallery
+    - button "Video":
+      - generic: Video
+    - button "Icon":
+      - generic: Icon
+    - generic: Interactive
+    - button "Button":
+      - generic: Button
+    - button "Nav menu":
+      - generic: Nav menu
+    - button "Breadcrumb":
+      - generic: Breadcrumb
+    - button "Form":
+      - generic: Form
+    - button "Accordion":
+      - generic: Accordion
+    - button "Tabs":
+      - generic: Tabs
+    - button "Embed":
+      - generic: Embed
+    - generic: Spacing
+    - button "Divider":
+      - generic: Divider
+    - button "Spacer":
+      - generic: Spacer
+- text: Home
+- generic: Section › Box › Box › Box
+- text: Desktop base
+- iframe [id="canvas"]:
+  - text: Global header
+  - button "Edit header":
+    - text: Edit header
+  - link "Salt House":
+    - /url: index.html
+  - navigation "Main navigation":
+    - list:
+      - link "The homes":
+        - /url: homes.html
+      - link "The coast":
+        - /url: coast.html
+      - link "Plan your stay":
+        - /url: plan-your-stay.html
+  - text: Page content
+  - heading "SALT HOUSE" [level=1]
+  - paragraph: A few good homes. A little closer to the sea.
+  - link "Find your coast":
+    - /url: homes.html
+    - generic: Find your coast
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Your kind of coast." [level=2]
+  - paragraph: Room for slow mornings, salt on your skin and everyone around the same table.
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Blue Shutter Cottage for a longer family holiday beside the sea" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: Short description.
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Test home 3" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: Short description.
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Test home 4" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: Short description.
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Test home 5" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: Short description.
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Test home 6" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: Short description.
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - img "Fictional Dune House terrace overlooking coastal dunes and the sea"
+  - heading "Dune House" [level=2]
+  - paragraph: 6 guests · 3 bedrooms · Open-air terrace
+  - paragraph: Space for a larger gathering, with mornings out on the terrace.
+  - link "Explore this home":
+    - /url: dune-house.html
+    - generic: Explore this home
+  - img "Fictional Blue Shutter Cottage living room with pale linen and blue shutters"
+  - heading "Test home 7" [level=2]
+  - paragraph: 4 guests · 2 bedrooms · Village edge
+  - paragraph: Short description.
+  - link "Explore this home":
+    - /url: blue-shutter-cottage.html
+    - generic: Explore this home
+  - paragraph: Fictional homes and example details. Images are AI-generated; no real rental availability is offered.
+  - img "Fictional Blue Shutter Cottage exterior beside a coastal village lane"
+  - heading "Beyond the front door." [level=2]
+  - paragraph: A walk through the village. Lunch in the shade. A last look at the water before heading home.
+  - link "Meet the coast":
+    - /url: coast.html
+    - generic: Meet the coast
+  - text: Global footer
+  - button "Edit footer":
+    - text: Edit footer
+  - heading "See you by the sea." [level=2]
+  - link "Find your home":
+    - /url: homes.html
+    - generic: Find your home
+  - link "Plan your stay":
+    - /url: plan-your-stay.html
+    - generic: Plan your stay
+  - generic: SALT HOUSE
+  - paragraph: Fictional collection · AI-generated demonstration images
+  - generic: Box
+  - button "Drag to move":
+  - button "Select parent (esc)":
+  - button "Move to the top (⌘⇧↑)":
+  - button "Move to the bottom (⌘⇧↓)":
+  - button "Duplicate (⌘D)":
+  - button "Delete (⌫)":
+  - button "Everything else — or right-click the element":
+- generic: Desktop
+- generic: 1520 PX
+- combobox "Canvas zoom":
+  - generic: Fit · 39%
+- complementary:
+  - generic: Box
+  - text: "#pagecraft-box-gy9p657q"
+  - button "Copy this element's styling (⌘⇧C)":
+  - button "Select parent (esc)":
+  - tablist "Inspector section":
+    - tab "Content" [selected]
+    - tab "Style"
+    - tab "Advanced"
+  - tabpanel "Content":
+    - generic: Variant
+    - button "Save as variant"
+    - button "Back to the defaults"
+    - generic: 6 values are set on this instance.
+    - button "Holiday home" [expanded]:
+      - text: Holiday home
+    - group "Home name":
+      - generic: Home name
+      - textbox [active]: Test home 7
+    - group "Home facts":
+      - generic: Home facts
+      - textbox: 4 guests · 2 bedrooms · Village edge
+    - group "Home description":
+      - generic: Home description
+      - textbox: Short description.
+    - group "Home photograph":
+      - generic: Home photograph
+      - generic: cottage.png
+      - generic: 1 KB · 1536 × 1024
+      - button "Remove image":
+      - button "Replace":
+        - text: Replace
+      - button "Library":
+        - text: Library
+      - generic: Exported inline, or as a file beside the page.
+    - group "Photo description":
+      - generic: Photo description
+      - textbox: Fictional Blue Shutter Cottage living room with pale linen and blue shutters
+    - group "Home page":
+      - generic: Home page
+      - combobox "Home page":
+        - generic: A page in this project
+      - combobox "Home page":
+        - generic: Blue Shutter Cottage · /blue-shutter-cottage
+      - combobox "Home page":
+        - generic: Top of the page
+      - generic: No anchors on that page yet.
+      - generic: Open in a new tab
+      - switch "Open in a new tab"
+  - button "Duplicate":
+    - text: Duplicate
+  - button "Delete":
+    - text: Delete
+- status

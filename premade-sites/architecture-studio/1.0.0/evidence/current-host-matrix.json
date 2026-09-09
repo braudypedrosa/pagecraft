@@ -1,0 +1,789 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "checks": [
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2495,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2163,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+        }
+      ],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2368,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        }
+      ],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1995,
+      "images": [],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2081,
+      "images": [],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1514,
+      "images": [],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1834,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1704,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-768x512.png"
+        }
+      ],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2349,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-768x512.png"
+        }
+      ],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1801,
+      "images": [],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1699,
+      "images": [],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1290,
+      "images": [],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1809,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1690,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room-1024x683.png"
+        }
+      ],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2335,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house-1024x683.png"
+        }
+      ],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1787,
+      "images": [],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1561,
+      "images": [],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1276,
+      "images": [],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "index",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2187,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "projects",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1726,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/reading-room.png"
+        }
+      ],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "project-detail",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 2543,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:4892/wp-content/uploads/2026/09/courtyard-house.png"
+        }
+      ],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "about",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1819,
+      "images": [],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "services",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1564,
+      "images": [],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "wordpress",
+      "page": "contact",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "headerLayout": "flex",
+      "height": 1420,
+      "images": [],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "height": 2405,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "height": 2171,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "height": 2530,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        }
+      ],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "height": 2107,
+      "images": [],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "height": 2227,
+      "images": [],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 390,
+      "font": "Arial, sans-serif",
+      "height": 1498,
+      "images": [],
+      "scrollWidth": 390,
+      "small": [],
+      "width": 390,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "height": 1718,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "height": 1588,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "height": 2255,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        }
+      ],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "height": 1689,
+      "images": [],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "height": 1621,
+      "images": [],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 768,
+      "font": "Arial, sans-serif",
+      "height": 1210,
+      "images": [],
+      "scrollWidth": 768,
+      "small": [],
+      "width": 768,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "height": 1705,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "height": 1588,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "height": 2255,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        }
+      ],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "height": 1689,
+      "images": [],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "height": 1497,
+      "images": [],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 1024,
+      "font": "Arial, sans-serif",
+      "height": 1210,
+      "images": [],
+      "scrollWidth": 1024,
+      "small": [],
+      "width": 1024,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "index",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "height": 2259,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "projects",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "height": 1992,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        },
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/reading-room-aaebe33ca0cab.png"
+        }
+      ],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "project-detail",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "height": 2855,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://localhost:4890/common-ground-native-fields-qa/assets/courtyard-house-a3ec1343725af.png"
+        }
+      ],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "about",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "height": 2137,
+      "images": [],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "services",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "height": 1916,
+      "images": [],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    },
+    {
+      "host": "cloud",
+      "page": "contact",
+      "requestedWidth": 1440,
+      "font": "Arial, sans-serif",
+      "height": 1530,
+      "images": [],
+      "scrollWidth": 1440,
+      "small": [],
+      "width": 1440,
+      "imagesAfterCapture": true
+    }
+  ]
+}

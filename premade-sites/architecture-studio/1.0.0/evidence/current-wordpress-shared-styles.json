@@ -1,0 +1,34 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "typography": [
+    {
+      "font": "Georgia, \"Times New Roman\", serif",
+      "header": "flex",
+      "ink": "rgb(36, 44, 39)",
+      "url": "http://127.0.0.1:4892/"
+    },
+    {
+      "font": "Georgia, \"Times New Roman\", serif",
+      "header": "flex",
+      "ink": "rgb(36, 44, 39)",
+      "url": "http://127.0.0.1:4892/about/"
+    }
+  ],
+  "colors": [
+    {
+      "bodyText": "rgb(41, 61, 88)",
+      "font": "Arial, sans-serif",
+      "header": "flex",
+      "link": "rgb(41, 61, 88)",
+      "url": "http://127.0.0.1:4892/"
+    },
+    {
+      "bodyText": "rgb(41, 61, 88)",
+      "font": "Arial, sans-serif",
+      "header": "flex",
+      "link": "rgb(41, 61, 88)",
+      "url": "http://127.0.0.1:4892/about/"
+    }
+  ],
+  "note": "Ink token governs navigation and project links; Body text token governs inherited heading and body text. Both changed through native Site Settings; heading font tested separately. Header remained flex."
+}

@@ -1,0 +1,2 @@
+- heading "Test inquiry received locally" [level=1]
+- paragraph: The local QA receiver stored this submission. No email was sent. This is not a live studio inquiry.

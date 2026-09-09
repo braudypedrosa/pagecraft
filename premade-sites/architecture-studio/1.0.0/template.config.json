@@ -1,0 +1,26 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "architecture-studio",
+  "version": "1.0.0",
+  "name": "Architecture Studio",
+  "sampleName": "Common Ground",
+  "description": "Common Ground: a six-page architecture studio pilot in the selected Index direction. Native editable project records, shared styling, and demonstration content.",
+  "categories": [
+    "Architecture",
+    "Design"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "courtyard-house",
+      "file": "assets/courtyard-house.png"
+    },
+    {
+      "id": "reading-room",
+      "file": "assets/reading-room.png"
+    }
+  ],
+  "customCssPolicy": "native-only"
+}

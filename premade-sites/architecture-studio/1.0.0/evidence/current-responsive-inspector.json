@@ -1,0 +1,36 @@
+{
+  "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+  "node": "cg-courtyard-house-21",
+  "checks": [
+    {
+      "host": "cloud",
+      "device": "Desktop",
+      "paddingTop": "24"
+    },
+    {
+      "host": "cloud",
+      "device": "Tablet",
+      "paddingTop": "18"
+    },
+    {
+      "host": "cloud",
+      "device": "Mobile",
+      "paddingTop": "12"
+    },
+    {
+      "host": "wordpress",
+      "device": "Desktop",
+      "paddingTop": "24"
+    },
+    {
+      "host": "wordpress",
+      "device": "Tablet",
+      "paddingTop": "18"
+    },
+    {
+      "host": "wordpress",
+      "device": "Mobile",
+      "paddingTop": "12"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Travelers comparing coastal vacation homes",
+    "primaryAction": "Send a stay inquiry and continue to a configured booking provider",
+    "pages": [
+      "index",
+      "stays",
+      "cove-house",
+      "palm-terrace",
+      "the-lookout",
+      "the-coast",
+      "our-story",
+      "contact"
+    ],
+    "content": "Fictional demonstration collection; native hero inquiry form, property slider, three property pages with booking inquiries/provider integration, contextual CTAs and clearly illustrative review content. No live claims. User clarified booking placeholders now; real PMS later.",
+    "imagery": "Generated coastal property imagery; distinct exteriors, interiors and destination views. Concept imagery is not evidence of real properties.",
+    "provenance": []
+  },
+  "directions": [
+    {
+      "id": "A",
+      "thesis": "Open Cove",
+      "fingerprint": {
+        "header": "Solid horizontal navigation",
+        "hero": "Asymmetric villa image beside tall blue form",
+        "textAnchor": "Upper-left sans",
+        "inventory": "Three-peer lateral rail",
+        "cta": "Tall inquiry panel",
+        "footer": "Compact booking and contact navigation"
+      },
+      "comparison": "Compared with Quiet Tide, Strandline and Morrow Field history; form-first conversion and graphic identity distinguish this direction. Functional property browsing is intentionally familiar.",
+      "sections": [
+        {
+          "purpose": "Orient and collect stay inquiry",
+          "archetype": "HE07",
+          "composition": "Asymmetric villa image beside tall blue form",
+          "typography": "Satoshi; wide two-to-three-line headline, minimum 14px labels",
+          "imagery": "Generated coastal villa concept photograph",
+          "action": "Send inquiry through configured native Pagecraft form"
+        },
+        {
+          "purpose": "Compare homes and reach property detail",
+          "archetype": "I03",
+          "composition": "Three-peer lateral rail",
+          "typography": "Stable title, description, metadata and action roles",
+          "imagery": "Distinct property photographs",
+          "action": "Native slider controls and View home"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "thesis": "Horizon Club",
+      "fingerprint": {
+        "header": "Solid horizontal navigation",
+        "hero": "Centered panoramic theater",
+        "textAnchor": "Centered sans",
+        "inventory": "Adjacent-peek selected property",
+        "cta": "Wide integrated planner",
+        "footer": "Compact booking and contact navigation"
+      },
+      "comparison": "Compared with Quiet Tide, Strandline and Morrow Field history; form-first conversion and graphic identity distinguish this direction. Functional property browsing is intentionally familiar.",
+      "sections": [
+        {
+          "purpose": "Orient and collect stay inquiry",
+          "archetype": "HE13",
+          "composition": "Centered panoramic theater",
+          "typography": "Satoshi; wide two-to-three-line headline, minimum 14px labels",
+          "imagery": "Generated coastal villa concept photograph",
+          "action": "Send inquiry through configured native Pagecraft form"
+        },
+        {
+          "purpose": "Compare homes and reach property detail",
+          "archetype": "I16",
+          "composition": "Adjacent-peek selected property",
+          "typography": "Stable title, description, metadata and action roles",
+          "imagery": "Distinct property photographs",
+          "action": "Native slider controls and View home"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "thesis": "Stay Finder",
+      "fingerprint": {
+        "header": "Solid horizontal navigation",
+        "hero": "Inquiry-first split with tall photograph",
+        "textAnchor": "Form-led left sans",
+        "inventory": "Portrait property filmstrip",
+        "cta": "Compact two-column form",
+        "footer": "Compact booking and contact navigation"
+      },
+      "comparison": "Compared with Quiet Tide, Strandline and Morrow Field history; form-first conversion and graphic identity distinguish this direction. Functional property browsing is intentionally familiar.",
+      "sections": [
+        {
+          "purpose": "Orient and collect stay inquiry",
+          "archetype": "HE09",
+          "composition": "Inquiry-first split with tall photograph",
+          "typography": "Satoshi; wide two-to-three-line headline, minimum 14px labels",
+          "imagery": "Generated coastal villa concept photograph",
+          "action": "Send inquiry through configured native Pagecraft form"
+        },
+        {
+          "purpose": "Compare homes and reach property detail",
+          "archetype": "I14",
+          "composition": "Portrait property filmstrip",
+          "typography": "Stable title, description, metadata and action roles",
+          "imagery": "Distinct property photographs",
+          "action": "Native slider controls and View home"
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "directionId": "B",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "B",
+      "at": "2026-09-08T11:00:05.613593Z",
+      "evidence": "Codex task 01a080a4-ce6f-76b3-b0c2-a6ad1a100947: user selected B after three rendered directions"
+    }
+  },
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

@@ -1,0 +1,8 @@
+{
+  "propertySlider": "position 2 current",
+  "reviewsSlider": "position 2 current",
+  "faq": "first answer expanded",
+  "gallery": "dialog opens and Close dismisses",
+  "mobileNav": "opens four links and toggles closed",
+  "forms": "native disabled unconfigured placeholders"
+}
