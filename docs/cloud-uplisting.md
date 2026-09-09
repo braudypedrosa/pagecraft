@@ -1,6 +1,6 @@
 # Cloud Uplisting property integration
 
-Owners open **Site overview → Integrations → Uplisting**, enter an API key, test/connect, choose properties and sync. The first release reads property information only using the regular account API. No availability, prices, reservations, webhooks, scheduled worker or WordPress connector is included. Sync is manual and saves a draft; publishing is an explicit later action.
+Owners open **Site overview → Integrations → Add integration → Uplisting**, choose the platform by name and icon, enter an API key, connect, choose properties and sync. Connected apps appear in a table with status, content type, last sync and a Manage action. The first release reads property information only using the regular account API. No availability, prices, reservations, webhooks, scheduled worker or WordPress connector is included. Sync is manual and saves a draft; publishing is an explicit later action.
 
 ## Provider contract
 
