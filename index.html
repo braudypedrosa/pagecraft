@@ -1322,8 +1322,9 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-workspace h1{font-size:22px;margin:0}.cms-workspace h2{font-size:24px;margin:0}.cms-workspace h3{font-size:var(--fs-5);margin:0 0 8px}.cms-workspace p{line-height:1.5;margin:6px 0;color:var(--text-2)}
 .cms-workspace-layout{display:grid;grid-template-columns:220px minmax(0,1fr);flex:1;min-height:0}.cms-collections{padding:24px 16px;border-right:1px solid var(--line);overflow:auto}.cms-collections .btn{justify-content:space-between;margin-bottom:8px}
 .cms-content{padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label{display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
-.cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}.cms-connections{border-top:1px solid var(--line);padding-top:24px;margin-top:32px}.cms-connections .cms-actions{margin-top:16px}
-.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-field>label{font-weight:600}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-schema-field{border-bottom:1px solid var(--line);padding:20px 0}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
+.cms-workspace .ctl:focus{border-color:var(--ink);box-shadow:none;outline:2px solid var(--ink);outline-offset:2px}
+.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-field>label{font-weight:600}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 @media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
 
 </style>
@@ -10833,7 +10834,7 @@ var PC_UI = (() => {
               /* @__PURE__ */ u2("div", { class: "cms-title", children: [
                 /* @__PURE__ */ u2("div", { children: [
                   /* @__PURE__ */ u2("h2", { children: col.name }),
-                  /* @__PURE__ */ u2("p", { children: entry ? col.items.some((i3) => i3.id === entry.id) ? "Edit entry" : "New entry" : schema ? "Collection settings" : `${col.items.length} entries` })
+                  /* @__PURE__ */ u2("p", { children: entry ? col.items.some((i3) => i3.id === entry.id) ? "Edit entry" : "New entry" : schema ? "Collection name and fields" : `${col.items.length} entries` })
                 ] }),
                 !entry && !schema && /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
                   L2.canStructure() && /* @__PURE__ */ u2(
@@ -10846,7 +10847,7 @@ var PC_UI = (() => {
                         setBaseline(JSON.stringify(next));
                         setNotice("");
                       },
-                      children: "Settings"
+                      children: "Edit collection"
                     }
                   ),
                   /* @__PURE__ */ u2("button", { class: "btn primary", onClick: () => openEntry(), children: "New entry" })
@@ -11105,7 +11106,7 @@ var PC_UI = (() => {
                       )
                     ] }),
                     /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
-                      /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, children: "Save settings" }),
+                      /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, children: "Save changes" }),
                       /* @__PURE__ */ u2(
                         "button",
                         {
@@ -11188,7 +11189,7 @@ var PC_UI = (() => {
                       }
                     )
                   ] }, item.id)),
-                  !filtered.length && /* @__PURE__ */ u2("p", { class: "empty", children: col.items.length ? "No entries match your search." : "No entries yet. Create your first entry, then connect it to a page." })
+                  !filtered.length && /* @__PURE__ */ u2("p", { class: "empty", children: col.items.length ? "No entries match your search." : "No entries yet. Create your first entry." })
                 ] }),
                 /* @__PURE__ */ u2("div", { class: "cms-actions cms-pagination", children: [
                   /* @__PURE__ */ u2(
@@ -11218,45 +11219,6 @@ var PC_UI = (() => {
                       children: "Next"
                     }
                   )
-                ] }),
-                L2.canStructure() && /* @__PURE__ */ u2("div", { class: "cms-connections", children: [
-                  /* @__PURE__ */ u2("h3", { children: "Connect this collection" }),
-                  /* @__PURE__ */ u2("p", { children: "Use one card design for every entry, and one detail template for every entry\u2019s page." }),
-                  /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
-                    /* @__PURE__ */ u2(
-                      "button",
-                      {
-                        class: "btn",
-                        onClick: () => {
-                          connectList(col);
-                          close();
-                        },
-                        children: "Add collection grid"
-                      }
-                    ),
-                    /* @__PURE__ */ u2(
-                      "button",
-                      {
-                        class: "btn",
-                        onClick: () => {
-                          connectList(col, true);
-                          close();
-                        },
-                        children: "Add collection slider"
-                      }
-                    ),
-                    /* @__PURE__ */ u2(
-                      "button",
-                      {
-                        class: "btn",
-                        onClick: () => {
-                          connectDetail(col);
-                          close();
-                        },
-                        children: "Open detail template"
-                      }
-                    )
-                  ] })
                 ] })
               ] })
             ] })
@@ -11402,66 +11364,6 @@ var PC_UI = (() => {
         }
       )
     ] });
-  }
-  function card(col) {
-    const box = C2.N("box");
-    const title = C2.N("heading");
-    C2.bindSet(title, "text", C2.bindField(C2.titleField(col)?.id || ""));
-    box.children.push(title);
-    const image = col.fields.find((f4) => f4.type === "image");
-    if (image) {
-      const node = C2.N("image");
-      C2.bindSet(node, "src", C2.bindField(image.id));
-      box.children.unshift(node);
-    }
-    const button = C2.N("button");
-    button.props.text = "View details";
-    button.props.link = "cms:item";
-    box.children.push(button);
-    return box;
-  }
-  function connectList(col, slider = false) {
-    C2.edit(() => {
-      const section = C2.N("section");
-      const list2 = C2.N("list");
-      list2.src = col.id;
-      list2.css.d = {
-        display: "grid",
-        "grid-template-columns": "repeat(3,minmax(0,1fr))",
-        gap: "24px"
-      };
-      list2.css.t = { "grid-template-columns": "repeat(2,minmax(0,1fr))" };
-      list2.css.m = { "grid-template-columns": "1fr" };
-      if (slider) list2.props.collectionLayout = "slider";
-      list2.children.push(card(col));
-      section.children.push(list2);
-      C2.page().tree.push(section);
-      L2.select(list2.id);
-    });
-  }
-  function connectDetail(col) {
-    C2.edit(() => {
-      let at = C2.state.pages.findIndex((p3) => p3.collection === col.id);
-      if (at < 0) {
-        const section = C2.N("section");
-        section.children.push(card(col));
-        C2.state.pages.push({
-          id: C2.uid(),
-          name: col.name + " detail",
-          slug: C2.uniqueId(
-            col.id + "-detail",
-            C2.state.pages.map((p3) => p3.slug)
-          ),
-          collection: col.id,
-          title: "",
-          desc: "",
-          tree: [section]
-        });
-        at = C2.state.pages.length - 1;
-      }
-      C2.state.cur = at;
-    });
-    L2.appRender();
   }
   function bindingImpact(collectionId, fieldId) {
     const affected = /* @__PURE__ */ new Set();

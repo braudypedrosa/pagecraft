@@ -266,7 +266,7 @@ export function CmsWorkspace({
                     ? 'Edit entry'
                     : 'New entry'
                   : schema
-                    ? 'Collection settings'
+                    ? 'Collection name and fields'
                     : `${col.items.length} entries`}
               </p>
             </div>
@@ -282,7 +282,7 @@ export function CmsWorkspace({
                       setNotice('');
                     }}
                   >
-                    Settings
+                    Edit collection
                   </button>
                 )}
                 <button class="btn primary" onClick={() => openEntry()}>
@@ -562,7 +562,7 @@ export function CmsWorkspace({
               </fieldset>
               <div class="cms-actions cms-form-actions">
                 <button class="btn primary" disabled={busy}>
-                  Save settings
+                  Save changes
                 </button>
                 <button
                   class="btn"
@@ -640,7 +640,7 @@ export function CmsWorkspace({
                   <p class="empty">
                     {col.items.length
                       ? 'No entries match your search.'
-                      : 'No entries yet. Create your first entry, then connect it to a page.'}
+                      : 'No entries yet. Create your first entry.'}
                   </p>
                 )}
               </div>
@@ -663,44 +663,7 @@ export function CmsWorkspace({
                   Next
                 </button>
               </div>
-              {L.canStructure() && (
-                <div class="cms-connections">
-                  <h3>Connect this collection</h3>
-                  <p>
-                    Use one card design for every entry, and one detail template
-                    for every entry’s page.
-                  </p>
-                  <div class="cms-actions">
-                    <button
-                      class="btn"
-                      onClick={() => {
-                        connectList(col);
-                        close();
-                      }}
-                    >
-                      Add collection grid
-                    </button>
-                    <button
-                      class="btn"
-                      onClick={() => {
-                        connectList(col, true);
-                        close();
-                      }}
-                    >
-                      Add collection slider
-                    </button>
-                    <button
-                      class="btn"
-                      onClick={() => {
-                        connectDetail(col);
-                        close();
-                      }}
-                    >
-                      Open detail template
-                    </button>
-                  </div>
-                </div>
-              )}
+
             </>
           )}
         </main>
@@ -862,67 +825,6 @@ function RichValue({
     </div>
   );
 }
-function card(col: Collection) {
-  const box = C.N('box');
-  const title = C.N('heading');
-  C.bindSet(title, 'text', C.bindField(C.titleField(col)?.id || ''));
-  box.children.push(title);
-  const image = col.fields.find((f) => f.type === 'image');
-  if (image) {
-    const node = C.N('image');
-    C.bindSet(node, 'src', C.bindField(image.id));
-    box.children.unshift(node);
-  }
-  const button = C.N('button');
-  button.props.text = 'View details';
-  button.props.link = 'cms:item';
-  box.children.push(button);
-  return box;
-}
-function connectList(col: Collection, slider = false) {
-  C.edit(() => {
-    const section = C.N('section');
-    const list = C.N('list');
-    list.src = col.id;
-    list.css.d = {
-      display: 'grid',
-      'grid-template-columns': 'repeat(3,minmax(0,1fr))',
-      gap: '24px',
-    };
-    list.css.t = { 'grid-template-columns': 'repeat(2,minmax(0,1fr))' };
-    list.css.m = { 'grid-template-columns': '1fr' };
-    if (slider) list.props.collectionLayout = 'slider';
-    list.children.push(card(col));
-    section.children.push(list);
-    C.page().tree.push(section);
-    L.select(list.id);
-  });
-}
-function connectDetail(col: Collection) {
-  C.edit(() => {
-    let at = C.state.pages.findIndex((p) => p.collection === col.id);
-    if (at < 0) {
-      const section = C.N('section');
-      section.children.push(card(col));
-      C.state.pages.push({
-        id: C.uid(),
-        name: col.name + ' detail',
-        slug: C.uniqueId(
-          col.id + '-detail',
-          C.state.pages.map((p) => p.slug),
-        ),
-        collection: col.id,
-        title: '',
-        desc: '',
-        tree: [section],
-      });
-      at = C.state.pages.length - 1;
-    }
-    C.state.cur = at;
-  });
-  L.appRender();
-}
-
 function bindingImpact(collectionId: string, fieldId: string): string {
   const affected = new Set<string>();
   for (const page of C.state.pages) {

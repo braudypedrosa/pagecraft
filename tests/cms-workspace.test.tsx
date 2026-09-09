@@ -87,7 +87,7 @@ test('content role sees entry management, not schema or design actions', () => {
   L.canStructure = () => false;
   start();
   expect(button('New entry')).toBeTruthy();
-  expect(button('Settings')).toBeUndefined();
+  expect(button('Edit collection')).toBeUndefined();
   expect(button('Add collection grid')).toBeUndefined();
 });
 test('cancel warns and does not add an entry', async () => {
