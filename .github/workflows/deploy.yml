@@ -1,0 +1,59 @@
+name: Deploy branch
+on:
+  push:
+    branches: [production, development]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.ref_name == 'production' || github.ref_name == 'development'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: node tools/demo-site.mjs
+      - run: python3 -m unittest discover -s tools/deploy -p 'test_*.py'
+      - run: python3 tools/deploy/bundle.py "$GITHUB_SHA" "$GITHUB_REF_NAME" release.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: release.tar.gz
+          retention-days: 7
+  deploy:
+    if: github.ref_name == 'production' || vars.STAGING_DEPLOY_ENABLED == 'true'
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'production' && 'production' || 'staging' }}
+      url: ${{ github.ref_name == 'production' && 'https://build.itspagecraft.com' || 'https://staging.itspagecraft.com' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+      - name: Install restricted deployment credentials
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy ~/.ssh/known_hosts
+      - name: Deploy and verify exact revision
+        run: >-
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes
+          -i ~/.ssh/deploy -p 21098 itspbuku@server365.web-hosting.com
+          "deploy $GITHUB_REF_NAME $GITHUB_SHA" < release.tar.gz
+      - name: Remove deployment credentials
+        if: always()
+        run: rm -f ~/.ssh/deploy

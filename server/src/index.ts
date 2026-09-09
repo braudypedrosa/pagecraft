@@ -50,7 +50,9 @@ const editorPath = join(repo, "index.html");
 const editorHtml = existsSync(editorPath)
   ? readFileSync(editorPath, "utf8")
   : undefined;
-const siteTemplateRoot = process.env.PAGECRAFT_TEMPLATE_ROOT ||
+const deploymentPath = join(repo, "deployment.json");
+const deployment = existsSync(deploymentPath) ? JSON.parse(readFileSync(deploymentPath, "utf8")) : null;
+const siteTemplateRoot = (deployment ? join(repo, "premade-sites") : process.env.PAGECRAFT_TEMPLATE_ROOT) ||
   (process.env.NODE_ENV === "production"
     ? join(repo, "..", "pagecraft-template-library")
     : join(repo, "premade-sites"));
@@ -503,7 +505,13 @@ const app = createApp({
   ...signing,
 });
 
-serve({ fetch: app.fetch, port: PORT, hostname: process.env.BIND_HOST }, (info) => {
+serve({ fetch: (request) => {
+  const url = new URL(request.url);
+  if (deployment && url.hostname === EDITOR_HOST && url.pathname === "/__deployment") {
+    return Response.json(deployment, { headers: { "cache-control": "no-store" } });
+  }
+  return app.fetch(request);
+}, port: PORT, hostname: process.env.BIND_HOST }, (info) => {
   console.log(`editor   http://${EDITOR_HOST}:${info.port}/`);
   console.log(`api      http://${EDITOR_HOST}:${info.port}/api/sites`);
   store.listMeta().then((sites) =>
