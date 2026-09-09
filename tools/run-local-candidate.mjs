@@ -1,0 +1,5 @@
+import {execFileSync,spawn} from 'node:child_process';import {readFileSync} from 'node:fs';
+const root='/Users/braudypedorsa/Projects/pagecraft';const s=JSON.parse(execFileSync('supabase',['status','-o','json'],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}));
+const env=Object.fromEntries(Object.entries(process.env).filter(([k])=>!/^(DATABASE_|SUPABASE_|PAGECRAFT_|EDITOR_|NODE_ENV|PORT$)/.test(k)));
+const p=spawn(process.execPath,['server/src/index.ts'],{stdio:'inherit',env:{...env,PORT:'8788',EDITOR_HOST:'localhost',EDITOR_ORIGIN:'http://localhost:8788',NODE_ENV:'development',DATABASE_GATEWAY_URL:s.API_URL+'/functions/v1/pagecraft-db',DATABASE_GATEWAY_KEY:readFileSync(root+'/.pagecraft-local/development/gateway-key','utf8').trim(),SUPABASE_URL:s.API_URL,SUPABASE_PUBLISHABLE_KEY:s.ANON_KEY,TURNSTILE_SITE_KEY:'test',PAGECRAFT_AUTH_TEST_MODE:'1',PAGECRAFT_PUBLICATION_ROOT:root+'/.pagecraft-local/development/publications'}});
+for(const sig of ['SIGINT','SIGTERM'])process.on(sig,()=>p.kill());
