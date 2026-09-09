@@ -14,7 +14,9 @@ release=HOME/'pagecraft-releases'/app/(sha+'-'+str(int(time.time())))
 release.mkdir(parents=True)
 log=open(CONTROL/(app+'-'+sha+'.log'),'w')
 def run(a,**kw):return subprocess.run(a,check=True,stdout=log,stderr=log,**kw)
-def restart():run(['cloudlinux-selector','restart','--json','--interpreter','nodejs','--domain',domain,'--app-root',app])
+def restart():
+ result=json.loads(subprocess.check_output(['cloudlinux-selector','restart','--json','--interpreter','nodejs','--domain',domain,'--app-root',app]))
+ if result.get('result')!='success':raise ValueError('CloudLinux restart failed')
 try:
  archive=release/'incoming.tar.gz'
  with archive.open('wb') as f:
@@ -57,10 +59,10 @@ try:
   else:raise ValueError('Candidate readiness timed out')
  finally:
   process.terminate();process.wait(timeout=10)
- current=HOME/app
- previous=current.resolve()
+ current=HOME/app/'current'
+ previous=current.resolve() if current.is_symlink() else None
  # Released template versions are immutable, including versions omitted accidentally.
- oldroot=(previous/'premade-sites') if (previous/'deployment.json').exists() else HOME/'pagecraft-template-library'
+ oldroot=(previous/'premade-sites') if previous else HOME/'pagecraft-template-library'
  oldcatalog=oldroot/'catalog.json'
  if oldcatalog.exists():
   old=json.loads(oldcatalog.read_text())['templates']
@@ -68,13 +70,9 @@ try:
   hashes={(x['id'],x['version']):x['packageSha256'] for x in new}
   for item in old:
    if hashes.get((item['id'],item['version']))!=item['packageSha256']:raise ValueError('Released template changed or removed')
- temporary=HOME/(app+'.next')
+ temporary=HOME/app/'current.next'
  if temporary.is_symlink():temporary.unlink()
  temporary.symlink_to(release)
- if not current.is_symlink():
-  previous=HOME/'pagecraft-backups'/(app+'-before-branch-deploy-'+str(int(time.time())))
-  previous.parent.mkdir(exist_ok=True)
-  shutil.move(str(current),str(previous))
  try:
   os.replace(temporary,current)
   restart()
@@ -86,8 +84,12 @@ try:
   else:raise ValueError('Public deployment verification failed')
  except Exception:
   if temporary.is_symlink():temporary.unlink()
-  temporary.symlink_to(previous);os.replace(temporary,current);restart();raise
- (CONTROL/(app+'-current.json')).write_text(json.dumps({**meta,'previous':str(previous),'release':str(release)}))
+  if previous:
+   temporary.symlink_to(previous);os.replace(temporary,current)
+  else:
+   current.unlink()
+  restart();raise
+ (CONTROL/(app+'-current.json')).write_text(json.dumps({**meta,'previous':str(previous) if previous else None,'release':str(release)}))
  print(json.dumps({'deployed':domain,**meta}))
 except Exception as error:
  print('Deployment failed; inspect protected server deployment log:',type(error).__name__,file=sys.stderr);sys.exit(1)

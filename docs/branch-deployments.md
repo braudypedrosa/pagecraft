@@ -9,7 +9,7 @@ Local edits reach an environment only after commit, push, successful tests and d
 
 `.github/workflows/deploy.yml` builds and tests the exact pushed commit and uploads a source bundle containing the built editor and released template packages. Environment secrets contain separate restricted SSH deployment keys and pinned host keys. GitHub environment branch policies and the host's forced commands restrict each key to its branch. Application/database credentials remain on the host.
 
-The host receiver at `~/pagecraft-deploy/receive.py` is provisioned separately from app code. Updating its repository copy does not automatically replace that trusted entrypoint. Deployments install dependencies in a new release, prove startup against the configured database, preserve existing template release hashes, switch the stable app path, restart Passenger, and verify the public `/__deployment` commit. A failed public check restores the previous path and restarts the prior version. Releases and protected deployment logs remain on the host for investigation.
+The host receiver at `~/pagecraft-deploy/receive.py` is provisioned separately from app code. Updating its repository copy does not automatically replace that trusted entrypoint. Deployments install dependencies in a new release, prove startup against the configured database, preserve existing template release hashes, switch the release pointer inside the fixed app directory, restart Passenger, and verify the public `/__deployment` commit. A failed public check restores the previous release pointer and restarts the prior version. Releases and protected deployment logs remain on the host for investigation.
 
 Staging deployment is gated by repository variable `STAGING_DEPLOY_ENABLED=true` until its isolated backend and HTTPS are provisioned. Skipped staging deployment is not a successful staging rollout. Both environment jobs must be inspected before claiming completion.
 
@@ -21,4 +21,6 @@ Supabase schema migrations and edge functions are not automatically applied by t
 
 Check the GitHub deployment result, then read `/__deployment` over HTTPS and compare `commit` to the intended branch SHA. Verify login, the dashboard, editor loading, and template catalog/import for changes affecting those flows. Metadata alone is not full acceptance testing.
 
-The last successful deployment records its previous release in `~/pagecraft-deploy/<app>-current.json`. An operator with hosting SSH access can restore that symlink and restart the corresponding CloudLinux Node application. Do not delete old release directories until rollback retention has been reviewed.
+The last successful deployment records its previous release in `~/pagecraft-deploy/<app>-current.json`. An operator with hosting SSH access can restore the `current` symlink inside the fixed application root and restart the corresponding CloudLinux Node application. Do not delete old release directories until rollback retention has been reviewed.
+
+CloudLinux resolves the application root to locate its Node environment, so that directory must remain physical. Provision `tools/deploy/launcher.cjs` as its `app.cjs`; releases are selected through an internal `current` symlink. The original source remains available for first-deployment rollback.
