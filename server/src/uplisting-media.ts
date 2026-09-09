@@ -3,8 +3,8 @@ import { type AssetStore, MAX_BYTES, FREE_STORAGE_BYTES, sniff } from './assets.
 import { optimizeImage } from './image-optimization.ts';
 import { IntegrationError, type Property } from './cloud-uplisting.ts';
 
-/** The image host documented by Uplisting. No provider credential is sent to image hosts. */
-const PHOTO_HOSTS = new Set(['cdn.filestackcontent.com']);
+/** Verified Uplisting image hosts: API documentation and current property UI. No provider credential is sent to image hosts. */
+const PHOTO_HOSTS = new Set(['cdn.filestackcontent.com', 'djts5lg061pqs.cloudfront.net']);
 export async function importUplistingCovers(properties: Property[], siteId: string, ownerId: string, assets?: AssetStore, request: typeof fetch = fetch) {
   if (!properties.some(p => p.values.image)) return properties;
   if (!assets) throw new IntegrationError('The media library is unavailable. Try again before importing photos.');

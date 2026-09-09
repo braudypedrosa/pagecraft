@@ -132,14 +132,14 @@ test('integration page escapes provider identifiers and exposes clear controls',
   expect(html).toContain('Sync selected properties');
 });
 
-test('cover import stores optimized, deduplicated CMS assets and never sends the API key', async () => {
+test.each(['cdn.filestackcontent.com', 'djts5lg061pqs.cloudfront.net'])('cover import from %s stores optimized, deduplicated assets without credentials', async host => {
   const { default: sharp } = await import('sharp');
   const { MemoryAssetStore } = await import('../src/assets.ts');
   const { importUplistingCovers } = await import('../src/uplisting-media.ts');
   const { cmsDocumentErrors } = await import('../src/cms-document.ts');
   const bytes = await sharp({ create: { width: 20, height: 20, channels: 3, background: '#65745a' } }).png().toBuffer();
   const assets = new MemoryAssetStore();
-  const properties = parseProperties(payload()); properties[0].values.image = 'https://cdn.filestackcontent.com/test-photo';
+  const properties = parseProperties(payload()); properties[0].values.image = 'https://' + host + '/test-photo';
   const fetcher = vi.fn<typeof fetch>(async (_url, options) => { expect(options?.headers).toBeUndefined(); expect(options?.redirect).toBe('error'); return new Response(bytes); });
   const converted = await importUplistingCovers(properties, 'site-a', 'owner', assets, fetcher);
   expect(converted[0].values.image).toMatch(/^asset:uplisting-photo-/);
@@ -156,9 +156,11 @@ test('cover import refuses unverified hosts and malformed image bytes', async ()
   const { importUplistingCovers } = await import('../src/uplisting-media.ts');
   const assets = new MemoryAssetStore(), properties = parseProperties(payload());
   const fetcher = vi.fn<typeof fetch>(async () => new Response('not an image'));
-  properties[0].values.image = 'https://127.0.0.1/private';
+  for (const host of ['127.0.0.1', 'untrusted.cloudfront.net', 'djts5lg061pqs.cloudfront.net.attacker.test']) {
+  properties[0].values.image = 'https://' + host + '/private';
   await expect(importUplistingCovers(properties, 'site', 'owner', assets, fetcher)).rejects.toThrow('unsupported photo host');
   expect(fetcher).not.toHaveBeenCalled();
+  }
   properties[0].values.image = 'https://cdn.filestackcontent.com/test-photo';
   await expect(importUplistingCovers(properties, 'site', 'owner', assets, fetcher)).rejects.toThrow('unsupported image format');
   expect(await assets.list('site')).toHaveLength(0);
