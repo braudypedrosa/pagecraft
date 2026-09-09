@@ -15,6 +15,7 @@ import { AssetField } from './AssetField';
 function PageRow({ i }: { i: number }) {
   const p = C.state.pages[i];
   const last = i === C.state.pages.length - 1;
+  const collection = p.collection ? C.findCollection(p.collection) : null;
 
   const act = async (e: MouseEvent, name: string) => {
     e.stopPropagation();
@@ -44,6 +45,9 @@ function PageRow({ i }: { i: number }) {
         <span class="pn">
           <b>{p.name}</b>
           <small>{C.isFront(p) ? 'the front page' : '/' + p.slug}</small>
+          {collection && <span class="cms-page-badge" title={'Connected to CMS collection: ' + collection.name}>
+            <Icon name="cms" size={11} /> CMS · {collection.name}
+          </span>}
         </span>
       </button>
       <span class="act">

@@ -544,6 +544,7 @@ body.dragging .lrow{cursor:grabbing}
 .pagerow .pn{flex:1;min-width:0}
 .pagerow .pn b{display:block;font-size:var(--fs-3);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pagerow .pn small{display:block;color:var(--text-3);font-size:var(--fs-2);font-family:var(--label)}
+.pagerow .cms-page-badge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;color:var(--text-2);font-size:var(--fs-1);line-height:1.4}
 .pagerow .act{display:flex;gap:var(--sp-1);opacity:0}
 .pagerow:hover .act{opacity:1}
 .pagerow .act button{width:var(--ic-sm);height:var(--ic-sm);display:grid;place-items:center;border-radius:var(--r-sm);color:var(--text-3)}
@@ -4150,23 +4151,19 @@ function renderModebar() {
   })));
 }
 
-/* Which item the canvas is standing in for. Only shown when something on this
-   page actually declares a source — otherwise it is noise. */
+/* Preview only the collection connected to this detail page. Repeated lists
+   render their own entries and do not make a page a CMS detail template. */
 function itemBarHtml() {
-  const seen = [];
-  if (page().collection && findCollection(page().collection)) seen.push(page().collection);
-  eachNode(tree(), n => { if (n.src && findCollection(n.src) && !seen.includes(n.src)) seen.push(n.src); });
-  if (!seen.length) return '';
-  return seen.map(id => {
-    const col = findCollection(id);
-    if (!col.items.length) return `<span class="pill">${svg('cms', 11)} ${esc(col.name)} — no items yet</span>`;
-    const at = Math.min(previewIndex(id), col.items.length - 1);
-    return `<span class="pill itemBar" data-col="${esc(id)}" role="group" aria-label="Preview entry from ${esc(col.name)}">${svg('cms', 11)} <span class="itemBarLabel" title="Preview entry from ${esc(col.name)}">Preview entry · ${esc(col.name)}</span>
-      <button data-col="${id}" data-i="${Math.max(0, at - 1)}" type="button" title="Previous item" aria-label="Previous preview entry"${at === 0 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 4-4 4 4 4"/></svg></button>
-      <select data-col="${esc(id)}" aria-label="Preview entry from ${esc(col.name)}">${col.items.map((item,i) => `<option value="${i}"${i === at ? ' selected' : ''}>${esc(itemTitle(col,item))}${item.draft ? ' · Draft preview' : ''}</option>`).join('')}</select>
-      <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" type="button" title="Next item" aria-label="Next preview entry"${at === col.items.length - 1 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg></button>
-      <small aria-label="Entry ${at + 1} of ${col.items.length}">${at + 1}/${col.items.length}</small></span>`;
-  }).join('');
+  const col = page().collection ? findCollection(page().collection) : null;
+  if (!col) return '';
+  const id = col.id;
+  if (!col.items.length) return `<span class="pill">${svg('cms', 11)} ${esc(col.name)} — no items yet</span>`;
+  const at = Math.min(previewIndex(id), col.items.length - 1);
+  return `<span class="pill itemBar" data-col="${esc(id)}" role="group" aria-label="Preview entry from ${esc(col.name)}">${svg('cms', 11)} <span class="itemBarLabel" title="Preview entry from ${esc(col.name)}">Preview entry · ${esc(col.name)}</span>
+    <button data-col="${id}" data-i="${Math.max(0, at - 1)}" type="button" title="Previous item" aria-label="Previous preview entry"${at === 0 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 4-4 4 4 4"/></svg></button>
+    <select data-col="${esc(id)}" aria-label="Preview entry from ${esc(col.name)}">${col.items.map((item,i) => `<option value="${i}"${i === at ? ' selected' : ''}>${esc(itemTitle(col,item))}${item.draft ? ' · Draft preview' : ''}</option>`).join('')}</select>
+    <button data-col="${id}" data-i="${Math.min(col.items.length - 1, at + 1)}" type="button" title="Next item" aria-label="Next preview entry"${at === col.items.length - 1 ? ' disabled' : ''}><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 4 4 4-4 4"/></svg></button>
+    <small aria-label="Entry ${at + 1} of ${col.items.length}">${at + 1}/${col.items.length}</small></span>`;
 }
 
 const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Pages and SEO', cms: 'Content' };

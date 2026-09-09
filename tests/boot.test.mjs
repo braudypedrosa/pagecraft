@@ -527,7 +527,7 @@ test('project and CMS text fields close their undo transactions on blur', async 
   doc.querySelector('#mClose').click();
 });
 
-test('each collection preview bar is unique and its own controls update that collection', async () => {
+test('page CMS connection owns the preview picker, regardless of embedded collections', async () => {
   const { window: w, doc } = await boot();
   const C = w.__CORE;
   const one = C.collectionAdd('Articles');
@@ -538,13 +538,27 @@ test('each collection preview bar is unique and its own controls update that col
   const bList = C.N('list'); bList.src = two.id;
   C.page().tree = [aList, bList];
   C.state.ui.item = {};
+  delete C.page().collection;
   w.renderModebar();
-  const bars = [...doc.querySelectorAll('#modebar .itemBar')];
-  a.equal(bars.length, 2);
-  a.equal(doc.querySelectorAll('#itemBar').length, 0, 'no duplicate id is emitted');
-  bars[1].querySelector('button[title="Next item"]').click();
-  a.equal(C.state.ui.item[two.id], 1);
-  a.equal(C.state.ui.item[one.id] || 0, 0, 'the other collection is untouched');
+  a.equal(doc.querySelectorAll('#modebar .itemBar').length, 0, 'lists alone do not show a picker');
+  C.page().collection = one.id;
+  w.renderModebar();
+  let bars = [...doc.querySelectorAll('#modebar .itemBar')];
+  a.equal(bars.length, 1);
+  a.equal(bars[0].dataset.col, one.id);
+  bars[0].querySelector('button[title="Next item"]').click();
+  a.equal(C.state.ui.item[one.id], 1);
+  a.equal(C.state.ui.item[two.id] || 0, 0, 'unrelated collection is untouched');
+  C.page().collection = two.id;
+  w.renderModebar();
+  bars = [...doc.querySelectorAll('#modebar .itemBar')];
+  a.equal(bars.length, 1);
+  a.equal(bars[0].dataset.col, two.id, 'reconnecting replaces the collection');
+  a.match(bars[0].textContent, /News/);
+  C.page().collection = 'missing-collection';
+  w.renderModebar();
+  a.equal(doc.querySelectorAll('#modebar .itemBar').length, 0, 'missing collections have no picker');
+  delete C.page().collection;
 });
 
 test('Preview runs the same Tabs, Gallery, Code, Slider, Video, navigation and animation payloads as export', async () => {
