@@ -1,3 +1,4 @@
+import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
 /* The server, as routes.
 
@@ -281,6 +282,8 @@ export interface Options {
   manualImports?: ManualImportReadFastPath;
   /** Injectable only so font freezing can be proven without a live third-party dependency. */
   fontFetch?: typeof fetch;
+  /** Cloud-only outbound app credentials and property clients. */
+  cloudIntegrations?: CloudIntegrations;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
   accountAuth?: AccountAuth;
   /** Atomic site creation and owner grant, including the owned-site quota. */
@@ -1715,6 +1718,8 @@ export function createApp(o: Options) {
     return c.redirect(`${base}?message=Collaborator+removed.`, 303);
   });
 
+  cloudIntegrationRoutes(app, { store: o.store, integrations: o.cloudIntegrations, assets: o.assets, allowed, editorOrigin: o.editorOrigin });
+
   app.get("/sites/:id/settings", async (c) => {
     const id = c.req.param("id");
     const gate = await allowed(c, id, "admin");
@@ -1824,8 +1829,15 @@ export function createApp(o: Options) {
     const memberIds = (await o.auth.members(id)).map((member) => member.userId);
     // Fail closed: do not report deletion or remove management access while public
     // routing is still active. A retry is safe if the database delete then fails.
-    await o.publications?.removeSite(id);
-    if (!await o.store.delete(id)) return deny(c, 404);
+    const remove = async () => {
+      await o.cloudIntegrations?.connections.put(id, null);
+      await o.publications?.removeSite(id);
+      return o.store.delete(id);
+    };
+    const deleted = o.cloudIntegrations
+      ? await o.cloudIntegrations.connections.exclusive(id, remove)
+      : await remove();
+    if (!deleted) return deny(c, 404);
     /* Postgres removes memberships through the site's cascading foreign key. The in-memory
        development stores are separate objects, so mirror that cleanup after the site is gone. */
     await Promise.all(

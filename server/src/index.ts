@@ -1,3 +1,4 @@
+import { FileCloudConnectionStore, UplistingClient } from './cloud-uplisting.ts';
 /* The entry point: read the environment, pick a store, listen.
 
    Everything decidable is decided here, so `app.ts` stays a function of its arguments and
@@ -5,7 +6,7 @@
 import { serve } from "@hono/node-server";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { createPrivateKey, createPublicKey } from "node:crypto";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import {
@@ -174,6 +175,8 @@ if (!publicationRoot) {
   );
 }
 const publications = new FileHostedPublicationStore(publicationRoot);
+// A sibling private directory survives deployments and is isolated by environment.
+const cloudIntegrations = { connections: new FileCloudConnectionStore(resolve(publicationRoot) + "-integrations"), client: new UplistingClient() };
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY;
@@ -485,6 +488,7 @@ if (mail) {
 }
 
 const app = createApp({
+  cloudIntegrations,
   store,
   auth,
   assets,
