@@ -40,6 +40,18 @@ export function CmsWorkspace({
     if (!busy && discard()) close();
   };
   useEffect(() => {
+    const navigate = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('#leftRail button, .topbar button, .topbar a')) return;
+      if (target.closest('#leftRail button[data-t="cms"]') || busy || !discard()) {
+        event.preventDefault(); event.stopImmediatePropagation(); return;
+      }
+      close();
+    };
+    document.addEventListener('click', navigate, true);
+    return () => document.removeEventListener('click', navigate, true);
+  }, [dirty, busy, close]);
+  useEffect(() => {
     const before = (e: BeforeUnloadEvent) => {
       if (dirty || busy) {
         e.preventDefault();
@@ -193,8 +205,7 @@ export function CmsWorkspace({
   return (
     <section
       class="cms-workspace"
-      role="dialog"
-      aria-modal="true"
+      role="region"
       aria-label="CMS workspace"
       tabIndex={-1}
       ref={root}
@@ -211,28 +222,7 @@ export function CmsWorkspace({
           e.stopPropagation();
           leave();
         }
-        if (
-          e.key === 'Tab' &&
-          document.querySelector(
-            '#modal:not([hidden]),#askLayer:not([hidden])',
-          ) == null
-        ) {
-          const focusable = [
-            ...root.current!.querySelectorAll<HTMLElement>(
-              'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]',
-            ),
-          ].filter((el) => el.getClientRects().length);
-          const first = focusable[0],
-            last = focusable[focusable.length - 1];
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault();
-            last?.focus();
-          }
-          if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault();
-            first?.focus();
-          }
-        }
+
       }}
     >
       <header class="cms-workspace-header">

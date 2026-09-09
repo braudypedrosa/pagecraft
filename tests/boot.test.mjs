@@ -527,6 +527,20 @@ test('project and CMS text fields close their undo transactions on blur', async 
   doc.querySelector('#mClose').click();
 });
 
+test('CMS keeps the editor shell available and closes through rail navigation', async () => {
+  const { window: w, doc } = await boot();
+  const col = w.__CORE.collectionAdd('Shell check');
+  w.cmsModal(col.id);
+  await new Promise(r => setTimeout(r, 100));
+  a.ok(doc.querySelector('#app > .main > #cms-workspace-host .cms-workspace'));
+  a.notEqual(doc.querySelector('#app').inert, true);
+  a.equal(doc.querySelector('.cms-workspace').getAttribute('role'), 'region');
+  a.ok(doc.body.classList.contains('cms-open'));
+  doc.querySelector('#leftRail button[data-t="pages"]').click();
+  a.equal(doc.querySelector('.cms-workspace'), null);
+  a.equal(doc.body.classList.contains('cms-open'), false);
+});
+
 test('page action menus dismiss on outside pointers including the canvas bridge', async () => {
   const { window: w, doc } = await boot();
   const menu = doc.createElement('details');

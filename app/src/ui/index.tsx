@@ -100,11 +100,17 @@ export function mount(core: Core, legacy: Legacy) {
 
   const openCms = (collectionId: string) => {
     let host = document.getElementById('cms-workspace-host');
-    if (!host) { host = document.createElement('div'); host.id = 'cms-workspace-host'; document.body.append(host); }
+    if (!host) { host = document.createElement('div'); host.id = 'cms-workspace-host'; document.querySelector('#app > .main')!.append(host); }
     const previous = document.activeElement as HTMLElement | null;
-    const app = document.getElementById('app');
-    if (app) app.inert = true;
-    render(<CmsWorkspace key={collectionId} collectionId={collectionId} close={() => { render(null, host!); if (app) app.inert = false; previous?.focus(); }} />, host);
+    document.body.classList.add('cms-open');
+    const railButtons = [...document.querySelectorAll('#leftRail button[data-t]')];
+    const active = railButtons.find(b => b.classList.contains('on'));
+    railButtons.forEach(b => b.classList.toggle('on', b.getAttribute('data-t') === 'cms'));
+    render(<CmsWorkspace key={collectionId} collectionId={collectionId} close={() => {
+      render(null, host!); document.body.classList.remove('cms-open');
+      railButtons.forEach(b => b.classList.toggle('on', b === active));
+      previous?.focus();
+    }} />, host);
   };
   return { ...painters, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
 }

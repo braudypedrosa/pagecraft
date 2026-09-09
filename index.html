@@ -1314,7 +1314,10 @@ pre.code{
 }
 .borderpick button.on.set::after{background:var(--paper)}
 .borderctl>.f{margin-bottom:var(--gap-3)}
-.cms-workspace{--h-ctl:var(--pc-control-height,44px);--cms-gap:var(--pc-space-4,16px);position:fixed;inset:0;z-index:150;background:var(--panel);color:var(--text);display:flex;flex-direction:column;font-family:inherit;font-size:var(--fs-3)}
+#cms-workspace-host:empty{display:none}
+#cms-workspace-host{flex:1;min-width:0;min-height:0}
+body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #app>.main>.right{display:none}
+.cms-workspace{--h-ctl:var(--pc-control-height,44px);--cms-gap:var(--pc-space-4,16px);height:100%;min-height:0;background:var(--panel);color:var(--text);display:flex;flex-direction:column;font-family:inherit;font-size:var(--fs-3)}
 .cms-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 28px;border-bottom:1px solid var(--line)}
 .cms-workspace h1{font-size:22px;margin:0}.cms-workspace h2{font-size:24px;margin:0}.cms-workspace h3{font-size:var(--fs-5);margin:0 0 8px}.cms-workspace p{line-height:1.5;margin:6px 0;color:var(--text-2)}
 .cms-workspace-layout{display:grid;grid-template-columns:220px minmax(0,1fr);flex:1;min-height:0}.cms-collections{padding:24px 16px;border-right:1px solid var(--line);overflow:auto}.cms-collections .btn{justify-content:space-between;margin-bottom:8px}
@@ -10634,6 +10637,20 @@ var PC_UI = (() => {
       if (!busy && discard()) close();
     };
     h2(() => {
+      const navigate = (event) => {
+        const target = event.target;
+        if (!target.closest("#leftRail button, .topbar button, .topbar a")) return;
+        if (target.closest('#leftRail button[data-t="cms"]') || busy || !discard()) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+        close();
+      };
+      document.addEventListener("click", navigate, true);
+      return () => document.removeEventListener("click", navigate, true);
+    }, [dirty, busy, close]);
+    h2(() => {
       const before = (e3) => {
         if (dirty || busy) {
           e3.preventDefault();
@@ -10764,8 +10781,7 @@ var PC_UI = (() => {
       "section",
       {
         class: "cms-workspace",
-        role: "dialog",
-        "aria-modal": "true",
+        role: "region",
         "aria-label": "CMS workspace",
         tabIndex: -1,
         ref: root,
@@ -10781,24 +10797,6 @@ var PC_UI = (() => {
           if (e3.key === "Escape") {
             e3.stopPropagation();
             leave();
-          }
-          if (e3.key === "Tab" && document.querySelector(
-            "#modal:not([hidden]),#askLayer:not([hidden])"
-          ) == null) {
-            const focusable = [
-              ...root.current.querySelectorAll(
-                'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]'
-              )
-            ].filter((el) => el.getClientRects().length);
-            const first = focusable[0], last = focusable[focusable.length - 1];
-            if (e3.shiftKey && document.activeElement === first) {
-              e3.preventDefault();
-              last?.focus();
-            }
-            if (!e3.shiftKey && document.activeElement === last) {
-              e3.preventDefault();
-              first?.focus();
-            }
           }
         },
         children: [
@@ -18071,14 +18069,17 @@ var PC_UI = (() => {
       if (!host) {
         host = document.createElement("div");
         host.id = "cms-workspace-host";
-        document.body.append(host);
+        document.querySelector("#app > .main").append(host);
       }
       const previous = document.activeElement;
-      const app = document.getElementById("app");
-      if (app) app.inert = true;
+      document.body.classList.add("cms-open");
+      const railButtons = [...document.querySelectorAll("#leftRail button[data-t]")];
+      const active = railButtons.find((b2) => b2.classList.contains("on"));
+      railButtons.forEach((b2) => b2.classList.toggle("on", b2.getAttribute("data-t") === "cms"));
       R(/* @__PURE__ */ u2(CmsWorkspace, { collectionId, close: () => {
         R(null, host);
-        if (app) app.inert = false;
+        document.body.classList.remove("cms-open");
+        railButtons.forEach((b2) => b2.classList.toggle("on", b2 === active));
         previous?.focus();
       } }, collectionId), host);
     };
