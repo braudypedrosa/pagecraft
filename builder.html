@@ -3139,6 +3139,14 @@ const escCtx = e => {
   e.stopPropagation();
 };
 document.addEventListener('pointerdown', e => { if (!e.target.closest('#ctx')) closeCtx(); }, true);
+function closePageActions(target) {
+  document.querySelectorAll('.page-actions[open]').forEach(menu => {
+    if (!target || !menu.contains(target)) menu.removeAttribute('open');
+  });
+}
+document.addEventListener('pointerdown', e => closePageActions(e.target), true);
+document.addEventListener('pagecraft:outside-pointer', () => closePageActions());
+window.addEventListener('blur', () => closePageActions());
 document.addEventListener('keydown', escCtx, true);
 window.addEventListener('resize', closeCtx);
 
@@ -3150,7 +3158,10 @@ function bindCanvas() {
      survived the very next thing anyone does: clicking another element. Capture phase, so
      it runs before the handler below decides what the click meant, and unconditional,
      because a pointerdown anywhere in the canvas is never a click on the menu. */
-  cdoc.addEventListener('pointerdown', closeCtx, true);
+  cdoc.addEventListener('pointerdown', () => {
+    closeCtx();
+    document.dispatchEvent(new Event('pagecraft:outside-pointer'));
+  }, true);
   cdoc.addEventListener('keydown', escCtx, true);
 
   cdoc.addEventListener('pointerdown', e => {

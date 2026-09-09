@@ -231,7 +231,7 @@ test('a content account’s Pages panel offers the two fields that are words', (
   const scoped = rig({ canStructure: false });
   scoped.draw(<Pages />);
   const some = scoped.$$('.gb label').map(e => e.textContent!.replace(/\s+/g, ' ').trim());
-  a.deepEqual(some, ['Browser title', 'Meta description']);
+  a.deepEqual(some, ['Slug', 'Browser title', 'Meta description']);
   a.equal(scoped.$$('button').some(b => /New page/.test(b.textContent || '')), false,
     'adding a page is not a content edit');
   a.ok(scoped.$$('.pagerow').length >= 1, 'but the list stays — it is how you reach a page');
@@ -878,6 +878,17 @@ test('Add tiles, inspector groups, and Navigator rows have keyboard semantics', 
   r.calls.length = 0;
   row.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   a.deepEqual(r.arg('select'), [n.id, { scroll: true }]);
+});
+
+test('content accounts see the current slug without structural page actions', () => {
+  const scoped = rig({ canStructure: false });
+  scoped.draw(<Pages />);
+  a.equal(scoped.$('.page-actions'), null);
+  const slug = scoped.$('#page-slug') as HTMLInputElement;
+  a.ok(slug.readOnly);
+  a.equal(slug.value, C.isFront(C.page()) ? '/' : C.page().slug);
+  a.ok(scoped.$$('.pagerow small').every(el => !el.textContent?.startsWith('/')));
+  scoped.host.remove();
 });
 
 test('page and collection rows expose a primary button without nesting their action buttons', () => {

@@ -527,6 +527,23 @@ test('project and CMS text fields close their undo transactions on blur', async 
   doc.querySelector('#mClose').click();
 });
 
+test('page action menus dismiss on outside pointers including the canvas bridge', async () => {
+  const { window: w, doc } = await boot();
+  const menu = doc.createElement('details');
+  menu.className = 'page-actions';
+  menu.innerHTML = '<summary>Actions</summary><button>Action</button>';
+  doc.body.append(menu);
+  menu.open = true;
+  menu.querySelector('button').dispatchEvent(new w.Event('pointerdown', { bubbles: true }));
+  a.ok(menu.open, 'inside clicks leave actions available');
+  doc.body.dispatchEvent(new w.Event('pointerdown', { bubbles: true }));
+  a.equal(menu.open, false, 'nonfocusable outside surfaces dismiss');
+  menu.open = true;
+  doc.dispatchEvent(new w.Event('pagecraft:outside-pointer'));
+  a.equal(menu.open, false, 'canvas outside clicks dismiss');
+  menu.remove();
+});
+
 test('page CMS connection owns the preview picker, regardless of embedded collections', async () => {
   const { window: w, doc } = await boot();
   const C = w.__CORE;

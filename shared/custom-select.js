@@ -291,6 +291,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   document.addEventListener('pointerdown', event => {
     if (openRecord && !openRecord.trigger.contains(event.target) && !openRecord.menu.contains(event.target)) close(openRecord);
   }, true);
+  document.addEventListener('pagecraft:outside-pointer', () => openRecord && close(openRecord));
+  window.addEventListener('blur', () => openRecord && close(openRecord));
   document.addEventListener('submit', event => {
     const invalid = event.target.querySelector?.('select.pc-custom-select-native:invalid');
     if (invalid) records.get(invalid)?.trigger.focus();

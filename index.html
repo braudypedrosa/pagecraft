@@ -11873,7 +11873,7 @@ var PC_UI = (() => {
             /* @__PURE__ */ u2(Icon, { name: "page", size: 14 }),
             /* @__PURE__ */ u2("span", { class: "pn", children: [
               /* @__PURE__ */ u2("b", { children: p3.name }),
-              /* @__PURE__ */ u2("small", { children: C2.isFront(p3) ? "the front page" : "/" + p3.slug }),
+              C2.isFront(p3) && /* @__PURE__ */ u2("small", { children: "Front page" }),
               collection && /* @__PURE__ */ u2("span", { class: "cms-page-badge", title: "Connected to CMS collection: " + collection.name, children: [
                 /* @__PURE__ */ u2(Icon, { name: "cms", size: 11 }),
                 " CMS \xB7 ",
@@ -11883,7 +11883,7 @@ var PC_UI = (() => {
           ]
         }
       ),
-      /* @__PURE__ */ u2(
+      L2.canStructure() && /* @__PURE__ */ u2(
         "details",
         {
           class: "page-actions",
@@ -12011,6 +12011,10 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2("div", { class: "group", children: [
         /* @__PURE__ */ u2("div", { class: "gh", children: "Current page" }),
         /* @__PURE__ */ u2("div", { class: "gb", children: !L2.canStructure() ? /* @__PURE__ */ u2(S, { children: [
+          /* @__PURE__ */ u2("div", { class: "f", children: [
+            /* @__PURE__ */ u2("label", { htmlFor: "page-slug", children: "Slug" }),
+            /* @__PURE__ */ u2("input", { class: "ctl", id: "page-slug", value: C2.isFront(pg) ? "/" : pg.slug, readOnly: true })
+          ] }),
           /* @__PURE__ */ u2("div", { class: "f", children: [
             /* @__PURE__ */ u2("label", { htmlFor: "page-title", children: "Browser title" }),
             /* @__PURE__ */ u2(
@@ -12478,12 +12482,16 @@ var PC_UI = (() => {
         }
       };
       document.addEventListener("pointerdown", away, true);
+      document.addEventListener("pagecraft:outside-pointer", onClose);
+      window.addEventListener("blur", onClose);
       document.addEventListener("keydown", key, true);
       window.addEventListener("resize", onClose);
       window.addEventListener("scroll", onClose, true);
       box.current?.querySelector(".cp-sv")?.focus();
       return () => {
         document.removeEventListener("pointerdown", away, true);
+        document.removeEventListener("pagecraft:outside-pointer", onClose);
+        window.removeEventListener("blur", onClose);
         document.removeEventListener("keydown", key, true);
         window.removeEventListener("resize", onClose);
         window.removeEventListener("scroll", onClose, true);
@@ -15803,6 +15811,8 @@ var PC_UI = (() => {
     document.addEventListener("pointerdown", (event) => {
       if (openRecord && !openRecord.trigger.contains(event.target) && !openRecord.menu.contains(event.target)) close(openRecord);
     }, true);
+    document.addEventListener("pagecraft:outside-pointer", () => openRecord && close(openRecord));
+    window.addEventListener("blur", () => openRecord && close(openRecord));
     document.addEventListener("submit", (event) => {
       const invalid = event.target.querySelector?.("select.pc-custom-select-native:invalid");
       if (invalid) records.get(invalid)?.trigger.focus();
@@ -19675,6 +19685,14 @@ const escCtx = e => {
   e.stopPropagation();
 };
 document.addEventListener('pointerdown', e => { if (!e.target.closest('#ctx')) closeCtx(); }, true);
+function closePageActions(target) {
+  document.querySelectorAll('.page-actions[open]').forEach(menu => {
+    if (!target || !menu.contains(target)) menu.removeAttribute('open');
+  });
+}
+document.addEventListener('pointerdown', e => closePageActions(e.target), true);
+document.addEventListener('pagecraft:outside-pointer', () => closePageActions());
+window.addEventListener('blur', () => closePageActions());
 document.addEventListener('keydown', escCtx, true);
 window.addEventListener('resize', closeCtx);
 
@@ -19686,7 +19704,10 @@ function bindCanvas() {
      survived the very next thing anyone does: clicking another element. Capture phase, so
      it runs before the handler below decides what the click meant, and unconditional,
      because a pointerdown anywhere in the canvas is never a click on the menu. */
-  cdoc.addEventListener('pointerdown', closeCtx, true);
+  cdoc.addEventListener('pointerdown', () => {
+    closeCtx();
+    document.dispatchEvent(new Event('pagecraft:outside-pointer'));
+  }, true);
   cdoc.addEventListener('keydown', escCtx, true);
 
   cdoc.addEventListener('pointerdown', e => {

@@ -108,12 +108,16 @@ export function ColorPop(
       if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
     };
     document.addEventListener('pointerdown', away, true);
+    document.addEventListener('pagecraft:outside-pointer', onClose);
+    window.addEventListener('blur', onClose);
     document.addEventListener('keydown', key, true);
     window.addEventListener('resize', onClose);
     window.addEventListener('scroll', onClose, true);
     box.current?.querySelector<HTMLElement>('.cp-sv')?.focus();
     return () => {
       document.removeEventListener('pointerdown', away, true);
+      document.removeEventListener('pagecraft:outside-pointer', onClose);
+      window.removeEventListener('blur', onClose);
       document.removeEventListener('keydown', key, true);
       window.removeEventListener('resize', onClose);
       window.removeEventListener('scroll', onClose, true);

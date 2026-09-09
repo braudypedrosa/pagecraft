@@ -45,13 +45,13 @@ function PageRow({ i }: { i: number }) {
         <Icon name="page" size={14} />
         <span class="pn">
           <b>{p.name}</b>
-          <small>{C.isFront(p) ? 'the front page' : '/' + p.slug}</small>
+          {C.isFront(p) && <small>Front page</small>}
           {collection && <span class="cms-page-badge" title={'Connected to CMS collection: ' + collection.name}>
             <Icon name="cms" size={11} /> CMS · {collection.name}
           </span>}
         </span>
       </button>
-      <details class="page-actions"
+      {L.canStructure() && <details class="page-actions"
         onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) e.currentTarget.removeAttribute('open'); }}
         onKeyDown={e => {
           if (e.key !== 'Escape') return;
@@ -76,7 +76,7 @@ function PageRow({ i }: { i: number }) {
             <Icon name="trash" size={12} /> Delete</button>
         )}
       </span>
-      </details>
+      </details>}
     </div>
   );
 }
@@ -161,6 +161,9 @@ export function Pages() {
             content account gets the two, in the order they matter, and none of the rest. */}
         {!L.canStructure() ? (
           <>
+            <div class="f"><label htmlFor="page-slug">Slug</label>
+              <input class="ctl" id="page-slug" value={C.isFront(pg) ? '/' : pg.slug} readOnly />
+            </div>
             <div class="f"><label htmlFor="page-title">Browser title</label>
               <input class="ctl" id="page-title" value={pg.title || ''} placeholder={pg.name}
                 {...field('title', v => { C.page().title = v; })} /></div>
