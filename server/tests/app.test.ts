@@ -552,3 +552,20 @@ test('dashboard previews are private, script-free saved drafts that update witho
   a.match(await (await admin(path, {}, cookie)).text(), /Saved preview revision/);
   a.equal((await admin(`/api/sites/${site.id}/dashboard-preview/other.html`, {}, cookie)).status, 404);
 });
+
+
+test('site creation streams real stages and a final result while retaining JSON clients', async () => {
+  const { admin, signIn, store } = await rig();
+  const { cookie } = await signIn();
+  const response = await admin('/api/sites', { method: 'POST', headers: { accept: 'application/x-ndjson' }, body: JSON.stringify({name: 'Progress QA'}) }, cookie);
+  a.equal(response.status, 200);
+  a.match(response.headers.get('content-type') || '', /application\/x-ndjson/);
+  const events = (await response.text()).trim().split('\n').map(line => JSON.parse(line));
+  a.deepEqual(events.filter(e => e.type === 'progress').map(e => e.value), [0, 1, 2, 3]);
+  const result = events.at(-1);
+  a.equal(result.type, 'result'); a.equal(result.ok, true);
+  a.equal((await store.byId(result.payload.id))?.name, 'Progress QA');
+  const failed = await admin('/api/sites', {method: 'POST', headers: {accept:'application/x-ndjson'}, body:JSON.stringify({slug:'Bad Slug'})}, cookie);
+  const error = (await failed.text()).trim().split('\n').map(line => JSON.parse(line)).at(-1);
+  a.equal(error.ok, false); a.equal(error.payload.error, 'invalid_slug');
+});

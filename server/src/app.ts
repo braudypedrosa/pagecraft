@@ -16,6 +16,7 @@ import { cmsDocumentErrors } from './cms-document.ts';
    `app.ts` takes its stores and its editor file as arguments. That is what makes it testable
    without a database or a build — `index.ts` is the part that reads the environment. */
 import { type Context, Hono } from "hono";
+import { stream } from "hono/streaming";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { bodyLimit } from "hono/body-limit";
@@ -2342,10 +2343,12 @@ export function createApp(o: Options) {
         templateVersion?: string;
       } | null;
     if (!body) return c.json({ error: "a JSON body is required" }, 400);
+    const create = async (progress: (value: number, message: string) => Promise<void>) => {
     /* A document is optional. It used to be required, which meant the only way to make a site
        was to already have one — so a fresh deployment's owner signed in, was told to ask whoever
        set it up, and had nowhere to go. They *are* whoever set it up. A name is enough now, and
        the server starts them where the builder's own "Start an empty site" does. */
+    await progress(0, "Preparing your site…");
     const name = String(body.name || "").trim() || "Untitled site";
     const requestedSlug = String(body.slug || "").trim();
     if (requestedSlug && !validSlug(requestedSlug)) {
@@ -2362,6 +2365,7 @@ export function createApp(o: Options) {
       if (!o.siteTemplates) {
         return c.json({ error: "site_templates_unavailable" }, 503);
       }
+      await progress(0, "Preparing the template…");
       templateInstall = await o.siteTemplates.instantiate(
         templateId,
         templateVersion || undefined,
@@ -2420,6 +2424,7 @@ export function createApp(o: Options) {
         detail: "The document is not a renderable Pagecraft project.",
       }, 422);
     }
+    await progress(1, "Creating your site…");
     try {
       const created = o.accountAuth
         ? await o.ownedSites?.create({
@@ -2466,10 +2471,13 @@ export function createApp(o: Options) {
       // so image-heavy templates do not exhaust the gateway and time out midway.
       const assetResults: PromiseSettledResult<AssetRecord>[] = [];
       const templateAssets = templateInstall?.assets || [];
+      await progress(2, templateAssets.length ? `Copying images: 0 of ${templateAssets.length}` : "Preparing the builder…");
       for (let start = 0; start < templateAssets.length; start += 3) {
         const batch = await Promise.allSettled(templateAssets.slice(start, start + 3)
           .map(asset => o.assets!.put({ ...asset, siteId: site.id })));
         assetResults.push(...batch);
+        const copied = assetResults.filter(result => result.status === "fulfilled").length;
+        await progress(2 + copied / templateAssets.length, `Copying images: ${copied} of ${templateAssets.length}`);
         if (batch.some(result => result.status === 'rejected')) break;
       }
       const installedAssetIds = assetResults.flatMap(result =>
@@ -2487,6 +2495,7 @@ export function createApp(o: Options) {
           detail: "The curated site could not be installed. Nothing was kept.",
         }, 500);
       }
+      await progress(3, "Finishing setup…");
       const out = remember(site, preview);
       if (htmlForm) {
         return c.redirect(
@@ -2516,6 +2525,24 @@ export function createApp(o: Options) {
         detail: "We could not create that site. Try again.",
       }, 409);
     }
+    };
+    if (!htmlForm && c.req.header('accept')?.includes('application/x-ndjson')) {
+      c.header('content-type', 'application/x-ndjson');
+      c.header('x-accel-buffering', 'no');
+      return stream(c, async output => {
+        // A closed tab must not interrupt an in-flight installation or its rollback.
+        const send = async (event: object) => { try { await output.write(JSON.stringify(event) + '\n'); } catch {} };
+        const heartbeat = setInterval(() => { void send({ type: 'heartbeat' }); }, 10000);
+        try {
+          const response = await create((value, message) => send({ type: 'progress', value, message }));
+          const payload = await response.json();
+          await send({ type: 'result', ok: response.ok, payload });
+        } catch {
+          await send({ type: 'result', ok: false, payload: { error: 'creation_status_unknown', detail: 'Could not confirm creation. Check Sites before trying again.' } });
+        } finally { clearInterval(heartbeat); }
+      });
+    }
+    return create(async () => {});
   });
 
   /* The save. This is the endpoint that makes the whole thing worth building: it is what
