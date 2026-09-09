@@ -2427,11 +2427,16 @@ export function createApp(o: Options) {
          could leave the create dialog spinning for nearly a minute). Let every upload settle
          together, then roll back only after no write remains in flight. `allSettled` matters:
          an early `Promise.all` rejection would race cleanup against the other uploads. */
-      const assetResults = await Promise.allSettled(
-        (templateInstall?.assets || []).map(asset =>
-          o.assets!.put({ ...asset, siteId: site.id })
-        ),
-      );
+      // Each asset can itself upload four chunks concurrently. Bound the outer queue
+      // so image-heavy templates do not exhaust the gateway and time out midway.
+      const assetResults: PromiseSettledResult<AssetRecord>[] = [];
+      const templateAssets = templateInstall?.assets || [];
+      for (let start = 0; start < templateAssets.length; start += 3) {
+        const batch = await Promise.allSettled(templateAssets.slice(start, start + 3)
+          .map(asset => o.assets!.put({ ...asset, siteId: site.id })));
+        assetResults.push(...batch);
+        if (batch.some(result => result.status === 'rejected')) break;
+      }
       const installedAssetIds = assetResults.flatMap(result =>
         result.status === "fulfilled" ? [result.value.id] : []
       );

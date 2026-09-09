@@ -615,7 +615,7 @@ test("a curated site installs all pages and remapped media without charging the 
   a.ok(result.files.includes("about.html"));
   const installed = await assets.list(site.id);
   a.equal(installed.length, 5);
-  a.equal(assets.peak, 5, "independent template assets install concurrently");
+  a.equal(assets.peak, 3, "template uploads use bounded concurrency");
   a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
   a.ok(installed.every((asset) => /^[a-f0-9]{64}$/.test(asset.contentHash || "")),
     "curated assets retain the content hash required by the production gateway");
@@ -779,7 +779,7 @@ test("a failed concurrent template install waits for every asset and leaves no p
     error: "site_template_install_failed",
     detail: "The curated site could not be installed. Nothing was kept.",
   });
-  a.equal(assets.peak, 5, "failure still waits for all concurrent uploads to settle");
+  a.equal(assets.peak, 3, "failure waits for the bounded upload batch to settle");
   a.equal(await store.bySlug("rollback-studio"), null);
   for (const siteId of assets.siteIds) a.deepEqual(await assets.list(siteId), []);
 });

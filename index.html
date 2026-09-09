@@ -10360,25 +10360,64 @@ var PC_UI = (() => {
   var cmsBoolean = (value) => ["1", "true", "yes"].includes(String(value).toLowerCase());
   var cmsChoices = (value) => (value || "").split(",").map((s3) => s3.trim()).filter(Boolean);
   function cmsSafeRich(value) {
-    const tags = /* @__PURE__ */ new Set(["p", "br", "h2", "h3", "blockquote", "ul", "ol", "li", "b", "strong", "i", "em", "u", "s", "strike", "a", "div"]);
+    const tags = /* @__PURE__ */ new Set([
+      "p",
+      "br",
+      "h2",
+      "h3",
+      "blockquote",
+      "ul",
+      "ol",
+      "li",
+      "b",
+      "strong",
+      "i",
+      "em",
+      "u",
+      "s",
+      "strike",
+      "a",
+      "div"
+    ]);
     if (/\x3c!--|\x3c!|\x3c\?|[\u0000-\u0008]/.test(value)) return false;
-    let rest = value.replace(/<\/?([a-z][a-z0-9]*)([^<>]*)>/gi, (whole, tag, attrs) => {
-      if (!tags.has(tag.toLowerCase())) return whole;
-      if (/^<\//.test(whole)) return attrs.trim() ? whole : "";
-      if (!attrs.trim() || tag.toLowerCase() === "br" && attrs.trim() === "/") return "";
-      if (tag.toLowerCase() !== "a") return whole;
-      const match = attrs.match(/^\s+href=(?:"([^"]*)"|'([^']*)')\s*$/i);
-      const href = match && (match[1] ?? match[2]);
-      return href != null && !/[&\u0000-\u0020]/.test(href) && /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(href) ? "" : whole;
-    });
+    let rest = value.replace(
+      /<\/?([a-z][a-z0-9]*)([^<>]*)>/gi,
+      (whole, tag, attrs) => {
+        if (!tags.has(tag.toLowerCase())) return whole;
+        if (/^<\//.test(whole)) return attrs.trim() ? whole : "";
+        if (!attrs.trim() || tag.toLowerCase() === "br" && attrs.trim() === "/")
+          return "";
+        if (tag.toLowerCase() !== "a") return whole;
+        const match = attrs.match(/^\s+href=(?:"([^"]*)"|'([^']*)')\s*$/i);
+        const href = match && (match[1] ?? match[2]);
+        return href != null && !/[&\u0000-\u0020]/.test(href) && /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(href) ? "" : whole;
+      }
+    );
     return !/[<>]/.test(rest);
   }
   function validateCmsEntry(doc, col, item, assets, richSafe = cmsSafeRich) {
     const errors = {};
-    if (!item.id || col.items.filter((i3) => i3.id === item.id).length > 1) errors._entry = "Entry IDs must be unique.";
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug) || ["index", "assets", "admin", "api", "edit", "templates", "content", "robots", "sitemap"].includes(item.slug)) errors._slug = "Use a non-reserved URL slug with lowercase letters, numbers and hyphens.";
-    if (col.items.some((i3) => i3.id !== item.id && i3.slug === item.slug) || doc.pages.some((p3) => !p3.collection && p3.slug === `${col.slug}/${item.slug}`)) errors._slug = "This URL is already in use.";
-    for (const key of Object.keys(item.values)) if (!col.fields.some((f4) => f4.id === key)) errors[key] = "This field no longer exists.";
+    if (!item.id || col.items.filter((i3) => i3.id === item.id).length > 1)
+      errors._entry = "Entry IDs must be unique.";
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug) || [
+      "index",
+      "assets",
+      "admin",
+      "api",
+      "edit",
+      "templates",
+      "content",
+      "robots",
+      "sitemap"
+    ].includes(item.slug))
+      errors._slug = "Use a non-reserved URL slug with lowercase letters, numbers and hyphens.";
+    if (col.items.some((i3) => i3.id !== item.id && i3.slug === item.slug) || doc.pages.some(
+      (p3) => !p3.collection && p3.slug === `${col.slug}/${item.slug}`
+    ))
+      errors._slug = "This URL is already in use.";
+    for (const key of Object.keys(item.values))
+      if (!col.fields.some((f4) => f4.id === key))
+        errors[key] = "This field no longer exists.";
     for (const f4 of col.fields) {
       const value = item.values[f4.id] ?? "";
       const fail = (message) => {
@@ -10406,27 +10445,38 @@ var PC_UI = (() => {
           if (!richSafe(value)) fail("Use supported text formatting only.");
           break;
         case "number":
-          if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value) || !Number.isFinite(Number(value))) fail("Enter a valid number.");
+          if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value) || !Number.isFinite(Number(value)))
+            fail("Enter a valid number.");
           break;
         case "date":
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) fail("Enter a valid date.");
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value)
+            fail("Enter a valid date.");
           break;
         case "bool":
-          if (!["0", "1", "true", "false", "yes", "no"].includes(value.toLowerCase())) fail("Choose yes or no.");
+          if (!["0", "1", "true", "false", "yes", "no"].includes(
+            value.toLowerCase()
+          ))
+            fail("Choose yes or no.");
           break;
         case "option":
-          if (!cmsChoices(f4.opts).includes(value)) fail("Choose one of the configured options.");
+          if (!cmsChoices(f4.opts).includes(value))
+            fail("Choose one of the configured options.");
           break;
         case "ref":
-          if (!doc.meta.collections?.find((c3) => c3.id === f4.ref)?.items.some((i3) => i3.id === value)) fail("Choose an existing entry.");
+          if (!doc.meta.collections?.find((c3) => c3.id === f4.ref)?.items.some((i3) => i3.id === value))
+            fail("Choose an existing entry.");
           break;
         case "image": {
-          const id = value.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?$/)?.[1];
-          if (!id || !assets.has(id)) fail("Choose an image from this site\u2019s media library.");
+          const id = value.match(
+            /^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?$/
+          )?.[1];
+          if (!id || !assets.has(id))
+            fail("Choose an image from this site\u2019s media library.");
           break;
         }
         case "link":
-          if (!/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(value) || /[\s<>]/.test(value)) fail("Enter a safe URL, site path or anchor.");
+          if (!/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(value) || /[\s<>]/.test(value))
+            fail("Enter a safe URL, site path or anchor.");
           break;
         case "text":
           break;
@@ -10528,7 +10578,10 @@ var PC_UI = (() => {
   // app/src/ui/CmsWorkspace.tsx
   var copy = (value) => JSON.parse(JSON.stringify(value));
   var PAGE_SIZE = 25;
-  function CmsWorkspace({ collectionId, close }) {
+  function CmsWorkspace({
+    collectionId,
+    close
+  }) {
     const [id, setId] = d2(collectionId);
     const [revision, refresh] = d2(0);
     const col = C2.findCollection(id);
@@ -10560,6 +10613,10 @@ var PC_UI = (() => {
     h2(() => {
       root.current?.focus();
     }, []);
+    h2(() => {
+      root.current?.querySelector(".cms-content")?.scrollTo?.(0, 0);
+      root.current?.querySelector("form input, form [contenteditable]")?.focus();
+    }, [entry?.id, !!schema]);
     const reset = () => {
       setEntry(null);
       setSchema(null);
@@ -10575,6 +10632,7 @@ var PC_UI = (() => {
       setNotice("");
     };
     const commit = async (next) => {
+      if (busy) return false;
       setBusy(true);
       setErrors({});
       try {
@@ -10583,7 +10641,9 @@ var PC_UI = (() => {
         setNotice("Saved to the site draft. Publish the site to make it public.");
         return true;
       } catch (e3) {
-        setErrors({ _save: e3 instanceof Error ? e3.message : "Could not save. Your changes are still here." });
+        setErrors({
+          _save: e3 instanceof Error ? e3.message : "Could not save. Your changes are still here."
+        });
         return false;
       } finally {
         setBusy(false);
@@ -10595,17 +10655,21 @@ var PC_UI = (() => {
       next.slug = next.slug || C2.slugify(next.values[C2.titleField(col)?.id || "title"] || "");
       next.slugLocked = 1;
       const assets = /* @__PURE__ */ new Set();
-      for (const f4 of col.fields) if (f4.type === "image") {
-        const asset = next.values[f4.id]?.match(/^asset:([^@]+)/)?.[1];
-        if (asset && L2.asset(asset)) assets.add(asset);
-      }
+      for (const f4 of col.fields)
+        if (f4.type === "image") {
+          const asset = next.values[f4.id]?.match(/^asset:([^@]+)/)?.[1];
+          if (asset && L2.asset(asset)) assets.add(asset);
+        }
       const validation = validateCmsEntry(C2.doc(), col, next, assets);
       if (Object.keys(validation).length) {
         setErrors(validation);
         return;
       }
       const old = col.items.find((i3) => i3.id === next.id);
-      if (old && old.slug !== next.slug && !window.confirm(`Change /${col.slug}/${old.slug} to /${col.slug}/${next.slug}? Existing links will stop working; no redirect is created.`)) return;
+      if (old && old.slug !== next.slug && !window.confirm(
+        `Change /${col.slug}/${old.slug} to /${col.slug}/${next.slug}? Existing links will stop working; no redirect is created.`
+      ))
+        return;
       const collections2 = copy(C2.collections());
       const target = collections2.find((c3) => c3.id === id);
       const at = target.items.findIndex((i3) => i3.id === next.id);
@@ -10622,8 +10686,10 @@ var PC_UI = (() => {
       if (!schema.name.trim()) invalid._schema = "Give this collection a name.";
       schema.fields.forEach((f4) => {
         if (!f4.name.trim()) invalid[f4.id] = "Give the field a name.";
-        if (f4.type === "option" && !cmsChoices(f4.opts).length) invalid[f4.id] = "Add at least one choice.";
-        if (f4.type === "ref" && !C2.findCollection(f4.ref || "")) invalid[f4.id] = "Choose a reference collection.";
+        if (f4.type === "option" && !cmsChoices(f4.opts).length)
+          invalid[f4.id] = "Add at least one choice.";
+        if (f4.type === "ref" && !C2.findCollection(f4.ref || ""))
+          invalid[f4.id] = "Choose a reference collection.";
       });
       if (Object.keys(invalid).length) {
         setErrors(invalid);
@@ -10634,13 +10700,27 @@ var PC_UI = (() => {
       if (await commit(next)) setBaseline(JSON.stringify(schema));
     };
     const removeEntry = async (item) => {
-      if (!window.confirm(`Delete \u201C${C2.itemTitle(col, item) || item.slug}\u201D? References to this entry will need updating. Its public page is removed on the next site publish.`)) return;
+      if (!window.confirm(
+        `Delete \u201C${C2.itemTitle(col, item) || item.slug}\u201D? References to this entry will need updating. Its public page is removed on the next site publish.`
+      ))
+        return;
       const next = copy(C2.collections());
-      next.find((c3) => c3.id === id).items = col.items.filter((i3) => i3.id !== item.id);
+      next.find((c3) => c3.id === id).items = col.items.filter(
+        (i3) => i3.id !== item.id
+      );
       await commit(next);
     };
-    const updateField = (fid, changes) => setSchema((old) => old && { ...old, fields: old.fields.map((f4) => f4.id === fid ? { ...f4, ...changes } : f4) });
-    const filtered = col.items.filter((i3) => (status === "all" || (status === "draft" ? !!i3.draft : !i3.draft)) && [i3.slug, ...Object.values(i3.values)].join(" ").toLowerCase().includes(search.toLowerCase()));
+    const updateField = (fid, changes) => setSchema(
+      (old) => old && {
+        ...old,
+        fields: old.fields.map(
+          (f4) => f4.id === fid ? { ...f4, ...changes } : f4
+        )
+      }
+    );
+    const filtered = col.items.filter(
+      (i3) => (status === "all" || (status === "draft" ? !!i3.draft : !i3.draft)) && [i3.slug, ...Object.values(i3.values)].join(" ").toLowerCase().includes(search.toLowerCase())
+    );
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const current = Math.min(page2, pages - 1);
     return /* @__PURE__ */ u2(
@@ -10658,8 +10738,14 @@ var PC_UI = (() => {
             e3.stopPropagation();
             leave();
           }
-          if (e3.key === "Tab" && document.querySelector("#modal:not([hidden]),#askLayer:not([hidden])") == null) {
-            const focusable = [...root.current.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]')].filter((el) => el.getClientRects().length);
+          if (e3.key === "Tab" && document.querySelector(
+            "#modal:not([hidden]),#askLayer:not([hidden])"
+          ) == null) {
+            const focusable = [
+              ...root.current.querySelectorAll(
+                'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[contenteditable="true"]'
+              )
+            ].filter((el) => el.getClientRects().length);
             const first = focusable[0], last = focusable[focusable.length - 1];
             if (e3.shiftKey && document.activeElement === first) {
               e3.preventDefault();
@@ -10680,17 +10766,25 @@ var PC_UI = (() => {
             /* @__PURE__ */ u2("button", { class: "btn", disabled: busy, onClick: leave, children: "Back to builder" })
           ] }),
           /* @__PURE__ */ u2("div", { class: "cms-workspace-layout", children: [
-            /* @__PURE__ */ u2("nav", { class: "cms-collections", "aria-label": "Collections", children: C2.collections().map((c3) => /* @__PURE__ */ u2("button", { class: "btn block " + (c3.id === id ? "primary" : ""), disabled: busy, onClick: () => {
-              if (discard()) {
-                setId(c3.id);
-                reset();
-                setSearch("");
-                setPage(0);
+            /* @__PURE__ */ u2("nav", { class: "cms-collections", "aria-label": "Collections", children: C2.collections().map((c3) => /* @__PURE__ */ u2(
+              "button",
+              {
+                class: "btn block " + (c3.id === id ? "primary" : ""),
+                disabled: busy,
+                onClick: () => {
+                  if (discard()) {
+                    setId(c3.id);
+                    reset();
+                    setSearch("");
+                    setPage(0);
+                  }
+                },
+                children: [
+                  c3.name,
+                  /* @__PURE__ */ u2("span", { children: c3.items.length })
+                ]
               }
-            }, children: [
-              c3.name,
-              /* @__PURE__ */ u2("span", { children: c3.items.length })
-            ] })) }),
+            )) }),
             /* @__PURE__ */ u2("main", { class: "cms-content", "aria-busy": busy, children: [
               /* @__PURE__ */ u2("div", { class: "cms-title", children: [
                 /* @__PURE__ */ u2("div", { children: [
@@ -10698,12 +10792,19 @@ var PC_UI = (() => {
                   /* @__PURE__ */ u2("p", { children: entry ? "Edit entry" : schema ? "Collection settings" : `${col.items.length} entries` })
                 ] }),
                 !entry && !schema && /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
-                  L2.canStructure() && /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
-                    const next = copy(col);
-                    setSchema(next);
-                    setBaseline(JSON.stringify(next));
-                    setNotice("");
-                  }, children: "Settings" }),
+                  L2.canStructure() && /* @__PURE__ */ u2(
+                    "button",
+                    {
+                      class: "btn",
+                      onClick: () => {
+                        const next = copy(col);
+                        setSchema(next);
+                        setBaseline(JSON.stringify(next));
+                        setNotice("");
+                      },
+                      children: "Settings"
+                    }
+                  ),
                   /* @__PURE__ */ u2("button", { class: "btn primary", onClick: () => openEntry(), children: "New entry" })
                 ] })
               ] }),
@@ -10712,139 +10813,346 @@ var PC_UI = (() => {
                 key.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key)?.name || key}: `,
                 message
               ] })) }),
-              entry ? /* @__PURE__ */ u2("form", { onSubmit: (e3) => {
-                e3.preventDefault();
-                void saveEntry();
-              }, children: [
-                /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields", children: [
-                  col.fields.map((f4) => /* @__PURE__ */ u2("div", { class: "cms-field", children: [
-                    /* @__PURE__ */ u2("label", { id: "cms-label-" + f4.id, htmlFor: "cms-value-" + f4.id, children: [
-                      f4.name,
-                      f4.required ? " *" : ""
-                    ] }),
-                    /* @__PURE__ */ u2(EntryValue, { field: f4, value: entry.values[f4.id] || "", onChange: (value) => setEntry({ ...entry, values: { ...entry.values, [f4.id]: value } }) }),
-                    errors[f4.id] && /* @__PURE__ */ u2("small", { class: "cms-error", children: errors[f4.id] })
-                  ] }, f4.id)),
-                  /* @__PURE__ */ u2("div", { class: "cms-field", children: [
-                    /* @__PURE__ */ u2("label", { htmlFor: "cms-slug", children: "URL slug" }),
-                    /* @__PURE__ */ u2("input", { class: "ctl", id: "cms-slug", value: entry.slug, placeholder: "Generated from the title on first save", onInput: (e3) => setEntry({ ...entry, slug: e3.currentTarget.value }) }),
-                    /* @__PURE__ */ u2("small", { children: [
-                      "/",
-                      col.slug,
-                      "/",
-                      entry.slug || "entry-slug"
-                    ] })
-                  ] }),
-                  /* @__PURE__ */ u2("label", { class: "cms-check", children: [
-                    /* @__PURE__ */ u2("input", { type: "checkbox", checked: !entry.draft, onChange: (e3) => setEntry({ ...entry, draft: e3.currentTarget.checked ? void 0 : 1 }) }),
-                    "Include on next publish"
-                  ] }),
-                  /* @__PURE__ */ u2("p", { class: "note", children: "Unchecked entries remain drafts and are hidden from the public site." })
-                ] }),
-                /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
-                  /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, type: "submit", children: busy ? "Saving\u2026" : "Save entry" }),
-                  /* @__PURE__ */ u2("button", { type: "button", class: "btn", disabled: busy, onClick: () => {
-                    if (discard()) reset();
-                  }, children: "Cancel" })
-                ] })
-              ] }) : schema ? /* @__PURE__ */ u2("form", { onSubmit: (e3) => {
-                e3.preventDefault();
-                void saveSchema();
-              }, children: [
-                /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields", children: [
-                  /* @__PURE__ */ u2("div", { class: "cms-field", children: [
-                    /* @__PURE__ */ u2("label", { htmlFor: "cms-name", children: "Collection name" }),
-                    /* @__PURE__ */ u2("input", { id: "cms-name", class: "ctl", value: schema.name, onInput: (e3) => setSchema({ ...schema, name: e3.currentTarget.value }) })
-                  ] }),
-                  /* @__PURE__ */ u2("p", { class: "note", children: "Field IDs and the collection URL stay stable when names change. Populated fields cannot change type." }),
-                  schema.fields.map((f4, at) => /* @__PURE__ */ u2("div", { class: "cms-schema-field", children: [
-                    /* @__PURE__ */ u2("div", { class: "cms-schema-inputs", children: [
-                      /* @__PURE__ */ u2("label", { children: [
-                        "Field name",
-                        /* @__PURE__ */ u2("input", { class: "ctl", value: f4.name, onInput: (e3) => updateField(f4.id, { name: e3.currentTarget.value }) })
-                      ] }),
-                      /* @__PURE__ */ u2("label", { children: [
-                        "Type",
-                        /* @__PURE__ */ u2("select", { class: "ctl", value: f4.type, disabled: col.items.some((i3) => !!i3.values[f4.id]), onChange: (e3) => updateField(f4.id, { type: e3.currentTarget.value }), children: C2.FIELD_TYPES.map(([value, label]) => /* @__PURE__ */ u2("option", { value, children: label })) })
-                      ] }),
-                      f4.type === "option" && /* @__PURE__ */ u2("label", { children: [
-                        "Choices, separated by commas",
-                        /* @__PURE__ */ u2("input", { class: "ctl", value: f4.opts || "", onInput: (e3) => updateField(f4.id, { opts: e3.currentTarget.value }) })
-                      ] }),
-                      f4.type === "ref" && /* @__PURE__ */ u2("label", { children: [
-                        "Reference collection",
-                        /* @__PURE__ */ u2("select", { class: "ctl", value: f4.ref || "", onChange: (e3) => updateField(f4.id, { ref: e3.currentTarget.value }), children: [
-                          /* @__PURE__ */ u2("option", { value: "", children: "Choose a collection" }),
-                          C2.collections().map((c3) => /* @__PURE__ */ u2("option", { value: c3.id, children: c3.name }))
+              entry ? /* @__PURE__ */ u2(
+                "form",
+                {
+                  onSubmit: (e3) => {
+                    e3.preventDefault();
+                    void saveEntry();
+                  },
+                  children: [
+                    /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields", children: [
+                      col.fields.map((f4) => /* @__PURE__ */ u2("div", { class: "cms-field", children: [
+                        /* @__PURE__ */ u2(
+                          "label",
+                          {
+                            id: "cms-label-" + f4.id,
+                            htmlFor: "cms-value-" + f4.id,
+                            children: [
+                              f4.name,
+                              f4.required ? " *" : ""
+                            ]
+                          }
+                        ),
+                        /* @__PURE__ */ u2(
+                          EntryValue,
+                          {
+                            field: f4,
+                            value: entry.values[f4.id] || "",
+                            onChange: (value) => setEntry({
+                              ...entry,
+                              values: { ...entry.values, [f4.id]: value }
+                            })
+                          }
+                        ),
+                        errors[f4.id] && /* @__PURE__ */ u2("small", { class: "cms-error", children: errors[f4.id] })
+                      ] }, f4.id)),
+                      /* @__PURE__ */ u2("div", { class: "cms-field", children: [
+                        /* @__PURE__ */ u2("label", { htmlFor: "cms-slug", children: "URL slug" }),
+                        /* @__PURE__ */ u2(
+                          "input",
+                          {
+                            class: "ctl",
+                            id: "cms-slug",
+                            value: entry.slug,
+                            placeholder: "Generated from the title on first save",
+                            onInput: (e3) => setEntry({ ...entry, slug: e3.currentTarget.value })
+                          }
+                        ),
+                        /* @__PURE__ */ u2("small", { children: [
+                          "/",
+                          col.slug,
+                          "/",
+                          entry.slug || "entry-slug"
                         ] })
                       ] }),
                       /* @__PURE__ */ u2("label", { class: "cms-check", children: [
-                        /* @__PURE__ */ u2("input", { type: "checkbox", checked: !!f4.required, onChange: (e3) => updateField(f4.id, { required: e3.currentTarget.checked ? 1 : 0 }) }),
-                        "Required"
-                      ] })
+                        /* @__PURE__ */ u2(
+                          "input",
+                          {
+                            type: "checkbox",
+                            checked: !entry.draft,
+                            onChange: (e3) => setEntry({
+                              ...entry,
+                              draft: e3.currentTarget.checked ? void 0 : 1
+                            })
+                          }
+                        ),
+                        "Include on next publish"
+                      ] }),
+                      /* @__PURE__ */ u2("p", { class: "note", children: "Unchecked entries remain drafts and are hidden from the public site." })
                     ] }),
-                    /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
-                      /* @__PURE__ */ u2("button", { class: "btn", type: "button", disabled: at === 0, onClick: () => {
-                        const fields = [...schema.fields];
-                        [fields[at - 1], fields[at]] = [fields[at], fields[at - 1]];
-                        setSchema({ ...schema, fields });
-                      }, children: "Move up" }),
-                      /* @__PURE__ */ u2("button", { class: "btn", type: "button", disabled: schema.fields.length === 1, onClick: () => {
-                        if (window.confirm(`Delete ${f4.name} and its stored values? ${bindingImpact(id, f4.id)}`)) setSchema({ ...schema, fields: schema.fields.filter((x2) => x2.id !== f4.id), items: schema.items.map((i3) => {
-                          const values = { ...i3.values };
-                          delete values[f4.id];
-                          return { ...i3, values };
-                        }) });
-                      }, children: "Delete field" })
+                    /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
+                      /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, type: "submit", children: busy ? "Saving\u2026" : "Save entry" }),
+                      /* @__PURE__ */ u2(
+                        "button",
+                        {
+                          type: "button",
+                          class: "btn",
+                          disabled: busy,
+                          onClick: () => {
+                            if (discard()) reset();
+                          },
+                          children: "Cancel"
+                        }
+                      )
                     ] })
-                  ] }, f4.id)),
-                  /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: () => setSchema({ ...schema, fields: [...schema.fields, { id: C2.uniqueId("field", schema.fields.map((f4) => f4.id)), name: "New field", type: "text" }] }), children: "Add field" })
-                ] }),
-                /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
-                  /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, children: "Save settings" }),
-                  /* @__PURE__ */ u2("button", { class: "btn", type: "button", disabled: busy, onClick: () => {
-                    if (discard()) reset();
-                  }, children: "Cancel" })
-                ] })
-              ] }) : /* @__PURE__ */ u2(S, { children: [
+                  ]
+                }
+              ) : schema ? /* @__PURE__ */ u2(
+                "form",
+                {
+                  onSubmit: (e3) => {
+                    e3.preventDefault();
+                    void saveSchema();
+                  },
+                  children: [
+                    /* @__PURE__ */ u2("fieldset", { disabled: busy, class: "cms-entry-fields", children: [
+                      /* @__PURE__ */ u2("div", { class: "cms-field", children: [
+                        /* @__PURE__ */ u2("label", { htmlFor: "cms-name", children: "Collection name" }),
+                        /* @__PURE__ */ u2(
+                          "input",
+                          {
+                            id: "cms-name",
+                            class: "ctl",
+                            value: schema.name,
+                            onInput: (e3) => setSchema({ ...schema, name: e3.currentTarget.value })
+                          }
+                        )
+                      ] }),
+                      /* @__PURE__ */ u2("p", { class: "note", children: "Field IDs and the collection URL stay stable when names change. Populated fields cannot change type." }),
+                      schema.fields.map((f4, at) => /* @__PURE__ */ u2("div", { class: "cms-schema-field", children: [
+                        /* @__PURE__ */ u2("div", { class: "cms-schema-inputs", children: [
+                          /* @__PURE__ */ u2("label", { children: [
+                            "Field name",
+                            /* @__PURE__ */ u2(
+                              "input",
+                              {
+                                class: "ctl",
+                                value: f4.name,
+                                onInput: (e3) => updateField(f4.id, { name: e3.currentTarget.value })
+                              }
+                            )
+                          ] }),
+                          /* @__PURE__ */ u2("label", { children: [
+                            "Type",
+                            /* @__PURE__ */ u2(
+                              "select",
+                              {
+                                class: "ctl",
+                                value: f4.type,
+                                disabled: col.items.some((i3) => !!i3.values[f4.id]),
+                                onChange: (e3) => updateField(f4.id, {
+                                  type: e3.currentTarget.value
+                                }),
+                                children: C2.FIELD_TYPES.map(([value, label]) => /* @__PURE__ */ u2("option", { value, children: label }))
+                              }
+                            )
+                          ] }),
+                          f4.type === "option" && /* @__PURE__ */ u2("label", { children: [
+                            "Choices, separated by commas",
+                            /* @__PURE__ */ u2(
+                              "input",
+                              {
+                                class: "ctl",
+                                value: f4.opts || "",
+                                onInput: (e3) => updateField(f4.id, { opts: e3.currentTarget.value })
+                              }
+                            )
+                          ] }),
+                          f4.type === "ref" && /* @__PURE__ */ u2("label", { children: [
+                            "Reference collection",
+                            /* @__PURE__ */ u2(
+                              "select",
+                              {
+                                class: "ctl",
+                                value: f4.ref || "",
+                                onChange: (e3) => updateField(f4.id, { ref: e3.currentTarget.value }),
+                                children: [
+                                  /* @__PURE__ */ u2("option", { value: "", children: "Choose a collection" }),
+                                  C2.collections().map((c3) => /* @__PURE__ */ u2("option", { value: c3.id, children: c3.name }))
+                                ]
+                              }
+                            )
+                          ] }),
+                          /* @__PURE__ */ u2("label", { class: "cms-check", children: [
+                            /* @__PURE__ */ u2(
+                              "input",
+                              {
+                                type: "checkbox",
+                                checked: !!f4.required,
+                                onChange: (e3) => updateField(f4.id, {
+                                  required: e3.currentTarget.checked ? 1 : 0
+                                })
+                              }
+                            ),
+                            "Required"
+                          ] })
+                        ] }),
+                        /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
+                          /* @__PURE__ */ u2(
+                            "button",
+                            {
+                              class: "btn",
+                              type: "button",
+                              disabled: at === 0,
+                              onClick: () => {
+                                const fields = [...schema.fields];
+                                [fields[at - 1], fields[at]] = [
+                                  fields[at],
+                                  fields[at - 1]
+                                ];
+                                setSchema({ ...schema, fields });
+                              },
+                              children: "Move up"
+                            }
+                          ),
+                          /* @__PURE__ */ u2(
+                            "button",
+                            {
+                              class: "btn",
+                              type: "button",
+                              disabled: schema.fields.length === 1,
+                              onClick: () => {
+                                if (window.confirm(
+                                  `Delete ${f4.name} and its stored values? ${bindingImpact(id, f4.id)}`
+                                ))
+                                  setSchema({
+                                    ...schema,
+                                    fields: schema.fields.filter(
+                                      (x2) => x2.id !== f4.id
+                                    ),
+                                    items: schema.items.map((i3) => {
+                                      const values = { ...i3.values };
+                                      delete values[f4.id];
+                                      return { ...i3, values };
+                                    })
+                                  });
+                              },
+                              children: "Delete field"
+                            }
+                          )
+                        ] })
+                      ] }, f4.id)),
+                      /* @__PURE__ */ u2(
+                        "button",
+                        {
+                          type: "button",
+                          class: "btn",
+                          onClick: () => setSchema({
+                            ...schema,
+                            fields: [
+                              ...schema.fields,
+                              {
+                                id: C2.uniqueId(
+                                  "field",
+                                  schema.fields.map((f4) => f4.id)
+                                ),
+                                name: "New field",
+                                type: "text"
+                              }
+                            ]
+                          }),
+                          children: "Add field"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
+                      /* @__PURE__ */ u2("button", { class: "btn primary", disabled: busy, children: "Save settings" }),
+                      /* @__PURE__ */ u2(
+                        "button",
+                        {
+                          class: "btn",
+                          type: "button",
+                          disabled: busy,
+                          onClick: () => {
+                            if (discard()) reset();
+                          },
+                          children: "Cancel"
+                        }
+                      )
+                    ] })
+                  ]
+                }
+              ) : /* @__PURE__ */ u2(S, { children: [
                 /* @__PURE__ */ u2("div", { class: "cms-list-tools", children: [
                   /* @__PURE__ */ u2("label", { children: [
                     "Search entries",
-                    /* @__PURE__ */ u2("input", { type: "search", class: "ctl", value: search, onInput: (e3) => {
-                      setSearch(e3.currentTarget.value);
-                      setPage(0);
-                    } })
+                    /* @__PURE__ */ u2(
+                      "input",
+                      {
+                        type: "search",
+                        class: "ctl",
+                        value: search,
+                        onInput: (e3) => {
+                          setSearch(e3.currentTarget.value);
+                          setPage(0);
+                        }
+                      }
+                    )
                   ] }),
                   /* @__PURE__ */ u2("label", { children: [
                     "Status",
-                    /* @__PURE__ */ u2("select", { class: "ctl", value: status, onChange: (e3) => {
-                      setStatus(e3.currentTarget.value);
-                      setPage(0);
-                    }, children: [
-                      /* @__PURE__ */ u2("option", { value: "all", children: "All entries" }),
-                      /* @__PURE__ */ u2("option", { value: "draft", children: "Drafts" }),
-                      /* @__PURE__ */ u2("option", { value: "ready", children: "Included on next publish" })
-                    ] })
+                    /* @__PURE__ */ u2(
+                      "select",
+                      {
+                        class: "ctl",
+                        value: status,
+                        onChange: (e3) => {
+                          setStatus(e3.currentTarget.value);
+                          setPage(0);
+                        },
+                        children: [
+                          /* @__PURE__ */ u2("option", { value: "all", children: "All entries" }),
+                          /* @__PURE__ */ u2("option", { value: "draft", children: "Drafts" }),
+                          /* @__PURE__ */ u2("option", { value: "ready", children: "Included on next publish" })
+                        ]
+                      }
+                    )
                   ] })
                 ] }),
                 /* @__PURE__ */ u2("div", { class: "cms-entry-list", children: [
                   filtered.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE).map((item) => /* @__PURE__ */ u2("div", { class: "cms-entry-row", children: [
-                    /* @__PURE__ */ u2("button", { class: "cms-entry-open", onClick: () => openEntry(item), children: [
-                      /* @__PURE__ */ u2("b", { children: C2.itemTitle(col, item) || "Untitled entry" }),
-                      /* @__PURE__ */ u2("small", { children: [
-                        "/",
-                        col.slug,
-                        "/",
-                        item.slug
-                      ] })
-                    ] }),
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        class: "cms-entry-open",
+                        onClick: () => openEntry(item),
+                        children: [
+                          /* @__PURE__ */ u2("b", { children: C2.itemTitle(col, item) || "Untitled entry" }),
+                          /* @__PURE__ */ u2("small", { children: [
+                            "/",
+                            col.slug,
+                            "/",
+                            item.slug
+                          ] })
+                        ]
+                      }
+                    ),
                     /* @__PURE__ */ u2("span", { children: item.draft ? "Draft" : "Included on next publish" }),
-                    /* @__PURE__ */ u2("button", { class: "btn", "aria-label": "Delete " + (C2.itemTitle(col, item) || "entry"), disabled: busy, onClick: () => void removeEntry(item), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 14 }) })
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        class: "btn",
+                        "aria-label": "Delete " + (C2.itemTitle(col, item) || "entry"),
+                        disabled: busy,
+                        onClick: () => void removeEntry(item),
+                        children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 14 })
+                      }
+                    )
                   ] }, item.id)),
                   !filtered.length && /* @__PURE__ */ u2("p", { class: "empty", children: col.items.length ? "No entries match your search." : "No entries yet. Create your first entry, then connect it to a page." })
                 ] }),
                 /* @__PURE__ */ u2("div", { class: "cms-actions cms-pagination", children: [
-                  /* @__PURE__ */ u2("button", { class: "btn", disabled: current === 0, onClick: () => setPage(current - 1), children: "Previous" }),
+                  /* @__PURE__ */ u2(
+                    "button",
+                    {
+                      class: "btn",
+                      disabled: current === 0,
+                      onClick: () => setPage(current - 1),
+                      children: "Previous"
+                    }
+                  ),
                   /* @__PURE__ */ u2("span", { children: [
                     "Page ",
                     current + 1,
@@ -10854,24 +11162,53 @@ var PC_UI = (() => {
                     filtered.length,
                     " entries"
                   ] }),
-                  /* @__PURE__ */ u2("button", { class: "btn", disabled: current + 1 >= pages, onClick: () => setPage(current + 1), children: "Next" })
+                  /* @__PURE__ */ u2(
+                    "button",
+                    {
+                      class: "btn",
+                      disabled: current + 1 >= pages,
+                      onClick: () => setPage(current + 1),
+                      children: "Next"
+                    }
+                  )
                 ] }),
                 L2.canStructure() && /* @__PURE__ */ u2("div", { class: "cms-connections", children: [
                   /* @__PURE__ */ u2("h3", { children: "Connect this collection" }),
                   /* @__PURE__ */ u2("p", { children: "Use one card design for every entry, and one detail template for every entry\u2019s page." }),
                   /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
-                    /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
-                      connectList(col);
-                      close();
-                    }, children: "Add collection grid" }),
-                    /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
-                      connectList(col, true);
-                      close();
-                    }, children: "Add collection slider" }),
-                    /* @__PURE__ */ u2("button", { class: "btn", onClick: () => {
-                      connectDetail(col);
-                      close();
-                    }, children: "Open detail template" })
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        class: "btn",
+                        onClick: () => {
+                          connectList(col);
+                          close();
+                        },
+                        children: "Add collection grid"
+                      }
+                    ),
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        class: "btn",
+                        onClick: () => {
+                          connectList(col, true);
+                          close();
+                        },
+                        children: "Add collection slider"
+                      }
+                    ),
+                    /* @__PURE__ */ u2(
+                      "button",
+                      {
+                        class: "btn",
+                        onClick: () => {
+                          connectDetail(col);
+                          close();
+                        },
+                        children: "Open detail template"
+                      }
+                    )
                   ] })
                 ] })
               ] })
@@ -10881,29 +11218,83 @@ var PC_UI = (() => {
       }
     );
   }
-  function EntryValue({ field: f4, value, onChange }) {
-    const props = { id: "cms-value-" + f4.id, "aria-labelledby": "cms-label-" + f4.id };
-    if (f4.type === "image") return /* @__PURE__ */ u2(AssetField, { value, onChange });
-    if (f4.type === "rich") return /* @__PURE__ */ u2(RichValue, { id: props.id, label: props["aria-labelledby"], value, onChange });
-    if (f4.type === "bool") return /* @__PURE__ */ u2("select", { ...props, class: "ctl", value: value === "" ? "" : cmsBoolean(value) ? "1" : "0", onChange: (e3) => onChange(e3.currentTarget.value), children: [
-      /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
-      /* @__PURE__ */ u2("option", { value: "1", children: "Yes" }),
-      /* @__PURE__ */ u2("option", { value: "0", children: "No" })
-    ] });
+  function EntryValue({
+    field: f4,
+    value,
+    onChange
+  }) {
+    const props = {
+      id: "cms-value-" + f4.id,
+      "aria-labelledby": "cms-label-" + f4.id
+    };
+    if (f4.type === "image")
+      return /* @__PURE__ */ u2(AssetField, { value, onChange });
+    if (f4.type === "rich")
+      return /* @__PURE__ */ u2(
+        RichValue,
+        {
+          id: props.id,
+          label: props["aria-labelledby"],
+          value,
+          onChange
+        }
+      );
+    if (f4.type === "bool")
+      return /* @__PURE__ */ u2(
+        "select",
+        {
+          ...props,
+          class: "ctl",
+          value: value === "" ? "" : cmsBoolean(value) ? "1" : "0",
+          onChange: (e3) => onChange(e3.currentTarget.value),
+          children: [
+            /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
+            /* @__PURE__ */ u2("option", { value: "1", children: "Yes" }),
+            /* @__PURE__ */ u2("option", { value: "0", children: "No" })
+          ]
+        }
+      );
     if (f4.type === "option" || f4.type === "ref") {
-      const options = f4.type === "option" ? cmsChoices(f4.opts).map((v3) => [v3, v3]) : (C2.findCollection(f4.ref || "")?.items || []).map((i3) => [i3.id, C2.itemTitle(C2.findCollection(f4.ref), i3) + (i3.draft ? " (draft)" : "")]);
-      return /* @__PURE__ */ u2("select", { ...props, class: "ctl", value, onChange: (e3) => onChange(e3.currentTarget.value), children: [
-        /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
-        value && !options.some(([v3]) => v3 === value) && /* @__PURE__ */ u2("option", { value, children: [
-          "Unavailable: ",
-          value
-        ] }),
-        options.map(([v3, label]) => /* @__PURE__ */ u2("option", { value: v3, children: label }))
-      ] });
+      const options = f4.type === "option" ? cmsChoices(f4.opts).map((v3) => [v3, v3]) : (C2.findCollection(f4.ref || "")?.items || []).map((i3) => [
+        i3.id,
+        C2.itemTitle(C2.findCollection(f4.ref), i3) + (i3.draft ? " (draft)" : "")
+      ]);
+      return /* @__PURE__ */ u2(
+        "select",
+        {
+          ...props,
+          class: "ctl",
+          value,
+          onChange: (e3) => onChange(e3.currentTarget.value),
+          children: [
+            /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
+            value && !options.some(([v3]) => v3 === value) && /* @__PURE__ */ u2("option", { value, children: [
+              "Unavailable: ",
+              value
+            ] }),
+            options.map(([v3, label]) => /* @__PURE__ */ u2("option", { value: v3, children: label }))
+          ]
+        }
+      );
     }
-    return /* @__PURE__ */ u2("input", { ...props, class: "ctl", type: f4.type === "number" ? "number" : f4.type === "date" ? "date" : "text", step: f4.type === "number" ? "any" : void 0, value, onInput: (e3) => onChange(e3.currentTarget.value) });
+    return /* @__PURE__ */ u2(
+      "input",
+      {
+        ...props,
+        class: "ctl",
+        type: f4.type === "number" ? "number" : f4.type === "date" ? "date" : "text",
+        step: f4.type === "number" ? "any" : void 0,
+        value,
+        onInput: (e3) => onChange(e3.currentTarget.value)
+      }
+    );
   }
-  function RichValue({ id, label, value, onChange }) {
+  function RichValue({
+    id,
+    label,
+    value,
+    onChange
+  }) {
     const editor = A2(null);
     h2(() => {
       if (editor.current && editor.current.innerHTML !== value) {
@@ -10917,11 +11308,38 @@ var PC_UI = (() => {
       onChange(editor.current?.innerHTML || "");
     };
     return /* @__PURE__ */ u2("div", { class: "cms-rich", children: [
-      /* @__PURE__ */ u2("div", { class: "cms-actions", role: "toolbar", "aria-label": "Text formatting", children: [["bold", "Bold"], ["italic", "Italic"], ["insertUnorderedList", "Bullet list"], ["insertOrderedList", "Numbered list"]].map(([cmd, title]) => /* @__PURE__ */ u2("button", { class: "btn", type: "button", onMouseDown: (e3) => e3.preventDefault(), onClick: () => command(cmd), children: title })) }),
-      /* @__PURE__ */ u2("div", { ref: editor, id, role: "textbox", "aria-labelledby": label, "aria-multiline": "true", contentEditable: true, onInput: () => onChange(editor.current?.innerHTML || ""), onPaste: (e3) => {
-        e3.preventDefault();
-        command("insertText", e3.clipboardData?.getData("text/plain") || "");
-      } })
+      /* @__PURE__ */ u2("div", { class: "cms-actions", role: "toolbar", "aria-label": "Text formatting", children: [
+        ["bold", "Bold"],
+        ["italic", "Italic"],
+        ["insertUnorderedList", "Bullet list"],
+        ["insertOrderedList", "Numbered list"],
+        ["removeFormat", "Clear formatting"]
+      ].map(([cmd, title]) => /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "btn",
+          type: "button",
+          onMouseDown: (e3) => e3.preventDefault(),
+          onClick: () => command(cmd),
+          children: title
+        }
+      )) }),
+      /* @__PURE__ */ u2(
+        "div",
+        {
+          ref: editor,
+          id,
+          role: "textbox",
+          "aria-labelledby": label,
+          "aria-multiline": "true",
+          contentEditable: true,
+          onInput: () => onChange(editor.current?.innerHTML || ""),
+          onPaste: (e3) => {
+            e3.preventDefault();
+            command("insertText", e3.clipboardData?.getData("text/plain") || "");
+          }
+        }
+      )
     ] });
   }
   function card(col) {
@@ -10946,7 +11364,11 @@ var PC_UI = (() => {
       const section = C2.N("section");
       const list2 = C2.N("list");
       list2.src = col.id;
-      list2.css.d = { "display": "grid", "grid-template-columns": "repeat(3,minmax(0,1fr))", gap: "24px" };
+      list2.css.d = {
+        display: "grid",
+        "grid-template-columns": "repeat(3,minmax(0,1fr))",
+        gap: "24px"
+      };
       list2.css.t = { "grid-template-columns": "repeat(2,minmax(0,1fr))" };
       list2.css.m = { "grid-template-columns": "1fr" };
       if (slider) list2.props.collectionLayout = "slider";
@@ -10962,7 +11384,18 @@ var PC_UI = (() => {
       if (at < 0) {
         const section = C2.N("section");
         section.children.push(card(col));
-        C2.state.pages.push({ id: C2.uid(), name: col.name + " detail", slug: C2.uniqueId(col.id + "-detail", C2.state.pages.map((p3) => p3.slug)), collection: col.id, title: "", desc: "", tree: [section] });
+        C2.state.pages.push({
+          id: C2.uid(),
+          name: col.name + " detail",
+          slug: C2.uniqueId(
+            col.id + "-detail",
+            C2.state.pages.map((p3) => p3.slug)
+          ),
+          collection: col.id,
+          title: "",
+          desc: "",
+          tree: [section]
+        });
         at = C2.state.pages.length - 1;
       }
       C2.state.cur = at;
@@ -10972,9 +11405,13 @@ var PC_UI = (() => {
   function bindingImpact(collectionId, fieldId) {
     const affected = /* @__PURE__ */ new Set();
     for (const page2 of C2.state.pages) {
-      if (page2.collection === collectionId && [page2.bindTitle, page2.bindDesc].includes(fieldId)) affected.add(page2.name + " (SEO)");
+      if (page2.collection === collectionId && [page2.bindTitle, page2.bindDesc].includes(fieldId))
+        affected.add(page2.name + " (SEO)");
       C2.eachNode(page2.tree, (n2) => {
-        if (Object.values(n2.bind || {}).some((b2) => b2.src === "field" && (b2.path === fieldId || b2.path.startsWith(fieldId + ".")))) affected.add(page2.name + " / " + C2.nameOf(n2));
+        if (Object.values(n2.bind || {}).some(
+          (b2) => b2.src === "field" && (b2.path === fieldId || b2.path.startsWith(fieldId + "."))
+        ))
+          affected.add(page2.name + " / " + C2.nameOf(n2));
       });
     }
     return affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
