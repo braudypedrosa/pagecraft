@@ -1361,6 +1361,8 @@ pre.code{
 }
 .borderpick button.on.set::after{background:var(--paper)}
 .borderctl>.f{margin-bottom:var(--gap-3)}
+body.submissions-loading::after{content:"Loading submissions…";position:fixed;inset:52px 0 0 var(--pc-rail-width);display:grid;place-items:center;background:var(--panel);color:var(--text-2);z-index:20;pointer-events:none}
+#submissions-workspace[hidden]{display:none}
 #submissions-workspace{flex:1;min-width:0;min-height:0;border:0;background:var(--panel)}
 body.submissions-open #app>.main>.left,body.submissions-open #app>.main>.stage,body.submissions-open #app>.main>.right,body.submissions-open #cms-workspace-host{display:none}
 body:not(.cms-open) #cms-workspace-host,#cms-workspace-host:empty{display:none}
@@ -5694,23 +5696,34 @@ function bindTop() {
      an empty site sends you to Add, which is the only thing left to do. */
   let submissionsFrame = null;
   let submissionsActive = [];
+  let submissionsLoadedAt = 0, submissionsVersion = null;
   const closeSubmissions = () => {
-    if (!submissionsFrame) return;
-    submissionsFrame.remove(); submissionsFrame = null;
+    if (!submissionsFrame || !document.body.classList.contains('submissions-open')) return;
+    submissionsFrame.hidden = true;
+    document.body.classList.remove('submissions-loading');
     document.body.classList.remove('submissions-open');
     $$('#leftRail button').forEach(b => b.classList.toggle('on', submissionsActive.includes(b)));
     requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
   };
   const openSubmissions = () => {
-    if (submissionsFrame) return;
+    if (document.body.classList.contains('submissions-open')) return;
     submissionsActive = $$('#leftRail button.on');
-    submissionsFrame = document.createElement('iframe');
-    submissionsFrame.id = 'submissions-workspace';
-    submissionsFrame.title = 'Submissions';
-    submissionsFrame.src = '/sites/' + encodeURIComponent(SRV.siteId) + '/submissions?embedded=1';
+    if (submissionsFrame && (Date.now() - submissionsLoadedAt > 30000 || submissionsVersion !== SRV.version)) {
+      submissionsFrame.remove(); submissionsFrame = null;
+    }
+    if (!submissionsFrame) {
+      submissionsLoadedAt = Date.now(); submissionsVersion = SRV.version;
+      submissionsFrame = document.createElement('iframe');
+      submissionsFrame.id = 'submissions-workspace';
+      submissionsFrame.title = 'Submissions';
+      document.body.classList.add('submissions-loading');
+      submissionsFrame.addEventListener('load', () => document.body.classList.remove('submissions-loading'));
+      submissionsFrame.src = '/sites/' + encodeURIComponent(SRV.siteId) + '/submissions?embedded=1';
+      $('#app > .main').append(submissionsFrame);
+    }
+    submissionsFrame.hidden = false;
     document.body.classList.add('submissions-open');
     $$('#leftRail button').forEach(b => b.classList.toggle('on', b.dataset.act === 'submissions'));
-    $('#app > .main').append(submissionsFrame);
     submissionsFrame.focus();
   };
   window.addEventListener('message', event => {

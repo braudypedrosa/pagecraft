@@ -62,9 +62,9 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect(await submissions.list('another-site')).toEqual([]);
     const base = 'https://editor.test/sites/' + site.id + '/submissions';
     expect((await app.request(base)).status).toBe(403);
-    const inbox = await app.request(base, { headers: { cookie: 'owner=1' } });
+    const inbox = await app.request(base + '?form=qa-form', { headers: { cookie: 'owner=1' } });
     const html = await inbox.text(); expect(html).toContain('&lt;script&gt;'); expect(html).not.toContain('<dd><script>');
-    const embedded = await app.request(base + '?embedded=1', { headers: { cookie: 'owner=1' } });
+    const embedded = await app.request(base + '?embedded=1&form=qa-form', { headers: { cookie: 'owner=1' } });
     expect(embedded.headers.get('content-security-policy')).toContain("frame-ancestors 'self'");
     const embeddedHtml = await embedded.text();
     expect(embeddedHtml).not.toContain('aria-label="Site management"');
@@ -81,5 +81,19 @@ test('published receiver, private inbox and statuses enforce site scope and pres
 });
 test('inbox discovers empty forms and preserves removed form entries', () => {
   const html = siteSubmissionsPage({ id:'qa', email:'qa@example.test', name:'QA' }, { id:'site', name:'QA' }, 'owner', siteForms(source()), [], '', '', 1);
-  expect(html).toContain('Contact QA'); expect(html).toContain('No submissions yet'); expect(html).toContain('Submissions');
+  expect(html).toContain('Contact QA'); expect(html).toContain('aria-label="Detected forms"'); expect(html).toContain('aria-expanded="false"'); expect(html).not.toContain('pc-form-list'); expect(html).toContain('Submissions');
+});
+
+test('form overview separates entries by form and keeps removed forms accessible', () => {
+  const user = { id:'qa', email:'qa@example.test', name:'QA' }, site = { id:'site', name:'QA' };
+  const entries = [{ id:'entry', formId:'removed', formName:'Old contact', status:'new' as const, createdAt:'2026-09-10T00:00:00Z', values:[{label:'Email', value:'private@example.test'}] }];
+  const overview = siteSubmissionsPage(user, site, 'owner', siteForms(source()), entries, '', '', 1, true);
+  expect(overview).toContain('Old contact (removed form)');
+  expect(overview).toContain('aria-label="Old contact (removed form) submissions"');
+  expect(overview).toContain('private@example.test');
+  expect(overview).toContain('hidden class="pc-form-entries"');
+  const detail = siteSubmissionsPage(user, site, 'owner', siteForms(source()), entries, 'removed', '', 1, true);
+  expect(detail).toContain('private@example.test');
+  expect(detail).toContain('name="form" value="removed"');
+  expect(detail).toContain('All forms');
 });

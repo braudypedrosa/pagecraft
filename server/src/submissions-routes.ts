@@ -22,14 +22,24 @@ export function submissionRoutes(app: Hono, o: {
   app.get(base, async c => {
     const embedded = c.req.query('embedded') === '1';
     if (embedded) c.header('Content-Security-Policy', "frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
-    const access = await gate(c, 'read');
+    const started = performance.now();
+    let authMs = 0, siteMs = 0;
+    const [accessResult, siteResult] = await Promise.allSettled([
+      gate(c, 'read').then(value => { authMs = performance.now() - started; return value; }),
+      o.store.byId(c.req.param('id')).then(value => { siteMs = performance.now() - started; return value; }),
+    ]);
+    if (accessResult.status === 'rejected') return c.text('Submissions could not be loaded. Try again shortly.', 503);
+    const access = accessResult.value;
     if (!access.ok) return access.status === 401 && !embedded ? c.redirect('/sign-in?next=' + encodeURIComponent(new URL(c.req.url).pathname)) : c.text('Access denied', access.status);
-    const site = await o.store.byId(c.req.param('id'));
-    if (!site) return c.notFound();
     c.header('Cache-Control', 'no-store');
     if (!o.submissions) return c.text('Submissions are unavailable. Try again shortly.', 503);
     try {
-      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), await o.submissions.list(site.id), c.req.query('form') || '', c.req.query('status') || '', Number(c.req.query('page')) || 1, embedded));
+      if (siteResult.status === 'rejected') throw siteResult.reason;
+      const site = siteResult.value;
+      const entries = await o.submissions.list(c.req.param('id')!);
+      c.header('Server-Timing', `auth;dur=${authMs.toFixed(1)}, site;dur=${siteMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`);
+      if (!site) return c.notFound();
+      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', Number(c.req.query('page')) || 1, embedded));
     } catch { return c.text('Submissions could not be loaded. Try again shortly.', 503); }
   });
   app.post(base + '/:entry/status', bodyLimit({ maxSize: 1024 }), async c => {
@@ -43,7 +53,10 @@ export function submissionRoutes(app: Hono, o: {
     if (!o.submissions) return c.text('Submissions are unavailable.', 503);
     try {
       if (!await o.submissions.status(c.req.param('id')!, c.req.param('entry')!, status)) return c.notFound();
-      return c.redirect('/sites/' + encodeURIComponent(c.req.param('id')!) + '/submissions' + (data.get('embedded') === '1' ? '?embedded=1' : ''), 303);
+      const query = new URLSearchParams();
+      if (data.get('embedded') === '1') query.set('embedded', '1');
+      if (data.get('form')) query.set('form', data.get('form')!);
+      return c.redirect('/sites/' + encodeURIComponent(c.req.param('id')!) + '/submissions' + (query.size ? '?' + query : ''), 303);
     } catch { return c.text('Status was not saved. Try again.', 503); }
   });
   const perSource = throttle(10, 60000), perSite = throttle(100, 60000);
