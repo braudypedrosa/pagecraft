@@ -179,6 +179,7 @@ function Blocks() {
       { ok: 'Forget block' });
     if (!ok) return;
     C.edit(() => C.blockDelete(id));
+    L.toast('Block removed from the library. Existing copies are kept.');
   };
 
   return (
@@ -257,6 +258,7 @@ function Components() {
       { ok: 'Delete component' });
     if (!ok) return;
     C.edit(() => { C.componentDelete(id); });
+    L.toast('Component deleted. Existing instances are now ordinary elements.');
     /* Through the render cycle, not a panel repaint: every instance on the canvas just became
        an ordinary element, and the canvas is the thing that has to say so. */
     if (editing === id) L.editComponent(null); else L.setMode(C.state.ui.mode);

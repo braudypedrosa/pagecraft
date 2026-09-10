@@ -19,6 +19,9 @@ import { TextStyles } from './TextStyles';
 import { FontSelect } from './FontSelect';
 import { ReviewList } from './ReviewList';
 import { installCustomSelects } from '../../../shared/custom-select.js';
+import { installActionFeedback } from '../../../shared/action-feedback.js';
+import { installAccountActions } from '../../../shared/account-actions.js';
+export { installActionFeedback } from '../../../shared/action-feedback.js';
 
 /* Host factories ship in the same sealed bundle as the editor UI. The classic single-file
    shell can therefore select Pagecraft Cloud today and WordPress later without importing a
@@ -30,6 +33,8 @@ export { adoptHostDocument } from '../host/schema';
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
   installCustomSelects();
+  installActionFeedback();
+  if (legacy.dynamicContentProvider() === 'pagecraft') installAccountActions();
 
   /* Preact owns each of these containers from here on. It diffs against what it
      rendered last time, so nothing else may write innerHTML into one — which is how

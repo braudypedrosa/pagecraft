@@ -7,24 +7,32 @@
    catching — which is what the original did too. */
 import { C, L } from './ctx';
 import { Icon } from './Icon';
+import { useRef, useState } from 'preact/hooks';
+import { installActionFeedback } from '../../../shared/action-feedback.js';
 
 function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }) {
+  const pending = useRef(false);
+  const [busy, setBusy] = useState(false);
   const n = (k: number, word: string) => `${k} ${word}${k === 1 ? '' : 's'}`;
 
   const remove = async (e: MouseEvent) => {
     e.stopPropagation();
+    if (pending.current) return;
     const ok = await L.askConfirm('Delete this collection?',
       `<b>${esc(col.name)}</b> and its ${n(col.items.length, 'item')}. Anything bound to its `
       + 'fields falls back to placeholder text.', { ok: 'Delete collection' });
     if (!ok) return;
     if (L.dynamicContentProvider() !== 'pagecraft') { C.edit(() => C.collectionDelete(col.id)); return; }
-    try { await L.cmsCommit(C.collections().filter(c => c.id !== col.id)); }
-    catch (error) { L.toast(error instanceof Error ? error.message : 'Collection could not be deleted.'); }
+    pending.current = true; setBusy(true);
+    const feedback = installActionFeedback().notify('Deleting collection…', {tone:'progress'});
+    try { await L.cmsCommit(C.collections().filter(c => c.id !== col.id)); feedback.success('Collection deleted from the site draft.'); }
+    catch (error) { feedback.error(error instanceof Error ? error.message : 'Collection could not be deleted. Try again.'); }
+    finally { pending.current = false; setBusy(false); }
   };
 
   return (
     <div class="brow">
-      <button type="button" class="brow-main" title={'Edit ' + col.name}
+      <button type="button" class="brow-main" disabled={busy} title={'Edit ' + col.name}
         onClick={() => L.cmsModal(col.id)}>
         <Icon name="page" size={14} />
         <span class="bn">
@@ -35,7 +43,7 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
       {/* Deleting a collection takes its items with it. That is not a content edit however
           much of the content it removes, and the server refuses it. */}
       {L.canStructure() ? (
-        <button type="button" class="bx" title="Delete this collection" onClick={remove}>
+        <button type="button" class="bx" disabled={busy} aria-busy={busy} title={busy ? 'Deleting collection…' : 'Delete this collection'} onClick={remove}>
           <Icon name="trash" size={11} />
         </button>
       ) : null}
@@ -45,8 +53,11 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
 
 export function Cms() {
   const list = C.collections();
+  const pending = useRef(false);
+  const [busy, setBusy] = useState(false);
 
   const add = async () => {
+    if (pending.current) return;
     const name = await L.askText('New collection', 'Name', 'Projects',
       { ok: 'Create', note: 'Plural reads best — Projects, Posts, Team.' });
     if (!name) return;
@@ -57,10 +68,14 @@ export function Cms() {
       return;
     }
     const id = C.uniqueId(name, C.collections().map(c => c.id));
+    pending.current = true; setBusy(true);
+    const feedback = installActionFeedback().notify('Creating collection…', {tone:'progress'});
     try {
       await L.cmsCommit([...C.collections(), {id,name,slug:id,detail:'',fields:[{id:'title',name:'Title',type:'text',required:1}],items:[]}]);
       L.cmsModal(id);
-    } catch (error) { L.toast(error instanceof Error ? error.message : 'Collection could not be created.'); }
+      feedback.success('Collection created. Add its fields and entries in CMS.');
+    } catch (error) { feedback.error(error instanceof Error ? error.message : 'Collection could not be created. Try again.'); }
+    finally { pending.current = false; setBusy(false); }
 
   };
 
@@ -71,8 +86,8 @@ export function Cms() {
           not offered a new collection. */}
       {L.canStructure() ? (
         <div style={{ padding: '12px 14px 0' }}>
-          <button class="btn primary block" onClick={add}>
-            <Icon name="plus" size={13} /> New collection
+          <button class="btn primary block" disabled={busy} aria-busy={busy} data-pc-pending={busy ? '' : undefined} onClick={add}>
+            {!busy && <Icon name="plus" size={13} />} {busy ? 'Creating…' : 'New collection'}
           </button>
           <div class="note">Fields, and the items that fill them.</div>
         </div>

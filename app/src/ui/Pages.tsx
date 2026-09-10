@@ -21,12 +21,12 @@ function PageRow({ i }: { i: number }) {
   const act = async (e: MouseEvent, name: string) => {
     e.stopPropagation();
     (e.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
-    if (name === 'up' || name === 'down') { C.edit(() => C.pageMove(i, name === 'up' ? -1 : 1)); return; }
-    if (name === 'dup') { C.edit(() => C.pageDup(i)); return; }
+    if (name === 'up' || name === 'down') { C.edit(() => C.pageMove(i, name === 'up' ? -1 : 1)); L.toast('Page moved ' + name + '.'); return; }
+    if (name === 'dup') { C.edit(() => C.pageDup(i)); L.toast('Page duplicated.'); return; }
     const ok = await L.askConfirm('Delete this page?',
       `<b>${esc(C.state.pages[i].name)}</b> and everything on it. ⌘Z will bring it back `
       + 'until you reload.', { ok: 'Delete page' });
-    if (ok) C.edit(() => C.pageDelete(i));
+    if (ok) { C.edit(() => C.pageDelete(i)); L.toast('Page deleted. Undo restores it.'); }
   };
 
   const go = () => L.openPage(i);

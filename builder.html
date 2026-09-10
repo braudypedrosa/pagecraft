@@ -1409,7 +1409,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-content{padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label{display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
 .cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
 .cms-workspace .ctl:focus{border-color:var(--ink);box-shadow:none;outline:2px solid var(--ink);outline-offset:2px}
-.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-field>label{font-weight:600}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-field>label{font-weight:600}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .cms-schema>.cms-field{margin-bottom:12px;max-width:480px}
 .cms-schema>.note{margin-bottom:8px}
 .cms-schema-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:14px 0;align-items:start}
@@ -1606,7 +1606,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
   <a href="/account">Account settings</a>
   <form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<div id="toast" hidden aria-hidden="true" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="mask" id="modal" hidden>
   <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
@@ -1929,15 +1929,15 @@ async function historyPanel() {
       if (!await askConfirm(`Restore version ${version}?`,
         'Your current page will remain in WordPress revisions. Restoring creates a new revision and reloads the editor.',
         { ok: 'Restore version ' + version, danger: true })) return;
-      button.disabled = true;
-      button.textContent = 'Restoring…';
+      const action = feedback().begin(button, 'Restoring version…');
+      if (!action) return;
       try {
         await HOST.revisions.restore(version, SRV.version);
+        action.success('Version restored. Opening the restored draft…');
+        feedback().flash('Version restored to the site draft.');
         location.reload();
       } catch (error) {
-        button.disabled = false;
-        button.textContent = 'Restore';
-        toast(error.message || String(error));
+        action.error(error.message || 'Could not restore this version. Try again.');
       }
     }));
   } catch (error) {
@@ -1967,15 +1967,15 @@ async function historyModal() {
       if (!await askConfirm(`Restore version ${version}?`,
         'Your current site will remain in history. Restoring creates a new version and reloads the editor.',
         { ok: 'Restore version ' + version, danger: true })) return;
-      button.disabled = true;
-      button.textContent = 'Restoring…';
+      const action = feedback().begin(button, 'Restoring version…');
+      if (!action) return;
       try {
         await HOST.revisions.restore(version, SRV.version);
+        action.success('Version restored. Opening the restored draft…');
+        feedback().flash('Version restored to the site draft.');
         location.reload();
       } catch (error) {
-        button.disabled = false;
-        button.textContent = 'Restore';
-        toast(error.message || String(error));
+        action.error(error.message || 'Could not restore this version. Try again.');
       }
     }));
   } catch (error) {
@@ -2086,17 +2086,15 @@ async function publicationPreviewSnapshot() {
 }
 
 async function finishWordPress(button) {
-  button.disabled = true;
-  button.textContent = 'Saving…';
+  const action = feedback().begin(button, 'Saving…');
+  if (!action) return;
   try {
     await flushDraft();
-    button.textContent = 'Saved';
+    action.success('Draft saved.');
     const target = WP.pagesUrl || WP.exitUrl;
     if (target) window.top.location.href = target;
   } catch (error) {
-    button.disabled = false;
-    button.textContent = 'Try again';
-    toast(error && error.message || String(error));
+    action.error(error && error.message || 'Could not save. Try again.');
   }
 }
 
@@ -2111,8 +2109,8 @@ async function publishDraft(button) {
     `${counts.warn} suggestion${counts.warn === 1 ? '' : 's'} will be recorded with this release. Problems always block publication.`,
     { ok: 'Publish this release' })) return;
 
-  button.disabled = true;
-  button.textContent = 'Publishing…';
+  const action = feedback().begin(button, 'Publishing…');
+  if (!action) return;
   $('#releasePanel')?.setAttribute('aria-busy', 'true');
   try {
     await flushDraft();
@@ -2127,17 +2125,19 @@ async function publishDraft(button) {
     SRV.publishedPublicationId = payload.publicationId;
     SRV.publishedVersion = payload.sourceVersion ?? SRV.publishedVersion;
     renderReleasePanel(payload);
-    toast(payload.status === 'unchanged' ? 'This version is already published' : 'Published to Pagecraft');
+    action.success(payload.status === 'unchanged' ? 'This version is already published' : 'Published to Pagecraft');
     button.textContent = 'Published';
     setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish to Pagecraft'; } }, 900);
   } catch (error) {
     if (error && error.status === 409) {
       warnStale(error.payload || {});
     }
-    button.disabled = false;
+    const detail = error.payload?.detail || (error.message === 'publication_validation_failed' ? 'This draft did not pass publication checks. Review the site’s problems and try again.' : /^[a-z0-9_]+$/.test(error.message || '') ? 'The server could not publish this draft. Please try again.' : error.message || 'Please try again.');
+    const message = error.status ? 'Publish failed. ' + detail : 'Publication could not be confirmed. Check the published site before trying again.';
+    action.error(message);
     button.textContent = 'Try again';
     const host = $('#releasePanel');
-    if (host) host.insertAdjacentHTML('afterbegin', `<div class="alert" style="margin-bottom:var(--gap-2)"><b>Nothing changed publicly.</b><span>${esc(error.message || String(error))}</span></div>`);
+    if (host) host.insertAdjacentHTML('afterbegin', `<div class="alert" style="margin-bottom:var(--gap-2)"><b>Publication needs attention.</b><span>${esc(message)}</span></div>`);
     if (host) host.setAttribute('aria-busy', 'false');
   }
 }
@@ -2539,7 +2539,7 @@ async function assetAddServer(file) {
     const why = e && e.payload;
     toast((why && (why.detail || why.error)) || (e && e.status
       ? `The server refused the image (${e.status})`
-      : 'The upload did not reach the server'));
+      : 'The upload did not reach the server. Try again.'), {tone:'error'});
     return null;
   }
   AS.mem.set(meta.id, {
@@ -2580,32 +2580,31 @@ async function assetAdd(file) {
   const rec = { id, name: file.name || 'image', type: file.type || 'application/octet-stream', size: file.size, blob: file, w: dim.w, h: dim.h };
   if (AS.ok) {
     try { await idbReq(idbStore('readwrite').put(rec)); }
-    catch (e) { AS.ok = false; toast('Could not store the image — it will be lost on reload'); }
+    catch (e) { AS.ok = false; toast('Could not store the image — it will be lost on reload', {tone:'error'}); }
   }
   AS.mem.set(id, { ...rec, url });
   return id;
 }
-async function assetDel(id) {
+const deletingAssets = new Set();
+async function assetDel(id, button = null, silent = false) {
+  if (deletingAssets.has(id)) return false;
+  deletingAssets.add(id);
   const a = AS.mem.get(id);
-  if (SRV) {
-    try {
-      await HOST.assets.remove(id);
-    } catch (e) {
-      const why = e && e.payload;
-      toast((why && why.error) || (e && e.status
-        ? `The server refused to delete the image (${e.status})`
-        : 'The image could not be deleted from the server'));
-      return false;
-    }
-  } else if (AS.ok) {
-    try { await idbReq(idbStore('readwrite').delete(id)); }
-    catch (e) { toast('The image could not be deleted from storage'); return false; }
-  }
-  /* a server URL is a path, not a blob URL, and revoking one is a no-op that reads as a bug */
-  if (a && a.url && a.url.startsWith('blob:')) URL.revokeObjectURL(a.url);
-  AS.mem.delete(id);
-  return true;
+  const action = silent ? null : feedback().begin(button, 'Deleting image…');
+  try {
+    if (SRV) await HOST.assets.remove(id);
+    else if (AS.ok) await idbReq(idbStore('readwrite').delete(id));
+    if (a && a.url && a.url.startsWith('blob:')) URL.revokeObjectURL(a.url);
+    AS.mem.delete(id);
+    action?.success('Image deleted.');
+    return true;
+  } catch (error) {
+    const message = (error?.payload?.error || error?.message || 'The image could not be deleted.') + ' Try again.';
+    if (action) action.error(message); else toast(message, {tone:'error'});
+    return false;
+  } finally { deletingAssets.delete(id); }
 }
+
 const assetBytes = () => [...AS.mem.values()].reduce((n, a) => n + (a.size || 0), 0);
 
 /* how many times each asset is referenced by the whole project */
@@ -2972,10 +2971,34 @@ function paint() {
 }
 
 /* ================================================================ toast */
-let toastT;
-function toast(msg) {
-  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1900);
+function feedback() { return PC_UI.installActionFeedback(); }
+function toast(msg, options = {}) {
+  // Keep the legacy status node available to host integrations; visible feedback is shared.
+  $('#toast').textContent = msg;
+  return feedback().notify(msg, options);
+}
+
+async function withAction(button, label, work, success) {
+  const action = feedback().begin(button, label);
+  if (!action) return false;
+  try {
+    const result = await work(action);
+    if (result === false) action.cancel();
+    else action.success(success);
+    return result;
+  } catch (error) { action.error((error.message || 'Could not complete this action.') + ' Try again.'); return false; }
+}
+let manualSavePending = false;
+async function saveExplicitly() {
+  if (manualSavePending) return;
+  manualSavePending = true;
+  const action = feedback().begin(null, SRV ? 'Saving draft…' : 'Saving project…');
+  try {
+    if (SRV) await flushDraft();
+    else { writeNow(); if (saveState !== 'ok') throw new Error('The project could not be saved.'); }
+    action.success(SRV ? 'Draft saved. Publish the site to make it public.' : 'Project saved in this browser.');
+  } catch (error) { action.error((error.message || 'Could not save.') + ' Keep this tab open and try again.'); }
+  finally { manualSavePending = false; }
 }
 
 /* ================================================================== HUD */
@@ -3182,8 +3205,8 @@ function runAct(act, ids) {
       edit(() => sendEdge(list, dir));
       break;
     }
-    case 'dup': if (canStructure()) edit(() => (many ? dupMany(list) : dupNode(id))); break;
-    case 'del': if (canStructure()) edit(() => (many ? delMany(list) : delNode(id))); break;
+    case 'dup': if (canStructure()) { edit(() => (many ? dupMany(list) : dupNode(id))); toast(many ? `${list.length} elements duplicated` : 'Element duplicated'); } break;
+    case 'del': if (canStructure()) { edit(() => (many ? delMany(list) : delNode(id))); toast(many ? `${list.length} elements deleted. Undo restores them.` : 'Element deleted. Undo restores it.'); } break;
     case 'stcopy': copyStyles(id); toast('Styles copied from ' + styleClip.from); renderRight(); break;
     case 'stpaste': {
       if (!styleClip.css) { toast('No styles copied yet'); break; }
@@ -3952,21 +3975,31 @@ function mediaCards(list, use, attr) {
 
 /* Takes a file into the library. Shared by every upload entry point. */
 async function mediaTake(file) {
-  if (!file || !/^image\//.test(file.type)) { toast('That is not an image file'); return null; }
+  if (!file || !/^image\//.test(file.type)) { toast('Choose an image file to upload.', {tone:'error'}); return null; }
   if (file.size > 6e6 && !await askConfirm('That is a large image',
     `This file is <b>${(file.size / 1048576).toFixed(1)} MB</b>. Large images slow the page down.`,
     { ok: 'Add anyway', danger: false })) return null;
-  const id = await assetAdd(file);
-  if (!id) return null;
-  const got = AS.mem.get(id);
-  writeNow();
-  toast(`${file.name} — ${kb(got && got.size || file.size)} optimized${got && got.w ? `, ${got.w} × ${got.h}` : ''}`);
-  return id;
+  const action = feedback().begin(null, 'Uploading ' + file.name + '…');
+  try {
+    const id = await assetAdd(file);
+    if (!id) { action.cancel(); return null; }
+    const got = AS.mem.get(id);
+    writeNow();
+    action.success(`${file.name} uploaded · ${kb(got && got.size || file.size)}${got && got.w ? ` · ${got.w} × ${got.h}` : ''}`);
+    return id;
+  } catch (error) { action.error((error.message || 'The image could not be uploaded.') + ' Try again.'); return null; }
 }
-function mediaChooseFiles(after) {
+
+function mediaChooseFiles(after, button = null) {
   const fi = document.createElement('input');
   fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
-  fi.onchange = async () => { for (const f of fi.files) await mediaTake(f); after(); };
+  fi.onchange = async () => {
+    if (!fi.files.length) return;
+    const action = feedback().begin(button, 'Uploading images…');
+    if (!action) return;
+    try { for (const f of fi.files) await mediaTake(f); after(); }
+    finally { action.cancel(); }
+  };
   fi.click();
 }
 
@@ -3987,14 +4020,17 @@ function mediaModal() {
        <button class="btn" id="mmUp">${svg('image', 13)} Upload</button>
        <button class="btn primary" id="mmDone">Done</button>`, 'lg');
 
-    $('#mmUp').addEventListener('click', () => mediaChooseFiles(draw));
+    $('#mmUp').addEventListener('click', event => mediaChooseFiles(draw, event.currentTarget));
     $('#mmDone').addEventListener('click', closeModal);
     const prune = $('#mmPrune');
     if (prune) prune.addEventListener('click', async () => {
+      const action = feedback().begin(prune, 'Removing unused images…');
+      if (!action) return;
       let removed = 0;
-      for (const a of [...AS.mem.values()]) if (!use[a.id] && await assetDel(a.id)) removed++;
+      for (const a of [...AS.mem.values()]) if (!use[a.id] && await assetDel(a.id, null, true)) removed++;
+      action.success(`${removed} unused images removed.`);
       if (removed) writeNow();
-      draw(); toast(removed ? `${removed} unused image${removed === 1 ? '' : 's'} removed` : 'No images were removed');
+      draw();
     });
     $$('[data-use]', $('#mBody')).forEach(b => b.addEventListener('click', () => {
       const a = AS.mem.get(b.dataset.use); if (!a) return;
@@ -4014,7 +4050,7 @@ function mediaModal() {
       if (use[id] && !await askConfirm('Delete this image?',
         `It is used ${use[id]}× on the site. Those elements fall back to a placeholder.`,
         { ok: 'Delete image' })) return;
-      if (!await assetDel(id)) return;
+      if (!await assetDel(id, b)) return;
       writeNow(); paint(); draw();
     }));
   };
@@ -4726,7 +4762,7 @@ function mediaPicker(title = 'Choose from the library') {
         toast(`That image is used ${use[id]}× — click its delete button again to confirm`);
         return;
       }
-      if (!await assetDel(id)) return;
+      if (!await assetDel(id, b)) return;
       writeNow(); paint(); draw();
     }));
     const first = $('#askBody [data-pick]');
@@ -4860,20 +4896,20 @@ function exportModal() {
      ones the writer has to satisfy. */
   const saveAssetsFor = html => writeAssetsFor(html, download);
 
-  $('#exOne').addEventListener('click', async () => {
+  $('#exOne').addEventListener('click', event => withAction(event.currentTarget, 'Preparing page…', async () => {
     const t = target();
     const html = await cur();
     /* a nested file keeps its folder in the name; browsers save it flat, so the note
        says where it belongs */
-    if (await download(t.path.replace(/\//g, '-'), html) === false) return;
+    if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
     if (t.rel) toast('Put this in a ' + t.path.split('/')[0] + '/ folder, named ' + t.path.split('/').pop());
     if (mode.value === 'files') await saveAssetsFor(html);
-  });
+  }, 'Page export ready. Download started.'));
 
-  $('#exAll').addEventListener('click', async () => {                 // one prompt at a time
+  $('#exAll').addEventListener('click', event => withAction(event.currentTarget, 'Preparing pages…', async () => {
     for (const t of targets) {
       const html = await exportPage(t.pg, mode.value, t);
-      if (await download(t.path.replace(/\//g, '-'), html) === false) return;
+      if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
     }
     if (mode.value === 'files') {
       /* every page's worth of tokens, so a variant used on one page only is still written */
@@ -4881,17 +4917,17 @@ function exportModal() {
       for (const t of targets) all += buildPage(t.pg, withVariants(t, 'files'));
       for (const a of AS.mem.values()) {
         if (!a.blob) continue;
-        if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return;
+        if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return false;
       }
       for (const { a, w } of assetVariantsIn(all)) {
         const b = await variantBlob(a, w);
         if (!b) continue;
-        if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return;
+        if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return false;
       }
     }
-  });
+  }, 'Page exports ready. Downloads started.'));
 
-  $('#exCopy').addEventListener('click', async () => {
+  $('#exCopy').addEventListener('click', event => withAction(event.currentTarget, 'Preparing HTML…', async () => {
     const html = await cur();
     try { await navigator.clipboard.writeText(html); toast('HTML copied to clipboard'); }
     catch (e) {
@@ -4899,17 +4935,18 @@ function exportModal() {
       const sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(r);
       toast('Selected — press ⌘C to copy');
     }
-  });
-  $('#exSeo').addEventListener('click', async () => {
+  }, 'HTML ready.'));
+
+  $('#exSeo').addEventListener('click', event => withAction(event.currentTarget, 'Preparing SEO files…', async () => {
     /* the button is disabled without a Site URL, so this is a belt-and-braces guard:
        a sitemap with no domain is worse than no sitemap */
     if (!state.meta.baseUrl) {
       toast('Add a Site URL in Project settings first');
       return;
     }
-    if (await download('sitemap.xml', sitemapXml(), 'application/xml') === false) return;
+    if (await download('sitemap.xml', sitemapXml(), 'application/xml') === false) return false;
     await download('robots.txt', robotsTxt(), 'text/plain');
-  });
+  }, 'SEO files ready. Downloads started.'));
   /* The whole site as one archive: real folder paths, the images beside them, and
      the SEO files. This is the only export that can honour a nested detail page,
      since a browser download saves flat. */
@@ -4941,22 +4978,12 @@ function exportModal() {
     }
     return files;
   };
-  $('#exZip').addEventListener('click', async () => {
-    /* innerHTML, not textContent: the label carries an inline svg, and restoring a
-       textContent snapshot silently stripped the icon for the rest of the session. */
-    const btn = $('#exZip'), was = btn.innerHTML;
-    btn.disabled = true; btn.textContent = 'Building…';
-    try {
-      const files = await buildSite();
-      const blob = await makeZip(files);
-      const name = (slugify(state.meta.name) || 'site') + '.zip';
-      if (await download(name, blob, 'application/zip') !== false) {
-        toast(`${files.length} file${files.length === 1 ? '' : 's'} · ${(blob.size / 1024).toFixed(0)} KB`);
-      }
-    } catch (e) {
-      toast('Could not build the archive');
-    } finally { btn.disabled = false; btn.innerHTML = was; }
-  });
+  $('#exZip').addEventListener('click', event => withAction(event.currentTarget, 'Building archive…', async () => {
+    const files = await buildSite();
+    const blob = await makeZip(files);
+    const name = (slugify(state.meta.name) || 'site') + '.zip';
+    return download(name, blob, 'application/zip');
+  }, 'Site archive ready. Download started.'));
   /* The footer says what the committed action will actually produce, so the count
      is not hidden inside a tooltip on the button. */
   const foot = $('#exFoot');
@@ -4984,13 +5011,15 @@ function exportModal() {
     const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json';
     fi.onchange = () => {
       const f = fi.files[0]; if (!f) return;
+      const action = feedback().begin(inContent, 'Importing content…'); if (!action) return;
       const rd = new FileReader();
+      rd.onerror = () => action.error('Could not read this file. Try again.');
       rd.onload = () => {
         let rep = null;
         /* inside `edit` so the whole file is one undo step: an import that landed forty
            items should come back out in one press, not forty */
         try { edit(() => { rep = contentImport(JSON.parse(rd.result)); }); } catch (e) { rep = null; }
-        if (!rep) { toast('That file has no collections in it — expected a content.json'); return; }
+        if (!rep) { action.error('That file has no collections in it — expected a content.json'); return; }
         render();
         /* the counts, because an upsert is invisible otherwise: nothing was deleted and you
            cannot tell what landed by looking at the CMS */
@@ -4999,7 +5028,7 @@ function exportModal() {
         if (rep.fields.added) bits.push(`${rep.fields.added} new field${rep.fields.added === 1 ? '' : 's'}`);
         if (rep.items.added) bits.push(`${rep.items.added} item${rep.items.added === 1 ? '' : 's'} added`);
         if (rep.items.updated) bits.push(`${rep.items.updated} updated`);
-        toast(bits.length ? bits.join(' · ') : 'Nothing in that file was new');
+        action.success(bits.length ? bits.join(' · ') : 'Nothing in that file was new');
         /* a note is something the author has to act on, so it gets a dialog rather than a
            toast that disappears */
         if (rep.notes.length) {
@@ -5017,15 +5046,17 @@ function exportModal() {
     const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json';
     fi.onchange = () => {
       const f = fi.files[0]; if (!f) return;
+      const action = feedback().begin($('#exImport'), 'Importing project…'); if (!action) return;
       const rd = new FileReader();
+      rd.onerror = () => action.error('Could not read this file. Try again.');
       rd.onload = () => {
         let d = null;
         try { d = migrate(JSON.parse(rd.result)); } catch (e) { d = null; }
-        if (!d) { toast('That file is not a Pagecraft project this build can open'); return; }
+        if (!d) { action.error('That file is not a Pagecraft project this build can open'); return; }
         hist.u.push(clone(doc()));
         state.meta = { ...state.meta, ...d.meta }; state.header = d.header || []; state.footer = d.footer || [];
         state.pages = d.pages; state.cur = 0; selSet([]);
-        closeModal(); render(); writeNow(); toast('Project imported');
+        closeModal(); render(); writeNow(); action.success('Project imported.');
       };
       rd.readAsText(f);
     };
@@ -5310,10 +5341,16 @@ function projectModal() {
   /* ---- image manager ---- */
 
   $('#mDone').addEventListener('click', async () => {
-    if (!IS_WORDPRESS) { closeModal(); render(); return; }
+    if (!IS_WORDPRESS) {
+      await withAction($('#mDone'), 'Saving settings…', async () => {
+        if (SRV) await flushDraft(); else { writeNow(); if(saveState !== 'ok') throw new Error('Settings were not saved.'); }
+        closeModal(); render();
+      }, 'Project settings saved to the draft.');
+      return;
+    }
     const button = $('#mDone');
-    button.disabled = true;
-    button.textContent = 'Saving…';
+    const action = feedback().begin(button, 'Saving settings…');
+    if (!action) return;
     try {
       const design = wordPressDesignSettings();
       await HOST.settings.write({
@@ -5326,11 +5363,9 @@ function projectModal() {
         if (typeof syncWordPressSaveButton === 'function') syncWordPressSaveButton();
       }
       closeModal(); render();
-      toast('Pagecraft settings saved');
+      action.success('Pagecraft settings saved');
     } catch (error) {
-      button.disabled = false;
-      button.textContent = 'Save settings';
-      toast(error && error.message || 'WordPress could not save these settings.');
+      action.error(error && error.message || 'WordPress could not save these settings. Try again.');
     }
   });
   /* Naming the site *is* the confirmation: cancelling the name cancels the whole
@@ -5636,7 +5671,7 @@ function hotkey(e) {
     else reviewModal();
     return;
   }
-  if (meta && k === 's') { e.preventDefault(); save(); toast('Saved locally'); return; }
+  if (meta && k === 's') { e.preventDefault(); void saveExplicitly(); return; }
   if (!meta && (k === 'backspace' || k === 'delete')) {
     const ids = selIds();
     if (ids.length && canStructure()) { e.preventDefault(); edit(() => ids.length > 1 ? delMany(ids) : delNode(ids[0])); }
@@ -5699,15 +5734,15 @@ function bindTop() {
       if (leaving) return;
       leaving = true;
       brandLink.setAttribute('aria-busy', 'true');
-      sitesButton.disabled = true;
+      const action = feedback().begin(sitesButton, 'Saving draft…');
       try {
         await flushDraft();
+        action.update('Opening Sites…');
         location.href = '/';
       } catch (error) {
         leaving = false;
         brandLink.removeAttribute('aria-busy');
-        sitesButton.disabled = false;
-        toast('Your draft could not finish saving. Please try again before leaving.');
+        action.error('Your draft could not finish saving. Please try again before leaving.');
       }
     };
     sitesButton.addEventListener('click', returnToDashboard);

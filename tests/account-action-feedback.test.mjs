@@ -1,0 +1,106 @@
+import { afterEach, expect, test, vi } from "vitest";
+import { JSDOM, VirtualConsole } from "jsdom";
+import { ACTION_FEEDBACK_BOOT_SCRIPT } from "../shared/action-feedback.js";
+import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from "../shared/account-actions.js";
+import { submissionsNavigation } from "../server/src/submissions-navigation";
+const windows = [];
+afterEach(() => {
+  for (const dom of windows.splice(0)) {
+    dom.window.__pcFeedback?.destroy();
+    dom.window.close();
+  }
+});
+function setup(body = '<form method="post" action="/account/profile"><input name="name" value="Keep my changes"><input name="locked" disabled><button type="submit">Save profile</button></form><button id="other">Other action</button>', url = "https://example.test/account") {
+  const dom = new JSDOM(body, { url, runScripts: "outside-only", virtualConsole: new VirtualConsole() });
+  windows.push(dom);
+  dom.window.eval(ACTION_FEEDBACK_BOOT_SCRIPT);
+  dom.window.eval(ACCOUNT_ACTIONS_BOOT_SCRIPT);
+  dom.window.HTMLElement.prototype.scrollTo = () => {
+  };
+  const w = dom.window, form = w.document.querySelector("form"), button = form?.querySelector("button");
+  const submit = () => form.dispatchEvent(new w.SubmitEvent("submit", { bubbles: true, cancelable: true, submitter: button }));
+  return { w, form, button, submit };
+}
+function response(html, url, status = 200) {
+  return { ok: status < 400, status, url, text: async () => html };
+}
+test("native POST waits for acknowledgement, prevents repeats, preserves input and restores a retry after failure", async () => {
+  const { w, form, button, submit } = setup();
+  let reject;
+  const fetch = vi.fn(() => new Promise((_, no) => {
+    reject = no;
+  }));
+  w.fetch = fetch;
+  submit();
+  submit();
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(button.disabled).toBe(true);
+  expect(button.textContent).toBe("Saving changes\u2026");
+  expect(w.document.querySelector("#other").disabled).toBe(false);
+  expect(fetch.mock.calls[0][1].body.get("name")).toBe("Keep my changes");
+  expect(w.sessionStorage.getItem("pc-action-result")).toBeNull();
+  reject(new Error("Offline"));
+  await vi.waitFor(() => expect(button.disabled).toBe(false));
+  expect(form.querySelector("input").value).toBe("Keep my changes");
+  expect(form.querySelector("[name=locked]").disabled).toBe(true);
+  expect(form.querySelector("[data-action-error]")?.textContent).toBe("Offline");
+  expect(w.document.activeElement).toBe(form.querySelector("[data-action-error]"));
+  w.fetch = vi.fn(async () => response('<p class="notice" role="status">Profile saved.</p>', "https://example.test/account"));
+  submit();
+  await vi.waitFor(() => expect(w.sessionStorage.getItem("pc-action-result")).toContain("Profile saved."));
+  expect(form.querySelector("[data-action-error]")).toBeNull();
+});
+test("validation errors from redirect HTML remain on the original form without reporting success", async () => {
+  const { w, form, button, submit } = setup();
+  w.fetch = vi.fn(async () => response('<p class="notice error" role="alert">That name is invalid.</p>', "https://example.test/account?error=invalid"));
+  submit();
+  await vi.waitFor(() => expect(form.querySelector("[data-action-error]")?.textContent).toBe("That name is invalid."));
+  expect(button.disabled).toBe(false);
+  expect(w.sessionStorage.getItem("pc-action-result")).toBeNull();
+});
+test("custom async forms retain their handlers and OAuth remains native with a restored back-button state", () => {
+  const { w, form, button, submit } = setup();
+  w.fetch = vi.fn();
+  form.addEventListener("submit", (e) => e.preventDefault(), { once: true });
+  submit();
+  expect(w.fetch).not.toHaveBeenCalled();
+  expect(button.disabled).toBe(false);
+  form.action = "/auth/google";
+  expect(submit()).toBe(true);
+  expect(button.textContent).toBe("Opening Google sign-in\u2026");
+  expect(w.fetch).not.toHaveBeenCalled();
+  expect(submit()).toBe(false);
+  w.dispatchEvent(new w.PageTransitionEvent("pageshow", { persisted: true }));
+  expect(button.disabled).toBe(false);
+  expect(button.textContent).toBe("Save profile");
+});
+test("submissions refresh bypasses cached content; export failures preserve the download action", async () => {
+  const { w } = setup('<section class="pc-workspace"><div class="pc-manage-content"><h1>Old entries</h1><a href="/sites/qa/submissions" data-inbox-refresh>Refresh</a><a href="/sites/qa/submissions/export.csv" class="pc-sub-export">Export CSV</a></div></section>', "https://example.test/sites/qa/submissions");
+  w.eval(submissionsNavigation({}).replace(/^<script>|<\/script>$/g, ""));
+  let resolve;
+  w.fetch = vi.fn(() => new Promise((yes) => {
+    resolve = yes;
+  }));
+  const refresh = w.document.querySelector("[data-inbox-refresh]");
+  refresh.click();
+  expect(w.fetch).toHaveBeenCalledTimes(1);
+  expect(refresh.textContent).toBe("Refreshing submissions\u2026");
+  resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1><a href="/sites/qa/submissions/export.csv" class="pc-sub-export">Export CSV</a></div>', w.location.href));
+  await vi.waitFor(() => expect(w.document.querySelector("h1")?.textContent).toBe("Fresh entries"));
+  w.fetch = vi.fn(async () => ({ ok: false, status: 500 }));
+  const csv = w.document.querySelector(".pc-sub-export");
+  csv.click();
+  csv.click();
+  await vi.waitFor(() => expect(w.document.querySelector("[role=alert]")?.textContent).toContain("CSV export failed"));
+  expect(w.fetch).toHaveBeenCalledTimes(1);
+  expect(csv.getAttribute("aria-busy")).toBeNull();
+  expect(csv.textContent).toBe("Export CSV");
+});
+test('an expired-session redirect does not falsely confirm a mutation', async () => {
+  const { w, form, button, submit } = setup();
+  w.fetch = vi.fn(async () => response('<h1>Sign in</h1>', 'https://example.test/login'));
+  submit();
+  await vi.waitFor(() => expect(form.querySelector('[data-action-error]')?.textContent).toContain('session expired'));
+  expect(button.disabled).toBe(false);
+  expect(w.sessionStorage.getItem('pc-action-result')).toBeNull();
+});

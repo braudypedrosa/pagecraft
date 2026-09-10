@@ -7,13 +7,14 @@ export function submissionsNavigation(prepared: Record<string, string>) {
     const key=value=>{const u=new URL(value,location.href);for(const [k,v] of [...u.searchParams])if(!v||(k==='page'&&v==='1'))u.searchParams.delete(k);u.searchParams.sort();return u.pathname+u.search;};
     const cache=new Map(Object.entries(${data}).map(([url,html])=>[key(url),html]));
     const base=location.pathname;
-    let controller=null;
+    let controller=null, currentAction=null;
     const remember=(url,html)=>{cache.delete(key(url));cache.set(key(url),html);while(cache.size>10)cache.delete(cache.keys().next().value);};
     remember(location.href,host.innerHTML);
     const show=(html,url,push)=>{host.innerHTML=html;if(push)history.pushState(null,'',url);host.removeAttribute('aria-busy');host.querySelector('h1')?.setAttribute('tabindex','-1');host.querySelector('h1')?.focus({preventScroll:true});document.querySelector('.pc-workspace')?.scrollTo(0,0);};
-    const go=async(url,push=true)=>{
-      controller?.abort();controller=new AbortController();const request=controller;
-      const saved=cache.get(key(url));if(saved){show(saved,url,push);return;}
+    const go=async(url,push=true,refresh=false,button=null)=>{
+      controller?.abort();currentAction?.cancel();controller=new AbortController();const request=controller;
+      const saved=!refresh&&cache.get(key(url));if(saved){show(saved,url,push);return;}
+      const action=window.__pcFeedback.begin(button,refresh?'Refreshing submissions…':'Loading submissions…');currentAction=action;
       host.setAttribute('aria-busy','true');
       const notice=document.createElement('p');notice.setAttribute('role','status');notice.textContent='Loading submissions…';host.prepend(notice);
       try{
@@ -22,8 +23,8 @@ export function submissionsNavigation(prepared: Record<string, string>) {
         const doc=new DOMParser().parseFromString(await response.text(),'text/html');
         const next=doc.querySelector('.pc-manage-content');if(!next)throw new Error('Could not load submissions. Refresh to try again.');
         if(controller!==request)return;
-        remember(url,next.innerHTML);show(next.innerHTML,url,push);
-      }catch(error){if(error.name==='AbortError')notice.remove();else{notice.textContent=error.message;host.removeAttribute('aria-busy');}}
+        if(refresh)cache.clear();remember(url,next.innerHTML);show(next.innerHTML,url,push);action?.success(refresh?'Submissions refreshed.':'Submissions loaded.');
+      }catch(error){if(error.name==='AbortError'){notice.remove();action?.cancel();}else{notice.textContent=error.message;notice.setAttribute('role','alert');host.removeAttribute('aria-busy');action?.error(error.message);}}
     };
     host.addEventListener('click',event=>{
       const opener=event.target.closest('[data-open-dialog]');
@@ -31,13 +32,18 @@ export function submissionsNavigation(prepared: Record<string, string>) {
       const closer=event.target.closest('[data-close-dialog]');if(closer){closer.closest('dialog').close();return;}
       if(event.target.matches('dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)event.target.close();return;}
 
-      const link=event.target.closest('a');if(!link||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.hasAttribute('data-inbox-refresh'))return;
+      const link=event.target.closest('a');if(!link||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      if(link.matches('.pc-sub-export')){
+        event.preventDefault();
+        const action=window.__pcFeedback.begin(link,'Preparing CSV…');if(!action)return;
+        (async()=>{try{const response=await fetch(link.href,{credentials:'same-origin'});if(!response.ok||response.redirected||!response.headers.get('content-type')?.includes('text/csv'))throw new Error('CSV export failed. Please try again.');const blob=await response.blob();const url=URL.createObjectURL(blob);const download=document.createElement('a');download.href=url;download.download='submissions.csv';document.body.append(download);download.click();download.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);action.success('CSV export ready. Download started.');}catch(error){action.error(error.message||'CSV export failed. Please try again.');}})();return;
+      }
       const url=new URL(link.href);if(url.origin!==location.origin||url.pathname!==base)return;
-      event.preventDefault();go(url.href);
+      event.preventDefault();go(url.href,true,link.hasAttribute('data-inbox-refresh'),link);
     });
     host.addEventListener('submit',event=>{
       const form=event.target;if(!form.matches('.pc-sub-filters'))return;
-      event.preventDefault();const url=new URL(base,location.origin);url.search=new URLSearchParams(new FormData(form)).toString();go(url.href);
+      event.preventDefault();const url=new URL(base,location.origin);url.search=new URLSearchParams(new FormData(form)).toString();go(url.href,true,false,event.submitter);
     });
     window.addEventListener('popstate',()=>go(location.href,false));
   })();</script>`;

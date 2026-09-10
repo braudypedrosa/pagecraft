@@ -11,23 +11,31 @@
 import { C, L } from './ctx';
 import { Icon } from './Icon';
 import { isTemplateImage } from '../core/cms-validation';
+import { useRef, useState } from 'preact/hooks';
 
-export function AssetField({ value, note, onChange }: {
+export function AssetField({ value, note, onChange, disabled = false }: {
   value: string | undefined;
   note?: string;
+  disabled?: boolean;
   onChange: (v: string) => void;
 }) {
+  const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
   const ref = String(value || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
   const shared = isTemplateImage(String(value || ''));
   const hasImage = !!a || shared;
 
   const take = async (file: File | undefined) => {
-    if (!file) return;
-    const id = await L.mediaTake(file);
-    if (id) onChange('asset:' + id);
+    if (!file || disabled || pending.current) return;
+    pending.current = true; setBusy(true);
+    try {
+      const id = await L.mediaTake(file);
+      if (id) onChange('asset:' + id);
+    } finally { pending.current = false; setBusy(false); }
   };
   const choose = () => {
+    if (disabled || pending.current) return;
     const fi = document.createElement('input');
     fi.type = 'file'; fi.accept = 'image/*';
     fi.onchange = () => void take(fi.files ? fi.files[0] : undefined);
@@ -51,11 +59,11 @@ export function AssetField({ value, note, onChange }: {
             <b>{a ? a.name : 'Template image'}</b>
             {a ? <small>{C.kb(a.size)}{a.w ? ` · ${a.w} × ${a.h}` : ''}</small> : null}
           </span>
-          <button type="button" class="x" title="Remove" onClick={() => commit('')}>
+          <button type="button" class="x" disabled={disabled || busy} title="Remove" onClick={() => { commit(''); L.toast('Image removed from this field.'); }}>
             <Icon name="trash" size={12} />
           </button>
         </div>
-        : <div class="imgdrop" role="button" tabIndex={0} aria-label="Upload an image" onClick={choose}
+        : <div class="imgdrop" role="button" tabIndex={busy ? -1 : 0} aria-disabled={disabled || busy} aria-busy={busy} aria-label="Upload an image" onClick={choose}
           onKeyDown={e => {
             if (e.key !== 'Enter' && e.key !== ' ') return;
             e.preventDefault(); choose();
@@ -63,15 +71,15 @@ export function AssetField({ value, note, onChange }: {
           onDragEnter={e => over(e, true)} onDragOver={e => over(e, true)}
           onDragLeave={e => over(e, false)}
           onDrop={e => { over(e, false); void take(e.dataTransfer?.files[0]); }}>
-          <b>Drop an image here</b><span>or choose a file</span>
+          <b>{busy ? 'Uploading image…' : 'Drop an image here'}</b><span>{busy ? 'Please wait for the upload to finish.' : 'or choose a file'}</span>
         </div>}
 
       <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
-        <button type="button" class="btn grow" onClick={choose}>
-          <Icon name="image" size={13} /> {hasImage ? 'Replace' : 'Upload'}
+        <button type="button" class="btn grow" disabled={disabled || busy} aria-busy={busy} data-pc-pending={busy ? '' : undefined} onClick={choose}>
+          {!busy && <Icon name="image" size={13} />} {busy ? 'Uploading…' : hasImage ? 'Replace' : 'Upload'}
         </button>
         {L.assetCount() ? (
-          <button type="button" class="btn grow"
+          <button type="button" class="btn grow" disabled={disabled || busy}
             title="Pick from the Media library"
             onClick={async () => { const id = await L.mediaPicker(); if (id) commit('asset:' + id); }}>
             <Icon name="copy" size={13} /> Library

@@ -9,6 +9,7 @@ import {
 } from '../core/cms-validation';
 import { AssetField } from './AssetField';
 import { Icon } from './Icon';
+import { installActionFeedback } from '../../../shared/action-feedback.js';
 
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 const PAGE_SIZE = 25;
@@ -29,6 +30,8 @@ export function CmsWorkspace({
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
+  const [actionLabel, setActionLabel] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState('');
   const root = useRef<HTMLElement>(null);
@@ -77,7 +80,7 @@ export function CmsWorkspace({
     setBaseline('');
   };
   const openEntry = (item?: Item) => {
-    if (!discard()) return;
+    if (pending.current || !discard()) return;
     const next = item
       ? copy(item)
       : { id: C.uid(), slug: '', draft: 1 as const, values: {} };
@@ -86,29 +89,33 @@ export function CmsWorkspace({
     setBaseline(item ? JSON.stringify(next) : '');
     setNotice('');
   };
-  const commit = async (next: Collection[]) => {
-    if (busy) return false;
+  const commit = async (next: Collection[], label: string, success: string) => {
+    if (pending.current) return false;
+    pending.current = true;
+    const feedback = installActionFeedback().notify(label, { tone: 'progress', id: 'cms-save' });
     setBusy(true);
+    setActionLabel(label);
+    setNotice('');
     setErrors({});
     try {
       await L.cmsCommit(next);
       refresh(revision + 1);
-      setNotice('Saved to the site draft. Publish the site to make it public.');
+      const message = success + ' Saved to the site draft. Publish the site to make it public.';
+      setNotice(message);
+      feedback.success(message);
       return true;
     } catch (e) {
-      setErrors({
-        _save:
-          e instanceof Error
-            ? e.message
-            : 'Could not save. Your changes are still here.',
-      });
+      const message = (e instanceof Error ? e.message : 'Could not save.') + ' Your changes are still here. Try again.';
+      setErrors({ _save: message });
+      feedback.error(message);
       return false;
     } finally {
       setBusy(false);
+      pending.current = false;
     }
   };
   const saveEntry = async () => {
-    if (!entry) return;
+    if (!entry || pending.current) return;
     const next = copy(entry);
     next.slug =
       next.slug ||
@@ -145,13 +152,13 @@ export function CmsWorkspace({
     const at = target.items.findIndex((i) => i.id === next.id);
     if (at < 0) target.items.push(next);
     else target.items[at] = next;
-    if (await commit(collections)) {
+    if (await commit(collections, 'Saving entry…', 'Entry saved.')) {
       setEntry(next);
       setBaseline(JSON.stringify(next));
     }
   };
   const saveSchema = async () => {
-    if (!schema) return;
+    if (!schema || pending.current) return;
     const invalid: Record<string, string> = {};
     if (!schema.name.trim()) invalid._schema = 'Give this collection a name.';
     schema.fields.forEach((f) => {
@@ -167,9 +174,10 @@ export function CmsWorkspace({
     }
     const next = copy(C.collections());
     next[next.findIndex((c) => c.id === id)] = copy(schema);
-    if (await commit(next)) setBaseline(JSON.stringify(schema));
+    if (await commit(next, 'Saving collection…', 'Collection saved.')) setBaseline(JSON.stringify(schema));
   };
   const removeEntry = async (item: Item) => {
+    if (pending.current) return;
     if (
       !window.confirm(
         `Delete “${C.itemTitle(col, item) || item.slug}”? References to this entry will need updating. Its public page is removed on the next site publish.`,
@@ -180,7 +188,7 @@ export function CmsWorkspace({
     next.find((c) => c.id === id)!.items = col.items.filter(
       (i) => i.id !== item.id,
     );
-    await commit(next);
+    await commit(next, 'Deleting entry…', 'Entry deleted.');
   };
   const updateField = (fid: string, changes: Partial<Field>) =>
     setSchema(
@@ -202,6 +210,12 @@ export function CmsWorkspace({
   );
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = Math.min(page, pages - 1);
+  const feedback = busy || errors._save || (notice && !dirty) ? (
+    <p class="pc-action-status cms-save-status" data-tone={errors._save ? 'error' : busy ? 'progress' : 'success'}
+      role={errors._save ? 'alert' : 'status'}>
+      {busy ? actionLabel : errors._save || notice}
+    </p>
+  ) : null;
   return (
     <section
       class="cms-workspace"
@@ -275,6 +289,7 @@ export function CmsWorkspace({
                 {L.canStructure() && (
                   <button
                     class="btn"
+                    disabled={busy}
                     onClick={() => {
                       const next = copy(col);
                       setSchema(next);
@@ -285,7 +300,7 @@ export function CmsWorkspace({
                     Edit collection
                   </button>
                 )}
-                <button class="btn primary" onClick={() => openEntry()}>
+                <button class="btn primary" disabled={busy} onClick={() => openEntry()}>
                   New entry
                 </button>
               </div>
@@ -296,14 +311,14 @@ export function CmsWorkspace({
               Unsaved changes
             </p>
           )}
-          {notice && !dirty && (
+          {notice && !dirty && !entry && !schema && (
             <p class="cms-notice" role="status">
               {notice}
             </p>
           )}
-          {Object.keys(errors).length > 0 && (
+          {Object.keys(errors).some(key => key !== '_save') && (
             <div class="cms-errors" role="alert">
-              {Object.entries(errors).map(([key, message]) => (
+              {Object.entries(errors).filter(([key]) => key !== '_save').map(([key, message]) => (
                 <p>
                   {key.startsWith('_')
                     ? ''
@@ -383,8 +398,8 @@ export function CmsWorkspace({
                 </p>
               </fieldset>
               <div class="cms-actions cms-form-actions">
-                <button class="btn primary" disabled={busy} type="submit">
-                  {busy ? 'Saving…' : 'Save entry'}
+                <button class="btn primary" disabled={busy} aria-busy={busy} data-pc-pending={busy ? '' : undefined} type="submit">
+                  {busy ? 'Saving…' : errors._save ? 'Try again' : notice && !dirty ? 'Saved' : 'Save entry'}
                 </button>
                 <button
                   type="button"
@@ -396,6 +411,7 @@ export function CmsWorkspace({
                 >
                   Cancel
                 </button>
+                {feedback}
               </div>
             </form>
           ) : schema ? (
@@ -565,8 +581,8 @@ export function CmsWorkspace({
                 </button>
               </fieldset>
               <div class="cms-actions cms-form-actions">
-                <button class="btn primary" disabled={busy}>
-                  Save changes
+                <button class="btn primary" disabled={busy} aria-busy={busy} data-pc-pending={busy ? '' : undefined}>
+                  {busy ? 'Saving…' : errors._save ? 'Try again' : notice && !dirty ? 'Saved' : 'Save changes'}
                 </button>
                 <button
                   class="btn"
@@ -578,10 +594,12 @@ export function CmsWorkspace({
                 >
                   Cancel
                 </button>
+                {feedback}
               </div>
             </form>
           ) : (
             <>
+              {(busy || errors._save) && feedback}
               <div class="cms-list-tools">
                 <label>
                   Search entries
@@ -618,6 +636,7 @@ export function CmsWorkspace({
                     <div class="cms-entry-row" key={item.id}>
                       <button
                         class="cms-entry-open"
+                        disabled={busy}
                         onClick={() => openEntry(item)}
                       >
                         <b>{C.itemTitle(col, item) || 'Untitled entry'}</b>
@@ -696,7 +715,7 @@ function EntryValue({
     'aria-describedby': error ? 'cms-error-' + f.id : undefined,
   };
   if (f.type === 'image')
-    return <AssetField value={value} onChange={onChange} />;
+    return <AssetField value={value} onChange={onChange} disabled={disabled} />;
   if (f.type === 'rich')
     return (
       <RichValue

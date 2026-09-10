@@ -99,7 +99,7 @@ export interface Legacy {
   /** the save-as-block flow, which asks for a name and whether it is global */
   saveBlockFlow(nodeId: string): void;
   /** a short confirmation in the corner */
-  toast(msg: string): void;
+  toast(msg: string, options?: { tone?: import('../../../shared/action-feedback.js').FeedbackTone; id?: string }): void;
 
   /** begin dragging something onto the canvas */
   startDrag(e: PointerEvent, payload: {

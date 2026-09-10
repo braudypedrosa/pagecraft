@@ -12,6 +12,7 @@ beforeEach(() => {
   C.state.meta.collections = [];
 });
 afterEach(() => {
+  window.__pcFeedback?.destroy();
   render(null, r.host);
   r.host.remove();
   vi.restoreAllMocks();
@@ -148,4 +149,27 @@ test('rich text is read-only while an entry save is pending', async () => {
     done();
   });
   expect(r.$('#cms-value-body')?.getAttribute('contenteditable')).toBe('true');
+});
+
+test('schema save announces pending and completion at the action, prevents duplicates and allows retry without losing input', async () => {
+  start(); await click('Edit collection');
+  await act(()=>r.type(r.$('#cms-name')!, 'Renamed cabins'));
+  let reject!: (e: Error)=>void;
+  const commit=vi.fn(()=>new Promise<void>((_,fail)=>{reject=fail;})); L.cmsCommit=commit;
+  await act(async()=>{r.$('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));r.$('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});
+  expect(commit).toHaveBeenCalledTimes(1);
+  expect(button('Saving…').getAttribute('aria-busy')).toBe('true');
+  expect(r.$('.cms-form-actions [role=status]')?.textContent).toBe('Saving collection…');
+  await act(async()=>reject(new Error('Server unavailable.')));
+  expect(button('Try again')).toBeTruthy();
+  expect((r.$('#cms-name') as HTMLInputElement).value).toBe('Renamed cabins');
+  expect(r.$('.cms-form-actions [role=alert]')?.textContent).toContain('Your changes are still here');
+  L.cmsCommit=async collections=>{C.edit(()=>{C.state.meta.collections=collections;});};
+  await click('Try again');
+  expect(button('Saved')).toBeTruthy();
+  expect(r.$('.cms-form-actions [role=status]')?.textContent).toContain('Collection saved.');
+  expect(C.collections()[0].name).toBe('Renamed cabins');
+  await act(()=>r.type(r.$('#cms-name')!, 'Another edit'));
+  expect(button('Save changes')).toBeTruthy();
+  expect(r.$('.cms-form-actions [role=status]')).toBeNull();
 });

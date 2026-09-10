@@ -75,6 +75,8 @@ const app = createApp({
     '.pagecraft-local/cms-qa/publications',
   ),
 });
+let failNextSave = process.env.CMS_QA_FAIL_FIRST_SAVE === '1';
+const saveDelay = Math.min(15000, Math.max(0, Number(process.env.CMS_QA_SAVE_DELAY_MS) || 0));
 serve({
   fetch: async (request) => {
     const url = new URL(request.url);
@@ -86,6 +88,13 @@ serve({
         `<meta charset="utf-8"><title>CMS QA — ${width}px</title><style>body{margin:0;background:#ddd}iframe{display:block;border:0;width:${width}px;height:900px}</style><iframe title="CMS responsive QA" src="/edit/${site.id}"></iframe>`,
         { headers: { 'content-type': 'text/html' } },
       );
+    }
+    if (request.method === 'PUT' && url.pathname === `/api/sites/${site.id}`) {
+      if (saveDelay) await new Promise(resolve => setTimeout(resolve, saveDelay));
+      if (failNextSave) {
+        failNextSave = false;
+        return Response.json({error: 'qa_save_unavailable', detail: 'QA save failure. Please retry.'}, {status: 500});
+      }
     }
     const response = await app.fetch(request);
     // Local-only iframe harness for real CSS viewport checks; production CSP is unchanged.
