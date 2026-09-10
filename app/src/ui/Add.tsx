@@ -205,9 +205,8 @@ function Blocks() {
         );
       }) : (
         <div class="hint">
-          Nothing saved yet. Select something on the canvas and save it here to start from
-          again on any page — a copy you then own. For something that stays connected
-          everywhere you put it, use <b>Components</b>.
+          No saved blocks yet. Select an element and save it as a block to reuse on other pages.
+          Edit each block independently, or use <b>Components</b> to update all instances together.
         </div>
       )}
       <button class="btn block" disabled={!sel}
