@@ -134,3 +134,15 @@ test('entry header identifies the selected form and refresh preserves its filter
   expect(html).not.toContain('pc-sub-context');
   expect(html).toContain('name="filter" value="new"');
 });
+
+test('prepared navigation contains only the selected page fragment and safely embeds data', async () => {
+  const {submissionsNavigation}=await import('../src/submissions-navigation.ts');
+  const user={id:'qa',email:'qa@example.test',name:'QA'},site={id:'site',name:'QA'};
+  const fragment=siteSubmissionsPage(user,site,'owner',siteForms(source()),[],'qa-form','',1,true,[],{},true);
+  expect(fragment).toContain('<h1>Contact QA</h1>');
+  expect(fragment).not.toContain('<style>'); expect(fragment).not.toContain('<script>');
+  expect(fragment).not.toContain('Detected forms');
+  const script=submissionsNavigation({'/sites/site/submissions?form=qa-form':'</script><script>alert(1)</script>'});
+  expect(script.match(/<\/script>/g)).toHaveLength(1);
+  expect(script).toContain('\\u003c/script>');
+});

@@ -39,9 +39,25 @@ export function submissionRoutes(app: Hono, o: {
       const entries = await o.submissions.overview(c.req.param('id')!);
       const form = c.req.query('form') || '';
       const detail = form ? await o.submissions.page(c.req.param('id')!, entries, form, c.req.query('status') || '', Number(c.req.query('page')) || 1) : undefined;
-      c.header('Server-Timing', `auth;dur=${authMs.toFixed(1)}, site;dur=${siteMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`);
       if (!site) return c.notFound();
-      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', detail?.page || 1, embedded, detail?.items));
+      const forms = siteForms(site.doc);
+      const prepared: Record<string, string> = {};
+      // Bound initial work independently of the total number of forms or entries.
+      let entryBudget = 100, byteBudget = 512 * 1024;
+      if (!form) for (const id of [...new Set([...forms.map(f => f.id), ...entries.map(e => e.formId)])].slice(0, 8)) {
+        const count = Math.min(25, entries.filter(e => e.formId === id).length);
+        if (count > entryBudget) continue;
+        entryBudget -= count;
+        const first = await o.submissions.page(site.id, entries, id, '', 1);
+        const html = siteSubmissionsPage(access.user, site, access.role, forms, entries, id, '', 1, embedded, first.items, {}, true);
+        const bytes = Buffer.byteLength(html);
+        if (bytes > byteBudget) continue;
+        byteBudget -= bytes;
+        const query = new URLSearchParams({form:id,...(embedded?{embedded:'1'}:{})});
+        prepared['/sites/' + encodeURIComponent(site.id) + '/submissions?' + query] = html;
+      }
+      c.header('Server-Timing', `auth;dur=${authMs.toFixed(1)}, site;dur=${siteMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`);
+      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', detail?.page || 1, embedded, detail?.items, prepared));
     } catch { return c.text('Submissions could not be loaded. Try again shortly.', 503); }
   });
   app.post(base + '/:entry/status', bodyLimit({ maxSize: 1024 }), async c => {
