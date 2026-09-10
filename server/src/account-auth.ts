@@ -76,14 +76,10 @@ export class SupabaseAccountAuth implements AccountAuth {
   }
 
   async identity(c: Context) {
-    const client = this.client(c);
-    const { data: claims, error } = await client.auth.getClaims();
-    if (error || !claims?.claims?.sub) return null;
-    /* getClaims establishes identity. getUser is used only to read the verified address and
-       display name; metadata never participates in Pagecraft authorization. */
-    const { data } = await client.auth.getUser();
-    const identity = verified(data.user);
-    return identity?.authUserId === claims.claims.sub ? identity : null;
+    // getUser verifies the session with Auth and supplies the current confirmed user.
+    // Calling getClaims first can duplicate this network verification on symmetric keys.
+    const { data, error } = await this.client(c).auth.getUser();
+    return error ? null : verified(data.user);
   }
 
   async signUp(c: Context, input: { email: string; password: string; name: string; redirectTo: string; captchaToken: string }) {

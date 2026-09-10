@@ -81,7 +81,7 @@ test('published receiver, private inbox and statuses enforce site scope and pres
 });
 test('inbox discovers empty forms and preserves removed form entries', () => {
   const html = siteSubmissionsPage({ id:'qa', email:'qa@example.test', name:'QA' }, { id:'site', name:'QA' }, 'owner', siteForms(source()), [], '', '', 1);
-  expect(html).toContain('Contact QA'); expect(html).toContain('aria-label="Detected forms"'); expect(html).toContain('aria-expanded="false"'); expect(html).not.toContain('pc-form-list'); expect(html).toContain('Submissions');
+  expect(html).toContain('Contact QA'); expect(html).toContain('aria-label="Detected forms"'); expect(html).toContain('form=qa-form'); expect(html).not.toContain('pc-form-list'); expect(html).toContain('Submissions');
 });
 
 test('form overview separates entries by form and keeps removed forms accessible', () => {
@@ -89,11 +89,35 @@ test('form overview separates entries by form and keeps removed forms accessible
   const entries = [{ id:'entry', formId:'removed', formName:'Old contact', status:'new' as const, createdAt:'2026-09-10T00:00:00Z', values:[{label:'Email', value:'private@example.test'}] }];
   const overview = siteSubmissionsPage(user, site, 'owner', siteForms(source()), entries, '', '', 1, true);
   expect(overview).toContain('Old contact (removed form)');
-  expect(overview).toContain('aria-label="Old contact (removed form) submissions"');
-  expect(overview).toContain('private@example.test');
-  expect(overview).toContain('hidden class="pc-form-entries"');
+  expect(overview).toContain('form=removed&amp;embedded=1');
+  expect(overview).not.toContain('private@example.test');
+  expect(overview).not.toContain('pc-form-entries');
   const detail = siteSubmissionsPage(user, site, 'owner', siteForms(source()), entries, 'removed', '', 1, true);
   expect(detail).toContain('private@example.test');
   expect(detail).toContain('name="form" value="removed"');
   expect(detail).toContain('All forms');
+});
+
+test('large inbox uses metadata for overview and loads one bounded page with fresh statuses', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pc-inbox-scale-'));
+  try {
+    const store = new FileSubmissionStore(root);
+    const {mkdir, writeFile} = await import('node:fs/promises');
+    const {createHash} = await import('node:crypto');
+    const dir = join(root, createHash('sha256').update('site').digest('hex'));
+    await mkdir(dir);
+    for (let offset=0; offset<1000; offset+=50) await Promise.all(Array.from({length:50}, (_,j) => {
+      const n=offset+j, id=`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+      return writeFile(join(dir,id+'.json'), JSON.stringify({id,formId:'contact',formName:'Contact',status:'new',createdAt:new Date(n*1000).toISOString(),values:[{label:'Message',value:'Entry '+n}]}));
+    }));
+    const summary = await store.overview('site');
+    expect(summary).toHaveLength(1000); expect(summary.every(e=>e.values.length===0)).toBe(true);
+    const first = await store.page('site',summary,'contact','',1), next = await store.page('site',summary,'contact','',2);
+    expect(first.items).toHaveLength(25); expect(next.items).toHaveLength(25);
+    expect(first.items[0].values[0].value).toBe('Entry 999');
+    expect(new Set([...first.items,...next.items].map(e=>e.id)).size).toBe(50);
+    await store.status('site',first.items[0].id,'read');
+    expect((await store.overview('site'))[0].status).toBe('read');
+    expect(await store.overview('other')).toEqual([]);
+  } finally { await rm(root,{recursive:true,force:true}); }
 });

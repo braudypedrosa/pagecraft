@@ -85,3 +85,14 @@ test('fresh unchanged publish still repairs an absent filesystem pointer',async(
   assert.equal(r.checks(),1);
   assert.equal((await r.publications.currentBySlug('review-site'))?.id,r.old.id);
 });
+
+test('identity uses one authoritative Auth request and rejects unverified or failed users', async () => {
+  const adapter = new SupabaseAccountAuth({url:'https://example.invalid',publishableKey:'test',secureCookies:false});
+  let calls=0, confirmed=true, failed=false;
+  Object.defineProperty(adapter,'client',{value:()=>({auth:{getUser:async()=>{
+    calls++; return {data:{user:{id:'user',email:'qa@example.test',email_confirmed_at:confirmed?'2026-09-10':null,user_metadata:{name:'QA'}}},error:failed?new Error('revoked'):null};
+  }}})});
+  assert.equal((await adapter.identity({} as Context))?.authUserId,'user'); assert.equal(calls,1);
+  confirmed=false; assert.equal(await adapter.identity({} as Context),null);
+  confirmed=true; failed=true; assert.equal(await adapter.identity({} as Context),null);
+});

@@ -22268,7 +22268,7 @@ function bindTop() {
      an empty site sends you to Add, which is the only thing left to do. */
   let submissionsFrame = null;
   let submissionsActive = [];
-  let submissionsLoadedAt = 0, submissionsVersion = null;
+  let submissionsVersion = null;
   const closeSubmissions = () => {
     if (!submissionsFrame || !document.body.classList.contains('submissions-open')) return;
     submissionsFrame.hidden = true;
@@ -22277,27 +22277,35 @@ function bindTop() {
     $$('#leftRail button').forEach(b => b.classList.toggle('on', submissionsActive.includes(b)));
     requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
   };
+  const prepareSubmissions = () => {
+    if (!SRV?.siteId || submissionsFrame) return;
+    submissionsVersion = SRV.version;
+    const frame = document.createElement('iframe');
+    submissionsFrame = frame;
+    frame.id = 'submissions-workspace'; frame.title = 'Submissions'; frame.hidden = true;
+    frame.addEventListener('load', () => {
+      if (submissionsFrame !== frame) return;
+      frame.dataset.ready = '1';
+      document.body.classList.remove('submissions-loading');
+    });
+    frame.src = '/sites/' + encodeURIComponent(SRV.siteId) + '/submissions?embedded=1';
+    $('#app > .main').append(frame);
+  };
   const openSubmissions = () => {
     if (document.body.classList.contains('submissions-open')) return;
     submissionsActive = $$('#leftRail button.on');
-    if (submissionsFrame && (Date.now() - submissionsLoadedAt > 30000 || submissionsVersion !== SRV.version)) {
+    if (submissionsFrame && submissionsVersion !== SRV.version) {
       submissionsFrame.remove(); submissionsFrame = null;
     }
-    if (!submissionsFrame) {
-      submissionsLoadedAt = Date.now(); submissionsVersion = SRV.version;
-      submissionsFrame = document.createElement('iframe');
-      submissionsFrame.id = 'submissions-workspace';
-      submissionsFrame.title = 'Submissions';
-      document.body.classList.add('submissions-loading');
-      submissionsFrame.addEventListener('load', () => document.body.classList.remove('submissions-loading'));
-      submissionsFrame.src = '/sites/' + encodeURIComponent(SRV.siteId) + '/submissions?embedded=1';
-      $('#app > .main').append(submissionsFrame);
-    }
+    prepareSubmissions();
     submissionsFrame.hidden = false;
+    document.body.classList.toggle('submissions-loading', !submissionsFrame.dataset.ready);
     document.body.classList.add('submissions-open');
     $$('#leftRail button').forEach(b => b.classList.toggle('on', b.dataset.act === 'submissions'));
     submissionsFrame.focus();
   };
+  // Start the authorized inbox request while the user works, not after their click.
+  if (SRV?.siteId) setTimeout(prepareSubmissions, 0);
   window.addEventListener('message', event => {
     if (event.origin === location.origin && submissionsFrame && event.source === submissionsFrame.contentWindow
       && event.data === 'pagecraft:close-submissions') {

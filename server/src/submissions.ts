@@ -1,6 +1,6 @@
 /** Cloud inbox data is private and separate from public site files. */
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readFile, readdir, writeFile, rename, rm, link, unlink } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile, rename, rm, link, unlink, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Doc, FormField, Node } from '../../app/src/core/types.ts';
 import { slugify } from '../../app/src/core/index.ts';
@@ -51,6 +51,34 @@ export class FileSubmissionStore {
   private root: string;
   constructor(root: string) { this.root = root; }
   private dir(site: string) { return join(this.root, createHash('sha256').update(site).digest('hex')); }
+  private summaries = new Map<string, { stamp: string; rows: Submission[] }>();
+  /** Keep only metadata in memory; page reads load at most 25 entry bodies. */
+  async overview(site: string): Promise<Submission[]> {
+    const dir = this.dir(site);
+    const info = await stat(dir).catch(e => { if (e.code === 'ENOENT') return null; throw e; });
+    if (!info) { this.summaries.delete(site); return []; }
+    const stamp = `${info.mtimeMs}:${info.ctimeMs}`;
+    const cached = this.summaries.get(site);
+    if (cached?.stamp === stamp) return cached.rows;
+    const files = (await readdir(dir)).filter(f => /^[a-f0-9-]+\.json$/.test(f));
+    const rows: Submission[] = [];
+    for (let i = 0; i < files.length; i += 32) {
+      rows.push(...await Promise.all(files.slice(i, i + 32).map(async file => {
+        const entry: Submission = JSON.parse(await readFile(join(dir, file), 'utf8'));
+        return { ...entry, values: [] };
+      })));
+    }
+    rows.sort((a,b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id));
+    if (this.summaries.size >= 100) this.summaries.delete(this.summaries.keys().next().value!);
+    this.summaries.set(site, { stamp, rows });
+    return rows;
+  }
+  async page(site: string, metadata: Submission[], form: string, status: string, requested: number) {
+    const filtered = metadata.filter(e => e.formId === form && (!status || e.status === status));
+    const page = Math.max(1, Math.min(Math.max(1, Math.ceil(filtered.length / 25)), Math.floor(requested) || 1));
+    const items = await Promise.all(filtered.slice((page-1)*25, page*25).map(e => readFile(join(this.dir(site), e.id + '.json'), 'utf8').then(text => JSON.parse(text) as Submission)));
+    return { items, page };
+  }
   async list(site: string): Promise<Submission[]> {
     const dir = this.dir(site);
     const files = await readdir(dir).catch(e => { if (e.code === 'ENOENT') return []; throw e; });

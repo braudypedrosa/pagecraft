@@ -36,10 +36,12 @@ export function submissionRoutes(app: Hono, o: {
     try {
       if (siteResult.status === 'rejected') throw siteResult.reason;
       const site = siteResult.value;
-      const entries = await o.submissions.list(c.req.param('id')!);
+      const entries = await o.submissions.overview(c.req.param('id')!);
+      const form = c.req.query('form') || '';
+      const detail = form ? await o.submissions.page(c.req.param('id')!, entries, form, c.req.query('status') || '', Number(c.req.query('page')) || 1) : undefined;
       c.header('Server-Timing', `auth;dur=${authMs.toFixed(1)}, site;dur=${siteMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`);
       if (!site) return c.notFound();
-      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', Number(c.req.query('page')) || 1, embedded));
+      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', detail?.page || 1, embedded, detail?.items));
     } catch { return c.text('Submissions could not be loaded. Try again shortly.', 503); }
   });
   app.post(base + '/:entry/status', bodyLimit({ maxSize: 1024 }), async c => {
