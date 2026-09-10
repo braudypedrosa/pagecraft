@@ -24,6 +24,7 @@ import { cmsDocumentErrors } from './cms-document.ts';
 import { type Context, Hono } from "hono";
 import { stream } from "hono/streaming";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { fileURLToPath } from "node:url";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { bodyLimit } from "hono/body-limit";
 import {
@@ -379,21 +380,23 @@ export function createApp(o: Options) {
   app.use("/privacy", editorOnly);
   app.use("/terms", editorOnly);
   // Share the builder's exact font files; only the product font manifest is public.
+  // CloudLinux launches from a fixed directory outside the active release.
+  const brandFile = (path: string) => fileURLToPath(new URL(`../../brand/${path}`, import.meta.url));
   for (const { file } of UI_FONT_FACES) {
-    app.get(`/brand/fonts/${file}`, editorOnly, serveStatic({ path: `./brand/fonts/${file}` }));
+    app.get(`/brand/fonts/${file}`, editorOnly, serveStatic({ path: brandFile(`fonts/${file}`) }));
   }
   app.get(
     "/brand/pagecraft-logo.svg",
     editorOnly,
     serveStatic({
-      path: "./brand/logo/pagecraft-logo-primary-dark.svg",
+      path: brandFile("logo/pagecraft-logo-primary-dark.svg"),
     }),
   );
   app.get(
     "/brand/pagecraft-favicon.svg",
     editorOnly,
     serveStatic({
-      path: "./brand/pagecraft-favicon.svg",
+      path: brandFile("pagecraft-favicon.svg"),
     }),
   );
   app.use(
