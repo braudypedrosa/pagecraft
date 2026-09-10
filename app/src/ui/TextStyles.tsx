@@ -205,11 +205,11 @@ function Row({ t }: { t: TextStyle }) {
             }} onBlur={L.endTx} aria-label="Text style name" />
         </span>
         <input class="ctl" value={d['font-size'] || ''} placeholder="auto"
-          title="Base size — expand the row to set a Tablet or Mobile override"
+          aria-label={`${t.name} size`} title="Base size — expand the row to set a Tablet or Mobile override"
           style={{ width: '74px', flex: '0 0 74px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
           onInput={e => setSize((e.target as HTMLInputElement).value)}
           onBlur={() => { L.endTx(); repaint('styles'); }} />
-        <select class="ctl" title="Base weight"
+        <select class="ctl" aria-label={`${t.name} weight`} title="Base weight"
           style={{ width: '118px', flex: '0 0 118px', fontSize: 'var(--fs-1)' }}
           value={d['font-weight'] || ''}
           onChange={e => {
@@ -222,6 +222,7 @@ function Row({ t }: { t: TextStyle }) {
           {WEIGHTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
         <button class={'iconbtn' + (open ? ' flip' : '')}
+          aria-expanded={open} aria-label={`${open ? 'Collapse' : 'Expand'} ${t.name}`}
           title={open ? 'Close' : 'Line height, letter spacing, colour, and per-breakpoint overrides'}
           onClick={() => { openStyle = open ? null : t.id; styleDev = 'd'; repaint('styles'); }}>
           <Icon name="caret" size={13} /></button>
@@ -246,6 +247,7 @@ export function TextStyles() {
 
   return (
     <>
+      <div class="text-style-columns" aria-hidden="true"><span>Preview</span><span>Name</span><span>Size</span><span>Weight</span><span>Actions</span></div>
       {C.styles().map(t => <Row key={t.id} t={t} />)}
       <button class="btn block" onClick={add}>
         <Icon name="plus" size={12} /> Add text style

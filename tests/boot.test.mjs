@@ -730,3 +730,27 @@ test('the server media picker wires trash to durable DELETE before removing the 
   a.deepEqual(errors, []);
   dom.window.close();
 });
+
+test('settings sections preserve values, keep reset actions separate, and close cleanly', async () => {
+  const { window: w, doc } = await boot();
+  w.projectModal();
+  a.equal(doc.querySelectorAll('[data-settings-section]').length, 6);
+  a.equal(doc.querySelector('#settings-general').hidden, false);
+  a.equal(doc.querySelector('#settings-advanced').hidden, true);
+  a.ok(doc.querySelector('#settings-advanced #mReset'));
+  a.equal(doc.querySelector('#mFoot #mReset'), null);
+  const before = w.__CORE.state.meta.name;
+  const name = doc.querySelector('#mName');
+  name.value = 'Settings navigation QA';
+  name.dispatchEvent(new w.Event('input', { bubbles: true }));
+  doc.querySelector('[data-settings-section="typography"]').click();
+  a.equal(doc.querySelector('#settings-general').hidden, true);
+  a.equal(doc.querySelector('#settings-typography').hidden, false);
+  a.equal(w.__CORE.state.meta.name, 'Settings navigation QA');
+  doc.querySelector('[data-settings-section="general"]').click();
+  a.equal(name.value, 'Settings navigation QA');
+  name.value = before;
+  name.dispatchEvent(new w.Event('input', { bubbles: true }));
+  doc.querySelector('#mDone').click();
+  a.equal(doc.querySelector('#modal').hidden, true);
+});

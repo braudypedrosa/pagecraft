@@ -1098,6 +1098,41 @@ body.dragging{cursor:grabbing !important;user-select:none}
   background:var(--panel);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);
   width:100%;max-width:880px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
 }
+
+/* Site settings retain the builder shell and separate everyday controls from code. */
+.mask:has(.project-settings){inset:52px 0 0 62px;padding:0;background:var(--panel);backdrop-filter:none}
+.project-settings{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;box-shadow:none}
+.project-settings #mBody{padding:0;overflow:hidden;flex:1;min-height:0;display:flex}
+.settings-layout{display:flex;flex:1;min-width:0;min-height:0}
+.settings-nav{width:184px;flex:0 0 184px;border-right:1px solid var(--line);padding:20px 12px;display:flex;flex-direction:column;gap:4px}
+.settings-nav button{text-align:left;padding:11px 12px;border-radius:var(--r-sm);color:var(--text-2);font-size:var(--fs-3)}
+.settings-nav button:hover{background:var(--field)}
+.settings-nav button[aria-current]{background:var(--green);color:var(--ink);font-weight:600}
+.settings-content{flex:1;min-width:0;overflow:auto;padding:28px 32px}
+.settings-content section{max-width:980px;margin:0 auto}
+.settings-content section[hidden]{display:none}
+.settings-content h2{font-size:var(--fs-5);margin:0 0 24px}
+.settings-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px}
+.settings-fields>.f{margin:0;min-width:0}
+#settings-typography .settings-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 140px}
+#settings-typography .f:has(#mStyles),#settings-colors .f,#settings-classes .f,#settings-code .f,.settings-reset{grid-column:1/-1}
+.project-settings .settings-code{font-family:var(--mono);font-size:var(--fs-2);line-height:1.7;min-height:220px;tab-size:2;resize:vertical;white-space:pre;overflow:auto}
+.settings-reset h3{font-size:var(--fs-4);margin:0 0 8px}
+.settings-reset p{color:var(--text-2);margin:0 0 20px;line-height:1.6}
+.settings-reset-actions{display:flex;gap:12px;flex-wrap:wrap}
+.project-settings #mFoot{gap:12px}
+.project-settings #mStyles .arow{border:0;border-bottom:1px solid var(--line);border-radius:0;margin:0;padding:9px 0;background:transparent;gap:10px}
+.project-settings #mStyles .tsedit{border:0;border-bottom:1px solid var(--line);border-radius:0;margin:0;padding:20px;background:var(--field)}
+.project-settings #mStyles>.btn{margin-top:16px}
+.text-style-columns{display:none}
+.project-settings .text-style-columns{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);color:var(--text-2);font-size:var(--fs-1)}
+.text-style-columns span:nth-child(1){width:40px;flex:0 0 40px}
+.text-style-columns span:nth-child(2){flex:1}
+.text-style-columns span:nth-child(3){width:74px;flex:0 0 74px}
+.text-style-columns span:nth-child(4){width:118px;flex:0 0 118px}
+.text-style-columns span:nth-child(5){width:calc(var(--h-row)*2 + 10px);flex:0 0 calc(var(--h-row)*2 + 10px)}
+@media(max-width:1050px){.settings-nav{width:146px;flex-basis:146px;padding:16px 8px}.settings-content{padding:24px 20px}.settings-fields{gap:16px}.project-settings #mStyles .arow{gap:6px}.project-settings .text-style-columns{gap:6px}}
+
 .modal.sm{max-width:440px}
 .modal.lg{max-width:1060px}
 /* The ask layer sits above #modal rather than reusing it: over half of these
@@ -15299,6 +15334,7 @@ var PC_UI = (() => {
             class: "ctl",
             value: d3["font-size"] || "",
             placeholder: "auto",
+            "aria-label": `${t3.name} size`,
             title: "Base size \u2014 expand the row to set a Tablet or Mobile override",
             style: { width: "74px", flex: "0 0 74px", fontFamily: "var(--mono)", fontSize: "var(--fs-1)" },
             onInput: (e3) => setSize(e3.target.value),
@@ -15312,6 +15348,7 @@ var PC_UI = (() => {
           "select",
           {
             class: "ctl",
+            "aria-label": `${t3.name} weight`,
             title: "Base weight",
             style: { width: "118px", flex: "0 0 118px", fontSize: "var(--fs-1)" },
             value: d3["font-weight"] || "",
@@ -15333,6 +15370,8 @@ var PC_UI = (() => {
           "button",
           {
             class: "iconbtn" + (open ? " flip" : ""),
+            "aria-expanded": open,
+            "aria-label": `${open ? "Collapse" : "Expand"} ${t3.name}`,
             title: open ? "Close" : "Line height, letter spacing, colour, and per-breakpoint overrides",
             onClick: () => {
               openStyle = open ? null : t3.id;
@@ -15361,6 +15400,13 @@ var PC_UI = (() => {
       L2.toast("Text style created \u2014 set its values below");
     };
     return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "text-style-columns", "aria-hidden": "true", children: [
+        /* @__PURE__ */ u2("span", { children: "Preview" }),
+        /* @__PURE__ */ u2("span", { children: "Name" }),
+        /* @__PURE__ */ u2("span", { children: "Size" }),
+        /* @__PURE__ */ u2("span", { children: "Weight" }),
+        /* @__PURE__ */ u2("span", { children: "Actions" })
+      ] }),
       C2.styles().map((t3) => /* @__PURE__ */ u2(Row2, { t: t3 }, t3.id)),
       /* @__PURE__ */ u2("button", { class: "btn block", onClick: add, children: [
         /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
@@ -21494,6 +21540,71 @@ function projectModal() {
     <span style="flex:1"></span>
     <button class="btn primary" id="mDone">Done</button>`);
 
+  if (!IS_WORDPRESS) {
+    $('#modalBox').classList.add('project-settings');
+    const body = $('#mBody');
+    const sections = [
+      ['general', 'General', ['mName', 'mMax', 'mLang', 'mBase', 'mFavBox', 'mOgBox']],
+      ['typography', 'Typography', ['mFontBox', 'mHeadBox', 'mSize', 'mStyles']],
+      ['colors', 'Colors', ['mColors']],
+      ['classes', 'Style classes', ['mClasses']],
+      ['code', 'Custom code', ['mCss', 'mHeadHtml']],
+      ['advanced', 'Advanced', ['mSelfHost']]
+    ];
+    const layout = document.createElement('div');
+    layout.className = 'settings-layout';
+    layout.innerHTML = '<nav class="settings-nav" aria-label="Settings sections"></nav><div class="settings-content"></div>';
+    const nav = layout.querySelector('nav'), content = layout.querySelector('.settings-content');
+    sections.forEach(([id, title, fields], index) => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.textContent = title;
+      button.dataset.settingsSection = id;
+      button.setAttribute('aria-controls', 'settings-' + id);
+      if (!index) button.setAttribute('aria-current', 'true');
+      const panel = document.createElement('section');
+      panel.id = 'settings-' + id; panel.hidden = !!index;
+      panel.setAttribute('aria-labelledby', panel.id + '-title');
+      panel.innerHTML = `<h2 id="${panel.id}-title">${title}</h2>`;
+      const grid = document.createElement('div'); grid.className = 'settings-fields';
+      fields.forEach(field => {
+        const node = $('#' + field)?.closest('.f');
+        if (node) grid.append(node);
+      });
+      panel.append(grid); content.append(panel); nav.append(button);
+      button.addEventListener('click', () => {
+        $$('[data-settings-section]', nav).forEach(item => item.removeAttribute('aria-current'));
+        button.setAttribute('aria-current', 'true');
+        $$('section', content).forEach(item => item.hidden = item !== panel);
+        content.scrollTop = 0;
+      });
+    });
+    body.replaceChildren(layout);
+    const labels = { mBase: 'Site URL', mColors: 'Shared colors', mStyles: 'Text styles',
+      mClasses: 'Reusable classes', mCss: 'CSS', mHeadHtml: 'Head HTML' };
+    Object.entries(labels).forEach(([id, text]) => {
+      const label = $('#' + id)?.closest('.f')?.querySelector('label');
+      if (label) label.textContent = text;
+    });
+    ['mCss', 'mHeadHtml'].forEach(id => {
+      const field = $('#' + id);
+      field.classList.add('settings-code'); field.style.minHeight = ''; field.spellcheck = false;
+      field.setAttribute('autocapitalize', 'off'); field.setAttribute('autocomplete', 'off');
+      field.setAttribute('wrap', 'off');
+    });
+    const fontOption = $('#mSelfHost').closest('.f');
+    if (SRV) fontOption.hidden = true;
+    else {
+      fontOption.querySelector('.swrow span').textContent = 'Include font files';
+      fontOption.querySelector('.note').textContent = 'Bundle webfonts with separate-file and ZIP exports. Latin and Latin Extended only.';
+    }
+    const advanced = $('#settings-advanced .settings-fields');
+    const reset = document.createElement('div'); reset.className = 'settings-reset';
+    reset.innerHTML = '<h3>Reset content</h3><p>These actions replace your pages. Download a project backup first.</p><div class="settings-reset-actions"></div>';
+    reset.querySelector('div').append($('#mBlank'), $('#mReset')); advanced.append(reset);
+    $('#mFoot').insertAdjacentHTML('afterbegin', '<span class="note">Changes save automatically. Check the save status in the header.</span>');
+    $('#mDone').textContent = 'Close';
+  }
+
   const wire = (id, fn) => {
     const el = $('#' + id); if (!el) return;
     el.addEventListener('input', () => { tx('project:' + id); fn(el.value); paintCss(); save(); });
@@ -21525,11 +21636,11 @@ function projectModal() {
   if (!IS_WORDPRESS) {
     ui().mountAssetField('mFavBox', {
       get: () => m.favicon, set: v => { tx('project:favicon'); m.favicon = v; endTx(); save(); },
-      note: 'Exported as a &lt;link rel="icon"&gt;.'
+      note: 'Shown in browser tabs.'
     });
     ui().mountAssetField('mOgBox', {
       get: () => m.ogImage, set: v => { tx('project:ogImage'); m.ogImage = v; endTx(); save(); },
-      note: 'Crawlers need an absolute URL, so this works once a <b>Site URL</b> is set and you export with <b>images as separate files</b>.'
+      note: 'Default image when sharing a page link.'
     });
   }
   wire('mCss', v => { m.css = v; });
