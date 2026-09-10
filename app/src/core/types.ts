@@ -454,6 +454,8 @@ export type ControlKind =
 export interface Control {
   t: ControlKind;
   label: string;
+  /** Compact rows are opt-in after reviewing the label and choices. */
+  layout?: 'inline';
   /** the prop this control writes. Required for anything that stores a value —
       omitting it is what made a WYSIWYG body unbindable. */
   k?: string;

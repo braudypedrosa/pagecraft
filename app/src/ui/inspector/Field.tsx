@@ -139,7 +139,7 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
     : '';
 
   return (
-    <div class={'f' + (['select', 'unit', 'color', 'toggle'].includes(c.t) ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
+    <div class={'f' + (c.layout === 'inline' && !(bindable && C.bindScope(n.id)) && !pbound && C.state.ui.mode !== 'component' ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
       <label id={labelId}>
         {c.label || ''}
         {c.r ? <ResponsiveBadge n={n} c={c} /> : null}

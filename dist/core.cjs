@@ -1522,8 +1522,8 @@ var DEF = {
     controls: {
       content: [
         { t: "pick", k: "width", label: "Content width", opts: [["boxed", "Boxed"], ["full", "Full width"]], text: 1 },
-        { t: "unit", c: "min-height", label: "Min height", r: 1, units: U.len },
-        { t: "select", k: "tag", label: "HTML tag", opts: [["section", "section"], ["div", "div"], ["header", "header"], ["footer", "footer"], ["main", "main"], ["article", "article"], ["aside", "aside"]] }
+        { t: "unit", c: "min-height", label: "Min height", layout: "inline", r: 1, units: U.len },
+        { t: "select", k: "tag", label: "HTML tag", layout: "inline", opts: [["section", "section"], ["div", "div"], ["header", "header"], ["footer", "footer"], ["main", "main"], ["article", "article"], ["aside", "aside"]] }
       ],
       style: []
     }
@@ -1536,14 +1536,14 @@ var DEF = {
     make: () => ({ props: {}, css: { d: { gap: "24px", "align-items": "stretch", "justify-content": "flex-start" }, t: {}, m: { gap: "20px" } } }),
     controls: {
       content: [
-        { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
+        { t: "unit", c: "gap", label: "Gap", layout: "inline", r: 1, units: U.space },
         /* Baseline is here because the header templates use it — text beside text in a bar
            is read on the baseline, not on the box. Without the option the control had no
            button lit for a row it was looking at, and touching any other one threw the
            value away with no way back through the UI. Same defect as a unit control whose
            list omits the stored unit. */
         { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["baseline", "Base"], ["stretch", "Fill"]] },
-        { t: "select", c: "justify-content", label: "Horizontal distribute", r: 1, opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
+        { t: "select", c: "justify-content", label: "Distribution", r: 1, opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
         { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] },
         { t: "cols", label: "Columns" }
       ],
@@ -1589,7 +1589,7 @@ var DEF = {
             ["auto", "As wide as their contents"]
           ]
         },
-        { t: "unit", c: "--sl-gap", label: "Gap", r: 1, units: U.space },
+        { t: "unit", c: "--sl-gap", label: "Gap", layout: "inline", r: 1, units: U.space },
         { t: "select", k: "controlsPosition", label: "Controls position", opts: [["sides", "Beside slides"], ["bottom", "Centered below"]] },
         {
           t: "toggle",
@@ -1629,7 +1629,7 @@ var DEF = {
           k: "sort",
           label: "Sort by",
           opts: (n) => [
-            ["", "The order in the CMS"],
+            ["", "CMS order"],
             ...(n.src && findCollection(n.src) ? findCollection(n.src).fields : []).map((f) => [f.id, f.name])
           ]
         },
@@ -1637,7 +1637,7 @@ var DEF = {
         {
           t: "select",
           k: "where",
-          label: "Only show items where",
+          label: "Filter",
           opts: (n) => [
             ["", "Every item"],
             ...(n.src && findCollection(n.src) ? findCollection(n.src).fields : []).map((f) => [f.id, f.name])
@@ -1675,7 +1675,7 @@ var DEF = {
           note: "Items per page wins where both are set.",
           when: (n) => !(parseInt(String(n.props.per || ""), 10) > 0)
         },
-        { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space },
+        { t: "unit", c: "gap", label: "Gap", layout: "inline", r: 1, units: U.space },
         /* Baseline is here because the header templates use it — text beside text in a bar
            is read on the baseline, not on the box. Without the option the control had no
            button lit for a row it was looking at, and touching any other one threw the
@@ -1700,7 +1700,7 @@ var DEF = {
            the slider's own "Slides in view" — the strip sets `flex` on its children with two
            classes, so a share or a basis set here is a control that does nothing. */
         { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1, when: notASlide },
-        { t: "unit", c: "flex-basis", label: "Min basis", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
+        { t: "unit", c: "flex-basis", label: "Min basis", layout: "inline", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
         {
           t: "select",
           c: COLUMN_V_ALIGN,
@@ -1710,7 +1710,7 @@ var DEF = {
           note: "Follows the parent row unless this column overrides it."
         },
         { t: "pick", c: "align-items", label: "Horizontal align", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"], ["stretch", "Fill"]] },
-        { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space }
+        { t: "unit", c: "gap", label: "Gap", layout: "inline", r: 1, units: U.space }
       ],
       style: []
     }
@@ -1743,7 +1743,7 @@ var DEF = {
         /* Flex. The same four controls a row has, because they are the four questions flexbox
            asks — and named the way the row names them, so learning one teaches the other. */
         { t: "pick", c: "flex-direction", label: "Direction", r: 1, when: (n) => n.props.layout === "flex", opts: [["row", "Row"], ["column", "Column"]] },
-        { t: "unit", c: "gap", label: "Gap", r: 1, units: U.space, when: (n) => n.props.layout !== "block" },
+        { t: "unit", c: "gap", label: "Gap", layout: "inline", r: 1, units: U.space, when: (n) => n.props.layout !== "block" },
         { t: "select", c: "justify-content", label: "Distribute", r: 1, when: (n) => n.props.layout !== "block", opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
         { t: "pick", c: "align-items", label: "Align", r: 1, when: (n) => n.props.layout !== "block", opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["stretch", "Fill"]] },
         { t: "select", c: "flex-wrap", label: "Wrap", r: 1, when: (n) => n.props.layout === "flex", opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] },
@@ -1752,7 +1752,7 @@ var DEF = {
            a grid child with long content overflows its track otherwise — the single most
            common CSS grid surprise, and not one an author should have to know. */
         { t: "select", c: "grid-template-columns", label: "Columns", r: 1, when: (n) => n.props.layout === "grid", opts: GRID_COLS },
-        { t: "select", k: "tag", label: "HTML tag", when: (n) => !String(n.props.link || "").trim(), opts: [["div", "div"], ["article", "article"], ["aside", "aside"], ["nav", "nav"], ["header", "header"], ["footer", "footer"], ["main", "main"], ["section", "section"], ["ul", "ul"], ["ol", "ol"], ["li", "li"]] },
+        { t: "select", k: "tag", label: "HTML tag", layout: "inline", when: (n) => !String(n.props.link || "").trim(), opts: [["div", "div"], ["article", "article"], ["aside", "aside"], ["nav", "nav"], ["header", "header"], ["footer", "footer"], ["main", "main"], ["section", "section"], ["ul", "ul"], ["ol", "ol"], ["li", "li"]] },
         { t: "link", k: "link", label: "Link", note: "A whole box that is one link." }
       ],
       style: []
@@ -1773,15 +1773,15 @@ var DEF = {
       content: [
         { t: "area", k: "text", label: "Heading text", rows: 2, mono: 0 },
         { t: "tstyle", k: "ts", label: "Text style" },
-        { t: "select", k: "level", label: "HTML tag", opts: [["h1", "H1"], ["h2", "H2"], ["h3", "H3"], ["h4", "H4"], ["h5", "H5"], ["h6", "H6"], ["p", "p"], ["div", "div"]] },
+        { t: "select", k: "level", label: "HTML tag", layout: "inline", opts: [["h1", "H1"], ["h2", "H2"], ["h3", "H3"], ["h4", "H4"], ["h5", "H5"], ["h6", "H6"], ["p", "p"], ["div", "div"]] },
         { t: "pick", c: "text-align", label: "Alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
         { t: "link", k: "link", label: "Link" }
       ],
       style: [
-        { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour" },
-        { t: "select", c: "font-weight", label: "Weight", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
-        { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
+        { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
+        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "select", c: "font-weight", label: "Weight", layout: "inline", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
+        { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
         { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
         { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
@@ -1806,9 +1806,9 @@ var DEF = {
         { t: "pick", c: "text-align", label: "Alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"], ["justify", "alignJ"]] }
       ],
       style: [
-        { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour" },
-        { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
+        { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
+        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
         { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
         { t: "color", c: "--link", label: "Link colour" }
       ]
@@ -1882,9 +1882,9 @@ var DEF = {
         { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
       ],
       style: [
-        { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour" },
-        { t: "unit", c: "line-height", label: "Line height", r: 1, units: U.line },
+        { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
+        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
         { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
         /* ch first, and not U.len: the default measure is in ch, and a unit control
            whose list omits the stored unit falls back to its first entry — which would
@@ -1893,13 +1893,14 @@ var DEF = {
           t: "unit",
           c: "max-width",
           label: "Measure",
+          layout: "inline",
           r: 1,
           units: ["ch", "px", "rem", "%"],
           note: "How wide the lines may run. 34ch reads well."
         },
         { t: "pick", c: "text-align", label: "Text alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
-        { t: "color", c: "border-left-color", label: "Rule colour" },
-        { t: "unit", c: "border-left-width", label: "Rule width", r: 1, units: U.border },
+        { t: "color", c: "border-left-color", label: "Rule colour", layout: "inline" },
+        { t: "unit", c: "border-left-width", label: "Rule width", layout: "inline", r: 1, units: U.border },
         { t: "box", c: "padding", label: "Padding", r: 1 }
       ]
     }
@@ -1929,10 +1930,10 @@ var DEF = {
         { t: "toggle", k: "lazy", label: "Lazy load" }
       ],
       style: [
-        { t: "unit", c: "width", label: "Width", r: 1, units: U.len },
-        { t: "unit", c: "height", label: "Height", r: 1, units: U.len },
+        { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
+        { t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len },
         { t: "select", c: "object-fit", label: "Fit", opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
-        { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
+        { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
         { t: "opt", c: "filter", label: "Filter", opts: FILTERS, ph: "grayscale(1) blur(2px)" }
       ]
@@ -1959,8 +1960,8 @@ var DEF = {
         { t: "toggle", k: "loop", label: "Loop" }
       ],
       style: [
-        { t: "unit", c: "width", label: "Width", r: 1, units: U.len },
-        { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius }
+        { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
+        { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
   },
@@ -1998,7 +1999,7 @@ var DEF = {
         {
           t: "select",
           c: "margin-top",
-          label: "Position in column",
+          label: "Position",
           r: 1,
           opts: [["", "In the normal flow"], ["auto", "Push to column bottom"]],
           note: "Uses the column\u2019s remaining height above this button.",
@@ -2007,10 +2008,10 @@ var DEF = {
       ],
       style: [
         { t: "color", c: "background-color", label: "Background" },
-        { t: "color", c: "color", label: "Text colour" },
-        { t: "unit", c: "font-size", label: "Size", r: 1, units: U.space },
-        { t: "select", c: "font-weight", label: "Weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
-        { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
+        { t: "color", c: "color", label: "Text colour", layout: "inline" },
+        { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
+        { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
@@ -2051,17 +2052,17 @@ var DEF = {
     controls: {
       content: [
         { t: "items", k: "items", label: "Menu links" },
-        { t: "select", k: "collapse", label: "Collapse to a burger", opts: [["mobile", "On mobile (\u2264767px)"], ["tablet", "On tablet and below (\u22641024px)"], ["never", "Never \u2014 always inline"]] },
+        { t: "select", k: "collapse", label: "Collapse at", opts: [["mobile", "On mobile (\u2264767px)"], ["tablet", "On tablet and below (\u22641024px)"], ["never", "Never \u2014 always inline"]] },
         { t: "pick", c: "justify-content", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] },
         { t: "text", k: "aria", label: "Accessible name", ph: "Main", note: "Read by screen readers as \u201C<name> menu\u201D." }
       ],
       style: [
         { t: "unit", c: "--nav-gap", label: "Link spacing", r: 1, units: U.space },
-        { t: "unit", c: "font-size", label: "Size", r: 1, units: U.space },
-        { t: "select", c: "font-weight", label: "Weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
+        { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "color", c: "color", label: "Link colour" },
         { t: "color", c: "--nav-hover", label: "Hover colour" },
-        { t: "color", c: "--nav-panel", label: "Burger panel background" },
+        { t: "color", c: "--nav-panel", label: "Menu background" },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
@@ -2107,17 +2108,17 @@ var DEF = {
       content: [
         { t: "fields", k: "fields", label: "Fields" },
         { t: "text", k: "submit", label: "Submit button label" },
-        { t: "select", k: "mode", label: "Submission handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
+        { t: "select", k: "mode", label: "Handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
         { t: "text", k: "action", label: "Where submissions go", ph: "https://formspree.io/f/\u2026", note: "Paste the complete https:// endpoint for the form service.", when: (n) => n.props.mode !== "wordpress" },
-        { t: "select", k: "method", label: "Method", opts: [["post", "POST"], ["get", "GET"]], when: (n) => n.props.mode !== "wordpress" },
+        { t: "select", k: "method", label: "Method", layout: "inline", opts: [["post", "POST"], ["get", "GET"]], when: (n) => n.props.mode !== "wordpress" },
         { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
       ],
       style: [
         { t: "select", c: "--f-layout", label: "Field layout", r: 1, opts: [["flex", "Wrapped fields"], ["grid", "Grid"]] },
         { t: "select", c: "--f-columns", label: "Grid columns", r: 1, opts: [["1fr", "One"], ["repeat(2,minmax(0,1fr))", "Two"], ["repeat(3,minmax(0,1fr))", "Three"], ["repeat(4,minmax(0,1fr))", "Four"]] },
-        { t: "select", c: "--f-button-align", label: "Button alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
+        { t: "select", c: "--f-button-align", label: "Alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
         { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
-        { t: "unit", c: "font-size", label: "Size", r: 1, units: U.size },
+        { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
         { t: "color", c: "--f-bg", label: "Field background" },
         { t: "color", c: "--f-border", label: "Field border" },
         { t: "color", c: "--f-text", label: "Field text" },
@@ -2134,7 +2135,7 @@ var DEF = {
     level: 4,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({ props: {}, css: { d: { height: "48px" }, t: {}, m: { height: "32px" } } }),
-    controls: { content: [{ t: "unit", c: "height", label: "Height", r: 1, units: U.len }], style: [] }
+    controls: { content: [{ t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len }], style: [] }
   },
   divider: {
     label: "Divider",
@@ -2144,10 +2145,10 @@ var DEF = {
     make: () => ({ props: {}, css: { d: { "border-top-width": "1px", "border-top-style": "solid", "border-top-color": cvar("line"), width: "100%", "margin-top": "20px", "margin-bottom": "20px" }, t: {}, m: {} } }),
     controls: {
       content: [
-        { t: "unit", c: "border-top-width", label: "Thickness", r: 1, units: U.border },
+        { t: "unit", c: "border-top-width", label: "Thickness", layout: "inline", r: 1, units: U.border },
         { t: "select", c: "border-top-style", label: "Style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
-        { t: "color", c: "border-top-color", label: "Colour" },
-        { t: "unit", c: "width", label: "Width", r: 1, units: U.len }
+        { t: "color", c: "border-top-color", label: "Colour", layout: "inline" },
+        { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len }
       ],
       style: []
     }
@@ -2208,10 +2209,10 @@ var DEF = {
         }
       ],
       style: [
-        { t: "unit", c: "--cb-size", label: "Text size", r: 1, units: U.size },
+        { t: "unit", c: "--cb-size", label: "Text size", layout: "inline", r: 1, units: U.size },
         { t: "color", c: "--cb-color", label: "Link colour" },
         { t: "color", c: "--cb-current", label: "Current page colour" },
-        { t: "unit", c: "--cb-gap", label: "Spacing", r: 1, units: U.space }
+        { t: "unit", c: "--cb-gap", label: "Spacing", layout: "inline", r: 1, units: U.space }
       ]
     }
   },
@@ -2269,15 +2270,15 @@ var DEF = {
       ],
       style: [
         { t: "color", c: "--cd-bg", label: "Background" },
-        { t: "color", c: "--cd-text", label: "Text colour" },
-        { t: "unit", c: "--cd-size", label: "Text size", r: 1, units: U.size },
+        { t: "color", c: "--cd-text", label: "Text colour", layout: "inline" },
+        { t: "unit", c: "--cd-size", label: "Text size", layout: "inline", r: 1, units: U.size },
         { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
-        { t: "unit", c: "--cd-radius", label: "Radius", r: 1, units: U.radius },
-        { t: "color", c: "--cd-com", label: "Comments", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-str", label: "Strings", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-kw", label: "Keywords", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-num", label: "Numbers", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-key", label: "Names", when: (n) => n.props.lang !== "text" }
+        { t: "unit", c: "--cd-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
+        { t: "color", c: "--cd-com", label: "Comments", layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-str", label: "Strings", layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-kw", label: "Keywords", layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-num", label: "Numbers", layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-key", label: "Names", layout: "inline", when: (n) => n.props.lang !== "text" }
       ]
     }
   },
@@ -2335,13 +2336,13 @@ var DEF = {
         { t: "toggle", k: "zebra", label: "Shade alternate rows" }
       ],
       style: [
-        { t: "unit", c: "--tbl-size", label: "Text size", r: 1, units: U.size },
-        { t: "color", c: "--tbl-text", label: "Text colour" },
-        { t: "unit", c: "--tbl-pad", label: "Cell padding", r: 1, units: U.space },
-        { t: "color", c: "--tbl-line", label: "Line colour" },
-        { t: "color", c: "--tbl-head-bg", label: "Heading background" },
+        { t: "unit", c: "--tbl-size", label: "Text size", layout: "inline", r: 1, units: U.size },
+        { t: "color", c: "--tbl-text", label: "Text colour", layout: "inline" },
+        { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
+        { t: "color", c: "--tbl-line", label: "Line colour", layout: "inline" },
+        { t: "color", c: "--tbl-head-bg", label: "Header background" },
         { t: "color", c: "--tbl-head-text", label: "Heading colour" },
-        { t: "color", c: "--tbl-zebra", label: "Shading", when: (n) => !!n.props.zebra },
+        { t: "color", c: "--tbl-zebra", label: "Shading", layout: "inline", when: (n) => !!n.props.zebra },
         { t: "color", c: "--tbl-caption-color", label: "Caption colour", when: (n) => !!String(n.props.caption || "").trim() }
       ]
     }
@@ -2395,10 +2396,10 @@ var DEF = {
         { t: "color", c: "--tb-on", label: "Selected label" },
         { t: "color", c: "--tb-off", label: "Other labels" },
         { t: "color", c: "--tb-line", label: "Rule" },
-        { t: "unit", c: "--tb-size", label: "Label size", r: 1, units: U.size },
+        { t: "unit", c: "--tb-size", label: "Label size", layout: "inline", r: 1, units: U.size },
         { t: "unit", c: "--tb-gap", label: "Label spacing", r: 1, units: U.space },
-        { t: "unit", c: "--tb-body-size", label: "Body size", r: 1, units: U.size },
-        { t: "color", c: "--tb-body-color", label: "Body colour" },
+        { t: "unit", c: "--tb-body-size", label: "Body size", layout: "inline", r: 1, units: U.size },
+        { t: "color", c: "--tb-body-color", label: "Body colour", layout: "inline" },
         { t: "unit", c: "--tb-body-pad", label: "Body padding", r: 1, units: U.space }
       ]
     }
@@ -2447,14 +2448,14 @@ var DEF = {
       style: [
         { t: "color", c: "--ac-line", label: "Divider colour" },
         { t: "unit", c: "--ac-pad", label: "Row padding", r: 1, units: U.space },
-        { t: "unit", c: "--ac-gap", label: "Gap between rows", r: 1, units: U.space },
+        { t: "unit", c: "--ac-gap", label: "Row gap", layout: "inline", r: 1, units: U.space },
         { t: "unit", c: "--ac-q-size", label: "Question size", r: 1, units: U.size },
         { t: "select", c: "--ac-q-weight", label: "Question weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "color", c: "--ac-q-color", label: "Question colour" },
-        { t: "unit", c: "--ac-a-size", label: "Answer size", r: 1, units: U.size },
+        { t: "unit", c: "--ac-a-size", label: "Answer size", layout: "inline", r: 1, units: U.size },
         { t: "color", c: "--ac-a-color", label: "Answer colour" },
         { t: "color", c: "--ac-mark", label: "Marker colour" },
-        { t: "unit", c: "--ac-radius", label: "Row radius", r: 1, units: U.radius }
+        { t: "unit", c: "--ac-radius", label: "Row radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
   },
@@ -2482,7 +2483,7 @@ var DEF = {
           t: "select",
           k: "ratio",
           label: "Aspect ratio",
-          opts: [["", "Whatever the markup is"], ["16 / 9", "16:9"], ["4 / 3", "4:3"], ["1 / 1", "1:1"], ["21 / 9", "21:9"], ["9 / 16", "9:16 vertical"]],
+          opts: [["", "Auto"], ["16 / 9", "16:9"], ["4 / 3", "4:3"], ["1 / 1", "1:1"], ["21 / 9", "21:9"], ["9 / 16", "9:16 vertical"]],
           note: "Pick one for an iframe with no height of its own."
         }
       ],
@@ -2518,8 +2519,8 @@ var DEF = {
         { t: "pick", c: "align-self", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
       ],
       style: [
-        { t: "unit", c: "--icon-size", label: "Glyph size", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour" },
+        { t: "unit", c: "--icon-size", label: "Glyph size", layout: "inline", r: 1, units: U.size },
+        { t: "color", c: "color", label: "Colour", layout: "inline" },
         { t: "slider", c: "--icon-stroke", label: "Stroke weight", min: 1, max: 3, step: 0.05, raw: 1 },
         { t: "color", c: "background-color", label: "Badge background" },
         { t: "box", c: "padding", label: "Badge padding", r: 1 },
@@ -2554,8 +2555,8 @@ var DEF = {
         { t: "toggle", k: "lazy", label: "Lazy load" }
       ],
       style: [
-        { t: "unit", c: "--g-gap", label: "Gap", r: 1, units: U.space },
-        { t: "unit", c: "--g-radius", label: "Tile radius", r: 1, units: U.radius }
+        { t: "unit", c: "--g-gap", label: "Gap", layout: "inline", r: 1, units: U.space },
+        { t: "unit", c: "--g-radius", label: "Tile radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
   }
@@ -2808,7 +2809,7 @@ var COMMON_STYLE = [
     g: "Background",
     cap: "decoration",
     items: [
-      { t: "color", c: "background-color", label: "Colour" },
+      { t: "color", c: "background-color", label: "Colour", layout: "inline" },
       { t: "img", c: "background-image", label: "Image", bg: 1 },
       { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
@@ -2828,7 +2829,7 @@ var COMMON_STYLE = [
          top rule as a separator; exposing only `border-style` made that stored Pagecraft value
          render on the canvas while the inspector appeared to say there was no border. */
       { t: "border", label: "Border" },
-      { t: "unit", c: "border-radius", label: "Radius", r: 1, units: U.radius },
+      { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
       { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
   },

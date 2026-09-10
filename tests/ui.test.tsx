@@ -1000,3 +1000,19 @@ test('adding and moving a repeater keeps the edited row open', async () => {
   a.equal((r.$('input[placeholder="Label"]') as HTMLInputElement).value, 'New field');
   a.equal(r.$$('.repeater-row')[2].classList.contains('on'), true);
 });
+
+test('descriptive and dynamic selectors use the full panel while short reviewed controls stay inline', () => {
+  for (const type of ['form', 'list', 'nav', 'gallery', 'embed', 'button']) {
+    const n = C.N(type);
+    const selectors = C.DEF[type].controls.content.filter(c => c.t === 'select' && c.k !== 'method');
+    for (const c of selectors) {
+      r.draw(<Ctl n={n} c={c} />);
+      a.equal(r.$('.f-inline'), null, `${type}: ${c.label} needs room for its choices`);
+    }
+  }
+  const n = C.N('form');
+  r.draw(<Ctl n={n} c={C.DEF.form.controls.content.find(c => c.k === 'method')!} />);
+  a.ok(r.$('.f-inline'), 'POST/GET remains compact');
+  r.draw(<Ctl n={n} c={{t:'select', label:'Custom collection field', opts:[['one','A long field name from a connected collection']]}} />);
+  a.equal(r.$('.f-inline'), null, 'future selectors are full width unless explicitly reviewed');
+});
