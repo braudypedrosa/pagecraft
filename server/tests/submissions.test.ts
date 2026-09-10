@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { Hono } from 'hono';
 import * as Core from '../../app/src/core/index.ts';
 import { blankDoc, renderSite } from '../src/render.ts';
-import { FileSubmissionStore, siteForms, submissionValues } from '../src/submissions.ts';
+import { FileSubmissionStore, siteForms, submissionValues, submissionsCsv } from '../src/submissions.ts';
 import { submissionRoutes } from '../src/submissions-routes.ts';
 import { MemoryStore } from '../src/store.ts';
 import { FileHostedPublicationStore } from '../src/publications.ts';
@@ -54,11 +54,11 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect((await post('email=qa@example.test', 'missing')).status).toBe(404);
     expect((await post('email=qa@example.test', 'qa-form', 'https://evil.test')).status).toBe(403);
     expect((await post('email=qa@example.test&_pc_trap=bot')).status).toBe(303);
-    expect(await submissions.list(site.id)).toHaveLength(0);
+    expect(await submissions.list(site.id)).toMatchObject([{status:'failed',values:[],error:'Enter a valid email address.'}]);
     const request = '_pc_request=12345678-1234-4123-8123-123456789abc&email=qa@example.test&message=%3Cscript%3E';
     expect((await post(request, 'qa-form', 'null')).status).toBe(303); expect((await post(request)).status).toBe(303);
     const entries = await new FileSubmissionStore(join(root, 'entries')).list(site.id);
-    expect(entries).toHaveLength(1); expect(entries[0].status).toBe('new');
+    expect(entries).toHaveLength(2); expect(entries[0].status).toBe('success');
     expect(await submissions.list('another-site')).toEqual([]);
     const base = 'https://editor.test/sites/' + site.id + '/submissions';
     expect((await app.request(base)).status).toBe(403);
@@ -70,11 +70,19 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect(embeddedHtml).not.toContain('aria-label="Site management"');
     expect(embeddedHtml).toContain('pagecraft:close-submissions');
     expect(embeddedHtml).toContain('name="embedded" value="1"');
-    const change = (origin: string) => app.request(base + '/' + entries[0].id + '/status', { method: 'POST', headers: { cookie:'owner=1', origin }, body:'status=read' });
-    expect((await change('https://evil.test')).status).toBe(403); expect((await change('https://editor.test')).status).toBe(303);
-    expect((await submissions.list(site.id))[0].status).toBe('read');
-    const embeddedSave = await app.request(base + '/' + entries[0].id + '/status', { method: 'POST', headers: { cookie: 'owner=1', origin: 'https://editor.test' }, body: 'status=archived&embedded=1' });
-    expect(embeddedSave.headers.get('location')).toBe('/sites/' + site.id + '/submissions?embedded=1');
+    const exportUrl = base + '/export.csv?form=qa-form&status=success';
+    expect((await app.request(exportUrl)).status).toBe(403);
+    const exported = await app.request(exportUrl,{headers:{cookie:'owner=1'}});
+    expect(exported.headers.get('content-type')).toContain('text/csv');
+    expect(await exported.text()).toContain('qa@example.test');
+    expect((await app.request(base+'/'+entries[0].id+'/status',{method:'POST',headers:{cookie:'owner=1'},body:'status=read'})).status).toBe(404);
+    const remove = (origin: string, body='confirmed=yes&embedded=1&form=qa-form') => app.request(base+'/'+entries[0].id+'/delete',{method:'POST',headers:{cookie:'owner=1',origin},body});
+    expect((await remove('https://evil.test')).status).toBe(403);
+    expect((await remove('https://editor.test','')).status).toBe(400);
+    expect(await submissions.remove('another-site',entries[0].id)).toBe(false);
+    expect((await remove('https://editor.test')).headers.get('location')).toContain('embedded=1&form=qa-form');
+    expect(await submissions.list(site.id)).toHaveLength(1);
+    expect((await remove('https://editor.test')).status).toBe(404);
     expect((await app.request(base, { headers: { cookie: 'owner=1', 'x-pagecraft-editor-session': 'wp' } })).status).toBe(403);
     await submissions.removeSite(site.id); expect(await submissions.list(site.id)).toHaveLength(0);
   } finally { await rm(root, { recursive: true, force: true }); }
@@ -116,23 +124,23 @@ test('large inbox uses metadata for overview and loads one bounded page with fre
     expect(first.items).toHaveLength(25); expect(next.items).toHaveLength(25);
     expect(first.items[0].values[0].value).toBe('Entry 999');
     expect(new Set([...first.items,...next.items].map(e=>e.id)).size).toBe(50);
-    await store.status('site',first.items[0].id,'read');
-    expect((await store.overview('site'))[0].status).toBe('read');
+    await store.remove('site',first.items[0].id);
+    expect(await store.overview('site')).toHaveLength(999);
     expect(await store.overview('other')).toEqual([]);
   } finally { await rm(root,{recursive:true,force:true}); }
 });
 
 test('entry header identifies the selected form and refresh preserves its filters', () => {
   const entry = {id:'one',formId:'qa-form',formName:'Contact QA',status:'new' as const,createdAt:'2026-09-10T00:00:00Z',values:[]};
-  const html = siteSubmissionsPage({id:'qa',email:'qa@example.test',name:'QA'},{id:'site',name:'QA'},'owner',siteForms(source()),[entry,{...entry,id:'two',formId:'other'}],'qa-form','new',1,true);
+  const html = siteSubmissionsPage({id:'qa',email:'qa@example.test',name:'QA'},{id:'site',name:'QA'},'owner',siteForms(source()),[entry,{...entry,id:'two',formId:'other'}],'qa-form','success',1,true);
   const header = html.match(/<header class="pc-sub-head">([\s\S]*?)<\/header>/)![1];
   expect(header).toContain('<h1>Contact QA</h1>');
-  expect(header).toContain('1 entry · 1 new');
+  expect(header).toContain('1 entry');
   expect(header).toContain('All forms</a>');
   expect(header).toContain('class="pc-sub-actions"');
-  expect(header).toContain('form=qa-form&amp;status=new&amp;page=1&amp;embedded=1');
+  expect(header).toContain('form=qa-form&amp;status=success&amp;page=1&amp;embedded=1');
   expect(html).not.toContain('pc-sub-context');
-  expect(html).toContain('name="filter" value="new"');
+  expect(html).toContain('name="status" value="success"');
 });
 
 test('prepared navigation contains only the selected page fragment and safely embeds data', async () => {
@@ -147,4 +155,12 @@ test('prepared navigation contains only the selected page fragment and safely em
   const script=submissionsNavigation({'/sites/site/submissions?form=qa-form':'</script><script>alert(1)</script>'});
   expect(script.match(/<\/script>/g)).toHaveLength(1);
   expect(script).toContain('\\u003c/script>');
+});
+
+test('CSV covers every entry, escaped quotes, line breaks and spreadsheet formulas', () => {
+  const entries=Array.from({length:30},(_,i)=>({id:String(i),formId:'f',formName:'Form',createdAt:'2026-09-10',status:'new' as const,values:[{label:'Message',value:i===0?'=HYPERLINK("bad")':i===1?'line 1\nline 2':'Entry '+i}]}));
+  const csv=submissionsCsv(entries);
+  expect(csv).toContain(`'=HYPERLINK(""bad"")`);
+  expect(csv).toContain('line 1\nline 2'); expect(csv).toContain('Entry 29');
+  expect(csv).toContain('"success"');
 });

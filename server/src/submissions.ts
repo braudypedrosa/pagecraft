@@ -1,15 +1,21 @@
 /** Cloud inbox data is private and separate from public site files. */
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readFile, readdir, writeFile, rename, rm, link, unlink, stat } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile, rm, link, unlink, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Doc, FormField, Node } from '../../app/src/core/types.ts';
 import { slugify } from '../../app/src/core/index.ts';
 
-export type SubmissionStatus = 'new' | 'read' | 'archived';
+export type SubmissionStatus = 'new' | 'read' | 'archived' | 'success' | 'failed';
 export interface SiteForm { id: string; name: string; pages: string[]; fields: FormField[] }
 export interface Submission {
   id: string; formId: string; formName: string; createdAt: string; status: SubmissionStatus;
+  error?: string;
   values: { label: string; value: string }[];
+}
+export const submissionOutcome = (entry: Submission) => entry.status === 'failed' ? 'failed' : 'success';
+export function submissionsCsv(entries: Submission[], labels = [...new Set(entries.flatMap(e => e.values.map(v => v.label)))], header = true) {
+  const cell = (value: string) => '"' + (/^[\s]*[=+@-]/.test(value) ? "'" + value : value).replace(/"/g, '""') + '"';
+  return (header ? '\uFEFF' : '') + [...(header ? [['Entry ID','Received','Status','Error',...labels]] : []), ...entries.map(e => [e.id,e.createdAt,submissionOutcome(e),e.error || '',...labels.map(label => e.values.filter(v=>v.label===label).map(v=>v.value).join('\n'))])].map(row=>row.map(cell).join(',')).join('\r\n') + '\r\n';
 }
 export function siteForms(doc: Doc): SiteForm[] {
   const forms = new Map<string, SiteForm>();
@@ -74,7 +80,7 @@ export class FileSubmissionStore {
     return rows;
   }
   async page(site: string, metadata: Submission[], form: string, status: string, requested: number) {
-    const filtered = metadata.filter(e => e.formId === form && (!status || e.status === status));
+    const filtered = metadata.filter(e => e.formId === form && (!status || submissionOutcome(e) === status));
     const page = Math.max(1, Math.min(Math.max(1, Math.ceil(filtered.length / 25)), Math.floor(requested) || 1));
     const items = await Promise.all(filtered.slice((page-1)*25, page*25).map(e => readFile(join(this.dir(site), e.id + '.json'), 'utf8').then(text => JSON.parse(text) as Submission)));
     return { items, page };
@@ -97,15 +103,10 @@ export class FileSubmissionStore {
     catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e; }
     finally { await unlink(temp); }
   }
-  async status(site: string, id: string, status: SubmissionStatus) {
+  async remove(site: string, id: string) {
     if (!/^[a-f0-9-]{36}$/.test(id)) return false;
-    const path = join(this.dir(site), id + '.json');
-    let entry: Submission;
-    try { entry = JSON.parse(await readFile(path, 'utf8')); }
+    try { await unlink(join(this.dir(site), id + '.json')); this.summaries.delete(site); return true; }
     catch (e) { if ((e as NodeJS.ErrnoException).code === 'ENOENT') return false; throw e; }
-    entry.status = status;
-    const temp = path + '.' + randomUUID() + '.tmp';
-    await writeFile(temp, JSON.stringify(entry), { mode: 0o600 }); await rename(temp, path); return true;
   }
   async removeSite(site: string) { await rm(this.dir(site), { recursive: true, force: true }); }
 }

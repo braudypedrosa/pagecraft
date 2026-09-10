@@ -26,6 +26,11 @@ export function submissionsNavigation(prepared: Record<string, string>) {
       }catch(error){if(error.name==='AbortError')notice.remove();else{notice.textContent=error.message;host.removeAttribute('aria-busy');}}
     };
     host.addEventListener('click',event=>{
+      const opener=event.target.closest('[data-open-dialog]');
+      if(opener){const dialog=document.getElementById(opener.dataset.openDialog);if(dialog){dialog.showModal();dialog.addEventListener('close',()=>opener.focus(),{once:true});}return;}
+      const closer=event.target.closest('[data-close-dialog]');if(closer){closer.closest('dialog').close();return;}
+      if(event.target.matches('dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)event.target.close();return;}
+
       const link=event.target.closest('a');if(!link||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.hasAttribute('data-inbox-refresh'))return;
       const url=new URL(link.href);if(url.origin!==location.origin||url.pathname!==base)return;
       event.preventDefault();go(url.href);
