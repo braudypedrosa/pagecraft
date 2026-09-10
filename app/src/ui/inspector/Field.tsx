@@ -32,15 +32,13 @@ function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
     : src[dev][c.c] !== undefined));
   const clearable = owns && dev !== 'd';
   const w = writer(n, c);
-  return (
-    <span class={'rsp' + (clearable ? ' ovr' : '')}
-      title={dev === 'd' ? 'Editing the desktop base value'
-        : owns ? 'Overridden on ' + C.DEV_LABEL[dev] + ' — click to clear'
-          : 'Set a ' + C.DEV_LABEL[dev] + ' override'}
-      onClick={clearable ? () => w.clearOverride() : undefined}>
-      <Icon name={DEV_ICON[dev]} size={9} />
-    </span>
-  );
+  const label = dev === 'd' ? 'Editing the desktop base value'
+    : owns ? 'Clear ' + C.DEV_LABEL[dev] + ' override for ' + c.label
+      : 'Set a ' + C.DEV_LABEL[dev] + ' override';
+  return clearable
+    ? <button type="button" class="rsp ovr" title={label} aria-label={label}
+        onClick={() => w.clearOverride()}><Icon name={DEV_ICON[dev]} size={9} /></button>
+    : <span class="rsp" title={label}><Icon name={DEV_ICON[dev]} size={9} /></span>;
 }
 
 function BindBadge({ n, c }: { n: PcNode; c: Control }) {
@@ -62,11 +60,10 @@ function BindBadge({ n, c }: { n: PcNode; c: Control }) {
     ? (shown ? `Bound to ${shown.label}` : 'Missing CMS field or source. Choose another field or disconnect.')
     : scope ? 'Connect a CMS field' : 'Choose a content source or place this component in a Collection to connect CMS fields';
   return (
-    <span role="button" tabIndex={0} aria-label={label} aria-disabled={!scope && !fid ? 'true' : undefined}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void pick(); } }}
+    <button type="button" aria-label={label} disabled={!scope && !fid}
       class={'bnd' + (fid ? ' on' : '')} onClick={pick} title={label}>
       <Icon name="cms" size={9} />
-    </span>
+    </button>
   );
 }
 
@@ -105,13 +102,14 @@ function PropBadge({ n, c }: { n: PcNode; c: Control }) {
     L.paint();
   };
 
-  return (
-    <span class={'bnd' + (bound ? ' on' : '')} onClick={pick}
-      title={bound
+  const label = bound
         ? (pr ? `Varies per instance — “${pr.label}” — click to change` : 'Bound to a property that no longer exists')
-        : 'Make this vary between instances'}>
+        : 'Make ' + c.label + ' vary between instances';
+  return (
+    <button type="button" class={'bnd' + (bound ? ' on' : '')} onClick={pick}
+      title={label} aria-label={label}>
       <Icon name="component" size={9} />
-    </span>
+    </button>
   );
 }
 

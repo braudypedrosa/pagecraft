@@ -56,3 +56,36 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   dynamicTrigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
   a.equal(dynamicTrigger.getAttribute('aria-expanded'), 'true');
 });
+
+test('menus fit below, above or in the larger scrollable space and clamp to the viewport', async () => {
+  document.body.innerHTML = '<select aria-label="Geometry"><option>A</option><option disabled>B</option><option>C</option></select>';
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  const select = document.querySelector('select')!;
+  trigger.click();
+  const menu = document.querySelector<HTMLElement>('.pc-custom-select-popover:not([hidden])')!;
+  let top = 100, height = 790;
+  trigger.getBoundingClientRect = () => ({ top, bottom:top+37, left:990, width:200, right:1190, height:37 } as DOMRect);
+  Object.defineProperty(menu,'scrollHeight',{configurable:true,value:358});
+  Object.defineProperty(menu,'offsetHeight',{configurable:true,value:360});
+  Object.defineProperty(menu,'clientHeight',{configurable:true,value:358});
+  Object.defineProperty(window,'innerWidth',{configurable:true,value:1024});
+  Object.defineProperty(window,'innerHeight',{configurable:true,get:()=>height});
+  const place = () => window.dispatchEvent(new Event('resize'));
+  place(); a.equal(menu.style.top,'143px'); a.equal(menu.style.left,'816px'); a.equal(menu.style.maxHeight,'360px');
+  top=620; place(); a.equal(menu.style.top,'254px');
+  top=100; height=300; place(); a.equal(menu.style.maxHeight,'149px'); a.equal(menu.style.top,'143px');
+  top=220; window.dispatchEvent(new Event('scroll')); a.equal(menu.style.maxHeight,'206px'); a.equal(menu.style.top,'8px');
+  await new Promise(resolve=>setTimeout(resolve,30));
+  const options = menu.querySelectorAll<HTMLButtonElement>('button');
+  a.equal(options[1].disabled,true);
+  options[0].focus();
+  options[0].dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));
+  a.equal(document.activeElement,options[2]); a.equal(options[2].dataset.active,'true');
+  let inputs=0,changes=0;select.addEventListener('input',()=>inputs++);select.addEventListener('change',()=>changes++);
+  options[2].click(); a.equal(select.value,'C');a.equal(inputs,1);a.equal(changes,1);
+  trigger.click();
+  Object.defineProperty(window,'innerWidth',{configurable:true,value:390}); place();
+  a.equal(menu.dataset.mobile,'true'); a.equal(menu.style.maxHeight,'');
+  trigger.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+});

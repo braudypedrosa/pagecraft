@@ -22,6 +22,8 @@ import { installCustomSelects } from '../../../shared/custom-select.js';
 import { installActionFeedback } from '../../../shared/action-feedback.js';
 import { installAccountActions } from '../../../shared/account-actions.js';
 export { installActionFeedback } from '../../../shared/action-feedback.js';
+export { installEditorViewport } from './editor-viewport';
+export { projectIdentity, renameHostedSite } from './hosted-identity';
 
 /* Host factories ship in the same sealed bundle as the editor UI. The classic single-file
    shell can therefore select Pagecraft Cloud today and WordPress later without importing a

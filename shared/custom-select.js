@@ -13,7 +13,7 @@ export const CUSTOM_SELECT_CSS = `
 .pc-custom-select-trigger>svg{width:14px;height:14px;flex:0 0 14px;color:currentColor;opacity:.64;transition:transform .14s ease}
 .pc-custom-select-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .pc-custom-select-trigger:disabled{cursor:not-allowed;opacity:.5}
-.pc-custom-select-popover{--pc-cs-bg:#fff;--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-line:#cbd2d8;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:1px solid var(--pc-cs-line);border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
+.pc-custom-select-popover{box-sizing:border-box;--pc-cs-bg:#fff;--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-line:#cbd2d8;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:1px solid var(--pc-cs-line);border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
 .pc-custom-select-popover[hidden]{display:none}
 .pc-custom-select-group{padding:8px 9px 4px;color:var(--pc-cs-muted);font-family:"DM Sans",system-ui,sans-serif;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
 .pc-custom-select-option{width:100%!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0!important;padding:7px 9px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:var(--pc-cs-fg)!important;box-shadow:none!important;font:inherit!important;font-weight:500!important;line-height:1.35!important;text-align:left!important;cursor:pointer!important;filter:none!important}
@@ -83,17 +83,27 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     const rect = record.trigger.getBoundingClientRect();
     const mobile = window.innerWidth < 560;
     record.menu.dataset.mobile = String(mobile);
-    record.menu.style.width = mobile ? '' : `${Math.max(180, rect.width)}px`;
+    record.menu.style.maxHeight = '';
+    record.menu.style.width = mobile ? '' : `${Math.min(Math.max(180, rect.width), window.innerWidth - 16)}px`;
     if (mobile) return;
-    const width = Math.max(180, rect.width);
+    const width = Math.min(Math.max(180, rect.width), window.innerWidth - 16);
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
-    const roomBelow = window.innerHeight - rect.bottom - 8;
-    const height = Math.min(record.menu.scrollHeight, 360);
-    const top = roomBelow >= Math.min(height, 180)
-      ? rect.bottom + 6
-      : Math.max(8, rect.top - height - 6);
+    const roomBelow = Math.max(0, window.innerHeight - rect.bottom - 6 - 8);
+    const roomAbove = Math.max(0, rect.top - 6 - 8);
+    const border = record.menu.offsetHeight - record.menu.clientHeight;
+    const desired = Math.min(record.menu.scrollHeight + border, 360);
+    const below = roomBelow >= desired || (roomAbove < desired && roomBelow >= roomAbove);
+    const height = Math.min(desired, below ? roomBelow : roomAbove);
+    record.menu.style.maxHeight = `${height}px`;
+    const top = below ? rect.bottom + 6 : rect.top - height - 6;
     record.menu.style.left = `${left}px`;
-    record.menu.style.top = `${top}px`;
+    record.menu.style.top = `${Math.max(8, Math.min(top, window.innerHeight - height - 8))}px`;
+    const active = document.activeElement;
+    if (active && record.menu.contains(active)) {
+      const item = active.getBoundingClientRect(), box = record.menu.getBoundingClientRect();
+      if (item.top < box.top) record.menu.scrollTop -= box.top - item.top;
+      else if (item.bottom > box.bottom) record.menu.scrollTop += item.bottom - box.bottom;
+    }
   };
 
   const close = (record, focus = false) => {
@@ -113,6 +123,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     close(record, true);
   };
 
+  const optionsForButton = (record, button) => [...record.select.options].find(option => option.value === button.dataset.value);
   const setActive = (record, option) => {
     const buttons = [...record.menu.querySelectorAll('.pc-custom-select-option:not(:disabled)')];
     buttons.forEach(button => { button.dataset.active = String(button.dataset.value === option?.value); });
@@ -267,7 +278,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         event.preventDefault();
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
           : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
-        buttons[next]?.focus();
+        if (buttons[next]) setActive(record, optionsForButton(record, buttons[next]));
       }
     });
   };

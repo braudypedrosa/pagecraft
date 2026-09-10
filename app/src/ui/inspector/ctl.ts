@@ -52,7 +52,10 @@ export function writer(n: PcNode, c: Control): Writer {
       L.endTx();
       repaint('right');
     },
-    done: L.endTx,
+    done() {
+      L.endTx();
+      repaint('right');
+    },
     clearOverride() {
       L.tx(key + ':clear');
       /* both a node and a class carry `css: Css`, and dk() is a Bp, so this indexes

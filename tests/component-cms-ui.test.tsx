@@ -29,7 +29,10 @@ test('component field connects and disconnects through the keyboard-accessible C
   L.askPick = async (_title, choices) => { a.ok(choices.some(x => x[0] === field.id)); return field.id; };
   const draw = () => r.draw(<Ctl n={node} c={control} />);
   draw();
-  await act(async () => { r.$('.bnd')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); });
+  a.equal(r.$('.bnd')!.tagName, 'BUTTON');
+  a.equal(r.$('.bnd')!.getAttribute('type'), 'button');
+  // jsdom does not synthesize a native button click from Enter/Space. Browser acceptance covers those keys.
+  await act(async () => r.click(r.$('.bnd')));
   draw();
   a.equal(C.boundField(node, C.VAL + key), field.id);
   a.equal((r.$('input') as HTMLInputElement).value, 'Pine cabin');
@@ -55,7 +58,7 @@ for (const [kind, type] of [['text','text'], ['rich','rich'], ['img','image'], [
     await act(async () => r.click(r.$('.bnd')));
     r.draw(<Ctl n={node} c={control} />);
     a.equal((r.$('input') as HTMLInputElement).disabled, true);
-    a.equal(r.$$('button').length, 0, 'no upload, link editor or token picker can overwrite a bound field');
+    a.equal(r.$$('button:not(.bnd)').length, 0, 'no upload, link editor or token picker can overwrite a bound field');
   });
 }
 

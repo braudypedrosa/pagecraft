@@ -18,7 +18,9 @@ The custom-select trigger follows its host density. Collaborator row selects rem
 
 ## Acceptance scope
 
-Desktop and tablet only, per the user's clarification. Existing narrow layouts remain available but mobile acceptance is not part of this task. Use local identifiable fixtures for long names, pending collaborators, registration/reset forms and editable CMS states. Do not change shared staging/production records, permissions or credentials to validate layout.
+The builder supports desktop and tablet editing when the browser viewport is at least 768px wide. This is independent of the canvas preview breakpoint: Mobile preview remains available in a supported editing window. Below 768px, a larger-screen message locks the existing editor, menus, dialogs and editing shortcuts without unmounting them or interrupting saves. Widening restores the same session and unsaved form values. Cloud's Back to sites uses the existing draft-flushing host navigation; WordPress uses its supplied pages/exit destination. A downloaded standalone file has no Sites destination. Dashboard and published sites remain usable on phone widths.
+
+Verify at 390, 767, 768, 1024 and desktop viewport widths, including 1024 x 790 dropdown placement. These are browser viewport tests, not physical-device certification. Use identifiable, explicitly authorized QA fixtures for mutating staging journeys; staging and production currently share site records.
 
 Verify the actual computed boxes and keyboard interactions, including dropdown opening/Escape, account tabs, copy feedback, create-dialog focus and disabled actions. Confirm the deployed commit through `/__deployment` before reporting staging availability.
 

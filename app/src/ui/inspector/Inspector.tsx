@@ -438,10 +438,10 @@ function ComponentProps({ n }: { n: PcNode }) {
     <Panel title="Properties" n={n}>
       {list.length ? list.map((pr, i) => (
         <div class="lrow" key={pr.k} style={{ paddingLeft: 0, paddingRight: 0 }}>
-          <span class="nm" style={{ cursor: 'pointer' }} onClick={() => rename(pr.k, pr.label)}
-            title="Rename">
+          <button type="button" class="nm property-rename" onClick={() => rename(pr.k, pr.label)}
+            title="Rename" aria-label={'Rename property ' + pr.label}>
             <b>{pr.label}</b> <small style={{ opacity: .6 }}>{pr.t}</small>
-          </span>
+          </button>
           <button class="bx" title="Move up" disabled={i === 0}
             onClick={() => move(pr.k, -1)}><Icon name="toTop" size={11} /></button>
           <button class="bx" title="Move down" disabled={i === list.length - 1}

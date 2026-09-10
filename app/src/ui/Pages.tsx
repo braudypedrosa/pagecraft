@@ -78,11 +78,19 @@ function PageRow({ i }: { i: number }) {
 }
 
 /** Site navigation and page management, kept separate from the current page's metadata. */
+export function matchesPageSearch(p: { name: string; slug: string }, query: string, front: boolean) {
+  const term = query.trim().toLowerCase();
+  if (!term) return true;
+  if (/^\/+$/u.test(term)) return front;
+  const normalized = term.replace(/^\/+|\/+$/gu, '');
+  const path = front ? '/' : '/' + p.slug;
+  return [p.name, p.slug, path].some(value => value.toLowerCase().includes(normalized));
+}
+
 export function PagesWorkspace() {
   const [query, setQuery] = useState('');
-  const term = query.trim().toLowerCase();
   const rows = C.state.pages.map((p, i) => ({p, i})).filter(({p}) =>
-    !term || (p.name + ' ' + p.slug).toLowerCase().includes(term));
+    matchesPageSearch(p, query, C.isFront(p)));
   return <section class="pages-workspace" aria-label="Pages">
     <header class="pages-workspace-head pc-workspace-head">
       <div><h1>Pages</h1><p>{C.state.pages.length} {C.state.pages.length === 1 ? 'page' : 'pages'}</p></div>

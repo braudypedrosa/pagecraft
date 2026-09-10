@@ -721,12 +721,14 @@ body.preview .dim{display:none}
 .wp-link-picker{margin-top:var(--gap-1);min-width:0}
 .wp-link-picker>label{display:block;margin:0 0 4px;font-family:var(--label);font-size:var(--fs-1);font-weight:500;color:var(--text-3)}
 .wp-link-picker>.note{overflow-wrap:anywhere}
-.f>label .rsp{width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2)}
+.f>label .rsp{border:0;padding:0;flex-shrink:0;width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2)}
+.property-rename{border:0;padding:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.f>label button:focus-visible,.property-rename:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 .f>label .rsp svg{width:9px;height:9px}
 .f>label .ovr{color:var(--on-green);background:var(--green)}
 /* bound values get the same badge treatment as a breakpoint override — green
    means "this is not a literal any more" in both cases */
-.f>label .bnd{width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2);cursor:pointer}
+.f>label .bnd{border:0;padding:0;flex-shrink:0;width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2);cursor:pointer}
 .f>label .bnd svg{width:9px;height:9px}
 .f>label .bnd:hover{color:var(--text);background:var(--line)}
 .f>label .bnd.on{color:var(--on-green);background:var(--green)}
@@ -1340,7 +1342,7 @@ pre.code{
    canvas into the 116px sliver the three fixed columns used to leave at 768px. These
    rules intentionally live after every panel's base rule so the responsive dimensions
    win the cascade. */
-@media(max-width:900px){
+@media(max-width:1024px){
   body:not(.library-focus) .left{display:none}
   body.library-focus .right{display:none}
   .rail button{height:52px}
@@ -1421,6 +1423,21 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-schema-field>.cms-actions>.btn{min-height:36px;height:36px;width:32px;padding:0;justify-content:center}
 @media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
 
+@media(min-width:768px) and (max-width:1024px){
+.cms-schema-field{grid-template-columns:minmax(0,1fr)}
+.cms-schema-inputs{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.cms-schema-inputs>.cms-check{grid-column:1 / -1;grid-row:auto}
+.cms-schema-field>.cms-actions{padding-top:0;justify-content:flex-end}
+}
+#editorWidthGate{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:28px;background:var(--panel);color:var(--text);text-align:center}
+#editorWidthGate[hidden]{display:none}
+#editorWidthGate>div{max-width:420px}
+#editorWidthGate h1{font-size:24px;line-height:1.25;margin:0 0 16px}
+#editorWidthGate p{font-size:15px;line-height:1.6;color:var(--text-2);margin:0 0 24px}
+#editorWidthGate .btn{display:inline-flex}
+#editorWidthGate [hidden]{display:none!important}
+body.editor-width-blocked{overflow:hidden}
+body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibility:hidden!important;pointer-events:none!important}
 </style>
 <style>
 #builderLoading{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:var(--ink,#111311);color:#f8f6ef;padding:24px;text-align:center}
@@ -1461,7 +1478,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
    clearTimeout(slow);
    await new Promise(resolve => setTimeout(resolve, Math.max(0, 450 - (performance.now() - started))));
    const app = document.getElementById('app');
-   app.removeAttribute('inert');
+   if (!document.body.classList.contains('editor-width-blocked')) app.removeAttribute('inert');
    app.setAttribute('aria-busy', 'false');
    screen.hidden = true;
   },
@@ -1670,6 +1687,7 @@ let lastCloudDocument = null;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+const editorViewport = PC_UI.installEditorViewport(IS_WORDPRESS ? (WP.pagesUrl || WP.exitUrl || '') : (SRV ? '/' : ''), syncDialogLayers);
 if (SRV && !IS_WORDPRESS) {
   setCloudFormEndpoint(location.origin + '/forms/' + encodeURIComponent(SRV.siteId));
   const submissions = document.createElement('button');
@@ -4387,7 +4405,7 @@ function renderPanelHead() {
 }
 function renderDoc() {
   const d = $('#docName');
-  if (d) d.innerHTML = `<b>${esc(state.meta.name)}</b><small>· ${esc(page().name)}</small>`;
+  if (d) d.innerHTML = `<b>${esc(PC_UI.projectIdentity(state.meta.name, SRV?.name, IS_WORDPRESS))}</b><small>· ${esc(page().name)}</small>`;
 }
 /* The frame renders at its breakpoint's width and is scaled to fit whatever the
    panels leave. Everything the drag and selection code measures lives *inside* the
@@ -4637,11 +4655,12 @@ function syncDialogLayers() {
     else { el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }
   };
   const settingsOpen = modalOpen && $('#modalBox').classList.contains('project-settings');
-  lock(app, askOpen || (modalOpen && !settingsOpen));
+  lock(app, editorViewport.blocked || askOpen || (modalOpen && !settingsOpen));
   /* Settings occupies the workspace, but the visible tool rail remains navigation. */
   $$('#app > :not(.main), #app > .main > :not(#leftRail)').forEach(el => lock(el, settingsOpen));
   $('#modalBox').setAttribute('aria-modal', settingsOpen ? 'false' : 'true');
-  lock(modal, modalOpen && askOpen);
+  lock(modal, editorViewport.blocked || (modalOpen && askOpen));
+  lock($('#ask'), editorViewport.blocked);
 }
 function openModal(title, bodyHtml, footHtml, size) {
   const wasHidden = $('#modal').hidden;
@@ -5186,7 +5205,7 @@ function projectModal() {
     ? wordpressSaveState.dirty : false;
   openModal(IS_WORDPRESS ? 'Pagecraft design settings' : 'Project settings', `
     <div class="fgrid">
-      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(m.name)}"></div>`}
+      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(PC_UI.projectIdentity(m.name, SRV?.name))}" maxlength="120">${SRV ? '<button class="btn" type="button" id="mSaveName">Save name</button>' : ''}</div>`}
       <div class="f"><label for="mMax">Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
       <div class="f"><label>Body font</label><div id="mFontBox"></div></div>
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
@@ -5299,7 +5318,20 @@ function projectModal() {
     el.addEventListener('input', () => { tx('project:' + id); fn(el.value); paintCss(); save(); });
     el.addEventListener('blur', endTx);
   };
-  wire('mName', v => { m.name = v; renderModebar(); });
+  let namePending = null;
+  const saveProjectName = () => {
+    if (!SRV || IS_WORDPRESS || $('#mName').value.trim() === SRV.name) return Promise.resolve();
+    if (namePending) return namePending;
+    const input = $('#mName');
+    input.disabled = true;
+    namePending = PC_UI.renameHostedSite(SRV.siteId, input.value).then(name => {
+      SRV.name = name; input.value = name; renderModebar();
+    }).finally(() => { input.disabled = false; namePending = null; });
+    return namePending;
+  };
+  if (SRV && !IS_WORDPRESS) $('#mSaveName').addEventListener('click', () =>
+    withAction($('#mSaveName'), 'Saving name…', saveProjectName, 'Site name updated.'));
+  else wire('mName', v => { m.name = v; renderModebar(); });
 
   /* app/src/ui/FontSelect.tsx, the same picker the text-style editor uses. */
   ui().mountFontSelect('mFontBox', {
@@ -5363,6 +5395,7 @@ function projectModal() {
   $('#mDone').addEventListener('click', async () => {
     if (!IS_WORDPRESS) {
       await withAction($('#mDone'), 'Saving settings…', async () => {
+        if (SRV) await saveProjectName();
         if (SRV) await flushDraft(); else { writeNow(); if(saveState !== 'ok') throw new Error('Settings were not saved.'); }
         closeModal(); render();
       }, 'Project settings saved to the draft.');
@@ -5603,6 +5636,7 @@ function helpModal() {
 
 /* ============================================================= keyboard */
 function hotkey(e) {
+  if (editorViewport.blocked) return;
   /* the ask layer owns the keyboard while it is up — its own handler takes Enter
      and Escape, and without this Escape would also walk the canvas selection */
   if (askOpenNow()) return;
@@ -5754,7 +5788,9 @@ function bindTop() {
       if (leaving) return;
       leaving = true;
       brandLink.setAttribute('aria-busy', 'true');
-      const action = feedback().begin(sitesButton, 'Saving draft…');
+      const gateLink = event.currentTarget.closest('#editorWidthGate');
+      const action = feedback().begin(gateLink ? event.currentTarget : sitesButton, 'Saving draft…');
+      gateLink?.querySelector('[role="alert"]')?.remove();
       try {
         await flushDraft();
         action.update('Opening Sites…');
@@ -5763,10 +5799,12 @@ function bindTop() {
         leaving = false;
         brandLink.removeAttribute('aria-busy');
         action.error('Your draft could not finish saving. Please try again before leaving.');
+        if (gateLink) { const error = document.createElement('p'); error.setAttribute('role', 'alert'); error.textContent = 'Your draft could not finish saving. Please try again before leaving.'; gateLink.append(error); }
       }
     };
     sitesButton.addEventListener('click', returnToDashboard);
     brandLink.addEventListener('click', returnToDashboard);
+    $('#editorWidthGate a')?.addEventListener('click', returnToDashboard);
     if (SRV.user) {
       const accountName = String(SRV.user.name || SRV.user.email || 'Pagecraft');
       const initials = accountName.trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
@@ -5844,6 +5882,7 @@ function bindTop() {
     frame.addEventListener('load', () => {
       if (submissionsFrame !== frame) return;
       frame.dataset.ready = '1';
+      if (!frame.hidden) frame.contentWindow.postMessage('pagecraft:refresh-submissions', location.origin);
       document.body.classList.remove('submissions-loading');
     });
     frame.src = '/sites/' + encodeURIComponent(SRV.siteId) + '/submissions?embedded=1';
@@ -5858,6 +5897,7 @@ function bindTop() {
     }
     prepareSubmissions();
     submissionsFrame.hidden = false;
+    if (submissionsFrame.dataset.ready) submissionsFrame.contentWindow.postMessage('pagecraft:refresh-submissions', location.origin);
     document.body.classList.toggle('submissions-loading', !submissionsFrame.dataset.ready);
     document.body.classList.add('submissions-open');
     $$('#leftRail button').forEach(b => b.classList.toggle('on', b.dataset.act === 'submissions'));

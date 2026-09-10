@@ -7,7 +7,7 @@ import {UI_FONT_FACES} from '../shared/ui-fonts.js';
 import {createApp} from '../server/src/app.ts';
 import {MemoryStore} from '../server/src/store.ts';
 import {MemoryAuthStore} from '../server/src/auth.ts';
-import {siteSubmissionsPage} from '../server/src/account-pages.ts';
+import {siteSubmissionsPage, siteSettingsPage} from '../server/src/account-pages.ts';
 
 test('brand assets resolve from the release when the launcher has a different working directory', () => {
   const module = path => JSON.stringify(new URL(path, import.meta.url).href);
@@ -64,4 +64,18 @@ test('inbox fragments retain the workspace header, scrollable table and accessib
     }
   }
   dom.window.close();
+});
+
+
+test('site rename success and validation errors have distinct semantic notices', () => {
+  const user={id:'qa',email:'qa@example.invalid',name:'QA'};
+  const site={id:'qa',name:'QA',slug:'qa',url:'https://example.test/qa/',role:'owner'};
+  const success=new JSDOM(siteSettingsPage(user,site,{message:'Site name updated.'}));
+  const failure=new JSDOM(siteSettingsPage(user,site,{error:'invalid'}));
+  const ok=success.window.document.querySelector('.notice');
+  const bad=failure.window.document.querySelector('.notice');
+  expect(ok.getAttribute('role')).toBe('status');expect(bad.getAttribute('role')).toBe('alert');
+  expect(success.window.getComputedStyle(ok).backgroundColor).not.toBe(failure.window.getComputedStyle(bad).backgroundColor);
+  expect(success.window.getComputedStyle(ok).color).not.toBe(failure.window.getComputedStyle(bad).color);
+  success.window.close();failure.window.close();
 });

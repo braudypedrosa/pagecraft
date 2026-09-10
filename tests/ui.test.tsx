@@ -27,7 +27,7 @@ import type { Control, NavItem } from '../app/src/core/types';
 
 let r: Rig;
 beforeEach(() => { r = rig(); });
-afterEach(() => { r.host.remove(); });
+afterEach(() => { act(() => r.draw(null)); r.host.remove(); });
 
 const heading = () => C.insert('heading', null, 0)!;
 
@@ -1054,4 +1054,36 @@ test('Pages workspace searches by name or path and opens canvas or SEO deliberat
   await new Promise(resolve => setTimeout(resolve, 0));
   a.equal(r.$$('.pagerow').length,0);
   a.ok(r.$('.pages-empty'));
+});
+
+test('committing typed overrides refreshes badges without replacing the input or making extra transactions', () => {
+  const n = heading(); C.selSet([n.id]); C.state.ui.dev='tablet';
+  const c:Control={t:'unit',c:'font-size',label:'Size',r:1,units:['px']};
+  r.draw(()=><Ctl n={n} c={c}/>, 'right');
+  const input=r.$('input') as HTMLInputElement; input.focus();
+  r.type(input,'33');
+  a.equal(r.$('input'),input);a.equal(document.activeElement,input);
+  a.equal(r.$('.rsp')!.tagName,'SPAN');
+  input.blur();
+  a.equal(r.$('input'),input);
+  a.equal(r.$('.rsp')!.tagName,'BUTTON');
+  a.equal(r.$('.rsp')!.getAttribute('aria-label'),'Clear Tablet override for Size');
+  a.equal(r.calls.filter(c=>c[0]==='tx').length,1);
+  a.equal(r.calls.filter(c=>c[0]==='endTx').length,1);
+});
+
+test('component property actions are named buttons and rename is one undoable edit', async () => {
+  const n=heading();
+  const cid=C.componentFromNode(n.id,'QA Heading')!;
+  C.componentOpen(cid);
+  const def=C.findComponent(cid)!; C.selSet([def.node.id]); C.state.ui.stab='content';
+  C.propAdd(cid,'Title','text','Default');
+  r.draw(()=><Inspector/>, 'right');
+  const rename=r.$('.property-rename') as HTMLButtonElement;
+  a.ok(rename);a.equal(rename.type,'button');a.equal(rename.getAttribute('aria-label'),'Rename property Title');
+  const propertyBadge=r.$('button.bnd');a.ok(propertyBadge);a.ok(propertyBadge.getAttribute('aria-label'));
+  const before=C.hist.u.length;
+  r.click(rename);await Promise.resolve();
+  a.equal(C.findComponent(cid)!.props![0].label,'Stub name');a.equal(C.hist.u.length,before+1);
+  C.undo();a.equal(C.findComponent(cid)!.props![0].label,'Title');
 });

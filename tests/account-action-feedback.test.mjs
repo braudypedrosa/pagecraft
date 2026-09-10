@@ -115,3 +115,43 @@ test('WordPress connection consent preserves the clicked choice and uses native 
  expect(button.disabled).toBe(false);
  expect(form.querySelector('input[name=decision]')).toBeNull();
 });
+
+test('cached inbox navigation paints immediately, revalidates, rejects superseded results and recovers after failure', async () => {
+  const base='/sites/qa/submissions';
+  const body='<h1>Cached entries</h1><a href="'+base+'?form=test&status=success&order=asc&page=2">Inbox</a><a data-inbox-refresh href="'+base+'?form=test&status=success&order=asc&page=2">Refresh</a>';
+  const {w}=setup('<section class="pc-workspace"><div class="pc-manage-content">'+body+'</div></section>','https://example.test'+base);
+  const target=base+'?form=test&status=success&order=asc&page=2';
+  w.eval(submissionsNavigation({[target]:body}).replace(/^<script>|<\/script>$/g,''));
+  const pending=[];
+  w.fetch=vi.fn((url,opts)=>new Promise((resolve,reject)=>pending.push({url,opts,resolve,reject})));
+  w.document.querySelector('a').click();
+  expect(w.document.querySelector('h1').textContent).toBe('Cached entries');
+  expect(pending).toHaveLength(1);
+  expect(w.location.search).toContain('page=2');
+  w.document.querySelector('[data-inbox-refresh]').click();
+  expect(pending[0].opts.signal.aborted).toBe(true);
+  pending[0].resolve(response('<div class="pc-manage-content"><h1>Obsolete</h1></div>',pending[0].url));
+  await Promise.resolve(); await Promise.resolve();
+  expect(w.document.querySelector('h1').textContent).toBe('Cached entries');
+  pending[1].reject(new Error('Refresh failed. Try again.'));
+  await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-notice]').getAttribute('role')).toBe('alert'));
+  expect(w.document.querySelector('h1').textContent).toBe('Cached entries');
+  expect(w.document.querySelector('.pc-manage-content').getAttribute('aria-busy')).toBeNull();
+  w.document.querySelector('[data-inbox-refresh]').click();
+  pending[2].resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1></div>',pending[2].url));
+  await vi.waitFor(()=>expect(w.document.querySelector('h1').textContent).toBe('Fresh entries'));
+  expect(w.location.search).toContain('status=success');expect(w.location.search).toContain('order=asc');expect(w.location.search).toContain('page=2');
+});
+
+test('only the expected parent may refresh; replacement waits for details to close', async () => {
+  const {w}=setup('<section class="pc-workspace"><div class="pc-manage-content"><h1>Old</h1><dialog open><input value="Preserved details"></dialog></div></section>','https://example.test/sites/qa/submissions?form=test');
+  w.eval(submissionsNavigation({}).replace(/^<script>|<\/script>$/g,''));
+  w.fetch=vi.fn(async()=>response('<div class="pc-manage-content"><h1>New</h1></div>',w.location.href));
+  const message=(origin,source)=>w.dispatchEvent(new w.MessageEvent('message',{origin,source,data:'pagecraft:refresh-submissions'}));
+  message('https://evil.test',w.parent);message(w.location.origin,null);expect(w.fetch).not.toHaveBeenCalled();
+  const dialog=w.document.querySelector('dialog');message(w.location.origin,w.parent);
+  await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-notice]').textContent).toContain('Close the details'));
+  expect(w.document.querySelector('dialog')).toBe(dialog);expect(dialog.querySelector('input').value).toBe('Preserved details');
+  dialog.removeAttribute('open');dialog.dispatchEvent(new w.Event('close'));
+  await vi.waitFor(()=>expect(w.document.querySelector('h1').textContent).toBe('New'));
+});

@@ -7,24 +7,27 @@ export function submissionsNavigation(prepared: Record<string, string>) {
     const key=value=>{const u=new URL(value,location.href);for(const [k,v] of [...u.searchParams])if(!v||(k==='page'&&v==='1'))u.searchParams.delete(k);u.searchParams.sort();return u.pathname+u.search;};
     const cache=new Map(Object.entries(${data}).map(([url,html])=>[key(url),html]));
     const base=location.pathname;
-    let controller=null, currentAction=null;
+    let controller=null, currentAction=null, deferred=null;
     const remember=(url,html)=>{cache.delete(key(url));cache.set(key(url),html);while(cache.size>10)cache.delete(cache.keys().next().value);};
     remember(location.href,host.innerHTML);
-    const show=(html,url,push)=>{host.innerHTML=html;if(push)history.pushState(null,'',url);host.removeAttribute('aria-busy');host.querySelector('h1')?.setAttribute('tabindex','-1');host.querySelector('h1')?.focus({preventScroll:true});document.querySelector('.pc-workspace')?.scrollTo(0,0);};
+    const show=(html,url,push,focus=true)=>{const opener=document.activeElement?.getAttribute('data-open-dialog');host.innerHTML=html;if(!focus&&opener)[...host.querySelectorAll('[data-open-dialog]')].find(el=>el.getAttribute('data-open-dialog')===opener)?.focus({preventScroll:true});if(push)history.pushState(null,'',url);host.removeAttribute('aria-busy');if(focus){host.querySelector('h1')?.setAttribute('tabindex','-1');host.querySelector('h1')?.focus({preventScroll:true});document.querySelector('.pc-workspace')?.scrollTo(0,0);}};
+    const flush=()=>{if(deferred&&!host.querySelector('dialog[open]')){const apply=deferred;deferred=null;apply();}};
+    host.addEventListener('close',()=>queueMicrotask(flush),true);
     const go=async(url,push=true,refresh=false,button=null)=>{
-      controller?.abort();currentAction?.cancel();controller=new AbortController();const request=controller;
-      const saved=!refresh&&cache.get(key(url));if(saved){show(saved,url,push);return;}
+      controller?.abort();currentAction?.cancel();deferred=null;host.querySelectorAll("[data-refresh-notice]").forEach(el=>el.remove());controller=new AbortController();const request=controller;
+      const saved=!refresh&&cache.get(key(url));const shownCache=saved&&!host.querySelector('dialog[open]');if(shownCache)show(saved,url,push);
       const action=window.__pcFeedback.begin(button,refresh?'Refreshing submissions…':'Loading submissions…');currentAction=action;
       host.setAttribute('aria-busy','true');
-      const notice=document.createElement('p');notice.setAttribute('role','status');notice.textContent='Loading submissions…';host.prepend(notice);
+      const notice=document.createElement('p');notice.dataset.refreshNotice='';notice.setAttribute('role','status');notice.textContent='Checking for new submissions…';host.prepend(notice);
       try{
         const response=await fetch(url,{signal:request.signal,credentials:'same-origin'});
         if(!response.ok||response.redirected)throw new Error('Could not load submissions. Refresh to try again.');
         const doc=new DOMParser().parseFromString(await response.text(),'text/html');
         const next=doc.querySelector('.pc-manage-content');if(!next)throw new Error('Could not load submissions. Refresh to try again.');
         if(controller!==request)return;
-        if(refresh)cache.clear();remember(url,next.innerHTML);show(next.innerHTML,url,push);action?.success(refresh?'Submissions refreshed.':'Submissions loaded.');
-      }catch(error){if(error.name==='AbortError'){notice.remove();action?.cancel();}else{notice.textContent=error.message;notice.setAttribute('role','alert');host.removeAttribute('aria-busy');action?.error(error.message);}}
+        const apply=()=>{if(controller!==request)return;if(refresh)cache.clear();remember(url,next.innerHTML);show(next.innerHTML,url,push&&!shownCache,!shownCache&&!refresh);action?.success(refresh?'Submissions refreshed.':'Submissions loaded.');};
+        if(host.querySelector('dialog[open]')){deferred=apply;notice.textContent='New submission data is ready. Close the details to update the list.';}else apply();
+      }catch(error){if(controller!==request)return;if(error.name==='AbortError'){notice.remove();action?.cancel();}else{notice.textContent=error.message;notice.setAttribute('role','alert');host.removeAttribute('aria-busy');action?.error(error.message);}}
     };
     host.addEventListener('click',event=>{
       const opener=event.target.closest('[data-open-dialog]');
@@ -46,5 +49,6 @@ export function submissionsNavigation(prepared: Record<string, string>) {
       event.preventDefault();const url=new URL(base,location.origin);url.search=new URLSearchParams(new FormData(form)).toString();go(url.href,true,false,event.submitter);
     });
     window.addEventListener('popstate',()=>go(location.href,false));
+    window.addEventListener('message',event=>{if(event.origin===location.origin&&event.source===parent&&event.data==='pagecraft:refresh-submissions')go(location.href,false,true);});
   })();</script>`;
 }
