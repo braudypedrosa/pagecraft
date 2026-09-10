@@ -16,7 +16,7 @@ import { CONTROL_KINDS, Ctl, Dropzone } from '../app/src/ui/inspector/Controls';
 import { Layers } from '../app/src/ui/Layers';
 import { Add } from '../app/src/ui/Add';
 import { Inspector, advControls } from '../app/src/ui/inspector/Inspector';
-import { Pages } from '../app/src/ui/Pages';
+import { Pages, PagesWorkspace } from '../app/src/ui/Pages';
 import { Cms } from '../app/src/ui/Cms';
 import { ColorTokens } from '../app/src/ui/ColorTokens';
 import { StyleClasses } from '../app/src/ui/StyleClasses';
@@ -225,7 +225,8 @@ test('a content account’s Pages panel offers the two fields that are words', (
   a.ok(all.includes('Page name'));
   a.ok(all.includes('Slug'));
   a.ok(all.some(l => l.startsWith('Extra')));
-  a.ok(full.$$('button').some(b => /New page/.test(b.textContent || '')));
+  a.equal(full.$$('.pagerow').length, 0);
+  a.ok(full.$$('button').some(b => /Manage pages/.test(b.textContent || '')));
   full.host.remove();
 
   const scoped = rig({ canStructure: false });
@@ -234,7 +235,10 @@ test('a content account’s Pages panel offers the two fields that are words', (
   a.deepEqual(some, ['Slug', 'Browser title', 'Meta description']);
   a.equal(scoped.$$('button').some(b => /New page/.test(b.textContent || '')), false,
     'adding a page is not a content edit');
-  a.ok(scoped.$$('.pagerow').length >= 1, 'but the list stays — it is how you reach a page');
+  scoped.draw(<PagesWorkspace />);
+  a.ok(scoped.$$('.pagerow').length >= 1, 'the workspace provides page navigation');
+  a.equal(scoped.$('.page-actions'), null);
+  a.equal(scoped.$$('button').some(b => /New page/.test(b.textContent || '')), false);
   scoped.host.remove();
 });
 
@@ -892,7 +896,7 @@ test('content accounts see the current slug without structural page actions', ()
 });
 
 test('page and collection rows expose a primary button without nesting their action buttons', () => {
-  r.draw(<Pages />);
+  r.draw(<PagesWorkspace />);
   a.equal(r.$('.pagerow-main')!.tagName, 'BUTTON');
   a.equal(r.$('.pagerow-main button'), null, 'the page picker does not contain its action buttons');
 
@@ -1030,4 +1034,24 @@ test('Cloud forms expose native submissions instead of external or WordPress han
     r.draw(<Inspector />);
     a.ok(r.$('select option[value="wordpress"]'), 'portable host keeps its existing receiver choices');
   } finally { C.setCloudFormEndpoint(''); }
+});
+
+
+test('Pages workspace searches by name or path and opens canvas or SEO deliberately', async () => {
+  C.state.pages.push(C.pageFromTemplate('blank', 'Unique QA page'));
+  const index=C.state.pages.length-1;
+  C.state.pages[index].slug='qa-search-path';
+  r.draw(<PagesWorkspace />);
+  r.type(r.$('#pages-search')!, 'qa-search-path');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  a.equal(r.$$('.pagerow').length,1);
+  r.click(r.$('.pagerow-main'));
+  a.deepEqual(r.arg('openPage'),[index]);
+  r.calls.length=0;
+  r.click(r.$('.pagerow > .btn'));
+  a.deepEqual(r.arg('openPage'),[index,true]);
+  r.type(r.$('#pages-search')!, 'no matching page here');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  a.equal(r.$$('.pagerow').length,0);
+  a.ok(r.$('.pages-empty'));
 });

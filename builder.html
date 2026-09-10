@@ -558,6 +558,40 @@ body.dragging .lrow{cursor:grabbing}
 .pagerow .act button[disabled]{opacity:.35;cursor:default}
 .pagerow .act button[disabled]:hover{background:none;color:var(--text-3)}
 
+
+/* Pages management stays in the editor shell; metadata stays beside the canvas. */
+body:not(.pages-open) #pages-workspace-host{display:none}
+body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-open #app>.main>.right,body.pages-open #cms-workspace-host{display:none}
+#pages-workspace-host{flex:1;min-width:0;min-height:0}
+.pages-workspace{height:100%;display:flex;flex-direction:column;background:var(--panel);font-size:var(--fs-3)}
+.pages-workspace-head{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:24px 32px;border-bottom:1px solid var(--line)}
+.pages-workspace-head>.row{display:flex;gap:8px;flex-wrap:wrap}
+.pages-workspace-head h1{font-size:22px;line-height:1.3;margin:0}
+.pages-workspace-head p{margin:6px 0 0;color:var(--text-2)}
+.pages-workspace-content{padding:28px 32px;overflow:auto;flex:1;min-height:0}
+.pages-search{max-width:420px;display:grid;gap:8px;margin-bottom:24px}
+.pages-search .ctl{height:40px}
+.pages-workspace .pagelist{padding:0 0 150px}
+.pages-list-head,.pages-workspace .pagerow{display:grid;grid-template-columns:minmax(180px,2fr) minmax(120px,1fr) 100px 122px 30px;gap:16px;align-items:center}
+.pages-list-head{padding:10px 12px;color:var(--text-2);font-size:var(--fs-2);font-weight:600;border-bottom:1px solid var(--line)}
+.pages-workspace .pagerow{border:0;border-bottom:1px solid var(--line);border-radius:0;margin:0;padding:16px 12px}
+.pages-workspace .pagerow:hover{background:var(--field)}
+.pages-workspace .pagerow-main{align-items:center}
+.pages-workspace .pagerow-main>svg{margin:0}
+.pages-workspace .page-path{overflow-wrap:anywhere;color:var(--text-2)}
+.page-kind{font-size:var(--fs-2);color:var(--text-2)}
+.pages-workspace .pagerow .pn small,.pages-workspace .cms-page-badge{display:none}
+.pages-workspace .page-actions summary{margin:0}
+.pages-workspace button:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.pages-empty{padding:32px 12px;text-align:center}
+.page-settings-context{padding:12px;display:grid;gap:16px}
+.page-settings-context strong{overflow-wrap:anywhere;font-size:var(--fs-3)}
+.modebar>.page-switcher{padding:2px 6px;max-width:240px;min-width:0;display:flex;align-items:center;gap:4px}
+.page-switcher>svg{flex-shrink:0}
+.page-switcher>select,.page-switcher>.pc-custom-select-trigger{width:200px;max-width:100%;min-width:0;min-height:28px;height:28px;padding:0 4px;border:0;background:transparent;font-size:var(--fs-2)}
+@media(max-width:1050px){.pages-workspace-head{padding:20px}.pages-workspace-content{padding:20px}.pages-list-head,.pages-workspace .pagerow{grid-template-columns:minmax(150px,2fr) minmax(100px,1fr) 116px 28px;gap:12px}.pages-list-head>span:nth-child(3),.pages-workspace .page-kind{display:none}.modebar>.page-switcher{max-width:190px}}
+@media(max-width:700px){.pages-workspace-head{align-items:flex-start;flex-wrap:wrap}.pages-list-head{display:none}.pages-workspace .pagerow{grid-template-columns:minmax(0,1fr) 116px 28px}.pages-workspace .page-path{grid-column:1;grid-row:2}.pages-workspace .pagerow>.btn{grid-column:2;grid-row:1 / span 2}.pages-workspace .page-actions{grid-column:3;grid-row:1 / span 2}}
+
 /* ---- canvas ------------------------------------------------------------ */
 .stage{
   flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;
@@ -1522,7 +1556,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 1.8l6 3.1-6 3.1-6-3.1z"/><path d="M2 8.4l6 3.1 6-3.1"/><path d="M2 11.3l6 3.1 6-3.1"/></svg>
         <span>Navigator</span>
       </button>
-      <button data-t="pages" title="Pages and SEO">
+      <button data-t="pages" title="Pages">
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="1.5" width="11" height="13" rx="1.6"/><path d="M5 5h6M5 8h6M5 11h4" stroke-linecap="round"/></svg>
         <span>Pages</span>
       </button>
@@ -3811,7 +3845,7 @@ const ui = () => UI || (UI = PC_UI.mount(
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
     closeModal, closeReviewSurface,
-    newPageModal, renderModebar, save, writeNow, appRender: render,
+    newPageModal, openPages, openPage, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
     mediaTake, mediaPicker, assetsToBlob, imgSize,
@@ -4169,6 +4203,25 @@ function cmsCell(col, it, f) {
 
 /* Pages and SEO live in app/src/ui/Pages.tsx now. */
 function renderPages() { ui().renderPages(); }
+function closePages() { ui().closePages(); }
+function openPages() {
+  showPanel('pages');
+  ui().openPages();
+}
+function openPage(index, settings = false) {
+  if (!state.pages[index]) return;
+  if (editing.on) exitEdit();
+  endTx();
+  if (state.ui.mode === 'component') componentClose();
+  state.cur = index; state.ui.pno = 1; state.ui.mode = 'page'; selSet([]);
+  closePages();
+  showPanel(settings ? 'pages' : 'layers');
+  render(); save();
+  requestAnimationFrame(() => {
+    const target = settings ? $('#page-title') : $('#quickPage');
+    if (target) (target.previousElementSibling?.classList.contains('pc-custom-select-trigger') ? target.previousElementSibling : target).focus();
+  });
+}
 
 /* ====================================================== settings panel */
 /* tgtObj, tgtIsClass, parseU, cssVal, setCss, propVal, linkOf and kb used to live in
@@ -4224,7 +4277,7 @@ function renderModebar() {
   const R = regions().find(x => x.kind === scope) || { label: '' };
   $('#modebar').innerHTML =
     (scope === 'main'
-      ? (IS_WORDPRESS ? '' : `<span class="pill">${svg('page', 11)} ${esc(page().name)}</span>`
+      ? (IS_WORDPRESS ? '' : `<span class="pill page-switcher">${svg('page', 11)}<select id="quickPage" aria-label="Current page">${state.pages.map((p, i) => `<option value="${i}"${i === state.cur ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></span><button class="btn tiny" id="pageSettings" title="Page settings and SEO">Settings &amp; SEO</button>`
         + (isFront(page()) ? '' : `<span class="crumb">/${esc(page().slug)}</span>`))
       : scope === 'component'
         ? `<span class="pill g">${svg('component', 11)} Editing ${esc(R.label.replace('Component — ', ''))} — ${cUsageLabel()}</span>`
@@ -4235,6 +4288,8 @@ function renderModebar() {
     (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
     itemBarHtml() +
     `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+  $('#quickPage')?.addEventListener('change', e => openPage(+e.target.value, state.ui.tab === 'pages'));
+  $('#pageSettings')?.addEventListener('click', () => openPage(state.cur, true));
   const done = $('#doneScope');
   if (done) done.addEventListener('click', () => {
     /* `componentClose` rather than `setMode('page')`: the component id has to be dropped too,
@@ -4266,7 +4321,7 @@ function itemBarHtml() {
     <small aria-label="Entry ${at + 1} of ${col.items.length}">${at + 1}/${col.items.length}</small></span>`;
 }
 
-const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Pages and SEO', cms: 'Content' };
+const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Page settings & SEO', cms: 'Content' };
 function renderPanelHead() {
   const h = $('#panelHead');
   if (!h) return;
@@ -5063,6 +5118,7 @@ function newPageModal() {
       state.cur = state.pages.length - 1;
       selSet([]); state.ui.mode = 'page';
     });
+    if (document.body.classList.contains('pages-open')) openPage(state.cur);
     toast(`“${page().name}” created`);
   }));
 }
@@ -5505,6 +5561,10 @@ function hotkey(e) {
   const k = (e.key || '').toLowerCase() || (e.code || '').toLowerCase();
   if (meta && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (meta && k === 'y') { e.preventDefault(); redo(); return; }
+  if (document.body.classList.contains('pages-open')) {
+    if (e.key === 'Escape') { e.preventDefault(); openPage(state.cur); }
+    return;
+  }
   if (meta && k === 'd') {
     e.preventDefault();
     const ids = selIds();
@@ -5729,6 +5789,7 @@ function bindTop() {
     $('#app > .main').append(frame);
   };
   const openSubmissions = () => {
+    closePages();
     if (document.body.classList.contains('submissions-open')) return;
     submissionsActive = $$('#leftRail button.on');
     if (submissionsFrame && submissionsVersion !== SRV.version) {
@@ -5751,6 +5812,8 @@ function bindTop() {
   });
   window.showPanel = t => {
     closeSubmissions();
+    closePages();
+    document.body.classList.remove('cms-open');
     document.body.classList.add('library-focus');
     state.ui.tab = t;
     $$('#leftRail button[data-t]').forEach(x => x.classList.toggle('on', x.dataset.t === t));
@@ -5775,9 +5838,11 @@ function bindTop() {
        changed. Scoping the toggle to `[data-t]` is what keeps them out of it. */
     if (b.dataset.act === 'submissions') { openSubmissions(); return; }
     closeSubmissions();
+    closePages();
     if (b.dataset.t) document.body.classList.remove('cms-open');
     const dialog = { media: mediaModal, project: projectModal, account: accountDialog }[b.dataset.act];
     if (dialog) { dialog(); return; }
+    if (b.dataset.t === 'pages') { openPages(); return; }
     /* A second press on the active rail item dismisses the narrow drawer. Desktop
        keeps the stable workbench behavior. */
     if (matchMedia('(max-width:900px)').matches && b.dataset.t === state.ui.tab

@@ -64,6 +64,8 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     consumeDragMoved: () => { calls.push(['consumeDragMoved']); return false; },
     appendSmart: rec('appendSmart'),
     newPageModal: rec('newPageModal'),
+    openPages: rec('openPages'),
+    openPage: rec('openPage'),
     renderModebar: rec('renderModebar'),
     save: rec('save'),
     appRender: rec('appRender'),

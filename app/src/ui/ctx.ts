@@ -118,6 +118,8 @@ export interface Legacy {
 
   /** the new-page dialog */
   newPageModal(): void;
+  openPages(): void;
+  openPage(index: number, settings?: boolean): void;
   /** the breadcrumb above the canvas, which carries the page name */
   renderModebar(): void;
   /** write the project to storage now */

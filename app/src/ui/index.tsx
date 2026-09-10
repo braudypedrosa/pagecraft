@@ -10,7 +10,7 @@ import { Layers } from './Layers';
 import { Cms } from './Cms';
 import { CmsWorkspace } from './CmsWorkspace';
 import { Add } from './Add';
-import { Pages } from './Pages';
+import { Pages, PagesWorkspace } from './Pages';
 import { Inspector } from './inspector/Inspector';
 import { AssetField } from './AssetField';
 import { ColorTokens } from './ColorTokens';
@@ -47,7 +47,10 @@ export function mount(core: Core, legacy: Legacy) {
     renderLayers: panel('paneLayers', () => <Layers />),
     renderCms: panel('paneCms', () => <Cms />, true),
     renderAdd: panel('paneAdd', () => <Add />),
-    renderPages: panel('panePages', () => <Pages />),
+    renderPages: () => {
+      panel('panePages', () => <Pages />)();
+      if (document.body.classList.contains('pages-open')) panel('pages-workspace-host', () => <PagesWorkspace />)();
+    },
     /* #right is hidden and shown by the Inspector itself, so it must render even while
        hidden — the component is what decides. */
     renderRight: panel('right', () => <Inspector />)
@@ -98,7 +101,22 @@ export function mount(core: Core, legacy: Legacy) {
     draw();
   };
 
+  const closePages = () => {
+    const host = document.getElementById('pages-workspace-host');
+    if (host) render(null, host);
+    document.body.classList.remove('pages-open');
+  };
+  const openPages = () => {
+    let host = document.getElementById('pages-workspace-host');
+    if (!host) { host = document.createElement('div'); host.id = 'pages-workspace-host'; document.querySelector('#app > .main')!.append(host); }
+    document.body.classList.remove('cms-open');
+    document.body.classList.add('pages-open');
+    document.querySelectorAll('#leftRail button').forEach(b => b.classList.toggle('on', b.getAttribute('data-t') === 'pages'));
+    painters.renderPages();
+    host.querySelector<HTMLInputElement>('#pages-search')?.focus();
+  };
   const openCms = (collectionId: string) => {
+    closePages();
     let host = document.getElementById('cms-workspace-host');
     if (!host) { host = document.createElement('div'); host.id = 'cms-workspace-host'; document.querySelector('#app > .main')!.append(host); }
     const previous = document.activeElement as HTMLElement | null;
@@ -112,5 +130,5 @@ export function mount(core: Core, legacy: Legacy) {
       previous?.focus();
     }} />, host);
   };
-  return { ...painters, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
+  return { ...painters, openPages, closePages, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
 }

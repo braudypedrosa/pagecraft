@@ -8,6 +8,7 @@
    to update-and-save and `change` to re-render, because repainting on every keystroke
    loses the caret. Same split here — which is also why they are uncontrolled: nothing
    re-renders mid-typing, so nothing fights the DOM value. */
+import { useState } from 'preact/hooks';
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { AssetField } from './AssetField';
@@ -28,15 +29,7 @@ function PageRow({ i }: { i: number }) {
     if (ok) C.edit(() => C.pageDelete(i));
   };
 
-  const go = () => {
-    if (i === C.state.cur) return;
-    C.state.cur = i;
-    C.state.ui.pno = 1;                 // a different page starts at its first page of results
-    C.selSet([]);
-    C.state.ui.mode = 'page';
-    L.appRender();
-    L.save();
-  };
+  const go = () => L.openPage(i);
 
   return (
     <div class={'pagerow' + (i === C.state.cur ? ' on' : '')}>
@@ -51,6 +44,9 @@ function PageRow({ i }: { i: number }) {
           </span>}
         </span>
       </button>
+      <span class="page-path">{C.isFront(p) ? '/' : '/' + p.slug}</span>
+      <span class="page-kind">{collection ? 'CMS template' : C.isFront(p) ? 'Front page' : C.isNotFound(p) ? 'Not found' : 'Page'}</span>
+      <button class="btn tiny" onClick={() => L.openPage(i, true)} aria-label={'Page settings and SEO for ' + p.name}>Settings &amp; SEO</button>
       {L.canStructure() && <details class="page-actions"
         onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) e.currentTarget.removeAttribute('open'); }}
         onKeyDown={e => {
@@ -79,6 +75,33 @@ function PageRow({ i }: { i: number }) {
       </details>}
     </div>
   );
+}
+
+/** Site navigation and page management, kept separate from the current page's metadata. */
+export function PagesWorkspace() {
+  const [query, setQuery] = useState('');
+  const term = query.trim().toLowerCase();
+  const rows = C.state.pages.map((p, i) => ({p, i})).filter(({p}) =>
+    !term || (p.name + ' ' + p.slug).toLowerCase().includes(term));
+  return <section class="pages-workspace" aria-label="Pages">
+    <header class="pages-workspace-head">
+      <div><h1>Pages</h1><p>{C.state.pages.length} {C.state.pages.length === 1 ? 'page' : 'pages'}</p></div>
+      <div class="row">
+        <button class="btn" onClick={() => L.openPage(C.state.cur)}>Back to builder</button>
+        {L.canStructure() && <button class="btn primary" onClick={() => L.newPageModal()}><Icon name="plus" size={14} /> New page</button>}
+      </div>
+    </header>
+    <div class="pages-workspace-content">
+      <div class="pages-search"><label htmlFor="pages-search">Search pages</label>
+        <input class="ctl" type="search" id="pages-search" placeholder="Search by name or path" value={query}
+          onInput={e => setQuery((e.target as HTMLInputElement).value)} /></div>
+      <div class="pages-list-head" aria-hidden="true"><span>Page</span><span>Path</span><span>Type</span><span>Actions</span></div>
+      <div class="pagelist" aria-label="Site pages">
+        {rows.map(({p, i}) => <PageRow key={p.id} i={i} />)}
+        {!rows.length && <div class="pages-empty"><p>No pages match “{query}”.</p><button class="btn" onClick={() => setQuery('')}>Clear search</button></div>}
+      </div>
+    </div>
+  </section>;
 }
 
 /** A detail template's two binding selects, plus what it will export. */
@@ -127,7 +150,7 @@ export function Pages() {
     onBlur: () => {
       L.endTx();
       repaint('pages');
-      (after || L.renderModebar)();
+      after?.();
     }
   });
 
@@ -141,17 +164,9 @@ export function Pages() {
 
   return (
     <>
-      <div class="pagelist">
-        {C.state.pages.map((p, i) => <PageRow key={p.id} i={i} />)}
-        {/* Adding a page is not a content edit — the server refuses it — so it is not offered
-            to an account that cannot make one. The list itself stays: switching between pages
-            is how you reach the words on them. */}
-        {L.canStructure() ? (
-          <button class="btn block"
-            onClick={() => L.newPageModal()}>
-            <Icon name="plus" size={13} /> New page
-          </button>
-        ) : null}
+      <div class="page-settings-context">
+        <button class="btn block" onClick={() => L.openPages()}><Icon name="page" size={13} /> Manage pages</button>
+        <strong>{pg.name}</strong>
       </div>
 
       <div class="group"><div class="gh">Current page</div><div class="gb">

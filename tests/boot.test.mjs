@@ -817,3 +817,35 @@ test('Settings keeps the tool rail available and closes when switching panels', 
   a.equal(w.__CORE.state.ui.tab,'pages');
   w.matchMedia=media;
 });
+
+test('Pages workspace opens inside the shell and page switching exposes SEO separately', async () => {
+  const {window:w,doc}=await boot();
+  const C=w.__CORE;
+  const media=w.matchMedia; w.matchMedia=()=>({matches:false});
+  const original=C.state.cur;
+  const pg=C.pageFromTemplate('blank','Pages navigation QA');
+  C.state.pages.push(pg);
+  const index=C.state.pages.length-1;
+  try {
+    doc.querySelector('#leftRail [data-t="pages"]').click();
+    a.ok(doc.querySelector('#pages-workspace-host .pages-workspace'));
+    a.ok(doc.body.classList.contains('pages-open'));
+    a.equal(doc.querySelector('#app').hasAttribute('inert'),false);
+    const seo=doc.querySelector(`#pages-workspace-host button[aria-label="Page settings and SEO for ${pg.name}"]`);
+    seo.click();
+    a.equal(C.state.cur,index);
+    a.equal(doc.body.classList.contains('pages-open'),false);
+    a.equal(doc.querySelector('#panePages').hidden,false);
+    a.equal(doc.querySelector('#panePages .pagelist'),null);
+    a.equal(doc.querySelector('#page-name').value,pg.name);
+    const quick=doc.querySelector('#quickPage');
+    doc.querySelector('#page-title').dispatchEvent(new w.FocusEvent('blur',{bubbles:true}));
+    a.equal(doc.querySelector('#quickPage'),quick,'Leaving SEO fields must not replace the page switcher during a click');
+    quick.value=String(original); quick.dispatchEvent(new w.Event('change',{bubbles:true}));
+    a.equal(C.state.cur,original);
+    a.equal(doc.querySelector('#page-name').value,C.page().name);
+    w.openPages();
+    doc.querySelector('#leftRail [data-t="layers"]').click();
+    a.equal(doc.body.classList.contains('pages-open'),false);
+  } finally {C.state.pages.splice(index,1);C.state.cur=original;w.matchMedia=media;w.render();}
+});
