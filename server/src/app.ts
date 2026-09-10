@@ -2369,6 +2369,7 @@ export function createApp(o: Options) {
       templateInstall = await o.siteTemplates.instantiate(
         templateId,
         templateVersion || undefined,
+        o.accountAuth ? (o.editorOrigin || new URL(c.req.url).origin) : undefined,
       ).catch(() => null);
       if (!templateInstall) {
         return c.json({ error: "site_template_not_found" }, 422);

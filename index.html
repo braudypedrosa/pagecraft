@@ -10403,6 +10403,7 @@ var PC_UI = (() => {
   }
 
   // app/src/core/cms-validation.ts
+  var isTemplateImage = (value) => /^https:\/\/(?:staging|build)\.itspagecraft\.com\/templates\/[a-z0-9]+(?:-[a-z0-9]+)*\/\d+\.\d+\.\d+\/preview\/assets\/[A-Za-z0-9_-]+\.(?:webp|png|jpe?g|svg)$/i.test(value);
   var cmsBoolean = (value) => ["1", "true", "yes"].includes(String(value).toLowerCase());
   var cmsChoices = (value) => (value || "").split(",").map((s3) => s3.trim()).filter(Boolean);
   function cmsSafeRich(value) {
@@ -10516,7 +10517,7 @@ var PC_UI = (() => {
           const id = value.match(
             /^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?$/
           )?.[1];
-          if (!id || !assets.has(id))
+          if (!isTemplateImage(value) && (!id || !assets.has(id)))
             fail("Choose an image from this site\u2019s media library.");
           break;
         }
@@ -10537,6 +10538,8 @@ var PC_UI = (() => {
   function AssetField({ value, note, onChange }) {
     const ref = String(value || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
     const a3 = ref ? L2.asset(ref[1]) : null;
+    const shared = isTemplateImage(String(value || ""));
+    const hasImage = !!a3 || shared;
     const take = async (file) => {
       if (!file) return;
       const id = await L2.mediaTake(file);
@@ -10558,14 +10561,14 @@ var PC_UI = (() => {
       e3.currentTarget.classList.toggle("over", on);
     };
     return /* @__PURE__ */ u2(S, { children: [
-      a3 ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
-        /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }),
+      hasImage ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
+        /* @__PURE__ */ u2("img", { src: a3 ? a3.url : value, alt: "" }),
         /* @__PURE__ */ u2("span", { class: "an", children: [
-          /* @__PURE__ */ u2("b", { children: a3.name }),
-          /* @__PURE__ */ u2("small", { children: [
+          /* @__PURE__ */ u2("b", { children: a3 ? a3.name : "Template image" }),
+          a3 ? /* @__PURE__ */ u2("small", { children: [
             C2.kb(a3.size),
             a3.w ? ` \xB7 ${a3.w} \xD7 ${a3.h}` : ""
-          ] })
+          ] }) : null
         ] }),
         /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Remove", onClick: () => commit(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
       ] }) : /* @__PURE__ */ u2(
@@ -10598,7 +10601,7 @@ var PC_UI = (() => {
         /* @__PURE__ */ u2("button", { type: "button", class: "btn grow", onClick: choose, children: [
           /* @__PURE__ */ u2(Icon, { name: "image", size: 13 }),
           " ",
-          a3 ? "Replace" : "Upload"
+          hasImage ? "Replace" : "Upload"
         ] }),
         L2.assetCount() ? /* @__PURE__ */ u2(
           "button",

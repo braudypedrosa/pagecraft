@@ -187,3 +187,27 @@ test('template preview serves package HTML and its packaged media only', async (
   a.ok(await store.preview('independent-studio', '1.0.1', 'index.html'));
   a.ok(await store.preview('independent-studio', '1.0.0', 'index.html'));
 });
+
+test('Cloud templates link immutable placeholders without site asset uploads', async () => {
+  const store = new FileSiteTemplateStore(root);
+  for (const template of latestSiteTemplates(await store.list())) {
+    const installed = await store.instantiate(template.id, template.version, 'https://staging.itspagecraft.com');
+    a.ok(installed);
+    a.equal(installed.assets.length, 0);
+    const serialized = JSON.stringify(installed.document);
+    a.doesNotMatch(serialized, /asset:/);
+    const rendered = renderSite(installed.document, []);
+    const html = [...rendered.files.values()].join('\n');
+    a.ok(html.includes(`/templates/${template.id}/${template.version}/preview/assets/`));
+    const urls = [...new Set(serialized.match(/https:\/\/staging\.itspagecraft\.com\/templates\/[^"\s\\]+/g))];
+    a.ok(urls.length);
+    for (const url of urls) {
+      const path = url.split('/preview/')[1];
+      const image = await store.preview(template.id, template.version, path);
+      a.ok(image && image.bytes.byteLength > 0, `missing shared image ${url}`);
+    }
+    installed.document.meta.name = 'Changed only this site';
+    const another = await store.instantiate(template.id, template.version, 'https://staging.itspagecraft.com');
+    a.notEqual(another!.document.meta.name, installed.document.meta.name);
+  }
+});

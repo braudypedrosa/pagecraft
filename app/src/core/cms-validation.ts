@@ -1,5 +1,9 @@
 import type { Collection, Doc, Item } from './types.ts';
 
+/** Immutable Cloud template images are shared placeholders, not site uploads. */
+export const isTemplateImage = (value: string) =>
+  /^https:\/\/(?:staging|build)\.itspagecraft\.com\/templates\/[a-z0-9]+(?:-[a-z0-9]+)*\/\d+\.\d+\.\d+\/preview\/assets\/[A-Za-z0-9_-]+\.(?:webp|png|jpe?g|svg)$/i.test(value);
+
 export const cmsBoolean = (value: unknown) =>
   ['1', 'true', 'yes'].includes(String(value).toLowerCase());
 export const cmsChoices = (value?: string) =>
@@ -152,7 +156,7 @@ export function validateCmsEntry(
         const id = value.match(
           /^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?$/,
         )?.[1];
-        if (!id || !assets.has(id))
+        if (!isTemplateImage(value) && (!id || !assets.has(id)))
           fail('Choose an image from this site’s media library.');
         break;
       }

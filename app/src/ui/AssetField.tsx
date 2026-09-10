@@ -10,6 +10,7 @@
    exactly one writer, so Preact can own it outright. */
 import { C, L } from './ctx';
 import { Icon } from './Icon';
+import { isTemplateImage } from '../core/cms-validation';
 
 export function AssetField({ value, note, onChange }: {
   value: string | undefined;
@@ -18,6 +19,8 @@ export function AssetField({ value, note, onChange }: {
 }) {
   const ref = String(value || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
+  const shared = isTemplateImage(String(value || ''));
+  const hasImage = !!a || shared;
 
   const take = async (file: File | undefined) => {
     if (!file) return;
@@ -41,12 +44,12 @@ export function AssetField({ value, note, onChange }: {
 
   return (
     <>
-      {a
+      {hasImage
         ? <div class="imgset">
-          <img src={a.url} alt="" />
+          <img src={a ? a.url : value} alt="" />
           <span class="an">
-            <b>{a.name}</b>
-            <small>{C.kb(a.size)}{a.w ? ` · ${a.w} × ${a.h}` : ''}</small>
+            <b>{a ? a.name : 'Template image'}</b>
+            {a ? <small>{C.kb(a.size)}{a.w ? ` · ${a.w} × ${a.h}` : ''}</small> : null}
           </span>
           <button type="button" class="x" title="Remove" onClick={() => commit('')}>
             <Icon name="trash" size={12} />
@@ -65,7 +68,7 @@ export function AssetField({ value, note, onChange }: {
 
       <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
         <button type="button" class="btn grow" onClick={choose}>
-          <Icon name="image" size={13} /> {a ? 'Replace' : 'Upload'}
+          <Icon name="image" size={13} /> {hasImage ? 'Replace' : 'Upload'}
         </button>
         {L.assetCount() ? (
           <button type="button" class="btn grow"

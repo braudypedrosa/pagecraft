@@ -575,7 +575,7 @@ test("premade library includes the latest release of every curated site", async 
   a.doesNotMatch(html, /pc-template-picker is-single/);
 });
 
-test("a curated site installs all pages and remapped media without charging the owner quota", async () => {
+test("a Cloud curated site links template images without uploads or quota usage", async () => {
   const assets = new ConcurrentAssetStore();
   const siteTemplates = new FileSiteTemplateStore(
     resolve(process.cwd(), "premade-sites"),
@@ -616,13 +616,11 @@ test("a curated site installs all pages and remapped media without charging the 
   a.ok(result.files.includes("index.html"));
   a.ok(result.files.includes("about.html"));
   const installed = await assets.list(site.id);
-  a.equal(installed.length, 5);
-  a.equal(assets.peak, 3, "template uploads use bounded concurrency");
-  a.ok(installed.every((asset) => !asset.id.startsWith("northline-")));
-  a.ok(installed.every((asset) => /^[a-f0-9]{64}$/.test(asset.contentHash || "")),
-    "curated assets retain the content hash required by the production gateway");
+  a.equal(installed.length, 0);
+  a.equal(assets.peak, 0, "template creation performs no image uploads");
   const serialized = JSON.stringify(site.doc);
-  a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
+  a.doesNotMatch(serialized, /asset:/);
+  a.match(serialized, /http:\/\/admin.test\/templates\/independent-studio\/2\.0\.9\/preview\/assets\//);
   a.deepEqual(await assets.usage(owner.id), {
     usedBytes: 0,
     limitBytes: 100 * 1024 * 1024,
@@ -753,6 +751,9 @@ test("a failed concurrent template install waits for every asset and leaves no p
   const siteTemplates = new FileSiteTemplateStore(
     resolve(process.cwd(), "premade-sites"),
   );
+  // Importers that still return owned assets keep their transactional rollback behavior.
+  const instantiate = siteTemplates.instantiate.bind(siteTemplates);
+  siteTemplates.instantiate = (id, version) => instantiate(id, version);
   const { request, accountAuth, auth, store } = rig({ assets, siteTemplates });
   accountAuth.current = {
     authUserId: "auth-rollback",

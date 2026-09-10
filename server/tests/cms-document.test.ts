@@ -175,3 +175,13 @@ test('publication review recognizes generated detail URLs and excludes drafts', 
  doc.meta.collections![0].items[0].draft = 1; C.restore(doc);
  expect(C.lint().filter(f=>f.code==='dead-link')).toHaveLength(1);
 });
+
+test('CMS shared template images remain editable while foreign URLs and assets are rejected', () => {
+  const doc = fixture(), col = doc.meta.collections![0];
+  const item = { id: 'b', slug: 'b', values: { title: 'B', photo: 'https://staging.itspagecraft.com/templates/coastal-rentals/1.0.4/preview/assets/cover.webp' } };
+  expect(validateCmsEntry(doc, col, item, new Set())).toEqual({});
+  for (const photo of [item.values.photo.replace('staging.itspagecraft.com', 'evil.test'), item.values.photo.replace('/assets/', '/assets/../'), 'asset:foreign']) {
+    expect(validateCmsEntry(doc, col, { ...item, values: { ...item.values, photo } }, new Set()).photo).toBeTruthy();
+  }
+  expect(validateCmsEntry(doc, col, { ...item, values: { ...item.values, photo: 'asset:replacement' } }, new Set(['replacement']))).toEqual({});
+});
