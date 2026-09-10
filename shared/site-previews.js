@@ -1,6 +1,6 @@
-/** Rasterize the already-sandboxed saved homepage once, then let the host cache the
- * small image. No authored scripts, public-page requests or screenshot workers. */
-export async function captureSitePreview(doc, signal) {
+/** Rasterize the inert saved homepage once, then let the host cache the
+ * small image. No live frames, authored scripts, public-page requests or screenshot workers. */
+export async function captureSitePreview(doc, signal, baseUrl = doc.baseURI) {
   const dataUrl = blob => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
@@ -11,7 +11,7 @@ export async function captureSitePreview(doc, signal) {
   let embeddedBytes = 0;
   const embed = raw => {
     if (!raw || /^(data:|#)/i.test(raw)) return Promise.resolve(raw);
-    const url = new URL(raw, doc.baseURI).href;
+    const url = new URL(raw, baseUrl).href;
     if (!resources.has(url)) resources.set(url, (async () => {
       const response = await fetch(url, { credentials: 'same-origin', signal });
       if (!response.ok) throw new Error('Preview asset unavailable');
@@ -34,10 +34,10 @@ export async function captureSitePreview(doc, signal) {
   }));
   // Compiler styles include local font faces. Resolve linked font stylesheets too.
   const sheets = await Promise.all([...doc.querySelectorAll('style,link[rel="stylesheet"]')].map(async node => {
-    if (node.tagName === 'STYLE') return { css: node.textContent || '', base: doc.baseURI };
-    const response = await fetch(node.href, { credentials: 'same-origin', signal });
+    if (node.tagName === 'STYLE') return { css: node.textContent || '', base: baseUrl };
+    const response = await fetch(new URL(node.getAttribute('href'), baseUrl), { credentials: 'same-origin', signal });
     if (!response.ok) throw new Error('Preview styles unavailable');
-    return { css: await response.text(), base: node.href };
+    return { css: await response.text(), base: new URL(node.getAttribute('href'), baseUrl).href };
   }));
   const inlineUrls = async (css, base) => {
     const urls = [...new Set([...css.matchAll(/url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/gi)].map(m => m[2]))];
@@ -50,7 +50,7 @@ export async function captureSitePreview(doc, signal) {
   };
   let css = (await Promise.all(sheets.map(s => inlineUrls(s.css, s.base)))).join('\n');
   await Promise.all([...clone.querySelectorAll('[style]'), clone].map(async node => {
-    if (node.hasAttribute('style')) node.setAttribute('style', await inlineUrls(node.getAttribute('style'), doc.baseURI));
+    if (node.hasAttribute('style')) node.setAttribute('style', await inlineUrls(node.getAttribute('style'), baseUrl));
   }));
   // Fixed desktop viewport, independent of the dashboard's card size or device width.
   css += '\nhtml,body{width:1368px!important;height:855px!important;margin:0!important;overflow:hidden!important}*,*::before,*::after{animation:none!important;transition:none!important}';
@@ -115,29 +115,25 @@ export function installSitePreviews(capture) {
     state.controller = controller;
     queue.push(async () => {
       if (controller.signal.aborted) { state.running = false; generate(state); return; }
-      const timer = setTimeout(() => controller.abort(), 30000);
-      let frame;
+      const timer = setTimeout(() => controller.abort(), 60000);
       status(state, 'Updating preview…');
       try {
-        frame = document.createElement('iframe'); frame.className = 'pc-draft-preview';
-        frame.setAttribute('sandbox', 'allow-same-origin'); frame.setAttribute('aria-hidden', 'true');
-        frame.tabIndex = -1; frame.title = 'Generating site preview';
-        // It is a renderer, never the visible card. Fixed layout avoids resize observers.
-        frame.style.cssText = 'position:fixed;left:-20000px;top:0;width:1368px;height:855px;opacity:0;pointer-events:none';
-        await new Promise((resolve, reject) => {
-          frame.onload = resolve; frame.onerror = reject;
-          controller.signal.addEventListener('abort', () => reject(new Error('Preview timed out')), { once: true });
-          frame.src = state.card.dataset.previewSource + '&publication=' + encodeURIComponent(version.split(':')[1] || '');
-          document.body.append(frame);
+        const source = await fetch(state.card.dataset.previewSource + '&publication=' + encodeURIComponent(version.split(':')[1] || ''), {
+          cache: 'no-store', signal: controller.signal,
         });
-        const doc = frame.contentDocument;
+        if (!source.ok) throw new Error('Preview unavailable');
+        const doc = new DOMParser().parseFromString(await source.text(), 'text/html');
+        // An inert document has no browsing context: authored scripts never run and
+        // images/fonts are fetched exactly once, explicitly by the capture function.
+        doc.querySelectorAll('base').forEach(node => node.remove());
+        const baseUrl = source.url || new URL(state.card.dataset.previewSource, location.href).href;
         if (doc?.documentElement.dataset.dashboardPreview !== 'ready') throw new Error('Preview unavailable');
         if (doc.documentElement.dataset.previewVersion !== version) {
           // A save overtook navigation. Never cache these pixels under the previous key.
           state.version = doc.documentElement.dataset.previewVersion || version;
           throw new Error('Preview version changed');
         }
-        const snapshot = await capture(doc, controller.signal);
+        const snapshot = await capture(doc, controller.signal, baseUrl);
         if (version !== state.version || controller.signal.aborted) return;
         const response = await fetch('/api/sites/' + encodeURIComponent(state.card.dataset.previewSite) + '/dashboard-thumbnail', {
           method: 'POST', headers: { 'content-type': 'application/json' },
@@ -150,10 +146,11 @@ export function installSitePreviews(capture) {
         if (version !== state.version || controller.signal.aborted) return;
         state.completed = version; state.card.dataset.cachedPreviewVersion = version;
         status(state, '');
-      } catch {
+      } catch (error) {
+        console.warn('Pagecraft preview capture failed:', error);
         if (version === state.version) status(state, state.card.classList.contains('is-ready') ? 'Previous preview shown.' : 'Preview unavailable.', true);
       } finally {
-        clearTimeout(timer); frame?.remove(); state.running = false;
+        clearTimeout(timer); state.running = false;
         if (version !== state.version) generate(state);
       }
     });

@@ -454,7 +454,7 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /Loading preview…/);
   a.match(html, /data-preview-source="[^" ]+dashboard-preview/);
   a.doesNotMatch(html, /<iframe class="pc-draft-preview"/);
-  a.match(html, /setAttribute\('sandbox', 'allow-same-origin'\)/);
+  a.match(html, /new DOMParser\(\)/);
   a.doesNotMatch(html, /<iframe src="http:\/\/admin\.test\/braudy\/"/);
   a.match(html, /data-copy-site/);
   a.match(html, />Manage site<\/a>/);

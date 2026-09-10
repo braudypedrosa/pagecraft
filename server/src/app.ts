@@ -2065,8 +2065,6 @@ export function createApp(o: Options) {
     const id = c.req.param("id");
     const gate = await allowed(c, id, "read");
     if (!gate.ok) return deny(c, gate.status);
-    const site = await o.store.byId(id);
-    if (!site) return c.notFound();
     c.header("cache-control", "private, no-store");
     c.header("x-robots-tag", "noindex, nofollow");
     const prefix = `/api/sites/${encodeURIComponent(id)}/dashboard-preview/`;
@@ -2077,6 +2075,8 @@ export function createApp(o: Options) {
       return c.body(asset.bytes as unknown as ArrayBuffer, 200, assetHeaders(asset));
     }
     if (path !== "index.html") return c.notFound();
+    const site = await o.store.byId(id);
+    if (!site) return c.notFound();
     const rendered = candidate(site.doc, await assetsOf(id), cloudReceiver(c, id));
     const html = rendered?.files.get("index.html");
     if (!html) return c.text("Preview unavailable", 422);
