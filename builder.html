@@ -951,6 +951,12 @@ select.ctl{
 .gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
 .irow .x[data-x=ix] svg{transform:none}
 
+.frow-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.frow-title b{font-size:var(--fs-2);font-weight:600}
+.frow-title>span{display:flex;gap:4px}
+.frow-control{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;font-size:var(--fs-1);color:var(--text-2)}
+.frow-control .ctl{width:100%;min-width:0}
+.frow-required{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);padding:4px 0}
 .frow-a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
 .frow-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sp-2);align-items:center;margin-top:4px}
 .frow-options{grid-column:1 / -1;display:flex;gap:var(--sp-2)}

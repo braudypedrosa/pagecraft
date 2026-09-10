@@ -6979,6 +6979,13 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
+  if (n.type === "form" && n.props.fields?.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
+    const selector = selOf(n);
+    acc.d += `${selector}.pagecraft-form-percent{display:flex}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
+    for (const [width, columns] of [[50, 2], [33, 3], [25, 4], [20, 5]]) {
+      acc.d += `${selector}>.field-width-${width}{flex-basis:calc((100% - var(--f-gap,16px) * ${columns - 1}) / ${columns})}`;
+    }
+  }
   if (n.type === "list" && n.props.collectionLayout === "slider") {
     const selector = selOf(n);
     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
@@ -7769,11 +7776,13 @@ function renderNode(n, o) {
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
       const act = wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
       const disabled = act ? "" : " disabled";
+      const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
         const name = esc(f.name || slugify(f.label) || "field-" + (i + 1));
         const req = f.required ? " required" : "";
         const ph2 = f.ph ? ` placeholder="${esc(f.ph)}"` : "";
-        const half = f.half ? " half" : "";
+        const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
+        const half = percentWidths ? " field-width-" + width : f.half ? " half" : "";
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ""}</label>`;
         if (f.type === "checkbox") return `<div class="pagecraft-field pagecraft-field-check${half}"><input id="${fid(i)}" name="${name}" type="checkbox"${req}${disabled}><label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
         if (f.type === "textarea") return `<div class="pagecraft-field${half}">${lab}<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph2}${disabled}></textarea></div>`;
@@ -7782,10 +7791,10 @@ function renderNode(n, o) {
       }).join("");
       if (!act) {
         const status = domId + "-status";
-        return `<div ${at} ${cx("pagecraft-form")} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
+        return `<div ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
       }
       const managed2 = wordpressManaged ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
+      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
     }
     case "crumbs": {
       const manual = p.mode === "manual";

@@ -6345,6 +6345,13 @@ const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:fl
 function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string },
   parent: PcNode | null = null, detachedComponentRoot = false) {
   acc.d += bucket(n, 'd', editing, parent, detachedComponentRoot);
+  if (n.type === 'form' && n.props.fields?.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
+    const selector = selOf(n);
+    acc.d += `${selector}.pagecraft-form-percent{display:flex}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
+    for (const [width, columns] of [[50, 2], [33, 3], [25, 4], [20, 5]]) {
+      acc.d += `${selector}>.field-width-${width}{flex-basis:calc((100% - var(--f-gap,16px) * ${columns - 1}) / ${columns})}`;
+    }
+  }
   if (n.type === 'list' && n.props.collectionLayout === 'slider') {
     const selector = selOf(n);
     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
@@ -7304,6 +7311,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
       const act = wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
       const disabled = act ? '' : ' disabled';
+      const percentWidths = fields.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
         const name = esc(f.name || slugify(f.label) || 'field-' + (i + 1));
         const req = f.required ? ' required' : '';
@@ -7311,7 +7319,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         /* Half-width fields share a row. A class rather than a declaration, so the mobile rule
            can put them back on their own line without an author having to think about it —
            Name and Email beside each other is 170px each on a phone. */
-        const half = f.half ? ' half' : '';
+        const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
+        const half = percentWidths ? ' field-width-' + width : f.half ? ' half' : '';
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ''}</label>`;
         if (f.type === 'checkbox') return `<div class="pagecraft-field pagecraft-field-check${half}">`
           + `<input id="${fid(i)}" name="${name}" type="checkbox"${req}${disabled}>`
@@ -7328,7 +7337,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       }).join('');
       if (!act) {
         const status = domId + '-status';
-        return `<div ${at} ${cx('pagecraft-form')} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled>`
+        return `<div ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled>`
           + body
           + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || 'Send')}</button>`
           + `<p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p>`
@@ -7336,7 +7345,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       }
       const managed = wordpressManaged
         ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : '';
-      return `<form ${at} ${cx('pagecraft-form')} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${wordpressManaged ? 'post' : p.method === 'get' ? 'get' : 'post'}"${managed}>`
+      return `<form ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${wordpressManaged ? 'post' : p.method === 'get' ? 'get' : 'post'}"${managed}>`
         + body
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
         + `</form>`;

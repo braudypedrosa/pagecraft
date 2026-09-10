@@ -956,6 +956,12 @@ select.ctl{
 .gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
 .irow .x[data-x=ix] svg{transform:none}
 
+.frow-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.frow-title b{font-size:var(--fs-2);font-weight:600}
+.frow-title>span{display:flex;gap:4px}
+.frow-control{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;font-size:var(--fs-1);color:var(--text-2)}
+.frow-control .ctl{width:100%;min-width:0}
+.frow-required{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);padding:4px 0}
 .frow-a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
 .frow-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sp-2);align-items:center;margin-top:4px}
 .frow-options{grid-column:1 / -1;display:flex;gap:var(--sp-2)}
@@ -8185,6 +8191,13 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
+  if (n.type === "form" && n.props.fields?.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
+    const selector = selOf(n);
+    acc.d += `${selector}.pagecraft-form-percent{display:flex}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
+    for (const [width, columns] of [[50, 2], [33, 3], [25, 4], [20, 5]]) {
+      acc.d += `${selector}>.field-width-${width}{flex-basis:calc((100% - var(--f-gap,16px) * ${columns - 1}) / ${columns})}`;
+    }
+  }
   if (n.type === "list" && n.props.collectionLayout === "slider") {
     const selector = selOf(n);
     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
@@ -8975,11 +8988,13 @@ function renderNode(n, o) {
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
       const act = wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
       const disabled = act ? "" : " disabled";
+      const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
         const name = esc(f.name || slugify(f.label) || "field-" + (i + 1));
         const req = f.required ? " required" : "";
         const ph2 = f.ph ? ` placeholder="${esc(f.ph)}"` : "";
-        const half = f.half ? " half" : "";
+        const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
+        const half = percentWidths ? " field-width-" + width : f.half ? " half" : "";
         const lab = `<label for="${fid(i)}">${esc(f.label || name)}${f.required ? ' <span aria-hidden="true">*</span>' : ""}</label>`;
         if (f.type === "checkbox") return `<div class="pagecraft-field pagecraft-field-check${half}"><input id="${fid(i)}" name="${name}" type="checkbox"${req}${disabled}><label for="${fid(i)}">${esc(f.label || name)}</label></div>`;
         if (f.type === "textarea") return `<div class="pagecraft-field${half}">${lab}<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph2}${disabled}></textarea></div>`;
@@ -8988,10 +9003,10 @@ function renderNode(n, o) {
       }).join("");
       if (!act) {
         const status = domId + "-status";
-        return `<div ${at} ${cx("pagecraft-form")} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
+        return `<div ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
       }
       const managed2 = wordpressManaged ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at} ${cx("pagecraft-form")} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
+      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
     }
     case "crumbs": {
       const manual = p.mode === "manual";
@@ -12914,8 +12929,19 @@ var PC_UI = (() => {
     const key = n2.id + "|" + (c3.c || c3.k || c3.t);
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       arr.map((f4, k3) => /* @__PURE__ */ u2("div", { class: "frow", children: [
-        /* @__PURE__ */ u2("div", { class: "frow-a", children: [
-          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Label" }),
+        /* @__PURE__ */ u2("div", { class: "frow-title", children: [
+          /* @__PURE__ */ u2("b", { children: [
+            "Field ",
+            k3 + 1
+          ] }),
+          /* @__PURE__ */ u2("span", { children: /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 }) })
+        ] }),
+        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+          /* @__PURE__ */ u2("span", { children: "Label" }),
+          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Label" })
+        ] }),
+        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+          /* @__PURE__ */ u2("span", { children: "Type" }),
           /* @__PURE__ */ u2(
             "select",
             {
@@ -12932,48 +12958,44 @@ var PC_UI = (() => {
               },
               children: FIELD_TYPES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
             }
-          ),
-          /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 })
+          )
         ] }),
-        /* @__PURE__ */ u2("div", { class: "frow-b", children: [
+        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+          /* @__PURE__ */ u2("span", { children: "Field name" }),
+          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "name", placeholder: C2.slugify(f4.label) || "field-name" })
+        ] }),
+        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+          /* @__PURE__ */ u2("span", { children: f4.type === "select" ? "Options" : "Placeholder" }),
+          f4.type === "select" ? /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "opts", placeholder: "Option one, Option two" }) : /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "ph", placeholder: "Optional" })
+        ] }),
+        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+          /* @__PURE__ */ u2("span", { children: "Width" }),
           /* @__PURE__ */ u2(
-            RowInput,
+            "select",
             {
-              n: n2,
-              c: c3,
-              k: k3,
-              prop: "name",
-              placeholder: C2.slugify(f4.label) || "field-name",
-              title: "The name submitted with the value"
+              class: "ctl",
+              "aria-label": "Field width",
+              value: f4.width || (f4.half ? 50 : 100),
+              onChange: (e3) => C2.edit(() => {
+                rows(n2, c3)[k3].width = Number(e3.target.value);
+                delete rows(n2, c3)[k3].half;
+              }),
+              children: [100, 50, 33, 25, 20].map((width) => /* @__PURE__ */ u2("option", { value: width, children: width === 100 ? "Full width" : width + "%" }, width))
+            }
+          )
+        ] }),
+        /* @__PURE__ */ u2("label", { class: "frow-required", children: [
+          /* @__PURE__ */ u2(
+            "input",
+            {
+              type: "checkbox",
+              checked: !!f4.required,
+              onChange: () => C2.edit(() => {
+                rows(n2, c3)[k3].required = f4.required ? 0 : 1;
+              })
             }
           ),
-          f4.type === "select" ? /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "opts", placeholder: "Option one, Option two" }) : /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "ph", placeholder: "Placeholder" }),
-          /* @__PURE__ */ u2("div", { class: "frow-options", children: [
-            /* @__PURE__ */ u2(
-              "button",
-              {
-                class: "freq" + (f4.required ? " on" : ""),
-                title: "Required",
-                onClick: () => C2.edit(() => {
-                  const a3 = rows(n2, c3);
-                  a3[k3].required = a3[k3].required ? 0 : 1;
-                }),
-                children: "Required"
-              }
-            ),
-            /* @__PURE__ */ u2(
-              "button",
-              {
-                class: "freq" + (f4.half ? " on" : ""),
-                title: "Half width \u2014 shares a row",
-                onClick: () => C2.edit(() => {
-                  const a3 = rows(n2, c3);
-                  a3[k3].half = a3[k3].half ? 0 : 1;
-                }),
-                children: "Half width"
-              }
-            )
-          ] })
+          "Required"
         ] })
       ] }, k3)),
       /* @__PURE__ */ u2(

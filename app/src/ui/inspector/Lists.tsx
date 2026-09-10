@@ -237,42 +237,36 @@ export function FieldsCtl({ n, c }: P) {
   return <Field n={n} c={c}>
     {arr.map((f, k) => (
       <div class="frow" key={k}>
-        <div class="frow-a">
-          <RowInput n={n} c={c} k={k} prop="label" placeholder="Label" />
-          {/* changing the type changes which second-row input is drawn, so this one
-              commits and re-renders rather than coalescing */}
+        <div class="frow-title"><b>Field {k + 1}</b><span><RowActs n={n} c={c} k={k} /></span></div>
+        <label class="frow-control"><span>Label</span><RowInput n={n} c={c} k={k} prop="label" placeholder="Label" /></label>
+        <label class="frow-control"><span>Type</span>
           <select class="ctl" aria-label="Field type" value={f.type || 'text'}
             onChange={e => {
-              L.tx(key);
-              rows(n, c)[k].type = (e.target as HTMLSelectElement).value;
-              L.endTx(); L.paint(); L.save();
-              L.appRender();
+              L.tx(key); rows(n, c)[k].type = (e.target as HTMLSelectElement).value;
+              L.endTx(); L.paint(); L.save(); L.appRender();
             }}>
             {FIELD_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
-          <RowActs n={n} c={c} k={k} />
-        </div>
-        <div class="frow-b">
-          <RowInput n={n} c={c} k={k} prop="name"
-            placeholder={C.slugify(f.label) || 'field-name'}
-            title="The name submitted with the value" />
+        </label>
+        <label class="frow-control"><span>Field name</span>
+          <RowInput n={n} c={c} k={k} prop="name" placeholder={C.slugify(f.label) || 'field-name'} />
+        </label>
+        <label class="frow-control"><span>{f.type === 'select' ? 'Options' : 'Placeholder'}</span>
           {f.type === 'select'
             ? <RowInput n={n} c={c} k={k} prop="opts" placeholder="Option one, Option two" />
-            : <RowInput n={n} c={c} k={k} prop="ph" placeholder="Placeholder" />}
-          <div class="frow-options"><button class={'freq' + (f.required ? ' on' : '')} title="Required"
-            onClick={() => C.edit(() => {
-              const a = rows(n, c);
-              a[k].required = a[k].required ? 0 : 1;
-            })}>Required</button>
-          {/* Two fields on one row — Name beside Email, which is what a contact form looks like
-              and what this could not do. Beside `Req` because it is the same kind of switch on
-              the same field, and it collapses to a full row on a phone without being asked. */}
-          <button class={'freq' + (f.half ? ' on' : '')} title="Half width — shares a row"
-            onClick={() => C.edit(() => {
-              const a = rows(n, c);
-              a[k].half = a[k].half ? 0 : 1;
-            })}>Half width</button></div>
-        </div>
+            : <RowInput n={n} c={c} k={k} prop="ph" placeholder="Optional" />}
+        </label>
+        <label class="frow-control"><span>Width</span>
+          <select class="ctl" aria-label="Field width" value={f.width || (f.half ? 50 : 100)}
+            onChange={e => C.edit(() => {
+              rows(n, c)[k].width = Number((e.target as HTMLSelectElement).value);
+              delete rows(n, c)[k].half;
+            })}>
+            {[100, 50, 33, 25, 20].map(width => <option key={width} value={width}>{width === 100 ? 'Full width' : width + '%'}</option>)}
+          </select>
+        </label>
+        <label class="frow-required"><input type="checkbox" checked={!!f.required}
+          onChange={() => C.edit(() => { rows(n, c)[k].required = f.required ? 0 : 1; })} />Required</label>
       </div>
     ))}
     <AddButton label="Add field" gap={!!arr.length}

@@ -8477,3 +8477,23 @@ test('decorative empty overlays stay selectable without an empty-content prompt'
   a.match(html, /data-id=/);
   a.doesNotMatch(C.renderNode(n, {edit: false}), /s-empty/);
 });
+
+test('form percentage widths support every field type and preserve legacy forms', () => {
+  const form = C.N('form');
+  form.props.fields = [
+    { type: 'text', label: 'Full', width: 100 },
+    { type: 'email', label: 'Half', width: 50 },
+    { type: 'select', label: 'Third', width: 33, opts: 'One,Two' },
+    { type: 'textarea', label: 'Quarter', width: 25 },
+    { type: 'checkbox', label: 'Fifth', width: 20 },
+  ];
+  C.state.pages[0].tree = [form];
+  const html = C.buildPage(C.state.pages[0]);
+  for (const width of [100, 50, 33, 25, 20]) a.ok(html.includes(`field-width-${width}`));
+  a.match(html, /pagecraft-form-percent/);
+  a.match(html, /flex-basis:calc\(\(100% - var\(--f-gap,16px\) \* 2\) \/ 3\)/);
+  form.props.fields = [{ type: 'text', half: 1 }, { type: 'text' }];
+  const legacy = C.buildPage(C.state.pages[0]);
+  a.match(legacy, /pagecraft-field half/);
+  a.doesNotMatch(legacy, /pagecraft-form-percent/);
+});

@@ -159,6 +159,8 @@ export interface FormField {
   /** share a row with the next half-width field. Absent is a full row, which is every field
       that existed before this. */
   half?: 0 | 1;
+  /** Explicit field width. 33 represents one third of a row. */
+  width?: 100 | 50 | 33 | 25 | 20;
 }
 export interface TabsProps { items?: TabPanel[] }
 /** A table's body is one string, because that is how tabular data arrives: pasted from a
