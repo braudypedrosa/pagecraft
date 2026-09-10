@@ -194,9 +194,8 @@ function StylingTarget({ n }: { n: PcNode }) {
 
    Shown on Advanced as well as Style, since both tabs write CSS. Hiding it on one while it was
    still in force is the hidden mode this is meant to avoid. */
-/* Which variant an instance is. Only drawn when the definition declares one, and only on an
-   instance — a definition with no variants should not carry a control that says "Default" and
-   nothing else.
+/* Keep variant creation and assignment available on every component instance, including
+   those still using the defaults with no saved variants.
 
    Above the properties rather than among them, because it decides several of them: a property
    whose value comes from the variant reads differently once you know which variant is on. And
@@ -209,7 +208,6 @@ function VariantPick({ n }: { n: PcNode }) {
   if (!def) return null;
   const list = C.variantsOf(def);
   const own = C.instOwn(n).length;
-  if (!list.length && !own) return null;
 
   const set = (vid: string) => {
     C.edit(() => C.variantSet(n, vid || null));
@@ -222,7 +220,7 @@ function VariantPick({ n }: { n: PcNode }) {
     let made: string | null = null;
     C.edit(() => { made = C.variantFromInstance(n, name); });
     L.paint(); L.save();
-    L.toast(made ? `“${name}” — every instance can be one now` : 'Nothing to save yet');
+    L.toast(made ? `Variant “${name}” saved` : 'Could not save this variant');
     repaint('right');
   };
   const reset = () => {
@@ -234,14 +232,12 @@ function VariantPick({ n }: { n: PcNode }) {
   return (
     <div class="f">
       <label>Variant</label>
-      {list.length ? (
-        <select value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
+      <select aria-label="Variant" value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
           <option value="">Default</option>
           {list.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>
-      ) : null}
       <div class="row" style={{ marginTop: 'var(--gap-1)' }}>
-        <button class="btn tiny" onClick={save} disabled={!own && !n.variant}>Save as variant</button>
+        <button class="btn tiny" onClick={save}>Save as variant</button>
         {own
           ? <button class="btn tiny" onClick={reset}>
             {n.variant ? 'Back to the variant' : 'Back to the defaults'}
