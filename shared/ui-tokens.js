@@ -1,8 +1,11 @@
-/** Geometry shared by Cloud account pages and the portable editor chrome.
+/** Colors and geometry shared by Cloud account pages and the portable editor chrome.
  * Density is intentional: spacious account/CMS forms, compact editor panels, dense rows.
  * These tokens are never injected into a user's published site.
  */
 export const UI_TOKENS_CSS = `:root{
+  --pc-selection-bg:#eef7e5;
+  --pc-selection-text:#263d20;
+  --pc-selection-muted:#506348;
   --pc-rail-width:88px;
   --pc-rail-padding-x:10px;
   --pc-control-height:44px;

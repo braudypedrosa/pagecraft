@@ -18,7 +18,7 @@ export const CUSTOM_SELECT_CSS = `
 .pc-custom-select-group{padding:8px 9px 4px;color:var(--pc-cs-muted);font-family:"DM Sans",system-ui,sans-serif;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
 .pc-custom-select-option{width:100%!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0!important;padding:7px 9px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:var(--pc-cs-fg)!important;box-shadow:none!important;font:inherit!important;font-weight:500!important;line-height:1.35!important;text-align:left!important;cursor:pointer!important;filter:none!important}
 .pc-custom-select-option:hover,.pc-custom-select-option[data-active="true"]{background:var(--pc-cs-hover)!important}
-.pc-custom-select-option[aria-selected="true"]{font-weight:650!important}
+.pc-custom-select-option[aria-selected="true"]{background:var(--pc-selection-bg,#eef7e5)!important;color:var(--pc-selection-text,#263d20)!important;font-weight:650!important}
 .pc-custom-select-option:disabled{cursor:not-allowed!important;opacity:.42!important}
 .pc-custom-select-check{width:14px;height:14px;display:grid;place-items:center;flex:0 0 14px;color:var(--pc-cs-fg)}
 .pc-custom-select-check svg{width:13px;height:13px}

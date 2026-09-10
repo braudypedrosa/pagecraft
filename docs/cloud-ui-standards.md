@@ -26,7 +26,7 @@ Verify the actual computed boxes and keyboard interactions, including dropdown o
 
 Pages is the visual reference for full management screens. `shared/workspace-styles.js` owns their surface, heading scale, gutters, header actions and list rhythm. Explicit `pc-workspace-head` / `pc-workspace-body` classes connect Preact and server markup to that contract. The compatibility selectors keep existing navigation and dialog behavior intact.
 
-- White work surface; Paper for hover/selection and supporting regions.
+- White work surface; Paper for hover and supporting regions. Selected rows, picker options and secondary navigation use the shared pale green `--pc-selection-bg` (`#eef7e5`), with dark green text and accessible muted labels. This applies to Pages, Navigator, CMS collections, project/account settings, media/template/content pickers and integration choices. Selection stays green on hover; existing borders, checkmarks and weight preserve additional selection cues. Main rail navigation, primary actions and status/toggle indicators retain their stronger colors.
 - 22px workspace title, 18px section title, 16px dialog title, 13.5px body, 12.5px table headers/metadata.
 - Headers: 24px vertical / 32px horizontal; body: 28px / 32px. Gutters become 20px below 1050px.
 - Header actions use the builder's 37px controls. Full forms remain 44px; row icon actions are 36px. Schema rows and compact editor panels retain their existing density.

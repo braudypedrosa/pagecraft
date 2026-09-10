@@ -38,13 +38,27 @@ export const WORKSPACE_CSS = `
 .cms-workspace .cms-entry-open b{font-weight:500}
 .cms-workspace .cms-entry-row>.btn{width:36px;height:36px;min-height:36px;padding:0;justify-content:center}
 .cms-workspace .cms-collections .btn{min-height:37px;border-color:transparent;background:transparent}
-.cms-workspace .cms-collections .btn.primary{background:var(--green)}
+.cms-workspace .cms-collections .btn.primary{background:var(--pc-selection-bg);border-color:transparent;color:var(--pc-selection-text)}
 .cms-workspace .cms-collections .btn:not(.primary):hover{background:var(--pc-ui-hover)}
 :is(.pages-workspace,.cms-workspace) :is(.ctl,.pc-custom-select-trigger){border-radius:var(--pc-control-radius)}
 .project-settings .mh{padding:24px var(--pc-workspace-x);min-height:104px}
 .project-settings #mTitle{font-size:var(--pc-workspace-title);line-height:1.3;font-weight:700}
 .project-settings .settings-nav{width:220px;flex-basis:220px;padding:24px 16px}
 .project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4}
+
+/* Selection is distinct from Paper hover across editor and Cloud surfaces.
+ * Main rail navigation, primary actions and boolean/status indicators retain
+ * their stronger colors. Explicit selectors avoid recoloring those roles. */
+:is(.pagerow.on,.lrow.sel,.lrow.sel2,.lrow.region.live,.mcard.on,.pickrow.on,.navitem.on){
+  --text-2:var(--pc-selection-muted);--text-3:var(--pc-selection-muted);
+}
+.dashboard-app .pc-settings-nav button[aria-selected="true"],
+.dashboard-app .pc-create-modal .pc-template-choice:has(input:checked),
+.dashboard-app .pc-template-choice:has(input:checked),
+.dashboard-app .pc-property-choice:has(input:checked){
+  background:var(--pc-selection-bg);color:var(--pc-selection-text);
+}
+.dashboard-app :is(.pc-template-choice,.pc-property-choice):has(input:checked){--pc-text-2:var(--pc-selection-muted)}
 
 /* Cloud's old wrappers used nested, centred insets. The workspace owns the
  * page margins; individual forms keep their readable width inside that space. */
