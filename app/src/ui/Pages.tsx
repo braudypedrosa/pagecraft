@@ -100,7 +100,7 @@ export function PagesWorkspace() {
       </div>
     </header>
     <div class="pages-workspace-content pc-workspace-body">
-      <div class="pages-search"><label htmlFor="pages-search">Search pages</label>
+      <div class="pages-search"><label class="pc-field-label" htmlFor="pages-search">Search pages</label>
         <input class="ctl" type="search" id="pages-search" placeholder="Search by name or path" value={query}
           onInput={e => setQuery((e.target as HTMLInputElement).value)} /></div>
       <div class="pages-list-head" aria-hidden="true"><span>Page</span><span>Path</span><span>Type</span><span>Actions</span></div>

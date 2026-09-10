@@ -18,12 +18,12 @@ export const UI_TYPOGRAPHY_CSS = `
 .pc-field-label,
 .f>label,.wp-link-picker>label,.navitem-body>label,
 .swrow,.tog-row span,.frow-control,.repeater-long,
-.cms-field>label,.cms-list-tools label,.cms-schema-inputs label,
-.dashboard-app :is(.pc-create-field,.pc-settings-field,.pc-site-setting-field) label,
+.cms-field>label,.cms-list-tools label,.cms-schema-inputs label,.cms-check,
+.dashboard-app :is(.pc-create-field,.pc-settings-field,.pc-site-setting-field,.pc-invite-form,.pc-member-role,.pc-toolbar) label,
 .dashboard-app :is(.pc-sub-filters,.pc-delete-dialog,.pc-integration-list-head) label,
 .account .field label{font:var(--pc-type-label)}
 
-.pc-description,.note,.hint,.cms-workspace .note,.tpl small,
+.pc-description,.note,.hint,.cms-workspace .note,.cms-field small,.tpl small,
 .dashboard-app :is(.pc-create-field,.pc-settings-field,.pc-site-setting-field) small,
 .dashboard-app :is(.pc-path-copy small,.pc-property-choice small,.pc-platform-choice small,.pc-plan-note),
 .account .field small{font:var(--pc-type-description)}
