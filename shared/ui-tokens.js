@@ -3,6 +3,12 @@
  * These tokens are never injected into a user's published site.
  */
 export const UI_TOKENS_CSS = `:root{
+  --pc-surface-subtle:#f5f7f8;
+  --pc-surface-muted:#edf0f2;
+  --pc-canvas-surround:#e9edf0;
+  --pc-border:#dfe4e7;
+  --pc-border-strong:#cbd2d8;
+  --pc-hover-bg:#f4faef;
   --pc-selection-bg:#eef7e5;
   --pc-selection-text:#263d20;
   --pc-selection-muted:#506348;

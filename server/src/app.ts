@@ -5898,30 +5898,30 @@ const shell = (title: string, body: string) =>
   ${UI_FONTS_CSS}
   ${UI_TOKENS_CSS}
   :root{color-scheme:light}
-  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#ebe8dd;color:#111311;
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--pc-canvas-surround);color:#111311;
        font:15px/1.5 "Manrope",system-ui,-apple-system,sans-serif}
-  .card{background:#fff;border:1px solid #e5e1d6;border-radius:16px;padding:28px;width:min(92vw,380px);
+  .card{background:#fff;border:1px solid var(--pc-border);border-radius:16px;padding:28px;width:min(92vw,380px);
         box-shadow:0 10px 30px -12px #1113111f}
   .card--consent{width:min(calc(100vw - 32px),620px);padding:0;overflow:hidden}
   h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
   p{margin:0 0 18px;color:#5f6660;font-size:13.5px}
   label{display:block;font-size:12px;color:#5f6660;margin-bottom:6px}
-  input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #d4cfc0;border-radius:var(--pc-control-radius);min-height:var(--pc-control-height);
+  input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--pc-border-strong);border-radius:var(--pc-control-radius);min-height:var(--pc-control-height);
         font:inherit;font-size:var(--pc-control-font);margin-bottom:12px}
   button{width:100%;min-height:var(--pc-control-height);padding:10px;border:0;border-radius:var(--pc-control-radius);background:#b7f34a;color:#111311;
          font:inherit;font-size:var(--pc-control-font);font-weight:600;cursor:pointer}
   a{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:6px;
-    border:1px solid #e5e1d6;border-radius:8px;color:inherit;text-decoration:none}
-  a:hover{background:#f8f6ef;border-color:#5f6660}
+    border:1px solid var(--pc-border);border-radius:8px;color:inherit;text-decoration:none}
+  a:hover{background:var(--pc-hover-bg);border-color:#5f6660}
   small{color:#5f6660;font-size:12px}
-  .ok{padding:11px 12px;border-radius:8px;background:#f8f6ef;font-size:13.5px}
-  .consent__header{padding:32px 36px 28px;background:#f8f6ef;border-bottom:1px solid #e5e1d6}
+  .ok{padding:11px 12px;border-radius:8px;background:var(--pc-surface-subtle);font-size:13.5px}
+  .consent__header{padding:32px 36px 28px;background:var(--pc-surface-subtle);border-bottom:1px solid var(--pc-border)}
   .consent__brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;font-weight:700;font-size:16px}
   .consent__brand img{width:28px;height:28px;border-radius:6px}
   .consent h1{max-width:24ch;margin-bottom:10px;font-size:28px;line-height:1.18;letter-spacing:-.025em}
   .consent__header p{max-width:58ch;margin:0;font-size:14px}
   .consent__body{padding:28px 36px 36px}
-  .consent__destination{padding-bottom:20px;border-bottom:1px solid #e5e1d6}
+  .consent__destination{padding-bottom:20px;border-bottom:1px solid var(--pc-border)}
   .consent__destination span{display:block;color:#5f6660;font-size:12px;font-weight:600}
   .consent__destination strong{display:block;margin-top:5px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
   .consent__note{max-width:58ch;margin:18px 0 24px;font-size:13px;line-height:1.55}

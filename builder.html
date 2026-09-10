@@ -2,25 +2,25 @@
 <style>
 /* ============================================================================
    Pagecraft — visual page builder chrome
-   Brand system: branding/design-tokens/pagecraft-tokens.css
-   Direction: "A calm editorial workbench using Paper as the working surface,
+   Brand system: brand/pagecraft-tokens.css
+   Direction: "A calm editorial workbench using white and cool neutral surfaces,
    Ink for structure, and Craft Green only for action, focus, selection, and
-   status."  (branding/screens/SCREEN-DIRECTION.md)
+   status."
    ========================================================================== */
 :root{
   /* brand */
-  --ink:#111311; --green:#b7f34a; --green-hi:#c3f75f; --paper:#f8f6ef; --slate:#6f7771; --white:#fff;
+  --ink:#111311; --green:#b7f34a; --green-hi:#c3f75f; --paper:var(--pc-surface-subtle); --slate:#6f7771; --white:#fff;
   --on-green:var(--ink);
 
   /* structure — Ink carries the top bar and the tool rail */
   --rail:#111311; --rail-2:#1d201d; --rail-3:#282c28;
-  --rail-line:#2b2f2b; --rail-text:#f8f6ef; --rail-text-2:#9ba29c;
+  --rail-line:#2b2f2b; --rail-text:var(--pc-surface-subtle); --rail-text-2:#9ba29c;
 
-  /* working surfaces — Paper and White */
-  --panel:#ffffff; --field:#f8f6ef; --field-2:#f1eee3;
-  --line:#e5e1d6; --line-2:#d4cfc0;
+  /* working surfaces — white and cool neutrals */
+  --panel:#ffffff; --field:var(--pc-surface-subtle); --field-2:var(--pc-surface-muted);
+  --line:var(--pc-border); --line-2:var(--pc-border-strong);
   --text:#111311; --text-2:#4b504b; --text-3:#6f7771;
-  --stage:#ebe8dd;
+  --stage:var(--pc-canvas-surround);
 
   /* The four interaction recipes. Each was written out five to seven times across
      components with nothing else in common — and in either property order, which is
@@ -31,8 +31,8 @@
      twice already: see the note at `.topbar .btn.ghost:hover`, where a tie on three
      classes put near-black text on the ink bar at 1.19:1. Naming the values gets the
      one source of truth; moving the rules would only get a shorter file. */
-  --lift-bg:var(--field);       --lift-line:var(--text-3);   /* a card or button under the pointer */
-  --wake-bg:var(--field-2);     --wake-fg:var(--text);       /* a quiet control waking up */
+  --lift-bg:var(--pc-hover-bg);       --lift-line:var(--text-3);   /* a card or button under the pointer */
+  --wake-bg:var(--pc-hover-bg);     --wake-fg:var(--text);       /* a quiet control waking up */
   --risk-bg:var(--danger-soft); --risk-fg:var(--danger);     /* a destructive action */
   --dim:.3;                                                  /* anything disabled */
 
@@ -90,7 +90,7 @@ body{
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 input,select,textarea{font:inherit;color:inherit}
 ::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-thumb{background:#d6d1c3;border-radius:6px;border:3px solid var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--pc-border-strong);border-radius:6px;border:3px solid var(--panel)}
 ::-webkit-scrollbar-track{background:transparent}
 :focus-visible{outline:2px solid var(--green);outline-offset:1px}
 
@@ -284,7 +284,7 @@ input,select,textarea{font:inherit;color:inherit}
 .rail button.on:hover{color:var(--ink)}
 .rail .railAccount strong{width:29px;height:29px;border:1px solid rgba(246,244,236,.28);border-radius:50%;display:grid;place-items:center;color:var(--rail-text);font-family:var(--label);font-size:var(--fs-1);font-weight:600}
 .accountPop{position:fixed;left:70px;bottom:10px;width:224px;padding:10px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 30px rgba(10,12,11,.22);z-index:80}
-.accountPop[hidden]{display:none}.accountPop p{margin:0 0 8px;padding:4px 6px 9px;border-bottom:1px solid var(--line);color:var(--text-2);font-family:var(--label);font-size:var(--fs-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.accountPop a,.accountPop button{width:100%;min-height:34px;padding:0 8px;display:flex;align-items:center;border-radius:var(--r-sm);color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-decoration:none}.accountPop a:hover,.accountPop button:hover{background:var(--field)}.accountPop form{margin:0}
+.accountPop[hidden]{display:none}.accountPop p{margin:0 0 8px;padding:4px 6px 9px;border-bottom:1px solid var(--line);color:var(--text-2);font-family:var(--label);font-size:var(--fs-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.accountPop a,.accountPop button{width:100%;min-height:34px;padding:0 8px;display:flex;align-items:center;border-radius:var(--r-sm);color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-decoration:none}.accountPop a:hover,.accountPop button:hover{background:var(--pc-hover-bg)}.accountPop form{margin:0}
 body.preview .rail{display:none}
 
 .left,.right{background:var(--panel);display:flex;flex-direction:column;min-height:0;z-index:20}
@@ -311,7 +311,7 @@ body.preview .left,body.preview .right{display:none}
   border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel);color:var(--text-2);
   font:inherit;font-family:var(--label);font-size:var(--fs-2);font-weight:600;line-height:1;text-align:center;cursor:pointer;
 }
-.panelHead .panelHeadAction:hover{border-color:var(--ink);color:var(--ink);background:var(--field)}
+.panelHead .panelHeadAction:hover{border-color:var(--ink);color:var(--ink);background:var(--pc-hover-bg)}
 .panelHead .panelHeadAction:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .panelHead .panelHeadAction svg{width:12px;height:12px;flex:0 0 12px}
 .panelHead .panelHeadAction span{display:block;line-height:1}
@@ -399,7 +399,7 @@ body.content-only .s-hud [data-x=down]{display:none}
 }
 .addSwitcherIcon{display:grid;place-items:center;color:var(--text-3);flex:0 0 auto}
 .addSwitcherIcon svg{display:block}
-.addSwitcher button:hover{background:var(--field);color:var(--text)}
+.addSwitcher button:hover{background:var(--pc-hover-bg);color:var(--text)}
 .addSwitcher button.on{
   background:var(--pc-selection-bg);border-color:var(--line-2);color:var(--pc-selection-text);font-weight:600;
 }
@@ -425,8 +425,8 @@ body.content-only .s-hud [data-x=down]{display:none}
 }
 .pvcard:hover span{color:var(--text)}
 .pvw{display:block;width:100%;height:auto;background:var(--field)}
-.pv-b{fill:#d9d4c6}
-.pv-l{fill:#c6c0af}
+.pv-b{fill:var(--pc-border-strong)}
+.pv-l{fill:#adb7bf}
 .pv-h{fill:#8f9a90}
 .pv-g{fill:var(--green)}
 .pv-i{fill:#22251f}
@@ -452,17 +452,17 @@ body.content-only .s-hud [data-x=down]{display:none}
   background:var(--panel);display:flex;flex-direction:column;overflow:hidden;
   transition:border-color .14s,background .14s,transform .1s ease-out,box-shadow .14s;
 }
-.tpl:hover{border-color:var(--ink);background:var(--field);box-shadow:0 8px 22px rgba(17,19,17,.08);transform:translateY(-2px)}
+.tpl:hover{border-color:var(--ink);background:var(--pc-hover-bg);box-shadow:0 8px 22px rgba(17,19,17,.08);transform:translateY(-2px)}
 .tpl[hidden]{display:none}
 .templatePreviewWrap{padding:10px;background:var(--field);border-bottom:1px solid var(--line)}
 .templatePreview{display:block;width:100%;height:auto}
-.templatePreview .tp-paper{fill:#fffefa}
+.templatePreview .tp-paper{fill:#fff}
 .templatePreview .tp-ink{fill:#22251f}
-.templatePreview .tp-line{fill:#c6c0af}
-.templatePreview .tp-card{fill:#eeeae0}
-.templatePreview .tp-media{fill:#ded9cc}
+.templatePreview .tp-line{fill:#adb7bf}
+.templatePreview .tp-card{fill:var(--pc-surface-subtle)}
+.templatePreview .tp-media{fill:var(--pc-surface-muted)}
 .templatePreview .tp-accent{fill:var(--green)}
-.templatePreview .tp-outline{fill:none;stroke:#c6c0af;stroke-width:1.5}
+.templatePreview .tp-outline{fill:none;stroke:#adb7bf;stroke-width:1.5}
 .templateCardCopy{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-4);padding:12px 13px 13px}
 .templateCardCopy>span{min-width:0}
 .tpl b{display:block;margin-bottom:4px;font-size:var(--fs-3);font-weight:600;color:var(--text)}
@@ -496,12 +496,12 @@ body.content-only .s-hud [data-x=down]{display:none}
   display:flex;align-items:center;gap:var(--sp-2);padding:4px 6px;border-radius:var(--r-sm);
   cursor:pointer;font-size:var(--fs-2);line-height:20px;color:var(--text-2);position:relative;
 }
-.lrow:hover{background:var(--field)}
+.lrow:hover{background:var(--pc-hover-bg)}
 .lrow.sel{background:var(--pc-selection-bg);color:var(--pc-selection-text);font-weight:500;box-shadow:inset 2px 0 0 var(--green)}
 .lrow.sel2{background:var(--pc-selection-bg);color:var(--pc-selection-text);box-shadow:inset 2px 0 0 var(--line-2)}
 .lrow.region{font-weight:500;color:var(--text-2)}
 .lrow.region.locked{color:var(--text-3)}
-.lrow.region:hover{background:var(--field)}
+.lrow.region:hover{background:var(--pc-hover-bg)}
 .lrow.region.live{background:var(--pc-selection-bg);color:var(--pc-selection-text)}
 .lrow .badge{
   font-family:var(--label);font-size:var(--fs-1);font-weight:600;letter-spacing:.04em;
@@ -554,7 +554,7 @@ body.dragging .lrow{cursor:grabbing}
 .pagerow .act{position:absolute;right:0;top:29px;z-index:20;display:flex;flex-direction:column;gap:2px;width:140px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md)}
 .page-actions:not([open]) .act{display:none}
 .pagerow .act button{width:100%;min-height:32px;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r-sm);color:var(--text-2);text-align:left}
-.pagerow .act button:hover{background:var(--field);color:var(--text)}
+.pagerow .act button:hover{background:var(--pc-hover-bg);color:var(--text)}
 .pagerow .act button[disabled]{opacity:.35;cursor:default}
 .pagerow .act button[disabled]:hover{background:none;color:var(--text-3)}
 
@@ -575,7 +575,7 @@ body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-op
 .pages-list-head,.pages-workspace .pagerow{display:grid;grid-template-columns:minmax(180px,2fr) minmax(120px,1fr) 100px 122px 30px;gap:16px;align-items:center}
 .pages-list-head{padding:10px 12px;color:var(--text-2);font-size:var(--fs-2);font-weight:600;border-bottom:1px solid var(--line)}
 .pages-workspace .pagerow{border:0;border-bottom:1px solid var(--line);border-radius:0;margin:0;padding:16px 12px}
-.pages-workspace .pagerow:not(.on):hover{background:var(--field)}
+.pages-workspace .pagerow:not(.on):hover{background:var(--pc-hover-bg)}
 .pages-workspace .pagerow-main{align-items:center}
 .pages-workspace .pagerow-main>svg{margin:0}
 .pages-workspace .page-path{overflow-wrap:anywhere;color:var(--text-2)}
@@ -641,7 +641,7 @@ body.preview .modebar{display:none}
 .itemBar>svg{flex:0 0 auto}
 .itemBarLabel{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .itemBar>button[data-i]{width:var(--h-ctl);height:var(--h-ctl);padding:0;display:grid;place-items:center;flex:0 0 var(--h-ctl);border-radius:var(--r-sm);color:var(--text-2)}
-.itemBar>button:not(:disabled):hover{background:var(--field);color:var(--text)}
+.itemBar>button:not(:disabled):hover{background:var(--pc-hover-bg);color:var(--text)}
 .itemBar>button:disabled{opacity:var(--dim);cursor:default}
 .itemBar>.pc-custom-select-trigger,.itemBar>select:not(.pc-custom-select-native){width:130px;min-width:0;min-height:var(--h-ctl);height:var(--h-ctl);padding:0 6px;border:0;border-radius:var(--r-sm);background:transparent;font-size:var(--fs-2);line-height:1.4;color:var(--text)}
 .itemBar>small{flex:0 0 auto;font:inherit;font-size:var(--fs-1);font-variant-numeric:tabular-nums;color:var(--text-3);white-space:nowrap}
@@ -656,7 +656,7 @@ body.preview .modebar{display:none}
 .dim>.pc-custom-select-trigger{
   width:auto;min-height:0;padding:3px 7px;gap:var(--sp-2);border-color:transparent;background:transparent;
 }
-.dim>.pc-custom-select-trigger:hover{background:var(--field);border-color:var(--line-2)}
+.dim>.pc-custom-select-trigger:hover{background:var(--pc-hover-bg);border-color:var(--line-2)}
 .dim>.pc-custom-select-trigger>svg{width:10px;height:10px;flex-basis:10px}
 body.preview .dim{display:none}
 
@@ -709,7 +709,7 @@ body.preview .dim{display:none}
    follows rather than floating over it.
 
    No tint. It had one, on the reasoning that a live state should be hard to miss — but --field
-   against --panel is #f8f6ef against #ffffff, a three percent shift that reads as a rendering
+   against --panel is var(--pc-surface-subtle) against #ffffff, a three percent shift that reads as a rendering
    artefact rather than as a cue. The green segment already says which state is live, and says
    it loudly; a second signal that faint subtracts from it. */
 .statepick{padding:10px 14px 12px;margin-bottom:0;border-bottom:1px solid var(--line)}
@@ -1120,7 +1120,7 @@ select.ctl{
   padding:7px 9px;border-radius:var(--r-sm);text-align:left;
   font-size:var(--fs-3);font-weight:500;color:var(--text-2);
 }
-#ctx button:hover{background:var(--field);color:var(--text)}
+#ctx button:hover{background:var(--pc-hover-bg);color:var(--text)}
 #ctx button em{font-family:var(--label);font-size:var(--fs-1);font-style:normal;color:var(--text-3)}
 #ctx button:hover em{color:var(--text-2)}
 #ctx button.danger{color:var(--danger)}
@@ -1153,7 +1153,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .settings-layout{display:flex;flex:1;min-width:0;min-height:0}
 .settings-nav{width:184px;flex:0 0 184px;border-right:1px solid var(--line);padding:20px 12px;display:flex;flex-direction:column;gap:4px}
 .settings-nav button{text-align:left;padding:11px 12px;border-radius:var(--r-sm);color:var(--text-2);font-size:var(--fs-3)}
-.settings-nav button:hover{background:var(--field)}
+.settings-nav button:hover{background:var(--pc-hover-bg)}
 .settings-nav button[aria-current]{background:var(--pc-selection-bg);color:var(--pc-selection-text);font-weight:600}
 .settings-content{flex:1;min-width:0;overflow:auto;padding:28px 32px}
 .settings-content section{max-width:980px;margin:0 auto}
@@ -1286,7 +1286,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
   width:100%;text-align:left;padding:8px 10px;border-radius:var(--r-sm);
   border:1px solid transparent;background:none;cursor:pointer;
 }
-.hitrow:hover{background:var(--field);border-color:var(--line)}
+.hitrow:hover{background:var(--pc-hover-bg);border-color:var(--line)}
 .hitrow .hn{font-size:var(--fs-3);font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hitrow .hf{font-family:var(--label);font-size:var(--fs-1);color:var(--text-3);white-space:nowrap}
 .hitrow .hs{font-size:var(--fs-2);color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1296,7 +1296,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 }
 pre.code{
   background:var(--ink);border-radius:var(--r-md);padding:14px;
-  font-family:var(--mono);font-size:var(--fs-2);line-height:1.6;color:#d8d5c9;
+  font-family:var(--mono);font-size:var(--fs-2);line-height:1.6;color:#dbe0e4;
   overflow:auto;max-height:52vh;white-space:pre;margin:0;
 }
 .kbd{
@@ -3664,7 +3664,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
   border-radius:var(--r-sm);color:var(--text-2);font-size:var(--fs-2);
   font-weight:700;display:grid;place-items:center;
 }
-#rt button:hover{background:var(--field-2);color:var(--text)}
+#rt button:hover{background:var(--pc-hover-bg);color:var(--text)}
 #rt .sep{width:1px;height:17px;background:var(--line);margin:0 var(--sp-1)}
 #rt em{font-family:Georgia,serif}
 </style>`);

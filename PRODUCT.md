@@ -37,7 +37,7 @@ Pagecraft separates a portable, versioned document from the environment that own
 
 ## Brand Commitments
 
-The product is Pagecraft. Its established interface is a calm editorial workbench: Paper is the working surface, Ink provides structure, and Craft Green is reserved for action, focus, selection, and status. Manrope and DM Sans, the existing Pagecraft logo assets, and the current compact control vocabulary are incumbent visual authority.
+The product is Pagecraft. Its established interface is a calm editorial workbench: White and cool neutrals are the working surfaces, Ink provides structure, and Craft Green is reserved for action, focus, selection, and status. Hover uses a very light green; warm beige surfaces were removed at the user's request. Manrope and DM Sans, the existing Pagecraft logo assets, and the current compact control vocabulary are incumbent visual authority.
 
 ## Evidence on Hand
 

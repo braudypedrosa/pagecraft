@@ -5,10 +5,10 @@ export const WORKSPACE_CSS = `
   --pc-ui-font:Manrope,system-ui,-apple-system,sans-serif;
   --pc-ui-label-font:"DM Sans",system-ui,sans-serif;
   --pc-ui-surface:#fff;
-  --pc-ui-hover:#f8f6ef;
+  --pc-ui-hover:var(--pc-hover-bg);
   --pc-ui-text:#111311;
   --pc-ui-secondary:#4b504b;
-  --pc-ui-border:#e2dfd5;
+  --pc-ui-border:var(--pc-border);
   --pc-workspace-x:32px;
   --pc-workspace-y:28px;
   --pc-workspace-title:22px;
@@ -46,7 +46,7 @@ export const WORKSPACE_CSS = `
 .project-settings .settings-nav{width:220px;flex-basis:220px;padding:24px 16px}
 .project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4}
 
-/* Selection is distinct from Paper hover across editor and Cloud surfaces.
+/* Selection is distinct from the lighter green hover across editor and Cloud surfaces.
  * Main rail navigation, primary actions and boolean/status indicators retain
  * their stronger colors. Explicit selectors avoid recoloring those roles. */
 :is(.pagerow.on,.lrow.sel,.lrow.sel2,.lrow.region.live,.mcard.on,.pickrow.on,.navitem.on){
@@ -112,7 +112,7 @@ export const WORKSPACE_CSS = `
 .dashboard-app :is(.pc-entry-dialog header,.pc-create-modal-head){padding:20px 24px;border-bottom:1px solid var(--pc-ui-border)}
 .dashboard-app :is(.pc-entry-dialog,.pc-create-modal,.pc-delete-dialog,.pc-integration-dialog) h2{font-size:var(--pc-dialog-title);line-height:1.4;font-weight:600;margin:0}
 .dashboard-app .pc-entry-dialog [data-close-dialog]{width:32px;height:32px;min-height:32px;padding:0;border:0;background:transparent}
-.dashboard-app .pc-entry-dialog footer [data-close-dialog]{width:auto;height:44px;padding:0 18px;border:1px solid var(--pc-line-2,#c6c1b5);background:var(--pc-ui-surface)}
+.dashboard-app .pc-entry-dialog footer [data-close-dialog]{width:auto;height:44px;padding:0 18px;border:1px solid var(--pc-line-2,#cbd2d8);background:var(--pc-ui-surface)}
 .dashboard-app .pc-entry-body{line-height:1.5}
 .dashboard-app .pc-entry-body dt{font-size:12.5px;color:var(--pc-ui-secondary)}
 .dashboard-app .pc-entry-body dd{margin:4px 0 16px}

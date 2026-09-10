@@ -4,7 +4,7 @@
     "color": {
       "ink": { "$type": "color", "$value": "#111311" },
       "craftGreen": { "$type": "color", "$value": "#B7F34A" },
-      "paper": { "$type": "color", "$value": "#F8F6EF" },
+      "paper": { "$type": "color", "$value": "#F5F7F8" },
       "slate": { "$type": "color", "$value": "#6F7771" },
       "white": { "$type": "color", "$value": "#FFFFFF" }
     },

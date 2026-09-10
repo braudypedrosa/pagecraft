@@ -1,6 +1,6 @@
 # Cloud UI geometry
 
-Preserve Pagecraft's Paper, Ink and Craft Green visual identity. Shared geometry lives in `shared/ui-tokens.js`; the account shell and generated editor both consume it. It does not enter published user-page CSS.
+Pagecraft uses white and cool neutral surfaces, Ink and Craft Green. Shared colors and geometry lives in `shared/ui-tokens.js`; the account shell and generated editor both consume it. It does not enter published user-page CSS.
 
 | Role | Minimum height | Typography |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Use identical geometry for an action rendered as a link or button. Read-only cop
 
 The CMS preview picker is a 32px toolbar group with 26px internal controls, matching the adjacent toolbar badges. Its label identifies the preview collection, and the toolbar wraps when both editor panels reduce the available width. Escape closes its menu without invoking the canvas selection shortcut.
 
-The custom-select trigger follows its host density. Collaborator row selects remain 36px; CMS controls use 44px. Account focus outlines use Ink on Paper and Craft Green on the dark navigation. Disabled builder buttons retain their geometry and use the shared dim state.
+The custom-select trigger follows its host density. Collaborator row selects remain 36px; CMS controls use 44px. Account focus outlines use Ink on light surfaces and Craft Green on the dark navigation. Disabled builder buttons retain their geometry and use the shared dim state.
 
 ## Acceptance scope
 
@@ -26,11 +26,11 @@ Verify the actual computed boxes and keyboard interactions, including dropdown o
 
 Pages is the visual reference for full management screens. `shared/workspace-styles.js` owns their surface, heading scale, gutters, header actions and list rhythm. Explicit `pc-workspace-head` / `pc-workspace-body` classes connect Preact and server markup to that contract. The compatibility selectors keep existing navigation and dialog behavior intact.
 
-- White work surface; Paper for hover and supporting regions. Selected rows, picker options and secondary navigation use the shared pale green `--pc-selection-bg` (`#eef7e5`), with dark green text and accessible muted labels. This applies to Pages, Navigator, CMS collections, project/account settings, media/template/content pickers and integration choices. Selection stays green on hover; existing borders, checkmarks and weight preserve additional selection cues. Main rail navigation, primary actions and status/toggle indicators retain their stronger colors.
+- White work surface; cool neutral supporting regions (`#f5f7f8`, `#edf0f2`) and canvas surround (`#e9edf0`). Hover uses a very light green `--pc-hover-bg` (`#f4faef`). Borders use cool gray tokens. Selected rows, picker options and secondary navigation use the shared pale green `--pc-selection-bg` (`#eef7e5`), with dark green text and accessible muted labels. This applies to Pages, Navigator, CMS collections, project/account settings, media/template/content pickers and integration choices. Selection stays green on hover; existing borders, checkmarks and weight preserve additional selection cues. Main rail navigation, primary actions and status/toggle indicators retain their stronger colors.
 - 22px workspace title, 18px section title, 16px dialog title, 13.5px body, 12.5px table headers/metadata.
 - Headers: 24px vertical / 32px horizontal; body: 28px / 32px. Gutters become 20px below 1050px.
 - Header actions use the builder's 37px controls. Full forms remain 44px; row icon actions are 36px. Schema rows and compact editor panels retain their existing density.
-- Table headers use white, a bottom rule and medium-weight labels. Rows use 16px / 12px padding, centered controls and Paper hover feedback.
+- Table headers use white, a bottom rule and medium-weight labels. Rows use 16px / 12px padding, centered controls and light green hover feedback.
 - `shared/ui-fonts.js` is the font manifest for both hosts. The builder embeds its files for offline use; Cloud loads those exact files from allowlisted `/brand/fonts/` routes. Cloud's declaration previously fell back to the system font because it had no font faces.
 
 ### Screen inventory

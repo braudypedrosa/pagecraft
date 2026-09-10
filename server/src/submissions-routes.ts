@@ -136,5 +136,5 @@ export function submissionRoutes(app: Hono, o: {
       return c.redirect('/forms/thanks', 303);
     } catch { return c.text('Your submission was not saved. Please try again shortly.', 503); }
   });
-  app.get('/forms/thanks', c => { c.header('Cache-Control', 'no-store'); return c.html('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Submission received</title><body style="font:16px system-ui;background:#f8f7f0;color:#141914;margin:0"><main style="max-width:520px;margin:15vh auto;padding:32px"><h1>Thank you</h1><p>Your submission has been received.</p><button onclick="history.back()" style="padding:12px 20px;background:#b7f34a;border:0;border-radius:6px">Back to site</button></main></body></html>'); });
+  app.get('/forms/thanks', c => { c.header('Cache-Control', 'no-store'); return c.html('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Submission received</title><body style="font:16px system-ui;background:#f5f7f8;color:#141914;margin:0"><main style="max-width:520px;margin:15vh auto;padding:32px"><h1>Thank you</h1><p>Your submission has been received.</p><button onclick="history.back()" style="padding:12px 20px;background:#b7f34a;border:0;border-radius:6px">Back to site</button></main></body></html>'); });
 }

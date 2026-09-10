@@ -6805,12 +6805,12 @@ ${m.css || ''}
 .pagecraft-button,.pagecraft-heading a,.pagecraft-wysiwyg a{cursor:default}
 .s-empty{
   display:flex;align-items:center;justify-content:center;gap:7px;min-height:76px;width:100%;
-  border:1px dashed #cfcabb;border-radius:8px;color:#6f7771;
-  font:500 12.5px "DM Sans",system-ui,sans-serif;background:#f8f6ef80;
+  border:1px dashed #cbd2d8;border-radius:8px;color:#6f7771;
+  font:500 12.5px "DM Sans",system-ui,sans-serif;background:#f5f7f880;
 }
 .s-held{
   display:block;margin-top:8px;padding:7px 10px;border-radius:6px;
-  background:#f8f6ef;border:1px dashed #cfcabb;color:#6f7771;
+  background:#f5f7f8;border:1px dashed #cbd2d8;color:#6f7771;
   font:500 11.5px "DM Sans",system-ui,sans-serif;
 }
 [data-editing]{outline:1.5px solid #111311 !important;outline-offset:2px;cursor:text !important}
@@ -6818,7 +6818,7 @@ ${m.css || ''}
 
 /* global regions render as locked context and link to their own editor */
 .s-region{position:relative}
-.s-region[data-state=locked],.s-region[data-state=dim]{outline:1px dashed #cfcabb;outline-offset:-1px}
+.s-region[data-state=locked],.s-region[data-state=dim]{outline:1px dashed #cbd2d8;outline-offset:-1px}
 /* locked and dimmed regions swallow interaction so global structure is never
    edited by accident; the chip stays clickable above them */
 .s-region[data-state=locked]::after,.s-region[data-state=dim]::after{
@@ -6837,12 +6837,12 @@ ${m.css || ''}
 .s-lockchip,.s-lockopen{
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;
   font:500 12px "DM Sans",system-ui,sans-serif;white-space:nowrap;
-  background:#fff;border:1px solid #e5e1d6;color:#4b504b;box-shadow:0 8px 20px -10px #11131140;
+  background:#fff;border:1px solid #dfe4e7;color:#4b504b;box-shadow:0 8px 20px -10px #11131140;
 }
 .s-lockchip svg{color:#6f7771}
-.s-lockopen{cursor:pointer;background:#111311;border-color:#111311;color:#f8f6ef}
+.s-lockopen{cursor:pointer;background:#111311;border-color:#111311;color:#f5f7f8}
 .s-lockopen svg{color:#b7f34a}
-.s-lockchip.on{background:#111311;border-color:#111311;color:#f8f6ef}
+.s-lockchip.on{background:#111311;border-color:#111311;color:#f5f7f8}
 .s-lockchip.on svg{color:#b7f34a}
 
 #s-root{min-height:100%}
@@ -6854,7 +6854,7 @@ ${m.css || ''}
 .s-canvas-empty b{font-size:16px;color:#111311;font-weight:600;font-family:"Manrope",system-ui,sans-serif}
 .s-openadd{
   margin-top:4px;padding:7px 14px;border-radius:8px;cursor:pointer;border:0;
-  background:#111311;color:#f8f6ef;font:600 12.5px "Manrope",system-ui,sans-serif;
+  background:#111311;color:#f5f7f8;font:600 12.5px "Manrope",system-ui,sans-serif;
 }
 .s-openadd:hover{background:#2a2e2a}
 
@@ -6887,19 +6887,19 @@ ${m.css || ''}
 #s-hud .grip:hover::before,#s-hud .grip.on::before{opacity:1}
 #s-hud .gtip{
   position:absolute;transform:scale(calc(1 / var(--z,1))) translate(-50%,-100%);
-  transform-origin:50% 100%;background:#111311;color:#f8f6ef;
+  transform-origin:50% 100%;background:#111311;color:#f5f7f8;
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar{
-  position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f8f6ef;
+  position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
   transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;
   font:500 12px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar .nm{padding-right:6px}
 #s-hud .bar button{
-  width:20px;height:20px;border:0;background:none;color:#f8f6ef;display:grid;place-items:center;
+  width:20px;height:20px;border:0;background:none;color:#f5f7f8;display:grid;place-items:center;
   border-radius:4px;cursor:pointer;padding:0;opacity:.75;
 }
 #s-hud .bar button:hover{background:#ffffff26;opacity:1;color:#b7f34a}
