@@ -10,6 +10,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSync, transformSync } from 'esbuild';
 import { UI_TOKENS_CSS } from './shared/ui-tokens.js';
+import { UI_FONT_FACES } from './shared/ui-fonts.js';
+import { WORKSPACE_CSS } from './shared/workspace-styles.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const frag = readFileSync(join(here, 'builder.html'), 'utf8');
@@ -22,15 +24,10 @@ const face = (family, file, weight, style = 'normal') => {
   return `@font-face{font-family:"${family}";font-style:${style};font-weight:${weight};`
     + `font-display:swap;src:url(data:font/ttf;base64,${b64}) format("truetype")}`;
 };
-const FONT_CSS = [
-  face('Manrope', 'Manrope-VariableFont_wght.ttf', '400 700'),
-  face('DM Sans', 'DMSans-Regular.ttf', '400'),
-  face('DM Sans', 'DMSans-Medium.ttf', '500'),
-  face('DM Sans', 'DMSans-SemiBold.ttf', '600')
-].join('\n');
+const FONT_CSS = UI_FONT_FACES.map(({ family, file, weight }) => face(family, file, weight)).join('\n');
 const withFonts = html => {
   if (!html.includes(FONT_SLOT)) throw new Error('font slot ' + FONT_SLOT + ' missing from builder.html');
-  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n${UI_TOKENS_CSS}\n</style>`);
+  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n${UI_TOKENS_CSS}\n${WORKSPACE_CSS}\n</style>`);
 };
 /* esbuild preserves indentation inside block comments, including indentation-only blank
    lines. Strip that generated whitespace so rebuilding does not make `git diff --check`

@@ -1,3 +1,5 @@
+import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
+import { UI_FONT_FACES, UI_FONTS_CSS } from '../../shared/ui-fonts.js';
 import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
 import { submissionRoutes } from './submissions-routes.ts';
@@ -376,6 +378,10 @@ export function createApp(o: Options) {
   app.use("/sites/*", editorOnly);
   app.use("/privacy", editorOnly);
   app.use("/terms", editorOnly);
+  // Share the builder's exact font files; only the product font manifest is public.
+  for (const { file } of UI_FONT_FACES) {
+    app.get(`/brand/fonts/${file}`, editorOnly, serveStatic({ path: `./brand/fonts/${file}` }));
+  }
   app.get(
     "/brand/pagecraft-logo.svg",
     editorOnly,
@@ -5886,7 +5892,9 @@ const shell = (title: string, body: string) =>
 <title>${title}</title>
 <script>${ACTION_FEEDBACK_BOOT_SCRIPT}<\/script>
 <style>
-  :root{color-scheme:light dark}
+  ${UI_FONTS_CSS}
+  ${UI_TOKENS_CSS}
+  :root{color-scheme:light}
   body{margin:0;min-height:100vh;display:grid;place-items:center;background:#ebe8dd;color:#111311;
        font:15px/1.5 "Manrope",system-ui,-apple-system,sans-serif}
   .card{background:#fff;border:1px solid #e5e1d6;border-radius:16px;padding:28px;width:min(92vw,380px);
@@ -5895,10 +5903,10 @@ const shell = (title: string, body: string) =>
   h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
   p{margin:0 0 18px;color:#5f6660;font-size:13.5px}
   label{display:block;font-size:12px;color:#5f6660;margin-bottom:6px}
-  input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #d4cfc0;border-radius:4px;
-        font:inherit;margin-bottom:12px}
-  button{width:100%;padding:10px;border:0;border-radius:8px;background:#b7f34a;color:#111311;
-         font:600 14px inherit;cursor:pointer}
+  input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #d4cfc0;border-radius:var(--pc-control-radius);min-height:var(--pc-control-height);
+        font:inherit;font-size:var(--pc-control-font);margin-bottom:12px}
+  button{width:100%;min-height:var(--pc-control-height);padding:10px;border:0;border-radius:var(--pc-control-radius);background:#b7f34a;color:#111311;
+         font:inherit;font-size:var(--pc-control-font);font-weight:600;cursor:pointer}
   a{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:6px;
     border:1px solid #e5e1d6;border-radius:8px;color:inherit;text-decoration:none}
   a:hover{background:#f8f6ef;border-color:#5f6660}

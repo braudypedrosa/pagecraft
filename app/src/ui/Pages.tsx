@@ -84,14 +84,14 @@ export function PagesWorkspace() {
   const rows = C.state.pages.map((p, i) => ({p, i})).filter(({p}) =>
     !term || (p.name + ' ' + p.slug).toLowerCase().includes(term));
   return <section class="pages-workspace" aria-label="Pages">
-    <header class="pages-workspace-head">
+    <header class="pages-workspace-head pc-workspace-head">
       <div><h1>Pages</h1><p>{C.state.pages.length} {C.state.pages.length === 1 ? 'page' : 'pages'}</p></div>
       <div class="row">
         <button class="btn" onClick={() => L.openPage(C.state.cur)}>Back to builder</button>
         {L.canStructure() && <button class="btn primary" onClick={() => L.newPageModal()}><Icon name="plus" size={14} /> New page</button>}
       </div>
     </header>
-    <div class="pages-workspace-content">
+    <div class="pages-workspace-content pc-workspace-body">
       <div class="pages-search"><label htmlFor="pages-search">Search pages</label>
         <input class="ctl" type="search" id="pages-search" placeholder="Search by name or path" value={query}
           onInput={e => setQuery((e.target as HTMLInputElement).value)} /></div>

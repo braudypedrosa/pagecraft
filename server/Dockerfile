@@ -44,6 +44,8 @@ RUN cd server && npm install --omit=dev --no-audit --no-fund
 # app source is part of the runtime image and not only of the build.
 COPY server/src ./server/src
 COPY app ./app
+COPY shared ./shared
+COPY brand ./brand
 COPY --from=editor /repo/index.html ./index.html
 
 # `index.ts` resolves the editor as `join(here, '..', '..', 'index.html')` — two levels up from

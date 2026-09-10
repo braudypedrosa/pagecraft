@@ -235,7 +235,7 @@ export function CmsWorkspace({
 
       }}
     >
-      <header class="cms-workspace-header">
+      <header class="cms-workspace-header pc-workspace-head">
         <div>
           <h1>CMS</h1>
           <p>Manage content, then connect it to your pages.</p>
@@ -266,7 +266,7 @@ export function CmsWorkspace({
             </button>
           ))}
         </nav>
-        <main class="cms-content" aria-busy={busy}>
+        <main class="cms-content pc-workspace-body" aria-busy={busy}>
           <div class="cms-title">
             <div>
               <h2>{col.name}</h2>

@@ -1,6 +1,9 @@
 /** Isolated local Cloud host; real HTTP routes and storage contracts, fixture identity. */
 import { serve } from '@hono/node-server';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { FileSubmissionStore, siteForms } from '../server/src/submissions.ts';
 import { createApp } from '../server/src/app.ts';
 import { MemoryStore } from '../server/src/store.ts';
 import { MemoryAuthStore } from '../server/src/auth.ts';
@@ -66,6 +69,16 @@ const app = createApp({
   store,
   auth,
   assets,
+  submissions: await (async () => {
+    const inbox = new FileSubmissionStore(await mkdtemp(join(tmpdir(), 'pc-workspace-qa-')));
+    const form = siteForms(site.doc)[0];
+    for (const [index, status] of (['success', 'failed'] as const).entries())
+      await inbox.add(site.id, {id: `00000000-0000-4000-8000-00000000000${index}`, formId: form.id, formName: form.name,
+        createdAt: `2026-09-11T00:0${index}:00Z`, status,
+        values: [{label:'Name', value:'Workspace QA'}, {label:'Message',value:'Identifiable local test entry.'}],
+        ...(status === 'failed' ? {error:'QA validation failure.'} : {})});
+    return inbox;
+  })(),
   accountAuth,
   ownedSites: new MemoryOwnedSiteStore(store, auth),
   editorHost: 'localhost',
@@ -91,10 +104,14 @@ serve({
     }
     if (url.pathname === '/qa-viewport') {
       const width = Number(url.searchParams.get('width'));
-      if (![390, 768, 1280].includes(width))
+      if (![390, 768, 1024, 1280].includes(width))
         return new Response('Unsupported QA viewport', { status: 400 });
+      const paths = {builder: `/edit/${site.id}`, submissions: `/sites/${site.id}/submissions?embedded=1`, account:'/account', sites:'/'};
+      const surface = url.searchParams.get('surface') || 'builder';
+      const path = paths[surface as keyof typeof paths];
+      if (!path) return new Response('Unsupported QA surface', {status:400});
       return new Response(
-        `<meta charset="utf-8"><title>CMS QA — ${width}px</title><style>body{margin:0;background:#ddd}iframe{display:block;border:0;width:${width}px;height:900px}</style><iframe title="CMS responsive QA" src="/edit/${site.id}"></iframe>`,
+        `<meta charset="utf-8"><title>Workspace QA — ${width}px</title><style>body{margin:0;background:#ddd}iframe{display:block;border:0;width:${width}px;height:900px}</style><iframe title="CMS responsive QA" src="${path}"></iframe>`,
         { headers: { 'content-type': 'text/html' } },
       );
     }
@@ -107,7 +124,7 @@ serve({
     }
     const response = await app.fetch(request);
     // Local-only iframe harness for real CSS viewport checks; production CSP is unchanged.
-    if (url.pathname.startsWith('/edit/')) {
+    if (url.pathname.startsWith('/edit/') || url.pathname === '/account' || url.pathname === '/') {
       const headers = new Headers(response.headers);
       headers.set(
         'content-security-policy',

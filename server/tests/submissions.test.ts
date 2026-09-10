@@ -138,7 +138,7 @@ test('large inbox uses metadata for overview and loads one bounded page with fre
 test('entry header identifies the selected form and refresh preserves its filters', () => {
   const entry = {id:'one',formId:'qa-form',formName:'Contact QA',status:'new' as const,createdAt:'2026-09-10T00:00:00Z',values:[]};
   const html = siteSubmissionsPage({id:'qa',email:'qa@example.test',name:'QA'},{id:'site',name:'QA'},'owner',siteForms(source()),[entry,{...entry,id:'two',formId:'other'}],'qa-form','success',1,true);
-  const header = html.match(/<header class="pc-sub-head">([\s\S]*?)<\/header>/)![1];
+  const header = html.match(/<header class="pc-sub-head[^"]*">([\s\S]*?)<\/header>/)![1];
   expect(header).toContain('<h1>Contact QA</h1>');
   expect(header).toContain('1 entry');
   expect(header).toContain('All forms</a>');
