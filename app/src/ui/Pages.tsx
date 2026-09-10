@@ -168,7 +168,7 @@ export function Pages() {
         <button class="btn block" onClick={() => L.openPages()}><Icon name="page" size={13} /> Manage pages</button>
       </div>
 
-      <div class="group"><div class="gh">Current page</div><div class="gb">
+      <div class="group"><div class="gb">
         {/* Of everything a page holds, two things are words somebody writes: the browser
             title and the meta description. A name and a slug are how the site is addressed,
             the head block is a way to run anything, and a detail template is structure. So a
