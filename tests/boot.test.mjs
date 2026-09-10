@@ -873,3 +873,25 @@ test('inline editing cannot overwrite a CMS-bound component value', async () => 
     pg.tree.splice(pg.tree.indexOf(node),1);C.state.meta.components=original;C.selSet([]);w.render();
   }
 });
+
+test('focused native controls keep their activation keys out of canvas shortcuts', async () => {
+  const {window:w,doc}=await boot();
+  const C=w.__CORE, pg=C.state.pages[C.state.cur], node=C.N('heading');
+  pg.tree.push(node); C.state.ui.mode='page'; C.selSet([node.id]); w.render();
+  const button=doc.createElement('button');
+  button.type='button'; button.setAttribute('aria-label','Make Heading text vary between instances');
+  doc.querySelector('#inspector-panel').append(button); button.focus();
+  const history=C.hist.u.length;
+  try {
+    for (const key of ['Enter',' ','ArrowDown','Delete']) {
+      const event=new w.KeyboardEvent('keydown',{key,bubbles:true,cancelable:true});
+      button.dispatchEvent(event);
+      a.equal(event.defaultPrevented,false,`${key} remains available to the native control`);
+      a.equal(C.state.ui.sel,node.id,'the canvas selection stays in place');
+      a.equal(doc.activeElement,button,'focus stays on the control');
+      a.equal(C.hist.u.length,history,'no canvas edit transaction is opened');
+    }
+  } finally {
+    button.remove(); pg.tree.splice(pg.tree.indexOf(node),1); C.selSet([]); w.render();
+  }
+});

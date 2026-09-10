@@ -5654,6 +5654,9 @@ function hotkey(e) {
   /* some synthetic and assistive input stacks omit `key`; `code` still names
      the physical key, which is enough for the navigation set */
   const k = (e.key || '').toLowerCase() || (e.code || '').toLowerCase();
+  /* Native controls own activation and navigation keys. Let Enter/Space reach their
+     default action instead of entering canvas text editing or moving its selection. */
+  if (!meta && t.closest?.('button,a[href],[role="button"],[role="combobox"],[role="listbox"]')) return;
   if (meta && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (meta && k === 'y') { e.preventDefault(); redo(); return; }
   if (document.body.classList.contains('pages-open')) {
