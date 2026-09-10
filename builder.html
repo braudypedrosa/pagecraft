@@ -951,23 +951,35 @@ select.ctl{
 .gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
 .irow .x[data-x=ix] svg{transform:none}
 
-.frow-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.frow-title b{font-size:var(--fs-2);font-weight:600}
-.frow-title>span{display:flex;gap:4px}
-.frow-control{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;font-size:var(--fs-1);color:var(--text-2)}
+.repeater-row{padding:0;background:var(--panel)}
+.repeater-head{display:flex;align-items:center;min-height:38px;padding:0 5px;background:var(--field)}
+.repeater-toggle{display:flex;align-items:center;gap:6px;flex:1;min-width:0;padding:10px 3px;text-align:left;font-size:var(--fs-2)}
+.repeater-toggle span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.repeater-toggle svg{flex-shrink:0;transform:rotate(-90deg);color:var(--text-3)}
+.repeater-row.on .repeater-toggle svg{transform:none}
+.repeater-body{padding:10px;border-top:1px solid var(--line)}
+.repeater-tabs{display:flex;margin-bottom:10px;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden}
+.repeater-tabs button{flex:1;padding:6px;font-size:var(--fs-2)}
+.repeater-tabs button+button{border-left:1px solid var(--line-2)}
+.repeater-tabs [aria-pressed=true]{background:var(--green);color:var(--on-green)}
+.frow-control{display:grid;grid-template-columns:minmax(72px,.8fr) minmax(0,1fr);align-items:center;gap:8px;margin-bottom:8px;font-size:var(--fs-2);color:var(--text-2)}
+.frow-control:last-child{margin-bottom:0}
 .frow-control .ctl{width:100%;min-width:0}
-.frow-required{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);padding:4px 0}
-.frow-a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
-.frow-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sp-2);align-items:center;margin-top:4px}
-.frow-options{grid-column:1 / -1;display:flex;gap:var(--sp-2)}
-.frow-options .freq{padding:0 8px}
-.freq{
-  height:26px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--panel);
-  font-family:var(--label);font-size:var(--fs-1);font-weight:500;color:var(--text-3);
-}
-.freq.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.qarow-a{display:grid;grid-template-columns:1fr var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
-.qarow textarea.ctl{margin-top:4px;width:100%;min-height:44px;resize:vertical;line-height:1.5}
+.field-switch{appearance:none;justify-self:end;width:32px;height:18px;border:1px solid var(--line-2);border-radius:12px;background:var(--field-2);cursor:pointer;position:relative}
+.field-switch:before{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text-3)}
+.field-switch:checked{background:var(--green);border-color:var(--green)}
+.field-switch:checked:before{left:16px;background:var(--on-green)}
+.field-switch:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.repeater-body .pc-custom-select-trigger{min-height:30px;height:30px;padding-top:4px;padding-bottom:4px;font-size:var(--fs-2)}
+#inspector-panel .f-inline>.pc-custom-select-trigger{min-height:32px;height:32px;font-size:var(--fs-2)}
+.repeater-long{display:block;font-size:var(--fs-2);color:var(--text-2)}
+.repeater-long>span{display:block;margin-bottom:6px}
+#inspector-panel .f-inline{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1fr);align-items:center;gap:6px 10px}
+#inspector-panel .f-inline>label{margin:0;gap:4px}
+#inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd{flex-shrink:0}
+#inspector-panel .f-inline>label~*{min-width:0}
+#inspector-panel .f-inline>.note{grid-column:1/-1}
+#inspector-panel .f-inline .ctl{font-size:var(--fs-2);padding-top:6px;padding-bottom:6px}
 
 /* the icon picker: grouped, because thirty glyphs in one wall is not a set you
    can read. Size comes from CSS, never from the svg's own attributes. */

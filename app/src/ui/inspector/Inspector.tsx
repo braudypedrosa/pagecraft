@@ -22,10 +22,10 @@ const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, ch =>
 
 /** A collapsible group. Its open state is keyed by widget type and title, so folding
     Spacing away on a Section does not fold it on every Heading too. */
-function Group({ title, n, items, gk }: { title: string; n: PcNode; items?: Control[]; gk?: string; children?: any }) {
+function Group({ title, n, items, gk, collapsed = false }: { title: string; n: PcNode; items?: Control[]; gk?: string; collapsed?: boolean; children?: any }) {
   const bodyId = useId();
   const key = gk || (n.type + ':' + title);
-  const closed = C.state.ui.open[key] === false;
+  const closed = C.state.ui.open[key] === false || (C.state.ui.open[key] === undefined && collapsed);
   /* `when` lets a control depend on the node: a background's position appears once
      there is a background, the collection filter's operator once a field is chosen. */
   const shown = items ? items.filter(c => !c.when || c.when(n)) : null;
@@ -622,7 +622,10 @@ export function Inspector() {
         {tab === 'content' ? <ComponentProps n={n} /> : null}
         {tab === 'content' ? (
           content.length
-            ? <Group title={n.use ? C.nameOf(n) : d.label} n={n} items={content} />
+            ? n.type === 'form' && !n.use
+              ? [['Form fields', ['fields']], ['Button', ['submit']], ['Submission', ['mode', 'action', 'method']], ['Options', ['aria']]].map(([title, keys]) =>
+                <Group key={title as string} title={title as string} collapsed={title !== 'Form fields'} n={n} items={content.filter(c => (keys as string[]).includes(c.k || ''))} />)
+              : <Group title={n.use ? C.nameOf(n) : d.label} n={n} items={content} />
             : <Panel title={n.use ? C.nameOf(n) : d.label} n={n}>
               {/* An instance with no properties is not a mistake — a component can be a fixed
                   piece of layout somebody wanted in twelve places. It is worth saying where

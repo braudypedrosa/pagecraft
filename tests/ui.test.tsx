@@ -957,3 +957,46 @@ test('style-class rows omit implementation-detail declaration counts', () => {
   a.equal(r.$('.rowmeta'), null);
   a.equal(/\b\d+ decl\b/.test(r.host.textContent || ''), false);
 });
+
+test('form repeaters disclose one field and preserve values across switching and duplication', async () => {
+  const n = C.insert('form', null, 0)!;
+  const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
+  const draw = () => r.draw(<Ctl n={n} c={c} />);
+  draw();
+  a.equal(r.$$('.repeater-body').length, 0);
+  await act(() => r.click(r.$$('.repeater-toggle')[0]));
+  r.type(r.$('input[placeholder="Label"]')!, 'Guest name');
+  r.pick(r.$('select[aria-label="Field width"]')!, '33');
+  draw();
+  await act(() => r.click(r.$$('.repeater-toggle')[1]));
+  a.equal(r.$$('.repeater-body').length, 1);
+  await act(() => r.click(r.$$('.repeater-toggle')[0]));
+  a.equal((r.$('input[placeholder="Label"]') as HTMLInputElement).value, 'Guest name');
+  a.equal((r.$('select[aria-label="Field width"]') as HTMLSelectElement).value, '33');
+  await act(() => r.click(r.$$('.repeater-head [title="Duplicate"]')[0]));
+  draw();
+  const fields = n.props.fields as any[];
+  a.equal(fields.length, 4);
+  a.equal(fields[1].label, 'Guest name');
+  a.equal(fields[1].width, 33);
+  a.notEqual(fields[1].name, fields[0].name);
+  a.equal(r.$$('.repeater-body').length, 1);
+  await act(() => r.click(r.$$('.repeater-head [title="Remove"]')[0]));
+  draw();
+  a.equal(fields.length, 3);
+  a.equal((r.$('input[placeholder="Label"]') as HTMLInputElement).value, 'Guest name');
+});
+
+test('adding and moving a repeater keeps the edited row open', async () => {
+  const n = C.insert('form', null, 0)!;
+  const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
+  const draw = () => r.draw(<Ctl n={n} c={c} />);
+  draw();
+  await act(() => r.click(r.$$('button').find(b => b.textContent?.includes('Add field'))!));
+  draw();
+  a.equal((r.$('input[placeholder="Label"]') as HTMLInputElement).value, 'New field');
+  await act(() => r.click(r.$('.repeater-row.on [title="Move up"]')));
+  draw();
+  a.equal((r.$('input[placeholder="Label"]') as HTMLInputElement).value, 'New field');
+  a.equal(r.$$('.repeater-row')[2].classList.contains('on'), true);
+});

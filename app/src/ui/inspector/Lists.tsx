@@ -231,77 +231,112 @@ export function ItemsCtl({ n, c }: P) {
 const FIELD_TYPES: string[][] = [['text', 'Text'], ['email', 'Email'], ['tel', 'Phone'],
   ['number', 'Number'], ['date', 'Date'], ['textarea', 'Long text'], ['select', 'Dropdown'], ['checkbox', 'Checkbox']];
 
+/** Shared disclosure for text repeaters. Only the active item occupies editing space. */
+function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
+  k: number; title: string; open: number | null; setOpen: (k: number | null) => void; children: any;
+}) {
+  const expanded = open === k;
+  return <div class={'frow repeater-row' + (expanded ? ' on' : '')}>
+    <div class="repeater-head">
+      <button type="button" class="repeater-toggle" aria-expanded={expanded}
+        onClick={() => { L.endTx(); setOpen(expanded ? null : k); }}>
+        <Icon name="caret" size={10} /><span>{title}</span>
+      </button>
+      <button type="button" class="x" title="Move up" disabled={k === 0}
+        onClick={() => { liftRow(n, c, k); setOpen(k - 1); }}><Icon name="caretUp" size={11} /></button>
+      <button type="button" class="x" title="Duplicate" onClick={() => {
+        C.edit(() => {
+          const copy = structuredClone(rows(n, c)[k]);
+          // A copied form control must have a distinct submission key.
+          if (c.t === 'fields') {
+            const base = copy.name || C.slugify(copy.label) || 'field';
+            let suffix = 2;
+            while (rows(n, c).some(row => row.name === base + '-' + suffix)) suffix++;
+            copy.name = base + '-' + suffix;
+          }
+          rows(n, c).splice(k + 1, 0, copy);
+        });
+        setOpen(k + 1);
+      }}><Icon name="copy" size={11} /></button>
+      <button type="button" class="x" title="Remove" onClick={() => {
+        dropRow(n, c, k);
+        setOpen(open === k ? null : open !== null && open > k ? open - 1 : open);
+      }}><Icon name="trash" size={11} /></button>
+    </div>
+    {expanded ? <div class="repeater-body">{children}</div> : null}
+  </div>;
+}
+
 export function FieldsCtl({ n, c }: P) {
   const arr = list(n, c);
-  const key = n.id + '|' + (c.c || c.k || c.t);
+  const [open, setOpen] = useState<number | null>(null);
+  const [advanced, setAdvanced] = useState(false);
   return <Field n={n} c={c}>
     {arr.map((f, k) => (
-      <div class="frow" key={k}>
-        <div class="frow-title"><b>Field {k + 1}</b><span><RowActs n={n} c={c} k={k} /></span></div>
-        <label class="frow-control"><span>Label</span><RowInput n={n} c={c} k={k} prop="label" placeholder="Label" /></label>
-        <label class="frow-control"><span>Type</span>
-          <select class="ctl" aria-label="Field type" value={f.type || 'text'}
-            onChange={e => {
-              L.tx(key); rows(n, c)[k].type = (e.target as HTMLSelectElement).value;
-              L.endTx(); L.paint(); L.save(); L.appRender();
-            }}>
-            {FIELD_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </label>
-        <label class="frow-control"><span>Field name</span>
+      <RepeaterRow n={n} c={c} k={k} key={k} title={f.label || 'Field ' + (k + 1)}
+        open={open} setOpen={at => { setOpen(at); setAdvanced(false); }}>
+        <div class="repeater-tabs" role="group" aria-label="Field settings">
+          <button type="button" aria-pressed={!advanced} onClick={() => setAdvanced(false)}>Content</button>
+          <button type="button" aria-pressed={advanced} onClick={() => setAdvanced(true)}>Advanced</button>
+        </div>
+        {advanced ? <label class="frow-control"><span>Field name</span>
           <RowInput n={n} c={c} k={k} prop="name" placeholder={C.slugify(f.label) || 'field-name'} />
-        </label>
-        <label class="frow-control"><span>{f.type === 'select' ? 'Options' : 'Placeholder'}</span>
-          {f.type === 'select'
-            ? <RowInput n={n} c={c} k={k} prop="opts" placeholder="Option one, Option two" />
-            : <RowInput n={n} c={c} k={k} prop="ph" placeholder="Optional" />}
-        </label>
-        <label class="frow-control"><span>Width</span>
-          <select class="ctl" aria-label="Field width" value={f.width || (f.half ? 50 : 100)}
-            onChange={e => C.edit(() => {
-              rows(n, c)[k].width = Number((e.target as HTMLSelectElement).value);
-              delete rows(n, c)[k].half;
-            })}>
-            {[100, 50, 33, 25, 20].map(width => <option key={width} value={width}>{width === 100 ? 'Full width' : width + '%'}</option>)}
-          </select>
-        </label>
-        <label class="frow-required"><input type="checkbox" checked={!!f.required}
-          onChange={() => C.edit(() => { rows(n, c)[k].required = f.required ? 0 : 1; })} />Required</label>
-      </div>
+        </label> : <>
+          <label class="frow-control"><span>Type</span>
+            <select class="ctl" aria-label="Field type" value={f.type || 'text'}
+              onChange={e => C.edit(() => { rows(n, c)[k].type = (e.target as HTMLSelectElement).value; })}>
+              {FIELD_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <label class="frow-control"><span>Label</span><RowInput n={n} c={c} k={k} prop="label" placeholder="Label" /></label>
+          {f.type !== 'checkbox' ? <label class="frow-control"><span>{f.type === 'select' ? 'Options' : 'Placeholder'}</span>
+            {f.type === 'select'
+              ? <RowInput n={n} c={c} k={k} prop="opts" placeholder="Option one, Option two" />
+              : <RowInput n={n} c={c} k={k} prop="ph" placeholder="Optional" />}
+          </label> : null}
+          <label class="frow-control"><span>Required</span><input class="field-switch" type="checkbox" role="switch" checked={!!f.required}
+            onChange={() => C.edit(() => { rows(n, c)[k].required = f.required ? 0 : 1; })} /></label>
+          <label class="frow-control"><span>Width</span>
+            <select class="ctl" aria-label="Field width" value={f.width || (f.half ? 50 : 100)}
+              onChange={e => C.edit(() => {
+                rows(n, c)[k].width = Number((e.target as HTMLSelectElement).value);
+                delete rows(n, c)[k].half;
+              })}>
+              {[100, 50, 33, 25, 20].map(width => <option key={width} value={width}>{width === 100 ? 'Full width' : width + '%'}</option>)}
+            </select>
+          </label>
+        </>}
+      </RepeaterRow>
     ))}
-    <AddButton label="Add field" gap={!!arr.length}
-      onClick={() => C.edit(() => rows(n, c).push({ type: 'text', label: 'New field', name: '', required: 0, ph: '' }))} />
+    <AddButton label="Add field" gap={!!arr.length} onClick={() => {
+      const at = arr.length;
+      C.edit(() => rows(n, c).push({ type: 'text', label: 'New field', name: '', required: 0, ph: '' }));
+      setOpen(at); setAdvanced(false);
+    }} />
   </Field>;
 }
 
-/* A list of two-field rows: a line and a block. The accordion's questions and answers, and the
-   tabs' labels and panels, are the same control with different words on it — so the prop names
-   and the wording come off the control rather than being written in here twice. */
+/* Questions and tabs use the same compact repeater as form fields. */
 export function QaCtl({ n, c }: P) {
   const arr = list(n, c);
+  const [open, setOpen] = useState<number | null>(null);
   const key = n.id + '|' + (c.c || c.k || c.t);
   const [kA, kB] = c.rowKeys || ['q', 'a'];
-  const [phA, phB] = c.rowPhs || ['Question', 'Answer — leave a blank line to start a new paragraph'];
+  const [phA, phB] = c.rowPhs || ['Question', 'Answer'];
   return <Field n={n} c={c}>
-    {arr.map((it, k) => (
-      <div class="qarow" key={k}>
-        <div class="qarow-a">
-          <RowInput n={n} c={c} k={k} prop={kA} placeholder={phA} />
-          <RowActs n={n} c={c} k={k} />
-        </div>
-        <textarea class="ctl" rows={2} value={it[kB] || ''} placeholder={phB}
-          onInput={e => {
-            L.tx(key);
-            rows(n, c)[k][kB] = (e.target as HTMLTextAreaElement).value;
-            L.repaint();
-          }} onBlur={L.endTx} />
-      </div>
-    ))}
-    <AddButton label={c.addLabel || 'Add question'} gap={!!arr.length}
-      onClick={() => C.edit(() => {
-        const [vA, vB] = c.rowNew || ['A new question', ''];
-        rows(n, c).push({ [kA]: vA, [kB]: vB });
-      })} />
+    {arr.map((it, k) => <RepeaterRow n={n} c={c} k={k} key={k}
+      title={it[kA] || 'Item ' + (k + 1)} open={open} setOpen={setOpen}>
+      <label class="frow-control"><span>{phA}</span><RowInput n={n} c={c} k={k} prop={kA} placeholder={phA} /></label>
+      <label class="repeater-long"><span>{kB === 'a' ? 'Answer' : 'Content'}</span>
+        <textarea class="ctl" rows={4} value={it[kB] || ''} placeholder={phB}
+          onInput={e => { L.tx(key); rows(n, c)[k][kB] = (e.target as HTMLTextAreaElement).value; L.repaint(); }} onBlur={L.endTx} />
+      </label>
+    </RepeaterRow>)}
+    <AddButton label={c.addLabel || 'Add question'} gap={!!arr.length} onClick={() => {
+      const at = arr.length;
+      C.edit(() => { const [vA, vB] = c.rowNew || ['A new question', '']; rows(n, c).push({ [kA]: vA, [kB]: vB }); });
+      setOpen(at);
+    }} />
   </Field>;
 }
 

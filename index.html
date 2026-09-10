@@ -956,23 +956,35 @@ select.ctl{
 .gtile .x[data-x=gu] svg,.irow .x svg{transform:rotate(180deg)}
 .irow .x[data-x=ix] svg{transform:none}
 
-.frow-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.frow-title b{font-size:var(--fs-2);font-weight:600}
-.frow-title>span{display:flex;gap:4px}
-.frow-control{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;font-size:var(--fs-1);color:var(--text-2)}
+.repeater-row{padding:0;background:var(--panel)}
+.repeater-head{display:flex;align-items:center;min-height:38px;padding:0 5px;background:var(--field)}
+.repeater-toggle{display:flex;align-items:center;gap:6px;flex:1;min-width:0;padding:10px 3px;text-align:left;font-size:var(--fs-2)}
+.repeater-toggle span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.repeater-toggle svg{flex-shrink:0;transform:rotate(-90deg);color:var(--text-3)}
+.repeater-row.on .repeater-toggle svg{transform:none}
+.repeater-body{padding:10px;border-top:1px solid var(--line)}
+.repeater-tabs{display:flex;margin-bottom:10px;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden}
+.repeater-tabs button{flex:1;padding:6px;font-size:var(--fs-2)}
+.repeater-tabs button+button{border-left:1px solid var(--line-2)}
+.repeater-tabs [aria-pressed=true]{background:var(--green);color:var(--on-green)}
+.frow-control{display:grid;grid-template-columns:minmax(72px,.8fr) minmax(0,1fr);align-items:center;gap:8px;margin-bottom:8px;font-size:var(--fs-2);color:var(--text-2)}
+.frow-control:last-child{margin-bottom:0}
 .frow-control .ctl{width:100%;min-width:0}
-.frow-required{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);padding:4px 0}
-.frow-a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
-.frow-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sp-2);align-items:center;margin-top:4px}
-.frow-options{grid-column:1 / -1;display:flex;gap:var(--sp-2)}
-.frow-options .freq{padding:0 8px}
-.freq{
-  height:26px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--panel);
-  font-family:var(--label);font-size:var(--fs-1);font-weight:500;color:var(--text-3);
-}
-.freq.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.qarow-a{display:grid;grid-template-columns:1fr var(--ic-md) var(--ic-md);gap:var(--sp-2);align-items:center}
-.qarow textarea.ctl{margin-top:4px;width:100%;min-height:44px;resize:vertical;line-height:1.5}
+.field-switch{appearance:none;justify-self:end;width:32px;height:18px;border:1px solid var(--line-2);border-radius:12px;background:var(--field-2);cursor:pointer;position:relative}
+.field-switch:before{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text-3)}
+.field-switch:checked{background:var(--green);border-color:var(--green)}
+.field-switch:checked:before{left:16px;background:var(--on-green)}
+.field-switch:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.repeater-body .pc-custom-select-trigger{min-height:30px;height:30px;padding-top:4px;padding-bottom:4px;font-size:var(--fs-2)}
+#inspector-panel .f-inline>.pc-custom-select-trigger{min-height:32px;height:32px;font-size:var(--fs-2)}
+.repeater-long{display:block;font-size:var(--fs-2);color:var(--text-2)}
+.repeater-long>span{display:block;margin-bottom:6px}
+#inspector-panel .f-inline{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1fr);align-items:center;gap:6px 10px}
+#inspector-panel .f-inline>label{margin:0;gap:4px}
+#inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd{flex-shrink:0}
+#inspector-panel .f-inline>label~*{min-width:0}
+#inspector-panel .f-inline>.note{grid-column:1/-1}
+#inspector-panel .f-inline .ctl{font-size:var(--fs-2);padding-top:6px;padding-bottom:6px}
 
 /* the icon picker: grouped, because thirty glyphs in one wall is not a set you
    can read. Size comes from CSS, never from the svg's own attributes. */
@@ -12369,7 +12381,7 @@ var PC_UI = (() => {
     const f4 = fid && scope ? C2.findField(scope.col, fid) : null;
     const pb = c3.k && !c3.k.startsWith(C2.VAL) ? C2.bindGet(n2, c3.k) : null;
     const pbound = pb && pb.src === "prop" ? (C2.findProp(C2.findComponent(C2.state.ui.cedit), pb.path) || { label: pb.path }).label : "";
-    return /* @__PURE__ */ u2("div", { class: "f" + (fid ? " bound" : ""), role: "group", "aria-labelledby": labelId, children: [
+    return /* @__PURE__ */ u2("div", { class: "f" + (["select", "unit", "color", "toggle"].includes(c3.t) ? " f-inline" : "") + (fid ? " bound" : ""), role: "group", "aria-labelledby": labelId, children: [
       /* @__PURE__ */ u2("label", { id: labelId, children: [
         c3.label || "",
         c3.r ? /* @__PURE__ */ u2(ResponsiveBadge, { n: n2, c: c3 }) : null,
@@ -12924,128 +12936,205 @@ var PC_UI = (() => {
     ["select", "Dropdown"],
     ["checkbox", "Checkbox"]
   ];
+  function RepeaterRow({ n: n2, c: c3, k: k3, title, open, setOpen, children }) {
+    const expanded = open === k3;
+    return /* @__PURE__ */ u2("div", { class: "frow repeater-row" + (expanded ? " on" : ""), children: [
+      /* @__PURE__ */ u2("div", { class: "repeater-head", children: [
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "repeater-toggle",
+            "aria-expanded": expanded,
+            onClick: () => {
+              L2.endTx();
+              setOpen(expanded ? null : k3);
+            },
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: "caret", size: 10 }),
+              /* @__PURE__ */ u2("span", { children: title })
+            ]
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "x",
+            title: "Move up",
+            disabled: k3 === 0,
+            onClick: () => {
+              liftRow(n2, c3, k3);
+              setOpen(k3 - 1);
+            },
+            children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 11 })
+          }
+        ),
+        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Duplicate", onClick: () => {
+          C2.edit(() => {
+            const copy2 = structuredClone(rows(n2, c3)[k3]);
+            if (c3.t === "fields") {
+              const base = copy2.name || C2.slugify(copy2.label) || "field";
+              let suffix = 2;
+              while (rows(n2, c3).some((row) => row.name === base + "-" + suffix)) suffix++;
+              copy2.name = base + "-" + suffix;
+            }
+            rows(n2, c3).splice(k3 + 1, 0, copy2);
+          });
+          setOpen(k3 + 1);
+        }, children: /* @__PURE__ */ u2(Icon, { name: "copy", size: 11 }) }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Remove", onClick: () => {
+          dropRow(n2, c3, k3);
+          setOpen(open === k3 ? null : open !== null && open > k3 ? open - 1 : open);
+        }, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+      ] }),
+      expanded ? /* @__PURE__ */ u2("div", { class: "repeater-body", children }) : null
+    ] });
+  }
   function FieldsCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
-    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const [open, setOpen] = d2(null);
+    const [advanced, setAdvanced] = d2(false);
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
-      arr.map((f4, k3) => /* @__PURE__ */ u2("div", { class: "frow", children: [
-        /* @__PURE__ */ u2("div", { class: "frow-title", children: [
-          /* @__PURE__ */ u2("b", { children: [
-            "Field ",
-            k3 + 1
-          ] }),
-          /* @__PURE__ */ u2("span", { children: /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 }) })
-        ] }),
-        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
-          /* @__PURE__ */ u2("span", { children: "Label" }),
-          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Label" })
-        ] }),
-        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
-          /* @__PURE__ */ u2("span", { children: "Type" }),
-          /* @__PURE__ */ u2(
-            "select",
-            {
-              class: "ctl",
-              "aria-label": "Field type",
-              value: f4.type || "text",
-              onChange: (e3) => {
-                L2.tx(key);
-                rows(n2, c3)[k3].type = e3.target.value;
-                L2.endTx();
-                L2.paint();
-                L2.save();
-                L2.appRender();
-              },
-              children: FIELD_TYPES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
-            }
-          )
-        ] }),
-        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
-          /* @__PURE__ */ u2("span", { children: "Field name" }),
-          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "name", placeholder: C2.slugify(f4.label) || "field-name" })
-        ] }),
-        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
-          /* @__PURE__ */ u2("span", { children: f4.type === "select" ? "Options" : "Placeholder" }),
-          f4.type === "select" ? /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "opts", placeholder: "Option one, Option two" }) : /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "ph", placeholder: "Optional" })
-        ] }),
-        /* @__PURE__ */ u2("label", { class: "frow-control", children: [
-          /* @__PURE__ */ u2("span", { children: "Width" }),
-          /* @__PURE__ */ u2(
-            "select",
-            {
-              class: "ctl",
-              "aria-label": "Field width",
-              value: f4.width || (f4.half ? 50 : 100),
-              onChange: (e3) => C2.edit(() => {
-                rows(n2, c3)[k3].width = Number(e3.target.value);
-                delete rows(n2, c3)[k3].half;
-              }),
-              children: [100, 50, 33, 25, 20].map((width) => /* @__PURE__ */ u2("option", { value: width, children: width === 100 ? "Full width" : width + "%" }, width))
-            }
-          )
-        ] }),
-        /* @__PURE__ */ u2("label", { class: "frow-required", children: [
-          /* @__PURE__ */ u2(
-            "input",
-            {
-              type: "checkbox",
-              checked: !!f4.required,
-              onChange: () => C2.edit(() => {
-                rows(n2, c3)[k3].required = f4.required ? 0 : 1;
-              })
-            }
-          ),
-          "Required"
-        ] })
-      ] }, k3)),
-      /* @__PURE__ */ u2(
-        AddButton,
+      arr.map((f4, k3) => /* @__PURE__ */ u2(
+        RepeaterRow,
         {
-          label: "Add field",
-          gap: !!arr.length,
-          onClick: () => C2.edit(() => rows(n2, c3).push({ type: "text", label: "New field", name: "", required: 0, ph: "" }))
-        }
-      )
+          n: n2,
+          c: c3,
+          k: k3,
+          title: f4.label || "Field " + (k3 + 1),
+          open,
+          setOpen: (at) => {
+            setOpen(at);
+            setAdvanced(false);
+          },
+          children: [
+            /* @__PURE__ */ u2("div", { class: "repeater-tabs", role: "group", "aria-label": "Field settings", children: [
+              /* @__PURE__ */ u2("button", { type: "button", "aria-pressed": !advanced, onClick: () => setAdvanced(false), children: "Content" }),
+              /* @__PURE__ */ u2("button", { type: "button", "aria-pressed": advanced, onClick: () => setAdvanced(true), children: "Advanced" })
+            ] }),
+            advanced ? /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+              /* @__PURE__ */ u2("span", { children: "Field name" }),
+              /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "name", placeholder: C2.slugify(f4.label) || "field-name" })
+            ] }) : /* @__PURE__ */ u2(S, { children: [
+              /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+                /* @__PURE__ */ u2("span", { children: "Type" }),
+                /* @__PURE__ */ u2(
+                  "select",
+                  {
+                    class: "ctl",
+                    "aria-label": "Field type",
+                    value: f4.type || "text",
+                    onChange: (e3) => C2.edit(() => {
+                      rows(n2, c3)[k3].type = e3.target.value;
+                    }),
+                    children: FIELD_TYPES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+                /* @__PURE__ */ u2("span", { children: "Label" }),
+                /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Label" })
+              ] }),
+              f4.type !== "checkbox" ? /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+                /* @__PURE__ */ u2("span", { children: f4.type === "select" ? "Options" : "Placeholder" }),
+                f4.type === "select" ? /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "opts", placeholder: "Option one, Option two" }) : /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "ph", placeholder: "Optional" })
+              ] }) : null,
+              /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+                /* @__PURE__ */ u2("span", { children: "Required" }),
+                /* @__PURE__ */ u2(
+                  "input",
+                  {
+                    class: "field-switch",
+                    type: "checkbox",
+                    role: "switch",
+                    checked: !!f4.required,
+                    onChange: () => C2.edit(() => {
+                      rows(n2, c3)[k3].required = f4.required ? 0 : 1;
+                    })
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+                /* @__PURE__ */ u2("span", { children: "Width" }),
+                /* @__PURE__ */ u2(
+                  "select",
+                  {
+                    class: "ctl",
+                    "aria-label": "Field width",
+                    value: f4.width || (f4.half ? 50 : 100),
+                    onChange: (e3) => C2.edit(() => {
+                      rows(n2, c3)[k3].width = Number(e3.target.value);
+                      delete rows(n2, c3)[k3].half;
+                    }),
+                    children: [100, 50, 33, 25, 20].map((width) => /* @__PURE__ */ u2("option", { value: width, children: width === 100 ? "Full width" : width + "%" }, width))
+                  }
+                )
+              ] })
+            ] })
+          ]
+        },
+        k3
+      )),
+      /* @__PURE__ */ u2(AddButton, { label: "Add field", gap: !!arr.length, onClick: () => {
+        const at = arr.length;
+        C2.edit(() => rows(n2, c3).push({ type: "text", label: "New field", name: "", required: 0, ph: "" }));
+        setOpen(at);
+        setAdvanced(false);
+      } })
     ] });
   }
   function QaCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
+    const [open, setOpen] = d2(null);
     const key = n2.id + "|" + (c3.c || c3.k || c3.t);
     const [kA, kB] = c3.rowKeys || ["q", "a"];
-    const [phA, phB] = c3.rowPhs || ["Question", "Answer \u2014 leave a blank line to start a new paragraph"];
+    const [phA, phB] = c3.rowPhs || ["Question", "Answer"];
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
-      arr.map((it, k3) => /* @__PURE__ */ u2("div", { class: "qarow", children: [
-        /* @__PURE__ */ u2("div", { class: "qarow-a", children: [
-          /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: kA, placeholder: phA }),
-          /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 })
-        ] }),
-        /* @__PURE__ */ u2(
-          "textarea",
-          {
-            class: "ctl",
-            rows: 2,
-            value: it[kB] || "",
-            placeholder: phB,
-            onInput: (e3) => {
-              L2.tx(key);
-              rows(n2, c3)[k3][kB] = e3.target.value;
-              L2.repaint();
-            },
-            onBlur: L2.endTx
-          }
-        )
-      ] }, k3)),
-      /* @__PURE__ */ u2(
-        AddButton,
+      arr.map((it, k3) => /* @__PURE__ */ u2(
+        RepeaterRow,
         {
-          label: c3.addLabel || "Add question",
-          gap: !!arr.length,
-          onClick: () => C2.edit(() => {
-            const [vA, vB] = c3.rowNew || ["A new question", ""];
-            rows(n2, c3).push({ [kA]: vA, [kB]: vB });
-          })
-        }
-      )
+          n: n2,
+          c: c3,
+          k: k3,
+          title: it[kA] || "Item " + (k3 + 1),
+          open,
+          setOpen,
+          children: [
+            /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+              /* @__PURE__ */ u2("span", { children: phA }),
+              /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: kA, placeholder: phA })
+            ] }),
+            /* @__PURE__ */ u2("label", { class: "repeater-long", children: [
+              /* @__PURE__ */ u2("span", { children: kB === "a" ? "Answer" : "Content" }),
+              /* @__PURE__ */ u2(
+                "textarea",
+                {
+                  class: "ctl",
+                  rows: 4,
+                  value: it[kB] || "",
+                  placeholder: phB,
+                  onInput: (e3) => {
+                    L2.tx(key);
+                    rows(n2, c3)[k3][kB] = e3.target.value;
+                    L2.repaint();
+                  },
+                  onBlur: L2.endTx
+                }
+              )
+            ] })
+          ]
+        },
+        k3
+      )),
+      /* @__PURE__ */ u2(AddButton, { label: c3.addLabel || "Add question", gap: !!arr.length, onClick: () => {
+        const at = arr.length;
+        C2.edit(() => {
+          const [vA, vB] = c3.rowNew || ["A new question", ""];
+          rows(n2, c3).push({ [kA]: vA, [kB]: vB });
+        });
+        setOpen(at);
+      } })
     ] });
   }
   function ImgsCtl({ n: n2, c: c3 }) {
@@ -14128,10 +14217,10 @@ var PC_UI = (() => {
 
   // app/src/ui/inspector/Inspector.tsx
   var esc5 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
-  function Group({ title, n: n2, items, gk }) {
+  function Group({ title, n: n2, items, gk, collapsed = false }) {
     const bodyId = g2();
     const key = gk || n2.type + ":" + title;
-    const closed = C2.state.ui.open[key] === false;
+    const closed = C2.state.ui.open[key] === false || C2.state.ui.open[key] === void 0 && collapsed;
     const shown2 = items ? items.filter((c3) => !c3.when || c3.when(n2)) : null;
     if (shown2 && !shown2.length) return null;
     return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
@@ -14820,7 +14909,7 @@ var PC_UI = (() => {
             tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
             tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
-            tab2 === "content" ? content.length ? /* @__PURE__ */ u2(Group, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
+            tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys2]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys2.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
               "Nothing varies between instances yet. Open this component in the",
               /* @__PURE__ */ u2("b", { children: " Components" }),
               " tab and mark what should."
