@@ -1367,7 +1367,10 @@ pre.code{
 }
 .borderpick button.on.set::after{background:var(--paper)}
 .borderctl>.f{margin-bottom:var(--gap-3)}
-#cms-workspace-host:empty{display:none}
+.rail button[data-act="submissions"] span{font-size:9px;letter-spacing:-.02em;max-width:100%}
+#submissions-workspace{flex:1;min-width:0;min-height:0;border:0;background:var(--panel)}
+body.submissions-open #app>.main>.left,body.submissions-open #app>.main>.stage,body.submissions-open #app>.main>.right,body.submissions-open #cms-workspace-host{display:none}
+body:not(.cms-open) #cms-workspace-host,#cms-workspace-host:empty{display:none}
 #cms-workspace-host{flex:1;min-width:0;min-height:0}
 body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #app>.main>.right{display:none}
 .cms-workspace{--h-ctl:var(--pc-control-height,44px);--cms-gap:var(--pc-space-4,16px);height:100%;min-height:0;background:var(--panel);color:var(--text);display:flex;flex-direction:column;font-family:inherit;font-size:var(--fs-3)}
@@ -18207,8 +18210,9 @@ if (SRV && !IS_WORDPRESS) {
   setCloudFormEndpoint(location.origin + '/forms/' + encodeURIComponent(SRV.siteId));
   const submissions = document.createElement('button');
   submissions.title = 'Submissions';
+  submissions.dataset.act = 'submissions';
+  submissions.setAttribute('aria-label', 'Submissions');
   submissions.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg><span>Submissions</span>';
-  submissions.onclick = () => { window.open('/sites/' + encodeURIComponent(SRV.siteId) + '/submissions', '_blank', 'noopener'); };
   document.querySelector('#leftRail [data-t="cms"]').after(submissions);
 }
 const brandHome = $('#brandHome');
@@ -22260,7 +22264,35 @@ function bindTop() {
   $('#helpBtn').addEventListener('click', helpModal);
   /* Extracted so anything can open a panel, not only a click on the rail — starting
      an empty site sends you to Add, which is the only thing left to do. */
+  let submissionsFrame = null;
+  let submissionsActive = [];
+  const closeSubmissions = () => {
+    if (!submissionsFrame) return;
+    submissionsFrame.remove(); submissionsFrame = null;
+    document.body.classList.remove('submissions-open');
+    $$('#leftRail button').forEach(b => b.classList.toggle('on', submissionsActive.includes(b)));
+    requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
+  };
+  const openSubmissions = () => {
+    if (submissionsFrame) return;
+    submissionsActive = $$('#leftRail button.on');
+    submissionsFrame = document.createElement('iframe');
+    submissionsFrame.id = 'submissions-workspace';
+    submissionsFrame.title = 'Submissions';
+    submissionsFrame.src = '/sites/' + encodeURIComponent(SRV.siteId) + '/submissions?embedded=1';
+    document.body.classList.add('submissions-open');
+    $$('#leftRail button').forEach(b => b.classList.toggle('on', b.dataset.act === 'submissions'));
+    $('#app > .main').append(submissionsFrame);
+    submissionsFrame.focus();
+  };
+  window.addEventListener('message', event => {
+    if (event.origin === location.origin && submissionsFrame && event.source === submissionsFrame.contentWindow
+      && event.data === 'pagecraft:close-submissions') {
+      closeSubmissions(); $('#leftRail [data-act="submissions"]').focus();
+    }
+  });
   window.showPanel = t => {
+    closeSubmissions();
     document.body.classList.add('library-focus');
     state.ui.tab = t;
     $$('#leftRail button[data-t]').forEach(x => x.classList.toggle('on', x.dataset.t === t));
@@ -22279,6 +22311,9 @@ function bindTop() {
     /* Media and Project open dialogs rather than swapping the panel, so they set
        neither `state.ui.tab` nor the `on` treatment — the panel behind them has not
        changed. Scoping the toggle to `[data-t]` is what keeps them out of it. */
+    if (b.dataset.act === 'submissions') { openSubmissions(); return; }
+    closeSubmissions();
+    if (b.dataset.t) document.body.classList.remove('cms-open');
     const dialog = { media: mediaModal, project: projectModal, account: accountDialog }[b.dataset.act];
     if (dialog) { dialog(); return; }
     /* A second press on the active rail item dismisses the narrow drawer. Desktop

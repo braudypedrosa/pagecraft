@@ -64,9 +64,17 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect((await app.request(base)).status).toBe(403);
     const inbox = await app.request(base, { headers: { cookie: 'owner=1' } });
     const html = await inbox.text(); expect(html).toContain('&lt;script&gt;'); expect(html).not.toContain('<dd><script>');
+    const embedded = await app.request(base + '?embedded=1', { headers: { cookie: 'owner=1' } });
+    expect(embedded.headers.get('content-security-policy')).toContain("frame-ancestors 'self'");
+    const embeddedHtml = await embedded.text();
+    expect(embeddedHtml).not.toContain('aria-label="Site management"');
+    expect(embeddedHtml).toContain('pagecraft:close-submissions');
+    expect(embeddedHtml).toContain('name="embedded" value="1"');
     const change = (origin: string) => app.request(base + '/' + entries[0].id + '/status', { method: 'POST', headers: { cookie:'owner=1', origin }, body:'status=read' });
     expect((await change('https://evil.test')).status).toBe(403); expect((await change('https://editor.test')).status).toBe(303);
     expect((await submissions.list(site.id))[0].status).toBe('read');
+    const embeddedSave = await app.request(base + '/' + entries[0].id + '/status', { method: 'POST', headers: { cookie: 'owner=1', origin: 'https://editor.test' }, body: 'status=archived&embedded=1' });
+    expect(embeddedSave.headers.get('location')).toBe('/sites/' + site.id + '/submissions?embedded=1');
     expect((await app.request(base, { headers: { cookie: 'owner=1', 'x-pagecraft-editor-session': 'wp' } })).status).toBe(403);
     await submissions.removeSite(site.id); expect(await submissions.list(site.id)).toHaveLength(0);
   } finally { await rm(root, { recursive: true, force: true }); }

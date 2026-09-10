@@ -20,14 +20,16 @@ export function submissionRoutes(app: Hono, o: {
     return o.allowed(c, c.req.param('id')!, verb);
   };
   app.get(base, async c => {
+    const embedded = c.req.query('embedded') === '1';
+    if (embedded) c.header('Content-Security-Policy', "frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
     const access = await gate(c, 'read');
-    if (!access.ok) return access.status === 401 ? c.redirect('/sign-in?next=' + encodeURIComponent(new URL(c.req.url).pathname)) : c.text('Access denied', access.status);
+    if (!access.ok) return access.status === 401 && !embedded ? c.redirect('/sign-in?next=' + encodeURIComponent(new URL(c.req.url).pathname)) : c.text('Access denied', access.status);
     const site = await o.store.byId(c.req.param('id'));
     if (!site) return c.notFound();
     c.header('Cache-Control', 'no-store');
     if (!o.submissions) return c.text('Submissions are unavailable. Try again shortly.', 503);
     try {
-      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), await o.submissions.list(site.id), c.req.query('form') || '', c.req.query('status') || '', Number(c.req.query('page')) || 1));
+      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), await o.submissions.list(site.id), c.req.query('form') || '', c.req.query('status') || '', Number(c.req.query('page')) || 1, embedded));
     } catch { return c.text('Submissions could not be loaded. Try again shortly.', 503); }
   });
   app.post(base + '/:entry/status', bodyLimit({ maxSize: 1024 }), async c => {
@@ -36,11 +38,12 @@ export function submissionRoutes(app: Hono, o: {
     if (c.req.header('origin') !== new URL(o.editorOrigin || c.req.url).origin) return c.text('Refresh this page and try again.', 403);
     const data = new URLSearchParams(await c.req.text());
     const status = data.get('status') as SubmissionStatus;
+    if (data.get('embedded') === '1') c.header('Content-Security-Policy', "frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
     if (!['new', 'read', 'archived'].includes(status)) return c.text('Choose a valid status.', 400);
     if (!o.submissions) return c.text('Submissions are unavailable.', 503);
     try {
       if (!await o.submissions.status(c.req.param('id')!, c.req.param('entry')!, status)) return c.notFound();
-      return c.redirect('/sites/' + encodeURIComponent(c.req.param('id')!) + '/submissions', 303);
+      return c.redirect('/sites/' + encodeURIComponent(c.req.param('id')!) + '/submissions' + (data.get('embedded') === '1' ? '?embedded=1' : ''), 303);
     } catch { return c.text('Status was not saved. Try again.', 503); }
   });
   const perSource = throttle(10, 60000), perSite = throttle(100, 60000);
