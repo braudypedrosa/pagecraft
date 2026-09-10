@@ -849,3 +849,27 @@ test('Pages workspace opens inside the shell and page switching exposes SEO sepa
     a.equal(doc.body.classList.contains('pages-open'),false);
   } finally {C.state.pages.splice(index,1);C.state.cur=original;w.matchMedia=media;w.render();}
 });
+
+
+test('inline editing cannot overwrite a CMS-bound component value', async () => {
+  const {window:w,doc}=await boot();
+  const C=w.__CORE;
+  const original=C.state.meta.components;
+  const pg=C.state.pages[C.state.cur];
+  const node=C.N('heading'); node.use='qa-cms-inline';
+  const root=C.N('heading'); root.bind={text:{src:'prop',path:'title'}};
+  node.bind={'val:title':{src:'field',path:'title'}};
+  C.state.meta.components=[...(original||[]),{id:node.use,name:'CMS inline QA',node:root,
+    props:[{k:'title',t:'text',label:'Title',def:'Fallback'}]}];
+  pg.tree.push(node);
+  try {
+    C.state.ui.mode='page';
+    const history=C.hist.u.length;
+    w.enterEdit(node.id);
+    a.match(doc.querySelector('#toast').textContent,/Edit the CMS entry or disconnect/);
+    a.equal(C.hist.u.length,history,'no inline-edit transaction is opened');
+    a.equal(node.vals,undefined);
+  } finally {
+    pg.tree.splice(pg.tree.indexOf(node),1);C.state.meta.components=original;C.selSet([]);w.render();
+  }
+});

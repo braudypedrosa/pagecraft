@@ -3720,6 +3720,13 @@ function enterEdit(id) {
   const h = locate(id); if (!h) return;
   const n = h.node, d = DEF[n.type];
   if (!d.edit) return;
+  const key = d.edit === 'rich' ? 'html' : 'text';
+  const property = findComponent(n.use)?.node.bind?.[key];
+  const bindingKey = property?.src === 'prop' ? VAL + property.path : key;
+  if (boundField(n, bindingKey)) {
+    toast('This value comes from CMS. Edit the CMS entry or disconnect the field.');
+    return;
+  }
   if (editing.on) exitEdit();
   if (state.ui.sel !== id || multiOn()) { selSet([id]); paintSel(); renderRight(); renderLayers(); }
 
