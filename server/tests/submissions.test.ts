@@ -124,6 +124,11 @@ test('large inbox uses metadata for overview and loads one bounded page with fre
     expect(first.items).toHaveLength(25); expect(next.items).toHaveLength(25);
     expect(first.items[0].values[0].value).toBe('Entry 999');
     expect(new Set([...first.items,...next.items].map(e=>e.id)).size).toBe(50);
+    const oldest = await store.page('site',summary,'contact','',1,'asc');
+    const oldestNext = await store.page('site',summary,'contact','',2,'asc');
+    expect(oldest.items[0].values[0].value).toBe('Entry 0');
+    expect(oldestNext.items[0].values[0].value).toBe('Entry 25');
+    expect(new Set([...oldest.items,...oldestNext.items].map(e=>e.id)).size).toBe(50);
     await store.remove('site',first.items[0].id);
     expect(await store.overview('site')).toHaveLength(999);
     expect(await store.overview('other')).toEqual([]);
@@ -138,7 +143,7 @@ test('entry header identifies the selected form and refresh preserves its filter
   expect(header).toContain('1 entry');
   expect(header).toContain('All forms</a>');
   expect(header).toContain('class="pc-sub-actions"');
-  expect(header).toContain('form=qa-form&amp;status=success&amp;page=1&amp;embedded=1');
+  expect(header).toContain('form=qa-form&amp;status=success&amp;order=desc&amp;page=1&amp;embedded=1');
   expect(html).not.toContain('pc-sub-context');
   expect(html).toContain('name="status" value="success"');
 });
@@ -163,4 +168,16 @@ test('CSV covers every entry, escaped quotes, line breaks and spreadsheet formul
   expect(csv).toContain(`'=HYPERLINK(""bad"")`);
   expect(csv).toContain('line 1\nline 2'); expect(csv).toContain('Entry 29');
   expect(csv).toContain('"success"');
+});
+
+test('Date header toggles order and retains it for filtering, export and deletion', () => {
+  const user={id:'u',name:'QA',email:'qa@example.com'},site={id:'site',name:'QA'};
+  const entries=[{id:'one',formId:'qa-form',formName:'QA',createdAt:'2026-01-01T00:00:00Z',status:'success' as const,values:[]}];
+  const html=siteSubmissionsPage(user,site,'owner',siteForms(source()),entries,'qa-form','success',1,true,undefined,{},false,'asc');
+  expect(html).toContain('aria-sort="ascending"');
+  expect(html).toContain('Date: sort newest first');
+  expect(html).toContain('order=desc&amp;embedded=1');
+  expect(html).toContain('export.csv?form=qa-form&amp;status=success&amp;order=asc');
+  expect(html).toContain('name="order" value="asc"');
+  expect(html).not.toContain('<th>Received</th>');
 });

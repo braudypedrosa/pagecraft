@@ -13,9 +13,13 @@ export interface Submission {
   values: { label: string; value: string }[];
 }
 export const submissionOutcome = (entry: Submission) => entry.status === 'failed' ? 'failed' : 'success';
+export function sortSubmissions(entries: Submission[], order = 'desc') {
+  const direction = order === 'asc' ? 1 : -1;
+  return [...entries].sort((a,b) => direction * (a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)));
+}
 export function submissionsCsv(entries: Submission[], labels = [...new Set(entries.flatMap(e => e.values.map(v => v.label)))], header = true) {
   const cell = (value: string) => '"' + (/^[\s]*[=+@-]/.test(value) ? "'" + value : value).replace(/"/g, '""') + '"';
-  return (header ? '\uFEFF' : '') + [...(header ? [['Entry ID','Received','Status','Error',...labels]] : []), ...entries.map(e => [e.id,e.createdAt,submissionOutcome(e),e.error || '',...labels.map(label => e.values.filter(v=>v.label===label).map(v=>v.value).join('\n'))])].map(row=>row.map(cell).join(',')).join('\r\n') + '\r\n';
+  return (header ? '\uFEFF' : '') + [...(header ? [['Entry ID','Date','Status','Error',...labels]] : []), ...entries.map(e => [e.id,e.createdAt,submissionOutcome(e),e.error || '',...labels.map(label => e.values.filter(v=>v.label===label).map(v=>v.value).join('\n'))])].map(row=>row.map(cell).join(',')).join('\r\n') + '\r\n';
 }
 export function siteForms(doc: Doc): SiteForm[] {
   const forms = new Map<string, SiteForm>();
@@ -79,8 +83,8 @@ export class FileSubmissionStore {
     this.summaries.set(site, { stamp, rows });
     return rows;
   }
-  async page(site: string, metadata: Submission[], form: string, status: string, requested: number) {
-    const filtered = metadata.filter(e => e.formId === form && (!status || submissionOutcome(e) === status));
+  async page(site: string, metadata: Submission[], form: string, status: string, requested: number, order = 'desc') {
+    const filtered = sortSubmissions(metadata.filter(e => e.formId === form && (!status || submissionOutcome(e) === status)), order);
     const page = Math.max(1, Math.min(Math.max(1, Math.ceil(filtered.length / 25)), Math.floor(requested) || 1));
     const items = await Promise.all(filtered.slice((page-1)*25, page*25).map(e => readFile(join(this.dir(site), e.id + '.json'), 'utf8').then(text => JSON.parse(text) as Submission)));
     return { items, page };

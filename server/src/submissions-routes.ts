@@ -39,7 +39,7 @@ export function submissionRoutes(app: Hono, o: {
       const site = siteResult.value;
       const entries = await o.submissions.overview(c.req.param('id')!);
       const form = c.req.query('form') || '';
-      const detail = form ? await o.submissions.page(c.req.param('id')!, entries, form, c.req.query('status') || '', Number(c.req.query('page')) || 1) : undefined;
+      const detail = form ? await o.submissions.page(c.req.param('id')!, entries, form, c.req.query('status') || '', Number(c.req.query('page')) || 1, c.req.query('order')) : undefined;
       if (!site) return c.notFound();
       const forms = siteForms(site.doc);
       const prepared: Record<string, string> = {};
@@ -58,7 +58,7 @@ export function submissionRoutes(app: Hono, o: {
         prepared['/sites/' + encodeURIComponent(site.id) + '/submissions?' + query] = html;
       }
       c.header('Server-Timing', `auth;dur=${authMs.toFixed(1)}, site;dur=${siteMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`);
-      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', detail?.page || 1, embedded, detail?.items, prepared));
+      return c.html(siteSubmissionsPage(access.user, site, access.role, siteForms(site.doc), entries, c.req.query('form') || '', c.req.query('status') || '', detail?.page || 1, embedded, detail?.items, prepared, false, c.req.query('order')));
     } catch { return c.text('Submissions could not be loaded. Try again shortly.', 503); }
   });
   app.get(base + '/export.csv', async c => {
@@ -74,14 +74,14 @@ export function submissionRoutes(app: Hono, o: {
       const metadata = (await store.overview(siteId)).filter(e => e.formId === form && (!status || submissionOutcome(e) === status));
       const pages = Math.ceil(metadata.length / 25);
       const labels = new Set<string>();
-      for (let page=1;page<=pages;page++) for (const entry of (await store.page(siteId,metadata,form,status || '',page)).items) for (const value of entry.values) labels.add(value.label);
+      for (let page=1;page<=pages;page++) for (const entry of (await store.page(siteId,metadata,form,status || '',page,c.req.query('order'))).items) for (const value of entry.values) labels.add(value.label);
       c.header('Content-Type', 'text/csv; charset=utf-8');
       c.header('Content-Disposition', 'attachment; filename="submissions.csv"');
       return stream(c, async output => {
         await output.write(submissionsCsv([], [...labels]));
         for (let page=1;page<=pages;page++) {
           if (output.aborted) break;
-          await output.write(submissionsCsv((await store.page(siteId,metadata,form,status || '',page)).items, [...labels], false));
+          await output.write(submissionsCsv((await store.page(siteId,metadata,form,status || '',page,c.req.query('order'))).items, [...labels], false));
         }
       });
     } catch { return c.text('Export failed. Try again.', 503); }
@@ -96,7 +96,7 @@ export function submissionRoutes(app: Hono, o: {
     try {
       if (!await o.submissions.remove(c.req.param('id')!, c.req.param('entry')!)) return c.notFound();
       const query = new URLSearchParams();
-      for (const name of ['embedded','form','status','page']) if (data.get(name)) query.set(name,data.get(name)!);
+      for (const name of ['embedded','form','status','page','order']) if (data.get(name)) query.set(name,data.get(name)!);
       return c.redirect('/sites/' + encodeURIComponent(c.req.param('id')!) + '/submissions?' + query, 303);
     } catch { return c.text('Entry was not deleted. Try again.', 503); }
   });
