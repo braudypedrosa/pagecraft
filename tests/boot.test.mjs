@@ -754,3 +754,23 @@ test('settings sections preserve values, keep reset actions separate, and close 
   doc.querySelector('#mDone').click();
   a.equal(doc.querySelector('#modal').hidden, true);
 });
+
+test('Done exits component and shared scopes after a modebar-only redraw', async () => {
+  const {window:w,doc}=await boot();
+  const C=w.__CORE;
+  const original=C.state.meta.components;
+  const node=C.N('heading');
+  C.state.meta.components=[...(original||[]),{id:'qa-done-scope',name:'QA scope',node,props:[]}];
+  try {
+    C.componentOpen('qa-done-scope'); w.render();
+    const prior=doc.querySelector('#doneScope');
+    C.selSet([node.id]); w.renderModebar();
+    a.notEqual(doc.querySelector('#doneScope'),prior);
+    doc.querySelector('#doneScope').click();
+    a.equal(C.state.ui.mode,'page'); a.equal(C.state.ui.cedit,null);
+    a.equal(doc.querySelector('#doneScope'),null);
+    w.setMode('header'); w.renderModebar();
+    doc.querySelector('#doneScope').click();
+    a.equal(C.state.ui.mode,'page');
+  } finally {C.componentClose();C.state.meta.components=original;w.render();}
+});

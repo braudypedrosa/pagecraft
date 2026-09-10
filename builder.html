@@ -4234,6 +4234,12 @@ function renderModebar() {
     (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
     itemBarHtml() +
     `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+  const done = $('#doneScope');
+  if (done) done.addEventListener('click', () => {
+    /* `componentClose` rather than `setMode('page')`: the component id has to be dropped too,
+       or the next thing that reads `ui.cedit` is editing something nobody has open. */
+    if (state.ui.mode === 'component') { edit(() => componentClose()); render(); } else setMode('page');
+  });
   $$('.itemBar select', $('#modebar')).forEach(select => select.addEventListener('change', () => {
     state.ui.item = state.ui.item || {}; state.ui.item[select.dataset.col] = +select.value; paint(); renderModebar();
   }));
@@ -4356,12 +4362,6 @@ function render(opts = {}) {
   renderLayers(); renderPages(); renderCms(); renderRight(); renderModebar();
   renderPanelHead(); renderDoc(); layoutCanvas(); renderDim(); drawBlocks();
   paintReview(); refreshReview();
-  const done = $('#doneScope');
-  if (done) done.addEventListener('click', () => {
-    /* `componentClose` rather than `setMode('page')`: the component id has to be dropped too,
-       or the next thing that reads `ui.cedit` is editing something nobody has open. */
-    if (state.ui.mode === 'component') { edit(() => componentClose()); render(); } else setMode('page');
-  });
   paintHistory();
 }
 
