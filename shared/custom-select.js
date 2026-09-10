@@ -93,7 +93,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     const border = record.menu.offsetHeight - record.menu.clientHeight;
     const desired = Math.min(record.menu.scrollHeight + border, 360);
     const below = roomBelow >= desired || (roomAbove < desired && roomBelow >= roomAbove);
-    const height = Math.min(desired, below ? roomBelow : roomAbove);
+    const height = Math.min(desired, below ? roomBelow : roomAbove, Math.max(0, window.innerHeight - 16));
     record.menu.style.maxHeight = `${height}px`;
     const top = below ? rect.bottom + 6 : rect.top - height - 6;
     record.menu.style.left = `${left}px`;

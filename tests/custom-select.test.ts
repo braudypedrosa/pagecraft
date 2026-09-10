@@ -76,6 +76,7 @@ test('menus fit below, above or in the larger scrollable space and clamp to the 
   top=620; place(); a.equal(menu.style.top,'254px');
   top=100; height=300; place(); a.equal(menu.style.maxHeight,'149px'); a.equal(menu.style.top,'143px');
   top=220; window.dispatchEvent(new Event('scroll')); a.equal(menu.style.maxHeight,'206px'); a.equal(menu.style.top,'8px');
+  top=500; place(); a.equal(menu.style.maxHeight,'284px'); a.equal(menu.style.top,'8px');
   await new Promise(resolve=>setTimeout(resolve,30));
   const options = menu.querySelectorAll<HTMLButtonElement>('button');
   a.equal(options[1].disabled,true);
