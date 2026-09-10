@@ -58,6 +58,9 @@ export function submissionRoutes(app: Hono, o: {
       const query = new URLSearchParams();
       if (data.get('embedded') === '1') query.set('embedded', '1');
       if (data.get('form')) query.set('form', data.get('form')!);
+      if (['new','read','archived'].includes(data.get('filter') || '')) query.set('status', data.get('filter')!);
+      const page = Number(data.get('page'));
+      if (Number.isInteger(page) && page > 1) query.set('page', String(page));
       return c.redirect('/sites/' + encodeURIComponent(c.req.param('id')!) + '/submissions' + (query.size ? '?' + query : ''), 303);
     } catch { return c.text('Status was not saved. Try again.', 503); }
   });
