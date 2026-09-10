@@ -4532,7 +4532,11 @@ function syncDialogLayers() {
     if (on) { el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); }
     else { el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }
   };
-  lock(app, modalOpen || askOpen);
+  const settingsOpen = modalOpen && $('#modalBox').classList.contains('project-settings');
+  lock(app, askOpen || (modalOpen && !settingsOpen));
+  /* Settings occupies the workspace, but the visible tool rail remains navigation. */
+  $$('#app > :not(.main), #app > .main > :not(#leftRail)').forEach(el => lock(el, settingsOpen));
+  $('#modalBox').setAttribute('aria-modal', settingsOpen ? 'false' : 'true');
   lock(modal, modalOpen && askOpen);
 }
 function openModal(title, bodyHtml, footHtml, size) {
@@ -4559,7 +4563,10 @@ const closeModal = () => {
 };
 $('#mClose').addEventListener('click', closeModal);
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
-$('#modal').addEventListener('keydown', e => trapDialogKey(e, $('#modalBox'), closeModal));
+$('#modal').addEventListener('keydown', e => {
+  if ($('#modalBox').classList.contains('project-settings') && e.key !== 'Escape') return;
+  trapDialogKey(e, $('#modalBox'), closeModal);
+});
 
 /* ---- asking for something ---------------------------------------------
    Replaces native prompt() and confirm(). Those were unstyled OS chrome in the
@@ -5110,6 +5117,7 @@ function projectModal() {
 
   if (!IS_WORDPRESS) {
     $('#modalBox').classList.add('project-settings');
+    syncDialogLayers();
     const body = $('#mBody');
     const sections = [
       ['general', 'General', ['mName', 'mMax', 'mLang', 'mBase', 'mFavBox', 'mOgBox']],
@@ -5758,6 +5766,10 @@ function bindTop() {
      place: every site has one, and its title and description are content. */
   if (SRV && !canStructure()) showPanel('pages');
   $$('#leftRail button').forEach(b => b.addEventListener('click', () => {
+    if (!$('#modal').hidden && $('#modalBox').classList.contains('project-settings')) {
+      closeModal();
+      if (b.dataset.act === 'project') return;
+    }
     /* Media and Project open dialogs rather than swapping the panel, so they set
        neither `state.ui.tab` nor the `on` treatment — the panel behind them has not
        changed. Scoping the toggle to `[data-t]` is what keeps them out of it. */

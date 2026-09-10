@@ -801,3 +801,19 @@ test('default component instances always offer variant creation and assignment',
     a.equal(inst.variant,undefined,'Default removes the variant assignment');
   } finally {page.tree.splice(page.tree.indexOf(inst),1); C.state.meta.components=original; C.selSet([]); w.render();}
 });
+
+test('Settings keeps the tool rail available and closes when switching panels', async () => {
+  const {window:w,doc}=await boot();
+  const media=w.matchMedia;
+  w.matchMedia=()=>({matches:false});
+  w.projectModal();
+  a.equal(doc.querySelector('#app').hasAttribute('inert'),false);
+  a.equal(doc.querySelector('#leftRail').closest('[inert]'),null);
+  a.equal(doc.querySelector('#stage').hasAttribute('inert'),true);
+  a.equal(doc.querySelector('#modalBox').getAttribute('aria-modal'),'false');
+  doc.querySelector('#leftRail [data-t="pages"]').click();
+  a.equal(doc.querySelector('#modal').hidden,true);
+  a.equal(doc.querySelector('#stage').hasAttribute('inert'),false);
+  a.equal(w.__CORE.state.ui.tab,'pages');
+  w.matchMedia=media;
+});
