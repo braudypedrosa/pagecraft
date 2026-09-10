@@ -262,3 +262,20 @@ could not import, and the first sign of it would have been a production boot.
 
 Two checks need a service and are therefore not in the suite: `tools/realpg.mjs` wants a real
 Postgres, and `tools/realmail.mjs` wants a real SMTP sink. Neither ever sends mail anywhere.
+
+### Cloud form submissions
+
+Cloud publication compiles forms with the native `/forms/:site/:form` receiver. Form
+handling remains a runtime host choice; portable and WordPress documents are unchanged.
+Republish existing sites to activate the receiver. The inbox at
+`/sites/:site/submissions` discovers saved forms, filters entries, and supports New,
+Read and Archived statuses. Owners and content collaborators have access through
+Cloud account sessions; WordPress editor credentials cannot access entries.
+
+Entries live in `PAGECRAFT_PUBLICATION_ROOT/.submissions`, inside the persistent
+publication volume but outside all public manifests. Keep this private directory in
+restricted backups. Entries survive application deployments and are removed when the
+site is deleted. Each environment has its own inbox. The receiver validates against
+that environment's published revision, caps requests at 32 KiB and entries at 10,000
+per site, and applies a honeypot plus request rate limits. No email notification,
+file upload, or external form destination is included in this initial inbox.

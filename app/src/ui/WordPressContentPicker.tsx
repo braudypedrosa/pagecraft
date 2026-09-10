@@ -12,6 +12,7 @@ export interface WordPressDestination {
 /** Keep target ordering stable wherever the picker appears. Staging comes first to
     match Pagecraft's promotion flow, while each group retains WordPress's own order. */
 export function wordpressContentTargets(): readonly WordPressContentTarget[] {
+  if (C.cloudFormsEnabled()) return [];
   return L.wordpressContent()
     .filter(target => target.items.length > 0)
     .slice()

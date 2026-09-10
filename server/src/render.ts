@@ -103,26 +103,30 @@ export interface RenderedSite {
  * `variants` is still off. A `srcset` needs downscaled copies, and making those needs an
  * image library the server does not have; one `src` that works beats five that do not.
  */
-export function renderSite(doc: Doc, assets: Asset[] = []): RenderedSite {
-  Core.restore(structuredClone(doc));
+export function renderSite(doc: Doc, assets: Asset[] = [], formEndpoint = ''): RenderedSite {
+  const previousEndpoint = Core.cloudFormEndpoint;
+  Core.setCloudFormEndpoint(formEndpoint);
+  try {
+    Core.restore(structuredClone(doc));
 
-  const byId = new Map(assets.map(a => [a.id, a]));
-  const get = (id: string) => byId.get(id) || null;
+    const byId = new Map(assets.map(a => [a.id, a]));
+    const get = (id: string) => byId.get(id) || null;
 
-  const files = new Map<string, string>();
-  for (const t of Core.exportTargets()) {
-    /* `rel` is how deep the file sits, so a detail page one directory down asks for
-       `../assets/logo.png` rather than a path that only resolves at the root. */
-    files.set(t.path, Core.assetPaths(Core.buildPage(t.pg, t), get, t.rel || ''));
-  }
+    const files = new Map<string, string>();
+    for (const t of Core.exportTargets()) {
+      /* `rel` is how deep the file sits, so a detail page one directory down asks for
+         `../assets/logo.png` rather than a path that only resolves at the root. */
+      files.set(t.path, Core.assetPaths(Core.buildPage(t.pg, t), get, t.rel || ''));
+    }
 
-  /* Both are empty without a base URL, and an empty sitemap is worse than none: it tells a
-     crawler the site has no pages. */
-  const sitemap = Core.sitemapXml();
-  if (sitemap) files.set('sitemap.xml', hostedSitemap(sitemap, files, Core.state.meta.baseUrl || ''));
-  files.set('robots.txt', Core.robotsTxt());
+    /* Both are empty without a base URL, and an empty sitemap is worse than none: it tells a
+       crawler the site has no pages. */
+    const sitemap = Core.sitemapXml();
+    if (sitemap) files.set('sitemap.xml', hostedSitemap(sitemap, files, Core.state.meta.baseUrl || ''));
+    files.set('robots.txt', Core.robotsTxt());
 
-  return { files, findings: Core.lint() };
+    return { files, findings: Core.lint() };
+  } finally { Core.setCloudFormEndpoint(previousEndpoint); }
 }
 
 /** What a request path maps to. Directories get their index, and a bare path gets `.html`. */

@@ -136,6 +136,8 @@ __export(index_exports, {
   classes: () => classes,
   clip: () => clip,
   clone: () => clone,
+  cloudFormEndpoint: () => cloudFormEndpoint,
+  cloudFormsEnabled: () => cloudFormsEnabled,
   codeSpans: () => codeSpans,
   collectionAdd: () => collectionAdd,
   collectionDelete: () => collectionDelete,
@@ -337,6 +339,7 @@ __export(index_exports, {
   selSet: () => selSet,
   selToggle: () => selToggle,
   sendEdge: () => sendEdge,
+  setCloudFormEndpoint: () => setCloudFormEndpoint,
   setCss: () => setCss,
   showsNode: () => showsNode,
   sitePlan: () => sitePlan,
@@ -1279,6 +1282,13 @@ function parseWordPressContentToken(value) {
   return parseWordPressContentReference(
     `${WORDPRESS_CONTENT_REFERENCE_PREFIX}${match[1]}:${match[2]}`
   );
+}
+var cloudFormEndpoint = "";
+function setCloudFormEndpoint(endpoint) {
+  cloudFormEndpoint = endpoint;
+}
+function cloudFormsEnabled() {
+  return !!cloudFormEndpoint;
 }
 var safeFormAction = (u) => {
   const v = String(u == null ? "" : u).trim();
@@ -4030,7 +4040,7 @@ function lint() {
       if (n.type === "form") {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
         const rawAction = String(n.props.action || "").trim();
-        const wordpressManaged = n.props.mode === "wordpress";
+        const wordpressManaged = !!cloudFormEndpoint || n.props.mode === "wordpress";
         if (!wordpressManaged && !rawAction)
           add("error", "form-no-action", `A form in the ${region} has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.`, w, n.id);
         else if (!wordpressManaged && !safeFormAction(rawAction))
@@ -7773,9 +7783,9 @@ function renderNode(n, o) {
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const fid = (i) => domId + "-f" + i;
-      const wordpressManaged = p.mode === "wordpress";
+      const wordpressManaged = !cloudFormEndpoint && p.mode === "wordpress";
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
-      const act = wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
+      const act = cloudFormEndpoint ? cloudFormEndpoint + "/" + encodeURIComponent(formId) : wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
       const disabled = act ? "" : " disabled";
       const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
@@ -7795,7 +7805,7 @@ function renderNode(n, o) {
         return `<div ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
       }
       const managed2 = wordpressManaged ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
+      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${cloudFormEndpoint || wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + (cloudFormEndpoint ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (cloudFormEndpoint && !o.edit ? `<script>(function(f){var i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=crypto.randomUUID();f.appendChild(i);f.addEventListener('input',function(){i.value=crypto.randomUUID()});window.addEventListener('pageshow',function(){f.querySelector('button[type=submit]').disabled=false});f.addEventListener('submit',function(){setTimeout(function(){f.querySelector('button[type=submit]').disabled=true},0)})})(document.currentScript.previousElementSibling)</script>` : "");
     }
     case "crumbs": {
       const manual = p.mode === "manual";
@@ -8275,6 +8285,8 @@ ${ANIM_JS}
   classes,
   clip,
   clone,
+  cloudFormEndpoint,
+  cloudFormsEnabled,
   codeSpans,
   collectionAdd,
   collectionDelete,
@@ -8476,6 +8488,7 @@ ${ANIM_JS}
   selSet,
   selToggle,
   sendEdge,
+  setCloudFormEndpoint,
   setCss,
   showsNode,
   sitePlan,

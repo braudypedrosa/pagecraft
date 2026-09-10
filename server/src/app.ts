@@ -1,3 +1,5 @@
+import { submissionRoutes } from './submissions-routes.ts';
+import type { FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
 /* The server, as routes.
@@ -285,6 +287,7 @@ export interface Options {
   fontFetch?: typeof fetch;
   /** Cloud-only outbound app credentials and property clients. */
   cloudIntegrations?: CloudIntegrations;
+  submissions?: FileSubmissionStore;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
   accountAuth?: AccountAuth;
   /** Atomic site creation and owner grant, including the owned-site quota. */
@@ -470,7 +473,7 @@ export function createApp(o: Options) {
   /* A render needs the site's assets, and fetching them is asynchronous while the render is
      not — so they are fetched first and handed in. `renderSite` stays synchronous, which is
      the property the singleton core depends on. */
-  const render = (doc: Doc, assets: AssetRecord[] = []) => {
+  const render = (doc: Doc, assets: AssetRecord[] = [], formEndpoint = '') => {
     /* Every served byte comes through here, so this is where a document written by an older
        editor is brought up to date. `adopt` returning null means a newer editor wrote it; it
        is in the table already, so render it as it stands rather than take the site down. */
@@ -484,7 +487,7 @@ export function createApp(o: Options) {
     if (!adopted) {
       throw new Error("document schema is newer than this Pagecraft renderer");
     }
-    return renderSite(adopted, refs);
+    return renderSite(adopted, refs, formEndpoint);
   };
   const assetsOf = async (id: string) => o.assets ? o.assets.list(id) : [];
   const assetBodiesOf = async (
@@ -537,9 +540,11 @@ export function createApp(o: Options) {
     });
     return out;
   };
-  const candidate = (doc: Doc, assets: AssetRecord[]) => {
+  const cloudReceiver = (c: Context, id: string) => o.submissions && !c.req.header('x-pagecraft-editor-session')
+    ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '';
+  const candidate = (doc: Doc, assets: AssetRecord[], formEndpoint = '') => {
     try {
-      return render(doc, assets);
+      return render(doc, assets, formEndpoint);
     } catch (caught) {
       console.warn(
         "invalid Pagecraft document rejected:",
@@ -1718,6 +1723,7 @@ export function createApp(o: Options) {
     return c.redirect(`${base}?message=Collaborator+removed.`, 303);
   });
 
+  submissionRoutes(app, { store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource });
   cloudIntegrationRoutes(app, { store: o.store, integrations: o.cloudIntegrations, assets: o.assets, allowed, editorOrigin: o.editorOrigin });
 
   app.get("/sites/:id/settings", async (c) => {
@@ -1830,6 +1836,7 @@ export function createApp(o: Options) {
     // Fail closed: do not report deletion or remove management access while public
     // routing is still active. A retry is safe if the database delete then fails.
     const remove = async () => {
+      await o.submissions?.removeSite(id);
       await o.cloudIntegrations?.connections.put(id, null);
       await o.publications?.removeSite(id);
       return o.store.delete(id);
@@ -1991,7 +1998,7 @@ export function createApp(o: Options) {
       return c.body(asset.bytes as unknown as ArrayBuffer, 200, assetHeaders(asset));
     }
     if (path !== "index.html") return c.notFound();
-    const rendered = candidate(site.doc, await assetsOf(id));
+    const rendered = candidate(site.doc, await assetsOf(id), cloudReceiver(c, id));
     const html = rendered?.files.get("index.html");
     if (!html) return c.text("Preview unavailable", 422);
     c.header("content-security-policy", "sandbox allow-same-origin; default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; font-src 'self' https://fonts.gstatic.com data:; frame-src 'none'; form-action 'none'; frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
@@ -2169,7 +2176,7 @@ export function createApp(o: Options) {
     const metadata = preparedAssets || await assetsOf(id);
     let rendered: ReturnType<typeof render>;
     try {
-      rendered = render(document, metadata);
+      rendered = render(document, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '');
       if (releaseStylesheetLinks(rendered.files).length) {
         rendered.files = await freezeGoogleFontStylesheets(
           rendered.files,
@@ -2630,7 +2637,7 @@ export function createApp(o: Options) {
     body.doc = incoming;
     const stored = adopt(site.doc) || site.doc;
 
-    const preview = candidate(body.doc, siteAssets);
+    const preview = candidate(body.doc, siteAssets, cloudReceiver(c, id));
     if (!preview) {
       return c.json({
         error: "invalid document",
@@ -2786,7 +2793,7 @@ export function createApp(o: Options) {
         detail: "That version needs a newer Pagecraft build.",
       }, 409);
     }
-    const preview = candidate(restored, await assetsOf(id));
+    const preview = candidate(restored, await assetsOf(id), cloudReceiver(c, id));
     if (!preview) {
       return c.json({
         error: "invalid document",

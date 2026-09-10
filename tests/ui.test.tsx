@@ -1016,3 +1016,18 @@ test('descriptive and dynamic selectors use the full panel while short reviewed 
   r.draw(<Ctl n={n} c={{t:'select', label:'Custom collection field', opts:[['one','A long field name from a connected collection']]}} />);
   a.equal(r.$('.f-inline'), null, 'future selectors are full width unless explicitly reviewed');
 });
+
+test('Cloud forms expose native submissions instead of external or WordPress handling', () => {
+  const n = C.insert('form', null, 0)!;
+  C.state.ui.sel = n.id;
+  try {
+    C.setCloudFormEndpoint('https://cloud.test/forms/site');
+    r.draw(<Inspector />);
+    a.match(r.host.textContent || '', /Saved to Submissions/);
+    a.doesNotMatch(r.host.textContent || '', /External HTTPS|WordPress managed|Where submissions go/);
+    a.equal(r.$('select option[value="wordpress"]'), null);
+    C.setCloudFormEndpoint('');
+    r.draw(<Inspector />);
+    a.ok(r.$('select option[value="wordpress"]'), 'portable host keeps its existing receiver choices');
+  } finally { C.setCloudFormEndpoint(''); }
+});

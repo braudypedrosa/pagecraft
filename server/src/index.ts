@@ -1,3 +1,4 @@
+import { FileSubmissionStore } from './submissions.ts';
 import { FileCloudConnectionStore, UplistingClient } from './cloud-uplisting.ts';
 /* The entry point: read the environment, pick a store, listen.
 
@@ -488,6 +489,7 @@ if (mail) {
 }
 
 const app = createApp({
+  submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   cloudIntegrations,
   store,
   auth,

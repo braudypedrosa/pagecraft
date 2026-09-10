@@ -200,7 +200,7 @@ export function ItemsCtl({ n, c }: P) {
 
           <label>Link relationship</label>
           <RowInput n={n} c={c} k={k} prop="rel" placeholder="nofollow sponsored" />
-          <div class="note">Optional WordPress XFN/relationship values, separated with spaces.</div>
+          <div class="note">Optional relationship values, separated by spaces.</div>
 
           <div class="tog-row navitem-target">
             <span>Open in a new tab</span>

@@ -2504,6 +2504,13 @@ function parseWordPressContentToken(value) {
     `${WORDPRESS_CONTENT_REFERENCE_PREFIX}${match[1]}:${match[2]}`
   );
 }
+var cloudFormEndpoint = "";
+function setCloudFormEndpoint(endpoint) {
+  cloudFormEndpoint = endpoint;
+}
+function cloudFormsEnabled() {
+  return !!cloudFormEndpoint;
+}
 var safeFormAction = (u) => {
   const v = String(u == null ? "" : u).trim();
   if (!/^https:\/\//i.test(v)) return "";
@@ -5254,7 +5261,7 @@ function lint() {
       if (n.type === "form") {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
         const rawAction = String(n.props.action || "").trim();
-        const wordpressManaged = n.props.mode === "wordpress";
+        const wordpressManaged = !!cloudFormEndpoint || n.props.mode === "wordpress";
         if (!wordpressManaged && !rawAction)
           add("error", "form-no-action", `A form in the ${region} has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.`, w, n.id);
         else if (!wordpressManaged && !safeFormAction(rawAction))
@@ -8997,9 +9004,9 @@ function renderNode(n, o) {
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const fid = (i) => domId + "-f" + i;
-      const wordpressManaged = p.mode === "wordpress";
+      const wordpressManaged = !cloudFormEndpoint && p.mode === "wordpress";
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
-      const act = wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
+      const act = cloudFormEndpoint ? cloudFormEndpoint + "/" + encodeURIComponent(formId) : wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
       const disabled = act ? "" : " disabled";
       const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
@@ -9019,7 +9026,7 @@ function renderNode(n, o) {
         return `<div ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
       }
       const managed2 = wordpressManaged ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>`;
+      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${cloudFormEndpoint || wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + (cloudFormEndpoint ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (cloudFormEndpoint && !o.edit ? `<script>(function(f){var i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=crypto.randomUUID();f.appendChild(i);f.addEventListener('input',function(){i.value=crypto.randomUUID()});window.addEventListener('pageshow',function(){f.querySelector('button[type=submit]').disabled=false});f.addEventListener('submit',function(){setTimeout(function(){f.querySelector('button[type=submit]').disabled=true},0)})})(document.currentScript.previousElementSibling)<\/script>` : "");
     }
     case "crumbs": {
       const manual = p.mode === "manual";
@@ -9499,6 +9506,8 @@ var __CORE = {
   classes,
   clip,
   clone,
+  cloudFormEndpoint,
+  cloudFormsEnabled,
   codeSpans,
   collectionAdd,
   collectionDelete,
@@ -9700,6 +9709,7 @@ var __CORE = {
   selSet,
   selToggle,
   sendEdge,
+  setCloudFormEndpoint,
   setCss,
   showsNode,
   sitePlan,
@@ -12598,6 +12608,7 @@ var PC_UI = (() => {
 
   // app/src/ui/WordPressContentPicker.tsx
   function wordpressContentTargets() {
+    if (C2.cloudFormsEnabled()) return [];
     return L2.wordpressContent().filter((target) => target.items.length > 0).slice().sort((a3, b2) => a3.environment === b2.environment ? a3.targetOrigin.localeCompare(b2.targetOrigin) : a3.environment === "staging" ? -1 : 1);
   }
   function wordpressReferenceForItem(target, item) {
@@ -12889,7 +12900,7 @@ var PC_UI = (() => {
                 ] }),
                 /* @__PURE__ */ u2("label", { children: "Link relationship" }),
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "rel", placeholder: "nofollow sponsored" }),
-                /* @__PURE__ */ u2("div", { class: "note", children: "Optional WordPress XFN/relationship values, separated with spaces." }),
+                /* @__PURE__ */ u2("div", { class: "note", children: "Optional relationship values, separated by spaces." }),
                 /* @__PURE__ */ u2("div", { class: "tog-row navitem-target", children: [
                   /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
                   /* @__PURE__ */ u2(
@@ -14222,7 +14233,7 @@ var PC_UI = (() => {
     const bodyId = g2();
     const key = gk || n2.type + ":" + title;
     const closed = C2.state.ui.open[key] === false || C2.state.ui.open[key] === void 0 && collapsed;
-    const shown2 = items ? items.filter((c3) => !c3.when || c3.when(n2)) : null;
+    const shown2 = items ? items.filter((c3) => (!c3.when || c3.when(n2)) && !(C2.cloudFormsEnabled() && n2.type === "form" && ["mode", "action", "method"].includes(c3.k || ""))) : null;
     if (shown2 && !shown2.length) return null;
     return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
       /* @__PURE__ */ u2(
@@ -14909,6 +14920,7 @@ var PC_UI = (() => {
           children: [
             tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
             tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
+            tab2 === "content" && n2.type === "form" && C2.cloudFormsEnabled() ? /* @__PURE__ */ u2("p", { class: "note", style: "padding:12px", children: "Saved to Submissions when published." }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
             tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys2]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys2.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
               "Nothing varies between instances yet. Open this component in the",
@@ -18191,6 +18203,14 @@ let lastCloudDocument = null;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+if (SRV && !IS_WORDPRESS) {
+  setCloudFormEndpoint(location.origin + '/forms/' + encodeURIComponent(SRV.siteId));
+  const submissions = document.createElement('button');
+  submissions.title = 'Submissions';
+  submissions.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg><span>Submissions</span>';
+  submissions.onclick = () => { window.open('/sites/' + encodeURIComponent(SRV.siteId) + '/submissions', '_blank', 'noopener'); };
+  document.querySelector('#leftRail [data-t="cms"]').after(submissions);
+}
 const brandHome = $('#brandHome');
 if (brandHome) {
   const brandDestination = IS_WORDPRESS ? (WP.pagesUrl || WP.exitUrl || '') : (SRV ? '/' : '');
