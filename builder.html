@@ -1835,21 +1835,16 @@ function wireShare() {
   if (!btn || !url) return;
   btn.hidden = false;
   btn.title = `Copy ${url}`;
-  btn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast(`Link copied — ${url}`);
-    } catch {
-      toast(url);
-    }
-  });
+  btn.addEventListener('click', () => withAction(btn, 'Copying link…',
+    () => navigator.clipboard.writeText(url), 'Link copied.',
+    {key:'share-link', error:'Could not copy automatically. Copy this link: ' + url}));
 }
 
 function wireHistory() {
   const btn = $('#historyBtn');
   if (!btn || !HOST || !HOST_FEATURES.revisions || (!IS_WORDPRESS && SRV.role !== 'owner')) return;
   btn.hidden = false;
-  btn.addEventListener('click', IS_WORDPRESS ? historyPanel : historyModal);
+  btn.addEventListener('click', () => { if (!btn.disabled) return IS_WORDPRESS ? historyPanel() : historyModal(); });
 }
 
 const historyDate = value => {
@@ -1912,7 +1907,11 @@ async function historyPanel() {
   if (!panel) return;
   const host = $('#rightHistory');
   try {
-    const revisions = await HOST.revisions.list();
+    const result = await feedback().run({key:'history-load', button:$('#historyBtn'), pending:'Loading history…', success:'Version history loaded.'}, () => HOST.revisions.list());
+    if (!host.isConnected || panel.hidden) return;
+    if (result.status === 'error') throw new Error(result.message);
+    if (result.status !== 'success') return;
+    const revisions = result.value;
     if (!host || panel.hidden) return;
     host.outerHTML = revisions.length ? `<div class="historyList" id="rightHistory">${revisions.map(revision => {
       const current = revision.version === SRV.version;
@@ -1950,9 +1949,14 @@ async function historyModal() {
   openModal('Version history', '<div class="note">Loading saved versions…</div>',
     '<button class="btn" id="historyClose">Close</button>');
   $('#historyClose').addEventListener('click', closeModal);
+  const host = $('#mBody'), loading = host.firstElementChild;
   try {
-    const revisions = await HOST.revisions.list();
-    $('#mBody').innerHTML = revisions.length ? `<div class="historyList">${revisions.map(revision => {
+    const result = await feedback().run({key:'history-load', button:$('#historyBtn'), pending:'Loading history…', success:'Version history loaded.'}, () => HOST.revisions.list());
+    if (!loading.isConnected) return;
+    if (result.status === 'error') throw new Error(result.message);
+    if (result.status !== 'success') return;
+    const revisions = result.value;
+    host.innerHTML = revisions.length ? `<div class="historyList">${revisions.map(revision => {
       const current = revision.version === SRV.version;
       const author = revision.author && (revision.author.name || revision.author.email);
       return `<div class="historyRow">
@@ -1962,7 +1966,7 @@ async function historyModal() {
         ${current ? '<span class="historyCurrent">Current</span>' : `<button class="btn tiny" data-restore="${revision.version}">Restore</button>`}
       </div>`;
     }).join('')}</div>` : '<div class="note">No saved versions yet.</div>';
-    $$('[data-restore]', $('#mBody')).forEach(button => button.addEventListener('click', async () => {
+    $$('[data-restore]', host).forEach(button => button.addEventListener('click', async () => {
       const version = Number(button.dataset.restore);
       if (!await askConfirm(`Restore version ${version}?`,
         'Your current site will remain in history. Restoring creates a new version and reloads the editor.',
@@ -1979,7 +1983,7 @@ async function historyModal() {
       }
     }));
   } catch (error) {
-    $('#mBody').innerHTML = `<div class="alert"><b>History is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
+    host.innerHTML = `<div class="alert"><b>History is unavailable.</b><span>${esc(error.message || String(error))}</span></div>`;
   }
 }
 
@@ -2156,7 +2160,7 @@ async function wordpressPublishModal() {
     <button class="btn" id="releaseClose">Close</button>`);
   $('#releaseClose').addEventListener('click', closeModal);
   const host = $('#importerDownload');
-  try {
+  const result = await feedback().run({pending:'Checking WordPress release…', success:'WordPress Importer download ready.'}, async () => {
     const response = await fetch('/v1/wordpress-distribution/stable', { credentials: 'same-origin' });
     if (!response.ok) throw new Error('The signed Importer download is not enabled yet.');
     const payload = await response.json();
@@ -2164,9 +2168,8 @@ async function wordpressPublishModal() {
     if (!importer || !importer.downloadUrl || !importer.sha256) throw new Error('The release manifest is incomplete.');
     host.innerHTML = `<a class="btn primary" href="${esc(importer.downloadUrl)}">Download Pagecraft Importer ${esc(importer.version || '')}</a>
       <small>SHA-256: <code>${esc(importer.sha256)}</code></small>`;
-  } catch (error) {
-    host.innerHTML = `<b>Importer download unavailable.</b><span>${esc(error.message || String(error))}</span>`;
-  }
+  });
+  if (result.status === 'error' && host.isConnected) host.innerHTML = `<b>Importer download unavailable.</b><span>${esc(result.message)}</span>`;
 }
 
 function publishModal() {
@@ -2301,7 +2304,7 @@ function warnSaveBusy() {
     <button class="btn" id="busyBackup">Download my copy</button>
     <span style="flex:1"></span>
     <button class="btn primary" id="busyRetry">Try saving again</button>`);
-  $('#busyBackup').addEventListener('click', () => backupJson());
+  $('#busyBackup').addEventListener('click', event => backupJson(event));
   $('#busyRetry').addEventListener('click', () => {
     closeModal(); writeNow();
   });
@@ -2326,7 +2329,7 @@ function warnStale(info) {
     <button class="btn" id="stBackup">Download my copy</button>
     <span style="flex:1"></span>
     <button class="btn primary" id="stReload">Reload theirs</button>`);
-  $('#stBackup').addEventListener('click', () => backupJson());
+  $('#stBackup').addEventListener('click', event => backupJson(event));
   $('#stReload').addEventListener('click', () => location.reload());
 }
 
@@ -2347,7 +2350,7 @@ function warnContentOnly(info) {
     <button class="btn" id="coBackup">Download my copy</button>
     <span style="flex:1"></span>
     <button class="btn primary" id="coReload">Reload</button>`);
-  $('#coBackup').addEventListener('click', () => backupJson());
+  $('#coBackup').addEventListener('click', event => backupJson(event));
   $('#coReload').addEventListener('click', () => location.reload());
 }
 const save = dbounce(writeNow, 500);
@@ -2369,16 +2372,16 @@ function warnSaveFailed(err) {
     <button class="btn" id="svRetry">Try saving again</button>
     <span style="flex:1"></span>
     <button class="btn primary" id="svBackup">Download backup now</button>`);
-  $('#svBackup').addEventListener('click', () => backupJson());
+  $('#svBackup').addEventListener('click', event => backupJson(event));
   $('#svRetry').addEventListener('click', () => {
     saveWarned = false; closeModal(); writeNow();
     if (saveState === 'ok') toast('Saving again');
   });
 }
-const backupJson = () => download(
+const backupJson = event => withAction(event?.currentTarget || null, 'Preparing backup…', () => download(
   slugify(state.meta.name) + '-backup.json',
   JSON.stringify({ ...doc(), v: SCHEMA, cur: state.cur }, null, 2),
-  'application/json');
+  'application/json'), 'Project backup ready. Download started.', {key:'project-backup', paint:true});
 
 window.addEventListener('beforeunload', e => {
   if (saveState === 'failed') { e.preventDefault(); e.returnValue = ''; return ''; }
@@ -2978,15 +2981,9 @@ function toast(msg, options = {}) {
   return feedback().notify(msg, options);
 }
 
-async function withAction(button, label, work, success) {
-  const action = feedback().begin(button, label);
-  if (!action) return false;
-  try {
-    const result = await work(action);
-    if (result === false) action.cancel();
-    else action.success(success);
-    return result;
-  } catch (error) { action.error((error.message || 'Could not complete this action.') + ' Try again.'); return false; }
+async function withAction(button, label, work, success, options = {}) {
+  const result = await feedback().run({button, pending:label, success, ...options}, work);
+  return result.status === 'success' ? result.value : false;
 }
 let manualSavePending = false;
 async function saveExplicitly() {
@@ -3974,20 +3971,24 @@ function mediaCards(list, use, attr) {
 }
 
 /* Takes a file into the library. Shared by every upload entry point. */
-async function mediaTake(file) {
-  if (!file || !/^image\//.test(file.type)) { toast('Choose an image file to upload.', {tone:'error'}); return null; }
+async function mediaTake(file, options = {}) {
+  const managed = options.feedback === false;
+  if (!file || !/^image\//.test(file.type)) {
+    if (managed) throw new Error('Choose an image file to upload.');
+    toast('Choose an image file to upload.', {tone:'error'}); return null;
+  }
   if (file.size > 6e6 && !await askConfirm('That is a large image',
     `This file is <b>${(file.size / 1048576).toFixed(1)} MB</b>. Large images slow the page down.`,
     { ok: 'Add anyway', danger: false })) return null;
-  const action = feedback().begin(null, 'Uploading ' + file.name + '…');
-  try {
+  const upload = async () => {
     const id = await assetAdd(file);
-    if (!id) { action.cancel(); return null; }
-    const got = AS.mem.get(id);
+    if (!id) return false;
     writeNow();
-    action.success(`${file.name} uploaded · ${kb(got && got.size || file.size)}${got && got.w ? ` · ${got.w} × ${got.h}` : ''}`);
     return id;
-  } catch (error) { action.error((error.message || 'The image could not be uploaded.') + ' Try again.'); return null; }
+  };
+  if (managed) return await upload() || null;
+  return await withAction(null, 'Uploading ' + file.name + '…', upload,
+    file.name + ' uploaded.') || null;
 }
 
 function mediaChooseFiles(after, button = null) {
@@ -3995,10 +3996,17 @@ function mediaChooseFiles(after, button = null) {
   fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
   fi.onchange = async () => {
     if (!fi.files.length) return;
-    const action = feedback().begin(button, 'Uploading images…');
-    if (!action) return;
-    try { for (const f of fi.files) await mediaTake(f); after(); }
-    finally { action.cancel(); }
+    await withAction(button, 'Uploading images…', async action => {
+      const failed = []; let count = 0;
+      for (const file of fi.files) {
+        action.update('Uploading ' + file.name + '…');
+        try { if (await mediaTake(file, {feedback:false})) count++; }
+        catch { failed.push(file.name); }
+      }
+      after();
+      if (failed.length) throw new Error(`${count ? count + ' uploaded. ' : ''}Could not upload ${failed.join(', ')}.`);
+      return count || false;
+    }, count => `${count === 1 ? 'Image' : count + ' images'} uploaded.`, {key:'media-upload'});
   };
   fi.click();
 }
@@ -4574,18 +4582,18 @@ async function saveHost() {
 async function download(name, text, type = 'text/html;charset=utf-8') {
   const ns = await saveHost();
   if (ns) {
-    try { await ns.save({ filename: name, data: text }); toast('Saved ' + name); return true; }
+    try { await ns.save({ filename: name, data: text }); return true; }
     catch (err) {
       const c = err && err.code;
-      if (c === 'declined') { toast('Save cancelled'); return false; }
+      if (c === 'declined') { return false; }
       if (c === 'extension_not_enabled') {
         try {
           await ns.save({ filename: name.replace(/\.html?$/, '') + '.txt', data: text });
           toast('Saved as .txt — rename it to .html'); return true;
-        } catch (e2) { toast('Saving is blocked here — use Copy HTML'); return false; }
+        } catch (e2) { throw new Error('Saving is blocked here — use Copy HTML.'); }
       }
-      if (c === 'too_large') { toast('Too large to save — use Copy HTML'); return false; }
-      if (c === 'rate_limited') { toast('One save at a time — try again'); return false; }
+      if (c === 'too_large') { throw new Error('Too large to save — use Copy HTML.'); }
+      if (c === 'rate_limited') { throw new Error('One save at a time — try again.'); }
       /* anything else: fall through to the object-URL path */
     }
   }
@@ -4595,9 +4603,8 @@ async function download(name, text, type = 'text/html;charset=utf-8') {
     a.href = url; a.download = name; a.style.display = 'none';
     document.body.appendChild(a); a.click();
     setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500);
-    toast('Downloaded ' + name);
     return true;
-  } catch (e) { toast('Download blocked here — use Copy HTML'); return false; }
+  } catch (e) { throw new Error('Download blocked here — use Copy HTML.'); }
 }
 
 /* ================================================================ modal */
@@ -4860,12 +4867,25 @@ function exportModal() {
      every image while writing paths is near-instant, so switching to separate files showed
      the inline output a moment later and looked like the mode had not taken. A sequence
      number is enough: a build that is no longer the latest drops its result. */
-  let seq = 0;
+  let seq = 0, previewNotice;
   const draw = async () => {
     const mine = ++seq;
     code.textContent = 'Building…';
-    const html = await cur();
+    code.setAttribute('aria-busy', 'true');
+    const notice = previewNotice || (previewNotice = feedback().notify('Building export preview…', {tone:'progress'}));
+    notice.update('Building export preview…');
+    let html;
+    try { html = await cur(); }
+    catch (error) {
+      if (mine !== seq) return;
+      if (!code.isConnected) { notice.dismiss(); return; }
+      const message = (error.message || 'Could not build this page.') + ' Choose a page or image mode to retry.';
+      code.textContent = message; $('#exSize').textContent = '';
+      code.removeAttribute('aria-busy'); notice.error(message); return;
+    }
     if (mine !== seq) return;
+    if (!code.isConnected) { notice.dismiss(); return; }
+    code.removeAttribute('aria-busy'); notice.success('Export preview ready.');
     code.textContent = html;
     $('#exSize').textContent = (html.length / 1024).toFixed(1) + ' KB';
     /* Counted from the html that was just built rather than from the asset store, because
@@ -4903,7 +4923,7 @@ function exportModal() {
        says where it belongs */
     if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
     if (t.rel) toast('Put this in a ' + t.path.split('/')[0] + '/ folder, named ' + t.path.split('/').pop());
-    if (mode.value === 'files') await saveAssetsFor(html);
+    if (mode.value === 'files' && await saveAssetsFor(html) === false) return false;
   }, 'Page export ready. Download started.'));
 
   $('#exAll').addEventListener('click', event => withAction(event.currentTarget, 'Preparing pages…', async () => {
@@ -4929,13 +4949,13 @@ function exportModal() {
 
   $('#exCopy').addEventListener('click', event => withAction(event.currentTarget, 'Preparing HTML…', async () => {
     const html = await cur();
-    try { await navigator.clipboard.writeText(html); toast('HTML copied to clipboard'); }
+    try { await navigator.clipboard.writeText(html); }
     catch (e) {
       const r = document.createRange(); r.selectNodeContents(code);
       const sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(r);
-      toast('Selected — press ⌘C to copy');
+      throw new Error('Automatic copy is unavailable. HTML selected — press ⌘C to copy.');
     }
-  }, 'HTML ready.'));
+  }, 'HTML copied to clipboard.'));
 
   $('#exSeo').addEventListener('click', event => withAction(event.currentTarget, 'Preparing SEO files…', async () => {
     /* the button is disabled without a Site URL, so this is a belt-and-braces guard:
@@ -4945,7 +4965,7 @@ function exportModal() {
       return;
     }
     if (await download('sitemap.xml', sitemapXml(), 'application/xml') === false) return false;
-    await download('robots.txt', robotsTxt(), 'text/plain');
+    return download('robots.txt', robotsTxt(), 'text/plain');
   }, 'SEO files ready. Downloads started.'));
   /* The whole site as one archive: real folder paths, the images beside them, and
      the SEO files. This is the only export that can honour a nested detail page,
@@ -4983,7 +5003,7 @@ function exportModal() {
     const blob = await makeZip(files);
     const name = (slugify(state.meta.name) || 'site') + '.zip';
     return download(name, blob, 'application/zip');
-  }, 'Site archive ready. Download started.'));
+  }, 'Site archive ready. Download started.', {key:'site-export', paint:true}));
   /* The footer says what the committed action will actually produce, so the count
      is not hidden inside a tooltip on the button. */
   const foot = $('#exFoot');
@@ -5004,7 +5024,7 @@ function exportModal() {
       + `${state.meta.baseUrl ? ', sitemap and robots' : ''}.`;
   }
   const exc = $('#exContent');
-  if (exc) exc.addEventListener('click', () => download('content.json', contentJson(assetPath), 'application/json'));
+  if (exc) exc.addEventListener('click', () => withAction(exc, 'Preparing content…', () => download('content.json', contentJson(assetPath), 'application/json'), 'Content export ready. Download started.', {key:'content-export', paint:true}));
   $('#exJson').addEventListener('click', backupJson);
   const inContent = $('#exContentIn');
   if (inContent) inContent.addEventListener('click', () => {

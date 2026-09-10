@@ -52,3 +52,55 @@ test('builder custom dialogs keep notifications within their focus trap',async()
  expect(mask.querySelector('#pc-notifications')).not.toBeNull();mask.hidden=true;await Promise.resolve();
  expect(document.querySelector('#pc-notifications')?.parentElement).toBe(document.body);
 });
+
+test('one processing job owns its result and blocks duplicates even when its button is replaced', async()=>{
+ const feedback=installActionFeedback();
+ let resolve!:(value:number)=>void;
+ const work=vi.fn(()=>new Promise<number>(yes=>{resolve=yes;}));
+ const options={key:'export',button:button(),pending:'Building archive…',success:(count:number)=>`${count} files ready.`};
+ const job=feedback.run(options,work);
+ button().outerHTML='<button id="save">New export button</button>';
+ expect(await feedback.run({...options,button:button()},work)).toEqual({status:'busy'});
+ expect(work).toHaveBeenCalledTimes(1);
+ expect(document.querySelector('[data-tone=success]')).toBeNull();
+ resolve(12);expect(await job).toEqual({status:'success',value:12});
+ expect(document.querySelector('[role=status]')?.textContent).toBe('12 files ready.');
+ expect(await feedback.run({...options,button:button()},()=>false)).toEqual({status:'cancelled'});
+ expect(button().disabled).toBe(false);expect(document.querySelector('.pc-notification')).toBeNull();
+});
+
+test('processing failures retain feedback, release the lock and let a retry replace the same notification',async()=>{
+ const feedback=installActionFeedback(),options={key:'detect',button:button(),pending:'Reading image…',success:'Image dimensions detected.'};
+ const error=new Error('Image unavailable');
+ const result=await feedback.run(options,()=>{throw error;});
+ expect(result).toEqual({status:'error',error,message:'Image unavailable Try again.'});
+ expect(button().disabled).toBe(false);
+ vi.advanceTimersByTime(60000);expect(document.querySelector('[role=alert]')).not.toBeNull();
+ await feedback.run(options,()=>({w:1200,h:800}));
+ expect(document.querySelectorAll('.pc-notification')).toHaveLength(1);
+ expect(document.querySelector('[role=alert]')).toBeNull();
+ expect(document.querySelector('[data-tone=success]')?.textContent).toContain('Image dimensions detected.');
+});
+
+test('independent actions can run together and cancelling one never restores another action early',async()=>{
+ const feedback=installActionFeedback();
+ let finish!:()=>void;
+ const first=feedback.run({key:'upload',pending:'Uploading…',success:'Uploaded.'},()=>new Promise<void>(yes=>{finish=yes;}));
+ const cancelled=await feedback.run({button:button(),pending:'Choosing a file…',success:'File saved.'},()=>{throw new DOMException('Cancelled','AbortError');});
+ expect(cancelled.status).toBe('cancelled');expect(button().disabled).toBe(false);
+ expect(document.querySelector('[role=status]')?.textContent).toBe('Uploading…');
+ finish();await first;
+ expect(document.querySelector('[role=status]')?.textContent).toBe('Uploaded.');
+});
+
+test('CPU work can yield a frame while user-activation work starts synchronously',async()=>{
+ const feedback=installActionFeedback();
+ const clipboard=vi.fn(()=>undefined);
+ const copy=feedback.run({pending:'Copying…',success:'Copied.'},clipboard);
+ expect(clipboard).toHaveBeenCalledTimes(1);await copy;
+ const build=vi.fn(()=>12);
+ const job=feedback.run({pending:'Building…',success:'Built.',paint:true},build);
+ expect(build).not.toHaveBeenCalled();
+ await vi.advanceTimersByTimeAsync(101);await job;
+ expect(build).toHaveBeenCalledTimes(1);
+});

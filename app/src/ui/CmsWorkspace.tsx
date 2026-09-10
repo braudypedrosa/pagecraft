@@ -92,23 +92,19 @@ export function CmsWorkspace({
   const commit = async (next: Collection[], label: string, success: string) => {
     if (pending.current) return false;
     pending.current = true;
-    const feedback = installActionFeedback().notify(label, { tone: 'progress', id: 'cms-save' });
     setBusy(true);
     setActionLabel(label);
     setNotice('');
     setErrors({});
     try {
-      await L.cmsCommit(next);
-      refresh(revision + 1);
       const message = success + ' Saved to the site draft. Publish the site to make it public.';
+      const result = await installActionFeedback().run({key:'cms-save', pending:label, success:message,
+        error:e => (e instanceof Error ? e.message : 'Could not save.') + ' Your changes are still here. Try again.'}, () => L.cmsCommit(next));
+      if (result.status === 'error') setErrors({ _save: result.message });
+      if (result.status !== 'success') return false;
+      refresh(revision + 1);
       setNotice(message);
-      feedback.success(message);
       return true;
-    } catch (e) {
-      const message = (e instanceof Error ? e.message : 'Could not save.') + ' Your changes are still here. Try again.';
-      setErrors({ _save: message });
-      feedback.error(message);
-      return false;
     } finally {
       setBusy(false);
       pending.current = false;

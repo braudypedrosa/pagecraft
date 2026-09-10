@@ -1,3 +1,5 @@
+import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
+import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
 import { submissionRoutes } from './submissions-routes.ts';
 import type { FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
@@ -5882,6 +5884,7 @@ const shell = (title: string, body: string) =>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
+<script>${ACTION_FEEDBACK_BOOT_SCRIPT}<\/script>
 <style>
   :root{color-scheme:light dark}
   body{margin:0;min-height:100vh;display:grid;place-items:center;background:#ebe8dd;color:#111311;
@@ -5931,7 +5934,7 @@ const shell = (title: string, body: string) =>
     body.includes("<select")
       ? `<script>${CUSTOM_SELECT_BOOT_SCRIPT}<\/script>`
       : ""
-  }</body></html>`;
+  }<script>${ACCOUNT_ACTIONS_BOOT_SCRIPT}<\/script></body></html>`;
 
 /* No framework for four screens' worth of markup. If this grows past a form and a list it
    should become part of the editor bundle rather than more strings in here. */
@@ -5952,19 +5955,21 @@ const signInPage = () =>
       const form = ev.currentTarget;
       const button = form.querySelector('button');
       const error = document.getElementById('err');
-      error.hidden = true; button.disabled = true; button.textContent = 'Sending…';
-      try {
+      const email = document.getElementById('e').value;
+      error.hidden = true;
+      const result = await window.__pcFeedback.run({key:'sign-in',button,pending:'Sending sign-in link…',success:'Sign-in link sent. Check your email.',error:caught=>caught.message||'The link could not be sent. Try again shortly.'}, async () => {
         const response = await fetch('/auth/login', {
           method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ email: document.getElementById('e').value })
+          body: JSON.stringify({ email })
         });
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.error || ('Sign-in failed (' + response.status + ')'));
         form.hidden = true;
         document.getElementById('done').hidden = false;
-      } catch (caught) {
-        error.textContent = caught.message || 'The link could not be sent. Try again shortly.';
-        error.hidden = false; button.disabled = false; button.textContent = 'Send me a link';
+      });
+      if (result.status === 'error') {
+        error.textContent = result.message;
+        error.hidden = false;
       }
     });
   <\/script>`,
@@ -5981,23 +5986,28 @@ const newSiteForm = (label: string) => `
   <form id="new"><label for="n">${label}</label>
     <input id="n" name="name" type="text" placeholder="Acme Rebrand" required autocomplete="off">
     <button type="submit">Create it</button></form>
-  <div id="err" class="ok" hidden></div>
+  <div id="err" class="ok" role="alert" hidden></div>
   <script>
     document.getElementById('new').addEventListener('submit', async ev => {
       ev.preventDefault();
-      const btn = ev.target.querySelector('button');
-      btn.disabled = true; btn.textContent = 'Creating…';
-      const res = await fetch('/api/sites', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: document.getElementById('n').value })
+      const btn = ev.target.querySelector('button'), name = document.getElementById('n').value;
+      const err = document.getElementById('err'); err.hidden = true;
+      const result = await window.__pcFeedback.run({key:'site-create',button:btn,pending:'Creating site…',success:'Site created. Opening the builder…',error:caught=>caught.name==='TypeError'?'Connection lost. Check Sites before trying again; creation may still finish.':caught.message||'Could not create this site. Try again.'}, async () => {
+        const res = await fetch('/api/sites', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.id) throw new Error(data.detail || data.error || ('Could not create this site (' + res.status + '). Try again.'));
+        return data.id;
       });
-      if (res.ok) { location.href = '/edit/' + (await res.json()).id; return; }
-      /* Said out loud rather than swallowed: a failure here with a spinner that never stops is
-         the worst version of this screen. */
-      const err = document.getElementById('err');
-      err.textContent = ((await res.json().catch(() => ({}))).error) || ('Failed: ' + res.status);
-      err.hidden = false;
-      btn.disabled = false; btn.textContent = 'Create it';
+      if (result.status === 'success') {
+        const path = '/edit/' + encodeURIComponent(result.value);
+        window.__pcFeedback.flash('Site created. Start building your draft.', path);
+        location.href = path;
+      } else if (result.status === 'error') {
+        err.textContent = result.message; err.hidden = false;
+      }
     });
   <\/script>`;
 

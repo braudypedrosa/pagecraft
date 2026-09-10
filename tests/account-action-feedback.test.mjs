@@ -104,3 +104,14 @@ test('an expired-session redirect does not falsely confirm a mutation', async ()
   expect(button.disabled).toBe(false);
   expect(w.sessionStorage.getItem('pc-action-result')).toBeNull();
 });
+test('WordPress connection consent preserves the clicked choice and uses native navigation',()=>{
+ const {w,form,button,submit}=setup('<form method="post" action="/v1/oauth/authorize"><input name="state" value="qa-state"><button type="submit" name="decision" value="approve">Connect</button></form>');
+ w.fetch=vi.fn();
+ expect(submit()).toBe(true);expect(w.fetch).not.toHaveBeenCalled();
+ expect(button.disabled).toBe(true);
+ expect(new w.FormData(form).get('decision')).toBe('approve');
+ expect(submit()).toBe(false);
+ w.dispatchEvent(new w.PageTransitionEvent('pageshow',{persisted:true}));
+ expect(button.disabled).toBe(false);
+ expect(form.querySelector('input[name=decision]')).toBeNull();
+});

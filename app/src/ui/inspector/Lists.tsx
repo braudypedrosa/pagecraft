@@ -6,6 +6,7 @@
    `fld()` binder and its own move/remove handlers: four copies of the same twenty
    lines, in the file the parity guard exists to police. */
 import { C, L } from '../ctx';
+import { useImageUpload } from '../useImageUpload';
 import { Icon } from '../Icon';
 import { Field } from './Field';
 import { valueOf, rows, liftRow, moveRow, dropRow } from './ctl';
@@ -350,20 +351,9 @@ export function ImgsCtl({ n, c }: P) {
     return { src: 'asset:' + id, alt: '', caption: '', w: a && a.w ? String(a.w) : '', h: a && a.h ? String(a.h) : '' };
   };
 
-  const upload = () => {
-    const fi = document.createElement('input');
-    fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
-    /* every file in one gesture is one undo step, not one per file */
-    fi.onchange = async () => {
-      const got: string[] = [];
-      for (const file of Array.from(fi.files || [])) {
-        const id = await L.mediaTake(file);
-        if (id) got.push(id);
-      }
-      if (got.length) C.edit(() => got.forEach(id => rows(n, c).push(tile(id))));
-    };
-    fi.click();
-  };
+  // Keep all successfully uploaded files in one undo step, including a partial batch.
+  const files = useImageUpload('gallery-' + n.id + '-' + c.k,
+    ids => C.edit(() => ids.forEach(id => rows(n, c).push(tile(id)))), true);
 
   return <Field n={n} c={c}>
     {arr.map((it, k) => {
@@ -383,12 +373,12 @@ export function ImgsCtl({ n, c }: P) {
       );
     })}
     <div style={{ display: 'flex', gap: '6px', marginTop: arr.length ? '6px' : '0' }}>
-      <button class="btn grow" style={{ fontSize: 'var(--fs-2)' }} onClick={upload}>
-        <Icon name="image" size={13} /> Upload
+      <button class="btn grow" style={{ fontSize: 'var(--fs-2)' }} disabled={files.busy} aria-busy={files.busy} data-pc-pending={files.busy ? '' : undefined} onClick={files.choose}>
+        {!files.busy && <Icon name="image" size={13} />} {files.busy ? 'Uploading…' : 'Upload'}
       </button>
       {L.assetCount() ? (
         <button class="btn grow" style={{ fontSize: 'var(--fs-2)' }}
-          title="Pick from the Media library"
+          disabled={files.busy} title="Pick from the Media library"
           onClick={async () => {
             const id = await L.mediaPicker();
             if (id && L.asset(id)) C.edit(() => rows(n, c).push(tile(id)));

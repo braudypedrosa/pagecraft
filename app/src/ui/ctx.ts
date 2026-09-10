@@ -165,7 +165,7 @@ export interface Legacy {
   /** how many assets the project holds — the Library button only appears above zero */
   assetCount(): number;
   /** take a File into the library, returning its id */
-  mediaTake(file: File): Promise<string | null>;
+  mediaTake(file: File, options?: {feedback?: boolean}): Promise<string | null>;
   /** the library picker */
   mediaPicker(): Promise<string | null>;
   /** resolve `asset:id` to something an <img> can load */

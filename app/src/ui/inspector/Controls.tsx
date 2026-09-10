@@ -9,6 +9,8 @@ import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Field } from './Field';
 import { useState } from 'preact/hooks';
+import { useImageUpload } from '../useImageUpload';
+import { useProcessingAction } from '../useProcessingAction';
 import { valueOf, bound, writer } from './ctl';
 import { ColorPop } from './ColorPop';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
@@ -360,24 +362,6 @@ function BorderCtl({ n }: P) {
   </div>;
 }
 
-/** One file into the library and onto a prop. Shared so the type check, the
-    large-image warning and the toast are identical everywhere. */
-function useFilePicker(take: (id: string) => void, multiple = false) {
-  const takeFiles = async (files: FileList | File[]) => {
-    for (const file of Array.from(files || [])) {
-      const id = await L.mediaTake(file);
-      if (id) take(id);
-    }
-  };
-  const choose = () => {
-    const fi = document.createElement('input');
-    fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = multiple;
-    fi.onchange = () => { void takeFiles(fi.files || []); };
-    fi.click();
-  };
-  return { choose, takeFiles };
-}
-
 function ImgCtl({ n, c }: P) {
   const w = writer(n, c);
   const val = String(valueOf(n, c) || '');
@@ -396,29 +380,29 @@ function ImgCtl({ n, c }: P) {
       if (!c.bg && got.w) { n.props.w = String(got.w); n.props.h = String(got.h); }
     });
   };
-  const files = useFilePicker(use);
+  const files = useImageUpload('image-' + n.id + '-' + (c.c || c.k), ids => use(ids[ids.length - 1]));
 
   return <Field n={n} c={c}>
     {a
       ? <div class="imgset">
         <img src={a.url} alt="" />
         <span class="an"><b>{a.name}</b><small>{C.kb(a.size)}{a.w ? ` · ${a.w} × ${a.h}` : ''}</small></span>
-        <button class="x" title="Remove image" onClick={() => w.hard(wrap(''))}>
+        <button class="x" title="Remove image" disabled={files.busy} onClick={() => w.hard(wrap(''))}>
           <Icon name="trash" size={12} /></button>
       </div>
       : rawv
         ? <div class="imgset missing">
           <span class="an"><b>Not in this project</b><small>{rawv.slice(0, 40)}</small></span>
-          <button class="x" title="Clear" onClick={() => w.hard(wrap(''))}>
+          <button class="x" title="Clear" disabled={files.busy} onClick={() => w.hard(wrap(''))}>
             <Icon name="trash" size={12} /></button>
         </div>
-        : <Dropzone onChoose={files.choose} onFiles={files.takeFiles} />}
+        : <Dropzone disabled={files.busy} onChoose={files.choose} onFiles={files.takeFiles} />}
     <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
-      <button class="btn grow" onClick={files.choose}>
-        <Icon name="image" size={13} /> {a ? 'Replace' : 'Upload'}
+      <button class="btn grow" disabled={files.busy} aria-busy={files.busy} data-pc-pending={files.busy ? '' : undefined} onClick={files.choose}>
+        {!files.busy && <Icon name="image" size={13} />} {files.busy ? 'Uploading…' : a ? 'Replace' : 'Upload'}
       </button>
       {L.assetCount() ? (
-        <button class="btn grow" title="Pick from the Media library"
+        <button class="btn grow" disabled={files.busy} title="Pick from the Media library"
           onClick={async () => { const id = await L.mediaPicker(); if (id) use(id); }}>
           <Icon name="copy" size={13} /> Library
         </button>
@@ -430,25 +414,26 @@ function ImgCtl({ n, c }: P) {
 
 /** The drop target. `over` is toggled on the element rather than in state so a
     dragenter does not repaint the panel mid-drag. */
-export function Dropzone({ onChoose, onFiles }: {
+export function Dropzone({ onChoose, onFiles, disabled = false }: {
+  disabled?: boolean;
   onChoose: () => void;
   onFiles: (files: FileList | File[]) => void | Promise<void>;
 }) {
   const stop = (e: DragEvent, add: boolean) => {
     e.preventDefault();
-    (e.currentTarget as HTMLElement).classList.toggle('over', add);
+    (e.currentTarget as HTMLElement).classList.toggle('over', add && !disabled);
   };
   return (
-    <div class="imgdrop" role="button" tabIndex={0} aria-label="Upload an image"
-      onClick={onChoose}
+    <div class="imgdrop" role="button" tabIndex={disabled ? -1 : 0} aria-disabled={disabled} aria-busy={disabled} aria-label="Upload an image"
+      onClick={() => { if (!disabled) onChoose(); }}
       onKeyDown={e => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
-        e.preventDefault(); onChoose();
+        e.preventDefault(); if (!disabled) onChoose();
       }}
       onDragEnter={e => stop(e, true)} onDragOver={e => stop(e, true)}
       onDragLeave={e => stop(e, false)}
-      onDrop={e => { stop(e, false); void onFiles(e.dataTransfer?.files || []); }}>
-      <b>Drop an image here</b><span>or choose a file</span>
+      onDrop={e => { stop(e, false); if (!disabled) void onFiles(e.dataTransfer?.files || []); }}>
+      <b>{disabled ? 'Uploading…' : 'Drop an image here'}</b><span>{disabled ? 'Please wait for the upload to finish.' : 'or choose a file'}</span>
     </div>
   );
 }
@@ -684,12 +669,13 @@ function DimsCtl({ n, c }: P) {
     n.props.w = w.value; n.props.h = h.value;
     L.repaint();
   };
-  const detect = async () => {
+  const action = useProcessingAction('image-dimensions-' + n.id);
+  const detect = () => action.run({pending:'Reading image…', success:got => `Detected ${got.w} × ${got.h}.`}, async () => {
     const got = await L.imgSize(L.assetsToBlob(String(n.props.src || '')));
-    if (!got) { L.toast('Could not read that image'); return; }
+    if (!got) throw new Error('Could not read that image. Check the image URL.');
     C.edit(() => { n.props.w = String(got.w); n.props.h = String(got.h); });
-    L.toast(`Detected ${got.w} × ${got.h}`);
-  };
+    return got;
+  });
   return <Field n={n} c={c}>
     <div class="unit">
       <input class="ctl" type="number" min="0" value={n.props.w || ''} placeholder="width"
@@ -697,7 +683,8 @@ function DimsCtl({ n, c }: P) {
       <input class="ctl" type="number" min="0" value={n.props.h || ''} placeholder="height"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={L.endTx} />
       <button class="btn" style={{ flex: '0 0 auto', fontSize: 'var(--fs-2)' }}
-        title="Read the real dimensions from the image" onClick={detect}>Detect</button>
+        disabled={action.busy} aria-busy={action.busy} data-pc-pending={action.busy ? '' : undefined}
+        title="Read the real dimensions from the image" onClick={detect}>{action.busy ? 'Reading…' : 'Detect'}</button>
     </div>
   </Field>;
 }

@@ -77,9 +77,18 @@ const app = createApp({
 });
 let failNextSave = process.env.CMS_QA_FAIL_FIRST_SAVE === '1';
 const saveDelay = Math.min(15000, Math.max(0, Number(process.env.CMS_QA_SAVE_DELAY_MS) || 0));
+let failNextHistory = process.env.CMS_QA_FAIL_FIRST_HISTORY === '1';
+const historyDelay = Math.min(15000, Math.max(0, Number(process.env.CMS_QA_HISTORY_DELAY_MS) || 0));
 serve({
   fetch: async (request) => {
     const url = new URL(request.url);
+    if (request.method === 'GET' && url.pathname === `/api/sites/${site.id}/history`) {
+      if (historyDelay) await new Promise(resolve => setTimeout(resolve, historyDelay));
+      if (failNextHistory) {
+        failNextHistory = false;
+        return Response.json({error:'qa_history_unavailable',detail:'QA history failure. Please retry.'}, {status:500});
+      }
+    }
     if (url.pathname === '/qa-viewport') {
       const width = Number(url.searchParams.get('width'));
       if (![390, 768, 1280].includes(width))

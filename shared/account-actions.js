@@ -22,10 +22,13 @@ export function installAccountActions() {
     if (url.origin !== location.origin) return;
     const button = event.submitter || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
     // OAuth needs a real cross-origin navigation, not fetch following its redirect.
-    if (url.pathname === '/auth/google') {
+    if (url.pathname === '/auth/google' || /^\/v1\/(oauth|wordpress-import)\/authorize$/.test(url.pathname)) {
       if(native.has(form)){event.preventDefault();return;}
-      const action=feedback.begin(button, 'Opening Google sign-in…');
-      native.set(form,{restore:()=>{action?.cancel();native.delete(form);}});
+      // A disabled native submitter is omitted from the request. Preserve its choice.
+      let choice;
+      if(event.submitter?.name){choice=document.createElement('input');choice.type='hidden';choice.name=event.submitter.name;choice.value=event.submitter.value;form.append(choice);}
+      const action=feedback.begin(button, url.pathname==='/auth/google'?'Opening Google sign-in…':'Processing your choice…');
+      native.set(form,{restore:()=>{action?.cancel();choice?.remove();native.delete(form);}});
       return;
     }
     event.preventDefault();

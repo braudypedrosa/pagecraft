@@ -67,7 +67,7 @@ test('failed persistence retains the form and does not mutate the document', asy
   });
   expect(col.items).toHaveLength(0);
   expect((r.$('#cms-value-title') as HTMLInputElement).value).toBe('Keep this');
-  expect(r.$('[role="alert"]')?.textContent).toContain('Connection lost');
+  await vi.waitFor(()=>expect(r.$('[role="alert"]')?.textContent).toContain('Connection lost'));
 });
 test('200 entries paginate and search without mounting all entries', async () => {
   const col = C.collectionAdd('Cabins');
@@ -148,7 +148,7 @@ test('rich text is read-only while an entry save is pending', async () => {
   await act(async () => {
     done();
   });
-  expect(r.$('#cms-value-body')?.getAttribute('contenteditable')).toBe('true');
+  await vi.waitFor(()=>expect(r.$('#cms-value-body')?.getAttribute('contenteditable')).toBe('true'));
 });
 
 test('schema save announces pending and completion at the action, prevents duplicates and allows retry without losing input', async () => {
@@ -161,12 +161,12 @@ test('schema save announces pending and completion at the action, prevents dupli
   expect(button('Saving…').getAttribute('aria-busy')).toBe('true');
   expect(r.$('.cms-form-actions [role=status]')?.textContent).toBe('Saving collection…');
   await act(async()=>reject(new Error('Server unavailable.')));
-  expect(button('Try again')).toBeTruthy();
+  await vi.waitFor(()=>expect(button('Try again')).toBeTruthy());
   expect((r.$('#cms-name') as HTMLInputElement).value).toBe('Renamed cabins');
   expect(r.$('.cms-form-actions [role=alert]')?.textContent).toContain('Your changes are still here');
   L.cmsCommit=async collections=>{C.edit(()=>{C.state.meta.collections=collections;});};
   await click('Try again');
-  expect(button('Saved')).toBeTruthy();
+  await vi.waitFor(()=>expect(button('Saved')).toBeTruthy());
   expect(r.$('.cms-form-actions [role=status]')?.textContent).toContain('Collection saved.');
   expect(C.collections()[0].name).toBe('Renamed cabins');
   await act(()=>r.type(r.$('#cms-name')!, 'Another edit'));

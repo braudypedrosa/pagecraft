@@ -12,7 +12,7 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const style = document.createElement('style');
   style.id = 'pc-action-feedback-styles'; style.textContent = css; document.head.append(style);
   let host;
-  const records = new Map(), pending = new WeakMap(), keys = new WeakMap();
+  const records = new Map(), pending = new WeakMap(), keys = new WeakMap(), jobs = new Set();
   let sequence = 0;
   const paths = {
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>',
@@ -67,15 +67,42 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&!['error','progress'].includes(r.node.dataset.tone)){clearTimeout(r.timer);r.node.remove();records.delete(key);} }
     return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone}), success:value=>notify(value,{id,tone:'success'}), error:value=>notify(value,{id,tone:'error'}) };
   };
-  const begin = (button, message) => {
+  const begin = (button, message, key) => {
     if (button && pending.has(button)) return null;
     if(button&&!keys.has(button))keys.set(button,'button-'+(++sequence));
-    const notice=notify(message,{tone:'progress',...(button?{id:keys.get(button)}:{})});
+    const notice=notify(message,{tone:'progress',...(key?{id:'job-'+key}:button?{id:keys.get(button)}:{})});
     const snapshot=button?{html:button.innerHTML,disabled:button.disabled,busy:button.getAttribute('aria-busy'),label:button.getAttribute('aria-label'),ariaDisabled:button.getAttribute('aria-disabled')}:null;
     let done=false;
     if(button){pending.set(button,true);button.disabled=true;button.setAttribute('aria-busy','true');button.setAttribute('aria-disabled','true');button.setAttribute('aria-label',message);button.setAttribute('data-pc-pending','');button.textContent=message;}
     const restore=()=>{if(done)return false;done=true;if(button){pending.delete(button);button.innerHTML=snapshot.html;button.disabled=snapshot.disabled;button.removeAttribute('data-pc-pending');for(const [name,value] of [['aria-busy',snapshot.busy],['aria-label',snapshot.label],['aria-disabled',snapshot.ariaDisabled]]){if(value===null)button.removeAttribute(name);else button.setAttribute(name,value);}}return true;};
     return { update:notice.update, success:message=>{if(restore())notice.success(message);}, error:message=>{if(restore())notice.error(message);}, cancel:()=>{if(restore())notice.dismiss();} };
+  };
+  // Foreground work enters here once, at the user-action boundary, not once per fetch.
+  // The key survives replacement of a button during a panel render. Callers receive a
+  // result so a failed/cancelled operation can never accidentally continue as a success.
+  const run = async (options, work) => {
+    const key = options.key || options.button;
+    if (key && jobs.has(key)) return {status:'busy'};
+    const action = begin(options.button || null, options.pending, options.key);
+    if (!action) return {status:'busy'};
+    if (key) jobs.add(key);
+    try {
+      // CPU-heavy exports opt in; clipboard/file-picker actions retain user activation.
+      if (options.paint) await new Promise(resolve => {
+        const timer = setTimeout(resolve, 100);
+        requestAnimationFrame(() => requestAnimationFrame(() => {clearTimeout(timer);resolve();}));
+      });
+      const value = await work({update:action.update});
+      if (value === false) { action.cancel(); return {status:'cancelled'}; }
+      action.success(typeof options.success === 'function' ? options.success(value) : options.success);
+      return {status:'success',value};
+    } catch (error) {
+      if (error?.name === 'AbortError') {action.cancel();return {status:'cancelled'};}
+      const message = typeof options.error === 'function' ? options.error(error)
+        : options.error || (error?.message ? error.message + (/try again|retry|press|copy this/i.test(error.message) ? '' : ' Try again.') : 'Could not complete this action. Try again.');
+      action.error(message);
+      return {status:'error',error,message};
+    } finally { if (key) jobs.delete(key); }
   };
   const flash = (message, path = location.pathname) => { try { sessionStorage.setItem('pc-action-result',JSON.stringify({message,at:Date.now(),path})); } catch {} };
   const restoreFlash = () => { try { const raw=sessionStorage.getItem('pc-action-result'); if(!raw)return;sessionStorage.removeItem('pc-action-result');const value=JSON.parse(raw);if(value.path===location.pathname&&Date.now()-value.at<60000)notify(value.message,{tone:'success',id:'navigation-result'}); } catch {} };
@@ -83,7 +110,7 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const observer = new MutationObserver(()=>{if(host&&host.parentElement!==destination())place();});
   observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden']});
   const destroy=()=>{observer.disconnect();for(const record of records.values())clearTimeout(record.timer);records.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
-  const api={notify,begin,flash,destroy}; window.__pcFeedback=api;
+  const api={notify,begin,run,flash,destroy}; window.__pcFeedback=api;
   return api;
 }
 export const ACTION_FEEDBACK_BOOT_SCRIPT = `(${installActionFeedback.toString()})(${JSON.stringify(ACTION_FEEDBACK_CSS)});`;
