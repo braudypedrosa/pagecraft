@@ -59,6 +59,7 @@ Validation combines the rendered desktop workspace journeys, tablet/narrow ifram
 
 | Primitive | Role | Font / size / weight / line height |
 | --- | --- | --- |
+| `pc-input-text` | Inputs and native/enhanced selects | Manrope / 13.5px / 400 / 1.4 |
 | `pc-control-text` | Standard action/control text | Manrope / 13.5px / 500 / 1.4 |
 | `pc-toolbar-context` | Compact context row and its buttons, pills and selects | Manrope / 12.5px / 500 / 1.4 |
 | `pc-field-label` | Field names, including schema and filter labels | DM Sans / 12.5px / 500 / 1.5 |

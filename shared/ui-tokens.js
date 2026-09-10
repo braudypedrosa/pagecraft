@@ -27,6 +27,7 @@ export const UI_TOKENS_CSS = `:root{
   --pc-text-dialog:16px;
   --pc-text-section:18px;
   --pc-text-workspace:22px;
+  --pc-type-input:400 var(--pc-text-body)/1.4 var(--pc-font-body);
   --pc-type-control:500 var(--pc-text-body)/1.4 var(--pc-font-body);
   --pc-type-toolbar:500 var(--pc-text-label)/1.4 var(--pc-font-body);
   --pc-type-label:500 var(--pc-text-label)/1.5 var(--pc-font-label);
