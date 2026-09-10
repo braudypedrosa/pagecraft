@@ -50,7 +50,7 @@ function NodeRow({ n, depth }: { n: any; depth: number }) {
       role="treeitem" tabIndex={0} aria-level={depth + 1}
       aria-selected={primary || alsoPicked ? 'true' : 'false'}
       aria-expanded={kids.length ? (collapsed ? 'false' : 'true') : undefined}
-      style={{ paddingLeft: (6 + depth * 13) + 'px' }}
+      style={{ paddingLeft: (4 + depth * 9) + 'px' }}
       onClick={e => L.select(n.id, { scroll: true, add: e.metaKey || e.ctrlKey, range: e.shiftKey })}
       onKeyDown={e => {
         if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return;
@@ -73,7 +73,7 @@ function NodeRow({ n, depth }: { n: any; depth: number }) {
         <Icon name="drag" size={11} />
       </button>
       <Icon name={C.DEF[n.type].icon} size={13} cls="ico" />
-      <span class="nm">{C.nameOf(n)}</span>
+      <span class="nm" title={C.nameOf(n)}>{C.nameOf(n)}</span>
       <span class="act">
         <button title={(hidden ? 'Show' : 'Hide') + ' on ' + C.DEV_LABEL[C.dk()]}
           onClick={e => act(e, 'hide')}><Icon name={hidden ? 'eyeoff' : 'eye'} size={12} /></button>

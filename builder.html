@@ -493,8 +493,8 @@ body.content-only .s-hud [data-x=down]{display:none}
 /* ---- navigator --------------------------------------------------------- */
 .layers{padding:6px;position:relative}
 .lrow{
-  display:flex;align-items:center;gap:var(--sp-4);padding:7px 8px;border-radius:var(--r-sm);
-  cursor:pointer;font-size:var(--fs-3);color:var(--text-2);position:relative;
+  display:flex;align-items:center;gap:var(--sp-2);padding:4px 6px;border-radius:var(--r-sm);
+  cursor:pointer;font-size:var(--fs-2);line-height:20px;color:var(--text-2);position:relative;
 }
 .lrow:hover{background:var(--field)}
 .lrow.sel{background:var(--wake-bg);color:var(--wake-fg);font-weight:500;box-shadow:inset 2px 0 0 var(--green)}
@@ -513,15 +513,16 @@ body.content-only .s-hud [data-x=down]{display:none}
 .lrow .tw svg{width:9px;height:9px;transition:transform .12s}
 .lrow.collapsed .tw svg{transform:rotate(-90deg)}
 .lrow svg.ico{width:13px;height:13px;flex:0 0 13px;opacity:.75}
-.lrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.lrow .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
 .lrow .lk{width:13px;height:13px;flex:0 0 13px;color:var(--text-3);opacity:.7}
-.lrow .act{opacity:0;display:flex;gap:var(--sp-1)}
-.lrow:hover .act{opacity:1}
+.lrow .act{position:absolute;right:4px;top:50%;transform:translateY(-50%);opacity:0;pointer-events:none;display:flex;gap:var(--sp-1)}
+.lrow:hover .act,.lrow:focus-within .act{opacity:1;pointer-events:auto}
+.lrow:has(.act):hover,.lrow:has(.act):focus-within{padding-right:76px}
 .lrow .act button{width:var(--ic-sm);height:var(--ic-sm);display:grid;place-items:center;border-radius:var(--r-sm);color:var(--text-3)}
 .lrow .act button:hover{background:var(--line);color:var(--text)}
 /* the row's own grab affordance, revealed on hover so the list stays quiet */
 .lrow .gr{width:14px;height:20px;padding:0;flex:0 0 14px;display:grid;place-items:center;color:var(--text-3);cursor:grab;opacity:0}
-.lrow:hover .gr{opacity:.8}
+.lrow:hover .gr,.lrow:focus-within .gr{opacity:.8}
 .lrow .gr:hover{opacity:1;color:var(--text)}
 .lrow .gr svg{width:11px;height:11px}
 body.dragging .lrow{cursor:grabbing}
