@@ -166,7 +166,6 @@ export function Pages() {
     <>
       <div class="page-settings-context">
         <button class="btn block" onClick={() => L.openPages()}><Icon name="page" size={13} /> Manage pages</button>
-        <strong>{pg.name}</strong>
       </div>
 
       <div class="group"><div class="gh">Current page</div><div class="gb">
