@@ -186,8 +186,8 @@ test("anonymous visitors are sent to sign in and a verified identity always sees
   a.match(html, /class="pc-topbar"/);
   a.match(html, /class="pc-rail"/);
   a.match(html, /height:52px/);
-  a.match(html, /width:62px/);
-  a.match(html, /@media\(max-width:520px\).*\.pc-rail\{width:52px/);
+  a.match(html, /width:var\(--pc-rail-width\)/);
+  a.match(html, /padding:0 var\(--pc-rail-padding-x\)/);
   a.match(
     html,
     /<button type="button" data-site-view="sites" aria-pressed="true">/,

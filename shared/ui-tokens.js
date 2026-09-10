@@ -3,6 +3,8 @@
  * These tokens are never injected into a user's published site.
  */
 export const UI_TOKENS_CSS = `:root{
+  --pc-rail-width:88px;
+  --pc-rail-padding-x:10px;
   --pc-control-height:44px;
   --pc-control-compact:36px;
   --pc-control-editor:37px;
