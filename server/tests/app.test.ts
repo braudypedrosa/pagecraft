@@ -25,7 +25,7 @@ const demo = (): Doc => {
 
 /* A rig that signs in the way a person does: ask for a link, follow it, keep the cookie.
    Fabricating a session would leave the login flow untested by everything that uses it. */
-const rig = async (role: Role = 'owner', hostedPublications = false) => {
+const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>) => {
   const store = new MemoryStore();
   const auth = new MemoryAuthStore();
   const publications = hostedPublications ? new MemoryHostedPublicationStore() : undefined;
@@ -34,7 +34,7 @@ const rig = async (role: Role = 'owner', hostedPublications = false) => {
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
     editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications,
     optimizeAsset: hostedPublications
-      ? async bytes => ({ bytes, type: 'image/webp', w: 960, h: 600, extension: 'webp' })
+      ? async bytes => { await onOptimize?.(); return { bytes, type: 'image/webp', w: 960, h: 600, extension: 'webp' }; }
       : undefined
   });
   const fixture = demo();
@@ -568,4 +568,61 @@ test('site creation streams real stages and a final result while retaining JSON 
   const failed = await admin('/api/sites', {method: 'POST', headers: {accept:'application/x-ndjson'}, body:JSON.stringify({slug:'Bad Slug'})}, cookie);
   const error = (await failed.text()).trim().split('\n').map(line => JSON.parse(line)).at(-1);
   a.equal(error.ok, false); a.equal(error.payload.error, 'invalid_slug');
+});
+
+test('dashboard thumbnails are private, cached images and reject stale save/publication keys', async () => {
+  const { site, admin, signIn, put } = await rig('owner', true);
+  const { cookie } = await signIn();
+  const path = `/api/sites/${site.id}/dashboard-thumbnail`;
+  const snapshot = 'data:image/webp;base64,' + Buffer.from('test-image').toString('base64');
+  const upload = (version: string, image = snapshot) => admin(path, {method:'POST',body:JSON.stringify({version,snapshot:image})},cookie);
+  a.notEqual((await admin(path + '?version=1:')).status, 200);
+  a.equal((await admin(path + '?version=1:', {}, cookie)).status, 404);
+  a.equal((await upload('1:')).status, 200);
+  const cached = await admin(path + '?version=1:', {}, cookie);
+  a.equal(cached.status, 200);
+  a.match(cached.headers.get('cache-control') || '', /private.*immutable/);
+  a.equal(cached.headers.get('content-type'), 'image/webp');
+  const etag = cached.headers.get('etag')!;
+  a.equal(await cached.text(), 'test-image');
+  a.equal((await admin(path + '?version=1:', {headers:{'if-none-match':etag}},cookie)).status,304);
+  a.equal((await upload('1:', 'data:image/webp;base64,'+Buffer.from('different').toString('base64'))).status,200);
+  a.equal((await admin(path + '?version=1:', {}, cookie)).headers.get('etag'),etag,'a revisit never overwrites an existing version');
+  const doc = structuredClone(site.doc); doc.meta.name = 'Preview save test';
+  a.equal((await put(site.id,doc,1,cookie)).status,200);
+  a.equal((await upload('1:')).status,409);
+  const status = await (await admin(`/api/sites/${site.id}/publication`,{},cookie)).json();
+  a.equal(status.previewVersion,'2:'); a.equal(status.cachedPreviewVersion,'1:');
+  a.equal((await upload('2:', 'data:image/svg+xml;base64,AAAA')).status,400);
+  a.equal((await upload('2:')).status,200);
+  a.equal((await admin(path + '?version=1:', {}, cookie)).status,404);
+  const published = await admin(`/api/sites/${site.id}/publish`, {method:'POST',body:JSON.stringify({sourceVersion:2,acknowledgeWarnings:true})},cookie);
+  a.equal(published.status,200);
+  const release = await published.json();
+  a.equal((await upload('2:')).status,409);
+  a.equal((await upload(`2:${release.publicationId}`)).status,200);
+  // No public access to the saved-draft image.
+  a.notEqual((await admin(path+`?version=2:${release.publicationId}`)).status,200);
+});
+
+
+test('thumbnail rejects a save completed during optimization and permits content editors', async () => {
+  let unblock!: () => void, started!: () => void;
+  const began = new Promise<void>(resolve => { started = resolve; });
+  const barrier = new Promise<void>(resolve => { unblock = resolve; });
+  const {site, admin, signIn, put} = await rig('content', true, async()=>{started();await barrier;});
+  const {cookie} = await signIn();
+  const path = `/api/sites/${site.id}/dashboard-thumbnail`;
+  const snapshot = 'data:image/webp;base64,'+Buffer.from('fixture').toString('base64');
+  const pending = admin(path,{method:'POST',body:JSON.stringify({version:'1:',snapshot})},cookie);
+  await began;
+  const doc=structuredClone(site.doc); doc.meta.name='Saved during capture';
+  // Metadata is owner-only, so change actual text content for a Content editor.
+  doc.meta.name=site.doc.meta.name;
+  Core.eachNode(doc.pages[0].tree,n=>{if(n.type==='heading') n.props.text='Saved during capture';});
+  a.equal((await put(site.id,doc,1,cookie)).status,200);
+  unblock(); a.equal((await pending).status,409);
+  a.equal((await admin(path+'?version=1:',{},cookie)).status,404);
+  a.equal((await admin(path,{method:'POST',body:JSON.stringify({version:'2:',snapshot})},cookie)).status,200);
+  a.equal((await admin(path,{method:'POST',body:JSON.stringify({version:'2:',snapshot:'a'.repeat(1500000)})},cookie)).status,413);
 });

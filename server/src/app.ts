@@ -1,3 +1,4 @@
+import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
 import { UI_FONT_FACES, UI_FONTS_CSS } from '../../shared/ui-fonts.js';
 import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
@@ -282,6 +283,7 @@ export interface Options {
   packages?: PackageRegistry;
   /** Immutable, materialized hosted releases and their atomic public pointers. */
   publications?: HostedPublicationStore;
+  sitePreviews?: SitePreviewStore;
   /** Production gateway fast path: authenticate and load one hosted publish source in one call. */
   hostedPublish?: HostedPublishPreparer;
   /** Cached-source + atomic-write path that removes redundant production gateway crossings. */
@@ -316,6 +318,7 @@ const typeOf = (path: string) =>
 
 export function createApp(o: Options) {
   const app = new Hono();
+  const sitePreviews = o.sitePreviews || new MemorySitePreviewStore();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
   const requestSource = (c: Context) =>
     c.req.header("cf-connecting-ip") ||
@@ -352,7 +355,9 @@ export function createApp(o: Options) {
       /^\/account(?:\/|$)/.test(path) ||
       path === "/mcp" ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
-    if (privateRoute) c.header("cache-control", "private, no-store");
+    const cachedThumbnail = c.req.method === "GET" && /^\/api\/sites\/[^/]+\/dashboard-thumbnail$/.test(path) &&
+      [200, 304].includes(c.res.status) && c.res.headers.get("cache-control")?.includes("immutable");
+    if (privateRoute && !cachedThumbnail) c.header("cache-control", "private, no-store");
     /* `secureCookies` is the production signal already passed by the entry point. Browsers
        ignore HSTS over HTTP; over HTTPS this closes the first-visit downgrade gap. Deliberately
        no includeSubDomains until every unrelated subdomain is known to be HTTPS-only. */
@@ -1495,17 +1500,21 @@ export function createApp(o: Options) {
       })) : [];
       return c.html(dashboardPage(
         user,
-        mine.map(({ site, role }) => ({
+        await Promise.all(mine.map(async ({ site, role }) => {
+          const cached = await sitePreviews.get(site.id);
+          return {
           id: site.id,
           name: site.name,
           role,
           updatedAt: site.updatedAt,
           url: shareUrl(c, o, site),
           draftPreviewUrl: `/api/sites/${encodeURIComponent(site.id)}/dashboard-preview/index.html?v=${site.version}`,
-          previewVersion: `${site.version}:${site.publishedPublicationId || ''}`,
+          previewVersion: previewVersion(site),
+          previewUrl: cached ? previewUrl(site.id, cached.version) : undefined,
+          cachedPreviewVersion: cached?.version,
           published: !!site.publishedPublicationId &&
             site.version === site.publishedVersion,
-        })),
+        }; })),
         mine.filter((item) => item.role === "owner").length,
         storage,
         templates,
@@ -1848,6 +1857,7 @@ export function createApp(o: Options) {
     // routing is still active. A retry is safe if the database delete then fails.
     const remove = async () => {
       await o.submissions?.removeSite(id);
+      await sitePreviews.remove(id);
       await o.cloudIntegrations?.connections.put(id, null);
       await o.publications?.removeSite(id);
       return o.store.delete(id);
@@ -1978,7 +1988,11 @@ export function createApp(o: Options) {
     const publication = site.publishedPublicationId && o.publications
       ? await o.publications.byId(id, site.publishedPublicationId)
       : null;
+    const cached = await sitePreviews.get(id);
     return c.json({
+      previewVersion: previewVersion(site),
+      previewUrl: cached ? previewUrl(id, cached.version) : null,
+      cachedPreviewVersion: cached?.version ?? null,
       draftVersion: site.version,
       publishedVersion: publication?.sourceVersion ?? null,
       publicationId: publication?.id ?? null,
@@ -1992,7 +2006,61 @@ export function createApp(o: Options) {
     });
   });
 
-  // Private saved-draft previews: no publication, screenshot upload or background worker required.
+  // The image URL is immutable for a saved/published version; authentication is still
+  // required on every network request. Cache files are private and deployment-local.
+  app.get("/api/sites/:id/dashboard-thumbnail", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "read");
+    if (!gate.ok) return deny(c, gate.status);
+    const cached = await sitePreviews.get(id);
+    if (!cached || cached.version !== c.req.query("version")) {
+      c.header("cache-control", "private, no-store");
+      return c.notFound();
+    }
+    c.header("cache-control", "private, max-age=31536000, immutable");
+    c.header("etag", `"${cached.etag}"`);
+    c.header("vary", "Cookie");
+    c.header("x-robots-tag", "noindex, nofollow");
+    if (c.req.header("if-none-match") === `"${cached.etag}"`) return c.body(null, 304);
+    const bytes = Buffer.from(cached.image, "base64");
+    return c.body(bytes as unknown as ArrayBuffer, 200, {
+      "content-type": "image/webp", "content-length": String(bytes.length),
+      "x-content-type-options": "nosniff",
+    });
+  });
+
+  app.post("/api/sites/:id/dashboard-thumbnail", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "write");
+    if (!gate.ok) return deny(c, gate.status);
+    if (Number(c.req.header("content-length") || 0) > 1500000) return c.json({ error: "preview_too_large" }, 413);
+    const raw = await c.req.text();
+    if (raw.length > 1500000) return c.json({ error: "preview_too_large" }, 413);
+    let body;
+    try { body = JSON.parse(raw); } catch { return c.json({ error: "invalid_preview" }, 400); }
+    const match = String(body?.snapshot || "").match(/^data:image\/webp;base64,([A-Za-z0-9+/]+={0,2})$/);
+    const site = await o.store.byId(id);
+    if (!site || body?.version !== previewVersion(site)) return c.json({ error: "stale_preview" }, 409);
+    if (!match) return c.json({ error: "invalid_preview" }, 400);
+    const existing = await sitePreviews.get(id);
+    if (existing?.version === body.version) return c.json({ url: previewUrl(id, body.version), status: "cached" });
+    let bytes: Uint8Array;
+    try {
+      const optimized = await optimizeAsset(new Uint8Array(Buffer.from(match[1], "base64")), "image/webp");
+      if (optimized.type !== "image/webp" || optimized.w !== 960 || optimized.h !== 600 || optimized.bytes.length > 1024 * 1024) {
+        return c.json({ error: "invalid_preview" }, 400);
+      }
+      bytes = optimized.bytes;
+    } catch { return c.json({ error: "invalid_preview" }, 400); }
+    // Saving/publishing may have completed while the image was being decoded.
+    const latest = await o.store.byId(id);
+    if (!latest || body.version !== previewVersion(latest)) return c.json({ error: "stale_preview" }, 409);
+    await sitePreviews.put(id, body.version, bytes);
+    return c.json({ url: previewUrl(id, body.version), status: "stored" });
+  });
+
+  // A script-free saved homepage is loaded only when its thumbnail needs generating.
+
   app.get("/api/sites/:id/dashboard-preview/*", async (c) => {
     const id = c.req.param("id");
     const gate = await allowed(c, id, "read");
@@ -2013,7 +2081,7 @@ export function createApp(o: Options) {
     const html = rendered?.files.get("index.html");
     if (!html) return c.text("Preview unavailable", 422);
     c.header("content-security-policy", "sandbox allow-same-origin; default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; font-src 'self' https://fonts.gstatic.com data:; frame-src 'none'; form-action 'none'; frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
-    return c.html(html.replace('<html', '<html data-dashboard-preview="ready"').replace('</head>', '<style>html,body{overflow:hidden!important}*,*::before,*::after{animation:none!important;transition:none!important}</style></head>'));
+    return c.html(html.replace('<html', `<html data-dashboard-preview="ready" data-preview-version="${previewVersion(site)}"`).replace('</head>', '<style>html,body{overflow:hidden!important}*,*::before,*::after{animation:none!important;transition:none!important}</style></head>'));
   });
 
   app.get("/api/sites/:id/publication-preview/:publication", async (c) => {

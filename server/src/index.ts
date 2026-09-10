@@ -1,3 +1,4 @@
+import { FileSitePreviewStore } from './site-previews.ts';
 import { FileSubmissionStore } from './submissions.ts';
 import { FileCloudConnectionStore, UplistingClient } from './cloud-uplisting.ts';
 /* The entry point: read the environment, pick a store, listen.
@@ -489,6 +490,7 @@ if (mail) {
 }
 
 const app = createApp({
+  sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   cloudIntegrations,
   store,

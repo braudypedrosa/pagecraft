@@ -452,8 +452,9 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /class="pc-site-preview"/);
   a.match(html, /class="pc-preview-fallback"/);
   a.match(html, /Loading preview…/);
-  a.match(html, /class="pc-draft-preview"/);
-  a.match(html, /sandbox="allow-same-origin"/);
+  a.match(html, /data-preview-source="[^" ]+dashboard-preview/);
+  a.doesNotMatch(html, /<iframe class="pc-draft-preview"/);
+  a.match(html, /setAttribute\('sandbox', 'allow-same-origin'\)/);
   a.doesNotMatch(html, /<iframe src="http:\/\/admin\.test\/braudy\/"/);
   a.match(html, /data-copy-site/);
   a.match(html, />Manage site<\/a>/);
@@ -545,7 +546,7 @@ test("dashboard cards use a stored publication image instead of loading the live
     1,
     { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
   );
-  a.match(html, /<img src="\/api\/sites\/site-1\/publication-preview\/publication-1" loading="lazy" alt="">/);
+  a.match(html, /<img src="\/api\/sites\/site-1\/publication-preview\/publication-1" loading="lazy" width="960" height="600" alt="">/);
   a.doesNotMatch(html, /<iframe src="https:\/\/public\.example\.test\//);
   a.match(html, /querySelector\('img'\)/);
   a.doesNotMatch(html, /setTimeout\(.*7000/);

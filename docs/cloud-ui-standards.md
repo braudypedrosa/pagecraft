@@ -72,3 +72,12 @@ Panel/dialog/section/workspace headings use shared 15/16/18/22px tokens. Descrip
 The context toolbar owns its 32px outer controls and 26px nested picker controls. Page selection, Settings & SEO, component Done, CMS preview and device context use this one rule, with no element-ID font overrides. Controls inside labels retain the body font rather than inheriting the label font. Geometry, color, overflow and interactive states remain with the owning component.
 
 Only the embedded font faces are copied into the canvas. App typography, tokens and workspace rules have their own style element and do not enter the page being edited or published.
+
+
+### Saved dashboard previews
+
+Sites cards use private, versioned 960 × 600 WebP thumbnails. The cache key is the saved document version plus the published publication ID; visiting, filtering, sorting, or resizing Sites does not regenerate a matching image. A changed version keeps the previous image visible while a script-free saved-homepage iframe produces its replacement, with at most two renderers active. The renderer is removed afterwards. Focus/visibility and the existing 30-second metadata check discover saves made in another tab or session.
+
+Thumbnail files live under the environment's publication root in `.dashboard-previews`, with one atomic record per site, capped at 1 MB of image data. They survive application deployments, are shared across authorized viewers, and are deleted with the site. GETs require site access and use private immutable browser caching with an ETag and `Vary: Cookie`. Uploads require write access, validate decoded dimensions/type, and reject a saved/published version that changed during capture or decoding. No document/database migration, public-site request, headless browser service, or background worker is involved.
+
+An absent/failed cache never prevents editing. A first visit or a new saved/published version generates the image on demand; failed generation retains any previous thumbnail and offers Retry. Inaccessible external image/font resources may prevent capture and remain retryable rather than saving incomplete artwork. Preview freshness failures are distinguished from successful refreshes. Published pages and the builder canvas keep their own responsive rendering.
