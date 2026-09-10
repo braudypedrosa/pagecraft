@@ -5,7 +5,7 @@
 export const UI_TOKENS_CSS = `:root{
   --pc-surface-subtle:#f5f7f8;
   --pc-surface-muted:#edf0f2;
-  --pc-canvas-surround:#e9edf0;
+  --pc-canvas-surround:#f3f5f6;
   --pc-border:#dfe4e7;
   --pc-border-strong:#cbd2d8;
   --pc-hover-bg:#f4faef;
