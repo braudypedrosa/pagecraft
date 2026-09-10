@@ -534,5 +534,5 @@ export function siteSubmissionsPage(user: User, site: { id: string; name: string
     <nav class="pc-sub-pager" aria-label="Submission pages">${page > 1 ? `<a class="pc-btn" href="${esc(pageUrl(page-1))}">Previous</a>` : '<span></span>'}<span>Page ${page} of ${pages} · ${filtered.length} ${filtered.length === 1 ? 'entry' : 'entries'}</span>${page < pages ? `<a class="pc-btn" href="${esc(pageUrl(page+1))}">Next</a>` : '<span></span>'}</nav>`}
     </div></section></div></main>`;
   if (fragment) return markup.slice(markup.indexOf('<div class="pc-manage-content">') + '<div class="pc-manage-content">'.length, markup.lastIndexOf('</div></section>'));
-  return shell(`${site.name} submissions`, markup + submissionsNavigation(prepared));
+  return shell(`${site.name} submissions`, markup + `<script>${CUSTOM_SELECT_BOOT_SCRIPT}</script>` + submissionsNavigation(prepared));
 }

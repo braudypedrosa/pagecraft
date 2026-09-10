@@ -142,6 +142,8 @@ test('prepared navigation contains only the selected page fragment and safely em
   expect(fragment).toContain('<h1>Contact QA</h1>');
   expect(fragment).not.toContain('<style>'); expect(fragment).not.toContain('<script>');
   expect(fragment).not.toContain('Detected forms');
+  const overview=siteSubmissionsPage(user,site,'owner',siteForms(source()),[]);
+  expect(overview).toContain('window.__pagecraftCustomSelects = true');
   const script=submissionsNavigation({'/sites/site/submissions?form=qa-form':'</script><script>alert(1)</script>'});
   expect(script.match(/<\/script>/g)).toHaveLength(1);
   expect(script).toContain('\\u003c/script>');
