@@ -182,25 +182,32 @@ export function installSitePreviews(capture) {
   const refresh = async () => {
     if (document.hidden || refreshing) return;
     refreshing = true;
-    try { await Promise.allSettled([...states.values()].filter(s => s.visible).map(async state => {
-      try {
-        const response = await fetch('/api/sites/' + encodeURIComponent(state.card.dataset.previewSite) + '/publication', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
-        if (!response.ok) throw new Error('Unavailable');
-        const result = await response.json();
-        const version = result.previewVersion;
-        if (!version) return;
-        if (version === state.version) {
-          if (state.completed === version && !state.running) status(state, '');
-          return;
-        }
-        state.controller?.abort(); state.version = version; state.card.dataset.previewVersion = version;
-        state.card.dataset.previewSource = '/api/sites/' + encodeURIComponent(state.card.dataset.previewSite) + '/dashboard-preview/index.html?v=' + result.draftVersion;
-        if (result.cachedPreviewVersion === version && result.previewUrl) {
-          await showImage(state, result.previewUrl, version);
-          if (state.version === version) { state.completed = version; status(state, ''); }
-        } else generate(state);
-      } catch { status(state, 'Preview freshness could not be checked.', true); }
-    })); } finally { refreshing = false; }
+    const visible = [...states.values()].filter(s => s.visible);
+    try {
+      const response = await fetch('/api/sites?previews=1', { cache: 'no-store', signal: AbortSignal.timeout(30000) });
+      if (!response.ok) throw new Error('Unavailable');
+      const sites = await response.json();
+      if (!Array.isArray(sites)) throw new Error('Unavailable');
+      await Promise.allSettled(visible.map(async state => {
+        try {
+          const result = sites.find(site => site.id === state.card.dataset.previewSite);
+          if (!result) throw new Error('Unavailable');
+          const version = result.previewVersion;
+          if (!version) return;
+          if (version === state.version) {
+            if (state.completed === version && !state.running) status(state, '');
+            return;
+          }
+          state.controller?.abort(); state.version = version; state.card.dataset.previewVersion = version;
+          state.card.dataset.previewSource = '/api/sites/' + encodeURIComponent(state.card.dataset.previewSite) + '/dashboard-preview/index.html?v=' + result.version;
+          if (result.cachedPreviewVersion === version && result.previewUrl) {
+            await showImage(state, result.previewUrl, version);
+            if (state.version === version) { state.completed = version; status(state, ''); }
+          } else generate(state);
+        } catch { status(state, 'Preview freshness could not be checked.', true); }
+      }));
+    } catch { visible.forEach(state => status(state, 'Preview freshness could not be checked.', true)); }
+    finally { refreshing = false; }
   };
   window.addEventListener('focus', refresh); document.addEventListener('visibilitychange', refresh);
   const interval = setInterval(refresh, 30000);

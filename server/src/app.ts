@@ -1949,6 +1949,12 @@ export function createApp(o: Options) {
     })).sort((a, b) =>
       new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
+    if (c.req.query("previews") === "1") return c.json(await Promise.all(out.map(async site => {
+      const cached = await sitePreviews.get(site.id);
+      return { ...site, previewVersion: previewVersion(site),
+        cachedPreviewVersion: cached?.version ?? null,
+        previewUrl: cached ? previewUrl(site.id, cached.version) : null };
+    })));
     return c.json(out);
   });
 

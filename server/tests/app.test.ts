@@ -593,6 +593,10 @@ test('dashboard thumbnails are private, cached images and reject stale save/publ
   a.equal((await upload('1:')).status,409);
   const status = await (await admin(`/api/sites/${site.id}/publication`,{},cookie)).json();
   a.equal(status.previewVersion,'2:'); a.equal(status.cachedPreviewVersion,'1:');
+  const listed = await (await admin('/api/sites?previews=1',{},cookie)).json();
+  a.equal(listed.length,1); a.equal(listed[0].id,site.id);
+  a.equal(listed[0].previewVersion,'2:');a.equal(listed[0].cachedPreviewVersion,'1:');
+  a.notEqual((await admin('/api/sites?previews=1')).status,200);
   a.equal((await upload('2:', 'data:image/svg+xml;base64,AAAA')).status,400);
   a.equal((await upload('2:')).status,200);
   a.equal((await admin(path + '?version=1:', {}, cookie)).status,404);

@@ -14,7 +14,7 @@ function rig(cached='1:', version='1:', capture=vi.fn()) {
  w.IntersectionObserver=class { constructor(public cb:Function){} observe(node:Element){this.cb([{target:node,isIntersecting:true}]);} disconnect(){} };
  Object.defineProperty(w.HTMLImageElement.prototype,'complete',{get:()=>false});
  const requests: string[]=[];
- w.fetch=vi.fn(async(url:string)=>{requests.push(url);return {ok:true,url:'https://staging.test/draft?v=1',text:async()=>'<html><body>Invalid preview</body></html>',json:async()=>({previewVersion:version,cachedPreviewVersion:cached})};});
+ w.fetch=vi.fn(async(url:string)=>{requests.push(url);return {ok:true,url:'https://staging.test/draft?v=1',text:async()=>'<html><body>Invalid preview</body></html>',json:async()=>[{id:'qa',previewVersion:version,cachedPreviewVersion:cached}]};});
  w.AbortSignal.timeout=()=>new w.AbortController().signal;
  w.capture=capture; w.eval(`(${installSitePreviews.toString()})(capture)`);
  return {dom,w,requests,card:w.document.querySelector('[data-preview-site]')};
@@ -29,7 +29,7 @@ describe('dashboard image cache',()=>{
  });
  it('renders matching cache without a page iframe, and unchanged focus checks do not regenerate it',async()=>{
   const {w,requests}=rig(); w.dispatchEvent(new w.Event('focus')); await new Promise(r=>setTimeout(r,5));
-  expect(w.document.querySelectorAll('iframe')).toHaveLength(0);expect(w.capture).not.toHaveBeenCalled(); expect(requests).toEqual(['/api/sites/qa/publication']);
+  expect(w.document.querySelectorAll('iframe')).toHaveLength(0);expect(w.capture).not.toHaveBeenCalled(); expect(requests).toEqual(['/api/sites?previews=1']);
  });
  it('keeps the existing image while preparing the next version and removes failed renderers',async()=>{
   const {w,card}=rig('1:','2:');expect(card.querySelector('img')).not.toBeNull();
@@ -49,10 +49,10 @@ describe('dashboard image cache',()=>{
   const {w,card}=rig('1:','1:',capture);
   w.fetch=vi.fn(async()=>({ok:true,url:'https://staging.test/draft?v=2',
    text:async()=>'<html data-dashboard-preview="ready" data-preview-version="2:"><body>Saved page</body></html>',
-   json:async()=>({previewVersion:'2:',draftVersion:2})}));
+   json:async()=>[{id:'qa',previewVersion:'2:',version:2}]}));
   w.dispatchEvent(new w.Event('focus'));await new Promise(r=>setTimeout(r,5));
   expect(capture).toHaveBeenCalled();
-  w.fetch=vi.fn(async()=>({ok:true,url:'https://staging.test/draft?v=3',text:async()=>'<html>Unavailable</html>',json:async()=>({previewVersion:'3:',draftVersion:3})}));
+  w.fetch=vi.fn(async()=>({ok:true,url:'https://staging.test/draft?v=3',text:async()=>'<html>Unavailable</html>',json:async()=>[{id:'qa',previewVersion:'3:',version:3}]}));
   w.dispatchEvent(new w.Event('focus'));await new Promise(r=>setTimeout(r,5));
   release('data:image/webp;base64,AAAA');await new Promise(r=>setTimeout(r,5));
   expect(card.dataset.previewVersion).toBe('3:');
