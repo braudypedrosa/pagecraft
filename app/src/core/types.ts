@@ -308,7 +308,7 @@ export interface Node {
   children: Node[];
   /** a content source: this node and its subtree bind against this collection */
   src?: string;
-  /** prop key to binding. A bound prop takes its value from somewhere else. */
+  /** Prop key to binding. Component instance properties use `val:<property key>` here. */
   bind?: Record<string, Binding>;
   /** A component id. This node is an *instance*: its markup comes from the definition's tree,
       and its own type, css, classes and animation still describe this element on this page.

@@ -2578,7 +2578,10 @@ const tgtIsClass = (n: PcNode) => tgtObj(n) !== n;
 const VAL = 'val:';
 const propVal = (n: PcNode, k?: string) => {
   if (k == null) return undefined;
-  if (k.startsWith(VAL)) return instValue(n, findComponent(n.use), k.slice(VAL.length));
+  if (k.startsWith(VAL)) {
+    const scope = bindScope(n.id);
+    return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
+  }
   return (n.props as PropBag)[k];
 };
 
@@ -4191,6 +4194,20 @@ const bindableKeys = (type: string) => {
      second setting arrived, so both go through the `set` flag now. */
   return (c.content || []).filter(x => x.k && !x.set && x.k !== 'ts' && !COLL_CTL.includes(x.t)).map(x => x.k);
 };
+/** Shared by the individual picker and the whole-card mapping sheet. */
+function cmsFieldTypes(c: Control): FieldType[] {
+  if (c.t === 'img') return ['image'];
+  if (c.t === 'link') return ['link'];
+  if (c.t === 'rich') return ['rich', 'text'];
+  if (c.t === 'toggle') return ['bool'];
+  if (c.t === 'color' || c.t === 'icon') return ['text', 'option'];
+  return ['text', 'number', 'date', 'option'];
+}
+function cmsBindable(n: PcNode, c: Control): boolean {
+  if (!c.k) return false;
+  if (c.k.startsWith(VAL)) return !!findProp(findComponent(n.use), c.k.slice(VAL.length));
+  return bindableKeys(n.type).includes(c.k);
+}
 /* ---- binding a whole card at once -----------------------------------
    Binding was one control at a time: select the element, open Content, click the
    badge, pick a field, repeat. A five-field card was about fifteen interactions and
@@ -4209,12 +4226,11 @@ function bindSlots(rootId: string) {
   if (!h) return [];
   const out: any[] = [];
   eachNode([h.node], n => {
-    const keys = bindableKeys(n.type);
-    (DEF[n.type].controls.content || []).forEach(c => {
-      if (!c.k || !keys.includes(c.k) || !BIND_CTL.includes(c.t)) return;
+    contentControls(n).forEach(c => {
+      if (!c.k || !cmsBindable(n, c) || (!n.use && !BIND_CTL.includes(c.t))) return;
       out.push({
         nodeId: n.id, type: n.type, key: c.k, ctl: c.t,
-        element: nameOf(n), label: c.label || c.k, current: boundField(n, c.k)
+        element: nameOf(n), label: c.label || c.k, current: boundField(n, c.k), fieldTypes: cmsFieldTypes(c)
       });
     });
   });
@@ -4241,7 +4257,8 @@ function guessBindings(slots: any[], col: Collection | null) {
 
   /* 1. a control whose label or key reads like a field's name */
   slots.filter(free).forEach(s => {
-    const f = left.find(x => slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key));
+    const f = left.find(x => (!s.fieldTypes || s.fieldTypes.includes(x.type))
+      && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
     if (f) take(s, f);
   });
   /* 2. the shape of the control, most-certain first, one slot each */
@@ -4307,7 +4324,8 @@ function srcSet(n: PcNode, colId: string) {
 function bindScope(id: string): { node: PcNode | null; col: Collection } | null {
   let h = locate(id);
   while (h) {
-    const col = h.node.src ? findCollection(h.node.src) : null;
+    const source = h.node.src || findComponent(h.node.use)?.node.src;
+    const col = source ? findCollection(source) : null;
     if (col) return { node: h.node, col };
     h = h.parent ? locate(h.parent.id) : null;
   }
@@ -4381,7 +4399,7 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
        instance to ask, and the value authored in the definition is exactly what belongs on
        screen — not an empty string, and not a field lookup that would find nothing. */
     if (b.src === 'prop') {
-      if (inst) (out as PropBag)[k] = instValue(inst, def || null, b.path);
+      if (inst) (out as PropBag)[k] = instValue(inst, def || null, b.path, col, item);
       continue;
     }
     if (b.src !== 'field' || !col || !item) continue;
@@ -4403,7 +4421,7 @@ const COND_OPS: [CondOp, string][] = [
     reads as empty, which is the honest answer and the one that makes `set` mean what it says. */
 function condValue(c: Condition, col: Collection | null, item: Item | null,
   inst?: PcNode | null, def?: ComponentDef | null): string {
-  if (c.bind.src === 'prop') return inst ? instValue(inst, def || null, c.bind.path) : '';
+  if (c.bind.src === 'prop') return inst ? instValue(inst, def || null, c.bind.path, col, item) : '';
   if (!col || !item) return '';
   const v = fieldValue(col, item, c.bind.path);
   return v == null ? '' : String(v);
@@ -4513,7 +4531,12 @@ const findVariant = (def: ComponentDef | null, id?: string | null) =>
     Its own value, then its variant's, then the definition's default — so changing a default
     moves every instance that never set its own, and an empty string is a value somebody chose
     rather than an absence. */
-function instValue(inst: PcNode, def: ComponentDef | null, k: string): string {
+function instValue(inst: PcNode, def: ComponentDef | null, k: string,
+  col?: Collection | null, item?: Item | null): string {
+  // Bindings belong to this placement, never to the shared definition or variant.
+  // Empty CMS values remain empty; only the absence of a source uses saved values.
+  const field = boundField(inst, VAL + k);
+  if (field && col) return fieldValue(col, item || null, field);
   const own = inst.vals ? inst.vals[k] : undefined;
   if (own !== undefined) return own;
   const v = findVariant(def, inst.variant);
@@ -4809,7 +4832,7 @@ function propDelete(cid: string, k: string) {
       if (b.src === 'prop' && b.path === k) { bindSet(x, key, null); n++; }
     });
   });
-  instances(cid).forEach(({ node }) => instSet(node, k, undefined));
+  instances(cid).forEach(({ node }) => { instSet(node, k, undefined); bindSet(node, VAL + k, null); });
   return n;
 }
 /** Delete a definition, and put every instance back to being an ordinary node — its own tree,
@@ -7116,7 +7139,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
   const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
   /* a node that declares a source opens a scope for itself and everything under
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
-  const sc = self.src ? findCollection(self.src) : null;
+  const source = self.src || n.src;
+  const sc = source ? findCollection(source) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
   /* A slot renders the instance's children in place of its own, and its own when the instance
      put nothing there — a default, the way a slot has always worked. Those children are the
@@ -7876,5 +7900,5 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
 };

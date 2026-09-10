@@ -5392,7 +5392,7 @@ function bindModal(rootId) {
           ${/* `fieldPaths`, so a reference can be read through here as well as in the badge —
                  a sheet that could only offer this collection's own fields would make the
                  whole-card flow the one place a reference was useless */''}
-          ${fieldPaths(col).map(f => `<option value="${esc(f.path)}"${map[key(s)] === f.path ? ' selected' : ''}>${esc(f.label)} · ${f.type}</option>`).join('')}
+          ${fieldPaths(col).filter(f => !s.fieldTypes || s.fieldTypes.includes(f.type)).map(f => `<option value="${esc(f.path)}"${map[key(s)] === f.path ? ' selected' : ''}>${esc(f.label)} · ${f.type}</option>`).join('')}
         </select></td>
       </tr>`).join('')}</tbody></table>`;
     $$('#bsBody select').forEach(el => el.addEventListener('change', () => {

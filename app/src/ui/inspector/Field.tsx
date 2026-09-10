@@ -45,32 +45,26 @@ function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
 
 function BindBadge({ n, c }: { n: PcNode; c: Control }) {
   const scope = C.bindScope(n.id);
-  if (!scope) return null;
-  /* the CMS's own badge, so a prop-sourced binding is not its business */
   const fid = C.boundField(n, c.k!);
-  /* `fieldPaths` rather than the field list: a reference is only worth having if you can read
-     through it, so the picker offers `Author → Name` beside the collection's own fields. The
-     label of whatever is bound comes from the same list, so a two-hop binding reads back as
-     the path it is rather than as a field id that does not exist here. */
-  const allPaths = C.fieldPaths(scope.col);
-  const kinds = c.t === 'img' ? ['image'] : c.t === 'rich' ? ['rich','text'] : c.k === 'link' ? ['link'] : ['text','number','date','option'];
-  const paths = allPaths.filter(field => kinds.includes(field.type));
+  if (!L.canStructure() || (!scope && !fid && !n.use)) return null;
+  const paths = C.fieldPaths(scope?.col || null).filter(field => C.cmsFieldTypes(c).includes(field.type));
   const shown = paths.find(x => x.path === fid);
-
   const pick = async () => {
-    const chosen = await L.askPick(`Bind to ${scope.col.name}`,
-      [['', '— No binding, use the value typed here —'],
+    if (!scope && !fid) return;
+    const chosen = await L.askPick(scope ? `Bind to ${scope.col.name}` : 'CMS connection',
+      [['', '— No binding, use the saved value —'],
         ...paths.map(x => [x.path, `${x.label} · ${x.type}`])], fid);
     if (chosen === null) return;
     C.edit(() => C.bindSet(n, c.k!, C.bindField(chosen)));
-    const to = paths.find(x => x.path === chosen);
-    L.toast(chosen ? 'Bound to ' + (to ? to.label : chosen) : 'Binding cleared');
+    L.toast(chosen ? 'Bound to ' + (paths.find(x => x.path === chosen)?.label || chosen) : 'Binding cleared');
   };
-
+  const label = fid
+    ? (shown ? `Bound to ${shown.label}` : 'Missing CMS field or source. Choose another field or disconnect.')
+    : scope ? 'Connect a CMS field' : 'Choose a content source or place this component in a Collection to connect CMS fields';
   return (
-    <span role="button" tabIndex={0} aria-label={fid ? (shown ? `Bound to ${shown.label}` : `Broken binding: ${fid}. Choose another field.`) : 'Connect a CMS field'} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void pick(); } }} class={'bnd' + (fid ? ' on' : '')} onClick={pick}
-      title={fid ? (shown ? `Bound to ${shown.label} — click to change` : 'Bound to a field that no longer exists')
-        : `Bind to a field in ${scope.col.name}`}>
+    <span role="button" tabIndex={0} aria-label={label} aria-disabled={!scope && !fid ? 'true' : undefined}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void pick(); } }}
+      class={'bnd' + (fid ? ' on' : '')} onClick={pick} title={label}>
       <Icon name="cms" size={9} />
     </span>
   );
@@ -124,12 +118,12 @@ function PropBadge({ n, c }: { n: PcNode; c: Control }) {
 export function Field({ n, c, children }: { n: PcNode; c: Control; children?: any }) {
   const labelId = useId();
   const { scope, fid } = bound(n, c);
-  const bindable = c.k && C.bindableKeys(n.type).includes(c.k);
+  const bindable = C.cmsBindable(n, c);
   /* Anything a control writes can vary between instances — a colour, a variant, a link — so
      this is not restricted to `bindableKeys`, which is the CMS's narrower question about what
      an item can hold. What it excludes is a property editing itself. */
   const varies = !!c.k && !c.k.startsWith(C.VAL) && !!C.PROP_KIND[c.t];
-  const f = fid && scope ? C.findField(scope.col, fid) : null;
+  const f = fid && scope ? C.fieldPaths(scope.col).find(field => field.path === fid) : null;
   /* what this control reads on each instance, if anything — shown as a note for the same
      reason a bound field is: the panel and the canvas have to agree about where a value
      comes from */
@@ -148,7 +142,7 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
       </label>
       {children}
       {fid
-        ? <div class="note">From <b>{(f || { name: 'a missing field' }).name}</b> on the item shown above.</div>
+        ? <div class="note">{f ? <>From <b>{f.label}</b> · {scope!.col.name}</> : <>CMS field or source is missing. Reconnect or clear the CMS binding.</>}</div>
         : pbound
           ? <div class="note">Set on each instance — <b>{pbound}</b>.</div>
           : c.note ? <div class="note">{c.note}</div> : null}

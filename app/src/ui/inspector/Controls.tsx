@@ -207,14 +207,12 @@ const PICK_TIP: Record<string, string> = {
    use Field — there is no separate <label> to hang the badges off. */
 function ToggleCtl({ n, c }: P) {
   const w = writer(n, c);
-  const on = !!valueOf(n, c);
-  return <div class="f">
-    <div class="tog-row">
-      <span>{c.label}</span>
-      <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
-        class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>
-    </div>
-  </div>;
+  const on = !['', '0', 'false'].includes(String(valueOf(n, c) ?? ''));
+  const toggle = <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
+    class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
+  return c.k?.startsWith(C.VAL)
+    ? <Field n={n} c={c}><div class="tog-row">{toggle}</div></Field>
+    : <div class="f"><div class="tog-row"><span>{c.label}</span>{toggle}</div></div>;
 }
 
 const SIDES = ['top', 'right', 'bottom', 'left'];
@@ -592,7 +590,7 @@ function LinkCtl({ n, c }: P) {
 
   const key = n.id + '|' + (c.c || c.k || c.t);
   const commit = (o: any) => {
-    L.tx(key); (n.props as PropBag)[c.k!] = C.buildLink(o);
+    L.tx(key); C.applyC(n, c, C.buildLink(o));
     L.endTx(); L.paint(); L.save(); repaint('right');
   };
   const chooseWordPress = (url: string) => {
@@ -648,7 +646,7 @@ function LinkCtl({ n, c }: P) {
         onInput={e => {
           const value = (e.target as HTMLInputElement).value.trim();
           L.tx(key);
-          (n.props as PropBag)[c.k!] = C.buildLink({ ...C.linkOf(n, c.k!, here), value });
+          C.applyC(n, c, C.buildLink({ ...C.linkOf(n, c.k!, here), value }));
           L.repaint();
           if (link.mode === 'url') {
             C.state.ui.lmode = value ? null : { key: n.id + '|' + c.k, mode: 'url' };
@@ -780,6 +778,14 @@ export const CONTROL_KINDS = Object.keys(KINDS);
 export function Ctl({ n, c }: P) {
   const Cmp = KINDS[c.t];
   if (!Cmp) return null;
+  if (c.k?.startsWith(C.VAL) && bound(n, c).fid) {
+    const value = String(valueOf(n, c) ?? '');
+    const shown = c.t === 'toggle' ? (['', '0', 'false'].includes(value) ? 'No' : 'Yes')
+      : c.t === 'rich' ? value.replace(/<[^>]*>/g, '').slice(0, 180) : value;
+    return <Field n={n} c={c}>
+      <input class="ctl" value={shown} disabled aria-label={c.label || 'CMS value'} />
+    </Field>;
+  }
   return <Cmp n={n} c={c} />;
 }
 
