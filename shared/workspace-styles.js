@@ -2,8 +2,8 @@
  * builder and server-rendered Cloud screens; published pages never load them. */
 export const WORKSPACE_CSS = `
 :root{
-  --pc-ui-font:Manrope,system-ui,-apple-system,sans-serif;
-  --pc-ui-label-font:"DM Sans",system-ui,sans-serif;
+  --pc-ui-font:var(--pc-font-body);
+  --pc-ui-label-font:var(--pc-font-label);
   --pc-ui-surface:#fff;
   --pc-ui-hover:var(--pc-hover-bg);
   --pc-ui-text:#111311;
@@ -11,9 +11,9 @@ export const WORKSPACE_CSS = `
   --pc-ui-border:var(--pc-border);
   --pc-workspace-x:32px;
   --pc-workspace-y:28px;
-  --pc-workspace-title:22px;
-  --pc-section-title:18px;
-  --pc-dialog-title:16px;
+  --pc-workspace-title:var(--pc-text-workspace);
+  --pc-section-title:var(--pc-text-section);
+  --pc-dialog-title:var(--pc-text-dialog);
 }
 :is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
@@ -76,7 +76,7 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-workspace-head{margin:calc(-1 * var(--pc-workspace-y)) calc(-1 * var(--pc-workspace-x)) var(--pc-workspace-y)}
 .dashboard-app :is(.pc-site-setting,.pc-role-guide,.pc-invite,.pc-members){max-width:980px}
 .dashboard-app .pc-workspace-head>div:first-child{min-width:0}
-.dashboard-app :is(.pc-manage-back,.pc-sub-back){font-family:var(--pc-ui-font);font-size:12.5px;margin-bottom:8px}
+.dashboard-app :is(.pc-manage-back,.pc-sub-back){font-family:var(--pc-ui-font);font-size:var(--pc-text-label);margin-bottom:8px}
 .dashboard-app .pc-manage-actions{gap:8px;flex-wrap:wrap}
 .dashboard-app .pc-btn{font-weight:500!important}
 .dashboard-app .pc-btn.primary{font-weight:600!important}
@@ -84,7 +84,6 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-btn.primary:hover{background:var(--pc-green-hi,#c5fa63)}
 .dashboard-app .pc-workspace :is(h2,h3){letter-spacing:-.015em;line-height:1.4}
 .dashboard-app :is(.pc-settings-title,.pc-site-setting-copy,.pc-members-head,.pc-manage-summary,.pc-manage-section) h2{font-size:var(--pc-section-title)}
-.dashboard-app :is(.pc-settings-field,.pc-site-setting-field) label{font-family:var(--pc-ui-font);font-size:12.5px;font-weight:500}
 .dashboard-app .pc-settings-layout{grid-template-columns:220px minmax(0,980px);gap:32px;padding-top:0}
 .dashboard-app .pc-settings-nav{top:0}
 .dashboard-app .pc-settings-main{max-width:800px}
@@ -95,7 +94,7 @@ export const WORKSPACE_CSS = `
 /* Lists and entry dialogs use the same type scale, rules and row spacing. */
 .dashboard-app .pc-sub-table{margin-top:0;width:100%;border-collapse:collapse}
 .dashboard-app :is(.pc-sub-table,.pc-connections-table) :is(th,td){border-bottom:1px solid var(--pc-ui-border);vertical-align:middle;text-align:left}
-.dashboard-app :is(.pc-sub-table,.pc-connections-table) thead th{padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--pc-ui-secondary)}
+.dashboard-app :is(.pc-sub-table,.pc-connections-table) thead th{padding:10px 12px;font-size:var(--pc-text-label);font-weight:600;color:var(--pc-ui-secondary)}
 .dashboard-app :is(.pc-sub-table,.pc-connections-table) tbody :is(th,td){padding:16px 12px;font-size:var(--pc-control-font)}
 .dashboard-app .pc-connections-table thead{background:var(--pc-ui-surface)}
 .dashboard-app .pc-connections-table tbody th{font-weight:500}
@@ -106,7 +105,7 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-sub-table>tbody>tr:hover{background:var(--pc-ui-hover)}
 .dashboard-app .pc-sub-filters{margin:0 0 24px;gap:12px;flex-wrap:wrap}
 .dashboard-app .pc-sub-filters label{gap:8px}
-.dashboard-app .pc-sub-pager{margin-top:24px;gap:12px;font-size:12.5px;color:var(--pc-ui-secondary)}
+.dashboard-app .pc-sub-pager{margin-top:24px;gap:12px;font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
 .dashboard-app .pc-entry-delete-icon{height:36px;min-height:36px}
 .dashboard-app :is(.pc-entry-dialog,.pc-create-modal,.pc-delete-dialog,.pc-integration-dialog){font-family:var(--pc-ui-font);font-size:var(--pc-control-font);border-radius:16px;color:var(--pc-ui-text)}
 .dashboard-app :is(.pc-entry-dialog header,.pc-create-modal-head){padding:20px 24px;border-bottom:1px solid var(--pc-ui-border)}
@@ -114,7 +113,7 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-entry-dialog [data-close-dialog]{width:32px;height:32px;min-height:32px;padding:0;border:0;background:transparent}
 .dashboard-app .pc-entry-dialog footer [data-close-dialog]{width:auto;height:44px;padding:0 18px;border:1px solid var(--pc-line-2,#cbd2d8);background:var(--pc-ui-surface)}
 .dashboard-app .pc-entry-body{line-height:1.5}
-.dashboard-app .pc-entry-body dt{font-size:12.5px;color:var(--pc-ui-secondary)}
+.dashboard-app .pc-entry-body dt{font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
 .dashboard-app .pc-entry-body dd{margin:4px 0 16px}
 .account :is(button,.button,input){border-radius:var(--pc-control-radius)}
 .account :is(button,.button){font-weight:500}

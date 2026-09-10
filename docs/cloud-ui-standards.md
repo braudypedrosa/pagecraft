@@ -1,6 +1,6 @@
-# Cloud UI geometry
+# Cloud UI standards
 
-Pagecraft uses white and cool neutral surfaces, Ink and Craft Green. Shared colors and geometry lives in `shared/ui-tokens.js`; the account shell and generated editor both consume it. It does not enter published user-page CSS.
+Pagecraft uses white and cool neutral surfaces, Ink and Craft Green. Shared colors, typography and geometry live in `shared/ui-tokens.js`; the account shell and generated editor both consume it. It does not enter published user-page CSS.
 
 | Role | Minimum height | Typography |
 | --- | --- | --- |
@@ -52,3 +52,22 @@ Pages is the visual reference for full management screens. `shared/workspace-sty
 | Privacy and Terms | Same loaded product fonts; reading layout retained. |
 
 Validation combines the rendered desktop workspace journeys, tablet/narrow iframe fixtures, and source review of shared screen families. Local fixture storage provides success/failed submissions, empty lists and CMS entries without editing the shared staging/production database. Integration-provider operations, publication and destructive live actions are outside this visual verification.
+
+## Shared typography roles
+
+`shared/ui-tokens.js` owns the size scale and complete font roles. `shared/ui-typography.js` applies those roles in both the portable editor and Cloud shell. The builder's older `--fs-*` names are aliases, not a separate scale. Use these classes for new UI; compatibility selectors map existing field, caption and table families to the same rules.
+
+| Primitive | Role | Font / size / weight / line height |
+| --- | --- | --- |
+| `pc-control-text` | Standard action/control text | Manrope / 13.5px / 500 / 1.4 |
+| `pc-toolbar-context` | Compact context row and its buttons, pills and selects | Manrope / 12.5px / 500 / 1.4 |
+| `pc-field-label` | Field names, including schema and filter labels | DM Sans / 12.5px / 500 / 1.5 |
+| `pc-description` | Help beneath a field or explanatory sublabel | DM Sans / 12.5px / 400 / 1.55 |
+| `pc-caption` | Secondary item metadata and short captions | DM Sans / 11px / 400 / 1.45 |
+| `pc-table-label` | Column headers | DM Sans / 12.5px / 600 / 1.4 |
+
+Panel/dialog/section/workspace headings use shared 15/16/18/22px tokens. Descriptive paragraphs in workspace headers keep the 13.5px body role. Authentication controls retain their 16px input size; their labels and help use the shared field roles.
+
+The context toolbar owns its 32px outer controls and 26px nested picker controls. Page selection, Settings & SEO, component Done, CMS preview and device context use this one rule, with no element-ID font overrides. Controls inside labels retain the body font rather than inheriting the label font. Geometry, color, overflow and interactive states remain with the owning component.
+
+Only the embedded font faces are copied into the canvas. App typography, tokens and workspace rules have their own style element and do not enter the page being edited or published.

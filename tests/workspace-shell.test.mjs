@@ -4,10 +4,25 @@ import {execFileSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import {JSDOM} from 'jsdom';
 import {UI_FONT_FACES} from '../shared/ui-fonts.js';
+import {UI_TYPOGRAPHY_CSS} from '../shared/ui-typography.js';
 import {createApp} from '../server/src/app.ts';
 import {MemoryStore} from '../server/src/store.ts';
 import {MemoryAuthStore} from '../server/src/auth.ts';
 import {siteSubmissionsPage, siteSettingsPage} from '../server/src/account-pages.ts';
+
+test('editor and Cloud share typography without copying app rules into the canvas font slot', async () => {
+  const editor = new JSDOM(await readFile('index.html', 'utf8'));
+  const user = {id:'qa',email:'qa@example.invalid',name:'QA'};
+  const cloud = new JSDOM(siteSettingsPage(user, {id:'qa',name:'QA',slug:'qa',role:'owner'}));
+  const fonts = editor.window.document.querySelector('#pc-fonts').textContent;
+  expect(fonts).toContain('@font-face');
+  expect(fonts).not.toContain('--pc-');
+  expect(fonts).not.toContain('.dashboard-app');
+  expect(editor.window.document.querySelector('#pc-ui-styles').textContent).toContain(UI_TYPOGRAPHY_CSS);
+  expect(cloud.window.document.querySelector('#pc-ui-typography').textContent).toBe(UI_TYPOGRAPHY_CSS);
+  expect(editor.window.document.querySelector('#modebar').classList.contains('pc-toolbar-context')).toBe(true);
+  editor.window.close();cloud.window.close();
+});
 
 test('brand assets resolve from the release when the launcher has a different working directory', () => {
   const module = path => JSON.stringify(new URL(path, import.meta.url).href);

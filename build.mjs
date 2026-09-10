@@ -12,6 +12,7 @@ import { buildSync, transformSync } from 'esbuild';
 import { UI_TOKENS_CSS } from './shared/ui-tokens.js';
 import { UI_FONT_FACES } from './shared/ui-fonts.js';
 import { WORKSPACE_CSS } from './shared/workspace-styles.js';
+import { UI_TYPOGRAPHY_CSS } from './shared/ui-typography.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const frag = readFileSync(join(here, 'builder.html'), 'utf8');
@@ -27,7 +28,7 @@ const face = (family, file, weight, style = 'normal') => {
 const FONT_CSS = UI_FONT_FACES.map(({ family, file, weight }) => face(family, file, weight)).join('\n');
 const withFonts = html => {
   if (!html.includes(FONT_SLOT)) throw new Error('font slot ' + FONT_SLOT + ' missing from builder.html');
-  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n${UI_TOKENS_CSS}\n${WORKSPACE_CSS}\n</style>`);
+  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n</style><style id="pc-ui-styles">\n${UI_TOKENS_CSS}\n${WORKSPACE_CSS}\n${UI_TYPOGRAPHY_CSS}\n</style>`);
 };
 /* esbuild preserves indentation inside block comments, including indentation-only blank
    lines. Strip that generated whitespace so rebuilding does not make `git diff --check`

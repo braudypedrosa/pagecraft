@@ -1,4 +1,4 @@
-/** Colors and geometry shared by Cloud account pages and the portable editor chrome.
+/** Colors, typography and geometry shared by Cloud account pages and the portable editor chrome.
  * Density is intentional: spacious account/CMS forms, compact editor panels, dense rows.
  * These tokens are never injected into a user's published site.
  */
@@ -18,7 +18,22 @@ export const UI_TOKENS_CSS = `:root{
   --pc-control-compact:36px;
   --pc-control-editor:37px;
   --pc-control-row:32px;
-  --pc-control-font:13.5px;
+  --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
+  --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
+  --pc-text-caption:11px;
+  --pc-text-label:12.5px;
+  --pc-text-body:13.5px;
+  --pc-text-panel:15px;
+  --pc-text-dialog:16px;
+  --pc-text-section:18px;
+  --pc-text-workspace:22px;
+  --pc-type-control:500 var(--pc-text-body)/1.4 var(--pc-font-body);
+  --pc-type-toolbar:500 var(--pc-text-label)/1.4 var(--pc-font-body);
+  --pc-type-label:500 var(--pc-text-label)/1.5 var(--pc-font-label);
+  --pc-type-description:400 var(--pc-text-label)/1.55 var(--pc-font-label);
+  --pc-type-caption:400 var(--pc-text-caption)/1.45 var(--pc-font-label);
+  --pc-type-table-label:600 var(--pc-text-label)/1.4 var(--pc-font-label);
+  --pc-control-font:var(--pc-text-body);
   --pc-control-radius:7px;
   --pc-space-1:4px;
   --pc-space-2:8px;
