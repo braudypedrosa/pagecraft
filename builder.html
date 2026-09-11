@@ -5315,7 +5315,7 @@ function projectModal() {
     const reset = document.createElement('div'); reset.className = 'settings-reset';
     reset.innerHTML = '<h3>Reset content</h3><p>These actions replace your pages. Download a project backup first.</p><div class="settings-reset-actions"></div>';
     reset.querySelector('div').append($('#mBlank'), $('#mReset')); advanced.append(reset);
-    $('#mFoot').insertAdjacentHTML('afterbegin', '<span class="note">Design changes save automatically. Use Save name to update the project name.</span>');
+    $('#mFoot').insertAdjacentHTML('afterbegin', `<span class="note">${SRV ? 'Design changes save automatically. Use Save name to update the project name.' : 'Changes save automatically. Check the save status in the header.'}</span>`);
     $('#mDone').textContent = 'Close';
   }
 
