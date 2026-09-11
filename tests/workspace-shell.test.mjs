@@ -120,7 +120,7 @@ test('Cloud dialog variants share named regions and retain safe deletion control
       expect(head.querySelector('.pc-dialog-close').getAttribute('aria-label')).toMatch(/^Close/);
       expect(head.querySelector('.pc-dialog-close svg')).not.toBeNull();
       expect(dialog.querySelector('.pc-dialog-body')).not.toBeNull();
-      for(const footer of dialog.querySelectorAll('footer,.pc-delete-dialog-actions'))
+      for(const footer of dialog.querySelectorAll('footer,.pc-delete-dialog-actions,.pc-integration-footer'))
         expect(footer.classList.contains('pc-dialog-foot')).toBe(true);
     }
     if(d.querySelector('#delete-site-dialog')){

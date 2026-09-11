@@ -233,10 +233,9 @@ input,select,textarea{font:inherit;color:inherit}
 .historyList{display:flex;flex-direction:column}
 .historyRow{
   display:grid;grid-template-columns:minmax(90px,.7fr) minmax(170px,1.5fr) minmax(170px,1fr) auto;
-  align-items:center;gap:var(--sp-5);padding:13px 0;border-bottom:1px solid var(--line);
+  align-items:center;gap:var(--pc-action-gap);min-height:calc(var(--pc-control-row) + 2 * var(--pc-table-cell-y) + 1px);padding:var(--pc-table-cell-padding);border-bottom:1px solid var(--line);
 }
-.historyRow:first-child{padding-top:0}
-.historyRow:last-child{border-bottom:0;padding-bottom:0}
+.historyRow:last-child{border-bottom:0}
 .historyVersion{font-weight:600;color:var(--text)}
 .historyMeta{font-size:var(--fs-3);color:var(--text-2);min-width:0;overflow:hidden;text-overflow:ellipsis}
 .historyCurrent{font-family:var(--label);font-size:var(--fs-1);font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
@@ -297,7 +296,7 @@ body.preview .rail{display:none}
 body.preview .left,body.preview .right{display:none}
 .sidePanelBody{flex:1;min-height:0;overflow:auto;padding:14px}
 .rightAux .review{margin:0}
-.rightAux .historyRow{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-3);padding:12px 0}
+.rightAux .historyRow{grid-template-columns:minmax(0,1fr) auto;gap:var(--pc-action-gap)}
 .rightAux .historyMeta{grid-column:1}
 .rightAux .historyRow .btn,.rightAux .historyCurrent{grid-column:2;grid-row:1/4;align-self:center}
 .rightAux .alert{margin:0}
@@ -570,8 +569,7 @@ body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-op
 .pages-workspace-head h1{font-size:22px;line-height:1.3;margin:0}
 .pages-workspace-head p{margin:6px 0 0;color:var(--text-2)}
 .pages-workspace-content{padding:28px 32px;overflow:auto;flex:1;min-height:0}
-.pages-search{max-width:420px;display:grid;gap:8px;margin-bottom:24px}
-.pages-search .ctl{height:40px}
+.pages-search{--h-ctl:var(--pc-control-height);max-width:420px;display:grid;gap:var(--pc-field-label-gap);margin-bottom:24px}
 .pages-workspace .pagelist{padding:0 0 150px}
 .pages-list-head,.pages-workspace .pagerow{display:grid;grid-template-columns:minmax(180px,2fr) minmax(120px,1fr) 100px 122px 30px;gap:16px;align-items:center}
 .pages-list-head{padding:var(--pc-table-head-padding);color:var(--text-2);border-bottom:1px solid var(--line)}

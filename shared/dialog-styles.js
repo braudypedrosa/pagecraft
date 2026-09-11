@@ -12,6 +12,7 @@ export const DIALOG_CSS = `
 .pc-dialog .pc-dialog-body>:last-child{margin-bottom:0}
 .pc-dialog .pc-dialog-foot{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:var(--pc-action-gap);padding:var(--pc-dialog-edge) var(--pc-dialog-inset);border-top:1px solid var(--pc-border);border-bottom:0;background:var(--pc-popup-bg);flex-shrink:0}
 .pc-dialog .pc-dialog-foot:empty{display:none}
+.pc-dialog .pc-dialog-body .pc-dialog-foot{margin:var(--pc-dialog-inset) calc(-1 * var(--pc-dialog-inset)) calc(-1 * var(--pc-dialog-inset))}
 .pc-dialog .pc-dialog-close{display:grid;place-items:center;flex:0 0 var(--pc-control-row);width:var(--pc-control-row);height:var(--pc-control-row);min-height:var(--pc-control-row);margin:0;padding:0;border:0;border-radius:var(--pc-control-radius);background:transparent;color:inherit;box-shadow:none;font-size:20px;line-height:1;filter:none}
 .pc-dialog .pc-dialog-close:hover{background:var(--pc-hover-bg)}
 .pc-dialog .pc-dialog-close svg{width:16px;height:16px}
