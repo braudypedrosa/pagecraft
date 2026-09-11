@@ -1119,18 +1119,10 @@ select.ctl{
   box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:var(--sp-1);
 }
 #ctx button{
-  display:flex;align-items:center;justify-content:space-between;gap:var(--sp-6);
-  padding:7px 9px;border-radius:var(--r-sm);text-align:left;
-  font-size:var(--fs-3);font-weight:500;color:var(--text-2);
+  gap:var(--sp-6);
 }
-#ctx button:hover{background:var(--pc-hover-bg);color:var(--text)}
 #ctx button em{font-family:var(--label);font-size:var(--fs-1);font-style:normal;color:var(--text-3)}
 #ctx button:hover em{color:var(--text-2)}
-#ctx button.danger{color:var(--danger)}
-#ctx button.danger:hover{background:var(--risk-bg);color:var(--risk-fg)}
-/* a hairline after the last item of a group, rather than an empty element per rule */
-#ctx button[data-sep]{margin-bottom:5px;border-bottom:1px solid var(--line);padding-bottom:9px}
-#ctx button[data-sep]:last-child{margin-bottom:0;border-bottom:0;padding-bottom:7px}
 /* the bar's "everything else" glyph is the drag dots turned on their side */
 
 #ghost{
