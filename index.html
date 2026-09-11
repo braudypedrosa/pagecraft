@@ -1230,6 +1230,15 @@ body.dragging{cursor:grabbing !important;user-select:none}
 /* the media library grid — same cards in the panel and in the picker */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:var(--sp-4)}
 .mgrid.wide{grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:var(--sp-5)}
+.pc-dialog.media-library .pc-dialog-body{padding:0;display:flex;overflow:hidden}
+.media-library-drop{position:relative;display:flex;flex:1;min-width:0;min-height:180px}
+.media-library-items{width:100%;padding:var(--mpad);overflow:auto}
+.media-library-overlay{
+  position:absolute;inset:0;z-index:2;display:none;place-content:center;justify-items:center;
+  gap:var(--pc-space-2);background:var(--pc-selection-bg);color:var(--pc-selection-text);
+  font:var(--pc-type-control);pointer-events:none;
+}
+.media-library-drop.over .media-library-overlay{display:grid}
 /* `width:100%` matters: a <button> sizes to fit-content, so a long filename with
    `white-space:nowrap` widened the card past its grid cell and the 4:3 thumb grew
    with it — one card 254px in a 161px column, and a row of uneven tiles. */
@@ -21655,24 +21664,64 @@ async function mediaTake(file, options = {}) {
     file.name + ' uploaded.') || null;
 }
 
-function mediaChooseFiles(after, button = null) {
-  const fi = document.createElement('input');
-  fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
-  fi.onchange = async () => {
-    if (!fi.files.length) return;
-    await withAction(button, 'Uploading images…', async action => {
-      const failed = []; let count = 0;
-      for (const file of fi.files) {
+async function mediaUploadFiles(files, after, button = null, zone = null) {
+  const selected = Array.from(files || []);
+  if (!selected.length) return;
+  return withAction(button, 'Uploading images…', async action => {
+    zone?.setAttribute('aria-busy', 'true');
+    const failed = []; let count = 0;
+    try {
+      for (const file of selected) {
         action.update('Uploading ' + file.name + '…');
         try { if (await mediaTake(file, {feedback:false})) count++; }
         catch { failed.push(file.name); }
       }
       after();
-      if (failed.length) throw new Error(`${count ? count + ' uploaded. ' : ''}Could not upload ${failed.join(', ')}.`);
+      if (failed.length) throw new Error(`${count ? count + ' uploaded. ' : ''}Could not upload ${failed.join(', ')}. Choose image files and try again.`);
       return count || false;
-    }, count => `${count === 1 ? 'Image' : count + ' images'} uploaded.`, {key:'media-upload'});
-  };
+    } finally { zone?.removeAttribute('aria-busy'); }
+  }, count => `${count === 1 ? 'Image' : count + ' images'} uploaded.`, {key:'media-upload'});
+}
+
+function mediaChooseFiles(takeFiles) {
+  const fi = document.createElement('input');
+  fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
+  fi.onchange = () => takeFiles(fi.files);
   fi.click();
+}
+
+/* Only OS file drags belong to this surface. Counting nested enters/leaves keeps
+   the drop state steady when the pointer crosses a thumbnail or its label. */
+function wireMediaDrop(zone, takeFiles) {
+  let depth = 0;
+  const files = e => Array.from(e.dataTransfer?.types || []).includes('Files') || e.dataTransfer?.files?.length;
+  const reset = () => { depth = 0; zone.classList.remove('over'); };
+  const busy = () => zone.getAttribute('aria-busy') === 'true';
+  zone.addEventListener('dragenter', e => {
+    if (!files(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    depth++;
+    if (!busy()) zone.classList.add('over');
+  });
+  zone.addEventListener('dragover', e => {
+    if (!files(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    e.dataTransfer.dropEffect = busy() ? 'none' : 'copy';
+  });
+  zone.addEventListener('dragleave', e => {
+    if (!files(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    if (--depth <= 0) reset();
+  });
+  zone.addEventListener('dragend', reset);
+  zone.addEventListener('drop', e => {
+    if (!files(e)) return;
+    e.preventDefault(); e.stopPropagation(); reset();
+    if (busy()) return;
+    const selected = Array.from(e.dataTransfer.files || []);
+    if (!selected.length) { toast('Drop image files to upload. Folders are not supported.', {tone:'error'}); return; }
+    void takeFiles(selected);
+  });
 }
 
 function mediaModal() {
@@ -21681,18 +21730,28 @@ function mediaModal() {
     const use = assetUsage();
     const list = [...AS.mem.values()];
     const orphans = list.filter(a => !use[a.id]).length;
-    openModal('Media library', list.length
+    openModal('Media library', `<div class="media-library-drop" aria-label="Drop images to upload">
+      <div class="media-library-items">${list.length
       ? `<div class="mgrid wide">${mediaCards(list, use, 'data-use')}</div>`
       : `<div class="empty" style="padding:28px 8px">Nothing here yet.<br><br>
-          Upload below, or drop an image onto any <b>Image</b> or <b>Background</b> field.</div>`,
+          Drop images here, or use Upload below.</div>`}</div>
+      <div class="media-library-overlay" aria-hidden="true">${svg('image', 24)}<span>Drop images to upload</span></div>
+    </div>`,
       `<span class="note" style="margin:0;flex:1;text-align:left">${list.length
-        ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())} · click one to place it`
+        ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())} · drop images here or click one to place it`
         : IS_WORDPRESS ? 'Stored in the WordPress media library' : SRV ? 'Stored with this project' : 'Stored in this browser'}</span>
        ${orphans ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
        <button class="btn" id="mmUp">${svg('image', 13)} Upload</button>
-       <button class="btn primary" id="mmDone">Done</button>`, 'lg');
+       <button class="btn primary" id="mmDone">Done</button>`, 'lg media-library');
 
-    $('#mmUp').addEventListener('click', event => mediaChooseFiles(draw, event.currentTarget));
+    const zone = $('.media-library-drop', $('#mBody')), upload = $('#mmUp');
+    const active = () => zone.isConnected && !$('#modal').hidden && !$('#modal').hasAttribute('inert');
+    const takeFiles = files => {
+      if (!active()) return;
+      return mediaUploadFiles(files, () => { if (active()) draw(); }, upload, zone);
+    };
+    wireMediaDrop(zone, takeFiles);
+    upload.addEventListener('click', () => mediaChooseFiles(takeFiles));
     $('#mmDone').addEventListener('click', closeModal);
     const prune = $('#mmPrune');
     if (prune) prune.addEventListener('click', async () => {

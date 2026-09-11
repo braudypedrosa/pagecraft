@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-11T16:23:24.383Z",
+  "capturedAt": "2026-09-11T20:04:48.041Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "ec564acc7b16633deb2a05d0143be92beb3b027311bb95d6d5573e7399dfe424",
+    "builder.html": "cc548ab1f2f933ae86683b5ff3352208db15506c015ff54c11a2239696d05d36",
     "app/src/ui/Pages.tsx": "00200e5517fd0761815731b1e2e8c075d56fa4cbed9b51050e919d8fa644be82",
     "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
     "shared/ui-tokens.js": "f1004d10d2e4f4fde1bc1961b7376c00b88f328dfba64eae1c3f939ad088bc9c",
@@ -26,93 +26,15 @@
   },
   "behaviorChecks": [
     {
-      "host": "cloud",
-      "check": "List roles at 1440",
+      "check": "Media library uploads multiple files and restores Upload",
       "passed": true
     },
     {
-      "host": "cloud",
-      "check": "List roles at 768",
+      "check": "Media drop area fills the body at 1440",
       "passed": true
     },
     {
-      "host": "cloud",
-      "check": "Select Escape preserves value",
-      "passed": true
-    },
-    {
-      "host": "cloud",
-      "check": "Keyboard skips disabled last option",
-      "passed": true
-    },
-    {
-      "host": "cloud",
-      "check": "Dialog input survives resize",
-      "passed": true
-    },
-    {
-      "host": "cloud",
-      "check": "Dialog Escape returns focus",
-      "passed": true
-    },
-    {
-      "host": "cloud",
-      "check": "Processing prevents duplicate activation",
-      "passed": true
-    },
-    {
-      "host": "cloud",
-      "check": "Success restores action",
-      "passed": true
-    },
-    {
-      "host": "cloud",
-      "check": "Failure restores action",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "List roles at 1440",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "List roles at 768",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "Select Escape preserves value",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "Keyboard skips disabled last option",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "Dialog input survives resize",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "Dialog Escape returns focus",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "Processing prevents duplicate activation",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "Success restores action",
-      "passed": true
-    },
-    {
-      "host": "builder",
-      "check": "Failure restores action",
+      "check": "Media drop area fills the body at 768",
       "passed": true
     }
   ],
