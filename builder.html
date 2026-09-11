@@ -588,7 +588,6 @@ body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-op
 .pages-empty{padding:32px 12px;text-align:center}
 .page-settings-context{padding:12px}
 .modebar>.page-switcher{padding:0 6px;max-width:240px;min-width:0;display:flex;align-items:center;gap:4px}
-.page-switcher>svg{flex-shrink:0}
 .page-switcher>select,.page-switcher>.pc-custom-select-trigger{width:200px;max-width:100%;min-width:0;min-height:30px;height:30px;padding:var(--pc-control-padding);border:0;background:transparent;font-size:var(--fs-2)}
 @media(max-width:1050px){.pages-workspace-head{padding:20px}.pages-workspace-content{padding:20px}.pages-list-head,.pages-workspace .pagerow{grid-template-columns:minmax(150px,2fr) minmax(100px,1fr) 116px 28px;gap:12px}.pages-list-head>span:nth-child(3),.pages-workspace .page-kind{display:none}.modebar>.page-switcher{max-width:190px}}
 @media(max-width:700px){.pages-workspace-head{align-items:flex-start;flex-wrap:wrap}.pages-list-head{display:none}.pages-workspace .pagerow{grid-template-columns:minmax(0,1fr) 116px 28px}.pages-workspace .page-path{grid-column:1;grid-row:2}.pages-workspace .pagerow>.btn{grid-column:2;grid-row:1 / span 2}.pages-workspace .page-actions{grid-column:3;grid-row:1 / span 2}}
@@ -4349,7 +4348,7 @@ function renderModebar() {
   const R = regions().find(x => x.kind === scope) || { label: '' };
   $('#modebar').innerHTML =
     (scope === 'main'
-      ? (IS_WORDPRESS ? '' : `<span class="pill page-switcher">${svg('page', 11)}<select id="quickPage" aria-label="Current page">${state.pages.map((p, i) => `<option value="${i}"${i === state.cur ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></span><button class="btn tiny" id="pageSettings" title="Page settings and SEO">Settings &amp; SEO</button>`
+      ? (IS_WORDPRESS ? '' : `<span class="pill page-switcher"><select id="quickPage" aria-label="Current page">${state.pages.map((p, i) => `<option value="${i}"${i === state.cur ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></span><button class="btn tiny" id="pageSettings" title="Page settings and SEO">Settings &amp; SEO</button>`
         + (isFront(page()) ? '' : `<span class="crumb">/${esc(page().slug)}</span>`))
       : scope === 'component'
         ? `<span class="pill g">${svg('component', 11)} Editing ${esc(R.label.replace('Component — ', ''))} — ${cUsageLabel()}</span>`
