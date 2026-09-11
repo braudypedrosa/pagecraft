@@ -11,16 +11,16 @@ import { Icon } from '../Icon';
 import { bound, writer } from './ctl';
 import type { Control, Node as PcNode } from '../../core/types';
 import { useId } from 'preact/hooks';
-import { cloneElement, isValidElement, toChildArray } from 'preact';
+import { cloneElement, Fragment, isValidElement, toChildArray } from 'preact';
 
 /** Associate native leaves with this field without replacing their DOM nodes. Composite
  * parts declare a suffix; badge actions never become part of the input's name. */
 function labelControls(children: any, label: string, id: string, help?: string, path = '', ids: string[] = []): any {
   return toChildArray(children).map((child, index) => {
-    if (!isValidElement(child) || typeof child.type !== 'string') return child;
+    if (!isValidElement(child) || (typeof child.type !== 'string' && child.type !== Fragment)) return child;
     const props = child.props as any;
     const key = `${path}-${index}`;
-    const leaf = ['input', 'textarea', 'select'].includes(child.type);
+    const leaf = typeof child.type === 'string' && ['input', 'textarea', 'select'].includes(child.type);
     const part = props['data-field-part'];
     if (leaf) ids.push(props.id || `${id}${key}`);
     return cloneElement(child, {

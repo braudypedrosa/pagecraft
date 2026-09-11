@@ -3892,7 +3892,7 @@ const ui = () => UI || (UI = PC_UI.mount(
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
     closeModal, closeReviewSurface,
-    newPageModal, openPages, openPage, renderModebar, save, writeNow, appRender: render,
+    newPageModal, openPages, openPage, backToBuilder, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, restoreCanvasLayout, askPick, bindModal, enterEdit,
     mediaTake, mediaPicker, assetsToBlob, imgSize,
@@ -4278,6 +4278,11 @@ function closePages() { ui().closePages(); }
 function openPages() {
   showPanel('pages');
   ui().openPages();
+}
+function backToBuilder() {
+  closePages();
+  showPanel('layers');
+  render();
 }
 function openPage(index, settings = false) {
   if (!state.pages[index]) return;
@@ -5666,7 +5671,7 @@ function hotkey(e) {
   if (meta && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (meta && k === 'y') { e.preventDefault(); redo(); return; }
   if (document.body.classList.contains('pages-open')) {
-    if (e.key === 'Escape') { e.preventDefault(); openPage(state.cur); }
+    if (e.key === 'Escape') { e.preventDefault(); backToBuilder(); }
     return;
   }
   if (meta && k === 'd') {

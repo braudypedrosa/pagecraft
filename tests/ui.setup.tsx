@@ -66,6 +66,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     newPageModal: rec('newPageModal'),
     openPages: rec('openPages'),
     openPage: rec('openPage'),
+    backToBuilder: rec('backToBuilder'),
     renderModebar: rec('renderModebar'),
     save: rec('save'),
     appRender: rec('appRender'),

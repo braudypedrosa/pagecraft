@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { C, L } from './ctx';
 import type { Collection, Field, Item } from '../core/types';
 import {
@@ -42,7 +42,9 @@ export function CmsWorkspace({
   const leave = () => {
     if (!busy && discard()) close();
   };
-  useEffect(() => {
+  // Navigation must be guarded as soon as the workspace is visible, including
+  // before the first deferred effect runs on a busy browser.
+  useLayoutEffect(() => {
     const navigate = (event: MouseEvent) => {
       const target = event.target as Element;
       if (!target.closest('#leftRail button, .topbar button, .topbar a')) return;

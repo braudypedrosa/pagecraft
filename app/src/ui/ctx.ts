@@ -120,6 +120,7 @@ export interface Legacy {
   newPageModal(): void;
   openPages(): void;
   openPage(index: number, settings?: boolean): void;
+  backToBuilder(): void;
   /** the breadcrumb above the canvas, which carries the page name */
   renderModebar(): void;
   /** write the project to storage now */

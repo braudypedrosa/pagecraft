@@ -927,3 +927,15 @@ test('component Done is a UI transition; it adds neither history nor a content e
   C.undo();a.notEqual(C.findComponent('qa-noop-done').node.props.text,'Changed once');
  } finally {C.componentClose();C.state.meta.components=old;C.hist.u.splice(0,C.hist.u.length,...history);C.hist.r.splice(0,C.hist.r.length,...redo);w.render();}
 });
+
+test('returning from Pages preserves the current selection and history', async () => {
+  const {window:w,doc}=await boot(), C=w.__CORE;
+  const node=C.state.pages[C.state.cur].tree[0]; C.selSet([node.id]); w.render();
+  const before=JSON.stringify(C.doc()), depth=C.hist.u.length;
+  w.openPages(); w.backToBuilder();
+  a.equal(C.state.ui.sel,node.id);
+  a.equal(C.hist.u.length,depth);
+  a.equal(JSON.stringify(C.doc()),before);
+  a.equal(doc.body.classList.contains('pages-open'),false);
+  C.selSet([]);w.render();
+});

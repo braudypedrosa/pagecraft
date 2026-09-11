@@ -95,7 +95,7 @@ export function PagesWorkspace() {
     <header class="pages-workspace-head pc-workspace-head">
       <div><h1>Pages</h1><p>{C.state.pages.length} {C.state.pages.length === 1 ? 'page' : 'pages'}</p></div>
       <div class="row">
-        <button class="btn" onClick={() => L.openPage(C.state.cur)}>Back to builder</button>
+        <button class="btn" onClick={() => L.backToBuilder()}>Back to builder</button>
         {L.canStructure() && <button class="btn primary" onClick={() => L.newPageModal()}><Icon name="plus" size={14} /> New page</button>}
       </div>
     </header>

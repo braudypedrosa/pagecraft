@@ -1107,6 +1107,11 @@ test('Field names native leaves, distinguishes composite parts and preserves ide
   a.notEqual(r.$('input')!.id,r.$('select')!.id);
   r.draw(<Ctl n={n} c={{t:'box',c:'padding',label:'Padding',r:1}} />);
   a.deepEqual(r.$$('input').map(el=>el.getAttribute('aria-label')), ['Padding top','Padding right','Padding bottom','Padding left']);
+  r.draw(<Ctl n={n} c={{t:'color',c:'color',label:'Colour',note:'Accepts a CSS colour.'}} />);
+  const colour = r.$('input.hex') as HTMLInputElement;
+  a.equal(document.getElementById(colour.getAttribute('aria-labelledby')!)!.textContent, 'Colour');
+  a.equal(r.$('label')!.getAttribute('for'), colour.id);
+  a.equal(document.getElementById(colour.getAttribute('aria-describedby')!)!.textContent, 'Accepts a CSS colour.');
 });
 
 test('colour Escape restores its anchor; outside dismissal preserves the destination', async () => {
