@@ -96,7 +96,9 @@ async function pickStores(): Promise<{
       GatewayHostedPublishPreparer,
       GatewayManualImportReader,
     } = await import("./store-gateway.ts");
-    const gateway = new PagecraftGateway(gatewayUrl, gatewayKey);
+    const gateway = new PagecraftGateway(
+      gatewayUrl, gatewayKey, fetch, process.env.DATABASE_GATEWAY_REGION,
+    );
     const store = new GatewayStore(gateway);
     /* Make boot prove the HTTPS/database path before Passenger declares the app started. */
     await store.listMeta();

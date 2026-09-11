@@ -250,6 +250,13 @@ only showed up in a browser.
 
 ## Tests
 
+`DATABASE_GATEWAY_REGION` optionally pins the Supabase gateway function to the database's
+region. Leave unset for automatic routing. Measure from the application host before enabling:
+database-heavy gateway operations can otherwise cross regions for every SQL call. Staging
+uses `ap-southeast-1`; production configuration is unchanged. An explicit region disables
+Supabase's automatic regional failover, so remove the setting during a regional incident.
+This setting does not cache authorization or private data and does not retry writes.
+
 ```bash
 npm test          # from the repository root — the whole suite, server included
 ```

@@ -17,6 +17,24 @@ import type { Doc } from "../../app/src/core/types.ts";
 
 type Call = { op: string; args: Record<string, unknown> };
 
+test("gateway region is opt-in and preserves the authenticated operation contract", async () => {
+  const calls: RequestInit[] = [];
+  const request: typeof fetch = async (_url, init) => {
+    calls.push(init!);
+    return Response.json({ data: { id: "s1" } });
+  };
+  for (const region of [undefined, " ap-southeast-1 "]) {
+    const gateway = new PagecraftGateway("https://gateway.invalid", "test-key", request, region);
+    a.deepEqual(await gateway.call("site.byId", { id: "s1" }), { id: "s1" });
+  }
+  a.equal(new Headers(calls[0].headers).has("x-region"), false);
+  a.equal(new Headers(calls[1].headers).get("x-region"), "ap-southeast-1");
+  for (const call of calls) {
+    a.equal(new Headers(call.headers).get("x-pagecraft-gateway-key"), "test-key");
+    a.deepEqual(JSON.parse(String(call.body)), { op: "site.byId", args: { id: "s1" } });
+  }
+});
+
 const fakeGateway = (answer: (call: Call) => unknown) => {
   const calls: Call[] = [];
   const request = async (

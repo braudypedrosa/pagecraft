@@ -94,11 +94,13 @@ export class PagecraftGateway {
   private url: string;
   private key: string;
   private request: typeof fetch;
+  private region: string;
 
-  constructor(url: string, key: string, request: typeof fetch = fetch) {
+  constructor(url: string, key: string, request: typeof fetch = fetch, region = "") {
     this.url = url.replace(/\/+$/, "");
     this.key = key;
     this.request = request;
+    this.region = region.trim();
   }
 
   async call<T>(op: string, args: Record<string, unknown> = {}): Promise<T> {
@@ -114,6 +116,7 @@ export class PagecraftGateway {
       headers: {
         "content-type": "application/json",
         "x-pagecraft-gateway-key": this.key,
+        ...(this.region ? { "x-region": this.region } : {}),
       },
       body: serialized,
       signal: AbortSignal.timeout(30_000),
