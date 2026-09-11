@@ -32,6 +32,14 @@ Shared roles: `pc-heading-actions` uses 37px actions; `pc-pagination` uses 32px 
 
 ## Capture and compare
 
+`node tools/qa-ui.mjs` starts an isolated, loopback-only diagnostic app at port
+4944. It has fictional in-memory accounts, two sites, long page/collection names,
+27 CMS entries, an empty collection and a native form. It uses real Cloud and
+builder screens; all data resets on restart. Authentication changes are unavailable.
+No Supabase, SMTP or production credentials are read. The reusable document builder
+is `tools/fixtures/ui-site.ts`; import it only into the isolated staging project
+after Phase 0 cutover. Local screenshots are diagnostics, not staging acceptance.
+
 Keep actual account screenshots and their metadata in a private `qa-evidence/` directory. They can contain names, addresses, membership or submission content. Do not copy them into `public/`, the component gallery or a public repository. Gallery examples remain fictional.
 
 1. Confirm `/__deployment` matches the intended commit. Reload the agent's QA tabs, navigate using the built-in browser and test each state. Open no production tabs.

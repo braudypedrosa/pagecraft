@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-11T21:54:31.408Z",
+  "capturedAt": "2026-09-11T22:12:43.223Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -13,12 +13,12 @@
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
     "shared/ui-typography.js": "9f3189068f121be722b674b051c8d41af66b409c463ec89311397dc2af66780e",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
-    "shared/workspace-styles.js": "0405118c73d4250611f048e5499784ee2ecb6c80d94ce8711da0e2c99c39d41b",
+    "shared/workspace-styles.js": "61c75d0601e74e10574f8e09e02a17497bebe4f24452e3789be42433d15d9cc1",
     "shared/dialog-styles.js": "4bc8bf9e9520fa0ecd0104b9510e934ca4542c3014a7b0ec9123cb05a0ebae16",
     "shared/custom-select.js": "ca1a180203feae7665c0c6cc5d5ab1874a4c0f3fd931b788122d02f158d834ca",
     "shared/action-feedback.js": "5dc38ff2a21d93888a9541933bff27e453012a6cbaa76d4c31781a4e70490b2d",
     "server/src/account-pages.ts": "5df3d99618a6f57dea33d146841004262b463bf31732bf57a08b3e2801ba65ab",
-    "server/src/component-gallery.ts": "87b41918932c80776dfabfb2e9d3c6b87b3a07c899c562b58228ce59f5164252",
+    "server/src/component-gallery.ts": "179c4002c0d88de524cf471d26cf961b719f08e3c57cb3031aaafc8f963f5136",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
@@ -172,15 +172,15 @@
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-tables-1440.png": {
-      "sha256": "2922ec9291b75738ebd394e0f0f126431ca69c9136daedd69d7709a25c79d981",
+      "sha256": "9205835e707b96f02e9fa8cb0079d2b5a8a324e43e1e09361bb5f546bac998fc",
       "width": 1440,
-      "height": 1015,
+      "height": 1151,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-tables-768.png": {
-      "sha256": "e7fc2057df3f8519a3f78ac5bec1f517223debc2119d96f877644af1ea37ca5e",
+      "sha256": "3e55070e03000e9233f21c89247435e9cc79d9e0c7b3b6bb580f145ddf7c515b",
       "width": 768,
-      "height": 1065,
+      "height": 1201,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-menus-1440.png": {

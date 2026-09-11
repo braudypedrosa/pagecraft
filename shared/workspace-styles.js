@@ -67,7 +67,7 @@ ${DIALOG_CSS}
 .cms-workspace .cms-entry-open b{font-weight:500}
 .cms-workspace .cms-entry-open small{margin-top:2px}
 .cms-workspace .cms-entry-row>.btn{width:var(--pc-control-row);height:var(--pc-control-row);min-height:var(--pc-control-row);padding:0;justify-content:center}
-.cms-workspace .cms-collections .btn{min-height:37px;border-color:transparent;background:transparent}
+.cms-workspace .cms-collections .btn{min-height:37px;border-color:transparent;background:transparent;text-align:left}
 .cms-workspace .cms-collections .btn.primary{background:var(--pc-selection-bg);border-color:transparent;color:var(--pc-selection-text)}
 .cms-workspace .cms-collections .btn:not(.primary):hover{background:var(--pc-ui-hover)}
 :is(.pages-workspace,.cms-workspace) :is(.ctl,.pc-custom-select-trigger){border-radius:var(--pc-control-radius)}
