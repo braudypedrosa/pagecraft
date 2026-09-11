@@ -3,6 +3,7 @@ import { JSDOM, VirtualConsole } from "jsdom";
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from "../shared/action-feedback.js";
 import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from "../shared/account-actions.js";
 import { submissionsNavigation } from "../server/src/submissions-navigation";
+import { siteSubmissionsPage } from "../server/src/account-pages";
 const windows = [];
 afterEach(() => {
   for (const dom of windows.splice(0)) {
@@ -96,6 +97,43 @@ test("submissions refresh bypasses cached content; export failures preserve the 
   expect(csv.getAttribute("aria-busy")).toBeNull();
   expect(csv.textContent).toBe("Export CSV");
 });
+test.each([false,true])('status changes immediately filter submissions and survive replacement (embedded=%s)', async (embedded) => {
+  const base='/sites/qa/submissions';
+  const user={id:'qa',name:'QA',email:'qa@example.invalid'},site={id:'qa',name:'QA'};
+  const forms=[{id:'contact',name:'Contact',pages:['Home'],fields:[]}];
+  const entries=Array.from({length:30},(_,i)=>({id:String(i),formId:'contact',formName:'Contact',status:'success',createdAt:'2026-09-11T00:00:00Z',values:[{label:'Name',value:'Entry '+i}]}));
+  const render=(status='',page=1)=>siteSubmissionsPage(user,site,'owner',forms,entries,'contact',status,page,embedded,undefined,{},false,'asc');
+  const {w}=setup(render('',2),'https://example.test'+base+'?form=contact&order=asc&page=2'+(embedded?'&embedded=1':''));
+  w.eval(submissionsNavigation({}).replace(/^<script>|<\/script>$/g,''));
+  const pending=[];
+  w.fetch=vi.fn((url,opts)=>new Promise(resolve=>pending.push({url,opts,resolve})));
+  const selector='.pc-sub-filters select[name=status]';
+  const first=w.document.querySelector(selector);
+  expect(w.document.querySelector('.pc-sub-filters button[type=submit]')).toBeNull();
+  first.value='failed';first.dispatchEvent(new w.Event('input',{bubbles:true}));
+  expect(pending).toHaveLength(0);
+  first.dispatchEvent(new w.Event('change',{bubbles:true}));
+  expect(pending).toHaveLength(1);
+  const params=new URL(pending[0].url).searchParams;
+  expect(params.get('form')).toBe('contact');expect(params.get('status')).toBe('failed');
+  expect(params.get('order')).toBe('asc');expect(params.has('page')).toBe(false);
+  expect(params.get('embedded')).toBe(embedded?'1':null);
+  expect(w.document.querySelector('.pc-manage-content').getAttribute('aria-busy')).toBe('true');
+  pending[0].resolve(response(render('failed'),pending[0].url));
+  await vi.waitFor(()=>expect(w.document.querySelector('.pc-sub-empty')?.textContent).toBe('No matching entries.'));
+  expect(w.document.querySelector('.pc-sub-pager').textContent).toContain('Page 1 of 1');
+  expect(new URL(w.document.querySelector('.pc-sub-export').href).searchParams.get('status')).toBe('failed');
+  const next=w.document.querySelector(selector);expect(next).not.toBe(first);
+  next.value='';next.dispatchEvent(new w.Event('change',{bubbles:true}));
+  expect(pending).toHaveLength(2);
+  pending[1].resolve(response(render(),pending[1].url));
+  await vi.waitFor(()=>expect(w.document.querySelectorAll('.pc-sub-table tbody tr')).toHaveLength(25));
+  expect(w.document.querySelector(selector).value).toBe('');
+  expect(w.document.querySelector('.pc-sub-pager').textContent).toContain('Page 1 of 2');
+  expect(new URL(w.location.href).searchParams.get('status')).toBe('');
+  expect(new URL(w.document.querySelector('.pc-sub-export').href).searchParams.get('status')).toBe('');
+});
+
 test('an expired-session redirect does not falsely confirm a mutation', async () => {
   const { w, form, button, submit } = setup();
   w.fetch = vi.fn(async () => response('<h1>Sign in</h1>', 'https://example.test/login'));

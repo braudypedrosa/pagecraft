@@ -47,6 +47,9 @@ export function submissionsNavigation(prepared: Record<string, string>) {
       const url=new URL(link.href);if(url.origin!==location.origin||url.pathname!==base)return;
       event.preventDefault();go(url.href,true,link.hasAttribute('data-inbox-refresh'),link);
     });
+    host.addEventListener('change',event=>{
+      if(event.target.matches('.pc-sub-filters select[name="status"]'))event.target.form.requestSubmit();
+    });
     host.addEventListener('submit',event=>{
       const form=event.target;if(!form.matches('.pc-sub-filters'))return;
       event.preventDefault();const url=new URL(base,location.origin);url.search=new URLSearchParams(new FormData(form)).toString();go(url.href,true,false,event.submitter);

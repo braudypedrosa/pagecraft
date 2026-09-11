@@ -35,6 +35,7 @@ Pages is the visual reference for full management screens. `shared/workspace-sty
 - Headers: 24px vertical / 32px horizontal; body: 28px / 32px. Gutters become 20px below 1050px.
 - Header actions use the builder's 37px controls. Full forms remain 44px; row actions are 32px. Schema rows and compact editor panels retain their existing density.
 - Table headers use white, a bottom rule and medium-weight labels. Rows use shared 4px vertical / 8px horizontal cell padding, with 6px / 8px headers. Nested links add no padding; 24px text-link targets and 32px actions keep rows compact. Multiline content grows naturally. Column headings align with the leading cell content edge, including the icon when present. Pages, CMS entry lists, Submissions, Integrations and member lists consume the shared density tokens; inline CMS cells keep their existing compact control layout. Hover feedback stays light green.
+- Submissions applies Status changes immediately, without a separate Filter button. A committed selection uses the existing inbox navigation, preserves the selected form and date order, resets pagination to page 1, and updates the export link with the resulting filter. Background refresh remains silent and request failures retain the recoverable error feedback.
 - `shared/ui-fonts.js` is the font manifest for both hosts. The builder embeds its files for offline use; Cloud loads those exact files from allowlisted `/brand/fonts/` routes. Cloud's declaration previously fell back to the system font because it had no font faces.
 
 ### Screen inventory
