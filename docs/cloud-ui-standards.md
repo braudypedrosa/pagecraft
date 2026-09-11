@@ -6,7 +6,7 @@ Pagecraft uses white and cool neutral surfaces, Ink and Craft Green. Shared colo
 | --- | --- | --- |
 | Dashboard, account, site management and full CMS forms | 44px | 12px / 1.4 |
 | Authentication form fields and actions | 44px | Existing 16px / 1.4 |
-| Collaborator row controls | 36px | 12px / 1.4 |
+| Collaborator row controls | 32px | 12px / 1.4 |
 | Builder inspector and dialog controls | 37px | Existing 12px / 1.4 |
 | Dense builder rows / tiny actions | 32px | Existing builder scale |
 
@@ -33,8 +33,8 @@ Pages is the visual reference for full management screens. `shared/workspace-sty
 - White work surface; light gray supporting regions (`--pc-surface-subtle: #fafbfc`, `--pc-surface-muted: #f3f5f6`) and canvas surround (`#f3f5f6`). Shared control surfaces, including Alignment, layout controls, pickers and supporting account regions, use these same light grays. Hover uses a very light green `--pc-hover-bg` (`#f4faef`). Borders use cool gray tokens. Selected rows, picker options and secondary navigation use the shared pale green `--pc-selection-bg` (`#eef7e5`), with dark green text and accessible muted labels. This applies to Pages, Navigator, CMS collections, project/account settings, media/template/content pickers and integration choices. Selection stays green on hover; existing borders, checkmarks and weight preserve additional selection cues. Main rail navigation, primary actions and status/toggle indicators retain their stronger colors.
 - 22px workspace title, 18px section title, 16px dialog title, 12px body, 11px table headers/metadata.
 - Headers: 24px vertical / 32px horizontal; body: 28px / 32px. Gutters become 20px below 1050px.
-- Header actions use the builder's 37px controls. Full forms remain 44px; row icon actions are 36px. Schema rows and compact editor panels retain their existing density.
-- Table headers use white, a bottom rule and medium-weight labels. Rows use 16px / 12px padding, centered controls and light green hover feedback.
+- Header actions use the builder's 37px controls. Full forms remain 44px; row actions are 32px. Schema rows and compact editor panels retain their existing density.
+- Table headers use white, a bottom rule and medium-weight labels. Rows use shared 4px vertical / 8px horizontal cell padding, with 6px / 8px headers. Nested links add no padding; 24px text-link targets and 32px actions keep rows compact. Multiline content grows naturally. Icon-bearing headers reserve the same icon width and gap as their row labels, so the text aligns. Pages, CMS entry lists, Submissions, Integrations and member lists consume the shared density tokens; inline CMS cells keep their existing compact control layout. Hover feedback stays light green.
 - `shared/ui-fonts.js` is the font manifest for both hosts. The builder embeds its files for offline use; Cloud loads those exact files from allowlisted `/brand/fonts/` routes. Cloud's declaration previously fell back to the system font because it had no font faces.
 
 ### Screen inventory
@@ -110,7 +110,7 @@ Hidden-stage measurements cannot replace the last usable canvas dimensions.
 No-op scope changes do not enter document history. Escape from a color popover
 returns focus to its swatch; outside-pointer dismissal preserves the destination.
 
-Submissions reserve a contextual refresh-status area. Pending, deferred, failed
+Submissions reserve one compact line for contextual refresh status (4px vertical padding); longer messages wrap naturally. Pending, deferred, failed
 and successful refreshes use that one live region; the underlying shared action
 still restores its trigger state. Failed refreshes retain the last loaded list
 and explain how to retry.

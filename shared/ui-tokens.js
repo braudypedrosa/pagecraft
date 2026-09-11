@@ -26,6 +26,12 @@ export const UI_TOKENS_CSS = `:root{
   --pc-control-compact:36px;
   --pc-control-editor:37px;
   --pc-control-row:32px;
+  --pc-table-cell-y:4px;
+  --pc-table-cell-x:8px;
+  --pc-table-cell-padding:var(--pc-table-cell-y) var(--pc-table-cell-x);
+  --pc-table-head-padding:6px var(--pc-table-cell-x);
+  --pc-table-icon-size:14px;
+  --pc-table-icon-gap:8px;
   --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
   --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
   --pc-text-caption:11px;

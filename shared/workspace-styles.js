@@ -12,7 +12,7 @@ export const WORKSPACE_CSS = `
 .pc-menu .pc-menu-divider{height:1px;background:var(--pc-border);margin:6px 4px}
 .pc-field-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--pc-space-2);margin-top:var(--pc-space-2)}
 :is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]){accent-color:var(--pc-green,var(--green,#b7f34a))}
-.pc-refresh-status{font:var(--pc-type-description);min-height:calc(2lh + 20px);padding:10px 0;color:var(--pc-ui-secondary);box-sizing:border-box}
+.pc-refresh-status{font:var(--pc-type-description);min-height:calc(1lh + 8px);padding:4px 0;color:var(--pc-ui-secondary);box-sizing:border-box}
 .pc-refresh-status[data-tone=error]{color:var(--pc-danger,var(--risk-fg,#ad2626))}
 
 :root{
@@ -46,11 +46,12 @@ export const WORKSPACE_CSS = `
 }
 :is(.pages-workspace,.cms-workspace) .pc-workspace-body{padding:var(--pc-workspace-y) var(--pc-workspace-x)}
 .cms-workspace h2{font-size:var(--pc-section-title);line-height:1.4}
-.cms-workspace .cms-entry-row{padding:16px 12px;gap:16px}
+.cms-workspace .cms-entry-row{padding:var(--pc-table-cell-padding);gap:16px}
 .cms-workspace .cms-entry-row:hover{background:var(--pc-ui-hover)}
 .cms-workspace .cms-entry-open{padding:0;font-weight:500}
 .cms-workspace .cms-entry-open b{font-weight:500}
-.cms-workspace .cms-entry-row>.btn{width:36px;height:36px;min-height:36px;padding:0;justify-content:center}
+.cms-workspace .cms-entry-open small{margin-top:2px}
+.cms-workspace .cms-entry-row>.btn{width:var(--pc-control-row);height:var(--pc-control-row);min-height:var(--pc-control-row);padding:0;justify-content:center}
 .cms-workspace .cms-collections .btn{min-height:37px;border-color:transparent;background:transparent}
 .cms-workspace .cms-collections .btn.primary{background:var(--pc-selection-bg);border-color:transparent;color:var(--pc-selection-text)}
 .cms-workspace .cms-collections .btn:not(.primary):hover{background:var(--pc-ui-hover)}
@@ -105,22 +106,32 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-toolbar{margin-top:0}
 .dashboard-app .pc-manage-grid{padding-top:0}
 
-/* Lists and entry dialogs use the same type scale, rules and row spacing. */
+/* Dense app tables: cells own spacing; nested links never add another inset.
+ * Icon-bearing headings reserve the same icon/gap as their row labels. */
+.pc-table-heading-icon::before{content:"";display:inline-block;width:calc(var(--pc-table-icon-size) + var(--pc-table-icon-gap))}
 .dashboard-app .pc-sub-table{margin-top:0;width:100%;border-collapse:collapse}
 .dashboard-app :is(.pc-sub-table,.pc-connections-table) :is(th,td){border-bottom:1px solid var(--pc-ui-border);vertical-align:middle;text-align:left}
-.dashboard-app :is(.pc-sub-table,.pc-connections-table) thead th{padding:10px 12px;font-size:var(--pc-text-label);font-weight:600;color:var(--pc-ui-secondary)}
-.dashboard-app :is(.pc-sub-table,.pc-connections-table) tbody :is(th,td){padding:16px 12px;font-size:var(--pc-control-font)}
+.dashboard-app :is(.pc-sub-table,.pc-connections-table) thead th{padding:var(--pc-table-head-padding);font-size:var(--pc-text-label);font-weight:600;color:var(--pc-ui-secondary)}
+.dashboard-app :is(.pc-sub-table,.pc-connections-table) tbody :is(th,td){padding:var(--pc-table-cell-padding);font-size:var(--pc-control-font)}
+.dashboard-app :is(.pc-sub-table,.pc-connections-table) td>.pc-btn{height:var(--pc-control-row);min-height:var(--pc-control-row)}
 .dashboard-app .pc-connections-table thead{background:var(--pc-ui-surface)}
+.dashboard-app .pc-connections-table{--pc-table-icon-size:24px}
+.dashboard-app .pc-connections-table .pc-platform-name{gap:var(--pc-table-icon-gap)}
+.dashboard-app .pc-connections-table .pc-platform-icon{width:var(--pc-table-icon-size);height:var(--pc-table-icon-size);flex-basis:var(--pc-table-icon-size)}
 .dashboard-app .pc-connections-table tbody th{font-weight:500}
 .dashboard-app .pc-connections-table tbody tr:hover{background:var(--pc-ui-hover)}
-.dashboard-app :is(.pc-form-link,.pc-entry-link){font-weight:500;text-decoration:none;padding:6px 0;line-height:1.5}
-.dashboard-app .pc-form-link{display:flex;align-items:center;gap:10px}
-.dashboard-app .pc-form-link svg{flex:0 0 14px}
+.dashboard-app :is(.pc-form-link,.pc-entry-link){display:flex;align-items:center;min-height:24px;font-weight:500;text-decoration:none;padding:0;line-height:1.5}
+.dashboard-app .pc-form-link{gap:var(--pc-table-icon-gap)}
+.dashboard-app .pc-form-link svg{width:var(--pc-table-icon-size);height:var(--pc-table-icon-size);flex:0 0 var(--pc-table-icon-size)}
+.dashboard-app .pc-date-sort{padding:0}
 .dashboard-app .pc-sub-table>tbody>tr:hover{background:var(--pc-ui-hover)}
 .dashboard-app .pc-sub-filters{margin:0 0 24px;gap:12px;flex-wrap:wrap}
 .dashboard-app .pc-sub-filters label{gap:8px}
 .dashboard-app .pc-sub-pager{margin-top:24px;gap:12px;font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
-.dashboard-app .pc-entry-delete-icon{height:36px;min-height:36px}
+.dashboard-app .pc-entry-delete-icon{width:var(--pc-control-row);padding:0!important}
+.dashboard-app .pc-member{padding:var(--pc-table-cell-padding)}
+.dashboard-app .pc-member-avatar{width:var(--pc-control-row);height:var(--pc-control-row);flex-basis:var(--pc-control-row)}
+.dashboard-app .pc-member-controls :is(.pc-btn,select,.pc-custom-select-trigger){height:var(--pc-control-row);min-height:var(--pc-control-row)}
 .dashboard-app :is(.pc-entry-dialog,.pc-create-modal,.pc-delete-dialog,.pc-integration-dialog){font-family:var(--pc-ui-font);font-size:var(--pc-control-font);border-radius:16px;color:var(--pc-ui-text)}
 .dashboard-app :is(.pc-entry-dialog header,.pc-create-modal-head){padding:20px 24px;border-bottom:1px solid var(--pc-ui-border)}
 .dashboard-app :is(.pc-entry-dialog,.pc-create-modal,.pc-delete-dialog,.pc-integration-dialog) h2{font-size:var(--pc-dialog-title);line-height:1.4;font-weight:600;margin:0}
