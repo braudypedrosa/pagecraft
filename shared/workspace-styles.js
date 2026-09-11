@@ -99,6 +99,8 @@ ${DIALOG_CSS}
 .dashboard-app .pc-btn.primary{font-weight:600!important}
 .dashboard-app .pc-btn:hover{background:var(--pc-ui-hover)}
 .dashboard-app .pc-btn.primary:hover{background:var(--pc-green-hi,#c5fa63)}
+.dashboard-app .pc-btn.danger{color:var(--pc-danger,var(--danger,#a8402f))}
+.dashboard-app .pc-btn.danger:hover{background:var(--pc-danger-soft,var(--pc-hover-bg))}
 .dashboard-app .pc-workspace :is(h2,h3){letter-spacing:-.015em;line-height:1.4}
 .dashboard-app :is(.pc-settings-title,.pc-site-setting-copy,.pc-members-head,.pc-manage-summary,.pc-manage-section) h2{font-size:var(--pc-section-title)}
 .dashboard-app .pc-settings-layout{grid-template-columns:220px minmax(0,980px);gap:32px;padding-top:0}

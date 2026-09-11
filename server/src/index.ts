@@ -492,6 +492,7 @@ if (mail) {
 }
 
 const app = createApp({
+  componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   cloudIntegrations,

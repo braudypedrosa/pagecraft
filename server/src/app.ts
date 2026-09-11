@@ -1,3 +1,4 @@
+import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
 import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
@@ -257,6 +258,8 @@ const oauthCredential = (
   ));
 
 export interface Options {
+  /** Internal, authenticated UI reference; disabled unless the host explicitly opts in. */
+  componentGallery?: boolean;
   store: Store;
   auth: AuthStore;
   /** where the images live. Absent means a site renders with placeholders. */
@@ -364,6 +367,7 @@ export function createApp(o: Options) {
     const privateRoute = !path.startsWith("/v1/wordpress-distribution/") &&
         /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path) ||
       /^\/account(?:\/|$)/.test(path) ||
+      /^\/internal\/components(?:\/|$)/.test(path) ||
       path === "/mcp" ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
     const cachedThumbnail = c.req.method === "GET" && /^\/api\/sites\/[^/]+\/dashboard-thumbnail$/.test(path) &&
@@ -390,6 +394,8 @@ export function createApp(o: Options) {
   app.use("/sign-in", editorOnly);
   app.use("/forgot-password", editorOnly);
   app.use("/reset-password", editorOnly);
+  app.use("/internal/components", editorOnly);
+  app.use("/internal/components/*", editorOnly);
   app.use("/account", editorOnly);
   app.use("/account/*", editorOnly);
   app.use("/sites/*", editorOnly);
@@ -598,6 +604,20 @@ export function createApp(o: Options) {
     if (!token) return null;
     return o.auth.userForSession(hashToken(token));
   };
+
+  app.get('/internal/components', async c => {
+    if (!o.componentGallery || !o.editorHtml) return c.notFound();
+    if (!await who(c)) return c.redirect('/sign-in?next=%2Finternal%2Fcomponents');
+    c.header('x-robots-tag', 'noindex, nofollow');
+    return c.html(componentGalleryPage(o.editorHtml, c.req.query('host'), c.req.query('section')));
+  });
+  app.get('/internal/components/baselines/:name', async (c, next) => {
+    if (!o.componentGallery || !await who(c)) return c.notFound();
+    const name = galleryBaselineName(c.req.param('name'));
+    if (!name) return c.notFound();
+    c.header('x-robots-tag', 'noindex, nofollow');
+    return serveStatic({path:fileURLToPath(new URL(`../../public/internal-ui-baselines/${name}`, import.meta.url))})(c, next);
+  });
 
   const visibleSites = async (user: User) => {
     const [sites, memberships] = await Promise.all([

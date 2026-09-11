@@ -571,3 +571,6 @@ export function siteSubmissionsPage(user: User, site: { id: string; name: string
   if (fragment) return markup.slice(markup.indexOf('<div class="pc-manage-content">') + '<div class="pc-manage-content">'.length, markup.lastIndexOf('</div></section>'));
   return shell(`${site.name} submissions`, markup + `<script>${CUSTOM_SELECT_BOOT_SCRIPT}</script>` + submissionsNavigation(prepared));
 }
+
+/** Internal specimens render through the same Cloud shell, never a copied stylesheet. */
+export const componentGalleryShell = (body: string) => shell('Component gallery', `${siteSettingsCss}${accountSettingsCss}${sitePeopleCss}${body}`);

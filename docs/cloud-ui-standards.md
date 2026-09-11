@@ -124,3 +124,7 @@ Single-line controls consume their container’s density: 44px full forms, 37px 
 At 768–1024px, CMS schema Name and Type share the upper row and Required shares the lower row with move/delete actions. Option/reference details span the available width. Resizing does not remount the form.
 
 Closing unchanged Project settings is quiet and makes no save request. Pending name/document edits still settle before Close completes, and failures remain recoverable. Keyboard & tips describes the current host’s saving and available shortcuts; Cloud drafts, WordPress saving and standalone browser storage are different contracts.
+
+## Internal component reference
+
+The authenticated staging [component gallery](https://staging.itspagecraft.com/internal/components) demonstrates the actual Cloud and builder style cascades and shared interaction behavior. Its 24 desktop/tablet PNG baselines and source-review gate are part of `npm test`. See [component-gallery.md](component-gallery.md) for capture states, comparison commands, review requirements and coverage limits.
