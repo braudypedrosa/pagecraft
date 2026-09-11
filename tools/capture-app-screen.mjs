@@ -18,19 +18,20 @@ export async function captureAppScreen(tab,directory,{name,state,width=1440,depl
  const cdp=await tab.capabilities.get('cdp');
  await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
  await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
- await tab.playwright.evaluate(async()=>{await document.fonts.ready;await document.querySelector('#submissions-workspace')?.contentDocument?.fonts.ready;return true;});
+ await tab.playwright.evaluate(async()=>{await document.fonts.ready;return true;});
  // Put the pointer in neutral chrome; hovered rows have their own named state.
  await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:1,y:1});
  await new Promise(resolve=>setTimeout(resolve,500));
- const measurement=await tab.playwright.evaluate(()=>{
-  const documents=[document];const inbox=document.querySelector('#submissions-workspace');
-  if(inbox?.getBoundingClientRect().width&&inbox.contentDocument)documents.push(inbox.contentDocument);
-  return documents.map(doc=>{
-   const visible=element=>{const r=element.getBoundingClientRect();return r.width>0&&r.height>0;};
-   const selectors={headingActions:'.pc-workspace-head :is(.btn,.pc-btn),.pc-heading-actions :is(.btn,.pc-btn)',pagination:'.pc-pagination :is(.btn,.pc-btn)',empty:'.pc-list-empty',tableHeads:'.pc-sub-table th,.pc-connections-table thead th',tableCells:'.pc-sub-table td,.pc-connections-table tbody td',fieldGrids:'.pc-field-grid'};
-   return {url:doc.URL,viewport:{width:doc.defaultView.innerWidth,height:doc.defaultView.innerHeight},overflow:doc.documentElement.scrollWidth>doc.defaultView.innerWidth,fonts:doc.fonts.status,roles:Object.fromEntries(Object.entries(selectors).map(([role,selector])=>[role,[...doc.querySelectorAll(selector)].filter(visible).map(element=>{const style=doc.defaultView.getComputedStyle(element);return {text:element.textContent.trim().slice(0,100),height:element.getBoundingClientRect().height,x:element.getBoundingClientRect().x,font:style.fontSize,padding:style.padding,textAlign:style.textAlign,columns:style.gridTemplateColumns};})]))};
-  });
- });
+ // Inspect embedded documents through the frame locator. The browser's
+ // read-only DOM scope deliberately does not expose iframe.contentDocument.
+ const measure=async element=>{
+  const doc=element.ownerDocument;await doc.fonts.ready;
+  const visible=element=>{const r=element.getBoundingClientRect();return r.width>0&&r.height>0;};
+  const selectors={headingActions:'.pc-workspace-head :is(.btn,.pc-btn),.pc-heading-actions :is(.btn,.pc-btn)',pagination:'.pc-pagination :is(.btn,.pc-btn)',empty:'.pc-list-empty',tableHeads:'.pc-sub-table th,.pc-connections-table thead th',tableCells:'.pc-sub-table td,.pc-connections-table tbody td',fieldGrids:'.pc-field-grid'};
+  return {url:doc.URL,viewport:{width:doc.defaultView.innerWidth,height:doc.defaultView.innerHeight},overflow:doc.documentElement.scrollWidth>doc.defaultView.innerWidth,fonts:doc.fonts.status,roles:Object.fromEntries(Object.entries(selectors).map(([role,selector])=>[role,[...doc.querySelectorAll(selector)].filter(visible).map(element=>{const style=doc.defaultView.getComputedStyle(element);return {text:element.textContent.trim().slice(0,100),height:element.getBoundingClientRect().height,x:element.getBoundingClientRect().x,font:style.fontSize,padding:style.padding,textAlign:style.textAlign,columns:style.gridTemplateColumns};})]))};
+ };
+ const measurement=[await tab.playwright.locator('html').evaluate(measure)];
+ if(await tab.playwright.locator('#submissions-workspace').isVisible())measurement.push(await tab.playwright.frameLocator('#submissions-workspace').locator('html').evaluate(measure));
  if(measurement.some(doc=>doc.overflow||doc.fonts!=='loaded'))throw new Error('Screen has horizontal overflow or unloaded fonts.');
  const checks=measurement.flatMap(doc=>[
   ...doc.roles.headingActions.map(control=>({check:`Heading action: ${control.text}`,passed:control.height===37})),
