@@ -2,7 +2,6 @@
  * first; this helper observes and captures that state without submitting data. */
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import sharp from 'sharp';
 import {sourceHashes} from './ui-gallery-contract.mjs';
 
 export async function captureAppScreen(tab,directory,{name,state,width=1440,deployment}){
@@ -43,12 +42,12 @@ export async function captureAppScreen(tab,directory,{name,state,width=1440,depl
  // This is a viewport capture. Beyond-viewport capture can return an unpainted
  // surface after a Cloud navigation even while the visible screen is correct.
  const shot=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width,height:900,scale:1}});
- const bytes=Buffer.from(shot.data,'base64'),sample=sharp(bytes),metadata=await sample.metadata();
- if(metadata.width!==width||metadata.height!==900||(await sample.stats()).entropy<.1)throw new Error('Blank or incorrectly sized screen capture. Inspect the live screen and recapture.');
+ const bytes=Buffer.from(shot.data,'base64');
+ if(bytes.length<24||bytes.toString('hex',0,8)!=='89504e470d0a1a0a'||bytes.readUInt32BE(16)!==width||bytes.readUInt32BE(20)!==900)throw new Error('Incorrectly sized screen capture. Inspect the live screen and recapture.');
  const file=`${name}-${width}.png`;
  await writeFile(resolve(directory,file),bytes);
  evidence.captures[file]={name,state,url,width,height:900,capturedAt:new Date().toISOString(),measurement,checks};
  await writeFile(path,JSON.stringify(evidence,null,2)+'\n');
- return {file,checks:checks.length};
+ return {file,checks:checks.length,validation:'Run node tools/app-screen-baselines.mjs check on this directory before accepting the images.'};
 }
 export async function restoreAppViewport(tab){const cdp=await tab.capabilities.get('cdp');await cdp.send('Emulation.clearDeviceMetricsOverride',{});await cdp.send('Emulation.setEmulatedMedia',{features:[]});}

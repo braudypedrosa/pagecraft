@@ -33,8 +33,9 @@ export async function compareScreens(baseline,candidate){
 }
 async function main(){
  const [command,folder,next]=process.argv.slice(2);
+ if(command==='check'){const {images}=await inspectCapture(folder);console.log(`Verified ${Object.keys(images).length} private screen images. Visual review is still required.`);return;}
  if(command==='record'&&next==='--reviewed'){const {evidence,images}=await inspectCapture(folder);await writeFile(resolve(folder,'baseline.json'),JSON.stringify({reviewedAt:new Date().toISOString(),deployment:evidence.deployment,images},null,2)+'\n');console.log(`Recorded ${Object.keys(images).length} private screen baselines.`);return;}
  if(command==='compare'){const results=await compareScreens(folder,next);await writeFile(resolve(next,'comparison.json'),JSON.stringify(results,null,2)+'\n');const failed=Object.values(results).filter(result=>!result.passed).length;console.log(`${Object.keys(results).length-failed}/${Object.keys(results).length} real screens match. Inspect comparison.json and both screenshots for every difference.`);if(failed)process.exitCode=1;return;}
- throw new Error('Usage: app-screen-baselines.mjs record <captures> --reviewed | compare <baseline> <candidate>');
+ throw new Error('Usage: app-screen-baselines.mjs check <captures> | record <captures> --reviewed | compare <baseline> <candidate>');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))main().catch(error=>{console.error(error.message);process.exitCode=1;});

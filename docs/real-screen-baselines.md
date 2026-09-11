@@ -56,7 +56,7 @@ await screenCapture.captureAppScreen(tab, privateDirectory, {
 await screenCapture.restoreAppViewport(tab);
 ```
 
-3. Inspect every screenshot, including alignment, clipped text, radii, cell padding, action placement and content wrapping. Capture named scrolled states for below-fold checks. No screenshot is evidence for content outside its viewport. Record behavior results separately; a PNG cannot establish persistence or error recovery.
+3. Run `node tools/app-screen-baselines.mjs check /absolute/path/to/private-captures` to reject missing pairs, blank images and incorrect dimensions. This image analysis runs in the terminal because the built-in browser runtime does not load native image libraries. Inspect every screenshot, including alignment, clipped text, radii, cell padding, action placement and content wrapping. Capture named scrolled states for below-fold checks. No screenshot is evidence for content outside its viewport. Record behavior results separately; a PNG cannot establish persistence or error recovery.
 4. Record the reviewed private baseline:
 
 ```sh
