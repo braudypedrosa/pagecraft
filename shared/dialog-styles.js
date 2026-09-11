@@ -6,6 +6,7 @@ export const DIALOG_CSS = `
 .pc-dialog .pc-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:var(--pc-space-4);padding:var(--pc-dialog-edge) var(--pc-dialog-inset);border-bottom:1px solid var(--pc-border);flex-shrink:0}
 .pc-dialog .pc-dialog-title{margin:0;font-family:var(--pc-font-body);font-size:var(--pc-text-dialog);font-weight:600;line-height:1.4;letter-spacing:-.02em;min-width:0;overflow-wrap:anywhere}
 .pc-dialog .pc-dialog-head>div{min-width:0}
+.pc-dialog .pc-dialog-head :is(img,svg){display:block;flex-shrink:0}
 .pc-dialog .pc-dialog-head p{font:var(--pc-type-description);margin:var(--pc-space-1) 0 0}
 .pc-dialog .pc-dialog-body{padding:var(--pc-dialog-inset);min-height:0;overflow:auto;overscroll-behavior:contain}
 .pc-dialog .pc-dialog-body>:first-child{margin-top:0}
