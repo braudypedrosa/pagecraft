@@ -46,6 +46,22 @@ function feedback(host: Host) {
   return sample('Notifications','Progress and errors remain until resolved or dismissed. Success uses status; failures use alert.',`<div class="gallery-action-row">${button(host,'Show success','','data-notice="success"')}${button(host,'Show error','','data-notice="error"')}${button(host,'Show progress','','data-notice="progress"')}${button(host,'Dismiss preview','','data-dismiss')}</div>`)+sample('Recoverable refresh failure','Retain the previous result and offer retry; successful background refresh has no completion banner.',`<div class="pc-refresh-status" data-tone="error" role="alert" id="refresh-error">Could not refresh the preview. The previous result is still shown.</div><div class="gallery-action-row">${button(host,'Retry refresh','','data-retry')}</div><p class="pc-caption" id="previous-result">Sample inbox · 3 entries</p>`);
 }
 const renderers = { fields, actions, tables, menus, dialogs, feedback };
+function edgeCase(host: Host, section: GallerySection) {
+  const fieldClass = host === 'cloud' ? 'pc-settings-field' : 'f';
+  const controlClass = host === 'cloud' ? '' : 'ctl';
+  const longName = 'Annual community workshop and accessibility review';
+  const cases: Record<GallerySection, string> = {
+    fields: `<div class="${fieldClass}"><label for="long-example">Description shown when a visitor shares this page with their team</label><textarea class="${controlClass}" id="long-example" aria-describedby="long-help">${longName}. A longer description wraps naturally and keeps the field aligned with its label and supporting text.</textarea><small id="long-help">Use a concise description. Longer help text should wrap without changing the spacing between adjacent fields.</small></div>`,
+    actions: `<div class="gallery-action-row">${button(host,'Review changes across selected pages','primary','data-demo="Review action previewed. Nothing was published."')}${button(host,'Waiting for the current upload to finish','','disabled')}</div>`,
+    tables: host === 'cloud'
+      ? `<table class="pc-sub-table"><thead><tr><th>Form</th><th>Page</th><th>Actions</th></tr></thead><tbody><tr><td><a class="pc-form-link" href="#long-form" data-demo="Long row preview only.">${pageIcon}<span>${longName}</span></a></td><td>Community events and resources</td><td>${button(host,'View','','data-demo="Detail preview only."')}</td></tr></tbody></table>`
+      : `<div class="cms-workspace"><div class="cms-entry-row"><button class="cms-entry-open" data-demo="Long entry preview only."><b>${longName}</b><small>Draft entry with a longer description that wraps onto additional lines.</small></button><span>Draft</span>${button(host,closeIcon,'','aria-label="Remove long sample entry" disabled')}</div></div>`,
+    menus: `<div class="pc-menu gallery-menu" role="menu" aria-label="Additional menu states"><button class="pc-menu-item" role="menuitem" data-demo="Draft review preview only.">Review changes before publishing</button><div class="pc-menu-divider" role="separator"></div><button class="pc-menu-item danger" role="menuitem" disabled>Remove selected unused images</button></div>`,
+    dialogs: `<div class="pc-list-empty"><strong>No matching pages</strong><p>Try a shorter name or clear the search to see all pages.</p>${button(host,'Clear sample search','','data-demo="Search recovery previewed. No page data was loaded."')}</div>`,
+    feedback: `<div class="pc-refresh-status" data-tone="error" role="alert">The latest content could not be loaded. Your saved content is still available; try refreshing again.</div><div class="gallery-action-row">${button(host,'Retry loading content','','data-demo="Retry preview complete. No request was sent."')}</div>`
+  };
+  return sample('Long content and recovery', 'Fictional edge cases use the same production components and density rules.', `<div data-gallery-edge-case="${section}">${cases[section]}</div>`);
+}
 const GALLERY_CSS = `
 /* Gallery composition only. Specimen controls keep their production rules. */
 html,body{height:auto;min-height:100%;overflow:auto;background:#fff;color:#111311}
@@ -84,7 +100,7 @@ const GALLERY_SCRIPT = `(()=>{
     dialog.addEventListener('close',()=>opener?.focus());
   }
   // Escape closes the example menu without leaving focus in a hidden descendant.
-  const menu=document.querySelector('[role=menu]');menu?.addEventListener('keydown',e=>{const items=[...menu.querySelectorAll('[role=menuitem]:not(:disabled)')];const i=items.indexOf(document.activeElement);if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();items[e.key==='Home'?0:e.key==='End'?items.length-1:(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();}});
+  document.querySelectorAll('[role=menu]').forEach(menu=>menu.addEventListener('keydown',e=>{const items=[...menu.querySelectorAll('[role=menuitem]:not(:disabled)')];const i=items.indexOf(document.activeElement);if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();items[e.key==='Home'?0:e.key==='End'?items.length-1:(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();}}));
   document.fonts.ready.then(()=>{document.documentElement.dataset.galleryReady='true';});
 })();`;
 export function componentGalleryPage(editorHtml: string, rawHost?: string, rawSection?: string) {
@@ -96,6 +112,7 @@ export function componentGalleryPage(editorHtml: string, rawHost?: string, rawSe
   // fonts in favour of the same allowlisted brand files used by Cloud.
   const editorStyles=[...editorHtml.matchAll(/<style\b([^>]*)>([\s\S]*?)<\/style>/gi)].filter(m=>!m[1].includes('pc-fonts')).map(m=>m[0]).join('\n');
   let html=host==='cloud'?componentGalleryShell(body):`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Component gallery — Pagecraft</title><style>${UI_FONTS_CSS}</style>${editorStyles}<style>${CUSTOM_SELECT_CSS}</style></head><body>${body}<script>${ACTION_FEEDBACK_BOOT_SCRIPT}${CUSTOM_SELECT_BOOT_SCRIPT}</script></body></html>`;
+  html=html.replace('<p class="gallery-footnote">',`${edgeCase(host,section)}<p class="gallery-footnote">`);
   html=html.replace('</head>',`<meta name="robots" content="noindex,nofollow"><style id="gallery-layout">${GALLERY_CSS}</style></head>`).replace('<body>',`<body data-gallery-host="${host}" data-gallery-section="${section}">`);
   return html.replace('</body>',`<script>${GALLERY_SCRIPT}</script></body>`);
 }

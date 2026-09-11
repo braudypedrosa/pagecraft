@@ -23,4 +23,50 @@ Check the GitHub deployment result, then read `/__deployment` over HTTPS and com
 
 The last successful deployment records its previous release in `~/pagecraft-deploy/<app>-current.json`. An operator with hosting SSH access can restore the `current` symlink inside the fixed application root and restart the corresponding CloudLinux Node application. Do not delete old release directories until rollback retention has been reviewed.
 
+## Phase 0 receiver retention and capacity
+
+The new receiver imports `tools/deploy/release_storage.py`; install both files in
+the same private directory. Provision it as `receive-staging.py` and change only
+the development key's forced-command path during the staging rollout. Keep the
+production key and its existing `receive.py` intact. Back up `authorized_keys`,
+verify file checksums and run the receiver/storage tests on the host before this
+change. Repository CI does not install the trusted receiver.
+
+All receiver operations hold the target application's deployment lock. The
+storage helper accepts only `pagecraft-staging` or `pagecraft-app`, rejects
+symlinked roots, and never scans sibling release directories. It preserves the
+active release, the recorded rollback target, three additional successful releases
+and the in-flight candidate. A success marker is written only after public
+verification. Because the legacy receiver had no success markers, its first run
+conservatively keeps three additional recent legacy candidates; these are not
+claimed as verified successful releases.
+
+Older releases are written to private
+`~/pagecraft-deploy/release-archives/<app>/<release>.tar.gz` files. A JSON receipt
+contains the archive SHA-256 and a complete inventory of bytes, paths, modes and
+symlink targets. Both archive and unchanged source are verified before removing
+the expanded inactive directory. Corrupt or unverifiable archives stop cleanup.
+Verified archives expire after 30 days. Existing legacy archive directories are
+not adopted or deleted automatically.
+
+Before unpacking, the receiver checks filesystem free bytes/inodes and reserves
+real blocks plus temporary files to exercise the hosting account's quotas.
+The budget includes the prior installed dependency tree and headroom. Reservations
+are always removed. A failure leaves the current pointer unchanged and prevents
+dependency installation. A competing write can still exhaust capacity after the
+probe; ordinary candidate isolation and rollback remain necessary.
+
+For an operational dry run, import `ReleaseStorage` from the installed helper,
+load the active symlink and previous path from the target's current JSON record,
+then call `retain(active, previous, dry_run=True)`. Review every protected/archive
+candidate before the first live run. The helper's `restore(release_name)` verifies
+receipt and archive, restores bytes/modes/links into an inactive release directory,
+and leaves the current pointer untouched. Never extract an unverified archive over
+an active release. To roll back, select the verified inactive directory through
+the existing symlink/restart workflow and confirm its public `/__deployment` SHA.
+
+Capacity, retention, archive restore and failed-public-check rollback have local
+regressions. Host installation, a live retention run and staging acceptance must be
+recorded separately; passing these tests alone does not establish deployment.
+
 CloudLinux resolves the application root to locate its Node environment, so that directory must remain physical. Provision `tools/deploy/launcher.cjs` as its `app.cjs`; releases are selected through an internal `current` symlink. The original source remains available for first-deployment rollback.

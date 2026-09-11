@@ -21,6 +21,12 @@ Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedbac
 
 The behavior checklist additionally covers select Escape/value preservation, dialog focus return, empty footer, unsaved dialog values across resizing, processing state and success/failure recovery, and silent refresh recovery. Success notifications and ordinary keyboard interaction remain interactive examples; the PNG set is not exhaustive state coverage.
 
+Each family also contains a **Long content and recovery** fixture using production
+components: multiline labels/help, long action labels, populated multiline rows,
+destructive disabled menu items, empty-search recovery and a detailed load error.
+Inspect these alongside the main specimens at both widths. Do not hide, truncate
+the screenshot, or loosen the comparison threshold when these expose overflow.
+
 ## Check and review changes
 
 `npm test` checks every baseline file/hash/dimension and fingerprints the owning UI source files and product fonts. A change to those sources fails the check until baselines are reviewed. This is a source-review gate, not automatic browser rendering in CI. The browser comparison remains an explicit evidence step. Changes within a source file that are behavior-only may still trigger review; do not blindly update its hash.

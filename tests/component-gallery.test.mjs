@@ -26,6 +26,17 @@ test('all specimens use the current host cascade and contain no submitting forms
  expect(d.body.dataset.galleryHost).toBe(host);expect(d.body.dataset.gallerySection).toBe(section);expect(d.querySelectorAll('form[action]').length).toBe(0);expect(d.querySelector('#gallery-layout')).not.toBeNull();expect(d.querySelector(host==='cloud'?'#pc-workspace-styles':'#pc-ui-styles')).not.toBeNull();expect(html).not.toContain('api/sites');expect(d.querySelector('.gallery-footnote')?.textContent).toContain('Local sample');dom.window.close();}
  const d=new JSDOM(componentGalleryPage(editor,'<script>','bogus'));expect(d.window.document.body.dataset.galleryHost).toBe('cloud');expect(d.window.document.body.dataset.gallerySection).toBe('fields');d.window.close();
 });
+test('every family includes a real-component long-content or recovery fixture',()=>{
+ for(const host of ['cloud','builder'])for(const section of GALLERY_SECTIONS){
+  const dom=new JSDOM(componentGalleryPage(editor,host,section)),d=dom.window.document;
+  const example=d.querySelector(`[data-gallery-edge-case="${section}"]`);
+  expect(example).not.toBeNull();
+  expect(example.querySelectorAll('form[action], [onclick], iframe').length).toBe(0);
+  for(const label of example.querySelectorAll('label[for]'))expect(d.getElementById(label.htmlFor)).not.toBeNull();
+  expect(example.querySelector('button,textarea,[role="alert"]')).not.toBeNull();
+  dom.window.close();
+ }
+});
 function interactive(section){return new JSDOM(componentGalleryPage(editor,'cloud',section),{url:'https://admin.test/internal/components',runScripts:'dangerously',pretendToBeVisual:true,beforeParse(w){Object.defineProperty(w.document,'fonts',{value:{ready:Promise.resolve()}});w.matchMedia=()=>({matches:false,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}});w.HTMLElement.prototype.scrollIntoView=()=>{};w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'));};}});}
 test('processing blocks duplicates and restores its label and state after failure or success',async()=>{
  const dom=interactive('actions');await Promise.resolve();const d=dom.window.document,button=d.querySelector('[data-start]');button.click();button.click();expect(d.querySelectorAll('.pc-notification').length).toBe(1);expect(button.disabled).toBe(true);expect(button.getAttribute('aria-busy')).toBe('true');d.querySelector('[data-finish=error]').click();expect(button.disabled).toBe(false);expect(button.textContent).toBe('Start processing');expect(d.querySelector('[role=alert]')?.textContent).toContain('Try Start');button.click();d.querySelector('[data-finish=success]').click();expect(d.querySelector('[role=status]')?.textContent).toContain('Nothing was saved');dom.window.close();

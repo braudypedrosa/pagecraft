@@ -2,6 +2,20 @@
 
 Pagecraft uses white and cool neutral surfaces, Ink and Craft Green. Shared colors, typography and geometry live in `shared/ui-tokens.js`; the account shell and generated editor both consume it. It does not enter published user-page CSS.
 
+## Required component contracts
+
+New screens must reuse the production workspace, field, action, table, menu,
+dialog and feedback components. Choose the semantic density below; do not add
+screen-specific sizes to make one screenshot fit. Intentional exceptions must
+state the user need, owning component and affected states in the change report.
+Gallery-only styling must never repair a production control.
+
+Every changed component must be checked within its real consuming screens, with
+long labels/content, empty results, loading, disabled/read-only values, recoverable
+errors, keyboard interaction and retained unsaved input. Add representative gallery
+fixtures where coverage is missing. Passing source hashes or sample screenshots
+alone does not prove an application screen works. See `docs/real-screen-baselines.md`.
+
 | Role | Minimum height | Typography |
 | --- | --- | --- |
 | Dashboard, account, site management and full CMS forms | 44px | 12px / 1.4 |
