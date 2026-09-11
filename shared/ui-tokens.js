@@ -2,6 +2,8 @@
  * Density is intentional: spacious account/CMS forms, compact editor panels, dense rows.
  * These tokens are never injected into a user's published site.
  */
+export const UI_TEXT_SIZES = Object.freeze({ label: '11px', body: '12px' });
+
 export const UI_TOKENS_CSS = `:root{
   --pc-surface-subtle:#fafbfc;
   --pc-surface-muted:#f3f5f6;
@@ -21,8 +23,8 @@ export const UI_TOKENS_CSS = `:root{
   --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
   --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
   --pc-text-caption:11px;
-  --pc-text-label:12.5px;
-  --pc-text-body:13.5px;
+  --pc-text-label:${UI_TEXT_SIZES.label};
+  --pc-text-body:${UI_TEXT_SIZES.body};
   --pc-text-panel:15px;
   --pc-text-dialog:16px;
   --pc-text-section:18px;

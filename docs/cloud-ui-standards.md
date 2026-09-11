@@ -4,10 +4,10 @@ Pagecraft uses white and cool neutral surfaces, Ink and Craft Green. Shared colo
 
 | Role | Minimum height | Typography |
 | --- | --- | --- |
-| Dashboard, account, site management and full CMS forms | 44px | 13.5px / 1.4 |
+| Dashboard, account, site management and full CMS forms | 44px | 12px / 1.4 |
 | Authentication form fields and actions | 44px | Existing 16px / 1.4 |
-| Collaborator row controls | 36px | 13.5px / 1.4 |
-| Builder inspector and dialog controls | 37px | Existing 13.5px / 1.4 |
+| Collaborator row controls | 36px | 12px / 1.4 |
+| Builder inspector and dialog controls | 37px | Existing 12px / 1.4 |
 | Dense builder rows / tiny actions | 32px | Existing builder scale |
 
 Use identical geometry for an action rendered as a link or button. Read-only copy values and their actions share the 44px height; the row owns its gap and top spacing, never the nested button. Long values truncate within a shrinkable column. Section actions use a 16px gap, form fields use 16px between groups and 8px between label and control. Site-management sections use 32px vertical padding. Preserve intentionally different navigation, icon, badge and multiline-control sizes.
@@ -29,7 +29,7 @@ Verify the actual computed boxes and keyboard interactions, including dropdown o
 Pages is the visual reference for full management screens. `shared/workspace-styles.js` owns their surface, heading scale, gutters, header actions and list rhythm. Explicit `pc-workspace-head` / `pc-workspace-body` classes connect Preact and server markup to that contract. The compatibility selectors keep existing navigation and dialog behavior intact.
 
 - White work surface; light gray supporting regions (`--pc-surface-subtle: #fafbfc`, `--pc-surface-muted: #f3f5f6`) and canvas surround (`#f3f5f6`). Shared control surfaces, including Alignment, layout controls, pickers and supporting account regions, use these same light grays. Hover uses a very light green `--pc-hover-bg` (`#f4faef`). Borders use cool gray tokens. Selected rows, picker options and secondary navigation use the shared pale green `--pc-selection-bg` (`#eef7e5`), with dark green text and accessible muted labels. This applies to Pages, Navigator, CMS collections, project/account settings, media/template/content pickers and integration choices. Selection stays green on hover; existing borders, checkmarks and weight preserve additional selection cues. Main rail navigation, primary actions and status/toggle indicators retain their stronger colors.
-- 22px workspace title, 18px section title, 16px dialog title, 13.5px body, 12.5px table headers/metadata.
+- 22px workspace title, 18px section title, 16px dialog title, 12px body, 11px table headers/metadata.
 - Headers: 24px vertical / 32px horizontal; body: 28px / 32px. Gutters become 20px below 1050px.
 - Header actions use the builder's 37px controls. Full forms remain 44px; row icon actions are 36px. Schema rows and compact editor panels retain their existing density.
 - Table headers use white, a bottom rule and medium-weight labels. Rows use 16px / 12px padding, centered controls and light green hover feedback.
@@ -59,17 +59,19 @@ Validation combines the rendered desktop workspace journeys, tablet/narrow ifram
 
 | Primitive | Role | Font / size / weight / line height |
 | --- | --- | --- |
-| `pc-input-text` | Inputs and native/enhanced selects | Manrope / 13.5px / 400 / 1.4 |
-| `pc-control-text` | Standard action/control text | Manrope / 13.5px / 500 / 1.4 |
-| `pc-toolbar-context` | Compact context row and its buttons, pills and selects | Manrope / 12.5px / 500 / 1.4 |
-| `pc-field-label` | Field names, including schema and filter labels | DM Sans / 12.5px / 500 / 1.5 |
-| `pc-description` | Help beneath a field or explanatory sublabel | DM Sans / 12.5px / 400 / 1.55 |
+| `pc-input-text` | Inputs and native/enhanced selects | Manrope / 12px / 400 / 1.4 |
+| `pc-control-text` | Standard action/control text | Manrope / 12px / 500 / 1.4 |
+| `pc-toolbar-context` | Compact context row and its buttons, pills and selects | Manrope / 11px / 500 / 1.4 |
+| `pc-field-label` | Field names, including schema and filter labels | DM Sans / 11px / 500 / 1.5 |
+| `pc-description` | Help beneath a field or explanatory sublabel | DM Sans / 11px / 400 / 1.55 |
 | `pc-caption` | Secondary item metadata and short captions | DM Sans / 11px / 400 / 1.45 |
-| `pc-table-label` | Column headers | DM Sans / 12.5px / 600 / 1.4 |
+| `pc-table-label` | Column headers | DM Sans / 11px / 600 / 1.4 |
 
-Panel/dialog/section/workspace headings use shared 15/16/18/22px tokens. Descriptive paragraphs in workspace headers keep the 13.5px body role. Authentication controls retain their 16px input size; their labels and help use the shared field roles.
+Panel/dialog/section/workspace headings use shared 15/16/18/22px tokens. Descriptive paragraphs in workspace headers keep the 12px body role. Authentication controls retain their 16px input size; their labels and help use the shared field roles.
 
 The context toolbar owns its 32px outer controls and 26px nested picker controls. Page selection, Settings & SEO, component Done, CMS preview and device context use this one rule, with no element-ID font overrides. Controls inside labels retain the body font rather than inheriting the label font. Geometry, color, overflow and interactive states remain with the owning component.
+
+The compact scale uses 12px for body/control text and 11px for labels, help and captions. Weights, line heights and control geometry retain their existing role distinctions. Canvas editing placeholders share the same size constants; user-authored page typography is unchanged.
 
 Only the embedded font faces are copied into the canvas. App typography, tokens and workspace rules have their own style element and do not enter the page being edited or published.
 

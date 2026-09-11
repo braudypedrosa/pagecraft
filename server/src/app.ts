@@ -6012,7 +6012,7 @@ const shell = (title: string, body: string) =>
         box-shadow:0 10px 30px -12px #1113111f}
   .card--consent{width:min(calc(100vw - 32px),620px);padding:0;overflow:hidden}
   h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
-  p{margin:0 0 18px;color:#5f6660;font-size:13.5px}
+  p{margin:0 0 18px;color:#5f6660;font-size:var(--pc-text-body)}
   label{display:block;font-size:12px;color:#5f6660;margin-bottom:6px}
   input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--pc-border-strong);border-radius:var(--pc-control-radius);min-height:var(--pc-control-height);
         font:inherit;font-size:var(--pc-control-font);margin-bottom:12px}
@@ -6022,7 +6022,7 @@ const shell = (title: string, body: string) =>
     border:1px solid var(--pc-border);border-radius:8px;color:inherit;text-decoration:none}
   a:hover{background:var(--pc-hover-bg);border-color:#5f6660}
   small{color:#5f6660;font-size:12px}
-  .ok{padding:11px 12px;border-radius:8px;background:var(--pc-surface-subtle);font-size:13.5px}
+  .ok{padding:11px 12px;border-radius:8px;background:var(--pc-surface-subtle);font-size:var(--pc-text-body)}
   .consent__header{padding:32px 36px 28px;background:var(--pc-surface-subtle);border-bottom:1px solid var(--pc-border)}
   .consent__brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;font-weight:700;font-size:16px}
   .consent__brand img{width:28px;height:28px;border-radius:6px}

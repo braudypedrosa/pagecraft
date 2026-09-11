@@ -20,6 +20,7 @@ import type {
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
   Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types.ts';
+import { UI_TEXT_SIZES } from '../../../shared/ui-tokens.js';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons.ts';
 import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim.ts';
 
@@ -6806,7 +6807,7 @@ ${m.css || ''}
 .s-empty{
   display:flex;align-items:center;justify-content:center;gap:7px;min-height:76px;width:100%;
   border:1px dashed #cbd2d8;border-radius:8px;color:#6f7771;
-  font:500 12.5px "DM Sans",system-ui,sans-serif;background:#f5f7f880;
+  font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;background:#f5f7f880;
 }
 .s-held{
   display:block;margin-top:8px;padding:7px 10px;border-radius:6px;
@@ -6848,13 +6849,13 @@ ${m.css || ''}
 #s-root{min-height:100%}
 .s-canvas-empty{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  min-height:60vh;color:#6f7771;font:500 13.5px "DM Sans",system-ui,sans-serif;
+  min-height:60vh;color:#6f7771;font:500 ${UI_TEXT_SIZES.body} "DM Sans",system-ui,sans-serif;
   text-align:center;padding:40px;
 }
 .s-canvas-empty b{font-size:16px;color:#111311;font-weight:600;font-family:"Manrope",system-ui,sans-serif}
 .s-openadd{
   margin-top:4px;padding:7px 14px;border-radius:8px;cursor:pointer;border:0;
-  background:#111311;color:#f5f7f8;font:600 12.5px "Manrope",system-ui,sans-serif;
+  background:#111311;color:#f5f7f8;font:600 ${UI_TEXT_SIZES.label} "Manrope",system-ui,sans-serif;
 }
 .s-openadd:hover{background:#2a2e2a}
 
