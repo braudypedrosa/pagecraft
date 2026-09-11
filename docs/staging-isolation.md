@@ -1,8 +1,26 @@
-# Phase 0 staging isolation cutover
+# Deferred pre-launch database isolation
 
-Status: not provisioned. The new Supabase organization selection and cost
-confirmation are pending. Staging still uses the explicitly allowed shared
-backend. No source accounts, sites, records or queues have been moved or deleted.
+Status updated 2026-09-12: the user confirmed that both current environments are
+pre-launch, contain no real customer data, and should continue using the existing
+Supabase project. Do not provision a new staging project. The earlier organization
+and cost-confirmation request is superseded. No accounts, sites, records or queues
+have been moved or deleted.
+
+Keep the explicit shared-backend setting, disabled staging workers, separate
+publication directories/signing configuration and identifiable QA fixtures.
+Changes to shared records/schema remain visible to both current deployments.
+Preserve compatibility with both builds; this approval is not permission to delete
+existing fixtures or promote application changes to production automatically.
+
+The actual customer-facing production environment will receive its own database
+before launch. At that point, select and provision its project, configure fresh
+authentication and credentials, apply the verified schema, and seed only approved
+launch data. Do not automatically migrate test accounts, submissions or jobs.
+Verify data/authentication/queue isolation in both directions before launch.
+
+The staging-cutover procedure below is retained as a reference only. Its target
+must be revised to the agreed launch topology before execution; it is not an
+instruction to create a staging project now and no longer gates Phase 1.
 
 The approach follows [Supabase's separate-environment guidance](https://supabase.com/docs/guides/deployment/managing-environments).
 Apply this runbook only to the new staging project. Record its project ref and
@@ -74,5 +92,6 @@ before applying them. If isolation fails, stop staging writes and workers while
 repairing the new project. Do not silently restore the shared backend as a normal
 rollback: that would invalidate the phase's isolation exit criterion.
 
-Phase 1 stays gated until these checks pass. The receiver/gallery foundation
-release alone does not complete Phase 0.
+The original isolation exit criterion is deferred by the user's 2026-09-12
+decision. Remaining Phase 0 application checks still apply, but project creation
+and database cutover do not block feature work in the shared pre-launch setup.

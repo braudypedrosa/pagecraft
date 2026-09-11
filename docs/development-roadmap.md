@@ -14,14 +14,18 @@ features are available.
   the editor. Existing read-only credentials gain no new authority automatically.
 - Shared compact UI, 6px/8px control padding, existing semantic densities, neutral
   table resting states, and a 768px minimum editor viewport.
-- Staging and production must have separate authentication, data and queues before
-  feature phases add backend records or run background publication jobs.
+- Updated 2026-09-12: both current environments are pre-launch and may keep the
+  existing shared Supabase project. No additional project is required now. The
+  actual customer-facing production launch will use its own database.
+- Keep publication directories and signing configuration separate, use labeled QA
+  records, and keep staging background workers disabled. Schema changes affect
+  both current environments and must remain compatible with both deployed builds.
 
 ## Delivery tracker
 
 | Phase | Deliverables | State |
 | --- | --- | --- |
-| 0 | Independent staging Supabase project; fixture-only seed; verified release retention and quota preflight; expanded gallery/real-screen checks | In progress |
+| 0 | Verified release retention and quota preflight; expanded gallery/real-screen checks; approved shared pre-launch backend | Foundation deployed; remaining acceptance in progress |
 | 1 | Shared media browser; search/sort/usage filters/tags; usage details; bulk unused deletion; version-checked Replace everywhere with retained original bytes | Not started |
 | 2 | Draft/publication differences by page/CMS/shared assets and styles; immutable preview snapshots; comparison and historical restore as a new draft | Not started |
 | 3 | Reviewer role; assigned private previews; anchored comments; request changes/approval/cancellation; in-app and email notifications | Not started |
@@ -64,8 +68,10 @@ checks when affected. Verify permissions, concurrency, error recovery, Undo and
 reload persistence as well as appearance. Private QA evidence must not enter public
 assets. Additive schema and host-capability changes require compatibility coverage.
 
-Phase 0 cannot be marked complete until the separate project's organization/cost
-selection, provisioning, auth setup, fixture seed and staging cutover are verified.
-Independent receiver and gallery work may progress while that input is pending.
-The cutover sequence and required isolation evidence are in
-[`staging-isolation.md`](staging-isolation.md).
+The user explicitly deferred database isolation on 2026-09-12. Organization/cost
+confirmation and a new staging project are no longer blockers. Complete the
+remaining Phase 0 acceptance against labeled fixtures in the existing project.
+Feature development may use that project; new background workflows need scoped,
+controlled acceptance without enabling the staging queue consumer globally.
+Independent customer-facing production data is a pre-launch requirement, tracked
+in [`staging-isolation.md`](staging-isolation.md), not a Phase 1 prerequisite.

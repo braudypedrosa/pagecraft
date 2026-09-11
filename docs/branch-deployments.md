@@ -17,6 +17,13 @@ Temporary setup approved by the user on 2026-09-09: staging shares production's 
 
 Supabase schema migrations and edge functions are not automatically applied by the Node deployment workflow. Backward-compatible backend updates must be tested and applied to the appropriate project before app code requiring them is promoted. WordPress package verification runs on both branches; merging into production does not itself publish a WordPress plugin release.
 
+On 2026-09-12 the user reaffirmed the shared Supabase setup: both current hosts are
+pre-launch and contain no real customer data. Continue using the existing project;
+do not create a separate staging project as part of Phase 0. The eventual
+customer-facing production environment will have its own database before launch.
+This changes the isolation milestone, not publication-storage separation, disabled
+staging workers, preservation of existing records, or separate production approval.
+
 ## Verification and rollback
 
 Check the GitHub deployment result, then read `/__deployment` over HTTPS and compare `commit` to the intended branch SHA. Verify login, the dashboard, editor loading, and template catalog/import for changes affecting those flows. Metadata alone is not full acceptance testing.
