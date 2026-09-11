@@ -34,7 +34,7 @@ Pages is the visual reference for full management screens. `shared/workspace-sty
 - 22px workspace title, 18px section title, 16px dialog title, 12px body, 11px table headers/metadata.
 - Headers: 24px vertical / 32px horizontal; body: 28px / 32px. Gutters become 20px below 1050px.
 - Header actions use the builder's 37px controls. Full forms remain 44px; row actions are 32px. Schema rows and compact editor panels retain their existing density.
-- Table headers use white, a bottom rule and medium-weight labels. Rows use shared 4px vertical / 8px horizontal cell padding, with 6px / 8px headers. Nested links add no padding; 24px text-link targets and 32px actions keep rows compact. Multiline content grows naturally. Icon-bearing headers reserve the same icon width and gap as their row labels, so the text aligns. Pages, CMS entry lists, Submissions, Integrations and member lists consume the shared density tokens; inline CMS cells keep their existing compact control layout. Hover feedback stays light green.
+- Table headers use white, a bottom rule and medium-weight labels. Rows use shared 4px vertical / 8px horizontal cell padding, with 6px / 8px headers. Nested links add no padding; 24px text-link targets and 32px actions keep rows compact. Multiline content grows naturally. Column headings align with the leading cell content edge, including the icon when present. Pages, CMS entry lists, Submissions, Integrations and member lists consume the shared density tokens; inline CMS cells keep their existing compact control layout. Hover feedback stays light green.
 - `shared/ui-fonts.js` is the font manifest for both hosts. The builder embeds its files for offline use; Cloud loads those exact files from allowlisted `/brand/fonts/` routes. Cloud's declaration previously fell back to the system font because it had no font faces.
 
 ### Screen inventory
@@ -110,7 +110,4 @@ Hidden-stage measurements cannot replace the last usable canvas dimensions.
 No-op scope changes do not enter document history. Escape from a color popover
 returns focus to its swatch; outside-pointer dismissal preserves the destination.
 
-Submissions reserve one compact line for contextual refresh status (4px vertical padding); longer messages wrap naturally. Pending, deferred, failed
-and successful refreshes use that one live region; the underlying shared action
-still restores its trigger state. Failed refreshes retain the last loaded list
-and explain how to retry.
+Submissions revalidate silently in the background, including deferred replacement while details are open. Routine refreshes reserve no status area and show no completion message. Explicit Refresh and navigation actions keep their button processing state. Failed refreshes retain the last loaded list and reveal a recoverable inline alert; a successful retry removes the alert and its spacing.

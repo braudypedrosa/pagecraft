@@ -18,17 +18,18 @@ export function submissionsNavigation(prepared: Record<string, string>) {
       const saved=!refresh&&cache.get(key(url));const shownCache=saved&&!host.querySelector('dialog[open]');if(shownCache)show(saved,url,push);
       const action=window.__pcFeedback.begin(button,refresh?'Refreshing submissions…':'Loading submissions…','submissions-navigation',{announce:false});currentAction=action;
       host.setAttribute('aria-busy','true');
-      const status=()=>{let el=host.querySelector('[data-refresh-status]');if(!el){el=document.createElement('div');el.className='pc-refresh-status';el.dataset.refreshStatus='';const heading=host.querySelector('header,h1');if(heading)heading.after(el);else host.append(el);}return el;};
-      const announce=(message,tone='status')=>{const el=status();el.setAttribute('role',tone==='error'?'alert':'status');el.dataset.tone=tone;el.textContent=message;};
-      announce('Checking for new submissions…');
+      const status=()=>{let el=host.querySelector('[data-refresh-status]');if(!el){el=document.createElement('div');el.className='pc-refresh-status';el.dataset.refreshStatus='';el.hidden=true;const heading=host.querySelector('header,h1');if(heading)heading.after(el);else host.append(el);}return el;};
+      const announce=(message,tone='status')=>{const el=status();el.setAttribute('role',tone==='error'?'alert':'status');el.dataset.tone=tone;el.textContent=message;el.hidden=!message;};
+      // Routine revalidation is silent; explicit navigation keeps its button state.
+      announce('');
       try{
         const response=await fetch(url,{signal:request.signal,credentials:'same-origin'});
         if(!response.ok||response.redirected)throw new Error('Could not load submissions. Refresh to try again.');
         const doc=new DOMParser().parseFromString(await response.text(),'text/html');
         const next=doc.querySelector('.pc-manage-content');if(!next)throw new Error('Could not load submissions. Refresh to try again.');
         if(controller!==request)return;
-        const apply=()=>{if(controller!==request)return;if(refresh)cache.clear();remember(url,next.innerHTML);show(next.innerHTML,url,push&&!shownCache,!shownCache&&!refresh);action?.success('');announce(refresh?'Submissions refreshed.':'Submissions loaded.');};
-        if(host.querySelector('dialog[open]')){deferred=apply;announce('New submission data is ready. Close the details to update the list.');host.removeAttribute('aria-busy');}else apply();
+        const apply=()=>{if(controller!==request)return;if(refresh)cache.clear();remember(url,next.innerHTML);show(next.innerHTML,url,push&&!shownCache,!shownCache&&!refresh);action?.success('');announce('');};
+        if(host.querySelector('dialog[open]')){deferred=apply;host.removeAttribute('aria-busy');}else apply();
       }catch(error){if(controller!==request)return;if(error.name==='AbortError'){announce('');action?.cancel();}else{const message='Could not refresh submissions. Showing the last loaded entries. Check your connection and try Refresh again.';announce(message,'error');host.removeAttribute('aria-busy');action?.error(message);}}
     };
     host.addEventListener('click',event=>{

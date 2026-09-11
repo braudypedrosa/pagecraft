@@ -137,12 +137,15 @@ test('cached inbox navigation paints immediately, revalidates, rejects supersede
   await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-status]').getAttribute('role')).toBe('alert'));
   expect(w.document.querySelector('h1').textContent).toBe('Cached entries');
   expect(w.document.querySelector('[data-refresh-status]').textContent).toContain('Showing the last loaded entries');
+  expect(w.document.querySelector('[data-refresh-status]').hidden).toBe(false);
   expect(w.document.querySelectorAll('[role=alert]')).toHaveLength(1);
   expect(w.document.querySelector('[data-refresh-status]').previousElementSibling.tagName).toBe('H1');
   expect(w.document.querySelector('.pc-manage-content').getAttribute('aria-busy')).toBeNull();
   w.document.querySelector('[data-inbox-refresh]').click();
   pending[2].resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1></div>',pending[2].url));
   await vi.waitFor(()=>expect(w.document.querySelector('h1').textContent).toBe('Fresh entries'));
+  expect(w.document.querySelector('[data-refresh-status]').hidden).toBe(true);
+  expect(w.document.querySelector('[data-refresh-status]').textContent).toBe('');
   expect(w.location.search).toContain('status=success');expect(w.location.search).toContain('order=asc');expect(w.location.search).toContain('page=2');
 });
 
@@ -153,8 +156,36 @@ test('only the expected parent may refresh; replacement waits for details to clo
   const message=(origin,source)=>w.dispatchEvent(new w.MessageEvent('message',{origin,source,data:'pagecraft:refresh-submissions'}));
   message('https://evil.test',w.parent);message(w.location.origin,null);expect(w.fetch).not.toHaveBeenCalled();
   const dialog=w.document.querySelector('dialog');message(w.location.origin,w.parent);
-  await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-status]').textContent).toContain('Close the details'));
+  await vi.waitFor(()=>expect(w.document.querySelector('.pc-manage-content').hasAttribute('aria-busy')).toBe(false));
+  expect(w.document.querySelector('[data-refresh-status]').hidden).toBe(true);
+  expect(w.document.querySelector('[data-refresh-status]').textContent).toBe('');
   expect(w.document.querySelector('dialog')).toBe(dialog);expect(dialog.querySelector('input').value).toBe('Preserved details');
   dialog.removeAttribute('open');dialog.dispatchEvent(new w.Event('close'));
   await vi.waitFor(()=>expect(w.document.querySelector('h1').textContent).toBe('New'));
+});
+
+test('background inbox refresh is silent while explicit Refresh retains its processing state', async () => {
+  const base='/sites/qa/submissions';
+  const body='<h1>Entries</h1><a data-inbox-refresh href="'+base+'">Refresh</a>';
+  const {w}=setup('<section class="pc-workspace"><div class="pc-manage-content">'+body+'</div></section>','https://example.test'+base);
+  w.eval(submissionsNavigation({}).replace(/^<script>|<\/script>$/g,''));
+  const pending=[];
+  w.fetch=vi.fn((url)=>new Promise(resolve=>pending.push(()=>resolve(response('<div class="pc-manage-content">'+body+'</div>',url)))));
+  const status=()=>w.document.querySelector('[data-refresh-status]');
+  w.dispatchEvent(new w.MessageEvent('message',{origin:w.location.origin,source:w.parent,data:'pagecraft:refresh-submissions'}));
+  expect(pending).toHaveLength(1);
+  expect(status().hidden).toBe(true);expect(status().textContent).toBe('');
+  expect(w.document.querySelector('[data-inbox-refresh]').textContent).toBe('Refresh');
+  pending[0]();
+  await vi.waitFor(()=>expect(w.document.querySelector('.pc-manage-content').hasAttribute('aria-busy')).toBe(false));
+  expect(status().hidden).toBe(true);expect(status().textContent).toBe('');
+  const button=w.document.querySelector('[data-inbox-refresh]');button.click();
+  expect(pending).toHaveLength(2);
+  expect(button.getAttribute('aria-busy')).toBe('true');
+  expect(button.textContent).toContain('Refreshing submissions');
+  expect(status().hidden).toBe(true);
+  pending[1]();
+  await vi.waitFor(()=>expect(w.document.querySelector('[data-inbox-refresh]').textContent).toBe('Refresh'));
+  expect(status().hidden).toBe(true);expect(status().textContent).toBe('');
+  expect(w.document.querySelector('[role=alert]')).toBeNull();
 });

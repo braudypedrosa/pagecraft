@@ -12,7 +12,7 @@ export const WORKSPACE_CSS = `
 .pc-menu .pc-menu-divider{height:1px;background:var(--pc-border);margin:6px 4px}
 .pc-field-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--pc-space-2);margin-top:var(--pc-space-2)}
 :is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]){accent-color:var(--pc-green,var(--green,#b7f34a))}
-.pc-refresh-status{font:var(--pc-type-description);min-height:calc(1lh + 8px);padding:4px 0;color:var(--pc-ui-secondary);box-sizing:border-box}
+.pc-refresh-status{font:var(--pc-type-description);padding:4px 0;margin-bottom:8px;color:var(--pc-ui-secondary);box-sizing:border-box}
 .pc-refresh-status[data-tone=error]{color:var(--pc-danger,var(--risk-fg,#ad2626))}
 
 :root{
@@ -106,9 +106,8 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-toolbar{margin-top:0}
 .dashboard-app .pc-manage-grid{padding-top:0}
 
-/* Dense app tables: cells own spacing; nested links never add another inset.
- * Icon-bearing headings reserve the same icon/gap as their row labels. */
-.pc-table-heading-icon::before{content:"";display:inline-block;width:calc(var(--pc-table-icon-size) + var(--pc-table-icon-gap))}
+/* Dense app tables: cells own spacing; headings align with the leading
+ * content edge, including an icon when present. Nested links add no inset. */
 .dashboard-app .pc-sub-table{margin-top:0;width:100%;border-collapse:collapse}
 .dashboard-app :is(.pc-sub-table,.pc-connections-table) :is(th,td){border-bottom:1px solid var(--pc-ui-border);vertical-align:middle;text-align:left}
 .dashboard-app :is(.pc-sub-table,.pc-connections-table) thead th{padding:var(--pc-table-head-padding);font-size:var(--pc-text-label);font-weight:600;color:var(--pc-ui-secondary)}

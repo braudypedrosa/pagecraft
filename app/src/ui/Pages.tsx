@@ -103,7 +103,7 @@ export function PagesWorkspace() {
       <div class="pages-search"><label class="pc-field-label" htmlFor="pages-search">Search pages</label>
         <input class="ctl" type="search" id="pages-search" placeholder="Search by name or path" value={query}
           onInput={e => setQuery((e.target as HTMLInputElement).value)} /></div>
-      <div class="pages-list-head" aria-hidden="true"><span class="pc-table-heading-icon">Page</span><span>Path</span><span>Type</span><span>Actions</span></div>
+      <div class="pages-list-head" aria-hidden="true"><span>Page</span><span>Path</span><span>Type</span><span>Actions</span></div>
       <div class="pagelist" aria-label="Site pages">
         {rows.map(({p, i}) => <PageRow key={p.id} i={i} />)}
         {!rows.length && <div class="pages-empty"><p>No pages match “{query}”.</p><button class="btn" onClick={() => setQuery('')}>Clear search</button></div>}
