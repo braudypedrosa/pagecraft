@@ -75,6 +75,8 @@ The context toolbar owns its 32px outer controls and 30px nested picker controls
 
 The compact scale uses 12px for body/control text and 11px for labels, help and captions. Weights, line heights and control geometry retain their existing role distinctions. Canvas editing placeholders share the same size constants; user-authored page typography is unchanged.
 
+The builder header gives its project/page title the available space rather than a fixed width cap. At constrained widths, the text items ellipsize within that space, the secondary page name yields first, and the full project/page name remains available on hover. Existing tablet action priorities and Publish visibility remain unchanged.
+
 Only the embedded font faces are copied into the canvas. App typography, tokens and workspace rules have their own style element and do not enter the page being edited or published.
 
 

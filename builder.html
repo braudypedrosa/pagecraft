@@ -115,10 +115,13 @@ input,select,textarea{font:inherit;color:inherit}
 .topsep{width:1px;height:22px;background:var(--rail-line);flex:0 0 1px}
 .docname{
   display:flex;align-items:center;gap:var(--sp-3);padding:6px 10px;border-radius:var(--r-sm);
-  font-size:var(--fs-3);font-weight:500;color:var(--rail-text);max-width:230px;min-width:0;
-  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  font-size:var(--fs-3);font-weight:500;color:var(--rail-text);flex:0 1 auto;min-width:0;
+  overflow:hidden;white-space:nowrap;
 }
-.docname small{color:var(--rail-text-2);font-family:var(--label);font-size:var(--fs-2)}
+/* Use available header space before truncating. Ellipsis belongs on the text
+   flex items; applying it to their flex container silently clipped the page. */
+.docname b,.docname small{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.docname small{flex-shrink:2;color:var(--rail-text-2);font-family:var(--label);font-size:var(--fs-2)}
 .spacer{flex:1}
 .topgroup{display:flex;align-items:center;gap:var(--sp-2);flex:0 0 auto}
 .topgroup.divided{border-left:1px solid var(--rail-line);padding-left:var(--sp-4)}
@@ -217,17 +220,15 @@ input,select,textarea{font:inherit;color:inherit}
 @media(max-width:1380px){
   .topUtility .actionLabel,.topActions .collapseLabel{display:none}
   .topUtility .btn,.topActions .btn:has(.collapseLabel){width:var(--ic-lg);height:var(--ic-lg);min-height:var(--ic-lg);padding:0}
-  .docname{max-width:180px}
 }
 @media(max-width:1160px){
   .saved{display:none}
   .docname small{display:none}
-  .docname{max-width:140px}
 }
 @media(max-width:980px){
   .brand{padding-inline:10px}
   .brandLabel,.topsep{display:none}
-  .docname{max-width:110px;padding-inline:4px}
+  .docname{padding-inline:4px}
 }
 .historyList{display:flex;flex-direction:column}
 .historyRow{
@@ -4405,7 +4406,12 @@ function renderPanelHead() {
 }
 function renderDoc() {
   const d = $('#docName');
-  if (d) d.innerHTML = `<b>${esc(PC_UI.projectIdentity(state.meta.name, SRV?.name, IS_WORDPRESS))}</b><small>· ${esc(page().name)}</small>`;
+  if (d) {
+    const name = PC_UI.projectIdentity(state.meta.name, SRV?.name, IS_WORDPRESS);
+    const pageName = page().name;
+    d.innerHTML = `<b>${esc(name)}</b><small>· ${esc(pageName)}</small>`;
+    d.title = `${name} · ${pageName}`;
+  }
 }
 /* The frame renders at its breakpoint's width and is scaled to fit whatever the
    panels leave. Everything the drag and selection code measures lives *inside* the
