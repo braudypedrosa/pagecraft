@@ -16,7 +16,7 @@ Use identical geometry for an action rendered as a link or button. Read-only cop
 
 The CMS preview picker is a 32px toolbar group with 26px internal controls, matching the adjacent toolbar badges. Its label identifies the preview collection, and the toolbar wraps when both editor panels reduce the available width. Escape closes its menu without invoking the canvas selection shortcut.
 
-The custom-select trigger follows its host density. Collaborator row selects remain 36px; CMS controls use 44px. Account focus outlines use Ink on light surfaces and Craft Green on the dark navigation. Disabled builder buttons retain their geometry and use the shared dim state.
+The custom-select trigger follows its host density. Collaborator row selects remain 36px; CMS controls use 44px. Keyboard focus uses the shared border-free surface feedback on light and dark surfaces. Disabled builder buttons retain their geometry and use the shared dim state.
 
 ## Acceptance scope
 
