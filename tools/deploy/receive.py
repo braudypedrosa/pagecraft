@@ -1,7 +1,21 @@
 #!/usr/bin/python3
 """Forced SSH entrypoint installed outside the app; accepts only release bundles."""
-import fcntl,hashlib,json,os,pathlib,re,shlex,shutil,socket,subprocess,sys,tarfile,time,urllib.request
+import fcntl,hashlib,json,os,pathlib,re,select,shlex,shutil,socket,subprocess,sys,tarfile,time,urllib.request
 from release_storage import ReleaseStorage, atomic_json
+
+def receive_bundle(stream, target, idle_timeout=120):
+ """Bound idle SSH uploads, including half-open disconnected clients."""
+ total=0
+ with target.open('wb') as output:
+  while True:
+   if not select.select([stream.fileno()],[],[],idle_timeout)[0]:
+    raise TimeoutError('Deployment upload stopped receiving data')
+   # Do not mix buffered reads with select: buffered bytes can hide readiness.
+   chunk=os.read(stream.fileno(),1024*1024)
+   if not chunk:break
+   total+=len(chunk)
+   if total>300*1024*1024:raise ValueError('Bundle too large')
+   output.write(chunk)
 
 def main(home='/home/itspbuku'):
  os.umask(0o077)
@@ -28,14 +42,7 @@ def main(home='/home/itspbuku'):
   if result.get('result')!='success':raise ValueError('CloudLinux restart failed')
  try:
   archive=release/'incoming.tar.gz'
-  with archive.open('wb') as f:
-   total=0
-   while True:
-    chunk=sys.stdin.buffer.read(1024*1024)
-    if not chunk:break
-    total+=len(chunk)
-    if total>300*1024*1024:raise ValueError('Bundle too large')
-    f.write(chunk)
+  receive_bundle(sys.stdin.buffer,archive)
   with tarfile.open(archive) as t:
    members=t.getmembers()
    if len(members)>20000 or sum(m.size for m in members)>2*1024*1024*1024:raise ValueError('Expanded bundle too large')

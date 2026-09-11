@@ -58,7 +58,7 @@ class ReceiverTests(unittest.TestCase):
             }}}
         }}}}}).encode()
 
-    def run_receiver(self, quota=False, public_failure=False, record_failure=False, unsafe=False):
+    def run_receiver(self, quota=False, public_failure=False, record_failure=False, unsafe=False, upload_timeout=False):
         def response(request, **kwargs):
             url = request if isinstance(request, str) else request.full_url
             value = {} if public_failure and url.startswith('https:') else self.meta
@@ -68,7 +68,11 @@ class ReceiverTests(unittest.TestCase):
                 'SSH_ORIGINAL_COMMAND': 'deploy development ' + self.sha,
                 'PAGECRAFT_DEPLOY_BRANCH': 'development'
             }))
-            stack.enter_context(patch('receive.sys.stdin', Mock(buffer=self.bundle(unsafe))))
+            stream=stack.enter_context(tempfile.TemporaryFile())
+            stream.write(self.bundle(unsafe).getvalue());stream.seek(0)
+            stack.enter_context(patch('receive.sys.stdin', Mock(buffer=stream)))
+            if upload_timeout:
+                stack.enter_context(patch('receive.receive_bundle',side_effect=TimeoutError('upload idle')))
             stack.enter_context(patch('receive.subprocess.check_output', side_effect=self.cloudlinux))
             npm = stack.enter_context(patch('receive.subprocess.run'))
             stack.enter_context(patch('receive.subprocess.Popen', return_value=self.process))
@@ -81,7 +85,7 @@ class ReceiverTests(unittest.TestCase):
                 stack.enter_context(patch('receive.atomic_json', side_effect=OSError('metadata write failed')))
             stack.enter_context(redirect_stdout(io.StringIO()))
             stack.enter_context(redirect_stderr(io.StringIO()))
-            if quota or public_failure or record_failure or unsafe:
+            if quota or public_failure or record_failure or unsafe or upload_timeout:
                 with self.assertRaises(SystemExit) as result:
                     receive.main(str(self.home))
                 self.assertEqual(result.exception.code, 1)
@@ -101,6 +105,33 @@ class ReceiverTests(unittest.TestCase):
         capacity.assert_called_once()
         self.assertEqual(self.restarts, [])
         self.assertEqual(list(self.storage.root.glob('*/deployment.json')), [])
+
+    def test_upload_timeout_preserves_release_and_releases_environment_lock(self):
+        npm,capacity=self.run_receiver(upload_timeout=True)
+        self.assert_preserved()
+        npm.assert_not_called();capacity.assert_not_called()
+        with (self.home/'pagecraft-deploy/pagecraft-staging.lock').open('w') as lock:
+            receive.fcntl.flock(lock,receive.fcntl.LOCK_EX|receive.fcntl.LOCK_NB)
+
+    def test_half_open_upload_times_out_after_partial_data(self):
+        reader,writer=os.pipe()
+        target=self.home/'partial.tar.gz'
+        try:
+            os.write(writer,b'partial upload')
+            with os.fdopen(reader,'rb',buffering=0) as stream:
+                with self.assertRaises(TimeoutError):
+                    receive.receive_bundle(stream,target,idle_timeout=0.02)
+            self.assertEqual(target.read_bytes(),b'partial upload')
+        finally:
+            os.close(writer)
+
+    def test_closed_upload_stream_finishes_without_waiting(self):
+        reader,writer=os.pipe()
+        os.write(writer,b'complete upload');os.close(writer)
+        target=self.home/'complete.tar.gz'
+        with os.fdopen(reader,'rb',buffering=0) as stream:
+            receive.receive_bundle(stream,target,idle_timeout=0.02)
+        self.assertEqual(target.read_bytes(),b'complete upload')
 
     def test_unsafe_archive_is_rejected_before_retention_or_capacity(self):
         npm, capacity = self.run_receiver(unsafe=True)

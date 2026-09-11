@@ -74,3 +74,10 @@ regressions. Host installation, a live retention run and staging acceptance must
 recorded separately; passing these tests alone does not establish deployment.
 
 CloudLinux resolves the application root to locate its Node environment, so that directory must remain physical. Provision `tools/deploy/launcher.cjs` as its `app.cjs`; releases are selected through an internal `current` symlink. The original source remains available for first-deployment rollback.
+
+## Upload recovery
+
+The receiver stops an upload after 120 seconds without incoming bytes and releases
+the environment lock. A partial bundle remains an inactive candidate for normal
+retention; it cannot be unpacked, installed or made current. SSH keepalives keep
+healthy clients connected while another deployment holds the lock.
