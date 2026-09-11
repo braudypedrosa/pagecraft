@@ -92,6 +92,9 @@ test('the standalone build makes Export its primary action', async () => {
   /* jsdom does not always dispatch the iframe load that the real canvas awaits, so finish
      top-bar binding directly when boot is paused at that browser boundary. */
   if (doc.querySelector('#savedTag').textContent === '—') w.bindTop();
+  w.mediaModal();
+  a.match(doc.querySelector('#mFoot').textContent, /Stored in this browser/);
+  doc.querySelector('#mClose').click();
   const primary = doc.querySelector('#exportBtn');
   a.equal(doc.querySelector('#publishLabel').textContent.trim(), 'Export');
   a.match(primary.title, /Export HTML/);
@@ -149,6 +152,9 @@ test('server mode separates draft saving from explicit release publication', asy
     await new Promise(r => setTimeout(r, 25));
   }
   if (doc.querySelector('#savedTag').textContent === '—') dom.window.bindTop();
+  dom.window.mediaModal();
+  a.match(doc.querySelector('#mFoot').textContent, /Stored with this project/);
+  doc.querySelector('#mClose').click();
   a.equal(doc.querySelector('#publishLabel').textContent.trim(), 'Publish');
   a.equal(doc.querySelector('[data-act="project"] span').textContent.trim(), 'Settings');
   a.equal(doc.querySelector('#accountBtn').hidden, false);
@@ -236,6 +242,9 @@ test('WordPress mode boots the shared editor and saves a native fallback through
     await new Promise(r => setTimeout(r, 25));
   }
   if (doc.querySelector('#savedTag')?.textContent === '—') dom.window.bindTop();
+  dom.window.mediaModal();
+  a.match(doc.querySelector('#mFoot').textContent, /Stored in the WordPress media library/);
+  doc.querySelector('#mClose').click();
   a.equal(doc.documentElement.dataset.pagecraftHost, 'wordpress');
   for (const selector of ['#sitesBtn', '#shareBtn', '#accountBtn', '#leftRail', '#panePages', '#paneCms', '[data-act="project"]']) {
     a.equal(doc.querySelector(selector), null, `${selector} must not enter the WordPress render tree`);
