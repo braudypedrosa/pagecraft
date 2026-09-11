@@ -47,7 +47,6 @@ export const WORKSPACE_CSS = `
 :is(.pages-workspace,.cms-workspace) .pc-workspace-body{padding:var(--pc-workspace-y) var(--pc-workspace-x)}
 .cms-workspace h2{font-size:var(--pc-section-title);line-height:1.4}
 .cms-workspace .cms-entry-row{padding:var(--pc-table-cell-padding);gap:16px}
-.cms-workspace .cms-entry-row:hover{background:var(--pc-ui-hover)}
 .cms-workspace .cms-entry-open{padding:0;font-weight:500}
 .cms-workspace .cms-entry-open b{font-weight:500}
 .cms-workspace .cms-entry-open small{margin-top:2px}
@@ -61,10 +60,10 @@ export const WORKSPACE_CSS = `
 .project-settings .settings-nav{width:220px;flex-basis:220px;padding:24px 16px}
 .project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4}
 
-/* Selection is distinct from the lighter green hover across editor and Cloud surfaces.
+/* Navigation and picker selection is distinct from the lighter green hover.
  * Main rail navigation, primary actions and boolean/status indicators retain
  * their stronger colors. Explicit selectors avoid recoloring those roles. */
-:is(.pagerow.on,.lrow.sel,.lrow.sel2,.lrow.region.live,.mcard.on,.pickrow.on,.navitem.on){
+:is(.lrow.sel,.lrow.sel2,.lrow.region.live,.mcard.on,.pickrow.on,.navitem.on){
   --text-2:var(--pc-selection-muted);--text-3:var(--pc-selection-muted);
 }
 .dashboard-app .pc-settings-nav button[aria-selected="true"],
@@ -107,7 +106,9 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-manage-grid{padding-top:0}
 
 /* Dense app tables: cells own spacing; headings align with the leading
- * content edge, including an icon when present. Nested links add no inset. */
+ * content edge, including an icon when present. Nested links add no inset.
+ * Current rows keep the normal surface; green row feedback is hover-only. */
+:is(.pages-workspace .pagerow,.cms-workspace .cms-entry-row,.dashboard-app .pc-sub-table>tbody>tr,.dashboard-app .pc-connections-table>tbody>tr):hover{background:var(--pc-ui-hover)}
 .dashboard-app .pc-sub-table{margin-top:0;width:100%;border-collapse:collapse}
 .dashboard-app :is(.pc-sub-table,.pc-connections-table) :is(th,td){border-bottom:1px solid var(--pc-ui-border);vertical-align:middle;text-align:left}
 .dashboard-app :is(.pc-sub-table,.pc-connections-table) thead th{padding:var(--pc-table-head-padding);font-size:var(--pc-text-label);font-weight:600;color:var(--pc-ui-secondary)}
@@ -118,12 +119,10 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-connections-table .pc-platform-name{gap:var(--pc-table-icon-gap)}
 .dashboard-app .pc-connections-table .pc-platform-icon{width:var(--pc-table-icon-size);height:var(--pc-table-icon-size);flex-basis:var(--pc-table-icon-size)}
 .dashboard-app .pc-connections-table tbody th{font-weight:500}
-.dashboard-app .pc-connections-table tbody tr:hover{background:var(--pc-ui-hover)}
 .dashboard-app :is(.pc-form-link,.pc-entry-link){display:flex;align-items:center;min-height:24px;font-weight:500;text-decoration:none;padding:0;line-height:1.5}
 .dashboard-app .pc-form-link{gap:var(--pc-table-icon-gap)}
 .dashboard-app .pc-form-link svg{width:var(--pc-table-icon-size);height:var(--pc-table-icon-size);flex:0 0 var(--pc-table-icon-size)}
 .dashboard-app .pc-date-sort{padding:0}
-.dashboard-app .pc-sub-table>tbody>tr:hover{background:var(--pc-ui-hover)}
 .dashboard-app .pc-sub-filters{margin:0 0 24px;gap:12px;flex-wrap:wrap}
 .dashboard-app .pc-sub-filters label{gap:8px}
 .dashboard-app .pc-sub-pager{margin-top:24px;gap:12px;font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
