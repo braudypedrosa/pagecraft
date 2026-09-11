@@ -40,12 +40,14 @@ import {
 } from "./accounts.ts";
 import { FileHostedPublicationStore } from "./publications.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
+import { validateStagingEnvironment } from "./staging-environment.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
 
 const PORT = Number(process.env.PORT || 8787);
 const EDITOR_HOST = process.env.EDITOR_HOST || "localhost";
+validateStagingEnvironment(process.env);
 
 /* The builder, as built. `node build.mjs` writes it; the server does not build it, because
    a server that runs a bundler on boot is a server that fails to boot for bundler reasons. */

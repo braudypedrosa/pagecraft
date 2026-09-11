@@ -67,3 +67,5 @@ assets. Additive schema and host-capability changes require compatibility covera
 Phase 0 cannot be marked complete until the separate project's organization/cost
 selection, provisioning, auth setup, fixture seed and staging cutover are verified.
 Independent receiver and gallery work may progress while that input is pending.
+The cutover sequence and required isolation evidence are in
+[`staging-isolation.md`](staging-isolation.md).
