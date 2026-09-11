@@ -586,7 +586,6 @@ body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-op
 .pages-workspace .pagerow .pn small,.pages-workspace .cms-page-badge{display:none}
 .pages-workspace .page-actions summary{margin:0}
 
-.pages-empty{padding:32px 12px;text-align:center}
 .page-settings-context{padding:12px}
 .modebar>.page-switcher{padding:0 6px;max-width:240px;min-width:0;display:flex;align-items:center;gap:4px}
 .page-switcher>select,.page-switcher>.pc-custom-select-trigger{width:200px;max-width:100%;min-width:0;min-height:30px;height:30px;padding:var(--pc-control-padding);border:0;background:transparent;font-size:var(--fs-2)}
@@ -1161,7 +1160,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .settings-content h2{font-size:var(--fs-5);margin:0 0 24px}
 .settings-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--pc-field-gap) var(--pc-space-5)}
 .settings-fields>.f{margin:0;min-width:0}
-#settings-typography .settings-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 140px}
+.settings-fields.settings-fields-type{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 140px}
 #settings-typography .f:has(#mStyles),#settings-colors .f,#settings-classes .f,#settings-code .f,.settings-reset{grid-column:1/-1}
 .project-settings .settings-code{font-family:var(--mono);font-size:var(--fs-2);line-height:1.7;min-height:220px;tab-size:2;resize:vertical;white-space:pre;overflow:auto}
 .settings-reset h3{font-size:var(--fs-4);margin:0 0 8px}
@@ -1586,6 +1585,19 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
 .pc-menu .pc-menu-item[role=menuitem]{justify-content:space-between}
 .pc-menu form{margin:0!important}
 .pc-menu .pc-menu-divider{height:1px;background:var(--pc-border);margin:6px 4px}
+/* List roles are shared by real screens and gallery specimens. Form submit
+ * actions keep their full form density; heading and paging actions do not. */
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--pc-action-gap)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-heading-actions :is(.btn,.pc-btn){height:var(--pc-control-editor);min-height:var(--pc-control-editor);padding:var(--pc-control-padding)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--pc-action-gap);margin:var(--pc-space-5) 0 0;font:var(--pc-type-description);color:var(--pc-ui-secondary)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-pagination :is(.btn,.pc-btn){height:var(--pc-control-row);min-height:var(--pc-control-row);padding:var(--pc-control-padding)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty{padding:var(--pc-space-4) var(--pc-table-cell-x);margin:0;text-align:left;color:var(--pc-ui-secondary);font:var(--pc-type-input)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty :is(h2,strong){display:block;margin:0;color:var(--pc-ui-text);font:var(--pc-type-control)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty p{font:var(--pc-type-description);margin:var(--pc-space-2) 0 0}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty>p:first-child{margin:0;font:var(--pc-type-input)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty :is(.btn,.pc-btn){margin-top:var(--pc-space-3);height:var(--pc-control-editor);min-height:var(--pc-control-editor)}
+/* A table cell already supplies the common horizontal inset. */
+.dashboard-app td>.pc-list-empty{padding-inline:0}
 .pc-field-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--pc-space-2);margin-top:var(--pc-space-2)}
 :is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]){accent-color:var(--pc-green,var(--green,#b7f34a))}
 .pc-refresh-status{font:var(--pc-type-description);padding:4px 0;margin-bottom:8px;color:var(--pc-ui-secondary);box-sizing:border-box}
@@ -1634,7 +1646,9 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
 .project-settings .mh{padding:24px var(--pc-workspace-x);min-height:104px}
 .project-settings #mTitle{font-size:var(--pc-workspace-title);line-height:1.3;font-weight:700}
 .project-settings .settings-nav{width:220px;flex-basis:220px;padding:24px 16px}
+.project-settings .settings-content{container-type:inline-size}
 .project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4}
+@container(max-width:560px){.project-settings .pc-field-grid{grid-template-columns:minmax(0,1fr)}}
 
 /* Navigation and picker selection is distinct from the lighter green hover.
  * Main rail navigation, primary actions and boolean/status indicators retain
@@ -1703,7 +1717,6 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
 .dashboard-app .pc-date-sort{padding:0}
 .dashboard-app .pc-sub-filters{margin:0 0 24px;gap:12px;flex-wrap:wrap}
 .dashboard-app .pc-sub-filters label{gap:8px}
-.dashboard-app .pc-sub-pager{margin-top:24px;gap:12px;font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
 .dashboard-app .pc-entry-delete-icon{width:var(--pc-control-row);padding:0!important}
 .dashboard-app .pc-member{padding:var(--pc-table-cell-padding)}
 .dashboard-app .pc-member-avatar{width:var(--pc-control-row);height:var(--pc-control-row);flex-basis:var(--pc-control-row)}
@@ -11663,7 +11676,7 @@ var PC_UI = (() => {
                   /* @__PURE__ */ u2("h2", { children: col.name }),
                   /* @__PURE__ */ u2("p", { children: entry ? col.items.some((i3) => i3.id === entry.id) ? "Edit entry" : "New entry" : schema ? "Collection name and fields" : `${col.items.length} entries` })
                 ] }),
-                !entry && !schema && /* @__PURE__ */ u2("div", { class: "cms-actions", children: [
+                !entry && !schema && /* @__PURE__ */ u2("div", { class: "cms-actions pc-heading-actions", children: [
                   L2.canStructure() && /* @__PURE__ */ u2(
                     "button",
                     {
@@ -12025,9 +12038,9 @@ var PC_UI = (() => {
                       }
                     )
                   ] }, item.id)),
-                  !filtered.length && /* @__PURE__ */ u2("p", { class: "empty", children: col.items.length ? "No entries match your search." : "No entries yet. Create your first entry." })
+                  !filtered.length && /* @__PURE__ */ u2("p", { class: "pc-list-empty", children: col.items.length ? "No entries match your search." : "No entries yet. Create your first entry." })
                 ] }),
-                /* @__PURE__ */ u2("div", { class: "cms-actions cms-pagination", children: [
+                /* @__PURE__ */ u2("div", { class: "cms-actions cms-pagination pc-pagination", children: [
                   /* @__PURE__ */ u2(
                     "button",
                     {
@@ -12716,7 +12729,7 @@ var PC_UI = (() => {
         ] }),
         /* @__PURE__ */ u2("div", { class: "pagelist", "aria-label": "Site pages", children: [
           rows2.map(({ p: p3, i: i3 }) => /* @__PURE__ */ u2(PageRow, { i: i3 }, p3.id)),
-          !rows2.length && /* @__PURE__ */ u2("div", { class: "pages-empty", children: [
+          !rows2.length && /* @__PURE__ */ u2("div", { class: "pages-empty pc-list-empty", children: [
             /* @__PURE__ */ u2("p", { children: [
               "No pages match \u201C",
               query,
@@ -22917,7 +22930,7 @@ function projectModal() {
       panel.id = 'settings-' + id; panel.hidden = !!index;
       panel.setAttribute('aria-labelledby', panel.id + '-title');
       panel.innerHTML = `<h2 id="${panel.id}-title">${title}</h2>`;
-      const grid = document.createElement('div'); grid.className = 'settings-fields';
+      const grid = document.createElement('div'); grid.className = 'settings-fields pc-field-grid' + (id === 'typography' ? ' settings-fields-type' : '');
       fields.forEach(field => {
         const node = $('#' + field)?.closest('.f');
         if (node) grid.append(node);

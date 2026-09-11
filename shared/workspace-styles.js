@@ -13,6 +13,19 @@ ${DIALOG_CSS}
 .pc-menu .pc-menu-item[role=menuitem]{justify-content:space-between}
 .pc-menu form{margin:0!important}
 .pc-menu .pc-menu-divider{height:1px;background:var(--pc-border);margin:6px 4px}
+/* List roles are shared by real screens and gallery specimens. Form submit
+ * actions keep their full form density; heading and paging actions do not. */
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--pc-action-gap)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-heading-actions :is(.btn,.pc-btn){height:var(--pc-control-editor);min-height:var(--pc-control-editor);padding:var(--pc-control-padding)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--pc-action-gap);margin:var(--pc-space-5) 0 0;font:var(--pc-type-description);color:var(--pc-ui-secondary)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-pagination :is(.btn,.pc-btn){height:var(--pc-control-row);min-height:var(--pc-control-row);padding:var(--pc-control-padding)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty{padding:var(--pc-space-4) var(--pc-table-cell-x);margin:0;text-align:left;color:var(--pc-ui-secondary);font:var(--pc-type-input)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty :is(h2,strong){display:block;margin:0;color:var(--pc-ui-text);font:var(--pc-type-control)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty p{font:var(--pc-type-description);margin:var(--pc-space-2) 0 0}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty>p:first-child{margin:0;font:var(--pc-type-input)}
+:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-list-empty :is(.btn,.pc-btn){margin-top:var(--pc-space-3);height:var(--pc-control-editor);min-height:var(--pc-control-editor)}
+/* A table cell already supplies the common horizontal inset. */
+.dashboard-app td>.pc-list-empty{padding-inline:0}
 .pc-field-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--pc-space-2);margin-top:var(--pc-space-2)}
 :is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]){accent-color:var(--pc-green,var(--green,#b7f34a))}
 .pc-refresh-status{font:var(--pc-type-description);padding:4px 0;margin-bottom:8px;color:var(--pc-ui-secondary);box-sizing:border-box}
@@ -61,7 +74,9 @@ ${DIALOG_CSS}
 .project-settings .mh{padding:24px var(--pc-workspace-x);min-height:104px}
 .project-settings #mTitle{font-size:var(--pc-workspace-title);line-height:1.3;font-weight:700}
 .project-settings .settings-nav{width:220px;flex-basis:220px;padding:24px 16px}
+.project-settings .settings-content{container-type:inline-size}
 .project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4}
+@container(max-width:560px){.project-settings .pc-field-grid{grid-template-columns:minmax(0,1fr)}}
 
 /* Navigation and picker selection is distinct from the lighter green hover.
  * Main rail navigation, primary actions and boolean/status indicators retain
@@ -130,7 +145,6 @@ ${DIALOG_CSS}
 .dashboard-app .pc-date-sort{padding:0}
 .dashboard-app .pc-sub-filters{margin:0 0 24px;gap:12px;flex-wrap:wrap}
 .dashboard-app .pc-sub-filters label{gap:8px}
-.dashboard-app .pc-sub-pager{margin-top:24px;gap:12px;font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
 .dashboard-app .pc-entry-delete-icon{width:var(--pc-control-row);padding:0!important}
 .dashboard-app .pc-member{padding:var(--pc-table-cell-padding)}
 .dashboard-app .pc-member-avatar{width:var(--pc-control-row);height:var(--pc-control-row);flex-basis:var(--pc-control-row)}

@@ -581,7 +581,6 @@ body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-op
 .pages-workspace .pagerow .pn small,.pages-workspace .cms-page-badge{display:none}
 .pages-workspace .page-actions summary{margin:0}
 
-.pages-empty{padding:32px 12px;text-align:center}
 .page-settings-context{padding:12px}
 .modebar>.page-switcher{padding:0 6px;max-width:240px;min-width:0;display:flex;align-items:center;gap:4px}
 .page-switcher>select,.page-switcher>.pc-custom-select-trigger{width:200px;max-width:100%;min-width:0;min-height:30px;height:30px;padding:var(--pc-control-padding);border:0;background:transparent;font-size:var(--fs-2)}
@@ -1156,7 +1155,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .settings-content h2{font-size:var(--fs-5);margin:0 0 24px}
 .settings-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--pc-field-gap) var(--pc-space-5)}
 .settings-fields>.f{margin:0;min-width:0}
-#settings-typography .settings-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 140px}
+.settings-fields.settings-fields-type{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 140px}
 #settings-typography .f:has(#mStyles),#settings-colors .f,#settings-classes .f,#settings-code .f,.settings-reset{grid-column:1/-1}
 .project-settings .settings-code{font-family:var(--mono);font-size:var(--fs-2);line-height:1.7;min-height:220px;tab-size:2;resize:vertical;white-space:pre;overflow:auto}
 .settings-reset h3{font-size:var(--fs-4);margin:0 0 8px}
@@ -5279,7 +5278,7 @@ function projectModal() {
       panel.id = 'settings-' + id; panel.hidden = !!index;
       panel.setAttribute('aria-labelledby', panel.id + '-title');
       panel.innerHTML = `<h2 id="${panel.id}-title">${title}</h2>`;
-      const grid = document.createElement('div'); grid.className = 'settings-fields';
+      const grid = document.createElement('div'); grid.className = 'settings-fields pc-field-grid' + (id === 'typography' ? ' settings-fields-type' : '');
       fields.forEach(field => {
         const node = $('#' + field)?.closest('.f');
         if (node) grid.append(node);

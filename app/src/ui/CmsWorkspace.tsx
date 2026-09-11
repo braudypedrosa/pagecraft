@@ -283,7 +283,7 @@ export function CmsWorkspace({
               </p>
             </div>
             {!entry && !schema && (
-              <div class="cms-actions">
+              <div class="cms-actions pc-heading-actions">
                 {L.canStructure() && (
                   <button
                     class="btn"
@@ -658,14 +658,14 @@ export function CmsWorkspace({
                     </div>
                   ))}
                 {!filtered.length && (
-                  <p class="empty">
+                  <p class="pc-list-empty">
                     {col.items.length
                       ? 'No entries match your search.'
                       : 'No entries yet. Create your first entry.'}
                   </p>
                 )}
               </div>
-              <div class="cms-actions cms-pagination">
+              <div class="cms-actions cms-pagination pc-pagination">
                 <button
                   class="btn"
                   disabled={current === 0}

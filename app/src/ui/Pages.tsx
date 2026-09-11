@@ -106,7 +106,7 @@ export function PagesWorkspace() {
       <div class="pages-list-head" aria-hidden="true"><span>Page</span><span>Path</span><span>Type</span><span>Actions</span></div>
       <div class="pagelist" aria-label="Site pages">
         {rows.map(({p, i}) => <PageRow key={p.id} i={i} />)}
-        {!rows.length && <div class="pages-empty"><p>No pages match “{query}”.</p><button class="btn" onClick={() => setQuery('')}>Clear search</button></div>}
+        {!rows.length && <div class="pages-empty pc-list-empty"><p>No pages match “{query}”.</p><button class="btn" onClick={() => setQuery('')}>Clear search</button></div>}
       </div>
     </div>
   </section>;

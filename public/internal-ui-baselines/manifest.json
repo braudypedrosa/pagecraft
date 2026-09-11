@@ -1,22 +1,24 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-11T15:10:57.214Z",
+  "capturedAt": "2026-09-11T16:00:43.294Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "63b11c27f10459ce9ea78900a42fd4dc6b99e01aaa4954ef50266b0470332e4b",
+    "builder.html": "ec564acc7b16633deb2a05d0143be92beb3b027311bb95d6d5573e7399dfe424",
+    "app/src/ui/Pages.tsx": "00200e5517fd0761815731b1e2e8c075d56fa4cbed9b51050e919d8fa644be82",
+    "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
     "shared/ui-tokens.js": "f1004d10d2e4f4fde1bc1961b7376c00b88f328dfba64eae1c3f939ad088bc9c",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
     "shared/ui-typography.js": "9f3189068f121be722b674b051c8d41af66b409c463ec89311397dc2af66780e",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
-    "shared/workspace-styles.js": "6a2cca25040aaeac52ae791563a107eb98717df36a8527ed79db5b766ee8dd9c",
+    "shared/workspace-styles.js": "25175728238edccd3a9cd61dd7d229281af6ce50bccb57c7b160e24ab17f3f02",
     "shared/dialog-styles.js": "4bc8bf9e9520fa0ecd0104b9510e934ca4542c3014a7b0ec9123cb05a0ebae16",
     "shared/custom-select.js": "ca1a180203feae7665c0c6cc5d5ab1874a4c0f3fd931b788122d02f158d834ca",
     "shared/action-feedback.js": "5dc38ff2a21d93888a9541933bff27e453012a6cbaa76d4c31781a4e70490b2d",
-    "server/src/account-pages.ts": "04ccf4b9123c1dd0fef0068a11c2b148bc11dfbc1fd43b6f69bb5373d2316eb4",
-    "server/src/component-gallery.ts": "f6a1914896d224c00906a778a30b13cd3d1a7a78af7a2bb2a30efbf7acd04262",
+    "server/src/account-pages.ts": "2624a2ba7b4f20088f1f1b7d705d5fc37389d72df628ed10b9f60da4a05bcb29",
+    "server/src/component-gallery.ts": "e658c361e3c74c0ac14b6b886372b474f12f2e3c4d8d6cf8893f00b46e4b5aee",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
@@ -24,83 +26,93 @@
   },
   "behaviorChecks": [
     {
-      "check": "Picker Escape preserves value and restores focus",
       "host": "cloud",
+      "check": "List roles at 1440",
       "passed": true
     },
     {
-      "check": "Dialog value survives viewport resizing",
       "host": "cloud",
+      "check": "List roles at 768",
       "passed": true
     },
     {
+      "host": "cloud",
+      "check": "Select Escape preserves value",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Keyboard skips disabled last option",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Dialog input survives resize",
+      "passed": true
+    },
+    {
+      "host": "cloud",
       "check": "Dialog Escape returns focus",
-      "host": "cloud",
       "passed": true
     },
     {
-      "check": "Empty dialog footer has zero height",
       "host": "cloud",
+      "check": "Processing prevents duplicate activation",
       "passed": true
     },
     {
-      "check": "Processing disables action and exposes busy state",
       "host": "cloud",
+      "check": "Success restores action",
       "passed": true
     },
     {
-      "check": "Failure restores action and presents alert",
       "host": "cloud",
+      "check": "Failure restores action",
       "passed": true
     },
     {
-      "check": "Retry can complete with status notice",
-      "host": "cloud",
-      "passed": true
-    },
-    {
-      "check": "Refresh recovery clears error and preserves result",
-      "host": "cloud",
-      "passed": true
-    },
-    {
-      "check": "Picker Escape preserves value and restores focus",
       "host": "builder",
+      "check": "List roles at 1440",
       "passed": true
     },
     {
-      "check": "Dialog value survives viewport resizing",
       "host": "builder",
+      "check": "List roles at 768",
       "passed": true
     },
     {
+      "host": "builder",
+      "check": "Select Escape preserves value",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Keyboard skips disabled last option",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Dialog input survives resize",
+      "passed": true
+    },
+    {
+      "host": "builder",
       "check": "Dialog Escape returns focus",
-      "host": "builder",
       "passed": true
     },
     {
-      "check": "Empty dialog footer has zero height",
       "host": "builder",
+      "check": "Processing prevents duplicate activation",
       "passed": true
     },
     {
-      "check": "Processing disables action and exposes busy state",
       "host": "builder",
+      "check": "Success restores action",
       "passed": true
     },
     {
-      "check": "Failure restores action and presents alert",
       "host": "builder",
-      "passed": true
-    },
-    {
-      "check": "Retry can complete with status notice",
-      "host": "builder",
-      "passed": true
-    },
-    {
-      "check": "Refresh recovery clears error and preserves result",
-      "host": "builder",
+      "check": "Failure restores action",
       "passed": true
     }
   ],
@@ -130,15 +142,15 @@
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-tables-1440.png": {
-      "sha256": "38719dba3b26322d2814f268581c0718ecd203e374bb7ceb5f7a0b2529d204ba",
+      "sha256": "46d5aafb72c0727354657607444522ee00fbb25e33e237d893e280b9688ec58c",
       "width": 1440,
       "height": 900,
       "state": "First row hovered, second row neutral, empty result"
     },
     "cloud-tables-768.png": {
-      "sha256": "4f415a55b9541577ab13b118be34544763c978c7c5d03de05647a7a2129858b4",
+      "sha256": "c72aa15d0061ab9c618e6cde1ad480bf338677ed55c9a82fc60da96331b4f443",
       "width": 768,
-      "height": 900,
+      "height": 944,
       "state": "First row hovered, second row neutral, empty result"
     },
     "cloud-menus-1440.png": {
@@ -202,15 +214,15 @@
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-tables-1440.png": {
-      "sha256": "3811c201207f6b54103cb244ec5861233eb25dc1490b126a7d60a4791c919d32",
+      "sha256": "a28b67e169f5a69136fbab3bacc2a49229289d816c7cd59082fb105e363ee684",
       "width": 1440,
       "height": 900,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-tables-768.png": {
-      "sha256": "ea7210b2178e46dbd5f9daf6cefcafa1238dbfa9a47f0fa7c1e64241d5d42a71",
+      "sha256": "c66894e63248803448d6a7781dff006a19c62ef3d6afb07ff6f45d9fb3118d9e",
       "width": 768,
-      "height": 900,
+      "height": 923,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-menus-1440.png": {

@@ -60,3 +60,5 @@ The recorder requires a complete 24-image inventory, successful behavior evidenc
 Add an example when a shared component gains a meaningful variant. Reuse its production classes and behavior and include any required host wrapper styles. Do not paint a separate “correct” component solely for the gallery. Keep sample data fictional and local. Do not add publish, delete, account-write or external-integration endpoints to demonstrations.
 
 When a real screen drifts but its gallery example does not, first check for missing host wrappers or screen-specific overrides. Expand the representative fixture or add a focused regression, and verify the actual consuming screen on staging. The gallery protects shared foundations; content-dependent layout and third-party service journeys still need their own checks.
+
+See [Real-screen visual acceptance](real-screen-baselines.md) for the consuming-screen matrix and private screenshot capture/comparison workflow. Shared source fingerprints include the Pages and CMS workspace renderers, not only their CSS.
