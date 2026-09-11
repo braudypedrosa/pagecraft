@@ -5,10 +5,11 @@ export const UI_FOCUS_CSS = `
 :where(.modal,.pc-menu,.pc-custom-select-popover){--pc-focus-bg:var(--pc-selection-bg);--pc-focus-text:var(--pc-selection-text)}
 :where(.primary,.rail .on,.pc-rail .on){--pc-focus-bg:#c5fa63;--pc-focus-text:#111311}
 :where(.danger,.pc-delete-site-action){--pc-focus-text:var(--pc-danger,var(--danger,#8f312b))}
-:root :is(button,a[href],input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea,summary,[role=treeitem],[tabindex]:not([tabindex="-1"]),[contenteditable="true"]):focus-visible{
+:root :is(button,a[href],summary,[role=treeitem],[tabindex]:not([tabindex="-1"])):not(input,select,textarea,[contenteditable="true"],[role=combobox],.pc-custom-select-trigger):focus-visible{
   outline:none;background-color:var(--pc-focus-bg);color:var(--pc-focus-text);
 }
-/* Native checkboxes retain their shape; their label carries keyboard feedback. */
-label:has(input:is([type=checkbox],[type=radio]):focus-visible){background-color:var(--pc-focus-bg);color:var(--pc-focus-text)}
+/* Fields keep their resting surface and text color, including readonly fields.
+ * Editable text retains its native caret; select labels identify keyboard focus. */
+.pc-custom-select-trigger:focus-visible>span{text-decoration:underline;text-underline-offset:3px}
 input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{filter:brightness(.8)}
 `;
