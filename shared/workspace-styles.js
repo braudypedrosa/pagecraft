@@ -1,6 +1,9 @@
 /** Product workspaces share the Pages layout. These adapters bridge the portable
  * builder and server-rendered Cloud screens; published pages never load them. */
+import { DIALOG_CSS } from './dialog-styles.js';
+
 export const WORKSPACE_CSS = `
+${DIALOG_CSS}
 /* Shared menu and field-action contracts. Applies only to product chrome. */
 .pc-menu{--pc-menu-radius:7px;--pc-menu-item-radius:4px;padding:6px!important;border-radius:var(--pc-menu-radius)!important;row-gap:0}
 .pc-menu :is(a,button).pc-menu-item{box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:34px;margin:0;padding:var(--pc-control-padding);border:0;border-radius:var(--pc-menu-item-radius);background:transparent;color:var(--pc-text,var(--text));font:var(--pc-type-control);text-align:left;text-decoration:none;box-shadow:none;filter:none}
@@ -131,10 +134,9 @@ export const WORKSPACE_CSS = `
 .dashboard-app .pc-member-avatar{width:var(--pc-control-row);height:var(--pc-control-row);flex-basis:var(--pc-control-row)}
 .dashboard-app .pc-member-controls :is(.pc-btn,select,.pc-custom-select-trigger){height:var(--pc-control-row);min-height:var(--pc-control-row)}
 .dashboard-app :is(.pc-entry-dialog,.pc-create-modal,.pc-delete-dialog,.pc-integration-dialog){font-family:var(--pc-ui-font);font-size:var(--pc-control-font);border-radius:16px;color:var(--pc-ui-text)}
-.dashboard-app :is(.pc-entry-dialog header,.pc-create-modal-head){padding:20px 24px;border-bottom:1px solid var(--pc-ui-border)}
+
 .dashboard-app :is(.pc-entry-dialog,.pc-create-modal,.pc-delete-dialog,.pc-integration-dialog) h2{font-size:var(--pc-dialog-title);line-height:1.4;font-weight:600;margin:0}
-.dashboard-app .pc-entry-dialog [data-close-dialog]{width:32px;height:32px;min-height:32px;padding:0;border:0;background:transparent}
-.dashboard-app .pc-entry-dialog footer [data-close-dialog]{width:auto;height:44px;padding:var(--pc-control-padding);border:1px solid var(--pc-line-2,#cbd2d8);background:var(--pc-ui-surface)}
+
 .dashboard-app .pc-entry-body{line-height:1.5}
 .dashboard-app .pc-entry-body dt{font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
 .dashboard-app .pc-entry-body dd{margin:4px 0 16px}

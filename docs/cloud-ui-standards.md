@@ -14,9 +14,9 @@ All text inputs, textareas, enhanced selects, standard text buttons and menu opt
 
 Use identical geometry for an action rendered as a link or button. Read-only copy values and their actions share the 44px height; the row owns its gap and top spacing, never the nested button. Long values truncate within a shrinkable column. Section actions use a 16px gap, form fields use 16px between groups and 8px between label and control. Site-management sections use 32px vertical padding. Preserve intentionally different navigation, icon, badge and multiline-control sizes.
 
-The CMS preview picker is a 32px toolbar group with 26px internal controls, matching the adjacent toolbar badges. Its label identifies the preview collection, and the toolbar wraps when both editor panels reduce the available width. Escape closes its menu without invoking the canvas selection shortcut.
+The CMS preview picker is a 32px toolbar group with 30px internal controls, matching the adjacent toolbar badges. Its label identifies the preview collection, and the toolbar wraps when both editor panels reduce the available width. Escape closes its menu without invoking the canvas selection shortcut.
 
-The custom-select trigger follows its host density. Collaborator row selects remain 36px; CMS controls use 44px. Keyboard focus uses the shared border-free surface feedback on light and dark surfaces. Disabled builder buttons retain their geometry and use the shared dim state.
+The custom-select trigger follows its host density. Collaborator row selects remain 32px; CMS controls use 44px. Keyboard focus on fields preserves their existing surface; action controls retain their shared focus treatment. Disabled builder buttons retain their geometry and use the shared dim state.
 
 ## Acceptance scope
 
@@ -114,3 +114,13 @@ No-op scope changes do not enter document history. Escape from a color popover
 returns focus to its swatch; outside-pointer dismissal preserves the destination.
 
 Submissions revalidate silently in the background, including deferred replacement while details are open. Routine refreshes reserve no status area and show no completion message. Explicit Refresh and navigation actions keep their button processing state. Failed refreshes retain the last loaded list and reveal a recoverable inline alert; a successful retry removes the alert and its spacing.
+
+## Form and dialog ownership
+
+Single-line controls consume their container’s density: 44px full forms, 37px editor fields, 36px CMS schema, and 32px inline editor/repeater/typography rows. Native inputs, enhanced selects and unit composites in the same group must have equal height, with the shared 6px / 8px padding and 7px control radius. Multiline fields grow independently. Standard field labels have an 8px gap to their control and field groups have a 16px gap.
+
+`shared/dialog-styles.js` owns `pc-dialog`, `pc-dialog-head`, `pc-dialog-title`, `pc-dialog-body`, `pc-dialog-foot`, and `pc-dialog-close`. All builder prompts and Cloud creation, integration, submission and deletion dialogs consume this contract: 24px content inset, 16px vertical header/footer inset, 8px action gap, 32px corner close, 16px outer radius and one flat scrim. Empty footers occupy no space. Full Project settings remains a workspace with workspace gutters. Dialog actions retain the host’s existing form density.
+
+At 768–1024px, CMS schema Name and Type share the upper row and Required shares the lower row with move/delete actions. Option/reference details span the available width. Resizing does not remount the form.
+
+Closing unchanged Project settings is quiet and makes no save request. Pending name/document edits still settle before Close completes, and failures remain recoverable. Keyboard & tips describes the current host’s saving and available shortcuts; Cloud drafts, WordPress saving and standalone browser storage are different contracts.

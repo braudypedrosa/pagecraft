@@ -173,3 +173,18 @@ test('schema save announces pending and completion at the action, prevents dupli
   expect(button('Save changes')).toBeTruthy();
   expect(r.$('.cms-form-actions [role=status]')).toBeNull();
 });
+
+test('conditional schema fields follow the row actions in keyboard order and retain their local value', async () => {
+  const col=C.collectionAdd('Options QA');
+  col.fields.push({id:'kind',name:'Kind',type:'option',opts:'One,Two'});
+  r.draw(<CmsWorkspace collectionId={col.id} close={() => {}} />);
+  await click('Edit collection');
+  const row=r.$$('.cms-schema-field')[1];
+  const controls=[...row.querySelectorAll('input,select,button')];
+  const choices=row.querySelector('.cms-schema-extra input')!;
+  expect(controls.at(-1)).toBe(choices);
+  expect(controls.indexOf(row.querySelector('.cms-check input')!)).toBeLessThan(controls.indexOf(row.querySelector('.cms-actions button')!));
+  await act(()=>r.type(choices,'One,Two,Three'));
+  expect((row.querySelector('.cms-schema-extra input') as HTMLInputElement).value).toBe('One,Two,Three');
+  expect(col.fields[1].opts).toBe('One,Two');
+});

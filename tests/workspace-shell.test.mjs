@@ -98,3 +98,38 @@ test('site rename success and validation errors have distinct semantic notices',
   expect(success.window.getComputedStyle(ok).color).not.toBe(failure.window.getComputedStyle(bad).color);
   success.window.close();failure.window.close();
 });
+
+test('Cloud dialog variants share named regions and retain safe deletion controls', async () => {
+  const {dashboardPage,siteIntegrationsPage}=await import('../server/src/account-pages.ts');
+  const user={id:'qa',email:'qa@example.invalid',name:'QA'};
+  const site={id:'qa',name:'QA',slug:'qa',url:'https://example.test/qa/',updatedAt:'2026-09-11T00:00:00Z',role:'owner',published:false};
+  const pages=[
+    dashboardPage(user,[site],1,{used:0,limit:104857600}),
+    siteIntegrationsPage(user,{...site,version:1},{enabled:true,connected:false,selected:[]}),
+    siteSubmissionsPage(user,site,'owner',[{id:'contact',name:'Contact',pages:['Home'],fields:[]}],
+      [{id:'entry',formId:'contact',formName:'Contact',createdAt:'2026-09-11T00:00:00Z',status:'success',values:[{label:'Name',value:'QA'}]}],'contact','',1,true)
+  ];
+  let count=0;
+  for(const html of pages){
+    const dom=new JSDOM(html),d=dom.window.document;
+    for(const dialog of d.querySelectorAll('dialog')){
+      count++;
+      expect(dialog.classList.contains('pc-dialog')).toBe(true);
+      const head=dialog.querySelector('.pc-dialog-head');
+      expect(head.querySelector('.pc-dialog-title').id).toBe(dialog.getAttribute('aria-labelledby'));
+      expect(head.querySelector('.pc-dialog-close').getAttribute('aria-label')).toMatch(/^Close/);
+      expect(head.querySelector('.pc-dialog-close svg')).not.toBeNull();
+      expect(dialog.querySelector('.pc-dialog-body')).not.toBeNull();
+      for(const footer of dialog.querySelectorAll('footer,.pc-delete-dialog-actions'))
+        expect(footer.classList.contains('pc-dialog-foot')).toBe(true);
+    }
+    if(d.querySelector('#delete-site-dialog')){
+      expect(d.querySelectorAll('#delete-site-dialog form')).toHaveLength(1);
+      expect(d.querySelector('#dashboard-delete-confirm').required).toBe(true);
+      expect(d.querySelector('#confirm-site-delete').disabled).toBe(true);
+      expect(d.querySelectorAll('[data-delete-cancel]')).toHaveLength(2);
+    }
+    dom.window.close();
+  }
+  expect(count).toBe(5);
+});

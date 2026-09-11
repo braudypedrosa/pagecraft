@@ -101,6 +101,10 @@ test('the standalone build makes Export its primary action', async () => {
   primary.click();
   a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Export static HTML');
   doc.querySelector('#mClose').click();
+  w.helpModal();
+  a.match(doc.querySelector('#mBody').textContent, /stored in this browser/);
+  a.match(doc.querySelector('#mBody').textContent, /Export static HTML/);
+  doc.querySelector('#hOk').click();
 });
 
 test('server mode separates draft saving from explicit release publication', async () => {
@@ -245,6 +249,10 @@ test('WordPress mode boots the shared editor and saves a native fallback through
   dom.window.mediaModal();
   a.match(doc.querySelector('#mFoot').textContent, /Stored in the WordPress media library/);
   doc.querySelector('#mClose').click();
+  dom.window.helpModal();
+  a.match(doc.querySelector('#mBody').textContent, /saved to WordPress/);
+  a.doesNotMatch(doc.querySelector('#mBody').textContent, /stored in this browser|Export static HTML|⌘E/);
+  doc.querySelector('#hOk').click();
   a.equal(doc.documentElement.dataset.pagecraftHost, 'wordpress');
   for (const selector of ['#sitesBtn', '#shareBtn', '#accountBtn', '#leftRail', '#panePages', '#paneCms', '[data-act="project"]']) {
     a.equal(doc.querySelector(selector), null, `${selector} must not enter the WordPress render tree`);

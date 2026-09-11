@@ -472,7 +472,7 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, /No shared sites yet/);
   a.match(html, /No owned sites yet/);
   a.match(html, /data-create-open>Add new site<\/button>/);
-  a.match(html, /<dialog class="pc-create-modal"/);
+  a.match(html, /<dialog class="[^"\n]*\bpc-create-modal\b/);
   a.match(html, /createModal\.showModal\(\)/);
   a.match(html, /data-create-close/);
   a.match(html, /addEventListener\('cancel'/);

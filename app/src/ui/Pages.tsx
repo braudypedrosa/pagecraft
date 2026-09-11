@@ -191,7 +191,7 @@ export function Pages() {
                 {...field('title', v => { C.page().title = v; })} /></div>
             <div class="f"><label htmlFor="page-desc">Meta description</label>
               <textarea class="ctl" id="page-desc" value={pg.desc || ''}
-                style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: 'var(--fs-2)' }}
+                style={{ minHeight: '56px' }}
                 {...field('desc', v => { C.page().desc = v; })} /></div>
           </>
         ) : <>
@@ -249,7 +249,7 @@ export function Pages() {
 
         <div class="f"><label htmlFor="page-desc">Meta description</label>
           <textarea class="ctl" id="page-desc" value={pg.desc || ''}
-            style={{ minHeight: '56px', fontFamily: 'var(--sans)', fontSize: 'var(--fs-2)' }}
+            style={{ minHeight: '56px' }}
             {...field('desc', v => { C.page().desc = v; })} /></div>
 
         <div class="f"><label>Social share image</label>

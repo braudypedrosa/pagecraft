@@ -68,12 +68,12 @@
   /* Form rhythm and control heights, declared once so a panel and a dialog cannot
      drift apart. Before this there were nine inline margin values in the markup
      and four control heights inside a single row. --gap-2 is exactly double --gap-1. */
-  --gap-1:var(--sp-3);  /* a label to its control · a note to what it annotates · stacked rows */
-  --gap-2:var(--sp-5);  /* one field to the next */
+  --gap-1:var(--pc-field-label-gap);  /* a label to its control · a note to what it annotates · stacked rows */
+  --gap-2:var(--pc-field-gap);  /* one field to the next */
   --gap-3:var(--sp-6);  /* the panel inset, and the space a group leaves at its foot */
   --h-ctl:var(--pc-control-editor,37px);         /* a full-size control, and anything that sits beside one */
   --h-row:var(--pc-control-row,32px);         /* a compact control inside a dense list row */
-  --mpad:var(--sp-7);   /* the dialog inset — head, body, foot and a flush tab row all read it */
+  --mpad:var(--pc-dialog-inset);   /* the dialog inset — head, body, foot and a flush tab row all read it */
   --sans:var(--pc-font-body);
   --label:var(--pc-font-label);
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -740,9 +740,10 @@ body.preview .dim{display:none}
    the same .ctl measured 37px in a panel and 38px in a dialog, and nothing could
    be reliably aligned to it. */
 .ctl,select.ctl,textarea.ctl{
-  width:100%;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-sm);
+  width:100%;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--pc-control-radius);
   padding:var(--pc-control-padding);font-size:var(--fs-3);line-height:1.4;outline:none;transition:border-color .12s;
 }
+.ctl:not(textarea){height:var(--h-ctl);min-height:var(--h-ctl)}
 .ctl:hover{border-color:var(--text-3)}
 
 textarea.ctl{resize:vertical;min-height:66px;font-size:var(--fs-3);line-height:1.55}
@@ -1007,11 +1008,12 @@ select.ctl{
 .field-switch:checked{background:var(--green);border-color:var(--green)}
 .field-switch:checked:before{left:16px;background:var(--on-green)}
 
-.repeater-body .pc-custom-select-trigger{min-height:30px;height:30px;padding:var(--pc-control-padding);font-size:var(--fs-2)}
-#inspector-panel .f-inline>.pc-custom-select-trigger{min-height:32px;height:32px;font-size:var(--fs-2)}
+.repeater-body{--h-ctl:var(--pc-control-row)}
+.repeater-body .pc-custom-select-trigger{font-size:var(--fs-2)}
+#inspector-panel .f-inline>.pc-custom-select-trigger{font-size:var(--fs-2)}
 .repeater-long{display:block;font-size:var(--fs-2);color:var(--text-2)}
 .repeater-long>span{display:block;margin-bottom:6px}
-#inspector-panel .f-inline{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1fr);align-items:center;gap:6px 10px}
+#inspector-panel .f-inline{--h-ctl:var(--pc-control-row);display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1fr);align-items:center;gap:6px 10px}
 #inspector-panel .f-inline>label{margin:0;gap:4px}
 #inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd{flex-shrink:0}
 #inspector-panel .f-inline>label~*{min-width:0}
@@ -1079,7 +1081,7 @@ select.ctl{
 
 
 /* asset + token rows */
-.arow{display:flex;align-items:center;gap:var(--sp-5);padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--line);margin-bottom:var(--gap-1);background:var(--panel)}
+.arow{--h-ctl:var(--pc-control-row);display:flex;align-items:center;gap:var(--sp-5);padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--line);margin-bottom:var(--gap-1);background:var(--panel)}
 .arow img{width:34px;height:34px;flex:0 0 34px;border-radius:var(--r-sm);object-fit:cover;background:var(--field-2)}
 .arow .an{flex:1;min-width:0}
 .arow .an b{display:block;font-size:var(--fs-3);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1107,7 +1109,7 @@ select.ctl{
   border:1px solid var(--ink);border-top:0;border-radius:0 0 var(--r-md) var(--r-md);
   padding:12px 12px 10px;margin-bottom:6px;background:var(--field);
 }
-.tsedit .f{margin-bottom:9px}
+.tsedit .f{margin-bottom:var(--pc-field-gap)}
 .tsedit .row2{gap:var(--sp-4)}
 
 /* ---------------------------------------------------------------- drag --- */
@@ -1134,7 +1136,7 @@ select.ctl{
 body.dragging{cursor:grabbing !important;user-select:none}
 
 /* --------------------------------------------------------------- modal --- */
-.mask{position:fixed;inset:0;background:#11131199;backdrop-filter:blur(3px);z-index:200;display:grid;place-items:center;padding:24px}
+.mask{position:fixed;inset:0;background:var(--pc-dialog-scrim);z-index:200;display:grid;place-items:center;padding:24px}
 .mask[hidden]{display:none}
 .modal{
   background:var(--panel);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);
@@ -1154,15 +1156,14 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .settings-content section{max-width:980px;margin:0 auto}
 .settings-content section[hidden]{display:none}
 .settings-content h2{font-size:var(--fs-5);margin:0 0 24px}
-.settings-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px}
+.settings-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--pc-field-gap) var(--pc-space-5)}
 .settings-fields>.f{margin:0;min-width:0}
 #settings-typography .settings-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 140px}
 #settings-typography .f:has(#mStyles),#settings-colors .f,#settings-classes .f,#settings-code .f,.settings-reset{grid-column:1/-1}
 .project-settings .settings-code{font-family:var(--mono);font-size:var(--fs-2);line-height:1.7;min-height:220px;tab-size:2;resize:vertical;white-space:pre;overflow:auto}
 .settings-reset h3{font-size:var(--fs-4);margin:0 0 8px}
 .settings-reset p{color:var(--text-2);margin:0 0 20px;line-height:1.6}
-.settings-reset-actions{display:flex;gap:12px;flex-wrap:wrap}
-.project-settings #mFoot{gap:12px}
+.settings-reset-actions{display:flex;gap:var(--pc-action-gap);flex-wrap:wrap}
 .project-settings #mStyles .arow{border:0;border-bottom:1px solid var(--line);border-radius:0;margin:0;padding:9px 0;background:transparent;gap:10px}
 .project-settings #mStyles .tsedit{border:0;border-bottom:1px solid var(--line);border-radius:0;margin:0;padding:20px;background:var(--field)}
 .project-settings #mStyles>.btn{margin-top:16px}
@@ -1401,27 +1402,26 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 28px;border-bottom:1px solid var(--line)}
 .cms-workspace h1{font-size:22px;margin:0}.cms-workspace h2{font-size:24px;margin:0}.cms-workspace h3{font-size:var(--fs-5);margin:0 0 8px}.cms-workspace p{line-height:1.5;margin:6px 0;color:var(--text-2)}
 .cms-workspace-layout{display:grid;grid-template-columns:220px minmax(0,1fr);flex:1;min-height:0}.cms-collections{padding:24px 16px;border-right:1px solid var(--line);overflow:auto}.cms-collections .btn{justify-content:space-between;margin-bottom:8px}
-.cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
+.cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label,.cms-schema-extra{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
 .cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
 
-.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:var(--pc-control-padding);line-height:1.6;overflow-wrap:anywhere}
-.cms-schema>.cms-field{margin-bottom:12px;max-width:480px}
+.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:var(--pc-field-label-gap);margin-bottom:var(--pc-field-gap)}.cms-check{display:flex!important;align-items:center;gap:var(--pc-action-gap)}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:var(--pc-control-padding);line-height:1.6;overflow-wrap:anywhere}
+.cms-schema>.cms-field{margin-bottom:var(--pc-field-gap);max-width:480px}
 .cms-schema>.note{margin-bottom:8px}
-.cms-schema-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:14px 0;align-items:start}
-.cms-schema-inputs{grid-template-columns:minmax(140px,1fr) minmax(130px,.7fr) auto;gap:10px;margin-bottom:0;align-items:end}
-.cms-schema-inputs>.cms-check{grid-column:3;grid-row:1;min-height:36px;gap:6px;white-space:nowrap}
+.cms-schema-field{--h-ctl:var(--pc-control-compact);display:grid;grid-template-columns:minmax(140px,1fr) minmax(130px,.7fr) auto auto;gap:var(--pc-field-gap) var(--pc-action-gap);padding:var(--pc-field-gap) 0;align-items:end}
+.cms-schema-inputs{display:contents}
+.cms-schema-inputs>.cms-check{grid-column:3;grid-row:1;min-height:var(--h-ctl);gap:var(--pc-action-gap);white-space:nowrap}
 .cms-schema-extra{grid-column:1 / -1}
-.cms-schema-field>.cms-actions{padding-top:23px;gap:4px;flex-wrap:nowrap}
-.cms-schema .ctl,.cms-schema .pc-custom-select-trigger{--h-ctl:36px;min-height:36px;height:36px}
-.cms-schema-field>.cms-actions>.btn{min-height:36px;height:36px;width:32px;padding:0;justify-content:center}
+.cms-schema-field>.cms-actions{grid-column:4;grid-row:1;gap:var(--pc-action-gap);flex-wrap:nowrap}
+.cms-schema>.cms-field{--h-ctl:var(--pc-control-compact)}
+.cms-schema-field>.cms-actions>.btn{min-height:var(--h-ctl);height:var(--h-ctl);width:var(--pc-control-row);padding:0;justify-content:center}
 @media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
 
 @container(max-width:480px){.cms-list-tools{grid-template-columns:minmax(0,1fr)}}
 @media(min-width:768px) and (max-width:1024px){
-.cms-schema-field{grid-template-columns:minmax(0,1fr)}
-.cms-schema-inputs{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-.cms-schema-inputs>.cms-check{grid-column:1 / -1;grid-row:auto}
-.cms-schema-field>.cms-actions{padding-top:0;justify-content:flex-end}
+.cms-schema-field{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.cms-schema-inputs>.cms-check{grid-column:1;grid-row:2}
+.cms-schema-field>.cms-actions{grid-column:2;grid-row:2;justify-content:flex-end}
 }
 #editorWidthGate{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:28px;background:var(--panel);color:var(--text);text-align:center}
 #editorWidthGate[hidden]{display:none}
@@ -1601,7 +1601,7 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
     <div class="stage" id="stage">
       <div class="modebar pc-toolbar-context" id="modebar"></div>
       <div class="frameWrap" id="frameWrap"><iframe id="canvas" title="Page canvas"></iframe></div>
-      <div class="dim" id="dim"></div>
+      <div class="dim pc-toolbar-context" id="dim"></div>
     </div>
 
     <!-- ============ RIGHT ============ -->
@@ -1620,22 +1620,22 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
 <div id="toast" hidden aria-hidden="true" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="mask" id="modal" hidden>
-  <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
-    <div class="mh"><b id="mTitle">Title</b><button class="iconbtn" id="mClose" aria-label="Close dialog">
+  <div class="modal pc-dialog" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
+    <div class="mh pc-dialog-head"><b class="pc-dialog-title" id="mTitle">Title</b><button class="iconbtn pc-dialog-close" id="mClose" aria-label="Close dialog">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
     </button></div>
-    <div class="mb" id="mBody"></div>
-    <div class="mf" id="mFoot"></div>
+    <div class="mb pc-dialog-body" id="mBody"></div>
+    <div class="mf pc-dialog-foot" id="mFoot"></div>
   </div>
 </div>
 
 <div class="mask" id="ask" hidden>
-  <div class="modal sm" id="askBox" role="dialog" aria-modal="true" aria-labelledby="askTitle" tabindex="-1">
-    <div class="mh"><b id="askTitle">Title</b><button class="iconbtn" id="askX" aria-label="Close dialog">
+  <div class="modal sm pc-dialog" id="askBox" role="dialog" aria-modal="true" aria-labelledby="askTitle" tabindex="-1">
+    <div class="mh pc-dialog-head"><b class="pc-dialog-title" id="askTitle">Title</b><button class="iconbtn pc-dialog-close" id="askX" aria-label="Close dialog">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
     </button></div>
-    <div id="askBody"></div>
-    <div class="mf">
+    <div class="pc-dialog-body" id="askBody"></div>
+    <div class="mf pc-dialog-foot">
       <button class="btn" id="askNo">Cancel</button>
       <button class="btn primary" id="askYes">Save</button>
     </div>
@@ -4673,7 +4673,7 @@ function syncDialogLayers() {
 function openModal(title, bodyHtml, footHtml, size) {
   const wasHidden = $('#modal').hidden;
   if (wasHidden) modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  $('#modalBox').className = 'modal' + (size ? ' ' + size : '');
+  $('#modalBox').className = 'modal pc-dialog' + (size ? ' ' + size : '');
   $('#mTitle').textContent = title;
   $('#mBody').innerHTML = bodyHtml;
   $('#mFoot').innerHTML = footHtml || '';
@@ -5402,11 +5402,15 @@ function projectModal() {
 
   $('#mDone').addEventListener('click', async () => {
     if (!IS_WORDPRESS) {
+      const pending = SRV
+        ? namePending || $('#mName').value.trim() !== SRV.name || saving || saveAgain || saveState !== 'ok' || JSON.stringify(doc()) !== lastCloudDocument
+        : saveState !== 'ok';
+      if (!pending) { closeModal(); return; }
       await withAction($('#mDone'), 'Saving settings…', async () => {
         if (SRV) await saveProjectName();
         if (SRV) await flushDraft(); else { writeNow(); if(saveState !== 'ok') throw new Error('Settings were not saved.'); }
         closeModal(); render();
-      }, 'Project settings saved to the draft.');
+      }, 'Changes saved.');
       return;
     }
     const button = $('#mDone');
@@ -5625,7 +5629,8 @@ function helpModal() {
     ['Copy · paste the <b>styling</b>', '⌘⇧C · ⌘⇧V'], ['Duplicate', '⌘D'], ['Delete', '⌫'],
     ['Undo / redo', '⌘Z · ⌘⇧Z'], ['Back to one element, then the parent', 'esc'],
     ['Find and replace, across the project', '⌘F'],
-    ['Preview', '⌘P'], ['Export HTML', '⌘E'],
+    ...(HOST_FEATURES.preview ? [['Preview', '⌘P']] : []),
+    ...(HOST_FEATURES.projectExport ? [['Export static HTML', '⌘E']] : []),
     ['Bold / italic while editing', '⌘B · ⌘I'], ['Insert link while editing', '⌘K']
   ];
   openModal('Keyboard & tips', `
@@ -5637,7 +5642,12 @@ function helpModal() {
       becomes an override (max-width 1024px / 767px). A green badge marks one; click it to clear.<br>
       <b style="color:var(--text-2)">Global header &amp; footer</b> — shared by every page, edited in place. Hover the
       region and press <b>Edit header</b> or <b>Edit footer</b>; <b>Done</b> brings you back.<br>
-      <b style="color:var(--text-2)">Autosave</b> — stored in this browser. Export → project JSON for a backup.
+      <b style="color:var(--text-2)">Saving</b> — ${IS_WORDPRESS
+        ? 'changes are saved to WordPress. Use Done to finish editing; WordPress owns the page’s publication status.'
+        : SRV
+          ? 'changes are autosaved to your Pagecraft site draft. They become public only when an owner chooses Publish.'
+          : 'changes are stored in this browser. Export → project JSON for a backup.'}
+      ${HOST_FEATURES.revisions ? '<br><b style="color:var(--text-2)">History</b> — open History to review saved versions.' : ''}
     </div>`, `<button class="btn primary" id="hOk">Got it</button>`);
   $('#hOk').addEventListener('click', closeModal);
 }

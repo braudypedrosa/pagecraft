@@ -138,6 +138,8 @@ __export(index_exports, {
   clone: () => clone,
   cloudFormEndpoint: () => cloudFormEndpoint,
   cloudFormsEnabled: () => cloudFormsEnabled,
+  cmsBindable: () => cmsBindable,
+  cmsFieldTypes: () => cmsFieldTypes,
   codeSpans: () => codeSpans,
   collectionAdd: () => collectionAdd,
   collectionDelete: () => collectionDelete,
@@ -406,6 +408,69 @@ __export(index_exports, {
   zoomFor: () => zoomFor
 });
 module.exports = __toCommonJS(index_exports);
+
+// shared/ui-tokens.js
+var UI_TEXT_SIZES = Object.freeze({ label: "11px", body: "12px" });
+var UI_TOKENS_CSS = `:root{
+  --pc-surface-subtle:#fafbfc;
+  --pc-surface-muted:#f3f5f6;
+  --pc-canvas-surround:#f3f5f6;
+  --pc-popup-bg:#fff;
+  --pc-border:#dfe4e7;
+  --pc-border-strong:#cbd2d8;
+  --pc-hover-bg:#f4faef;
+  --pc-selection-bg:#eef7e5;
+  --pc-selection-text:#263d20;
+  --pc-selection-muted:#506348;
+  --pc-focus-bg:var(--pc-selection-bg);
+  --pc-focus-text:var(--pc-selection-text);
+  --pc-rail-width:88px;
+  --pc-rail-padding-x:10px;
+  --pc-control-padding-y:6px;
+  --pc-control-padding-x:8px;
+  --pc-control-padding:var(--pc-control-padding-y) var(--pc-control-padding-x);
+  --pc-control-height:44px;
+  --pc-control-compact:36px;
+  --pc-control-editor:37px;
+  --pc-control-row:32px;
+  --pc-field-label-gap:8px;
+  --pc-field-gap:16px;
+  --pc-action-gap:8px;
+  --pc-dialog-inset:24px;
+  --pc-dialog-edge:16px;
+  --pc-dialog-radius:16px;
+  --pc-dialog-scrim:rgba(17,19,17,.45);
+  --pc-table-cell-y:4px;
+  --pc-table-cell-x:8px;
+  --pc-table-cell-padding:var(--pc-table-cell-y) var(--pc-table-cell-x);
+  --pc-table-head-padding:6px var(--pc-table-cell-x);
+  --pc-table-icon-size:14px;
+  --pc-table-icon-gap:8px;
+  --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
+  --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
+  --pc-text-caption:11px;
+  --pc-text-label:${UI_TEXT_SIZES.label};
+  --pc-text-body:${UI_TEXT_SIZES.body};
+  --pc-text-panel:15px;
+  --pc-text-dialog:16px;
+  --pc-text-section:18px;
+  --pc-text-workspace:22px;
+  --pc-type-input:400 var(--pc-text-body)/1.4 var(--pc-font-body);
+  --pc-type-control:500 var(--pc-text-body)/1.4 var(--pc-font-body);
+  --pc-type-toolbar:500 var(--pc-text-label)/1.4 var(--pc-font-body);
+  --pc-type-label:500 var(--pc-text-label)/1.5 var(--pc-font-label);
+  --pc-type-description:400 var(--pc-text-label)/1.55 var(--pc-font-label);
+  --pc-type-caption:400 var(--pc-text-caption)/1.45 var(--pc-font-label);
+  --pc-type-table-label:600 var(--pc-text-label)/1.4 var(--pc-font-label);
+  --pc-control-font:var(--pc-text-body);
+  --pc-control-radius:7px;
+  --pc-space-1:4px;
+  --pc-space-2:8px;
+  --pc-space-3:12px;
+  --pc-space-4:16px;
+  --pc-space-5:24px;
+  --pc-space-6:32px;
+}`;
 
 // app/src/core/icons.ts
 var IC = {
@@ -3641,7 +3706,10 @@ var tgtIsClass = (n) => tgtObj(n) !== n;
 var VAL = "val:";
 var propVal = (n, k) => {
   if (k == null) return void 0;
-  if (k.startsWith(VAL)) return instValue(n, findComponent(n.use), k.slice(VAL.length));
+  if (k.startsWith(VAL)) {
+    const scope = bindScope(n.id);
+    return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
+  }
   return n.props[k];
 };
 function linkOf(n, propKey, here) {
@@ -4890,15 +4958,27 @@ var bindableKeys = (type) => {
   const c = (DEF[type] || {}).controls || {};
   return (c.content || []).filter((x) => x.k && !x.set && x.k !== "ts" && !COLL_CTL.includes(x.t)).map((x) => x.k);
 };
+function cmsFieldTypes(c) {
+  if (c.t === "img") return ["image"];
+  if (c.t === "link") return ["link"];
+  if (c.t === "rich") return ["rich", "text"];
+  if (c.t === "toggle") return ["bool"];
+  if (c.t === "color" || c.t === "icon") return ["text", "option"];
+  return ["text", "number", "date", "option"];
+}
+function cmsBindable(n, c) {
+  if (!c.k) return false;
+  if (c.k.startsWith(VAL)) return !!findProp(findComponent(n.use), c.k.slice(VAL.length));
+  return bindableKeys(n.type).includes(c.k);
+}
 var BIND_CTL = ["text", "area", "rich", "img", "link"];
 function bindSlots(rootId) {
   const h = locate(rootId);
   if (!h) return [];
   const out = [];
   eachNode([h.node], (n) => {
-    const keys = bindableKeys(n.type);
-    (DEF[n.type].controls.content || []).forEach((c) => {
-      if (!c.k || !keys.includes(c.k) || !BIND_CTL.includes(c.t)) return;
+    contentControls(n).forEach((c) => {
+      if (!c.k || !cmsBindable(n, c) || !n.use && !BIND_CTL.includes(c.t)) return;
       out.push({
         nodeId: n.id,
         type: n.type,
@@ -4906,7 +4986,8 @@ function bindSlots(rootId) {
         ctl: c.t,
         element: nameOf(n),
         label: c.label || c.k,
-        current: boundField(n, c.k)
+        current: boundField(n, c.k),
+        fieldTypes: cmsFieldTypes(c)
       });
     });
   });
@@ -4928,7 +5009,7 @@ function guessBindings(slots, col) {
     if (s.current) out[key(s)] = s.current;
   });
   slots.filter(free).forEach((s) => {
-    const f = left.find((x) => slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key));
+    const f = left.find((x) => (!s.fieldTypes || s.fieldTypes.includes(x.type)) && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
     if (f) take(s, f);
   });
   const first = (pred) => slots.filter(free).find(pred);
@@ -4987,7 +5068,8 @@ function srcSet(n, colId) {
 function bindScope(id) {
   let h = locate(id);
   while (h) {
-    const col = h.node.src ? findCollection(h.node.src) : null;
+    const source = h.node.src || findComponent(h.node.use)?.node.src;
+    const col = source ? findCollection(source) : null;
     if (col) return { node: h.node, col };
     h = h.parent ? locate(h.parent.id) : null;
   }
@@ -5033,7 +5115,7 @@ function boundProps(n, col, item, inst, def) {
   const out = { ...n.props };
   for (const [k, b] of Object.entries(n.bind)) {
     if (b.src === "prop") {
-      if (inst) out[k] = instValue(inst, def || null, b.path);
+      if (inst) out[k] = instValue(inst, def || null, b.path, col, item);
       continue;
     }
     if (b.src !== "field" || !col || !item) continue;
@@ -5048,7 +5130,7 @@ var COND_OPS = [
   ["ne", "is not"]
 ];
 function condValue(c, col, item, inst, def) {
-  if (c.bind.src === "prop") return inst ? instValue(inst, def || null, c.bind.path) : "";
+  if (c.bind.src === "prop") return inst ? instValue(inst, def || null, c.bind.path, col, item) : "";
   if (!col || !item) return "";
   const v = fieldValue(col, item, c.bind.path);
   return v == null ? "" : String(v);
@@ -5127,7 +5209,9 @@ function findComponent(id) {
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
 var variantsOf = (def) => def && def.variants || [];
 var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
-function instValue(inst, def, k) {
+function instValue(inst, def, k, col, item) {
+  const field = boundField(inst, VAL + k);
+  if (field && col) return fieldValue(col, item || null, field);
   const own = inst.vals ? inst.vals[k] : void 0;
   if (own !== void 0) return own;
   const v = findVariant(def, inst.variant);
@@ -5384,7 +5468,10 @@ function propDelete(cid, k) {
       }
     });
   });
-  instances(cid).forEach(({ node }) => instSet(node, k, void 0));
+  instances(cid).forEach(({ node }) => {
+    instSet(node, k, void 0);
+    bindSet(node, VAL + k, null);
+  });
   return n;
 }
 function componentDelete(cid) {
@@ -7385,12 +7472,12 @@ ${m.css || ""}
 .pagecraft-button,.pagecraft-heading a,.pagecraft-wysiwyg a{cursor:default}
 .s-empty{
   display:flex;align-items:center;justify-content:center;gap:7px;min-height:76px;width:100%;
-  border:1px dashed #cfcabb;border-radius:8px;color:#6f7771;
-  font:500 12.5px "DM Sans",system-ui,sans-serif;background:#f8f6ef80;
+  border:1px dashed #cbd2d8;border-radius:8px;color:#6f7771;
+  font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;background:#f5f7f880;
 }
 .s-held{
   display:block;margin-top:8px;padding:7px 10px;border-radius:6px;
-  background:#f8f6ef;border:1px dashed #cfcabb;color:#6f7771;
+  background:#f5f7f8;border:1px dashed #cbd2d8;color:#6f7771;
   font:500 11.5px "DM Sans",system-ui,sans-serif;
 }
 [data-editing]{outline:1.5px solid #111311 !important;outline-offset:2px;cursor:text !important}
@@ -7398,7 +7485,7 @@ ${m.css || ""}
 
 /* global regions render as locked context and link to their own editor */
 .s-region{position:relative}
-.s-region[data-state=locked],.s-region[data-state=dim]{outline:1px dashed #cfcabb;outline-offset:-1px}
+.s-region[data-state=locked],.s-region[data-state=dim]{outline:1px dashed #cbd2d8;outline-offset:-1px}
 /* locked and dimmed regions swallow interaction so global structure is never
    edited by accident; the chip stays clickable above them */
 .s-region[data-state=locked]::after,.s-region[data-state=dim]::after{
@@ -7417,24 +7504,24 @@ ${m.css || ""}
 .s-lockchip,.s-lockopen{
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;
   font:500 12px "DM Sans",system-ui,sans-serif;white-space:nowrap;
-  background:#fff;border:1px solid #e5e1d6;color:#4b504b;box-shadow:0 8px 20px -10px #11131140;
+  background:#fff;border:1px solid #dfe4e7;color:#4b504b;box-shadow:0 8px 20px -10px #11131140;
 }
 .s-lockchip svg{color:#6f7771}
-.s-lockopen{cursor:pointer;background:#111311;border-color:#111311;color:#f8f6ef}
+.s-lockopen{cursor:pointer;background:#111311;border-color:#111311;color:#f5f7f8}
 .s-lockopen svg{color:#b7f34a}
-.s-lockchip.on{background:#111311;border-color:#111311;color:#f8f6ef}
+.s-lockchip.on{background:#111311;border-color:#111311;color:#f5f7f8}
 .s-lockchip.on svg{color:#b7f34a}
 
 #s-root{min-height:100%}
 .s-canvas-empty{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  min-height:60vh;color:#6f7771;font:500 13.5px "DM Sans",system-ui,sans-serif;
+  min-height:60vh;color:#6f7771;font:500 ${UI_TEXT_SIZES.body} "DM Sans",system-ui,sans-serif;
   text-align:center;padding:40px;
 }
 .s-canvas-empty b{font-size:16px;color:#111311;font-weight:600;font-family:"Manrope",system-ui,sans-serif}
 .s-openadd{
   margin-top:4px;padding:7px 14px;border-radius:8px;cursor:pointer;border:0;
-  background:#111311;color:#f8f6ef;font:600 12.5px "Manrope",system-ui,sans-serif;
+  background:#111311;color:#f5f7f8;font:600 ${UI_TEXT_SIZES.label} "Manrope",system-ui,sans-serif;
 }
 .s-openadd:hover{background:#2a2e2a}
 
@@ -7467,19 +7554,19 @@ ${m.css || ""}
 #s-hud .grip:hover::before,#s-hud .grip.on::before{opacity:1}
 #s-hud .gtip{
   position:absolute;transform:scale(calc(1 / var(--z,1))) translate(-50%,-100%);
-  transform-origin:50% 100%;background:#111311;color:#f8f6ef;
+  transform-origin:50% 100%;background:#111311;color:#f5f7f8;
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar{
-  position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f8f6ef;
+  position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
   transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;
   font:500 12px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar .nm{padding-right:6px}
 #s-hud .bar button{
-  width:20px;height:20px;border:0;background:none;color:#f8f6ef;display:grid;place-items:center;
+  width:20px;height:20px;border:0;background:none;color:#f5f7f8;display:grid;place-items:center;
   border-radius:4px;cursor:pointer;padding:0;opacity:.75;
 }
 #s-hud .bar button:hover{background:#ffffff26;opacity:1;color:#b7f34a}
@@ -7652,7 +7739,8 @@ function renderNode(n, o) {
   const domId = o.edit ? o.repIndex ? self.id + rep + ins : self.id + ins : esc(domIdOf(self) + rep + ins);
   const hooks = inner ? "" : ` data-id="${self.id}" data-t="${self.type}"${state.ui.sel === self.id ? " data-sel" : ""}`;
   const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
-  const sc = self.src ? findCollection(self.src) : null;
+  const source = self.src || n.src;
+  const sc = source ? findCollection(source) : null;
   const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : n.children || [];
@@ -8287,6 +8375,8 @@ ${ANIM_JS}
   clone,
   cloudFormEndpoint,
   cloudFormsEnabled,
+  cmsBindable,
+  cmsFieldTypes,
   codeSpans,
   collectionAdd,
   collectionDelete,

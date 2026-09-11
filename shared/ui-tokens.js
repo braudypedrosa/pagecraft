@@ -26,6 +26,13 @@ export const UI_TOKENS_CSS = `:root{
   --pc-control-compact:36px;
   --pc-control-editor:37px;
   --pc-control-row:32px;
+  --pc-field-label-gap:8px;
+  --pc-field-gap:16px;
+  --pc-action-gap:8px;
+  --pc-dialog-inset:24px;
+  --pc-dialog-edge:16px;
+  --pc-dialog-radius:16px;
+  --pc-dialog-scrim:rgba(17,19,17,.45);
   --pc-table-cell-y:4px;
   --pc-table-cell-x:8px;
   --pc-table-cell-padding:var(--pc-table-cell-y) var(--pc-table-cell-x);

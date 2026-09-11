@@ -465,35 +465,6 @@ export function CmsWorkspace({
                           ))}
                         </select>
                       </label>
-                      {f.type === 'option' && (
-                        <label class="cms-schema-extra">
-                          Choices, separated by commas
-                          <input
-                            class="ctl"
-                            value={f.opts || ''}
-                            onInput={(e) =>
-                              updateField(f.id, { opts: e.currentTarget.value })
-                            }
-                          />
-                        </label>
-                      )}
-                      {f.type === 'ref' && (
-                        <label class="cms-schema-extra">
-                          Reference collection
-                          <select
-                            class="ctl"
-                            value={f.ref || ''}
-                            onChange={(e) =>
-                              updateField(f.id, { ref: e.currentTarget.value })
-                            }
-                          >
-                            <option value="">Choose a collection</option>
-                            {C.collections().map((c) => (
-                              <option value={c.id}>{c.name}</option>
-                            ))}
-                          </select>
-                        </label>
-                      )}
                       <label class="cms-check">
                         <input
                           type="checkbox"
@@ -553,6 +524,35 @@ export function CmsWorkspace({
                         <Icon name="trash" size={14} />
                       </button>
                     </div>
+                    {f.type === 'option' && (
+                      <label class="cms-schema-extra">
+                        Choices, separated by commas
+                        <input
+                          class="ctl"
+                          value={f.opts || ''}
+                          onInput={(e) =>
+                            updateField(f.id, { opts: e.currentTarget.value })
+                          }
+                        />
+                      </label>
+                    )}
+                    {f.type === 'ref' && (
+                      <label class="cms-schema-extra">
+                        Reference collection
+                        <select
+                          class="ctl"
+                          value={f.ref || ''}
+                          onChange={(e) =>
+                            updateField(f.id, { ref: e.currentTarget.value })
+                          }
+                        >
+                          <option value="">Choose a collection</option>
+                          {C.collections().map((c) => (
+                            <option value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                   </div>
                 ))}
                 <button
