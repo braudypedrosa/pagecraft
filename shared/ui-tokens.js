@@ -15,6 +15,8 @@ export const UI_TOKENS_CSS = `:root{
   --pc-selection-bg:#eef7e5;
   --pc-selection-text:#263d20;
   --pc-selection-muted:#506348;
+  --pc-focus-bg:var(--pc-selection-bg);
+  --pc-focus-text:var(--pc-selection-text);
   --pc-rail-width:88px;
   --pc-rail-padding-x:10px;
   --pc-control-padding-y:6px;

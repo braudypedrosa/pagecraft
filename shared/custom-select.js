@@ -8,7 +8,7 @@ export const CUSTOM_SELECT_CSS = `
 .pc-custom-select-trigger{width:100%;min-height:var(--h-ctl,var(--pc-control-height,37px));display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-width:0;padding:var(--pc-control-padding,6px 8px);border:1px solid var(--line-2,var(--pc-line,#cbd2d8));border-radius:var(--r-sm,7px);background:var(--panel,var(--pc-field,var(--field,#fff)));background-image:none!important;color:var(--text,var(--pc-text,inherit));font:var(--pc-type-input,inherit);line-height:1.4;text-align:left;cursor:pointer;box-shadow:none;filter:none}
 .pc-sort.pc-custom-select-trigger{height:44px;padding:var(--pc-control-padding,6px 8px)}
 .pc-custom-select-trigger:hover{border-color:var(--text-3,var(--pc-text-2,#6f7771));filter:none}
-.pc-custom-select-trigger:focus-visible,.pc-custom-select-trigger[aria-expanded="true"]{border-color:var(--pc-text,var(--text,#111311));outline:2px solid var(--pc-green,var(--green,#b7f34a));outline-offset:1px}
+.pc-custom-select-trigger[aria-expanded="true"]{background-color:var(--pc-focus-bg,var(--pc-selection-bg,#eef7e5));color:var(--pc-focus-text,var(--pc-selection-text,#263d20))}
 .pc-custom-select-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc-custom-select-trigger>svg{width:14px;height:14px;flex:0 0 14px;color:currentColor;opacity:.64;transition:transform .14s ease}
 .pc-custom-select-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}

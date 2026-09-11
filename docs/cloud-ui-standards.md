@@ -90,6 +90,8 @@ An absent/failed cache never prevents editing. A first visit or a new saved/publ
 
 ### Shared interaction contracts
 
+`shared/ui-focus.js` owns border-free application focus feedback. Keyboard focus uses a soft background and readable foreground; dark rails and primary actions use matching semantic colors. Controls keep their resting borders without focus rings, outline strokes or input glows. Open selects use the same soft fill. Native checkbox/radio labels indicate focus, and native sliders retain their geometry. Published page styles are separate.
+
 Menus use `pc-menu`, `pc-menu-item` and `pc-menu-divider`: 7px popup radius,
 4px item radius, 6px popup inset, 34px minimum item height and the shared control
 text role. Links and buttons use the same geometry. Destructive actions change

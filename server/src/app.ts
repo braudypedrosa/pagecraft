@@ -1,6 +1,7 @@
 import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
+import { UI_FOCUS_CSS } from '../../shared/ui-focus.js';
 import { UI_FONT_FACES, UI_FONTS_CSS } from '../../shared/ui-fonts.js';
 import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
@@ -6038,7 +6039,7 @@ const shell = (title: string, body: string) =>
                            background:#b7f34a;color:#111311;display:inline-flex;align-items:center;justify-content:center;
                            font-size:.82rem;font-weight:600}
   .consent__actions .pc-btn:hover{background:#c5fa63;border-color:#c5fa63}
-  .consent__actions .pc-btn:focus-visible{outline:2px solid #b7f34a;outline-offset:2px}
+
   ${"@"}media(max-width:560px){
     .card--consent{width:min(calc(100vw - 24px),620px)}
     .consent__header{padding:26px 24px 24px}
@@ -6047,6 +6048,7 @@ const shell = (title: string, body: string) =>
     .consent__body{padding:24px}
   }
   ${body.includes("<select") ? CUSTOM_SELECT_CSS : ""}
+  ${UI_FOCUS_CSS}
 </style></head><body><div class="card${
     body.includes('class="consent"') ? " card--consent" : ""
   }">${body}</div>${
