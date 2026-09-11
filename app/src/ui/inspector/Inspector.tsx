@@ -446,7 +446,7 @@ function ComponentProps({ n }: { n: PcNode }) {
             onClick={() => move(pr.k, -1)}><Icon name="toTop" size={11} /></button>
           <button class="bx" title="Move down" disabled={i === list.length - 1}
             onClick={() => move(pr.k, 1)}><Icon name="toBottom" size={11} /></button>
-          <button class="bx" title="Remove this property"
+          <button class="bx danger" title="Remove this property"
             onClick={() => remove(pr.k, pr.label)}><Icon name="trash" size={11} /></button>
         </div>
       )) : (

@@ -1,6 +1,21 @@
 /** Product workspaces share the Pages layout. These adapters bridge the portable
  * builder and server-rendered Cloud screens; published pages never load them. */
 export const WORKSPACE_CSS = `
+/* Shared menu and field-action contracts. Applies only to product chrome. */
+.pc-menu{--pc-menu-radius:7px;--pc-menu-item-radius:4px;padding:6px!important;border-radius:var(--pc-menu-radius)!important}
+.pc-menu :is(a,button).pc-menu-item{box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:34px;margin:0;padding:7px 10px;border:0;border-radius:var(--pc-menu-item-radius);background:transparent;color:var(--pc-text,var(--text));font:var(--pc-type-control);text-align:left;text-decoration:none;box-shadow:none;filter:none}
+.pc-menu :is(a,button).pc-menu-item:hover{background:var(--pc-hover-bg);filter:none}
+.pc-menu :is(a,button).pc-menu-item:focus-visible{outline:2px solid var(--pc-selection-text);outline-offset:-2px;background:var(--pc-hover-bg)}
+.pc-menu .pc-menu-item.danger{color:var(--pc-danger,var(--risk-fg))}
+.pc-menu .pc-menu-item[role=menuitem]{justify-content:space-between}
+.pc-menu form{margin:0!important}
+.pc-menu .pc-menu-divider{height:1px;background:var(--pc-border);margin:6px 4px}
+.pc-field-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--pc-space-2);margin-top:var(--pc-space-2)}
+:is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]){accent-color:var(--pc-green,var(--green,#b7f34a))}
+:is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]):focus-visible{outline:2px solid var(--pc-selection-text);outline-offset:2px}
+.pc-refresh-status{min-height:54px;padding:10px var(--pc-workspace-x);font:var(--pc-type-description);color:var(--pc-ui-secondary);box-sizing:border-box}
+.pc-refresh-status[data-tone=error]{color:var(--pc-danger,var(--risk-fg,#ad2626))}
+
 :root{
   --pc-ui-font:var(--pc-font-body);
   --pc-ui-label-font:var(--pc-font-label);

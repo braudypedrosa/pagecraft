@@ -1,3 +1,4 @@
+import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
 import { UI_FONT_FACES, UI_FONTS_CSS } from '../../shared/ui-fonts.js';
@@ -333,6 +334,15 @@ export function createApp(o: Options) {
   const inviteEmailLimit = throttle(3, 60 * 60 * 1000, 5000);
   const inviteCooldown = throttle(1, 60 * 1000, 5000);
 
+  app.use('*', async (c, next) => {
+    const trace = newRequestTiming();
+    await requestTiming.run(trace, next);
+    if (isEditorHost(c.req.header('host'), o) && /^\/(edit|api|sites)(\/|$)/.test(new URL(c.req.url).pathname)) {
+      c.header('Server-Timing', timingHeader(trace));
+      c.header('X-Request-ID', trace.id);
+    }
+  });
+
   /* Baseline browser hardening. Published HTML adds a sandbox below because it may contain an
      owner's intentional scripts; the editor itself must never be framed by another site. */
   app.use("*", async (c, next) => {
@@ -575,7 +585,7 @@ export function createApp(o: Options) {
   /** The person behind this request, or null. A bad cookie is the same as no cookie. */
   const who = async (c: Context): Promise<User | null> => {
     if (o.accountAuth) {
-      const identity = await o.accountAuth.identity(c);
+      const identity = await timed("auth.verify", () => o.accountAuth!.identity(c));
       if (!identity) return null;
       return o.auth.ensureAuthUser(
         identity.authUserId,
@@ -1882,7 +1892,11 @@ export function createApp(o: Options) {
      there, and the only difference is where the page got it. One build serves both. */
   app.get("/edit/:id", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowed(c, id, "read");
+    const [access, snapshot] = await Promise.allSettled([
+      allowed(c, id, "read"), o.store.byId(id),
+    ]);
+    if (access.status === 'rejected') throw access.reason;
+    const gate = access.value;
     if (!gate.ok) {
       return gate.status === 401
         ? (o.accountAuth
@@ -1892,16 +1906,24 @@ export function createApp(o: Options) {
           : c.html(signInPage()))
         : deny(c, gate.status);
     }
-    const site = await o.store.byId(id);
+    if (snapshot.status === 'rejected') throw snapshot.reason;
+    const site = snapshot.value;
     if (!site) return deny(c, 404);
     if (!o.editorHtml) {
       return c.text("No editor build. Run `node build.mjs` first.", 503);
     }
 
-    const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
-    const storage = o.assets && mediaOwnerId
-      ? await o.assets.usage(mediaOwnerId, FREE_STORAGE_BYTES)
-      : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+    // These reads have no dependencies on one another. Keep authorization fresh,
+    // then overlap storage accounting and the WordPress link catalogue.
+    const [storage, wordpressContent] = await Promise.all([
+      (async () => {
+        const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
+        return o.assets && mediaOwnerId
+          ? o.assets.usage(mediaOwnerId, FREE_STORAGE_BYTES)
+          : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+      })(),
+      wordpressContentForSite(site.id),
+    ]);
     const config = {
       siteId: site.id,
       host: site.host,
@@ -1921,7 +1943,7 @@ export function createApp(o: Options) {
       user: { id: gate.user.id, name: gate.user.name, email: gate.user.email },
       storage,
       doc: site.doc,
-      wordpressContent: await wordpressContentForSite(site.id),
+      wordpressContent,
     };
     return c.html(inject(o.editorHtml, config));
   });
@@ -2179,7 +2201,7 @@ export function createApp(o: Options) {
     let preparedAssets: AssetRecord[] | undefined;
     let publishIdentity: VerifiedIdentity | undefined;
     if (o.hostedPublish && o.accountAuth) {
-      const identity = await o.accountAuth.identity(c);
+      const identity = await timed("auth.verify", () => o.accountAuth!.identity(c));
       if (!identity) return deny(c, 401);
       publishIdentity = identity;
       // Publishing must recheck the authoritative version and membership, even when the
@@ -2801,9 +2823,14 @@ export function createApp(o: Options) {
      deleting the versions that came after it. */
   app.get("/api/sites/:id/history", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowed(c, id, "read");
+    const [access, history] = await Promise.allSettled([
+      allowed(c, id, "read"), o.store.history(id),
+    ]);
+    if (access.status === 'rejected') throw access.reason;
+    const gate = access.value;
     if (!gate.ok) return deny(c, gate.status);
-    const revisions = await o.store.history(id);
+    if (history.status === 'rejected') throw history.reason;
+    const revisions = history.value;
     const authorIds = [
       ...new Set(
         revisions.flatMap((revision) =>
@@ -2811,9 +2838,11 @@ export function createApp(o: Options) {
         ),
       ),
     ];
-    const authors = new Map(
-      (await o.auth.usersByIds(authorIds)).map((user) => [user.id, user]),
-    );
+    const authors = new Map([
+      [gate.user.id, gate.user] as const,
+      ...(await o.auth.usersByIds(authorIds.filter(id => id !== gate.user.id)))
+        .map(user => [user.id, user] as const),
+    ]);
     return c.json(revisions.map((revision) => {
       const author = revision.savedBy ? authors.get(revision.savedBy) : null;
       return {
@@ -3114,10 +3143,15 @@ export function createApp(o: Options) {
   /* ---------------------------------------------------------------- the assets */
 
   app.get("/api/sites/:id/assets", async (c) => {
-    const gate = await allowed(c, c.req.param("id"), "read");
+    const [access, metadata] = await Promise.allSettled([
+      allowed(c, c.req.param("id"), "read"),
+      o.assets ? o.assets.list(c.req.param("id")) : Promise.resolve([]),
+    ]);
+    if (access.status === 'rejected') throw access.reason;
+    const gate = access.value;
     if (!gate.ok) return deny(c, gate.status);
-    if (!o.assets) return c.json([]);
-    return c.json((await o.assets.list(c.req.param("id"))).map(metaOf));
+    if (metadata.status === 'rejected') throw metadata.reason;
+    return c.json(metadata.value.map(metaOf));
   });
 
   /* Uploading is a write, so a content account may do it: swapping a photograph is a content

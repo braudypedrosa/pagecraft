@@ -11,6 +11,29 @@ import { Icon } from '../Icon';
 import { bound, writer } from './ctl';
 import type { Control, Node as PcNode } from '../../core/types';
 import { useId } from 'preact/hooks';
+import { cloneElement, isValidElement, toChildArray } from 'preact';
+
+/** Associate native leaves with this field without replacing their DOM nodes. Composite
+ * parts declare a suffix; badge actions never become part of the input's name. */
+function labelControls(children: any, label: string, id: string, help?: string, path = '', ids: string[] = []): any {
+  return toChildArray(children).map((child, index) => {
+    if (!isValidElement(child) || typeof child.type !== 'string') return child;
+    const props = child.props as any;
+    const key = `${path}-${index}`;
+    const leaf = ['input', 'textarea', 'select'].includes(child.type);
+    const part = props['data-field-part'];
+    if (leaf) ids.push(props.id || `${id}${key}`);
+    return cloneElement(child, {
+      ...(leaf ? {
+        id: props.id || `${id}${key}`,
+        ...(!props['aria-label'] && !props['aria-labelledby']
+          ? part ? { 'aria-label': `${label} ${part}` } : { 'aria-labelledby': id } : {}),
+        'aria-describedby': [props['aria-describedby'], help].filter(Boolean).join(' ') || undefined,
+      } : {}),
+      ...(props.children != null ? { children: labelControls(props.children, label, id, help, key, ids) } : {}),
+    });
+  });
+}
 
 const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile' };
 
@@ -129,21 +152,24 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
   const pbound = pb && pb.src === 'prop'
     ? (C.findProp(C.findComponent(C.state.ui.cedit), pb.path) || { label: pb.path }).label
     : '';
+  const helpId = fid || pbound || c.note ? `${labelId}-help` : undefined;
+  const inputIds: string[] = [];
+  const controls = labelControls(children, c.label || 'Value', labelId, helpId, '', inputIds);
 
   return (
     <div class={'f' + (c.layout === 'inline' && !(bindable && C.bindScope(n.id)) && !pbound && C.state.ui.mode !== 'component' ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
-      <label id={labelId}>
-        {c.label || ''}
+      <label for={inputIds[0]}>
+        <span id={labelId}>{c.label || ''}</span>
         {c.r ? <ResponsiveBadge n={n} c={c} /> : null}
         {bindable ? <BindBadge n={n} c={c} /> : null}
         {varies ? <PropBadge n={n} c={c} /> : null}
       </label>
-      {children}
+      {controls}
       {fid
-        ? <div class="note">{f ? <>From <b>{f.label}</b> · {scope!.col.name}</> : <>CMS field or source is missing. Reconnect or clear the CMS binding.</>}</div>
+        ? <div id={helpId} class="note">{f ? <>From <b>{f.label}</b> · {scope!.col.name}</> : <>CMS field or source is missing. Reconnect or clear the CMS binding.</>}</div>
         : pbound
-          ? <div class="note">Set on each instance — <b>{pbound}</b>.</div>
-          : c.note ? <div class="note">{c.note}</div> : null}
+          ? <div id={helpId} class="note">Set on each instance — <b>{pbound}</b>.</div>
+          : c.note ? <div id={helpId} class="note">{c.note}</div> : null}
     </div>
   );
 }

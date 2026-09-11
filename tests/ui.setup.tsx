@@ -79,6 +79,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     repaint: rec('repaint'),
     repaintCss: rec('repaintCss'),
     layoutCanvas: rec('layoutCanvas'),
+    restoreCanvasLayout: rec('restoreCanvasLayout'),
     positionHud: rec('positionHud'),
     renderDim: rec('renderDim'),
     bindModal: rec('bindModal'),

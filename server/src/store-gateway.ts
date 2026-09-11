@@ -1,3 +1,4 @@
+import { timed } from './request-timing.ts';
 /* A narrow HTTPS transport for hosts that cannot open PostgreSQL's TCP ports.
 
    The Supabase function on the other end does not accept SQL. It accepts the finite set of
@@ -108,7 +109,7 @@ export class PagecraftGateway {
         "REQUEST_TOO_LARGE",
       );
     }
-    const response = await this.request(this.url, {
+    const response = await timed("gateway." + op, () => this.request(this.url, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -116,7 +117,7 @@ export class PagecraftGateway {
       },
       body: serialized,
       signal: AbortSignal.timeout(30_000),
-    });
+    }));
     const parsed = await response.json().catch(() => null) as unknown;
     const body = parsed && typeof parsed === "object"
       ? parsed as GatewayReply<T> & GatewayFailure

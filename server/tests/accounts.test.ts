@@ -1584,3 +1584,23 @@ test("cross-origin cookie-backed mutations are refused", async () => {
   a.equal(response.status, 403);
   a.deepEqual(await response.json(), { error: "origin_not_allowed" });
 });
+
+test('private read overlap never exposes data without fresh membership and history reuses the verified author', async () => {
+  const assets = new MemoryAssetStore();
+  const {request,store,auth,accountAuth} = rig({assets});
+  const site = await store.create({host:'private-read.test',name:'Private read QA',doc:doc()});
+  let listCalls=0;
+  const list=assets.list.bind(assets);assets.list=async id=>{listCalls++;return list(id);};
+  const denied=await request(`/api/sites/${site.id}/assets`);
+  a.equal(denied.status,401);a.ok(listCalls);a.doesNotMatch(await denied.text(),/Private read QA/);
+  accountAuth.current={authUserId:'auth-read-qa',email:'read-qa@example.test',name:'QA'};
+  const user=await auth.ensureAuthUser('auth-read-qa','read-qa@example.test','QA');
+  await auth.grant(site.id,user.id,'owner');
+  const allowed=await request(`/api/sites/${site.id}/assets`);
+  a.equal(allowed.status,200);a.equal(allowed.headers.get('cache-control'),'private, no-store');
+  a.match(allowed.headers.get('server-timing') || '',/auth.verify/);
+  a.ok(allowed.headers.get('x-request-id'));
+  await auth.revoke(site.id,user.id);
+  const revoked=await request(`/edit/${site.id}`);
+  a.equal(revoked.status,404);a.doesNotMatch(await revoked.text(),/Private read QA/);
+});

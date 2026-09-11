@@ -81,3 +81,28 @@ Sites cards use private, versioned 960 × 600 WebP thumbnails. The cache key is 
 Thumbnail files live under the environment's publication root in `.dashboard-previews`, with one atomic record per site, capped at 1 MB of image data. They survive application deployments, are shared across authorized viewers, and are deleted with the site. GETs require site access and use private immutable browser caching with an ETag and `Vary: Cookie`. Uploads require write access, validate decoded dimensions/type, and reject a saved/published version that changed during capture or decoding. No document/database migration, public-site request, headless browser service, or background worker is involved.
 
 An absent/failed cache never prevents editing. A first visit or a new saved/published version generates the image on demand; failed generation retains any previous thumbnail and offers Retry. Inaccessible external image/font resources may prevent capture and remain retryable rather than saving incomplete artwork. Preview freshness failures are distinguished from successful refreshes. Published pages and the builder canvas keep their own responsive rendering.
+
+### Shared interaction contracts
+
+Menus use `pc-menu`, `pc-menu-item` and `pc-menu-divider`: 7px popup radius,
+4px item radius, 6px popup inset, 34px minimum item height and the shared control
+text role. Links and buttons use the same geometry. Destructive actions change
+semantic color only. Context-menu shortcuts retain their trailing alignment.
+Select option lists inherit the computed trigger typography, including compact
+toolbar and authentication densities, rather than the document body size.
+
+`Field` supplies stable native input IDs, visible-label associations and help
+relationships. Composite leaves declare `data-field-part` (value, unit, side,
+page or anchor). Action badges remain independently named buttons. Explicit
+field actions use `pc-field-actions` for the shared 8px gap. Native application
+checkboxes and radios retain browser semantics and use Craft Green.
+
+Workspace exits schedule `restoreCanvasLayout()` after revealing the stage.
+Hidden-stage measurements cannot replace the last usable canvas dimensions.
+No-op scope changes do not enter document history. Escape from a color popover
+returns focus to its swatch; outside-pointer dismissal preserves the destination.
+
+Submissions reserve a contextual refresh-status area. Pending, deferred, failed
+and successful refreshes use that one live region; the underlying shared action
+still restores its trigger state. Failed refreshes retain the last loaded list
+and explain how to retry.

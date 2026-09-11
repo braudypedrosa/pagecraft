@@ -133,9 +133,12 @@ test('cached inbox navigation paints immediately, revalidates, rejects supersede
   pending[0].resolve(response('<div class="pc-manage-content"><h1>Obsolete</h1></div>',pending[0].url));
   await Promise.resolve(); await Promise.resolve();
   expect(w.document.querySelector('h1').textContent).toBe('Cached entries');
-  pending[1].reject(new Error('Refresh failed. Try again.'));
-  await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-notice]').getAttribute('role')).toBe('alert'));
+  pending[1].reject(new Error('Failed to fetch'));
+  await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-status]').getAttribute('role')).toBe('alert'));
   expect(w.document.querySelector('h1').textContent).toBe('Cached entries');
+  expect(w.document.querySelector('[data-refresh-status]').textContent).toContain('Showing the last loaded entries');
+  expect(w.document.querySelectorAll('[role=alert]')).toHaveLength(1);
+  expect(w.document.querySelector('[data-refresh-status]').previousElementSibling.tagName).toBe('H1');
   expect(w.document.querySelector('.pc-manage-content').getAttribute('aria-busy')).toBeNull();
   w.document.querySelector('[data-inbox-refresh]').click();
   pending[2].resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1></div>',pending[2].url));
@@ -150,7 +153,7 @@ test('only the expected parent may refresh; replacement waits for details to clo
   const message=(origin,source)=>w.dispatchEvent(new w.MessageEvent('message',{origin,source,data:'pagecraft:refresh-submissions'}));
   message('https://evil.test',w.parent);message(w.location.origin,null);expect(w.fetch).not.toHaveBeenCalled();
   const dialog=w.document.querySelector('dialog');message(w.location.origin,w.parent);
-  await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-notice]').textContent).toContain('Close the details'));
+  await vi.waitFor(()=>expect(w.document.querySelector('[data-refresh-status]').textContent).toContain('Close the details'));
   expect(w.document.querySelector('dialog')).toBe(dialog);expect(dialog.querySelector('input').value).toBe('Preserved details');
   dialog.removeAttribute('open');dialog.dispatchEvent(new w.Event('close'));
   await vi.waitFor(()=>expect(w.document.querySelector('h1').textContent).toBe('New'));

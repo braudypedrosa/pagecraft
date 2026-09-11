@@ -410,7 +410,8 @@ body.content-only .s-hud [data-x=down]{display:none}
 }
 .brow .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;opacity:0}
 .brow:hover .bx{opacity:1}
-.brow .bx:hover{background:var(--risk-bg);color:var(--risk-fg)}
+.brow .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
+.brow .bx.danger:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .pvgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
 .pvcard{
   display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;cursor:grab;
@@ -1408,7 +1409,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 28px;border-bottom:1px solid var(--line)}
 .cms-workspace h1{font-size:22px;margin:0}.cms-workspace h2{font-size:24px;margin:0}.cms-workspace h3{font-size:var(--fs-5);margin:0 0 8px}.cms-workspace p{line-height:1.5;margin:6px 0;color:var(--text-2)}
 .cms-workspace-layout{display:grid;grid-template-columns:220px minmax(0,1fr);flex:1;min-height:0}.cms-collections{padding:24px 16px;border-right:1px solid var(--line);overflow:auto}.cms-collections .btn{justify-content:space-between;margin-bottom:8px}
-.cms-content{padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label{display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
+.cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
 .cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
 .cms-workspace .ctl:focus{border-color:var(--ink);box-shadow:none;outline:2px solid var(--ink);outline-offset:2px}
 .cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
@@ -1423,6 +1424,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-schema-field>.cms-actions>.btn{min-height:36px;height:36px;width:32px;padding:0;justify-content:center}
 @media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
 
+@container(max-width:480px){.cms-list-tools{grid-template-columns:minmax(0,1fr)}}
 @media(min-width:768px) and (max-width:1024px){
 .cms-schema-field{grid-template-columns:minmax(0,1fr)}
 .cms-schema-inputs{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -1617,11 +1619,11 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
 </div>
 
 <div id="ghost"></div>
-<div class="accountPop" id="accountPop" role="dialog" aria-label="Account" hidden>
+<div class="accountPop pc-menu" id="accountPop" role="dialog" aria-label="Account" hidden>
   <p id="accountEmail"></p>
-  <a href="/">Sites</a>
-  <a href="/account">Account settings</a>
-  <form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>
+  <a class="pc-menu-item" href="/">Sites</a>
+  <a class="pc-menu-item" href="/account">Account settings</a>
+  <form method="post" action="/auth/logout"><button class="pc-menu-item" type="submit">Sign out</button></form>
 </div>
 <div id="toast" hidden aria-hidden="true" role="status" aria-live="polite" aria-atomic="true"></div>
 
@@ -3249,12 +3251,13 @@ function openCtx(x, y, ids) {
   const items = menuFor(ids);
   if (!items.length) return;
   const m = document.createElement('div');
-  m.id = 'ctx';
+  m.id = 'ctx'; m.className = 'pc-menu';
   m.setAttribute('role', 'menu');
   m.setAttribute('aria-label', 'Element actions');
-  m.innerHTML = items.map(i =>
-    `<button role="menuitem" data-a="${i.act}"${i.danger ? ' class="danger"' : ''}${i.sep ? ' data-sep="1"' : ''}>`
-    + `<span>${esc(i.label)}</span>${i.key ? `<em>${esc(i.key)}</em>` : ''}</button>`).join('');
+  m.innerHTML = items.map((i, index) =>
+    `<button role="menuitem" data-a="${i.act}" class="pc-menu-item${i.danger ? ' danger' : ''}">`
+    + `<span>${esc(i.label)}</span>${i.key ? `<em>${esc(i.key)}</em>` : ''}</button>`
+    + (i.sep && index < items.length - 1 ? '<div class="pc-menu-divider" role="separator"></div>' : '')).join('');
   document.body.appendChild(m);
   /* place it at the pointer, then pull it back inside the window rather than letting
      a menu near the right or bottom edge run off */
@@ -3891,7 +3894,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     closeModal, closeReviewSurface,
     newPageModal, openPages, openPage, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
-    layoutCanvas, positionHud, renderDim, askPick, bindModal, enterEdit,
+    layoutCanvas, positionHud, renderDim, restoreCanvasLayout, askPick, bindModal, enterEdit,
     mediaTake, mediaPicker, assetsToBlob, imgSize,
     asset: id => AS.mem.get(id) || null, assetCount: () => AS.mem.size }
 ));
@@ -4041,7 +4044,7 @@ function mediaModal() {
           Upload below, or drop an image onto any <b>Image</b> or <b>Background</b> field.</div>`,
       `<span class="note" style="margin:0;flex:1;text-align:left">${list.length
         ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())} · click one to place it`
-        : 'Stored in this browser'}</span>
+        : IS_WORDPRESS ? 'Stored in the WordPress media library' : SRV ? 'Stored with this project' : 'Stored in this browser'}</span>
        ${orphans ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
        <button class="btn" id="mmUp">${svg('image', 13)} Upload</button>
        <button class="btn primary" id="mmDone">Done</button>`, 'lg');
@@ -4362,7 +4365,7 @@ function renderModebar() {
   if (done) done.addEventListener('click', () => {
     /* `componentClose` rather than `setMode('page')`: the component id has to be dropped too,
        or the next thing that reads `ui.cedit` is editing something nobody has open. */
-    if (state.ui.mode === 'component') { edit(() => componentClose()); render(); } else setMode('page');
+    if (state.ui.mode === 'component') { componentClose(); render(); } else setMode('page');
   });
   $$('.itemBar select', $('#modebar')).forEach(select => select.addEventListener('change', () => {
     state.ui.item = state.ui.item || {}; state.ui.item[select.dataset.col] = +select.value; paint(); renderModebar();
@@ -4412,9 +4415,12 @@ function renderDoc() {
    iframe, so it keeps working in unscaled document coordinates — only the three
    places that cross the boundary need the factor, and `zoomK` is what they read. */
 let zoomK = 1;
+function restoreCanvasLayout() {
+  requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
+}
 function layoutCanvas() {
   const wrap = $('#frameWrap'), cv = $('#canvas');
-  if (!wrap || !cv) return;
+  if (!wrap || !cv || !$('#stage')?.clientWidth || !wrap.clientHeight) return;
   if (document.body.classList.contains('preview')) {
     /* preview is the real thing at real size — no frame, no scale */
     zoomK = 1;
@@ -4443,7 +4449,7 @@ function layoutCanvas() {
 
 function renderDim() {
   const el = $('#dim');
-  if (!el || !cwin) return;
+  if (!el || !cwin || !$('#stage')?.clientWidth) return;
   const target = canvasWidth(state.ui.dev, state.meta.maxWidth);
   const stage = $('#stage');
   /* what Fit *would* give, so the label reads the same whichever option is chosen */
@@ -5205,7 +5211,7 @@ function projectModal() {
     ? wordpressSaveState.dirty : false;
   openModal(IS_WORDPRESS ? 'Pagecraft design settings' : 'Project settings', `
     <div class="fgrid">
-      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(PC_UI.projectIdentity(m.name, SRV?.name))}" maxlength="120">${SRV ? '<button class="btn" type="button" id="mSaveName">Save name</button>' : ''}</div>`}
+      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(PC_UI.projectIdentity(m.name, SRV?.name))}" maxlength="120">${SRV ? '<div class="pc-field-actions"><button class="btn" type="button" id="mSaveName">Save name</button></div>' : ''}</div>`}
       <div class="f"><label for="mMax">Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
       <div class="f"><label>Body font</label><div id="mFontBox"></div></div>
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
@@ -5309,7 +5315,7 @@ function projectModal() {
     const reset = document.createElement('div'); reset.className = 'settings-reset';
     reset.innerHTML = '<h3>Reset content</h3><p>These actions replace your pages. Download a project backup first.</p><div class="settings-reset-actions"></div>';
     reset.querySelector('div').append($('#mBlank'), $('#mReset')); advanced.append(reset);
-    $('#mFoot').insertAdjacentHTML('afterbegin', '<span class="note">Changes save automatically. Check the save status in the header.</span>');
+    $('#mFoot').insertAdjacentHTML('afterbegin', '<span class="note">Design changes save automatically. Use Save name to update the project name.</span>');
     $('#mDone').textContent = 'Close';
   }
 
@@ -5874,7 +5880,7 @@ function bindTop() {
     document.body.classList.remove('submissions-loading');
     document.body.classList.remove('submissions-open');
     $$('#leftRail button').forEach(b => b.classList.toggle('on', submissionsActive.includes(b)));
-    requestAnimationFrame(() => { layoutCanvas(); positionHud(); renderDim(); });
+    restoreCanvasLayout();
   };
   const prepareSubmissions = () => {
     if (!SRV?.siteId || submissionsFrame) return;

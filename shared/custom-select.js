@@ -171,6 +171,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (openRecord && openRecord !== record) close(openRecord);
     renderMenu(record);
     const styles = getComputedStyle(record.trigger);
+    record.menu.style.font = styles.font || 'var(--pc-type-control)';
     record.menu.style.setProperty('--pc-cs-bg', styles.backgroundColor || '#fff');
     record.menu.style.setProperty('--pc-cs-fg', styles.color || '#111311');
     record.menu.style.setProperty('--pc-cs-line', styles.borderColor || '#cbd2d8');

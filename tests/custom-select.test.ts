@@ -19,9 +19,12 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   a.equal(trigger.getAttribute('aria-label'), 'Sort sites');
   a.equal(select.getAttribute('aria-hidden'), 'true');
 
+  trigger.style.font = '500 12.5px Manrope';
   trigger.click();
   const menu = document.querySelector<HTMLElement>('.pc-custom-select-popover')!;
   a.equal(menu.hidden, false);
+  a.equal(menu.style.fontSize, '12.5px');
+  a.match(menu.style.fontFamily, /Manrope/);
   a.equal(trigger.getAttribute('aria-expanded'), 'true');
   await new Promise(resolve => setTimeout(resolve, 30));
   const name = [...menu.querySelectorAll<HTMLButtonElement>('[role="option"]')]

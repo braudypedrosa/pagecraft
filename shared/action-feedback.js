@@ -67,10 +67,10 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&!['error','progress'].includes(r.node.dataset.tone)){clearTimeout(r.timer);r.node.remove();records.delete(key);} }
     return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone}), success:value=>notify(value,{id,tone:'success'}), error:value=>notify(value,{id,tone:'error'}) };
   };
-  const begin = (button, message, key) => {
+  const begin = (button, message, key, options = {}) => {
     if (button && pending.has(button)) return null;
     if(button&&!keys.has(button))keys.set(button,'button-'+(++sequence));
-    const notice=notify(message,{tone:'progress',...(key?{id:'job-'+key}:button?{id:keys.get(button)}:{})});
+    const notice=options.announce === false ? {update:()=>{},success:()=>{},error:()=>{},dismiss:()=>{}} : notify(message,{tone:'progress',...(key?{id:'job-'+key}:button?{id:keys.get(button)}:{})});
     const snapshot=button?{html:button.innerHTML,disabled:button.disabled,busy:button.getAttribute('aria-busy'),label:button.getAttribute('aria-label'),ariaDisabled:button.getAttribute('aria-disabled')}:null;
     let done=false;
     if(button){pending.set(button,true);button.disabled=true;button.setAttribute('aria-busy','true');button.setAttribute('aria-disabled','true');button.setAttribute('aria-label',message);button.setAttribute('data-pc-pending','');button.textContent=message;}

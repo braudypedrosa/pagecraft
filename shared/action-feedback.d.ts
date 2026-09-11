@@ -10,7 +10,7 @@ export interface ActionFeedback {
   destroy(): void;
   flash(message: string, path?: string): void;
   notify(message: string, options?: {tone?: FeedbackTone; id?: string; duration?: number}): Notice;
-  begin(button: HTMLElement | null, message: string): {update: Notice['update'];success(message: string): void;error(message: string): void;cancel(): void} | null;
+  begin(button: HTMLElement | null, message: string, key?: string, options?: {announce?: boolean}): {update: Notice['update'];success(message: string): void;error(message: string): void;cancel(): void} | null;
 }
 export interface ProcessingOptions<T> {
   key?: string;

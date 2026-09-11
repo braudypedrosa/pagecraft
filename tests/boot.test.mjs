@@ -895,3 +895,35 @@ test('focused native controls keep their activation keys out of canvas shortcuts
     button.remove(); pg.tree.splice(pg.tree.indexOf(node),1); C.selSet([]); w.render();
   }
 });
+
+test('hidden workspaces preserve canvas geometry and restore it when shown after resize',async()=>{
+ const {window:w,doc}=await boot();
+ const stage=doc.querySelector('#stage'),wrap=doc.querySelector('#frameWrap'),canvas=doc.querySelector('#canvas');
+ let width=1000,height=700;
+ Object.defineProperty(stage,'clientWidth',{configurable:true,get:()=>width});
+ Object.defineProperty(wrap,'clientHeight',{configurable:true,get:()=>height});
+ try {
+  w.__CORE.state.ui.zoom='fit';w.layoutCanvas();w.renderDim();
+  const before=canvas.getAttribute('style'),label=doc.querySelector('#dim').textContent;
+  width=0;height=0;w.layoutCanvas();w.renderDim();
+  a.equal(canvas.getAttribute('style'),before);a.equal(doc.querySelector('#dim').textContent,label);
+  width=650;height=580;w.restoreCanvasLayout();await new Promise(r=>setTimeout(r,40));
+  a.ok(parseFloat(wrap.style.width)>500);a.ok(parseFloat(canvas.style.height)>500);
+  a.notEqual(canvas.getAttribute('style'),before);
+ } finally {delete stage.clientWidth;delete wrap.clientHeight;}
+});
+
+test('component Done is a UI transition; it adds neither history nor a content edit',async()=>{
+ const {window:w,doc}=await boot(),C=w.__CORE;
+ const old=C.state.meta.components,history=[...C.hist.u],redo=[...C.hist.r];
+ const node=C.N('heading');C.state.meta.components=[...(old||[]),{id:'qa-noop-done',name:'QA Done',node,props:[]}];
+ C.hist.u.length=0;C.hist.r.length=0;
+ try {
+  w.editComponent('qa-noop-done');const before=JSON.stringify(C.doc());
+  doc.querySelector('#doneScope').click();
+  a.equal(C.hist.u.length,0);a.equal(JSON.stringify(C.doc()),before);
+  w.editComponent('qa-noop-done');C.edit(()=>{node.props.text='Changed once';});
+  doc.querySelector('#doneScope').click();a.equal(C.hist.u.length,1);
+  C.undo();a.notEqual(C.findComponent('qa-noop-done').node.props.text,'Changed once');
+ } finally {C.componentClose();C.state.meta.components=old;C.hist.u.splice(0,C.hist.u.length,...history);C.hist.r.splice(0,C.hist.r.length,...redo);w.render();}
+});

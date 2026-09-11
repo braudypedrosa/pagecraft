@@ -199,7 +199,7 @@ function Blocks() {
               <b>{b.name}</b>
               <small>{def ? def.label : 'Block'}</small>
             </span>
-            <button class="bx" title="Forget this block" onClick={e => forget(e, b.id)}>
+            <button class="bx danger" title="Forget this block" onClick={e => forget(e, b.id)}>
               <Icon name="trash" size={11} />
             </button>
           </div>
@@ -300,7 +300,7 @@ function Components() {
             <button class="bx" title="Edit this component" onClick={e => open(e, cd.id)}>
               <Icon name="edit" size={11} />
             </button>
-            <button class="bx" title="Delete this component" onClick={e => remove(e, cd.id)}>
+            <button class="bx danger" title="Delete this component" onClick={e => remove(e, cd.id)}>
               <Icon name="trash" size={11} />
             </button>
           </div>

@@ -150,6 +150,7 @@ export interface Legacy {
 
   /** the canvas geometry, which changes when the inspector shows or hides */
   layoutCanvas(): void;
+  restoreCanvasLayout(): void;
   positionHud(): void;
   renderDim(): void;
 

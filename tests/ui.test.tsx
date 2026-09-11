@@ -1087,3 +1087,43 @@ test('component property actions are named buttons and rename is one undoable ed
   a.equal(C.findComponent(cid)!.props![0].label,'Stub name');a.equal(C.hist.u.length,before+1);
   C.undo();a.equal(C.findComponent(cid)!.props![0].label,'Title');
 });
+
+test('Field names native leaves, distinguishes composite parts and preserves identity and caret', () => {
+  const n = heading();
+  const control: Control = { t: 'text', k: 'text', label: 'Heading text', note: 'Use a short title.' };
+  r.draw(() => <Ctl n={n} c={control} />, 'right');
+  const input = r.$('input') as HTMLInputElement;
+  const id = input.id;
+  a.ok(id);
+  a.equal(r.$('label')!.getAttribute('for'), id);
+  a.equal(document.getElementById(input.getAttribute('aria-labelledby')!)!.textContent, 'Heading text');
+  a.equal(document.getElementById(input.getAttribute('aria-describedby')!)!.textContent, 'Use a short title.');
+  input.focus(); r.type(input, 'QA title'); input.setSelectionRange(2, 5);
+  r.draw(<Ctl n={n} c={control} />);
+  a.equal(r.$('input'), input); a.equal(input.id, id); a.equal(input.selectionStart, 2);
+  r.draw(<Ctl n={n} c={{t:'unit',c:'font-size',label:'Size',r:1,units:['px','rem']}} />);
+  a.equal(r.$('input')!.getAttribute('aria-label'), 'Size value');
+  a.equal(r.$('select')!.getAttribute('aria-label'), 'Size unit');
+  a.notEqual(r.$('input')!.id,r.$('select')!.id);
+  r.draw(<Ctl n={n} c={{t:'box',c:'padding',label:'Padding',r:1}} />);
+  a.deepEqual(r.$$('input').map(el=>el.getAttribute('aria-label')), ['Padding top','Padding right','Padding bottom','Padding left']);
+});
+
+test('colour Escape restores its anchor; outside dismissal preserves the destination', async () => {
+  const n = heading();
+  for (const value of ['', '#3366cc', C.cvar('ink')]) {
+    n.css.d.color = value;
+    r.draw(() => <Ctl n={n} c={{t:'color',c:'color',label:'Colour'}} />, 'right');
+    const sw = r.$('button.sw')!; sw.focus(); r.click(sw);
+    await act(async()=>{await new Promise(resolve=>setTimeout(resolve,40));});
+    const depth=C.hist.u.length;
+    act(()=>{document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));});
+    a.equal(r.$('.cp'),null); a.equal(document.activeElement,sw);
+    a.equal(C.hist.u.length,depth); a.equal(n.css.d.color,value);
+    r.click(sw);
+    await act(async()=>{await new Promise(resolve=>setTimeout(resolve,40));});
+    const outside=document.createElement('button');document.body.append(outside);outside.focus();
+    act(()=>{outside.dispatchEvent(new Event('pointerdown',{bubbles:true}));});
+    a.equal(r.$('.cp'),null);a.equal(document.activeElement,outside);outside.remove();
+  }
+});

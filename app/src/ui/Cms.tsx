@@ -43,7 +43,7 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
       {/* Deleting a collection takes its items with it. That is not a content edit however
           much of the content it removes, and the server refuses it. */}
       {L.canStructure() ? (
-        <button type="button" class="bx" disabled={busy} aria-busy={busy} title={busy ? 'Deleting collection…' : 'Delete this collection'} onClick={remove}>
+        <button type="button" class="bx danger" disabled={busy} aria-busy={busy} title={busy ? 'Deleting collection…' : 'Delete this collection'} onClick={remove}>
           <Icon name="trash" size={11} />
         </button>
       ) : null}

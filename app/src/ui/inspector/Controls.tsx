@@ -84,9 +84,9 @@ function UnitCtl({ n, c }: P) {
   };
   return <Field n={n} c={c}>
     <div class="unit">
-      <input class="ctl" type="number" step={c.step || 1} value={num} placeholder="auto"
+      <input data-field-part="value" class="ctl" type="number" step={c.step || 1} value={num} placeholder="auto"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={w.done} />
-      <select class="ctl" value={u}
+      <select data-field-part="unit" class="ctl" value={u}
         onChange={e => { push((e.target as HTMLElement).parentElement!); w.done(); }}>
         {units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
       </select>
@@ -101,9 +101,9 @@ function SliderCtl({ n, c }: P) {
   const push = (x: string) => w.live(c.raw ? String(x) : x + 'px');
   return <Field n={n} c={c}>
     <div class="sld">
-      <input type="range" min={c.min} max={c.max} step={c.step} value={v}
+      <input data-field-part="slider" type="range" min={c.min} max={c.max} step={c.step} value={v}
         onInput={e => push((e.target as HTMLInputElement).value)} onChange={w.done} />
-      <input class="ctl num" type="number" min={c.min} max={c.max} step={c.step} value={v}
+      <input data-field-part="value" class="ctl num" type="number" min={c.min} max={c.max} step={c.step} value={v}
         onInput={e => push((e.target as HTMLInputElement).value)} onBlur={w.done} />
     </div>
   </Field>;
@@ -292,12 +292,12 @@ function BoxCtl({ n, c }: P) {
     </div>
     <div class="row4">
       {SIDES.map((s, k) => (
-        <input class="ctl" key={s} type="number" value={vals[k].n} placeholder="0" title={s}
+        <input data-field-part={s} class="ctl" key={s} type="number" value={vals[k].n} placeholder="0" title={s}
           onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={L.endTx} />
       ))}
     </div>
     <div class="row4u">
-      <select class="ctl" value={u} style={{ width: '58px', padding: '2px 4px', fontSize: 'var(--fs-1)' }}
+      <select data-field-part="unit" class="ctl" value={u} style={{ width: '58px', padding: '2px 4px', fontSize: 'var(--fs-1)' }}
         onChange={e => { push((e.target as HTMLElement).closest('.f')!); L.endTx(); }}>
         {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
       </select>
@@ -586,7 +586,7 @@ function LinkCtl({ n, c }: P) {
   };
 
   return <Field n={n} c={c}>
-    <select class="ctl" value={link.mode}
+    <select data-field-part="type" class="ctl" value={link.mode}
       onChange={e => {
         const mode = (e.target as HTMLSelectElement).value;
         if (mode === 'none') (n.props as PropBag)[tkey] = '';
@@ -600,13 +600,13 @@ function LinkCtl({ n, c }: P) {
     </select>
 
     {link.mode === 'page' ? <>
-      <select class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || here}
+      <select data-field-part="page" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || here}
         onChange={e => commit({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' })}>
         {C.state.pages.map(p => (
           <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>
         ))}
       </select>
-      <select class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.frag || ''}
+      <select data-field-part="anchor" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.frag || ''}
         onChange={e => commit({ ...C.linkOf(n, c.k!, here), frag: (e.target as HTMLSelectElement).value })}>
         <option value="">Top of the page</option>
         {anchors.map(id => <option key={id} value={id}>#{id}</option>)}

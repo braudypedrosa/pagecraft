@@ -105,7 +105,10 @@ export function ColorPop(
       onClose();
     };
     const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+      if (e.key === 'Escape') {
+        e.preventDefault(); e.stopPropagation(); onClose();
+        if (anchor.isConnected) anchor.focus({ preventScroll: true });
+      }
     };
     document.addEventListener('pointerdown', away, true);
     document.addEventListener('pagecraft:outside-pointer', onClose);

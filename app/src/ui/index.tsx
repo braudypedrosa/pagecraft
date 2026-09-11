@@ -112,6 +112,7 @@ export function mount(core: Core, legacy: Legacy) {
     const host = document.getElementById('pages-workspace-host');
     if (host) render(null, host);
     document.body.classList.remove('pages-open');
+    legacy.restoreCanvasLayout();
   };
   const openPages = () => {
     let host = document.getElementById('pages-workspace-host');
@@ -133,6 +134,7 @@ export function mount(core: Core, legacy: Legacy) {
     railButtons.forEach(b => b.classList.toggle('on', b.getAttribute('data-t') === 'cms'));
     render(<CmsWorkspace key={collectionId} collectionId={collectionId} close={() => {
       render(null, host!); document.body.classList.remove('cms-open');
+      legacy.restoreCanvasLayout();
       railButtons.forEach(b => b.classList.toggle('on', b === active));
       previous?.focus();
     }} />, host);
