@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-11T16:00:43.294Z",
+  "capturedAt": "2026-09-11T16:23:24.383Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -13,7 +13,7 @@
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
     "shared/ui-typography.js": "9f3189068f121be722b674b051c8d41af66b409c463ec89311397dc2af66780e",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
-    "shared/workspace-styles.js": "25175728238edccd3a9cd61dd7d229281af6ce50bccb57c7b160e24ab17f3f02",
+    "shared/workspace-styles.js": "0405118c73d4250611f048e5499784ee2ecb6c80d94ce8711da0e2c99c39d41b",
     "shared/dialog-styles.js": "4bc8bf9e9520fa0ecd0104b9510e934ca4542c3014a7b0ec9123cb05a0ebae16",
     "shared/custom-select.js": "ca1a180203feae7665c0c6cc5d5ab1874a4c0f3fd931b788122d02f158d834ca",
     "shared/action-feedback.js": "5dc38ff2a21d93888a9541933bff27e453012a6cbaa76d4c31781a4e70490b2d",

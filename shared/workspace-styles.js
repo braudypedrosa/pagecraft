@@ -123,6 +123,8 @@ ${DIALOG_CSS}
 .dashboard-app .pc-settings-main{max-width:800px}
 .dashboard-app .pc-settings-nav button{font-family:var(--pc-ui-font);font-size:var(--pc-control-font);font-weight:500}
 .dashboard-app .pc-toolbar{margin-top:0}
+/* Empty results are message rows, not equal-height site cards. */
+.dashboard-app .pc-site-grid:has(>.pc-list-empty:not([hidden])){grid-auto-rows:auto}
 .dashboard-app .pc-manage-grid{padding-top:0}
 
 /* Dense app tables: cells own spacing; headings align with the leading
