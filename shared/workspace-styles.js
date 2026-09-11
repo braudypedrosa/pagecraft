@@ -13,7 +13,7 @@ export const WORKSPACE_CSS = `
 .pc-field-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--pc-space-2);margin-top:var(--pc-space-2)}
 :is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]){accent-color:var(--pc-green,var(--green,#b7f34a))}
 :is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]):focus-visible{outline:2px solid var(--pc-selection-text);outline-offset:2px}
-.pc-refresh-status{min-height:54px;padding:10px var(--pc-workspace-x);font:var(--pc-type-description);color:var(--pc-ui-secondary);box-sizing:border-box}
+.pc-refresh-status{font:var(--pc-type-description);min-height:calc(2lh + 20px);padding:10px 0;color:var(--pc-ui-secondary);box-sizing:border-box}
 .pc-refresh-status[data-tone=error]{color:var(--pc-danger,var(--risk-fg,#ad2626))}
 
 :root{
