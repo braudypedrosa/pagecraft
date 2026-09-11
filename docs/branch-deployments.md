@@ -33,6 +33,10 @@ verify file checksums and run the receiver/storage tests on the host before this
 change. Repository CI does not install the trusted receiver.
 
 All receiver operations hold the target application's deployment lock. The
+deployment SSH client sends keepalives while waiting for that lock, including
+the initial legacy-archive cleanup. A disconnected job is a failed deployment;
+verify its remote state and rerun the intended commit rather than assuming sync.
+The
 storage helper accepts only `pagecraft-staging` or `pagecraft-app`, rejects
 symlinked roots, and never scans sibling release directories. It preserves the
 active release, the recorded rollback target, three additional successful releases
