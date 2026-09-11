@@ -10,6 +10,8 @@ Pagecraft uses white and cool neutral surfaces, Ink and Craft Green. Shared colo
 | Builder inspector and dialog controls | 37px | Existing 12px / 1.4 |
 | Dense builder rows / tiny actions | 32px | Existing builder scale |
 
+All text inputs, textareas, enhanced selects, standard text buttons and menu options use shared `--pc-control-padding`: **6px vertically / 8px horizontally**. Existing minimum-height densities and icon-only controls keep their geometry. Native select fallbacks and search fields reserve additional space for their inset arrow or search icon. Compact toolbar pickers have a 30px inner height within the 32px toolbar control so the padding cannot compress their text.
+
 Use identical geometry for an action rendered as a link or button. Read-only copy values and their actions share the 44px height; the row owns its gap and top spacing, never the nested button. Long values truncate within a shrinkable column. Section actions use a 16px gap, form fields use 16px between groups and 8px between label and control. Site-management sections use 32px vertical padding. Preserve intentionally different navigation, icon, badge and multiline-control sizes.
 
 The CMS preview picker is a 32px toolbar group with 26px internal controls, matching the adjacent toolbar badges. Its label identifies the preview collection, and the toolbar wraps when both editor panels reduce the available width. Escape closes its menu without invoking the canvas selection shortcut.
@@ -69,7 +71,7 @@ Validation combines the rendered desktop workspace journeys, tablet/narrow ifram
 
 Panel/dialog/section/workspace headings use shared 15/16/18/22px tokens. Descriptive paragraphs in workspace headers keep the 12px body role. Authentication controls retain their 16px input size; their labels and help use the shared field roles.
 
-The context toolbar owns its 32px outer controls and 26px nested picker controls. Page selection, Settings & SEO, component Done, CMS preview and device context use this one rule, with no element-ID font overrides. Controls inside labels retain the body font rather than inheriting the label font. Geometry, color, overflow and interactive states remain with the owning component.
+The context toolbar owns its 32px outer controls and 30px nested picker controls. Page selection, Settings & SEO, component Done, CMS preview and device context use this one rule, with no element-ID font overrides. Controls inside labels retain the body font rather than inheriting the label font. Geometry, color, overflow and interactive states remain with the owning component.
 
 The compact scale uses 12px for body/control text and 11px for labels, help and captions. Weights, line heights and control geometry retain their existing role distinctions. Canvas editing placeholders share the same size constants; user-authored page typography is unchanged.
 
@@ -91,7 +93,7 @@ Menus use `pc-menu`, `pc-menu-item` and `pc-menu-divider`: 7px popup radius,
 text role. Links and buttons use the same geometry. Destructive actions change
 semantic color only. Context-menu shortcuts retain their trailing alignment.
 Select option lists inherit the computed trigger typography, including compact
-toolbar and authentication densities, rather than the document body size.
+toolbar and authentication densities, rather than the document body size. Popovers use the shared opaque `--pc-popup-bg` surface; transparent or tinted triggers never supply the popup background.
 
 `Field` supplies stable native input IDs, visible-label associations and help
 relationships. Composite leaves declare `data-field-part` (value, unit, side,

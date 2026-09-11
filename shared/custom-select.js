@@ -5,24 +5,24 @@
    control so legacy handlers, Preact handlers, form submission, and tests keep one contract. */
 export const CUSTOM_SELECT_CSS = `
 .pc-custom-select-native{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;pointer-events:none!important}
-.pc-custom-select-trigger{width:100%;min-height:var(--h-ctl,var(--pc-control-height,37px));display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-width:0;padding:8px 10px;border:1px solid var(--line-2,var(--pc-line,#cbd2d8));border-radius:var(--r-sm,7px);background:var(--panel,var(--pc-field,var(--field,#fff)));background-image:none!important;color:var(--text,var(--pc-text,inherit));font:var(--pc-type-input,inherit);line-height:1.4;text-align:left;cursor:pointer;box-shadow:none;filter:none}
-.pc-sort.pc-custom-select-trigger{height:44px;padding:0 14px}
+.pc-custom-select-trigger{width:100%;min-height:var(--h-ctl,var(--pc-control-height,37px));display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-width:0;padding:var(--pc-control-padding,6px 8px);border:1px solid var(--line-2,var(--pc-line,#cbd2d8));border-radius:var(--r-sm,7px);background:var(--panel,var(--pc-field,var(--field,#fff)));background-image:none!important;color:var(--text,var(--pc-text,inherit));font:var(--pc-type-input,inherit);line-height:1.4;text-align:left;cursor:pointer;box-shadow:none;filter:none}
+.pc-sort.pc-custom-select-trigger{height:44px;padding:var(--pc-control-padding,6px 8px)}
 .pc-custom-select-trigger:hover{border-color:var(--text-3,var(--pc-text-2,#6f7771));filter:none}
 .pc-custom-select-trigger:focus-visible,.pc-custom-select-trigger[aria-expanded="true"]{border-color:var(--pc-text,var(--text,#111311));outline:2px solid var(--pc-green,var(--green,#b7f34a));outline-offset:1px}
 .pc-custom-select-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc-custom-select-trigger>svg{width:14px;height:14px;flex:0 0 14px;color:currentColor;opacity:.64;transition:transform .14s ease}
 .pc-custom-select-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .pc-custom-select-trigger:disabled{cursor:not-allowed;opacity:.5}
-.pc-custom-select-popover{box-sizing:border-box;--pc-cs-bg:#fff;--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-line:#cbd2d8;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:1px solid var(--pc-cs-line);border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
+.pc-custom-select-popover{box-sizing:border-box;--pc-cs-bg:var(--pc-popup-bg,#fff);--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-line:#cbd2d8;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:1px solid var(--pc-cs-line);border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
 .pc-custom-select-popover[hidden]{display:none}
 .pc-custom-select-group{padding:8px 9px 4px;color:var(--pc-cs-muted);font-family:"DM Sans",system-ui,sans-serif;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
-.pc-custom-select-option{width:100%!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0!important;padding:7px 9px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:var(--pc-cs-fg)!important;box-shadow:none!important;font:inherit!important;font-weight:500!important;line-height:1.35!important;text-align:left!important;cursor:pointer!important;filter:none!important}
+.pc-custom-select-option{width:100%!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0!important;padding:var(--pc-control-padding,6px 8px)!important;border:0!important;border-radius:4px!important;background:transparent!important;color:var(--pc-cs-fg)!important;box-shadow:none!important;font:inherit!important;font-weight:500!important;line-height:1.35!important;text-align:left!important;cursor:pointer!important;filter:none!important}
 .pc-custom-select-option:hover,.pc-custom-select-option[data-active="true"]{background:var(--pc-cs-hover)!important;color:var(--pc-selection-text,#263d20)!important}
 .pc-custom-select-option[aria-selected="true"]{background:var(--pc-selection-bg,#eef7e5)!important;color:var(--pc-selection-text,#263d20)!important;font-weight:650!important}
 .pc-custom-select-option:disabled{cursor:not-allowed!important;opacity:.42!important}
 .pc-custom-select-check{width:14px;height:14px;display:grid;place-items:center;flex:0 0 14px;color:currentColor}
 .pc-custom-select-check svg{width:13px;height:13px}
-@media(max-width:559px){.pc-custom-select-popover[data-mobile="true"]{left:12px!important;right:12px!important;top:auto!important;bottom:12px!important;width:auto!important;max-height:min(52vh,420px);padding:8px;border-radius:10px;box-shadow:0 24px 60px -18px rgba(17,19,17,.52)}.pc-custom-select-option{min-height:42px!important;padding:9px 10px!important}}
+@media(max-width:559px){.pc-custom-select-popover[data-mobile="true"]{left:12px!important;right:12px!important;top:auto!important;bottom:12px!important;width:auto!important;max-height:min(52vh,420px);padding:8px;border-radius:10px;box-shadow:0 24px 60px -18px rgba(17,19,17,.52)}.pc-custom-select-option{min-height:42px!important;padding:var(--pc-control-padding,6px 8px)!important}}
 @media(prefers-reduced-motion:reduce){.pc-custom-select-trigger>svg{transition:none}}
 `;
 
@@ -172,7 +172,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     renderMenu(record);
     const styles = getComputedStyle(record.trigger);
     record.menu.style.font = styles.font || 'var(--pc-type-control)';
-    record.menu.style.setProperty('--pc-cs-bg', styles.backgroundColor || '#fff');
+    // Toolbar triggers can be transparent; a floating menu must own an opaque surface.
+    record.menu.style.setProperty('--pc-cs-bg', styles.getPropertyValue('--pc-popup-bg').trim() || '#fff');
     record.menu.style.setProperty('--pc-cs-fg', styles.color || '#111311');
     record.menu.style.setProperty('--pc-cs-line', styles.borderColor || '#cbd2d8');
     record.menu.style.setProperty('--pc-cs-muted', styles.color || '#6f7771');

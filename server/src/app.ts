@@ -6014,9 +6014,9 @@ const shell = (title: string, body: string) =>
   h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
   p{margin:0 0 18px;color:#5f6660;font-size:var(--pc-text-body)}
   label{display:block;font-size:12px;color:#5f6660;margin-bottom:6px}
-  input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--pc-border-strong);border-radius:var(--pc-control-radius);min-height:var(--pc-control-height);
+  input{width:100%;box-sizing:border-box;padding:var(--pc-control-padding);border:1px solid var(--pc-border-strong);border-radius:var(--pc-control-radius);min-height:var(--pc-control-height);
         font:inherit;font-size:var(--pc-control-font);margin-bottom:12px}
-  button{width:100%;min-height:var(--pc-control-height);padding:10px;border:0;border-radius:var(--pc-control-radius);background:#b7f34a;color:#111311;
+  button{width:100%;min-height:var(--pc-control-height);padding:var(--pc-control-padding);border:0;border-radius:var(--pc-control-radius);background:#b7f34a;color:#111311;
          font:inherit;font-size:var(--pc-control-font);font-weight:600;cursor:pointer}
   a{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:6px;
     border:1px solid var(--pc-border);border-radius:8px;color:inherit;text-decoration:none}
@@ -6034,7 +6034,7 @@ const shell = (title: string, body: string) =>
   .consent__destination strong{display:block;margin-top:5px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
   .consent__note{max-width:58ch;margin:18px 0 24px;font-size:13px;line-height:1.55}
   .consent__actions{margin:0}
-  .consent__actions .pc-btn{height:44px;padding:0 18px;border:1px solid #b7f34a;border-radius:7px;
+  .consent__actions .pc-btn{height:44px;padding:var(--pc-control-padding);border:1px solid #b7f34a;border-radius:7px;
                            background:#b7f34a;color:#111311;display:inline-flex;align-items:center;justify-content:center;
                            font-size:.82rem;font-weight:600}
   .consent__actions .pc-btn:hover{background:#c5fa63;border-color:#c5fa63}

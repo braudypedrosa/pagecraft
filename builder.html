@@ -163,7 +163,7 @@ input,select,textarea{font:inherit;color:inherit}
    dark / paper / green — green only for the committed action */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-4);
-  min-height:var(--h-ctl);padding:8px 14px;border-radius:var(--r-md);font-size:var(--fs-3);line-height:1.4;font-weight:500;
+  min-height:var(--h-ctl);padding:var(--pc-control-padding);border-radius:var(--r-md);font-size:var(--fs-3);line-height:1.4;font-weight:500;
   background:var(--panel);border:1px solid var(--line-2);color:var(--text);
   transition:background .14s ease,border-color .14s ease,color .14s ease;
 }
@@ -182,7 +182,7 @@ input,select,textarea{font:inherit;color:inherit}
    those sixteen also restated the `justify-content:center` .btn already sets. */
 .btn.block{width:100%}
 .btn.grow{flex:1}
-.btn.tiny{min-height:var(--h-row);padding:4px 11px;font-size:var(--fs-3);border-radius:var(--r-pill)}
+.btn.tiny{min-height:var(--h-row);padding:var(--pc-control-padding);font-size:var(--fs-3);border-radius:var(--r-pill)}
 .btn.danger{color:var(--danger);border-color:var(--line-2)}
 .btn.danger:not(:disabled):hover{background:var(--danger-soft);border-color:var(--danger)}
 .topbar .btn{background:transparent;border-color:var(--rail-line);color:var(--rail-text)}
@@ -586,9 +586,9 @@ body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-op
 .pages-workspace button:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .pages-empty{padding:32px 12px;text-align:center}
 .page-settings-context{padding:12px}
-.modebar>.page-switcher{padding:2px 6px;max-width:240px;min-width:0;display:flex;align-items:center;gap:4px}
+.modebar>.page-switcher{padding:0 6px;max-width:240px;min-width:0;display:flex;align-items:center;gap:4px}
 .page-switcher>svg{flex-shrink:0}
-.page-switcher>select,.page-switcher>.pc-custom-select-trigger{width:200px;max-width:100%;min-width:0;min-height:28px;height:28px;padding:0 4px;border:0;background:transparent;font-size:var(--fs-2)}
+.page-switcher>select,.page-switcher>.pc-custom-select-trigger{width:200px;max-width:100%;min-width:0;min-height:30px;height:30px;padding:var(--pc-control-padding);border:0;background:transparent;font-size:var(--fs-2)}
 @media(max-width:1050px){.pages-workspace-head{padding:20px}.pages-workspace-content{padding:20px}.pages-list-head,.pages-workspace .pagerow{grid-template-columns:minmax(150px,2fr) minmax(100px,1fr) 116px 28px;gap:12px}.pages-list-head>span:nth-child(3),.pages-workspace .page-kind{display:none}.modebar>.page-switcher{max-width:190px}}
 @media(max-width:700px){.pages-workspace-head{align-items:flex-start;flex-wrap:wrap}.pages-list-head{display:none}.pages-workspace .pagerow{grid-template-columns:minmax(0,1fr) 116px 28px}.pages-workspace .page-path{grid-column:1;grid-row:2}.pages-workspace .pagerow>.btn{grid-column:2;grid-row:1 / span 2}.pages-workspace .page-actions{grid-column:3;grid-row:1 / span 2}}
 
@@ -617,7 +617,7 @@ body.preview .frameWrap{border-radius:0;box-shadow:none;width:100% !important}
 }
 /* the zoom readout doubles as its control */
 .dim select{
-  appearance:none;border:0;background:none;cursor:pointer;padding:0 14px 0 0;margin:0;
+  appearance:none;border:0;background:none;cursor:pointer;padding:var(--pc-control-padding);padding-right:calc(var(--pc-control-padding-x) + 14px);margin:0;
   font-family:var(--label);font-size:var(--fs-2);font-weight:600;color:var(--text);
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5L6 8.5l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat:no-repeat;background-position:right center;background-size:9px 9px;
@@ -638,13 +638,13 @@ body.preview .modebar{display:none}
 /* Preview is a compact toolbar control, not a full-size form field. */
 .modebar{flex-wrap:wrap}
 .modebar>.pill{min-height:var(--h-row)}
-.modebar>.itemBar{--h-ctl:var(--ic-md);min-width:0;max-width:100%;padding:2px 8px;gap:var(--sp-2);flex-shrink:0}
+.modebar>.itemBar{--h-ctl:calc(var(--h-row) - 2px);min-width:0;max-width:100%;padding:0 8px;gap:var(--sp-2);flex-shrink:0}
 .itemBar>svg{flex:0 0 auto}
 .itemBarLabel{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .itemBar>button[data-i]{width:var(--h-ctl);height:var(--h-ctl);padding:0;display:grid;place-items:center;flex:0 0 var(--h-ctl);border-radius:var(--r-sm);color:var(--text-2)}
 .itemBar>button:not(:disabled):hover{background:var(--pc-hover-bg);color:var(--text)}
 .itemBar>button:disabled{opacity:var(--dim);cursor:default}
-.itemBar>.pc-custom-select-trigger,.itemBar>select:not(.pc-custom-select-native){width:130px;min-width:0;min-height:var(--h-ctl);height:var(--h-ctl);padding:0 6px;border:0;border-radius:var(--r-sm);background:transparent;font-size:var(--fs-2);line-height:1.4;color:var(--text)}
+.itemBar>.pc-custom-select-trigger,.itemBar>select:not(.pc-custom-select-native){width:130px;min-width:0;min-height:var(--h-ctl);height:var(--h-ctl);padding:var(--pc-control-padding);border:0;border-radius:var(--r-sm);background:transparent;font-size:var(--fs-2);line-height:1.4;color:var(--text)}
 .itemBar>small{flex:0 0 auto;font:inherit;font-size:var(--fs-1);font-variant-numeric:tabular-nums;color:var(--text-3);white-space:nowrap}
 /* dimension readout, kept close to the working surface */
 .dim{
@@ -655,7 +655,7 @@ body.preview .modebar{display:none}
 }
 .dim b{color:var(--text);font-weight:600;white-space:nowrap}
 .dim>.pc-custom-select-trigger{
-  width:auto;min-height:0;padding:3px 7px;gap:var(--sp-2);border-color:transparent;background:transparent;
+  width:auto;min-height:0;padding:var(--pc-control-padding);gap:var(--sp-2);border-color:transparent;background:transparent;
 }
 .dim>.pc-custom-select-trigger:hover{background:var(--pc-hover-bg);border-color:var(--line-2)}
 .dim>.pc-custom-select-trigger>svg{width:10px;height:10px;flex-basis:10px}
@@ -741,15 +741,15 @@ body.preview .dim{display:none}
    be reliably aligned to it. */
 .ctl,select.ctl,textarea.ctl{
   width:100%;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-sm);
-  padding:8px 10px;font-size:var(--fs-3);line-height:1.4;outline:none;transition:border-color .12s;
+  padding:var(--pc-control-padding);font-size:var(--fs-3);line-height:1.4;outline:none;transition:border-color .12s;
 }
 .ctl:hover{border-color:var(--text-3)}
 .ctl:focus{border-color:var(--ink);box-shadow:0 0 0 2px #b7f34a55}
 textarea.ctl{resize:vertical;min-height:66px;font-size:var(--fs-3);line-height:1.55}
 select.ctl{
-  appearance:none;cursor:pointer;padding-right:28px;
+  appearance:none;cursor:pointer;padding-right:calc(var(--pc-control-padding-x) + 20px);
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5L6 8.5l4-4' stroke='%236f7771' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-  background-repeat:no-repeat;background-position:right 9px center;background-size:11px 11px;
+  background-repeat:no-repeat;background-position:right var(--pc-control-padding-x) center;background-size:11px 11px;
 }
 /* two equal columns, wherever they appear — .pgrid was the same rule under another name */
 .row2,.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-1)}
@@ -767,13 +767,13 @@ select.ctl{
 .fgrid:last-child{margin-bottom:2px}
 .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2)}
 /* Side names above the four boxes rather than as one run of text under them. The same
-   grid and the same gap, so each name sits over its own box, and a 10px inset to match
+   grid and the same gap, so each name sits over its own box, and the shared input inset to match
    `.ctl`'s own padding so the name lines up with the number inside rather than with the
    edge of the field. */
 .row4lab{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2);margin-bottom:3px}
 .row4lab span{
   font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3);
-  padding-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding-left:var(--pc-control-padding-x);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 /* the unit sits under the boxes on its own, pushed right, now that the names are above */
 .row4u{display:flex;justify-content:flex-end;margin-top:4px}
@@ -782,15 +782,15 @@ select.ctl{
   flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;
 }
 .unit select{
-  width:72px;flex:0 0 72px;margin-left:-1px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
+  width:72px;flex:0 0 72px;margin-left:-1px;padding:var(--pc-control-padding);font-size:var(--fs-2);
   border-top-left-radius:0;border-bottom-left-radius:0;
-  background-position:right 6px center;background-size:9px 9px;
+  padding-right:calc(var(--pc-control-padding-x) + 14px);background-position:right var(--pc-control-padding-x) center;background-size:9px 9px;
 }
 /* Enhanced selects are buttons rather than the native select. The generic trigger is full
    width, which used to consume this whole flex row and collapse the numeric value to zero.
    Keep every value + suffix control on the same two-part contract as its native fallback. */
 .unit>.pc-custom-select-trigger{
-  width:72px;flex:0 0 72px;min-width:72px;margin-left:-1px;padding:8px 20px 8px 8px;font-size:var(--fs-2);
+  width:72px;flex:0 0 72px;min-width:72px;margin-left:-1px;padding:var(--pc-control-padding);font-size:var(--fs-2);
   border-top-left-radius:0;border-bottom-left-radius:0;
 }
 .unit>.pc-custom-select-trigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -971,7 +971,7 @@ select.ctl{
   border:1px solid var(--line);border-radius:var(--r-sm);
   padding:6px;margin-bottom:var(--gap-1);background:var(--field);
 }
-.frow .ctl,.qarow .ctl,.gtile .ctl,.irow .ctl,.navitem .ctl{padding:5px 7px;font-size:var(--fs-2);min-width:0}
+.frow .ctl,.qarow .ctl,.gtile .ctl,.irow .ctl,.navitem .ctl{padding:var(--pc-control-padding);font-size:var(--fs-2);min-width:0}
 .frow .x,.qarow .x,.gtile .x,.irow .x,.navitem .x{
   width:var(--ic-md);height:var(--ic-md);color:var(--text-3);
   border-radius:var(--r-sm);display:grid;place-items:center;
@@ -1007,7 +1007,7 @@ select.ctl{
 .field-switch:checked{background:var(--green);border-color:var(--green)}
 .field-switch:checked:before{left:16px;background:var(--on-green)}
 .field-switch:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.repeater-body .pc-custom-select-trigger{min-height:30px;height:30px;padding-top:4px;padding-bottom:4px;font-size:var(--fs-2)}
+.repeater-body .pc-custom-select-trigger{min-height:30px;height:30px;padding:var(--pc-control-padding);font-size:var(--fs-2)}
 #inspector-panel .f-inline>.pc-custom-select-trigger{min-height:32px;height:32px;font-size:var(--fs-2)}
 .repeater-long{display:block;font-size:var(--fs-2);color:var(--text-2)}
 .repeater-long>span{display:block;margin-bottom:6px}
@@ -1016,7 +1016,7 @@ select.ctl{
 #inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd{flex-shrink:0}
 #inspector-panel .f-inline>label~*{min-width:0}
 #inspector-panel .f-inline>.note{grid-column:1/-1}
-#inspector-panel .f-inline .ctl{font-size:var(--fs-2);padding-top:6px;padding-bottom:6px}
+#inspector-panel .f-inline .ctl{font-size:var(--fs-2);padding:var(--pc-control-padding)}
 
 /* the icon picker: grouped, because thirty glyphs in one wall is not a set you
    can read. Size comes from CSS, never from the svg's own attributes. */
@@ -1075,7 +1075,7 @@ select.ctl{
 .navitem-body>.ctl+.ctl{margin-top:var(--gap-1)}
 .navitem-target{margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
 .navitem-add{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2)}
-.navitem-add .btn{min-width:0;padding-inline:6px}
+.navitem-add .btn{min-width:0;padding:var(--pc-control-padding)}
 
 
 /* asset + token rows */
@@ -1087,8 +1087,8 @@ select.ctl{
 /* Every control in a dense row shares --h-row, so a row is one line and its
    columns line up. The colour rows had a 30px swatch, a 27px name field, a 35px
    hex field and a 32px button stacked against each other. */
-.arow .ctl{height:var(--h-row);padding:4px 8px}
-.arow select.ctl{padding:4px 24px 4px 8px;background-position:right 6px center;background-size:9px 9px}
+.arow .ctl{height:var(--h-row);padding:var(--pc-control-padding)}
+.arow select.ctl{padding:var(--pc-control-padding);padding-right:calc(var(--pc-control-padding-x) + 14px);background-position:right var(--pc-control-padding-x) center;background-size:9px 9px}
 .arow .sw{width:var(--h-row);height:var(--h-row);flex:0 0 var(--h-row)}
 .arow .iconbtn,.arow .rowlock{width:var(--h-row);height:var(--h-row);flex:0 0 var(--h-row)}
 /* holds the slot a deletable row uses for its trash button, so a built-in token
@@ -1214,7 +1214,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .cmst td{padding:4px 8px 4px 0;vertical-align:middle}
 .cmst td:last-child{padding-right:0}
 .cmst tr+tr td{border-top:1px solid var(--line)}
-.cmst .ctl{padding:5px 8px}
+.cmst .ctl{padding:var(--pc-control-padding)}
 .cmst textarea.ctl{min-height:0;line-height:1.4;resize:vertical}
 .cmsimg{
   width:56px;height:40px;border:1px solid var(--line-2);border-radius:var(--r-sm);
@@ -1353,7 +1353,7 @@ pre.code{
   #devSeg button{width:30px;height:28px}
   .topTools,.topActions{gap:0}
   .topgroup.divided{padding-left:var(--sp-2)}
-  .topbar .btn.primary{padding:7px 10px}
+  .topbar .btn.primary{padding:var(--pc-control-padding)}
   .main{position:relative}
   .rail{width:48px;flex-basis:48px}
   .rail button{height:49px}
@@ -1404,7 +1404,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
 .cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
 .cms-workspace .ctl:focus{border-color:var(--ink);box-shadow:none;outline:2px solid var(--ink);outline-offset:2px}
-.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:16px;line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:8px;margin-bottom:24px}.cms-check{display:flex!important;align-items:center;gap:10px}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:var(--pc-control-padding);line-height:1.6;overflow-wrap:anywhere}.cms-workspace button:focus-visible,.cms-rich [contenteditable]:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .cms-schema>.cms-field{margin-bottom:12px;max-width:480px}
 .cms-schema>.note{margin-bottom:8px}
 .cms-schema-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:14px 0;align-items:start}

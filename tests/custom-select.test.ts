@@ -93,3 +93,20 @@ test('menus fit below, above or in the larger scrollable space and clamp to the 
   a.equal(menu.dataset.mobile,'true'); a.equal(menu.style.maxHeight,'');
   trigger.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 });
+
+
+test('floating options stay opaque when toolbar triggers are transparent or tinted', async () => {
+  document.body.innerHTML = '<select aria-label="Current page"><option>Home</option><option>Plan your stay</option></select>';
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  for (const background of ['transparent', 'rgba(244, 250, 239, 0.4)', 'rgb(238, 247, 229)']) {
+    trigger.style.backgroundColor = background;
+    trigger.click();
+    const menu = document.querySelector<HTMLElement>('.pc-custom-select-popover:not([hidden])')!;
+    a.equal(menu.style.getPropertyValue('--pc-cs-bg'), '#fff', 'the popup uses its own opaque surface, not trigger paint');
+    a.equal(trigger.style.backgroundColor, background === 'transparent' ? 'transparent' : background);
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    a.equal(menu.hidden, true);
+    a.equal(document.activeElement, trigger);
+  }
+});

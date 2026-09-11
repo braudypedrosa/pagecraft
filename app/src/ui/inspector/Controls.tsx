@@ -297,7 +297,7 @@ function BoxCtl({ n, c }: P) {
       ))}
     </div>
     <div class="row4u">
-      <select data-field-part="unit" class="ctl" value={u} style={{ width: '58px', padding: '2px 4px', fontSize: 'var(--fs-1)' }}
+      <select data-field-part="unit" class="ctl" value={u} style={{ width: '66px', fontSize: 'var(--fs-1)' }}
         onChange={e => { push((e.target as HTMLElement).closest('.f')!); L.endTx(); }}>
         {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
       </select>

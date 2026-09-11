@@ -13,7 +13,7 @@ export const UI_TYPOGRAPHY_CSS = `
 .pc-toolbar-context :is(.btn,.pill,select,.pc-custom-select-trigger){font:var(--pc-type-toolbar)}
 .pc-toolbar-context :is(.btn,.pill){min-height:var(--pc-control-row)}
 .pc-toolbar-context .page-switcher{height:var(--pc-control-row)}
-.pc-toolbar-context .page-switcher :is(select,.pc-custom-select-trigger){height:26px;min-height:26px}
+.pc-toolbar-context .page-switcher :is(select,.pc-custom-select-trigger){height:30px;min-height:30px}
 
 .pc-field-label,
 .f>label,.wp-link-picker>label,.navitem-body>label,

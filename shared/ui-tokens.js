@@ -8,6 +8,7 @@ export const UI_TOKENS_CSS = `:root{
   --pc-surface-subtle:#fafbfc;
   --pc-surface-muted:#f3f5f6;
   --pc-canvas-surround:#f3f5f6;
+  --pc-popup-bg:#fff;
   --pc-border:#dfe4e7;
   --pc-border-strong:#cbd2d8;
   --pc-hover-bg:#f4faef;
@@ -16,6 +17,9 @@ export const UI_TOKENS_CSS = `:root{
   --pc-selection-muted:#506348;
   --pc-rail-width:88px;
   --pc-rail-padding-x:10px;
+  --pc-control-padding-y:6px;
+  --pc-control-padding-x:8px;
+  --pc-control-padding:var(--pc-control-padding-y) var(--pc-control-padding-x);
   --pc-control-height:44px;
   --pc-control-compact:36px;
   --pc-control-editor:37px;

@@ -3,7 +3,7 @@
 export const WORKSPACE_CSS = `
 /* Shared menu and field-action contracts. Applies only to product chrome. */
 .pc-menu{--pc-menu-radius:7px;--pc-menu-item-radius:4px;padding:6px!important;border-radius:var(--pc-menu-radius)!important;row-gap:0}
-.pc-menu :is(a,button).pc-menu-item{box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:34px;margin:0;padding:7px 10px;border:0;border-radius:var(--pc-menu-item-radius);background:transparent;color:var(--pc-text,var(--text));font:var(--pc-type-control);text-align:left;text-decoration:none;box-shadow:none;filter:none}
+.pc-menu :is(a,button).pc-menu-item{box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:34px;margin:0;padding:var(--pc-control-padding);border:0;border-radius:var(--pc-menu-item-radius);background:transparent;color:var(--pc-text,var(--text));font:var(--pc-type-control);text-align:left;text-decoration:none;box-shadow:none;filter:none}
 .pc-menu :is(a,button).pc-menu-item:hover{background:var(--pc-hover-bg);filter:none}
 .pc-menu :is(a,button).pc-menu-item:focus-visible{outline:2px solid var(--pc-selection-text);outline-offset:-2px;background:var(--pc-hover-bg)}
 .pc-menu .pc-menu-item.danger{color:var(--pc-danger,var(--risk-fg))}
@@ -43,7 +43,7 @@ export const WORKSPACE_CSS = `
   font-size:var(--pc-control-font);line-height:1.5;margin:6px 0 0;color:var(--pc-ui-secondary);
 }
 :is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head :is(.btn,.pc-btn){
-  min-height:var(--pc-control-editor);height:var(--pc-control-editor);padding:8px 14px;
+  min-height:var(--pc-control-editor);height:var(--pc-control-editor);padding:var(--pc-control-padding);
 }
 :is(.pages-workspace,.cms-workspace) .pc-workspace-body{padding:var(--pc-workspace-y) var(--pc-workspace-x)}
 .cms-workspace h2{font-size:var(--pc-section-title);line-height:1.4}
@@ -126,7 +126,7 @@ export const WORKSPACE_CSS = `
 .dashboard-app :is(.pc-entry-dialog header,.pc-create-modal-head){padding:20px 24px;border-bottom:1px solid var(--pc-ui-border)}
 .dashboard-app :is(.pc-entry-dialog,.pc-create-modal,.pc-delete-dialog,.pc-integration-dialog) h2{font-size:var(--pc-dialog-title);line-height:1.4;font-weight:600;margin:0}
 .dashboard-app .pc-entry-dialog [data-close-dialog]{width:32px;height:32px;min-height:32px;padding:0;border:0;background:transparent}
-.dashboard-app .pc-entry-dialog footer [data-close-dialog]{width:auto;height:44px;padding:0 18px;border:1px solid var(--pc-line-2,#cbd2d8);background:var(--pc-ui-surface)}
+.dashboard-app .pc-entry-dialog footer [data-close-dialog]{width:auto;height:44px;padding:var(--pc-control-padding);border:1px solid var(--pc-line-2,#cbd2d8);background:var(--pc-ui-surface)}
 .dashboard-app .pc-entry-body{line-height:1.5}
 .dashboard-app .pc-entry-body dt{font-size:var(--pc-text-label);color:var(--pc-ui-secondary)}
 .dashboard-app .pc-entry-body dd{margin:4px 0 16px}
