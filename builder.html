@@ -1174,13 +1174,14 @@ body.dragging{cursor:grabbing !important;user-select:none}
 @media(max-width:1050px){.settings-nav{width:146px;flex-basis:146px;padding:16px 8px}.settings-content{padding:24px 20px}.settings-fields{gap:16px}.project-settings #mStyles .arow{gap:6px}.project-settings .text-style-columns{gap:6px}}
 
 .modal.sm{max-width:440px}
-.modal.lg{max-width:1060px}
+.modal.lg,#ask .modal.media-library{max-width:1060px}
 /* The ask layer sits above #modal rather than reusing it: over half of these
    prompts fire from inside Project settings, and reusing the one modal element
    would tear the dialog underneath out from under the user. */
 #ask{z-index:300;padding:24px}
 #ask .modal{max-width:420px}
 #askBody{padding:var(--mpad)}
+#ask .media-library #askBody{padding:0;display:flex;overflow:hidden}
 #askBody .msg{font-size:var(--fs-3);line-height:1.6;color:var(--text-2)}
 #askBody .msg b{color:var(--text)}
 .pickrows{display:flex;flex-direction:column;gap:var(--sp-2)}
@@ -4869,6 +4870,8 @@ function askOpen(title, bodyHtml, okLabel, danger) {
 function askClose(value) {
   const wasOpen = !$('#ask').hidden;
   $('#ask').hidden = true;
+  $('#askBox').classList.remove('media-library');
+  $('#ask [data-media-upload]')?.remove();
   syncDialogLayers();
   const res = askDone; askDone = null;
   if (res) res(value);
@@ -4904,16 +4907,19 @@ function askPick(title, opts, current = '') {
   return p;
 }
 
-function mediaPicker(title = 'Choose from the library') {
+function mediaPicker(title = 'Media library') {
   const browserState = {};
   const p = askOpen(title, '', null, false);
+  $('#askBox').classList.add('media-library');
+  $('#askNo').textContent = 'Done';
   const draw = () => {
     const use = assetUsage();
-    $('#askBody').innerHTML = `<div class="media-library-drop"><div class="media-browser">${mediaBrowserMarkup()}
-      <button type="button" class="btn" data-media-upload>Upload</button></div>
+    $('#askBody').innerHTML = `<div class="media-library-drop"><div class="media-library-items">${mediaBrowserMarkup()}</div>
       <div class="media-library-overlay" aria-hidden="true">Drop images to upload</div></div>`;
     const zone = $('.media-library-drop', $('#askBody'));
-    const upload = $('[data-media-upload]', zone);
+    $('#ask [data-media-upload]')?.remove();
+    $('#askNo').insertAdjacentHTML('beforebegin', `<button type="button" class="btn" data-media-upload>${svg('image', 13)} Upload</button>`);
+    const upload = $('#ask [data-media-upload]');
     const takeFiles = files => mediaUploadFiles(files, () => { if (zone.isConnected && !$('#ask').hidden) draw(); }, upload, zone);
     wireMediaDrop(zone, takeFiles);
     upload.addEventListener('click', () => mediaChooseFiles(takeFiles));

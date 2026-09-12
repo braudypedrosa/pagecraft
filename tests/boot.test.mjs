@@ -736,13 +736,16 @@ test('the server media picker wires trash to durable DELETE before removing the 
   });
   await new Promise(r => setTimeout(r, 800));
   const picker = dom.window.mediaPicker();
+  a.ok(dom.window.document.querySelector('#askBox').classList.contains('media-library'));
   const trash = dom.window.document.querySelector('#askBody [data-del="asset1"]');
   a.ok(trash, 'the picker renders its delete action');
   trash.click();
   await new Promise(r => setTimeout(r, 50));
-  a.ok(dom.window.document.querySelector('#askBody [data-media-upload]'), 'the empty picker remains available for a replacement upload');
+  a.ok(dom.window.document.querySelector('#ask [data-media-upload]'), 'the empty picker remains available for a replacement upload');
   dom.window.askClose(null);
   a.equal(await picker, null);
+  a.equal(dom.window.document.querySelector('#ask [data-media-upload]'), null);
+  a.equal(dom.window.document.querySelector('#askBox').classList.contains('media-library'), false);
   a.ok(calls.some(([url, method]) => url === '/api/sites/site-1/assets/asset1' && method === 'DELETE'));
   a.equal(dom.window.document.querySelector('#askBody [data-pick="asset1"]'), null,
     'the card leaves only after the durable request succeeds');
