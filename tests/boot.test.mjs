@@ -961,3 +961,27 @@ test('returning from Pages preserves the current selection and history', async (
   a.equal(doc.body.classList.contains('pages-open'),false);
   C.selSet([]);w.render();
 });
+
+test('upload view opens without a file chooser and keeps failed drops recoverable', async () => {
+  const { window: w, doc } = await boot();
+  let chooser = 0, succeed = false, received = [];
+  const nativeClick = w.HTMLInputElement.prototype.click;
+  w.HTMLInputElement.prototype.click = function () { if (this.type === 'file') chooser++; else nativeClick.call(this); };
+  const result = w.mediaPicker({view:'upload',multiple:false,onFiles:async files => { received = files; return succeed; }});
+  a.equal(chooser, 0);
+  a.equal(doc.querySelector('[data-media-upload-view]').hidden, false);
+  doc.querySelector('[data-media-choose]').click();
+  a.equal(chooser, 1);
+  const drop = () => {
+    const event = new w.Event('drop', {bubbles:true,cancelable:true});
+    Object.defineProperty(event, 'dataTransfer', {value:{types:['Files'],files:[new w.File(['x'],'one.png',{type:'image/png'}),new w.File(['y'],'two.png',{type:'image/png'})]}});
+    doc.querySelector('#ask .media-library-drop').dispatchEvent(event);
+  };
+  drop(); await new Promise(r=>setTimeout(r,10));
+  a.equal(received.length, 1);
+  a.equal(doc.querySelector('#ask').hidden, false);
+  succeed = true; drop(); await new Promise(r=>setTimeout(r,10));
+  a.equal(doc.querySelector('#ask').hidden, true);
+  a.equal(await result, null);
+  w.close();
+});

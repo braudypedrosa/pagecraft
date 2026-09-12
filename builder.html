@@ -1230,6 +1230,10 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .media-library-drop{position:relative;display:flex;flex:1;min-width:0;min-height:180px}
 .media-library-items{width:100%;padding:var(--mpad);overflow:auto}
 .media-browser{display:flex;flex-direction:column;gap:var(--sp-4);min-width:0;flex:1}
+.media-view-switch{display:flex;gap:var(--sp-3)}
+.media-view-switch [aria-pressed="true"]{background:var(--pc-selection-bg)}
+.media-upload-target{min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-4);border:1px dashed var(--line-2);border-radius:var(--r-md);padding:var(--sp-5);text-align:center}
+.media-browser [hidden]{display:none}
 .media-browser-tools{display:flex;flex-wrap:wrap;gap:var(--sp-3)}
 .media-browser-tools label{display:flex;flex-direction:column;gap:var(--sp-2);font:var(--pc-type-label);min-width:0;flex:1 1 100px}
 .media-browser-tools label:first-child{flex:2 1 160px}
@@ -3999,6 +4003,8 @@ function startLayerDrag(e, id) {
    replaces the results, preserving the active field and its caret. */
 function mediaBrowserMarkup() {
   return `<div class="media-browser">
+    <div class="media-view-switch" aria-label="Media views"><button type="button" class="btn" data-media-view="library">Library</button><button type="button" class="btn" data-media-view="upload">Upload</button></div>
+    <div data-media-library-view class="media-browser">
     <div class="media-browser-tools">
       <label>Search images<input class="ctl" type="search" data-media-search placeholder="Search filenames or tags" autocomplete="off"></label>
       <label>Sort<select class="ctl" data-media-sort><option value="name">Name A–Z</option><option value="size">Largest first</option><option value="date">Newest first</option></select></label>
@@ -4007,7 +4013,23 @@ function mediaBrowserMarkup() {
     <div data-media-details hidden></div>
     <div class="media-browser-results"></div>
     <div class="media-browser-page"><span class="note" data-media-count></span><button type="button" class="btn" data-media-more hidden>Show more</button></div>
+    </div>
+    <div data-media-upload-view hidden><div class="media-upload-target"><span>${svg('image',24)}</span><strong>Drag and drop images here</strong><span class="note">Or choose images from your device.</span><button type="button" class="btn" data-media-choose>Choose files</button></div></div>
   </div>`;
+}
+function wireMediaViews(root, takeFiles, state, multiple = true) {
+  const show = view => {
+    state.view = view;
+    const uploadAction = root.closest('.modal')?.querySelector('[data-media-upload], #mmUp');
+    if (uploadAction) uploadAction.hidden = view === 'upload';
+    $('[data-media-library-view]', root).hidden = view !== 'library';
+    $('[data-media-upload-view]', root).hidden = view !== 'upload';
+    $$('[data-media-view]', root).forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mediaView === view)));
+  };
+  $$('[data-media-view]', root).forEach(button => button.addEventListener('click', () => show(button.dataset.mediaView)));
+  $('[data-media-choose]', root).addEventListener('click', () => mediaChooseFiles(takeFiles, multiple));
+  show(state.view || 'library');
+  return show;
 }
 function wireMediaBrowser(root, use, attr, choose, remove, state) {
   const search = $('[data-media-search]', root), sort = $('[data-media-sort]', root), usage = $('[data-media-usage]', root);
@@ -4114,9 +4136,9 @@ async function mediaUploadFiles(files, after, button = null, zone = null) {
   }, count => `${count === 1 ? 'Image' : count + ' images'} uploaded.`, {key:'media-upload'});
 }
 
-function mediaChooseFiles(takeFiles) {
+function mediaChooseFiles(takeFiles, multiple = true) {
   const fi = document.createElement('input');
-  fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = true;
+  fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = multiple;
   fi.onchange = () => takeFiles(fi.files);
   fi.click();
 }
@@ -4180,7 +4202,8 @@ function mediaModal() {
       return mediaUploadFiles(files, () => { if (active()) draw(); }, upload, zone);
     };
     wireMediaDrop(zone, takeFiles);
-    upload.addEventListener('click', () => mediaChooseFiles(takeFiles));
+    const showView = wireMediaViews(zone, takeFiles, browserState);
+    upload.addEventListener('click', () => showView('upload'));
     $('#mmDone').addEventListener('click', closeModal);
     const prune = $('#mmPrune');
     if (prune) prune.addEventListener('click', async () => {
@@ -4907,8 +4930,9 @@ function askPick(title, opts, current = '') {
   return p;
 }
 
-function mediaPicker(title = 'Media library') {
-  const browserState = {};
+function mediaPicker(options = {}) {
+  const title = typeof options === 'string' ? options : 'Media library';
+  const browserState = {view: options.view || 'library'};
   const p = askOpen(title, '', null, false);
   $('#askBox').classList.add('media-library');
   $('#askNo').textContent = 'Done';
@@ -4920,9 +4944,14 @@ function mediaPicker(title = 'Media library') {
     $('#ask [data-media-upload]')?.remove();
     $('#askNo').insertAdjacentHTML('beforebegin', `<button type="button" class="btn" data-media-upload>${svg('image', 13)} Upload</button>`);
     const upload = $('#ask [data-media-upload]');
-    const takeFiles = files => mediaUploadFiles(files, () => { if (zone.isConnected && !$('#ask').hidden) draw(); }, upload, zone);
+    const takeFiles = async files => {
+      const selected = options.multiple === false ? Array.from(files).slice(0, 1) : files;
+      if (options.onFiles) { const result = await options.onFiles(selected); if (result && zone.isConnected) askClose(null); return; }
+      return mediaUploadFiles(selected, () => { if (zone.isConnected && !$('#ask').hidden) { browserState.view = 'library'; draw(); } }, upload, zone);
+    };
     wireMediaDrop(zone, takeFiles);
-    upload.addEventListener('click', () => mediaChooseFiles(takeFiles));
+    const showView = wireMediaViews(zone, takeFiles, browserState, options.multiple !== false);
+    upload.addEventListener('click', () => showView('upload'));
     wireMediaBrowser(zone, use, 'data-pick', id => askClose(id), async (id, button) => {
       if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
       if (!await assetDel(id, button)) return;

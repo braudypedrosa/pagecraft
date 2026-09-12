@@ -79,6 +79,8 @@ test('Upload chooses multiple images through the same path and canceled chooser 
   const click=w.HTMLInputElement.prototype.click;
   w.HTMLInputElement.prototype.click=function(){chosen=this;};
   d.querySelector('#mmUp').click();
+  expect(chosen).toBeUndefined();
+  d.querySelector('[data-media-choose]').click();
   expect(chosen.accept).toBe('image/*');expect(chosen.multiple).toBe(true);
   chosen.dispatchEvent(new w.Event('change'));expect(w.assetAdd).not.toHaveBeenCalled();
   Object.defineProperty(chosen,'files',{value:[file('chosen.png')]});

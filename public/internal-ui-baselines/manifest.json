@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-12T08:38:40.263Z",
+  "capturedAt": "2026-09-12T08:50:32.163Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "0b2954e19abb5d8a0cd41b1d532371b18867ec07ba5135eba34bf3f710226917",
+    "builder.html": "7982fa6b0097ea07a09aa3e1eaf7675721461c71227bde2e10c879007e87b07b",
     "app/src/ui/Pages.tsx": "00200e5517fd0761815731b1e2e8c075d56fa4cbed9b51050e919d8fa644be82",
     "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
     "shared/ui-tokens.js": "f1004d10d2e4f4fde1bc1961b7376c00b88f328dfba64eae1c3f939ad088bc9c",
@@ -26,7 +26,7 @@
   },
   "behaviorChecks": [
     {
-      "name": "Select Escape dismissal",
+      "name": "Select opens and Escape closes",
       "passed": true
     }
   ],

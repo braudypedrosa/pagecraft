@@ -43,15 +43,16 @@ for(const surface of ['inspector','CMS/SEO'] as const) test(`${surface} image up
 
 test('a partial gallery upload keeps successful files in one undo step and identifies files to retry',async()=>{
  const gallery=C.insert('gallery',null,0)!;gallery.props.items=[];
- let input!:HTMLInputElement;
- vi.spyOn(HTMLInputElement.prototype,'click').mockImplementation(function(this:HTMLInputElement){input=this;});
+ let uploadOptions: any;
+ L.mediaPicker=vi.fn(async options=>{uploadOptions=options;return null;});
  L.asset=()=>({url:'blob:test',name:'ok.png',size:50});
  L.mediaTake=vi.fn(async file=>{if(file.name==='failed.png')throw new Error('Offline');return file.name;});
  r.draw(<Ctl n={gallery} c={{t:'imgs',k:'items',label:'Gallery'}}/>);
  const undo=C.hist.u.length;
  await act(()=>r.click(r.$$('button').find(b=>b.textContent?.includes('Upload'))!));
- Object.defineProperty(input,'files',{value:[new File(['x'],'first.png'),new File(['x'],'failed.png'),new File(['x'],'last.png')]});
- await act(async()=>{input.dispatchEvent(new Event('change'));});
+ expect(uploadOptions.view).toBe('upload');
+ expect(uploadOptions.multiple).toBe(true);
+ await act(async()=>{await uploadOptions.onFiles([new File(['x'],'first.png'),new File(['x'],'failed.png'),new File(['x'],'last.png')]);});
  await vi.waitFor(()=>expect(document.querySelector('[role=alert]')).not.toBeNull());
  expect((gallery.props.items as any[]).map(v=>v.src)).toEqual(['asset:first.png','asset:last.png']);
  expect(C.hist.u.length).toBe(undo+1);
