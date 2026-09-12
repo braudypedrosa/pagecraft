@@ -456,6 +456,9 @@ export interface Control {
   label: string;
   /** Compact rows are opt-in after reviewing the label and choices. */
   layout?: 'inline';
+  /** A colour that paints a background can also own a gradient. Text and border colours
+      deliberately omit this: gradients are not valid values for those CSS properties. */
+  paint?: 1;
   /** the prop this control writes. Required for anything that stores a value —
       omitting it is what made a WYSIWYG body unbindable. */
   k?: string;

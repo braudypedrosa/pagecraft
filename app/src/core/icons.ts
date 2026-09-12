@@ -38,6 +38,7 @@ const IC: Record<string, string> = {
   external:'<path d="M9.5 2.5H13V6"/><path d="M13 2.5L7.5 8"/><path d="M11.5 9.5v3H3.5v-8h3" stroke-linecap="round"/>',
   link:'<path d="M6.5 9.5l3-3M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/>',
   unlink:'<path d="M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/><path d="M2.5 2.5l11 11" stroke-linecap="round" opacity=".7"/>',
+  reset:'<path d="M3.1 5.1A5.7 5.7 0 111.9 9.4" stroke-linecap="round"/><path d="M2.7 2.4v3.4h3.4" stroke-linecap="round" stroke-linejoin="round"/>',
   icon:'<path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.7 4.1 13.7l.8-4.3-3.1-3 4.3-.6z"/>',
   caret:'<path d="M3.5 5.5L8 10l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   /* the same chevron the other way up. A down caret was standing in for both directions, so

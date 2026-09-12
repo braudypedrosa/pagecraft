@@ -70,7 +70,15 @@ export function writer(n: PcNode, c: Control): Writer {
         delete dest[C.dk()][c.c!];
         ['top', 'right', 'bottom', 'left'].forEach(s => { delete dest[C.dk()][c.c + '-' + s]; });
       }
-      else delete dest[C.dk()][c.c!];
+      else {
+        delete dest[C.dk()][c.c!];
+        /* The shared background paint field owns its colour plus a gradient layer. It must
+           leave an uploaded image alone, because that has its own Image control. */
+        if (c.paint) {
+          if (/^linear-gradient\(/i.test(String(dest[C.dk()]['background-image'] || ''))) delete dest[C.dk()]['background-image'];
+          if (/^linear-gradient\(/i.test(String(dest[C.dk()].background || ''))) delete dest[C.dk()].background;
+        }
+      }
       L.endTx(); L.paintCss(); L.save();
       repaint('right');
     }

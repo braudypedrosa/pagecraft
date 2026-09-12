@@ -63,17 +63,18 @@ function Panel({ title, n, gk, children }: { title: string; n: PcNode; gk?: stri
 
 function Head({ h }: { h: NonNullable<ReturnType<typeof C.locate>> }) {
   const n = h.node, d = C.DEF[n.type];
+  const name = C.kindOf(n);
   const ids = C.selIds(), many = ids.length > 1;
   /* With several picked, the fields still come from the primary — it is the one type
      whose controls are guaranteed to exist — and applyC fans each edit over the set.
      The header has to say so, or the count is the only clue that a slider just moved
      twelve things. */
-  const kinds = [...new Set(C.selNodes().map(x => C.DEF[x.type].label))];
+  const kinds = [...new Set(C.selNodes().map(x => C.kindOf(x)))];
   return (
     <div class="sHead">
       <div class="ic"><Icon name={d.icon} size={14} /></div>
       <div class="tt">
-        <b>{many ? ids.length + ' selected' : d.label}</b>
+        <b>{many ? ids.length + ' selected' : name}</b>
         <small>{many ? kinds.join(' · ') : '#' + C.domIdOf(n)}</small>
       </div>
       <button class="iconbtn" title="Copy this element's styling (⌘⇧C)"
@@ -133,7 +134,7 @@ function StylingTarget({ n }: { n: PcNode }) {
   const add = async (v: string, el: HTMLSelectElement) => {
     if (!v) return;
     if (v === '__new') {
-      const name = await L.askText('New class', 'Class name', C.DEF[n.type].label,
+      const name = await L.askText('New class', 'Class name', C.kindOf(n),
         { ok: 'Create class', note: 'Restyling it reaches every element using it.' });
       if (name === null) { el.value = ''; return; }
       C.edit(() => { C.state.ui.target = C.classFrom(n, name); });
@@ -622,8 +623,8 @@ export function Inspector() {
             ? n.type === 'form' && !n.use
               ? [['Form fields', ['fields']], ['Button', ['submit']], ['Submission', ['mode', 'action', 'method']], ['Options', ['aria']]].map(([title, keys]) =>
                 <Group key={title as string} title={title as string} collapsed={title !== 'Form fields'} n={n} items={content.filter(c => (keys as string[]).includes(c.k || ''))} />)
-              : <Group title={n.use ? C.nameOf(n) : d.label} n={n} items={content} />
-            : <Panel title={n.use ? C.nameOf(n) : d.label} n={n}>
+              : <Group title={n.type === 'box' ? C.nameOf(n) : d.label} n={n} items={content} />
+            : <Panel title={n.type === 'box' ? C.nameOf(n) : d.label} n={n}>
               {/* An instance with no properties is not a mistake — a component can be a fixed
                   piece of layout somebody wanted in twelve places. It is worth saying where
                   properties come from, because the answer is not on this panel. */}
@@ -637,7 +638,7 @@ export function Inspector() {
         ) : tab === 'style' ? (
           <>
             <StylingTarget n={n} />
-            {style.length ? <Group title={d.styleLabel || d.label} n={n} items={style} /> : null}
+            {style.length ? <Group title={d.styleLabel || (n.type === 'box' ? C.nameOf(n) : d.label)} n={n} items={style} /> : null}
             {/* A group appears because the widget declares the capability it belongs to, not
                 because a predicate excludes nine widget types by name. A heading has no
                 `decoration`, so there is no Background group to hide controls inside. */}

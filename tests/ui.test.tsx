@@ -138,6 +138,19 @@ test('the border control exposes a template top rule and can add another edge re
   a.equal(n.css.d['border-top-width'], '1px', 'the existing top separator is untouched');
 });
 
+test('the border-edge label resets the selected edge as one action', () => {
+  const n = C.N('box');
+  n.css.d = { 'border-top-style': 'solid', 'border-top-width': '2px', 'border-top-color': '#123456' };
+  C.selSet([n.id]);
+  const border = C.COMMON_STYLE.find(group => group.g === 'Border & shadow')!.items
+    .find(control => control.t === 'border')!;
+  r.draw(<Ctl n={n} c={border} />);
+  const reset = r.$('button.rst')!;
+  a.equal(reset.getAttribute('aria-label'), 'Restore default for Top border');
+  r.click(reset);
+  a.deepEqual(n.css.d, {});
+});
+
 /* A repeater's rows, typed. `items` is a different shape per widget, so the test that
    built the node says which it has. */
 const navRows = (n: any): NavItem[] => n.props.items as NavItem[];
@@ -408,6 +421,40 @@ test('the picker opens on the swatch, carries every part, and closes again', () 
   a.equal(r.$('.cp'), null, 'the swatch toggles it shut');
 });
 
+test('background colour opens one shared solid and gradient picker', () => {
+  const n = C.insert('section', null, 0)!;
+  C.selSet([n.id]);
+  const c: Control = { t: 'color', c: 'background-color', label: 'Colour', paint: 1 };
+  r.draw(() => <Ctl n={n} c={c} />, 'right');
+  a.equal(r.$('.f-inline'), null, 'colour controls keep the full inspector width');
+  open();
+  const modes = r.$$('.cp-modes button');
+  a.deepEqual(modes.map(button => button.textContent), ['Solid', 'Gradient']);
+  act(() => r.click(modes[1]));
+  a.match(n.css.d['background-image'], /^linear-gradient\(135deg,/);
+  const angle = r.$('.cp-stops select') as HTMLSelectElement;
+  act(() => r.pick(angle, '90'));
+  a.match(n.css.d['background-image'], /^linear-gradient\(90deg,/);
+  act(() => r.click(modes[0]));
+  a.equal(n.css.d['background-image'], undefined, 'returning to solid removes the gradient layer');
+});
+
+test('background paint reset clears a gradient without removing an uploaded image', () => {
+  const n = C.insert('section', null, 0)!;
+  C.selSet([n.id]);
+  const c: Control = { t: 'color', c: 'background-color', label: 'Colour', paint: 1 };
+  n.css.d['background-image'] = 'linear-gradient(90deg, #000000, #ffffff)';
+  r.draw(<Ctl n={n} c={c} />);
+  r.click(r.$('button.rst'));
+  a.equal(n.css.d['background-image'], undefined);
+
+  n.css.d['background-image'] = 'url(asset:kept)';
+  n.css.d['background-color'] = '#eeeeee';
+  r.draw(<Ctl n={n} c={c} />);
+  r.click(r.$('button.rst'));
+  a.equal(n.css.d['background-image'], 'url(asset:kept)', 'the separate Image control keeps ownership of its file');
+});
+
 test('typing an rgba into the picker writes it through, and half-typed text is not an error', () => {
   /* rgba already worked end to end — the css objects carry raw CSS and `parseColor` reads
      it back — so the gap this closes is picking one, not storing one. */
@@ -515,6 +562,27 @@ test('clicking the badge clears only this breakpoint', () => {
   r.click(r.$('.rsp'));
   a.equal('font-size' in n.css.m, false, 'the override is gone');
   a.equal(n.css.d['font-size'], '48px', 'and the base is untouched');
+});
+
+test('a stored desktop style gets an explicit restore-default action', () => {
+  const n = heading();
+  C.selSet([n.id]);
+  n.css.d['font-size'] = '72px';
+  C.state.ui.dev = 'desktop';
+  r.draw(<Ctl n={n} c={{ t: 'unit', c: 'font-size', label: 'Size', r: 1, units: ['px'] }} />);
+  const reset = r.$('button.rst')!;
+  a.equal(reset.getAttribute('aria-label'), 'Restore default for Size');
+  r.click(reset);
+  a.equal('font-size' in n.css.d, false);
+});
+
+test('box variants keep their semantic names in every inspector surface', () => {
+  const n = C.insert('linkbox', null, 0)!;
+  C.selSet([n.id]);
+  C.state.ui.stab = 'content';
+  r.draw(<Inspector />);
+  a.equal(r.$('.sHead b')!.textContent, 'Link block');
+  a.ok(r.$$('.gh').some(group => group.textContent!.includes('Link block')));
 });
 
 test('Position writes a native override at the breakpoint being edited', () => {

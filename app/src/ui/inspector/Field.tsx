@@ -39,9 +39,22 @@ const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile
 
 const BOX_SIDES = ['top', 'right', 'bottom', 'left'];
 
+/** Whether this exact editing layer owns a value. Inherited values are still shown by the
+ * control, but they are already at their default for this layer and have nothing to reset. */
+function ownsValue(n: PcNode, c: Control) {
+  if (!c.c) return false;
+  const src = C.stRead(C.tgtObj(n));
+  const bag = src[C.dk()] || {};
+  if (c.paint) return bag[c.c!] !== undefined
+    || /^linear-gradient\(/i.test(String(bag['background-image'] || ''))
+    || /^linear-gradient\(/i.test(String(bag.background || ''));
+  return c.t === 'box'
+    ? bag[c.c] !== undefined || BOX_SIDES.some(s => bag[c.c + '-' + s] !== undefined)
+    : bag[c.c] !== undefined;
+}
+
 function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
   const dev = C.dk();
-  const o = C.tgtObj(n);
   /* A box control writes `padding-top` and friends, never `padding`, so checking its own
      `c` found nothing: the badge never lit up for Padding or Margin, and `clearOverride`'s
      four-side branch was unreachable code. Carried over from the string version, which had
@@ -49,10 +62,7 @@ function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
   /* the block being edited, which is the resting one or a state's — `stRead` is the same
      resolver `cssVal` uses, so the badge and the field can never disagree about which
      declaration they are talking about */
-  const src = C.stRead(o);
-  const owns = !!(c.c && src[dev] && (c.t === 'box'
-    ? (src[dev][c.c] !== undefined || BOX_SIDES.some(s => src[dev][c.c + '-' + s] !== undefined))
-    : src[dev][c.c] !== undefined));
+  const owns = ownsValue(n, c);
   const clearable = owns && dev !== 'd';
   const w = writer(n, c);
   const label = dev === 'd' ? 'Editing the desktop base value'
@@ -62,6 +72,15 @@ function ResponsiveBadge({ n, c }: { n: PcNode; c: Control }) {
     ? <button type="button" class="rsp ovr" title={label} aria-label={label}
         onClick={() => w.clearOverride()}><Icon name={DEV_ICON[dev]} size={9} /></button>
     : <span class="rsp" title={label}><Icon name={DEV_ICON[dev]} size={9} /></span>;
+}
+
+function ResetBadge({ n, c }: { n: PcNode; c: Control }) {
+  /* Responsive overrides already turn the device badge into their reset action. On the
+     desktop base, and for non-responsive CSS controls, use the same explicit reset glyph. */
+  if (!ownsValue(n, c) || (c.r && C.dk() !== 'd')) return null;
+  const label = 'Restore default for ' + c.label;
+  return <button type="button" class="rst" title={label} aria-label={label}
+    onClick={() => writer(n, c).clearOverride()}><Icon name="reset" size={9} /></button>;
 }
 
 function BindBadge({ n, c }: { n: PcNode; c: Control }) {
@@ -157,10 +176,11 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
   const controls = labelControls(children, c.label || 'Value', labelId, helpId, '', inputIds);
 
   return (
-    <div class={'f' + (c.layout === 'inline' && !(bindable && C.bindScope(n.id)) && !pbound && C.state.ui.mode !== 'component' ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
+    <div class={'f' + (c.layout === 'inline' && c.t !== 'color' && !(bindable && C.bindScope(n.id)) && !pbound && C.state.ui.mode !== 'component' ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
       <label for={inputIds[0]}>
         <span id={labelId}>{c.label || ''}</span>
         {c.r ? <ResponsiveBadge n={n} c={c} /> : null}
+        <ResetBadge n={n} c={c} />
         {bindable ? <BindBadge n={n} c={c} /> : null}
         {varies ? <PropBadge n={n} c={c} /> : null}
       </label>

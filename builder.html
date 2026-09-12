@@ -726,9 +726,10 @@ body.preview .dim{display:none}
 .f>label .ovr{color:var(--on-green);background:var(--green)}
 /* bound values get the same badge treatment as a breakpoint override — green
    means "this is not a literal any more" in both cases */
-.f>label .bnd{border:0;padding:0;flex-shrink:0;width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2);cursor:pointer}
-.f>label .bnd svg{width:9px;height:9px}
+.f>label .bnd,.f>label .rst{border:0;padding:0;flex-shrink:0;width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2);cursor:pointer}
+.f>label .bnd svg,.f>label .rst svg{width:9px;height:9px}
 .f>label .bnd:hover{color:var(--text);background:var(--line)}
+.f>label .rst:hover{color:var(--text);background:var(--wake-bg)}
 .f>label .bnd.on{color:var(--on-green);background:var(--green)}
 /* the control, not the label — the badge has to stay clickable to unbind */
 .f.bound>.ctl,.f.bound>.unit,.f.bound>.clr,.f.bound>.pick,.f.bound>.sld,
@@ -816,6 +817,19 @@ select.ctl{
   border-radius:var(--r-md);box-shadow:0 12px 32px #11131126,0 2px 8px #1113111f;
   padding:8px;display:flex;flex-direction:column;gap:var(--sp-4);
 }
+.cp-modes{display:grid;grid-template-columns:1fr 1fr;padding:3px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--field)}
+.cp-modes button{padding:5px 8px;border-radius:3px;font:var(--pc-type-label);color:var(--text-3)}
+.cp-modes button:hover{color:var(--text);background:var(--panel)}
+.cp-modes button.on{color:var(--pc-selection-text);background:var(--pc-selection-bg)}
+.cp-gradient{display:flex;flex-direction:column;gap:var(--sp-3)}
+.cp-gradient-preview{height:28px;border:1px solid var(--line-2);border-radius:var(--r-sm)}
+.cp-stops{display:grid;grid-template-columns:26px 26px 1fr;align-items:end;gap:var(--sp-3)}
+.cp-stops>button{width:26px;height:26px;padding:3px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel)}
+.cp-stops>button:hover,.cp-stops>button.on{border-color:var(--text)}
+.cp-stops>button.on{box-shadow:0 0 0 2px var(--green)}
+.cp-stops>button i{display:block;width:100%;height:100%;border-radius:2px}
+.cp-stops label{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:var(--sp-3);font:var(--pc-type-label);color:var(--text-3)}
+.cp-stops .ctl{height:26px;padding:4px 22px 4px 6px;font:var(--pc-type-label)}
 .cp-sv{position:relative;height:132px;border-radius:var(--r-sm);overflow:hidden;cursor:crosshair;touch-action:none}
 
 /* white→hue across, then black up from the bottom: the standard HSV square, built from
@@ -1011,7 +1025,7 @@ select.ctl{
 .repeater-long>span{display:block;margin-bottom:6px}
 #inspector-panel .f-inline{--h-ctl:var(--pc-control-row);display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1fr);align-items:center;gap:6px 10px}
 #inspector-panel .f-inline>label{margin:0;gap:4px}
-#inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd{flex-shrink:0}
+#inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd,#inspector-panel .f-inline>label .rst{flex-shrink:0}
 #inspector-panel .f-inline>label~*{min-width:0}
 #inspector-panel .f-inline>.note{grid-column:1/-1}
 #inspector-panel .f-inline .ctl{font-size:var(--fs-2);padding:var(--pc-control-padding)}
@@ -1283,7 +1297,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .mitem{position:relative;display:flex;flex-direction:column;gap:var(--sp-3);min-width:0}
 .mitem>[data-media-detail]{width:100%}
 .mitem:hover .mdel,.mitem:focus-within .mdel{opacity:1}
-.mitem .mdel:hover{color:var(--danger);background:var(--risk-bg);color:var(--risk-fg)}
+.mitem .mdel:hover{background:var(--panel);border-color:var(--danger);color:var(--danger);box-shadow:0 2px 8px #11131124}
 .mh{display:flex;align-items:center;gap:var(--sp-5);padding:16px var(--mpad);border-bottom:1px solid var(--line)}
 .mh b{font-size:var(--fs-5);font-weight:600;flex:1;letter-spacing:-.02em}
 .mb{padding:var(--mpad);overflow:auto;flex:1;min-height:0}
@@ -3072,7 +3086,7 @@ function positionHud() {
       <i class="se"></i><i class="s"></i><i class="sw"></i><i class="w"></i>
      </div>
      <div class="bar" style="top:${top}px;left:${left}px">
-      <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
+      <span class="nm">${many ? ids.length + ' selected' : esc(s.node.type === 'box' ? nameOf(s.node) : d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
       ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caretUp', 12)}</button>` : ''}
       ${/* only where there is a list to be at the end of, so the bar does not carry two
@@ -3218,12 +3232,12 @@ function runAct(act, ids) {
     case 'edit': enterEdit(id); break;
     case 'up': { const h = locate(id); select(h.parent ? h.parent.id : null); break; }
     case 'copy':
-      if (copyNode(id)) toast(DEF[locate(id).node.type].label + ' copied'
+      if (copyNode(id)) toast(kindOf(locate(id).node) + ' copied'
         + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
     case 'cut': {
       if (!copyNode(id)) break;
-      const label = DEF[locate(id).node.type].label;
+      const label = kindOf(locate(id).node);
       if (canStructure()) edit(() => delNode(id));
       toast(label + ' cut' + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
@@ -3232,7 +3246,7 @@ function runAct(act, ids) {
       if (!clip.node) break;
       let made = null;
       edit(() => { made = pasteNode(id); if (made) selSet([made.id]); });
-      toast(made ? DEF[made.type].label + ' pasted' : 'A ' + DEF[clip.node.type].label + ' cannot go there');
+      toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
       break;
     }
     case 'first': case 'last': {
@@ -3350,7 +3364,7 @@ function bindCanvas() {
         const many = ids.length > 1 && ids.includes(id);
         startDrag(e, {
           kind: 'move', id, ids: many ? ids : [id],
-          label: many ? ids.length + ' elements' : DEF[locate(id).node.type].label
+          label: many ? ids.length + ' elements' : kindOf(locate(id).node)
         }, true);
       } else if (act === 'more') {
         /* the bar lives inside the scaled iframe, so its coordinates need the factor */
@@ -4527,7 +4541,7 @@ function renderModebar() {
         : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — shared by all ${state.pages.length} pages</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`) +
     (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
-    (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
+    (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(kindOf(n))).join(' › ')}</span>` : '') +
     itemBarHtml() +
     `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
   $('#quickPage')?.addEventListener('change', e => openPage(+e.target.value, state.ui.tab === 'pages'));
@@ -5883,14 +5897,14 @@ function hotkey(e) {
   if (meta && k === 'c') {
     if (state.ui.sel && copyNode(state.ui.sel)) {
       e.preventDefault();
-      toast(DEF[locate(state.ui.sel).node.type].label + ' copied' + (multiOn() ? oneDeep : ''));
+      toast(kindOf(locate(state.ui.sel).node) + ' copied' + (multiOn() ? oneDeep : ''));
     }
     return;
   }
   if (meta && k === 'x') {
     if (state.ui.sel && copyNode(state.ui.sel)) {
       e.preventDefault();
-      const label = DEF[locate(state.ui.sel).node.type].label, many = multiOn();
+      const label = kindOf(locate(state.ui.sel).node), many = multiOn();
       edit(() => delNode(state.ui.sel));
       toast(label + ' cut' + (many ? oneDeep : ''));
     }
@@ -5901,7 +5915,7 @@ function hotkey(e) {
     e.preventDefault();
     let made = null;
     edit(() => { made = pasteNode(state.ui.sel); if (made) selSet([made.id]); });
-    toast(made ? DEF[made.type].label + ' pasted' : 'A ' + DEF[clip.node.type].label + ' cannot go there');
+    toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
     return;
   }
   if (meta && k === 'f') { e.preventDefault(); findModal(); return; }

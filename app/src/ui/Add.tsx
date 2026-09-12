@@ -214,7 +214,7 @@ function Blocks() {
         style={{ marginTop: 'var(--gap-1)', fontSize: 'var(--fs-2)' }}
         onClick={() => sel && L.saveBlockFlow(sel.node.id)}>
         <Icon name="plus" size={12} />
-        {sel ? ' Save ' + C.DEF[sel.node.type].label + ' as block' : ' Select something to save'}
+        {sel ? ' Save ' + C.kindOf(sel.node) + ' as block' : ' Select something to save'}
       </button>
     </>
   );

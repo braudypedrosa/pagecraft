@@ -3009,6 +3009,8 @@ test('a link is parsed into a destination, not left as a string', () => {
 
 test('a bare fragment is read as belonging to its own page', () => {
   fresh();
+  a.deepEqual(C.parseLink('#', 'index'), { mode: 'page', page: 'index', frag: '' },
+    'so a fresh Link block agrees with its inspector');
   a.deepEqual(C.parseLink('#craft', 'index'), { mode: 'page', page: 'index', frag: 'craft' },
     'so it keeps working when the element moves into a global region');
   a.equal(C.buildLink(C.parseLink('#craft', 'index')), 'index.html#craft');
@@ -7704,10 +7706,15 @@ test('a link inside a link block is a finding, because a browser drops one of th
 
 test('a box is named by what it does, not by its type', () => {
   blank();
-  a.equal(C.nameOf(insert('grid', null, 0)), 'Grid');
-  a.equal(C.nameOf(insert('flex', null, 0)), 'Flex');
-  a.equal(C.nameOf(insert('box', null, 0)), 'Box');
-  a.equal(C.nameOf(insert('linkbox', null, 0)), 'Link block');
+  a.equal(C.kindOf(insert('grid', null, 0)), 'Grid');
+  a.equal(C.kindOf(insert('flex', null, 0)), 'Flex');
+  a.equal(C.kindOf(insert('box', null, 0)), 'Box');
+  a.equal(C.kindOf(insert('linkbox', null, 0)), 'Link block');
+
+  const heading = insert('heading', null, 0);
+  heading.props.text = 'Content belongs in the Navigator';
+  a.equal(C.nameOf(heading), 'Content belongs in the Nav');
+  a.equal(C.kindOf(heading), 'Heading', 'UI chrome names the kind rather than repeating content');
 });
 
 test('a box declares its capabilities like everything else', () => {

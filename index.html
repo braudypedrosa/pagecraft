@@ -731,9 +731,10 @@ body.preview .dim{display:none}
 .f>label .ovr{color:var(--on-green);background:var(--green)}
 /* bound values get the same badge treatment as a breakpoint override — green
    means "this is not a literal any more" in both cases */
-.f>label .bnd{border:0;padding:0;flex-shrink:0;width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2);cursor:pointer}
-.f>label .bnd svg{width:9px;height:9px}
+.f>label .bnd,.f>label .rst{border:0;padding:0;flex-shrink:0;width:var(--ic-xs);height:var(--ic-xs);border-radius:var(--r-sm);display:grid;place-items:center;color:var(--text-3);background:var(--field-2);cursor:pointer}
+.f>label .bnd svg,.f>label .rst svg{width:9px;height:9px}
 .f>label .bnd:hover{color:var(--text);background:var(--line)}
+.f>label .rst:hover{color:var(--text);background:var(--wake-bg)}
 .f>label .bnd.on{color:var(--on-green);background:var(--green)}
 /* the control, not the label — the badge has to stay clickable to unbind */
 .f.bound>.ctl,.f.bound>.unit,.f.bound>.clr,.f.bound>.pick,.f.bound>.sld,
@@ -821,6 +822,19 @@ select.ctl{
   border-radius:var(--r-md);box-shadow:0 12px 32px #11131126,0 2px 8px #1113111f;
   padding:8px;display:flex;flex-direction:column;gap:var(--sp-4);
 }
+.cp-modes{display:grid;grid-template-columns:1fr 1fr;padding:3px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--field)}
+.cp-modes button{padding:5px 8px;border-radius:3px;font:var(--pc-type-label);color:var(--text-3)}
+.cp-modes button:hover{color:var(--text);background:var(--panel)}
+.cp-modes button.on{color:var(--pc-selection-text);background:var(--pc-selection-bg)}
+.cp-gradient{display:flex;flex-direction:column;gap:var(--sp-3)}
+.cp-gradient-preview{height:28px;border:1px solid var(--line-2);border-radius:var(--r-sm)}
+.cp-stops{display:grid;grid-template-columns:26px 26px 1fr;align-items:end;gap:var(--sp-3)}
+.cp-stops>button{width:26px;height:26px;padding:3px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel)}
+.cp-stops>button:hover,.cp-stops>button.on{border-color:var(--text)}
+.cp-stops>button.on{box-shadow:0 0 0 2px var(--green)}
+.cp-stops>button i{display:block;width:100%;height:100%;border-radius:2px}
+.cp-stops label{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:var(--sp-3);font:var(--pc-type-label);color:var(--text-3)}
+.cp-stops .ctl{height:26px;padding:4px 22px 4px 6px;font:var(--pc-type-label)}
 .cp-sv{position:relative;height:132px;border-radius:var(--r-sm);overflow:hidden;cursor:crosshair;touch-action:none}
 
 /* white→hue across, then black up from the bottom: the standard HSV square, built from
@@ -1016,7 +1030,7 @@ select.ctl{
 .repeater-long>span{display:block;margin-bottom:6px}
 #inspector-panel .f-inline{--h-ctl:var(--pc-control-row);display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1fr);align-items:center;gap:6px 10px}
 #inspector-panel .f-inline>label{margin:0;gap:4px}
-#inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd{flex-shrink:0}
+#inspector-panel .f-inline>label .rsp,#inspector-panel .f-inline>label .bnd,#inspector-panel .f-inline>label .rst{flex-shrink:0}
 #inspector-panel .f-inline>label~*{min-width:0}
 #inspector-panel .f-inline>.note{grid-column:1/-1}
 #inspector-panel .f-inline .ctl{font-size:var(--fs-2);padding:var(--pc-control-padding)}
@@ -1288,7 +1302,7 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .mitem{position:relative;display:flex;flex-direction:column;gap:var(--sp-3);min-width:0}
 .mitem>[data-media-detail]{width:100%}
 .mitem:hover .mdel,.mitem:focus-within .mdel{opacity:1}
-.mitem .mdel:hover{color:var(--danger);background:var(--risk-bg);color:var(--risk-fg)}
+.mitem .mdel:hover{background:var(--panel);border-color:var(--danger);color:var(--danger);box-shadow:0 2px 8px #11131124}
 .mh{display:flex;align-items:center;gap:var(--sp-5);padding:16px var(--mpad);border-bottom:1px solid var(--line)}
 .mh b{font-size:var(--fs-5);font-weight:600;flex:1;letter-spacing:-.02em}
 .mb{padding:var(--mpad);overflow:auto;flex:1;min-height:0}
@@ -2094,6 +2108,7 @@ var IC = {
   external: '<path d="M9.5 2.5H13V6"/><path d="M13 2.5L7.5 8"/><path d="M11.5 9.5v3H3.5v-8h3" stroke-linecap="round"/>',
   link: '<path d="M6.5 9.5l3-3M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/>',
   unlink: '<path d="M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/><path d="M2.5 2.5l11 11" stroke-linecap="round" opacity=".7"/>',
+  reset: '<path d="M3.1 5.1A5.7 5.7 0 111.9 9.4" stroke-linecap="round"/><path d="M2.7 2.4v3.4h3.4" stroke-linecap="round" stroke-linejoin="round"/>',
   icon: '<path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.7 4.1 13.7l.8-4.3-3.1-3 4.3-.6z"/>',
   caret: '<path d="M3.5 5.5L8 10l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   /* the same chevron the other way up. A down caret was standing in for both directions, so
@@ -4565,7 +4580,7 @@ var COMMON_STYLE = [
     g: "Background",
     cap: "decoration",
     items: [
-      { t: "color", c: "background-color", label: "Colour", layout: "inline" },
+      { t: "color", c: "background-color", label: "Colour", paint: 1 },
       { t: "img", c: "background-image", label: "Image", bg: 1 },
       { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
@@ -4573,8 +4588,7 @@ var COMMON_STYLE = [
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
       { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
-      { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
+      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
     ]
   },
   {
@@ -4730,6 +4744,7 @@ var nameOf = (n) => {
   if (n.type === "image") return n.props.alt ? "Image \xB7 " + n.props.alt.slice(0, 18) : "Image";
   return d.label;
 };
+var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
 function selIds() {
   const out = [];
   if (state.ui.sel) out.push(state.ui.sel);
@@ -4874,7 +4889,7 @@ function menuFor(ids) {
   if (out.length) out[out.length - 1].sep = true;
   out.push({ act: "copy", label: many ? "Copy the first" : "Copy", key: "\u2318C" });
   out.push({ act: "cut", label: many ? "Cut the first" : "Cut", key: "\u2318X" });
-  if (clip.node) out.push({ act: "paste", label: "Paste " + DEF[clip.node.type].label, key: "\u2318V" });
+  if (clip.node) out.push({ act: "paste", label: "Paste " + kindOf(clip.node), key: "\u2318V" });
   out.push({ act: "dup", label: many ? "Duplicate all " + list.length : "Duplicate", key: "\u2318D", sep: true });
   out.push({ act: "stcopy", label: "Copy styles", key: "\u2318\u21E7C" });
   if (styleClip.css) out.push({ act: "stpaste", label: many ? "Paste styles to " + list.length : "Paste styles", key: "\u2318\u21E7V" });
@@ -5274,7 +5289,7 @@ function parseLink(href, hereSlug) {
   if (/^mailto:/i.test(v)) return { mode: "email", value: v.replace(/^mailto:/i, "") };
   if (/^tel:/i.test(v)) return { mode: "phone", value: v.replace(/^tel:/i, "") };
   if (v === "cms:item") return { mode: "item" };
-  if (v === "#") return { mode: "none" };
+  if (v === "#") return { mode: "page", page: hereSlug, frag: "" };
   if (v.startsWith("#")) return { mode: "page", page: hereSlug, frag: v.slice(1) };
   const m = v.match(/^([\w-]+)\.html(?:#([\w-]+))?$/);
   if (m && state.pages.some((p) => p.slug === m[1])) return { mode: "page", page: m[1], frag: m[2] || "" };
@@ -5623,7 +5638,7 @@ function lint() {
     let heroImageReviewed = false;
     const stack = [];
     const visit = (list, chain, region) => list.forEach((n) => {
-      const w = { ...scope, region, node: DEF[n.type].label };
+      const w = { ...scope, region, node: kindOf(n) };
       const anchor = n.adv && n.adv.htmlId;
       if (anchor) {
         if (seenIds.has(anchor)) dupIds.add(anchor);
@@ -10172,6 +10187,7 @@ var __CORE = {
   jsonLd,
   jsonLdGraph,
   kb,
+  kindOf,
   labelOf,
   layerTarget,
   linkOf,
@@ -12564,7 +12580,7 @@ var PC_UI = (() => {
           onClick: () => sel && L2.saveBlockFlow(sel.node.id),
           children: [
             /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
-            sel ? " Save " + C2.DEF[sel.node.type].label + " as block" : " Select something to save"
+            sel ? " Save " + C2.kindOf(sel.node) + " as block" : " Select something to save"
           ]
         }
       )
@@ -13195,7 +13211,13 @@ var PC_UI = (() => {
           ["top", "right", "bottom", "left"].forEach((s3) => {
             delete dest[C2.dk()][c3.c + "-" + s3];
           });
-        } else delete dest[C2.dk()][c3.c];
+        } else {
+          delete dest[C2.dk()][c3.c];
+          if (c3.paint) {
+            if (/^linear-gradient\(/i.test(String(dest[C2.dk()]["background-image"] || ""))) delete dest[C2.dk()]["background-image"];
+            if (/^linear-gradient\(/i.test(String(dest[C2.dk()].background || ""))) delete dest[C2.dk()].background;
+          }
+        }
         L2.endTx();
         L2.paintCss();
         L2.save();
@@ -13246,11 +13268,16 @@ var PC_UI = (() => {
   }
   var DEV_ICON = { d: "desktop", t: "tablet", m: "mobile" };
   var BOX_SIDES = ["top", "right", "bottom", "left"];
+  function ownsValue(n2, c3) {
+    if (!c3.c) return false;
+    const src = C2.stRead(C2.tgtObj(n2));
+    const bag = src[C2.dk()] || {};
+    if (c3.paint) return bag[c3.c] !== void 0 || /^linear-gradient\(/i.test(String(bag["background-image"] || "")) || /^linear-gradient\(/i.test(String(bag.background || ""));
+    return c3.t === "box" ? bag[c3.c] !== void 0 || BOX_SIDES.some((s3) => bag[c3.c + "-" + s3] !== void 0) : bag[c3.c] !== void 0;
+  }
   function ResponsiveBadge({ n: n2, c: c3 }) {
     const dev = C2.dk();
-    const o3 = C2.tgtObj(n2);
-    const src = C2.stRead(o3);
-    const owns = !!(c3.c && src[dev] && (c3.t === "box" ? src[dev][c3.c] !== void 0 || BOX_SIDES.some((s3) => src[dev][c3.c + "-" + s3] !== void 0) : src[dev][c3.c] !== void 0));
+    const owns = ownsValue(n2, c3);
     const clearable = owns && dev !== "d";
     const w3 = writer(n2, c3);
     const label = dev === "d" ? "Editing the desktop base value" : owns ? "Clear " + C2.DEV_LABEL[dev] + " override for " + c3.label : "Set a " + C2.DEV_LABEL[dev] + " override";
@@ -13265,6 +13292,21 @@ var PC_UI = (() => {
         children: /* @__PURE__ */ u2(Icon, { name: DEV_ICON[dev], size: 9 })
       }
     ) : /* @__PURE__ */ u2("span", { class: "rsp", title: label, children: /* @__PURE__ */ u2(Icon, { name: DEV_ICON[dev], size: 9 }) });
+  }
+  function ResetBadge({ n: n2, c: c3 }) {
+    if (!ownsValue(n2, c3) || c3.r && C2.dk() !== "d") return null;
+    const label = "Restore default for " + c3.label;
+    return /* @__PURE__ */ u2(
+      "button",
+      {
+        type: "button",
+        class: "rst",
+        title: label,
+        "aria-label": label,
+        onClick: () => writer(n2, c3).clearOverride(),
+        children: /* @__PURE__ */ u2(Icon, { name: "reset", size: 9 })
+      }
+    );
   }
   function BindBadge({ n: n2, c: c3 }) {
     const scope = C2.bindScope(n2.id);
@@ -13357,10 +13399,11 @@ var PC_UI = (() => {
     const helpId = fid || pbound || c3.note ? `${labelId}-help` : void 0;
     const inputIds = [];
     const controls = labelControls(children, c3.label || "Value", labelId, helpId, "", inputIds);
-    return /* @__PURE__ */ u2("div", { class: "f" + (c3.layout === "inline" && !(bindable && C2.bindScope(n2.id)) && !pbound && C2.state.ui.mode !== "component" ? " f-inline" : "") + (fid ? " bound" : ""), role: "group", "aria-labelledby": labelId, children: [
+    return /* @__PURE__ */ u2("div", { class: "f" + (c3.layout === "inline" && c3.t !== "color" && !(bindable && C2.bindScope(n2.id)) && !pbound && C2.state.ui.mode !== "component" ? " f-inline" : "") + (fid ? " bound" : ""), role: "group", "aria-labelledby": labelId, children: [
       /* @__PURE__ */ u2("label", { for: inputIds[0], children: [
         /* @__PURE__ */ u2("span", { id: labelId, children: c3.label || "" }),
         c3.r ? /* @__PURE__ */ u2(ResponsiveBadge, { n: n2, c: c3 }) : null,
+        /* @__PURE__ */ u2(ResetBadge, { n: n2, c: c3 }),
         bindable ? /* @__PURE__ */ u2(BindBadge, { n: n2, c: c3 }) : null,
         varies ? /* @__PURE__ */ u2(PropBadge, { n: n2, c: c3 }) : null
       ] }),
@@ -13381,6 +13424,28 @@ var PC_UI = (() => {
   // app/src/ui/inspector/ColorPop.tsx
   var EyeDropperApi = window.EyeDropper;
   var BLACK = { r: 0, g: 0, b: 0, a: 1 };
+  var splitGradient = (value) => {
+    const match = String(value || "").trim().match(/^linear-gradient\((.*)\)$/i);
+    if (!match) return null;
+    const parts = [];
+    let part = "", depth = 0;
+    for (const ch of match[1]) {
+      if (ch === "(") depth++;
+      if (ch === ")") depth = Math.max(0, depth - 1);
+      if (ch === "," && depth === 0) {
+        parts.push(part.trim());
+        part = "";
+      } else part += ch;
+    }
+    if (part.trim()) parts.push(part.trim());
+    const anglePart = /^(-?\d+(?:\.\d+)?)deg$/i.exec(parts[0] || "");
+    const angle = anglePart ? Number(anglePart[1]) : 180;
+    const colors = (anglePart ? parts.slice(1) : parts).slice(0, 2).map((raw) => {
+      const value2 = raw.replace(/\s+-?\d+(?:\.\d+)?%\s*$/, "");
+      return C2.parseColor(C2.resolveColor(value2) || value2);
+    });
+    return colors.length === 2 && colors.every(Boolean) ? { angle, stops: colors } : null;
+  };
   function Surface({ cls, onPick, children, aria, value, onKey }) {
     const el = A2(null);
     const at = (e3) => {
@@ -13411,17 +13476,31 @@ var PC_UI = (() => {
       }
     );
   }
-  function ColorPop({ start, anchor, onLive, onDone, onClose }) {
+  function ColorPop({ start, gradient, anchor, onLive, onDone, onClose }) {
     const first = C2.parseColor(start) || BLACK;
+    const parsedGradient = gradient ? splitGradient(gradient.start) : null;
+    const fallbackStop = C2.parseColor("#ffffff");
+    const [mode, setMode] = d2(parsedGradient ? "gradient" : "solid");
+    const [solid, setSolid] = d2(first);
+    const [stops, setStops] = d2(parsedGradient?.stops || [first, fallbackStop]);
+    const [activeStop, setActiveStop] = d2(0);
+    const [angle, setAngle] = d2(parsedGradient?.angle ?? 135);
     const [hue, setHue] = d2(C2.rgb2hsv(first).h);
-    const [rgba, setRgba] = d2(first);
     const box = A2(null);
+    const rgba = mode === "gradient" ? stops[activeStop] : solid;
     const hsv = C2.rgb2hsv(rgba);
     const css = C2.fmtColor(rgba);
     const h3 = hsv.s > 4e-3 && hsv.v > 4e-3 ? hsv.h : hue;
+    const gradientCss = (nextStops = stops, nextAngle = angle) => `linear-gradient(${nextAngle}deg, ${C2.fmtColor(nextStops[0])}, ${C2.fmtColor(nextStops[1])})`;
     const put = (next, commit) => {
-      setRgba(next);
-      (commit ? onDone : onLive)(C2.fmtColor(next));
+      if (mode === "gradient" && gradient) {
+        const nextStops = stops.map((stop, index) => index === activeStop ? next : stop);
+        setStops(nextStops);
+        (commit ? gradient.onDone : gradient.onLive)(gradientCss(nextStops));
+      } else {
+        setSolid(next);
+        (commit ? onDone : onLive)(C2.fmtColor(next));
+      }
     };
     const fromHsv = (s3, v3, hh = h3, a3 = rgba.a, commit) => put({ ...C2.hsv2rgb({ h: hh, s: s3, v: v3 }), a: a3 }, commit);
     h2(() => {
@@ -13455,7 +13534,7 @@ var PC_UI = (() => {
       };
     }, [anchor, onClose]);
     const r3 = anchor.getBoundingClientRect();
-    const W2 = 232, H2 = 244;
+    const W2 = 232, H2 = gradient ? 330 : 244;
     const below = window.innerHeight - r3.bottom > H2 + 12;
     const style = {
       left: Math.round(Math.min(Math.max(8, r3.left), window.innerWidth - W2 - 8)) + "px",
@@ -13488,6 +13567,67 @@ var PC_UI = (() => {
       }
     };
     return /* @__PURE__ */ u2("div", { class: "cp", ref: box, style, onPointerDown: (e3) => e3.stopPropagation(), children: [
+      gradient ? /* @__PURE__ */ u2("div", { class: "cp-modes", role: "tablist", "aria-label": "Paint type", children: [
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            role: "tab",
+            "aria-selected": mode === "solid",
+            class: mode === "solid" ? "on" : "",
+            onClick: () => {
+              setMode("solid");
+              gradient.onDone("");
+            },
+            children: "Solid"
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            role: "tab",
+            "aria-selected": mode === "gradient",
+            class: mode === "gradient" ? "on" : "",
+            onClick: () => {
+              setMode("gradient");
+              gradient.onDone(gradientCss());
+            },
+            children: "Gradient"
+          }
+        )
+      ] }) : null,
+      mode === "gradient" ? /* @__PURE__ */ u2("div", { class: "cp-gradient", children: [
+        /* @__PURE__ */ u2("div", { class: "cp-gradient-preview", style: { background: gradientCss() } }),
+        /* @__PURE__ */ u2("div", { class: "cp-stops", role: "group", "aria-label": "Gradient colour stop", children: [
+          stops.map((stop, index) => /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: activeStop === index ? "on" : "",
+              "aria-pressed": activeStop === index,
+              "aria-label": "Edit gradient colour " + (index + 1),
+              onClick: () => {
+                setActiveStop(index);
+                setHue(C2.rgb2hsv(stop).h);
+              },
+              children: /* @__PURE__ */ u2("i", { style: { background: C2.fmtColor(stop) } })
+            },
+            index
+          )),
+          /* @__PURE__ */ u2("label", { children: [
+            "Angle",
+            /* @__PURE__ */ u2("select", { class: "ctl", value: String(angle), onChange: (e3) => {
+              const next = Number(e3.target.value);
+              setAngle(next);
+              gradient?.onDone(gradientCss(stops, next));
+            }, children: [0, 45, 90, 135, 180, 225, 270, 315].map((value) => /* @__PURE__ */ u2("option", { value, children: [
+              value,
+              "\xB0"
+            ] }, value)) })
+          ] })
+        ] })
+      ] }) : null,
       /* @__PURE__ */ u2(
         Surface,
         {
@@ -14312,6 +14452,11 @@ var PC_UI = (() => {
     const tok = C2.refId(v3) ? C2.findColor(C2.refId(v3)) : null;
     const lit = tok ? tok.value : v3;
     const cur = () => c3.c ? C2.cssVal(C2.tgtObj(n2), c3.c, !!c3.r).v : C2.propVal(n2, c3.k);
+    const imagePaint = c3.paint ? String(C2.cssVal(C2.tgtObj(n2), "background-image", !!c3.r).v || "") : "";
+    const shorthandPaint = c3.paint ? String(C2.cssVal(C2.tgtObj(n2), "background", !!c3.r).v || "") : "";
+    const gradientValue = /^linear-gradient\(/i.test(imagePaint) ? imagePaint : /^linear-gradient\(/i.test(shorthandPaint) ? shorthandPaint : "";
+    const gradientControl = { ...c3, c: /^linear-gradient\(/i.test(shorthandPaint) ? "background" : "background-image", label: "Gradient" };
+    const gradientWriter = writer(n2, gradientControl);
     const [pop, setPop] = d2(null);
     const addToken = async () => {
       const name = await L2.askText(
@@ -14337,7 +14482,7 @@ var PC_UI = (() => {
             "aria-haspopup": "dialog",
             "aria-expanded": pop ? "true" : "false",
             onClick: (e3) => setPop(pop ? null : e3.currentTarget),
-            children: /* @__PURE__ */ u2("i", { style: { background: lit || "transparent" } })
+            children: /* @__PURE__ */ u2("i", { style: { background: gradientValue || lit || "transparent" } })
           }
         ),
         pop ? (
@@ -14357,12 +14502,14 @@ var PC_UI = (() => {
             {
               start: lit || (c3.c ? C2.resolveColor(C2.effectiveAt(n2.id, c3.c)) : ""),
               anchor: pop,
+              gradient: c3.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : void 0,
               onLive: w3.live,
               onDone: (val) => {
                 w3.hard(val);
               },
               onClose: () => {
                 w3.done();
+                if (c3.paint) gradientWriter.done();
                 setPop(null);
                 if (C2.isRef(cur())) repaint("right");
               }
@@ -14579,9 +14726,38 @@ var PC_UI = (() => {
     const prefix = borderPrefix(side);
     const sideLabel = BORDER_TARGETS.find(([value]) => value === side)?.[1] || "All";
     const setOn = (value) => !!(C2.styleSeen(n2, borderPrefix(value) + "-style") || C2.styleSeen(n2, borderPrefix(value) + "-width") || C2.styleSeen(n2, borderPrefix(value) + "-color"));
+    const ownsSide = (value) => {
+      const bag = C2.stRead(C2.tgtObj(n2))[C2.dk()] || {};
+      const target = borderPrefix(value);
+      return ["style", "width", "color"].some((part) => bag[target + "-" + part] !== void 0);
+    };
+    const reset = () => {
+      L2.tx(n2.id + "|border|" + side + ":clear");
+      const bag = C2.stWrite(C2.tgtObj(n2))[C2.dk()];
+      ["style", "width", "color"].forEach((part) => {
+        delete bag[prefix + "-" + part];
+      });
+      L2.endTx();
+      L2.paintCss();
+      L2.save();
+      repaint("right");
+    };
     return /* @__PURE__ */ u2("div", { class: "borderctl", children: [
       /* @__PURE__ */ u2("div", { class: "f", children: [
-        /* @__PURE__ */ u2("label", { children: "Border edge" }),
+        /* @__PURE__ */ u2("label", { children: [
+          /* @__PURE__ */ u2("span", { children: "Border edge" }),
+          ownsSide(side) ? /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: "rst",
+              title: "Restore default for " + sideLabel + " border",
+              "aria-label": "Restore default for " + sideLabel + " border",
+              onClick: reset,
+              children: /* @__PURE__ */ u2(Icon, { name: "reset", size: 9 })
+            }
+          ) : null
+        ] }),
         /* @__PURE__ */ u2("div", { class: "pick borderpick", role: "group", "aria-label": "Border edge", children: BORDER_TARGETS.map(([value, label]) => /* @__PURE__ */ u2(
           "button",
           {
@@ -15259,12 +15435,13 @@ var PC_UI = (() => {
   }
   function Head({ h: h3 }) {
     const n2 = h3.node, d3 = C2.DEF[n2.type];
+    const name = C2.kindOf(n2);
     const ids = C2.selIds(), many = ids.length > 1;
-    const kinds = [...new Set(C2.selNodes().map((x2) => C2.DEF[x2.type].label))];
+    const kinds = [...new Set(C2.selNodes().map((x2) => C2.kindOf(x2)))];
     return /* @__PURE__ */ u2("div", { class: "sHead", children: [
       /* @__PURE__ */ u2("div", { class: "ic", children: /* @__PURE__ */ u2(Icon, { name: d3.icon, size: 14 }) }),
       /* @__PURE__ */ u2("div", { class: "tt", children: [
-        /* @__PURE__ */ u2("b", { children: many ? ids.length + " selected" : d3.label }),
+        /* @__PURE__ */ u2("b", { children: many ? ids.length + " selected" : name }),
         /* @__PURE__ */ u2("small", { children: many ? kinds.join(" \xB7 ") : "#" + C2.domIdOf(n2) })
       ] }),
       /* @__PURE__ */ u2(
@@ -15370,7 +15547,7 @@ var PC_UI = (() => {
         const name = await L2.askText(
           "New class",
           "Class name",
-          C2.DEF[n2.type].label,
+          C2.kindOf(n2),
           { ok: "Create class", note: "Restyling it reaches every element using it." }
         );
         if (name === null) {
@@ -15896,13 +16073,13 @@ var PC_UI = (() => {
             tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
             tab2 === "content" && n2.type === "form" && C2.cloudFormsEnabled() ? /* @__PURE__ */ u2("p", { class: "note", style: "padding:12px", children: "Saved to Submissions when published." }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
-            tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys2]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys2.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.use ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
+            tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys2]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys2.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
               "Nothing varies between instances yet. Open this component in the",
               /* @__PURE__ */ u2("b", { children: " Components" }),
               " tab and mark what should."
             ] }) : /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
               /* @__PURE__ */ u2(StylingTarget, { n: n2 }),
-              style.length ? /* @__PURE__ */ u2(Group, { title: d3.styleLabel || d3.label, n: n2, items: style }) : null,
+              style.length ? /* @__PURE__ */ u2(Group, { title: d3.styleLabel || (n2.type === "box" ? C2.nameOf(n2) : d3.label), n: n2, items: style }) : null,
               C2.COMMON_STYLE.filter((g3) => C2.canDo(n2, g3.cap)).map((g3) => /* @__PURE__ */ u2(Group, { title: g3.g, n: n2, items: g3.items }, g3.g)),
               many || !C2.canDo(n2, "animation") ? null : /* @__PURE__ */ u2(Motion, { n: n2 })
             ] }) : /* @__PURE__ */ u2(S, { children: [
@@ -17240,6 +17417,7 @@ var PC_UI = (() => {
     external: '<path d="M9.5 2.5H13V6"/><path d="M13 2.5L7.5 8"/><path d="M11.5 9.5v3H3.5v-8h3" stroke-linecap="round"/>',
     link: '<path d="M6.5 9.5l3-3M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/>',
     unlink: '<path d="M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/><path d="M2.5 2.5l11 11" stroke-linecap="round" opacity=".7"/>',
+    reset: '<path d="M3.1 5.1A5.7 5.7 0 111.9 9.4" stroke-linecap="round"/><path d="M2.7 2.4v3.4h3.4" stroke-linecap="round" stroke-linejoin="round"/>',
     icon: '<path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.7 4.1 13.7l.8-4.3-3.1-3 4.3-.6z"/>',
     caret: '<path d="M3.5 5.5L8 10l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/>',
     /* the same chevron the other way up. A down caret was standing in for both directions, so
@@ -18582,7 +18760,7 @@ var PC_UI = (() => {
       g: "Background",
       cap: "decoration",
       items: [
-        { t: "color", c: "background-color", label: "Colour", layout: "inline" },
+        { t: "color", c: "background-color", label: "Colour", paint: 1 },
         { t: "img", c: "background-image", label: "Image", bg: 1 },
         { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
         /* A pick, not a select: where an image sits is a spatial choice, and five words in a
@@ -18590,8 +18768,7 @@ var PC_UI = (() => {
            alignment ones already in the set, which is what the same question looks like
            everywhere else in this panel. */
         { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-        { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
-        { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
+        { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
       ]
     },
     {
@@ -20844,7 +21021,7 @@ function positionHud() {
       <i class="se"></i><i class="s"></i><i class="sw"></i><i class="w"></i>
      </div>
      <div class="bar" style="top:${top}px;left:${left}px">
-      <span class="nm">${many ? ids.length + ' selected' : esc(d.label)}</span>
+      <span class="nm">${many ? ids.length + ' selected' : esc(s.node.type === 'box' ? nameOf(s.node) : d.label)}</span>
       <button class="g" data-act="drag" title="${many ? 'Drag all ' + ids.length + ' to move them together' : 'Drag to move'}">${svg('drag', 12)}</button>
       ${!many && s.parent ? `<button data-act="up" title="Select parent (esc)">${svg('caretUp', 12)}</button>` : ''}
       ${/* only where there is a list to be at the end of, so the bar does not carry two
@@ -20990,12 +21167,12 @@ function runAct(act, ids) {
     case 'edit': enterEdit(id); break;
     case 'up': { const h = locate(id); select(h.parent ? h.parent.id : null); break; }
     case 'copy':
-      if (copyNode(id)) toast(DEF[locate(id).node.type].label + ' copied'
+      if (copyNode(id)) toast(kindOf(locate(id).node) + ' copied'
         + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
     case 'cut': {
       if (!copyNode(id)) break;
-      const label = DEF[locate(id).node.type].label;
+      const label = kindOf(locate(id).node);
       if (canStructure()) edit(() => delNode(id));
       toast(label + ' cut' + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
@@ -21004,7 +21181,7 @@ function runAct(act, ids) {
       if (!clip.node) break;
       let made = null;
       edit(() => { made = pasteNode(id); if (made) selSet([made.id]); });
-      toast(made ? DEF[made.type].label + ' pasted' : 'A ' + DEF[clip.node.type].label + ' cannot go there');
+      toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
       break;
     }
     case 'first': case 'last': {
@@ -21122,7 +21299,7 @@ function bindCanvas() {
         const many = ids.length > 1 && ids.includes(id);
         startDrag(e, {
           kind: 'move', id, ids: many ? ids : [id],
-          label: many ? ids.length + ' elements' : DEF[locate(id).node.type].label
+          label: many ? ids.length + ' elements' : kindOf(locate(id).node)
         }, true);
       } else if (act === 'more') {
         /* the bar lives inside the scaled iframe, so its coordinates need the factor */
@@ -22299,7 +22476,7 @@ function renderModebar() {
         : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — shared by all ${state.pages.length} pages</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`) +
     (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
-    (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(DEF[n.type].label)).join(' › ')}</span>` : '') +
+    (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(kindOf(n))).join(' › ')}</span>` : '') +
     itemBarHtml() +
     `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
   $('#quickPage')?.addEventListener('change', e => openPage(+e.target.value, state.ui.tab === 'pages'));
@@ -23655,14 +23832,14 @@ function hotkey(e) {
   if (meta && k === 'c') {
     if (state.ui.sel && copyNode(state.ui.sel)) {
       e.preventDefault();
-      toast(DEF[locate(state.ui.sel).node.type].label + ' copied' + (multiOn() ? oneDeep : ''));
+      toast(kindOf(locate(state.ui.sel).node) + ' copied' + (multiOn() ? oneDeep : ''));
     }
     return;
   }
   if (meta && k === 'x') {
     if (state.ui.sel && copyNode(state.ui.sel)) {
       e.preventDefault();
-      const label = DEF[locate(state.ui.sel).node.type].label, many = multiOn();
+      const label = kindOf(locate(state.ui.sel).node), many = multiOn();
       edit(() => delNode(state.ui.sel));
       toast(label + ' cut' + (many ? oneDeep : ''));
     }
@@ -23673,7 +23850,7 @@ function hotkey(e) {
     e.preventDefault();
     let made = null;
     edit(() => { made = pasteNode(state.ui.sel); if (made) selSet([made.id]); });
-    toast(made ? DEF[made.type].label + ' pasted' : 'A ' + DEF[clip.node.type].label + ' cannot go there');
+    toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
     return;
   }
   if (meta && k === 'f') { e.preventDefault(); findModal(); return; }

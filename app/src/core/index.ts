@@ -1547,7 +1547,7 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
   { g: 'Spacing', cap: 'spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
   {
     g: 'Background', cap: 'decoration', items: [
-      { t: 'color', c: 'background-color', label: 'Colour', layout: 'inline' },
+      { t: 'color', c: 'background-color', label: 'Colour', paint: 1 },
       { t: 'img', c: 'background-image', label: 'Image', bg: 1 },
       { t: 'select', c: 'background-size', label: 'Size', when: hasBackdrop, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
@@ -1555,8 +1555,7 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
       { t: 'pick', c: 'background-position', label: 'Position', when: hasBackdrop, opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
-      { t: 'select', c: 'background-repeat', label: 'Repeat', when: hasBackdrop, opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] },
-      { t: 'text', c: 'background', label: 'Gradient / shorthand', ph: 'linear-gradient(...)' }
+      { t: 'select', c: 'background-repeat', label: 'Repeat', when: hasBackdrop, opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] }
     ]
   },
   {
@@ -1712,6 +1711,11 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'image') return n.props.alt ? 'Image · ' + n.props.alt.slice(0, 18) : 'Image';
   return d.label;
 };
+
+/* A stable kind label for UI chrome. `nameOf` is deliberately content-aware for the
+   Navigator, while toolbars, breadcrumbs and action messages need the component kind.
+   Box variants share one stored type, so their props are the one semantic exception. */
+const kindOf = (n: PcNode) => n.type === 'box' ? nameOf(n) : DEF[n.type].label;
 
 /* ---- the selection set ------------------------------------------------
    `state.ui.sel` stays the one primary — the key object whose controls the
@@ -1923,7 +1927,7 @@ function menuFor(ids: string[] | null) {
 
   out.push({ act: 'copy', label: many ? 'Copy the first' : 'Copy', key: '⌘C' });
   out.push({ act: 'cut', label: many ? 'Cut the first' : 'Cut', key: '⌘X' });
-  if (clip.node) out.push({ act: 'paste', label: 'Paste ' + DEF[clip.node.type].label, key: '⌘V' });
+  if (clip.node) out.push({ act: 'paste', label: 'Paste ' + kindOf(clip.node), key: '⌘V' });
   out.push({ act: 'dup', label: many ? 'Duplicate all ' + list.length : 'Duplicate', key: '⌘D', sep: true });
 
   out.push({ act: 'stcopy', label: 'Copy styles', key: '⌘⇧C' });
@@ -2417,7 +2421,9 @@ function parseLink(href: unknown, hereSlug: string) {
   if (/^mailto:/i.test(v)) return { mode: 'email', value: v.replace(/^mailto:/i, '') };
   if (/^tel:/i.test(v)) return { mode: 'phone', value: v.replace(/^tel:/i, '') };
   if (v === 'cms:item') return { mode: 'item' };     // resolved per item at render
-  if (v === '#') return { mode: 'none' };          // a bare hash is not a destination
+  /* A fresh Link block uses a bare hash for the current page top. Treating that as “No link”
+     made the canvas an anchor while the inspector denied it had one. */
+  if (v === '#') return { mode: 'page', page: hereSlug, frag: '' };
   if (v.startsWith('#')) return { mode: 'page', page: hereSlug, frag: v.slice(1) };
   const m = v.match(/^([\w-]+)\.html(?:#([\w-]+))?$/);
   if (m && state.pages.some(p => p.slug === m[1])) return { mode: 'page', page: m[1], frag: m[2] || '' };
@@ -2921,7 +2927,7 @@ function lint() {
     const stack: string[] = [];
 
     const visit = (list: PcNode[], chain: PcNode[], region: string): void => list.forEach((n: PcNode) => {
-      const w = { ...scope, region, node: DEF[n.type].label };
+      const w = { ...scope, region, node: kindOf(n) };
       const anchor = n.adv && n.adv.htmlId;
       if (anchor) { if (seenIds.has(anchor)) dupIds.add(anchor); seenIds.add(anchor); }
 
@@ -7902,7 +7908,7 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 
 
 export {
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
 };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";

@@ -254,6 +254,7 @@ __export(index_exports, {
   jsonLd: () => jsonLd,
   jsonLdGraph: () => jsonLdGraph,
   kb: () => kb,
+  kindOf: () => kindOf,
   labelOf: () => labelOf,
   layerTarget: () => layerTarget,
   linkOf: () => linkOf,
@@ -500,6 +501,7 @@ var IC = {
   external: '<path d="M9.5 2.5H13V6"/><path d="M13 2.5L7.5 8"/><path d="M11.5 9.5v3H3.5v-8h3" stroke-linecap="round"/>',
   link: '<path d="M6.5 9.5l3-3M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/>',
   unlink: '<path d="M5.6 7.6L4.2 9a2.3 2.3 0 003.2 3.2l1.4-1.4M10.4 8.4l1.4-1.4A2.3 2.3 0 008.6 3.8L7.2 5.2" stroke-linecap="round"/><path d="M2.5 2.5l11 11" stroke-linecap="round" opacity=".7"/>',
+  reset: '<path d="M3.1 5.1A5.7 5.7 0 111.9 9.4" stroke-linecap="round"/><path d="M2.7 2.4v3.4h3.4" stroke-linecap="round" stroke-linejoin="round"/>',
   icon: '<path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.7 4.1 13.7l.8-4.3-3.1-3 4.3-.6z"/>',
   caret: '<path d="M3.5 5.5L8 10l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   /* the same chevron the other way up. A down caret was standing in for both directions, so
@@ -2971,7 +2973,7 @@ var COMMON_STYLE = [
     g: "Background",
     cap: "decoration",
     items: [
-      { t: "color", c: "background-color", label: "Colour", layout: "inline" },
+      { t: "color", c: "background-color", label: "Colour", paint: 1 },
       { t: "img", c: "background-image", label: "Image", bg: 1 },
       { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
@@ -2979,8 +2981,7 @@ var COMMON_STYLE = [
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
       { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] },
-      { t: "text", c: "background", label: "Gradient / shorthand", ph: "linear-gradient(...)" }
+      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
     ]
   },
   {
@@ -3136,6 +3137,7 @@ var nameOf = (n) => {
   if (n.type === "image") return n.props.alt ? "Image \xB7 " + n.props.alt.slice(0, 18) : "Image";
   return d.label;
 };
+var kindOf = (n) => n.type === "box" ? nameOf(n) : DEF[n.type].label;
 function selIds() {
   const out = [];
   if (state.ui.sel) out.push(state.ui.sel);
@@ -3280,7 +3282,7 @@ function menuFor(ids) {
   if (out.length) out[out.length - 1].sep = true;
   out.push({ act: "copy", label: many ? "Copy the first" : "Copy", key: "\u2318C" });
   out.push({ act: "cut", label: many ? "Cut the first" : "Cut", key: "\u2318X" });
-  if (clip.node) out.push({ act: "paste", label: "Paste " + DEF[clip.node.type].label, key: "\u2318V" });
+  if (clip.node) out.push({ act: "paste", label: "Paste " + kindOf(clip.node), key: "\u2318V" });
   out.push({ act: "dup", label: many ? "Duplicate all " + list.length : "Duplicate", key: "\u2318D", sep: true });
   out.push({ act: "stcopy", label: "Copy styles", key: "\u2318\u21E7C" });
   if (styleClip.css) out.push({ act: "stpaste", label: many ? "Paste styles to " + list.length : "Paste styles", key: "\u2318\u21E7V" });
@@ -3680,7 +3682,7 @@ function parseLink(href, hereSlug) {
   if (/^mailto:/i.test(v)) return { mode: "email", value: v.replace(/^mailto:/i, "") };
   if (/^tel:/i.test(v)) return { mode: "phone", value: v.replace(/^tel:/i, "") };
   if (v === "cms:item") return { mode: "item" };
-  if (v === "#") return { mode: "none" };
+  if (v === "#") return { mode: "page", page: hereSlug, frag: "" };
   if (v.startsWith("#")) return { mode: "page", page: hereSlug, frag: v.slice(1) };
   const m = v.match(/^([\w-]+)\.html(?:#([\w-]+))?$/);
   if (m && state.pages.some((p) => p.slug === m[1])) return { mode: "page", page: m[1], frag: m[2] || "" };
@@ -4029,7 +4031,7 @@ function lint() {
     let heroImageReviewed = false;
     const stack = [];
     const visit = (list, chain, region) => list.forEach((n) => {
-      const w = { ...scope, region, node: DEF[n.type].label };
+      const w = { ...scope, region, node: kindOf(n) };
       const anchor = n.adv && n.adv.htmlId;
       if (anchor) {
         if (seenIds.has(anchor)) dupIds.add(anchor);
@@ -8578,6 +8580,7 @@ ${ANIM_JS}
   jsonLd,
   jsonLdGraph,
   kb,
+  kindOf,
   labelOf,
   layerTarget,
   linkOf,

@@ -115,6 +115,14 @@ function ColorCtl({ n, c }: P) {
   const tok = C.refId(v) ? C.findColor(C.refId(v)!) : null;
   const lit = tok ? tok.value : v;
   const cur = () => (c.c ? C.cssVal(C.tgtObj(n), c.c, !!c.r).v : C.propVal(n, c.k));
+  const imagePaint = c.paint ? String(C.cssVal(C.tgtObj(n), 'background-image', !!c.r).v || '') : '';
+  const shorthandPaint = c.paint ? String(C.cssVal(C.tgtObj(n), 'background', !!c.r).v || '') : '';
+  const gradientValue = /^linear-gradient\(/i.test(imagePaint) ? imagePaint
+    : /^linear-gradient\(/i.test(shorthandPaint) ? shorthandPaint : '';
+  /* Older documents used the Background shorthand field. Continue editing that declaration
+     in place; new gradients use background-image, which does not wipe size or position. */
+  const gradientControl: Control = { ...c, c: /^linear-gradient\(/i.test(shorthandPaint) ? 'background' : 'background-image', label: 'Gradient' };
+  const gradientWriter = writer(n, gradientControl);
   /* The anchor rather than a boolean: the popover is positioned from the swatch's own
      rect, and holding the element is what lets it also tell an outside pointerdown from
      the click that opened it. */
@@ -137,7 +145,7 @@ function ColorCtl({ n, c }: P) {
           system's dialog: no alpha, and a panel that looks like nothing else here. */}
       <button class="sw" title="Pick a colour" aria-haspopup="dialog" aria-expanded={pop ? 'true' : 'false'}
         onClick={e => setPop(pop ? null : e.currentTarget as HTMLElement)}>
-        <i style={{ background: lit || 'transparent' }} />
+        <i style={{ background: gradientValue || lit || 'transparent' }} />
       </button>
       {pop ? (
         /* picking a literal breaks any token link, which is why this writes through the
@@ -152,9 +160,10 @@ function ColorCtl({ n, c }: P) {
            `var(--c-muted)` is not a colour any parser can read — without it the fallback
            landed back on black, which is the thing it was meant to fix. */
         <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} anchor={pop}
+          gradient={c.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : undefined}
           onLive={w.live}
           onDone={val => { w.hard(val); }}
-          onClose={() => { w.done(); setPop(null); if (C.isRef(cur())) repaint('right'); }} />
+          onClose={() => { w.done(); if (c.paint) gradientWriter.done(); setPop(null); if (C.isRef(cur())) repaint('right'); }} />
       ) : null}
       {tok
         ? <>
@@ -344,10 +353,27 @@ function BorderCtl({ n }: P) {
     || C.styleSeen(n, borderPrefix(value) + '-width')
     || C.styleSeen(n, borderPrefix(value) + '-color')
   );
+  const ownsSide = (value: BorderTarget) => {
+    const bag = C.stRead(C.tgtObj(n))[C.dk()] || {};
+    const target = borderPrefix(value);
+    return ['style', 'width', 'color'].some(part => bag[target + '-' + part] !== undefined);
+  };
+  const reset = () => {
+    L.tx(n.id + '|border|' + side + ':clear');
+    const bag = C.stWrite(C.tgtObj(n))[C.dk()];
+    ['style', 'width', 'color'].forEach(part => { delete bag[prefix + '-' + part]; });
+    L.endTx(); L.paintCss(); L.save(); repaint('right');
+  };
 
   return <div class="borderctl">
     <div class="f">
-      <label>Border edge</label>
+      <label>
+        <span>Border edge</span>
+        {ownsSide(side) ? <button type="button" class="rst" title={'Restore default for ' + sideLabel + ' border'}
+          aria-label={'Restore default for ' + sideLabel + ' border'} onClick={reset}>
+          <Icon name="reset" size={9} />
+        </button> : null}
+      </label>
       <div class="pick borderpick" role="group" aria-label="Border edge">
         {BORDER_TARGETS.map(([value, label]) => (
           <button type="button" key={value} class={(side === value ? 'on' : '') + (setOn(value) ? ' set' : '')}
