@@ -34,6 +34,18 @@ test('icon-only actions keep their compact box and expose pending copy accessibl
  expect(remove.hasAttribute('data-pc-pending-icon')).toBe(false);
  expect(remove.getAttribute('aria-label')).toBe('Delete image');
 });
+test.each([
+ ['Cloud icon primitive','pc-iconbtn','<svg aria-hidden="true"></svg>',''],
+ ['explicit icon contract','','<span aria-hidden="true">×</span>','data-icon-only'],
+ ['screen-reader-labelled icon','','<svg aria-hidden="true"></svg><span class="sr-only">Remove</span>',''],
+])('%s uses the contained icon pending state',(_name,className,content,attribute)=>{
+ document.body.insertAdjacentHTML('beforeend',`<button id="compact" class="${className}" aria-label="Remove" ${attribute}>${content}</button>`);
+ const compact=document.querySelector<HTMLButtonElement>('#compact')!;
+ const action=installActionFeedback().begin(compact,'Removing…')!;
+ expect(compact.hasAttribute('data-pc-pending-icon')).toBe(true);
+ expect(compact.textContent).toBe('');
+ action.cancel();
+});
 test('confirmation timers pause for reading and keyboard interaction',()=>{
  const feedback=installActionFeedback();feedback.notify('Image uploaded.',{tone:'success'});
  const node=document.querySelector('.pc-notification')!;

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-12T14:18:41.032Z",
+  "capturedAt": "2026-09-12T15:16:06.131Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -21,9 +21,9 @@
     "shared/workspace-styles.js": "725e97499c5deb1b8746f160500e244dd4bdd6f279ac93dcf1dc8c738eb0e6e5",
     "shared/dialog-styles.js": "4bc8bf9e9520fa0ecd0104b9510e934ca4542c3014a7b0ec9123cb05a0ebae16",
     "shared/custom-select.js": "ca4be5e5b692bedaa97020c66419ea246f4f8cea2568df465481d02284cdabe6",
-    "shared/action-feedback.js": "0f0ece59614a86e5b77ff484cb56356bf0179ec54e5d7f50f075f042fcfc5ce1",
+    "shared/action-feedback.js": "d38e94bc0ae463b3c1188a01f8479e2ea40b6bcb1e99ee3675e9e91a1ac484a3",
     "server/src/account-pages.ts": "0dae4b94687241907f4ee65ac6ac5474d3d4d03e1b656e2e357e01c4ed1c0ed3",
-    "server/src/component-gallery.ts": "8318ec1f10d60c632ed9ea0023b185439f6c27db099249d0a1b10933a1bdfa64",
+    "server/src/component-gallery.ts": "b82085a132d5480b248d81af7ef8ae39e43385d8a296c0ceda47a9c7050b3d0a",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
@@ -75,13 +75,13 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-actions-1440.png": {
-      "sha256": "2c861179b239d98214d7014eada7830fbf3fff1ac182661275afcea8c1102e8e",
+      "sha256": "a7627e24180254c58a8bc37d00f7d5baaf17b58fc309d5a5d7016c87653f9218",
       "width": 1440,
       "height": 929,
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-actions-768.png": {
-      "sha256": "86ced5493fcb3c6ae0549058c30cd31880693b96c0ca5f73b3c95e8d1188520b",
+      "sha256": "7e9fb2268a67c41bcdff854eb5167fbde9a9011051d6c513a03fff8719a316f9",
       "width": 768,
       "height": 979,
       "state": "Processing action, disabled and destructive actions"
@@ -147,13 +147,13 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-actions-1440.png": {
-      "sha256": "6573c5affb827ab416bc53c44ce908e43f0a5e2804183d76e0eaa4c9f1033aa7",
+      "sha256": "9a9fad431e9ca4b0f96496cd6ff27a510b68fb2ed2599f1f5f85dc306a9cac17",
       "width": 1440,
       "height": 900,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-actions-768.png": {
-      "sha256": "4fcc5c0b81f4dd232bcff38ce95275a1bd1e001278b812e2508abebe84741087",
+      "sha256": "82cb144749934befeb5eb980cf65eeb383ef0014e7d37d4cb46a84252a6fbd3d",
       "width": 768,
       "height": 940,
       "state": "Processing action, disabled and destructive actions"

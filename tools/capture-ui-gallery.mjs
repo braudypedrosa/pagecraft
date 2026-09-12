@@ -42,7 +42,7 @@ export async function captureGallery(tab,directory,behaviorChecks){
     await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:measurement.height,deviceScaleFactor:1,mobile:false,scale:Math.min(1,1000/measurement.height)});
     await new Promise(r=>setTimeout(r,500));
     image=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width,height:measurement.height,scale:1}});
-   }else image=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
+   }else image=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,fromSurface:true,clip:{x:0,y:0,width,height:measurement.height,scale:1}});
    const name=`${host}-${section}-${width}.png`;await writeFile(resolve(directory,name),Buffer.from(image.data,'base64'));
    evidence.captures[name]={state:states[section],...measurement};
    if(section==='menus'||section==='dialogs')await tab.pressKey('Escape');
