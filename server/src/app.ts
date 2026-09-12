@@ -52,6 +52,7 @@ import { assertTypedCmsWrite } from "./cms-values.ts";
 import { throttle } from "./mail.ts";
 import {
   ALLOWED,
+  documentAssetIds,
   type Asset,
   AssetQuotaError,
   type AssetRecord,
@@ -3172,7 +3173,9 @@ export function createApp(o: Options) {
     const gate = access.value;
     if (!gate.ok) return deny(c, gate.status);
     if (metadata.status === 'rejected') throw metadata.reason;
-    return c.json(metadata.value.map(metaOf));
+    const site = await o.store.byId(c.req.param("id"));
+    const referenced = documentAssetIds(site?.doc);
+    return c.json(metadata.value.filter(asset => !asset.retired || referenced.has(asset.id)).map(metaOf));
   });
 
   /* Uploading is a write, so a content account may do it: swapping a photograph is a content
@@ -3291,10 +3294,13 @@ export function createApp(o: Options) {
       return c.json({ error: "this server stores no assets" }, 501);
     }
     const aid = c.req.param("aid");
-    const removed = await o.assets.remove(id, aid);
+    if (!o.assets.retire) return c.json({ error: 'Safe asset removal is unavailable on this host.' }, 501);
+    const site = await o.store.byId(id);
+    if (documentAssetIds(site?.doc).has(aid)) return c.json({ error: 'This image is used by the saved draft. Remove its references before removing it from the library.' }, 409);
+    const removed = await o.assets.retire(id, aid);
     if (!removed) return c.json({ error: "no such asset" }, 404);
-    /* A referenced image deliberately becomes the same placeholder the renderer uses for any
-       missing id. The editor warns before that destructive choice; the API makes it durable. */
+    // Retain bytes even when a concurrent save introduces a reference after this check.
+    // Restored references make a retired asset visible in the editor listing again.
     built.delete(id);
     return c.json({ removed: aid });
   });

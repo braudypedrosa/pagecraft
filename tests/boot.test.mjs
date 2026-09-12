@@ -983,5 +983,21 @@ test('upload view opens without a file chooser and keeps failed drops recoverabl
   succeed = true; drop(); await new Promise(r=>setTimeout(r,10));
   a.equal(doc.querySelector('#ask').hidden, true);
   a.equal(await result, null);
-  w.close();
+});
+
+test('media usage navigation opens the page without changing content or Undo', async () => {
+  const {window:w,doc}=await boot(), C=w.__CORE;
+  if (typeof w.showPanel !== 'function') w.bindTop();
+  w.HTMLElement.prototype.scrollIntoView = function () {};
+  doc.querySelector('#canvas').contentWindow.HTMLElement.prototype.scrollIntoView = function () {};
+  const page=C.state.pages[0], node=page.tree[0];
+  C.state.meta.collections ||= []; // Normalize the legacy seed before comparing navigation.
+  const before=JSON.stringify(C.doc()), depth=C.hist.u.length;
+  w.mediaPicker();
+  try { w.mediaOpenReference({scope:'page',ownerId:page.id,nodeId:node.id}); } catch(error) { throw new Error(String(error)); }
+  a.equal(doc.querySelector('#ask').hidden,true);
+  a.equal(C.state.cur,0);
+  a.equal(C.state.ui.sel,node.id);
+  a.equal(C.hist.u.length,depth);
+  a.equal(JSON.stringify(C.doc()),before);
 });

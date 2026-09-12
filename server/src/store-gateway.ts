@@ -1277,7 +1277,7 @@ export class GatewayConnectedStore implements ConnectedStore {
 }
 
 interface AssetMetaWire {
-  tags?: string[]; metadata_version?: number; created_at?: string | null;
+  retired?: boolean; tags?: string[]; metadata_version?: number; created_at?: string | null;
   id: string;
   site_id: string;
   name: string;
@@ -1308,7 +1308,7 @@ const toAssetRecord = (row: AssetMetaWire): AssetRecord => ({
     ? undefined
     : Number(row.original_bytes),
   contentHash: row.content_hash || undefined,
-  tags: row.tags || [], metadataVersion: row.metadata_version || 0, createdAt: row.created_at || null,
+  retired: row.retired || false, tags: row.tags || [], metadataVersion: row.metadata_version || 0, createdAt: row.created_at || null,
   optimized: row.optimized,
   editorUrl: row.signed_url || undefined,
 });
@@ -1327,7 +1327,7 @@ const toAsset = (row: AssetWire): Asset => ({
     ? undefined
     : Number(row.original_bytes),
   contentHash: row.content_hash || undefined,
-  tags: row.tags || [], metadataVersion: row.metadata_version || 0, createdAt: row.created_at || null,
+  retired: row.retired || false, tags: row.tags || [], metadataVersion: row.metadata_version || 0, createdAt: row.created_at || null,
   optimized: row.optimized,
 });
 
@@ -1551,6 +1551,11 @@ export class GatewayAssetStore implements AssetStore {
     if (!row) return null;
     this.listed.delete(siteId);
     return toAssetRecord(row);
+  }
+  async retire(siteId: string, id: string) {
+    const retired = await this.gateway.call<boolean>('asset.retire', { siteId, id });
+    if (retired) this.listed.delete(siteId);
+    return retired;
   }
   async remove(siteId: string, id: string) {
     const removed = await this.gateway.call<boolean>("asset.remove", {

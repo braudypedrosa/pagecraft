@@ -1243,6 +1243,8 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .media-asset-details .media-browser-page{flex-wrap:wrap}
 .media-asset-details strong{min-width:0;overflow-wrap:anywhere;flex:1}
 .media-asset-details button{flex-shrink:0}
+.media-asset-details ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:var(--sp-3)}
+.media-asset-details [data-media-reference]{white-space:normal;text-align:left;justify-content:flex-start;max-width:100%;overflow-wrap:anywhere}
 .media-asset-details [data-tags-status]{flex-basis:100%;overflow-wrap:anywhere}
 .media-asset-details [data-tags-status]:empty{display:none}
 .media-asset-details form{display:flex;flex-wrap:wrap;align-items:end;gap:var(--sp-3)}
@@ -2639,7 +2641,7 @@ async function assetDel(id, button = null, silent = false) {
     else if (AS.ok) await idbReq(idbStore('readwrite').delete(id));
     if (a && a.url && a.url.startsWith('blob:')) URL.revokeObjectURL(a.url);
     AS.mem.delete(id);
-    action?.success('Image deleted.');
+    action?.success(SRV ? 'Image removed from the library. History copies are retained.' : 'Image deleted.');
     return true;
   } catch (error) {
     const message = (error?.payload?.error || error?.message || 'The image could not be deleted.') + ' Try again.';
@@ -4056,6 +4058,20 @@ function wireMediaBrowser(root, use, attr, choose, remove, state) {
   $('[data-media-more]', root).addEventListener('click', () => { limit += 60; render(); });
   render();
 }
+function mediaOpenReference(reference) {
+  // Navigation never inserts an image or changes the document.
+  askClose(null); closeModal();
+  if (reference.scope === 'page') {
+    const index = state.pages.findIndex(page => page.id === reference.ownerId);
+    if (index < 0) { toast('This page is no longer available.'); return; }
+    openPage(index, !reference.nodeId);
+  } else if (reference.scope === 'component') editComponent(reference.ownerId);
+  else if (reference.scope === 'header' || reference.scope === 'footer') { componentClose(); setMode(reference.scope); }
+  else if (reference.scope === 'cms') { cmsModal(reference.ownerId); return; }
+  else if (reference.scope === 'block') { state.ui.atab = 'blocks'; showPanel('add'); render(); return; }
+  else { projectModal(); return; }
+  if (reference.nodeId) { showPanel('layers'); select(reference.nodeId, {scroll:true}); }
+}
 function mediaDetails(root, id, refresh, origin) {
   const asset = AS.mem.get(id), panel = $('[data-media-details]', root);
   if (!asset || !panel) return;
@@ -4065,9 +4081,10 @@ function mediaDetails(root, id, refresh, origin) {
     <div class="media-browser-page"><strong>${esc(asset.name)}</strong><button type="button" class="btn" data-details-close>Close details</button></div>
     <p class="note">${kb(asset.size)} · ${asset.w || '?'}×${asset.h || '?'} · ${asset.createdAt ? esc(new Date(asset.createdAt).toLocaleDateString()) : 'Upload date unavailable'}</p>
     ${HOST?.assets?.tag ? `<form data-tags-form><label>Tags<input class="ctl" name="tags" value="${esc((asset.tags || []).join(', '))}" placeholder="Separate tags with commas"></label><button class="btn" type="submit">Save tags</button><p class="note" role="status" data-tags-status></p></form>` : ''}
-    <p class="note">${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
-    ${references.length ? `<ul>${references.map(reference => `<li>${esc(reference.scope)} · ${esc(reference.label)}</li>`).join('')}</ul>` : ''}
+    <p class="note">${SRV ? 'Removed images remain stored for history and still count toward storage. ' : ''}${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
+    ${references.length ? `<ul>${references.map(reference => `<li><button type="button" class="btn" data-media-reference="${references.indexOf(reference)}">${esc(reference.scope)} · ${esc(reference.label)}</button></li>`).join('')}</ul>` : ''}
   </section>`;
+  $$('[data-media-reference]', panel).forEach(button => button.addEventListener('click', () => mediaOpenReference(references[Number(button.dataset.mediaReference)])));
   $('[data-details-close]', panel).addEventListener('click', () => { panel.hidden = true; ($(`[data-media-detail="${id}"]`, root) || origin).focus(); });
   $('[data-tags-form]', panel)?.addEventListener('submit', async event => {
     event.preventDefault();

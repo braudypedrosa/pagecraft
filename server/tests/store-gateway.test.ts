@@ -1018,3 +1018,18 @@ test('gateway tagging invalidates cached listings and returns metadata without b
   a.deepEqual((await assets.list('s1'))[0].tags, ['Editorial']);
   a.equal(await assets.tag('s1', 'a1', ['Stale'], 0), null);
 });
+
+test('retirement invalidates browser metadata without removing historical bytes', async () => {
+  let retired = false;
+  const {gateway,calls}=fakeGateway(call=>{
+    if(call.op==='asset.list')return [{id:'a1',site_id:'s1',name:'One.png',type:'image/png',w:1,h:1,retired}];
+    if(call.op==='asset.retire'){retired=true;return true;}
+    throw new Error(call.op);
+  });
+  const assets=new GatewayAssetStore(gateway);
+  a.equal((await assets.list('s1'))[0].retired,false);
+  a.equal(await assets.retire('s1','a1'),true);
+  a.equal((await assets.list('s1'))[0].retired,true);
+  a.equal(calls.filter(call=>call.op==='asset.list').length,2);
+  a.equal(calls.some(call=>call.op==='asset.remove'),false);
+});

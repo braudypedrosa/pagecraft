@@ -1990,7 +1990,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     case "asset.list": {
       const rows = await sql<Record<string, unknown>[]>`
         select id, site_id, name, type, w, h, owner_id, storage_path,
-          stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
+          stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at, retired
         from assets where site_id = ${text(args.siteId)} order by name
       `;
       const paths = rows.map((row) =>
@@ -2299,7 +2299,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
                 and assets.w = excluded.w and assets.h = excluded.h
                 and assets.content_hash = excluded.content_hash
               returning id, site_id, name, type, w, h, owner_id, storage_path,
-                stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
+                stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at, retired
             `,
             )
             : one(
@@ -2316,7 +2316,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
                 content_hash = excluded.content_hash, optimized = excluded.optimized
               where assets.site_id = excluded.site_id
               returning id, site_id, name, type, w, h, owner_id, storage_path,
-                stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
+                stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at, retired
             `,
             );
           if (!row) {
@@ -2364,8 +2364,11 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       return one(await sql`
         update assets set tags = ${sql.array(args.tags as string[])}, metadata_version = metadata_version + 1
         where site_id = ${text(args.siteId)} and id = ${text(args.id)} and metadata_version = ${Number(args.version)}
-        returning id, site_id, name, type, w, h, stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
+        returning id, site_id, name, type, w, h, stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at, retired
       `);
+    }
+    case "asset.retire": {
+      return !!one(await sql`update assets set retired = true where site_id = ${text(args.siteId)} and id = ${text(args.id)} returning id`);
     }
     case "asset.remove": {
       const row = one(

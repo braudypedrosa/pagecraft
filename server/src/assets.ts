@@ -35,6 +35,8 @@ export interface AssetRecord {
   /** Short-lived direct read URL for editor previews. Persistence stores omit it; the
       production gateway may attach one while listing private Storage objects. */
   editorUrl?: string;
+  /** Hidden from the library while unreferenced; bytes remain available to history. */
+  retired?: boolean;
   tags?: string[];
   metadataVersion?: number;
   createdAt?: string | null;
@@ -80,6 +82,7 @@ export interface AssetStore {
     active?: () => Promise<boolean>, quota?: AssetQuota
   ): Promise<AssetRecord | null>;
   remove(siteId: string, id: string): Promise<boolean>;
+  retire?(siteId: string, id: string): Promise<boolean>;
   tag?(siteId: string, id: string, tags: string[], version: number): Promise<AssetRecord | null>;
   usage(ownerId: string, limitBytes?: number): Promise<AssetUsage>;
 }
@@ -232,6 +235,12 @@ export class MemoryAssetStore implements AssetStore {
     const { bytes: _bytes, ...metadata } = asset;
     return { ...metadata, tags: [...tags] };
   }
+  async retire(siteId: string, id: string) {
+    const asset = this.all.get(id);
+    if (!asset || asset.siteId !== siteId) return false;
+    asset.retired = true;
+    return true;
+  }
   async remove(siteId: string, id: string) {
     const a = this.all.get(id);
     if (!a || a.siteId !== siteId) return false;
@@ -271,6 +280,7 @@ create table if not exists assets (
   content_hash text,
   tags text[] not null default array[]::text[],
   metadata_version integer not null default 0,
+  retired boolean not null default false,
   created_at timestamptz default now(),
   optimized boolean not null default false
 );
@@ -279,3 +289,15 @@ create index if not exists assets_owner_idx on assets (owner_id);
 create unique index if not exists assets_storage_path_key on assets (storage_path)
   where storage_path is not null;
 `;
+
+/** Conservative retention scan includes custom code even though replacement excludes it. */
+export function documentAssetIds(document: unknown): Set<string> {
+  const ids = new Set<string>();
+  const visit = (value: unknown) => {
+    if (typeof value === 'string') {
+      for (const match of value.matchAll(/asset:([A-Za-z0-9][A-Za-z0-9._:-]*)/g)) ids.add(match[1]);
+    } else if (value && typeof value === 'object') Object.values(value).forEach(visit);
+  };
+  visit(document);
+  return ids;
+}
