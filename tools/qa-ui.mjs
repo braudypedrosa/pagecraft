@@ -4,6 +4,7 @@
 import {readFile} from 'node:fs/promises';
 import {serve} from '@hono/node-server';
 import {createApp} from '../server/src/app.ts';
+import {MemoryAssetStore} from '../server/src/assets.ts';
 import {MemoryStore} from '../server/src/store.ts';
 import {MemoryAuthStore,hashToken} from '../server/src/auth.ts';
 import {MemoryOwnedSiteStore} from '../server/src/accounts.ts';
@@ -11,7 +12,7 @@ import {TestHumanChallenge} from '../server/src/turnstile.ts';
 import {blankDoc} from '../server/src/render.ts';
 import {QA_SITE_NAME,uiFixtureDocument} from './fixtures/ui-site.ts';
 
-const auth=new MemoryAuthStore(),store=new MemoryStore();
+const auth=new MemoryAuthStore(),store=new MemoryStore(),assets=new MemoryAssetStore();
 const identity={authUserId:'qa-ui-fictional-account',email:'qa-ui@example.invalid',name:'QA community workshop coordinator with a longer display name',providers:['email']};
 const user=await auth.ensureAuthUser(identity.authUserId,identity.email,identity.name);
 const token='local-fictional-ui-session';
@@ -22,12 +23,16 @@ for(const [name,slug,doc] of [
 ]){
  const site=await store.create({name,slug,host:`${slug}.example.invalid`,doc,savedBy:user.id});
  await auth.grant(site.id,user.id,'owner');
+ if(slug==='qa-ui-foundations')for(const name of ['Workshop.png','Community-workshop-accessibility-review-and-event-photography-with-a-long-filename.png','Portrait.png']) {
+  await assets.put({siteId:site.id,name,type:'image/svg+xml',w:320,h:240,
+   bytes:new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><rect width="320" height="240" fill="#f1f3f5"/><circle cx="160" cy="120" r="60" fill="#b7f34a"/></svg>'),tags:['QA fixture']});
+ }
 }
 const unavailable=async()=>{throw new Error('Authentication changes are unavailable in this local UI fixture');};
 const accountAuth={identity:async()=>identity,oauth:unavailable,signUp:unavailable,
  signIn:unavailable,confirm:unavailable,forgot:unavailable,reset:unavailable,
  updateEmail:unavailable,updatePassword:unavailable,signOut:unavailable};
-const app=createApp({store,auth,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),
+const app=createApp({store,auth,assets,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),
  challenge:new TestHumanChallenge(),turnstileSiteKey:'local-ui-fixture',
  componentGallery:true,editorHost:'localhost',editorOrigin:'http://localhost:4944',
  editorHtml:await readFile(new URL('../index.html',import.meta.url),'utf8')});

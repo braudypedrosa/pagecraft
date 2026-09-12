@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-12T08:12:28.117Z",
+  "capturedAt": "2026-09-12T08:26:50.533Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "b6900627631df56846e722b172e765d7754dbbae5a2f3b44882d3ba9727cf8e8",
+    "builder.html": "d60410296672bc631b96a07d2851a3189da02c897e8b77392b2f04bb8e6a393f",
     "app/src/ui/Pages.tsx": "00200e5517fd0761815731b1e2e8c075d56fa4cbed9b51050e919d8fa644be82",
     "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
     "shared/ui-tokens.js": "f1004d10d2e4f4fde1bc1961b7376c00b88f328dfba64eae1c3f939ad088bc9c",
@@ -26,7 +26,7 @@
   },
   "behaviorChecks": [
     {
-      "name": "Native select opens and Escape closes it",
+      "name": "Select opens and Escape closes",
       "passed": true
     }
   ],
