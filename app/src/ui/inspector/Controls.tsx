@@ -8,7 +8,7 @@
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Field } from './Field';
-import { useState } from 'preact/hooks';
+import { useId, useState } from 'preact/hooks';
 import { useImageUpload } from '../useImageUpload';
 import { useProcessingAction } from '../useProcessingAction';
 import { valueOf, bound, writer } from './ctl';
@@ -210,11 +210,16 @@ const PICK_TIP: Record<string, string> = {
 function ToggleCtl({ n, c }: P) {
   const w = writer(n, c);
   const on = !['', '0', 'false'].includes(String(valueOf(n, c) ?? ''));
+  const helpId = useId();
   const toggle = <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
+    aria-describedby={c.note ? helpId : undefined}
     class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
   return c.k?.startsWith(C.VAL)
     ? <Field n={n} c={c}><div class="tog-row">{toggle}</div></Field>
-    : <div class="f"><div class="tog-row"><span>{c.label}</span>{toggle}</div></div>;
+    : <div class="f">
+        <div class="tog-row"><span>{c.label}</span>{toggle}</div>
+        {c.note ? <div id={helpId} class="note">{c.note}</div> : null}
+      </div>;
 }
 
 const SIDES = ['top', 'right', 'bottom', 'left'];
@@ -289,15 +294,14 @@ function BoxCtl({ n, c }: P) {
         something you worked out by counting. */}
     <div class="row4lab" aria-hidden="true">
       {SIDES.map(s => <span key={s}>{s}</span>)}
+      <span>unit</span>
     </div>
     <div class="row4">
       {SIDES.map((s, k) => (
         <input data-field-part={s} class="ctl" key={s} type="number" value={vals[k].n} placeholder="0" title={s}
           onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={L.endTx} />
       ))}
-    </div>
-    <div class="row4u">
-      <select data-field-part="unit" class="ctl" value={u} style={{ width: '66px', fontSize: 'var(--fs-1)' }}
+      <select data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
         onChange={e => { push((e.target as HTMLElement).closest('.f')!); L.endTx(); }}>
         {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
       </select>

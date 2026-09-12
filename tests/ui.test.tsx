@@ -552,6 +552,10 @@ test('a box shorthand is shown as four sides and materialized when one side chan
 
   a.deepEqual(r.$$('input[type=number]').map(input => (input as HTMLInputElement).value),
     ['28', '0', '44', '0']);
+  a.equal(r.$('.row4 select[data-field-part="unit"]')?.parentElement?.className, 'row4',
+    'the unit selector shares the value row');
+  a.deepEqual(r.$$('.row4lab span').map(label => label.textContent),
+    ['top', 'right', 'bottom', 'left', 'unit']);
   a.equal(r.$('.rsp')!.classList.contains('ovr'), false, 'tablet inherits the desktop shorthand');
 
   r.type(r.$$('input[type=number]')[0], '36');
@@ -762,6 +766,19 @@ test('a toggle writes 1 and 0, and carries its label inside the row', () => {
   r.draw(<Ctl n={n} c={c} />);
   r.click(r.$('.sw-tog'));
   a.equal(n.props.decorative, 0);
+});
+
+test('a toggle explains a setting with accessible helper text', () => {
+  const n = C.insert('image', null, 0)!;
+  C.selSet([n.id]);
+  const c: Control = { t: 'toggle', k: 'decorative', label: 'Decorative image',
+    note: 'Screen readers skip decorative images.' };
+  r.draw(<Ctl n={n} c={c} />);
+
+  const toggle = r.$('.sw-tog')!;
+  const help = r.$('.note')!;
+  a.equal(help.textContent, c.note);
+  a.equal(toggle.getAttribute('aria-describedby'), help.id);
 });
 
 /* ------------------------------------------------------------ fan-out through the panel */

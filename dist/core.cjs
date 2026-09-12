@@ -2079,7 +2079,12 @@ var DEF = {
       content: [
         { t: "img", k: "src", label: "Image source" },
         { t: "text", k: "alt", label: "Alt text", ph: "Describe the image" },
-        { t: "toggle", k: "decorative", label: "Decorative \u2014 export an empty alt" },
+        {
+          t: "toggle",
+          k: "decorative",
+          label: "Decorative image",
+          note: "Screen readers skip decorative images."
+        },
         { t: "dims", label: "Intrinsic size", note: "Stops the page shifting as it loads." },
         { t: "text", k: "caption", label: "Caption", ph: "Optional" },
         { t: "link", k: "link", label: "Link" },

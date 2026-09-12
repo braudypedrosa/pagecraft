@@ -768,18 +768,17 @@ select.ctl{
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-2) var(--gap-3);margin-bottom:var(--gap-2)}
 .fgrid>.f{margin-bottom:0}
 .fgrid:last-child{margin-bottom:2px}
-.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2)}
+.row4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 66px;gap:var(--sp-2)}
+.row4>.ctl,.row4>.pc-custom-select-trigger{width:100%;min-width:0}
 /* Side names above the four boxes rather than as one run of text under them. The same
    grid and the same gap, so each name sits over its own box, and the shared input inset to match
    `.ctl`'s own padding so the name lines up with the number inside rather than with the
    edge of the field. */
-.row4lab{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2);margin-bottom:3px}
+.row4lab{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 66px;gap:var(--sp-2);margin-bottom:3px}
 .row4lab span{
   font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3);
   padding-left:var(--pc-control-padding-x);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-/* the unit sits under the boxes on its own, pushed right, now that the names are above */
-.row4u{display:flex;justify-content:flex-end;margin-top:4px}
 .unit{display:flex;gap:0}
 .unit input{
   flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;
@@ -3674,7 +3673,12 @@ var DEF = {
       content: [
         { t: "img", k: "src", label: "Image source" },
         { t: "text", k: "alt", label: "Alt text", ph: "Describe the image" },
-        { t: "toggle", k: "decorative", label: "Decorative \u2014 export an empty alt" },
+        {
+          t: "toggle",
+          k: "decorative",
+          label: "Decorative image",
+          note: "Screen readers skip decorative images."
+        },
         { t: "dims", label: "Intrinsic size", note: "Stops the page shifting as it loads." },
         { t: "text", k: "caption", label: "Caption", ph: "Optional" },
         { t: "link", k: "link", label: "Link" },
@@ -14438,6 +14442,7 @@ var PC_UI = (() => {
   function ToggleCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const on = !["", "0", "false"].includes(String(valueOf(n2, c3) ?? ""));
+    const helpId = g2();
     const toggle = /* @__PURE__ */ u2(
       "button",
       {
@@ -14445,15 +14450,19 @@ var PC_UI = (() => {
         role: "switch",
         "aria-checked": on ? "true" : "false",
         "aria-label": c3.label || "Toggle",
+        "aria-describedby": c3.note ? helpId : void 0,
         class: "sw-tog" + (on ? " on" : ""),
         onClick: () => w3.hard(on ? 0 : 1),
         children: /* @__PURE__ */ u2("i", {})
       }
     );
-    return c3.k?.startsWith(C2.VAL) ? /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "tog-row", children: toggle }) }) : /* @__PURE__ */ u2("div", { class: "f", children: /* @__PURE__ */ u2("div", { class: "tog-row", children: [
-      /* @__PURE__ */ u2("span", { children: c3.label }),
-      toggle
-    ] }) });
+    return c3.k?.startsWith(C2.VAL) ? /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "tog-row", children: toggle }) }) : /* @__PURE__ */ u2("div", { class: "f", children: [
+      /* @__PURE__ */ u2("div", { class: "tog-row", children: [
+        /* @__PURE__ */ u2("span", { children: c3.label }),
+        toggle
+      ] }),
+      c3.note ? /* @__PURE__ */ u2("div", { id: helpId, class: "note", children: c3.note }) : null
+    ] });
   }
   var SIDES = ["top", "right", "bottom", "left"];
   function boxParts(value) {
@@ -14511,35 +14520,40 @@ var PC_UI = (() => {
       L2.repaintCss();
     };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
-      /* @__PURE__ */ u2("div", { class: "row4lab", "aria-hidden": "true", children: SIDES.map((s3) => /* @__PURE__ */ u2("span", { children: s3 }, s3)) }),
-      /* @__PURE__ */ u2("div", { class: "row4", children: SIDES.map((s3, k3) => /* @__PURE__ */ u2(
-        "input",
-        {
-          "data-field-part": s3,
-          class: "ctl",
-          type: "number",
-          value: vals[k3].n,
-          placeholder: "0",
-          title: s3,
-          onInput: (e3) => push(e3.target.closest(".f")),
-          onBlur: L2.endTx
-        },
-        s3
-      )) }),
-      /* @__PURE__ */ u2("div", { class: "row4u", children: /* @__PURE__ */ u2(
-        "select",
-        {
-          "data-field-part": "unit",
-          class: "ctl",
-          value: u4,
-          style: { width: "66px", fontSize: "var(--fs-1)" },
-          onChange: (e3) => {
-            push(e3.target.closest(".f"));
-            L2.endTx();
+      /* @__PURE__ */ u2("div", { class: "row4lab", "aria-hidden": "true", children: [
+        SIDES.map((s3) => /* @__PURE__ */ u2("span", { children: s3 }, s3)),
+        /* @__PURE__ */ u2("span", { children: "unit" })
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "row4", children: [
+        SIDES.map((s3, k3) => /* @__PURE__ */ u2(
+          "input",
+          {
+            "data-field-part": s3,
+            class: "ctl",
+            type: "number",
+            value: vals[k3].n,
+            placeholder: "0",
+            title: s3,
+            onInput: (e3) => push(e3.target.closest(".f")),
+            onBlur: L2.endTx
           },
-          children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
-        }
-      ) })
+          s3
+        )),
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            "data-field-part": "unit",
+            class: "ctl",
+            value: u4,
+            style: { fontSize: "var(--fs-1)" },
+            onChange: (e3) => {
+              push(e3.target.closest(".f"));
+              L2.endTx();
+            },
+            children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
+          }
+        )
+      ] })
     ] });
   }
   var BORDER_TARGETS = [
@@ -17868,7 +17882,12 @@ var PC_UI = (() => {
         content: [
           { t: "img", k: "src", label: "Image source" },
           { t: "text", k: "alt", label: "Alt text", ph: "Describe the image" },
-          { t: "toggle", k: "decorative", label: "Decorative \u2014 export an empty alt" },
+          {
+            t: "toggle",
+            k: "decorative",
+            label: "Decorative image",
+            note: "Screen readers skip decorative images."
+          },
           { t: "dims", label: "Intrinsic size", note: "Stops the page shifting as it loads." },
           { t: "text", k: "caption", label: "Caption", ph: "Optional" },
           { t: "link", k: "link", label: "Link" },
