@@ -397,7 +397,7 @@ function ImgCtl({ n, c }: P) {
             <Icon name="trash" size={12} /></button>
         </div>
         : <Dropzone disabled={files.busy} onChoose={files.choose} onFiles={files.takeFiles} />}
-    <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
+    <div class="pc-field-actions">
       <button class="btn grow" disabled={files.busy} aria-busy={files.busy} data-pc-pending={files.busy ? '' : undefined} onClick={files.choose}>
         {!files.busy && <Icon name="image" size={13} />} {files.busy ? 'Uploading…' : a ? 'Replace' : 'Upload'}
       </button>
@@ -504,7 +504,7 @@ function TstyleCtl({ n, c }: P) {
       <option value="">— None (styled directly) —</option>
       {C.styles().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
     </select>
-    <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
+    <div class="pc-field-actions">
       {cur
         ? <>
           <button class="btn ghost grow" style={{ fontSize: 'var(--fs-2)' }}
@@ -677,12 +677,12 @@ function DimsCtl({ n, c }: P) {
     return got;
   });
   return <Field n={n} c={c}>
-    <div class="unit">
-      <input class="ctl" type="number" min="0" value={n.props.w || ''} placeholder="width"
+    <div class="pc-control-row">
+      <input data-field-part="width" class="ctl" type="number" min="0" value={n.props.w || ''} placeholder="width"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={L.endTx} />
-      <input class="ctl" type="number" min="0" value={n.props.h || ''} placeholder="height"
+      <input data-field-part="height" class="ctl" type="number" min="0" value={n.props.h || ''} placeholder="height"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={L.endTx} />
-      <button class="btn" style={{ flex: '0 0 auto', fontSize: 'var(--fs-2)' }}
+      <button class="btn" style={{ fontSize: 'var(--fs-2)' }}
         disabled={action.busy} aria-busy={action.busy} data-pc-pending={action.busy ? '' : undefined}
         title="Read the real dimensions from the image" onClick={detect}>{action.busy ? 'Reading…' : 'Detect'}</button>
     </div>

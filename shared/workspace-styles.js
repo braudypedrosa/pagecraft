@@ -27,6 +27,13 @@ ${DIALOG_CSS}
 /* A table cell already supplies the common horizontal inset. */
 .dashboard-app td>.pc-list-empty{padding-inline:0}
 .pc-field-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--pc-space-2);margin-top:var(--pc-space-2)}
+.pc-field-actions.flush{margin-top:0}
+/* Independent controls that share one field row keep their own complete shape.
+ * Joined value/unit controls use the unit pattern; this row deliberately preserves the
+ * standard radius and separates every peer with the shared action gap. */
+.pc-control-row{display:flex;align-items:center;gap:var(--pc-action-gap);min-width:0}
+.pc-control-row>:is(.ctl,.pc-custom-select-trigger){flex:1 1 0;min-width:0}
+.pc-control-row>.btn{flex:0 0 auto;border-radius:var(--pc-control-radius)}
 :is(#app,.modal,.dashboard-app) input:is([type=checkbox],[type=radio]){accent-color:var(--pc-green,var(--green,#b7f34a))}
 .pc-refresh-status{font:var(--pc-type-description);padding:4px 0;margin-bottom:8px;color:var(--pc-ui-secondary);box-sizing:border-box}
 .pc-refresh-status[data-tone=error]{color:var(--pc-danger,var(--risk-fg,#ad2626))}

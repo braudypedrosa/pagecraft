@@ -60,7 +60,7 @@ export function AssetField({ value, note, onChange, disabled = false }: {
           <b>{busy ? 'Uploading image…' : 'Drop an image here'}</b><span>{busy ? 'Please wait for the upload to finish.' : 'or choose a file'}</span>
         </div>}
 
-      <div style={{ display: 'flex', gap: '6px', marginTop: 'var(--gap-1)' }}>
+      <div class="pc-field-actions">
         <button type="button" class="btn grow" disabled={disabled || busy} aria-busy={busy} data-pc-pending={busy ? '' : undefined} onClick={choose}>
           {!busy && <Icon name="image" size={13} />} {busy ? 'Uploading…' : hasImage ? 'Replace' : 'Upload'}
         </button>

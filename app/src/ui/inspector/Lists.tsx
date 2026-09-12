@@ -372,7 +372,7 @@ export function ImgsCtl({ n, c }: P) {
         </div>
       );
     })}
-    <div style={{ display: 'flex', gap: '6px', marginTop: arr.length ? '6px' : '0' }}>
+    <div class={'pc-field-actions' + (arr.length ? '' : ' flush')}>
       <button class="btn grow" style={{ fontSize: 'var(--fs-2)' }} disabled={files.busy} aria-busy={files.busy} data-pc-pending={files.busy ? '' : undefined} onClick={files.choose}>
         {!files.busy && <Icon name="image" size={13} />} {files.busy ? 'Uploading…' : 'Upload'}
       </button>

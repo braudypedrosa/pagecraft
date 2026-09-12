@@ -65,6 +65,11 @@ test('image dimension lookup waits for its result and restores Detect after fail
  let resolve!:(v:null)=>void;
  L.imgSize=vi.fn(()=>new Promise<null>(yes=>{resolve=yes;}));
  r.draw(<Ctl n={image} c={{t:'dims',label:'Dimensions'}}/>);
+ const row=document.querySelector('.pc-control-row')!;
+ expect(row.classList.contains('unit')).toBe(false);
+ expect(row.querySelectorAll('.ctl')).toHaveLength(2);
+ expect(row.querySelector('input[aria-label="Dimensions width"]')).not.toBeNull();
+ expect(row.querySelector('input[aria-label="Dimensions height"]')).not.toBeNull();
  const button=r.$('button')!;
  await act(()=>{r.click(button);r.click(button);});
  expect(L.imgSize).toHaveBeenCalledTimes(1);
