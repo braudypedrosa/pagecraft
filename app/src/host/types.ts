@@ -108,6 +108,9 @@ export interface HostRevision {
 }
 
 export interface HostMedia {
+  tags?: readonly string[];
+  metadataVersion?: number;
+  createdAt?: string | null;
   id: string;
   name: string;
   mimeType: string;
@@ -169,6 +172,7 @@ export interface HostAssetAdapter {
   download(id: string): Promise<Blob>;
   upload(file: File | Blob, filename?: string): Promise<HostMedia>;
   remove(id: string): Promise<void>;
+  tag?(id: string, tags: string[], version: number): Promise<HostMedia>;
 }
 
 export interface HostSettingsAdapter {

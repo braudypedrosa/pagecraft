@@ -993,3 +993,28 @@ test("gateway client refuses an oversized JSON control request before network I/
   );
   a.equal(requested, false);
 });
+
+
+test('gateway tagging invalidates cached listings and returns metadata without bytes', async () => {
+  let version = 0;
+  let tags: string[] = [];
+  const record = () => ({ id: 'a1', site_id: 's1', name: 'Image.png', type: 'image/png', w: 1, h: 1, tags, metadata_version: version, created_at: null });
+  const { gateway } = fakeGateway(call => {
+    if (call.op === 'asset.list') return [record()];
+    if (call.op === 'asset.tag') {
+      if (call.args.version !== version) return null;
+      tags = call.args.tags as string[];
+      version++;
+      return record();
+    }
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const assets = new GatewayAssetStore(gateway);
+  a.deepEqual((await assets.list('s1'))[0].tags, []);
+  const changed = await assets.tag('s1', 'a1', ['Editorial'], 0);
+  a.equal(changed?.metadataVersion, 1);
+  a.equal(changed?.createdAt, null);
+  a.equal('bytes' in changed!, false);
+  a.deepEqual((await assets.list('s1'))[0].tags, ['Editorial']);
+  a.equal(await assets.tag('s1', 'a1', ['Stale'], 0), null);
+});

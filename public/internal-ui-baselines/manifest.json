@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-12T07:49:38.107Z",
+  "capturedAt": "2026-09-12T08:12:28.117Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "a22c022c4847e842a3f89f00d940723f13074c5f29c632e5744438322f4e3c42",
+    "builder.html": "b6900627631df56846e722b172e765d7754dbbae5a2f3b44882d3ba9727cf8e8",
     "app/src/ui/Pages.tsx": "00200e5517fd0761815731b1e2e8c075d56fa4cbed9b51050e919d8fa644be82",
     "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
     "shared/ui-tokens.js": "f1004d10d2e4f4fde1bc1961b7376c00b88f328dfba64eae1c3f939ad088bc9c",
@@ -26,13 +26,7 @@
   },
   "behaviorChecks": [
     {
-      "host": "Cloud",
-      "check": "Select opens and Escape closes without navigation",
-      "passed": true
-    },
-    {
-      "host": "Builder",
-      "check": "Select opens and Escape closes without navigation",
+      "name": "Native select opens and Escape closes it",
       "passed": true
     }
   ],

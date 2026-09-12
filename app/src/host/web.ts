@@ -63,6 +63,7 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
     id: String(row.id), name: String(row.name || 'asset'), mimeType: String(row.mimeType || row.type || ''),
     url: String(row.url || `${assetRoot}/${encodeURIComponent(String(row.id))}`),
     size: Number(row.size || row.storedBytes || size || 0),
+    tags: row.tags || [], metadataVersion: Number(row.metadataVersion || 0), createdAt: row.createdAt || null,
     width: Number(row.width ?? row.w ?? 0), height: Number(row.height ?? row.h ?? 0)
   });
   return {
@@ -86,6 +87,9 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
     menus: menuAdapter(transport, `/api/sites/${site}/menus`),
     revisions: revisionAdapter(transport, `/api/sites/${site}/history`),
     assets: {
+      async tag(id, tags, version) {
+        return asMedia((await transport.request<any>({method: 'PATCH', path: `${assetRoot}/${encodeURIComponent(id)}`, body: {tags, version}})).body);
+      },
       async list() { return (await transport.request<any[]>({ path: assetRoot })).body.map(row => asMedia(row)); },
       async download(id) {
         return (await transport.request<Blob>({ path: `${assetRoot}/${encodeURIComponent(id)}`, responseType: 'blob' })).body;

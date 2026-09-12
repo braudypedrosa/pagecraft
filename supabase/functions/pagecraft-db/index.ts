@@ -1990,7 +1990,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     case "asset.list": {
       const rows = await sql<Record<string, unknown>[]>`
         select id, site_id, name, type, w, h, owner_id, storage_path,
-          stored_bytes, original_bytes, content_hash, optimized
+          stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
         from assets where site_id = ${text(args.siteId)} order by name
       `;
       const paths = rows.map((row) =>
@@ -2299,7 +2299,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
                 and assets.w = excluded.w and assets.h = excluded.h
                 and assets.content_hash = excluded.content_hash
               returning id, site_id, name, type, w, h, owner_id, storage_path,
-                stored_bytes, original_bytes, content_hash, optimized
+                stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
             `,
             )
             : one(
@@ -2316,7 +2316,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
                 content_hash = excluded.content_hash, optimized = excluded.optimized
               where assets.site_id = excluded.site_id
               returning id, site_id, name, type, w, h, owner_id, storage_path,
-                stored_bytes, original_bytes, content_hash, optimized
+                stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
             `,
             );
           if (!row) {
@@ -2357,6 +2357,15 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `,
       );
       return Number(row?.used || 0);
+    }
+    case "asset.tag": {
+      if (!Array.isArray(args.tags) || args.tags.length > 20 || args.tags.some((tag: unknown) => typeof tag !== 'string' || tag.length > 40)
+        || !Number.isInteger(args.version) || Number(args.version) < 0) throw new Error('Invalid media metadata');
+      return one(await sql`
+        update assets set tags = ${sql.array(args.tags as string[])}, metadata_version = metadata_version + 1
+        where site_id = ${text(args.siteId)} and id = ${text(args.id)} and metadata_version = ${Number(args.version)}
+        returning id, site_id, name, type, w, h, stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
+      `);
     }
     case "asset.remove": {
       const row = one(

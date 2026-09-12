@@ -1233,6 +1233,9 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .media-browser-tools label{display:flex;flex-direction:column;gap:var(--sp-2);font:var(--pc-type-label);min-width:0;flex:1 1 100px}
 .media-browser-tools label:first-child{flex:2 1 160px}
 .media-browser-tools input,.media-browser-tools select{width:100%;min-width:0}
+.media-asset-details{padding:var(--sp-3);border:1px solid var(--line);border-radius:var(--r-sm)}
+.media-asset-details form{display:flex;flex-wrap:wrap;align-items:end;gap:var(--sp-3)}
+.media-asset-details label{display:flex;flex-direction:column;gap:var(--sp-2);flex:1}
 .media-browser-page{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)}
 .media-library-overlay{
   position:absolute;inset:0;z-index:2;display:none;place-content:center;justify-items:center;
@@ -2571,7 +2574,7 @@ async function assetAddServer(file) {
   }
   AS.mem.set(meta.id, {
     id: meta.id, name: meta.name, type: meta.mimeType, size: meta.size || file.size,
-    w: meta.width, h: meta.height,
+    w: meta.width, h: meta.height, tags: meta.tags || [], metadataVersion: meta.metadataVersion || 0, createdAt: meta.createdAt || null,
     /* served by the editor's own route, so it needs the session the page already has */
     url: meta.url || (SRV.editorSessionToken ? URL.createObjectURL(file) : `/api/sites/${SRV.siteId}/assets/${meta.id}`)
   });
@@ -2594,7 +2597,7 @@ async function assetsLoadServer() {
     }
     AS.mem.set(m.id, {
       id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
-      w: m.width, h: m.height, url
+      w: m.width, h: m.height, tags: m.tags || [], metadataVersion: m.metadataVersion || 0, createdAt: m.createdAt || null, url
     });
   }));
 }
@@ -3988,10 +3991,11 @@ function startLayerDrag(e, id) {
 function mediaBrowserMarkup() {
   return `<div class="media-browser">
     <div class="media-browser-tools">
-      <label>Search images<input class="ctl" type="search" data-media-search placeholder="Search filenames" autocomplete="off"></label>
-      <label>Sort<select class="ctl" data-media-sort><option value="name">Name A–Z</option><option value="size">Largest first</option></select></label>
+      <label>Search images<input class="ctl" type="search" data-media-search placeholder="Search filenames or tags" autocomplete="off"></label>
+      <label>Sort<select class="ctl" data-media-sort><option value="name">Name A–Z</option><option value="size">Largest first</option><option value="date">Newest first</option></select></label>
       <label>Usage<select class="ctl" data-media-usage><option value="all">All images</option><option value="used">Used</option><option value="unused">Unused</option></select></label>
     </div>
+    <div data-media-details hidden></div>
     <div class="media-browser-results"></div>
     <div class="media-browser-page"><span class="note" data-media-count></span><button type="button" class="btn" data-media-more hidden>Show more</button></div>
   </div>`;
@@ -4003,15 +4007,16 @@ function wireMediaBrowser(root, use, attr, choose, remove, state) {
   const render = () => {
     const all = [...AS.mem.values()];
     const query = (state.query || '').trim().toLocaleLowerCase();
-    const list = all.filter(a => String(a.name).toLocaleLowerCase().includes(query)
+    const list = all.filter(a => [a.name, ...(a.tags || [])].join(' ').toLocaleLowerCase().includes(query)
       && (state.usage === 'used' ? use[a.id] : state.usage === 'unused' ? !use[a.id] : true));
-    list.sort((a, b) => state.sort === 'size' ? (b.size || 0) - (a.size || 0) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+    list.sort((a, b) => (state.sort === 'size' ? (b.size || 0) - (a.size || 0) : state.sort === 'date' ? (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) : 0) || a.name.localeCompare(b.name));
     const results = $('.media-browser-results', root);
     results.innerHTML = list.length ? `<div class="mgrid">${mediaCards(list.slice(0, limit), use, attr)}</div>`
       : `<div class="empty">${all.length ? 'No matching images. Change or clear the filters.' : 'Nothing here yet. Drop images here, or use Upload.'}</div>`;
     $('[data-media-count]', root).textContent = `${Math.min(limit, list.length)} of ${list.length} images`;
     $('[data-media-more]', root).hidden = limit >= list.length;
     $$('[' + attr + ']', results).forEach(button => button.addEventListener('click', () => choose(button.getAttribute(attr))));
+    $$('[data-media-detail]', results).forEach(button => button.addEventListener('click', () => mediaDetails(root, button.dataset.mediaDetail, render, button)));
     $$('[data-del]', results).forEach(button => button.addEventListener('click', () => remove(button.dataset.del, button)));
   };
   search.addEventListener('input', () => { state.query = search.value; limit = 60; render(); });
@@ -4020,6 +4025,33 @@ function wireMediaBrowser(root, use, attr, choose, remove, state) {
   $('[data-media-more]', root).addEventListener('click', () => { limit += 60; render(); });
   render();
 }
+function mediaDetails(root, id, refresh, origin) {
+  const asset = AS.mem.get(id), panel = $('[data-media-details]', root);
+  if (!asset || !panel) return;
+  const references = mediaReferences(doc()).filter(reference => reference.assetId === id);
+  panel.hidden = false;
+  panel.innerHTML = `<section class="media-asset-details" aria-label="Image details">
+    <div class="media-browser-page"><strong>${esc(asset.name)}</strong><button type="button" class="btn" data-details-close>Close details</button></div>
+    <p class="note">${kb(asset.size)} · ${asset.w || '?'}×${asset.h || '?'} · ${asset.createdAt ? esc(new Date(asset.createdAt).toLocaleDateString()) : 'Upload date unavailable'}</p>
+    ${HOST?.assets?.tag ? `<form data-tags-form><label>Tags<input class="ctl" name="tags" value="${esc((asset.tags || []).join(', '))}" placeholder="Separate tags with commas"></label><button class="btn" type="submit">Save tags</button><p class="note" role="status" data-tags-status></p></form>` : ''}
+    <p class="note">${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
+    ${references.length ? `<ul>${references.map(reference => `<li>${esc(reference.scope)} · ${esc(reference.label)}</li>`).join('')}</ul>` : ''}
+  </section>`;
+  $('[data-details-close]', panel).addEventListener('click', () => { panel.hidden = true; ($(`[data-media-detail="${id}"]`, root) || origin).focus(); });
+  $('[data-tags-form]', panel)?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget, button = $('button', form), status = $('[data-tags-status]', form);
+    const tags = form.elements.tags.value.split(',').map(tag => tag.trim()).filter(Boolean);
+    if (tags.length > 20 || tags.some(tag => tag.length > 40)) { status.textContent = 'Use up to 20 tags of 40 characters each.'; return; }
+    button.disabled = true; status.textContent = 'Saving tags…';
+    try {
+      const saved = await HOST.assets.tag(id, tags, asset.metadataVersion || 0);
+      Object.assign(asset, { tags: saved.tags || [], metadataVersion: saved.metadataVersion });
+      status.textContent = 'Tags saved.'; refresh();
+    } catch (error) { status.textContent = error?.payload?.error || 'Tags could not be saved. Reopen the library and try again.'; }
+    finally { button.disabled = false; }
+  });
+}
 function mediaCards(list, use, attr) {
   return list.map(a => `<div class="mitem">
     <button class="mcard" ${attr}="${a.id}" title="${esc(a.name)}">
@@ -4027,6 +4059,7 @@ function mediaCards(list, use, attr) {
       <span class="mname">${esc(a.name)}</span>
       <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''}${use[a.id] ? ` · used ${use[a.id]}×` : ' · unused'}</span>
     </button>
+    <button class="btn" type="button" data-media-detail="${a.id}" aria-label="Details for ${esc(a.name)}">Details</button>
     <button class="mdel" type="button" data-del="${a.id}" title="Delete from the library"
       aria-label="Delete ${esc(a.name)} from the library">${svg('trash', 12)}</button>
   </div>`).join('');

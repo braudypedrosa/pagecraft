@@ -1631,6 +1631,7 @@ export function statements(sql: string): string[] {
 /* ------------------------------------------------------------------- assets */
 
 interface AssetRow {
+  tags?: string[]; metadata_version?: number; created_at?: Date | string | null;
   id: string; site_id: string; name: string; type: string;
   w: number; h: number; bytes: Uint8Array | null;
   owner_id: string | null; storage_path: string | null;
@@ -1648,6 +1649,8 @@ const toAsset = (r: AssetRow): Asset => ({
   storedBytes: r.stored_bytes == null ? undefined : Number(r.stored_bytes),
   originalBytes: r.original_bytes == null ? undefined : Number(r.original_bytes),
   contentHash: r.content_hash || undefined,
+  tags: r.tags || [], metadataVersion: r.metadata_version || 0,
+  createdAt: r.created_at ? new Date(r.created_at).toISOString() : null,
   optimized: r.optimized
 });
 
@@ -1657,6 +1660,8 @@ const toAssetRecord = (r: AssetMetaRow): AssetRecord => ({
   storedBytes: r.stored_bytes == null ? undefined : Number(r.stored_bytes),
   originalBytes: r.original_bytes == null ? undefined : Number(r.original_bytes),
   contentHash: r.content_hash || undefined,
+  tags: r.tags || [], metadataVersion: r.metadata_version || 0,
+  createdAt: r.created_at ? new Date(r.created_at).toISOString() : null,
   optimized: r.optimized
 });
 
@@ -1671,7 +1676,7 @@ export class PgAssetStore implements AssetStore {
   async list(siteId: string) {
     const { rows } = await this.db.query<AssetMetaRow>(
       `select id, site_id, name, type, w, h, owner_id, storage_path,
-              stored_bytes, original_bytes, content_hash, optimized
+              stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at
        from assets where site_id = $1 order by name`, [siteId]);
     return rows.map(toAssetRecord);
   }
@@ -1718,7 +1723,7 @@ export class PgAssetStore implements AssetStore {
            stored_bytes = excluded.stored_bytes, original_bytes = excluded.original_bytes,
            content_hash = excluded.content_hash, optimized = excluded.optimized
          returning id, site_id, name, type, w, h, owner_id, storage_path,
-                   stored_bytes, original_bytes, content_hash, optimized`,
+                   stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at`,
         [id, a.siteId, quota?.ownerId || null, a.name, a.type, a.w, a.h, a.bytes,
           a.bytes.byteLength, quota?.originalBytes ?? a.bytes.byteLength,
           a.contentHash || null, quota?.optimized || false]
@@ -1771,7 +1776,7 @@ export class PgAssetStore implements AssetStore {
            and assets.bytes = excluded.bytes
          returning assets.id, assets.site_id, assets.name, assets.type, assets.w, assets.h,
            assets.owner_id, assets.storage_path, assets.stored_bytes, assets.original_bytes,
-           assets.content_hash, assets.optimized`,
+           assets.content_hash, assets.optimized, assets.tags, assets.metadata_version, assets.created_at`,
         [a.id, a.siteId, ownerId, a.name, a.type, a.w, a.h, a.bytes,
           a.bytes.byteLength, quota?.originalBytes ?? a.bytes.byteLength,
           a.contentHash || null, quota?.optimized || false]
@@ -1786,6 +1791,12 @@ export class PgAssetStore implements AssetStore {
     }
   }
 
+  async tag(siteId: string, id: string, tags: string[], version: number) {
+    const { rows } = await this.db.query<AssetMetaRow>(
+      `update assets set tags = $3, metadata_version = metadata_version + 1
+       where site_id = $1 and id = $2 and metadata_version = $4 returning id, site_id, name, type, w, h, owner_id, storage_path, stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at`, [siteId, id, tags, version]);
+    return rows[0] ? toAssetRecord(rows[0]) : null;
+  }
   async remove(siteId: string, id: string) {
     const { rows } = await this.db.query<{ id: string }>(
       'delete from assets where site_id = $1 and id = $2 returning id', [siteId, id]);

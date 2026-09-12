@@ -1277,6 +1277,7 @@ export class GatewayConnectedStore implements ConnectedStore {
 }
 
 interface AssetMetaWire {
+  tags?: string[]; metadata_version?: number; created_at?: string | null;
   id: string;
   site_id: string;
   name: string;
@@ -1307,6 +1308,7 @@ const toAssetRecord = (row: AssetMetaWire): AssetRecord => ({
     ? undefined
     : Number(row.original_bytes),
   contentHash: row.content_hash || undefined,
+  tags: row.tags || [], metadataVersion: row.metadata_version || 0, createdAt: row.created_at || null,
   optimized: row.optimized,
   editorUrl: row.signed_url || undefined,
 });
@@ -1325,6 +1327,7 @@ const toAsset = (row: AssetWire): Asset => ({
     ? undefined
     : Number(row.original_bytes),
   contentHash: row.content_hash || undefined,
+  tags: row.tags || [], metadataVersion: row.metadata_version || 0, createdAt: row.created_at || null,
   optimized: row.optimized,
 });
 
@@ -1542,6 +1545,12 @@ export class GatewayAssetStore implements AssetStore {
       }
       throw error;
     }
+  }
+  async tag(siteId: string, id: string, tags: string[], version: number) {
+    const row = await this.gateway.call<AssetMetaWire | null>('asset.tag', { siteId, id, tags, version });
+    if (!row) return null;
+    this.listed.delete(siteId);
+    return toAssetRecord(row);
   }
   async remove(siteId: string, id: string) {
     const removed = await this.gateway.call<boolean>("asset.remove", {

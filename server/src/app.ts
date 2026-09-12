@@ -3266,6 +3266,23 @@ export function createApp(o: Options) {
     });
   });
 
+  app.patch('/api/sites/:id/assets/:aid', async c => {
+    const id = c.req.param('id');
+    const gate = await allowed(c, id, 'write');
+    if (!gate.ok) return deny(c, gate.status);
+    if (!o.assets?.tag) return c.json({ error: 'Media metadata is not supported by this host.' }, 501);
+    const input = await c.req.json().catch(() => null);
+    if (!input || !Array.isArray(input.tags) || input.tags.length > 20
+      || input.tags.some((tag: unknown) => typeof tag !== 'string' || tag.length > 40 || /[\x00-\x1f]/.test(tag))
+      || !Number.isSafeInteger(input.version) || input.version < 0) {
+      return c.json({ error: 'Use up to 20 tags of 40 characters and a valid metadata version.' }, 400);
+    }
+    const tags = [...new Set<string>(input.tags.map((tag: string) => tag.trim()).filter(Boolean))];
+    const updated = await o.assets.tag(id, c.req.param('aid'), tags, input.version);
+    if (!updated) return c.json({ error: 'This image changed or is no longer available. Reopen the library and try again.' }, 409);
+    return c.json(metaOf(updated));
+  });
+
   app.delete("/api/sites/:id/assets/:aid", async (c) => {
     const id = c.req.param("id");
     const gate = await allowed(c, id, "write");

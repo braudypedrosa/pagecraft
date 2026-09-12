@@ -1238,6 +1238,9 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .media-browser-tools label{display:flex;flex-direction:column;gap:var(--sp-2);font:var(--pc-type-label);min-width:0;flex:1 1 100px}
 .media-browser-tools label:first-child{flex:2 1 160px}
 .media-browser-tools input,.media-browser-tools select{width:100%;min-width:0}
+.media-asset-details{padding:var(--sp-3);border:1px solid var(--line);border-radius:var(--r-sm)}
+.media-asset-details form{display:flex;flex-wrap:wrap;align-items:end;gap:var(--sp-3)}
+.media-asset-details label{display:flex;flex-direction:column;gap:var(--sp-2);flex:1}
 .media-browser-page{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)}
 .media-library-overlay{
   position:absolute;inset:0;z-index:2;display:none;place-content:center;justify-items:center;
@@ -2835,6 +2838,86 @@ var ANIM_JS = `/**
 })();
 
 `;
+
+// app/src/core/media-references.ts
+var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
+var tokenPattern = () => /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
+function mediaReferences(document) {
+  const result = [];
+  const scan = (value, path, context, embedded = false) => {
+    if (typeof value !== "string") return;
+    if (!embedded && !/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?$/.test(value)) return;
+    const seen = /* @__PURE__ */ new Set();
+    const tokens = embedded ? Array.from(value.matchAll(managedUrlPattern()), (match) => match[2]).join(" ") : value;
+    for (const match of tokens.matchAll(tokenPattern())) {
+      if (!seen.has(match[1])) result.push({ ...context, assetId: match[1], path });
+      seen.add(match[1]);
+    }
+  };
+  const styles2 = (value, path, context) => {
+    if (!value || typeof value !== "object") return;
+    Object.entries(value).forEach(([key, child]) => {
+      if (typeof child === "string") {
+        if (key === "background" || key === "background-image" || key === "mask-image") scan(child, [...path, key], context, true);
+      } else styles2(child, [...path, key], context);
+    });
+  };
+  const nodes = (list, path, context) => list.forEach((node, i) => {
+    const base = [...path, i];
+    const where = { ...context, nodeId: node.id };
+    const props = node.props;
+    const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : [];
+    fields.forEach((key) => scan(props[key], [...base, "props", key], where));
+    if (node.type === "gallery" && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    const definition = document.meta.components?.find((def) => def.id === node.use);
+    definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
+    styles2(node.css, [...base, "css"], where);
+    styles2(node.st, [...base, "st"], where);
+    nodes(node.children, [...base, "children"], context);
+  });
+  document.pages.forEach((page2, i) => {
+    const context = { scope: "page", label: page2.name, ownerId: page2.id };
+    scan(page2.ogImage, ["pages", i, "ogImage"], context);
+    nodes(page2.tree, ["pages", i, "tree"], context);
+  });
+  for (const scope of ["header", "footer"]) nodes(document[scope], [scope], { scope, label: `Global ${scope}` });
+  document.meta.components?.forEach((def, i) => {
+    const context = { scope: "component", label: def.name, ownerId: def.id };
+    const start = result.length;
+    nodes([def.node], ["meta", "components", i, "node"], context);
+    result.slice(start).forEach((ref) => ref.path.splice(4, 1));
+    def.props.forEach((prop, j) => {
+      if (prop.t !== "img") return;
+      scan(prop.def, ["meta", "components", i, "props", j, "def"], context);
+      def.variants?.forEach((variant, k) => scan(variant.values[prop.k], ["meta", "components", i, "variants", k, "values", prop.k], context));
+    });
+  });
+  document.meta.blocks.forEach((block, i) => {
+    const start = result.length;
+    nodes([block.node], ["meta", "blocks", i, "node"], { scope: "block", label: block.name, ownerId: block.id });
+    result.slice(start).forEach((ref) => ref.path.splice(4, 1));
+  });
+  document.meta.collections?.forEach((collection, i) => collection.items.forEach((item, j) => collection.fields.filter((field) => field.type === "image").forEach((field) => scan(
+    item.values[field.id],
+    ["meta", "collections", i, "items", j, "values", field.id],
+    { scope: "cms", label: `${collection.name} / ${item.slug} / ${field.name}`, ownerId: collection.id }
+  ))));
+  for (const key of ["favicon", "ogImage"]) scan(document.meta[key], ["meta", key], { scope: "site", label: key === "favicon" ? "Favicon" : "Social image" });
+  styles2(document.meta.tokens, ["meta", "tokens"], { scope: "style", label: "Shared styles" });
+  return result;
+}
+function replaceMediaReferences(document, sourceId, replacementId) {
+  if (![sourceId, replacementId].every((id) => /^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(id))) throw new Error("Invalid asset ID");
+  const next = structuredClone(document);
+  for (const ref of mediaReferences(next).filter((ref2) => ref2.assetId === sourceId)) {
+    let parent = next;
+    for (const key2 of ref.path.slice(0, -1)) parent = parent[key2];
+    const key = ref.path[ref.path.length - 1];
+    const replaceToken = (value) => value.replace(tokenPattern(), (token, id, width) => id === sourceId ? `asset:${replacementId}${width ? `@${width}` : ""}` : token);
+    parent[key] = parent[key].startsWith("asset:") ? replaceToken(parent[key]) : parent[key].replace(managedUrlPattern(), (value) => replaceToken(value));
+  }
+  return next;
+}
 
 // app/src/core/index.ts
 var _seq = 0;
@@ -10076,6 +10159,7 @@ var __CORE = {
   makeFor,
   matchLayout,
   matches,
+  mediaReferences,
   menuFor,
   migrate,
   moveMany,
@@ -10130,6 +10214,7 @@ var __CORE = {
   renderList,
   renderNode,
   replaceAll,
+  replaceMediaReferences,
   resizeCols,
   resolveColor,
   restore,
@@ -19075,6 +19160,9 @@ var PC_UI = (() => {
       mimeType: String(row.mimeType || row.type || ""),
       url: String(row.url || `${assetRoot}/${encodeURIComponent(String(row.id))}`),
       size: Number(row.size || row.storedBytes || size || 0),
+      tags: row.tags || [],
+      metadataVersion: Number(row.metadataVersion || 0),
+      createdAt: row.createdAt || null,
       width: Number(row.width ?? row.w ?? 0),
       height: Number(row.height ?? row.h ?? 0)
     });
@@ -19100,6 +19188,9 @@ var PC_UI = (() => {
       menus: menuAdapter(transport, `/api/sites/${site}/menus`),
       revisions: revisionAdapter(transport, `/api/sites/${site}/history`),
       assets: {
+        async tag(id, tags, version) {
+          return asMedia((await transport.request({ method: "PATCH", path: `${assetRoot}/${encodeURIComponent(id)}`, body: { tags, version } })).body);
+        },
         async list() {
           return (await transport.request({ path: assetRoot })).body.map((row) => asMedia(row));
         },
@@ -20225,7 +20316,7 @@ async function assetAddServer(file) {
   }
   AS.mem.set(meta.id, {
     id: meta.id, name: meta.name, type: meta.mimeType, size: meta.size || file.size,
-    w: meta.width, h: meta.height,
+    w: meta.width, h: meta.height, tags: meta.tags || [], metadataVersion: meta.metadataVersion || 0, createdAt: meta.createdAt || null,
     /* served by the editor's own route, so it needs the session the page already has */
     url: meta.url || (SRV.editorSessionToken ? URL.createObjectURL(file) : `/api/sites/${SRV.siteId}/assets/${meta.id}`)
   });
@@ -20248,7 +20339,7 @@ async function assetsLoadServer() {
     }
     AS.mem.set(m.id, {
       id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
-      w: m.width, h: m.height, url
+      w: m.width, h: m.height, tags: m.tags || [], metadataVersion: m.metadataVersion || 0, createdAt: m.createdAt || null, url
     });
   }));
 }
@@ -21642,10 +21733,11 @@ function startLayerDrag(e, id) {
 function mediaBrowserMarkup() {
   return `<div class="media-browser">
     <div class="media-browser-tools">
-      <label>Search images<input class="ctl" type="search" data-media-search placeholder="Search filenames" autocomplete="off"></label>
-      <label>Sort<select class="ctl" data-media-sort><option value="name">Name A–Z</option><option value="size">Largest first</option></select></label>
+      <label>Search images<input class="ctl" type="search" data-media-search placeholder="Search filenames or tags" autocomplete="off"></label>
+      <label>Sort<select class="ctl" data-media-sort><option value="name">Name A–Z</option><option value="size">Largest first</option><option value="date">Newest first</option></select></label>
       <label>Usage<select class="ctl" data-media-usage><option value="all">All images</option><option value="used">Used</option><option value="unused">Unused</option></select></label>
     </div>
+    <div data-media-details hidden></div>
     <div class="media-browser-results"></div>
     <div class="media-browser-page"><span class="note" data-media-count></span><button type="button" class="btn" data-media-more hidden>Show more</button></div>
   </div>`;
@@ -21657,15 +21749,16 @@ function wireMediaBrowser(root, use, attr, choose, remove, state) {
   const render = () => {
     const all = [...AS.mem.values()];
     const query = (state.query || '').trim().toLocaleLowerCase();
-    const list = all.filter(a => String(a.name).toLocaleLowerCase().includes(query)
+    const list = all.filter(a => [a.name, ...(a.tags || [])].join(' ').toLocaleLowerCase().includes(query)
       && (state.usage === 'used' ? use[a.id] : state.usage === 'unused' ? !use[a.id] : true));
-    list.sort((a, b) => state.sort === 'size' ? (b.size || 0) - (a.size || 0) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+    list.sort((a, b) => (state.sort === 'size' ? (b.size || 0) - (a.size || 0) : state.sort === 'date' ? (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) : 0) || a.name.localeCompare(b.name));
     const results = $('.media-browser-results', root);
     results.innerHTML = list.length ? `<div class="mgrid">${mediaCards(list.slice(0, limit), use, attr)}</div>`
       : `<div class="empty">${all.length ? 'No matching images. Change or clear the filters.' : 'Nothing here yet. Drop images here, or use Upload.'}</div>`;
     $('[data-media-count]', root).textContent = `${Math.min(limit, list.length)} of ${list.length} images`;
     $('[data-media-more]', root).hidden = limit >= list.length;
     $$('[' + attr + ']', results).forEach(button => button.addEventListener('click', () => choose(button.getAttribute(attr))));
+    $$('[data-media-detail]', results).forEach(button => button.addEventListener('click', () => mediaDetails(root, button.dataset.mediaDetail, render, button)));
     $$('[data-del]', results).forEach(button => button.addEventListener('click', () => remove(button.dataset.del, button)));
   };
   search.addEventListener('input', () => { state.query = search.value; limit = 60; render(); });
@@ -21674,6 +21767,33 @@ function wireMediaBrowser(root, use, attr, choose, remove, state) {
   $('[data-media-more]', root).addEventListener('click', () => { limit += 60; render(); });
   render();
 }
+function mediaDetails(root, id, refresh, origin) {
+  const asset = AS.mem.get(id), panel = $('[data-media-details]', root);
+  if (!asset || !panel) return;
+  const references = mediaReferences(doc()).filter(reference => reference.assetId === id);
+  panel.hidden = false;
+  panel.innerHTML = `<section class="media-asset-details" aria-label="Image details">
+    <div class="media-browser-page"><strong>${esc(asset.name)}</strong><button type="button" class="btn" data-details-close>Close details</button></div>
+    <p class="note">${kb(asset.size)} · ${asset.w || '?'}×${asset.h || '?'} · ${asset.createdAt ? esc(new Date(asset.createdAt).toLocaleDateString()) : 'Upload date unavailable'}</p>
+    ${HOST?.assets?.tag ? `<form data-tags-form><label>Tags<input class="ctl" name="tags" value="${esc((asset.tags || []).join(', '))}" placeholder="Separate tags with commas"></label><button class="btn" type="submit">Save tags</button><p class="note" role="status" data-tags-status></p></form>` : ''}
+    <p class="note">${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
+    ${references.length ? `<ul>${references.map(reference => `<li>${esc(reference.scope)} · ${esc(reference.label)}</li>`).join('')}</ul>` : ''}
+  </section>`;
+  $('[data-details-close]', panel).addEventListener('click', () => { panel.hidden = true; ($(`[data-media-detail="${id}"]`, root) || origin).focus(); });
+  $('[data-tags-form]', panel)?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget, button = $('button', form), status = $('[data-tags-status]', form);
+    const tags = form.elements.tags.value.split(',').map(tag => tag.trim()).filter(Boolean);
+    if (tags.length > 20 || tags.some(tag => tag.length > 40)) { status.textContent = 'Use up to 20 tags of 40 characters each.'; return; }
+    button.disabled = true; status.textContent = 'Saving tags…';
+    try {
+      const saved = await HOST.assets.tag(id, tags, asset.metadataVersion || 0);
+      Object.assign(asset, { tags: saved.tags || [], metadataVersion: saved.metadataVersion });
+      status.textContent = 'Tags saved.'; refresh();
+    } catch (error) { status.textContent = error?.payload?.error || 'Tags could not be saved. Reopen the library and try again.'; }
+    finally { button.disabled = false; }
+  });
+}
 function mediaCards(list, use, attr) {
   return list.map(a => `<div class="mitem">
     <button class="mcard" ${attr}="${a.id}" title="${esc(a.name)}">
@@ -21681,6 +21801,7 @@ function mediaCards(list, use, attr) {
       <span class="mname">${esc(a.name)}</span>
       <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''}${use[a.id] ? ` · used ${use[a.id]}×` : ' · unused'}</span>
     </button>
+    <button class="btn" type="button" data-media-detail="${a.id}" aria-label="Details for ${esc(a.name)}">Details</button>
     <button class="mdel" type="button" data-del="${a.id}" title="Delete from the library"
       aria-label="Delete ${esc(a.name)} from the library">${svg('trash', 12)}</button>
   </div>`).join('');

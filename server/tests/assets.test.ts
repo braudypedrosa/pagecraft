@@ -315,3 +315,28 @@ test('a site with no asset store renders placeholders rather than failing', asyn
   a.equal(res.status, 200);
   a.match(await res.text(), /data:image\/svg\+xml/, 'the placeholder, not a broken src');
 });
+
+
+test('asset tags are versioned, site-scoped metadata and preserve image bytes', async () => {
+  const { upload, req, cookie, site, assets } = await rig();
+  const image = await (await upload(PNG, 'Tagged.png')).json() as { id: string };
+  const path = `/api/sites/${site.id}/assets/${image.id}`;
+  const patch = (tags: unknown, version: number, session = cookie) => req(path, {
+    method: 'PATCH', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ tags, version })
+  }, session);
+  a.equal((await patch(['Portrait'], 0, '')).status, 401);
+  a.equal((await patch(['x'.repeat(41)], 0)).status, 400);
+  const saved = await patch([' Portrait ', '', 'Portrait', 'Campaign'], 0);
+  a.equal(saved.status, 200);
+  const metadata = await saved.json() as { tags: string[]; metadataVersion: number; createdAt: string };
+  a.deepEqual(metadata.tags, ['Portrait', 'Campaign']);
+  a.equal(metadata.metadataVersion, 1);
+  a.ok(Number.isFinite(Date.parse(metadata.createdAt)));
+  a.equal((await patch(['Stale'], 0)).status, 409);
+  const listed = await (await req(`/api/sites/${site.id}/assets`, {}, cookie)).json() as { tags: string[] }[];
+  a.deepEqual(listed[0].tags, ['Portrait', 'Campaign']);
+  a.deepEqual((await assets.get(site.id, image.id))?.bytes, PNG);
+  a.equal(await assets.tag('another-site', image.id, ['Wrong site'], 1), null);
+  a.equal((await patch([], 1)).status, 200);
+});

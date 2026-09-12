@@ -267,6 +267,7 @@ __export(index_exports, {
   makeFor: () => makeFor,
   matchLayout: () => matchLayout,
   matches: () => matches,
+  mediaReferences: () => mediaReferences,
   menuFor: () => menuFor,
   migrate: () => migrate,
   moveMany: () => moveMany,
@@ -321,6 +322,7 @@ __export(index_exports, {
   renderList: () => renderList,
   renderNode: () => renderNode,
   replaceAll: () => replaceAll,
+  replaceMediaReferences: () => replaceMediaReferences,
   resizeCols: () => resizeCols,
   resolveColor: () => resolveColor,
   restore: () => restore,
@@ -1263,6 +1265,86 @@ var ANIM_JS = `/**
 })();
 
 `;
+
+// app/src/core/media-references.ts
+var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
+var tokenPattern = () => /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
+function mediaReferences(document) {
+  const result = [];
+  const scan = (value, path, context, embedded = false) => {
+    if (typeof value !== "string") return;
+    if (!embedded && !/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?$/.test(value)) return;
+    const seen = /* @__PURE__ */ new Set();
+    const tokens = embedded ? Array.from(value.matchAll(managedUrlPattern()), (match) => match[2]).join(" ") : value;
+    for (const match of tokens.matchAll(tokenPattern())) {
+      if (!seen.has(match[1])) result.push({ ...context, assetId: match[1], path });
+      seen.add(match[1]);
+    }
+  };
+  const styles2 = (value, path, context) => {
+    if (!value || typeof value !== "object") return;
+    Object.entries(value).forEach(([key, child]) => {
+      if (typeof child === "string") {
+        if (key === "background" || key === "background-image" || key === "mask-image") scan(child, [...path, key], context, true);
+      } else styles2(child, [...path, key], context);
+    });
+  };
+  const nodes = (list, path, context) => list.forEach((node, i) => {
+    const base = [...path, i];
+    const where = { ...context, nodeId: node.id };
+    const props = node.props;
+    const fields = node.type === "image" ? ["src"] : node.type === "video" ? ["src", "poster"] : [];
+    fields.forEach((key) => scan(props[key], [...base, "props", key], where));
+    if (node.type === "gallery" && Array.isArray(props.items)) props.items.forEach((item, j) => scan(item.src, [...base, "props", "items", j, "src"], where));
+    const definition = document.meta.components?.find((def) => def.id === node.use);
+    definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
+    styles2(node.css, [...base, "css"], where);
+    styles2(node.st, [...base, "st"], where);
+    nodes(node.children, [...base, "children"], context);
+  });
+  document.pages.forEach((page2, i) => {
+    const context = { scope: "page", label: page2.name, ownerId: page2.id };
+    scan(page2.ogImage, ["pages", i, "ogImage"], context);
+    nodes(page2.tree, ["pages", i, "tree"], context);
+  });
+  for (const scope of ["header", "footer"]) nodes(document[scope], [scope], { scope, label: `Global ${scope}` });
+  document.meta.components?.forEach((def, i) => {
+    const context = { scope: "component", label: def.name, ownerId: def.id };
+    const start = result.length;
+    nodes([def.node], ["meta", "components", i, "node"], context);
+    result.slice(start).forEach((ref) => ref.path.splice(4, 1));
+    def.props.forEach((prop, j) => {
+      if (prop.t !== "img") return;
+      scan(prop.def, ["meta", "components", i, "props", j, "def"], context);
+      def.variants?.forEach((variant, k) => scan(variant.values[prop.k], ["meta", "components", i, "variants", k, "values", prop.k], context));
+    });
+  });
+  document.meta.blocks.forEach((block, i) => {
+    const start = result.length;
+    nodes([block.node], ["meta", "blocks", i, "node"], { scope: "block", label: block.name, ownerId: block.id });
+    result.slice(start).forEach((ref) => ref.path.splice(4, 1));
+  });
+  document.meta.collections?.forEach((collection, i) => collection.items.forEach((item, j) => collection.fields.filter((field) => field.type === "image").forEach((field) => scan(
+    item.values[field.id],
+    ["meta", "collections", i, "items", j, "values", field.id],
+    { scope: "cms", label: `${collection.name} / ${item.slug} / ${field.name}`, ownerId: collection.id }
+  ))));
+  for (const key of ["favicon", "ogImage"]) scan(document.meta[key], ["meta", key], { scope: "site", label: key === "favicon" ? "Favicon" : "Social image" });
+  styles2(document.meta.tokens, ["meta", "tokens"], { scope: "style", label: "Shared styles" });
+  return result;
+}
+function replaceMediaReferences(document, sourceId, replacementId) {
+  if (![sourceId, replacementId].every((id) => /^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(id))) throw new Error("Invalid asset ID");
+  const next = structuredClone(document);
+  for (const ref of mediaReferences(next).filter((ref2) => ref2.assetId === sourceId)) {
+    let parent = next;
+    for (const key2 of ref.path.slice(0, -1)) parent = parent[key2];
+    const key = ref.path[ref.path.length - 1];
+    const replaceToken = (value) => value.replace(tokenPattern(), (token, id, width) => id === sourceId ? `asset:${replacementId}${width ? `@${width}` : ""}` : token);
+    parent[key] = parent[key].startsWith("asset:") ? replaceToken(parent[key]) : parent[key].replace(managedUrlPattern(), (value) => replaceToken(value));
+  }
+  return next;
+}
 
 // app/src/core/index.ts
 var _seq = 0;
@@ -8504,6 +8586,7 @@ ${ANIM_JS}
   makeFor,
   matchLayout,
   matches,
+  mediaReferences,
   menuFor,
   migrate,
   moveMany,
@@ -8558,6 +8641,7 @@ ${ANIM_JS}
   renderList,
   renderNode,
   replaceAll,
+  replaceMediaReferences,
   resizeCols,
   resolveColor,
   restore,

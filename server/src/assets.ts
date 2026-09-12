@@ -35,6 +35,9 @@ export interface AssetRecord {
   /** Short-lived direct read URL for editor previews. Persistence stores omit it; the
       production gateway may attach one while listing private Storage objects. */
   editorUrl?: string;
+  tags?: string[];
+  metadataVersion?: number;
+  createdAt?: string | null;
 }
 
 export interface Asset extends AssetRecord {
@@ -50,7 +53,7 @@ export type AssetMeta = Omit<AssetRecord, 'siteId' | 'editorUrl'> & {
 export const metaOf = (a: AssetRecord): AssetMeta =>
   ({
     id: a.id, name: a.name, type: a.type, w: a.w, h: a.h,
-    path: assetFile(a),
+    path: assetFile(a), tags: a.tags || [], metadataVersion: a.metadataVersion || 0, createdAt: a.createdAt || null,
     ...(a.editorUrl ? { url: a.editorUrl } : {}),
     ...(a.storedBytes == null ? {} : { storedBytes: a.storedBytes }),
     ...(a.originalBytes == null ? {} : { originalBytes: a.originalBytes }),
@@ -77,6 +80,7 @@ export interface AssetStore {
     active?: () => Promise<boolean>, quota?: AssetQuota
   ): Promise<AssetRecord | null>;
   remove(siteId: string, id: string): Promise<boolean>;
+  tag?(siteId: string, id: string, tags: string[], version: number): Promise<AssetRecord | null>;
   usage(ownerId: string, limitBytes?: number): Promise<AssetUsage>;
 }
 
@@ -206,7 +210,7 @@ export class MemoryAssetStore implements AssetStore {
       }
       this.quotas.set(id, quota);
     }
-    const rec: Asset = { ...a, id };
+    const rec: Asset = { ...a, id, tags: a.tags || [], metadataVersion: a.metadataVersion || 0, createdAt: a.createdAt || new Date().toISOString() };
     this.all.set(id, rec);
     const { bytes: _bytes, ...meta } = rec;
     return { ...meta, storedBytes: rec.bytes.byteLength,
@@ -220,6 +224,13 @@ export class MemoryAssetStore implements AssetStore {
     if (prior && (prior.siteId !== a.siteId || prior.name !== a.name || prior.type !== a.type
       || prior.w !== a.w || prior.h !== a.h || !sameBytes(prior.bytes, a.bytes))) return null;
     return prior ? metaOfRecord(prior) : this.put(a, quota);
+  }
+  async tag(siteId: string, id: string, tags: string[], version: number) {
+    const asset = this.all.get(id);
+    if (!asset || asset.siteId !== siteId || (asset.metadataVersion || 0) !== version) return null;
+    asset.tags = [...tags]; asset.metadataVersion = version + 1;
+    const { bytes: _bytes, ...metadata } = asset;
+    return { ...metadata, tags: [...tags] };
   }
   async remove(siteId: string, id: string) {
     const a = this.all.get(id);
@@ -258,6 +269,9 @@ create table if not exists assets (
   stored_bytes bigint,
   original_bytes bigint,
   content_hash text,
+  tags text[] not null default array[]::text[],
+  metadata_version integer not null default 0,
+  created_at timestamptz default now(),
   optimized boolean not null default false
 );
 create index if not exists assets_site_idx on assets (site_id);
