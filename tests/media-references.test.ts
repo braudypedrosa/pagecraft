@@ -56,3 +56,10 @@ test('large reference inventories preserve every location', () => {
   doc.pages[0].tree = Array.from({ length: 5000 }, () => C.N('image', { src: 'asset:large' }));
   expect(mediaReferences(doc).filter(ref => ref.assetId === 'large')).toHaveLength(5000);
 });
+
+test('external image URLs containing token-like text remain outside managed replacement', () => {
+  const doc = fixture();
+  doc.pages[0].tree = [C.N('image', { src: 'https://example.com/image?name=asset:old' })];
+  const next = replaceMediaReferences(doc, 'old', 'new');
+  expect(next.pages[0].tree[0].props).toEqual(doc.pages[0].tree[0].props);
+});

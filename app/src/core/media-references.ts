@@ -10,6 +10,7 @@ export interface MediaReference {
   nodeId?: string;
 }
 
+const managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
 const tokenPattern = () => /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
 
 /** References are addresses in the saved document, not expanded component instances.
@@ -18,10 +19,12 @@ const tokenPattern = () => /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
 export function mediaReferences(document: Doc): MediaReference[] {
   const result: MediaReference[] = [];
   type Context = Omit<MediaReference, 'assetId' | 'path'>;
-  const scan = (value: unknown, path: MediaPath, context: Context) => {
+  const scan = (value: unknown, path: MediaPath, context: Context, embedded = false) => {
     if (typeof value !== 'string') return;
+    if (!embedded && !/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?$/.test(value)) return;
     const seen = new Set<string>();
-    for (const match of value.matchAll(tokenPattern())) {
+    const tokens = embedded ? Array.from(value.matchAll(managedUrlPattern()), match => match[2]).join(' ') : value;
+    for (const match of tokens.matchAll(tokenPattern())) {
       if (!seen.has(match[1])) result.push({ ...context, assetId: match[1], path });
       seen.add(match[1]);
     }
@@ -30,7 +33,7 @@ export function mediaReferences(document: Doc): MediaReference[] {
     if (!value || typeof value !== 'object') return;
     Object.entries(value).forEach(([key, child]) => {
       if (typeof child === 'string') {
-        if (key === 'background' || key === 'background-image' || key === 'mask-image') scan(child, [...path, key], context);
+        if (key === 'background' || key === 'background-image' || key === 'mask-image') scan(child, [...path, key], context, true);
       } else styles(child, [...path, key], context);
     });
   };
@@ -89,8 +92,10 @@ export function replaceMediaReferences(document: Doc, sourceId: string, replacem
     let parent: any = next;
     for (const key of ref.path.slice(0, -1)) parent = parent[key];
     const key = ref.path[ref.path.length - 1];
-    parent[key] = parent[key].replace(tokenPattern(), (token: string, id: string, width: string) =>
+    const replaceToken = (value: string) => value.replace(tokenPattern(), (token: string, id: string, width: string) =>
       id === sourceId ? `asset:${replacementId}${width ? `@${width}` : ''}` : token);
+    parent[key] = parent[key].startsWith('asset:') ? replaceToken(parent[key])
+      : parent[key].replace(managedUrlPattern(), (value: string) => replaceToken(value));
   }
   return next;
 }
