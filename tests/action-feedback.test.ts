@@ -22,6 +22,18 @@ test('pending actions prevent duplicate requests and restore the original icon a
  expect(document.querySelector('[data-tone=success]')?.textContent).toContain('Collection saved.');
  vi.advanceTimersByTime(5001);expect(document.querySelector('.pc-notification')).toBeNull();
 });
+test('icon-only actions keep their compact box and expose pending copy accessibly',()=>{
+ document.body.insertAdjacentHTML('beforeend','<button id="remove" class="mdel" aria-label="Delete image"><svg aria-hidden="true"></svg></button>');
+ const remove=document.querySelector<HTMLButtonElement>('#remove')!,original=remove.innerHTML;
+ const action=installActionFeedback().begin(remove,'Deleting image…')!;
+ expect(remove.textContent).toBe('');
+ expect(remove.hasAttribute('data-pc-pending-icon')).toBe(true);
+ expect(remove.getAttribute('aria-label')).toBe('Deleting image…');
+ action.error('The image is still in use.');
+ expect(remove.innerHTML).toBe(original);
+ expect(remove.hasAttribute('data-pc-pending-icon')).toBe(false);
+ expect(remove.getAttribute('aria-label')).toBe('Delete image');
+});
 test('confirmation timers pause for reading and keyboard interaction',()=>{
  const feedback=installActionFeedback();feedback.notify('Image uploaded.',{tone:'success'});
  const node=document.querySelector('.pc-notification')!;
