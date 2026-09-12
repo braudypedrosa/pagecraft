@@ -768,16 +768,16 @@ select.ctl{
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-2) var(--gap-3);margin-bottom:var(--gap-2)}
 .fgrid>.f{margin-bottom:0}
 .fgrid:last-child{margin-bottom:2px}
-.row4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 66px;gap:var(--sp-2)}
+.row4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 58px;gap:var(--sp-2)}
 .row4>.ctl,.row4>.pc-custom-select-trigger{width:100%;min-width:0}
 /* Side names above the four boxes rather than as one run of text under them. The same
    grid and the same gap, so each name sits over its own box, and the shared input inset to match
    `.ctl`'s own padding so the name lines up with the number inside rather than with the
    edge of the field. */
-.row4lab{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 66px;gap:var(--sp-2);margin-bottom:3px}
+.row4lab{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 58px;gap:var(--sp-2);margin-bottom:3px}
 .row4lab span{
   font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3);
-  padding-left:var(--pc-control-padding-x);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .unit{display:flex;gap:0}
 .unit input{
