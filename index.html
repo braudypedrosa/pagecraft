@@ -11064,11 +11064,11 @@ var PC_UI = (() => {
       record.text.setAttribute("role", tone === "error" ? "alert" : "status");
       record.text.textContent = String(message);
       place();
-      record.remaining = options.duration ?? (tone === "error" || tone === "progress" ? 0 : 5e3);
+      record.remaining = options.duration ?? (tone === "progress" ? 0 : 5e3);
       resume();
       if (records.size > 5) for (const [key, r3] of records) {
         if (records.size <= 5) break;
-        if (key !== id && !["error", "progress"].includes(r3.node.dataset.tone)) {
+        if (key !== id && r3.node.dataset.tone !== "progress") {
           clearTimeout(r3.timer);
           r3.node.remove();
           records.delete(key);

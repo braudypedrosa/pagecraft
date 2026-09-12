@@ -62,9 +62,12 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     const tone=options.tone || 'info'; record.node.dataset.tone=tone;
     record.mark.innerHTML=icon(tone); record.text.setAttribute('role',tone==='error'?'alert':'status');
     record.text.textContent=String(message); place();
-    record.remaining=options.duration ?? (tone==='error'||tone==='progress'?0:5000); resume();
-    // Retain errors and work in progress; discard only old transient confirmations.
-    if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&!['error','progress'].includes(r.node.dataset.tone)){clearTimeout(r.timer);r.node.remove();records.delete(key);} }
+    // Five seconds is the shared default for completed notices, including failures.
+    // Progress remains until its work resolves; exceptional notices can explicitly use
+    // `duration: 0` when the user must act on them before they disappear.
+    record.remaining=options.duration ?? (tone==='progress'?0:5000); resume();
+    // Keep the stack bounded while preserving only work that is still in progress.
+    if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&r.node.dataset.tone!=='progress'){clearTimeout(r.timer);r.node.remove();records.delete(key);} }
     return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone}), success:value=>notify(value,{id,tone:'success'}), error:value=>notify(value,{id,tone:'error'}) };
   };
   const begin = (button, message, key, options = {}) => {

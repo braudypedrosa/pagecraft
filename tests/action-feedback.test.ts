@@ -15,7 +15,7 @@ test('pending actions prevent duplicate requests and restore the original icon a
  action.error('Connection lost. Try again.');
  expect(button().disabled).toBe(false);expect(button().innerHTML).toBe(original);
  expect(button().getAttribute('aria-label')).toBe('Save this collection');
- vi.advanceTimersByTime(60000);expect(document.querySelector('[role=alert]')?.textContent).toBe('Connection lost. Try again.');
+ vi.advanceTimersByTime(5001);expect(document.querySelector('[role=alert]')).toBeNull();
  const retry=feedback.begin(button(),'Saving collection…')!;
  expect(document.querySelectorAll('.pc-notification')).toHaveLength(1);
  retry.success('Collection saved.');expect(button().hasAttribute('aria-busy')).toBe(false);
@@ -38,7 +38,7 @@ test('notifications stay in the active dialog and survive its closure without st
  dialog.removeAttribute('open');await Promise.resolve();
  expect(document.querySelector('#pc-notifications')?.parentElement).toBe(document.body);
 });
-test('untrusted messages are text and persistent failures have an accessible dismissal',()=>{
+test('untrusted messages are text and failures retain an accessible manual dismissal',()=>{
  const feedback=installActionFeedback();feedback.notify('<img src=x onerror=alert(1)>',{tone:'error'});
  expect(document.querySelector('.pc-notification-message img')).toBeNull();
  expect(document.querySelector('[role=alert]')?.textContent).toBe('<img src=x onerror=alert(1)>');
@@ -69,17 +69,26 @@ test('one processing job owns its result and blocks duplicates even when its but
  expect(button().disabled).toBe(false);expect(document.querySelector('.pc-notification')).toBeNull();
 });
 
-test('processing failures retain feedback, release the lock and let a retry replace the same notification',async()=>{
+test('processing failures auto-dismiss, release the lock and still allow a retry',async()=>{
  const feedback=installActionFeedback(),options={key:'detect',button:button(),pending:'Reading image…',success:'Image dimensions detected.'};
  const error=new Error('Image unavailable');
  const result=await feedback.run(options,()=>{throw error;});
  expect(result).toEqual({status:'error',error,message:'Image unavailable Try again.'});
  expect(button().disabled).toBe(false);
- vi.advanceTimersByTime(60000);expect(document.querySelector('[role=alert]')).not.toBeNull();
+ vi.advanceTimersByTime(5001);expect(document.querySelector('[role=alert]')).toBeNull();
  await feedback.run(options,()=>({w:1200,h:800}));
  expect(document.querySelectorAll('.pc-notification')).toHaveLength(1);
  expect(document.querySelector('[role=alert]')).toBeNull();
  expect(document.querySelector('[data-tone=success]')?.textContent).toContain('Image dimensions detected.');
+});
+
+test('progress and explicitly persistent notices remain until resolved or dismissed',()=>{
+ const feedback=installActionFeedback();
+ feedback.notify('Uploading…',{tone:'progress'});
+ feedback.notify('Reconnect your account.',{tone:'error',duration:0});
+ vi.advanceTimersByTime(60000);
+ expect(document.querySelector('[data-tone=progress]')?.textContent).toContain('Uploading…');
+ expect(document.querySelector('[role=alert]')?.textContent).toContain('Reconnect your account.');
 });
 
 test('independent actions can run together and cancelling one never restores another action early',async()=>{
