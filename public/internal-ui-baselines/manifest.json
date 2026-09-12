@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-11T22:12:43.223Z",
+  "capturedAt": "2026-09-12T07:42:24.568Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "cc548ab1f2f933ae86683b5ff3352208db15506c015ff54c11a2239696d05d36",
+    "builder.html": "22ac2beb3edd00157d561267bee5c1bb4e8df6ef0e9830e8a1aebb9464b92530",
     "app/src/ui/Pages.tsx": "00200e5517fd0761815731b1e2e8c075d56fa4cbed9b51050e919d8fa644be82",
     "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
     "shared/ui-tokens.js": "f1004d10d2e4f4fde1bc1961b7376c00b88f328dfba64eae1c3f939ad088bc9c",
@@ -26,63 +26,25 @@
   },
   "behaviorChecks": [
     {
-      "name": "Cloud field focus keeps resting background",
+      "host": "Cloud",
+      "check": "Select opens and Escape closes without navigation",
       "passed": true
     },
     {
-      "name": "Cloud processing disables duplicate action and exposes busy state",
-      "passed": true
-    },
-    {
-      "name": "Cloud processing failure restores action and announces error",
-      "passed": true
-    },
-    {
-      "name": "Cloud processing success restores action with status semantics",
-      "passed": true
-    },
-    {
-      "name": "Selector keyboard skips disabled options",
-      "passed": true
-    },
-    {
-      "name": "Escape closes picker and returns focus",
-      "passed": true
-    },
-    {
-      "name": "Additional menu keyboard excludes disabled action",
-      "passed": true
-    },
-    {
-      "name": "Dialog preserves unsaved field while resizing to 768px",
-      "passed": true
-    },
-    {
-      "name": "Escape closes dialog and restores opener focus",
-      "passed": true
-    },
-    {
-      "name": "Retry clears refresh error and preserves cached result",
-      "passed": true
-    },
-    {
-      "name": "Builder field focus keeps resting background",
-      "passed": true
-    },
-    {
-      "name": "Builder keyboard selection retains native value contract",
+      "host": "Builder",
+      "check": "Select opens and Escape closes without navigation",
       "passed": true
     }
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "610f935497b2b4b70d29559316c6de99b9d26f50f65df614e6a8294e0ce91bb2",
+      "sha256": "4b0d59c0b46556a03b383d77f03abc42ddd48fe9bc604d64e6b896b9cd994f62",
       "width": 1440,
       "height": 1056,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-fields-768.png": {
-      "sha256": "57517e8f8ade928776a60d078678298481df50c15f2d115fed0e3e1374a07b64",
+      "sha256": "891226da7bc75d99aeb0ddb8657fb026900d9fc5591458634c29fd0cd2cf8fc9",
       "width": 768,
       "height": 1504,
       "state": "Focused field, readonly, disabled and validation samples"
@@ -148,13 +110,13 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-fields-1440.png": {
-      "sha256": "4fa43045407b777d29e8d0ed8b25ab7f11f038f439a2c8c5273e67178b71ccb6",
+      "sha256": "beab96fec1eeb1538d35c106c679e99c134476f3ec0cd8037b3617e724fa3c23",
       "width": 1440,
       "height": 1117,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-fields-768.png": {
-      "sha256": "9b077fc2d608b3c39d3f3b8833f96c74cab3b7714f7a75387d0113cbae31930d",
+      "sha256": "baa2994ef301d3dd0b7fb7a9a3ffdc26a7661cef2f706870c5a25e375a3acb4e",
       "width": 768,
       "height": 1787,
       "state": "Focused field, readonly, disabled and validation samples"

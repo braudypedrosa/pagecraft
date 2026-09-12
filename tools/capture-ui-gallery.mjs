@@ -12,7 +12,7 @@ export async function captureGallery(tab,directory,behaviorChecks){
  await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  try{
   for(const width of [1440,768])for(const host of ['cloud','builder'])for(const section of sections){
-   await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false,scale:1});
    if(await tab.playwright.evaluate(()=>document.body.dataset.galleryHost)!==host)await tab.playwright.getByRole('link',{name:host==='cloud'?'Cloud':'Builder',exact:true}).click();
    await tab.playwright.getByRole('link',{name:section[0].toUpperCase()+section.slice(1),exact:true}).click();
    await tab.playwright.evaluate(async()=>{await document.fonts.ready;return document.documentElement.dataset.galleryReady;});
@@ -30,6 +30,10 @@ export async function captureGallery(tab,directory,behaviorChecks){
    // The built-in surface captures the painted viewport. Expand long field
    // pages before capture so offscreen content cannot become a blank tail.
    if(measurement.height>900){await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:measurement.height,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,500));}
+   // Fit tall emulated pages inside the host surface before reading pixels.
+   // Without this, the in-app compositor can repeat the top tile below its visible height.
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:measurement.height,deviceScaleFactor:1,mobile:false,scale:Math.min(1,650/measurement.height)});
+   await new Promise(r=>setTimeout(r,250));
    const image=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width,height:measurement.height,scale:1}});
    const name=`${host}-${section}-${width}.png`;await writeFile(resolve(directory,name),Buffer.from(image.data,'base64'));
    evidence.captures[name]={state:states[section],...measurement};

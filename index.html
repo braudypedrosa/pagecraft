@@ -1233,6 +1233,12 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .pc-dialog.media-library .pc-dialog-body{padding:0;display:flex;overflow:hidden}
 .media-library-drop{position:relative;display:flex;flex:1;min-width:0;min-height:180px}
 .media-library-items{width:100%;padding:var(--mpad);overflow:auto}
+.media-browser{display:flex;flex-direction:column;gap:var(--sp-4);min-width:0}
+.media-browser-tools{display:flex;flex-wrap:wrap;gap:var(--sp-3)}
+.media-browser-tools label{display:flex;flex-direction:column;gap:var(--sp-2);font:var(--pc-type-label);min-width:0;flex:1 1 100px}
+.media-browser-tools label:first-child{flex:2 1 160px}
+.media-browser-tools input,.media-browser-tools select{width:100%;min-width:0}
+.media-browser-page{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)}
 .media-library-overlay{
   position:absolute;inset:0;z-index:2;display:none;place-content:center;justify-items:center;
   gap:var(--pc-space-2);background:var(--pc-selection-bg);color:var(--pc-selection-text);
@@ -21631,10 +21637,47 @@ function startLayerDrag(e, id) {
    which is no way to look at images. `mediaModal` manages the library, and
    `mediaPicker` (on the ask layer) is the same grid used to answer "which image?".
    Both draw their cards from `mediaCards`, so they cannot drift. */
+/* One browsing surface for inserting images and choosing field values. Search only
+   replaces the results, preserving the active field and its caret. */
+function mediaBrowserMarkup() {
+  return `<div class="media-browser">
+    <div class="media-browser-tools">
+      <label>Search images<input class="ctl" type="search" data-media-search placeholder="Search filenames" autocomplete="off"></label>
+      <label>Sort<select class="ctl" data-media-sort><option value="name">Name A–Z</option><option value="size">Largest first</option></select></label>
+      <label>Usage<select class="ctl" data-media-usage><option value="all">All images</option><option value="used">Used</option><option value="unused">Unused</option></select></label>
+    </div>
+    <div class="media-browser-results"></div>
+    <div class="media-browser-page"><span class="note" data-media-count></span><button type="button" class="btn" data-media-more hidden>Show more</button></div>
+  </div>`;
+}
+function wireMediaBrowser(root, use, attr, choose, remove, state) {
+  const search = $('[data-media-search]', root), sort = $('[data-media-sort]', root), usage = $('[data-media-usage]', root);
+  search.value = state.query || ''; sort.value = state.sort || 'name'; usage.value = state.usage || 'all';
+  let limit = 60;
+  const render = () => {
+    const all = [...AS.mem.values()];
+    const query = (state.query || '').trim().toLocaleLowerCase();
+    const list = all.filter(a => String(a.name).toLocaleLowerCase().includes(query)
+      && (state.usage === 'used' ? use[a.id] : state.usage === 'unused' ? !use[a.id] : true));
+    list.sort((a, b) => state.sort === 'size' ? (b.size || 0) - (a.size || 0) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name));
+    const results = $('.media-browser-results', root);
+    results.innerHTML = list.length ? `<div class="mgrid">${mediaCards(list.slice(0, limit), use, attr)}</div>`
+      : `<div class="empty">${all.length ? 'No matching images. Change or clear the filters.' : 'Nothing here yet. Drop images here, or use Upload.'}</div>`;
+    $('[data-media-count]', root).textContent = `${Math.min(limit, list.length)} of ${list.length} images`;
+    $('[data-media-more]', root).hidden = limit >= list.length;
+    $$('[' + attr + ']', results).forEach(button => button.addEventListener('click', () => choose(button.getAttribute(attr))));
+    $$('[data-del]', results).forEach(button => button.addEventListener('click', () => remove(button.dataset.del, button)));
+  };
+  search.addEventListener('input', () => { state.query = search.value; limit = 60; render(); });
+  sort.addEventListener('change', () => { state.sort = sort.value; limit = 60; render(); });
+  usage.addEventListener('change', () => { state.usage = usage.value; limit = 60; render(); });
+  $('[data-media-more]', root).addEventListener('click', () => { limit += 60; render(); });
+  render();
+}
 function mediaCards(list, use, attr) {
   return list.map(a => `<div class="mitem">
     <button class="mcard" ${attr}="${a.id}" title="${esc(a.name)}">
-      <span class="mthumb"><img src="${a.url}" alt=""></span>
+      <span class="mthumb"><img src="${a.url}" alt="" loading="lazy"></span>
       <span class="mname">${esc(a.name)}</span>
       <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''}${use[a.id] ? ` · used ${use[a.id]}×` : ' · unused'}</span>
     </button>
@@ -21655,7 +21698,7 @@ async function mediaTake(file, options = {}) {
     { ok: 'Add anyway', danger: false })) return null;
   const upload = async () => {
     const id = await assetAdd(file);
-    if (!id) return false;
+    if (!id) { if (managed) throw new Error('Upload failed'); return false; }
     writeNow();
     return id;
   };
@@ -21726,15 +21769,13 @@ function wireMediaDrop(zone, takeFiles) {
 
 function mediaModal() {
   if (editing.on) exitEdit();
+  const browserState = {};
   const draw = () => {
     const use = assetUsage();
     const list = [...AS.mem.values()];
     const orphans = list.filter(a => !use[a.id]).length;
     openModal('Media library', `<div class="media-library-drop" aria-label="Drop images to upload">
-      <div class="media-library-items">${list.length
-      ? `<div class="mgrid wide">${mediaCards(list, use, 'data-use')}</div>`
-      : `<div class="empty" style="padding:28px 8px">Nothing here yet.<br><br>
-          Drop images here, or use Upload below.</div>`}</div>
+      <div class="media-library-items">${mediaBrowserMarkup()}</div>
       <div class="media-library-overlay" aria-hidden="true">${svg('image', 24)}<span>Drop images to upload</span></div>
     </div>`,
       `<span class="note" style="margin:0;flex:1;text-align:left">${list.length
@@ -21763,8 +21804,8 @@ function mediaModal() {
       if (removed) writeNow();
       draw();
     });
-    $$('[data-use]', $('#mBody')).forEach(b => b.addEventListener('click', () => {
-      const a = AS.mem.get(b.dataset.use); if (!a) return;
+    wireMediaBrowser($('#mBody'), use, 'data-use', id => {
+      const a = AS.mem.get(id); if (!a) return;
       let made = null;
       edit(() => {
         made = insert('image', ...smartTarget('image'));
@@ -21775,15 +21816,11 @@ function mediaModal() {
       });
       closeModal();
       toast(`${a.name} placed — add alt text`);
-    }));
-    $$('[data-del]', $('#mBody')).forEach(b => b.addEventListener('click', async () => {
-      const id = b.dataset.del;
-      if (use[id] && !await askConfirm('Delete this image?',
-        `It is used ${use[id]}× on the site. Those elements fall back to a placeholder.`,
-        { ok: 'Delete image' })) return;
+    }, async (id, b) => {
+      if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
       if (!await assetDel(id, b)) return;
       writeNow(); paint(); draw();
-    }));
+    }, browserState);
   };
   draw();
 }
@@ -21956,7 +21993,7 @@ function cmsCell(col, it, f) {
   if (f.type === 'image') {
     const a = /^asset:(\w+)$/.test(String(v)) && AS.mem.get(String(v).slice(6));
     return `<button class="cmsimg" data-vimg="${k}" title="Choose from the library">
-      ${a ? `<img src="${a.url}" alt="">` : `<span>Choose…</span>`}</button>`;
+      ${a ? `<img src="${a.url}" alt="" loading="lazy">` : `<span>Choose…</span>`}</button>`;
   }
   if (f.type === 'bool') return `<input type="checkbox" data-v="${k}"${v ? ' checked' : ''}>`;
   if (f.type === 'ref') {
@@ -22481,36 +22518,23 @@ function askPick(title, opts, current = '') {
 }
 
 function mediaPicker(title = 'Choose from the library') {
-  const list = [...AS.mem.values()];
-  if (!list.length) {
-    toast('No images yet — upload one and it joins the library');
-    return Promise.resolve(null);
-  }
-  const p = askOpen(title, '<div class="mgrid"></div>', null, false);
+  const browserState = {};
+  const p = askOpen(title, '', null, false);
   const draw = () => {
-    const next = [...AS.mem.values()];
-    if (!next.length) {
-      $('#askBody').innerHTML = '';
-      askClose(null); toast('No images left in the library'); return;
-    }
     const use = assetUsage();
-    $('#askBody').innerHTML = `<div class="mgrid">${mediaCards(next, use, 'data-pick')}</div>`;
-    $$('#askBody [data-pick]').forEach(b => b.addEventListener('click', () => askClose(b.dataset.pick)));
-    $$('#askBody [data-del]').forEach(b => b.addEventListener('click', async e => {
-      e.stopPropagation();
-      const id = b.dataset.del;
-      if (use[id] && b.dataset.confirm !== '1') {
-        b.dataset.confirm = '1';
-        b.title = `Used ${use[id]} times — click again to confirm deletion`;
-        b.setAttribute('aria-label', b.title);
-        toast(`That image is used ${use[id]}× — click its delete button again to confirm`);
-        return;
-      }
-      if (!await assetDel(id, b)) return;
+    $('#askBody').innerHTML = `<div class="media-library-drop"><div class="media-library-items">${mediaBrowserMarkup()}
+      <button type="button" class="btn" data-media-upload>Upload</button></div>
+      <div class="media-library-overlay" aria-hidden="true">Drop images to upload</div></div>`;
+    const zone = $('.media-library-drop', $('#askBody'));
+    const upload = $('[data-media-upload]', zone);
+    const takeFiles = files => mediaUploadFiles(files, () => { if (zone.isConnected && !$('#ask').hidden) draw(); }, upload, zone);
+    wireMediaDrop(zone, takeFiles);
+    upload.addEventListener('click', () => mediaChooseFiles(takeFiles));
+    wireMediaBrowser(zone, use, 'data-pick', id => askClose(id), async (id, button) => {
+      if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
+      if (!await assetDel(id, button)) return;
       writeNow(); paint(); draw();
-    }));
-    const first = $('#askBody [data-pick]');
-    if (first) first.focus();
+    }, browserState);
   };
   draw();
   return p;

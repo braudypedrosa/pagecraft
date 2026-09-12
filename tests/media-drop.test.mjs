@@ -97,3 +97,45 @@ test('completed uploads do not reopen a closed library or replace another dialog
   expect(d.querySelector('#mBody').textContent).toBe('Keep this content');
   expect(d.querySelector('.media-library-drop')).toBeNull();
 });
+
+test('both browser surfaces search without replacing the focused field and filter immediately',async()=>{
+  const {w,d}=await setup();
+  const assets=w.eval('AS').mem;
+  assets.set('one',{id:'one',name:'Alpha.png',size:10,url:'data:image/png;base64,AA=='});
+  assets.set('two',{id:'two',name:'Zebra.png',size:50,url:'data:image/png;base64,AA=='});
+  w.assetUsage=()=>({one:1});
+  for(const picker of [false,true]){
+    if(picker) w.mediaPicker(); else w.mediaModal();
+    const root=d.querySelector(picker?'#askBody':'#mBody');
+    const search=root.querySelector('[data-media-search]');search.focus();
+    search.value=' ZEB ';search.dispatchEvent(new w.Event('input',{bubbles:true}));
+    expect(d.activeElement).toBe(search);
+    expect(root.querySelectorAll('.mcard')).toHaveLength(1);
+    expect(root.querySelector('.mname').textContent).toBe('Zebra.png');
+    search.value='';search.dispatchEvent(new w.Event('input',{bubbles:true}));
+    const usage=root.querySelector('[data-media-usage]');usage.value='used';usage.dispatchEvent(new w.Event('change',{bubbles:true}));
+    expect(root.querySelector('.mname').textContent).toBe('Alpha.png');
+    usage.value='all';usage.dispatchEvent(new w.Event('change',{bubbles:true}));
+    const sort=root.querySelector('[data-media-sort]');sort.value='size';sort.dispatchEvent(new w.Event('change',{bubbles:true}));
+    expect(root.querySelector('.mname').textContent).toBe('Zebra.png');
+    if(picker) w.askClose(null);
+  }
+});
+
+test('large libraries render bounded batches and recover from an empty search',async()=>{
+  const {w,d}=await setup();const assets=w.eval('AS').mem;
+  for(let i=0;i<150;i++) assets.set(String(i),{id:String(i),name:`Photo ${i}.png`,size:i,url:'data:image/png;base64,AA=='});
+  w.mediaModal();expect(d.querySelectorAll('.mcard')).toHaveLength(60);
+  d.querySelector('[data-media-more]').click();expect(d.querySelectorAll('.mcard')).toHaveLength(120);
+  const search=d.querySelector('[data-media-search]');search.value='nothing matches';search.dispatchEvent(new w.Event('input'));
+  expect(d.querySelectorAll('.mcard')).toHaveLength(0);
+  expect(d.querySelector('.media-browser-results').textContent).toContain('No matching');
+  search.value='';search.dispatchEvent(new w.Event('input'));expect(d.querySelectorAll('.mcard')).toHaveLength(60);
+});
+
+test('a failed host upload returning no ID is reported and can be retried',async()=>{
+  const {w,d,file,drag,zone}=await setup();w.assetAdd=vi.fn(async()=>null);
+  drag(zone(),'drop',[file('failed.png')]);
+  await vi.waitFor(()=>expect(d.querySelector('#pc-notifications').textContent).toContain('Could not upload failed.png'));
+  expect(d.querySelector('#mmUp').disabled).toBe(false);
+});
