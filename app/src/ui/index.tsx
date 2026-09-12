@@ -20,8 +20,10 @@ import { FontSelect } from './FontSelect';
 import { ReviewList } from './ReviewList';
 import { installCustomSelects } from '../../../shared/custom-select.js';
 import { installActionFeedback } from '../../../shared/action-feedback.js';
+import { installUiMotion } from '../../../shared/ui-motion.js';
 import { installAccountActions } from '../../../shared/account-actions.js';
 export { installActionFeedback } from '../../../shared/action-feedback.js';
+export { installUiMotion } from '../../../shared/ui-motion.js';
 export { installEditorViewport } from './editor-viewport';
 export { projectIdentity, renameHostedSite } from './hosted-identity';
 
@@ -34,6 +36,7 @@ export { adoptHostDocument } from '../host/schema';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
+  installUiMotion();
   installCustomSelects();
   installActionFeedback();
   if (legacy.dynamicContentProvider() === 'pagecraft') installAccountActions();
@@ -121,6 +124,8 @@ export function mount(core: Core, legacy: Legacy) {
     document.body.classList.add('pages-open');
     document.querySelectorAll('#leftRail button').forEach(b => b.classList.toggle('on', b.getAttribute('data-t') === 'pages'));
     painters.renderPages();
+    const surface = host.firstElementChild as HTMLElement | null;
+    if (surface) installUiMotion()?.enter(surface, { kind: 'panel' });
     host.querySelector<HTMLInputElement>('#pages-search')?.focus();
   };
   const openCms = (collectionId: string) => {
@@ -133,11 +138,18 @@ export function mount(core: Core, legacy: Legacy) {
     const active = railButtons.find(b => b.classList.contains('on'));
     railButtons.forEach(b => b.classList.toggle('on', b.getAttribute('data-t') === 'cms'));
     render(<CmsWorkspace key={collectionId} collectionId={collectionId} close={() => {
-      render(null, host!); document.body.classList.remove('cms-open');
-      legacy.restoreCanvasLayout();
-      railButtons.forEach(b => b.classList.toggle('on', b === active));
-      previous?.focus();
+      const finish = () => {
+        render(null, host!); document.body.classList.remove('cms-open');
+        legacy.restoreCanvasLayout();
+        railButtons.forEach(b => b.classList.toggle('on', b === active));
+        previous?.focus({ preventScroll: true });
+      };
+      const surface = host!.firstElementChild as HTMLElement | null, motion = installUiMotion();
+      if (surface && motion && !motion.reduced()) motion.exit(surface, { kind: 'panel', hide: false }).then(finish);
+      else finish();
     }} />, host);
+    const surface = host.firstElementChild as HTMLElement | null;
+    if (surface) installUiMotion()?.enter(surface, { kind: 'panel' });
   };
   return { ...painters, openPages, closePages, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
 }

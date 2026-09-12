@@ -689,8 +689,8 @@ body.preview .dim{display:none}
 .gh:hover{color:var(--text)}
 .gh svg{width:9px;height:9px;color:var(--text-3);transition:transform .12s}
 .group.closed .gh svg{transform:rotate(-90deg)}
-.group.closed .gb{display:none}
-.gb{padding:0 14px 14px}
+.gb{height:auto;overflow:hidden;padding:0 14px 14px;opacity:1;visibility:visible;transition:height var(--pc-motion-enter) var(--pc-ease-enter),padding-bottom var(--pc-motion-enter) var(--pc-ease-enter),opacity var(--pc-motion-quick) var(--pc-ease-enter),visibility 0s}
+.group.closed .gb{height:0;padding-bottom:0;opacity:0;visibility:hidden;transition:height var(--pc-motion-exit) var(--pc-ease-exit),padding-bottom var(--pc-motion-exit) var(--pc-ease-exit),opacity var(--pc-motion-quick) var(--pc-ease-exit),visibility 0s var(--pc-motion-exit)}
 .f{margin-bottom:var(--gap-2)}
 /* Instance variant controls use the same inset and rhythm as inspector groups. */
 #inspector-panel > .f{padding:var(--gap-3);margin-bottom:0}
@@ -3280,9 +3280,14 @@ function runAct(act, ids) {
    Right-click is where a paste verb belongs, and there was none anywhere in the app.
    It is also what lets the HUD bar stop growing: seven buttons floating over the
    element became a name, a drag handle and one more. */
-function closeCtx() { const c = $('#ctx'); if (c) c.remove(); }
+function closeCtx(immediate = false) {
+  const c = $('#ctx'); if (!c) return;
+  const fx = PC_UI.installUiMotion();
+  if (immediate || !fx || fx.reduced()) { fx?.cancel(c); c.remove(); return; }
+  fx.exit(c, {kind:'popover',remove:true});
+}
 function openCtx(x, y, ids) {
-  closeCtx();
+  closeCtx(true);
   const items = menuFor(ids);
   if (!items.length) return;
   const m = document.createElement('div');
@@ -3299,6 +3304,7 @@ function openCtx(x, y, ids) {
   const r = m.getBoundingClientRect();
   m.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
   m.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+  PC_UI.installUiMotion()?.enter(m,{kind:'popover'});
   const buttons = $$('button', m);
   buttons[0]?.focus();
   m.addEventListener('keydown', e => {
@@ -4097,8 +4103,13 @@ function mediaDetails(root, id, refresh, origin) {
     <p class="note">${SRV ? 'Removed images remain stored for history and still count toward storage. ' : ''}${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
     ${references.length ? `<ul>${references.map(reference => `<li><button type="button" class="btn" data-media-reference="${references.indexOf(reference)}">${esc(reference.scope)} · ${esc(reference.label)}</button></li>`).join('')}</ul>` : ''}
   </section>`;
+  PC_UI.installUiMotion()?.enter(panel,{kind:'panel'});
   $$('[data-media-reference]', panel).forEach(button => button.addEventListener('click', () => mediaOpenReference(references[Number(button.dataset.mediaReference)])));
-  $('[data-details-close]', panel).addEventListener('click', () => { panel.hidden = true; ($(`[data-media-detail="${id}"]`, root) || origin).focus(); });
+  $('[data-details-close]', panel).addEventListener('click', () => {
+    const back=$(`[data-media-detail="${id}"]`, root)||origin,fx=PC_UI.installUiMotion();
+    if(!fx||fx.reduced()){panel.hidden=true;back.focus();return;}
+    fx.exit(panel,{kind:'panel'}).then(()=>back.focus({preventScroll:true}));
+  });
   $('[data-tags-form]', panel)?.addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget, button = $('button', form), status = $('[data-tags-status]', form);
@@ -4838,6 +4849,7 @@ function trapDialogKey(e, box, close) {
 }
 
 let modalReturnFocus = null;
+let modalMotionVersion = 0;
 /* Only the top dialog may be exposed to the accessibility tree. The confirmation
    layer intentionally sits above the larger project/publish dialog, so opening it
    makes that underlying dialog inert until the confirmation resolves. */
@@ -4859,26 +4871,36 @@ function syncDialogLayers() {
   lock($('#ask'), editorViewport.blocked);
 }
 function openModal(title, bodyHtml, footHtml, size) {
-  const wasHidden = $('#modal').hidden;
+  modalMotionVersion++;
+  const mask = $('#modal'), box = $('#modalBox');
+  const wasHidden = mask.hidden || mask.hasAttribute('data-pc-motion-closing');
   if (wasHidden) modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  $('#modalBox').className = 'modal pc-dialog' + (size ? ' ' + size : '');
+  box.className = 'modal pc-dialog' + (size ? ' ' + size : '');
   $('#mTitle').textContent = title;
   $('#mBody').innerHTML = bodyHtml;
   $('#mFoot').innerHTML = footHtml || '';
-  $('#modal').hidden = false;
+  mask.hidden = false; box.hidden = false;
   syncDialogLayers();
+  const fx = PC_UI.installUiMotion();
+  fx?.enter(mask, {kind:'fade'}); fx?.enter(box, {kind:'dialog'});
   if (wasHidden) {
     const first = dialogFocusables($('#modalBox'))[0];
     (first || $('#modalBox')).focus();
   }
 }
 const closeModal = () => {
-  if ($('#modal').hidden) return;
-  $('#modal').hidden = true;
-  syncDialogLayers();
-  endTx();
-  const back = modalReturnFocus; modalReturnFocus = null;
-  if (back && back.isConnected) back.focus();
+  const mask = $('#modal'), box = $('#modalBox');
+  if (mask.hidden || mask.hasAttribute('data-pc-motion-closing')) return;
+  const finish = () => {
+    mask.hidden = true; box.hidden = false;
+    syncDialogLayers(); endTx();
+    const back = modalReturnFocus; modalReturnFocus = null;
+    if (back && back.isConnected) back.focus({preventScroll:true});
+  };
+  const fx = PC_UI.installUiMotion();
+  if (!fx || fx.reduced()) { finish(); return; }
+  const version=++modalMotionVersion;
+  Promise.all([fx.exit(box,{kind:'dialog',hide:false}),fx.exit(mask,{kind:'fade',hide:false})]).then(done=>{if(version===modalMotionVersion&&done.every(Boolean))finish();});
 };
 $('#mClose').addEventListener('click', closeModal);
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
@@ -4895,8 +4917,16 @@ $('#modal').addEventListener('keydown', e => {
    Both return a promise: a string / true on confirm, null / false on any exit. */
 let askDone = null;
 let askReturnFocus = null;
+let askMotionVersion = 0;
 function askOpen(title, bodyHtml, okLabel, danger) {
-  askClose(null);                                     // never stack two asks
+  askMotionVersion++;
+  if (!$('#ask').hidden) {                            // never stack two asks
+    PC_UI.installUiMotion()?.cancel($('#ask'));
+    PC_UI.installUiMotion()?.cancel($('#askBox'));
+    $('#ask').hidden = true;
+    const previous = askDone; askDone = null;
+    if (previous) previous(null);
+  }
   askReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   $('#askTitle').textContent = title;
   $('#askBody').innerHTML = bodyHtml;
@@ -4908,8 +4938,10 @@ function askOpen(title, bodyHtml, okLabel, danger) {
   yes.classList.toggle('danger', !!danger);
   yes.classList.toggle('primary', !danger);
   $('#askNo').textContent = okLabel === null ? 'Close' : 'Cancel';
-  $('#ask').hidden = false;
+  $('#ask').hidden = false; $('#askBox').hidden = false;
   syncDialogLayers();
+  const fx = PC_UI.installUiMotion();
+  fx?.enter($('#ask'), {kind:'fade'}); fx?.enter($('#askBox'), {kind:'dialog'});
   const input = $('#askBody input');
   if (input) { input.focus(); input.select(); }
   else {
@@ -4921,17 +4953,22 @@ function askOpen(title, bodyHtml, okLabel, danger) {
   return new Promise(res => { askDone = res; });
 }
 function askClose(value) {
-  const wasOpen = !$('#ask').hidden;
-  $('#ask').hidden = true;
-  $('#askBox').classList.remove('media-library');
-  $('#ask [data-media-upload]')?.remove();
-  syncDialogLayers();
-  const res = askDone; askDone = null;
-  if (res) res(value);
-  if (wasOpen) {
+  const mask=$('#ask'),box=$('#askBox'),wasOpen=!mask.hidden;
+  if (!wasOpen || mask.hasAttribute('data-pc-motion-closing')) return;
+  const finish = () => {
+    mask.hidden = true; box.hidden = false;
+    box.classList.remove('media-library');
+    $('#ask [data-media-upload]')?.remove();
+    syncDialogLayers();
+    const res = askDone; askDone = null;
+    if (res) res(value);
     const back = askReturnFocus; askReturnFocus = null;
-    if (back && back.isConnected) back.focus();
-  }
+    if (back && back.isConnected) back.focus({preventScroll:true});
+  };
+  const fx=PC_UI.installUiMotion();
+  if(!fx||fx.reduced()){finish();return;}
+  const version=++askMotionVersion;
+  Promise.all([fx.exit(box,{kind:'dialog',hide:false}),fx.exit(mask,{kind:'fade',hide:false})]).then(done=>{if(version===askMotionVersion&&done.every(Boolean))finish();});
 }
 const askOpenNow = () => !$('#ask').hidden;
 
@@ -5979,9 +6016,16 @@ function bindTop() {
   const sitesButton = $('#sitesBtn');
   const accountButton = $('#accountBtn');
   const accountPop = $('#accountPop');
+  const closeAccount = (focus = false) => {
+    if (accountPop.hidden || accountPop.hasAttribute('data-pc-motion-closing')) return;
+    accountButton.setAttribute('aria-expanded', 'false');
+    if (focus) accountButton.focus({preventScroll:true});
+    const fx=PC_UI.installUiMotion();
+    if(fx)fx.exit(accountPop,{kind:'popover'});else accountPop.hidden=true;
+  };
   const accountDialog = () => {
-    const open = accountPop.hidden;
-    accountPop.hidden = !open;
+    const open = accountPop.hidden || accountPop.hasAttribute('data-pc-motion-closing');
+    if(open)PC_UI.installUiMotion()?.enter(accountPop,{kind:'popover'});else closeAccount(true);
     accountButton.setAttribute('aria-expanded', String(open));
   };
   if (SRV && HOST_FEATURES.sites) {
@@ -6020,9 +6064,7 @@ function bindTop() {
       accountButton.hidden = false;
       document.addEventListener('keydown', event => {
         if (event.key !== 'Escape' || accountPop.hidden) return;
-        accountPop.hidden = true;
-        accountButton.setAttribute('aria-expanded', 'false');
-        accountButton.focus();
+        closeAccount(true);
       });
     }
   }
@@ -6104,6 +6146,7 @@ function bindTop() {
     }
     prepareSubmissions();
     submissionsFrame.hidden = false;
+    PC_UI.installUiMotion()?.enter(submissionsFrame,{kind:'panel'});
     if (submissionsFrame.dataset.ready) submissionsFrame.contentWindow.postMessage('pagecraft:refresh-submissions', location.origin);
     document.body.classList.toggle('submissions-loading', !submissionsFrame.dataset.ready);
     document.body.classList.add('submissions-open');

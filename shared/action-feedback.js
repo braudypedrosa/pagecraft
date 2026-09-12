@@ -51,11 +51,16 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
       close.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m6 6 12 12M6 18 18 6"/></svg>';
       node.append(mark,text,close); container().append(node);
       record={node,mark,text,timer:0,remaining:0,started:0}; records.set(id,record);
+      window.__pcMotion?.enter(node,{kind:'notification'});
       close.onclick=()=>dismiss();
       node.addEventListener('mouseenter',()=>pause()); node.addEventListener('mouseleave',()=>resume());
       node.addEventListener('focusin',()=>pause()); node.addEventListener('focusout',()=>resume());
     }
-    const dismiss = () => { clearTimeout(record.timer); record.node.remove(); records.delete(id); };
+    const dismiss = () => {
+      clearTimeout(record.timer); records.delete(id);
+      const motion=window.__pcMotion;
+      if(motion)motion.exit(record.node,{kind:'notification',remove:true});else record.node.remove();
+    };
     const pause = () => { if(record.timer) { clearTimeout(record.timer);record.timer=0;record.remaining=Math.max(0,record.remaining-(Date.now()-record.started)); } };
     const resume = () => { if(!record.remaining||record.node.matches(':hover')||record.node.contains(document.activeElement))return; record.started=Date.now();record.timer=setTimeout(dismiss,record.remaining); };
     clearTimeout(record.timer); record.timer=0;
@@ -67,7 +72,7 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     // `duration: 0` when the user must act on them before they disappear.
     record.remaining=options.duration ?? (tone==='progress'?0:5000); resume();
     // Keep the stack bounded while preserving only work that is still in progress.
-    if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&r.node.dataset.tone!=='progress'){clearTimeout(r.timer);r.node.remove();records.delete(key);} }
+    if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&r.node.dataset.tone!=='progress'){clearTimeout(r.timer);records.delete(key);const motion=window.__pcMotion;if(motion)motion.exit(r.node,{kind:'notification',remove:true});else r.node.remove();} }
     return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone}), success:value=>notify(value,{id,tone:'success'}), error:value=>notify(value,{id,tone:'error'}) };
   };
   const begin = (button, message, key, options = {}) => {

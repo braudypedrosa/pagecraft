@@ -144,7 +144,7 @@ function ColorCtl({ n, c }: P) {
       {/* A button, not `<input type="color">`. The native control brings the operating
           system's dialog: no alpha, and a panel that looks like nothing else here. */}
       <button class="sw" title="Pick a colour" aria-haspopup="dialog" aria-expanded={pop ? 'true' : 'false'}
-        onClick={e => setPop(pop ? null : e.currentTarget as HTMLElement)}>
+        onClick={e => pop ? document.dispatchEvent(new Event('pagecraft:outside-pointer')) : setPop(e.currentTarget as HTMLElement)}>
         <i style={{ background: gradientValue || lit || 'transparent' }} />
       </button>
       {pop ? (

@@ -694,8 +694,8 @@ body.preview .dim{display:none}
 .gh:hover{color:var(--text)}
 .gh svg{width:9px;height:9px;color:var(--text-3);transition:transform .12s}
 .group.closed .gh svg{transform:rotate(-90deg)}
-.group.closed .gb{display:none}
-.gb{padding:0 14px 14px}
+.gb{height:auto;overflow:hidden;padding:0 14px 14px;opacity:1;visibility:visible;transition:height var(--pc-motion-enter) var(--pc-ease-enter),padding-bottom var(--pc-motion-enter) var(--pc-ease-enter),opacity var(--pc-motion-quick) var(--pc-ease-enter),visibility 0s}
+.group.closed .gb{height:0;padding-bottom:0;opacity:0;visibility:hidden;transition:height var(--pc-motion-exit) var(--pc-ease-exit),padding-bottom var(--pc-motion-exit) var(--pc-ease-exit),opacity var(--pc-motion-quick) var(--pc-ease-exit),visibility 0s var(--pc-motion-exit)}
 .f{margin-bottom:var(--gap-2)}
 /* Instance variant controls use the same inset and rhythm as inspector groups. */
 #inspector-panel > .f{padding:var(--gap-3);margin-bottom:0}
@@ -1568,6 +1568,12 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
   --pc-dialog-edge:16px;
   --pc-dialog-radius:16px;
   --pc-dialog-scrim:rgba(17,19,17,.45);
+  --pc-motion-quick:120ms;
+  --pc-motion-enter:180ms;
+  --pc-motion-dialog:200ms;
+  --pc-motion-exit:120ms;
+  --pc-ease-enter:cubic-bezier(.2,.8,.2,1);
+  --pc-ease-exit:cubic-bezier(.4,0,1,1);
   --pc-table-cell-y:4px;
   --pc-table-cell-x:8px;
   --pc-table-cell-padding:var(--pc-table-cell-y) var(--pc-table-cell-x);
@@ -2050,6 +2056,12 @@ var UI_TOKENS_CSS = `:root{
   --pc-dialog-edge:16px;
   --pc-dialog-radius:16px;
   --pc-dialog-scrim:rgba(17,19,17,.45);
+  --pc-motion-quick:120ms;
+  --pc-motion-enter:180ms;
+  --pc-motion-dialog:200ms;
+  --pc-motion-exit:120ms;
+  --pc-ease-enter:cubic-bezier(.2,.8,.2,1);
+  --pc-ease-exit:cubic-bezier(.4,0,1,1);
   --pc-table-cell-y:4px;
   --pc-table-cell-x:8px;
   --pc-table-cell-padding:var(--pc-table-cell-y) var(--pc-table-cell-x);
@@ -10373,6 +10385,7 @@ var PC_UI = (() => {
     createWordPressHostAdapter: () => createWordPressHostAdapter,
     installActionFeedback: () => installActionFeedback,
     installEditorViewport: () => installEditorViewport,
+    installUiMotion: () => installUiMotion,
     mount: () => mount,
     projectIdentity: () => projectIdentity,
     renameHostedSite: () => renameHostedSite
@@ -11033,6 +11046,7 @@ var PC_UI = (() => {
         container().append(node);
         record = { node, mark, text, timer: 0, remaining: 0, started: 0 };
         records.set(id, record);
+        window.__pcMotion?.enter(node, { kind: "notification" });
         close.onclick = () => dismiss();
         node.addEventListener("mouseenter", () => pause());
         node.addEventListener("mouseleave", () => resume());
@@ -11041,8 +11055,10 @@ var PC_UI = (() => {
       }
       const dismiss = () => {
         clearTimeout(record.timer);
-        record.node.remove();
         records.delete(id);
+        const motion = window.__pcMotion;
+        if (motion) motion.exit(record.node, { kind: "notification", remove: true });
+        else record.node.remove();
       };
       const pause = () => {
         if (record.timer) {
@@ -11070,8 +11086,10 @@ var PC_UI = (() => {
         if (records.size <= 5) break;
         if (key !== id && r3.node.dataset.tone !== "progress") {
           clearTimeout(r3.timer);
-          r3.node.remove();
           records.delete(key);
+          const motion = window.__pcMotion;
+          if (motion) motion.exit(r3.node, { kind: "notification", remove: true });
+          else r3.node.remove();
         }
       }
       return { dismiss, update: (value, tone2 = "progress") => notify(value, { id, tone: tone2 }), success: (value) => notify(value, { id, tone: "success" }), error: (value) => notify(value, { id, tone: "error" }) };
@@ -12725,14 +12743,264 @@ var PC_UI = (() => {
   }
   var esc2 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
+  // shared/ui-motion.js
+  var UI_MOTION_CSS = `:root{
+  interpolate-size:allow-keywords;
+  --pc-motion-quick:120ms;
+  --pc-motion-enter:180ms;
+  --pc-motion-dialog:200ms;
+  --pc-motion-exit:120ms;
+  --pc-ease-enter:cubic-bezier(.2,.8,.2,1);
+  --pc-ease-exit:cubic-bezier(.4,0,1,1);
+}
+[data-pc-motion-closing]{pointer-events:none!important}
+:where(.dashboard-app,#app) :is(button,.btn,.pc-btn,a.pc-btn,.pc-menu-item,summary){transition:background-color var(--pc-motion-quick) var(--pc-ease-enter),border-color var(--pc-motion-quick) var(--pc-ease-enter),color var(--pc-motion-quick) var(--pc-ease-enter),opacity var(--pc-motion-quick) var(--pc-ease-enter),box-shadow var(--pc-motion-quick) var(--pc-ease-enter)}
+:where(.dashboard-app,#app) :is(.pagerow,.cms-entry-row,.pc-sub-table>tbody>tr,.pc-site-card){transition:background-color var(--pc-motion-quick) var(--pc-ease-enter),border-color var(--pc-motion-quick) var(--pc-ease-enter),box-shadow var(--pc-motion-quick) var(--pc-ease-enter)}
+dialog.pc-dialog[open]::backdrop{animation:pc-scrim-in var(--pc-motion-dialog) var(--pc-ease-enter) both}
+dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--pc-motion-exit) var(--pc-ease-exit) both}
+@keyframes pc-scrim-in{from{opacity:0}to{opacity:1}}
+@keyframes pc-scrim-out{from{opacity:1}to{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  :where(.dashboard-app,#app) :is(button,.btn,.pc-btn,a.pc-btn,.pc-menu-item,summary,.pagerow,.cms-entry-row,.pc-sub-table>tbody>tr,.pc-site-card){transition:none!important}
+  dialog.pc-dialog[open]::backdrop,dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:none!important}
+}`;
+  function installUiMotion(css = UI_MOTION_CSS) {
+    if (typeof document === "undefined") return null;
+    if (window.__pcMotion) return window.__pcMotion;
+    if (!document.getElementById("pc-ui-motion-styles")) {
+      const style = document.createElement("style");
+      style.id = "pc-ui-motion-styles";
+      style.textContent = css;
+      document.head.append(style);
+    }
+    const jobs = /* @__PURE__ */ new WeakMap();
+    const returnFocus = /* @__PURE__ */ new WeakMap();
+    let generation = 0;
+    const nativeShow = window.HTMLDialogElement?.prototype.showModal;
+    const nativeClose = window.HTMLDialogElement?.prototype.close;
+    const reduced = () => !window.Element?.prototype.animate || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const timing = (kind) => kind === "dialog" ? 200 : kind === "quick" ? 120 : 180;
+    const easing = (entering) => entering ? "cubic-bezier(.2,.8,.2,1)" : "cubic-bezier(.4,0,1,1)";
+    const frame = (kind, entering) => {
+      const movement = kind === "notification" ? 8 : kind === "dialog" ? 8 : kind === "panel" ? 4 : kind === "popover" ? 5 : 0;
+      const start = kind === "dialog" ? { opacity: 0, transform: `translateY(${movement}px) scale(.985)` } : movement ? { opacity: 0, transform: `translateY(${movement}px) scale(${kind === "popover" ? ".985" : "1"})` } : { opacity: 0 };
+      const end = { opacity: 1, transform: "translateY(0) scale(1)" };
+      return entering ? [start, end] : [end, start];
+    };
+    const cancelAnimation = (element) => {
+      const job = jobs.get(element);
+      if (job) {
+        job.cancel();
+        jobs.delete(element);
+      }
+    };
+    const stop = (element) => {
+      cancelAnimation(element);
+      element.removeAttribute("data-pc-motion-entering");
+      element.removeAttribute("data-pc-motion-closing");
+      element.removeAttribute("aria-hidden");
+    };
+    const play = (element, kind, entering) => {
+      cancelAnimation(element);
+      const token = ++generation;
+      if (reduced()) return Promise.resolve(token);
+      const animation = element.animate(frame(kind, entering), {
+        duration: entering ? timing(kind) : 120,
+        easing: easing(entering),
+        fill: "both"
+      });
+      jobs.set(element, animation);
+      return animation.finished.catch(() => null).then(() => {
+        if (jobs.get(element) === animation) {
+          animation.cancel();
+          jobs.delete(element);
+        }
+        return token;
+      });
+    };
+    const enter = (element, options = {}) => {
+      if (!element) return Promise.resolve(false);
+      stop(element);
+      if ("hidden" in element) element.hidden = false;
+      element.removeAttribute("aria-hidden");
+      element.setAttribute("data-pc-motion-entering", "");
+      return play(element, options.kind || "fade", true).then(() => {
+        element.removeAttribute("data-pc-motion-entering");
+        return true;
+      });
+    };
+    const exit = (element, options = {}) => {
+      if (!element) return Promise.resolve(false);
+      if (element.hasAttribute("data-pc-motion-closing")) return jobs.get(element)?.finished || Promise.resolve(false);
+      cancelAnimation(element);
+      element.setAttribute("data-pc-motion-closing", "");
+      element.setAttribute("aria-hidden", "true");
+      return play(element, options.kind || "fade", false).then(() => {
+        if (!element.hasAttribute("data-pc-motion-closing")) return false;
+        element.removeAttribute("data-pc-motion-closing");
+        if (options.remove) element.remove();
+        else if (options.hide !== false && "hidden" in element) element.hidden = true;
+        options.onFinish?.();
+        return true;
+      });
+    };
+    const showDialog = (dialog, opener = document.activeElement) => {
+      if (!dialog?.matches?.("dialog.pc-dialog")) return nativeShow?.call(dialog);
+      returnFocus.set(dialog, opener instanceof HTMLElement ? opener : null);
+      stop(dialog);
+      if (!dialog.open) nativeShow.call(dialog);
+      enter(dialog, { kind: "dialog" });
+    };
+    const closeDialog = (dialog, returnValue = "") => {
+      if (!dialog?.matches?.("dialog.pc-dialog")) return nativeClose?.call(dialog, returnValue);
+      if (!dialog.open || dialog.hasAttribute("data-pc-motion-closing")) return;
+      if (reduced()) {
+        nativeClose.call(dialog, returnValue);
+        const target = returnFocus.get(dialog);
+        returnFocus.delete(dialog);
+        if (target?.isConnected) target.focus({ preventScroll: true });
+        return;
+      }
+      exit(dialog, { kind: "dialog", hide: false }).then((closed) => {
+        if (!closed || !dialog.open) return;
+        nativeClose.call(dialog, returnValue);
+        const target = returnFocus.get(dialog);
+        returnFocus.delete(dialog);
+        if (target?.isConnected) target.focus({ preventScroll: true });
+      });
+    };
+    const onDialogCancel = (event) => {
+      const dialog = event.target;
+      if (!dialog?.matches?.("dialog.pc-dialog")) return;
+      event.preventDefault();
+      closeDialog(dialog);
+    };
+    const closeAccountMenu = (details, focus = false) => {
+      if (!details?.open || details.hasAttribute("data-pc-menu-closing")) return;
+      const panel = details.querySelector(":scope > .pc-account-menu");
+      const summary = details.querySelector(":scope > summary");
+      details.setAttribute("data-pc-menu-closing", "");
+      const done = () => {
+        details.open = false;
+        details.removeAttribute("data-pc-menu-closing");
+        if (focus && summary?.isConnected) summary.focus({ preventScroll: true });
+      };
+      if (panel && !reduced()) exit(panel, { kind: "popover", hide: false }).then(done);
+      else done();
+    };
+    const onAccountClick = (event) => {
+      const summary = event.target?.closest?.(".pc-account > summary");
+      if (!summary) return;
+      const details = summary.parentElement;
+      if (details.hasAttribute("data-pc-menu-closing")) {
+        event.preventDefault();
+        details.removeAttribute("data-pc-menu-closing");
+        const panel = details.querySelector(":scope > .pc-account-menu");
+        if (panel) enter(panel, { kind: "popover" });
+        return;
+      }
+      if (details.open) {
+        event.preventDefault();
+        closeAccountMenu(details, true);
+        return;
+      }
+      requestAnimationFrame(() => {
+        const panel = details.querySelector(":scope > .pc-account-menu");
+        if (details.open && panel) enter(panel, { kind: "popover" });
+      });
+    };
+    const onAccountAway = (event) => {
+      document.querySelectorAll(".pc-account[open]").forEach((details) => {
+        if (!details.contains(event.target)) closeAccountMenu(details);
+      });
+    };
+    const onAccountKey = (event) => {
+      if (event.key !== "Escape") return;
+      const details = event.target?.closest?.(".pc-account[open]");
+      if (details) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeAccountMenu(details, true);
+      }
+    };
+    const destroy = () => {
+      document.removeEventListener("cancel", onDialogCancel, true);
+      document.removeEventListener("click", onAccountClick, true);
+      document.removeEventListener("pointerdown", onAccountAway, true);
+      document.removeEventListener("keydown", onAccountKey, true);
+      if (nativeShow && nativeClose) {
+        window.HTMLDialogElement.prototype.showModal = nativeShow;
+        window.HTMLDialogElement.prototype.close = nativeClose;
+      }
+      document.getElementById("pc-ui-motion-styles")?.remove();
+      delete window.__pcMotion;
+    };
+    const api = { enter, exit, cancel: stop, showDialog, closeDialog, reduced, destroy };
+    window.__pcMotion = api;
+    if (nativeShow && nativeClose) {
+      window.HTMLDialogElement.prototype.showModal = function() {
+        return this.matches("dialog.pc-dialog") ? showDialog(this) : nativeShow.call(this);
+      };
+      window.HTMLDialogElement.prototype.close = function(value = "") {
+        return this.matches("dialog.pc-dialog") ? closeDialog(this, value) : nativeClose.call(this, value);
+      };
+      document.addEventListener("cancel", onDialogCancel, true);
+      document.addEventListener("click", onAccountClick, true);
+      document.addEventListener("pointerdown", onAccountAway, true);
+      document.addEventListener("keydown", onAccountKey, true);
+    }
+    return api;
+  }
+  var UI_MOTION_BOOT_SCRIPT = `(${installUiMotion.toString()})(${JSON.stringify(UI_MOTION_CSS)});`;
+
+  // app/src/ui/MotionPresence.tsx
+  function MotionPresence({ show, as = "div", class: className, kind = "panel", children }) {
+    const [present, setPresent] = d2(show);
+    const ref = A2(null);
+    const sequence = A2(0);
+    _2(() => {
+      if (show && !present) setPresent(true);
+    }, [show, present]);
+    _2(() => {
+      if (!present || !ref.current) return;
+      const token = ++sequence.current, motion = installUiMotion();
+      if (show) {
+        motion?.enter(ref.current, { kind });
+        return;
+      }
+      if (!motion || motion.reduced()) {
+        setPresent(false);
+        return;
+      }
+      motion.exit(ref.current, { kind, hide: false }).then(() => {
+        if (sequence.current === token) setPresent(false);
+      });
+    }, [show, present, kind]);
+    if (!present) return null;
+    const Tag = as;
+    return /* @__PURE__ */ u2(Tag, { ref, class: className, "aria-hidden": show ? void 0 : "true", children });
+  }
+
   // app/src/ui/Pages.tsx
   function PageRow({ i: i3 }) {
     const p3 = C2.state.pages[i3];
     const last = i3 === C2.state.pages.length - 1;
     const collection = p3.collection ? C2.findCollection(p3.collection) : null;
+    const closeActions = (details, focus = false) => {
+      if (!details?.open || details.hasAttribute("data-pc-menu-closing")) return;
+      const panel = details.querySelector(".act"), motion = window.__pcMotion;
+      const done = () => {
+        details.open = false;
+        details.removeAttribute("data-pc-menu-closing");
+        if (focus) details.querySelector("summary")?.focus({ preventScroll: true });
+      };
+      details.setAttribute("data-pc-menu-closing", "");
+      if (panel && motion && !motion.reduced()) motion.exit(panel, { kind: "popover", hide: false }).then(done);
+      else done();
+    };
     const act = async (e3, name) => {
       e3.stopPropagation();
-      e3.currentTarget.closest("details")?.removeAttribute("open");
+      closeActions(e3.currentTarget.closest("details"));
       if (name === "up" || name === "down") {
         C2.edit(() => C2.pageMove(i3, name === "up" ? -1 : 1));
         L2.toast("Page moved " + name + ".");
@@ -12783,22 +13051,45 @@ var PC_UI = (() => {
         "details",
         {
           class: "page-actions",
+          onToggle: (e3) => {
+            if (e3.currentTarget.open && !e3.currentTarget.hasAttribute("data-pc-menu-closing")) window.__pcMotion?.enter(e3.currentTarget.querySelector(".act"), { kind: "popover" });
+          },
           onBlur: (e3) => {
-            if (!e3.currentTarget.contains(e3.relatedTarget)) e3.currentTarget.removeAttribute("open");
+            if (!e3.currentTarget.contains(e3.relatedTarget)) closeActions(e3.currentTarget);
           },
           onKeyDown: (e3) => {
             if (e3.key !== "Escape") return;
             e3.preventDefault();
             e3.stopPropagation();
-            e3.currentTarget.removeAttribute("open");
-            e3.currentTarget.querySelector("summary")?.focus();
+            closeActions(e3.currentTarget, true);
           },
           children: [
-            /* @__PURE__ */ u2("summary", { "aria-label": "Actions for " + p3.name, title: "Actions for " + p3.name, children: /* @__PURE__ */ u2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true", children: [
-              /* @__PURE__ */ u2("circle", { cx: "3", cy: "8", r: "1" }),
-              /* @__PURE__ */ u2("circle", { cx: "8", cy: "8", r: "1" }),
-              /* @__PURE__ */ u2("circle", { cx: "13", cy: "8", r: "1" })
-            ] }) }),
+            /* @__PURE__ */ u2(
+              "summary",
+              {
+                "aria-label": "Actions for " + p3.name,
+                title: "Actions for " + p3.name,
+                onClick: (e3) => {
+                  const details = e3.currentTarget.parentElement;
+                  if (details.hasAttribute("data-pc-menu-closing")) {
+                    e3.preventDefault();
+                    details.removeAttribute("data-pc-menu-closing");
+                    const panel = details.querySelector(".act");
+                    if (panel) window.__pcMotion?.enter(panel, { kind: "popover" });
+                    return;
+                  }
+                  if (details.open) {
+                    e3.preventDefault();
+                    closeActions(details, true);
+                  }
+                },
+                children: /* @__PURE__ */ u2("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true", children: [
+                  /* @__PURE__ */ u2("circle", { cx: "3", cy: "8", r: "1" }),
+                  /* @__PURE__ */ u2("circle", { cx: "8", cy: "8", r: "1" }),
+                  /* @__PURE__ */ u2("circle", { cx: "13", cy: "8", r: "1" })
+                ] })
+              }
+            ),
             /* @__PURE__ */ u2("span", { class: "act", children: [
               /* @__PURE__ */ u2("button", { type: "button", title: "Move up", disabled: i3 === 0, onClick: (e3) => act(e3, "up"), children: [
                 /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 12 }),
@@ -12874,7 +13165,7 @@ var PC_UI = (() => {
         ] }),
         /* @__PURE__ */ u2("div", { class: "pagelist", "aria-label": "Site pages", children: [
           rows2.map(({ p: p3, i: i3 }) => /* @__PURE__ */ u2(PageRow, { i: i3 }, p3.id)),
-          !rows2.length && /* @__PURE__ */ u2("div", { class: "pages-empty pc-list-empty", children: [
+          /* @__PURE__ */ u2(MotionPresence, { show: !rows2.length, class: "pages-empty pc-list-empty", kind: "panel", children: [
             /* @__PURE__ */ u2("p", { children: [
               "No pages match \u201C",
               query,
@@ -13487,6 +13778,15 @@ var PC_UI = (() => {
     const [angle, setAngle] = d2(parsedGradient?.angle ?? 135);
     const [hue, setHue] = d2(C2.rgb2hsv(first).h);
     const box = A2(null);
+    const closing = A2(false);
+    const requestClose = () => {
+      if (closing.current) return;
+      closing.current = true;
+      anchor.setAttribute("aria-expanded", "false");
+      const element = box.current, motion = window.__pcMotion;
+      if (element && motion && !motion.reduced()) motion.exit(element, { kind: "popover", hide: false }).then(onClose);
+      else onClose();
+    };
     const rgba = mode === "gradient" ? stops[activeStop] : solid;
     const hsv = C2.rgb2hsv(rgba);
     const css = C2.fmtColor(rgba);
@@ -13507,30 +13807,31 @@ var PC_UI = (() => {
       const away = (e3) => {
         const t3 = e3.target;
         if (box.current?.contains(t3) || anchor.contains(t3)) return;
-        onClose();
+        requestClose();
       };
       const key = (e3) => {
         if (e3.key === "Escape") {
           e3.preventDefault();
           e3.stopPropagation();
-          onClose();
+          requestClose();
           if (anchor.isConnected) anchor.focus({ preventScroll: true });
         }
       };
       document.addEventListener("pointerdown", away, true);
-      document.addEventListener("pagecraft:outside-pointer", onClose);
-      window.addEventListener("blur", onClose);
+      document.addEventListener("pagecraft:outside-pointer", requestClose);
+      window.addEventListener("blur", requestClose);
       document.addEventListener("keydown", key, true);
-      window.addEventListener("resize", onClose);
-      window.addEventListener("scroll", onClose, true);
+      window.addEventListener("resize", requestClose);
+      window.addEventListener("scroll", requestClose, true);
+      if (box.current) window.__pcMotion?.enter(box.current, { kind: "popover" });
       box.current?.querySelector(".cp-sv")?.focus();
       return () => {
         document.removeEventListener("pointerdown", away, true);
-        document.removeEventListener("pagecraft:outside-pointer", onClose);
-        window.removeEventListener("blur", onClose);
+        document.removeEventListener("pagecraft:outside-pointer", requestClose);
+        window.removeEventListener("blur", requestClose);
         document.removeEventListener("keydown", key, true);
-        window.removeEventListener("resize", onClose);
-        window.removeEventListener("scroll", onClose, true);
+        window.removeEventListener("resize", requestClose);
+        window.removeEventListener("scroll", requestClose, true);
       };
     }, [anchor, onClose]);
     const r3 = anchor.getBoundingClientRect();
@@ -13952,7 +14253,7 @@ var PC_UI = (() => {
                 ),
                 /* @__PURE__ */ u2("button", { class: "x", title: "Remove", onClick: () => dropRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
               ] }),
-              open === k3 ? /* @__PURE__ */ u2("div", { class: "navitem-body", children: [
+              /* @__PURE__ */ u2(MotionPresence, { show: open === k3, class: "navitem-body", kind: "panel", children: [
                 /* @__PURE__ */ u2("label", { children: "Navigation label" }),
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Link label" }),
                 /* @__PURE__ */ u2("label", { children: "Destination" }),
@@ -14026,7 +14327,7 @@ var PC_UI = (() => {
                     }
                   )
                 ] })
-              ] }) : null
+              ] })
             ]
           },
           k3
@@ -14108,7 +14409,7 @@ var PC_UI = (() => {
           setOpen(open === k3 ? null : open !== null && open > k3 ? open - 1 : open);
         }, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
       ] }),
-      expanded ? /* @__PURE__ */ u2("div", { class: "repeater-body", children }) : null
+      /* @__PURE__ */ u2(MotionPresence, { show: expanded, class: "repeater-body", kind: "panel", children })
     ] });
   }
   function FieldsCtl({ n: n2, c: c3 }) {
@@ -14481,7 +14782,7 @@ var PC_UI = (() => {
             title: "Pick a colour",
             "aria-haspopup": "dialog",
             "aria-expanded": pop ? "true" : "false",
-            onClick: (e3) => setPop(pop ? null : e3.currentTarget),
+            onClick: (e3) => pop ? document.dispatchEvent(new Event("pagecraft:outside-pointer")) : setPop(e3.currentTarget),
             children: /* @__PURE__ */ u2("i", { style: { background: gradientValue || lit || "transparent" } })
           }
         ),
@@ -15404,7 +15705,7 @@ var PC_UI = (() => {
           ]
         }
       ),
-      /* @__PURE__ */ u2("div", { class: "gb", id: bodyId, children: shown2 ? shown2.map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
+      /* @__PURE__ */ u2("div", { class: "gb", id: bodyId, "aria-hidden": closed ? "true" : void 0, children: shown2 ? shown2.map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
     ] });
   }
   function Panel({ title, n: n2, gk, children }) {
@@ -15430,7 +15731,7 @@ var PC_UI = (() => {
           ]
         }
       ),
-      /* @__PURE__ */ u2("div", { class: "gb", id: bodyId, children })
+      /* @__PURE__ */ u2("div", { class: "gb", id: bodyId, "aria-hidden": closed ? "true" : void 0, children })
     ] });
   }
   function Head({ h: h3 }) {
@@ -16726,7 +17027,7 @@ var PC_UI = (() => {
           " details"
         ] })
       ] }),
-      clean || !open ? null : /* @__PURE__ */ u2("ul", { children: findings.map((f4, i3) => /* @__PURE__ */ u2("li", { children: [
+      /* @__PURE__ */ u2(MotionPresence, { as: "ul", show: !clean && open, kind: "panel", children: findings.map((f4, i3) => /* @__PURE__ */ u2("li", { children: [
         /* @__PURE__ */ u2("span", { class: "lv " + f4.level }),
         /* @__PURE__ */ u2("span", { class: "msg", children: [
           f4.msg,
@@ -16812,6 +17113,7 @@ var PC_UI = (() => {
       option.parentElement?.tagName === "OPTGROUP" ? option.parentElement.label : ""
     ].join("")).join("");
     const enabledOptions = (select) => [...select.options].filter((option) => !option.disabled && !option.parentElement?.disabled);
+    const isClosed = (menu) => menu.hidden || menu.hasAttribute("data-pc-motion-closing");
     const position = (record) => {
       if (record.menu.hidden) return;
       const rect = record.trigger.getBoundingClientRect();
@@ -16840,11 +17142,13 @@ var PC_UI = (() => {
       }
     };
     const close = (record, focus = false) => {
-      if (!record || record.menu.hidden) return;
-      record.menu.hidden = true;
+      if (!record || record.menu.hidden || record.menu.hasAttribute("data-pc-motion-closing")) return;
       record.trigger.setAttribute("aria-expanded", "false");
       if (openRecord === record) openRecord = null;
       if (focus) record.trigger.focus();
+      const motion = window.__pcMotion;
+      if (motion) motion.exit(record.menu, { kind: "popover" });
+      else record.menu.hidden = true;
     };
     const choose = (record, option) => {
       if (!option || option.disabled || option.parentElement?.disabled) return;
@@ -16905,7 +17209,9 @@ var PC_UI = (() => {
       record.menu.style.setProperty("--pc-cs-fg", styles.color || "#111311");
       record.menu.style.setProperty("--pc-cs-muted", styles.color || "#6f7771");
       record.menu.style.setProperty("--pc-cs-hover", "var(--pc-hover-bg,#f4faef)");
-      record.menu.hidden = false;
+      const motion = window.__pcMotion;
+      if (motion) motion.enter(record.menu, { kind: "popover" });
+      else record.menu.hidden = false;
       record.trigger.setAttribute("aria-expanded", "true");
       openRecord = record;
       position(record);
@@ -16970,7 +17276,7 @@ var PC_UI = (() => {
         trigger.focus();
         open(record);
       });
-      trigger.addEventListener("click", () => menu.hidden ? open(record) : close(record, true));
+      trigger.addEventListener("click", () => isClosed(menu) ? open(record) : close(record, true));
       trigger.addEventListener("keydown", (event) => {
         const options = enabledOptions(select);
         const currentIndex = Math.max(0, options.indexOf(selectedOption(select)));
@@ -16986,14 +17292,14 @@ var PC_UI = (() => {
         }
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          menu.hidden ? open(record) : choose(record, selectedOption(select));
+          isClosed(menu) ? open(record) : choose(record, selectedOption(select));
           return;
         }
         if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Home" || event.key === "End") {
           event.preventDefault();
           const index = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : Math.max(0, Math.min(options.length - 1, currentIndex + (event.key === "ArrowDown" ? 1 : -1)));
           const activate = () => setActive(record, options[index]);
-          if (menu.hidden) {
+          if (isClosed(menu)) {
             open(record);
             requestAnimationFrame(activate);
           } else activate();
@@ -17008,7 +17314,7 @@ var PC_UI = (() => {
           const match = options.find((option) => option.label.toLowerCase().startsWith(typeahead));
           if (match) {
             const activate = () => setActive(record, match);
-            if (menu.hidden) {
+            if (isClosed(menu)) {
               open(record);
               requestAnimationFrame(activate);
             } else activate();
@@ -17359,6 +17665,12 @@ var PC_UI = (() => {
   --pc-dialog-edge:16px;
   --pc-dialog-radius:16px;
   --pc-dialog-scrim:rgba(17,19,17,.45);
+  --pc-motion-quick:120ms;
+  --pc-motion-enter:180ms;
+  --pc-motion-dialog:200ms;
+  --pc-motion-exit:120ms;
+  --pc-ease-enter:cubic-bezier(.2,.8,.2,1);
+  --pc-ease-exit:cubic-bezier(.4,0,1,1);
   --pc-table-cell-y:4px;
   --pc-table-cell-x:8px;
   --pc-table-cell-padding:var(--pc-table-cell-y) var(--pc-table-cell-x);
@@ -19513,6 +19825,7 @@ var PC_UI = (() => {
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
+    installUiMotion();
     installCustomSelects();
     installActionFeedback();
     if (legacy.dynamicContentProvider() === "pagecraft") installAccountActions();
@@ -19605,6 +19918,8 @@ var PC_UI = (() => {
       document.body.classList.add("pages-open");
       document.querySelectorAll("#leftRail button").forEach((b2) => b2.classList.toggle("on", b2.getAttribute("data-t") === "pages"));
       painters2.renderPages();
+      const surface = host.firstElementChild;
+      if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
       host.querySelector("#pages-search")?.focus();
     };
     const openCms = (collectionId) => {
@@ -19621,12 +19936,19 @@ var PC_UI = (() => {
       const active = railButtons.find((b2) => b2.classList.contains("on"));
       railButtons.forEach((b2) => b2.classList.toggle("on", b2.getAttribute("data-t") === "cms"));
       R(/* @__PURE__ */ u2(CmsWorkspace, { collectionId, close: () => {
-        R(null, host);
-        document.body.classList.remove("cms-open");
-        legacy.restoreCanvasLayout();
-        railButtons.forEach((b2) => b2.classList.toggle("on", b2 === active));
-        previous?.focus();
+        const finish = () => {
+          R(null, host);
+          document.body.classList.remove("cms-open");
+          legacy.restoreCanvasLayout();
+          railButtons.forEach((b2) => b2.classList.toggle("on", b2 === active));
+          previous?.focus({ preventScroll: true });
+        };
+        const surface2 = host.firstElementChild, motion = installUiMotion();
+        if (surface2 && motion && !motion.reduced()) motion.exit(surface2, { kind: "panel", hide: false }).then(finish);
+        else finish();
       } }, collectionId), host);
+      const surface = host.firstElementChild;
+      if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
     };
     return { ...painters2, openPages, closePages, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
   }
@@ -21215,9 +21537,14 @@ function runAct(act, ids) {
    Right-click is where a paste verb belongs, and there was none anywhere in the app.
    It is also what lets the HUD bar stop growing: seven buttons floating over the
    element became a name, a drag handle and one more. */
-function closeCtx() { const c = $('#ctx'); if (c) c.remove(); }
+function closeCtx(immediate = false) {
+  const c = $('#ctx'); if (!c) return;
+  const fx = PC_UI.installUiMotion();
+  if (immediate || !fx || fx.reduced()) { fx?.cancel(c); c.remove(); return; }
+  fx.exit(c, {kind:'popover',remove:true});
+}
 function openCtx(x, y, ids) {
-  closeCtx();
+  closeCtx(true);
   const items = menuFor(ids);
   if (!items.length) return;
   const m = document.createElement('div');
@@ -21234,6 +21561,7 @@ function openCtx(x, y, ids) {
   const r = m.getBoundingClientRect();
   m.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
   m.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+  PC_UI.installUiMotion()?.enter(m,{kind:'popover'});
   const buttons = $$('button', m);
   buttons[0]?.focus();
   m.addEventListener('keydown', e => {
@@ -22032,8 +22360,13 @@ function mediaDetails(root, id, refresh, origin) {
     <p class="note">${SRV ? 'Removed images remain stored for history and still count toward storage. ' : ''}${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
     ${references.length ? `<ul>${references.map(reference => `<li><button type="button" class="btn" data-media-reference="${references.indexOf(reference)}">${esc(reference.scope)} · ${esc(reference.label)}</button></li>`).join('')}</ul>` : ''}
   </section>`;
+  PC_UI.installUiMotion()?.enter(panel,{kind:'panel'});
   $$('[data-media-reference]', panel).forEach(button => button.addEventListener('click', () => mediaOpenReference(references[Number(button.dataset.mediaReference)])));
-  $('[data-details-close]', panel).addEventListener('click', () => { panel.hidden = true; ($(`[data-media-detail="${id}"]`, root) || origin).focus(); });
+  $('[data-details-close]', panel).addEventListener('click', () => {
+    const back=$(`[data-media-detail="${id}"]`, root)||origin,fx=PC_UI.installUiMotion();
+    if(!fx||fx.reduced()){panel.hidden=true;back.focus();return;}
+    fx.exit(panel,{kind:'panel'}).then(()=>back.focus({preventScroll:true}));
+  });
   $('[data-tags-form]', panel)?.addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget, button = $('button', form), status = $('[data-tags-status]', form);
@@ -22773,6 +23106,7 @@ function trapDialogKey(e, box, close) {
 }
 
 let modalReturnFocus = null;
+let modalMotionVersion = 0;
 /* Only the top dialog may be exposed to the accessibility tree. The confirmation
    layer intentionally sits above the larger project/publish dialog, so opening it
    makes that underlying dialog inert until the confirmation resolves. */
@@ -22794,26 +23128,36 @@ function syncDialogLayers() {
   lock($('#ask'), editorViewport.blocked);
 }
 function openModal(title, bodyHtml, footHtml, size) {
-  const wasHidden = $('#modal').hidden;
+  modalMotionVersion++;
+  const mask = $('#modal'), box = $('#modalBox');
+  const wasHidden = mask.hidden || mask.hasAttribute('data-pc-motion-closing');
   if (wasHidden) modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  $('#modalBox').className = 'modal pc-dialog' + (size ? ' ' + size : '');
+  box.className = 'modal pc-dialog' + (size ? ' ' + size : '');
   $('#mTitle').textContent = title;
   $('#mBody').innerHTML = bodyHtml;
   $('#mFoot').innerHTML = footHtml || '';
-  $('#modal').hidden = false;
+  mask.hidden = false; box.hidden = false;
   syncDialogLayers();
+  const fx = PC_UI.installUiMotion();
+  fx?.enter(mask, {kind:'fade'}); fx?.enter(box, {kind:'dialog'});
   if (wasHidden) {
     const first = dialogFocusables($('#modalBox'))[0];
     (first || $('#modalBox')).focus();
   }
 }
 const closeModal = () => {
-  if ($('#modal').hidden) return;
-  $('#modal').hidden = true;
-  syncDialogLayers();
-  endTx();
-  const back = modalReturnFocus; modalReturnFocus = null;
-  if (back && back.isConnected) back.focus();
+  const mask = $('#modal'), box = $('#modalBox');
+  if (mask.hidden || mask.hasAttribute('data-pc-motion-closing')) return;
+  const finish = () => {
+    mask.hidden = true; box.hidden = false;
+    syncDialogLayers(); endTx();
+    const back = modalReturnFocus; modalReturnFocus = null;
+    if (back && back.isConnected) back.focus({preventScroll:true});
+  };
+  const fx = PC_UI.installUiMotion();
+  if (!fx || fx.reduced()) { finish(); return; }
+  const version=++modalMotionVersion;
+  Promise.all([fx.exit(box,{kind:'dialog',hide:false}),fx.exit(mask,{kind:'fade',hide:false})]).then(done=>{if(version===modalMotionVersion&&done.every(Boolean))finish();});
 };
 $('#mClose').addEventListener('click', closeModal);
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
@@ -22830,8 +23174,16 @@ $('#modal').addEventListener('keydown', e => {
    Both return a promise: a string / true on confirm, null / false on any exit. */
 let askDone = null;
 let askReturnFocus = null;
+let askMotionVersion = 0;
 function askOpen(title, bodyHtml, okLabel, danger) {
-  askClose(null);                                     // never stack two asks
+  askMotionVersion++;
+  if (!$('#ask').hidden) {                            // never stack two asks
+    PC_UI.installUiMotion()?.cancel($('#ask'));
+    PC_UI.installUiMotion()?.cancel($('#askBox'));
+    $('#ask').hidden = true;
+    const previous = askDone; askDone = null;
+    if (previous) previous(null);
+  }
   askReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   $('#askTitle').textContent = title;
   $('#askBody').innerHTML = bodyHtml;
@@ -22843,8 +23195,10 @@ function askOpen(title, bodyHtml, okLabel, danger) {
   yes.classList.toggle('danger', !!danger);
   yes.classList.toggle('primary', !danger);
   $('#askNo').textContent = okLabel === null ? 'Close' : 'Cancel';
-  $('#ask').hidden = false;
+  $('#ask').hidden = false; $('#askBox').hidden = false;
   syncDialogLayers();
+  const fx = PC_UI.installUiMotion();
+  fx?.enter($('#ask'), {kind:'fade'}); fx?.enter($('#askBox'), {kind:'dialog'});
   const input = $('#askBody input');
   if (input) { input.focus(); input.select(); }
   else {
@@ -22856,17 +23210,22 @@ function askOpen(title, bodyHtml, okLabel, danger) {
   return new Promise(res => { askDone = res; });
 }
 function askClose(value) {
-  const wasOpen = !$('#ask').hidden;
-  $('#ask').hidden = true;
-  $('#askBox').classList.remove('media-library');
-  $('#ask [data-media-upload]')?.remove();
-  syncDialogLayers();
-  const res = askDone; askDone = null;
-  if (res) res(value);
-  if (wasOpen) {
+  const mask=$('#ask'),box=$('#askBox'),wasOpen=!mask.hidden;
+  if (!wasOpen || mask.hasAttribute('data-pc-motion-closing')) return;
+  const finish = () => {
+    mask.hidden = true; box.hidden = false;
+    box.classList.remove('media-library');
+    $('#ask [data-media-upload]')?.remove();
+    syncDialogLayers();
+    const res = askDone; askDone = null;
+    if (res) res(value);
     const back = askReturnFocus; askReturnFocus = null;
-    if (back && back.isConnected) back.focus();
-  }
+    if (back && back.isConnected) back.focus({preventScroll:true});
+  };
+  const fx=PC_UI.installUiMotion();
+  if(!fx||fx.reduced()){finish();return;}
+  const version=++askMotionVersion;
+  Promise.all([fx.exit(box,{kind:'dialog',hide:false}),fx.exit(mask,{kind:'fade',hide:false})]).then(done=>{if(version===askMotionVersion&&done.every(Boolean))finish();});
 }
 const askOpenNow = () => !$('#ask').hidden;
 
@@ -23914,9 +24273,16 @@ function bindTop() {
   const sitesButton = $('#sitesBtn');
   const accountButton = $('#accountBtn');
   const accountPop = $('#accountPop');
+  const closeAccount = (focus = false) => {
+    if (accountPop.hidden || accountPop.hasAttribute('data-pc-motion-closing')) return;
+    accountButton.setAttribute('aria-expanded', 'false');
+    if (focus) accountButton.focus({preventScroll:true});
+    const fx=PC_UI.installUiMotion();
+    if(fx)fx.exit(accountPop,{kind:'popover'});else accountPop.hidden=true;
+  };
   const accountDialog = () => {
-    const open = accountPop.hidden;
-    accountPop.hidden = !open;
+    const open = accountPop.hidden || accountPop.hasAttribute('data-pc-motion-closing');
+    if(open)PC_UI.installUiMotion()?.enter(accountPop,{kind:'popover'});else closeAccount(true);
     accountButton.setAttribute('aria-expanded', String(open));
   };
   if (SRV && HOST_FEATURES.sites) {
@@ -23955,9 +24321,7 @@ function bindTop() {
       accountButton.hidden = false;
       document.addEventListener('keydown', event => {
         if (event.key !== 'Escape' || accountPop.hidden) return;
-        accountPop.hidden = true;
-        accountButton.setAttribute('aria-expanded', 'false');
-        accountButton.focus();
+        closeAccount(true);
       });
     }
   }
@@ -24039,6 +24403,7 @@ function bindTop() {
     }
     prepareSubmissions();
     submissionsFrame.hidden = false;
+    PC_UI.installUiMotion()?.enter(submissionsFrame,{kind:'panel'});
     if (submissionsFrame.dataset.ready) submissionsFrame.contentWindow.postMessage('pagecraft:refresh-submissions', location.origin);
     document.body.classList.toggle('submissions-loading', !submissionsFrame.dataset.ready);
     document.body.classList.add('submissions-open');

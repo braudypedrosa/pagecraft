@@ -10,6 +10,7 @@
 import { useState } from 'preact/hooks';
 import { C, L } from './ctx';
 import type { Finding } from '../core/types';
+import { MotionPresence } from './MotionPresence';
 
 const REGION_MODE: Record<string, string> = {
   page: 'page', 'global header': 'header', 'global footer': 'footer'
@@ -51,8 +52,7 @@ export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
           </button>
         )}
       </div>
-      {clean || !open ? null : (
-        <ul>
+      <MotionPresence as="ul" show={!clean && open} kind="panel">
           {findings.map((f, i) => (
             <li key={i}>
               <span class={'lv ' + f.level} />
@@ -62,8 +62,7 @@ export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
               {f.nodeId ? <button class="go" onClick={() => goTo(f)}>Show me</button> : null}
             </li>
           ))}
-        </ul>
-      )}
+      </MotionPresence>
     </>
   );
 }

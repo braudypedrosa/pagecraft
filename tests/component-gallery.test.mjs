@@ -1,4 +1,4 @@
-import {test,expect} from 'vitest';
+import {test,expect,vi} from 'vitest';
 import {readFile} from 'node:fs/promises';
 import {JSDOM} from 'jsdom';
 import {createApp} from '../server/src/app.ts';
@@ -45,5 +45,5 @@ test('dialog variants retain input state, empty footer and return focus',async()
  const dom=interactive('dialogs');await Promise.resolve();const d=dom.window.document,opener=d.querySelector('[data-dialog=empty]'),dialog=d.querySelector('dialog');opener.click();expect(dialog.open).toBe(true);expect(dialog.querySelector('footer')?.childElementCount).toBe(0);(d.querySelector('#dialog-name')).value='Unsaved preview';d.querySelector('[data-close]').click();expect(dialog.open).toBe(false);expect(d.activeElement).toBe(opener);d.querySelector('[data-dialog=danger]').click();expect(dialog.querySelector('[data-dialog-save]')?.textContent).toBe('Delete sample');expect((d.querySelector('#dialog-name')).value).toBe('Unsaved preview');dom.window.close();
 });
 test('feedback has real status/alert semantics and retry clears only the error',async()=>{
- const dom=interactive('feedback');await Promise.resolve();const d=dom.window.document;d.querySelector('[data-notice=error]').click();expect(d.querySelector('.pc-notification [role=alert]')).not.toBeNull();d.querySelector('[data-notice=success]').click();expect(d.querySelector('.pc-notification [role=status]')).not.toBeNull();d.querySelector('[data-dismiss]').click();expect(d.querySelector('.pc-notification')).toBeNull();d.querySelector('[data-retry]').click();expect((d.querySelector('#refresh-error')).hidden).toBe(true);expect(d.querySelector('#previous-result')?.textContent).toContain('3 entries');dom.window.close();
+ const dom=interactive('feedback');await Promise.resolve();const d=dom.window.document;d.querySelector('[data-notice=error]').click();expect(d.querySelector('.pc-notification [role=alert]')).not.toBeNull();d.querySelector('[data-notice=success]').click();expect(d.querySelector('.pc-notification [role=status]')).not.toBeNull();d.querySelector('[data-dismiss]').click();await vi.waitFor(()=>expect(d.querySelector('.pc-notification')).toBeNull());d.querySelector('[data-retry]').click();expect((d.querySelector('#refresh-error')).hidden).toBe(true);expect(d.querySelector('#previous-result')?.textContent).toContain('3 entries');dom.window.close();
 });

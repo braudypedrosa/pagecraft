@@ -109,6 +109,15 @@ export function ColorPop(
   const [angle, setAngle] = useState(parsedGradient?.angle ?? 135);
   const [hue, setHue] = useState(C.rgb2hsv(first).h);
   const box = useRef<HTMLDivElement>(null);
+  const closing = useRef(false);
+  const requestClose = () => {
+    if (closing.current) return;
+    closing.current = true;
+    anchor.setAttribute('aria-expanded', 'false');
+    const element = box.current, motion = window.__pcMotion;
+    if (element && motion && !motion.reduced()) motion.exit(element, { kind: 'popover', hide: false }).then(onClose);
+    else onClose();
+  };
 
   const rgba = mode === 'gradient' ? stops[activeStop] : solid;
   const hsv = C.rgb2hsv(rgba);
@@ -140,28 +149,29 @@ export function ColorPop(
     const away = (e: Event) => {
       const t = e.target as Node;
       if (box.current?.contains(t) || anchor.contains(t)) return;
-      onClose();
+      requestClose();
     };
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        e.preventDefault(); e.stopPropagation(); onClose();
+        e.preventDefault(); e.stopPropagation(); requestClose();
         if (anchor.isConnected) anchor.focus({ preventScroll: true });
       }
     };
     document.addEventListener('pointerdown', away, true);
-    document.addEventListener('pagecraft:outside-pointer', onClose);
-    window.addEventListener('blur', onClose);
+    document.addEventListener('pagecraft:outside-pointer', requestClose);
+    window.addEventListener('blur', requestClose);
     document.addEventListener('keydown', key, true);
-    window.addEventListener('resize', onClose);
-    window.addEventListener('scroll', onClose, true);
+    window.addEventListener('resize', requestClose);
+    window.addEventListener('scroll', requestClose, true);
+    if (box.current) window.__pcMotion?.enter(box.current, { kind: 'popover' });
     box.current?.querySelector<HTMLElement>('.cp-sv')?.focus();
     return () => {
       document.removeEventListener('pointerdown', away, true);
-      document.removeEventListener('pagecraft:outside-pointer', onClose);
-      window.removeEventListener('blur', onClose);
+      document.removeEventListener('pagecraft:outside-pointer', requestClose);
+      window.removeEventListener('blur', requestClose);
       document.removeEventListener('keydown', key, true);
-      window.removeEventListener('resize', onClose);
-      window.removeEventListener('scroll', onClose, true);
+      window.removeEventListener('resize', requestClose);
+      window.removeEventListener('scroll', requestClose, true);
     };
   }, [anchor, onClose]);
 

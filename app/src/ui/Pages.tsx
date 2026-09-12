@@ -12,15 +12,23 @@ import { useState } from 'preact/hooks';
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { AssetField } from './AssetField';
+import { MotionPresence } from './MotionPresence';
 
 function PageRow({ i }: { i: number }) {
   const p = C.state.pages[i];
   const last = i === C.state.pages.length - 1;
   const collection = p.collection ? C.findCollection(p.collection) : null;
+  const closeActions = (details: HTMLDetailsElement | null, focus = false) => {
+    if (!details?.open || details.hasAttribute('data-pc-menu-closing')) return;
+    const panel = details.querySelector<HTMLElement>('.act'), motion = window.__pcMotion;
+    const done = () => { details.open = false; details.removeAttribute('data-pc-menu-closing'); if (focus) details.querySelector<HTMLElement>('summary')?.focus({ preventScroll: true }); };
+    details.setAttribute('data-pc-menu-closing', '');
+    if (panel && motion && !motion.reduced()) motion.exit(panel, { kind: 'popover', hide: false }).then(done); else done();
+  };
 
   const act = async (e: MouseEvent, name: string) => {
     e.stopPropagation();
-    (e.currentTarget as HTMLElement).closest('details')?.removeAttribute('open');
+    closeActions((e.currentTarget as HTMLElement).closest('details'));
     if (name === 'up' || name === 'down') { C.edit(() => C.pageMove(i, name === 'up' ? -1 : 1)); L.toast('Page moved ' + name + '.'); return; }
     if (name === 'dup') { C.edit(() => C.pageDup(i)); L.toast('Page duplicated.'); return; }
     const ok = await L.askConfirm('Delete this page?',
@@ -48,14 +56,15 @@ function PageRow({ i }: { i: number }) {
       <span class="page-kind">{collection ? 'CMS template' : C.isFront(p) ? 'Front page' : C.isNotFound(p) ? 'Not found' : 'Page'}</span>
       <button class="btn tiny" onClick={() => L.openPage(i, true)} aria-label={'Page settings and SEO for ' + p.name}>Settings &amp; SEO</button>
       {L.canStructure() && <details class="page-actions"
-        onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) e.currentTarget.removeAttribute('open'); }}
+        onToggle={e => { if (e.currentTarget.open && !e.currentTarget.hasAttribute('data-pc-menu-closing')) window.__pcMotion?.enter(e.currentTarget.querySelector<HTMLElement>('.act')!, { kind: 'popover' }); }}
+        onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) closeActions(e.currentTarget); }}
         onKeyDown={e => {
           if (e.key !== 'Escape') return;
           e.preventDefault(); e.stopPropagation();
-          e.currentTarget.removeAttribute('open');
-          e.currentTarget.querySelector('summary')?.focus();
+          closeActions(e.currentTarget, true);
         }}>
-        <summary aria-label={'Actions for ' + p.name} title={'Actions for ' + p.name}>
+        <summary aria-label={'Actions for ' + p.name} title={'Actions for ' + p.name}
+          onClick={e => { const details=e.currentTarget.parentElement as HTMLDetailsElement;if(details.hasAttribute('data-pc-menu-closing')){e.preventDefault();details.removeAttribute('data-pc-menu-closing');const panel=details.querySelector<HTMLElement>('.act');if(panel)window.__pcMotion?.enter(panel,{kind:'popover'});return;}if(details.open){e.preventDefault();closeActions(details,true);} }}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
             <circle cx="3" cy="8" r="1" /><circle cx="8" cy="8" r="1" /><circle cx="13" cy="8" r="1" />
           </svg>
@@ -106,7 +115,7 @@ export function PagesWorkspace() {
       <div class="pages-list-head" aria-hidden="true"><span>Page</span><span>Path</span><span>Type</span><span>Actions</span></div>
       <div class="pagelist" aria-label="Site pages">
         {rows.map(({p, i}) => <PageRow key={p.id} i={i} />)}
-        {!rows.length && <div class="pages-empty pc-list-empty"><p>No pages match “{query}”.</p><button class="btn" onClick={() => setQuery('')}>Clear search</button></div>}
+        <MotionPresence show={!rows.length} class="pages-empty pc-list-empty" kind="panel"><p>No pages match “{query}”.</p><button class="btn" onClick={() => setQuery('')}>Clear search</button></MotionPresence>
       </div>
     </div>
   </section>;

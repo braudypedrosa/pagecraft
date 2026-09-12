@@ -16,6 +16,7 @@ import {
 } from '../WordPressContentPicker';
 import type { Control, Node as PcNode } from '../../core/types';
 import { useRef, useState } from 'preact/hooks';
+import { MotionPresence } from '../MotionPresence';
 
 type P = { n: PcNode; c: Control };
 
@@ -147,7 +148,7 @@ export function ItemsCtl({ n, c }: P) {
             <Icon name="trash" size={11} />
           </button>
         </div>
-        {open === k ? <div class="navitem-body">
+        <MotionPresence show={open === k} class="navitem-body" kind="panel">
           <label>Navigation label</label>
           <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label" />
 
@@ -211,7 +212,7 @@ export function ItemsCtl({ n, c }: P) {
               commit(k, 'target', it.target === '_blank' ? '' : '_blank');
             }}><i /></button>
           </div>
-        </div> : null}
+        </MotionPresence>
       </div>
     })}
     <div class="navitem-add" style={{ marginTop: arr.length ? 'var(--gap-1)' : '0' }}>
@@ -264,7 +265,7 @@ function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
         setOpen(open === k ? null : open !== null && open > k ? open - 1 : open);
       }}><Icon name="trash" size={11} /></button>
     </div>
-    {expanded ? <div class="repeater-body">{children}</div> : null}
+    <MotionPresence show={expanded} class="repeater-body" kind="panel">{children}</MotionPresence>
   </div>;
 }
 

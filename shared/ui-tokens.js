@@ -33,6 +33,12 @@ export const UI_TOKENS_CSS = `:root{
   --pc-dialog-edge:16px;
   --pc-dialog-radius:16px;
   --pc-dialog-scrim:rgba(17,19,17,.45);
+  --pc-motion-quick:120ms;
+  --pc-motion-enter:180ms;
+  --pc-motion-dialog:200ms;
+  --pc-motion-exit:120ms;
+  --pc-ease-enter:cubic-bezier(.2,.8,.2,1);
+  --pc-ease-exit:cubic-bezier(.4,0,1,1);
   --pc-table-cell-y:4px;
   --pc-table-cell-x:8px;
   --pc-table-cell-padding:var(--pc-table-cell-y) var(--pc-table-cell-x);

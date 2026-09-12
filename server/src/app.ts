@@ -6,6 +6,7 @@ import { UI_FOCUS_CSS } from '../../shared/ui-focus.js';
 import { UI_FONT_FACES, UI_FONTS_CSS } from '../../shared/ui-fonts.js';
 import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
+import { UI_MOTION_BOOT_SCRIPT, UI_MOTION_CSS } from '../../shared/ui-motion.js';
 import { submissionRoutes } from './submissions-routes.ts';
 import type { FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
@@ -6045,10 +6046,11 @@ const shell = (title: string, body: string) =>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
-<script>${ACTION_FEEDBACK_BOOT_SCRIPT}<\/script>
+<script>${UI_MOTION_BOOT_SCRIPT}${ACTION_FEEDBACK_BOOT_SCRIPT}<\/script>
 <style>
   ${UI_FONTS_CSS}
   ${UI_TOKENS_CSS}
+  ${UI_MOTION_CSS}
   :root{color-scheme:light}
   body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--pc-canvas-surround);color:#111311;
        font:15px/1.5 "Manrope",system-ui,-apple-system,sans-serif}

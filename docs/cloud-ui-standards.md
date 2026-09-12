@@ -139,6 +139,14 @@ At 768–1024px, CMS schema Name and Type share the upper row and Required share
 
 Closing unchanged Project settings is quiet and makes no save request. Pending name/document edits still settle before Close completes, and failures remain recoverable. Keyboard & tips describes the current host’s saving and available shortcuts; Cloud drafts, WordPress saving and standalone browser storage are different contracts.
 
+## Interface motion
+
+Pagecraft editor and Cloud chrome share restrained motion through `shared/ui-motion.js`. Quick control feedback uses 120ms, standard entrances 180ms, dialog entrances 200ms and exits 120ms. Movement stays within 4–8px; dialogs also begin near 98% scale. Published-site output does not load this interface controller.
+
+Dialogs, menus, popovers, custom selects, colour pickers, notices, workspaces and disclosures must use the shared enter/exit lifecycle. Exiting surfaces remain mounted until completion, cannot intercept pointer input, and restore focus after closing where the interaction owns an opener. Rapid reopening cancels the stale exit. `prefers-reduced-motion: reduce` completes the state change immediately without spatial movement.
+
+Canvas selection geometry, resize handles, drag-and-drop geometry, typing, live inspector values, scrolling and individual table-row updates remain immediate. Workspace transitions use opacity and small vertical movement only; they must not animate widths or change canvas measurements.
+
 ## Internal component reference
 
 The authenticated staging [component gallery](https://staging.itspagecraft.com/internal/components) demonstrates the actual Cloud and builder style cascades and shared interaction behavior. Its 24 desktop/tablet PNG baselines and source-review gate are part of `npm test`. See [component-gallery.md](component-gallery.md) for capture states, comparison commands, review requirements and coverage limits.

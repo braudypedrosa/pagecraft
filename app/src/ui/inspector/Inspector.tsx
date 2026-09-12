@@ -38,7 +38,7 @@ function Group({ title, n, items, gk, collapsed = false }: { title: string; n: P
         onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
         <Icon name="caret" size={10} /> {title}
       </button>
-      <div class="gb" id={bodyId}>
+      <div class="gb" id={bodyId} aria-hidden={closed ? 'true' : undefined}>
         {shown ? shown.map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
       </div>
     </div>
@@ -56,7 +56,7 @@ function Panel({ title, n, gk, children }: { title: string; n: PcNode; gk?: stri
         onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
         <Icon name="caret" size={10} /> {title}
       </button>
-      <div class="gb" id={bodyId}>{children}</div>
+      <div class="gb" id={bodyId} aria-hidden={closed ? 'true' : undefined}>{children}</div>
     </div>
   );
 }

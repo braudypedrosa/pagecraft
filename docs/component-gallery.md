@@ -13,13 +13,13 @@ Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedbac
 | Family | Captured state |
 | --- | --- |
 | Fields | Focused input with neutral background; disabled and readonly examples; labels, help and validation |
-| Actions | A busy action and progress notification; primary, secondary, destructive and disabled controls |
+| Actions | Busy and disabled controls; progress feedback; disclosure and panel enter/exit examples |
 | Tables | First row hovered, next row neutral; compact actions and empty results |
 | Menus | Open enhanced select; selected and disabled options; link/button/destructive menu items |
 | Dialogs | Open dialog with header, body, footer and corner close |
 | Feedback | Persistent error notification and recoverable refresh error |
 
-The behavior checklist additionally covers select Escape/value preservation, dialog focus return, empty footer, unsaved dialog values across resizing, processing state and success/failure recovery, and silent refresh recovery. Success notifications and ordinary keyboard interaction remain interactive examples; the PNG set is not exhaustive state coverage.
+The behavior checklist additionally covers select Escape/value preservation, dialog focus return, empty footer, unsaved dialog values across resizing, processing state and success/failure recovery, silent refresh recovery, mounted-through-exit behavior, rapid reopening, and reduced-motion completion. Success notifications and ordinary keyboard interaction remain interactive examples; the PNG set is not exhaustive state coverage.
 
 Each family also contains a **Long content and recovery** fixture using production
 components: multiline labels/help, long action labels, populated multiline rows,

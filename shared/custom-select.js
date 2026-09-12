@@ -76,6 +76,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.label : ''
   ].join('\u0001')).join('\u0002');
   const enabledOptions = select => [...select.options].filter(option => !option.disabled && !option.parentElement?.disabled);
+  const isClosed = menu => menu.hidden || menu.hasAttribute('data-pc-motion-closing');
 
   const position = record => {
     if (record.menu.hidden) return;
@@ -106,11 +107,13 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   };
 
   const close = (record, focus = false) => {
-    if (!record || record.menu.hidden) return;
-    record.menu.hidden = true;
+    if (!record || record.menu.hidden || record.menu.hasAttribute('data-pc-motion-closing')) return;
     record.trigger.setAttribute('aria-expanded', 'false');
     if (openRecord === record) openRecord = null;
     if (focus) record.trigger.focus();
+    const motion = window.__pcMotion;
+    if (motion) motion.exit(record.menu, { kind: 'popover' });
+    else record.menu.hidden = true;
   };
 
   const choose = (record, option) => {
@@ -176,7 +179,9 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     record.menu.style.setProperty('--pc-cs-fg', styles.color || '#111311');
     record.menu.style.setProperty('--pc-cs-muted', styles.color || '#6f7771');
     record.menu.style.setProperty('--pc-cs-hover', 'var(--pc-hover-bg,#f4faef)');
-    record.menu.hidden = false;
+    const motion = window.__pcMotion;
+    if (motion) motion.enter(record.menu, { kind: 'popover' });
+    else record.menu.hidden = false;
     record.trigger.setAttribute('aria-expanded', 'true');
     openRecord = record;
     position(record);
@@ -239,7 +244,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     select.addEventListener('input', () => sync(record));
     select.addEventListener('focus', () => trigger.focus());
     select.addEventListener('invalid', event => { event.preventDefault(); trigger.focus(); open(record); });
-    trigger.addEventListener('click', () => menu.hidden ? open(record) : close(record, true));
+    trigger.addEventListener('click', () => isClosed(menu) ? open(record) : close(record, true));
     trigger.addEventListener('keydown', event => {
       const options = enabledOptions(select);
       const currentIndex = Math.max(0, options.indexOf(selectedOption(select)));
@@ -247,7 +252,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
       if (event.key === 'Tab') { close(record); return; }
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        menu.hidden ? open(record) : choose(record, selectedOption(select));
+        isClosed(menu) ? open(record) : choose(record, selectedOption(select));
         return;
       }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
@@ -255,7 +260,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         const index = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
           : Math.max(0, Math.min(options.length - 1, currentIndex + (event.key === 'ArrowDown' ? 1 : -1)));
         const activate = () => setActive(record, options[index]);
-        if (menu.hidden) { open(record); requestAnimationFrame(activate); } else activate();
+        if (isClosed(menu)) { open(record); requestAnimationFrame(activate); } else activate();
         return;
       }
       if (event.key.length === 1 && /\S/.test(event.key)) {
@@ -265,7 +270,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         const match = options.find(option => option.label.toLowerCase().startsWith(typeahead));
         if (match) {
           const activate = () => setActive(record, match);
-          if (menu.hidden) { open(record); requestAnimationFrame(activate); } else activate();
+          if (isClosed(menu)) { open(record); requestAnimationFrame(activate); } else activate();
         }
       }
     });
