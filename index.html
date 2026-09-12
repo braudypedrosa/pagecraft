@@ -22522,7 +22522,7 @@ function mediaPicker(title = 'Choose from the library') {
   const p = askOpen(title, '', null, false);
   const draw = () => {
     const use = assetUsage();
-    $('#askBody').innerHTML = `<div class="media-library-drop"><div class="media-library-items">${mediaBrowserMarkup()}
+    $('#askBody').innerHTML = `<div class="media-library-drop"><div class="media-browser">${mediaBrowserMarkup()}
       <button type="button" class="btn" data-media-upload>Upload</button></div>
       <div class="media-library-overlay" aria-hidden="true">Drop images to upload</div></div>`;
     const zone = $('.media-library-drop', $('#askBody'));
