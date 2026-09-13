@@ -19761,6 +19761,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       },
       settings: settingsAdapter(transport, `/api/sites/${site}/settings`),
       releases: {
+        async prepare(sourceVersion) {
+          return (await transport.request({ method: "POST", path: `/api/sites/${site}/publication-snapshots`, body: { sourceVersion } })).body;
+        },
         async list() {
           return (await transport.request({ path: `/api/sites/${site}/publication` })).body;
         },
@@ -20432,7 +20435,7 @@ async function finishWordPress(button) {
   }
 }
 
-async function publishDraft(button) {
+async function publishDraft(button, reviewed = null) {
   const findings = lint();
   const counts = lintCounts(findings);
   if (counts.error) {
@@ -20448,10 +20451,14 @@ async function publishDraft(button) {
   $('#releasePanel')?.setAttribute('aria-busy', 'true');
   try {
     await flushDraft();
+    if (HOST.releases.prepare && (!reviewed || reviewed.sourceVersion !== SRV.version || reviewed.document !== JSON.stringify(doc()))) {
+      throw new Error('The draft changed. Create a new review preview before publishing.');
+    }
     const preview = publicationPreviewSnapshot().catch(() => null);
     const payload = await HOST.releases.publish({
-      sourceVersion: SRV.version,
-      acknowledgeWarnings: counts.warn > 0
+      sourceVersion: reviewed?.sourceVersion ?? SRV.version,
+      snapshotId: reviewed?.snapshotId,
+      acknowledgeWarnings: counts.warn > 0 || !!reviewed?.warnings?.length
     });
     void preview.then(snapshot => snapshot && payload.publicationId
       ? HOST.releases.savePreview({ publicationId: payload.publicationId, snapshot })
@@ -20502,6 +20509,57 @@ async function wordpressPublishModal() {
   if (result.status === 'error' && host.isConnected) host.innerHTML = `<b>Importer download unavailable.</b><span>${esc(result.message)}</span>`;
 }
 
+async function preparePublicationReview(button) {
+  const action = feedback().begin(button, 'Preparing preview…');
+  if (!action) return;
+  const host = $('#publicationChanges');
+  if ($('#releasePublish')) $('#releasePublish').disabled = true;
+  try {
+    await flushDraft();
+    const baseline = JSON.stringify(doc());
+    const reviewed = await HOST.releases.prepare(SRV.version);
+    reviewed.document = baseline;
+    if (!host?.isConnected) { action.cancel(); return; }
+    if (JSON.stringify(doc()) !== baseline || reviewed.sourceVersion !== SRV.version) throw new Error('The draft changed while preparing the preview. Create a new preview.');
+    const root = `/api/sites/${encodeURIComponent(SRV.siteId)}/publication-snapshots/`;
+    const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
+    const groups = [...new Set(reviewed.changes.map(change => change.group))];
+    if ($('#exReview')) $('#exReview').hidden = true;
+    host.innerHTML = `<h3>Changes to publish</h3>
+      <p class="help">Review of saved version ${esc(reviewed.sourceVersion)}. Publication includes the whole site. Shared changes may affect every page.</p>
+      ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : groups.length ? groups.map(group => `<details><summary>${esc(group)}</summary><ul>${reviewed.changes.filter(change => change.group === group).map(change => `<li>${esc(change.label)} · ${esc(change.status)}${change.pages.length ? `<small> — ${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join(' ')}</small>` : ''}</li>`).join('')}</ul></details>`).join('') : '<p>No document changes since the current publication.</p>'}
+      ${reviewed.warnings.length ? `<details><summary>${reviewed.warnings.length} publication suggestions</summary><ul>${reviewed.warnings.map(warning => `<li>${esc(warning.message)}</li>`).join('')}</ul></details>` : ''}
+      <div class="f"><label for="publicationPage">Compare page</label><select id="publicationPage">${reviewed.pages.map(path => `<option value="${esc(path)}">${esc(path === 'index.html' ? 'Home' : path.replace(/\.html$/, ''))}</option>`).join('')}</select></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--gap-2)">
+        ${reviewed.baselinePublicationId ? '<div><h4>Published version</h4><iframe id="publicationBefore" title="Published page comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>' : '<p>This site has not been published.</p>'}
+        <div><h4>Reviewed draft</h4><iframe id="publicationAfter" title="Reviewed draft comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>
+      </div>`;
+    const page = $('#publicationPage');
+    const update = () => {
+      const show = (frame, id, paths) => {
+        if (!frame) return;
+        if (paths && !paths.includes(page.value)) {
+          frame.removeAttribute('src'); frame.srcdoc = '<p style="font:14px system-ui;padding:16px">This page is not included in this version.</p>';
+        } else { frame.removeAttribute('srcdoc'); frame.src = url(id, page.value); }
+      };
+      show($('#publicationAfter'), reviewed.snapshotId, reviewed.draftPages);
+      show($('#publicationBefore'), reviewed.baselinePublicationId, reviewed.publishedPages);
+    };
+    page.addEventListener('change', update);
+    host.querySelectorAll('[data-review-page]').forEach(link => link.addEventListener('click', () => {
+      const path = link.dataset.reviewPage + '.html';
+      const available = reviewed.pages.find(candidate => candidate === path || candidate.startsWith(link.dataset.reviewPage + '/'));
+      if (available) { page.value = available; update(); $('#publicationAfter').scrollIntoView({block:'nearest'}); }
+      else { toast('This page has no output in the reviewed draft. It may have been removed or has no published entries.'); }
+    }));
+    update();
+    const publish = $('#releasePublish');
+    publish.disabled = false; publish.textContent = 'Publish reviewed version';
+    publish.onclick = () => publishDraft(publish, reviewed);
+    action.success('Review preview ready');
+  } catch (error) { action.error(error.message || 'Could not prepare the preview. Try again.'); }
+}
+
 function publishModal() {
   if (!SRV) return exportModal();
   if (editing.on) exitEdit();
@@ -20509,10 +20567,12 @@ function publishModal() {
   const mayPublish = SRV.role === 'owner' && !counts.error;
   openModal('Publish', `
     <div class="review" id="exReview"></div>
+    ${HOST.releases.prepare ? '<div id="publicationChanges"><p>Create an immutable preview to review the saved draft against the published site.</p></div>' : ''}
     <div id="releasePanel" role="status" aria-live="polite" aria-atomic="true" aria-busy="false"></div>`, `
     <button class="btn" id="releaseWordPress">Publish on WordPress</button>
     <span style="flex:1"></span>
     <button class="btn" id="releaseClose">Close</button>
+    ${SRV.role === 'owner' && HOST.releases.prepare ? '<button class="btn" id="releasePrepare">Create review preview</button>' : ''}
     ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
   ui().mountReview('exReview', true);
   /* The editor page already carries the current publication identity and version. Rendering
@@ -20522,7 +20582,10 @@ function publishModal() {
   $('#releaseClose').addEventListener('click', closeModal);
   $('#releaseWordPress').addEventListener('click', wordpressPublishModal);
   const publish = $('#releasePublish');
-  if (publish) publish.addEventListener('click', () => publishDraft(publish));
+  if (publish && HOST.releases.prepare) {
+    publish.disabled = true;
+    $('#releasePrepare').addEventListener('click', () => preparePublicationReview($('#releasePrepare')));
+  } else if (publish) publish.addEventListener('click', () => publishDraft(publish));
 }
 
 function reviewModal() {

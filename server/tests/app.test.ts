@@ -630,3 +630,79 @@ test('thumbnail rejects a save completed during optimization and permits content
   a.equal((await admin(path,{method:'POST',body:JSON.stringify({version:'2:',snapshot})},cookie)).status,200);
   a.equal((await admin(path,{method:'POST',body:JSON.stringify({version:'2:',snapshot:'a'.repeat(1500000)})},cookie)).status,413);
 });
+
+test('preparing a publication snapshot pins private source and leaves the public site unchanged', async () => {
+  const r = await rig('owner', true);
+  const { cookie } = await r.signIn();
+  const path = `/api/sites/${r.site.id}/publication-snapshots`;
+  const body = JSON.stringify({ sourceVersion: r.site.version });
+  a.equal((await r.admin(path, { method: 'POST', body })).status, 401);
+  const response = await r.admin(path, { method: 'POST', body }, cookie);
+  a.equal(response.status, 201, await response.clone().text());
+  const snapshot = await response.json();
+  const stored = await r.publications!.byId(r.site.id, snapshot.snapshotId);
+  a.ok(stored);
+  a.deepEqual((await r.publications!.source(stored))?.document, r.site.doc);
+  a.equal((await r.store.byId(r.site.id))?.publishedPublicationId, null);
+  a.equal(await r.publications!.currentBySlug(r.site.slug), null);
+  const changed = structuredClone(r.site.doc) as Doc;
+  changed.pages[0].name = 'Later draft';
+  a.equal((await r.put(r.site.id, changed, r.site.version, cookie)).status, 200);
+  a.deepEqual((await r.publications!.source(stored))?.document, r.site.doc);
+  a.equal((await r.admin(path, { method: 'POST', body }, cookie)).status, 409);
+  const stalePublish = await r.admin(`/api/sites/${r.site.id}/publish`, { method: 'POST',
+    body: JSON.stringify({ sourceVersion: r.site.version, snapshotId: snapshot.snapshotId, acknowledgeWarnings: true }) }, cookie);
+  a.equal(stalePublish.status, 409);
+  a.equal(await r.publications!.currentBySlug(r.site.slug), null);
+  a.ok(await r.publications!.source(stored), 'failed publication keeps the review snapshot intact');
+});
+
+test('reviewed snapshot serves authenticated frozen files and publishes the same materialization', async () => {
+  const r = await rig('owner', true);
+  const { cookie } = await r.signIn();
+  const prepared = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 1 })
+  }, cookie);
+  a.equal(prepared.status, 201);
+  const { snapshotId } = await prepared.json();
+  const preview = `/api/sites/${r.site.id}/publication-snapshots/${snapshotId}/files/`;
+  a.equal((await r.admin(preview)).status, 401);
+  const response = await r.admin(preview, {}, cookie);
+  a.equal(response.status, 200);
+  a.match(response.headers.get('content-security-policy')!, /sandbox allow-scripts;/);
+  a.match(response.headers.get('cache-control')!, /private, no-store/);
+  a.equal((await r.admin(preview + 'source.json', {}, cookie)).status, 404);
+  const published = await r.admin(`/api/sites/${r.site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 1, snapshotId, acknowledgeWarnings: true })
+  }, cookie);
+  a.equal(published.status, 200, await published.clone().text());
+  a.equal((await published.json()).publicationId, snapshotId);
+  a.equal((await r.publications!.currentBySlug(r.site.slug))?.id, snapshotId);
+});
+
+test('content accounts cannot prepare publication snapshots', async () => {
+  const r = await rig('content', true);
+  const { cookie } = await r.signIn();
+  a.equal((await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 1 })
+  }, cookie)).status, 403);
+});
+
+test('restoring history creates a draft without changing the publication', async () => {
+  const r = await rig('owner', true);
+  const { cookie } = await r.signIn();
+  const response = await r.admin(`/api/sites/${r.site.id}/publish`, { method: 'POST',
+    body: JSON.stringify({ sourceVersion: 1, acknowledgeWarnings: true }) }, cookie);
+  a.equal(response.status, 200);
+  const publicationId = (await response.json()).publicationId;
+  const edited = structuredClone(r.site.doc) as Doc;
+  edited.pages[0].title = 'Later draft';
+  a.equal((await r.put(r.site.id, edited, 1, cookie)).status, 200);
+  const restore = await r.admin(`/api/sites/${r.site.id}/history/1/restore`, {
+    method: 'POST', body: JSON.stringify({ currentVersion: 2 })
+  }, cookie);
+  a.equal(restore.status, 200, await restore.clone().text());
+  a.equal((await restore.json()).version, 3);
+  a.equal((await r.store.byId(r.site.id))?.publishedPublicationId, publicationId);
+  a.equal((await r.publications!.currentBySlug(r.site.slug))?.id, publicationId);
+});

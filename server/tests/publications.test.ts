@@ -1,5 +1,6 @@
 import { strict as assert } from 'node:assert';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'vitest';
@@ -97,4 +98,36 @@ test('file publications survive a new store process and never escape their root'
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+for (const backend of ['memory', 'file'] as const) {
+  test(`${backend}: pinned source survives reload independently of mutable drafts and public files`, async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pagecraft-source-'));
+    try {
+      const store = backend === 'file' ? new FileHostedPublicationStore(root) : new MemoryHostedPublicationStore();
+      const source = { document: { pages: [{ title: 'Reviewed' }] }, baselinePublicationId: null };
+      const publication = await store.create({ ...input(), source });
+      source.document.pages[0].title = 'Later edit';
+      const reader = backend === 'file' ? new FileHostedPublicationStore(root) : store;
+      const pinned = await reader.source(publication);
+      assert.deepEqual(pinned?.document, { pages: [{ title: 'Reviewed' }] });
+      assert.equal(await reader.file(publication, 'source.json'), null);
+      assert.equal(publication.files.some(file => file.path === 'source.json'), false);
+      assert.equal(await reader.source({ ...publication, siteId: 'another-site' }), null);
+      const legacy = await reader.create(input());
+      assert.equal(await reader.source(legacy), null);
+    } finally { await rm(root, { recursive: true, force: true }); }
+  });
+}
+
+test('source integrity rejects a corrupted retained document', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-source-integrity-'));
+  try {
+    const store = new FileHostedPublicationStore(root);
+    const publication = await store.create({ ...input(), source: { document: { title: 'Reviewed' }, baselinePublicationId: null } });
+    const siteKey = createHash('sha256').update(publication.siteId).digest('hex');
+    await writeFile(join(root, 'publications', siteKey, publication.id, 'source.json'), '{"document":{"title":"Changed"}}');
+    assert.equal(await store.source(publication), null);
+    assert.deepEqual(await store.file(publication, 'assets/logo.png'), Uint8Array.of(1, 2, 3));
+  } finally { await rm(root, { recursive: true, force: true }); }
 });

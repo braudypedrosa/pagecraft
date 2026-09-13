@@ -635,8 +635,11 @@ export class PgStore implements Store {
     createdBy: string; createdAt: string;
   }) {
     const { rows } = await this.db.query<Row>(
-      `with valid as materialized (
+      `with locked as materialized (
+         select id from sites where id = $1 and version = $2 for update
+       ), valid as materialized (
          select 1 from site_revisions where site_id = $1 and version = $2
+           and exists (select 1 from locked)
        ), recorded as (
          insert into hosted_publications
            (id, site_id, source_version, content_hash, storage_key, created_by, created_at)

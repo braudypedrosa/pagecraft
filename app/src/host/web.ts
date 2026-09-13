@@ -2,7 +2,7 @@ import type { UnknownDocumentInput } from '../core/types';
 import { authenticationAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
 import { FetchHostTransport, type FetchLike, type HostTransport } from './transport';
 import { adoptHostDocument } from './schema';
-import type { HostCapability, HostFeatures, HostMedia, HostSession, WebHostAdapter } from './types';
+import type { HostCapability, HostFeatures, HostMedia, HostSession, WebPublicationSnapshot, WebHostAdapter } from './types';
 
 export interface WebHostOptions {
   siteId: string;
@@ -108,6 +108,7 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
     },
     settings: settingsAdapter(transport, `/api/sites/${site}/settings`),
     releases: {
+      async prepare(sourceVersion) { return (await transport.request<WebPublicationSnapshot>({ method: 'POST', path: `/api/sites/${site}/publication-snapshots`, body: { sourceVersion } })).body; },
       async list() { return (await transport.request<unknown>({ path: `/api/sites/${site}/publication` })).body; },
       async publish(input) {
         return (await transport.request<unknown>({

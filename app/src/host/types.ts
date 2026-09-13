@@ -214,11 +214,25 @@ export interface WebRelease {
   createdAt?: string;
 }
 
+export interface WebPublicationSnapshot {
+  snapshotId: string;
+  sourceVersion: number;
+  baselinePublicationId: string | null;
+  createdAt: string;
+  comparisonAvailable: boolean;
+  draftPages: string[];
+  publishedPages: string[];
+  pages: string[];
+  changes: { group: string; label: string; status: string; pages: { id: string; name: string; slug: string }[] }[];
+  warnings: { code: string; message: string }[];
+}
 export interface WebReleaseAdapter {
+  prepare?(sourceVersion: number): Promise<WebPublicationSnapshot>;
   list(): Promise<unknown>;
   publish(input: {
     sourceVersion: number;
     acknowledgeWarnings: boolean;
+    snapshotId?: string;
   }): Promise<unknown>;
   savePreview(input: {
     publicationId: string;

@@ -26,6 +26,12 @@ export interface PublicationFile {
   sha256: string;
 }
 
+export interface PublicationSource {
+  document: unknown;
+  baselinePublicationId: string | null;
+  warnings?: { code: string; message: string; where?: { page?: string; slug?: string; region?: string; node?: string } }[];
+}
+
 export interface PublicationSummary {
   format: "pagecraft.hosted-publication.v1";
   id: string;
@@ -35,6 +41,8 @@ export interface PublicationSummary {
   sourceVersion: number;
   createdAt: string;
   contentHash: string;
+  /** Private source integrity; never an exported site file. */
+  sourceHash?: string;
   files: PublicationFile[];
 }
 
@@ -44,12 +52,14 @@ export interface HostedPublicationStore {
     slug: string;
     host: string;
     sourceVersion: number;
+    source?: PublicationSource;
     files: PublicationInputFile[];
   }): Promise<PublicationSummary>;
   byId(
     siteId: string,
     publicationId: string,
   ): Promise<PublicationSummary | null>;
+  source(publication: PublicationSummary): Promise<PublicationSource | null>;
   currentBySlug(slug: string): Promise<PublicationSummary | null>;
   currentByHost(host: string): Promise<PublicationSummary | null>;
   promote(publication: PublicationSummary): Promise<void>;
@@ -89,6 +99,7 @@ function validateInput(input: {
   slug: string;
   host: string;
   sourceVersion: number;
+  source?: PublicationSource;
   files: PublicationInputFile[];
 }) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(input.siteId)) {
@@ -130,6 +141,7 @@ function summaryFor(input: {
   slug: string;
   host: string;
   sourceVersion: number;
+  source?: PublicationSource;
   files: PublicationInputFile[];
 }): PublicationSummary {
   const files = input.files.map((file) => ({
@@ -146,6 +158,7 @@ function summaryFor(input: {
     host: input.host.toLowerCase(),
     sourceVersion: input.sourceVersion,
     createdAt: new Date().toISOString(),
+    ...(input.source ? { sourceHash: sha256(JSON.stringify(input.source)) } : {}),
     contentHash: sha256(JSON.stringify({
       slug: input.slug,
       host: input.host.toLowerCase(),
@@ -165,6 +178,7 @@ function validSummary(value: unknown): value is PublicationSummary {
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(row.slug) &&
     Number.isInteger(row.sourceVersion) && row.sourceVersion > 0 &&
     HASH.test(row.contentHash) &&
+    (row.sourceHash === undefined || HASH.test(row.sourceHash)) &&
     Array.isArray(row.files) &&
     row.files.every((file) =>
       !!safePublicationPath(file.path) && HASH.test(file.sha256) &&
@@ -177,7 +191,7 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
   private readonly deletedSites = new Set<string>();
   private publications = new Map<
     string,
-    { summary: PublicationSummary; files: Map<string, Uint8Array> }
+    { summary: PublicationSummary; source?: PublicationSource; files: Map<string, Uint8Array> }
   >();
   private slugs = new Map<string, string>();
   private hosts = new Map<string, string>();
@@ -189,12 +203,15 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
     slug: string;
     host: string;
     sourceVersion: number;
+    source?: PublicationSource;
     files: PublicationInputFile[];
   }) {
+    input = { ...input, source: input.source ? structuredClone(input.source) : undefined };
     validateInput(input);
     const summary = summaryFor(input);
     this.publications.set(summary.id, {
       summary: structuredClone(summary),
+      source: input.source ? structuredClone(input.source) : undefined,
       files: new Map(
         input.files.map((file) => [file.path, file.bytes.slice()]),
       ),
@@ -205,6 +222,12 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
   async byId(siteId: string, publicationId: string) {
     const row = this.publications.get(publicationId);
     return row?.summary.siteId === siteId ? structuredClone(row.summary) : null;
+  }
+
+  async source(publication: PublicationSummary) {
+    const row = this.publications.get(publication.id);
+    if (row?.summary.siteId !== publication.siteId || !row.source) return null;
+    return structuredClone(row.source);
   }
 
   async currentBySlug(slug: string) {
@@ -367,8 +390,10 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
     slug: string;
     host: string;
     sourceVersion: number;
+    source?: PublicationSource;
     files: PublicationInputFile[];
   }) {
+    input = { ...input, source: input.source ? structuredClone(input.source) : undefined };
     validateInput(input);
     const summary = summaryFor(input);
     const finalRoot = this.publicationRoot(summary.siteId, summary.id);
@@ -387,6 +412,7 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
           await handle.close();
         }
       }));
+      if (input.source) await this.atomicJson(join(temporary, "source.json"), input.source);
       await this.atomicJson(join(temporary, "manifest.json"), summary);
       await Promise.all(summary.files.map(async (record) => {
         const stored = new Uint8Array(
@@ -421,6 +447,18 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
           value.id === publicationId
         ? value
         : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async source(publication: PublicationSummary): Promise<PublicationSource | null> {
+    const manifest = await this.byId(publication.siteId, publication.id);
+    if (!manifest?.sourceHash) return null;
+    try {
+      const bytes = await readFile(join(this.publicationRoot(publication.siteId, publication.id), "source.json"));
+      if (sha256(bytes) !== manifest.sourceHash) return null;
+      return JSON.parse(decoder.decode(bytes));
     } catch {
       return null;
     }

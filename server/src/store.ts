@@ -364,7 +364,7 @@ export class MemoryStore implements Store {
     createdBy: string; createdAt: string;
   }) {
     const site = this.sites.get(input.id);
-    if (!site || !input.publicationId
+    if (!site || site.version !== input.version || !input.publicationId
       || !(this.revisions.get(input.id) || []).some(revision => revision.version === input.version)) return null;
     const key = `${input.id}:${input.version}:${input.contentHash}`;
     const publicationId = this.hostedPublicationKeys.get(key) || input.publicationId;

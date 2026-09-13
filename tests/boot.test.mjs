@@ -138,6 +138,10 @@ test('server mode separates draft saving from explicit release publication', asy
             publishedAt: '2026-08-26T00:00:00.000Z', publicUrl: 'https://build.itspagecraft.com/site-release/'
           }) };
         }
+        if (String(url) === '/api/sites/site-release/publication-snapshots') {
+          return { ok: true, status: 201, json: async () => ({ snapshotId: 'reviewed-7', sourceVersion: 7,
+            baselinePublicationId: null, comparisonAvailable: true, changes: [], pages: ['index.html'], warnings: [] }) };
+        }
         if (String(url) === '/api/sites/site-release/publication') {
           return { ok: true, status: 200, json: async () => ({
             publishedVersion: 5,
@@ -183,15 +187,18 @@ test('server mode separates draft saving from explicit release publication', asy
     'opening Publish must not create a publication');
   dom.window.askConfirm = async () => true;
   const publish = doc.querySelector('#releasePublish');
-  a.ok(publish && !publish.disabled, 'an owner with no blocking findings can publish');
+  a.ok(publish && publish.disabled, 'publication requires a reviewed snapshot');
+  await dom.window.preparePublicationReview(doc.querySelector('#releasePrepare'));
+  a.equal(publish.disabled, false, 'a prepared snapshot can be published');
   publish.click();
   const publishUntil = Date.now() + 2500;
-  while (!calls.some(([, method]) => method === 'POST') && Date.now() < publishUntil) {
+  while (!calls.some(([url, method]) => url.endsWith('/publish') && method === 'POST') && Date.now() < publishUntil) {
     await new Promise(r => setTimeout(r, 25));
   }
   const post = calls.find(([url, method]) => url === '/api/sites/site-release/publish' && method === 'POST');
   a.ok(post, 'Publish promotes the saved draft through the hosted publication API');
   const body = JSON.parse(post[2]);
+  a.equal(body.snapshotId, 'reviewed-7');
   a.equal(body.sourceVersion, 7, 'a clean publication reuses the already-saved draft version');
   a.equal(typeof body.acknowledgeWarnings, 'boolean');
   a.equal(post[3]['X-Pagecraft-Editor-Session'], 'scoped-editor-session');

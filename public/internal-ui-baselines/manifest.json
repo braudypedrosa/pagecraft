@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-12T15:16:06.131Z",
+  "capturedAt": "2026-09-13T14:44:49.769Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "c3489b98cf9fd7b009ee11642a01fab59d6ab8a42822f82d8a6332f4d90c30b8",
+    "builder.html": "e3681667ea932e87028dca845a5f22f3b2fe7de4428c123073b9725d56a573df",
     "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
     "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
@@ -31,69 +31,59 @@
   },
   "behaviorChecks": [
     {
-      "host": "builder-cloud",
-      "check": "Custom select opens, Escape closes it, preserves Home, and returns focus",
+      "host": "cloud",
+      "check": "Dialog Escape closes and restores opener focus",
       "passed": true
     },
     {
-      "host": "builder-cloud",
-      "check": "Dialog opens, Escape closes it after the exit lifecycle, and focus returns to Open dialog",
+      "host": "cloud",
+      "check": "Select Escape preserves Home selection",
       "passed": true
     },
     {
-      "host": "builder-cloud",
-      "check": "Notification dismissal removes only the transient alert and preserves inline recovery alerts",
+      "host": "builder",
+      "check": "Dialog Escape closes and restores opener focus",
       "passed": true
     },
     {
-      "host": "builder-cloud",
-      "check": "Disclosure opens and closes with matching aria-expanded and hidden states",
-      "passed": true
-    },
-    {
-      "host": "builder-cloud",
-      "check": "Reduced-motion emulation closes the disclosure immediately without a stale surface",
-      "passed": true
-    },
-    {
-      "host": "builder-cloud",
-      "check": "Rapid reopen cancellation, delayed removal, and reduced-motion fallback pass focused automated tests",
+      "host": "builder",
+      "check": "Select Escape preserves Home selection",
       "passed": true
     }
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "acaf1474ec97fe0b257f9e89754069e48dbdbc9d30189a635f1de6a73e0ff485",
+      "sha256": "610f935497b2b4b70d29559316c6de99b9d26f50f65df614e6a8294e0ce91bb2",
       "width": 1440,
       "height": 1056,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-fields-768.png": {
-      "sha256": "7d39ca3f5486a576922f1d4291a48555bcee1a7700c4e7dca3afb66c06bd751b",
+      "sha256": "891226da7bc75d99aeb0ddb8657fb026900d9fc5591458634c29fd0cd2cf8fc9",
       "width": 768,
       "height": 1504,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-actions-1440.png": {
-      "sha256": "a7627e24180254c58a8bc37d00f7d5baaf17b58fc309d5a5d7016c87653f9218",
+      "sha256": "a9be21bbdfa99bb4d3fbf0e702c95e51424c44ce0a8fea13f823e4822b019d28",
       "width": 1440,
       "height": 929,
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-actions-768.png": {
-      "sha256": "7e9fb2268a67c41bcdff854eb5167fbde9a9011051d6c513a03fff8719a316f9",
+      "sha256": "0d5fab4a3837740030d030d4a60eeb9d27a1e1dc31ca3372166b0ef6e6c3fb5a",
       "width": 768,
       "height": 979,
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-tables-1440.png": {
-      "sha256": "d9dcfec2ef7b3cb1fca8004679fb9a5ea2c72cc9205954ff62dde5d74822e095",
+      "sha256": "bde59c1d947776898aa1f740f632bb1c28b9ea4a567226ca5896feee4ce7b8f4",
       "width": 1440,
       "height": 1062,
       "state": "First row hovered, second row neutral, empty result"
     },
     "cloud-tables-768.png": {
-      "sha256": "d5364c355accba4d8cac53d6d72bad3080e3ca7686e179e4543dabcd4b75c29c",
+      "sha256": "07cffd911049048b4786be2909fb2fb4e14df28dc32d943910c6df7db596a92d",
       "width": 768,
       "height": 1116,
       "state": "First row hovered, second row neutral, empty result"
@@ -105,19 +95,19 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "cloud-menus-768.png": {
-      "sha256": "6d2086041ec9ca76e049a0bc6ff5d8931af4b591673939e90de8a3c86d4e7691",
+      "sha256": "e175e518c7cf6549d65c57ff8d2c04202db2b3741594f7eaac7f3feb7613f77c",
       "width": 768,
       "height": 943,
       "state": "Open picker, selected/disabled options and menu items"
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "28b5fe33ecfcdc4e36dc2a26c2489c906627e1893e02194c13fa5f579999f00c",
+      "sha256": "c877020f8b36d672d0b9bcaa7e77244abc3fe5e12a0674b5c912c7b1d93d5f15",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "cloud-dialogs-768.png": {
-      "sha256": "5f13189308505f5a6fbc5b2ced2f73758fbded7986b7afe81bf9ae7c65f120d4",
+      "sha256": "1acec217b59fee6f628786ffcb173abbe16effd557cb93fb2aeaf9469d7a4866",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
@@ -129,43 +119,43 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "cloud-feedback-768.png": {
-      "sha256": "be53191e7d1af2d93ce2059bf963d95bd2fbe5454b39019cabe837512ae3b038",
+      "sha256": "afd419c39a5a5d809e64e4cfdb9cbdae3456958048809285fa5f61c6f0a6dd81",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-fields-1440.png": {
-      "sha256": "15e82b5555fbe1d60d2317602a23f4beadb8da8243f4301c28a9d107add83a87",
+      "sha256": "4fa43045407b777d29e8d0ed8b25ab7f11f038f439a2c8c5273e67178b71ccb6",
       "width": 1440,
       "height": 1117,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-fields-768.png": {
-      "sha256": "7ccef57b90a9dcc217183d7c9905e3834f7e6bd2ab7cc55c7a80b36a0a6cc44b",
+      "sha256": "baa2994ef301d3dd0b7fb7a9a3ffdc26a7661cef2f706870c5a25e375a3acb4e",
       "width": 768,
       "height": 1787,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-actions-1440.png": {
-      "sha256": "9a9fad431e9ca4b0f96496cd6ff27a510b68fb2ed2599f1f5f85dc306a9cac17",
+      "sha256": "a9bc823f422b41b347f599b3d2a0437f2128de39f64316ce9fdc26f98f8fa56b",
       "width": 1440,
       "height": 900,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-actions-768.png": {
-      "sha256": "82cb144749934befeb5eb980cf65eeb383ef0014e7d37d4cb46a84252a6fbd3d",
+      "sha256": "8afca00b387be081611398a25f96b8b7ac6529c1ab38e9110af12e00eeb025fa",
       "width": 768,
       "height": 940,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-tables-1440.png": {
-      "sha256": "81dc4c93990fc1eb749290cab749e8837e7eed79064a378961d05a7610a8b93d",
+      "sha256": "9205835e707b96f02e9fa8cb0079d2b5a8a324e43e1e09361bb5f546bac998fc",
       "width": 1440,
       "height": 1151,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-tables-768.png": {
-      "sha256": "93de835b8100eba8b1d9f0174defb6c42f3f36ed47c2e5d4f2496e3e05351119",
+      "sha256": "3e55070e03000e9233f21c89247435e9cc79d9e0c7b3b6bb580f145ddf7c515b",
       "width": 768,
       "height": 1201,
       "state": "First row hovered, second row neutral, empty result"
@@ -177,31 +167,31 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-menus-768.png": {
-      "sha256": "f15355261f9cb75491c3208d4926bdb0dfdd5592f8eaba28b2ffd451fc5e4816",
+      "sha256": "a2aaa81fe332aa1ae5cda952df016126657e5c2f0a56f6755f709f6884d99a89",
       "width": 768,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-dialogs-1440.png": {
-      "sha256": "cee359fddda0aeb2fadef07345ddf9b9236bfd0ed1b786faae62b2f8817fe21e",
+      "sha256": "7a8f0690ed36135a87e29a90c6ad98b083201ef43d8055d3b6c0708f8417f896",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "builder-dialogs-768.png": {
-      "sha256": "75b6b5b68767aee9b1bef8d341955e7ebe096751b227c841fa923d1b6a1a0bdd",
+      "sha256": "6848d52ae4f94c114e57e1d44c8a420bf813391519e7d6632fa45c07cda28f33",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "builder-feedback-1440.png": {
-      "sha256": "1454bd2a072fe9573d410398577107a84aefa417eacc220299d73682195140de",
+      "sha256": "7d32502bfee5025b8460ebf0c860ee9122502445b1e9cd232d9fda3350248ca1",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-feedback-768.png": {
-      "sha256": "1105d2b9d18a9ad4ca86391db32af5daead2bd60b347c8618960865d0287a8de",
+      "sha256": "415e36014a7476625b56520ba2398332593c61968cc75cacd4d629e11b66002d",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"

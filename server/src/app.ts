@@ -1,3 +1,5 @@
+import { publicationPreviewHtml } from "./publication-preview.ts";
+import { publicationChanges } from "./publication-changes.ts";
 import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
 import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
@@ -2202,7 +2204,35 @@ export function createApp(o: Options) {
     }
   });
 
-  app.post("/api/sites/:id/publish", async (c) => {
+  app.get("/api/sites/:id/publication-snapshots/:snapshot/files/*", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    if (!o.publications) return deny(c, 404);
+    const publication = await o.publications.byId(id, c.req.param("snapshot"));
+    if (!publication) return deny(c, 404);
+    const prefix = `api/sites/${encodeURIComponent(id)}/publication-snapshots/${publication.id}/files`;
+    const path = resolvePath(new URL(c.req.url).pathname.split("/files/")[1] || "");
+    const record = publication.files.find(file => file.path === path);
+    if (!record) return deny(c, 404);
+    const bytes = await o.publications.file(publication, path);
+    if (!bytes) return c.text("Preview unavailable", 503);
+    c.header("Cache-Control", "private, no-store");
+    c.header("X-Robots-Tag", "noindex, nofollow");
+    c.header("X-Content-Type-Options", "nosniff");
+    c.header("Content-Type", record.mediaType);
+    // Custom page code runs in an opaque sandbox, without access to editor APIs or forms.
+    c.header("Content-Security-Policy", "sandbox allow-scripts; connect-src 'none'; form-action 'none'; frame-ancestors 'self'");
+    if (record.mediaType.startsWith("text/html")) {
+      const html = await publicationPreviewHtml(o.publications, publication, path, new TextDecoder().decode(bytes));
+      return c.body(hostedHtml(html, path,
+        new Map(publication.files.map(file => [file.path, ""])), prefix));
+    }
+    return c.body(new Uint8Array(bytes).buffer);
+  });
+
+  for (const action of ["publish", "publication-snapshots"] as const) app.post(`/api/sites/:id/${action}`, async (c) => {
+    const prepareSnapshot = action === "publication-snapshots";
     const id = c.req.param("id");
     if (!o.publications) {
       return c.json(
@@ -2212,6 +2242,7 @@ export function createApp(o: Options) {
     }
     const body = await c.req.json().catch(() => null) as {
       sourceVersion?: number;
+      snapshotId?: string;
       acknowledgeWarnings?: boolean;
     } | null;
     const sourceVersion = body?.sourceVersion;
@@ -2254,7 +2285,7 @@ export function createApp(o: Options) {
       }, 409);
     }
 
-    if (site.publishedPublicationId) {
+    if (!prepareSnapshot && !body?.snapshotId && site.publishedPublicationId) {
       const current = await o.publications.byId(
         id,
         site.publishedPublicationId,
@@ -2283,13 +2314,27 @@ export function createApp(o: Options) {
       }
     }
 
+    let publication: PublicationSummary;
+    if (!prepareSnapshot && body?.snapshotId) {
+      const snapshot = await o.publications.byId(id, body.snapshotId);
+      const source = snapshot && await o.publications.source(snapshot);
+      if (!snapshot || !source) return c.json({ error: "snapshot_not_found" }, 404);
+      if (snapshot.sourceVersion !== sourceVersion || snapshot.slug !== site.slug || snapshot.host !== site.host.toLowerCase()) {
+        return c.json({ error: "stale_snapshot", currentVersion: site.version }, 409);
+      }
+      if (source.warnings?.length && !body.acknowledgeWarnings) {
+        return c.json({ error: "publication_warnings", findings: source.warnings }, 409);
+      }
+      // Promotion uses the exact materialized bytes inspected during review.
+      publication = snapshot;
+    } else {
     const revision = preparedRevision === undefined
       ? await o.store.revision(id, sourceVersion)
       : preparedRevision;
     if (!revision) return c.json({ error: "source_revision_not_found" }, 404);
     let document: Doc | null;
     try {
-      document = adopt(revision.doc);
+      document = adopt(structuredClone(revision.doc));
     } catch (error) {
       return c.json({
         error: "publication_validation_failed",
@@ -2343,7 +2388,7 @@ export function createApp(o: Options) {
         })),
       }, 422);
     }
-    if (warnings.length && body?.acknowledgeWarnings !== true) {
+    if (!prepareSnapshot && warnings.length && body?.acknowledgeWarnings !== true) {
       return c.json({
         error: "warning_acknowledgement_required",
         findings: warnings.map((finding) => ({
@@ -2371,13 +2416,14 @@ export function createApp(o: Options) {
         bytes: asset.bytes,
       })),
     ];
-    let publication: PublicationSummary;
     try {
       publication = await o.publications.create({
         siteId: id,
         slug: site.slug,
         host: site.host,
         sourceVersion,
+        source: { document: revision.doc, baselinePublicationId: site.publishedPublicationId || null,
+          warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where })) },
         files,
       });
     } catch (error) {
@@ -2385,6 +2431,27 @@ export function createApp(o: Options) {
         error: "publication_write_failed",
         detail: String((error as Error).message),
       }, 503);
+    }
+    if (prepareSnapshot) {
+      const baseline = site.publishedPublicationId
+        ? await o.publications.byId(id, site.publishedPublicationId) : null;
+      const pinned = baseline && await o.publications.source(baseline);
+      const legacy = !pinned && baseline ? await o.store.revision(id, baseline.sourceVersion) : null;
+      const baselineDocument = pinned?.document || legacy?.doc;
+      const before = baselineDocument ? adopt(structuredClone(baselineDocument) as Doc) : null;
+      return c.json({
+        comparisonAvailable: !baseline || !!before,
+        changes: publicationChanges(before, document),
+        snapshotId: publication.id,
+        sourceVersion,
+        baselinePublicationId: site.publishedPublicationId || null,
+        createdAt: publication.createdAt,
+        draftPages: publication.files.filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
+        publishedPages: (baseline?.files || []).filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
+        pages: [...new Set([...publication.files, ...(baseline?.files || [])].filter(file => file.mediaType.startsWith("text/html")).map(file => file.path))],
+        warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where })),
+      }, 201);
+    }
     }
     let committed: Site | null;
     if (o.cloudMutations && publishIdentity) {
@@ -2397,7 +2464,7 @@ export function createApp(o: Options) {
         identity: publishIdentity,
       });
       if (result.status !== "published") {
-        await o.publications.discard(publication).catch(() => undefined);
+        if (!body?.snapshotId) await o.publications.discard(publication).catch(() => undefined);
         if (result.status === "missing") return deny(c, 404);
         if (result.status === "forbidden") return deny(c, 403);
         if (result.status !== "conflict") {
@@ -2420,7 +2487,7 @@ export function createApp(o: Options) {
         createdAt: publication.createdAt,
       });
       if (!committed) {
-        await o.publications.discard(publication).catch(() => undefined);
+        if (!body?.snapshotId) await o.publications.discard(publication).catch(() => undefined);
         return c.json(
           { error: "publication_commit_failed", retryable: true },
           409,
