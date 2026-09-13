@@ -87,6 +87,7 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
     menus: menuAdapter(transport, `/api/sites/${site}/menus`),
     revisions: revisionAdapter(transport, `/api/sites/${site}/history`),
     assets: {
+      retainsHistory: true,
       async tag(id, tags, version) {
         return asMedia((await transport.request<any>({method: 'PATCH', path: `${assetRoot}/${encodeURIComponent(id)}`, body: {tags, version}})).body);
       },

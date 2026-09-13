@@ -26,7 +26,7 @@ features are available.
 | Phase | Deliverables | State |
 | --- | --- | --- |
 | 0 | Verified release retention and quota preflight; expanded gallery/real-screen checks; approved shared pre-launch backend | Foundation deployed; remaining acceptance in progress |
-| 1 | Shared media browser; search/sort/usage filters/tags; usage details; bulk unused deletion; version-checked Replace everywhere with retained original bytes | In progress: shared searchable media browser and internal reference replacement; tags, retention and replacement workflow pending |
+| 1 | Shared media browser; search/sort/usage filters/tags; usage details; bulk unused deletion; version-checked Replace everywhere with retained original bytes | Implemented; final staging acceptance tracked in the Phase 1 release record |
 | 2 | Draft/publication differences by page/CMS/shared assets and styles; immutable preview snapshots; comparison and historical restore as a new draft | Not started |
 | 3 | Reviewer role; assigned private previews; anchored comments; request changes/approval/cancellation; in-app and email notifications | Not started |
 | 4 | Validated CSV mapping/create-update preview; atomic import and Undo; bulk draft/include actions; saved views; idempotent snapshot scheduling | Not started |

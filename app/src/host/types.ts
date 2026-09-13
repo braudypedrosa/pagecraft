@@ -168,6 +168,8 @@ export interface HostRevisionAdapter {
 }
 
 export interface HostAssetAdapter {
+  /** Removed bytes remain readable by retained revisions and publications. */
+  readonly retainsHistory?: boolean;
   list(): Promise<readonly HostMedia[]>;
   download(id: string): Promise<Blob>;
   upload(file: File | Blob, filename?: string): Promise<HostMedia>;

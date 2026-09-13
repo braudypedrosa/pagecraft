@@ -151,3 +151,41 @@ test('upload refresh does not replay the open modal entrance',async()=>{
   expect(enter.mock.calls.filter(([node])=>node.id==='modal'||node.id==='modalBox')).toHaveLength(0);
   enter.mockRestore();
 });
+
+test('selection mode selects assets instead of placing them and preserves selection through filtering',async()=>{
+ const {w,d,file,drag,zone}=await setup();drag(zone(),'drop',[file('select-a.png'),file('select-b.png')]);
+ await vi.waitFor(()=>expect(d.querySelectorAll('.mcard')).toHaveLength(2));
+ const before=JSON.stringify(w.__CORE.doc());d.querySelector('[data-media-select]').click();d.querySelector('.mcard').click();
+ expect(d.querySelector('[data-media-selected]').textContent).toBe('1 selected');expect(JSON.stringify(w.__CORE.doc())).toBe(before);
+ const search=d.querySelector('[data-media-search]');search.value='select-b';search.dispatchEvent(new w.Event('input'));
+ expect(d.querySelector('[data-media-selected]').textContent).toBe('1 selected');
+ d.querySelector('[data-media-select]').click();expect(d.querySelector('[data-media-selected]').textContent).toBe('');
+});
+
+test('bulk deletion blocks the entire selection when any image is referenced',async()=>{
+ const {w,d,file,drag,zone}=await setup();drag(zone(),'drop',[file('used.png'),file('unused.png')]);
+ await vi.waitFor(()=>expect(d.querySelectorAll('.mcard')).toHaveLength(2));
+ w.eval("edit(()=>{const n=insert('image',...smartTarget('image'));n.props.src='asset:qa-1';})");
+ w.mediaModal();w.assetDel=vi.fn();
+ d.querySelector('[data-media-select]').click();
+ for(const card of d.querySelectorAll('.mcard'))card.click();
+ d.querySelector('[data-media-delete]').click();
+ await vi.waitFor(()=>expect(d.querySelector('[data-media-details]').textContent).toContain('managed reference'));
+ expect(w.assetDel).not.toHaveBeenCalled();expect(w.eval('AS.mem.size')).toBe(2);
+});
+
+test('bulk deletion retains failures for retry and redraws the library total',async()=>{
+ const {w,d,file,drag,zone}=await setup();drag(zone(),'drop',[file('one.png'),file('two.png')]);
+ await vi.waitFor(()=>expect(d.querySelectorAll('.mcard')).toHaveLength(2));
+ w.askConfirm=vi.fn(async()=>true);
+ w.assetDel=vi.fn(async id=>{if(id==='qa-2')return false;w.eval('AS').mem.delete(id);return true;});
+ d.querySelector('[data-media-select]').click();for(const card of d.querySelectorAll('.mcard'))card.click();
+ d.querySelector('[data-media-delete]').click();
+ await vi.waitFor(()=>expect(d.querySelectorAll('.mcard')).toHaveLength(1));
+ expect(d.querySelector('[data-media-selected]').textContent).toBe('1 selected');
+ expect(d.querySelector('#mFoot').textContent).toContain('1 image');
+ w.assetDel=vi.fn(async id=>{w.eval('AS').mem.delete(id);return true;});
+ d.querySelector('[data-media-delete]').click();
+ await vi.waitFor(()=>expect(d.querySelectorAll('.mcard')).toHaveLength(0));
+ expect(d.querySelector('[data-media-selected]').textContent).toBe('0 selected');
+});

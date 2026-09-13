@@ -1258,7 +1258,9 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .media-browser-tools input,.media-browser-tools select{width:100%;min-width:0}
 .media-asset-details{display:flex;flex-direction:column;gap:var(--sp-3);padding:var(--sp-4);border:1px solid var(--line);border-radius:var(--r-sm);min-width:0}
 .media-asset-details .note,.media-asset-details ul{margin:0}
-.media-asset-details .media-browser-page{flex-wrap:wrap}
+.media-asset-details .media-browser-page,.media-browser-page[data-media-selection]{flex-wrap:wrap}
+.media-browser-page[data-media-selection]{justify-content:flex-start}
+.media-browser-page [data-media-selected]{margin-right:auto}
 .media-asset-details strong{min-width:0;overflow-wrap:anywhere;flex:1}
 .media-asset-details button{flex-shrink:0}
 .media-asset-details ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:var(--sp-3)}
@@ -19736,6 +19738,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       menus: menuAdapter(transport, `/api/sites/${site}/menus`),
       revisions: revisionAdapter(transport, `/api/sites/${site}/history`),
       assets: {
+        retainsHistory: true,
         async tag(id, tags, version) {
           return asMedia((await transport.request({ method: "PATCH", path: `${assetRoot}/${encodeURIComponent(id)}`, body: { tags, version } })).body);
         },
@@ -22303,6 +22306,7 @@ function mediaBrowserMarkup() {
       <label>Sort<select class="ctl" data-media-sort><option value="name">Name A–Z</option><option value="size">Largest first</option><option value="date">Newest first</option></select></label>
       <label>Usage<select class="ctl" data-media-usage><option value="all">All images</option><option value="used">Used</option><option value="unused">Unused</option></select></label>
     </div>
+    <div class="media-browser-page" data-media-selection><button type="button" class="btn" data-media-select>Select images</button><span class="note" data-media-selected></span><button type="button" class="btn" data-media-tag hidden>Add tags</button><button type="button" class="btn danger" data-media-delete hidden>Delete selected</button></div>
     <div data-media-details hidden></div>
     <div class="media-browser-results"></div>
     <div class="media-browser-page"><span class="note" data-media-count></span><button type="button" class="btn" data-media-more hidden>Show more</button></div>
@@ -22324,25 +22328,67 @@ function wireMediaViews(root, takeFiles, state, multiple = true) {
   show(state.view || 'library');
   return show;
 }
-function wireMediaBrowser(root, use, attr, choose, remove, state) {
+function wireMediaBrowser(root, use, attr, choose, remove, state, redraw = null) {
   const search = $('[data-media-search]', root), sort = $('[data-media-sort]', root), usage = $('[data-media-usage]', root);
   search.value = state.query || ''; sort.value = state.sort || 'name'; usage.value = state.usage || 'all';
   let limit = 60;
+  state.selected ||= new Set();
+  $('[data-media-selection]', root).hidden = !!root.closest('#ask');
   const render = () => {
     const all = [...AS.mem.values()];
+    for (const id of state.selected) if (!AS.mem.has(id)) state.selected.delete(id);
     const query = (state.query || '').trim().toLocaleLowerCase();
     const list = all.filter(a => [a.name, ...(a.tags || [])].join(' ').toLocaleLowerCase().includes(query)
       && (state.usage === 'used' ? use[a.id] : state.usage === 'unused' ? !use[a.id] : true));
     list.sort((a, b) => (state.sort === 'size' ? (b.size || 0) - (a.size || 0) : state.sort === 'date' ? (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) : 0) || a.name.localeCompare(b.name));
     const results = $('.media-browser-results', root);
-    results.innerHTML = list.length ? `<div class="mgrid">${mediaCards(list.slice(0, limit), use, attr)}</div>`
+    results.innerHTML = list.length ? `<div class="mgrid">${mediaCards(list.slice(0, limit), use, attr, state)}</div>`
       : `<div class="empty">${all.length ? 'No matching images. Change or clear the filters.' : 'Nothing here yet. Drop images here, or use Upload.'}</div>`;
     $('[data-media-count]', root).textContent = `${Math.min(limit, list.length)} of ${list.length} images`;
     $('[data-media-more]', root).hidden = limit >= list.length;
-    $$('[' + attr + ']', results).forEach(button => button.addEventListener('click', () => choose(button.getAttribute(attr))));
+    $('[data-media-select]', root).textContent = state.selecting ? 'Done selecting' : 'Select images';
+    $('[data-media-selected]', root).textContent = state.selecting ? `${state.selected.size} selected` : '';
+    $('[data-media-tag]', root).hidden = !state.selecting || !state.selected.size || !HOST?.assets?.tag;
+    $('[data-media-delete]', root).hidden = !state.selecting || !state.selected.size;
+    $$('[' + attr + ']', results).forEach(button => button.addEventListener('click', () => {
+      const id = button.getAttribute(attr);
+      if (!state.selecting) return choose(id);
+      if (state.selected.has(id)) state.selected.delete(id); else state.selected.add(id);
+      render();
+      $('[' + attr + '="' + id + '"]', results)?.focus({preventScroll:true});
+    }));
     $$('[data-media-detail]', results).forEach(button => button.addEventListener('click', () => mediaDetails(root, button.dataset.mediaDetail, render, button)));
     $$('[data-del]', results).forEach(button => button.addEventListener('click', () => remove(button.dataset.del, button)));
   };
+  $('[data-media-select]', root).addEventListener('click', () => { state.selecting = !state.selecting; state.selected.clear(); render(); });
+  $('[data-media-tag]', root).addEventListener('click', async () => {
+    const value = await askText('Add tags to selected images', 'Tags separated by commas', '');
+    if (value == null) return;
+    const extra = value.split(',').map(tag => tag.trim()).filter(Boolean);
+    const selected = [...state.selected].map(id => AS.mem.get(id)).filter(Boolean);
+    if (selected.some(a => new Set([...(a.tags || []), ...extra]).size > 20) || extra.some(tag => tag.length > 40)) { toast('Use up to 20 tags of 40 characters each.', {tone:'error'}); return; }
+    await withAction($('[data-media-tag]', root), 'Saving tags…', async () => {
+      for (const a of selected) { const saved = await HOST.assets.tag(a.id, [...new Set([...(a.tags || []), ...extra])], a.metadataVersion || 0); Object.assign(a, {tags:saved.tags || [], metadataVersion:saved.metadataVersion}); }
+      return true;
+    }, 'Tags saved.'); render();
+  });
+  $('[data-media-delete]', root).addEventListener('click', async () => {
+    const ids = [...state.selected], currentUsage = assetUsage(), protectedIds = ids.filter(id => currentUsage[id]);
+    if (protectedIds.length) {
+      toast(`${protectedIds.length} selected image${protectedIds.length === 1 ? ' is' : 's are'} used. Open Details to inspect their references; deselect them before deleting.`, {tone:'error'});
+      mediaDetails(root, protectedIds[0], render, $('[data-media-delete]', root)); return;
+    }
+    if (!await askConfirm('Delete selected images?', `Remove ${ids.length} unused images from the library?`, {ok:'Delete images', danger:true})) return;
+    await withAction($('[data-media-delete]', root), 'Deleting images…', async () => {
+      for (const id of ids) {
+        if (assetUsage()[id]) continue;
+        if (await assetDel(id, null, true)) state.selected.delete(id);
+      }
+      return true;
+    });
+    writeNow(); paint();
+    if (redraw) redraw(); else render();
+  });
   search.addEventListener('input', () => { state.query = search.value; limit = 60; render(); });
   sort.addEventListener('change', () => { state.sort = sort.value; limit = 60; render(); });
   usage.addEventListener('change', () => { state.usage = usage.value; limit = 60; render(); });
@@ -22370,11 +22416,13 @@ function mediaDetails(root, id, refresh, origin) {
   panel.hidden = false;
   panel.innerHTML = `<section class="media-asset-details" aria-label="Image details">
     <div class="media-browser-page"><strong>${esc(asset.name)}</strong><button type="button" class="btn" data-details-close>Close details</button></div>
-    <p class="note">${kb(asset.size)} · ${asset.w || '?'}×${asset.h || '?'} · ${asset.createdAt ? esc(new Date(asset.createdAt).toLocaleDateString()) : 'Upload date unavailable'}</p>
+    <p class="note">${kb(asset.size)} · ${asset.w && asset.h ? `${asset.w}×${asset.h}` : 'Dimensions unavailable'} · ${asset.createdAt ? esc(new Date(asset.createdAt).toLocaleDateString()) : 'Upload date unavailable'}</p>
     ${HOST?.assets?.tag ? `<form data-tags-form><label>Tags<input class="ctl" name="tags" value="${esc((asset.tags || []).join(', '))}" placeholder="Separate tags with commas"></label><button class="btn" type="submit">Save tags</button><p class="note" role="status" data-tags-status></p></form>` : ''}
     <p class="note">${SRV ? 'Removed images remain stored for history and still count toward storage. ' : ''}${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
+    ${references.length && HOST?.assets?.retainsHistory && root.closest('#modal') ? '<button type="button" class="btn" data-media-replace>Replace everywhere</button>' : ''}
     ${references.length ? `<ul>${references.map(reference => `<li><button type="button" class="btn" data-media-reference="${references.indexOf(reference)}">${esc(reference.scope)} · ${esc(reference.label)}</button></li>`).join('')}</ul>` : ''}
   </section>`;
+  $('[data-media-replace]', panel)?.addEventListener('click', () => mediaReplace(id));
   PC_UI.installUiMotion()?.enter(panel,{kind:'panel'});
   $$('[data-media-reference]', panel).forEach(button => button.addEventListener('click', () => mediaOpenReference(references[Number(button.dataset.mediaReference)])));
   $('[data-details-close]', panel).addEventListener('click', () => {
@@ -22396,11 +22444,41 @@ function mediaDetails(root, id, refresh, origin) {
     finally { button.disabled = false; }
   });
 }
-function mediaCards(list, use, attr) {
+/* Pin the reviewed draft; save before adopting it so rejected versions never enter Undo. */
+async function mediaReplaceCommit(sourceId, replacementId, baseline) {
+  while (saving) await new Promise(resolve => setTimeout(resolve, 25));
+  if (saveState === 'failed' || JSON.stringify(doc()) !== baseline) throw new Error('The draft changed. Review the replacement again.');
+  if (!HOST?.assets?.retainsHistory || !SRV) throw new Error('This host does not support retained replacements.');
+  const next = replaceMediaReferences(doc(), sourceId, replacementId);
+  saving = true;
+  try {
+    const result = await HOST.documents.save({document:next, version:SRV.version});
+    SRV.version = result.version; lastCloudDocument = JSON.stringify(next);
+    edit(() => { state.meta=next.meta; state.pages=next.pages; state.header=next.header; state.footer=next.footer; });
+    saveState='ok'; stamp('Draft saved — not published', false);
+  } finally { saving=false; if(saveAgain){saveAgain=false;writeNow();} }
+}
+async function mediaReplace(id) {
+  const baseline = JSON.stringify(doc()), refs = mediaReferences(doc()).filter(ref => ref.assetId === id);
+  if (!refs.length) return;
+  await mediaPicker({view:'upload', uploadOnly:true, multiple:false, onFiles:async files => {
+    const file=Array.from(files)[0]; if(!file) return false;
+    const replacement=await mediaTake(file); if(!replacement) return false;
+    // Upload finishes before confirmation. Cancellation leaves the new image available.
+    askClose(null);
+    await new Promise(resolve => setTimeout(resolve, 140));
+    const confirmed=await askConfirm('Replace everywhere?', `<p>Replace ${refs.length} managed reference${refs.length === 1 ? '' : 's'} with ${esc(file.name)}?</p><ul>${refs.map(ref=>`<li>${esc(ref.scope)} · ${esc(ref.label)}</li>`).join('')}</ul><p>Original images remain available for history and Undo. Published pages change only when you publish. Custom code and external URLs are excluded.</p>`, {ok:'Replace everywhere',danger:false});
+    if (!confirmed) return false;
+    const result=await withAction(null,'Replacing image…',async()=>{await mediaReplaceCommit(id,replacement,baseline);return true;},'Image replaced. Undo reverses this change.');
+    if(result) mediaModal();
+    return false;
+  }});
+}
+function mediaCards(list, use, attr, selection = {}) {
   return list.map(a => `<div class="mitem">
-    <button class="mcard" ${attr}="${a.id}" title="${esc(a.name)}">
+    <button class="mcard" ${attr}="${a.id}" title="${esc(a.name)}" ${selection.selecting ? `aria-pressed="${selection.selected.has(a.id)}"` : ''}>
       <span class="mthumb"><img src="${a.url}" alt="" loading="lazy"></span>
-      <span class="mname">${esc(a.name)}</span>
+      <span class="mname">${selection.selecting ? (selection.selected.has(a.id) ? '✓ ' : '○ ') : ''}${esc(a.name)}</span>
       <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''}${use[a.id] ? ` · used ${use[a.id]}×` : ' · unused'}</span>
     </button>
     <button class="btn" type="button" data-media-detail="${a.id}" aria-label="Details for ${esc(a.name)}">Details</button>
@@ -22544,7 +22622,7 @@ function mediaModal() {
       if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
       if (!await assetDel(id, b)) return;
       writeNow(); paint(); draw();
-    }, browserState);
+    }, browserState, draw);
   };
   draw();
 }
@@ -23285,11 +23363,19 @@ function mediaPicker(options = {}) {
     const upload = $('#ask [data-media-upload]');
     const takeFiles = async files => {
       const selected = options.multiple === false ? Array.from(files).slice(0, 1) : files;
-      if (options.onFiles) { const result = await options.onFiles(selected); if (result && zone.isConnected) askClose(null); return; }
+      if (options.onFiles) {
+        if (zone.getAttribute('aria-busy') === 'true') return;
+        zone.setAttribute('aria-busy', 'true');
+        const chooser = $('[data-media-choose]', zone); chooser.disabled = true;
+        try { const result = await options.onFiles(selected); if (result && zone.isConnected) askClose(null); }
+        finally { zone.removeAttribute('aria-busy'); chooser.disabled = false; }
+        return;
+      }
       return mediaUploadFiles(selected, () => { if (zone.isConnected && !$('#ask').hidden) { browserState.view = 'library'; draw(); } }, upload, zone);
     };
     wireMediaDrop(zone, takeFiles);
     const showView = wireMediaViews(zone, takeFiles, browserState, options.multiple !== false);
+    if (options.uploadOnly) $('[data-media-view=library]', zone).hidden = true;
     upload.addEventListener('click', () => showView('upload'));
     wireMediaBrowser(zone, use, 'data-pick', id => askClose(id), async (id, button) => {
       if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
