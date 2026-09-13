@@ -189,3 +189,15 @@ test('bulk deletion retains failures for retry and redraws the library total',as
  await vi.waitFor(()=>expect(d.querySelectorAll('.mcard')).toHaveLength(0));
  expect(d.querySelector('[data-media-selected]').textContent).toBe('0 selected');
 });
+
+test('large libraries page results while searching all filenames and tags',async()=>{
+ const {w,d}=await setup();
+ const assets=w.eval('AS');
+ for(let i=0;i<3000;i++)assets.mem.set('large-'+i,{id:'large-'+i,name:'image-'+String(i).padStart(4,'0')+'.png',size:i+1,url:'data:image/png;base64,AA==',tags:i===2999?['final-campaign']:[]});
+ w.mediaModal();expect(d.querySelectorAll('.mcard')).toHaveLength(60);
+ d.querySelector('[data-media-more]').click();expect(d.querySelectorAll('.mcard')).toHaveLength(120);
+ const search=d.querySelector('[data-media-search]');search.focus();search.value='final-campaign';search.dispatchEvent(new w.Event('input',{bubbles:true}));
+ expect(d.querySelectorAll('.mcard')).toHaveLength(1);expect(d.querySelector('.mname').textContent).toBe('image-2999.png');expect(d.activeElement).toBe(search);
+ d.querySelector('[data-media-select]').click();d.querySelector('.mcard').click();
+ expect(d.activeElement).toBe(d.querySelector('.mcard'));expect(d.querySelector('[data-media-selected]').textContent).toBe('1 selected');
+});

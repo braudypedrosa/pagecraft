@@ -31,16 +31,20 @@ retry. Successful removals refresh counts and unused-image controls.
 
 ## Validation record
 
-- Focused tests cover version conflicts, changed preview sources, one-step Undo,
-  unsupported hosts, selection across search, protected bulk deletion and retry.
+- Focused tests cover version conflicts, edits during requests, changed preview sources, one-step Undo,
+  unsupported hosts, selection across search, protected bulk deletion and retry. A 3,000-asset fixture verifies bounded rendering, tag search across the full library, and keyboard focus.
 - Local Cloud-backed acceptance exercised failed upload recovery, two-file upload,
   bulk tags, tag search, replacement preview/apply, one-step Undo/Redo and reload.
 - All 24 shared gallery captures match the reviewed baseline. Private evidence:
   `qa-evidence/phase1-completion-2026-09-13/`.
-- Final staging acceptance must confirm the deployed commit, actual image loading,
-  768/1024/1440 layouts, the 767 editor boundary, and the same management workflow.
-  The local storage emulator returns internal container URLs after reload, so its
-  image painting is not treated as staging image-loading evidence.
+- Staging acceptance confirmed `1f690a1` through `/__deployment`, actual image loading,
+  768/1024/1440 layouts, the 767 editor boundary, bulk tags and tag search, protected
+  deletion, reference navigation, the shared field picker, replacement preview/apply,
+  single-step Undo/Redo, and reload persistence. The published HTML was byte-for-byte
+  unchanged. The QA document was restored after the exercise. Private captures are
+  in the evidence directory above.
+- Local emulator limitation: storage returns internal container URLs after reload.
+  Staging verified real image painting separately; this is not a staging limitation.
 
 ## Compatibility, migration and rollback
 
