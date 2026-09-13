@@ -32,3 +32,13 @@ test('hosts without retained bytes never write replacements',async()=>{
  const {context,save,baseline}=setup();context.HOST.assets.retainsHistory=false;
  await expect(context.mediaReplaceCommit('old','new',baseline)).rejects.toThrow('host');expect(save).not.toHaveBeenCalled();
 });
+
+test('edits made during the request are preserved and queued against the acknowledged version',async()=>{
+ let finish;const {context,undo,baseline}=setup(vi.fn(()=>new Promise(resolve=>{finish=resolve;})));
+ const pending=context.mediaReplaceCommit('old','new',baseline);
+ context.state.pages[0].name='Newer local edit';finish({version:8});
+ await expect(pending).rejects.toThrow('newer edits were kept');
+ expect(context.state.pages[0].name).toBe('Newer local edit');
+ expect(context.state.pages[0].tree[0].props.src).toBe('asset:old');
+ expect(undo).toHaveLength(0);expect(context.SRV.version).toBe(8);expect(context.writeNow).toHaveBeenCalledOnce();
+});

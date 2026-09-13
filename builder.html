@@ -4105,7 +4105,7 @@ function wireMediaBrowser(root, use, attr, choose, remove, state, redraw = null)
       toast(`${protectedIds.length} selected image${protectedIds.length === 1 ? ' is' : 's are'} used. Open Details to inspect their references; deselect them before deleting.`, {tone:'error'});
       mediaDetails(root, protectedIds[0], render, $('[data-media-delete]', root)); return;
     }
-    if (!await askConfirm('Delete selected images?', `Remove ${ids.length} unused images from the library?`, {ok:'Delete images', danger:true})) return;
+    if (!await askConfirm('Delete selected images?', `Remove ${ids.length} unused image${ids.length === 1 ? '' : 's'} from the library?`, {ok:'Delete images', danger:true})) return;
     await withAction($('[data-media-delete]', root), 'Deleting images…', async () => {
       for (const id of ids) {
         if (assetUsage()[id]) continue;
@@ -4181,6 +4181,10 @@ async function mediaReplaceCommit(sourceId, replacementId, baseline) {
   try {
     const result = await HOST.documents.save({document:next, version:SRV.version});
     SRV.version = result.version; lastCloudDocument = JSON.stringify(next);
+    if (JSON.stringify(doc()) !== baseline) {
+      saveAgain = true;
+      throw new Error('The draft changed while saving. Your newer edits were kept. Review the replacement again.');
+    }
     edit(() => { state.meta=next.meta; state.pages=next.pages; state.header=next.header; state.footer=next.footer; });
     saveState='ok'; stamp('Draft saved — not published', false);
   } finally { saving=false; if(saveAgain){saveAgain=false;writeNow();} }
