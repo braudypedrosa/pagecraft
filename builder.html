@@ -4882,8 +4882,8 @@ function openModal(title, bodyHtml, footHtml, size) {
   mask.hidden = false; box.hidden = false;
   syncDialogLayers();
   const fx = PC_UI.installUiMotion();
-  fx?.enter(mask, {kind:'fade'}); fx?.enter(box, {kind:'dialog'});
   if (wasHidden) {
+    fx?.enter(mask, {kind:'fade'}); fx?.enter(box, {kind:'dialog'});
     const first = dialogFocusables($('#modalBox'))[0];
     (first || $('#modalBox')).focus();
   }

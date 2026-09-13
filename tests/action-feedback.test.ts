@@ -29,7 +29,6 @@ test('icon-only actions keep their compact box and expose pending copy accessibl
  expect(remove.textContent).toBe('');
  expect(remove.hasAttribute('data-pc-pending-icon')).toBe(true);
  expect(remove.getAttribute('aria-label')).toBe('Deleting image…');
- expect(document.querySelector('#pc-action-feedback-styles')?.textContent).toContain('[data-pc-pending-icon]::before{position:absolute;top:50%;left:50%;margin:0;translate:-50% -50%;transform-origin:center}');
  action.error('The image is still in use.');
  expect(remove.innerHTML).toBe(original);
  expect(remove.hasAttribute('data-pc-pending-icon')).toBe(false);

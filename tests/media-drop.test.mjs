@@ -141,3 +141,13 @@ test('a failed host upload returning no ID is reported and can be retried',async
   await vi.waitFor(()=>expect(d.querySelector('#pc-notifications').textContent).toContain('Could not upload failed.png'));
   expect(d.querySelector('#mmUp').disabled).toBe(false);
 });
+
+test('upload refresh does not replay the open modal entrance',async()=>{
+  const {w,d,file,drag,zone}=await setup();
+  const motion=w.PC_UI.installUiMotion();
+  const enter=vi.spyOn(motion,'enter');
+  drag(zone(),'drop',[file('qa-modal-refresh.png')]);
+  await vi.waitFor(()=>expect(d.querySelector('.mname')?.textContent).toBe('qa-modal-refresh.png'));
+  expect(enter.mock.calls.filter(([node])=>node.id==='modal'||node.id==='modalBox')).toHaveLength(0);
+  enter.mockRestore();
+});
