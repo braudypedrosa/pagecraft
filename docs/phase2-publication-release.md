@@ -44,7 +44,21 @@ are unavailable and the paired immutable page previews remain usable.
 - All 24 shared gallery captures match the reviewed baseline. Both gallery hosts
   passed select Escape/value preservation and dialog Escape/focus restoration.
 - Local QA draft restored and saved after the exercise. Private evidence lives in
-  qa-evidence/phase2-publication-2026-09-13/. Staging acceptance is pending.
+  qa-evidence/phase2-publication-2026-09-13/.
+- Staging `/__deployment` confirmed c346ea7. The QA site's previously published
+  revision was restored as draft 64, reviewed and published as the exact preview
+  ID cbf3dbb7-a89f-470b-b505-3ffb061aec2c. Restoring its working revision afterwards
+  did not change that publication. A temporary image-preview draft was never
+  published; the original working document was restored as version 67.
+- Staging returned 409 for the stale review, 401 for anonymous preview access and
+  403 for a content-role preparation request. Actual retained WebP rendering
+  passed in the sandboxed immutable preview. Built-in-browser captures cover
+  768/1024/1440 and the 767 editing boundary. The current working QA document's
+  existing nested-link errors correctly block preparation; they were preserved.
+- The browser automation could not target fractional coordinates inside the
+  nested preview for a lazy image. Its actual painting was verified by opening
+  the same authenticated, sandboxed snapshot route directly. Local paired-frame
+  image acceptance and staging paired-frame layout acceptance are separate evidence.
 
 ## Migration, compatibility and rollback
 
