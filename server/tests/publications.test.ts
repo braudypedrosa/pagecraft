@@ -56,6 +56,14 @@ test('publication paths reject traversal and ambiguous segments', () => {
   assert.equal(safePublicationPath('/assets/logo.png'), 'assets/logo.png');
 });
 
+test('both stores list immutable snapshots for a site newest first', async () => {
+  const memory = new MemoryHostedPublicationStore();
+  const first = await memory.create(input());
+  const second = await memory.create({ ...input(), sourceVersion: 3 });
+  assert.deepEqual((await memory.listBySite('site-one')).map(row => row.id), [second.id, first.id]);
+  assert.deepEqual(await memory.listBySite('missing'), []);
+});
+
 test('memory publications remain private until atomically promoted', async () => {
   const store = new MemoryHostedPublicationStore();
   const publication = await store.create(input());

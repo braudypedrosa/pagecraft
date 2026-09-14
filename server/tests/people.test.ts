@@ -162,6 +162,17 @@ test('a malformed address is refused before an account is made', async () => {
   a.equal(await auth.userByEmail('broken@'), null);
 });
 
+test('an owner can invite a reviewer without granting edit or publish rights', async () => {
+  const { auth, site, signIn, member, invite } = await rig();
+  const owner = await member('owner@acme.test', 'owner');
+  const cookie = await signIn(owner.email);
+  const res = await invite(cookie, 'reviewer@acme.test', 'reviewer');
+  a.equal(res.status, 201);
+  const body = await res.json() as { userId: string; role: Role };
+  a.equal(body.role, 'reviewer');
+  a.equal((await auth.membership(site.id, body.userId))?.role, 'reviewer');
+});
+
 test('an unknown invite role is refused instead of silently becoming content', async () => {
   const { auth, signIn, member, invite } = await rig();
   const owner = await member('owner@acme.test', 'owner');

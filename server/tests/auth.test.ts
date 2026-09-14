@@ -10,7 +10,7 @@ import * as Core from '../../app/src/core/index.ts';
 import { createApp, SESSION_COOKIE } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import {
-  MemoryAuthStore, hashToken, newToken, roleAllows, normalEmail, sameDigest,
+  MemoryAuthStore, hashToken, newToken, roleAllows, roleMayReview, normalEmail, sameDigest,
   LINK_TTL_MS, SESSION_TTL_MS, type Role
 } from '../src/auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
@@ -86,6 +86,11 @@ test('a content role may read and write, and may not administer', () => {
   a.equal(roleAllows('content', 'admin'), false);
   a.equal(roleAllows('owner', 'admin'), true);
   a.equal(roleAllows('owner', 'write'), true);
+  a.equal(roleAllows('reviewer', 'read'), false);
+  a.equal(roleAllows('reviewer', 'write'), false);
+  a.equal(roleAllows('reviewer', 'admin'), false);
+  a.equal(roleMayReview('reviewer'), true);
+  a.equal(roleMayReview('content'), false);
   /* a role nobody defined is not a role that gets in */
   a.equal(roleAllows('nonsense' as Role, 'read'), false);
 });

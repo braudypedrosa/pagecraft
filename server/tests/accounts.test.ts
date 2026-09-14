@@ -893,6 +893,7 @@ test("site People lets owners invite and manage collaborators while content sees
   a.match(ownerHtml, /<h1>People<\/h1>/);
   a.match(ownerHtml, /Invite someone/);
   a.match(ownerHtml, /Content editor/);
+  a.match(ownerHtml, /Reviewer/);
   a.match(ownerHtml, /owner@example\.test/);
   a.match(ownerHtml, /Active account/);
   a.match(ownerHtml, /aria-current="page"[^>]*>.*People/s);

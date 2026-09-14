@@ -13,6 +13,11 @@ import { submissionRoutes } from './submissions-routes.ts';
 import type { FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
+import {
+  isReviewDecision,
+  MemoryPublicationReviewStore,
+  type PublicationReviewStore,
+} from './reviews.ts';
 /* The server, as routes.
 
    Two jobs, deliberately kept apart:
@@ -52,7 +57,7 @@ import {
 } from "./render.ts";
 import { contentOnly } from "./content.ts";
 import { assertTypedCmsWrite } from "./cms-values.ts";
-import { throttle } from "./mail.ts";
+import { throttle, type NoticeSender } from "./mail.ts";
 import {
   ALLOWED,
   documentAssetIds,
@@ -82,6 +87,8 @@ import {
   normalEmail,
   type Role,
   roleAllows,
+  isSiteRole,
+  roleMayReview,
   SESSION_TTL_MS,
   type User,
   validEmail,
@@ -149,7 +156,10 @@ import {
   signUpPage,
   siteOverviewPage,
   sitePeoplePage,
+  siteReviewsPage,
+  siteReviewDetailPage,
   siteSettingsPage,
+  notificationsPage,
   termsPage,
 } from "./account-pages.ts";
 import {
@@ -278,6 +288,8 @@ export interface Options {
   editorOrigin?: string;
   /** how the link reaches the person. Logged in development. */
   sendLink?: LinkSender;
+  /** Review assignment, comment, and decision mail. Omitted when SMTP is unset. */
+  sendNotice?: NoticeSender;
   /** at most so many links per address per window. Absent means the default. */
   loginLimit?: { take(key: string): boolean };
   /** `Secure` on the session cookie. Off in tests and local http, on everywhere real. */
@@ -304,6 +316,7 @@ export interface Options {
   /** Cloud-only outbound app credentials and property clients. */
   cloudIntegrations?: CloudIntegrations;
   submissions?: FileSubmissionStore;
+  reviews?: PublicationReviewStore;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
   accountAuth?: AccountAuth;
   /** Atomic site creation and owner grant, including the owned-site quota. */
@@ -692,6 +705,32 @@ export function createApp(o: Options) {
       return { ok: true as const, user: access.user, role: access.role };
     }
   };
+
+  const allowedMember = async (c: Context, siteId: string) => {
+    const access = await allowed(c, siteId, "admin");
+    if (access.ok) return access;
+    const read = await allowed(c, siteId, "read");
+    if (read.ok) return read;
+    if (read.status !== 403) return read;
+    const scoped = c.req.header("x-pagecraft-editor-session");
+    if (scoped) return read;
+    const user = await who(c);
+    if (!user) return { ok: false as const, status: 401 as const };
+    const membership = await o.auth.membership(siteId, user.id);
+    if (!membership) return { ok: false as const, status: 404 as const };
+    return { ok: true as const, user, role: membership.role };
+  };
+
+  const allowedReview = async (c: Context, siteId: string) => {
+    const member = await allowedMember(c, siteId);
+    if (!member.ok) return member;
+    if (!roleMayReview(member.role)) {
+      return { ok: false as const, status: 403 as const };
+    }
+    return member;
+  };
+
+  const reviews: PublicationReviewStore = o.reviews || new MemoryPublicationReviewStore();
 
   const deny = (c: Context, status: 401 | 403 | 404) =>
     c.json({
@@ -1606,7 +1645,7 @@ export function createApp(o: Options) {
 
   app.get("/sites/:id", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowed(c, id, "read");
+    const gate = await allowedMember(c, id);
     if (!gate.ok) {
       return gate.status === 401
         ? c.redirect(
@@ -1636,7 +1675,7 @@ export function createApp(o: Options) {
 
   app.get("/sites/:id/people", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowed(c, id, "read");
+    const gate = await allowedMember(c, id);
     if (!gate.ok) {
       return gate.status === 401
         ? c.redirect(
@@ -1691,7 +1730,7 @@ export function createApp(o: Options) {
     if (!validEmail(email)) {
       return c.redirect(`${base}?error=people_email`, 303);
     }
-    if (role !== "owner" && role !== "content") {
+    if (!isSiteRole(role)) {
       return c.redirect(`${base}?error=people_role`, 303);
     }
     const allowedInvitation = inviteSourceLimit.take(requestSource(c)) &&
@@ -1743,7 +1782,7 @@ export function createApp(o: Options) {
     >;
     const role = String(body.role || "") as Role;
     const base = `/sites/${encodeURIComponent(id)}/people`;
-    if (role !== "owner" && role !== "content") {
+    if (!isSiteRole(role)) {
       return c.redirect(`${base}?error=people_role`, 303);
     }
     if (c.req.param("userId") === gate.user.id && role !== "owner") {
@@ -1776,6 +1815,247 @@ export function createApp(o: Options) {
       return c.redirect(`${base}?error=people_missing`, 303);
     }
     return c.redirect(`${base}?message=Collaborator+removed.`, 303);
+  });
+
+  const notifyReview = async (c: Context, input: {
+    userId: string; email: string; kind: string; title: string; body: string; href: string;
+  }) => {
+    const origin = o.editorOrigin || new URL(c.req.url).origin;
+    const href = input.href.startsWith("http") ? input.href : `${origin}${input.href}`;
+    await reviews.notify({
+      userId: input.userId, kind: input.kind, title: input.title, body: input.body, href,
+    });
+    const work = await reviews.enqueueEmail({
+      to: input.email, subject: input.title, body: `${input.body}\n${href}`,
+    });
+    if (!o.sendNotice) return;
+    try {
+      await o.sendNotice(work.to, work.subject, work.body);
+      await reviews.markEmailDelivered(work.id);
+    } catch (error) {
+      console.error(
+        "review notice could not be emailed:",
+        (error as Error).message,
+      );
+    }
+  };
+
+  app.get("/sites/:id/reviews", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowedReview(c, id);
+    if (!gate.ok) {
+      return gate.status === 401
+        ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
+        : deny(c, gate.status);
+    }
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const members = await o.auth.members(id);
+    const listed = gate.role === "owner"
+      ? await reviews.assignmentsForSite(id)
+      : await reviews.assignmentsForReviewer(id, gate.user.id);
+    const assignments = await Promise.all(listed.map(async (row) => {
+      const reviewer = members.find(member => member.userId === row.reviewerUserId);
+      return {
+        ...row,
+        reviewerEmail: reviewer?.email || row.reviewerUserId,
+        decision: await reviews.decision(row.id),
+      };
+    }));
+    return c.html(siteReviewsPage(gate.user, {
+      id: site.id,
+      name: site.name,
+      slug: site.slug,
+      role: gate.role,
+      updatedAt: site.updatedAt,
+      url: shareUrl(c, o, site),
+      published: site.version === site.publishedVersion,
+      version: site.version,
+      publishedVersion: site.publishedVersion,
+    }, {
+      assignments,
+      snapshots: o.publications ? await o.publications.listBySite(id) : [],
+      reviewers: members.filter(member => member.role === "reviewer")
+        .map(member => ({ userId: member.userId, email: member.email })),
+      error: c.req.query("error"),
+      message: c.req.query("message"),
+    }));
+  });
+
+  app.post("/sites/:id/reviews/assign", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    const publicationId = String(body.publicationId || "").trim();
+    const reviewerUserId = String(body.reviewerUserId || "").trim();
+    const base = `/sites/${encodeURIComponent(id)}/reviews`;
+    if (!o.publications || !/^[0-9a-f-]{36}$/i.test(publicationId) ||
+      !(await o.publications.byId(id, publicationId))) {
+      return c.redirect(`${base}?error=review_snapshot`, 303);
+    }
+    const membership = await o.auth.membership(id, reviewerUserId);
+    if (membership?.role !== "reviewer") {
+      return c.redirect(`${base}?error=review_reviewer`, 303);
+    }
+    const assignment = await reviews.assign({
+      siteId: id, publicationId, reviewerUserId, assignedBy: gate.user.id,
+    });
+    const [reviewer, named] = await Promise.all([
+      o.auth.userById(reviewerUserId),
+      o.store.byId(id),
+    ]);
+    if (reviewer) {
+      await notifyReview(c, {
+        userId: reviewer.id,
+        email: reviewer.email,
+        kind: "review_assigned",
+        title: "A review preview was assigned to you",
+        body: `${gate.user.email} assigned a private preview of ${named?.name || "this site"}.`,
+        href: `${base}/${assignment.id}`,
+      });
+    }
+    return c.redirect(`${base}?message=Preview+assigned.`, 303);
+  });
+
+  app.get("/sites/:id/reviews/:assignmentId", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowedReview(c, id);
+    if (!gate.ok) {
+      return gate.status === 401
+        ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
+        : deny(c, gate.status);
+    }
+    const assignment = await reviews.assignment(id, c.req.param("assignmentId"));
+    if (!assignment) return deny(c, 404);
+    if (gate.role === "reviewer" && assignment.reviewerUserId !== gate.user.id) {
+      return deny(c, 404);
+    }
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const reviewer = await o.auth.userById(assignment.reviewerUserId);
+    const comments = await Promise.all((await reviews.comments(assignment.id)).map(async (row) => {
+      const author = await o.auth.userById(row.authorUserId);
+      return { ...row, authorEmail: author?.email || row.authorUserId };
+    }));
+    const indexPath = o.publications
+      ? ((await o.publications.byId(id, assignment.publicationId))?.files.find(file =>
+        file.path === "index.html"
+      )?.path || "index.html")
+      : "index.html";
+    return c.html(siteReviewDetailPage(gate.user, {
+      id: site.id,
+      name: site.name,
+      slug: site.slug,
+      role: gate.role,
+      updatedAt: site.updatedAt,
+      url: shareUrl(c, o, site),
+      published: site.version === site.publishedVersion,
+      version: site.version,
+      publishedVersion: site.publishedVersion,
+    }, {
+      assignment,
+      reviewerEmail: reviewer?.email || assignment.reviewerUserId,
+      comments,
+      decision: await reviews.decision(assignment.id),
+      previewSrc: `/api/sites/${encodeURIComponent(id)}/publication-snapshots/${encodeURIComponent(assignment.publicationId)}/files/${indexPath}`,
+      error: c.req.query("error"),
+      message: c.req.query("message"),
+    }));
+  });
+
+  app.post("/sites/:id/reviews/:assignmentId/comments", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowedReview(c, id);
+    if (!gate.ok) return deny(c, gate.status);
+    const assignment = await reviews.assignment(id, c.req.param("assignmentId"));
+    if (!assignment) return deny(c, 404);
+    if (gate.role === "reviewer" && assignment.reviewerUserId !== gate.user.id) {
+      return deny(c, 404);
+    }
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    const base = `/sites/${encodeURIComponent(id)}/reviews/${encodeURIComponent(assignment.id)}`;
+    if ((await reviews.decision(assignment.id))?.status === "cancelled") {
+      return c.redirect(`${base}?error=review_decision`, 303);
+    }
+    try {
+      const comment = await reviews.addComment({
+        assignmentId: assignment.id,
+        authorUserId: gate.user.id,
+        body: String(body.body || ""),
+        pageSlug: String(body.pageSlug || ""),
+        nodeId: String(body.nodeId || ""),
+      });
+      const owners = (await o.auth.members(id)).filter(member => member.role === "owner");
+      for (const owner of owners) {
+        if (owner.userId === gate.user.id) continue;
+        await notifyReview(c, {
+          userId: owner.userId,
+          email: owner.email,
+          kind: "review_comment",
+          title: "New review comment",
+          body: comment.body.slice(0, 180),
+          href: base,
+        });
+      }
+      return c.redirect(`${base}?message=Comment+added.`, 303);
+    } catch {
+      return c.redirect(`${base}?error=review_comment`, 303);
+    }
+  });
+
+  app.post("/sites/:id/reviews/:assignmentId/decision", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowedReview(c, id);
+    if (!gate.ok) return deny(c, gate.status);
+    const assignment = await reviews.assignment(id, c.req.param("assignmentId"));
+    if (!assignment) return deny(c, 404);
+    const body = await c.req.parseBody().catch(() => ({})) as Record<string, string | File>;
+    const status = String(body.status || "");
+    const base = `/sites/${encodeURIComponent(id)}/reviews/${encodeURIComponent(assignment.id)}`;
+    if (!isReviewDecision(status)) return c.redirect(`${base}?error=review_decision`, 303);
+    if (status === "cancelled" && gate.role !== "owner") return deny(c, 403);
+    if (gate.role === "reviewer" && assignment.reviewerUserId !== gate.user.id) {
+      return deny(c, 404);
+    }
+    try {
+      await reviews.decide({
+        assignmentId: assignment.id,
+        actorUserId: gate.user.id,
+        status,
+        note: String(body.note || ""),
+      });
+    } catch {
+      return c.redirect(`${base}?error=review_decision`, 303);
+    }
+    const reviewer = await o.auth.userById(assignment.reviewerUserId);
+    const owners = (await o.auth.members(id)).filter(member => member.role === "owner");
+    const recipients = status === "cancelled"
+      ? (reviewer ? [{ userId: reviewer.id, email: reviewer.email }] : [])
+      : owners.filter(owner => owner.userId !== gate.user.id);
+    for (const person of recipients) {
+      await notifyReview(c, {
+        userId: person.userId,
+        email: person.email,
+        kind: "review_decision",
+        title: `Review ${status.replace("_", " ")}`,
+        body: `${gate.user.email} recorded ${status.replace("_", " ")} on a snapshot.`,
+        href: base,
+      });
+    }
+    return c.redirect(`${base}?message=Review+updated.`, 303);
+  });
+
+  app.get("/notifications", async (c) => {
+    const user = await who(c);
+    if (!user) {
+      return c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`);
+    }
+    const notices = await reviews.notices(user.id);
+    for (const notice of notices.filter(item => !item.readAt)) {
+      await reviews.markRead(user.id, notice.id);
+    }
+    return c.html(notificationsPage(user, notices));
   });
 
   submissionRoutes(app, { store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource });
@@ -1918,7 +2198,7 @@ export function createApp(o: Options) {
   app.get("/edit/:id", async (c) => {
     const id = c.req.param("id");
     const [access, snapshot] = await Promise.allSettled([
-      allowed(c, id, "read"), o.store.byId(id),
+      allowedMember(c, id), o.store.byId(id),
     ]);
     if (access.status === 'rejected') throw access.reason;
     const gate = access.value;
@@ -1934,6 +2214,9 @@ export function createApp(o: Options) {
     if (snapshot.status === 'rejected') throw snapshot.reason;
     const site = snapshot.value;
     if (!site) return deny(c, 404);
+    if (gate.role === "reviewer") {
+      return c.redirect(`/sites/${encodeURIComponent(id)}/reviews`);
+    }
     if (!o.editorHtml) {
       return c.text("No editor build. Run `node build.mjs` first.", 503);
     }
@@ -2207,7 +2490,14 @@ export function createApp(o: Options) {
   app.get("/api/sites/:id/publication-snapshots/:snapshot/files/*", async (c) => {
     const id = c.req.param("id");
     const gate = await allowed(c, id, "admin");
-    if (!gate.ok) return deny(c, gate.status);
+    if (!gate.ok) {
+      const member = await allowedMember(c, id);
+      if (!member.ok) return deny(c, member.status);
+      const assigned = await reviews.canViewSnapshot(
+        id, c.req.param("snapshot"), member.user.id, member.role,
+      );
+      if (!assigned) return deny(c, 404);
+    }
     if (!o.publications) return deny(c, 404);
     const publication = await o.publications.byId(id, c.req.param("snapshot"));
     if (!publication) return deny(c, 404);
@@ -3159,12 +3449,11 @@ export function createApp(o: Options) {
     } | null;
     const email = normalEmail(body?.email || "");
     if (
-      body?.role !== undefined && body.role !== "owner" &&
-      body.role !== "content"
+      body?.role !== undefined && !isSiteRole(body.role)
     ) {
-      return c.json({ error: "role must be owner or content" }, 400);
+      return c.json({ error: "role must be owner, content, or reviewer" }, 400);
     }
-    const role: Role = body?.role === "owner" ? "owner" : "content";
+    const role: Role = isSiteRole(String(body?.role || "")) ? body!.role as Role : "content";
     if (!validEmail(email)) {
       return c.json({ error: "a valid email address is required" }, 400);
     }

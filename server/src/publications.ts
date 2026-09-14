@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import {
   mkdir,
   open,
+  readdir,
   readFile,
   rename,
   rm,
@@ -59,6 +60,7 @@ export interface HostedPublicationStore {
     siteId: string,
     publicationId: string,
   ): Promise<PublicationSummary | null>;
+  listBySite(siteId: string): Promise<PublicationSummary[]>;
   source(publication: PublicationSummary): Promise<PublicationSource | null>;
   currentBySlug(slug: string): Promise<PublicationSummary | null>;
   currentByHost(host: string): Promise<PublicationSummary | null>;
@@ -222,6 +224,16 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
   async byId(siteId: string, publicationId: string) {
     const row = this.publications.get(publicationId);
     return row?.summary.siteId === siteId ? structuredClone(row.summary) : null;
+  }
+
+  async listBySite(siteId: string) {
+    return [...this.publications.values()]
+      .filter((row) => row.summary.siteId === siteId)
+      .map((row) => structuredClone(row.summary))
+      .sort((left, right) =>
+        right.createdAt.localeCompare(left.createdAt) ||
+        right.sourceVersion - left.sourceVersion
+      );
   }
 
   async source(publication: PublicationSummary) {
@@ -449,6 +461,21 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
         : null;
     } catch {
       return null;
+    }
+  }
+
+  async listBySite(siteId: string) {
+    try {
+      const names = await readdir(join(this.root, "publications", sha256(siteId)));
+      const rows = await Promise.all(names.map((name) => this.byId(siteId, name)));
+      return rows.filter((row): row is PublicationSummary => !!row)
+        .sort((left, right) =>
+          right.createdAt.localeCompare(left.createdAt) ||
+          right.sourceVersion - left.sourceVersion
+        );
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+      throw error;
     }
   }
 

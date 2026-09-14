@@ -180,6 +180,13 @@ test('WordPress adapter can target a native global-element document without chan
   ]);
 });
 
+test('a reviewer host adapter has no editor capabilities', async () => {
+  const web = createWebHostAdapter({ siteId: 'reviewed', role: 'reviewer' });
+  a.equal(web.authentication.can('edit_document'), false);
+  a.equal(web.authentication.can('publish'), false);
+  a.equal(web.authentication.can('upload_media'), false);
+});
+
 test('web and WordPress hosts adopt and compile the identical document identically', async () => {
   const doc = currentDocument();
   const web = createWebHostAdapter({

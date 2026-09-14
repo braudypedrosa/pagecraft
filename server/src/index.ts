@@ -20,7 +20,7 @@ import {
 import { MemoryStore, type Store } from "./store.ts";
 import { type AuthStore, MemoryAuthStore } from "./auth.ts";
 import { type AssetStore, MemoryAssetStore } from "./assets.ts";
-import { mailConfig, smtpSender } from "./mail.ts";
+import { mailConfig, smtpNoticeSender, smtpSender } from "./mail.ts";
 import { type ConnectedStore, MemoryConnectedStore } from "./release-store.ts";
 import {
   keyFromRawPublic,
@@ -39,6 +39,7 @@ import {
   PgOwnedSiteStore,
 } from "./accounts.ts";
 import { FileHostedPublicationStore } from "./publications.ts";
+import { FilePublicationReviewStore } from "./reviews.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
 import { validateStagingEnvironment } from "./staging-environment.ts";
 
@@ -497,6 +498,7 @@ const app = createApp({
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
+  reviews: new FilePublicationReviewStore(publicationRoot),
   cloudIntegrations,
   store,
   auth,
@@ -508,6 +510,7 @@ const app = createApp({
       ? `https://${EDITOR_HOST}`
       : undefined),
   sendLink: mail ? smtpSender(mail) : undefined,
+  sendNotice: mail ? smtpNoticeSender(mail) : undefined,
   secureCookies: process.env.NODE_ENV === "production",
   connected,
   packages,

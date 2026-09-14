@@ -21,7 +21,16 @@
    text-editing account for. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
-export type Role = 'owner' | 'content';
+export const SITE_ROLES = ['owner', 'content', 'reviewer'] as const;
+export type Role = typeof SITE_ROLES[number];
+export function isSiteRole(role: string): role is Role {
+  return (SITE_ROLES as readonly string[]).includes(role);
+}
+export function roleLabel(role: Role) {
+  if (role === 'owner') return 'Owner';
+  if (role === 'reviewer') return 'Reviewer';
+  return 'Content editor';
+}
 export type AccountPlan = 'free';
 
 export interface User {
@@ -162,7 +171,7 @@ create index if not exists sessions_user_idx on sessions (user_id);
 create table if not exists site_users (
   site_id     text not null references sites (id) on delete cascade,
   user_id     text not null references users (id) on delete cascade,
-  role        text not null check (role in ('owner', 'content')),
+  role        text not null check (role in ('owner', 'content', 'reviewer')),
   primary key (site_id, user_id)
 );
 
@@ -214,6 +223,11 @@ export function roleAllows(role: Role, verb: 'read' | 'write' | 'admin'): boolea
   if (role === 'owner') return true;
   if (role === 'content') return verb === 'read' || verb === 'write';
   return false;
+}
+
+/** Reviewers hold membership without document, media, submission or publish rights. */
+export function roleMayReview(role: Role) {
+  return role === 'reviewer' || role === 'owner';
 }
 
 export class MemoryAuthStore implements AuthStore {

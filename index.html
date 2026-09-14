@@ -19710,16 +19710,20 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     globals: "pagecraft",
     dynamicContent: "pagecraft"
   });
-  var webCapabilities = (role) => role === "content" ? ["edit_document"] : [
-    "edit_document",
-    "edit_structure",
-    "publish",
-    "upload_media",
-    "manage_pages",
-    "manage_menus",
-    "manage_settings",
-    "restore_revisions"
-  ];
+  var webCapabilities = (role) => {
+    if (role === "reviewer") return [];
+    if (role === "content") return ["edit_document"];
+    return [
+      "edit_document",
+      "edit_structure",
+      "publish",
+      "upload_media",
+      "manage_pages",
+      "manage_menus",
+      "manage_settings",
+      "restore_revisions"
+    ];
+  };
   function createWebHostAdapter(options) {
     const site = encodeURIComponent(options.siteId);
     const transport = options.transport || new FetchHostTransport(

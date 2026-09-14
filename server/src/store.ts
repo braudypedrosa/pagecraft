@@ -123,7 +123,7 @@ export interface Store {
    it here is caught rather than discovered the day a site called `api` stops loading. */
 export const RESERVED_PATHS = [
   'forms',
-  'account', 'mcp',
+  'account', 'notifications', 'mcp',
   'api', 'auth', 'brand', 'internal', 'edit', 'sites', 'templates', 'v1', 'sign-up', 'sign-in', 'forgot-password',
   'reset-password', 'privacy', 'terms',
   /* not routes, but names a browser or a crawler asks for at the root */

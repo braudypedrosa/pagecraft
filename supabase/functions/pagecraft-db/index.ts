@@ -2548,15 +2548,23 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         text(args.userId)
       }
       `;
-    case "auth.grant":
+    case "auth.grant": {
+      const role = text(args.role);
+      if (role !== "owner" && role !== "content" && role !== "reviewer") {
+        throw Object.assign(new Error("invalid collaborator role"), {
+          status: 400,
+          code: "INVALID_ROLE",
+        });
+      }
       return one(
         await sql`
         insert into site_users (site_id, user_id, role)
-        values (${text(args.siteId)}, ${text(args.userId)}, ${text(args.role)})
+        values (${text(args.siteId)}, ${text(args.userId)}, ${role})
         on conflict (site_id, user_id) do update set role = excluded.role
         returning *
       `,
       );
+    }
     case "auth.members":
       return await sql`
         select m.site_id, m.user_id, m.role, u.email, u.name, u.auth_user_id
@@ -2572,6 +2580,13 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `).length > 0;
     case "auth.changeMemberRole":
       return await sql.begin(async (transaction) => {
+        const role = text(args.role);
+        if (role !== "owner" && role !== "content" && role !== "reviewer") {
+          throw Object.assign(new Error("invalid collaborator role"), {
+            status: 400,
+            code: "INVALID_ROLE",
+          });
+        }
         await transaction`select id from sites where id = ${
           text(args.siteId)
         } for update`;
@@ -2584,7 +2599,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         `,
         );
         if (!current) return { status: "missing" };
-        if (current.role === "owner" && text(args.role) !== "owner") {
+        if (current.role === "owner" && role !== "owner") {
           const owners = one(
             await transaction<Record<string, unknown>[]>`
             select count(*)::integer as count from site_users
@@ -2595,7 +2610,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         }
         const changed = one(
           await transaction<Record<string, unknown>[]>`
-          update site_users set role = ${text(args.role)}
+          update site_users set role = ${role}
           where site_id = ${text(args.siteId)} and user_id = ${
             text(args.userId)
           }
@@ -2651,7 +2666,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     case "auth.provisionInvitation": {
       const redirectTo = invitationRedirect(args.redirectTo);
       const role = text(args.role);
-      if (role !== "owner" && role !== "content") {
+      if (role !== "owner" && role !== "content" && role !== "reviewer") {
         throw Object.assign(new Error("invalid collaborator role"), {
           status: 400,
           code: "INVALID_ROLE",

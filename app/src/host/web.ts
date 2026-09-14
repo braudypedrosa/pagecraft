@@ -7,7 +7,7 @@ import type { HostCapability, HostFeatures, HostMedia, HostSession, WebPublicati
 export interface WebHostOptions {
   siteId: string;
   sessionToken?: string;
-  role?: 'owner' | 'content';
+  role?: 'owner' | 'content' | 'reviewer';
   userId?: string;
   userName?: string;
   document?: UnknownDocumentInput;
@@ -35,10 +35,12 @@ export const WEB_HOST_FEATURES: Readonly<HostFeatures> = Object.freeze({
   dynamicContent: 'pagecraft'
 });
 
-const webCapabilities = (role: WebHostOptions['role']): HostCapability[] => role === 'content'
-  ? ['edit_document']
-  : ['edit_document', 'edit_structure', 'publish', 'upload_media', 'manage_pages',
+const webCapabilities = (role: WebHostOptions['role']): HostCapability[] => {
+  if (role === 'reviewer') return [];
+  if (role === 'content') return ['edit_document'];
+  return ['edit_document', 'edit_structure', 'publish', 'upload_media', 'manage_pages',
     'manage_menus', 'manage_settings', 'restore_revisions'];
+};
 
 export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
   const site = encodeURIComponent(options.siteId);
