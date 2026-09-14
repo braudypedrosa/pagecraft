@@ -4444,7 +4444,12 @@ async function cmsCommit(collections) {
     saveState = 'ok';
     stamp('Draft saved — not published', false);
   } catch (error) {
-    throw new Error(error?.status === 409 ? 'The site changed in another session. Copy your edits before reloading; nothing was overwritten.' : error?.message || 'Entry could not be saved. Your changes are still here.');
+    const raw = error?.status === 409
+      ? 'The site changed in another session. Copy your edits before reloading; nothing was overwritten.'
+      : String(error?.message || '').trim();
+    throw new Error(!raw || /^[a-z][a-z0-9_-]*$/i.test(raw)
+      ? 'Entry could not be saved. Your changes are still here.'
+      : raw);
   } finally {
     saving = false;
     if (saveAgain) { saveAgain = false; writeNow(); }

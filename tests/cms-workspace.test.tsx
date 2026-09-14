@@ -69,6 +69,24 @@ test('failed persistence retains the form and does not mutate the document', asy
   expect((r.$('#cms-value-title') as HTMLInputElement).value).toBe('Keep this');
   await vi.waitFor(()=>expect(r.$('[role="alert"]')?.textContent).toContain('Connection lost'));
 });
+test('machine save codes stay recoverable and never appear in the form', async () => {
+  const col = start();
+  L.cmsCommit = async () => {
+    throw new Error('save_failed');
+  };
+  await click('New entry');
+  await act(() => r.type(r.$('#cms-value-title')!, 'Keep this after a host code'));
+  await act(async () => {
+    r.$('form')!.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true }),
+    );
+  });
+  expect(col.items).toHaveLength(0);
+  expect((r.$('#cms-value-title') as HTMLInputElement).value).toBe('Keep this after a host code');
+  await vi.waitFor(() => expect(r.$('[role="alert"]')?.textContent).toContain('Your changes are still here'));
+  expect(r.$('[role="alert"]')?.textContent).not.toContain('save_failed');
+  expect(r.$('.cms-form-actions [role=alert]')?.textContent).not.toContain('save_failed');
+});
 test('200 entries paginate and search without mounting all entries', async () => {
   const col = C.collectionAdd('Cabins');
   for (let n = 0; n < 200; n++)

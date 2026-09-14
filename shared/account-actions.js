@@ -1,6 +1,11 @@
-/** Map machine JSON/plain failure bodies to recoverable copy. Never dump raw payloads. */
-export function accountActionFailure(text) {
-  const fallback = 'Could not complete this action. Your input is still here. Try again.';
+/**
+ * Map machine JSON, codes, or markup to recoverable copy.
+ *
+ * @param {unknown} text Failure body or Error message.
+ * @param {string} [fallback] Copy used when the body is empty or not user-facing.
+ * @returns {string}
+ */
+export function recoverableFailure(text, fallback = 'Could not complete this action. Your input is still here. Try again.') {
   const body = String(text || '').trim();
   if (!body) return fallback;
   try {
@@ -10,9 +15,17 @@ export function accountActionFailure(text) {
     }
     return fallback;
   } catch {
-    if (/^[a-z][a-z0-9_]*$/.test(body) && body.includes('_')) return fallback;
+    if (body === 'origin_not_allowed') {
+      return 'That request could not be verified. Refresh the page and try again. Your input is still here.';
+    }
+    if (/^[a-z][a-z0-9_-]*$/i.test(body)) return fallback;
     return /<[a-z][\s\S]*>/i.test(body) ? fallback : body.slice(0, 500);
   }
+}
+
+/** Map machine JSON/plain failure bodies to recoverable account copy. Never dump raw payloads. */
+export function accountActionFailure(text) {
+  return recoverableFailure(text);
 }
 
 /** Enhance ordinary Cloud POST forms; custom asynchronous flows keep their own handlers. */
@@ -95,4 +108,4 @@ export function installAccountActions() {
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',announce,{once:true});else announce();
 }
-export const ACCOUNT_ACTIONS_BOOT_SCRIPT=`${accountActionFailure.toString()};(${installAccountActions.toString()})();`;
+export const ACCOUNT_ACTIONS_BOOT_SCRIPT=`${recoverableFailure.toString()};${accountActionFailure.toString()};(${installAccountActions.toString()})();`;

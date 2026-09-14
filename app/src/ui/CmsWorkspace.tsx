@@ -10,6 +10,14 @@ import {
 import { AssetField } from './AssetField';
 import { Icon } from './Icon';
 import { installActionFeedback } from '../../../shared/action-feedback.js';
+import { recoverableFailure } from '../../../shared/account-actions.js';
+
+/** Keep CMS save failures human-readable; never prefix recovery copy with a machine code. */
+function cmsSaveFailure(error: unknown) {
+  const fallback = 'Could not save. Your changes are still here. Try again.';
+  const mapped = recoverableFailure(error instanceof Error ? error.message : '', fallback);
+  return /still here/i.test(mapped) ? mapped : `${mapped} Your changes are still here. Try again.`;
+}
 
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 const PAGE_SIZE = 25;
@@ -101,7 +109,7 @@ export function CmsWorkspace({
     try {
       const message = success + ' Saved to the site draft. Publish the site to make it public.';
       const result = await installActionFeedback().run({key:'cms-save', pending:label, success:message,
-        error:e => (e instanceof Error ? e.message : 'Could not save.') + ' Your changes are still here. Try again.'}, () => L.cmsCommit(next));
+        error: cmsSaveFailure}, () => L.cmsCommit(next));
       if (result.status === 'error') setErrors({ _save: result.message });
       if (result.status !== 'success') return false;
       refresh(revision + 1);

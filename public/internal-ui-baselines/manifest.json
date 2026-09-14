@@ -6,9 +6,9 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "e3681667ea932e87028dca845a5f22f3b2fe7de4428c123073b9725d56a573df",
+    "builder.html": "3e7a59de66225a75a7e2bcfb3fec0c3eef11d526b08dc90f789cb2935bf08533",
     "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
-    "app/src/ui/CmsWorkspace.tsx": "46b27dbbd3efdb05b3d352a067c558ed42c127c1e9aa7c6fd28162ac7ca3319d",
+    "app/src/ui/CmsWorkspace.tsx": "83b16a9b5700959290cb0f698487ddd44e3c4f3773a959d453136a753bb7dac1",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "308fed9afa5e00ac08524fbc1f4fbe6ba6c9e71582a7fe47bc4b87ac16197d36",
     "app/src/ui/inspector/Inspector.tsx": "d7c4c347efbc0353e79b53ef2edb407719a6db515ab35dbc5e32580b3828d32c",

@@ -11223,6 +11223,140 @@ var PC_UI = (() => {
   }
   var ACTION_FEEDBACK_BOOT_SCRIPT = `(${installActionFeedback.toString()})(${JSON.stringify(ACTION_FEEDBACK_CSS)});`;
 
+  // shared/account-actions.js
+  function recoverableFailure(text, fallback = "Could not complete this action. Your input is still here. Try again.") {
+    const body = String(text || "").trim();
+    if (!body) return fallback;
+    try {
+      const parsed = JSON.parse(body);
+      if (parsed?.error === "origin_not_allowed") {
+        return "That request could not be verified. Refresh the page and try again. Your input is still here.";
+      }
+      return fallback;
+    } catch {
+      if (body === "origin_not_allowed") {
+        return "That request could not be verified. Refresh the page and try again. Your input is still here.";
+      }
+      if (/^[a-z][a-z0-9_-]*$/i.test(body)) return fallback;
+      return /<[a-z][\s\S]*>/i.test(body) ? fallback : body.slice(0, 500);
+    }
+  }
+  function accountActionFailure(text) {
+    return recoverableFailure(text);
+  }
+  function installAccountActions() {
+    const feedback = window.__pcFeedback;
+    if (!feedback || window.__pcAccountActions) return;
+    window.__pcAccountActions = true;
+    const native = /* @__PURE__ */ new WeakMap(), active = /* @__PURE__ */ new Set();
+    const label = (form) => {
+      const path = new URL(form.action, location.href).pathname;
+      if (/delete|remove/.test(path)) return "Deleting\u2026";
+      if (/invite/.test(path)) return "Sending invitation\u2026";
+      if (/login/.test(path)) return "Signing in\u2026";
+      if (/logout/.test(path)) return "Signing out\u2026";
+      if (/signup/.test(path)) return "Creating account\u2026";
+      if (/forgot-password/.test(path)) return "Sending reset link\u2026";
+      if (/reset-password|password/.test(path)) return "Updating password\u2026";
+      return "Saving changes\u2026";
+    };
+    document.addEventListener("submit", async (event) => {
+      const form = event.target;
+      if (event.defaultPrevented || !(form instanceof HTMLFormElement) || form.method.toLowerCase() !== "post") return;
+      const url = new URL(form.action, location.href);
+      if (url.origin !== location.origin) return;
+      const button = event.submitter || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
+      if (url.pathname === "/auth/google" || /^\/v1\/(oauth|wordpress-import)\/authorize$/.test(url.pathname)) {
+        if (native.has(form)) {
+          event.preventDefault();
+          return;
+        }
+        let choice;
+        if (event.submitter?.name) {
+          choice = document.createElement("input");
+          choice.type = "hidden";
+          choice.name = event.submitter.name;
+          choice.value = event.submitter.value;
+          form.append(choice);
+        }
+        const action2 = feedback.begin(button, url.pathname === "/auth/google" ? "Opening Google sign-in\u2026" : "Processing your choice\u2026");
+        native.set(form, { restore: () => {
+          action2?.cancel();
+          choice?.remove();
+          native.delete(form);
+        } });
+        return;
+      }
+      event.preventDefault();
+      if (native.has(form)) return;
+      const data = new FormData(form);
+      if (event.submitter?.name) data.append(event.submitter.name, event.submitter.value);
+      const action = feedback.begin(button, label(form));
+      if (!action) return;
+      const controls = [...form.querySelectorAll("input,select,textarea,button")].filter((control) => control !== button).map((control) => [control, control.disabled]);
+      const restore = () => {
+        action.cancel();
+        controls.forEach(([control, disabled]) => control.disabled = disabled);
+        native.delete(form);
+        active.delete(form);
+        form.removeAttribute("aria-busy");
+      };
+      native.set(form, { restore });
+      active.add(form);
+      form.setAttribute("aria-busy", "true");
+      controls.forEach(([control]) => control.disabled = true);
+      form.querySelector("[data-action-error]")?.remove();
+      try {
+        const response = await fetch(url.href, { method: "POST", credentials: "same-origin", headers: { accept: "text/html" }, body: new URLSearchParams(data) });
+        const text = await response.text(), result = new DOMParser().parseFromString(text, "text/html");
+        const error = result.querySelector(".notice.error,[data-action-error]")?.textContent?.trim();
+        const target = new URL(response.url || url.href, location.href);
+        if (!response.ok || error || target.searchParams.has("error")) {
+          throw new Error(error || accountActionFailure(text));
+        }
+        if (!url.pathname.startsWith("/auth/") && target.pathname === "/login") throw new Error("Your session expired. Sign in again, then retry. Your input is still here.");
+        if (target.origin !== location.origin) throw new Error("Could not complete this action. Refresh and try again.");
+        const success = result.querySelector('.notice[role="status"]')?.textContent?.trim();
+        const completed = success || (/delete|remove/.test(url.pathname) ? "Deleted successfully." : /logout/.test(url.pathname) ? "Signed out." : /login/.test(url.pathname) ? "Signed in." : /signup/.test(url.pathname) ? "Account created. Check your email to confirm it." : "Changes saved.");
+        action.update("Done. Opening the updated page\u2026");
+        feedback.flash(completed, target.pathname);
+        active.delete(form);
+        location.assign(target.href);
+      } catch (error) {
+        const message = error instanceof TypeError ? "Connection lost. Your input is still here. Check whether the change was saved before trying again." : error.message || "Could not complete this action. Try again.";
+        action.error(message);
+        const notice = document.createElement("p");
+        notice.className = "notice error";
+        notice.dataset.actionError = "";
+        notice.textContent = message;
+        notice.tabIndex = -1;
+        form.prepend(notice);
+        notice.focus();
+        restore();
+      }
+    });
+    window.addEventListener("beforeunload", (event) => {
+      if (active.size) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
+    window.addEventListener("pageshow", (event) => {
+      if (!event.persisted) return;
+      document.querySelectorAll("form").forEach((form) => {
+        native.get(form)?.restore();
+      });
+    });
+    const announce = () => {
+      document.querySelectorAll('.notice[role="status"],.notice.error[role="alert"]').forEach((node) => {
+        if (node.textContent.trim()) feedback.notify(node.textContent.trim(), { tone: node.classList.contains("error") ? "error" : "success", id: "navigation-result" });
+      });
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", announce, { once: true });
+    else announce();
+  }
+  var ACCOUNT_ACTIONS_BOOT_SCRIPT = `${recoverableFailure.toString()};${accountActionFailure.toString()};(${installAccountActions.toString()})();`;
+
   // app/src/ui/Cms.tsx
   function CollectionRow({ col }) {
     const pending = A2(false);
@@ -11248,7 +11382,10 @@ var PC_UI = (() => {
         await L2.cmsCommit(C2.collections().filter((c3) => c3.id !== col.id));
         feedback.success("Collection deleted from the site draft.");
       } catch (error) {
-        feedback.error(error instanceof Error ? error.message : "Collection could not be deleted. Try again.");
+        feedback.error(recoverableFailure(
+          error instanceof Error ? error.message : "",
+          "Collection could not be deleted. Try again."
+        ));
       } finally {
         pending.current = false;
         setBusy(false);
@@ -11309,7 +11446,10 @@ var PC_UI = (() => {
         L2.cmsModal(id);
         feedback.success("Collection created. Add its fields and entries in CMS.");
       } catch (error) {
-        feedback.error(error instanceof Error ? error.message : "Collection could not be created. Try again.");
+        feedback.error(recoverableFailure(
+          error instanceof Error ? error.message : "",
+          "Collection could not be created. Try again."
+        ));
       } finally {
         pending.current = false;
         setBusy(false);
@@ -11614,6 +11754,11 @@ var PC_UI = (() => {
   }
 
   // app/src/ui/CmsWorkspace.tsx
+  function cmsSaveFailure(error) {
+    const fallback = "Could not save. Your changes are still here. Try again.";
+    const mapped = recoverableFailure(error instanceof Error ? error.message : "", fallback);
+    return /still here/i.test(mapped) ? mapped : `${mapped} Your changes are still here. Try again.`;
+  }
   var copy = (value) => JSON.parse(JSON.stringify(value));
   var PAGE_SIZE = 25;
   function CmsWorkspace({
@@ -11698,7 +11843,7 @@ var PC_UI = (() => {
           key: "cms-save",
           pending: label,
           success: message,
-          error: (e3) => (e3 instanceof Error ? e3.message : "Could not save.") + " Your changes are still here. Try again."
+          error: cmsSaveFailure
         }, () => L2.cmsCommit(next));
         if (result.status === "error") setErrors({ _save: result.message });
         if (result.status !== "success") return false;
@@ -17411,135 +17556,6 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   var CUSTOM_SELECT_BOOT_SCRIPT = `(${installCustomSelects.toString()})(${JSON.stringify(CUSTOM_SELECT_CSS)});`;
 
-  // shared/account-actions.js
-  function accountActionFailure(text) {
-    const fallback = "Could not complete this action. Your input is still here. Try again.";
-    const body = String(text || "").trim();
-    if (!body) return fallback;
-    try {
-      const parsed = JSON.parse(body);
-      if (parsed?.error === "origin_not_allowed") {
-        return "That request could not be verified. Refresh the page and try again. Your input is still here.";
-      }
-      return fallback;
-    } catch {
-      if (/^[a-z][a-z0-9_]*$/.test(body) && body.includes("_")) return fallback;
-      return /<[a-z][\s\S]*>/i.test(body) ? fallback : body.slice(0, 500);
-    }
-  }
-  function installAccountActions() {
-    const feedback = window.__pcFeedback;
-    if (!feedback || window.__pcAccountActions) return;
-    window.__pcAccountActions = true;
-    const native = /* @__PURE__ */ new WeakMap(), active = /* @__PURE__ */ new Set();
-    const label = (form) => {
-      const path = new URL(form.action, location.href).pathname;
-      if (/delete|remove/.test(path)) return "Deleting\u2026";
-      if (/invite/.test(path)) return "Sending invitation\u2026";
-      if (/login/.test(path)) return "Signing in\u2026";
-      if (/logout/.test(path)) return "Signing out\u2026";
-      if (/signup/.test(path)) return "Creating account\u2026";
-      if (/forgot-password/.test(path)) return "Sending reset link\u2026";
-      if (/reset-password|password/.test(path)) return "Updating password\u2026";
-      return "Saving changes\u2026";
-    };
-    document.addEventListener("submit", async (event) => {
-      const form = event.target;
-      if (event.defaultPrevented || !(form instanceof HTMLFormElement) || form.method.toLowerCase() !== "post") return;
-      const url = new URL(form.action, location.href);
-      if (url.origin !== location.origin) return;
-      const button = event.submitter || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
-      if (url.pathname === "/auth/google" || /^\/v1\/(oauth|wordpress-import)\/authorize$/.test(url.pathname)) {
-        if (native.has(form)) {
-          event.preventDefault();
-          return;
-        }
-        let choice;
-        if (event.submitter?.name) {
-          choice = document.createElement("input");
-          choice.type = "hidden";
-          choice.name = event.submitter.name;
-          choice.value = event.submitter.value;
-          form.append(choice);
-        }
-        const action2 = feedback.begin(button, url.pathname === "/auth/google" ? "Opening Google sign-in\u2026" : "Processing your choice\u2026");
-        native.set(form, { restore: () => {
-          action2?.cancel();
-          choice?.remove();
-          native.delete(form);
-        } });
-        return;
-      }
-      event.preventDefault();
-      if (native.has(form)) return;
-      const data = new FormData(form);
-      if (event.submitter?.name) data.append(event.submitter.name, event.submitter.value);
-      const action = feedback.begin(button, label(form));
-      if (!action) return;
-      const controls = [...form.querySelectorAll("input,select,textarea,button")].filter((control) => control !== button).map((control) => [control, control.disabled]);
-      const restore = () => {
-        action.cancel();
-        controls.forEach(([control, disabled]) => control.disabled = disabled);
-        native.delete(form);
-        active.delete(form);
-        form.removeAttribute("aria-busy");
-      };
-      native.set(form, { restore });
-      active.add(form);
-      form.setAttribute("aria-busy", "true");
-      controls.forEach(([control]) => control.disabled = true);
-      form.querySelector("[data-action-error]")?.remove();
-      try {
-        const response = await fetch(url.href, { method: "POST", credentials: "same-origin", headers: { accept: "text/html" }, body: new URLSearchParams(data) });
-        const text = await response.text(), result = new DOMParser().parseFromString(text, "text/html");
-        const error = result.querySelector(".notice.error,[data-action-error]")?.textContent?.trim();
-        const target = new URL(response.url || url.href, location.href);
-        if (!response.ok || error || target.searchParams.has("error")) {
-          throw new Error(error || accountActionFailure(text));
-        }
-        if (!url.pathname.startsWith("/auth/") && target.pathname === "/login") throw new Error("Your session expired. Sign in again, then retry. Your input is still here.");
-        if (target.origin !== location.origin) throw new Error("Could not complete this action. Refresh and try again.");
-        const success = result.querySelector('.notice[role="status"]')?.textContent?.trim();
-        const completed = success || (/delete|remove/.test(url.pathname) ? "Deleted successfully." : /logout/.test(url.pathname) ? "Signed out." : /login/.test(url.pathname) ? "Signed in." : /signup/.test(url.pathname) ? "Account created. Check your email to confirm it." : "Changes saved.");
-        action.update("Done. Opening the updated page\u2026");
-        feedback.flash(completed, target.pathname);
-        active.delete(form);
-        location.assign(target.href);
-      } catch (error) {
-        const message = error instanceof TypeError ? "Connection lost. Your input is still here. Check whether the change was saved before trying again." : error.message || "Could not complete this action. Try again.";
-        action.error(message);
-        const notice = document.createElement("p");
-        notice.className = "notice error";
-        notice.dataset.actionError = "";
-        notice.textContent = message;
-        notice.tabIndex = -1;
-        form.prepend(notice);
-        notice.focus();
-        restore();
-      }
-    });
-    window.addEventListener("beforeunload", (event) => {
-      if (active.size) {
-        event.preventDefault();
-        event.returnValue = "";
-      }
-    });
-    window.addEventListener("pageshow", (event) => {
-      if (!event.persisted) return;
-      document.querySelectorAll("form").forEach((form) => {
-        native.get(form)?.restore();
-      });
-    });
-    const announce = () => {
-      document.querySelectorAll('.notice[role="status"],.notice.error[role="alert"]').forEach((node) => {
-        if (node.textContent.trim()) feedback.notify(node.textContent.trim(), { tone: node.classList.contains("error") ? "error" : "success", id: "navigation-result" });
-      });
-    };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", announce, { once: true });
-    else announce();
-  }
-  var ACCOUNT_ACTIONS_BOOT_SCRIPT = `${accountActionFailure.toString()};(${installAccountActions.toString()})();`;
-
   // app/src/ui/editor-viewport.ts
   var MIN_EDITOR_WIDTH = 768;
   function installEditorViewport(backHref, syncLayers) {
@@ -22735,7 +22751,12 @@ async function cmsCommit(collections) {
     saveState = 'ok';
     stamp('Draft saved — not published', false);
   } catch (error) {
-    throw new Error(error?.status === 409 ? 'The site changed in another session. Copy your edits before reloading; nothing was overwritten.' : error?.message || 'Entry could not be saved. Your changes are still here.');
+    const raw = error?.status === 409
+      ? 'The site changed in another session. Copy your edits before reloading; nothing was overwritten.'
+      : String(error?.message || '').trim();
+    throw new Error(!raw || /^[a-z][a-z0-9_-]*$/i.test(raw)
+      ? 'Entry could not be saved. Your changes are still here.'
+      : raw);
   } finally {
     saving = false;
     if (saveAgain) { saveAgain = false; writeNow(); }

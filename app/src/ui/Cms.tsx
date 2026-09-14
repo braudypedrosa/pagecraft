@@ -9,6 +9,7 @@ import { C, L } from './ctx';
 import { Icon } from './Icon';
 import { useRef, useState } from 'preact/hooks';
 import { installActionFeedback } from '../../../shared/action-feedback.js';
+import { recoverableFailure } from '../../../shared/account-actions.js';
 
 function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }) {
   const pending = useRef(false);
@@ -26,7 +27,12 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
     pending.current = true; setBusy(true);
     const feedback = installActionFeedback().notify('Deleting collection…', {tone:'progress'});
     try { await L.cmsCommit(C.collections().filter(c => c.id !== col.id)); feedback.success('Collection deleted from the site draft.'); }
-    catch (error) { feedback.error(error instanceof Error ? error.message : 'Collection could not be deleted. Try again.'); }
+    catch (error) {
+      feedback.error(recoverableFailure(
+        error instanceof Error ? error.message : '',
+        'Collection could not be deleted. Try again.',
+      ));
+    }
     finally { pending.current = false; setBusy(false); }
   };
 
@@ -74,7 +80,12 @@ export function Cms() {
       await L.cmsCommit([...C.collections(), {id,name,slug:id,detail:'',fields:[{id:'title',name:'Title',type:'text',required:1}],items:[]}]);
       L.cmsModal(id);
       feedback.success('Collection created. Add its fields and entries in CMS.');
-    } catch (error) { feedback.error(error instanceof Error ? error.message : 'Collection could not be created. Try again.'); }
+    } catch (error) {
+      feedback.error(recoverableFailure(
+        error instanceof Error ? error.message : '',
+        'Collection could not be created. Try again.',
+      ));
+    }
     finally { pending.current = false; setBusy(false); }
 
   };
