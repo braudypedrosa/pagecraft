@@ -1,3 +1,20 @@
+/** Map machine JSON/plain failure bodies to recoverable copy. Never dump raw payloads. */
+export function accountActionFailure(text) {
+  const fallback = 'Could not complete this action. Your input is still here. Try again.';
+  const body = String(text || '').trim();
+  if (!body) return fallback;
+  try {
+    const parsed = JSON.parse(body);
+    if (parsed?.error === 'origin_not_allowed') {
+      return 'That request could not be verified. Refresh the page and try again. Your input is still here.';
+    }
+    return fallback;
+  } catch {
+    if (/^[a-z][a-z0-9_]*$/.test(body) && body.includes('_')) return fallback;
+    return /<[a-z][\s\S]*>/i.test(body) ? fallback : body.slice(0, 500);
+  }
+}
+
 /** Enhance ordinary Cloud POST forms; custom asynchronous flows keep their own handlers. */
 export function installAccountActions() {
   const feedback = window.__pcFeedback;
@@ -47,7 +64,7 @@ export function installAccountActions() {
       const error=result.querySelector('.notice.error,[data-action-error]')?.textContent?.trim();
       const target=new URL(response.url || url.href,location.href);
       if(!response.ok||error||target.searchParams.has('error')) {
-        throw new Error(error || (!response.ok&&!/<[a-z][\s\S]*>/i.test(text)?text.slice(0,500):'Could not complete this action. Your input is still here. Try again.'));
+        throw new Error(error || accountActionFailure(text));
       }
       if(!url.pathname.startsWith('/auth/') && target.pathname==='/login')throw new Error('Your session expired. Sign in again, then retry. Your input is still here.');
       if(target.origin!==location.origin)throw new Error('Could not complete this action. Refresh and try again.');
@@ -78,4 +95,4 @@ export function installAccountActions() {
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',announce,{once:true});else announce();
 }
-export const ACCOUNT_ACTIONS_BOOT_SCRIPT=`(${installAccountActions.toString()})();`;
+export const ACCOUNT_ACTIONS_BOOT_SCRIPT=`${accountActionFailure.toString()};(${installAccountActions.toString()})();`;

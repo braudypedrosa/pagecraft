@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from "../shared/action-feedback.js";
-import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from "../shared/account-actions.js";
+import { ACCOUNT_ACTIONS_BOOT_SCRIPT, accountActionFailure } from "../shared/account-actions.js";
 import { submissionsNavigation } from "../server/src/submissions-navigation";
 import { siteSubmissionsPage } from "../server/src/account-pages";
 const windows = [];
@@ -50,6 +50,32 @@ test("native POST waits for acknowledgement, prevents repeats, preserves input a
   submit();
   await vi.waitFor(() => expect(w.sessionStorage.getItem("pc-action-result")).toContain("Profile saved."));
   expect(form.querySelector("[data-action-error]")).toBeNull();
+});
+test("JSON origin refusals keep the form and never dump the payload", async () => {
+  expect(accountActionFailure('{"error":"origin_not_allowed"}')).toBe(
+    "That request could not be verified. Refresh the page and try again. Your input is still here.",
+  );
+  expect(accountActionFailure('{"error":"not-a-user-string"}')).toBe(
+    "Could not complete this action. Your input is still here. Try again.",
+  );
+  expect(accountActionFailure('save_failed')).toBe(
+    "Could not complete this action. Your input is still here. Try again.",
+  );
+  const { w, form, button, submit } = setup();
+  w.fetch = vi.fn(async () => ({
+    ok: false,
+    status: 403,
+    url: "https://example.test/account/profile",
+    text: async () => '{"error":"origin_not_allowed"}',
+  }));
+  submit();
+  await vi.waitFor(() =>
+    expect(form.querySelector("[data-action-error]")?.textContent).toContain("could not be verified")
+  );
+  expect(form.querySelector("[data-action-error]")?.textContent).not.toContain("origin_not_allowed");
+  expect(form.querySelector("[name=name]").value).toBe("Keep my changes");
+  expect(button.disabled).toBe(false);
+  expect(w.sessionStorage.getItem("pc-action-result")).toBeNull();
 });
 test("validation errors from redirect HTML remain on the original form without reporting success", async () => {
   const { w, form, button, submit } = setup();

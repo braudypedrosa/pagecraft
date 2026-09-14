@@ -40,5 +40,9 @@ serve({hostname:'127.0.0.1',port:4944,fetch(request){
  const url=new URL(request.url);
  if(url.hostname!=='localhost'&&url.hostname!=='127.0.0.1')return new Response('Loopback fixture only',{status:403});
  const headers=new Headers(request.headers);headers.set('host','localhost');headers.set('cookie',`pc_session=${token}`);
+ const origin=headers.get('origin')||'';
+ if(origin==='http://127.0.0.1:4944')headers.set('origin','http://localhost:4944');
+ const referer=headers.get('referer')||'';
+ if(referer.startsWith('http://127.0.0.1:4944'))headers.set('referer',referer.replace('http://127.0.0.1:4944','http://localhost:4944'));
  return app.fetch(new Request(request,{headers}));
 }},()=>console.log('Fictional UI fixtures: http://localhost:4944/ — data resets on restart'));
