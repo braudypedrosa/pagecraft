@@ -667,13 +667,86 @@ export const siteReviewDetailPage = (
   return shell(`${site.name} review`, `<main class="dashboard-app">${accountMenuCss}${siteOverviewCss}${siteReviewsCss}${workbenchHeader(user, site.name)}<div class="pc-main">${managementRail(site, 'reviews')}<section class="pc-workspace"><div class="pc-manage-content"><div class="pc-reviews"><header class="pc-reviews-head pc-workspace-head"><div><a class="pc-manage-back" href="/sites/${encodeURIComponent(site.id)}/reviews"><span aria-hidden="true">←</span> Reviews</a><h1>Assigned preview</h1><p>${esc(input.reviewerEmail)} · snapshot ${esc(input.assignment.publicationId)}</p></div></header>${notice(input.error, input.message)}<iframe class="pc-review-preview" title="Assigned private preview" src="${esc(input.previewSrc)}" sandbox="allow-scripts"></iframe><section class="pc-review-thread">${statusCopy}${comments}${commentForm}${decisionForm}</section></div></div></section></div></main>`);
 };
 
-export const notificationsPage = (user: User, notices: ReviewNotice[]) => {
+export const notificationStatusExamples = (): ReviewNotice[] => {
+  const at = (offsetMinutes: number) => new Date(Date.UTC(2026, 8, 15, 2, 30) + offsetMinutes * 60_000).toISOString();
+  return [
+    {
+      id: 'example-new-assigned',
+      userId: 'example',
+      kind: 'review_assigned',
+      title: 'A review preview was assigned to you',
+      body: 'Owner assigned a private preview of Example Site.',
+      href: '#example-new-assigned',
+      createdAt: at(0),
+      readAt: null,
+    },
+    {
+      id: 'example-new-comment',
+      userId: 'example',
+      kind: 'review_comment',
+      title: 'New comment on an assigned preview',
+      body: 'Owner left a comment on Example Site.',
+      href: '#example-new-comment',
+      createdAt: at(-20),
+      readAt: null,
+    },
+    {
+      id: 'example-new-decision',
+      userId: 'example',
+      kind: 'review_decision',
+      title: 'Review decision recorded',
+      body: 'Changes requested on Example Site.',
+      href: '#example-new-decision',
+      createdAt: at(-40),
+      readAt: null,
+    },
+    {
+      id: 'example-read-assigned',
+      userId: 'example',
+      kind: 'review_assigned',
+      title: 'A review preview was assigned to you',
+      body: 'Owner assigned an earlier private preview of Example Site.',
+      href: '#example-read-assigned',
+      createdAt: at(-120),
+      readAt: at(-90),
+    },
+    {
+      id: 'example-read-comment',
+      userId: 'example',
+      kind: 'review_comment',
+      title: 'New comment on an assigned preview',
+      body: 'Reviewer replied on Example Site.',
+      href: '#example-read-comment',
+      createdAt: at(-180),
+      readAt: at(-150),
+    },
+    {
+      id: 'example-read-decision',
+      userId: 'example',
+      kind: 'review_decision',
+      title: 'Review decision recorded',
+      body: 'Snapshot approved for Example Site.',
+      href: '#example-read-decision',
+      createdAt: at(-240),
+      readAt: at(-210),
+    },
+  ];
+};
+
+export const notificationsPage = (
+  user: User,
+  notices: ReviewNotice[],
+  options: { examples?: boolean } = {},
+) => {
   const rows = notices.map((row) => {
     const isNew = !row.readAt;
     const state = isNew ? 'New' : 'Read';
     return `<a class="pc-inbox-item ${isNew ? 'is-new' : 'is-read'}" href="${esc(row.href)}"><span class="pc-inbox-icon" aria-hidden="true">${noticeIconFor(row.kind)}</span><span class="pc-inbox-copy"><strong class="pc-inbox-title">${esc(row.title)}</strong><p class="pc-inbox-body">${esc(row.body)}</p></span><span class="pc-inbox-meta"><span class="pc-inbox-state">${state}</span><time class="pc-inbox-time" datetime="${esc(row.createdAt)}">${esc(fullDate(row.createdAt))}</time></span></a>`;
   }).join('') || '<p class="pc-inbox-empty">No notifications yet.</p>';
-  return shell('Notifications', `<main class="dashboard-app">${accountMenuCss}${siteOverviewCss}${notificationsCss}${workbenchHeader(user, 'Notifications')}<div class="pc-main"><nav class="pc-rail" aria-label="Sites navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a href="/">${ownedIcon}<span>Owned</span></a><a href="/">${sharedIcon}<span>Shared</span></a><span class="pc-rail-gap"></span></nav><section class="pc-workspace"><div class="pc-manage-content"><div class="pc-inbox"><header class="pc-inbox-head pc-workspace-head"><div><h1>Notifications</h1><p>Review assignments, comments, and decisions stay on the snapshot they belong to.</p></div></header><div class="pc-inbox-list">${rows}</div></div></div></section></div></main>`);
+  const blurb = options.examples
+    ? 'Example rows for New and Read across assignment, comment, and decision notices.'
+    : 'Review assignments, comments, and decisions stay on the snapshot they belong to.';
+  return shell('Notifications', `<main class="dashboard-app">${accountMenuCss}${siteOverviewCss}${notificationsCss}${workbenchHeader(user, 'Notifications')}<div class="pc-main"><nav class="pc-rail" aria-label="Sites navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a href="/">${ownedIcon}<span>Owned</span></a><a href="/">${sharedIcon}<span>Shared</span></a><span class="pc-rail-gap"></span></nav><section class="pc-workspace"><div class="pc-manage-content"><div class="pc-inbox"><header class="pc-inbox-head pc-workspace-head"><div><h1>Notifications</h1><p>${blurb}</p></div></header><div class="pc-inbox-list">${rows}</div></div></div></section></div></main>`);
 };
 
 /** Internal specimens render through the same Cloud shell, never a copied stylesheet. */

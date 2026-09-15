@@ -160,6 +160,7 @@ import {
   siteReviewDetailPage,
   siteSettingsPage,
   notificationsPage,
+  notificationStatusExamples,
   termsPage,
 } from "./account-pages.ts";
 import {
@@ -2050,6 +2051,10 @@ export function createApp(o: Options) {
     const user = await who(c);
     if (!user) {
       return c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`);
+    }
+    const examples = c.req.query("examples") === "1";
+    if (examples) {
+      return c.html(notificationsPage(user, notificationStatusExamples(), { examples: true }));
     }
     const notices = await reviews.notices(user.id);
     for (const notice of notices.filter(item => !item.readAt)) {

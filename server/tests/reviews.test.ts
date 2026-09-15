@@ -172,6 +172,17 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
   const rereadHtml = await reread.text();
   a.match(rereadHtml, /class="pc-inbox-item is-read"/);
   a.match(rereadHtml, /pc-inbox-state">Read</);
+
+  const examples = await as(reviewerCookie, '/notifications?examples=1');
+  a.equal(examples.status, 200);
+  const exampleHtml = await examples.text();
+  a.match(exampleHtml, /pc-inbox-item is-new/);
+  a.match(exampleHtml, /pc-inbox-item is-read/);
+  a.match(exampleHtml, /pc-inbox-state">New</);
+  a.match(exampleHtml, /pc-inbox-state">Read</);
+  a.match(exampleHtml, /review_assigned|A review preview was assigned/i);
+  a.match(exampleHtml, /New comment on an assigned preview/);
+  a.match(exampleHtml, /Review decision recorded/);
 });
 
 test('file review storage survives a new process', async () => {
