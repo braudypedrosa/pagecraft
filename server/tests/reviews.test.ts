@@ -109,13 +109,13 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
 
   const ownerList = await as(ownerCookie, `/sites/${site.id}/reviews`);
   a.equal(ownerList.status, 200);
-  a.ok((await ownerList.text()).includes(snapshot.id));
+  a.match(await ownerList.text(), /Create review link/);
 
   const list = await as(reviewerCookie, `/sites/${site.id}/reviews`);
   a.equal(list.status, 200);
   const listHtml = await list.text();
-  a.match(listHtml, /Awaiting review/);
-  a.ok(listHtml.includes(reviewer.email));
+  a.match(listHtml, /pc-sub-table/);
+  a.match(listHtml, /Ask the site owner to create a review link/);
 
   const assignment = (await reviews.assignmentsForReviewer(site.id, reviewer.id))[0];
   a.ok(assignment);

@@ -2,8 +2,7 @@
 
 Live reviews use `/review/:token`. Owners create private reviewer, public guest,
 or private developer links from Sites → Reviews. Each active link for a site
-opens the same page/device-scoped conversation. The old Phase 3 immutable
-snapshot approvals remain in the snapshot archive.
+opens the same page/device-scoped conversation.
 
 ## Access
 

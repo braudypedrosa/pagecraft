@@ -1888,18 +1888,6 @@ export function createApp(o: Options) {
     }
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
-    const members = await o.auth.members(id);
-    const listed = gate.role === "owner"
-      ? await reviews.assignmentsForSite(id)
-      : await reviews.assignmentsForReviewer(id, gate.user.id);
-    const assignments = await Promise.all(listed.map(async (row) => {
-      const reviewer = members.find(member => member.userId === row.reviewerUserId);
-      return {
-        ...row,
-        reviewerEmail: reviewer?.email || row.reviewerUserId,
-        decision: await reviews.decision(row.id),
-      };
-    }));
     const liveInvited = await liveReviews.invited(id, normalEmail(gate.user.email));
     const liveDeveloper = await liveReviews.invited(id, normalEmail(gate.user.email), 'developer');
     const liveLinks = (await liveReviews.links(id)).filter(link => link.active && (gate.role === 'owner' || link.access === 'public' || link.access === 'private' && liveInvited || link.access === 'developer' && liveDeveloper));
@@ -1917,10 +1905,6 @@ export function createApp(o: Options) {
     }, {
       links: liveLinks,
       invitations,
-      assignments,
-      snapshots: o.publications ? await o.publications.listBySite(id) : [],
-      reviewers: members.filter(member => member.role === "reviewer")
-        .map(member => ({ userId: member.userId, email: member.email })),
       error: c.req.query("error"),
       message: c.req.query("message"),
     }));
