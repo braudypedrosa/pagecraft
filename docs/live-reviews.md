@@ -7,6 +7,9 @@ snapshot approvals remain in the snapshot archive.
 
 ## Access
 
+- Owners open **Sites → [site] → Reviews** in the site management rail. That dashboard
+  creates review URLs, assigns reviewer/developer emails, and lists links in a table.
+  Each **Open review** action enters `/review/:token` for annotation.
 - Public links require a signed-in account or a nonempty guest name. Guest identity
   uses an opaque HttpOnly cookie; only its digest is persisted, with a 30-day expiry.
 - Private reviewer links require an invited email, authenticated through the

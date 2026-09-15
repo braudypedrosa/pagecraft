@@ -7,6 +7,9 @@ test('Cloud and review screens consume one header renderer and stylesheet', () =
   const account = readFileSync(new URL('../src/account-pages.ts', import.meta.url),'utf8');
   expect(account).toContain('=> cloudHeader(label,');
   expect(account).toContain('${CLOUD_HEADER_CSS}');
+  expect(account).toContain("managementRail(site, 'reviews')");
+  expect(account).toContain('Create a review link');
+  expect(account).toContain('pc-review-table');
   const input = {name:'<QA>',siteId:'s1',base:'/review/token',person:'Owner',owner:true,canResolve:true,links:[],pages:[{path:'index.html',name:'Home'}],invitations:[]};
   const page = liveReviewPage(input);
   const hub = reviewHubPage({...input,assignments:[]});

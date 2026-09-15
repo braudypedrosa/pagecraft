@@ -45,8 +45,31 @@ export function liveReviewRoutes(app: Hono, o: {
     if (!user || (await o.auth.membership(siteId, user.id))?.role !== 'owner') return c.text('Owner access required', 403);
     const body = await c.req.parseBody(); const kind = String(body.access || 'private');
     if (!['public','private','developer'].includes(kind)) return c.text('Invalid link access', 400);
-    const link = await o.reviews.createLink(siteId, kind as LiveLink['access']);
-    return c.redirect(baseOf(link), 303);
+    await o.reviews.createLink(siteId, kind as LiveLink['access']);
+    return c.redirect('/sites/' + encodeURIComponent(siteId) + '/reviews', 303);
+  });
+  app.post('/sites/:id/reviews/live/revoke', async c => {
+    const user = await o.who(c), siteId = c.req.param('id');
+    if (!user || (await o.auth.membership(siteId, user.id))?.role !== 'owner') return c.text('Owner access required', 403);
+    const body = await c.req.parseBody();
+    await o.reviews.revoke(siteId, String(body.linkId || ''));
+    return c.redirect('/sites/' + encodeURIComponent(siteId) + '/reviews', 303);
+  });
+  app.post('/sites/:id/reviews/live/invite', async c => {
+    const user = await o.who(c), siteId = c.req.param('id');
+    if (!user || (await o.auth.membership(siteId, user.id))?.role !== 'owner') return c.text('Owner access required', 403);
+    if (!inviteLimit.take(user.id)) return c.text('Invitation limit reached. Try again later.', 429);
+    const body = await c.req.parseBody(), email = normalEmail(String(body.email || '')), kind = String(body.kind || '');
+    if (!validEmail(email) || !['private','developer'].includes(kind)) return c.text('Enter a valid email and access type.', 400);
+    let link = (await o.reviews.links(siteId)).find(l => l.active && l.access === kind);
+    if (!link) link = await o.reviews.createLink(siteId, kind as 'private' | 'developer');
+    const member = (await o.auth.members(siteId)).find(m => normalEmail(m.email) === email);
+    const result = await o.auth.provisionInvitation({ siteId, actorUserId: user.id, email, role: member?.role || 'reviewer', redirectTo: `${o.origin || new URL(c.req.url).origin}/auth/confirm?type=invite&next=${encodeURIComponent(baseOf(link))}` });
+    if (result.status === 'forbidden' || result.status === 'last_owner') return c.text('Could not grant access. Refresh and try again.', 403);
+    await o.reviews.invite(siteId, email, kind as 'private' | 'developer');
+    await o.auth.drainInvitationOutbox('review-' + secret(), 5);
+    if (result.status === 'granted') await o.notifyInvitation?.(c, result.user, baseOf(link), kind);
+    return c.redirect('/sites/' + encodeURIComponent(siteId) + '/reviews', 303);
   });
   app.get('/review/:token', async c => {
     const a = await access(c); if (!a) return c.text('This review link is unavailable or has been revoked.', 404);

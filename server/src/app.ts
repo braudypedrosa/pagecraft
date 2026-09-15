@@ -1,4 +1,3 @@
-import { reviewHubPage } from './live-review-page.ts';
 import { LiveReviewStore } from './live-reviews.ts';
 import { liveReviewRoutes } from './live-review-routes.ts';
 import { publicationPreviewHtml } from "./publication-preview.ts";
@@ -1904,7 +1903,7 @@ export function createApp(o: Options) {
     const liveInvited = await liveReviews.invited(id, normalEmail(gate.user.email));
     const liveDeveloper = await liveReviews.invited(id, normalEmail(gate.user.email), 'developer');
     const liveLinks = (await liveReviews.links(id)).filter(link => link.active && (gate.role === 'owner' || link.access === 'public' || link.access === 'private' && liveInvited || link.access === 'developer' && liveDeveloper));
-    if (c.req.query('legacy') !== '1') return c.html(reviewHubPage({siteId:id,name:site.name,owner:gate.role === 'owner',links:liveLinks,assignments}));
+    const invitations = gate.role === 'owner' ? await liveReviews.invitations(id) : [];
     return c.html(siteReviewsPage(gate.user, {
       id: site.id,
       name: site.name,
@@ -1916,6 +1915,8 @@ export function createApp(o: Options) {
       version: site.version,
       publishedVersion: site.publishedVersion,
     }, {
+      links: liveLinks,
+      invitations,
       assignments,
       snapshots: o.publications ? await o.publications.listBySite(id) : [],
       reviewers: members.filter(member => member.role === "reviewer")
