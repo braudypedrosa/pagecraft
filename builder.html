@@ -105,13 +105,10 @@ input,select,textarea{font:inherit;color:inherit}
   display:flex;align-items:center;gap:var(--sp-4);height:52px;flex:0 0 52px;padding:0 12px 0 0;
   background:var(--rail);color:var(--rail-text);position:relative;z-index:40;
 }
-.brand{
-  display:flex;align-items:center;gap:var(--sp-4);height:52px;padding:0 18px 0 16px;
-  color:inherit;text-decoration:none;font-weight:600;font-size:var(--fs-5);letter-spacing:-.02em;flex:0 0 auto;
-}
-.brand[href]{cursor:pointer}
-.brand[href]:hover{background:#ffffff0f}
-.brand svg{width:17px;height:22px;display:block;flex:0 0 17px}
+
+
+
+
 .topsep{width:1px;height:22px;background:var(--rail-line);flex:0 0 1px}
 .docname{
   display:flex;align-items:center;gap:var(--sp-3);padding:6px 10px;border-radius:var(--r-sm);
@@ -145,12 +142,12 @@ input,select,textarea{font:inherit;color:inherit}
 
 /* device switcher: one grouped control, active state doubled up as a lighter
    icon and the green underline */
-#devSeg{background:#ffffff0f;border-radius:var(--r-md);padding:3px;gap:var(--sp-1)}
+
 /* a segmented cell, wider than tall on purpose — not one of the --ic- buttons */
-#devSeg button{width:36px;height:28px;padding:0;display:grid;place-items:center;border-radius:5px}
-#devSeg button:hover{background:#ffffff14}
-#devSeg button.on{color:var(--rail-text);background:#ffffff1a}
-#devSeg button.on::after{left:8px;right:8px;bottom:2px}
+
+
+
+
 .iconbtn{
   width:var(--ic-lg);height:var(--ic-lg);border-radius:var(--r-sm);display:grid;place-items:center;
   color:var(--text-3);
@@ -1548,13 +1545,13 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
 
     <div class="seg" id="devSeg">
       <button data-dev="desktop" class="on" title="Desktop — base styles" aria-label="Desktop" aria-pressed="true">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1.25" y="2.75" width="13.5" height="9.5" rx="1.6"/><path d="M5.5 14.5h5"/></svg>
+        <!--PAGECRAFT-DEVICE-DESKTOP-->
       </button>
       <button data-dev="tablet" title="Tablet — override below 1024px" aria-label="Tablet" aria-pressed="false">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3.25" y="1.5" width="9.5" height="13" rx="1.6"/><path d="M6.75 12.4h2.5"/></svg>
+        <!--PAGECRAFT-DEVICE-TABLET-->
       </button>
       <button data-dev="mobile" title="Mobile — override below 767px" aria-label="Mobile" aria-pressed="false">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="1.5" width="6" height="13" rx="1.7"/><path d="M7.2 12.6h1.6"/></svg>
+        <!--PAGECRAFT-DEVICE-MOBILE-->
       </button>
     </div>
 

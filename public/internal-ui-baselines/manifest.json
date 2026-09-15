@@ -1,18 +1,19 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-13T14:44:49.769Z",
+  "capturedAt": "2026-09-15T13:45:08.070Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "3e7a59de66225a75a7e2bcfb3fec0c3eef11d526b08dc90f789cb2935bf08533",
+    "builder.html": "eba5ee64825c024678dec96b9b28ccd0215dbae8bb1bee95e25c35de81d4c778",
     "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
     "app/src/ui/CmsWorkspace.tsx": "83b16a9b5700959290cb0f698487ddd44e3c4f3773a959d453136a753bb7dac1",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "308fed9afa5e00ac08524fbc1f4fbe6ba6c9e71582a7fe47bc4b87ac16197d36",
     "app/src/ui/inspector/Inspector.tsx": "d7c4c347efbc0353e79b53ef2edb407719a6db515ab35dbc5e32580b3828d32c",
     "app/src/ui/inspector/Lists.tsx": "e61d813ba1db4bfa28d8f2b444e4bcbb631dadc6cea5e2af5575113a32679a3e",
+    "shared/builder-header.js": "069f4054dbb6a8d9da6641388b33ddffaa6a7d5e68580f4fb041f1c5c96af1ef",
     "shared/ui-tokens.js": "bc85feb38b0fcb7bfb1f4426d0981489c6edb80633b4b7e0c0760076426649c8",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
     "shared/ui-typography.js": "9f3189068f121be722b674b051c8d41af66b409c463ec89311397dc2af66780e",
@@ -22,33 +23,34 @@
     "shared/dialog-styles.js": "4bc8bf9e9520fa0ecd0104b9510e934ca4542c3014a7b0ec9123cb05a0ebae16",
     "shared/custom-select.js": "ca4be5e5b692bedaa97020c66419ea246f4f8cea2568df465481d02284cdabe6",
     "shared/action-feedback.js": "1698eca7dca4b0d51a2ac6669f5875e8fa06bbcdbb77de5c0c2240598160333f",
-    "server/src/account-pages.ts": "e8911dd984ece2a1e7f610be202aeae2f1b1dbf01b6ff6ed7b3ccb4038c35460",
+    "shared/notify-menu.js": "0194aa57f1c3ae349fff60409e90c88e45631feb04f5a54d7824bc00a876161c",
+    "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
+    "server/src/account-pages.ts": "67ef64b522f3c6739fcc4559abc303c087d6ac2d1b2ea82c1de353be60384f69",
     "server/src/component-gallery.ts": "b82085a132d5480b248d81af7ef8ae39e43385d8a296c0ceda47a9c7050b3d0a",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
-    "brand/fonts/DMSans-SemiBold.ttf": "607efff45c452ac62c584833d62dc8a0c190f7ef2fa8be045208c6e9a419de9c",
-    "shared/notify-menu.js": "0194aa57f1c3ae349fff60409e90c88e45631feb04f5a54d7824bc00a876161c"
+    "brand/fonts/DMSans-SemiBold.ttf": "607efff45c452ac62c584833d62dc8a0c190f7ef2fa8be045208c6e9a419de9c"
   },
   "behaviorChecks": [
     {
       "host": "cloud",
-      "check": "Dialog Escape closes and restores opener focus",
+      "check": "Picker Escape preserves selection",
       "passed": true
     },
     {
       "host": "cloud",
-      "check": "Select Escape preserves Home selection",
+      "check": "Dialog Escape restores opener focus",
       "passed": true
     },
     {
       "host": "builder",
-      "check": "Dialog Escape closes and restores opener focus",
+      "check": "Picker Escape preserves selection",
       "passed": true
     },
     {
       "host": "builder",
-      "check": "Select Escape preserves Home selection",
+      "check": "Dialog Escape restores opener focus",
       "passed": true
     }
   ],

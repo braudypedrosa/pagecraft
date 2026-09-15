@@ -54,3 +54,28 @@ Regression tests cover identity/access boundaries, developer permissions, guest
 restrictions, device separation, live versions, invitation membership, revocation,
 invalid inputs, CSRF, restart persistence, and concurrent writes within a process.
 Browser acceptance uses the built-in browser and labelled QA content.
+
+## Review workspace overhaul (local candidate)
+
+The workspace uses Pagecraft's ink header, original logo, Craft Green actions and shared
+control tokens. A left comments panel shows a single page dropdown (first page selected by default) and
+a flat numbered list filtered by page, device and Open/Resolved/All. Clicking an item
+scrolls to its annotation and opens the conversation.
+Selecting feedback opens a right conversation inspector; sharing opens
+in a dialog. On narrow screens, comments follow the preview and pin selection reveals the
+relevant thread.
+
+Annotation has Element and Section targets. Hover outlines the target; clicking locks its
+anchor while composing. The selected thread highlights the target again. Builder IDs remain
+preferred; inner elements without IDs get deterministic preview-only structural IDs. These
+fallback IDs can change when the site's structure changes, so coordinate fallback remains
+available. The bridge accepts only parent messages with the matching preview channel.
+
+Authorized owner/content members can open feedback in the editor. The destination selects
+the page and matching exported node ID without changing document content. Preview-only
+anchors or removed elements fall back to the page. Developer review access alone does not
+grant editing rights.
+
+The review workspace and review hub use the same `cloudHeader` renderer and
+`CLOUD_HEADER_CSS` as the dashboard/site-management screens. Header corrections are
+made locally in that shared module; deploying to staging does not change styling.

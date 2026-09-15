@@ -81,3 +81,26 @@ test('owner invitations give reviewer membership and developer resolution withou
   expect((await s.reviews.invitations(s.site.id)).some(i=>i.email==='new@example.test'&&i.kind==='developer')).toBe(true);
   expect((await s.reviews.links(s.site.id)).some(l=>l.access==='developer')).toBe(true);
 });
+
+test('editor destination is exposed only to existing site editors', async () => {
+  const s = await setup();
+  const link = await s.reviews.createLink(s.site.id, 'developer');
+  const path = '/review/' + link.token;
+  const ownerHtml = await (await s.req(path, s.cookies.get(s.owner.id))).text();
+  const developerHtml = await (await s.req(path, s.cookies.get(s.developer.id))).text();
+  expect(ownerHtml).toContain('"editorUrl":"/edit/' + s.site.id + '"');
+  expect(developerHtml).toContain('"editorUrl":null');
+});
+
+test('owners, reviewers and developers can annotate; only owners and developers can mark fixed', async () => {
+  const s = await setup();
+  const link = await s.reviews.createLink(s.site.id, 'public');
+  const path = '/review/' + link.token;
+  for (const user of [s.owner, s.reviewer, s.developer]) {
+    const cookie = s.cookies.get(user.id);
+    const response = await s.req(path + '/pin', cookie, pin);
+    expect(response.status).toBe(201);
+    const created = await response.json();
+    expect((await s.req(path + '/resolve', cookie, {pinId:created.id,done:true})).status).toBe(user === s.reviewer ? 403 : 200);
+  }
+});

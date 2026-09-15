@@ -27,7 +27,7 @@ export function liveReviewRoutes(app: Hono, o: {
     const invited = !!(user && membership && await o.reviews.invited(link.siteId, normalEmail(user.email)));
     const allowed = owner || (link.access === 'public') || (link.access === 'developer' ? developer : invited);
     const person: ReviewPerson | null = !allowed ? null : user ? { id: user.id, name: user.name || user.email } : link.access === 'public' ? await o.reviews.guest(link.siteId, getCookie(c, 'pc_review_guest_' + link.siteId) || '') : null;
-    return { link, user, owner, canResolve: owner || developer, person };
+    return { link, user, owner, canEdit: membership?.role === 'owner' || membership?.role === 'content', canResolve: owner || developer, person };
   };
   app.use('/review/*', async (c, next) => {
     c.header('cache-control', 'private, no-store'); c.header('referrer-policy', 'no-referrer'); c.header('x-robots-tag', 'noindex, nofollow');
@@ -54,7 +54,7 @@ export function liveReviewRoutes(app: Hono, o: {
     if (!a.person) return c.html(reviewEntry(site.name, baseOf(a.link), a.link.access === 'public', a.user ? 'This account has not been invited. Sign in with the invited email or ask the owner for access.' : ''));
     const preview = await o.preview(site.id, 'index.html');
     if (!preview) return c.text('Site preview is not available. Ask the owner to save the site.', 422);
-    return c.html(liveReviewPage({ name: site.name, siteId: site.id, base: baseOf(a.link), person: a.person.name, owner: a.owner, canResolve: a.canResolve, pages: preview.pages, links: a.owner ? await o.reviews.links(site.id) : [], invitations: a.owner ? await o.reviews.invitations(site.id) : [] }));
+    return c.html(liveReviewPage({ name: site.name, siteId: site.id, base: baseOf(a.link), person: a.person.name, owner: a.owner, canResolve: a.canResolve, canEdit: a.canEdit, pages: preview.pages, links: a.owner ? await o.reviews.links(site.id) : [], invitations: a.owner ? await o.reviews.invitations(site.id) : [] }));
   });
   app.post('/review/:token/join', async c => {
     const a = await access(c); if (!a || a.link.access !== 'public') return c.text('Guest access is unavailable.', 403);

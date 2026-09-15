@@ -110,13 +110,10 @@ input,select,textarea{font:inherit;color:inherit}
   display:flex;align-items:center;gap:var(--sp-4);height:52px;flex:0 0 52px;padding:0 12px 0 0;
   background:var(--rail);color:var(--rail-text);position:relative;z-index:40;
 }
-.brand{
-  display:flex;align-items:center;gap:var(--sp-4);height:52px;padding:0 18px 0 16px;
-  color:inherit;text-decoration:none;font-weight:600;font-size:var(--fs-5);letter-spacing:-.02em;flex:0 0 auto;
-}
-.brand[href]{cursor:pointer}
-.brand[href]:hover{background:#ffffff0f}
-.brand svg{width:17px;height:22px;display:block;flex:0 0 17px}
+
+
+
+
 .topsep{width:1px;height:22px;background:var(--rail-line);flex:0 0 1px}
 .docname{
   display:flex;align-items:center;gap:var(--sp-3);padding:6px 10px;border-radius:var(--r-sm);
@@ -150,12 +147,12 @@ input,select,textarea{font:inherit;color:inherit}
 
 /* device switcher: one grouped control, active state doubled up as a lighter
    icon and the green underline */
-#devSeg{background:#ffffff0f;border-radius:var(--r-md);padding:3px;gap:var(--sp-1)}
+
 /* a segmented cell, wider than tall on purpose — not one of the --ic- buttons */
-#devSeg button{width:36px;height:28px;padding:0;display:grid;place-items:center;border-radius:5px}
-#devSeg button:hover{background:#ffffff14}
-#devSeg button.on{color:var(--rail-text);background:#ffffff1a}
-#devSeg button.on::after{left:8px;right:8px;bottom:2px}
+
+
+
+
 .iconbtn{
   width:var(--ic-lg);height:var(--ic-lg);border-radius:var(--r-sm);display:grid;place-items:center;
   color:var(--text-3);
@@ -1859,6 +1856,19 @@ body.editor-width-blocked>:not(#editorWidthGate):not(script):not(style){visibili
  * Editable text retains its native caret; select labels identify keyboard focus. */
 .pc-custom-select-trigger:focus-visible>span{text-decoration:underline;text-underline-offset:3px}
 input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{filter:brightness(.8)}
+
+
+.topbar,.pc-topbar{-webkit-font-smoothing:antialiased}
+.topbar .brand,.pc-topbar .pc-brand{display:flex;align-items:center;gap:8px;height:52px;padding:0 18px 0 16px;color:var(--pc-surface-subtle);text-decoration:none;font:600 var(--pc-text-dialog)/1.5 var(--pc-font-body);letter-spacing:-.02em;flex:0 0 auto}
+.topbar .brand[href],.pc-topbar .pc-brand[href]{cursor:pointer}.topbar .brand[href]:hover,.pc-topbar .pc-brand[href]:hover{background:#ffffff0f}
+.topbar .brand svg,.pc-topbar .pc-brand svg{width:17px;height:22px;display:block;flex:0 0 17px}
+.pc-topbar{gap:8px;color:var(--pc-surface-subtle);font:var(--pc-text-body)/1.5 var(--pc-font-body)}.pc-topbar .pc-docname{font:500 var(--pc-text-body)/1.5 var(--pc-font-body);padding:6px 10px;color:var(--pc-surface-subtle)}
+:is(#devSeg,.review-devices){display:flex;align-items:center;background:#ffffff0f;border-radius:8px;padding:3px;gap:2px;width:max-content;flex:none}
+:is(#devSeg,.review-devices) button{position:relative;gap:6px;width:36px;height:28px;min-height:28px;padding:0;border:0;display:grid;place-items:center;border-radius:5px;background:transparent;color:#aeb5ad;font:500 var(--pc-text-body)/1.5 var(--pc-font-body)}
+:is(#devSeg,.review-devices) button:hover{color:var(--pc-surface-subtle);background:#ffffff14}
+:is(#devSeg,.review-devices) button:is(.on,[aria-pressed=true]){color:var(--pc-surface-subtle);background:#ffffff1a}
+:is(#devSeg,.review-devices) button:is(.on,[aria-pressed=true])::after{content:"";position:absolute;left:8px;right:8px;bottom:2px;height:2px;background:#b7f34a;border-radius:2px}
+:is(#devSeg,.review-devices) button svg{width:17px;height:17px;display:block;flex:none}@media(max-width:980px){.topbar .brand{padding-inline:10px}}@media(max-width:600px){.topbar .brand{padding-inline:8px}:is(#devSeg,.review-devices){padding:2px}:is(#devSeg,.review-devices) button{width:30px}}@media(max-width:520px){.pc-topbar .pc-brand{padding-inline:12px}}
 
 </style>
 </head>
@@ -10659,6 +10669,28 @@ var PC_UI = (() => {
   }, C.prototype.render = S, i = [], o = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e = function(n2, l3) {
     return n2.__v.__b - l3.__v.__b;
   }, H.__r = 0, f = Math.random().toString(8), c = "__d" + f, a = "__a" + f, s = /(PointerCapture)$|Capture$/i, h = 0, p = V(false), v = V(true), y = 0;
+
+  // app/src/ui/review-navigation.ts
+  function openReviewTarget(core, legacy, search) {
+    const query = new URLSearchParams(search);
+    const path = query.get("reviewPage");
+    if (!path) return;
+    const index = core.state.pages.findIndex((p3) => p3.slug + ".html" === path);
+    if (index < 0) return;
+    core.state.cur = index;
+    core.state.ui.mode = "page";
+    core.selSet([]);
+    const target = query.get("reviewNode");
+    let found;
+    for (const [mode, nodes] of [["page", core.state.pages[index].tree], ["header", core.state.header], ["footer", core.state.footer]]) {
+      core.eachNode(nodes, (node) => {
+        if (!found && target && core.domIdOf(node) === target) found = { id: node.id, mode };
+      });
+    }
+    if (found) core.state.ui.mode = found.mode;
+    legacy.appRender();
+    if (found) legacy.select(found.id, { scroll: true });
+  }
 
   // app/src/ui/ctx.ts
   var C2 = null;
@@ -19881,6 +19913,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   // app/src/ui/index.tsx
   function mount(core, legacy) {
     install(core, legacy);
+    if (window.PC_SERVER) requestAnimationFrame(() => openReviewTarget(core, legacy, location.search));
     installUiMotion();
     installCustomSelects();
     installActionFeedback();

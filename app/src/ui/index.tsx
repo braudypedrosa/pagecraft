@@ -5,6 +5,7 @@
    stays inside the IIFE, which is what keeps its `$` from colliding with the one
    builder.html has had all along. */
 import { render } from 'preact';
+import { openReviewTarget } from './review-navigation';
 import { install, registerPainter, type Core, type Legacy } from './ctx';
 import { Layers } from './Layers';
 import { Cms } from './Cms';
@@ -36,6 +37,7 @@ export { adoptHostDocument } from '../host/schema';
 
 export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
+  if ((window as any).PC_SERVER) requestAnimationFrame(() => openReviewTarget(core, legacy, location.search));
   installUiMotion();
   installCustomSelects();
   installActionFeedback();

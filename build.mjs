@@ -1,3 +1,4 @@
+import { BUILDER_HEADER_CSS, HEADER_DEVICE_ICONS } from './shared/builder-header.js';
 /* Build step for the Slate page builder.
    The legacy editor source is builder.html. This produces:
      index.html     standalone page with a doctype
@@ -29,7 +30,8 @@ const face = (family, file, weight, style = 'normal') => {
 const FONT_CSS = UI_FONT_FACES.map(({ family, file, weight }) => face(family, file, weight)).join('\n');
 const withFonts = html => {
   if (!html.includes(FONT_SLOT)) throw new Error('font slot ' + FONT_SLOT + ' missing from builder.html');
-  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n</style><style id="pc-ui-styles">\n${UI_TOKENS_CSS}\n${WORKSPACE_CSS}\n${UI_TYPOGRAPHY_CSS}\n${UI_FOCUS_CSS}\n</style>`);
+  for (const [device, icon] of Object.entries(HEADER_DEVICE_ICONS)) html = html.replace('<!--PAGECRAFT-DEVICE-' + device.toUpperCase() + '-->', icon);
+  return html.replace(FONT_SLOT, `<style id="pc-fonts">\n${FONT_CSS}\n</style><style id="pc-ui-styles">\n${UI_TOKENS_CSS}\n${WORKSPACE_CSS}\n${UI_TYPOGRAPHY_CSS}\n${UI_FOCUS_CSS}\n${BUILDER_HEADER_CSS}\n</style>`);
 };
 /* esbuild preserves indentation inside block comments, including indentation-only blank
    lines. Strip that generated whitespace so rebuilding does not make `git diff --check`
