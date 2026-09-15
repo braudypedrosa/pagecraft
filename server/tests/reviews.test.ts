@@ -165,6 +165,8 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
   a.match(noticeHtml, /class="pc-inbox-item is-new"/);
   a.match(noticeHtml, /pc-inbox-state">New</);
   a.match(noticeHtml, /pc-inbox-icon/);
+  a.match(noticeHtml, /aria-label="Sites navigation"/);
+  a.match(noticeHtml, /class="pc-rail"/);
   const reread = await as(reviewerCookie, '/notifications');
   a.equal(reread.status, 200);
   const rereadHtml = await reread.text();
