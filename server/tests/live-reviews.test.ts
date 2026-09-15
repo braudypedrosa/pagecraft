@@ -44,9 +44,9 @@ test('live links enforce identity, invitation scope, guest boundaries, device th
   const preview = await s.req(path + '/preview', cookie); expect(preview.status).toBe(200); expect((await preview.json()).html).toContain('reviewChannel');
   expect((await s.req('/sites/' + s.site.id + '/reviews', s.cookies.get(s.developer.id))).status).toBe(200);
   const hub = await (await s.req('/sites/' + s.site.id + '/reviews', s.cookies.get(s.owner.id))).text();
-  expect(hub).toContain('Live review links');
+  expect(hub).toContain('pc-sub-table');
   expect(hub).toContain('Create a review link');
-  expect(hub).toContain('pc-review-table');
+  expect(hub).toContain('pc-forms-table');
   expect(hub).toContain('/review/' + pub.token);
   await s.reviews.removeInvite(s.site.id, s.developer.email);
   expect((await s.req('/review/' + dev.token + '/state', s.cookies.get(s.developer.id))).status).toBe(403);

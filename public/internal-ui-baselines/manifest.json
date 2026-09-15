@@ -25,7 +25,7 @@
     "shared/action-feedback.js": "1698eca7dca4b0d51a2ac6669f5875e8fa06bbcdbb77de5c0c2240598160333f",
     "shared/notify-menu.js": "0194aa57f1c3ae349fff60409e90c88e45631feb04f5a54d7824bc00a876161c",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "0970946d10117d45c521942b0891db15cd6a9e86a67298c1fad7942cfe9cd975",
+    "server/src/account-pages.ts": "685ebf80d705872ab0cf35a689982dfd0236ac179fc9da8f35a48a051f8c45d1",
     "server/src/component-gallery.ts": "b82085a132d5480b248d81af7ef8ae39e43385d8a296c0ceda47a9c7050b3d0a",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
