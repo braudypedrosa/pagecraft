@@ -160,7 +160,16 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
 
   const notices = await as(reviewerCookie, '/notifications');
   a.equal(notices.status, 200);
-  a.match(await notices.text(), /review preview was assigned/i);
+  const noticeHtml = await notices.text();
+  a.match(noticeHtml, /review preview was assigned/i);
+  a.match(noticeHtml, /class="pc-notification is-new"/);
+  a.match(noticeHtml, /pc-notification-state">New</);
+  a.match(noticeHtml, /pc-notification-icon/);
+  const reread = await as(reviewerCookie, '/notifications');
+  a.equal(reread.status, 200);
+  const rereadHtml = await reread.text();
+  a.match(rereadHtml, /class="pc-notification is-read"/);
+  a.match(rereadHtml, /pc-notification-state">Read</);
 });
 
 test('file review storage survives a new process', async () => {
