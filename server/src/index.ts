@@ -1,3 +1,4 @@
+import { LiveReviewStore } from './live-reviews.ts';
 import { FileSitePreviewStore } from './site-previews.ts';
 import { FileSubmissionStore } from './submissions.ts';
 import { FileCloudConnectionStore, UplistingClient } from './cloud-uplisting.ts';
@@ -499,6 +500,7 @@ const app = createApp({
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   reviews: new FilePublicationReviewStore(publicationRoot),
+  liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),
   cloudIntegrations,
   store,
   auth,

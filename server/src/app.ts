@@ -1,3 +1,6 @@
+import { reviewHubPage } from './live-review-page.ts';
+import { LiveReviewStore } from './live-reviews.ts';
+import { liveReviewRoutes } from './live-review-routes.ts';
 import { publicationPreviewHtml } from "./publication-preview.ts";
 import { publicationChanges } from "./publication-changes.ts";
 import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
@@ -307,6 +310,7 @@ export interface Options {
   /** Immutable, materialized hosted releases and their atomic public pointers. */
   publications?: HostedPublicationStore;
   sitePreviews?: SitePreviewStore;
+  liveReviews?: LiveReviewStore;
   /** Production gateway fast path: authenticate and load one hosted publish source in one call. */
   hostedPublish?: HostedPublishPreparer;
   /** Cached-source + atomic-write path that removes redundant production gateway crossings. */
@@ -418,6 +422,7 @@ export function createApp(o: Options) {
   app.use("/account", editorOnly);
   app.use("/account/*", editorOnly);
   app.use("/sites/*", editorOnly);
+  app.use("/review/*", editorOnly);
   app.use("/privacy", editorOnly);
   app.use("/terms", editorOnly);
   // Share the builder's exact font files; only the product font manifest is public.
@@ -732,6 +737,7 @@ export function createApp(o: Options) {
     return member;
   };
 
+  const liveReviews = o.liveReviews || new LiveReviewStore();
   const reviews: PublicationReviewStore = o.reviews || new MemoryPublicationReviewStore();
 
   const deny = (c: Context, status: 401 | 403 | 404) =>
@@ -1842,9 +1848,40 @@ export function createApp(o: Options) {
     }
   };
 
+  liveReviewRoutes(app, {
+    store: o.store, auth: o.auth, reviews: liveReviews, who,
+    origin: o.editorOrigin, secure: o.secureCookies,
+    notifyInvitation: async (c, user, href, kind) => {
+      await notifyReview(c, { userId: user.id, email: user.email, kind: 'review_assigned', title: 'A site was shared with you', body: `You have been invited as a ${kind === 'developer' ? 'developer' : 'reviewer'}. Sign in with this email to view the site under Shared.`, href });
+    },
+    preview: async (siteId, page) => {
+      const site = await o.store.byId(siteId);
+      if (!site) return null;
+      const records = await assetsOf(siteId);
+      const compiled = candidate(site.doc, records);
+      const html = compiled?.files.get(page);
+      if (!compiled || !html || !page.endsWith('.html')) return null;
+      const resources = new Map<string, { type: string; bytes: Uint8Array }>();
+      for (const [path, value] of compiled.files) resources.set(path, { type: typeOf(path), bytes: new TextEncoder().encode(value) });
+      await Promise.all(records.map(async record => {
+        const path = assetFile(record);
+        const asset = await o.assets?.byPath(siteId, path);
+        if (asset) resources.set(path, { type: asset.type, bytes: asset.bytes });
+      }));
+      const previewStore = { file: async (_publication: unknown, path: string) => resources.get(path)?.bytes || null } as unknown as HostedPublicationStore;
+      const publication = { files: [...resources].map(([path, value]) => ({ path, mediaType: value.type })) } as unknown as Parameters<typeof publicationPreviewHtml>[1];
+      const inlined = await publicationPreviewHtml(previewStore, publication, page, html);
+      return { html: inlined, version: site.version, pages: [...compiled.files.keys()].filter(path => path.endsWith('.html')).map(path => ({ path, name: path === 'index.html' ? 'Home' : path.replace(/\/index\.html$|\.html$/g, '') })) };
+    },
+  });
+
   app.get("/sites/:id/reviews", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowedReview(c, id);
+    let gate = await allowedReview(c, id);
+    if (!gate.ok && gate.status === 403 && c.req.query('legacy') !== '1') {
+      const member = await allowedMember(c, id);
+      if (member.ok && await liveReviews.invited(id, normalEmail(member.user.email))) gate = member;
+    }
     if (!gate.ok) {
       return gate.status === 401
         ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
@@ -1864,6 +1901,10 @@ export function createApp(o: Options) {
         decision: await reviews.decision(row.id),
       };
     }));
+    const liveInvited = await liveReviews.invited(id, normalEmail(gate.user.email));
+    const liveDeveloper = await liveReviews.invited(id, normalEmail(gate.user.email), 'developer');
+    const liveLinks = (await liveReviews.links(id)).filter(link => link.active && (gate.role === 'owner' || link.access === 'public' || link.access === 'private' && liveInvited || link.access === 'developer' && liveDeveloper));
+    if (c.req.query('legacy') !== '1') return c.html(reviewHubPage({siteId:id,name:site.name,owner:gate.role === 'owner',links:liveLinks,assignments}));
     return c.html(siteReviewsPage(gate.user, {
       id: site.id,
       name: site.name,
