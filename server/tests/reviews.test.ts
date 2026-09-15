@@ -169,6 +169,9 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
   a.match(noticeHtml, /class="pc-rail"/);
   a.match(noticeHtml, /data-notify-root/);
   a.match(noticeHtml, /View all/);
+  a.match(noticeHtml, /pc-menu-item" href="\/account"><svg/);
+  a.match(noticeHtml, /pc-menu-item" href="\/notifications"><svg/);
+  a.match(noticeHtml, /pc-menu-item" type="submit"><svg/);
   const mini = await as(reviewerCookie, '/api/notifications/mini');
   a.equal(mini.status, 200);
   const miniJson = await mini.json() as { unread: number; listHtml: string };

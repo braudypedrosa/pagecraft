@@ -486,7 +486,7 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.doesNotMatch(html, /data-template-modal/);
   a.doesNotMatch(html, /data-template-form/);
   a.doesNotMatch(html, /<details class="pc-create-card"/);
-  a.match(html, /href="\/account">Account settings<\/a>/);
+  a.match(html, /href="\/account"><svg[\s\S]*?>Account settings<\/a>/);
   a.match(html, /name="slug"/);
   a.match(html, /data-create-error/);
   a.match(html, /background-position:right var\(--pc-control-padding-x\) center/);

@@ -1,10 +1,13 @@
 /** Compact topbar notifications menu for Cloud account pages. */
 export const NOTIFY_MENU_CSS = `
 .pc-notify{position:relative;flex-shrink:0;height:52px;display:flex;align-items:center}
-.pc-notify>summary{list-style:none;cursor:pointer;position:relative}
+.pc-notify>summary{list-style:none;cursor:pointer;position:relative;color:var(--pc-rail-text-2,#aeb5ad)}
 .pc-notify>summary::-webkit-details-marker{display:none}
-.pc-notify-badge{position:absolute;top:6px;right:6px;min-width:8px;height:8px;padding:0;border:2px solid var(--pc-rail);border-radius:999px;background:var(--pc-green);box-sizing:content-box;pointer-events:none}
-.pc-notify-badge[data-count]:not([data-count=""]){top:4px;right:2px;min-width:16px;height:16px;padding:0 4px;border-width:2px;display:grid;place-items:center;color:var(--pc-on-green);font-family:"DM Sans",system-ui,sans-serif;font-size:.58rem;font-weight:700;line-height:1}
+.pc-notify>summary.pc-iconbtn{color:var(--pc-rail-text-2,#aeb5ad)}
+.pc-notify>summary.pc-iconbtn:hover,.pc-notify[open]>summary.pc-iconbtn{color:var(--pc-rail-text,#f8f6ef);background:#ffffff0f;filter:none}
+.pc-notify>summary.pc-iconbtn svg{display:block;color:inherit;stroke:currentColor}
+.pc-notify-badge{position:absolute;top:4px;right:4px;width:8px;min-width:8px;height:8px;padding:0;border:2px solid var(--pc-rail,#111311);border-radius:999px;background:var(--pc-green,#b7f34a);box-sizing:border-box;pointer-events:none;line-height:0;overflow:hidden}
+.pc-notify-badge[data-count]{top:1px;right:0;width:auto;min-width:17px;height:17px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:var(--pc-on-green,#111311);font-family:"DM Sans",system-ui,sans-serif;font-size:10px;font-weight:700;line-height:1;letter-spacing:0}
 .pc-notify-panel{position:absolute;right:0;top:46px;width:min(340px,calc(100vw - 24px));padding:10px;background:var(--pc-panel,#fff);border:1px solid var(--pc-line,var(--pc-border));border-radius:8px;box-shadow:0 14px 30px rgba(17,19,17,.16);color:var(--pc-text,#171a17);z-index:60}
 .pc-notify-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 6px 10px;border-bottom:1px solid var(--pc-line,var(--pc-border))}
 .pc-notify-head strong{font-size:.82rem;font-weight:650;letter-spacing:-.01em}
@@ -35,9 +38,9 @@ export const NOTIFY_MENU_BOOT_SCRIPT = `(()=>{
     if(!badge)return;
     if(!count){badge.hidden=true;badge.removeAttribute('data-count');badge.textContent='';return;}
     badge.hidden=false;
-    if(count>9){badge.setAttribute('data-count','9+');badge.textContent='9+';}
-    else if(count>1){badge.setAttribute('data-count',String(count));badge.textContent=String(count);}
-    else{badge.removeAttribute('data-count');badge.textContent='';}
+    const label=count>9?'9+':String(count);
+    badge.setAttribute('data-count',label);
+    badge.textContent=label;
   };
   const load=async()=>{
     if(!list)return;
