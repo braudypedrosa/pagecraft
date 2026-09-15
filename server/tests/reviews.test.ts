@@ -167,6 +167,13 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
   a.match(noticeHtml, /pc-inbox-icon/);
   a.match(noticeHtml, /aria-label="Sites navigation"/);
   a.match(noticeHtml, /class="pc-rail"/);
+  a.match(noticeHtml, /data-notify-root/);
+  a.match(noticeHtml, /View all/);
+  const mini = await as(reviewerCookie, '/api/notifications/mini');
+  a.equal(mini.status, 200);
+  const miniJson = await mini.json() as { unread: number; listHtml: string };
+  a.equal(typeof miniJson.unread, 'number');
+  a.match(miniJson.listHtml, /pc-notify-item/);
   const reread = await as(reviewerCookie, '/notifications');
   a.equal(reread.status, 200);
   const rereadHtml = await reread.text();

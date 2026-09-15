@@ -161,6 +161,7 @@ import {
   siteSettingsPage,
   notificationsPage,
   notificationStatusExamples,
+  notificationsMiniMarkup,
   termsPage,
 } from "./account-pages.ts";
 import {
@@ -2045,6 +2046,19 @@ export function createApp(o: Options) {
       });
     }
     return c.redirect(`${base}?message=Review+updated.`, 303);
+  });
+
+  app.get("/api/notifications/mini", async (c) => {
+    const user = await who(c);
+    if (!user) return c.json({ error: "unauthorized" }, 401);
+    const examples = c.req.query("examples") === "1";
+    const notices = examples
+      ? notificationStatusExamples()
+      : await reviews.notices(user.id);
+    return c.json({
+      unread: notices.filter((item) => !item.readAt).length,
+      listHtml: notificationsMiniMarkup(notices),
+    });
   });
 
   app.get("/notifications", async (c) => {
