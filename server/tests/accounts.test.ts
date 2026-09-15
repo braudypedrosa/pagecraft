@@ -1443,6 +1443,7 @@ test("sign in offers Google and email, links to registration, and uses the Pagec
   a.match(html, /href="\/terms"/);
   a.match(html, /src="\/brand\/pagecraft-logo\.svg\?v=dark-2"/);
   a.match(html, /data-theme="dark"/);
+  a.match(html, /data-size="flexible"/);
   a.match(
     html,
     /rel="icon" type="image\/svg\+xml" href="\/brand\/pagecraft-favicon\.svg"/,

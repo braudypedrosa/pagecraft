@@ -31,10 +31,18 @@ const ASSET_BUCKET = "pagecraft-assets";
 const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
 const invitationRedirect = (raw: unknown) => {
   const redirect = new URL(text(raw));
-  const editorOrigin = Deno.env.get("PAGECRAFT_EDITOR_ORIGIN") ||
-    "https://build.itspagecraft.com";
+  const allowedOrigins = new Set([
+    "https://build.itspagecraft.com",
+    "https://staging.itspagecraft.com",
+  ]);
+  const editorOrigin = Deno.env.get("PAGECRAFT_EDITOR_ORIGIN");
+  if (editorOrigin) allowedOrigins.add(editorOrigin);
+  const extraOrigins = Deno.env.get("PAGECRAFT_EDITOR_ORIGINS") || "";
+  for (const origin of extraOrigins.split(",")) {
+    if (origin.trim()) allowedOrigins.add(origin.trim());
+  }
   if (
-    redirect.origin !== editorOrigin || redirect.pathname !== "/auth/confirm"
+    !allowedOrigins.has(redirect.origin) || redirect.pathname !== "/auth/confirm"
   ) {
     throw Object.assign(new Error("invalid invitation redirect"), {
       status: 400,

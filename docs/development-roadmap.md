@@ -28,7 +28,7 @@ features are available.
 | 0 | Verified release retention and quota preflight; expanded gallery/real-screen checks; approved shared pre-launch backend | Foundation deployed; remaining acceptance in progress |
 | 1 | Shared media browser; search/sort/usage filters/tags; usage details; bulk unused deletion; version-checked Replace everywhere with retained original bytes | Complete on staging; see [release record](phase1-media-release.md) |
 | 2 | Draft/publication differences by page/CMS/shared assets and styles; immutable preview snapshots; comparison and historical restore as a new draft | Complete on staging; see [release record](phase2-publication-release.md) |
-| 3 | Reviewer role; assigned private previews; anchored comments; request changes/approval/cancellation; in-app and email notifications | Not started |
+| 3 | Reviewer role; assigned private previews; anchored comments; request changes/approval/cancellation; in-app and email notifications | Complete on staging; see [release record](phase3-review-release.md) |
 | 4 | Validated CSV mapping/create-update preview; atomic import and Undo; bulk draft/include actions; saved views; idempotent snapshot scheduling | Not started |
 | 5 | Personal/shared read-only libraries; immutable versions and dependencies; locally owned imports; explicit conflict-aware upgrades | Not started |
 | 6 | Owner-controlled aggregate analytics; page/referrer/device/action/form totals; comparisons/CSV; short-lived deduplication and bounded ingestion | Not started |
