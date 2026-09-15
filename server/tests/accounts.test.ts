@@ -1154,6 +1154,8 @@ test("account settings shows profile, security, providers, and real free-plan us
   a.match(html, /Paid plans are not available yet/);
   a.match(html, /Joined Jan 12, 2026/);
   a.match(html, /role="tablist" aria-label="Account settings"/);
+  a.match(html, /aria-label="Sites navigation"/);
+  a.doesNotMatch(html, /\.pc-settings-section\{[^}]*border-bottom:1px solid/);
   a.match(
     html,
     /role="tab" aria-controls="settings-panel-profile" data-settings-tab="profile" aria-selected="true" tabindex="0"/,
