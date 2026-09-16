@@ -25,11 +25,11 @@ features are available.
 
 | Phase | Deliverables | State |
 | --- | --- | --- |
-| 0 | Verified release retention and quota preflight; expanded gallery/real-screen checks; approved shared pre-launch backend | Foundation deployed; remaining acceptance in progress |
+| 0 | Verified release retention and quota preflight; expanded gallery/real-screen checks; approved shared pre-launch backend | Foundation deployed; leftover labeled-fixture acceptance deferred, gaps listed in [`qa-evidence/roadmap-phase0-remaining-2026-09-15/REPORT.md`](../qa-evidence/roadmap-phase0-remaining-2026-09-15/REPORT.md) |
 | 1 | Shared media browser; search/sort/usage filters/tags; usage details; bulk unused deletion; version-checked Replace everywhere with retained original bytes | Complete on staging; see [release record](phase1-media-release.md) |
 | 2 | Draft/publication differences by page/CMS/shared assets and styles; immutable preview snapshots; comparison and historical restore as a new draft | Complete on staging; see [release record](phase2-publication-release.md) |
 | 3 | Reviewer role; assigned private previews; anchored comments; request changes/approval/cancellation; in-app and email notifications | Complete on staging; see [release record](phase3-review-release.md) |
-| 4 | Validated CSV mapping/create-update preview; atomic import and Undo; bulk draft/include actions; saved views; idempotent snapshot scheduling | Not started |
+| 4 | Validated CSV mapping/create-update preview; atomic import and Undo; bulk draft/include actions; saved views; idempotent snapshot scheduling | Import complete on staging; see [release record](phase4-cms-import-release.md). Bulk actions, saved views and scheduling not started |
 | 5 | Personal/shared read-only libraries; immutable versions and dependencies; locally owned imports; explicit conflict-aware upgrades | Not started |
 | 6 | Owner-controlled aggregate analytics; page/referrer/device/action/form totals; comparisons/CSV; short-lived deduplication and bounded ingestion | Not started |
 | 7 | Explicit proposal scope; bounded native edits; affected-page preview; version checks; atomic apply and Undo; no publish/code/permission actions | Not started |

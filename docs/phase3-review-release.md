@@ -53,6 +53,22 @@ Sign-in Turnstile uses Cloudflare `data-size="flexible"` so the widget fills the
 account form width. Gallery source hash for `server/src/account-pages.ts` was
 updated; shared specimen CSS used by gallery PNGs was otherwise unchanged.
 
+## Post-release UI work
+
+The validation above covers app commit `68e03d4`. The Reviews and notifications
+surfaces were then aligned with the shared workspace chrome across `f1623b8`
+through `38ded90`: a topbar notifications mini menu and inbox layout, the sites
+rail kept on notifications and account settings, the display name in the topbar
+account control, live review links and shared annotations, the Reviews dashboard
+matched to the shared Submissions table, and removal of the snapshot review
+archive from that dashboard.
+
+`38ded90` shipped an unused `escapeReview` alias left behind by that removal.
+`tsc --noEmit` rejects unused locals, so its test and deploy workflows both
+failed and staging stayed on `414cbe9` until `d371309` removed the alias. Any
+acceptance recorded against the Reviews dashboard between 2026-09-15 and that
+fix describes `414cbe9`, which still showed the archive.
+
 ## Rollback
 
 Redeploy the previous staging Node release to hide Reviews UI. Leave the additive
