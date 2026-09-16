@@ -1449,7 +1449,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 28px;border-bottom:1px solid var(--line)}
 .cms-workspace h1{font-size:22px;margin:0}.cms-workspace h2{font-size:24px;margin:0}.cms-workspace h3{font-size:var(--fs-5);margin:0 0 8px}.cms-workspace p{line-height:1.5;margin:6px 0;color:var(--text-2)}
 .cms-workspace-layout{display:grid;grid-template-columns:220px minmax(0,1fr);flex:1;min-height:0}.cms-collections{padding:24px 16px;border-right:1px solid var(--line);overflow:auto}.cms-collections .btn{justify-content:space-between;margin-bottom:8px}
-.cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label,.cms-schema-extra{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
+.cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label,.cms-schema-extra{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-import-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-import-map label{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-import-map small{color:var(--text-2);overflow-wrap:anywhere}.cms-import-summary{margin:0 0 var(--pc-space-4,16px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
 .cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
 
 .cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:var(--pc-field-label-gap);margin-bottom:var(--pc-field-gap)}.cms-check{display:flex!important;align-items:center;gap:var(--pc-action-gap)}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:var(--pc-control-padding);line-height:1.6;overflow-wrap:anywhere}
@@ -1462,7 +1462,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-schema-field>.cms-actions{grid-column:4;grid-row:1;gap:var(--pc-action-gap);flex-wrap:nowrap}
 .cms-schema>.cms-field{--h-ctl:var(--pc-control-compact)}
 .cms-schema-field>.cms-actions>.btn{min-height:var(--h-ctl);height:var(--h-ctl);width:var(--pc-control-row);padding:0;justify-content:center}
-@media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
+@media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs,.cms-import-map{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
 
 @container(max-width:480px){.cms-list-tools{grid-template-columns:minmax(0,1fr)}}
 @media(min-width:768px) and (max-width:1024px){
@@ -11640,6 +11640,173 @@ var PC_UI = (() => {
     return errors;
   }
 
+  // app/src/core/cms-import.ts
+  var IMPORT_SKIP = "";
+  var IMPORT_ID = "_id";
+  var IMPORT_SLUG = "_slug";
+  var IMPORT_DRAFT = "_draft";
+  var RESERVED = [IMPORT_ID, IMPORT_SLUG, IMPORT_DRAFT];
+  function parseCsv(text) {
+    const rows2 = [];
+    let row = [];
+    let value = "";
+    let quoted = false;
+    const source = String(text ?? "").replace(/^﻿/, "");
+    const endField = () => {
+      row.push(value);
+      value = "";
+    };
+    const endRow = () => {
+      endField();
+      rows2.push(row);
+      row = [];
+    };
+    for (let i3 = 0; i3 < source.length; i3++) {
+      const ch = source[i3];
+      if (quoted) {
+        if (ch !== '"') {
+          value += ch;
+          continue;
+        }
+        if (source[i3 + 1] === '"') {
+          value += '"';
+          i3++;
+          continue;
+        }
+        quoted = false;
+        continue;
+      }
+      if (ch === '"' && value === "") {
+        quoted = true;
+        continue;
+      }
+      if (ch === ",") {
+        endField();
+        continue;
+      }
+      if (ch === "\r") {
+        if (source[i3 + 1] === "\n") i3++;
+        endRow();
+        continue;
+      }
+      if (ch === "\n") {
+        endRow();
+        continue;
+      }
+      value += ch;
+    }
+    if (value !== "" || row.length) endRow();
+    return rows2;
+  }
+  var blankRow = (row) => row.every((cell) => !cell.trim());
+  var norm = (s3) => s3.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  function suggestMapping(headers, col) {
+    const taken = /* @__PURE__ */ new Set();
+    const take = (target) => {
+      taken.add(target);
+      return target;
+    };
+    return headers.map((header) => {
+      const key = norm(header);
+      if (!key) return IMPORT_SKIP;
+      for (const reserved of RESERVED) {
+        const label = reserved.slice(1);
+        if (!taken.has(reserved) && (key === label || key === "entry" + label)) return take(reserved);
+      }
+      const field = col.fields.find(
+        (f4) => !taken.has(f4.id) && (norm(f4.name) === key || norm(f4.id) === key)
+      );
+      return field ? take(field.id) : IMPORT_SKIP;
+    });
+  }
+  var clone = (value) => JSON.parse(JSON.stringify(value));
+  function planImport(doc, collectionId, table, mapping, assets, opts) {
+    const plan = {
+      rows: [],
+      creates: 0,
+      updates: 0,
+      invalid: 0,
+      collections: null,
+      problem: ""
+    };
+    const collections2 = clone(doc.meta.collections || []);
+    const col = collections2.find((c3) => c3.id === collectionId);
+    if (!col) {
+      plan.problem = "That collection no longer exists.";
+      return plan;
+    }
+    const body = table.slice(1).map((row, i3) => ({ row, line: i3 + 2 })).filter((r3) => !blankRow(r3.row));
+    if (!body.length) {
+      plan.problem = "This file has no data rows.";
+      return plan;
+    }
+    const columns = mapping.map((target, index) => ({ target, index })).filter((c3) => c3.target !== IMPORT_SKIP);
+    if (!columns.some((c3) => c3.target !== IMPORT_ID)) {
+      plan.problem = "Map at least one column to a field before importing.";
+      return plan;
+    }
+    const unknown = columns.find(
+      (c3) => !RESERVED.includes(c3.target) && !col.fields.some((f4) => f4.id === c3.target)
+    );
+    if (unknown) {
+      plan.problem = "A mapped column points at a field that no longer exists.";
+      return plan;
+    }
+    const titleField = col.fields.find((f4) => f4.type === "text") || null;
+    const byId = new Map(col.items.map((item) => [item.id, item]));
+    const claimed = /* @__PURE__ */ new Set();
+    const staged = [];
+    for (const { row, line } of body) {
+      const cell = (target) => {
+        const at2 = columns.find((c3) => c3.target === target);
+        return at2 ? (row[at2.index] ?? "").trim() : void 0;
+      };
+      const rawId = cell(IMPORT_ID) || "";
+      const existing = rawId ? byId.get(rawId) : void 0;
+      const duplicate = !!existing && claimed.has(rawId);
+      if (existing) claimed.add(rawId);
+      const item = existing ? clone(existing) : { id: opts.uid(), slug: "", values: {} };
+      const action = existing ? "update" : "create";
+      for (const { target, index } of columns) {
+        if (RESERVED.includes(target)) continue;
+        item.values[target] = (row[index] ?? "").trim();
+      }
+      const draft = cell(IMPORT_DRAFT);
+      if (draft !== void 0 && draft !== "") {
+        if (cmsBoolean(draft)) item.draft = 1;
+        else delete item.draft;
+      }
+      const slug = cell(IMPORT_SLUG);
+      if (slug) {
+        item.slug = opts.slugify(slug);
+        item.slugLocked = 1;
+      } else if (!item.slug)
+        item.slug = opts.slugify(titleField ? item.values[titleField.id] || "" : "");
+      staged.push({ line, item, action, duplicate });
+      const at = col.items.findIndex((i3) => i3.id === item.id);
+      if (at < 0) col.items.push(item);
+      else col.items[at] = item;
+    }
+    const finished = { ...doc, meta: { ...doc.meta, collections: collections2 } };
+    for (const entry of staged) {
+      const errors = validateCmsEntry(finished, col, entry.item, assets);
+      if (entry.duplicate) errors[IMPORT_ID] = "Another row already updates this entry.";
+      plan.rows.push({
+        line: entry.line,
+        action: entry.action,
+        id: entry.item.id,
+        title: String(titleField && entry.item.values[titleField.id] || "").trim() || "Untitled",
+        slug: entry.item.slug,
+        errors
+      });
+      if (Object.keys(errors).length) plan.invalid++;
+      else if (entry.action === "create") plan.creates++;
+      else plan.updates++;
+    }
+    if (!plan.invalid) plan.collections = collections2;
+    return plan;
+  }
+
   // app/src/ui/useProcessingAction.ts
   function useProcessingAction(key) {
     const [label, setLabel] = d2("");
@@ -11792,6 +11959,7 @@ var PC_UI = (() => {
     return /still here/i.test(mapped) ? mapped : `${mapped} Your changes are still here. Try again.`;
   }
   var copy = (value) => JSON.parse(JSON.stringify(value));
+  var importErrorLabel = (col, key) => key === "_slug" ? "URL slug: " : key === "_id" ? "Entry ID: " : key.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key)?.name || key}: `;
   var PAGE_SIZE = 25;
   function CmsWorkspace({
     collectionId,
@@ -11811,6 +11979,8 @@ var PC_UI = (() => {
     const [actionLabel, setActionLabel] = d2("");
     const [errors, setErrors] = d2({});
     const [notice, setNotice] = d2("");
+    const [importing, setImporting] = d2(null);
+    const fileInput = A2(null);
     const root = A2(null);
     const dirty = !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
     const discard = () => !dirty || window.confirm("Discard your unsaved CMS changes?");
@@ -11851,6 +12021,7 @@ var PC_UI = (() => {
     const reset = () => {
       setEntry(null);
       setSchema(null);
+      setImporting(null);
       setErrors({});
       setBaseline("");
     };
@@ -11953,6 +12124,53 @@ var PC_UI = (() => {
       );
       await commit(next, "Deleting entry\u2026", "Entry deleted.");
     };
+    const importAssets = (file) => {
+      const ids = /* @__PURE__ */ new Set();
+      file.mapping.forEach((target, index) => {
+        if (col.fields.find((f4) => f4.id === target)?.type !== "image") return;
+        for (const row of file.table.slice(1)) {
+          const asset = (row[index] ?? "").trim().match(/^asset:([^@]+)/)?.[1];
+          if (asset && L2.asset(asset)) ids.add(asset);
+        }
+      });
+      return ids;
+    };
+    const plan = importing ? planImport(C2.doc(), id, importing.table, importing.mapping, importAssets(importing), {
+      uid: C2.uid,
+      slugify: C2.slugify
+    }) : null;
+    const pickFile = async (event) => {
+      const input = event.currentTarget;
+      const file = input.files?.[0];
+      input.value = "";
+      if (!file) return;
+      let table = [];
+      try {
+        table = parseCsv(await file.text());
+      } catch {
+        setErrors({ _save: "That file could not be read. Your entries are unchanged." });
+        return;
+      }
+      reset();
+      if (!table.length) {
+        setErrors({ _save: "That file is empty." });
+        return;
+      }
+      setNotice("");
+      setImporting({ name: file.name, table, mapping: suggestMapping(table[0], col) });
+    };
+    const runImport = async () => {
+      if (!plan?.collections || pending.current) return;
+      const count = plan.creates + plan.updates;
+      if (await commit(
+        plan.collections,
+        "Importing entries\u2026",
+        `${count} ${count === 1 ? "entry" : "entries"} imported.`
+      )) {
+        setImporting(null);
+        setPage(0);
+      }
+    };
     const updateField = (fid, changes) => setSchema(
       (old) => old && {
         ...old,
@@ -12031,9 +12249,30 @@ var PC_UI = (() => {
               /* @__PURE__ */ u2("div", { class: "cms-title", children: [
                 /* @__PURE__ */ u2("div", { children: [
                   /* @__PURE__ */ u2("h2", { children: col.name }),
-                  /* @__PURE__ */ u2("p", { children: entry ? col.items.some((i3) => i3.id === entry.id) ? "Edit entry" : "New entry" : schema ? "Collection name and fields" : `${col.items.length} entries` })
+                  /* @__PURE__ */ u2("p", { children: entry ? col.items.some((i3) => i3.id === entry.id) ? "Edit entry" : "New entry" : schema ? "Collection name and fields" : importing ? "Match your columns, then review what changes" : `${col.items.length} entries` })
                 ] }),
-                !entry && !schema && /* @__PURE__ */ u2("div", { class: "cms-actions pc-heading-actions", children: [
+                !entry && !schema && !importing && /* @__PURE__ */ u2("div", { class: "cms-actions pc-heading-actions", children: [
+                  /* @__PURE__ */ u2(
+                    "input",
+                    {
+                      ref: fileInput,
+                      type: "file",
+                      accept: ".csv,text/csv",
+                      hidden: true,
+                      onChange: (e3) => void pickFile(e3)
+                    }
+                  ),
+                  /* @__PURE__ */ u2(
+                    "button",
+                    {
+                      class: "btn",
+                      disabled: busy,
+                      onClick: () => {
+                        if (discard()) fileInput.current?.click();
+                      },
+                      children: "Import CSV"
+                    }
+                  ),
                   L2.canStructure() && /* @__PURE__ */ u2(
                     "button",
                     {
@@ -12326,7 +12565,81 @@ var PC_UI = (() => {
                     ] })
                   ]
                 }
-              ) : /* @__PURE__ */ u2(S, { children: [
+              ) : importing && plan ? /* @__PURE__ */ u2(S, { children: [
+                /* @__PURE__ */ u2("p", { class: "cms-notice", role: "status", children: [
+                  importing.name,
+                  " \xB7 ",
+                  importing.table.length - 1,
+                  " rows"
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "cms-import-map", children: importing.table[0].map((header, index) => /* @__PURE__ */ u2("label", { children: [
+                  /* @__PURE__ */ u2("span", { children: header.trim() || `Column ${index + 1}` }),
+                  /* @__PURE__ */ u2(
+                    "select",
+                    {
+                      class: "ctl",
+                      disabled: busy,
+                      value: importing.mapping[index] ?? IMPORT_SKIP,
+                      onChange: (e3) => {
+                        const mapping = importing.mapping.slice();
+                        mapping[index] = e3.currentTarget.value;
+                        setImporting({ ...importing, mapping });
+                      },
+                      children: [
+                        /* @__PURE__ */ u2("option", { value: IMPORT_SKIP, children: "Skip this column" }),
+                        /* @__PURE__ */ u2("option", { value: IMPORT_ID, children: "Entry ID \u2014 update matching entries" }),
+                        /* @__PURE__ */ u2("option", { value: IMPORT_SLUG, children: "URL slug" }),
+                        /* @__PURE__ */ u2("option", { value: IMPORT_DRAFT, children: "Draft" }),
+                        col.fields.map((f4) => /* @__PURE__ */ u2("option", { value: f4.id, children: f4.name }, f4.id))
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ u2("small", { children: (importing.table[1]?.[index] ?? "").trim() || "No sample value" })
+                ] }, index)) }),
+                /* @__PURE__ */ u2("p", { class: "cms-import-summary", role: "status", children: plan.problem || `${plan.creates} to create \xB7 ${plan.updates} to update` + (plan.invalid ? ` \xB7 ${plan.invalid} to fix first` : "") }),
+                !!plan.invalid && /* @__PURE__ */ u2("div", { class: "cms-errors", role: "alert", children: [
+                  /* @__PURE__ */ u2("p", { children: "Nothing is imported until every row below is fixed." }),
+                  plan.rows.filter((r3) => Object.keys(r3.errors).length).slice(0, 20).map((r3) => /* @__PURE__ */ u2("p", { children: [
+                    "Line ",
+                    r3.line,
+                    " \u2014 ",
+                    r3.title,
+                    ":",
+                    " ",
+                    Object.entries(r3.errors).map(([key, message]) => importErrorLabel(col, key) + message).join(" ")
+                  ] }, r3.line)),
+                  plan.invalid > 20 && /* @__PURE__ */ u2("p", { children: [
+                    "\u2026and ",
+                    plan.invalid - 20,
+                    " more."
+                  ] })
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "cms-actions cms-form-actions", children: [
+                  /* @__PURE__ */ u2(
+                    "button",
+                    {
+                      class: "btn primary",
+                      type: "button",
+                      disabled: busy || !plan.collections,
+                      "aria-busy": busy,
+                      "data-pc-pending": busy ? "" : void 0,
+                      onClick: () => void runImport(),
+                      children: busy ? "Importing\u2026" : `Import ${plan.creates + plan.updates} ${plan.creates + plan.updates === 1 ? "entry" : "entries"}`
+                    }
+                  ),
+                  /* @__PURE__ */ u2(
+                    "button",
+                    {
+                      class: "btn",
+                      type: "button",
+                      disabled: busy,
+                      onClick: () => setImporting(null),
+                      children: "Cancel"
+                    }
+                  ),
+                  feedback
+                ] })
+              ] }) : /* @__PURE__ */ u2(S, { children: [
                 (busy || errors._save) && feedback,
                 /* @__PURE__ */ u2("div", { class: "cms-list-tools", children: [
                   /* @__PURE__ */ u2("label", { children: [
@@ -17913,7 +18226,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   // app/src/core/index.ts
   var _seq = 0;
   var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
-  var clone = (o3) => JSON.parse(JSON.stringify(o3));
+  var clone2 = (o3) => JSON.parse(JSON.stringify(o3));
   var HOME = "index.html";
   var FILTER_OPS = [
     ["is", "is"],
@@ -19456,7 +19769,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           return val;
         });
         for (const b2 of global) {
-          const def = { id: b2.id, name: b2.name, node: reid(clone(b2.node)), props: [] };
+          const def = { id: b2.id, name: b2.name, node: reid(clone2(b2.node)), props: [] };
           const want = shape(b2.node);
           everyNode((n2) => {
             if (!n2.adv || n2.adv.block !== b2.id) return;
@@ -19582,7 +19895,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     }
     let adopted;
     try {
-      adopted = migrate(clone(input));
+      adopted = migrate(clone2(input));
     } catch (error) {
       throw new DocumentSchemaError(
         `This Pagecraft document is invalid and could not be migrated: ${error instanceof Error ? error.message : String(error)}`,

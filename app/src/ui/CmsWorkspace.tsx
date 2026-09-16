@@ -7,6 +7,15 @@ import {
   cmsSafeRich,
   validateCmsEntry,
 } from '../core/cms-validation';
+import {
+  IMPORT_DRAFT,
+  IMPORT_ID,
+  IMPORT_SKIP,
+  IMPORT_SLUG,
+  parseCsv,
+  planImport,
+  suggestMapping,
+} from '../core/cms-import';
 import { AssetField } from './AssetField';
 import { Icon } from './Icon';
 import { installActionFeedback } from '../../../shared/action-feedback.js';
@@ -20,6 +29,15 @@ function cmsSaveFailure(error: unknown) {
 }
 
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+/** Field names read better than field ids in an import problem list. */
+const importErrorLabel = (col: Collection, key: string) =>
+  key === '_slug'
+    ? 'URL slug: '
+    : key === '_id'
+      ? 'Entry ID: '
+      : key.startsWith('_')
+        ? ''
+        : `${col.fields.find((f) => f.id === key)?.name || key}: `;
 const PAGE_SIZE = 25;
 export function CmsWorkspace({
   collectionId,
@@ -42,6 +60,12 @@ export function CmsWorkspace({
   const [actionLabel, setActionLabel] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState('');
+  /* A picked file lives here until it is applied: parsed rows plus the column
+     mapping the author is still adjusting. The document is untouched until commit. */
+  const [importing, setImporting] = useState<
+    { name: string; table: string[][]; mapping: string[] } | null
+  >(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const root = useRef<HTMLElement>(null);
   const dirty =
     !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
@@ -86,6 +110,7 @@ export function CmsWorkspace({
   const reset = () => {
     setEntry(null);
     setSchema(null);
+    setImporting(null);
     setErrors({});
     setBaseline('');
   };
@@ -196,6 +221,59 @@ export function CmsWorkspace({
     );
     await commit(next, 'Deleting entry…', 'Entry deleted.');
   };
+  /* Only assets this site actually holds count as resolvable, so a CSV naming an
+     image the library does not have fails in the preview rather than at save. */
+  const importAssets = (file: { table: string[][]; mapping: string[] }) => {
+    const ids = new Set<string>();
+    file.mapping.forEach((target, index) => {
+      if (col.fields.find((f) => f.id === target)?.type !== 'image') return;
+      for (const row of file.table.slice(1)) {
+        const asset = (row[index] ?? '').trim().match(/^asset:([^@]+)/)?.[1];
+        if (asset && L.asset(asset)) ids.add(asset);
+      }
+    });
+    return ids;
+  };
+  const plan = importing
+    ? planImport(C.doc(), id, importing.table, importing.mapping, importAssets(importing), {
+        uid: C.uid,
+        slugify: C.slugify,
+      })
+    : null;
+  const pickFile = async (event: Event) => {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    let table: string[][] = [];
+    try {
+      table = parseCsv(await file.text());
+    } catch {
+      setErrors({ _save: 'That file could not be read. Your entries are unchanged.' });
+      return;
+    }
+    reset();
+    if (!table.length) {
+      setErrors({ _save: 'That file is empty.' });
+      return;
+    }
+    setNotice('');
+    setImporting({ name: file.name, table, mapping: suggestMapping(table[0], col) });
+  };
+  const runImport = async () => {
+    if (!plan?.collections || pending.current) return;
+    const count = plan.creates + plan.updates;
+    if (
+      await commit(
+        plan.collections,
+        'Importing entries…',
+        `${count} ${count === 1 ? 'entry' : 'entries'} imported.`,
+      )
+    ) {
+      setImporting(null);
+      setPage(0);
+    }
+  };
   const updateField = (fid: string, changes: Partial<Field>) =>
     setSchema(
       (old) =>
@@ -287,11 +365,29 @@ export function CmsWorkspace({
                     : 'New entry'
                   : schema
                     ? 'Collection name and fields'
-                    : `${col.items.length} entries`}
+                    : importing
+                      ? 'Match your columns, then review what changes'
+                      : `${col.items.length} entries`}
               </p>
             </div>
-            {!entry && !schema && (
+            {!entry && !schema && !importing && (
               <div class="cms-actions pc-heading-actions">
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept=".csv,text/csv"
+                  hidden
+                  onChange={(e) => void pickFile(e)}
+                />
+                <button
+                  class="btn"
+                  disabled={busy}
+                  onClick={() => {
+                    if (discard()) fileInput.current?.click();
+                  }}
+                >
+                  Import CSV
+                </button>
                 {L.canStructure() && (
                   <button
                     class="btn"
@@ -603,6 +699,89 @@ export function CmsWorkspace({
                 {feedback}
               </div>
             </form>
+          ) : importing && plan ? (
+            <>
+              <p class="cms-notice" role="status">
+                {importing.name} · {importing.table.length - 1} rows
+              </p>
+              <div class="cms-import-map">
+                {importing.table[0].map((header, index) => (
+                  <label key={index}>
+                    <span>{header.trim() || `Column ${index + 1}`}</span>
+                    <select
+                      class="ctl"
+                      disabled={busy}
+                      value={importing.mapping[index] ?? IMPORT_SKIP}
+                      onChange={(e) => {
+                        const mapping = importing.mapping.slice();
+                        mapping[index] = e.currentTarget.value;
+                        setImporting({ ...importing, mapping });
+                      }}
+                    >
+                      <option value={IMPORT_SKIP}>Skip this column</option>
+                      <option value={IMPORT_ID}>Entry ID — update matching entries</option>
+                      <option value={IMPORT_SLUG}>URL slug</option>
+                      <option value={IMPORT_DRAFT}>Draft</option>
+                      {col.fields.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
+                        </option>
+                      ))}
+                    </select>
+                    <small>
+                      {(importing.table[1]?.[index] ?? '').trim() || 'No sample value'}
+                    </small>
+                  </label>
+                ))}
+              </div>
+              <p class="cms-import-summary" role="status">
+                {plan.problem ||
+                  `${plan.creates} to create · ${plan.updates} to update` +
+                    (plan.invalid ? ` · ${plan.invalid} to fix first` : '')}
+              </p>
+              {!!plan.invalid && (
+                <div class="cms-errors" role="alert">
+                  <p>Nothing is imported until every row below is fixed.</p>
+                  {plan.rows
+                    .filter((r) => Object.keys(r.errors).length)
+                    .slice(0, 20)
+                    .map((r) => (
+                      <p key={r.line}>
+                        Line {r.line} — {r.title}:{' '}
+                        {Object.entries(r.errors)
+                          .map(([key, message]) => importErrorLabel(col, key) + message)
+                          .join(' ')}
+                      </p>
+                    ))}
+                  {plan.invalid > 20 && <p>…and {plan.invalid - 20} more.</p>}
+                </div>
+              )}
+              <div class="cms-actions cms-form-actions">
+                <button
+                  class="btn primary"
+                  type="button"
+                  disabled={busy || !plan.collections}
+                  aria-busy={busy}
+                  data-pc-pending={busy ? '' : undefined}
+                  onClick={() => void runImport()}
+                >
+                  {busy
+                    ? 'Importing…'
+                    : `Import ${plan.creates + plan.updates} ${
+                        plan.creates + plan.updates === 1 ? 'entry' : 'entries'
+                      }`}
+                </button>
+                <button
+                  class="btn"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setImporting(null)}
+                >
+                  Cancel
+                </button>
+                {feedback}
+              </div>
+            </>
           ) : (
             <>
               {(busy || errors._save) && feedback}

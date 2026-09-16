@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "capturedAt": "2026-09-15T13:45:08.070Z",
+  "capturedAt": "2026-09-16T18:45:43.026Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "eba5ee64825c024678dec96b9b28ccd0215dbae8bb1bee95e25c35de81d4c778",
+    "builder.html": "15a503e1e56c470877d8f5b4cf3f77c006e58fe192ba9c6839106f9ad4969484",
     "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
-    "app/src/ui/CmsWorkspace.tsx": "83b16a9b5700959290cb0f698487ddd44e3c4f3773a959d453136a753bb7dac1",
+    "app/src/ui/CmsWorkspace.tsx": "3bca9d8626343437734edf229b1de22797522d34c87527290524dd2571ac987a",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "308fed9afa5e00ac08524fbc1f4fbe6ba6c9e71582a7fe47bc4b87ac16197d36",
     "app/src/ui/inspector/Inspector.tsx": "d7c4c347efbc0353e79b53ef2edb407719a6db515ab35dbc5e32580b3828d32c",
@@ -35,28 +35,118 @@
   "behaviorChecks": [
     {
       "host": "cloud",
-      "check": "Picker Escape preserves selection",
+      "check": "Select Escape preserves Home, closes picker and returns focus",
       "passed": true
     },
     {
       "host": "cloud",
-      "check": "Dialog Escape restores opener focus",
+      "check": "Unsaved dialog value survives resize from 1440px to 768px",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Dialog Escape closes and returns focus to opener after exit animation",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Empty dialog footer has no displayed box",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Processing prevents duplicate activation",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Success restores action",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Failure restores action with recoverable error",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Disclosure remains mounted during exit and survives rapid reopening",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Reduced-motion disclosure exit completes",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Refresh failure retains previous result and offers retry",
+      "passed": true
+    },
+    {
+      "host": "cloud",
+      "check": "Refresh recovery clears error silently and retains result",
       "passed": true
     },
     {
       "host": "builder",
-      "check": "Picker Escape preserves selection",
+      "check": "Select Escape preserves Home, closes picker and returns focus",
       "passed": true
     },
     {
       "host": "builder",
-      "check": "Dialog Escape restores opener focus",
+      "check": "Unsaved dialog value survives resize from 1440px to 768px",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Dialog Escape closes and returns focus to opener after exit animation",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Empty dialog footer has no displayed box",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Processing prevents duplicate activation",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Success restores action",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Failure restores action with recoverable error",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Disclosure remains mounted during exit and survives rapid reopening",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Reduced-motion disclosure exit completes",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Refresh failure retains previous result and offers retry",
+      "passed": true
+    },
+    {
+      "host": "builder",
+      "check": "Refresh recovery clears error silently and retains result",
       "passed": true
     }
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "610f935497b2b4b70d29559316c6de99b9d26f50f65df614e6a8294e0ce91bb2",
+      "sha256": "4f38b599ee6c65541802c7f0ef464b75d13c5bbabe0041bb72d5c9318c54fa97",
       "width": 1440,
       "height": 1056,
       "state": "Focused field, readonly, disabled and validation samples"
@@ -68,7 +158,7 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-actions-1440.png": {
-      "sha256": "a9be21bbdfa99bb4d3fbf0e702c95e51424c44ce0a8fea13f823e4822b019d28",
+      "sha256": "b78de25ac2f5b487e6925b2e8172240501eb48a6d40ca7ab73de875b6bce5757",
       "width": 1440,
       "height": 929,
       "state": "Processing action, disabled and destructive actions"
@@ -80,7 +170,7 @@
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-tables-1440.png": {
-      "sha256": "bde59c1d947776898aa1f740f632bb1c28b9ea4a567226ca5896feee4ce7b8f4",
+      "sha256": "04783945c458292b49db0469eac6b8a91fd666b0e1b8554f225ee2ab4cc40b80",
       "width": 1440,
       "height": 1062,
       "state": "First row hovered, second row neutral, empty result"
@@ -92,7 +182,7 @@
       "state": "First row hovered, second row neutral, empty result"
     },
     "cloud-menus-1440.png": {
-      "sha256": "c2a5d8709eed69d3ca68aeef894522e91b31050f7f72fa32f5585a1016ffae3a",
+      "sha256": "13516eac0ed48e9ed347973ac8b5a811aec8d1adbcaf9b1bf43c25d3f9fb7e9a",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"
@@ -104,7 +194,7 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "c877020f8b36d672d0b9bcaa7e77244abc3fe5e12a0674b5c912c7b1d93d5f15",
+      "sha256": "014482368499f207e671019c48e9198a6cce9e34ac1874271f51cb2f65a0ba73",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
@@ -116,7 +206,7 @@
       "state": "Open dialog with header, body and footer"
     },
     "cloud-feedback-1440.png": {
-      "sha256": "cfca0a0a8a06f3136b9c2bf4557caac99222ef732dfca64cfeeddd079236ac1d",
+      "sha256": "c715ab49afa81d5acac7aae2457363ad1a04309beef7b0b396af09fe57a77887",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
@@ -128,7 +218,7 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-fields-1440.png": {
-      "sha256": "4fa43045407b777d29e8d0ed8b25ab7f11f038f439a2c8c5273e67178b71ccb6",
+      "sha256": "cd86c28d2bf7e419516786053720ffcf11a47d7f1b666c023057d6afb27ae5ce",
       "width": 1440,
       "height": 1117,
       "state": "Focused field, readonly, disabled and validation samples"
@@ -140,7 +230,7 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-actions-1440.png": {
-      "sha256": "a9bc823f422b41b347f599b3d2a0437f2128de39f64316ce9fdc26f98f8fa56b",
+      "sha256": "d11257ccd7e7140206604e71c1a8de0722f8304fe8063b3a4d730585f47a8f54",
       "width": 1440,
       "height": 900,
       "state": "Processing action, disabled and destructive actions"
@@ -164,7 +254,7 @@
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-menus-1440.png": {
-      "sha256": "8bd07587a85f0280f1bdc00b81cfe44f3e622bee7b319a945ceddeabe1167ce2",
+      "sha256": "818bfa8e111fe555acd1337516351b89d396f8e4868cd7b0fb8ebf60fdcde07c",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"
@@ -176,25 +266,25 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-dialogs-1440.png": {
-      "sha256": "7a8f0690ed36135a87e29a90c6ad98b083201ef43d8055d3b6c0708f8417f896",
+      "sha256": "07f602d182f4c52bf837984eb80c2437504be7b9aebd654762a8e7000ad22f53",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "builder-dialogs-768.png": {
-      "sha256": "6848d52ae4f94c114e57e1d44c8a420bf813391519e7d6632fa45c07cda28f33",
+      "sha256": "d2fe0b46ed10f4e6ada3cbc72d711201e49a02819f4a5a1805d9ff8854fb4bba",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "builder-feedback-1440.png": {
-      "sha256": "7d32502bfee5025b8460ebf0c860ee9122502445b1e9cd232d9fda3350248ca1",
+      "sha256": "2bab1d5fcc9af4eeac6858baebe62755f377631a60983c884a7b5f0745b18798",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-feedback-768.png": {
-      "sha256": "415e36014a7476625b56520ba2398332593c61968cc75cacd4d629e11b66002d",
+      "sha256": "596331a5fd9339c6d728b8e0fcb1d5f941945c4a564e007570a5a34c1c5e6862",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
