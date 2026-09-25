@@ -2,7 +2,8 @@
 
 The first half of Phase 4's CSV scope: a validated mapping and create/update
 preview, applied atomically as one document version and one Undo. Bulk
-draft/include actions, saved views and snapshot scheduling remain unstarted.
+draft/include actions and saved views followed on 2026-09-25 (below). Snapshot
+scheduling is designed in [phase4-snapshot-scheduling-design.md](phase4-snapshot-scheduling-design.md).
 
 ## Import contract
 
@@ -62,3 +63,25 @@ Imported entries land in the site draft. Publishing remains separate.
 Redeploy the previous staging Node release to hide the Import CSV control. The
 module adds no schema, no route and no stored field, and imported entries are
 ordinary entries, so nothing needs unwinding. Production promotion is separate.
+
+## Bulk draft/include actions and saved views (2026-09-25)
+
+- **Bulk actions.** Row checkboxes plus a select-all over the filtered set. **Hold back
+  as draft** and **Include on next publish** apply to the whole selection in one
+  `cmsCommit`, so any number of entries is one document version and one Undo. The selection
+  is held by entry id, so searching, filtering or paging cannot retarget it. Handlers
+  use functional state updates, so two ticks in one paint both register
+  (`tests/cms-bulk-draft.test.tsx`).
+- **Saved views.** A View picker saves the current search and status filter under a name.
+  It is stored as an optional `Collection.views` with **no `SCHEMA` bump**, so the older
+  production build still opens the document and carries views through its own saves
+  (pinned in `tests/cms-saved-views.test.tsx`). The applied view is resolved against the
+  document on every render, so an Undo or a collaborator's delete drops the picker back
+  to the default instead of leaving a dead **Delete view**.
+- **Responsive fix.** The three-column filter row needs 692px. Between about 840 and
+  1050px wide (including 1024) it overflowed. A container step at ≤700px now puts
+  search on its own row, with Status and View side by side. Measured with no overflow at
+  768 / 800 / 900 / 980 / 1024 / 1440 on the local fixture.
+- **Gallery gate.** Cleared through the new headless Chrome capture path
+  (`tools/capture-ui-gallery-chrome.mjs`). All 22 behavior checks pass. 24/24 images match
+  the previous Codex baselines, 20 of them pixel-identical.

@@ -614,6 +614,16 @@ export interface Item {
   draft?: 1;
 }
 
+/** A named search/status combination in the CMS entry list. Purely a way of
+    looking at entries: it holds no content and nothing published depends on it. */
+export interface CollectionView {
+  id: string;
+  name: string;
+  search?: string;
+  /** 'all' | 'draft' | 'ready', matching the entry list's status filter. */
+  status?: string;
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -622,6 +632,9 @@ export interface Collection {
   items: Item[];
   /** unused; detail pages are found by `page.collection` instead */
   detail: string;
+  /** Optional and additive on purpose: no schema bump, so a build that predates
+      views still opens the document, and carries them through untouched. */
+  views?: CollectionView[];
 }
 
 /* ---- pages and the project ------------------------------------------- */

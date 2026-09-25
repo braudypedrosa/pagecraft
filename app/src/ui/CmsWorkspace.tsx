@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { C, L } from './ctx';
-import type { Collection, Field, Item } from '../core/types';
+import type { Collection, CollectionView, Field, Item } from '../core/types';
 import {
   cmsBoolean,
   cmsChoices,
@@ -29,6 +29,11 @@ function cmsSaveFailure(error: unknown) {
 }
 
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+/** askConfirm takes HTML, so an interpolated name is escaped by hand. */
+const esc = (s: string) =>
+  String(s ?? '').replace(/[&<>"']/g, (ch) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!,
+  );
 /** Field names read better than field ids in an import problem list. */
 const importErrorLabel = (col: Collection, key: string) =>
   key === '_slug'
@@ -66,6 +71,12 @@ export function CmsWorkspace({
     { name: string; table: string[][]; mapping: string[] } | null
   >(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  /* Entry ids ticked for a bulk action. Held by id rather than by index so a
+     search, a status filter or a page change cannot retarget the selection. */
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  /* The saved view currently applied, or '' for the unsaved default. Held apart
+     from search/status so editing either simply drops back to the default. */
+  const [viewId, setViewId] = useState('');
   const root = useRef<HTMLElement>(null);
   const dirty =
     !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
@@ -274,6 +285,72 @@ export function CmsWorkspace({
       setPage(0);
     }
   };
+  /* One commit for the whole selection, so holding back twelve entries is one
+     document version and one Undo, exactly like an import. */
+  const bulkDraft = async (draft: boolean) => {
+    if (pending.current) return;
+    const next = copy(C.collections());
+    const target = next.find((c) => c.id === id)!;
+    let changed = 0;
+    for (const item of target.items) {
+      if (!selected.has(item.id) || !!item.draft === draft) continue;
+      if (draft) item.draft = 1;
+      else delete item.draft;
+      changed++;
+    }
+    if (!changed) {
+      setNotice(
+        draft
+          ? 'Those entries are already held back.'
+          : 'Those entries are already included on the next publish.',
+      );
+      return;
+    }
+    const entries = `${changed} ${changed === 1 ? 'entry' : 'entries'}`;
+    if (
+      await commit(
+        next,
+        draft ? 'Holding entries back…' : 'Including entries…',
+        draft
+          ? `${entries} held back from the next publish.`
+          : `${entries} included on the next publish.`,
+      )
+    )
+      setSelected(new Set());
+  };
+  const views = col.views || [];
+  /* Resolved against the document, not trusted from state: an Undo or a
+     collaborator can remove the applied view, and the picker then falls back. */
+  const activeView = views.find((v) => v.id === viewId);
+  const applyView = (view: CollectionView | null) => {
+    setViewId(view?.id || '');
+    setSearch(view?.search || '');
+    setStatus(view?.status || 'all');
+    setPage(0);
+  };
+  const saveView = async () => {
+    if (pending.current) return;
+    const name = await L.askText('Save this view', 'Name', 'Drafts to finish', {
+      ok: 'Save view',
+      note: 'Saves the current search and status filter, not the entries themselves.',
+    });
+    if (!name?.trim()) return;
+    const next = copy(C.collections());
+    const target = next.find((c) => c.id === id)!;
+    const view: CollectionView = { id: C.uid(), name: name.trim(), search, status };
+    target.views = [...(target.views || []), view];
+    if (await commit(next, 'Saving view…', `View “${view.name}” saved.`)) setViewId(view.id);
+  };
+  const deleteView = async () => {
+    const view = activeView;
+    if (!view || pending.current) return;
+    if (!(await L.askConfirm('Delete this view?', `<b>${esc(view.name)}</b> only. Entries are untouched.`, { ok: 'Delete view' })))
+      return;
+    const next = copy(C.collections());
+    const target = next.find((c) => c.id === id)!;
+    target.views = (target.views || []).filter((v) => v.id !== view.id);
+    if (await commit(next, 'Deleting view…', 'View deleted.')) applyView(null);
+  };
   const updateField = (fid: string, changes: Partial<Field>) =>
     setSchema(
       (old) =>
@@ -292,6 +369,9 @@ export function CmsWorkspace({
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
+  /* Count against live entries so a selection cannot outlive the rows it names. */
+  const selectedCount = col.items.filter((i) => selected.has(i.id)).length;
+  const allFiltered = !!filtered.length && filtered.every((i) => selected.has(i.id));
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = Math.min(page, pages - 1);
   const feedback = busy || errors._save || (notice && !dirty) ? (
@@ -341,6 +421,8 @@ export function CmsWorkspace({
               onClick={() => {
                 if (discard()) {
                   setId(c.id);
+                  setSelected(new Set());
+                  setViewId('');
                   reset();
                   setNotice('');
                   setStatus('all');
@@ -794,6 +876,7 @@ export function CmsWorkspace({
                     value={search}
                     onInput={(e) => {
                       setSearch(e.currentTarget.value);
+                      setViewId('');
                       setPage(0);
                     }}
                   />
@@ -805,6 +888,7 @@ export function CmsWorkspace({
                     value={status}
                     onChange={(e) => {
                       setStatus(e.currentTarget.value);
+                      setViewId('');
                       setPage(0);
                     }}
                   >
@@ -813,12 +897,90 @@ export function CmsWorkspace({
                     <option value="ready">Included on next publish</option>
                   </select>
                 </label>
+                <label>
+                  View
+                  <select
+                    class="ctl"
+                    value={activeView ? viewId : ''}
+                    disabled={busy}
+                    onChange={(e) =>
+                      applyView(views.find((v) => v.id === e.currentTarget.value) || null)
+                    }
+                  >
+                    <option value="">Everything in this collection</option>
+                    {views.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
+              <div class="cms-view-actions">
+                <button class="btn" disabled={busy} onClick={() => void saveView()}>
+                  Save this view
+                </button>
+                {!!activeView && (
+                  <button class="btn" disabled={busy} onClick={() => void deleteView()}>
+                    Delete view
+                  </button>
+                )}
+              </div>
+              {!!filtered.length && (
+                <div class="cms-bulk" role="group" aria-label="Bulk entry actions">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={allFiltered}
+                      disabled={busy}
+                      onChange={(e) => {
+                        /* Updater form throughout: two ticks inside one paint would
+                           otherwise both read the same set and the later win. */
+                        const on = e.currentTarget.checked;
+                        const ids = filtered.map((i) => i.id);
+                        setSelected((prev) => (on ? new Set([...prev, ...ids]) : new Set()));
+                      }}
+                    />
+                    {selectedCount
+                      ? `${selectedCount} selected`
+                      : `Select all ${filtered.length}`}
+                  </label>
+                  {!!selectedCount && (
+                    <>
+                      <button class="btn" disabled={busy} onClick={() => void bulkDraft(true)}>
+                        Hold back as draft
+                      </button>
+                      <button class="btn" disabled={busy} onClick={() => void bulkDraft(false)}>
+                        Include on next publish
+                      </button>
+                      <button class="btn" disabled={busy} onClick={() => setSelected(new Set())}>
+                        Clear selection
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
               <div class="cms-entry-list">
                 {filtered
                   .slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE)
                   .map((item) => (
                     <div class="cms-entry-row" key={item.id}>
+                      <input
+                        type="checkbox"
+                        class="cms-entry-pick"
+                        checked={selected.has(item.id)}
+                        disabled={busy}
+                        aria-label={'Select ' + (C.itemTitle(col, item) || 'entry')}
+                        onChange={(e) => {
+                          const on = e.currentTarget.checked;
+                          setSelected((prev) => {
+                            const next = new Set(prev);
+                            if (on) next.add(item.id);
+                            else next.delete(item.id);
+                            return next;
+                          });
+                        }}
+                      />
                       <button
                         class="cms-entry-open"
                         disabled={busy}

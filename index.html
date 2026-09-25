@@ -1449,7 +1449,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 28px;border-bottom:1px solid var(--line)}
 .cms-workspace h1{font-size:22px;margin:0}.cms-workspace h2{font-size:24px;margin:0}.cms-workspace h3{font-size:var(--fs-5);margin:0 0 8px}.cms-workspace p{line-height:1.5;margin:6px 0;color:var(--text-2)}
 .cms-workspace-layout{display:grid;grid-template-columns:220px minmax(0,1fr);flex:1;min-height:0}.cms-collections{padding:24px 16px;border-right:1px solid var(--line);overflow:auto}.cms-collections .btn{justify-content:space-between;margin-bottom:8px}
-.cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-list-tools label,.cms-schema-inputs label,.cms-schema-extra{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-import-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-import-map label{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-import-map small{color:var(--text-2);overflow-wrap:anywhere}.cms-import-summary{margin:0 0 var(--pc-space-4,16px)}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
+.cms-content{container-type:inline-size;padding:28px 36px;overflow:auto;min-width:0}.cms-title>div:first-child{min-width:0;overflow-wrap:anywhere}.cms-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.cms-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cms-list-tools{display:grid;grid-template-columns:minmax(180px,1fr) 240px 240px;gap:var(--cms-gap);margin-bottom:var(--pc-space-3,12px)}.cms-list-tools label,.cms-schema-inputs label,.cms-schema-extra{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-import-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--cms-gap);margin-bottom:var(--pc-space-5,24px)}.cms-import-map label{min-width:0;display:grid;gap:var(--pc-space-2,8px)}.cms-import-map small{color:var(--text-2);overflow-wrap:anywhere}.cms-import-summary{margin:0 0 var(--pc-space-4,16px)}.cms-bulk{display:flex;align-items:center;gap:var(--pc-action-gap,8px);flex-wrap:wrap;margin-bottom:var(--pc-space-3,12px)}.cms-bulk label{display:flex;align-items:center;gap:var(--pc-action-gap,8px);white-space:nowrap}.cms-view-actions{display:flex;align-items:center;gap:var(--pc-action-gap,8px);flex-wrap:wrap;margin-bottom:var(--pc-space-5,24px)}.cms-entry-pick{flex-shrink:0}.cms-workspace .ctl,.cms-workspace .pc-custom-select-trigger{min-height:var(--h-ctl)}.cms-workspace .btn:not(.tiny){min-height:var(--h-ctl)}.cms-workspace textarea.ctl{min-height:96px}.cms-workspace .ctl:not(textarea){height:var(--h-ctl)}
 .cms-entry-row{display:flex;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}.cms-entry-open{flex:1;text-align:left;border:0;background:none;color:inherit;cursor:pointer;min-width:0;padding:4px}.cms-entry-open b,.cms-entry-open small{display:block;overflow-wrap:anywhere}.cms-entry-open small{margin-top:6px;color:var(--text-2)}.cms-entry-row>span{font-size:12px;color:var(--text-2)}.cms-pagination{justify-content:space-between;margin:24px 0}
 
 .cms-entry-fields{border:0;padding:0;margin:0;max-width:800px;min-width:0}.cms-field{display:grid;gap:var(--pc-field-label-gap);margin-bottom:var(--pc-field-gap)}.cms-check{display:flex!important;align-items:center;gap:var(--pc-action-gap)}.cms-check input{width:18px;height:18px}.cms-form-actions{max-width:800px;position:sticky;bottom:-28px;background:var(--panel);padding:20px 0;border-top:1px solid var(--line);margin-top:28px}.cms-errors{border:1px solid var(--danger,#ad2626);padding:12px 16px;margin-bottom:20px}.cms-errors p,.cms-error{color:var(--danger,#ad2626)}.cms-notice{padding:12px 0}.cms-form-actions{flex-wrap:wrap}.cms-save-status{flex:1 1 260px;margin:0}.cms-form-actions .cms-save-status{padding-inline-start:8px}.cms-schema-field{padding:24px 0}.cms-schema-field+.cms-schema-field{border-top:1px solid var(--line)}.cms-schema-inputs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.cms-rich{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}.cms-rich>.cms-actions{padding:8px;border-bottom:1px solid var(--line)}.cms-rich [contenteditable]{min-height:220px;padding:var(--pc-control-padding);line-height:1.6;overflow-wrap:anywhere}
@@ -1464,6 +1464,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
 .cms-schema-field>.cms-actions>.btn{min-height:var(--h-ctl);height:var(--h-ctl);width:var(--pc-control-row);padding:0;justify-content:center}
 @media(max-width:760px){.cms-workspace-header{padding:16px;align-items:flex-start}.cms-workspace-layout{grid-template-columns:1fr}.cms-collections{display:flex;gap:8px;max-height:76px;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.cms-collections .btn{width:auto;flex-shrink:0;margin:0}.cms-content{padding:20px 16px}.cms-title{align-items:stretch;flex-direction:column}.cms-workspace-header{flex-wrap:wrap}.cms-form-actions .btn{flex:1}.cms-title>.cms-actions .btn{flex:1}.cms-list-tools,.cms-schema-inputs,.cms-import-map{grid-template-columns:1fr}.cms-entry-row{gap:8px}.cms-entry-row>span{max-width:90px}.cms-form-actions{bottom:-20px}}
 
+@container(max-width:700px){.cms-list-tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cms-list-tools>label:first-child{grid-column:1/-1}}
 @container(max-width:480px){.cms-list-tools{grid-template-columns:minmax(0,1fr)}}
 @media(min-width:768px) and (max-width:1024px){
 .cms-schema-field{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -11959,6 +11960,10 @@ var PC_UI = (() => {
     return /still here/i.test(mapped) ? mapped : `${mapped} Your changes are still here. Try again.`;
   }
   var copy = (value) => JSON.parse(JSON.stringify(value));
+  var esc2 = (s3) => String(s3 ?? "").replace(
+    /[&<>"']/g,
+    (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]
+  );
   var importErrorLabel = (col, key) => key === "_slug" ? "URL slug: " : key === "_id" ? "Entry ID: " : key.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key)?.name || key}: `;
   var PAGE_SIZE = 25;
   function CmsWorkspace({
@@ -11981,6 +11986,8 @@ var PC_UI = (() => {
     const [notice, setNotice] = d2("");
     const [importing, setImporting] = d2(null);
     const fileInput = A2(null);
+    const [selected, setSelected] = d2(/* @__PURE__ */ new Set());
+    const [viewId, setViewId] = d2("");
     const root = A2(null);
     const dirty = !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
     const discard = () => !dirty || window.confirm("Discard your unsaved CMS changes?");
@@ -12171,6 +12178,62 @@ var PC_UI = (() => {
         setPage(0);
       }
     };
+    const bulkDraft = async (draft) => {
+      if (pending.current) return;
+      const next = copy(C2.collections());
+      const target = next.find((c3) => c3.id === id);
+      let changed = 0;
+      for (const item of target.items) {
+        if (!selected.has(item.id) || !!item.draft === draft) continue;
+        if (draft) item.draft = 1;
+        else delete item.draft;
+        changed++;
+      }
+      if (!changed) {
+        setNotice(
+          draft ? "Those entries are already held back." : "Those entries are already included on the next publish."
+        );
+        return;
+      }
+      const entries = `${changed} ${changed === 1 ? "entry" : "entries"}`;
+      if (await commit(
+        next,
+        draft ? "Holding entries back\u2026" : "Including entries\u2026",
+        draft ? `${entries} held back from the next publish.` : `${entries} included on the next publish.`
+      ))
+        setSelected(/* @__PURE__ */ new Set());
+    };
+    const views = col.views || [];
+    const activeView = views.find((v3) => v3.id === viewId);
+    const applyView = (view) => {
+      setViewId(view?.id || "");
+      setSearch(view?.search || "");
+      setStatus(view?.status || "all");
+      setPage(0);
+    };
+    const saveView = async () => {
+      if (pending.current) return;
+      const name = await L2.askText("Save this view", "Name", "Drafts to finish", {
+        ok: "Save view",
+        note: "Saves the current search and status filter, not the entries themselves."
+      });
+      if (!name?.trim()) return;
+      const next = copy(C2.collections());
+      const target = next.find((c3) => c3.id === id);
+      const view = { id: C2.uid(), name: name.trim(), search, status };
+      target.views = [...target.views || [], view];
+      if (await commit(next, "Saving view\u2026", `View \u201C${view.name}\u201D saved.`)) setViewId(view.id);
+    };
+    const deleteView = async () => {
+      const view = activeView;
+      if (!view || pending.current) return;
+      if (!await L2.askConfirm("Delete this view?", `<b>${esc2(view.name)}</b> only. Entries are untouched.`, { ok: "Delete view" }))
+        return;
+      const next = copy(C2.collections());
+      const target = next.find((c3) => c3.id === id);
+      target.views = (target.views || []).filter((v3) => v3.id !== view.id);
+      if (await commit(next, "Deleting view\u2026", "View deleted.")) applyView(null);
+    };
     const updateField = (fid, changes) => setSchema(
       (old) => old && {
         ...old,
@@ -12182,6 +12245,8 @@ var PC_UI = (() => {
     const filtered = col.items.filter(
       (i3) => (status === "all" || (status === "draft" ? !!i3.draft : !i3.draft)) && [i3.slug, ...Object.values(i3.values)].join(" ").toLowerCase().includes(search.toLowerCase())
     );
+    const selectedCount = col.items.filter((i3) => selected.has(i3.id)).length;
+    const allFiltered = !!filtered.length && filtered.every((i3) => selected.has(i3.id));
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const current = Math.min(page2, pages - 1);
     const feedback = busy || errors._save || notice && !dirty ? /* @__PURE__ */ u2(
@@ -12232,6 +12297,8 @@ var PC_UI = (() => {
                 onClick: () => {
                   if (discard()) {
                     setId(c3.id);
+                    setSelected(/* @__PURE__ */ new Set());
+                    setViewId("");
                     reset();
                     setNotice("");
                     setStatus("all");
@@ -12652,6 +12719,7 @@ var PC_UI = (() => {
                         value: search,
                         onInput: (e3) => {
                           setSearch(e3.currentTarget.value);
+                          setViewId("");
                           setPage(0);
                         }
                       }
@@ -12666,6 +12734,7 @@ var PC_UI = (() => {
                         value: status,
                         onChange: (e3) => {
                           setStatus(e3.currentTarget.value);
+                          setViewId("");
                           setPage(0);
                         },
                         children: [
@@ -12675,10 +12744,72 @@ var PC_UI = (() => {
                         ]
                       }
                     )
+                  ] }),
+                  /* @__PURE__ */ u2("label", { children: [
+                    "View",
+                    /* @__PURE__ */ u2(
+                      "select",
+                      {
+                        class: "ctl",
+                        value: activeView ? viewId : "",
+                        disabled: busy,
+                        onChange: (e3) => applyView(views.find((v3) => v3.id === e3.currentTarget.value) || null),
+                        children: [
+                          /* @__PURE__ */ u2("option", { value: "", children: "Everything in this collection" }),
+                          views.map((v3) => /* @__PURE__ */ u2("option", { value: v3.id, children: v3.name }, v3.id))
+                        ]
+                      }
+                    )
+                  ] })
+                ] }),
+                /* @__PURE__ */ u2("div", { class: "cms-view-actions", children: [
+                  /* @__PURE__ */ u2("button", { class: "btn", disabled: busy, onClick: () => void saveView(), children: "Save this view" }),
+                  !!activeView && /* @__PURE__ */ u2("button", { class: "btn", disabled: busy, onClick: () => void deleteView(), children: "Delete view" })
+                ] }),
+                !!filtered.length && /* @__PURE__ */ u2("div", { class: "cms-bulk", role: "group", "aria-label": "Bulk entry actions", children: [
+                  /* @__PURE__ */ u2("label", { children: [
+                    /* @__PURE__ */ u2(
+                      "input",
+                      {
+                        type: "checkbox",
+                        checked: allFiltered,
+                        disabled: busy,
+                        onChange: (e3) => {
+                          const on = e3.currentTarget.checked;
+                          const ids = filtered.map((i3) => i3.id);
+                          setSelected((prev) => on ? /* @__PURE__ */ new Set([...prev, ...ids]) : /* @__PURE__ */ new Set());
+                        }
+                      }
+                    ),
+                    selectedCount ? `${selectedCount} selected` : `Select all ${filtered.length}`
+                  ] }),
+                  !!selectedCount && /* @__PURE__ */ u2(S, { children: [
+                    /* @__PURE__ */ u2("button", { class: "btn", disabled: busy, onClick: () => void bulkDraft(true), children: "Hold back as draft" }),
+                    /* @__PURE__ */ u2("button", { class: "btn", disabled: busy, onClick: () => void bulkDraft(false), children: "Include on next publish" }),
+                    /* @__PURE__ */ u2("button", { class: "btn", disabled: busy, onClick: () => setSelected(/* @__PURE__ */ new Set()), children: "Clear selection" })
                   ] })
                 ] }),
                 /* @__PURE__ */ u2("div", { class: "cms-entry-list", children: [
                   filtered.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE).map((item) => /* @__PURE__ */ u2("div", { class: "cms-entry-row", children: [
+                    /* @__PURE__ */ u2(
+                      "input",
+                      {
+                        type: "checkbox",
+                        class: "cms-entry-pick",
+                        checked: selected.has(item.id),
+                        disabled: busy,
+                        "aria-label": "Select " + (C2.itemTitle(col, item) || "entry"),
+                        onChange: (e3) => {
+                          const on = e3.currentTarget.checked;
+                          setSelected((prev) => {
+                            const next = new Set(prev);
+                            if (on) next.add(item.id);
+                            else next.delete(item.id);
+                            return next;
+                          });
+                        }
+                      }
+                    ),
                     /* @__PURE__ */ u2(
                       "button",
                       {
@@ -13054,7 +13185,7 @@ var PC_UI = (() => {
       if (!b2) return;
       const ok = await L2.askConfirm(
         "Forget this block?",
-        `<b>${esc2(b2.name)}</b> leaves the Blocks tab. Copies already placed stay.`,
+        `<b>${esc3(b2.name)}</b> leaves the Blocks tab. Copies already placed stay.`,
         { ok: "Forget block" }
       );
       if (!ok) return;
@@ -13135,7 +13266,7 @@ var PC_UI = (() => {
       const n2 = C2.componentUsage(id);
       const ok = await L2.askConfirm(
         "Delete this component?",
-        `<b>${esc2(cd.name)}</b> stops being a component. ` + (n2 ? `The ${n2 === 1 ? "one place" : n2 + " places"} using it keep what they show, as ordinary elements \u2014 they simply stop changing together.` : `Nothing is using it.`),
+        `<b>${esc3(cd.name)}</b> stops being a component. ` + (n2 ? `The ${n2 === 1 ? "one place" : n2 + " places"} using it keep what they show, as ordinary elements \u2014 they simply stop changing together.` : `Nothing is using it.`),
         { ok: "Delete component" }
       );
       if (!ok) return;
@@ -13248,7 +13379,7 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2("div", { class: "palette", id: "add-category-panel", role: "tabpanel", "aria-labelledby": "add-tab-" + t3, children: t3 === "widgets" ? /* @__PURE__ */ u2(Widgets, {}) : t3 === "components" ? /* @__PURE__ */ u2(Components, {}) : t3 === "templates" ? /* @__PURE__ */ u2(Templates, {}) : /* @__PURE__ */ u2(Blocks, {}) })
     ] });
   }
-  var esc2 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // shared/ui-motion.js
   var UI_MOTION_CSS = `:root{
@@ -13520,7 +13651,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
       const ok = await L2.askConfirm(
         "Delete this page?",
-        `<b>${esc3(C2.state.pages[i3].name)}</b> and everything on it. \u2318Z will bring it back until you reload.`,
+        `<b>${esc4(C2.state.pages[i3].name)}</b> and everything on it. \u2318Z will bring it back until you reload.`,
         { ok: "Delete page" }
       );
       if (ok) {
@@ -13962,7 +14093,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] }) }) })
     ] });
   }
-  var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc4 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/inspector/ctl.ts
   function bound(n2, c3) {
@@ -15760,7 +15891,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const k3 = t3 ? C2.tsUsage(t3.id) : 0;
       if (k3 > 1 && !await L2.askConfirm(
         "Update the style everywhere?",
-        `<b>${esc4(t3.name)}</b> is used ${k3}\xD7. Taking this element's typography into the style changes the other ${k3 - 1} too.`,
+        `<b>${esc5(t3.name)}</b> is used ${k3}\xD7. Taking this element's typography into the style changes the other ${k3 - 1} too.`,
         { ok: "Update style", danger: false }
       )) return;
       C2.edit(() => C2.tsUpdateFrom(n2));
@@ -16183,10 +16314,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     }
     return /* @__PURE__ */ u2(Cmp, { n: n2, c: c3 });
   }
-  var esc4 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc5 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/inspector/Inspector.tsx
-  var esc5 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc6 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   function Group({ title, n: n2, items, gk, collapsed = false }) {
     const bodyId = g2();
     const key = gk || n2.type + ":" + title;
@@ -16665,7 +16796,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const used = C2.componentUsage(cid);
       const ok = await L2.askConfirm(
         "Remove this property?",
-        `<b>${esc5(label)}</b> stops varying between instances. Every element that reads it goes back to the value written in the definition` + (used ? `, on ${used === 1 ? "the one instance" : "all " + used + " instances"}.` : "."),
+        `<b>${esc6(label)}</b> stops varying between instances. Every element that reads it goes back to the value written in the definition` + (used ? `, on ${used === 1 ? "the one instance" : "all " + used + " instances"}.` : "."),
         { ok: "Remove property" }
       );
       if (!ok) return;
@@ -16937,7 +17068,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const used = C2.colorUsage(id);
       if (used && !await L2.askConfirm(
         "Delete this colour token?",
-        `<b>${esc6(t3.name)}</b> is used ${used}\xD7. Those elements keep the colour, as a literal value \u2014 they just stop following the token.`,
+        `<b>${esc7(t3.name)}</b> is used ${used}\xD7. Those elements keep the colour, as a literal value \u2014 they just stop following the token.`,
         { ok: "Delete token" }
       )) return;
       C2.edit(() => C2.colorDelete(id));
@@ -17022,7 +17153,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       )
     ] });
   }
-  var esc6 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc7 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/StyleClasses.tsx
   function StyleClasses() {
@@ -17043,7 +17174,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const uses = C2.classUsage(id);
       if (uses && !await L2.askConfirm(
         "Delete this class?",
-        `<b>${esc7(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
+        `<b>${esc8(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
         { ok: "Delete class" }
       )) return;
       C2.edit(() => C2.classDelete(id));
@@ -17117,7 +17248,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       /* @__PURE__ */ u2("div", { class: "note", children: "Lower overrides higher. Element styling wins." })
     ] });
   }
-  var esc7 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc8 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/FontSelect.tsx
   function FontSelect({ value, onChange, ariaLabel = "Font" }) {
@@ -17367,7 +17498,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const used = C2.tsUsage(t3.id);
       if (used && !await L2.askConfirm(
         "Delete this text style?",
-        `<b>${esc8(t3.name)}</b> is used by ${used} element${used === 1 ? "" : "s"}. They keep their current look \u2014 they just stop following the style.`,
+        `<b>${esc9(t3.name)}</b> is used by ${used} element${used === 1 ? "" : "s"}. They keep their current look \u2014 they just stop following the style.`,
         { ok: "Delete style" }
       )) return;
       C2.edit(() => C2.styleDelete(t3.id));
@@ -17497,7 +17628,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] })
     ] });
   }
-  var esc8 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc9 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/ReviewList.tsx
   var REGION_MODE = {
