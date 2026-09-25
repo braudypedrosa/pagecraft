@@ -32,6 +32,8 @@ import {
 import {
   type CmsWriteHead,
   type SaveResult,
+  type ScheduledPublishInput,
+  type ScheduledPublishResult,
   type Site,
   type SiteRevision,
   slugFrom,
@@ -532,6 +534,18 @@ export class GatewayStore implements Store {
     this.clearCache();
     this.remember(site);
     return site;
+  }
+  async publishScheduled(input: ScheduledPublishInput): Promise<ScheduledPublishResult> {
+    const result = await this.gateway.call<
+      | { status: "published"; site: SiteRow }
+      | { status: "superseded"; currentPublicationId: string | null }
+      | { status: "missing" }
+    >("site.publishScheduled", { ...input });
+    this.clearCache();
+    if (result.status !== "published") return result;
+    const site = toSite(result.site);
+    this.remember(site);
+    return { status: "published", site };
   }
 }
 

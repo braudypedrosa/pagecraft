@@ -604,6 +604,76 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         )
       );
 
+    /* A scheduled snapshot publishes only while the live pointer still equals the baseline it
+       was prepared against. The draft version is deliberately not compared: a schedule
+       publishes an earlier version on purpose. Replays of an applied schedule are no-ops. */
+    case "site.publishScheduled":
+      return await sql.begin(async (transaction) => {
+        const locked = one(
+          await transaction`
+            select published_publication_id from sites where id = ${
+            text(args.id)
+          } for update
+          `,
+        );
+        const revision = one(
+          await transaction`
+            select 1 as ok from site_revisions
+            where site_id = ${text(args.id)} and version = ${
+            integer(args.version)
+          }
+          `,
+        );
+        if (!locked || !revision) return { status: "missing" };
+        const current = locked.published_publication_id
+          ? text(locked.published_publication_id)
+          : null;
+        const recorded = one(
+          await transaction`
+            select id from hosted_publications
+            where site_id = ${text(args.id)} and source_version = ${
+            integer(args.version)
+          }
+              and content_hash = ${text(args.contentHash)}
+          `,
+        );
+        const target = recorded ? text(recorded.id) : text(args.publicationId);
+        if (current && current === target) {
+          const site = one(
+            await transaction`select * from sites where id = ${text(args.id)}`,
+          );
+          return { status: "published", site };
+        }
+        const baseline = args.baselinePublicationId === null
+          ? null
+          : text(args.baselinePublicationId);
+        if (current !== baseline) {
+          return { status: "superseded", currentPublicationId: current };
+        }
+        const site = one(
+          await transaction`
+            with recorded as (
+              insert into hosted_publications
+                (id, site_id, source_version, content_hash, storage_key, created_by, created_at)
+              values (${text(args.publicationId)}::uuid, ${text(args.id)}, ${
+            integer(args.version)
+          },
+                ${text(args.contentHash)}, ${text(args.publicationId)}, ${
+            text(args.createdBy)
+          },
+                ${text(args.createdAt)}::timestamptz)
+              on conflict (site_id, source_version, content_hash)
+                do update set content_hash = excluded.content_hash returning id
+            ), changed as (
+              update sites set published_version = ${integer(args.version)},
+                published_publication_id = (select id from recorded), updated_at = now()
+              where id = ${text(args.id)} returning *
+            ) select * from changed
+          `,
+        );
+        return { status: "published", site };
+      });
+
     case "site.publishHostedAuthorized":
       return await sql.begin(async (transaction) => {
         const existing = await transaction`

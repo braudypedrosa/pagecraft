@@ -18,7 +18,8 @@
    `if not exists`. */
 import type { Doc } from '../../app/src/core/types.ts';
 import {
-  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SaveResult, type Store
+  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SaveResult, type Store,
+  type ScheduledPublishInput, type ScheduledPublishResult
 } from './store.ts';
 import {
   ASSET_SCHEMA, legacyAssetPath, metaOf,
@@ -654,6 +655,53 @@ export class PgStore implements Store {
       [input.id, input.version, input.publicationId, input.contentHash, input.createdBy, input.createdAt]
     );
     return rows[0] ? toSite(rows[0]) : null;
+  }
+
+  async publishScheduled(input: ScheduledPublishInput): Promise<ScheduledPublishResult> {
+    const acquired = this.db.connect ? await this.db.connect() : null;
+    const client = acquired || this.db;
+    try {
+      await client.query('begin');
+      // The site row is the fence: a concurrent publish either finished first or waits here.
+      const locked = await client.query<{ published_publication_id: string | null }>(
+        'select published_publication_id from sites where id = $1 for update', [input.id]);
+      const revision = await client.query('select 1 from site_revisions where site_id = $1 and version = $2', [input.id, input.version]);
+      if (!locked.rows[0] || !revision.rows[0]) {
+        await client.query('commit');
+        return { status: 'missing' };
+      }
+      const current = locked.rows[0].published_publication_id;
+      const recorded = await client.query<{ id: string }>(
+        `select id from hosted_publications where site_id = $1 and source_version = $2 and content_hash = $3`,
+        [input.id, input.version, input.contentHash]);
+      if (current && current === (recorded.rows[0]?.id || input.publicationId)) {
+        const { rows } = await client.query<Row>('select * from sites where id = $1', [input.id]);
+        await client.query('commit');
+        return { status: 'published', site: toSite(rows[0]) };
+      }
+      if ((current || null) !== input.baselinePublicationId) {
+        await client.query('commit');
+        return { status: 'superseded', currentPublicationId: current || null };
+      }
+      const { rows } = await client.query<Row>(
+        `with recorded as (
+           insert into hosted_publications
+             (id, site_id, source_version, content_hash, storage_key, created_by, created_at)
+           values ($3::uuid, $1, $2, $4, $3, $5, $6::timestamptz)
+           on conflict (site_id, source_version, content_hash)
+             do update set content_hash = excluded.content_hash returning id
+         ) update sites set published_version = $2,
+             published_publication_id = (select id from recorded), updated_at = now()
+           where id = $1 returning *`,
+        [input.id, input.version, input.publicationId, input.contentHash, input.createdBy, input.createdAt]);
+      await client.query('commit');
+      return { status: 'published', site: toSite(rows[0]) };
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      acquired?.release?.();
+    }
   }
 }
 

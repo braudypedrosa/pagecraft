@@ -367,6 +367,38 @@ test("gateway promotes hosted publications through one fixed operation", async (
   a.deepEqual(calls, [{ op: "site.publishHosted", args: input }]);
 });
 
+test("gateway applies a scheduled snapshot through one fixed operation and reports a superseded baseline", async () => {
+  const input = {
+    id: "s1",
+    version: 2,
+    publicationId: "4a1c5e2b-7c1d-4f7e-9a0b-6d2c3e4f5a6b",
+    contentHash: "b".repeat(64),
+    baselinePublicationId: "9f680e13-b841-43dc-9b47-a4d2a8215b13",
+    createdBy: "owner-1",
+    createdAt: "2026-10-01T09:00:00.000Z",
+  };
+  let superseded = false;
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.publishScheduled") throw new Error(`unexpected ${call.op}`);
+    return superseded
+      ? { status: "superseded", currentPublicationId: "c0ffee00-0000-4000-8000-000000000000" }
+      : { status: "published", site: { ...siteRow, published_version: 2, published_publication_id: input.publicationId } };
+  });
+  const sites = new GatewayStore(gateway);
+  const published = await sites.publishScheduled(input);
+  a.equal(published.status, "published");
+  a.equal(published.status === "published" && published.site.publishedPublicationId, input.publicationId);
+  superseded = true;
+  a.deepEqual(await sites.publishScheduled(input), {
+    status: "superseded",
+    currentPublicationId: "c0ffee00-0000-4000-8000-000000000000",
+  });
+  a.deepEqual(calls, [
+    { op: "site.publishScheduled", args: input },
+    { op: "site.publishScheduled", args: input },
+  ]);
+});
+
 test("gateway prepares hosted publishing through one authenticated bulk operation", async () => {
   const user = {
     id: "owner-1",

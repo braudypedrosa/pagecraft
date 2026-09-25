@@ -74,6 +74,16 @@ export interface CmsWriteHead {
 export const cmsItemKey = (collectionId: string, itemId: string) =>
   `${collectionId.length}:${collectionId}${itemId}`;
 
+export interface ScheduledPublishInput {
+  id: string; version: number; publicationId: string; contentHash: string;
+  baselinePublicationId: string | null; createdBy: string; createdAt: string;
+}
+export type ScheduledPublishResult =
+  | { status: 'published'; site: Site }
+  /** Someone published after the snapshot was prepared; the schedule must pause. */
+  | { status: 'superseded'; currentPublicationId: string | null }
+  | { status: 'missing' };
+
 export interface Store {
   byHost(host: string): Promise<Site | null>;
   /** the site answering under `/<slug>/…` on the editor's host */
@@ -103,6 +113,11 @@ export interface Store {
     id: string; version: number; publicationId: string; contentHash: string;
     createdBy: string; createdAt: string;
   }): Promise<Site | null>;
+  /** Promote a scheduled snapshot. The pointer moves only while it still equals the snapshot's
+      baseline; a repeat of an already-applied schedule is a successful no-op. The draft version
+      is deliberately not checked, because a schedule publishes an earlier version on purpose.
+      Ownership is the caller's check (the schedule runner asks the auth store first). */
+  publishScheduled(input: ScheduledPublishInput): Promise<ScheduledPublishResult>;
   /** Move a site to a different domain. Null when the domain is taken. */
   setHost(id: string, host: string): Promise<Site | null>;
   /** Move a site to a different path. Null when the path is taken or reserved. */
@@ -373,6 +388,24 @@ export class MemoryStore implements Store {
     site.publishedPublicationId = publicationId;
     site.updatedAt = new Date().toISOString();
     return this.copy(site);
+  }
+
+  async publishScheduled(input: ScheduledPublishInput): Promise<ScheduledPublishResult> {
+    const site = this.sites.get(input.id);
+    if (!site || !(this.revisions.get(input.id) || []).some(revision => revision.version === input.version)) {
+      return { status: 'missing' };
+    }
+    const key = `${input.id}:${input.version}:${input.contentHash}`;
+    const publicationId = this.hostedPublicationKeys.get(key) || input.publicationId;
+    if (site.publishedPublicationId === publicationId) return { status: 'published', site: this.copy(site) };
+    if ((site.publishedPublicationId || null) !== input.baselinePublicationId) {
+      return { status: 'superseded', currentPublicationId: site.publishedPublicationId || null };
+    }
+    this.hostedPublicationKeys.set(key, publicationId);
+    site.publishedVersion = input.version;
+    site.publishedPublicationId = publicationId;
+    site.updatedAt = new Date().toISOString();
+    return { status: 'published', site: this.copy(site) };
   }
 
   /* Callers get their own copy. A store that hands out a reference into its own map lets a
