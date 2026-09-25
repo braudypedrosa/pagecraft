@@ -1,4 +1,7 @@
 import { LiveReviewStore } from './live-reviews.ts';
+import { createHash, timingSafeEqual } from "node:crypto";
+import { runDueSchedules } from "./schedule-runner.ts";
+import type { PublicationScheduleStore } from "./schedules.ts";
 import { liveReviewRoutes } from './live-review-routes.ts';
 import { publicationPreviewHtml } from "./publication-preview.ts";
 import { publicationChanges } from "./publication-changes.ts";
@@ -322,6 +325,10 @@ export interface Options {
   cloudIntegrations?: CloudIntegrations;
   submissions?: FileSubmissionStore;
   reviews?: PublicationReviewStore;
+  /** Scheduled publication of prepared snapshots, stored beside this environment's bytes. */
+  schedules?: PublicationScheduleStore;
+  /** Bearer key for the cron-driven run endpoint; without one the endpoint does not exist. */
+  scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
   accountAuth?: AccountAuth;
   /** Atomic site creation and owner grant, including the owned-site quota. */
@@ -2569,6 +2576,95 @@ export function createApp(o: Options) {
         new Map(publication.files.map(file => [file.path, ""])), prefix));
     }
     return c.body(new Uint8Array(bytes).buffer);
+  });
+
+  /* ---- Scheduled publication (Phase 4). A schedule names an exact prepared snapshot and
+     publishes it later only while the snapshot's baseline is still live; see
+     docs/phase4-snapshot-scheduling-design.md. Owners only, like publishing itself. */
+  const SCHEDULE_MIN_LEAD_MS = 2 * 60_000;
+  const SCHEDULE_MAX_LEAD_MS = 90 * 24 * 60 * 60_000;
+  app.post("/api/sites/:id/publication-schedules", async (c) => {
+    const id = c.req.param("id");
+    if (!o.schedules || !o.publications) {
+      return c.json({ error: "publication scheduling is unavailable" }, 503);
+    }
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const body = await c.req.json().catch(() => null) as {
+      snapshotId?: string; publishAt?: string; acknowledgeWarnings?: boolean; idempotencyKey?: string;
+    } | null;
+    if (!body?.snapshotId || !/^[0-9a-f-]{36}$/i.test(body.snapshotId)) {
+      return c.json({ error: "a valid snapshotId is required" }, 400);
+    }
+    if (!body.idempotencyKey || !/^[A-Za-z0-9._:-]{8,160}$/.test(body.idempotencyKey)) {
+      return c.json({ error: "a valid idempotencyKey is required" }, 400);
+    }
+    const at = Date.parse(String(body.publishAt || ""));
+    const lead = at - Date.now();
+    if (!Number.isFinite(at) || lead < SCHEDULE_MIN_LEAD_MS || lead > SCHEDULE_MAX_LEAD_MS) {
+      return c.json({ error: "invalid_publish_at", minMinutes: 2, maxDays: 90 }, 400);
+    }
+    const site = await o.store.byId(id);
+    if (!site) return deny(c, 404);
+    const snapshot = await o.publications.byId(id, body.snapshotId);
+    const source = snapshot && await o.publications.source(snapshot);
+    if (!snapshot || !source) return c.json({ error: "snapshot_not_found" }, 404);
+    if (snapshot.slug !== site.slug || snapshot.host !== site.host.toLowerCase()) {
+      return c.json({ error: "stale_snapshot" }, 409);
+    }
+    // A snapshot whose baseline is already superseded could only ever pause.
+    if ((site.publishedPublicationId || null) !== source.baselinePublicationId) {
+      return c.json({ error: "stale_baseline", currentPublicationId: site.publishedPublicationId || null }, 409);
+    }
+    // Nobody is present when it runs, so warnings are acknowledged now, exactly as publish asks.
+    if (source.warnings?.length && !body.acknowledgeWarnings) {
+      return c.json({ error: "publication_warnings", findings: source.warnings }, 409);
+    }
+    const result = await o.schedules.create({
+      siteId: id,
+      snapshotId: snapshot.id,
+      baselinePublicationId: source.baselinePublicationId,
+      publishAt: new Date(at).toISOString(),
+      createdBy: gate.user.id,
+      idempotencyKey: body.idempotencyKey,
+    });
+    if (result.status === "conflict") {
+      return c.json({ error: "schedule_exists", schedule: result.schedule }, 409);
+    }
+    return c.json({ status: result.status, schedule: result.schedule }, result.status === "created" ? 201 : 200);
+  });
+
+  app.get("/api/sites/:id/publication-schedules", async (c) => {
+    const id = c.req.param("id");
+    if (!o.schedules) return c.json({ schedules: [] });
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    return c.json({ schedules: (await o.schedules.forSite(id)).slice(0, 20) });
+  });
+
+  app.delete("/api/sites/:id/publication-schedules/:scheduleId", async (c) => {
+    const id = c.req.param("id");
+    if (!o.schedules) return deny(c, 404);
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const result = await o.schedules.cancel(id, c.req.param("scheduleId"));
+    if (result.status === "missing") return c.json({ error: "schedule_not_found" }, 404);
+    if (result.status === "busy") return c.json({ error: "schedule_running" }, 409);
+    return c.json(result);
+  });
+
+  /* Cron wakes this every minute; the in-process timer (PAGECRAFT_SCHEDULE_RUNNER=1) is the
+     other trigger. Running twice at once is safe. Without a configured key it does not exist. */
+  app.post("/api/internal/publication-schedules/run", async (c) => {
+    if (!o.schedules || !o.publications || !o.scheduleRunnerKey) return c.notFound();
+    const presented = (c.req.header("authorization") || "").replace(/^Bearer\s+/i, "");
+    const digest = (value: string) => createHash("sha256").update(value).digest();
+    if (!timingSafeEqual(digest(presented), digest(o.scheduleRunnerKey))) return c.notFound();
+    const results = await runDueSchedules({
+      store: o.store, publications: o.publications, schedules: o.schedules, auth: o.auth,
+      reviews: o.reviews, sendNotice: o.sendNotice, editorOrigin: o.editorOrigin,
+    });
+    return c.json({ results });
   });
 
   for (const action of ["publish", "publication-snapshots"] as const) app.post(`/api/sites/:id/${action}`, async (c) => {

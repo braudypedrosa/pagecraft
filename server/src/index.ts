@@ -41,6 +41,8 @@ import {
 } from "./accounts.ts";
 import { FileHostedPublicationStore } from "./publications.ts";
 import { FilePublicationReviewStore } from "./reviews.ts";
+import { FilePublicationScheduleStore } from "./schedules.ts";
+import { runDueSchedules } from "./schedule-runner.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
 import { validateStagingEnvironment } from "./staging-environment.ts";
 
@@ -504,11 +506,23 @@ if (noticeMail) {
   );
 }
 
+const reviews = new FilePublicationReviewStore(publicationRoot);
+const schedules = new FilePublicationScheduleStore(publicationRoot);
+const sendNotice = noticeMail ? smtpNoticeSender(noticeMail) : undefined;
+const editorOrigin = process.env.EDITOR_ORIGIN ||
+  (process.env.NODE_ENV === "production" ? `https://${EDITOR_HOST}` : undefined);
+const scheduleRunnerKey = process.env.PAGECRAFT_SCHEDULE_RUNNER_KEY || undefined;
+if (scheduleRunnerKey && scheduleRunnerKey.length < 32) {
+  throw new Error("PAGECRAFT_SCHEDULE_RUNNER_KEY must be at least 32 characters");
+}
+
 const app = createApp({
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
-  reviews: new FilePublicationReviewStore(publicationRoot),
+  reviews,
+  schedules,
+  scheduleRunnerKey,
   liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),
   cloudIntegrations,
   store,
@@ -516,12 +530,9 @@ const app = createApp({
   assets,
   editorHtml,
   editorHost: EDITOR_HOST,
-  editorOrigin: process.env.EDITOR_ORIGIN ||
-    (process.env.NODE_ENV === "production"
-      ? `https://${EDITOR_HOST}`
-      : undefined),
+  editorOrigin,
   sendLink: mail ? smtpSender(mail) : undefined,
-  sendNotice: noticeMail ? smtpNoticeSender(noticeMail) : undefined,
+  sendNotice,
   secureCookies: process.env.NODE_ENV === "production",
   connected,
   packages,
@@ -536,6 +547,31 @@ const app = createApp({
   manualImports,
   ...signing,
 });
+
+/* Scheduled publishing has its own switch, separate from PAGECRAFT_BACKGROUND_WORKERS: it
+   touches only this environment's schedule files and the site rows they name, never the shared
+   invitation or webhook queues, so staging can run it while its queue workers stay off.
+   Passenger may idle this process, so cron also calls the protected run endpoint. */
+const scheduleWorker = `pagecraft-schedules-${process.pid}-${crypto.randomUUID()}`;
+let scheduleRunRunning = false;
+async function runSchedules() {
+  if (scheduleRunRunning) return;
+  scheduleRunRunning = true;
+  try {
+    await runDueSchedules({ store, publications, schedules, auth, reviews, sendNotice, editorOrigin }, new Date(), scheduleWorker);
+  } catch (caught) {
+    console.error("Publication schedules could not run:", (caught as Error).message);
+  } finally {
+    scheduleRunRunning = false;
+  }
+}
+if (process.env.PAGECRAFT_SCHEDULE_RUNNER === "1") {
+  const scheduleTimer = setInterval(runSchedules, 60_000);
+  scheduleTimer.unref();
+  void runSchedules();
+  console.log("schedules running every 60s in this process");
+}
+console.log(scheduleRunnerKey ? "schedules run endpoint enabled" : "schedules run endpoint disabled (no PAGECRAFT_SCHEDULE_RUNNER_KEY)");
 
 serve({ fetch: (request) => {
   const url = new URL(request.url);
