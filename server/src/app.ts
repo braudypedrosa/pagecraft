@@ -2591,11 +2591,11 @@ export function createApp(o: Options) {
   const SCHEDULE_MAX_LEAD_MS = 90 * 24 * 60 * 60_000;
   app.post("/api/sites/:id/publication-schedules", async (c) => {
     const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
     if (!o.schedules || !o.publications) {
       return c.json({ error: "publication scheduling is unavailable" }, 503);
     }
-    const gate = await allowed(c, id, "admin");
-    if (!gate.ok) return deny(c, gate.status);
     const body = await c.req.json().catch(() => null) as {
       snapshotId?: string; publishAt?: string; acknowledgeWarnings?: boolean; idempotencyKey?: string;
     } | null;
@@ -2642,17 +2642,17 @@ export function createApp(o: Options) {
 
   app.get("/api/sites/:id/publication-schedules", async (c) => {
     const id = c.req.param("id");
-    if (!o.schedules) return c.json({ schedules: [] });
     const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
+    if (!o.schedules) return c.json({ schedules: [] });
     return c.json({ schedules: (await o.schedules.forSite(id)).slice(0, 20) });
   });
 
   app.delete("/api/sites/:id/publication-schedules/:scheduleId", async (c) => {
     const id = c.req.param("id");
-    if (!o.schedules) return deny(c, 404);
     const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
+    if (!o.schedules) return deny(c, 404);
     const result = await o.schedules.cancel(id, c.req.param("scheduleId"));
     if (result.status === "missing") return c.json({ error: "schedule_not_found" }, 404);
     if (result.status === "busy") return c.json({ error: "schedule_running" }, 409);

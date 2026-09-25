@@ -129,3 +129,23 @@ test('the run endpoint exists only with the right key, and then publishes what i
   a.equal((await r.store.byId(r.site.id))?.publishedPublicationId, r.snapshot.id);
   a.equal((await r.publications.currentBySlug('cabins'))?.id, r.snapshot.id);
 });
+
+test('with scheduling disabled, the routes still check the session first and offer nothing', async () => {
+  const store = new MemoryStore(), auth = new MemoryAuthStore();
+  const site = await store.create({ host: 'cabins.test', name: 'Cabins', slug: 'cabins', doc: doc() });
+  const owner = await auth.createUser('owner@example.test', 'Owner');
+  await auth.grant(site.id, owner.id, 'owner');
+  const app = createApp({ store, auth, publications: new MemoryHostedPublicationStore(), editorHost: 'admin.test', editorOrigin: 'http://admin.test', editorHtml: '<title>Builder</title>' });
+  const req = (cookie?: string, method = 'GET') => app.request(new Request(`http://admin.test/api/sites/${site.id}/publication-schedules`, {
+    method, headers: { host: 'admin.test', 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }, ...(method === 'POST' ? { body: '{}' } : {}),
+  }));
+  a.equal((await req()).status, 401, 'no session, no answer, even when disabled');
+  a.equal((await req(undefined, 'POST')).status, 401);
+  const token = newToken();
+  await auth.putSession(hashToken(token), owner.id, Date.now() + 60_000);
+  const listed = await req(`pc_session=${token}`);
+  a.equal(listed.status, 200);
+  a.deepEqual(await listed.json(), { schedules: [] });
+  a.equal((await req(`pc_session=${token}`, 'POST')).status, 503);
+  a.equal((await app.request(new Request('http://admin.test/api/internal/publication-schedules/run', { method: 'POST', headers: { host: 'admin.test', authorization: 'Bearer anything' } }))).status, 404);
+});
