@@ -1643,6 +1643,11 @@ export function createApp(o: Options) {
     if (!file) return c.notFound();
     c.header("content-type", file.mediaType);
     c.header("cache-control", "public, max-age=31536000, immutable");
+    /* Instantiated documents keep absolute asset URLs so custom domains resolve them. The
+       dashboard thumbnail inlines images with fetch(), which a document saved on the other
+       environment's origin (shared pre-launch database) can only do with CORS. These bytes
+       are public and immutable; the preview page itself stays same-origin. */
+    if (!file.mediaType.startsWith("text/html")) c.header("access-control-allow-origin", "*");
     c.header(
       "content-security-policy",
       "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'",

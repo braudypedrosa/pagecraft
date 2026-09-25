@@ -695,6 +695,10 @@ test("a Cloud curated site links template images without uploads or quota usage"
   a.equal(media.status, 200);
   a.equal(media.headers.get("content-type"), "image/webp");
   a.match(media.headers.get("cache-control") || "", /immutable/);
+  // Public immutable bytes may be fetched cross-origin (dashboard thumbnails); the page may not.
+  a.equal(media.headers.get("access-control-allow-origin"), "*");
+  const previewPage = await request("/templates/independent-studio/2.0.9/preview/index.html");
+  a.equal(previewPage.headers.get("access-control-allow-origin"), null);
 
   const v207 = await request(
     "/templates/independent-studio/2.0.7/preview/index.html",
