@@ -58,10 +58,12 @@ const FIND_BY_ROLE = `(role, name) => {
     || (el.getAttribute('aria-labelledby') || '').split(/\\s+/).map(id => document.getElementById(id)?.textContent).filter(Boolean).join(' ')
     || (el.labels && [...el.labels].map(l => l.textContent).join(' '))
     || el.textContent;
-  const visible = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'; };
+  // Visually hidden originals (an enhanced select's native element) are not clickable targets.
+  const visible = el => { const r = el.getBoundingClientRect(); return r.width > 4 && r.height > 4 && getComputedStyle(el).visibility !== 'hidden'; };
   const all = [...document.querySelectorAll(selectors[role] || '[role=' + role + ']')];
   const hits = all.filter(el => norm(nameOf(el)) === norm(name) && visible(el));
-  return hits[0] || null;
+  // An explicit role (the enhanced trigger) outranks an implicit one (the native element).
+  return hits.find(el => el.getAttribute('role') === role) || hits[0] || null;
 }`;
 
 export async function launchChromeTab({ url, width = 1440, height = 900 } = {}) {
@@ -116,7 +118,13 @@ export async function launchChromeTab({ url, width = 1440, height = 900 } = {}) 
         const box = await evaluate(`(arg) => { const el = (${finder})(...arg); if (!el) return null;
           el.scrollIntoView({ block: 'center', inline: 'center' }); const r = el.getBoundingClientRect();
           return { x: r.x + r.width / 2, y: r.y + r.height / 2, disabled: !!el.disabled }; }`, arg);
-        if (box && !box.disabled) return clickAt(box.x, box.y);
+        if (box && !box.disabled) {
+          // Playwright-style stability: the same position twice, so a still-booting widget is not hit.
+          await sleep(60);
+          const again = await evaluate(`(arg) => { const el = (${finder})(...arg); if (!el) return null; const r = el.getBoundingClientRect();
+            return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }`, arg);
+          if (again && Math.abs(again.x - box.x) < 1 && Math.abs(again.y - box.y) < 1) return clickAt(box.x, box.y);
+        }
         await sleep(100);
       }
       throw new Error(`Could not find an enabled ${what}.`);
