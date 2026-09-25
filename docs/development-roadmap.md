@@ -25,7 +25,7 @@ features are available.
 
 | Phase | Deliverables | State |
 | --- | --- | --- |
-| 0 | Verified release retention and quota preflight; expanded gallery/real-screen checks; approved shared pre-launch backend | Foundation deployed; leftover labeled-fixture acceptance deferred, gaps listed in [`qa-evidence/roadmap-phase0-remaining-2026-09-15/REPORT.md`](../qa-evidence/roadmap-phase0-remaining-2026-09-15/REPORT.md) |
+| 0 | Verified release retention and quota preflight; expanded gallery/real-screen checks; approved shared pre-launch backend | Complete on staging 2026-09-25 (private close-out report `qa-evidence/roadmap-phase0-closeout-2026-09-25/REPORT.md`). Real-screen PNG baselines not recorded by decision; staging inspector Advanced tab blocked by a third-party browser extension, covered locally. Gallery baselines can now be captured in headless Chrome |
 | 1 | Shared media browser; search/sort/usage filters/tags; usage details; bulk unused deletion; version-checked Replace everywhere with retained original bytes | Complete on staging; see [release record](phase1-media-release.md) |
 | 2 | Draft/publication differences by page/CMS/shared assets and styles; immutable preview snapshots; comparison and historical restore as a new draft | Complete on staging; see [release record](phase2-publication-release.md) |
 | 3 | Reviewer role; assigned private previews; anchored comments; request changes/approval/cancellation; in-app and email notifications | Complete on staging; see [release record](phase3-review-release.md) |
@@ -69,8 +69,9 @@ reload persistence as well as appearance. Private QA evidence must not enter pub
 assets. Additive schema and host-capability changes require compatibility coverage.
 
 The user explicitly deferred database isolation on 2026-09-12. Organization/cost
-confirmation and a new staging project are no longer blockers. Complete the
-remaining Phase 0 acceptance against labeled fixtures in the existing project.
+confirmation and a new staging project are no longer blockers. The remaining Phase 0
+acceptance was completed against labeled fixtures in the existing project on 2026-09-25;
+the labeled QA site now carries a 27-entry fictional CMS collection for long-list checks.
 Feature development may use that project; new background workflows need scoped,
 controlled acceptance without enabling the staging queue consumer globally.
 Independent customer-facing production data is a pre-launch requirement, tracked
