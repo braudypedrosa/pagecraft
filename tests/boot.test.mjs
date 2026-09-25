@@ -111,7 +111,7 @@ test('server mode separates draft saving from explicit release publication', asy
   const base = await boot();
   const server = {
     siteId: 'site-release', version: 7, publishedVersion: 5,
-    publishedPublicationId: 'publication-5', role: 'owner',
+    publishedPublicationId: 'publication-5', schedulingAvailable: true, schedules: [], role: 'owner',
     user: { id: 'user-1', name: 'Braudy Pedrosa', email: 'braudy@example.test' },
     editorSessionToken: 'scoped-editor-session',
     doc: base.window.__CORE.clone(base.window.__CORE.doc())
@@ -178,6 +178,9 @@ test('server mode separates draft saving from explicit release publication', asy
   a.equal(doc.querySelector('#mTitle').textContent.trim(), 'Publish');
   a.equal(calls.some(([url]) => url === '/api/sites/site-release/publication'), false,
     'opening Publish must use the publication state already injected with the editor');
+  a.equal(calls.some(([url]) => url.includes('/publication-schedules')), false,
+    'opening Publish renders the schedules injected with the editor, without a request');
+  a.equal(doc.querySelector('#releaseSchedule')?.disabled, true, 'scheduling waits for a review preview');
   a.match(doc.querySelector('.releaseLead')?.textContent || '', /Published on Pagecraft/);
   a.equal(doc.querySelector('#releaseWordPress')?.textContent.trim(), 'Publish on WordPress');
   a.equal(doc.querySelector('#releasePanel')?.getAttribute('role'), 'status');
@@ -190,6 +193,7 @@ test('server mode separates draft saving from explicit release publication', asy
   a.ok(publish && publish.disabled, 'publication requires a reviewed snapshot');
   await dom.window.preparePublicationReview(doc.querySelector('#releasePrepare'));
   a.equal(publish.disabled, false, 'a prepared snapshot can be published');
+  a.equal(doc.querySelector('#releaseSchedule')?.disabled, false, 'a prepared snapshot can be scheduled');
   publish.click();
   const publishUntil = Date.now() + 2500;
   while (!calls.some(([url, method]) => url.endsWith('/publish') && method === 'POST') && Date.now() < publishUntil) {

@@ -226,8 +226,22 @@ export interface WebPublicationSnapshot {
   changes: { group: string; label: string; status: string; pages: { id: string; name: string; slug: string }[] }[];
   warnings: { code: string; message: string }[];
 }
+/** A prepared snapshot set to publish later; see docs/phase4-snapshot-scheduling-design.md. */
+export interface WebPublicationSchedule {
+  id: string;
+  snapshotId: string;
+  publishAt: string;
+  status: 'pending' | 'published' | 'paused' | 'cancelled';
+  pausedReason?: 'baseline_superseded' | 'owner_removed' | 'snapshot_unavailable' | 'site_address_changed';
+  settledAt?: string;
+  lastError?: string;
+}
 export interface WebReleaseAdapter {
   prepare?(sourceVersion: number): Promise<WebPublicationSnapshot>;
+  /** Cloud only. The idempotency key makes a repeated click the same schedule. */
+  schedule?(input: { snapshotId: string; publishAt: string; acknowledgeWarnings: boolean; idempotencyKey: string }): Promise<WebPublicationSchedule>;
+  schedules?(): Promise<WebPublicationSchedule[]>;
+  cancelSchedule?(id: string): Promise<void>;
   list(): Promise<unknown>;
   publish(input: {
     sourceVersion: number;

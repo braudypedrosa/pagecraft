@@ -515,13 +515,16 @@ const scheduleRunnerKey = process.env.PAGECRAFT_SCHEDULE_RUNNER_KEY || undefined
 if (scheduleRunnerKey && scheduleRunnerKey.length < 32) {
   throw new Error("PAGECRAFT_SCHEDULE_RUNNER_KEY must be at least 32 characters");
 }
+/* Dark until something can actually run schedules: offering "Schedule…" with no trigger would
+   accept schedules that never publish. Deploy the gateway operation before enabling either. */
+const schedulingEnabled = process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" || !!scheduleRunnerKey;
 
 const app = createApp({
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   reviews,
-  schedules,
+  schedules: schedulingEnabled ? schedules : undefined,
   scheduleRunnerKey,
   liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),
   cloudIntegrations,
@@ -571,7 +574,9 @@ if (process.env.PAGECRAFT_SCHEDULE_RUNNER === "1") {
   void runSchedules();
   console.log("schedules running every 60s in this process");
 }
-console.log(scheduleRunnerKey ? "schedules run endpoint enabled" : "schedules run endpoint disabled (no PAGECRAFT_SCHEDULE_RUNNER_KEY)");
+console.log(schedulingEnabled
+  ? `scheduling enabled (run endpoint ${scheduleRunnerKey ? "on" : "off"}, timer ${process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" ? "on" : "off"})`
+  : "scheduling disabled: set PAGECRAFT_SCHEDULE_RUNNER=1 and/or PAGECRAFT_SCHEDULE_RUNNER_KEY");
 
 serve({ fetch: (request) => {
   const url = new URL(request.url);

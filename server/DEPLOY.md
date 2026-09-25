@@ -196,6 +196,30 @@ values ('primary', '<sha256-of-new-gateway-key>');
 Put the raw key in cPanel as `DATABASE_GATEWAY_KEY`. Never put it in SQL, a migration, a shell
 history file, or this repository.
 
+## Enable scheduled publishing
+
+Scheduling stays dark until a trigger is configured: without one, owners never see
+**Schedule…**. Turn it on per environment, staging first, in this order:
+
+1. Run the three `deno` checks above, then deploy `supabase/functions/pagecraft-db/` as
+   `pagecraft-db-v3`. This adds `site.publishScheduled`; older applications ignore it. There is
+   no SQL migration: schedules are files under `PAGECRAFT_PUBLICATION_ROOT/.schedules/`.
+2. In the application's environment, set `PAGECRAFT_SCHEDULE_RUNNER_KEY` to a random value of
+   at least 32 characters, and optionally `PAGECRAFT_SCHEDULE_RUNNER=1` for the 60-second
+   in-process timer. This timer is separate from `PAGECRAFT_BACKGROUND_WORKERS`, which stays `0`
+   on staging. Restart, and the log should say `scheduling enabled`.
+3. Passenger may idle the process, so cron wakes it. Keep the key out of the crontab line:
+   put `Authorization: Bearer <key>` in a file readable only by the account (`chmod 600`),
+   then add:
+
+```sh
+* * * * * curl -fsS -m 50 -X POST -H @$HOME/.pagecraft-schedules-staging.header https://staging.itspagecraft.com/api/internal/publication-schedules/run >/dev/null
+```
+
+4. Accept on the labeled QA site. Prepare a review preview and schedule it a few minutes out.
+   Confirm it publishes, the owner gets a notice, and a manual publish in the meantime pauses
+   the schedule instead of being overwritten.
+
 ## Backups and recovery
 
 The current Supabase Free plan does not provide the automatic daily backup guarantee used by a

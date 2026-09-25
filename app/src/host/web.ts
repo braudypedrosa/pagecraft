@@ -2,7 +2,7 @@ import type { UnknownDocumentInput } from '../core/types';
 import { authenticationAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
 import { FetchHostTransport, type FetchLike, type HostTransport } from './transport';
 import { adoptHostDocument } from './schema';
-import type { HostCapability, HostFeatures, HostMedia, HostSession, WebPublicationSnapshot, WebHostAdapter } from './types';
+import type { HostCapability, HostFeatures, HostMedia, HostSession, WebPublicationSchedule, WebPublicationSnapshot, WebHostAdapter } from './types';
 
 export interface WebHostOptions {
   siteId: string;
@@ -111,6 +111,13 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
     settings: settingsAdapter(transport, `/api/sites/${site}/settings`),
     releases: {
       async prepare(sourceVersion) { return (await transport.request<WebPublicationSnapshot>({ method: 'POST', path: `/api/sites/${site}/publication-snapshots`, body: { sourceVersion } })).body; },
+      async schedule(input) {
+        return (await transport.request<{ schedule: WebPublicationSchedule }>({ method: 'POST', path: `/api/sites/${site}/publication-schedules`, body: { ...input } })).body.schedule;
+      },
+      async schedules() { return (await transport.request<{ schedules: WebPublicationSchedule[] }>({ path: `/api/sites/${site}/publication-schedules` })).body.schedules; },
+      async cancelSchedule(id) {
+        await transport.request<unknown>({ method: 'DELETE', path: `/api/sites/${site}/publication-schedules/${encodeURIComponent(id)}` });
+      },
       async list() { return (await transport.request<unknown>({ path: `/api/sites/${site}/publication` })).body; },
       async publish(input) {
         return (await transport.request<unknown>({

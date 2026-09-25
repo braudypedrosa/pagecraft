@@ -1,6 +1,11 @@
 # Phase 4 — idempotent snapshot scheduling (design, not built)
 
-Status: design approved 2026-09-25, with the decisions below. Nothing here is implemented yet. This design comes from
+Status: implemented 2026-09-26 (store, locked commit, runner, routes, run endpoint, timer,
+Publish-dialog UI). It stays dark until an environment enables it
+(`server/DEPLOY.md` → Enable scheduled publishing). Differences from the plan below: the
+site-overview row is deferred, because the Publish dialog and in-app notices cover pending,
+published and paused states. The dialog renders schedules injected with the editor, so opening it
+makes no request, matching how publication state already works. This design comes from
 reading the current publish, snapshot, worker and gateway code on `b0712ca`.
 
 Roadmap contract: *schedules target exact snapshots and pause for review if a

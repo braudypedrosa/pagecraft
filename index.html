@@ -1366,6 +1366,7 @@ pre.code{
 .review .go{flex:0 0 auto;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--line-2);font-size:var(--fs-2);background:var(--panel)}
 .review .go:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .alert{display:flex;flex-direction:column;gap:var(--sp-3);padding:13px 15px;border-radius:var(--r-md);background:#a8402f0f;border:1px solid #a8402f40}
+.schedule-panel{display:grid;gap:var(--sp-3);padding:var(--sp-4);margin-bottom:var(--sp-4);border:1px solid var(--line);border-radius:var(--r-md)}.schedule-panel h3{margin:0}.schedule-panel .f,.schedule-panel .help{margin:0}.schedule-ack{display:flex;align-items:center;gap:var(--pc-action-gap)}.schedule-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--pc-action-gap)}#scheduleStatus:empty{display:none}.schedule-status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--pc-action-gap)}.schedule-status .help{margin:0;flex:1 1 260px}
 .alert b{font-size:var(--fs-4);color:var(--danger);font-weight:600}
 .alert span{font-size:var(--fs-3);color:var(--text-2);line-height:1.55}
 .toast{
@@ -20275,6 +20276,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         async prepare(sourceVersion) {
           return (await transport.request({ method: "POST", path: `/api/sites/${site}/publication-snapshots`, body: { sourceVersion } })).body;
         },
+        async schedule(input) {
+          return (await transport.request({ method: "POST", path: `/api/sites/${site}/publication-schedules`, body: { ...input } })).body.schedule;
+        },
+        async schedules() {
+          return (await transport.request({ path: `/api/sites/${site}/publication-schedules` })).body.schedules;
+        },
+        async cancelSchedule(id) {
+          await transport.request({ method: "DELETE", path: `/api/sites/${site}/publication-schedules/${encodeURIComponent(id)}` });
+        },
         async list() {
           return (await transport.request({ path: `/api/sites/${site}/publication` })).body;
         },
@@ -21026,6 +21036,7 @@ async function preparePublicationReview(button) {
   if (!action) return;
   const host = $('#publicationChanges');
   if ($('#releasePublish')) $('#releasePublish').disabled = true;
+  if ($('#releaseSchedule')) $('#releaseSchedule').disabled = true;
   try {
     await flushDraft();
     const baseline = JSON.stringify(doc());
@@ -21068,8 +21079,87 @@ async function preparePublicationReview(button) {
     const publish = $('#releasePublish');
     publish.disabled = false; publish.textContent = 'Publish reviewed version';
     publish.onclick = () => publishDraft(publish, reviewed);
+    const schedule = $('#releaseSchedule');
+    if (schedule) { schedule.disabled = false; schedule.onclick = () => openSchedulePanel(reviewed); }
     action.success('Review preview ready');
   } catch (error) { action.error(error.message || 'Could not prepare the preview. Try again.'); }
+}
+
+/* Scheduling publishes this exact reviewed version later, and only if nothing newer has been
+   published by then; the server pauses it otherwise. Cloud only (HOST.releases.schedule). */
+const SCHEDULE_PAUSED = {
+  baseline_superseded: 'a newer version was published after it was prepared.',
+  owner_removed: 'the person who scheduled it is no longer an owner.',
+  snapshot_unavailable: 'the prepared version is no longer available.',
+  site_address_changed: "the site's address changed after it was prepared."
+};
+const SCHEDULE_ERRORS = {
+  schedule_exists: 'This site already has a scheduled publish. Cancel it first.',
+  stale_baseline: 'Someone published after this preview was made. Create a new preview.',
+  invalid_publish_at: 'Choose a time at least 2 minutes and at most 90 days from now.',
+  publication_warnings: 'Confirm the publication suggestions first.',
+  stale_snapshot: 'This preview is no longer current. Create a new preview.',
+  snapshot_not_found: 'This preview is no longer available. Create a new preview.',
+  schedule_running: 'It is publishing right now and can no longer be cancelled.'
+};
+const scheduleError = error => SCHEDULE_ERRORS[error?.message] || error?.message || 'Could not schedule. Try again.';
+const scheduleZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'your local time';
+const scheduleWhen = iso => new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const localInputValue = date => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+/* Opening Publish renders the schedules injected with the editor, like the publication state;
+   only a schedule or cancel action asks the server again. */
+async function renderScheduleStatus(refresh = false) {
+  const host = $('#scheduleStatus');
+  if (!host || !HOST.releases.schedules || !SRV.schedulingAvailable) return;
+  let rows = SRV.schedules || [];
+  if (refresh) {
+    try { rows = SRV.schedules = await HOST.releases.schedules(); } catch { return; } // supplementary; never blocks publishing
+  }
+  if (!host.isConnected) return;
+  const pending = rows.find(row => row.status === 'pending');
+  const paused = !pending && rows.find(row => row.status === 'paused' && Date.now() - Date.parse(row.settledAt || '') < 7 * 864e5);
+  host.innerHTML = pending
+    ? `<div class="schedule-status"><p class="help">Scheduled to publish a reviewed version on <b>${esc(scheduleWhen(pending.publishAt))}</b> (${esc(scheduleZone())})${pending.lastError ? '. The last attempt failed and will be retried.' : '.'}</p><button class="btn" type="button" id="scheduleCancel">Cancel schedule</button></div>`
+    : paused ? `<p class="alert">A scheduled publish was paused because ${esc(SCHEDULE_PAUSED[paused.pausedReason] || 'it could not be applied safely.')} Create a new preview to schedule again.</p>` : '';
+  $('#scheduleCancel')?.addEventListener('click', async event => {
+    const action = feedback().begin(event.currentTarget, 'Cancelling…');
+    if (!action) return;
+    try { await HOST.releases.cancelSchedule(pending.id); action.success('Schedule cancelled'); renderScheduleStatus(true); }
+    catch (error) { action.error(scheduleError(error)); }
+  });
+}
+
+function openSchedulePanel(reviewed) {
+  const host = $('#publicationChanges');
+  if (!host || $('#schedulePanel')) return $('#schedulePublishAt')?.focus();
+  const soon = new Date(Date.now() + 60 * 60000);
+  soon.setMinutes(Math.ceil(soon.getMinutes() / 5) * 5, 0, 0);
+  const idempotencyKey = 'schedule-' + crypto.randomUUID(); // one per panel, so a repeated click is one schedule
+  host.insertAdjacentHTML('afterbegin', `<div id="schedulePanel" class="schedule-panel">
+    <h3>Schedule this version</h3>
+    <div class="f"><label for="schedulePublishAt">Publish at</label>
+      <input id="schedulePublishAt" class="ctl" type="datetime-local" value="${localInputValue(soon)}" min="${localInputValue(new Date(Date.now() + 3 * 60000))}"></div>
+    <p class="help">${esc(scheduleZone())}. Publishes within a few minutes of this time, and only if nothing newer has been published by then.</p>
+    ${reviewed.warnings.length ? `<label class="schedule-ack"><input type="checkbox" id="scheduleAck"> Publish despite ${reviewed.warnings.length} publication ${reviewed.warnings.length === 1 ? 'suggestion' : 'suggestions'}</label>` : ''}
+    <div class="schedule-actions"><button class="btn" type="button" id="scheduleDismiss">Cancel</button><button class="btn primary" type="button" id="scheduleConfirm">Schedule this version</button></div>
+  </div>`);
+  $('#schedulePublishAt').focus();
+  $('#scheduleDismiss').addEventListener('click', () => $('#schedulePanel')?.remove());
+  $('#scheduleConfirm').addEventListener('click', async event => {
+    const at = new Date($('#schedulePublishAt').value);
+    const ack = $('#scheduleAck');
+    if (Number.isNaN(at.getTime())) return toast(SCHEDULE_ERRORS.invalid_publish_at);
+    if (ack && !ack.checked) return toast(SCHEDULE_ERRORS.publication_warnings);
+    const action = feedback().begin(event.currentTarget, 'Scheduling…');
+    if (!action) return;
+    try {
+      const schedule = await HOST.releases.schedule({ snapshotId: reviewed.snapshotId, publishAt: at.toISOString(), acknowledgeWarnings: !!ack?.checked, idempotencyKey });
+      action.success(`Scheduled for ${scheduleWhen(schedule.publishAt)}`);
+      $('#schedulePanel')?.remove();
+      renderScheduleStatus(true);
+    } catch (error) { action.error(scheduleError(error)); }
+  });
 }
 
 function publishModal() {
@@ -21080,17 +21170,20 @@ function publishModal() {
   openModal('Publish', `
     <div class="review" id="exReview"></div>
     ${HOST.releases.prepare ? '<div id="publicationChanges"><p>Create an immutable preview to review the saved draft against the published site.</p></div>' : ''}
+    ${HOST.releases.schedules && SRV.schedulingAvailable ? '<div id="scheduleStatus" aria-live="polite"></div>' : ''}
     <div id="releasePanel" role="status" aria-live="polite" aria-atomic="true" aria-busy="false"></div>`, `
     <button class="btn" id="releaseWordPress">Publish on WordPress</button>
     <span style="flex:1"></span>
     <button class="btn" id="releaseClose">Close</button>
     ${SRV.role === 'owner' && HOST.releases.prepare ? '<button class="btn" id="releasePrepare">Create review preview</button>' : ''}
+    ${SRV.role === 'owner' && HOST.releases.schedule && SRV.schedulingAvailable ? '<button class="btn" id="releaseSchedule" disabled title="Create a review preview first">Schedule…</button>' : ''}
     ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
   ui().mountReview('exReview', true);
   /* The editor page already carries the current publication identity and version. Rendering
      that injected state avoids a second authenticated database round trip just to open this
      dialog; a successful publish replaces it with the API's fresh response below. */
   renderReleasePanel();
+  renderScheduleStatus();
   $('#releaseClose').addEventListener('click', closeModal);
   $('#releaseWordPress').addEventListener('click', wordpressPublishModal);
   const publish = $('#releasePublish');

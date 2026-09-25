@@ -2280,7 +2280,7 @@ export function createApp(o: Options) {
 
     // These reads have no dependencies on one another. Keep authorization fresh,
     // then overlap storage accounting and the WordPress link catalogue.
-    const [storage, wordpressContent] = await Promise.all([
+    const [storage, wordpressContent, schedules] = await Promise.all([
       (async () => {
         const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
         return o.assets && mediaOwnerId
@@ -2288,6 +2288,10 @@ export function createApp(o: Options) {
           : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
       })(),
       wordpressContentForSite(site.id),
+      // Local files beside the publication bytes; injected so opening Publish needs no request.
+      o.schedules && gate.role === "owner"
+        ? o.schedules.forSite(site.id).then(rows => rows.slice(0, 5)).catch(() => [])
+        : Promise.resolve([]),
     ]);
     const config = {
       siteId: site.id,
@@ -2301,6 +2305,8 @@ export function createApp(o: Options) {
       publishedVersion: site.publishedVersion,
       publishedReleaseId: site.publishedReleaseId,
       publishedPublicationId: site.publishedPublicationId,
+      schedulingAvailable: !!o.schedules,
+      schedules,
       schemaVersion: site.doc.schemaVersion,
       connectedApiBase: "/v1",
       connectedPublishingAvailable: releaseReady(),
