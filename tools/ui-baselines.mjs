@@ -8,6 +8,8 @@ import sharp from 'sharp';
 import {root,directory,names,sources,sourceHashes} from './ui-gallery-contract.mjs';
 export {sourceHashes,names} from './ui-gallery-contract.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
+/* Each capture path names itself. Adding one here is a review-policy decision, not a fix. */
+export const CAPTURE_BROWSERS=['Codex In-app Browser','Headless Chrome'];
 export async function checkBaselines(){
   const manifest=JSON.parse(await readFile(resolve(directory,'manifest.json'),'utf8'));
   const current=await sourceHashes(),changed=sources.filter(file=>current[file]!==manifest.sources[file]);
@@ -41,12 +43,12 @@ async function main(){
   if(command==='record'){
     if(!folder||approval!=='--reviewed')throw new Error('Use record <capture-directory> --reviewed only after inspecting all changed screenshots.');
     const evidence=JSON.parse(await readFile(resolve(folder,'capture.json'),'utf8'));
-    if(evidence.browser!=='Codex In-app Browser'||evidence.deviceScaleFactor!==1||evidence.viewportHeight!==900||evidence.reducedMotion!==true)throw new Error('Capture metadata must identify the built-in browser, 1x scale, 900px viewport height and reduced motion.');
+    if(!CAPTURE_BROWSERS.includes(evidence.browser)||evidence.deviceScaleFactor!==1||evidence.viewportHeight!==900||evidence.reducedMotion!==true)throw new Error(`Capture metadata must identify an accepted browser (${CAPTURE_BROWSERS.join(', ')}), 1x scale, 900px viewport height and reduced motion.`);
     if(!evidence.behaviorChecks?.length||evidence.behaviorChecks.some(check=>check.passed!==true)||names.some(name=>!evidence.captures?.[name]))throw new Error('Incomplete capture/interaction evidence.');
     const current=await sourceHashes();if(sources.some(file=>evidence.sources?.[file]!==current[file]))throw new Error('Source changed after the capture started. Recapture affected states before recording.');
     const images={};for(const name of names){const path=resolve(folder,name),bytes=await readFile(path),meta=await sharp(bytes).metadata();const width=Number(name.match(/-(\d+)\.png$/)[1]);if((await sharp(bytes).stats()).entropy<.1)throw new Error(`Blank capture: ${name}`);if(meta.width!==width||meta.height<900||meta.format!=='png')throw new Error(`Wrong viewport or image format: ${name}`);images[name]={sha256:hash(bytes),width:meta.width,height:meta.height,state:evidence.captures[name].state};}
     await mkdir(directory,{recursive:true});for(const name of names)await copyFile(resolve(folder,name),resolve(directory,name));
-    await writeFile(resolve(directory,'manifest.json'),JSON.stringify({version:1,capturedAt:evidence.capturedAt,browser:evidence.browser,viewportHeight:900,deviceScaleFactor:1,reducedMotion:true,sources:current,behaviorChecks:evidence.behaviorChecks,images},null,2)+'\n');console.log(`Recorded ${names.length} reviewed baselines.`);return;
+    await writeFile(resolve(directory,'manifest.json'),JSON.stringify({version:1,capturedAt:evidence.capturedAt,browser:evidence.browser,...(evidence.browserVersion?{browserVersion:evidence.browserVersion}:{}),viewportHeight:900,deviceScaleFactor:1,reducedMotion:true,sources:current,behaviorChecks:evidence.behaviorChecks,images},null,2)+'\n');console.log(`Recorded ${names.length} reviewed baselines.`);return;
   }
   throw new Error('Usage: node tools/ui-baselines.mjs check | compare <captures> | record <captures> --reviewed');
 }

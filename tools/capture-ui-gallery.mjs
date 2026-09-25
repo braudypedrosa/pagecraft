@@ -1,14 +1,15 @@
-/** Run only inside the Codex built-in-browser JavaScript session, with an
- * already selected gallery tab. No browser process or network client is created. */
+/** Run inside the Codex built-in-browser JavaScript session with an already selected gallery
+ * tab, or through capture-ui-gallery-chrome.mjs, which supplies an equivalent headless Chrome
+ * tab. This helper creates no browser process; `browser` records honestly which one it was. */
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {sourceHashes,names} from './ui-gallery-contract.mjs';
 const sections=['fields','actions','tables','menus','dialogs','feedback'];
 const states={fields:'Focused field, readonly, disabled and validation samples',actions:'Processing action, disabled and destructive actions',tables:'First row hovered, second row neutral, empty result',menus:'Open picker, selected/disabled options and menu items',dialogs:'Open dialog with header, body and footer',feedback:'Recoverable inline failure and alert notification'};
-export async function captureGallery(tab,directory,behaviorChecks){
+export async function captureGallery(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion}={}){
  if(!behaviorChecks?.length||behaviorChecks.some(check=>check.passed!==true))throw new Error('Pass the completed behavior-check results before capturing.');
  await mkdir(directory,{recursive:true});const cdp=await tab.capabilities.get('cdp');
- const evidence={capturedAt:new Date().toISOString(),browser:'Codex In-app Browser',deviceScaleFactor:1,viewportHeight:900,reducedMotion:true,sources:await sourceHashes(),behaviorChecks,captures:{}};
+ const evidence={capturedAt:new Date().toISOString(),browser,...(browserVersion?{browserVersion}:{}),deviceScaleFactor:1,viewportHeight:900,reducedMotion:true,sources:await sourceHashes(),behaviorChecks,captures:{}};
  await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  try{
  for(const width of [1440,768])for(const host of ['cloud','builder'])for(const section of sections){

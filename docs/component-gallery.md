@@ -8,7 +8,7 @@ Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedbac
 
 ## Baseline coverage
 
-`public/internal-ui-baselines/` holds 24 reviewed PNGs: six families × two hosts × two browser viewport widths (1440 and 768, both 900px tall at 1x scale). Long field pages expand the capture viewport to their measured document height, then restore it. These are Codex built-in browser viewport emulations, not physical-device tests.
+`public/internal-ui-baselines/` holds 24 reviewed PNGs: six families × two hosts × two browser viewport widths (1440 and 768, both 900px tall at 1x scale). Long field pages expand the capture viewport to their measured document height, then restore it. These are browser viewport emulations (the Codex built-in browser or headless Chrome), not physical-device tests. The manifest records which browser produced the current set.
 
 | Family | Captured state |
 | --- | --- |
@@ -33,7 +33,15 @@ the screenshot, or loosen the comparison threshold when these expose overflow.
 
 1. Build the editor (`npm run build`) and open the gallery in the built-in browser on the intended revision. Use an isolated local fixture before deployment; repeat acceptance on staging.
 2. Test both hosts against the behavior checklist above. Save an array of `{host, check, passed}` records as `behavior-checks.json` in a fresh capture directory. Failed or missing checks must be resolved before recording.
-3. In the built-in browser JavaScript session, pass the selected tab to the supplied capture helper. It loads fonts, uses reduced motion, drives real component states, checks overflow, captures at both widths and restores viewport emulation. It launches no browser of its own.
+3. Capture with either accepted path. Both drive the same states through `tools/capture-ui-gallery.mjs`, which loads fonts, uses reduced motion, drives real component states, checks overflow, captures at both widths and restores viewport emulation. The evidence names the browser that was used.
+
+   **Headless Chrome (no hand-off).** Runs steps 2 and 3 together. `tools/gallery-behavior-checks.mjs` drives the whole behavior checklist on both hosts with real mouse and keyboard input, writes `behavior-checks.json` plus a `behavior-checks.detail.json` of what each check observed, and refuses to capture if any check fails. It uses the installed Google Chrome with a throwaway profile (set `PAGECRAFT_CHROME` to use another Chromium binary) and downloads nothing:
+
+```sh
+node tools/capture-ui-gallery-chrome.mjs /absolute/path/to/new-captures
+```
+
+   **Codex built-in browser.** Complete the checklist by hand, then pass the selected tab to the helper:
 
 ```js
 var captureModule = await import('/absolute/path/to/pagecraft/tools/capture-ui-gallery.mjs');
@@ -48,7 +56,7 @@ await captureModule.captureGallery(tab, captureDirectory,
 node tools/ui-baselines.mjs compare /absolute/path/to/new-captures
 ```
 
-Blank captures and dimension changes fail. A changed pixel has a channel difference over 20/255; over 0.1% changed pixels fails. The tool writes red difference images and a JSON summary under the candidate directory's `diffs/`. Small rasterization/caret differences can fall within tolerance. Inspect every reported difference rather than increasing tolerances to hide it. Use the same browser/runtime and capture conditions when possible.
+Blank captures and dimension changes fail. A changed pixel has a channel difference over 20/255; over 0.1% changed pixels fails. The tool writes red difference images and a JSON summary under the candidate directory's `diffs/`. Small rasterization/caret differences can fall within tolerance. Headless Chrome and the Codex browser rendered 20 of 24 images pixel-identically on 2026-09-25; the other four differed only in the native textarea resize grip. Inspect every reported difference rather than increasing tolerances to hide it. Use the same browser/runtime and capture conditions when possible.
 
 5. View all changed images, check the intended app screens, and only then record:
 
