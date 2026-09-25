@@ -58,6 +58,14 @@ export function mailConfig(env: Record<string, string | undefined>): MailConfig 
   };
 }
 
+/** Sign-in links and review notices are separate jobs. With Supabase account auth the sign-in
+    link is Supabase's to send, but notices are still this server's, so they get SMTP whenever it
+    is configured. Gating both on the link rule is how notices went unsent in every deployment. */
+export function mailRoles(env: Record<string, string | undefined>, accountAuth: boolean) {
+  const cfg = mailConfig(env);
+  return { links: accountAuth ? null : cfg, notices: cfg };
+}
+
 const minutes = Math.round(LINK_TTL_MS / 60000);
 
 /** Is this a mail server on this machine? Loopback only — a name that merely looks local is

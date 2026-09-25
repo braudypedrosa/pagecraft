@@ -17,6 +17,14 @@ In-app notifications cover assignment, comments, and decisions. Email uses the
 existing notice sender when SMTP is configured; staging workers stay disabled, so
 delivery runs on the request path when present.
 
+**Correction (2026-09-26).** Until this date no deployed build emailed a notice. The
+notice sender was gated on the sign-in-link rule (`mail = accountAuth ? null : …`), and
+deployed builds always use Supabase account auth, so every notice was queued in
+`reviews/state.json` and never sent. Notices now use SMTP whenever `SMTP_HOST`, `SMTP_USER`,
+`SMTP_PASS` and `MAIL_FROM` are set (for Resend: `smtp.resend.com`, port 465 or 587, user
+`resend`, the API key as password, and a verified sender). The earlier queue is deliberately
+not replayed, so recipients never get a burst of stale mail.
+
 ## Backend compatibility
 
 Additive migration `20260915020000_reviewer_role.sql` extends

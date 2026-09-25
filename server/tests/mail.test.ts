@@ -10,7 +10,7 @@
 import { test } from 'vitest';
 import a from 'node:assert/strict';
 import * as Core from '../../app/src/core/index.ts';
-import { mailConfig, linkMessage, smtpSender, throttle, isLoopback } from '../src/mail.ts';
+import { mailConfig, mailRoles, linkMessage, smtpSender, throttle, isLoopback } from '../src/mail.ts';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore } from '../src/auth.ts';
@@ -49,6 +49,24 @@ test('mail is configured or it is not — there is no half', () => {
     a.equal(mailConfig(partial), null, `${missing} missing should mean unconfigured`);
   }
   a.equal(mailConfig({}), null);
+});
+
+/* Deployed builds always use Supabase account auth. Sign-in links are then Supabase's job,
+   but review notices are still this server's; gating both on the link rule left every
+   deployment with notices queued and never sent. */
+test('with account auth, review notices still get SMTP while sign-in links do not', () => {
+  const env = { SMTP_HOST: 'smtp.resend.com', SMTP_PORT: '465', SMTP_USER: 'resend', SMTP_PASS: 'test-only', MAIL_FROM: 'Pagecraft <notices@example.test>' };
+  const withAccounts = mailRoles(env, true);
+  a.equal(withAccounts.links, null);
+  a.equal(withAccounts.notices?.host, 'smtp.resend.com');
+  a.equal(withAccounts.notices?.port, 465);
+
+  const without = mailRoles(env, false);
+  a.equal(without.links?.host, 'smtp.resend.com');
+  a.equal(without.notices?.host, 'smtp.resend.com');
+
+  // Unconfigured stays unconfigured for both; nothing is invented.
+  a.deepEqual(mailRoles({}, true), { links: null, notices: null });
 });
 
 test('a mail server on this machine may speak plaintext; one anywhere else may not', () => {

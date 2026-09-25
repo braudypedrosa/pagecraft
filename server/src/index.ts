@@ -21,7 +21,7 @@ import {
 import { MemoryStore, type Store } from "./store.ts";
 import { type AuthStore, MemoryAuthStore } from "./auth.ts";
 import { type AssetStore, MemoryAssetStore } from "./assets.ts";
-import { mailConfig, smtpNoticeSender, smtpSender } from "./mail.ts";
+import { mailRoles, smtpNoticeSender, smtpSender } from "./mail.ts";
 import { type ConnectedStore, MemoryConnectedStore } from "./release-store.ts";
 import {
   keyFromRawPublic,
@@ -475,7 +475,7 @@ if (CLIENT) {
 /* Real mail when it is configured, the console when it is not. Said out loud either way,
    because "the link was sent" and "the link was printed in a log you are not reading" look
    identical from the sign-in form. */
-const mail = accountAuth ? null : mailConfig(process.env);
+const { links: mail, notices: noticeMail } = mailRoles(process.env, !!accountAuth);
 if (mail) {
   const who = mail.user ? ` as ${mail.user}` : " with no credentials";
   console.log(`mail     ${mail.host}:${mail.port}${who}, from ${mail.from}`);
@@ -493,6 +493,15 @@ if (mail) {
       "Set SMTP_HOST, SMTP_USER, SMTP_PASS and MAIL_FROM to send them.",
     );
   }
+}
+/* Only new notices are emailed. Earlier ones were queued while no sender existed; sending
+   them now would deliver a burst of stale mail, so the queue is left as a record. */
+if (noticeMail) {
+  console.log(`notices  ${noticeMail.host}:${noticeMail.port}, from ${noticeMail.from}`);
+} else {
+  console.warn(
+    "Review notices are in-app only: set SMTP_HOST, SMTP_USER, SMTP_PASS and MAIL_FROM to email them.",
+  );
 }
 
 const app = createApp({
@@ -512,7 +521,7 @@ const app = createApp({
       ? `https://${EDITOR_HOST}`
       : undefined),
   sendLink: mail ? smtpSender(mail) : undefined,
-  sendNotice: mail ? smtpNoticeSender(mail) : undefined,
+  sendNotice: noticeMail ? smtpNoticeSender(noticeMail) : undefined,
   secureCookies: process.env.NODE_ENV === "production",
   connected,
   packages,
