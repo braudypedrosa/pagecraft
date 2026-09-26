@@ -5,6 +5,7 @@ import { test } from "vitest";
 import a from "node:assert/strict";
 import {
   GatewayAssetStore,
+  AUTH_USER_CACHE_MS,
   GatewayAuthStore,
   GatewayConnectedStore,
   GatewayHostedPublishPreparer,
@@ -1064,4 +1065,39 @@ test('retirement invalidates browser metadata without removing historical bytes'
   a.equal((await assets.list('s1'))[0].retired,true);
   a.equal(calls.filter(call=>call.op==='asset.list').length,2);
   a.equal(calls.some(call=>call.op==='asset.remove'),false);
+});
+
+test("the signed-in identity upsert is reused briefly, but never across a changed identity or a rename", async () => {
+  let clock = 1_000_000;
+  const user = (name: string, email = "owner@example.test") => ({
+    id: "u1", email, name, auth_user_id: "auth-1", plan: "free", created_at: "2026-08-27T00:00:00.000Z",
+  });
+  let stored = user("Owner");
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op === "auth.ensureAuthUser") {
+      stored = { ...stored, email: String(call.args.email) };
+      return stored;
+    }
+    if (call.op === "auth.updateProfile") return (stored = { ...stored, name: String(call.args.name) });
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const auth = new GatewayAuthStore(gateway, () => clock);
+  const ensures = () => calls.filter((c) => c.op === "auth.ensureAuthUser").length;
+
+  const first = await auth.ensureAuthUser("auth-1", "owner@example.test", "Owner");
+  first.name = "mutated by a caller";
+  const again = await auth.ensureAuthUser("auth-1", "owner@example.test", "Owner");
+  a.equal(ensures(), 1, "an unchanged verified identity reuses the upsert result");
+  a.equal(again.name, "Owner", "callers get copies, not the cached object");
+
+  await auth.ensureAuthUser("auth-1", "new@example.test", "Owner");
+  a.equal(ensures(), 2, "a changed email always reaches the database");
+
+  await auth.updateProfile("u1", { name: "Renamed" });
+  a.equal((await auth.ensureAuthUser("auth-1", "new@example.test", "Owner")).name, "Renamed");
+  a.equal(ensures(), 3, "a profile change forgets the cached user");
+
+  clock += AUTH_USER_CACHE_MS + 1;
+  await auth.ensureAuthUser("auth-1", "new@example.test", "Owner");
+  a.equal(ensures(), 4, "the cache expires");
 });
