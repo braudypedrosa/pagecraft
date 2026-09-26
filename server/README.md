@@ -253,9 +253,13 @@ only showed up in a browser.
 `DATABASE_GATEWAY_REGION` optionally pins the Supabase gateway function to the database's
 region. Leave unset for automatic routing. Measure from the application host before enabling:
 database-heavy gateway operations can otherwise cross regions for every SQL call. Staging
-uses `ap-southeast-1`; production configuration is unchanged. An explicit region disables
-Supabase's automatic regional failover, so remove the setting during a regional incident.
-This setting does not cache authorization or private data and does not retry writes.
+uses `ap-southeast-1`, and so does production since 2026-09-26: from the application host a read
+measured 2,467 ms median with automatic routing (served from `us-west-1`) and 1,034 ms pinned.
+An explicit region disables Supabase's automatic regional failover, so remove the setting
+during a regional incident. This setting does not cache authorization or private data and does
+not retry writes. Separately, each process reuses a signed-in identity's user-row upsert for 30
+seconds (`AUTH_USER_CACHE_MS`) while that verified identity is unchanged; memberships are never
+cached.
 
 ```bash
 npm test          # from the repository root — the whole suite, server included
