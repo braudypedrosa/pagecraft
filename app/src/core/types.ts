@@ -688,6 +688,25 @@ export interface Meta {
       the archive only — one self-contained file has nowhere to put a woff2. */
   selfHostFonts?: 0 | 1;
   tokens: Tokens | null;
+  /** Where imported library items came from (Phase 5). Optional and additive on purpose: no
+      schema bump, so a build that predates libraries still opens the document and carries the
+      links through untouched. See docs/phase5-libraries-design.md. */
+  libraryLinks?: LibraryLink[];
+}
+
+export type LibraryItemKind = 'component' | 'block' | 'color' | 'textStyle' | 'class';
+
+/** One imported item's provenance. Hashes are of the normalised item (node ids stripped):
+    `sourceHash` in the library's id space at `version`, `localHash` in this site's id space
+    right after the last import or update — a later difference means this site changed it. */
+export interface LibraryLink {
+  libraryId: string;
+  version: number;
+  kind: LibraryItemKind;
+  sourceId: string;
+  localId: string;
+  sourceHash: string;
+  localHash: string;
 }
 
 /** Editor state. Never persisted — `doc()` deliberately omits it. */
