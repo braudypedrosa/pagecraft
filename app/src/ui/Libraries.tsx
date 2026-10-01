@@ -22,16 +22,34 @@ import { Icon } from './Icon';
 
 /* ---- shared with the Components and Blocks tabs ------------------------ */
 
-/* Library names by id, so a component row can say where it came from without a request. */
-const names = new Map<string, string>();
-const remember = (library: WebLibrary) => { names.set(library.id, library.name); };
+/* The last summary seen for each library: a component row can name where it came from without
+   a request, and a view can start fetching the latest version alongside the library itself. */
+const known = new Map<string, WebLibrary>();
+const remember = (library: WebLibrary) => { known.set(library.id, library); };
+
+/* A published version never changes, so each is fetched once. Per adapter, so a different
+   account or host never reads another's copy. */
+type VersionRow = Awaited<ReturnType<WebLibraryAdapter['version']>>;
+const versionCache = new WeakMap<WebLibraryAdapter, Map<string, Promise<VersionRow>>>();
+function versionOf(libs: WebLibraryAdapter, id: string, version: number) {
+  const cache = versionCache.get(libs) || new Map<string, Promise<VersionRow>>();
+  versionCache.set(libs, cache);
+  const k = `${id}:${version}`;
+  let hit = cache.get(k);
+  if (!hit) {
+    hit = libs.version(id, version);
+    cache.set(k, hit);
+    hit.catch(() => cache.delete(k));
+  }
+  return hit;
+}
 
 /** This site's link for an item, if it came from a library. */
 export const linkOf = (kind: LibraryItemKind, localId: string): LibraryLink | null =>
   (C.state.meta.libraryLinks || []).find(l => l.kind === kind && l.localId === localId) || null;
 
 /** "From Brand kit · v3", for a row in the Components or Blocks tab. */
-export const fromLabel = (link: LibraryLink) => `From ${names.get(link.libraryId) || 'a library'} · v${link.version}`;
+export const fromLabel = (link: LibraryLink) => `From ${known.get(link.libraryId)?.name || 'a library'} · v${link.version}`;
 
 /* "Add to library…" on a component or block row: the item to tick once a library is chosen. */
 let pending: LibraryItemRef | null = null;
@@ -208,20 +226,25 @@ function Head({ library, back, sub }: { library?: WebLibrary; back: () => void; 
   );
 }
 
-/* Both views below need the library and, when it has one, its latest version. */
+/* Every view of one library needs it and, when it has one, its latest version. The version the
+   last listing named is requested at the same time, so opening a library is one round trip
+   rather than two; it is only re-requested if a newer one was published meanwhile. */
 function useLibrary(libs: WebLibraryAdapter, id: string) {
   return useLoad(async () => {
+    const guess = known.get(id)?.latestVersion || 0;
+    const early = guess ? versionOf(libs, id, guess) : null;
     const { library, versions } = await libs.get(id);
     remember(library);
-    const latest = library.latestVersion ? await libs.version(id, library.latestVersion) : null;
+    const n = library.latestVersion;
+    const latest = !n ? null : n === guess && early ? await early : await versionOf(libs, id, n);
     return { library, versions, bundle: latest ? latest.bundle : null, summary: latest ? latest.version : null };
   }, [id]);
 }
 
-function Loading({ state, back }: { state: { error?: string }; back: () => void }) {
+function Loading({ state, back, id }: { state: { error?: string }; back: () => void; id?: string }) {
   return (
     <>
-      <Head back={back} />
+      <Head back={back} library={id ? known.get(id) : undefined} />
       {state.error
         ? <div class="hint lib-problem" role="alert">{state.error}</div>
         : <div class="hint" aria-busy="true">Loading…</div>}
@@ -234,7 +257,7 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const back = () => open({ at: 'list' });
-  if (!state.data) return <Loading state={state} back={back} />;
+  if (!state.data) return <Loading state={state} back={back} id={id} />;
   const { library, bundle, summary } = state.data;
   const site = L.siteDraft();
   const fromHere = !!(summary && site && summary.sourceSiteId === site.siteId);
@@ -360,7 +383,7 @@ function PublishPick({ libs, id, open }: Props & { id: string }) {
     setPicked(start);
   }, [state.data]);
 
-  if (!state.data || !picked) return <Loading state={state} back={back} />;
+  if (!state.data || !picked) return <Loading state={state} back={back} id={id} />;
   const { library } = state.data;
   const next = library.latestVersion + 1;
   const chosen = [...picked].map(parseKey).filter(ref => siteItem(ref.kind, ref.id));
@@ -400,6 +423,7 @@ function PublishPick({ libs, id, open }: Props & { id: string }) {
         version = await send();
       }
       pending = null;
+      remember({ ...library, latestVersion: version.version });
       L.toast(`Published version ${version.version} of ${library.name}`);
       open({ at: 'library', id });
     } catch (error) {
@@ -470,7 +494,7 @@ function UpdateReview({ libs, id, open }: Props & { id: string }) {
   const [resolutions, setResolutions] = useState<Record<string, Resolution>>({});
   const [busy, setBusy] = useState(false);
   const back = () => open({ at: 'library', id });
-  if (!state.data) return <Loading state={state} back={back} />;
+  if (!state.data) return <Loading state={state} back={back} id={id} />;
   const { library, bundle, summary } = state.data;
   if (!bundle || !summary) return <Loading state={{ error: 'This library has no version to update to.' }} back={back} />;
   const source = { libraryId: id, version: summary.version };

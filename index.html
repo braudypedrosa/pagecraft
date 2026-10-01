@@ -13471,11 +13471,11 @@ var PC_UI = (() => {
     return found;
   }
   function slotNames(def) {
-    const names2 = /* @__PURE__ */ new Set();
+    const names = /* @__PURE__ */ new Set();
     eachNode(def.node, (n2) => {
-      if (n2.slot) names2.add(n2.slot);
+      if (n2.slot) names.add(n2.slot);
     });
-    return names2;
+    return names;
   }
   function componentWarnings(doc, localId, before, after) {
     const warnings = [];
@@ -13573,12 +13573,25 @@ var PC_UI = (() => {
   }
 
   // app/src/ui/Libraries.tsx
-  var names = /* @__PURE__ */ new Map();
+  var known = /* @__PURE__ */ new Map();
   var remember = (library) => {
-    names.set(library.id, library.name);
+    known.set(library.id, library);
   };
+  var versionCache = /* @__PURE__ */ new WeakMap();
+  function versionOf(libs, id, version) {
+    const cache = versionCache.get(libs) || /* @__PURE__ */ new Map();
+    versionCache.set(libs, cache);
+    const k3 = `${id}:${version}`;
+    let hit = cache.get(k3);
+    if (!hit) {
+      hit = libs.version(id, version);
+      cache.set(k3, hit);
+      hit.catch(() => cache.delete(k3));
+    }
+    return hit;
+  }
   var linkOf = (kind, localId) => (C2.state.meta.libraryLinks || []).find((l3) => l3.kind === kind && l3.localId === localId) || null;
-  var fromLabel = (link) => `From ${names.get(link.libraryId) || "a library"} \xB7 v${link.version}`;
+  var fromLabel = (link) => `From ${known.get(link.libraryId)?.name || "a library"} \xB7 v${link.version}`;
   var pending = null;
   function addToLibrary(ref) {
     pending = ref;
@@ -13749,15 +13762,18 @@ var PC_UI = (() => {
   }
   function useLibrary(libs, id) {
     return useLoad(async () => {
+      const guess = known.get(id)?.latestVersion || 0;
+      const early = guess ? versionOf(libs, id, guess) : null;
       const { library, versions } = await libs.get(id);
       remember(library);
-      const latest = library.latestVersion ? await libs.version(id, library.latestVersion) : null;
+      const n2 = library.latestVersion;
+      const latest = !n2 ? null : n2 === guess && early ? await early : await versionOf(libs, id, n2);
       return { library, versions, bundle: latest ? latest.bundle : null, summary: latest ? latest.version : null };
     }, [id]);
   }
-  function Loading({ state: state2, back }) {
+  function Loading({ state: state2, back, id }) {
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2(Head, { back }),
+      /* @__PURE__ */ u2(Head, { back, library: id ? known.get(id) : void 0 }),
       state2.error ? /* @__PURE__ */ u2("div", { class: "hint lib-problem", role: "alert", children: state2.error }) : /* @__PURE__ */ u2("div", { class: "hint", "aria-busy": "true", children: "Loading\u2026" })
     ] });
   }
@@ -13766,7 +13782,7 @@ var PC_UI = (() => {
     const [picked, setPicked] = d2(/* @__PURE__ */ new Set());
     const [busy, setBusy] = d2(false);
     const back = () => open({ at: "list" });
-    if (!state2.data) return /* @__PURE__ */ u2(Loading, { state: state2, back });
+    if (!state2.data) return /* @__PURE__ */ u2(Loading, { state: state2, back, id });
     const { library, bundle, summary } = state2.data;
     const site = L2.siteDraft();
     const fromHere = !!(summary && site && summary.sourceSiteId === site.siteId);
@@ -13906,7 +13922,7 @@ var PC_UI = (() => {
       if (pending && siteItem(pending.kind, pending.id)) start.add(refKey(pending));
       setPicked(start);
     }, [state2.data]);
-    if (!state2.data || !picked) return /* @__PURE__ */ u2(Loading, { state: state2, back });
+    if (!state2.data || !picked) return /* @__PURE__ */ u2(Loading, { state: state2, back, id });
     const { library } = state2.data;
     const next = library.latestVersion + 1;
     const chosen = [...picked].map(parseKey).filter((ref) => siteItem(ref.kind, ref.id));
@@ -13941,6 +13957,7 @@ var PC_UI = (() => {
           version = await send();
         }
         pending = null;
+        remember({ ...library, latestVersion: version.version });
         L2.toast(`Published version ${version.version} of ${library.name}`);
         open({ at: "library", id });
       } catch (error) {
@@ -14012,7 +14029,7 @@ var PC_UI = (() => {
     const [resolutions, setResolutions] = d2({});
     const [busy, setBusy] = d2(false);
     const back = () => open({ at: "library", id });
-    if (!state2.data) return /* @__PURE__ */ u2(Loading, { state: state2, back });
+    if (!state2.data) return /* @__PURE__ */ u2(Loading, { state: state2, back, id });
     const { library, bundle, summary } = state2.data;
     if (!bundle || !summary) return /* @__PURE__ */ u2(Loading, { state: { error: "This library has no version to update to." }, back });
     const source = { libraryId: id, version: summary.version };
@@ -17084,9 +17101,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const cur = String(valueOf(n2, c3) ?? "");
     const groups = c3.og ? c3.og() : null;
     const pool = groups ? groups.reduce((all, [, list2]) => all.concat(list2), []) : c3.opts || [];
-    const known = pool.some(([v3]) => String(v3) === cur);
+    const known2 = pool.some(([v3]) => String(v3) === cur);
     const ck = n2.id + "|" + (c3.c || c3.k);
-    const custom = !!C2.state.ui.custom[ck] || !known && cur !== "";
+    const custom = !!C2.state.ui.custom[ck] || !known2 && cur !== "";
     const opt = ([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3);
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       /* @__PURE__ */ u2(
@@ -18364,7 +18381,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function FontSelect({ value, onChange, ariaLabel = "Font" }) {
     const cur = String(value || "");
     const groups = C2.fontGroups();
-    const known = groups.some(([, list2]) => list2.some(([v3]) => v3 === cur));
+    const known2 = groups.some(([, list2]) => list2.some(([v3]) => v3 === cur));
     return /* @__PURE__ */ u2(
       "select",
       {
@@ -18374,7 +18391,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         onChange: (e3) => onChange(e3.target.value),
         children: [
           groups.map(([g3, list2]) => /* @__PURE__ */ u2("optgroup", { label: g3, children: list2.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3)) }, g3)),
-          known ? null : /* @__PURE__ */ u2("option", { value: cur, children: [
+          known2 ? null : /* @__PURE__ */ u2("option", { value: cur, children: [
             "Custom \u2014 ",
             C2.familyOf(cur)
           ] })
@@ -21122,14 +21139,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       this.supportedVersion = supportedVersion;
     }
   };
-  var versionOf = (input) => {
+  var versionOf2 = (input) => {
     if (!input || typeof input !== "object") return null;
     const row = input;
     const value = row.schemaVersion ?? row.v;
     return Number.isInteger(value) ? value : null;
   };
   function adoptHostDocument(input) {
-    const supplied = versionOf(input);
+    const supplied = versionOf2(input);
     if (supplied !== null && supplied > SCHEMA) {
       throw new DocumentSchemaError(
         `This project uses Pagecraft schema ${supplied}, but this host supports schema ${SCHEMA}. Upgrade Pagecraft on this host before opening or saving the project.`,

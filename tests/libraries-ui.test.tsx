@@ -40,7 +40,7 @@ function authorDoc(components: ComponentDef[]): Doc {
 function fakeLibraries() {
   const libraries: WebLibrary[] = [];
   const versions = new Map<string, { version: WebLibraryVersionSummary; bundle: LibraryBundle }[]>();
-  const sent = { publish: [] as { id: string; sourceVersion: number; items: LibraryItemRef[] }[], copied: [] as string[][] };
+  const sent = { publish: [] as { id: string; sourceVersion: number; items: LibraryItemRef[] }[], copied: [] as string[][], versionReads: 0 };
   let failNextPublish: Error | null = null;
   const add = (id: string, bundle: LibraryBundle, sourceSiteId: string) => {
     const rows = versions.get(id) || [];
@@ -59,7 +59,7 @@ function fakeLibraries() {
     async get(id) {
       return { library: clone(libraries.find(l => l.id === id)!), versions: (versions.get(id) || []).map(v => v.version).reverse() };
     },
-    async version(id, version) { return clone(versions.get(id)!.find(v => v.version.version === version)!); },
+    async version(id, version) { sent.versionReads++; return clone(versions.get(id)!.find(v => v.version.version === version)!); },
     async publish(id, input) {
       sent.publish.push({ id, ...clone(input) });
       if (failNextPublish) { const error = failNextPublish; failNextPublish = null; throw error; }
@@ -277,4 +277,17 @@ test('components imported from a library say where they came from', async () => 
   await click(button('Import 1 item'));
   await draw('components');
   expect(r.$('.brow .lib-from')?.textContent).toBe('From Brand kit · v1');
+});
+
+test('a published version is read once, however often its views open', async () => {
+  C.state.meta.components = [card('Hello')];
+  C.state.meta.tokens!.colors.push({ id: 'accent', name: 'Accent', value: '#c05621' });
+  const lib = await fake.adapter.create('Brand kit');
+  fake.publishFrom(lib.id, authorDoc([card('From the library')]), [{ kind: 'component', id: 'card' }]);
+  await openLibrary('Brand kit');
+  expect(fake.sent.versionReads).toBe(1);
+  await click(button('Publish a new version…'));
+  await click(r.$('.lib-back'));
+  expect(r.$('.lib-head small')?.textContent).toBe('Version 1 · 1 item');
+  expect(fake.sent.versionReads).toBe(1);
 });
