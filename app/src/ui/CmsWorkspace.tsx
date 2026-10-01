@@ -29,6 +29,7 @@ function cmsSaveFailure(error: unknown) {
 }
 
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+const EMPTY_COLLECTION: Collection = { id: '', name: '', slug: '', fields: [], items: [], detail: '' } as unknown as Collection;
 /** askConfirm takes HTML, so an interpolated name is escaped by hand. */
 const esc = (s: string) =>
   String(s ?? '').replace(/[&<>"']/g, (ch) =>
@@ -53,7 +54,10 @@ export function CmsWorkspace({
 }) {
   const [id, setId] = useState(collectionId);
   const [revision, refresh] = useState(0);
-  const col = C.findCollection(id)!;
+  /* An Undo or Redo can remove the open collection (undoing "New collection"). Fall back to
+     another one rather than crash; with none left, an empty stand-in renders until close. */
+  const found = C.findCollection(id);
+  const col: Collection = found || C.collections()[0] || EMPTY_COLLECTION;
   const [entry, setEntry] = useState<Item | null>(null);
   const [schema, setSchema] = useState<Collection | null>(null);
   const [baseline, setBaseline] = useState('');
@@ -90,6 +94,16 @@ export function CmsWorkspace({
   useLayoutEffect(() => {
     const navigate = (event: MouseEvent) => {
       const target = event.target as Element;
+      /* Undo and Redo work on the document from here too: the workspace stays open and the
+         painter repaints it. A form holds a copy, so it is discarded (with consent) first. */
+      if (target.closest('#undoBtn, #redoBtn')) {
+        if (busy || pending.current || !discard()) {
+          event.preventDefault(); event.stopImmediatePropagation(); return;
+        }
+        reset();
+        setNotice('');
+        return;
+      }
       if (!target.closest('#leftRail button, .topbar button, .topbar a')) return;
       if (target.closest('#leftRail button[data-t="cms"]') || busy || !discard()) {
         event.preventDefault(); event.stopImmediatePropagation(); return;
@@ -99,6 +113,11 @@ export function CmsWorkspace({
     document.addEventListener('click', navigate, true);
     return () => document.removeEventListener('click', navigate, true);
   }, [dirty, busy, close]);
+  // The collection this workspace showed is gone (an Undo or Redo removed it): move on.
+  useEffect(() => {
+    if (found) return;
+    if (col.id) { setId(col.id); reset(); } else close();
+  }, [found, col.id]);
   useEffect(() => {
     const before = (e: BeforeUnloadEvent) => {
       if (dirty || busy) {
@@ -124,6 +143,16 @@ export function CmsWorkspace({
     setImporting(null);
     setErrors({});
     setBaseline('');
+  };
+  /* One step back or forward through the document's history. Forms hold copies of entries and
+     schemas, so an open one is discarded first (asking when it has unsaved changes) and the
+     list is shown afresh. */
+  const historyStep = (which: 'undo' | 'redo') => {
+    if (busy || pending.current || !discard()) return;
+    reset();
+    setNotice('');
+    if (which === 'undo') C.undo(); else C.redo();
+    refresh((n) => n + 1);
   };
   const openEntry = (item?: Item) => {
     if (pending.current || !discard()) return;
@@ -389,6 +418,15 @@ export function CmsWorkspace({
       ref={root}
       onKeyDown={(e) => {
         e.stopPropagation();
+        const command = e.metaKey || e.ctrlKey, key = e.key.toLowerCase();
+        /* Canvas shortcuts stop here, but Undo and Redo belong to the whole document. Text
+           fields keep their own undo for what is being typed. */
+        if (command && (key === 'z' || key === 'y') &&
+          !(e.target as HTMLElement).closest('input, textarea, select, [contenteditable="true"]')) {
+          e.preventDefault();
+          historyStep(key === 'y' || e.shiftKey ? 'redo' : 'undo');
+          return;
+        }
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
           e.preventDefault();
           if (!busy) {

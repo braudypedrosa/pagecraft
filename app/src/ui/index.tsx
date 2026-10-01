@@ -55,9 +55,18 @@ export function mount(core: Core, legacy: Legacy) {
 
   /* renderCms used to bail out when its panel was hidden; keeping that, since a
      hidden panel has nothing to show. The other two are painted at boot. */
+  /* The open CMS workspace, as the vnode it was opened with. Like the Pages workspace below, a
+     document change (Undo, Redo, an import) repaints it; it reads its collection afresh and
+     keeps its own state, because the same keyed component is rendered again. */
+  let cmsWorkspace: (() => any) | null = null;
+  const renderCmsPanel = panel('paneCms', () => <Cms />, true);
   const painters = {
     renderLayers: panel('paneLayers', () => <Layers />),
-    renderCms: panel('paneCms', () => <Cms />, true),
+    renderCms: () => {
+      renderCmsPanel();
+      const host = document.getElementById('cms-workspace-host');
+      if (cmsWorkspace && host && document.body.classList.contains('cms-open')) render(cmsWorkspace(), host);
+    },
     renderAdd: panel('paneAdd', () => <Add />),
     renderPages: () => {
       panel('panePages', () => <Pages />)();
@@ -139,8 +148,9 @@ export function mount(core: Core, legacy: Legacy) {
     const railButtons = [...document.querySelectorAll('#leftRail button[data-t]')];
     const active = railButtons.find(b => b.classList.contains('on'));
     railButtons.forEach(b => b.classList.toggle('on', b.getAttribute('data-t') === 'cms'));
-    render(<CmsWorkspace key={collectionId} collectionId={collectionId} close={() => {
+    const closeWorkspace = () => {
       const finish = () => {
+        cmsWorkspace = null;
         render(null, host!); document.body.classList.remove('cms-open');
         legacy.restoreCanvasLayout();
         railButtons.forEach(b => b.classList.toggle('on', b === active));
@@ -149,7 +159,9 @@ export function mount(core: Core, legacy: Legacy) {
       const surface = host!.firstElementChild as HTMLElement | null, motion = installUiMotion();
       if (surface && motion && !motion.reduced()) motion.exit(surface, { kind: 'panel', hide: false }).then(finish);
       else finish();
-    }} />, host);
+    };
+    cmsWorkspace = () => <CmsWorkspace key={collectionId} collectionId={collectionId} close={closeWorkspace} />;
+    render(cmsWorkspace(), host);
     const surface = host.firstElementChild as HTMLElement | null;
     if (surface) installUiMotion()?.enter(surface, { kind: 'panel' });
   };
