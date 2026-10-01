@@ -2321,8 +2321,9 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           const bytes = await assembleStoredGatewayBlob(blob, storedChunks);
           const usedRow = one(
             await transaction<Record<string, unknown>[]>`
-          select coalesce(sum(stored_bytes), 0)::text as used
-          from assets where owner_id = ${ownerId}
+          select (coalesce((select sum(stored_bytes) from assets where owner_id = ${ownerId}), 0)
+            + coalesce((select sum(la.stored_bytes) from library_assets la
+              join libraries l on l.id = la.library_id where l.owner_id = ${ownerId}), 0))::text as used
         `,
           );
           const usedBytes = Number(usedRow?.used || 0);
@@ -2431,11 +2432,228 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     case "asset.usage": {
       const row = one(
         await sql`
-        select coalesce(sum(stored_bytes), 0)::text as used
-        from assets where owner_id = ${text(args.ownerId)}
+        select (coalesce((select sum(stored_bytes) from assets where owner_id = ${
+          text(args.ownerId)
+        }), 0)
+            + coalesce((select sum(la.stored_bytes) from library_assets la
+              join libraries l on l.id = la.library_id where l.owner_id = ${
+          text(args.ownerId)
+        }), 0))::text as used
       `,
       );
       return Number(row?.used || 0);
+    }
+
+    /* ---- Libraries (Phase 5). Account-owned; versions are insert-only. */
+    case "library.create":
+      return one(
+        await sql`
+        insert into libraries (id, owner_id, name)
+        values (${text(args.id)}::uuid, ${text(args.ownerId)}, ${
+          text(args.name)
+        })
+        returning *, 0 as latest_version
+      `,
+      );
+    case "library.listForOwner":
+      return await sql`
+        select l.*, coalesce((select max(version) from library_versions v
+          where v.library_id = l.id), 0) as latest_version
+        from libraries l where l.owner_id = ${text(args.ownerId)}
+        order by l.updated_at desc
+      `;
+    case "library.get":
+      return one(
+        await sql`
+        select l.*, coalesce((select max(version) from library_versions v
+          where v.library_id = l.id), 0) as latest_version
+        from libraries l where l.id = ${text(args.id)}::uuid
+      `,
+      );
+    case "library.versions":
+      return await sql`
+        select version, content_hash, item_count, source_site_id, created_by, created_at
+        from library_versions where library_id = ${text(args.id)}::uuid
+        order by version desc
+      `;
+    case "library.version":
+      return one(
+        await sql`
+        select * from library_versions
+        where library_id = ${text(args.id)}::uuid and version = ${
+          integer(args.version)
+        }
+      `,
+      );
+    case "library.publish":
+      // The library row is the fence, so two publishes can never take the same number.
+      return await sql.begin(async (transaction) => {
+        const library = one(
+          await transaction`
+          select id from libraries where id = ${
+            text(args.libraryId)
+          }::uuid for update
+        `,
+        );
+        if (!library) return null;
+        const content = jsonValue(args.content);
+        const row = one(
+          await transaction`
+          insert into library_versions (library_id, version, content, content_hash,
+            item_count, source_site_id, created_by)
+          select ${text(args.libraryId)}::uuid, coalesce(max(version), 0) + 1,
+            ${transaction.json(content as never)}, ${text(args.contentHash)},
+            ${integer(args.itemCount)}, ${text(args.sourceSiteId)}, ${
+            text(args.createdBy)
+          }
+          from library_versions where library_id = ${text(args.libraryId)}::uuid
+          returning version, content_hash, item_count, source_site_id, created_by, created_at
+        `,
+        );
+        await transaction`
+          update libraries set updated_at = now() where id = ${
+          text(args.libraryId)
+        }::uuid
+        `;
+        return row;
+      });
+    case "library.asset.has": {
+      const ids = Array.isArray(args.ids)
+        ? [...new Set(args.ids.map(text))].filter((id) =>
+          /^[a-f0-9]{64}$/.test(id)
+        ).slice(0, 500)
+        : [];
+      if (!ids.length) return [];
+      const rows = await sql<{ id: string }[]>`
+        select id from library_assets
+        where library_id = ${text(args.libraryId)}::uuid and id = any(${ids})
+      `;
+      return rows.map((row) => row.id);
+    }
+    case "library.asset.get": {
+      const row = one(
+        await sql`
+        select * from library_assets
+        where library_id = ${text(args.libraryId)}::uuid and id = ${
+          text(args.id)
+        }
+      `,
+      );
+      return row ? await assetWire(row) : null;
+    }
+    case "library.asset.putBlob": {
+      const blob = validateAssetBlobDescriptor(args.blob);
+      const libraryId = text(args.libraryId);
+      const ownerId = text(args.ownerId);
+      const id = text(args.id);
+      const type = text(args.type);
+      const limitBytes = Number(args.limitBytes || FREE_STORAGE_BYTES);
+      if (
+        !libraryId || !ownerId || !/^[a-f0-9]{64}$/.test(id) ||
+        !text(args.name) ||
+        !type || !Number.isSafeInteger(limitBytes) || limitBytes < 1 ||
+        blob.bytes > GATEWAY_ASSET_BLOB_MAX_BYTES
+      ) {
+        throw Object.assign(new Error("invalid library asset"), {
+          status: 400,
+          code: "INVALID_LIBRARY_ASSET",
+        });
+      }
+      const path = `libraries/${libraryId}/${id}.${
+        type === "image/svg+xml" ? "svg" : "webp"
+      }`;
+      let uploaded = false;
+      try {
+        return await sql.begin(async (transaction) => {
+          const library = one(
+            await transaction`
+            select owner_id from libraries where id = ${libraryId}::uuid for update
+          `,
+          );
+          if (!library || text(library.owner_id) !== ownerId) {
+            throw Object.assign(new Error("library not found"), {
+              status: 404,
+              code: "LIBRARY_NOT_FOUND",
+            });
+          }
+          const existing = one(
+            await transaction`
+            select id from library_assets where library_id = ${libraryId}::uuid and id = ${id}
+          `,
+          );
+          if (existing) return { id };
+          const storedRows = await transaction<Record<string, unknown>[]>`
+            select chunk_index, bytes, chunk_hash, content from gateway_blob_chunks
+            where blob_hash = ${blob.hash} order by chunk_index
+          `;
+          const bytes = await assembleStoredGatewayBlob(
+            blob,
+            storedRows.map((stored) => {
+              if (!(stored.content instanceof Uint8Array)) {
+                throw new Error(
+                  "database returned a gateway blob chunk in an unknown binary format",
+                );
+              }
+              return {
+                index: Number(stored.chunk_index),
+                bytes: Number(stored.bytes),
+                hash: String(stored.chunk_hash),
+                content: stored.content,
+              };
+            }),
+          );
+          if ((await hexSha256(bytes)) !== id) {
+            throw Object.assign(
+              new Error("library asset id must be the image's sha256"),
+              { status: 400, code: "INVALID_LIBRARY_ASSET" },
+            );
+          }
+          const usedRow = one(
+            await transaction<Record<string, unknown>[]>`
+            select (coalesce((select sum(stored_bytes) from assets where owner_id = ${ownerId}), 0)
+            + coalesce((select sum(la.stored_bytes) from library_assets la
+              join libraries l on l.id = la.library_id where l.owner_id = ${ownerId}), 0))::text as used
+          `,
+          );
+          const usedBytes = Number(usedRow?.used || 0);
+          if (usedBytes + bytes.byteLength > limitBytes) {
+            throw Object.assign(
+              new Error("free account media storage limit reached"),
+              { status: 409, code: "STORAGE_LIMIT", usedBytes, limitBytes },
+            );
+          }
+          const stored = await storage.from(ASSET_BUCKET).upload(path, bytes, {
+            contentType: type,
+            cacheControl: "31536000",
+            upsert: false,
+          });
+          if (
+            stored.error &&
+            stored.error.message !== "The resource already exists"
+          ) {
+            throw new Error(
+              `library asset could not be written: ${stored.error.message}`,
+            );
+          }
+          uploaded = !stored.error;
+          await transaction`
+            insert into library_assets (library_id, id, name, type, w, h, storage_path, stored_bytes)
+            values (${libraryId}::uuid, ${id}, ${text(args.name)}, ${type}, ${
+            integer(args.w)
+          }, ${integer(args.h)},
+              ${path}, ${bytes.byteLength})
+            on conflict (library_id, id) do nothing
+          `;
+          return { id };
+        });
+      } catch (error) {
+        if (uploaded) {
+          await storage.from(ASSET_BUCKET).remove([path]).catch(() =>
+            undefined
+          );
+        }
+        throw error;
+      }
     }
     case "asset.tag": {
       if (

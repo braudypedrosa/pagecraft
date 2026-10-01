@@ -231,6 +231,32 @@ export function extractLibraryBundle(doc: Doc, chosen: LibraryItemRef[], schemaV
   return bundle;
 }
 
+const BUNDLE_LISTS: [LibraryItemKind, 'components' | 'blocks' | 'colors' | 'textStyles' | 'classes'][] = [
+  ['component', 'components'], ['block', 'blocks'], ['color', 'colors'], ['textStyle', 'textStyles'], ['class', 'classes'],
+];
+
+/** The bundle with its image ids replaced — a site's asset ids by the library's content hashes
+    when publishing — and every item hash recomputed, so the same image published again keeps
+    the same hashes and an unchanged item never looks like an update. */
+export function remapBundleAssets(bundle: LibraryBundle, map: Record<string, string>): LibraryBundle {
+  const missing = bundle.assets.filter(id => !map[id]);
+  if (missing.length) throw new LibraryError([`No library copy for images: ${missing.join(', ')}.`]);
+  const next = clone(bundle);
+  for (const [kind, field] of BUNDLE_LISTS) {
+    (next as unknown as Record<string, unknown[]>)[field] = (bundle[field] as unknown[]).map(item => rewrite(kind, clone(item), {}, map));
+  }
+  next.assets = [...new Set(bundle.assets.map(id => map[id]))].sort();
+  next.hashes = {};
+  for (const [kind, field] of BUNDLE_LISTS) {
+    for (const item of next[field] as { id: string }[]) next.hashes[key(kind, item.id)] = itemHash(kind, item);
+  }
+  return next;
+}
+
+/** How many items a bundle holds, for listings. */
+export const bundleItemCount = (bundle: LibraryBundle) =>
+  BUNDLE_LISTS.reduce((n, [, field]) => n + (bundle[field] as unknown[]).length, 0);
+
 /* ---- import -------------------------------------------------------------- */
 
 export interface LibrarySource { libraryId: string; version: number }

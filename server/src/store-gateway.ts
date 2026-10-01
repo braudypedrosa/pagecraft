@@ -57,6 +57,14 @@ import {
   type WordPressContentIndexResult,
   type WordPressContentIndexSnapshot,
 } from "./release-store.ts";
+import type { LibraryBundle } from "../../app/src/core/libraries.ts";
+import type {
+  Library,
+  LibraryAsset,
+  LibraryStore,
+  LibraryVersion,
+  LibraryVersionSummary,
+} from "./libraries.ts";
 import {
   assembleGatewayBlob,
   GATEWAY_CONTROL_BODY_MAX,
@@ -2087,5 +2095,128 @@ export class GatewayAuthStore implements AuthStore {
       id,
       refreshDigest,
     });
+  }
+}
+
+/* ---------------------------------------------------------------- Libraries */
+
+interface LibraryWire {
+  id: string;
+  owner_id: string;
+  name: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+  latest_version?: number | string;
+}
+interface LibraryVersionWire {
+  version: number | string;
+  content_hash: string;
+  item_count: number | string;
+  source_site_id: string | null;
+  created_by: string;
+  created_at: string | Date;
+  content?: LibraryBundle;
+}
+const iso = (value: string | Date) => new Date(value).toISOString();
+const toLibrary = (row: LibraryWire): Library => ({
+  id: row.id,
+  ownerId: row.owner_id,
+  name: row.name,
+  createdAt: iso(row.created_at),
+  updatedAt: iso(row.updated_at),
+  latestVersion: Number(row.latest_version || 0),
+});
+const toLibraryVersion = (row: LibraryVersionWire): LibraryVersionSummary => ({
+  version: Number(row.version),
+  contentHash: row.content_hash,
+  itemCount: Number(row.item_count),
+  sourceSiteId: row.source_site_id,
+  createdBy: row.created_by,
+  createdAt: iso(row.created_at),
+});
+
+/** Libraries through the gateway. Image bytes reuse the asset chunk protocol. */
+export class GatewayLibraryStore implements LibraryStore {
+  private gateway: PagecraftGateway;
+  constructor(gateway: PagecraftGateway) {
+    this.gateway = gateway;
+  }
+  async create(input: { ownerId: string; name: string }) {
+    return toLibrary(
+      await this.gateway.call<LibraryWire>("library.create", {
+        id: crypto.randomUUID(),
+        ownerId: input.ownerId,
+        name: input.name,
+      }),
+    );
+  }
+  async listForOwner(ownerId: string) {
+    return (await this.gateway.call<LibraryWire[]>("library.listForOwner", { ownerId })).map(toLibrary);
+  }
+  async get(id: string) {
+    const row = await this.gateway.call<LibraryWire | null>("library.get", { id });
+    return row ? toLibrary(row) : null;
+  }
+  async versions(id: string) {
+    return (await this.gateway.call<LibraryVersionWire[]>("library.versions", { id })).map(toLibraryVersion);
+  }
+  async version(id: string, version: number): Promise<LibraryVersion | null> {
+    const row = await this.gateway.call<LibraryVersionWire | null>("library.version", { id, version });
+    return row && row.content ? { ...toLibraryVersion(row), content: row.content } : null;
+  }
+  async publish(input: {
+    libraryId: string;
+    content: LibraryBundle;
+    contentHash: string;
+    itemCount: number;
+    createdBy: string;
+    sourceSiteId: string;
+  }) {
+    const row = await this.gateway.call<LibraryVersionWire | null>("library.publish", { ...input });
+    if (!row) throw new Error("library not found");
+    return toLibraryVersion(row);
+  }
+  hasAssets(libraryId: string, ids: string[]) {
+    return ids.length
+      ? this.gateway.call<string[]>("library.asset.has", { libraryId, ids })
+      : Promise.resolve([]);
+  }
+  async putAsset(libraryId: string, asset: LibraryAsset, quota: { ownerId: string; limitBytes: number }) {
+    const split = splitGatewayBlob(asset.bytes);
+    for (let start = 0; start < split.chunks.length; start += 4) {
+      await Promise.all(
+        split.chunks.slice(start, start + 4).map((chunk) =>
+          this.gateway.call("asset.blob.putChunk", { blob: split.descriptor, chunk })
+        ),
+      );
+    }
+    try {
+      await this.gateway.call("library.asset.putBlob", {
+        libraryId,
+        ownerId: quota.ownerId,
+        limitBytes: quota.limitBytes,
+        id: asset.id,
+        name: asset.name,
+        type: asset.type,
+        w: asset.w,
+        h: asset.h,
+        blob: split.descriptor,
+      });
+    } catch (error) {
+      if (error instanceof GatewayError && error.code === "STORAGE_LIMIT") {
+        const usedBytes = await this.gateway.call<number>("asset.usage", { ownerId: quota.ownerId });
+        throw new AssetQuotaError({ usedBytes: Number(usedBytes), limitBytes: quota.limitBytes });
+      }
+      throw error;
+    }
+  }
+  async asset(libraryId: string, id: string): Promise<LibraryAsset | null> {
+    const row = await this.gateway.call<{ id: string; name: string; type: string; w: number; h: number; bytes: string } | null>(
+      "library.asset.get",
+      { libraryId, id },
+    );
+    return row
+      ? { id: row.id, name: row.name, type: row.type, w: row.w, h: row.h, bytes: new Uint8Array(Buffer.from(row.bytes, "base64")) }
+      : null;
   }
 }

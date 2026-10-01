@@ -81,7 +81,11 @@ import {
   optimizeImage,
 } from "./image-optimization.ts";
 import type { Doc } from "../../app/src/core/types.ts";
-import { assetFile } from "../../app/src/core/index.ts";
+import { assetFile, SCHEMA as CORE_SCHEMA } from "../../app/src/core/index.ts";
+import { LibraryError, type LibraryItemKind, type LibraryItemRef } from "../../app/src/core/libraries.ts";
+import {
+  copyLibraryAssetsToSite, LIBRARY_ITEMS_MAX, LIBRARY_NAME_MAX, LibraryImageError, publishLibraryVersion, type LibraryStore,
+} from "./libraries.ts";
 import {
   type AuthStore,
   hashToken,
@@ -327,6 +331,8 @@ export interface Options {
   reviews?: PublicationReviewStore;
   /** Scheduled publication of prepared snapshots, stored beside this environment's bytes. */
   schedules?: PublicationScheduleStore;
+  /** Account-owned libraries (Phase 5); shared across environments like sites. */
+  libraries?: LibraryStore;
   /** Bearer key for the cron-driven run endpoint; without one the endpoint does not exist. */
   scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -2582,6 +2588,121 @@ export function createApp(o: Options) {
         new Map(publication.files.map(file => [file.path, ""])), prefix));
     }
     return c.body(new Uint8Array(bytes).buffer);
+  });
+
+  /* ---- Libraries (Phase 5, slice 1b). Personal for now: only the owner sees, publishes and
+     imports from a library. The document side is pure and runs in the editor; these routes
+     keep versions immutable and move image bytes. See docs/phase5-libraries-design.md. */
+  const LIBRARY_KINDS = new Set<LibraryItemKind>(["component", "block", "color", "textStyle", "class"]);
+  const ownLibrary = async (c: Context, libraryId: string) => {
+    if (!o.libraries) return { ok: false as const, response: c.json({ error: "libraries are unavailable" }, 503) };
+    const user = await who(c);
+    if (!user) return { ok: false as const, response: deny(c, 401) };
+    if (!/^[0-9a-f-]{36}$/i.test(libraryId)) return { ok: false as const, response: deny(c, 404) };
+    const library = await o.libraries.get(libraryId);
+    // Someone else's library is concealed, exactly like someone else's site.
+    if (!library || library.ownerId !== user.id) return { ok: false as const, response: deny(c, 404) };
+    return { ok: true as const, user, library, libraries: o.libraries };
+  };
+  const libraryProblem = (c: Context, error: unknown) => {
+    if (error instanceof LibraryError) return c.json({ error: "library_invalid", problems: error.problems }, 422);
+    if (error instanceof LibraryImageError) return c.json({ error: "library_image_unavailable", detail: error.message }, 409);
+    if (error instanceof AssetQuotaError) {
+      return c.json({
+        error: "storage_limit_reached", ...error.usage,
+        detail: "Your free account has used its 100 MB media allowance. Remove unused images and try again.",
+      }, 409);
+    }
+    throw error;
+  };
+
+  app.get("/api/libraries", async (c) => {
+    if (!o.libraries) return c.json({ error: "libraries are unavailable" }, 503);
+    const user = await who(c);
+    if (!user) return deny(c, 401);
+    return c.json({ libraries: await o.libraries.listForOwner(user.id) });
+  });
+
+  app.post("/api/libraries", async (c) => {
+    if (!o.libraries) return c.json({ error: "libraries are unavailable" }, 503);
+    const user = await who(c);
+    if (!user) return deny(c, 401);
+    const body = await c.req.json().catch(() => null) as { name?: string } | null;
+    const name = String(body?.name || "").trim();
+    if (!name || name.length > LIBRARY_NAME_MAX) return c.json({ error: `a name of 1–${LIBRARY_NAME_MAX} characters is required` }, 400);
+    return c.json({ library: await o.libraries.create({ ownerId: user.id, name }) }, 201);
+  });
+
+  app.get("/api/libraries/:id", async (c) => {
+    const gate = await ownLibrary(c, c.req.param("id"));
+    if (!gate.ok) return gate.response;
+    return c.json({ library: gate.library, versions: await gate.libraries.versions(gate.library.id) });
+  });
+
+  app.get("/api/libraries/:id/versions/:version", async (c) => {
+    const gate = await ownLibrary(c, c.req.param("id"));
+    if (!gate.ok) return gate.response;
+    const number = Number(c.req.param("version"));
+    const row = Number.isInteger(number) && number > 0 ? await gate.libraries.version(gate.library.id, number) : null;
+    if (!row) return c.json({ error: "version_not_found" }, 404);
+    const { content, ...summary } = row;
+    return c.json({ version: summary, bundle: content });
+  });
+
+  /* Publish from a site's current saved version: the editor saves first, then publishes, so the
+     library always receives exactly what the owner sees. */
+  app.post("/api/libraries/:id/versions", async (c) => {
+    const gate = await ownLibrary(c, c.req.param("id"));
+    if (!gate.ok) return gate.response;
+    const body = await c.req.json().catch(() => null) as { siteId?: string; sourceVersion?: number; items?: LibraryItemRef[] } | null;
+    const siteId = String(body?.siteId || "");
+    const items = Array.isArray(body?.items) ? body!.items : [];
+    if (!items.length || items.length > LIBRARY_ITEMS_MAX ||
+      items.some((item) => !item || !LIBRARY_KINDS.has(item.kind) || typeof item.id !== "string" || !item.id || item.id.length > 120)) {
+      return c.json({ error: `choose 1–${LIBRARY_ITEMS_MAX} items to publish` }, 400);
+    }
+    const site = await allowed(c, siteId, "admin");
+    if (!site.ok) return deny(c, site.status);
+    const stored = await o.store.byId(siteId);
+    if (!stored) return deny(c, 404);
+    if (body?.sourceVersion !== stored.version) {
+      return c.json({ error: "stale_source_version", currentVersion: stored.version }, 409);
+    }
+    try {
+      const version = await publishLibraryVersion({ libraries: gate.libraries, assets: o.assets! }, {
+        library: gate.library, siteId, doc: stored.doc, items: items.map(({ kind, id }) => ({ kind, id })),
+        userId: gate.user.id, schemaVersion: CORE_SCHEMA, limitBytes: FREE_STORAGE_BYTES,
+      });
+      return c.json({ version }, 201);
+    } catch (error) {
+      return libraryProblem(c, error);
+    }
+  });
+
+  /* Copy a library version's images into a site before the editor applies an import or an
+     update; the document then names the site's own copies. Charged to the site's storage owner. */
+  app.post("/api/sites/:id/library-assets", async (c) => {
+    const id = c.req.param("id");
+    const site = await allowed(c, id, "admin");
+    if (!site.ok) return deny(c, site.status);
+    const body = await c.req.json().catch(() => null) as { libraryId?: string; version?: number; assets?: string[] } | null;
+    const gate = await ownLibrary(c, String(body?.libraryId || ""));
+    if (!gate.ok) return gate.response;
+    const row = Number.isInteger(body?.version) ? await gate.libraries.version(gate.library.id, Number(body!.version)) : null;
+    if (!row) return c.json({ error: "version_not_found" }, 404);
+    const wanted = Array.isArray(body?.assets) ? body!.assets.map(String) : row.content.assets;
+    // Only images this version actually uses may be copied out of the library.
+    if (wanted.some((asset) => !row.content.assets.includes(asset))) return c.json({ error: "unknown_library_image" }, 400);
+    const ownerId = await storageOwner(id, site.user, site.role);
+    if (!ownerId) return c.json({ error: "this site has no storage owner" }, 409);
+    try {
+      const assets = await copyLibraryAssetsToSite({ libraries: gate.libraries, assets: o.assets! }, {
+        libraryId: gate.library.id, ids: wanted, siteId: id, ownerId, limitBytes: FREE_STORAGE_BYTES,
+      });
+      return c.json({ assets });
+    } catch (error) {
+      return libraryProblem(c, error);
+    }
   });
 
   /* ---- Scheduled publication (Phase 4). A schedule names an exact prepared snapshot and

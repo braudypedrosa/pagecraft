@@ -2,7 +2,7 @@ import { beforeEach, test } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
 import {
-  LibraryError, extractLibraryBundle, itemHash, planLibraryImport, planLibraryUpdate, sha256,
+  LibraryError, bundleItemCount, extractLibraryBundle, itemHash, planLibraryImport, planLibraryUpdate, remapBundleAssets, sha256,
   type LibraryBundle,
 } from '../app/src/core/libraries';
 import type { ComponentDef, Doc, Node } from '../app/src/core/types';
@@ -236,3 +236,23 @@ test('a bundle is plain data that round-trips through JSON', () => {
   const bundle: LibraryBundle = bundleOf();
   a.deepEqual(JSON.parse(JSON.stringify(bundle)), bundle);
 });
+
+test('publishing swaps site image ids for content hashes, and equal content keeps equal hashes', () => {
+  const hash = 'f'.repeat(64);
+  const published = remapBundleAssets(bundleOf(), { a0123456789ab: hash });
+  a.deepEqual(published.assets, [hash]);
+  a.equal(JSON.stringify(published).includes('a0123456789ab'), false);
+  a.match(JSON.stringify(published.components.find(c => c.id === 'card')), new RegExp(`asset:${hash}`));
+  a.notEqual(published.hashes['component:card'], bundleOf().hashes['component:card'], 'the hash follows the content');
+  a.equal(published.hashes['component:badge'], bundleOf().hashes['component:badge'], 'items without images are unchanged');
+
+  // The same image uploaded to another site under a different id publishes identically.
+  const elsewhere = authorSite();
+  const card = elsewhere.meta.components!.find(c => c.id === 'card')!;
+  card.node.css = { d: { background: 'url(asset:a0000000000ee)' } } as never;
+  const again = remapBundleAssets(bundleOf(elsewhere), { a0000000000ee: hash });
+  a.equal(again.hashes['component:card'], published.hashes['component:card']);
+  a.equal(bundleItemCount(published), 7, "card, badge, shadow, accent, brand, ink, title");
+  a.throws(() => remapBundleAssets(bundleOf(), {}), /No library copy for images: a0123456789ab/);
+});
+

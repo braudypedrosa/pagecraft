@@ -10,6 +10,7 @@ import {MemoryAuthStore,hashToken} from '../server/src/auth.ts';
 import {MemoryOwnedSiteStore} from '../server/src/accounts.ts';
 import {MemoryHostedPublicationStore} from '../server/src/publications.ts';
 import {MemoryPublicationScheduleStore} from '../server/src/schedules.ts';
+import {MemoryLibraryStore} from '../server/src/libraries.ts';
 import {TestHumanChallenge} from '../server/src/turnstile.ts';
 import {blankDoc} from '../server/src/render.ts';
 import {QA_SITE_NAME,uiFixtureDocument} from './fixtures/ui-site.ts';
@@ -36,7 +37,7 @@ const accountAuth={identity:async()=>identity,oauth:unavailable,signUp:unavailab
  updateEmail:unavailable,updatePassword:unavailable,signOut:unavailable};
 // In-memory publications and schedules let review previews and scheduling run locally.
 const app=createApp({store,auth,assets,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),
- publications:new MemoryHostedPublicationStore(),schedules:new MemoryPublicationScheduleStore(),
+ publications:new MemoryHostedPublicationStore(),schedules:new MemoryPublicationScheduleStore(),libraries:new MemoryLibraryStore(),
  challenge:new TestHumanChallenge(),turnstileSiteKey:'local-ui-fixture',
  componentGallery:true,editorHost:'localhost',editorOrigin:'http://localhost:4944',
  editorHtml:await readFile(new URL('../index.html',import.meta.url),'utf8')});

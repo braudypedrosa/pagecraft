@@ -21,6 +21,7 @@ import {
 import { MemoryStore, type Store } from "./store.ts";
 import { type AuthStore, MemoryAuthStore } from "./auth.ts";
 import { type AssetStore, MemoryAssetStore } from "./assets.ts";
+import { type LibraryStore, MemoryLibraryStore } from "./libraries.ts";
 import { mailRoles, smtpNoticeSender, smtpSender } from "./mail.ts";
 import { type ConnectedStore, MemoryConnectedStore } from "./release-store.ts";
 import {
@@ -84,6 +85,7 @@ async function pickStores(): Promise<{
   hostedPublish?: HostedPublishPreparer;
   cloudMutations?: CloudMutationFastPath;
   manualImports?: ManualImportReadFastPath;
+  libraries?: LibraryStore;
 }> {
   const gatewayUrl = process.env.DATABASE_GATEWAY_URL;
   const gatewayKey = process.env.DATABASE_GATEWAY_KEY;
@@ -101,6 +103,7 @@ async function pickStores(): Promise<{
       GatewayConnectedStore,
       GatewayHostedPublishPreparer,
       GatewayManualImportReader,
+      GatewayLibraryStore,
     } = await import("./store-gateway.ts");
     const gateway = new PagecraftGateway(
       gatewayUrl, gatewayKey, fetch, process.env.DATABASE_GATEWAY_REGION,
@@ -125,6 +128,7 @@ async function pickStores(): Promise<{
       hostedPublish: cloudMutations,
       cloudMutations,
       manualImports: new GatewayManualImportReader(gateway),
+      libraries: new GatewayLibraryStore(gateway),
     };
   }
   const url = process.env.DATABASE_URL;
@@ -145,6 +149,7 @@ async function pickStores(): Promise<{
       auth,
       connected: new MemoryConnectedStore(),
       owned: new MemoryOwnedSiteStore(store, auth),
+      libraries: new MemoryLibraryStore(),
     };
   }
   /* Imported here rather than at the top so a run without a database needs no driver. */
@@ -174,6 +179,7 @@ const {
   hostedPublish,
   cloudMutations,
   manualImports,
+  libraries,
 } = await pickStores();
 
 const production = process.env.NODE_ENV === "production";
@@ -524,6 +530,7 @@ const app = createApp({
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   reviews,
+  libraries,
   schedules: schedulingEnabled ? schedules : undefined,
   scheduleRunnerKey,
   liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),

@@ -7,6 +7,7 @@ import {
   GatewayAssetStore,
   AUTH_USER_CACHE_MS,
   GatewayAuthStore,
+  GatewayLibraryStore,
   GatewayConnectedStore,
   GatewayHostedPublishPreparer,
   GatewayManualImportReader,
@@ -14,6 +15,7 @@ import {
   PagecraftGateway,
 } from "../src/store-gateway.ts";
 import { cmsItemKey } from "../src/store.ts";
+import { AssetQuotaError } from "../src/assets.ts";
 import type { Doc } from "../../app/src/core/types.ts";
 
 type Call = { op: string; args: Record<string, unknown> };
@@ -1100,4 +1102,51 @@ test("the signed-in identity upsert is reused briefly, but never across a change
   clock += AUTH_USER_CACHE_MS + 1;
   await auth.ensureAuthUser("auth-1", "new@example.test", "Owner");
   a.equal(ensures(), 4, "the cache expires");
+});
+
+test("libraries go through fixed gateway operations and map rows to camelCase", async () => {
+  const row = { id: "7b4c1a2e-0000-4000-8000-000000000001", owner_id: "u1", name: "Brand kit", created_at: "2026-10-01T00:00:00.000Z", updated_at: "2026-10-01T00:00:00.000Z", latest_version: "2" };
+  const version = { version: "2", content_hash: "c".repeat(64), item_count: "7", source_site_id: "s1", created_by: "u1", created_at: "2026-10-01T00:00:00.000Z" };
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op === "library.create") return { ...row, latest_version: 0 };
+    if (call.op === "library.listForOwner") return [row];
+    if (call.op === "library.get") return row;
+    if (call.op === "library.versions") return [version];
+    if (call.op === "library.version") return { ...version, content: { format: "pagecraft.library.v1" } };
+    if (call.op === "library.publish") return version;
+    if (call.op === "library.asset.has") return ["d".repeat(64)];
+    if (call.op === "library.asset.get") return { id: "d".repeat(64), name: "hero.webp", type: "image/webp", w: 8, h: 8, bytes: Buffer.from([1, 2, 3]).toString("base64") };
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const libraries = new GatewayLibraryStore(gateway);
+  a.equal((await libraries.create({ ownerId: "u1", name: "Brand kit" })).latestVersion, 0);
+  a.deepEqual((await libraries.listForOwner("u1"))[0], { id: row.id, ownerId: "u1", name: "Brand kit", createdAt: row.created_at, updatedAt: row.updated_at, latestVersion: 2 });
+  a.equal((await libraries.versions(row.id))[0].itemCount, 7);
+  a.equal((await libraries.version(row.id, 2))?.content.format, "pagecraft.library.v1");
+  a.equal((await libraries.publish({ libraryId: row.id, content: {} as never, contentHash: "c".repeat(64), itemCount: 7, createdBy: "u1", sourceSiteId: "s1" })).version, 2);
+  a.deepEqual(await libraries.hasAssets(row.id, ["d".repeat(64), "e".repeat(64)]), ["d".repeat(64)]);
+  a.deepEqual([...(await libraries.asset(row.id, "d".repeat(64)))!.bytes], [1, 2, 3]);
+  a.deepEqual(await libraries.hasAssets(row.id, []), [], "no round trip for nothing");
+  a.deepEqual(calls.map((c) => c.op), ["library.create", "library.listForOwner", "library.versions", "library.version", "library.publish", "library.asset.has", "library.asset.get"]);
+  a.match(String(calls[0].args.id), /^[0-9a-f-]{36}$/);
+});
+
+test("library images upload through the chunk protocol, and a full allowance is a quota error", async () => {
+  const calls: Call[] = [];
+  let full = false;
+  const request = async (_input: string | URL | Request, init?: RequestInit) => {
+    const call = JSON.parse(String(init?.body || "{}")) as Call;
+    calls.push(call);
+    if (call.op === "library.asset.putBlob" && full) return Response.json({ error: "free account media storage limit reached", code: "STORAGE_LIMIT" }, { status: 409 });
+    if (call.op === "asset.usage") return Response.json({ data: 99 });
+    return Response.json({ data: { id: "d".repeat(64) } });
+  };
+  const libraries = new GatewayLibraryStore(new PagecraftGateway("https://gateway.invalid/", "test-key", request as typeof fetch));
+  const asset = { id: "d".repeat(64), name: "hero.webp", type: "image/webp", w: 8, h: 8, bytes: new Uint8Array(700 * 1024) };
+  await libraries.putAsset("lib-1", asset, { ownerId: "u1", limitBytes: 100 });
+  a.deepEqual(calls.map((c) => c.op), ["asset.blob.putChunk", "asset.blob.putChunk", "library.asset.putBlob"], "two 512 KB chunks, then finalize");
+  a.equal(calls[2].args.ownerId, "u1");
+  full = true;
+  await a.rejects(libraries.putAsset("lib-1", asset, { ownerId: "u1", limitBytes: 100 }), (error: unknown) =>
+    error instanceof AssetQuotaError && error.usage.usedBytes === 99 && error.usage.limitBytes === 100);
 });
