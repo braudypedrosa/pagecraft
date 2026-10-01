@@ -11961,6 +11961,7 @@ var PC_UI = (() => {
     return /still here/i.test(mapped) ? mapped : `${mapped} Your changes are still here. Try again.`;
   }
   var copy = (value) => JSON.parse(JSON.stringify(value));
+  var EMPTY_COLLECTION = { id: "", name: "", slug: "", fields: [], items: [], detail: "" };
   var esc2 = (s3) => String(s3 ?? "").replace(
     /[&<>"']/g,
     (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]
@@ -11973,7 +11974,8 @@ var PC_UI = (() => {
   }) {
     const [id, setId] = d2(collectionId);
     const [revision, refresh] = d2(0);
-    const col = C2.findCollection(id);
+    const found = C2.findCollection(id);
+    const col = found || C2.collections()[0] || EMPTY_COLLECTION;
     const [entry, setEntry] = d2(null);
     const [schema, setSchema] = d2(null);
     const [baseline, setBaseline] = d2("");
@@ -11998,6 +12000,16 @@ var PC_UI = (() => {
     _2(() => {
       const navigate = (event) => {
         const target = event.target;
+        if (target.closest("#undoBtn, #redoBtn")) {
+          if (busy || pending.current || !discard()) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return;
+          }
+          reset();
+          setNotice("");
+          return;
+        }
         if (!target.closest("#leftRail button, .topbar button, .topbar a")) return;
         if (target.closest('#leftRail button[data-t="cms"]') || busy || !discard()) {
           event.preventDefault();
@@ -12009,6 +12021,13 @@ var PC_UI = (() => {
       document.addEventListener("click", navigate, true);
       return () => document.removeEventListener("click", navigate, true);
     }, [dirty, busy, close]);
+    h2(() => {
+      if (found) return;
+      if (col.id) {
+        setId(col.id);
+        reset();
+      } else close();
+    }, [found, col.id]);
     h2(() => {
       const before = (e3) => {
         if (dirty || busy) {
@@ -12032,6 +12051,14 @@ var PC_UI = (() => {
       setImporting(null);
       setErrors({});
       setBaseline("");
+    };
+    const historyStep = (which) => {
+      if (busy || pending.current || !discard()) return;
+      reset();
+      setNotice("");
+      if (which === "undo") C2.undo();
+      else C2.redo();
+      refresh((n2) => n2 + 1);
     };
     const openEntry = (item) => {
       if (pending.current || !discard()) return;
@@ -12269,6 +12296,12 @@ var PC_UI = (() => {
         ref: root,
         onKeyDown: (e3) => {
           e3.stopPropagation();
+          const command = e3.metaKey || e3.ctrlKey, key = e3.key.toLowerCase();
+          if (command && (key === "z" || key === "y") && !e3.target.closest('input, textarea, select, [contenteditable="true"]')) {
+            e3.preventDefault();
+            historyStep(key === "y" || e3.shiftKey ? "redo" : "undo");
+            return;
+          }
           if ((e3.metaKey || e3.ctrlKey) && e3.key.toLowerCase() === "s") {
             e3.preventDefault();
             if (!busy) {
@@ -20378,9 +20411,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (skipHidden && host.hidden) return;
       R(node(), host);
     };
+    let cmsWorkspace = null;
+    const renderCmsPanel = panel("paneCms", () => /* @__PURE__ */ u2(Cms, {}), true);
     const painters2 = {
       renderLayers: panel("paneLayers", () => /* @__PURE__ */ u2(Layers, {})),
-      renderCms: panel("paneCms", () => /* @__PURE__ */ u2(Cms, {}), true),
+      renderCms: () => {
+        renderCmsPanel();
+        const host = document.getElementById("cms-workspace-host");
+        if (cmsWorkspace && host && document.body.classList.contains("cms-open")) R(cmsWorkspace(), host);
+      },
       renderAdd: panel("paneAdd", () => /* @__PURE__ */ u2(Add, {})),
       renderPages: () => {
         panel("panePages", () => /* @__PURE__ */ u2(Pages, {}))();
@@ -20478,8 +20517,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const railButtons = [...document.querySelectorAll("#leftRail button[data-t]")];
       const active = railButtons.find((b2) => b2.classList.contains("on"));
       railButtons.forEach((b2) => b2.classList.toggle("on", b2.getAttribute("data-t") === "cms"));
-      R(/* @__PURE__ */ u2(CmsWorkspace, { collectionId, close: () => {
+      const closeWorkspace = () => {
         const finish = () => {
+          cmsWorkspace = null;
           R(null, host);
           document.body.classList.remove("cms-open");
           legacy.restoreCanvasLayout();
@@ -20489,7 +20529,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         const surface2 = host.firstElementChild, motion = installUiMotion();
         if (surface2 && motion && !motion.reduced()) motion.exit(surface2, { kind: "panel", hide: false }).then(finish);
         else finish();
-      } }, collectionId), host);
+      };
+      cmsWorkspace = () => /* @__PURE__ */ u2(CmsWorkspace, { collectionId, close: closeWorkspace }, collectionId);
+      R(cmsWorkspace(), host);
       const surface = host.firstElementChild;
       if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
     };
