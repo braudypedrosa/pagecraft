@@ -35,7 +35,7 @@ const FOUNDATION: Partial<Record<LibraryItemKind, ReadonlySet<string>>> = {
   color: new Set(['text', 'bg', 'brand', 'ink', 'muted', 'muted-i', 'slate', 'line', 'surface']),
   textStyle: new Set(['display', 'title', 'subtitle', 'lead', 'body', 'small', 'eyebrow', 'btn']),
 };
-const isFoundation = (kind: LibraryItemKind, id: string) => !!FOUNDATION[kind]?.has(id);
+export const isFoundation = (kind: LibraryItemKind, id: string) => !!FOUNDATION[kind]?.has(id);
 const key = (kind: LibraryItemKind, id: string) => `${kind}:${id}`;
 
 const COLOR_REF = /var\(--c-([\w-]+)\)/g;
@@ -323,6 +323,15 @@ const reidTree = (node: Node, newId: () => string) => eachNode(node, n => {
   if (n.adv && n.adv.htmlId) n.adv.htmlId = '';
 });
 
+/** The library images an import of `chosen` needs copied into the site first: everything the
+    chosen items and their dependencies show. Copy these, then pass the id map to the plan. */
+export function importAssetsNeeded(bundle: LibraryBundle, chosen: LibraryItemRef[]): string[] {
+  const lists = bundleLists(bundle);
+  const needed = new Set<string>();
+  closure(bundle, chosen).forEach(ref => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach(id => needed.add(id)));
+  return [...needed].sort();
+}
+
 /** Import `chosen` (and their dependencies) from a library version as locally owned copies. */
 export function planLibraryImport(
   doc: Doc, bundle: LibraryBundle, source: LibrarySource, chosen: LibraryItemRef[], options: LibraryImportOptions = {},
@@ -335,9 +344,8 @@ export function planLibraryImport(
   const newId = options.newId || fallbackId;
   const assetMap = options.assets || {};
   const refs = closure(bundle, chosen);
-  const needed = new Set<string>();
-  refs.forEach(ref => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach(id => needed.add(id)));
-  const missing = [...needed].filter(id => !assetMap[id]);
+  const needed = importAssetsNeeded(bundle, chosen);
+  const missing = needed.filter(id => !assetMap[id]);
   if (missing.length) throw new LibraryError([`Copy these images into the site first: ${missing.join(', ')}.`]);
 
   const renames: Renames = {};
@@ -381,7 +389,7 @@ export function planLibraryImport(
     if (at >= 0) links[at] = link; else links.push(link);
   }
   next.meta.libraryLinks = links;
-  return { doc: next, items, assets: [...needed].sort() };
+  return { doc: next, items, assets: needed };
 }
 
 /* ---- updates ------------------------------------------------------------- */
@@ -442,11 +450,24 @@ function componentWarnings(doc: Doc, localId: string, before: ComponentDef, afte
   return warnings;
 }
 
-/** Plan moving every item linked to `source.libraryId` to `bundle`, a newer version. */
-export function planLibraryUpdate(
+export interface LibraryUpdatePreview {
+  items: UpdateItem[];
+  /** conflict keys (`${kind}:${sourceId}`) still waiting for a resolution */
+  unresolved: string[];
+  /** library asset ids the chosen updates need copied into the site */
+  assets: string[];
+}
+
+/** What moving to `bundle` would change, before anything is written: each linked item's action,
+    the conflicts still unresolved, and the images the chosen updates need. Never throws for
+    missing images, so the editor can show it and copy them first. */
+export function previewLibraryUpdate(
   doc: Doc, bundle: LibraryBundle, source: LibrarySource, resolutions: Record<string, Resolution> = {},
-  options: LibraryImportOptions = {},
-): LibraryUpdatePlan {
+): LibraryUpdatePreview {
+  return updateScope(doc, bundle, source, resolutions).preview;
+}
+
+function updateScope(doc: Doc, bundle: LibraryBundle, source: LibrarySource, resolutions: Record<string, Resolution>) {
   const links = (doc.meta.libraryLinks || []).filter(l => l.libraryId === source.libraryId);
   const lists = bundleLists(bundle);
   const site = listsOf(doc);
@@ -480,10 +501,21 @@ export function planLibraryUpdate(
   const needed = new Set<string>();
   [...taking.map(i => ({ kind: i.kind, id: i.sourceId })), ...newDeps]
     .forEach(ref => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach(id => needed.add(id)));
-  if (unresolved.length) return { items, unresolved, doc: null, assets: [...needed].sort() };
+  return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort() } };
+}
+
+/** Plan moving every item linked to `source.libraryId` to `bundle`, a newer version. */
+export function planLibraryUpdate(
+  doc: Doc, bundle: LibraryBundle, source: LibrarySource, resolutions: Record<string, Resolution> = {},
+  options: LibraryImportOptions = {},
+): LibraryUpdatePlan {
+  const { lists, items, taking, newDeps, preview } = updateScope(doc, bundle, source, resolutions);
+  const { unresolved } = preview;
+  const needed = preview.assets;
+  if (unresolved.length) return { ...preview, doc: null };
 
   const assetMap = options.assets || {};
-  const missing = [...needed].filter(id => !assetMap[id]);
+  const missing = needed.filter(id => !assetMap[id]);
   if (missing.length) throw new LibraryError([`Copy these images into the site first: ${missing.join(', ')}.`]);
   const newId = options.newId || fallbackId;
 
@@ -512,5 +544,5 @@ export function planLibraryUpdate(
     if (kept.has(k)) return { ...l, version: source.version, sourceHash: bundle.hashes[k] };
     return { ...l, version: Math.max(l.version, source.version), sourceHash: bundle.hashes[k] ?? l.sourceHash };
   });
-  return { items, unresolved, doc: next, assets: [...needed].sort() };
+  return { items, unresolved, doc: next, assets: needed };
 }

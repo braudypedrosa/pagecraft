@@ -522,6 +522,8 @@ var IC = {
      Deliberately not `copy` — two identical squares is what a component is *not*, and the
      Blocks tab is the thing next to it in the panel. */
   component: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><rect x="5.5" y="5.5" width="5" height="5" rx="1" fill="currentColor" stroke="none"/>',
+  /* A library: two upright spines and one leaning, the shelf the reusable items come from. */
+  library: '<rect x="2" y="2.5" width="3" height="11" rx=".6"/><rect x="6.4" y="2.5" width="3" height="11" rx=".6"/><path d="M10.4 3.6l2.8-.8 2.3 9.9-2.8.8z" stroke-linejoin="round"/>',
   /* Three dots in a row. It exists because the overflow button used to be `drag`
      rotated 90 degrees, and a 3x2 dot grid beside a 2x3 dot grid is the same glyph
      twice at 12px — "drag to move" and "everything else" were indistinguishable. */

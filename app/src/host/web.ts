@@ -2,7 +2,11 @@ import type { UnknownDocumentInput } from '../core/types';
 import { authenticationAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
 import { FetchHostTransport, type FetchLike, type HostTransport } from './transport';
 import { adoptHostDocument } from './schema';
-import type { HostCapability, HostFeatures, HostMedia, HostSession, WebPublicationSchedule, WebPublicationSnapshot, WebHostAdapter } from './types';
+import type { LibraryBundle } from '../core/libraries';
+import type {
+  HostCapability, HostFeatures, HostMedia, HostSession, WebLibrary, WebLibraryVersionSummary, WebPublicationSchedule,
+  WebPublicationSnapshot, WebHostAdapter
+} from './types';
 
 export interface WebHostOptions {
   siteId: string;
@@ -128,6 +132,30 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
         await transport.request<unknown>({
           method: 'POST', path: `/api/sites/${site}/publication-preview`, body: input
         });
+      }
+    },
+    libraries: {
+      async list() { return (await transport.request<{ libraries: WebLibrary[] }>({ path: '/api/libraries' })).body.libraries; },
+      async create(name) {
+        return (await transport.request<{ library: WebLibrary }>({ method: 'POST', path: '/api/libraries', body: { name } })).body.library;
+      },
+      async get(id) {
+        return (await transport.request<{ library: WebLibrary; versions: WebLibraryVersionSummary[] }>({ path: `/api/libraries/${encodeURIComponent(id)}` })).body;
+      },
+      async version(id, version) {
+        return (await transport.request<{ version: WebLibraryVersionSummary; bundle: LibraryBundle }>({
+          path: `/api/libraries/${encodeURIComponent(id)}/versions/${encodeURIComponent(String(version))}`
+        })).body;
+      },
+      async publish(id, input) {
+        return (await transport.request<{ version: WebLibraryVersionSummary }>({
+          method: 'POST', path: `/api/libraries/${encodeURIComponent(id)}/versions`, body: { siteId: options.siteId, ...input }
+        })).body.version;
+      },
+      async copyAssets(input) {
+        return (await transport.request<{ assets: Record<string, string> }>({
+          method: 'POST', path: `/api/sites/${site}/library-assets`, body: { ...input }
+        })).body.assets;
       }
     }
   };

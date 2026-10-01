@@ -16,6 +16,8 @@ type StubOptions = {
   dynamicContentProvider?: ReturnType<Legacy['dynamicContentProvider']>;
   wordpressContent?: ReturnType<Legacy['wordpressContent']>;
   asset?: Legacy['asset'];
+  libraries?: ReturnType<Legacy['libraries']>;
+  siteDraft?: () => ReturnType<Legacy['siteDraft']>;
 };
 
 /** Every Legacy entry, recording its name and arguments. Fields that must return a
@@ -58,6 +60,10 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     askPick: async (...a: any[]) => { calls.push(['askPick', ...a]); return ''; },
     cmsModal: rec('cmsModal'),
     cmsCommit: async collections => { C.edit(() => { C.state.meta.collections = collections; }); },
+    libraries: () => opts.libraries || null,
+    siteDraft: () => opts.siteDraft ? opts.siteDraft() : null,
+    flushDraft: async () => { calls.push(['flushDraft']); },
+    assetsReload: async () => { calls.push(['assetsReload']); },
     saveBlockFlow: rec('saveBlockFlow'),
     toast: rec('toast'),
     startDrag: rec('startDrag'),

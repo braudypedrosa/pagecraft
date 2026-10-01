@@ -254,9 +254,38 @@ export interface WebReleaseAdapter {
   }): Promise<void>;
 }
 
+/** An account-owned library; see docs/phase5-libraries-design.md. */
+export interface WebLibrary {
+  id: string;
+  name: string;
+  /** 0 until the first version is published */
+  latestVersion: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface WebLibraryVersionSummary {
+  version: number;
+  itemCount: number;
+  sourceSiteId: string | null;
+  createdAt: string;
+}
+/** Personal libraries for the signed-in owner. The document side is pure and runs in the editor
+    (app/src/core/libraries.ts); these calls only move versions and image bytes. */
+export interface WebLibraryAdapter {
+  list(): Promise<WebLibrary[]>;
+  create(name: string): Promise<WebLibrary>;
+  get(id: string): Promise<{ library: WebLibrary; versions: WebLibraryVersionSummary[] }>;
+  version(id: string, version: number): Promise<{ version: WebLibraryVersionSummary; bundle: import('../core/libraries').LibraryBundle }>;
+  /** Publish `items` from this site's saved document as the library's next version. */
+  publish(id: string, input: { sourceVersion: number; items: import('../core/libraries').LibraryItemRef[] }): Promise<WebLibraryVersionSummary>;
+  /** Copy a version's images into this site; returns library image id → site asset id. */
+  copyAssets(input: { libraryId: string; version: number; assets: string[] }): Promise<Record<string, string>>;
+}
+
 export interface WebHostAdapter extends PagecraftHostAdapter {
   readonly kind: 'web';
   readonly releases: WebReleaseAdapter;
+  readonly libraries: WebLibraryAdapter;
 }
 
 export interface WordPressHostAdapter extends PagecraftHostAdapter {

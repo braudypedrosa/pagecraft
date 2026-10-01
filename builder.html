@@ -409,6 +409,39 @@ body.content-only .s-hud [data-x=down]{display:none}
 .brow:hover .bx{opacity:1}
 .brow .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
 .brow .bx.danger:hover{background:var(--risk-bg);color:var(--risk-fg)}
+/* ---- libraries, the fifth Add category ---------------------------------
+   The fifth tab takes the last row to itself rather than squeezing a third column into
+   272px. Library rows are buttons, because opening one is the only thing they do. */
+.addSwitcher button:last-child:nth-child(odd){grid-column:1/-1}
+.brow.lib-row{width:100%;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.brow .bn small.lib-from{color:var(--text-2)}
+.lib-head{display:flex;align-items:center;gap:var(--sp-3);margin:0 0 var(--gap-1)}
+.lib-head .bn{flex:1;min-width:0}
+.lib-head .bn b{display:block;font-size:var(--fs-3);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-head .bn small{display:block;color:var(--text-3);font-size:var(--fs-1)}
+.lib-back{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-2);display:grid;place-items:center;flex:0 0 auto}
+.lib-back:hover{background:var(--pc-hover-bg);color:var(--text)}
+.lib-back-icon{transform:rotate(180deg)}
+.lib-item{display:flex;align-items:flex-start;gap:var(--sp-3);padding:5px 2px;cursor:pointer}
+.lib-item input{margin:2px 0 0;flex:0 0 auto}
+.lib-item .bn{flex:1;min-width:0}
+.lib-item .bn b{display:block;font-size:var(--fs-2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-item .bn small{display:block;color:var(--text-3);font-size:var(--fs-1)}
+.lib-item.off{cursor:default}
+.lib-item.off .bn b{color:var(--text-2)}
+.lib-note{margin:var(--gap-1) 0;color:var(--text-3);font-size:var(--fs-1);line-height:1.45}
+.lib-banner{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-3);margin:0 0 var(--gap-1);padding:10px 12px;
+  border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--lift-bg);font-size:var(--fs-2);line-height:1.45}
+.lib-change{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-top:1px solid var(--line)}
+.lib-head+.lib-change{border-top:0;padding-top:0}
+.lib-change b{font-size:var(--fs-2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-change small{color:var(--text-3);font-size:var(--fs-1)}
+.lib-res{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}
+.lib-res label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:var(--fs-2)}
+.lib-warn{margin:6px 0 0;color:var(--warn);font-size:var(--fs-1);line-height:1.45}
+.lib-problem{margin:var(--gap-1) 0;padding:9px 11px;border-radius:var(--r-md);background:var(--risk-bg);color:var(--risk-fg);font-size:var(--fs-1);line-height:1.45}
+.lib-problem p{margin:0}
+.lib-problem p+p{margin-top:4px}
 .pvgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
 .pvcard{
   display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;cursor:grab;
@@ -4073,6 +4106,11 @@ const ui = () => UI || (UI = PC_UI.mount(
   { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent, wordpressContent,
     select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
     askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart,
+    /* Libraries are account-owned and cookie-authenticated, so a connected editor session and
+       a non-owner never see them. See docs/phase5-libraries-design.md. */
+    libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
+    siteDraft: () => (SRV && !IS_WORDPRESS ? { siteId: SRV.siteId, version: SRV.version } : null),
+    flushDraft, assetsReload: assetsLoadServer,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },

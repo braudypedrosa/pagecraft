@@ -1,4 +1,4 @@
-/* The Add panel — widgets, blocks and templates.
+/* The Add panel — widgets, templates, components, blocks and libraries.
 
    Three functions in builder.html became one component tree, and that is the point:
    `renderPalette` owned #paneAdd while `drawAddBody` and `drawBlocks` both wrote
@@ -11,6 +11,8 @@
    element would also be appended where it started. */
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
+import { Libraries, addToLibrary, fromLabel, linkOf } from './Libraries';
+import type { LibraryItemKind } from '../core/libraries';
 
 /* Lives here because the Add panel is the only thing that reads it: which widgets are
    offered, and how they are grouped. */
@@ -51,10 +53,31 @@ const TABS = [
   ['widgets', 'Elements', 'Basic elements for building a page', 'plus'],
   ['templates', 'Templates', 'Ready-made sections using this project’s styles', 'section'],
   ['components', 'Components', 'Reusable elements that stay synchronized', 'component'],
-  ['blocks', 'Blocks', 'Reusable copies you can edit independently', 'copy']
+  ['blocks', 'Blocks', 'Reusable copies you can edit independently', 'copy'],
+  /* Only where libraries exist: the hosted editor, for the site's owner. */
+  ['libraries', 'Libraries', 'Your account’s components, blocks and styles, for any site you own', 'library']
 ] as const;
 type AddTab = (typeof TABS)[number][0];
-const tab = () => C.state.ui.atab || 'widgets';
+const tabs = () => L.libraries() ? TABS : TABS.filter(([key]) => key !== 'libraries');
+const tab = (): AddTab => {
+  const want = C.state.ui.atab || 'widgets';
+  return (tabs().find(([key]) => key === want) || TABS[0])[0];
+};
+
+/* A row's library line and its "Add to library…" button, shared by Components and Blocks. */
+function LibraryFrom({ kind, id }: { kind: LibraryItemKind; id: string }) {
+  const link = L.libraries() ? linkOf(kind, id) : null;
+  return link ? <small class="lib-from">{fromLabel(link)}</small> : null;
+}
+function LibraryAdd({ kind, id }: { kind: LibraryItemKind; id: string }) {
+  if (!L.libraries()) return null;
+  return (
+    <button class="bx" title="Add to library…" aria-label="Add to library…"
+      onClick={e => { e.stopPropagation(); addToLibrary({ kind, id }); repaint('add'); }}>
+      <Icon name="library" size={11} />
+    </button>
+  );
+}
 
 function Widgets() {
   const groups = PAL.map(group => ({
@@ -198,7 +221,9 @@ function Blocks() {
             <span class="bn">
               <b>{b.name}</b>
               <small>{def ? def.label : 'Block'}</small>
+              <LibraryFrom kind="block" id={b.id} />
             </span>
+            <LibraryAdd kind="block" id={b.id} />
             <button class="bx danger" title="Forget this block" onClick={e => forget(e, b.id)}>
               <Icon name="trash" size={11} />
             </button>
@@ -296,10 +321,12 @@ function Components() {
                 {used === 1 ? '1 instance' : `${used} instances`}
                 {props ? ` · ${props === 1 ? '1 property' : props + ' properties'}` : ' · no properties yet'}
               </small>
+              <LibraryFrom kind="component" id={cd.id} />
             </span>
             <button class="bx" title="Edit this component" onClick={e => open(e, cd.id)}>
               <Icon name="edit" size={11} />
             </button>
+            <LibraryAdd kind="component" id={cd.id} />
             <button class="bx danger" title="Delete this component" onClick={e => remove(e, cd.id)}>
               <Icon name="trash" size={11} />
             </button>
@@ -323,13 +350,14 @@ function Components() {
 
 export function Add() {
   const t = tab();
-  const current = TABS.find(([key]) => key === t) || TABS[0];
+  const shown = tabs();
+  const current = shown.find(([key]) => key === t) || TABS[0];
 
   const choose = (key: AddTab) => {
     C.state.ui.atab = key;
     repaint('add');
   };
-  const keys = TABS.map(([key]) => key);
+  const keys = shown.map(([key]) => key);
   const keyNav = (e: KeyboardEvent, key: AddTab) => {
     const move = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
       : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
@@ -343,7 +371,7 @@ export function Add() {
   return (
     <>
       <div class="addSwitcher" role="tablist" aria-label="Add category">
-        {TABS.map(([key, label, , icon]) => (
+        {shown.map(([key, label, , icon]) => (
           <button key={key} role="tab" aria-selected={t === key ? 'true' : 'false'}
             id={'add-tab-' + key} aria-controls="add-category-panel" tabIndex={t === key ? 0 : -1}
             class={t === key ? 'on' : ''} onClick={() => choose(key)} onKeyDown={e => keyNav(e, key)}>
@@ -356,7 +384,8 @@ export function Add() {
       <div class="palette" id="add-category-panel" role="tabpanel" aria-labelledby={'add-tab-' + t}>
         {t === 'widgets' ? <Widgets />
           : t === 'components' ? <Components />
-            : t === 'templates' ? <Templates /> : <Blocks />}
+            : t === 'templates' ? <Templates />
+              : t === 'libraries' ? <Libraries /> : <Blocks />}
       </div>
     </>
   );

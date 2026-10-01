@@ -82,18 +82,34 @@ For each linked item, compare the new version with the link:
   - `/api/libraries/:id/versions`: publish from a site's saved revision (owner of both).
   - `/api/libraries/:id/versions/:v`: read a bundle.
   - `/api/sites/:id/library-assets`: copy a version's images into a site and return the id map.
-- **Editor.**
-  - Components panel: "Add to library…".
-  - Add panel: a **Libraries** tab with Import.
-  - Linked items get a "From Library · v3" badge and an **Update available** dialog with the plan
-    and conflicts.
-- **Fingerprinted files.** The Add panel (`Add.tsx`) is not fingerprinted. `builder.html` is
-  fingerprinted, so its dialogs and CSS go through the Chrome gallery capture.
+- **Editor** (`app/src/ui/Libraries.tsx`, shipped in 1c).
+  - Components and Blocks rows: an "Add to library…" button, and a "From Brand kit · v3" line on
+    linked items.
+  - Add panel: a **Libraries** tab, shown only in the hosted editor to the site's owner. It has
+    four views inside the panel, with no modal over the canvas:
+    - **List:** your libraries, their latest version, "Update available" or "In this site".
+    - **Library:** the latest version's chosen items, ticked to import, with "In this site · v2"
+      or "Published from this site" on items that are already here.
+    - **Publish:** this site's components, blocks and non-foundation styles. Items from the latest
+      version are pre-ticked when it came from this site. The extraction runs in the editor first,
+      so a CMS-bound or broken item is explained before anything is sent. The draft is flushed,
+      then published against the acknowledged version; a 409 from an autosave in between is
+      retried once.
+    - **Update:** `previewLibraryUpdate` lists each change. Each conflict needs "Keep mine" or
+      "Use the library's" before Apply. Warnings about removed variants, properties or slots
+      show for whatever would be written.
+  - Import and update copy only the images the plan needs (`importAssetsNeeded`,
+    `previewLibraryUpdate().assets`), reload the site's images, then recompute the plan from the
+    document as it is at that moment. They apply the new `meta` in one `edit()`, so each is one
+    Undo step and autosaves like any other change.
+- **Fingerprinted files.** The Add panel (`Add.tsx`, `Libraries.tsx`) is not fingerprinted.
+  `builder.html` is, so the bridge entries and the panel's CSS went through the Chrome gallery
+  capture.
 
 ## Slices
 
 1. **1a:** pure document logic, fully tested. Bundle extraction with dependency closure and hashes,
    the import plan, and the upgrade plan with conflicts.
 2. **1b:** storage, gateway operations, API and image copying.
-3. **1c:** editor UI and acceptance on staging.
+3. **1c:** editor UI and acceptance on staging (shipped 2026-10-01).
 4. **2:** read-only sharing: invite, list and import only. Only owners publish.

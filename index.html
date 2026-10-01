@@ -414,6 +414,39 @@ body.content-only .s-hud [data-x=down]{display:none}
 .brow:hover .bx{opacity:1}
 .brow .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
 .brow .bx.danger:hover{background:var(--risk-bg);color:var(--risk-fg)}
+/* ---- libraries, the fifth Add category ---------------------------------
+   The fifth tab takes the last row to itself rather than squeezing a third column into
+   272px. Library rows are buttons, because opening one is the only thing they do. */
+.addSwitcher button:last-child:nth-child(odd){grid-column:1/-1}
+.brow.lib-row{width:100%;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.brow .bn small.lib-from{color:var(--text-2)}
+.lib-head{display:flex;align-items:center;gap:var(--sp-3);margin:0 0 var(--gap-1)}
+.lib-head .bn{flex:1;min-width:0}
+.lib-head .bn b{display:block;font-size:var(--fs-3);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-head .bn small{display:block;color:var(--text-3);font-size:var(--fs-1)}
+.lib-back{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-2);display:grid;place-items:center;flex:0 0 auto}
+.lib-back:hover{background:var(--pc-hover-bg);color:var(--text)}
+.lib-back-icon{transform:rotate(180deg)}
+.lib-item{display:flex;align-items:flex-start;gap:var(--sp-3);padding:5px 2px;cursor:pointer}
+.lib-item input{margin:2px 0 0;flex:0 0 auto}
+.lib-item .bn{flex:1;min-width:0}
+.lib-item .bn b{display:block;font-size:var(--fs-2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-item .bn small{display:block;color:var(--text-3);font-size:var(--fs-1)}
+.lib-item.off{cursor:default}
+.lib-item.off .bn b{color:var(--text-2)}
+.lib-note{margin:var(--gap-1) 0;color:var(--text-3);font-size:var(--fs-1);line-height:1.45}
+.lib-banner{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-3);margin:0 0 var(--gap-1);padding:10px 12px;
+  border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--lift-bg);font-size:var(--fs-2);line-height:1.45}
+.lib-change{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-top:1px solid var(--line)}
+.lib-head+.lib-change{border-top:0;padding-top:0}
+.lib-change b{font-size:var(--fs-2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-change small{color:var(--text-3);font-size:var(--fs-1)}
+.lib-res{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}
+.lib-res label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:var(--fs-2)}
+.lib-warn{margin:6px 0 0;color:var(--warn);font-size:var(--fs-1);line-height:1.45}
+.lib-problem{margin:var(--gap-1) 0;padding:9px 11px;border-radius:var(--r-md);background:var(--risk-bg);color:var(--risk-fg);font-size:var(--fs-1);line-height:1.45}
+.lib-problem p{margin:0}
+.lib-problem p+p{margin-top:4px}
 .pvgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
 .pvcard{
   display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;cursor:grab;
@@ -2149,6 +2182,8 @@ var IC = {
      Deliberately not `copy` — two identical squares is what a component is *not*, and the
      Blocks tab is the thing next to it in the panel. */
   component: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><rect x="5.5" y="5.5" width="5" height="5" rx="1" fill="currentColor" stroke="none"/>',
+  /* A library: two upright spines and one leaning, the shelf the reusable items come from. */
+  library: '<rect x="2" y="2.5" width="3" height="11" rx=".6"/><rect x="6.4" y="2.5" width="3" height="11" rx=".6"/><path d="M10.4 3.6l2.8-.8 2.3 9.9-2.8.8z" stroke-linejoin="round"/>',
   /* Three dots in a row. It exists because the overflow button used to be `drag`
      rotated 90 degrees, and a 3x2 dot grid beside a 2x3 dot grid is the same glyph
      twice at 12px — "drag to move" and "everything else" were indistinguishable. */
@@ -10383,9 +10418,9 @@ var PC_UI = (() => {
   };
   var __copyProps = (to, from, except, desc) => {
     if (from && typeof from === "object" || typeof from === "function") {
-      for (let key of __getOwnPropNames(from))
-        if (!__hasOwnProp.call(to, key) && key !== except)
-          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      for (let key2 of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key2) && key2 !== except)
+          __defProp(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable });
     }
     return to;
   };
@@ -11032,7 +11067,7 @@ var PC_UI = (() => {
     style.textContent = css;
     document.head.append(style);
     let host;
-    const records = /* @__PURE__ */ new Map(), pending = /* @__PURE__ */ new WeakMap(), keys = /* @__PURE__ */ new WeakMap(), jobs = /* @__PURE__ */ new Set();
+    const records = /* @__PURE__ */ new Map(), pending2 = /* @__PURE__ */ new WeakMap(), keys = /* @__PURE__ */ new WeakMap(), jobs = /* @__PURE__ */ new Set();
     let sequence = 0;
     const paths = {
       info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>',
@@ -11042,7 +11077,7 @@ var PC_UI = (() => {
     };
     const icon = (name) => '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + paths[name] + "</svg>";
     const destination = () => [...document.querySelectorAll('dialog[open], [role="dialog"][aria-modal="true"]')].filter((node) => !node.closest("[hidden]") && (!node.matches("dialog") || node.open)).at(-1) || document.body;
-    const place = () => {
+    const place2 = () => {
       if (!host) return;
       const parent = destination();
       if (host.parentElement !== parent) parent.append(host);
@@ -11115,14 +11150,14 @@ var PC_UI = (() => {
       record.mark.innerHTML = icon(tone);
       record.text.setAttribute("role", tone === "error" ? "alert" : "status");
       record.text.textContent = String(message);
-      place();
+      place2();
       record.remaining = options.duration ?? (tone === "progress" ? 0 : 5e3);
       resume();
-      if (records.size > 5) for (const [key, r3] of records) {
+      if (records.size > 5) for (const [key2, r3] of records) {
         if (records.size <= 5) break;
-        if (key !== id && r3.node.dataset.tone !== "progress") {
+        if (key2 !== id && r3.node.dataset.tone !== "progress") {
           clearTimeout(r3.timer);
-          records.delete(key);
+          records.delete(key2);
           const motion = window.__pcMotion;
           if (motion) motion.exit(r3.node, { kind: "notification", remove: true });
           else r3.node.remove();
@@ -11140,19 +11175,19 @@ var PC_UI = (() => {
       });
       return !visibleText && Boolean(control.getAttribute("aria-label") || control.getAttribute("title"));
     };
-    const begin = (button, message, key, options = {}) => {
-      if (button && pending.has(button)) return null;
+    const begin = (button, message, key2, options = {}) => {
+      if (button && pending2.has(button)) return null;
       if (button && !keys.has(button)) keys.set(button, "button-" + ++sequence);
       const notice = options.announce === false ? { update: () => {
       }, success: () => {
       }, error: () => {
       }, dismiss: () => {
-      } } : notify(message, { tone: "progress", ...key ? { id: "job-" + key } : button ? { id: keys.get(button) } : {} });
+      } } : notify(message, { tone: "progress", ...key2 ? { id: "job-" + key2 } : button ? { id: keys.get(button) } : {} });
       const iconOnly = isIconOnly(button);
       const snapshot = button ? { html: button.innerHTML, disabled: button.disabled, busy: button.getAttribute("aria-busy"), label: button.getAttribute("aria-label"), ariaDisabled: button.getAttribute("aria-disabled"), iconOnly } : null;
       let done = false;
       if (button) {
-        pending.set(button, true);
+        pending2.set(button, true);
         button.disabled = true;
         button.setAttribute("aria-busy", "true");
         button.setAttribute("aria-disabled", "true");
@@ -11167,7 +11202,7 @@ var PC_UI = (() => {
         if (done) return false;
         done = true;
         if (button) {
-          pending.delete(button);
+          pending2.delete(button);
           button.innerHTML = snapshot.html;
           button.disabled = snapshot.disabled;
           button.removeAttribute("data-pc-pending");
@@ -11188,11 +11223,11 @@ var PC_UI = (() => {
       } };
     };
     const run = async (options, work) => {
-      const key = options.key || options.button;
-      if (key && jobs.has(key)) return { status: "busy" };
+      const key2 = options.key || options.button;
+      if (key2 && jobs.has(key2)) return { status: "busy" };
       const action = begin(options.button || null, options.pending, options.key);
       if (!action) return { status: "busy" };
-      if (key) jobs.add(key);
+      if (key2) jobs.add(key2);
       try {
         if (options.paint) await new Promise((resolve) => {
           const timer = setTimeout(resolve, 100);
@@ -11217,7 +11252,7 @@ var PC_UI = (() => {
         action.error(message);
         return { status: "error", error, message };
       } finally {
-        if (key) jobs.delete(key);
+        if (key2) jobs.delete(key2);
       }
     };
     const flash = (message, path = location.pathname) => {
@@ -11239,7 +11274,7 @@ var PC_UI = (() => {
     if (document.body) restoreFlash();
     else document.addEventListener("DOMContentLoaded", restoreFlash, { once: true });
     const observer = new MutationObserver(() => {
-      if (host && host.parentElement !== destination()) place();
+      if (host && host.parentElement !== destination()) place2();
     });
     observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["open", "hidden"] });
     const destroy = () => {
@@ -11393,12 +11428,12 @@ var PC_UI = (() => {
 
   // app/src/ui/Cms.tsx
   function CollectionRow({ col }) {
-    const pending = A2(false);
+    const pending2 = A2(false);
     const [busy, setBusy] = d2(false);
     const n2 = (k3, word) => `${k3} ${word}${k3 === 1 ? "" : "s"}`;
     const remove = async (e3) => {
       e3.stopPropagation();
-      if (pending.current) return;
+      if (pending2.current) return;
       const ok = await L2.askConfirm(
         "Delete this collection?",
         `<b>${esc(col.name)}</b> and its ${n2(col.items.length, "item")}. Anything bound to its fields falls back to placeholder text.`,
@@ -11409,7 +11444,7 @@ var PC_UI = (() => {
         C2.edit(() => C2.collectionDelete(col.id));
         return;
       }
-      pending.current = true;
+      pending2.current = true;
       setBusy(true);
       const feedback = installActionFeedback().notify("Deleting collection\u2026", { tone: "progress" });
       try {
@@ -11421,7 +11456,7 @@ var PC_UI = (() => {
           "Collection could not be deleted. Try again."
         ));
       } finally {
-        pending.current = false;
+        pending2.current = false;
         setBusy(false);
       }
     };
@@ -11452,10 +11487,10 @@ var PC_UI = (() => {
   }
   function Cms() {
     const list2 = C2.collections();
-    const pending = A2(false);
+    const pending2 = A2(false);
     const [busy, setBusy] = d2(false);
     const add = async () => {
-      if (pending.current) return;
+      if (pending2.current) return;
       const name = await L2.askText(
         "New collection",
         "Name",
@@ -11472,7 +11507,7 @@ var PC_UI = (() => {
         return;
       }
       const id = C2.uniqueId(name, C2.collections().map((c3) => c3.id));
-      pending.current = true;
+      pending2.current = true;
       setBusy(true);
       const feedback = installActionFeedback().notify("Creating collection\u2026", { tone: "progress" });
       try {
@@ -11485,7 +11520,7 @@ var PC_UI = (() => {
           "Collection could not be created. Try again."
         ));
       } finally {
-        pending.current = false;
+        pending2.current = false;
         setBusy(false);
       }
     };
@@ -11570,9 +11605,9 @@ var PC_UI = (() => {
       (p3) => !p3.collection && p3.slug === `${col.slug}/${item.slug}`
     ))
       errors._slug = "This URL is already in use.";
-    for (const key of Object.keys(item.values))
-      if (!col.fields.some((f4) => f4.id === key))
-        errors[key] = "This field no longer exists.";
+    for (const key2 of Object.keys(item.values))
+      if (!col.fields.some((f4) => f4.id === key2))
+        errors[key2] = "This field no longer exists.";
     for (const f4 of col.fields) {
       const value = item.values[f4.id] ?? "";
       const fail = (message) => {
@@ -11709,14 +11744,14 @@ var PC_UI = (() => {
       return target;
     };
     return headers.map((header) => {
-      const key = norm(header);
-      if (!key) return IMPORT_SKIP;
+      const key2 = norm(header);
+      if (!key2) return IMPORT_SKIP;
       for (const reserved of RESERVED) {
         const label = reserved.slice(1);
-        if (!taken.has(reserved) && (key === label || key === "entry" + label)) return take(reserved);
+        if (!taken.has(reserved) && (key2 === label || key2 === "entry" + label)) return take(reserved);
       }
       const field = col.fields.find(
-        (f4) => !taken.has(f4.id) && (norm(f4.name) === key || norm(f4.id) === key)
+        (f4) => !taken.has(f4.id) && (norm(f4.name) === key2 || norm(f4.id) === key2)
       );
       return field ? take(field.id) : IMPORT_SKIP;
     });
@@ -11810,9 +11845,9 @@ var PC_UI = (() => {
   }
 
   // app/src/ui/useProcessingAction.ts
-  function useProcessingAction(key) {
+  function useProcessingAction(key2) {
     const [label, setLabel] = d2("");
-    const pending = A2(false), mounted = A2(true);
+    const pending2 = A2(false), mounted = A2(true);
     h2(() => {
       mounted.current = true;
       return () => {
@@ -11820,22 +11855,22 @@ var PC_UI = (() => {
       };
     }, []);
     const run = async (options, work) => {
-      if (pending.current) return { status: "busy" };
-      pending.current = true;
+      if (pending2.current) return { status: "busy" };
+      pending2.current = true;
       setLabel(options.pending);
       try {
-        return await installActionFeedback().run({ ...options, key }, work);
+        return await installActionFeedback().run({ ...options, key: key2 }, work);
       } finally {
-        pending.current = false;
+        pending2.current = false;
         if (mounted.current) setLabel("");
       }
     };
-    return { busy: !!label, label, run, isPending: () => pending.current };
+    return { busy: !!label, label, run, isPending: () => pending2.current };
   }
 
   // app/src/ui/useImageUpload.ts
-  function useImageUpload(key, take, multiple = false, disabled = false) {
-    const action = useProcessingAction(key);
+  function useImageUpload(key2, take, multiple = false, disabled = false) {
+    const action = useProcessingAction(key2);
     const uploadFiles = async (files) => {
       const selected = Array.from(files || []);
       if (!selected.length || disabled) return;
@@ -11870,13 +11905,13 @@ var PC_UI = (() => {
 
   // app/src/ui/AssetField.tsx
   function AssetField({ value, note, onChange, disabled = false }) {
-    const key = g2();
-    const { busy, choose, takeFiles } = useImageUpload("asset-field-" + key, (ids) => onChange("asset:" + ids[ids.length - 1]), false, disabled);
+    const key2 = g2();
+    const { busy, choose, takeFiles } = useImageUpload("asset-field-" + key2, (ids) => onChange("asset:" + ids[ids.length - 1]), false, disabled);
     const ref = String(value || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
     const a3 = ref ? L2.asset(ref[1]) : null;
     const shared = isTemplateImage(String(value || ""));
     const hasImage = !!a3 || shared;
-    const commit = (v3) => {
+    const commit2 = (v3) => {
       onChange(v3);
       L2.writeNow();
     };
@@ -11895,7 +11930,7 @@ var PC_UI = (() => {
           ] }) : null
         ] }),
         /* @__PURE__ */ u2("button", { type: "button", class: "x", disabled: disabled || busy, title: "Remove", onClick: () => {
-          commit("");
+          commit2("");
           L2.toast("Image removed from this field.");
         }, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
       ] }) : /* @__PURE__ */ u2(
@@ -11941,7 +11976,7 @@ var PC_UI = (() => {
             title: "Pick from the Media library",
             onClick: async () => {
               const id = await L2.mediaPicker();
-              if (id) commit("asset:" + id);
+              if (id) commit2("asset:" + id);
             },
             children: [
               /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
@@ -11966,7 +12001,7 @@ var PC_UI = (() => {
     /[&<>"']/g,
     (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]
   );
-  var importErrorLabel = (col, key) => key === "_slug" ? "URL slug: " : key === "_id" ? "Entry ID: " : key.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key)?.name || key}: `;
+  var importErrorLabel = (col, key2) => key2 === "_slug" ? "URL slug: " : key2 === "_id" ? "Entry ID: " : key2.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key2)?.name || key2}: `;
   var PAGE_SIZE = 25;
   function CmsWorkspace({
     collectionId,
@@ -11983,7 +12018,7 @@ var PC_UI = (() => {
     const [status, setStatus] = d2("all");
     const [page2, setPage] = d2(0);
     const [busy, setBusy] = d2(false);
-    const pending = A2(false);
+    const pending2 = A2(false);
     const [actionLabel, setActionLabel] = d2("");
     const [errors, setErrors] = d2({});
     const [notice, setNotice] = d2("");
@@ -12001,7 +12036,7 @@ var PC_UI = (() => {
       const navigate = (event) => {
         const target = event.target;
         if (target.closest("#undoBtn, #redoBtn")) {
-          if (busy || pending.current || !discard()) {
+          if (busy || pending2.current || !discard()) {
             event.preventDefault();
             event.stopImmediatePropagation();
             return;
@@ -12053,7 +12088,7 @@ var PC_UI = (() => {
       setBaseline("");
     };
     const historyStep = (which) => {
-      if (busy || pending.current || !discard()) return;
+      if (busy || pending2.current || !discard()) return;
       reset();
       setNotice("");
       if (which === "undo") C2.undo();
@@ -12061,16 +12096,16 @@ var PC_UI = (() => {
       refresh((n2) => n2 + 1);
     };
     const openEntry = (item) => {
-      if (pending.current || !discard()) return;
+      if (pending2.current || !discard()) return;
       const next = item ? copy(item) : { id: C2.uid(), slug: "", draft: 1, values: {} };
       reset();
       setEntry(next);
       setBaseline(item ? JSON.stringify(next) : "");
       setNotice("");
     };
-    const commit = async (next, label, success) => {
-      if (pending.current) return false;
-      pending.current = true;
+    const commit2 = async (next, label, success) => {
+      if (pending2.current) return false;
+      pending2.current = true;
       setBusy(true);
       setActionLabel(label);
       setNotice("");
@@ -12090,11 +12125,11 @@ var PC_UI = (() => {
         return true;
       } finally {
         setBusy(false);
-        pending.current = false;
+        pending2.current = false;
       }
     };
     const saveEntry = async () => {
-      if (!entry || pending.current) return;
+      if (!entry || pending2.current) return;
       const next = copy(entry);
       next.slug = next.slug || C2.slugify(next.values[C2.titleField(col)?.id || "title"] || "");
       next.slugLocked = 1;
@@ -12123,13 +12158,13 @@ var PC_UI = (() => {
       const at = target.items.findIndex((i3) => i3.id === next.id);
       if (at < 0) target.items.push(next);
       else target.items[at] = next;
-      if (await commit(collections2, "Saving entry\u2026", "Entry saved.")) {
+      if (await commit2(collections2, "Saving entry\u2026", "Entry saved.")) {
         setEntry(next);
         setBaseline(JSON.stringify(next));
       }
     };
     const saveSchema = async () => {
-      if (!schema || pending.current) return;
+      if (!schema || pending2.current) return;
       const invalid = {};
       if (!schema.name.trim()) invalid._schema = "Give this collection a name.";
       schema.fields.forEach((f4) => {
@@ -12145,10 +12180,10 @@ var PC_UI = (() => {
       }
       const next = copy(C2.collections());
       next[next.findIndex((c3) => c3.id === id)] = copy(schema);
-      if (await commit(next, "Saving collection\u2026", "Collection saved.")) setBaseline(JSON.stringify(schema));
+      if (await commit2(next, "Saving collection\u2026", "Collection saved.")) setBaseline(JSON.stringify(schema));
     };
     const removeEntry = async (item) => {
-      if (pending.current) return;
+      if (pending2.current) return;
       if (!window.confirm(
         `Delete \u201C${C2.itemTitle(col, item) || item.slug}\u201D? References to this entry will need updating. Its public page is removed on the next site publish.`
       ))
@@ -12157,7 +12192,7 @@ var PC_UI = (() => {
       next.find((c3) => c3.id === id).items = col.items.filter(
         (i3) => i3.id !== item.id
       );
-      await commit(next, "Deleting entry\u2026", "Entry deleted.");
+      await commit2(next, "Deleting entry\u2026", "Entry deleted.");
     };
     const importAssets = (file) => {
       const ids = /* @__PURE__ */ new Set();
@@ -12195,9 +12230,9 @@ var PC_UI = (() => {
       setImporting({ name: file.name, table, mapping: suggestMapping(table[0], col) });
     };
     const runImport = async () => {
-      if (!plan?.collections || pending.current) return;
+      if (!plan?.collections || pending2.current) return;
       const count = plan.creates + plan.updates;
-      if (await commit(
+      if (await commit2(
         plan.collections,
         "Importing entries\u2026",
         `${count} ${count === 1 ? "entry" : "entries"} imported.`
@@ -12207,7 +12242,7 @@ var PC_UI = (() => {
       }
     };
     const bulkDraft = async (draft) => {
-      if (pending.current) return;
+      if (pending2.current) return;
       const next = copy(C2.collections());
       const target = next.find((c3) => c3.id === id);
       let changed = 0;
@@ -12224,7 +12259,7 @@ var PC_UI = (() => {
         return;
       }
       const entries = `${changed} ${changed === 1 ? "entry" : "entries"}`;
-      if (await commit(
+      if (await commit2(
         next,
         draft ? "Holding entries back\u2026" : "Including entries\u2026",
         draft ? `${entries} held back from the next publish.` : `${entries} included on the next publish.`
@@ -12240,7 +12275,7 @@ var PC_UI = (() => {
       setPage(0);
     };
     const saveView = async () => {
-      if (pending.current) return;
+      if (pending2.current) return;
       const name = await L2.askText("Save this view", "Name", "Drafts to finish", {
         ok: "Save view",
         note: "Saves the current search and status filter, not the entries themselves."
@@ -12250,17 +12285,17 @@ var PC_UI = (() => {
       const target = next.find((c3) => c3.id === id);
       const view = { id: C2.uid(), name: name.trim(), search, status };
       target.views = [...target.views || [], view];
-      if (await commit(next, "Saving view\u2026", `View \u201C${view.name}\u201D saved.`)) setViewId(view.id);
+      if (await commit2(next, "Saving view\u2026", `View \u201C${view.name}\u201D saved.`)) setViewId(view.id);
     };
     const deleteView = async () => {
       const view = activeView;
-      if (!view || pending.current) return;
+      if (!view || pending2.current) return;
       if (!await L2.askConfirm("Delete this view?", `<b>${esc2(view.name)}</b> only. Entries are untouched.`, { ok: "Delete view" }))
         return;
       const next = copy(C2.collections());
       const target = next.find((c3) => c3.id === id);
       target.views = (target.views || []).filter((v3) => v3.id !== view.id);
-      if (await commit(next, "Deleting view\u2026", "View deleted.")) applyView(null);
+      if (await commit2(next, "Deleting view\u2026", "View deleted.")) applyView(null);
     };
     const updateField = (fid, changes) => setSchema(
       (old) => old && {
@@ -12296,10 +12331,10 @@ var PC_UI = (() => {
         ref: root,
         onKeyDown: (e3) => {
           e3.stopPropagation();
-          const command = e3.metaKey || e3.ctrlKey, key = e3.key.toLowerCase();
-          if (command && (key === "z" || key === "y") && !e3.target.closest('input, textarea, select, [contenteditable="true"]')) {
+          const command = e3.metaKey || e3.ctrlKey, key2 = e3.key.toLowerCase();
+          if (command && (key2 === "z" || key2 === "y") && !e3.target.closest('input, textarea, select, [contenteditable="true"]')) {
             e3.preventDefault();
-            historyStep(key === "y" || e3.shiftKey ? "redo" : "undo");
+            historyStep(key2 === "y" || e3.shiftKey ? "redo" : "undo");
             return;
           }
           if ((e3.metaKey || e3.ctrlKey) && e3.key.toLowerCase() === "s") {
@@ -12393,8 +12428,8 @@ var PC_UI = (() => {
               ] }),
               dirty && /* @__PURE__ */ u2("p", { class: "cms-notice", role: "status", children: "Unsaved changes" }),
               notice && !dirty && !entry && !schema && /* @__PURE__ */ u2("p", { class: "cms-notice", role: "status", children: notice }),
-              Object.keys(errors).some((key) => key !== "_save") && /* @__PURE__ */ u2("div", { class: "cms-errors", role: "alert", children: Object.entries(errors).filter(([key]) => key !== "_save").map(([key, message]) => /* @__PURE__ */ u2("p", { children: [
-                key.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key)?.name || key}: `,
+              Object.keys(errors).some((key2) => key2 !== "_save") && /* @__PURE__ */ u2("div", { class: "cms-errors", role: "alert", children: Object.entries(errors).filter(([key2]) => key2 !== "_save").map(([key2, message]) => /* @__PURE__ */ u2("p", { children: [
+                key2.startsWith("_") ? "" : `${col.fields.find((f4) => f4.id === key2)?.name || key2}: `,
                 message
               ] })) }),
               entry ? /* @__PURE__ */ u2(
@@ -12707,7 +12742,7 @@ var PC_UI = (() => {
                     r3.title,
                     ":",
                     " ",
-                    Object.entries(r3.errors).map(([key, message]) => importErrorLabel(col, key) + message).join(" ")
+                    Object.entries(r3.errors).map(([key2, message]) => importErrorLabel(col, key2) + message).join(" ")
                   ] }, r3.line)),
                   plan.invalid > 20 && /* @__PURE__ */ u2("p", { children: [
                     "\u2026and ",
@@ -13064,6 +13099,1015 @@ var PC_UI = (() => {
     return affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
   }
 
+  // app/src/core/libraries.ts
+  var FOUNDATION = {
+    color: /* @__PURE__ */ new Set(["text", "bg", "brand", "ink", "muted", "muted-i", "slate", "line", "surface"]),
+    textStyle: /* @__PURE__ */ new Set(["display", "title", "subtitle", "lead", "body", "small", "eyebrow", "btn"])
+  };
+  var isFoundation = (kind, id) => !!FOUNDATION[kind]?.has(id);
+  var key = (kind, id) => `${kind}:${id}`;
+  var COLOR_REF = /var\(--c-([\w-]+)\)/g;
+  var ASSET_REF = /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)/g;
+  function canonical(value) {
+    if (value === null || typeof value !== "object") return JSON.stringify(value ?? null);
+    if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+    const entries = Object.entries(value).filter(([, v3]) => v3 !== void 0).sort(([a3], [b2]) => a3 < b2 ? -1 : a3 > b2 ? 1 : 0);
+    return `{${entries.map(([k3, v3]) => `${JSON.stringify(k3)}:${canonical(v3)}`).join(",")}}`;
+  }
+  var K2 = Uint32Array.from([
+    1116352408,
+    1899447441,
+    3049323471,
+    3921009573,
+    961987163,
+    1508970993,
+    2453635748,
+    2870763221,
+    3624381080,
+    310598401,
+    607225278,
+    1426881987,
+    1925078388,
+    2162078206,
+    2614888103,
+    3248222580,
+    3835390401,
+    4022224774,
+    264347078,
+    604807628,
+    770255983,
+    1249150122,
+    1555081692,
+    1996064986,
+    2554220882,
+    2821834349,
+    2952996808,
+    3210313671,
+    3336571891,
+    3584528711,
+    113926993,
+    338241895,
+    666307205,
+    773529912,
+    1294757372,
+    1396182291,
+    1695183700,
+    1986661051,
+    2177026350,
+    2456956037,
+    2730485921,
+    2820302411,
+    3259730800,
+    3345764771,
+    3516065817,
+    3600352804,
+    4094571909,
+    275423344,
+    430227734,
+    506948616,
+    659060556,
+    883997877,
+    958139571,
+    1322822218,
+    1537002063,
+    1747873779,
+    1955562222,
+    2024104815,
+    2227730452,
+    2361852424,
+    2428436474,
+    2756734187,
+    3204031479,
+    3329325298
+  ]);
+  function sha256(text) {
+    const bytes = new TextEncoder().encode(text);
+    const bitLength = bytes.length * 8;
+    const padded = new Uint8Array(bytes.length + 9 + 63 >> 6 << 6);
+    padded.set(bytes);
+    padded[bytes.length] = 128;
+    const view = new DataView(padded.buffer);
+    view.setUint32(padded.length - 8, Math.floor(bitLength / 4294967296));
+    view.setUint32(padded.length - 4, bitLength >>> 0);
+    const h3 = Uint32Array.from([1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225]);
+    const w3 = new Uint32Array(64);
+    const rotr = (x2, n2) => x2 >>> n2 | x2 << 32 - n2;
+    for (let offset = 0; offset < padded.length; offset += 64) {
+      for (let i3 = 0; i3 < 16; i3++) w3[i3] = view.getUint32(offset + i3 * 4);
+      for (let i3 = 16; i3 < 64; i3++) {
+        const s0 = rotr(w3[i3 - 15], 7) ^ rotr(w3[i3 - 15], 18) ^ w3[i3 - 15] >>> 3;
+        const s1 = rotr(w3[i3 - 2], 17) ^ rotr(w3[i3 - 2], 19) ^ w3[i3 - 2] >>> 10;
+        w3[i3] = w3[i3 - 16] + s0 + w3[i3 - 7] + s1 >>> 0;
+      }
+      let [a3, b2, c3, d3, e3, f4, g3, hh] = h3;
+      for (let i3 = 0; i3 < 64; i3++) {
+        const t1 = hh + (rotr(e3, 6) ^ rotr(e3, 11) ^ rotr(e3, 25)) + (e3 & f4 ^ ~e3 & g3) + K2[i3] + w3[i3] >>> 0;
+        const t22 = (rotr(a3, 2) ^ rotr(a3, 13) ^ rotr(a3, 22)) + (a3 & b2 ^ a3 & c3 ^ b2 & c3) >>> 0;
+        hh = g3;
+        g3 = f4;
+        f4 = e3;
+        e3 = d3 + t1 >>> 0;
+        d3 = c3;
+        c3 = b2;
+        b2 = a3;
+        a3 = t1 + t22 >>> 0;
+      }
+      h3[0] += a3;
+      h3[1] += b2;
+      h3[2] += c3;
+      h3[3] += d3;
+      h3[4] += e3;
+      h3[5] += f4;
+      h3[6] += g3;
+      h3[7] += hh;
+    }
+    return Array.from(h3, (x2) => (x2 >>> 0).toString(16).padStart(8, "0")).join("");
+  }
+  var clone2 = (value) => JSON.parse(JSON.stringify(value));
+  var eachNode = (node, visit) => {
+    visit(node);
+    (node.children || []).forEach((child) => eachNode(child, visit));
+  };
+  var eachString = (value, visit) => {
+    if (typeof value === "string") visit(value);
+    else if (Array.isArray(value)) value.forEach((item) => eachString(item, visit));
+    else if (value && typeof value === "object") Object.values(value).forEach((item) => eachString(item, visit));
+  };
+  var mapStrings = (value, map) => {
+    if (typeof value === "string") return map(value);
+    if (Array.isArray(value)) return value.map((item) => mapStrings(item, map));
+    if (value && typeof value === "object") {
+      return Object.fromEntries(Object.entries(value).map(([k3, v3]) => [k3, mapStrings(v3, map)]));
+    }
+    return value;
+  };
+  function referencesOf(kind, item) {
+    const refs = [];
+    const assets = /* @__PURE__ */ new Set();
+    const cms = [];
+    eachString(item, (s3) => {
+      for (const m3 of s3.matchAll(COLOR_REF)) refs.push({ kind: "color", id: m3[1] });
+      for (const m3 of s3.matchAll(ASSET_REF)) assets.add(m3[1]);
+    });
+    const root = kind === "component" ? item.node : kind === "block" ? item.node : null;
+    if (root) eachNode(root, (n2) => {
+      if (n2.use) refs.push({ kind: "component", id: n2.use });
+      (n2.cls || []).forEach((id) => refs.push({ kind: "class", id }));
+      const ts = n2.props?.ts;
+      if (typeof ts === "string" && ts) refs.push({ kind: "textStyle", id: ts });
+      if (n2.src) cms.push(`collection ${n2.src}`);
+      Object.values(n2.bind || {}).forEach((binding) => {
+        if (binding.src === "field") cms.push(`field ${binding.path}`);
+      });
+    });
+    if (kind === "component") {
+      const own = item.id;
+      return { refs: refs.filter((r3) => !(r3.kind === "component" && r3.id === own)), assets: [...assets], cms };
+    }
+    return { refs, assets: [...assets], cms };
+  }
+  var rename = (renames, kind, id) => renames[kind]?.get(id) ?? id;
+  function rewrite(kind, item, renames, assets = {}) {
+    const strings = mapStrings(item, (s3) => s3.replace(COLOR_REF, (_3, id) => `var(--c-${rename(renames, "color", id)})`).replace(ASSET_REF, (whole, id) => assets[id] ? `asset:${assets[id]}` : whole));
+    const root = kind === "component" ? strings.node : kind === "block" ? strings.node : null;
+    if (root) eachNode(root, (n2) => {
+      if (n2.use) n2.use = rename(renames, "component", n2.use);
+      if (n2.cls) n2.cls = n2.cls.map((id) => rename(renames, "class", id));
+      const props = n2.props;
+      if (props && typeof props.ts === "string" && props.ts) props.ts = rename(renames, "textStyle", props.ts);
+    });
+    return strings;
+  }
+  function normalised(kind, item) {
+    const copy2 = clone2(item);
+    delete copy2.id;
+    const root = kind === "component" || kind === "block" ? copy2.node : void 0;
+    if (root) eachNode(root, (n2) => {
+      delete n2.id;
+      if (n2.adv && "htmlId" in n2.adv) delete n2.adv.htmlId;
+    });
+    return canonical({ kind, item: copy2 });
+  }
+  var itemHash = (kind, item) => sha256(normalised(kind, item));
+  var listsOf = (doc) => ({
+    component: doc.meta.components || [],
+    block: doc.meta.blocks || [],
+    color: doc.meta.tokens?.colors || [],
+    textStyle: doc.meta.tokens?.text || [],
+    class: doc.meta.tokens?.classes || []
+  });
+  var bundleLists = (bundle) => ({
+    component: bundle.components,
+    block: bundle.blocks,
+    color: bundle.colors,
+    textStyle: bundle.textStyles,
+    class: bundle.classes
+  });
+  var find = (lists, kind, id) => lists[kind].find((item) => item.id === id);
+  var LibraryError = class extends Error {
+    problems;
+    constructor(problems) {
+      super(problems.join(" "));
+      this.problems = problems;
+    }
+  };
+  function extractLibraryBundle(doc, chosen, schemaVersion) {
+    const lists = listsOf(doc);
+    const problems = [];
+    const seen = /* @__PURE__ */ new Map();
+    const assets = /* @__PURE__ */ new Set();
+    const queue = [...chosen];
+    while (queue.length) {
+      const ref = queue.shift();
+      if (seen.has(key(ref.kind, ref.id))) continue;
+      const item = find(lists, ref.kind, ref.id);
+      if (!item) {
+        if (!isFoundation(ref.kind, ref.id)) problems.push(`Missing ${ref.kind} "${ref.id}".`);
+        continue;
+      }
+      seen.set(key(ref.kind, ref.id), { kind: ref.kind, item });
+      const found = referencesOf(ref.kind, item);
+      found.cms.forEach((what) => problems.push(`${ref.kind} "${ref.id}" uses CMS ${what}; libraries do not carry CMS yet.`));
+      found.assets.forEach((id) => assets.add(id));
+      queue.push(...found.refs);
+    }
+    if (problems.length) throw new LibraryError([...new Set(problems)]);
+    const of = (kind) => [...seen.values()].filter((v3) => v3.kind === kind).map((v3) => clone2(v3.item));
+    const bundle = {
+      format: "pagecraft.library.v1",
+      schemaVersion,
+      chosen: chosen.map(({ kind, id }) => ({ kind, id })),
+      components: of("component"),
+      blocks: of("block"),
+      colors: of("color"),
+      textStyles: of("textStyle"),
+      classes: of("class"),
+      assets: [...assets].sort(),
+      hashes: {}
+    };
+    for (const [k3, v3] of seen) bundle.hashes[k3] = itemHash(v3.kind, v3.item);
+    return bundle;
+  }
+  var fallbackSeq = 0;
+  var fallbackId = () => `l${Date.now().toString(36).slice(-5)}${(fallbackSeq++).toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
+  var KINDS_IN_ORDER = ["color", "textStyle", "class", "component", "block"];
+  function closure(bundle, chosen) {
+    const lists = bundleLists(bundle);
+    const out = /* @__PURE__ */ new Map();
+    const queue = [...chosen];
+    while (queue.length) {
+      const ref = queue.shift();
+      if (out.has(key(ref.kind, ref.id))) continue;
+      const item = find(lists, ref.kind, ref.id);
+      if (!item) continue;
+      out.set(key(ref.kind, ref.id), ref);
+      queue.push(...referencesOf(ref.kind, item).refs);
+    }
+    return [...out.values()];
+  }
+  var freeId = (taken, base) => {
+    if (!taken.has(base)) return base;
+    for (let n2 = 2; ; n2++) if (!taken.has(`${base}-${n2}`)) return `${base}-${n2}`;
+  };
+  function place(doc, kind, item) {
+    const meta = doc.meta;
+    if (kind === "component") (meta.components ||= []).push(item);
+    else if (kind === "block") meta.blocks.push(item);
+    else {
+      meta.tokens ||= { colors: [], text: [], classes: [] };
+      const list2 = kind === "color" ? meta.tokens.colors : kind === "textStyle" ? meta.tokens.text : meta.tokens.classes;
+      list2.push(item);
+    }
+  }
+  function replaceItem(doc, kind, id, item) {
+    const lists = listsOf(doc);
+    const list2 = lists[kind];
+    const at = list2.findIndex((existing) => existing.id === id);
+    if (at >= 0) list2[at] = item;
+  }
+  var reidTree = (node, newId) => eachNode(node, (n2) => {
+    n2.id = newId();
+    if (n2.adv && n2.adv.htmlId) n2.adv.htmlId = "";
+  });
+  function importAssetsNeeded(bundle, chosen) {
+    const lists = bundleLists(bundle);
+    const needed = /* @__PURE__ */ new Set();
+    closure(bundle, chosen).forEach((ref) => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach((id) => needed.add(id)));
+    return [...needed].sort();
+  }
+  function planLibraryImport(doc, bundle, source, chosen, options = {}) {
+    if (bundle.format !== "pagecraft.library.v1") throw new LibraryError(["Unknown library format."]);
+    const lists = bundleLists(bundle);
+    const absent = chosen.filter((ref) => !find(lists, ref.kind, ref.id));
+    if (absent.length) throw new LibraryError(absent.map((ref) => `This version has no ${ref.kind} "${ref.id}".`));
+    const next = clone2(doc);
+    const newId = options.newId || fallbackId;
+    const assetMap = options.assets || {};
+    const refs = closure(bundle, chosen);
+    const needed = importAssetsNeeded(bundle, chosen);
+    const missing = needed.filter((id) => !assetMap[id]);
+    if (missing.length) throw new LibraryError([`Copy these images into the site first: ${missing.join(", ")}.`]);
+    const renames = {};
+    const items = [];
+    const target = listsOf(next);
+    const links = [...next.meta.libraryLinks || []];
+    for (const kind of KINDS_IN_ORDER) {
+      const taken = new Set(target[kind].map((item) => item.id));
+      for (const ref of refs.filter((r3) => r3.kind === kind)) {
+        const existing = find(target, kind, ref.id);
+        const linked = links.find((l3) => l3.libraryId === source.libraryId && l3.kind === kind && l3.sourceId === ref.id);
+        let localId = ref.id;
+        let how = "added";
+        if (linked && find(target, kind, linked.localId)) {
+          localId = linked.localId;
+          how = "linked";
+        } else if (existing && isFoundation(kind, ref.id)) how = "site-foundation";
+        else if (existing && itemHash(kind, existing) === bundle.hashes[key(kind, ref.id)]) how = "reused";
+        else if (existing) {
+          localId = freeId(taken, ref.id);
+          how = "renamed";
+        }
+        taken.add(localId);
+        (renames[kind] ||= /* @__PURE__ */ new Map()).set(ref.id, localId);
+        items.push({ kind, sourceId: ref.id, localId, how });
+      }
+    }
+    for (const entry of items) {
+      if (entry.how !== "added" && entry.how !== "renamed") continue;
+      const copy2 = rewrite(entry.kind, clone2(find(lists, entry.kind, entry.sourceId)), renames, assetMap);
+      copy2.id = entry.localId;
+      if (copy2.node) reidTree(copy2.node, newId);
+      place(next, entry.kind, copy2);
+    }
+    for (const entry of items) {
+      if (entry.how === "site-foundation" || entry.how === "linked") continue;
+      const local = find(listsOf(next), entry.kind, entry.localId);
+      const link = {
+        libraryId: source.libraryId,
+        version: source.version,
+        kind: entry.kind,
+        sourceId: entry.sourceId,
+        localId: entry.localId,
+        sourceHash: bundle.hashes[key(entry.kind, entry.sourceId)],
+        localHash: itemHash(entry.kind, local)
+      };
+      const at = links.findIndex((l3) => l3.libraryId === link.libraryId && l3.kind === link.kind && l3.sourceId === link.sourceId);
+      if (at >= 0) links[at] = link;
+      else links.push(link);
+    }
+    next.meta.libraryLinks = links;
+    return { doc: next, items, assets: needed };
+  }
+  function instancesOf(doc, id) {
+    const found = [];
+    const visit = (node) => eachNode(node, (n2) => {
+      if (n2.use === id) found.push(n2);
+    });
+    doc.pages.forEach((page2) => page2.tree.forEach(visit));
+    doc.header.forEach(visit);
+    doc.footer.forEach(visit);
+    (doc.meta.components || []).forEach((def) => visit(def.node));
+    doc.meta.blocks.forEach((block) => visit(block.node));
+    return found;
+  }
+  function slotNames(def) {
+    const names2 = /* @__PURE__ */ new Set();
+    eachNode(def.node, (n2) => {
+      if (n2.slot) names2.add(n2.slot);
+    });
+    return names2;
+  }
+  function componentWarnings(doc, localId, before, after) {
+    const warnings = [];
+    const instances = instancesOf(doc, localId);
+    const variants = new Set((after.variants || []).map((v3) => v3.id));
+    const props = new Set(after.props.map((p3) => p3.k));
+    const slots = slotNames(after);
+    const firstSlot = [...slotNames(before)][0];
+    const lostVariant = instances.filter((n2) => n2.variant && !variants.has(n2.variant)).length;
+    const lostValues = instances.filter((n2) => Object.keys(n2.vals || {}).some((k3) => !props.has(k3))).length;
+    const lostSlots = instances.filter((n2) => (n2.children || []).some((child) => {
+      const name = child.slot || firstSlot;
+      return name !== void 0 && !slots.has(name);
+    })).length;
+    if (lostVariant) warnings.push(`${lostVariant} placement(s) use a variant this version removes; they fall back to the default.`);
+    if (lostValues) warnings.push(`${lostValues} placement(s) set a property this version removes; those values are dropped.`);
+    if (lostSlots) warnings.push(`${lostSlots} placement(s) put content in a slot this version removes; that content would disappear.`);
+    return warnings;
+  }
+  function previewLibraryUpdate(doc, bundle, source, resolutions = {}) {
+    return updateScope(doc, bundle, source, resolutions).preview;
+  }
+  function updateScope(doc, bundle, source, resolutions) {
+    const links = (doc.meta.libraryLinks || []).filter((l3) => l3.libraryId === source.libraryId);
+    const lists = bundleLists(bundle);
+    const site = listsOf(doc);
+    const items = [];
+    for (const link of links) {
+      const local = find(site, link.kind, link.localId);
+      const upstream = find(lists, link.kind, link.sourceId);
+      const base = { kind: link.kind, sourceId: link.sourceId, localId: link.localId, warnings: [] };
+      if (!local) {
+        items.push({ ...base, action: "unlink", reason: "deleted-here" });
+        continue;
+      }
+      if (!upstream) {
+        items.push({ ...base, action: "unlink", reason: "upstream-removed" });
+        continue;
+      }
+      const upstreamChanged = bundle.hashes[key(link.kind, link.sourceId)] !== link.sourceHash;
+      const localChanged = itemHash(link.kind, local) !== link.localHash;
+      if (!upstreamChanged) {
+        items.push({ ...base, action: "none", reason: "unchanged" });
+        continue;
+      }
+      items.push({ ...base, action: localChanged ? "conflict" : "update", reason: localChanged ? "changed-both" : "changed-upstream" });
+    }
+    const unresolved = items.filter((i3) => i3.action === "conflict" && !resolutions[key(i3.kind, i3.sourceId)]).map((i3) => key(i3.kind, i3.sourceId));
+    const taking = items.filter((i3) => i3.action === "update" || i3.action === "conflict" && resolutions[key(i3.kind, i3.sourceId)] === "theirs");
+    const renames = {};
+    for (const link of links) (renames[link.kind] ||= /* @__PURE__ */ new Map()).set(link.sourceId, link.localId);
+    for (const item of items.filter((i3) => i3.kind === "component" && (i3.action === "update" || i3.action === "conflict"))) {
+      const before = find(site, "component", item.localId);
+      const after = rewrite("component", clone2(find(lists, "component", item.sourceId)), renames);
+      item.warnings = componentWarnings(doc, item.localId, before, after);
+    }
+    const linkedKeys = new Set(links.map((l3) => key(l3.kind, l3.sourceId)));
+    const newDeps = closure(bundle, taking.map((i3) => ({ kind: i3.kind, id: i3.sourceId }))).filter((ref) => !linkedKeys.has(key(ref.kind, ref.id)));
+    const needed = /* @__PURE__ */ new Set();
+    [...taking.map((i3) => ({ kind: i3.kind, id: i3.sourceId })), ...newDeps].forEach((ref) => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach((id) => needed.add(id)));
+    return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort() } };
+  }
+  function planLibraryUpdate(doc, bundle, source, resolutions = {}, options = {}) {
+    const { lists, items, taking, newDeps, preview } = updateScope(doc, bundle, source, resolutions);
+    const { unresolved } = preview;
+    const needed = preview.assets;
+    if (unresolved.length) return { ...preview, doc: null };
+    const assetMap = options.assets || {};
+    const missing = needed.filter((id) => !assetMap[id]);
+    if (missing.length) throw new LibraryError([`Copy these images into the site first: ${missing.join(", ")}.`]);
+    const newId = options.newId || fallbackId;
+    let next = clone2(doc);
+    if (newDeps.length) next = planLibraryImport(next, bundle, source, newDeps, options).doc;
+    const nextLinks = next.meta.libraryLinks || [];
+    const allRenames = {};
+    for (const link of nextLinks.filter((l3) => l3.libraryId === source.libraryId)) (allRenames[link.kind] ||= /* @__PURE__ */ new Map()).set(link.sourceId, link.localId);
+    for (const item of taking) {
+      const copy2 = rewrite(item.kind, clone2(find(lists, item.kind, item.sourceId)), allRenames, assetMap);
+      copy2.id = item.localId;
+      if (copy2.node) reidTree(copy2.node, newId);
+      replaceItem(next, item.kind, item.localId, copy2);
+    }
+    const touched = new Set(taking.map((i3) => key(i3.kind, i3.sourceId)));
+    const kept = new Set(items.filter((i3) => i3.action === "conflict" && resolutions[key(i3.kind, i3.sourceId)] === "mine").map((i3) => key(i3.kind, i3.sourceId)));
+    const unlinked = new Set(items.filter((i3) => i3.action === "unlink").map((i3) => key(i3.kind, i3.sourceId)));
+    next.meta.libraryLinks = nextLinks.filter((l3) => !(l3.libraryId === source.libraryId && unlinked.has(key(l3.kind, l3.sourceId)))).map((l3) => {
+      if (l3.libraryId !== source.libraryId) return l3;
+      const k3 = key(l3.kind, l3.sourceId);
+      const local = find(listsOf(next), l3.kind, l3.localId);
+      if (touched.has(k3) && local) return { ...l3, version: source.version, sourceHash: bundle.hashes[k3], localHash: itemHash(l3.kind, local) };
+      if (kept.has(k3)) return { ...l3, version: source.version, sourceHash: bundle.hashes[k3] };
+      return { ...l3, version: Math.max(l3.version, source.version), sourceHash: bundle.hashes[k3] ?? l3.sourceHash };
+    });
+    return { items, unresolved, doc: next, assets: needed };
+  }
+
+  // app/src/ui/Libraries.tsx
+  var names = /* @__PURE__ */ new Map();
+  var remember = (library) => {
+    names.set(library.id, library.name);
+  };
+  var linkOf = (kind, localId) => (C2.state.meta.libraryLinks || []).find((l3) => l3.kind === kind && l3.localId === localId) || null;
+  var fromLabel = (link) => `From ${names.get(link.libraryId) || "a library"} \xB7 v${link.version}`;
+  var pending = null;
+  function addToLibrary(ref) {
+    pending = ref;
+    C2.state.ui.atab = "libraries";
+  }
+  var GROUPS = [
+    ["component", "Components"],
+    ["block", "Blocks"],
+    ["textStyle", "Text styles"],
+    ["class", "Classes"],
+    ["color", "Colors"]
+  ];
+  var KIND = {
+    component: "Component",
+    block: "Block",
+    textStyle: "Text style",
+    class: "Class",
+    color: "Color"
+  };
+  var refKey = (ref) => `${ref.kind}:${ref.id}`;
+  var parseKey = (k3) => {
+    const at = k3.indexOf(":");
+    return { kind: k3.slice(0, at), id: k3.slice(at + 1) };
+  };
+  var bundleList = (b2, kind) => kind === "component" ? b2.components : kind === "block" ? b2.blocks : kind === "color" ? b2.colors : kind === "textStyle" ? b2.textStyles : b2.classes;
+  var siteList = (kind) => kind === "component" ? C2.components() : kind === "block" ? C2.blocks() : kind === "color" ? C2.colors() : kind === "textStyle" ? C2.styles() : C2.classes();
+  var siteItem = (kind, id) => siteList(kind).find((item) => item.id === id) || null;
+  var nameOf = (item, fallback) => item && item.name || fallback;
+  var plural = (n2, one, many = one + "s") => `${n2} ${n2 === 1 ? one : many}`;
+  var linksFor = (libraryId) => (C2.state.meta.libraryLinks || []).filter((l3) => l3.libraryId === libraryId);
+  var behind = (library) => {
+    const versions = linksFor(library.id).map((l3) => l3.version);
+    const oldest = versions.length ? Math.min(...versions) : 0;
+    return oldest && oldest < library.latestVersion ? oldest : 0;
+  };
+  function problem(error) {
+    if (error instanceof LibraryError) return error.problems.join(" ");
+    const e3 = error;
+    if (e3?.status === 503) return "Libraries are not available on this server yet.";
+    const detail = e3?.payload?.detail || (Array.isArray(e3?.payload?.problems) ? e3.payload.problems.join(" ") : "");
+    if (detail) return String(detail);
+    const message = String(e3?.message || "").trim();
+    return message && !/^[a-z][a-z0-9_ -]*$/i.test(message) ? message : "That did not work. Try again.";
+  }
+  function useLoad(load, deps) {
+    const [state2, set] = d2({ loading: true });
+    const [nonce, setNonce] = d2(0);
+    h2(() => {
+      let live = true;
+      set((s3) => ({ data: s3.data, loading: true }));
+      load().then(
+        (data) => {
+          if (live) set({ data, loading: false });
+        },
+        (error) => {
+          if (live) set({ error: problem(error), loading: false });
+        }
+      );
+      return () => {
+        live = false;
+      };
+    }, [...deps, nonce]);
+    return { ...state2, reload: () => setNonce((n2) => n2 + 1) };
+  }
+  function commit(doc) {
+    const meta = doc.meta;
+    C2.edit(() => {
+      C2.state.meta = meta;
+    });
+    L2.appRender();
+  }
+  function Libraries() {
+    const libs = L2.libraries();
+    const [view, setView] = d2({ at: "list" });
+    if (!libs) return /* @__PURE__ */ u2("div", { class: "hint", children: "Libraries are available in the hosted editor, for the site\u2019s owner." });
+    const open = (next) => setView(next);
+    return view.at === "list" ? /* @__PURE__ */ u2(LibraryList, { libs, open }) : view.at === "publish" ? /* @__PURE__ */ u2(PublishPick, { libs, id: view.id, open }, view.id) : view.at === "update" ? /* @__PURE__ */ u2(UpdateReview, { libs, id: view.id, open }, view.id) : /* @__PURE__ */ u2(LibraryDetail, { libs, id: view.id, open }, view.id);
+  }
+  function LibraryList({ libs, open }) {
+    const list2 = useLoad(async () => {
+      const all = await libs.list();
+      all.forEach(remember);
+      return all;
+    }, []);
+    const [busy, setBusy] = d2(false);
+    const waiting = pending ? nameOf(siteItem(pending.kind, pending.id), pending.id) : "";
+    const create = async () => {
+      const name = (await L2.askText("New library", "Name", "", {
+        ok: "Create library",
+        note: "A library belongs to your account. Publish to it from any site you own, and import from it into any other."
+      }) || "").trim();
+      if (!name) return;
+      setBusy(true);
+      try {
+        const library = await libs.create(name.slice(0, 80));
+        remember(library);
+        open({ at: pending ? "publish" : "library", id: library.id });
+      } catch (error) {
+        L2.toast(problem(error), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      waiting && /* @__PURE__ */ u2("div", { class: "lib-banner", role: "status", children: [
+        /* @__PURE__ */ u2("span", { children: [
+          "Choose a library for ",
+          /* @__PURE__ */ u2("b", { children: waiting }),
+          ", or create one."
+        ] }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn ghost tiny", onClick: () => {
+          pending = null;
+          list2.reload();
+        }, children: "Cancel" })
+      ] }),
+      list2.error ? /* @__PURE__ */ u2("div", { class: "hint lib-problem", role: "alert", children: [
+        list2.error,
+        " ",
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny", onClick: list2.reload, children: "Try again" })
+      ] }) : !list2.data ? /* @__PURE__ */ u2("div", { class: "hint", "aria-busy": "true", children: "Loading your libraries\u2026" }) : list2.data.length ? list2.data.map((library) => {
+        const old = behind(library);
+        const here = linksFor(library.id).length;
+        return /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "brow lib-row",
+            onClick: () => open({ at: pending ? "publish" : "library", id: library.id }),
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: "library", size: 14 }),
+              /* @__PURE__ */ u2("span", { class: "bn", children: [
+                /* @__PURE__ */ u2("b", { children: library.name }),
+                /* @__PURE__ */ u2("small", { children: [
+                  library.latestVersion ? `Version ${library.latestVersion}` : "Nothing published yet",
+                  old ? " \xB7 Update available" : here ? " \xB7 In this site" : ""
+                ] })
+              ] }),
+              /* @__PURE__ */ u2(Icon, { name: "arrow", size: 12 })
+            ]
+          },
+          library.id
+        );
+      }) : /* @__PURE__ */ u2("div", { class: "hint", children: "No libraries yet. A library keeps components, blocks and styles that you can import into any site you own, and update there when you choose." }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "btn block",
+          disabled: busy,
+          style: { marginTop: "var(--gap-1)", fontSize: "var(--fs-2)" },
+          onClick: create,
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+            " New library"
+          ]
+        }
+      )
+    ] });
+  }
+  function Head({ library, back, sub }) {
+    return /* @__PURE__ */ u2("div", { class: "lib-head", children: [
+      /* @__PURE__ */ u2("button", { type: "button", class: "bx lib-back", title: "Back", "aria-label": "Back", onClick: back, children: /* @__PURE__ */ u2(Icon, { name: "arrow", size: 12, cls: "lib-back-icon" }) }),
+      /* @__PURE__ */ u2("span", { class: "bn", children: [
+        /* @__PURE__ */ u2("b", { children: library ? library.name : "Library" }),
+        sub && /* @__PURE__ */ u2("small", { children: sub })
+      ] })
+    ] });
+  }
+  function useLibrary(libs, id) {
+    return useLoad(async () => {
+      const { library, versions } = await libs.get(id);
+      remember(library);
+      const latest = library.latestVersion ? await libs.version(id, library.latestVersion) : null;
+      return { library, versions, bundle: latest ? latest.bundle : null, summary: latest ? latest.version : null };
+    }, [id]);
+  }
+  function Loading({ state: state2, back }) {
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(Head, { back }),
+      state2.error ? /* @__PURE__ */ u2("div", { class: "hint lib-problem", role: "alert", children: state2.error }) : /* @__PURE__ */ u2("div", { class: "hint", "aria-busy": "true", children: "Loading\u2026" })
+    ] });
+  }
+  function LibraryDetail({ libs, id, open }) {
+    const state2 = useLibrary(libs, id);
+    const [picked, setPicked] = d2(/* @__PURE__ */ new Set());
+    const [busy, setBusy] = d2(false);
+    const back = () => open({ at: "list" });
+    if (!state2.data) return /* @__PURE__ */ u2(Loading, { state: state2, back });
+    const { library, bundle, summary } = state2.data;
+    const site = L2.siteDraft();
+    const fromHere = !!(summary && site && summary.sourceSiteId === site.siteId);
+    const links = linksFor(id);
+    const old = behind(library);
+    const status = (ref) => {
+      const link = links.find((l3) => l3.kind === ref.kind && l3.sourceId === ref.id);
+      const local = link ? siteItem(link.kind, link.localId) : null;
+      if (link && local) return itemHash(link.kind, local) === link.localHash ? `In this site \xB7 v${link.version}` : `In this site \xB7 v${link.version} \xB7 changed here`;
+      if (fromHere) return "Published from this site";
+      return "";
+    };
+    const toggle = (k3, on) => setPicked((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(k3);
+      else next.delete(k3);
+      return next;
+    });
+    const importPicked = async () => {
+      if (!bundle || !summary || !picked.size) return;
+      const chosen = [...picked].map(parseKey);
+      const source = { libraryId: id, version: summary.version };
+      setBusy(true);
+      try {
+        const needed = importAssetsNeeded(bundle, chosen);
+        const assets = needed.length ? await libs.copyAssets({ libraryId: id, version: summary.version, assets: needed }) : {};
+        if (needed.length) await L2.assetsReload();
+        const plan = planLibraryImport(C2.doc(), bundle, source, chosen, { assets, newId: C2.uid });
+        commit(plan.doc);
+        setPicked(/* @__PURE__ */ new Set());
+        const added = plan.items.filter((i3) => i3.how === "added" || i3.how === "renamed").length;
+        const renamed = plan.items.filter((i3) => i3.how === "renamed").length;
+        L2.toast(added ? `Imported ${plural(added, "item")} from ${library.name}` + (renamed ? ` \xB7 ${plural(renamed, "was", "were")} renamed to avoid a clash` : "") : `Already in this site \u2014 now linked to ${library.name}`);
+      } catch (error) {
+        L2.toast(problem(error), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(
+        Head,
+        {
+          library,
+          back,
+          sub: summary && bundle ? `Version ${summary.version} \xB7 ${plural(bundle.chosen.length, "item")}` : "Nothing published yet"
+        }
+      ),
+      old > 0 && /* @__PURE__ */ u2("div", { class: "lib-banner", role: "status", children: [
+        /* @__PURE__ */ u2("span", { children: [
+          /* @__PURE__ */ u2("b", { children: [
+            "Version ",
+            library.latestVersion,
+            " is available."
+          ] }),
+          " This site has version ",
+          old,
+          "."
+        ] }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny primary", onClick: () => open({ at: "update", id }), children: "Review update" })
+      ] }),
+      bundle ? /* @__PURE__ */ u2(S, { children: [
+        GROUPS.map(([kind, label]) => {
+          const chosen = bundle.chosen.filter((ref) => ref.kind === kind);
+          if (!chosen.length) return null;
+          return /* @__PURE__ */ u2("div", { children: [
+            /* @__PURE__ */ u2("div", { class: "plabel", children: label }),
+            chosen.map((ref) => {
+              const k3 = refKey(ref);
+              const note = status(ref);
+              const item = bundleList(bundle, kind).find((i3) => i3.id === ref.id);
+              return /* @__PURE__ */ u2("label", { class: "lib-item" + (note ? " off" : ""), children: [
+                /* @__PURE__ */ u2(
+                  "input",
+                  {
+                    type: "checkbox",
+                    disabled: !!note || busy,
+                    checked: picked.has(k3),
+                    onChange: (e3) => toggle(k3, e3.currentTarget.checked)
+                  }
+                ),
+                /* @__PURE__ */ u2("span", { class: "bn", children: [
+                  /* @__PURE__ */ u2("b", { children: nameOf(item, ref.id) }),
+                  /* @__PURE__ */ u2("small", { children: note || KIND[kind] })
+                ] })
+              ] }, k3);
+            })
+          ] }, kind);
+        }),
+        bundle.chosen.some((ref) => !status(ref)) ? /* @__PURE__ */ u2(S, { children: [
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: "btn primary block",
+              disabled: !picked.size || busy,
+              style: { marginTop: "var(--gap-1)" },
+              onClick: importPicked,
+              children: busy ? "Importing\u2026" : picked.size ? `Import ${plural(picked.size, "item")}` : "Choose items to import"
+            }
+          ),
+          /* @__PURE__ */ u2("p", { class: "lib-note", children: "Imported items become this site\u2019s own. Whatever they use \u2014 nested components, styles, colors and images \u2014 comes with them." })
+        ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: "Everything in this version is already in this site." })
+      ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: "Publish components, blocks or styles from this site to make version 1." }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "btn block",
+          disabled: busy,
+          style: { fontSize: "var(--fs-2)" },
+          onClick: () => open({ at: "publish", id }),
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+            " Publish a new version\u2026"
+          ]
+        }
+      )
+    ] });
+  }
+  function PublishPick({ libs, id, open }) {
+    const state2 = useLibrary(libs, id);
+    const [picked, setPicked] = d2(null);
+    const [busy, setBusy] = d2(false);
+    const back = () => {
+      pending = null;
+      open({ at: "library", id });
+    };
+    h2(() => {
+      if (!state2.data || picked) return;
+      const site = L2.siteDraft();
+      const start = /* @__PURE__ */ new Set();
+      const { bundle, summary } = state2.data;
+      if (bundle && summary && site && summary.sourceSiteId === site.siteId) {
+        bundle.chosen.filter((ref) => siteItem(ref.kind, ref.id)).forEach((ref) => start.add(refKey(ref)));
+      }
+      if (pending && siteItem(pending.kind, pending.id)) start.add(refKey(pending));
+      setPicked(start);
+    }, [state2.data]);
+    if (!state2.data || !picked) return /* @__PURE__ */ u2(Loading, { state: state2, back });
+    const { library } = state2.data;
+    const next = library.latestVersion + 1;
+    const chosen = [...picked].map(parseKey).filter((ref) => siteItem(ref.kind, ref.id));
+    let problems = [];
+    let carried = 0;
+    if (chosen.length) {
+      try {
+        const preview = extractLibraryBundle(C2.doc(), chosen, C2.SCHEMA);
+        carried = GROUPS.reduce((n2, [kind]) => n2 + bundleList(preview, kind).filter((item) => !isFoundation(kind, item.id)).length, 0) - chosen.length;
+      } catch (error) {
+        problems = error instanceof LibraryError ? error.problems : [problem(error)];
+      }
+    }
+    const toggle = (k3, on) => setPicked((prev) => {
+      const nextSet = new Set(prev);
+      if (on) nextSet.add(k3);
+      else nextSet.delete(k3);
+      return nextSet;
+    });
+    const publish = async () => {
+      if (!chosen.length || problems.length) return;
+      setBusy(true);
+      try {
+        await L2.flushDraft();
+        const send = () => libs.publish(id, { sourceVersion: L2.siteDraft().version, items: chosen });
+        let version;
+        try {
+          version = await send();
+        } catch (error) {
+          if (error?.status !== 409) throw error;
+          await L2.flushDraft();
+          version = await send();
+        }
+        pending = null;
+        L2.toast(`Published version ${version.version} of ${library.name}`);
+        open({ at: "library", id });
+      } catch (error) {
+        L2.toast(problem(error), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(Head, { library, back, sub: `Publish version ${next}` }),
+      /* @__PURE__ */ u2("p", { class: "lib-note", children: [
+        "Version ",
+        next,
+        " holds exactly what you tick, and whatever that uses. Sites that imported something you leave out keep their copy."
+      ] }),
+      GROUPS.map(([kind, label]) => {
+        const items = siteList(kind).filter((item) => !isFoundation(kind, item.id));
+        if (!items.length) return null;
+        return /* @__PURE__ */ u2("div", { children: [
+          /* @__PURE__ */ u2("div", { class: "plabel", children: label }),
+          items.map((item) => {
+            const k3 = refKey({ kind, id: item.id });
+            const link = linkOf(kind, item.id);
+            return /* @__PURE__ */ u2("label", { class: "lib-item", children: [
+              /* @__PURE__ */ u2(
+                "input",
+                {
+                  type: "checkbox",
+                  disabled: busy,
+                  checked: picked.has(k3),
+                  onChange: (e3) => toggle(k3, e3.currentTarget.checked)
+                }
+              ),
+              /* @__PURE__ */ u2("span", { class: "bn", children: [
+                /* @__PURE__ */ u2("b", { children: nameOf(item, item.id) }),
+                /* @__PURE__ */ u2("small", { children: link ? fromLabel(link) : KIND[kind] })
+              ] })
+            ] }, k3);
+          })
+        ] }, kind);
+      }),
+      problems.length > 0 && /* @__PURE__ */ u2("div", { class: "lib-problem", role: "alert", children: problems.map((p3) => /* @__PURE__ */ u2("p", { children: p3 }, p3)) }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "btn primary block",
+          disabled: !chosen.length || !!problems.length || busy,
+          style: { marginTop: "var(--gap-1)" },
+          onClick: publish,
+          children: busy ? "Publishing\u2026" : chosen.length ? `Publish version ${next}` : "Choose items to publish"
+        }
+      ),
+      chosen.length > 0 && !problems.length && /* @__PURE__ */ u2("p", { class: "lib-note", children: [
+        plural(chosen.length, "item"),
+        carried > 0 ? `, plus ${plural(carried, "thing")} they use` : "",
+        ". The draft is saved first, so the library gets exactly what you see."
+      ] })
+    ] });
+  }
+  var CHANGE = {
+    "changed-upstream": "Updated in the library",
+    "changed-both": "Changed here and in the library",
+    "upstream-removed": "No longer in the library \u2014 your copy stays",
+    "deleted-here": "Deleted here \u2014 it stops tracking the library"
+  };
+  function UpdateReview({ libs, id, open }) {
+    const state2 = useLibrary(libs, id);
+    const [resolutions, setResolutions] = d2({});
+    const [busy, setBusy] = d2(false);
+    const back = () => open({ at: "library", id });
+    if (!state2.data) return /* @__PURE__ */ u2(Loading, { state: state2, back });
+    const { library, bundle, summary } = state2.data;
+    if (!bundle || !summary) return /* @__PURE__ */ u2(Loading, { state: { error: "This library has no version to update to." }, back });
+    const source = { libraryId: id, version: summary.version };
+    const preview = previewLibraryUpdate(C2.doc(), bundle, source, resolutions);
+    const changes = preview.items.filter((item) => item.action !== "none");
+    const same = preview.items.length - changes.length;
+    const label = (item) => nameOf(siteItem(item.kind, item.localId) || bundleList(bundle, item.kind).find((i3) => i3.id === item.sourceId), item.localId);
+    const resolve = (item, choice) => setResolutions((prev) => ({ ...prev, [refKey({ kind: item.kind, id: item.sourceId })]: choice }));
+    const apply = async () => {
+      setBusy(true);
+      try {
+        const needed = previewLibraryUpdate(C2.doc(), bundle, source, resolutions).assets;
+        const assets = needed.length ? await libs.copyAssets({ libraryId: id, version: summary.version, assets: needed }) : {};
+        if (needed.length) await L2.assetsReload();
+        const plan = planLibraryUpdate(C2.doc(), bundle, source, resolutions, { assets, newId: C2.uid });
+        if (!plan.doc) {
+          L2.toast("Something here changed while the update was prepared. Review it again.", { tone: "error" });
+          return;
+        }
+        commit(plan.doc);
+        L2.toast(`Updated to version ${summary.version} of ${library.name}`);
+        open({ at: "library", id });
+      } catch (error) {
+        L2.toast(problem(error), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(Head, { library, back, sub: `Update to version ${summary.version}` }),
+      changes.length ? changes.map((item) => {
+        const k3 = refKey({ kind: item.kind, id: item.sourceId });
+        const choice = resolutions[k3];
+        const showWarnings = item.action === "update" || item.action === "conflict" && choice === "theirs";
+        return /* @__PURE__ */ u2("div", { class: "lib-change", children: [
+          /* @__PURE__ */ u2("b", { children: label(item) }),
+          /* @__PURE__ */ u2("small", { children: [
+            KIND[item.kind],
+            " \xB7 ",
+            CHANGE[item.reason] || item.reason
+          ] }),
+          item.action === "conflict" && /* @__PURE__ */ u2("div", { class: "lib-res", role: "radiogroup", "aria-label": `${label(item)}: which version to keep`, children: [
+            /* @__PURE__ */ u2("label", { children: [
+              /* @__PURE__ */ u2(
+                "input",
+                {
+                  type: "radio",
+                  name: "lib-" + k3,
+                  checked: choice === "mine",
+                  disabled: busy,
+                  onChange: () => resolve(item, "mine")
+                }
+              ),
+              " Keep mine"
+            ] }),
+            /* @__PURE__ */ u2("label", { children: [
+              /* @__PURE__ */ u2(
+                "input",
+                {
+                  type: "radio",
+                  name: "lib-" + k3,
+                  checked: choice === "theirs",
+                  disabled: busy,
+                  onChange: () => resolve(item, "theirs")
+                }
+              ),
+              " Use the library\u2019s"
+            ] })
+          ] }),
+          showWarnings && item.warnings.map((w3) => /* @__PURE__ */ u2("p", { class: "lib-warn", children: w3 }, w3))
+        ] }, k3);
+      }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: [
+        "Nothing this site uses changed in version ",
+        summary.version,
+        "."
+      ] }),
+      same > 0 && changes.length > 0 && /* @__PURE__ */ u2("p", { class: "lib-note", children: [
+        plural(same, "other item is", "other items are"),
+        " unchanged."
+      ] }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "btn primary block",
+          disabled: !!preview.unresolved.length || busy,
+          style: { marginTop: "var(--gap-1)" },
+          onClick: apply,
+          children: busy ? "Updating\u2026" : preview.unresolved.length ? `Choose for ${plural(preview.unresolved.length, "conflict")}` : changes.length ? "Apply update" : `Mark version ${summary.version} as seen`
+        }
+      ),
+      /* @__PURE__ */ u2("p", { class: "lib-note", children: "What each placement shows \u2014 its text, variant and slot content \u2014 is kept. Undo reverses the whole update." })
+    ] });
+  }
+
   // app/src/ui/Add.tsx
   var PAL = [
     {
@@ -13122,13 +14166,40 @@ var PC_UI = (() => {
     ["widgets", "Elements", "Basic elements for building a page", "plus"],
     ["templates", "Templates", "Ready-made sections using this project\u2019s styles", "section"],
     ["components", "Components", "Reusable elements that stay synchronized", "component"],
-    ["blocks", "Blocks", "Reusable copies you can edit independently", "copy"]
+    ["blocks", "Blocks", "Reusable copies you can edit independently", "copy"],
+    /* Only where libraries exist: the hosted editor, for the site's owner. */
+    ["libraries", "Libraries", "Your account\u2019s components, blocks and styles, for any site you own", "library"]
   ];
-  var tab = () => C2.state.ui.atab || "widgets";
+  var tabs = () => L2.libraries() ? TABS : TABS.filter(([key2]) => key2 !== "libraries");
+  var tab = () => {
+    const want = C2.state.ui.atab || "widgets";
+    return (tabs().find(([key2]) => key2 === want) || TABS[0])[0];
+  };
+  function LibraryFrom({ kind, id }) {
+    const link = L2.libraries() ? linkOf(kind, id) : null;
+    return link ? /* @__PURE__ */ u2("small", { class: "lib-from", children: fromLabel(link) }) : null;
+  }
+  function LibraryAdd({ kind, id }) {
+    if (!L2.libraries()) return null;
+    return /* @__PURE__ */ u2(
+      "button",
+      {
+        class: "bx",
+        title: "Add to library\u2026",
+        "aria-label": "Add to library\u2026",
+        onClick: (e3) => {
+          e3.stopPropagation();
+          addToLibrary({ kind, id });
+          repaint("add");
+        },
+        children: /* @__PURE__ */ u2(Icon, { name: "library", size: 11 })
+      }
+    );
+  }
   function Widgets() {
     const groups = PAL.map((group) => ({
       ...group,
-      items: group.items.filter(([key]) => key !== "list" || L2.dynamicContentProvider() === "pagecraft")
+      items: group.items.filter(([key2]) => key2 !== "list" || L2.dynamicContentProvider() === "pagecraft")
     }));
     return /* @__PURE__ */ u2(S, { children: groups.map((g3) => /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "plabel", children: g3.g }),
@@ -13162,7 +14233,7 @@ var PC_UI = (() => {
     });
     const LEAD = ["Header", "Footer"];
     const cats = [...LEAD.filter((c3) => seen.includes(c3)), ...seen.filter((c3) => !LEAD.includes(c3))];
-    const place = (id) => {
+    const place2 = (id) => {
       if (L2.consumeDragMoved()) return;
       const pat = C2.PATTERNS.find((x2) => x2.id === id);
       const want = pat.scope || "page";
@@ -13191,7 +14262,7 @@ var PC_UI = (() => {
             { kind: "pattern", patId: t3.id, label: t3.name, icon: "section" },
             false
           ),
-          onClick: () => place(t3.id),
+          onClick: () => place2(t3.id),
           children: [
             /* @__PURE__ */ u2("div", { dangerouslySetInnerHTML: { __html: t3.preview() } }),
             /* @__PURE__ */ u2("span", { children: t3.name })
@@ -13204,7 +14275,7 @@ var PC_UI = (() => {
   function Blocks() {
     const sel = C2.state.ui.sel ? C2.locate(C2.state.ui.sel) : null;
     const list2 = C2.blocks();
-    const place = (id) => {
+    const place2 = (id) => {
       if (L2.consumeDragMoved()) return;
       let made = null;
       C2.edit(() => {
@@ -13243,14 +14314,16 @@ var PC_UI = (() => {
               );
             },
             onClick: (e3) => {
-              if (!e3.target.closest(".bx")) place(b2.id);
+              if (!e3.target.closest(".bx")) place2(b2.id);
             },
             children: [
               /* @__PURE__ */ u2(Icon, { name: def ? def.icon : "section", size: 14 }),
               /* @__PURE__ */ u2("span", { class: "bn", children: [
                 /* @__PURE__ */ u2("b", { children: b2.name }),
-                /* @__PURE__ */ u2("small", { children: def ? def.label : "Block" })
+                /* @__PURE__ */ u2("small", { children: def ? def.label : "Block" }),
+                /* @__PURE__ */ u2(LibraryFrom, { kind: "block", id: b2.id })
               ] }),
+              /* @__PURE__ */ u2(LibraryAdd, { kind: "block", id: b2.id }),
               /* @__PURE__ */ u2("button", { class: "bx danger", title: "Forget this block", onClick: (e3) => forget(e3, b2.id), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
             ]
           },
@@ -13280,7 +14353,7 @@ var PC_UI = (() => {
     const sel = C2.state.ui.sel ? C2.locate(C2.state.ui.sel) : null;
     const list2 = C2.components();
     const editing = C2.state.ui.mode === "component" ? C2.state.ui.cedit : null;
-    const place = (id) => {
+    const place2 = (id) => {
       if (L2.consumeDragMoved()) return;
       let made = null;
       C2.edit(() => {
@@ -13341,7 +14414,7 @@ var PC_UI = (() => {
               );
             },
             onClick: (e3) => {
-              if (!e3.target.closest(".bx")) place(cd.id);
+              if (!e3.target.closest(".bx")) place2(cd.id);
             },
             children: [
               /* @__PURE__ */ u2(Icon, { name: def ? def.icon : "section", size: 14 }),
@@ -13350,9 +14423,11 @@ var PC_UI = (() => {
                 /* @__PURE__ */ u2("small", { children: [
                   used === 1 ? "1 instance" : `${used} instances`,
                   props ? ` \xB7 ${props === 1 ? "1 property" : props + " properties"}` : " \xB7 no properties yet"
-                ] })
+                ] }),
+                /* @__PURE__ */ u2(LibraryFrom, { kind: "component", id: cd.id })
               ] }),
               /* @__PURE__ */ u2("button", { class: "bx", title: "Edit this component", onClick: (e3) => open(e3, cd.id), children: /* @__PURE__ */ u2(Icon, { name: "edit", size: 11 }) }),
+              /* @__PURE__ */ u2(LibraryAdd, { kind: "component", id: cd.id }),
               /* @__PURE__ */ u2("button", { class: "bx danger", title: "Delete this component", onClick: (e3) => remove(e3, cd.id), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
             ]
           },
@@ -13376,41 +14451,42 @@ var PC_UI = (() => {
   }
   function Add() {
     const t3 = tab();
-    const current = TABS.find(([key]) => key === t3) || TABS[0];
-    const choose = (key) => {
-      C2.state.ui.atab = key;
+    const shown2 = tabs();
+    const current = shown2.find(([key2]) => key2 === t3) || TABS[0];
+    const choose = (key2) => {
+      C2.state.ui.atab = key2;
       repaint("add");
     };
-    const keys = TABS.map(([key]) => key);
-    const keyNav = (e3, key) => {
+    const keys = shown2.map(([key2]) => key2);
+    const keyNav = (e3, key2) => {
       const move = e3.key === "ArrowRight" || e3.key === "ArrowDown" ? 1 : e3.key === "ArrowLeft" || e3.key === "ArrowUp" ? -1 : 0;
-      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys.length - 1 : move ? (keys.indexOf(key) + move + keys.length) % keys.length : -1;
+      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys.length - 1 : move ? (keys.indexOf(key2) + move + keys.length) % keys.length : -1;
       if (next < 0) return;
       e3.preventDefault();
       choose(keys[next]);
       requestAnimationFrame(() => document.getElementById("add-tab-" + keys[next])?.focus());
     };
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2("div", { class: "addSwitcher", role: "tablist", "aria-label": "Add category", children: TABS.map(([key, label, , icon]) => /* @__PURE__ */ u2(
+      /* @__PURE__ */ u2("div", { class: "addSwitcher", role: "tablist", "aria-label": "Add category", children: shown2.map(([key2, label, , icon]) => /* @__PURE__ */ u2(
         "button",
         {
           role: "tab",
-          "aria-selected": t3 === key ? "true" : "false",
-          id: "add-tab-" + key,
+          "aria-selected": t3 === key2 ? "true" : "false",
+          id: "add-tab-" + key2,
           "aria-controls": "add-category-panel",
-          tabIndex: t3 === key ? 0 : -1,
-          class: t3 === key ? "on" : "",
-          onClick: () => choose(key),
-          onKeyDown: (e3) => keyNav(e3, key),
+          tabIndex: t3 === key2 ? 0 : -1,
+          class: t3 === key2 ? "on" : "",
+          onClick: () => choose(key2),
+          onKeyDown: (e3) => keyNav(e3, key2),
           children: [
             /* @__PURE__ */ u2("span", { class: "addSwitcherIcon", "aria-hidden": "true", children: /* @__PURE__ */ u2(Icon, { name: icon, size: 14 }) }),
             /* @__PURE__ */ u2("span", { children: label })
           ]
         },
-        key
+        key2
       )) }),
       /* @__PURE__ */ u2("div", { class: "addContext", children: current[2] }),
-      /* @__PURE__ */ u2("div", { class: "palette", id: "add-category-panel", role: "tabpanel", "aria-labelledby": "add-tab-" + t3, children: t3 === "widgets" ? /* @__PURE__ */ u2(Widgets, {}) : t3 === "components" ? /* @__PURE__ */ u2(Components, {}) : t3 === "templates" ? /* @__PURE__ */ u2(Templates, {}) : /* @__PURE__ */ u2(Blocks, {}) })
+      /* @__PURE__ */ u2("div", { class: "palette", id: "add-category-panel", role: "tabpanel", "aria-labelledby": "add-tab-" + t3, children: t3 === "widgets" ? /* @__PURE__ */ u2(Widgets, {}) : t3 === "components" ? /* @__PURE__ */ u2(Components, {}) : t3 === "templates" ? /* @__PURE__ */ u2(Templates, {}) : t3 === "libraries" ? /* @__PURE__ */ u2(Libraries, {}) : /* @__PURE__ */ u2(Blocks, {}) })
     ] });
   }
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
@@ -13853,19 +14929,19 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const dc = C2.findCollection(colId);
     if (!dc) return null;
     const pg = C2.page();
-    const bind = (key, v3) => C2.edit(() => {
-      if (v3) pg[key] = v3;
-      else delete pg[key];
+    const bind = (key2, v3) => C2.edit(() => {
+      if (v3) pg[key2] = v3;
+      else delete pg[key2];
     });
-    const pick = (key, label, blank) => /* @__PURE__ */ u2("div", { class: "f", style: { marginBottom: 0 }, children: [
-      /* @__PURE__ */ u2("label", { htmlFor: "page-" + key, children: label }),
+    const pick = (key2, label, blank) => /* @__PURE__ */ u2("div", { class: "f", style: { marginBottom: 0 }, children: [
+      /* @__PURE__ */ u2("label", { htmlFor: "page-" + key2, children: label }),
       /* @__PURE__ */ u2(
         "select",
         {
           class: "ctl",
-          id: "page-" + key,
-          value: pg[key] || "",
-          onChange: (e3) => bind(key, e3.target.value),
+          id: "page-" + key2,
+          value: pg[key2] || "",
+          onChange: (e3) => bind(key2, e3.target.value),
           children: [
             /* @__PURE__ */ u2("option", { value: "", children: blank }),
             dc.fields.map((f4) => /* @__PURE__ */ u2("option", { value: f4.id, children: f4.name }, f4.id))
@@ -13893,9 +14969,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function Pages() {
     const pg = C2.page();
     const cols = C2.collections();
-    const field = (key, set, after) => ({
+    const field = (key2, set, after) => ({
       onInput: (e3) => {
-        L2.tx(`page:${pg.id}:${key}`);
+        L2.tx(`page:${pg.id}:${key2}`);
         set(e3.target.value);
         L2.save();
       },
@@ -14141,16 +15217,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return c3.c ? C2.cssVal(C2.tgtObj(n2), c3.c, !!c3.r).v : C2.propVal(n2, c3.k);
   }
   function writer(n2, c3) {
-    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const cssOnly = !!c3.c;
     return {
       live(v3) {
-        L2.tx(key);
+        L2.tx(key2);
         C2.applyC(n2, c3, v3);
         (cssOnly ? L2.repaintCss : L2.repaint)();
       },
       hard(v3) {
-        L2.tx(key);
+        L2.tx(key2);
         C2.applyC(n2, c3, v3);
         if (cssOnly) L2.paintCss();
         else {
@@ -14166,7 +15242,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         repaint("right");
       },
       clearOverride() {
-        L2.tx(key + ":clear");
+        L2.tx(key2 + ":clear");
         const o3 = C2.tgtObj(n2);
         const dest = C2.stWrite(o3);
         if (c3.t === "box") {
@@ -14215,17 +15291,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return F(children).map((child, index) => {
       if (!t(child) || typeof child.type !== "string" && child.type !== S) return child;
       const props = child.props;
-      const key = `${path}-${index}`;
+      const key2 = `${path}-${index}`;
       const leaf = typeof child.type === "string" && ["input", "textarea", "select"].includes(child.type);
       const part = props["data-field-part"];
-      if (leaf) ids.push(props.id || `${id}${key}`);
+      if (leaf) ids.push(props.id || `${id}${key2}`);
       return W(child, {
         ...leaf ? {
-          id: props.id || `${id}${key}`,
+          id: props.id || `${id}${key2}`,
           ...!props["aria-label"] && !props["aria-labelledby"] ? part ? { "aria-label": `${label} ${part}` } : { "aria-labelledby": id } : {},
           "aria-describedby": [props["aria-describedby"], help].filter(Boolean).join(" ") || void 0
         } : {},
-        ...props.children != null ? { children: labelControls(props.children, label, id, help, key, ids) } : {}
+        ...props.children != null ? { children: labelControls(props.children, label, id, help, key2, ids) } : {}
       });
     });
   }
@@ -14464,24 +15540,24 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const css = C2.fmtColor(rgba);
     const h3 = hsv.s > 4e-3 && hsv.v > 4e-3 ? hsv.h : hue;
     const gradientCss = (nextStops = stops, nextAngle = angle) => `linear-gradient(${nextAngle}deg, ${C2.fmtColor(nextStops[0])}, ${C2.fmtColor(nextStops[1])})`;
-    const put = (next, commit) => {
+    const put = (next, commit2) => {
       if (mode === "gradient" && gradient) {
         const nextStops = stops.map((stop, index) => index === activeStop ? next : stop);
         setStops(nextStops);
-        (commit ? gradient.onDone : gradient.onLive)(gradientCss(nextStops));
+        (commit2 ? gradient.onDone : gradient.onLive)(gradientCss(nextStops));
       } else {
         setSolid(next);
-        (commit ? onDone : onLive)(C2.fmtColor(next));
+        (commit2 ? onDone : onLive)(C2.fmtColor(next));
       }
     };
-    const fromHsv = (s3, v3, hh = h3, a3 = rgba.a, commit) => put({ ...C2.hsv2rgb({ h: hh, s: s3, v: v3 }), a: a3 }, commit);
+    const fromHsv = (s3, v3, hh = h3, a3 = rgba.a, commit2) => put({ ...C2.hsv2rgb({ h: hh, s: s3, v: v3 }), a: a3 }, commit2);
     h2(() => {
       const away = (e3) => {
         const t3 = e3.target;
         if (box.current?.contains(t3) || anchor.contains(t3)) return;
         requestClose();
       };
-      const key = (e3) => {
+      const key2 = (e3) => {
         if (e3.key === "Escape") {
           e3.preventDefault();
           e3.stopPropagation();
@@ -14492,7 +15568,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       document.addEventListener("pointerdown", away, true);
       document.addEventListener("pagecraft:outside-pointer", requestClose);
       window.addEventListener("blur", requestClose);
-      document.addEventListener("keydown", key, true);
+      document.addEventListener("keydown", key2, true);
       window.addEventListener("resize", requestClose);
       window.addEventListener("scroll", requestClose, true);
       if (box.current) window.__pcMotion?.enter(box.current, { kind: "popover" });
@@ -14501,7 +15577,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         document.removeEventListener("pointerdown", away, true);
         document.removeEventListener("pagecraft:outside-pointer", requestClose);
         window.removeEventListener("blur", requestClose);
-        document.removeEventListener("keydown", key, true);
+        document.removeEventListener("keydown", key2, true);
         window.removeEventListener("resize", requestClose);
         window.removeEventListener("scroll", requestClose, true);
       };
@@ -14767,7 +15843,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return Array.isArray(v3) ? v3 : [];
   };
   function RowInput({ n: n2, c: c3, k: k3, prop, ...rest }) {
-    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     return /* @__PURE__ */ u2(
       "input",
       {
@@ -14775,7 +15851,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         value: list(n2, c3)[k3][prop] || "",
         ...rest,
         onInput: (e3) => {
-          L2.tx(key);
+          L2.tx(key2);
           rows(n2, c3)[k3][prop] = e3.target.value;
           L2.repaint();
         },
@@ -14814,7 +15890,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const firstWordPressTarget = wordpressTargets.find((target) => target.items.some((item) => !!wordpressReferenceForItem(target, item))) || null;
     const firstWordPress = firstWordPressTarget?.items.find((item) => !!wordpressReferenceForItem(firstWordPressTarget, item)) || null;
     const firstWordPressReference = firstWordPressTarget && firstWordPress ? wordpressReferenceForItem(firstWordPressTarget, firstWordPress)?.reference || "" : "";
-    const commit = (k3, prop, value) => C2.edit(() => {
+    const commit2 = (k3, prop, value) => C2.edit(() => {
       rows(n2, c3)[k3][prop] = value;
     });
     const commitDestination = (k3, value) => C2.edit(() => {
@@ -14946,7 +16022,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     p3.slug === "index" ? "/" : "/" + p3.slug
                   ] }, p3.id)) }),
                   /* @__PURE__ */ u2("select", { class: "ctl", value: link.frag || "", onChange: (e3) => {
-                    commit(k3, "href", C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }));
+                    commit2(k3, "href", C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }));
                   }, children: [
                     /* @__PURE__ */ u2("option", { value: "", children: "Top of the page" }),
                     anchors.map((id) => /* @__PURE__ */ u2("option", { value: id, children: [
@@ -14967,7 +16043,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "cls", placeholder: "featured-link another-class" }),
                 /* @__PURE__ */ u2("div", { class: "note", children: "Applied to this menu item. Separate multiple classes with spaces." }),
                 /* @__PURE__ */ u2("label", { children: "Parent item" }),
-                /* @__PURE__ */ u2("select", { class: "ctl", value: it.parentId || "", onChange: (e3) => commit(k3, "parentId", e3.target.value), children: [
+                /* @__PURE__ */ u2("select", { class: "ctl", value: it.parentId || "", onChange: (e3) => commit2(k3, "parentId", e3.target.value), children: [
                   /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
                   arr.map((candidate, index) => index === k3 ? null : /* @__PURE__ */ u2(
                     "option",
@@ -14993,7 +16069,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                       "aria-checked": it.target === "_blank" ? "true" : "false",
                       class: "sw-tog" + (it.target === "_blank" ? " on" : ""),
                       onClick: () => {
-                        commit(k3, "target", it.target === "_blank" ? "" : "_blank");
+                        commit2(k3, "target", it.target === "_blank" ? "" : "_blank");
                       },
                       children: /* @__PURE__ */ u2("i", {})
                     }
@@ -15180,7 +16256,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function QaCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
     const [open, setOpen] = d2(null);
-    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const [kA, kB] = c3.rowKeys || ["q", "a"];
     const [phA, phB] = c3.rowPhs || ["Question", "Answer"];
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
@@ -15208,7 +16284,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                   value: it[kB] || "",
                   placeholder: phB,
                   onInput: (e3) => {
-                    L2.tx(key);
+                    L2.tx(key2);
                     rows(n2, c3)[k3][kB] = e3.target.value;
                     L2.repaint();
                   },
@@ -15625,12 +16701,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return values;
   }
   function BoxCtl({ n: n2, c: c3 }) {
-    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const vals = boxValues(n2, c3.c).map(C2.parseU);
     const withUnit = vals.find((x2) => x2.u);
     const u4 = withUnit ? withUnit.u : "px";
     const push = (root) => {
-      L2.tx(key);
+      L2.tx(key2);
       const unit = root.querySelector("select").value;
       delete C2.stWrite(C2.tgtObj(n2))[C2.dk()][c3.c];
       root.querySelectorAll("input").forEach((inp, i3) => {
@@ -16063,9 +17139,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ["email", "Email address"],
       ["phone", "Phone number"]
     ];
-    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
-    const commit = (o3) => {
-      L2.tx(key);
+    const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const commit2 = (o3) => {
+      L2.tx(key2);
       C2.applyC(n2, c3, C2.buildLink(o3));
       L2.endTx();
       L2.paint();
@@ -16074,7 +17150,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     const chooseWordPress = (url) => {
       C2.state.ui.lmode = url ? null : { key: n2.id + "|" + c3.k, mode: "url" };
-      commit({ mode: "url", value: url });
+      commit2({ mode: "url", value: url });
     };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       /* @__PURE__ */ u2(
@@ -16087,7 +17163,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             const mode = e3.target.value;
             if (mode === "none") n2.props[tkey] = "";
             C2.state.ui.lmode = mode === "none" ? null : { key: n2.id + "|" + c3.k, mode };
-            commit(mode === "page" ? { mode, page: here, frag: "" } : { mode });
+            commit2(mode === "page" ? { mode, page: here, frag: "" } : { mode });
             if (mode === "item") C2.state.ui.lmode = null;
           },
           children: MODES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
@@ -16101,7 +17177,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             class: "ctl",
             style: { marginTop: "var(--gap-1)" },
             value: link.page || here,
-            onChange: (e3) => commit({ mode: "page", page: e3.target.value, frag: "" }),
+            onChange: (e3) => commit2({ mode: "page", page: e3.target.value, frag: "" }),
             children: C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
               p3.name,
               " \xB7 ",
@@ -16116,7 +17192,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             class: "ctl",
             style: { marginTop: "var(--gap-1)" },
             value: link.frag || "",
-            onChange: (e3) => commit({ ...C2.linkOf(n2, c3.k, here), frag: e3.target.value }),
+            onChange: (e3) => commit2({ ...C2.linkOf(n2, c3.k, here), frag: e3.target.value }),
             children: [
               /* @__PURE__ */ u2("option", { value: "", children: "Top of the page" }),
               anchors.map((id) => /* @__PURE__ */ u2("option", { value: id, children: [
@@ -16146,7 +17222,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             placeholder: link.mode === "url" ? "https://example.com" : link.mode === "email" ? "hello@example.com" : "+1 555 0100",
             onInput: (e3) => {
               const value = e3.target.value.trim();
-              L2.tx(key);
+              L2.tx(key2);
               C2.applyC(n2, c3, C2.buildLink({ ...C2.linkOf(n2, c3.k, here), value }));
               L2.repaint();
               if (link.mode === "url") {
@@ -16177,7 +17253,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "aria-label": "Open in a new tab",
             class: "sw-tog" + (C2.propVal(n2, tkey) === "_blank" ? " on" : ""),
             onClick: () => {
-              L2.tx(key);
+              L2.tx(key2);
               n2.props[tkey] = C2.propVal(n2, tkey) === "_blank" ? "" : "_blank";
               L2.endTx();
               L2.paint();
@@ -16191,9 +17267,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
   function DimsCtl({ n: n2, c: c3 }) {
-    const key = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const push = (root) => {
-      L2.tx(key);
+      L2.tx(key2);
       const [w3, h3] = Array.from(root.querySelectorAll("input"));
       n2.props.w = w3.value;
       n2.props.h = h3.value;
@@ -16354,8 +17430,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var esc6 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   function Group({ title, n: n2, items, gk, collapsed = false }) {
     const bodyId = g2();
-    const key = gk || n2.type + ":" + title;
-    const closed = C2.state.ui.open[key] === false || C2.state.ui.open[key] === void 0 && collapsed;
+    const key2 = gk || n2.type + ":" + title;
+    const closed = C2.state.ui.open[key2] === false || C2.state.ui.open[key2] === void 0 && collapsed;
     const shown2 = items ? items.filter((c3) => (!c3.when || c3.when(n2)) && !(C2.cloudFormsEnabled() && n2.type === "form" && ["mode", "action", "method"].includes(c3.k || ""))) : null;
     if (shown2 && !shown2.length) return null;
     return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
@@ -16367,7 +17443,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "aria-expanded": closed ? "false" : "true",
           "aria-controls": bodyId,
           onClick: () => {
-            C2.state.ui.open[key] = closed;
+            C2.state.ui.open[key2] = closed;
             repaint("right");
           },
           children: [
@@ -16382,8 +17458,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   function Panel({ title, n: n2, gk, children }) {
     const bodyId = g2();
-    const key = gk || n2.type + ":" + title;
-    const closed = C2.state.ui.open[key] === false;
+    const key2 = gk || n2.type + ":" + title;
+    const closed = C2.state.ui.open[key2] === false;
     return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
       /* @__PURE__ */ u2(
         "button",
@@ -16393,7 +17469,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "aria-expanded": closed ? "false" : "true",
           "aria-controls": bodyId,
           onClick: () => {
-            C2.state.ui.open[key] = closed;
+            C2.state.ui.open[key2] = closed;
             repaint("right");
           },
           children: [
@@ -16406,7 +17482,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       /* @__PURE__ */ u2("div", { class: "gb", id: bodyId, "aria-hidden": closed ? "true" : void 0, children })
     ] });
   }
-  function Head({ h: h3 }) {
+  function Head2({ h: h3 }) {
     const n2 = h3.node, d3 = C2.DEF[n2.type];
     const name = C2.kindOf(n2);
     const ids = C2.selIds(), many = ids.length > 1;
@@ -16815,7 +17891,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const def = C2.findComponent(cid);
     if (!def || def.node.id !== n2.id) return null;
     const list2 = def.props || [];
-    const rename = async (k3, label) => {
+    const rename2 = async (k3, label) => {
       const name = await L2.askText("Rename property", "Label", label);
       if (!name) return;
       C2.edit(() => C2.propRename(cid, k3, name));
@@ -16846,7 +17922,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         {
           type: "button",
           class: "nm property-rename",
-          onClick: () => rename(pr.k, pr.label),
+          onClick: () => rename2(pr.k, pr.label),
           title: "Rename",
           "aria-label": "Rename property " + pr.label,
           children: [
@@ -16898,7 +17974,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const props = cd ? cd.props || [] : [];
     if (!fields.length && !props.length) return null;
     const cur = n2.showIf || null;
-    const key = cur ? cur.bind.src + ":" + cur.bind.path : "";
+    const key2 = cur ? cur.bind.src + ":" + cur.bind.path : "";
     const sources = [
       ["", "\u2014 Always show \u2014"],
       ...fields.map((f4) => [`field:${f4.path}`, `${f4.label} \xB7 ${f4.type}`]),
@@ -16924,7 +18000,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "f", children: [
         /* @__PURE__ */ u2("label", { children: "Show only if" }),
-        /* @__PURE__ */ u2("select", { value: key, onChange: (e3) => write(
+        /* @__PURE__ */ u2("select", { value: key2, onChange: (e3) => write(
           e3.target.value,
           cur ? cur.op : "set",
           cur && cur.value ? cur.value : ""
@@ -16933,7 +18009,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       cur ? /* @__PURE__ */ u2("div", { class: "f", children: [
         /* @__PURE__ */ u2("label", { children: "Condition" }),
         /* @__PURE__ */ u2("select", { value: cur.op, onChange: (e3) => write(
-          key,
+          key2,
           e3.target.value,
           cur.value || ""
         ), children: C2.COND_OPS.map(([op, label]) => /* @__PURE__ */ u2("option", { value: op, children: label }, op)) }),
@@ -16944,7 +18020,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             style: { marginTop: "var(--gap-1)" },
             value: cur.value || "",
             placeholder: "Value to compare",
-            onChange: (e3) => write(key, cur.op, e3.target.value)
+            onChange: (e3) => write(key2, cur.op, e3.target.value)
           }
         ) : null,
         /* @__PURE__ */ u2("div", { class: "note", children: "Dashed blue on the canvas when it is not showing for the item you are looking at. Left out of the exported page entirely." })
@@ -17002,21 +18078,21 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const content = keys ? all.filter((c3) => !c3.c && !!c3.k && keys.has(c3.k)) : all;
     const many = C2.selIds().length > 1;
     const inspectorTabs = [["content", "Content"], ["style", "Style"], ["advanced", "Advanced"]];
-    const chooseTab = (key) => {
-      C2.state.ui.stab = key;
+    const chooseTab = (key2) => {
+      C2.state.ui.stab = key2;
       repaint("right");
     };
-    const tabKey = (e3, key) => {
+    const tabKey = (e3, key2) => {
       const keys2 = inspectorTabs.map(([k3]) => k3);
       const move = e3.key === "ArrowRight" ? 1 : e3.key === "ArrowLeft" ? -1 : 0;
-      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys2.length - 1 : move ? (keys2.indexOf(key) + move + keys2.length) % keys2.length : -1;
+      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys2.length - 1 : move ? (keys2.indexOf(key2) + move + keys2.length) % keys2.length : -1;
       if (next < 0) return;
       e3.preventDefault();
       chooseTab(keys2[next]);
       requestAnimationFrame(() => document.getElementById("inspector-tab-" + keys2[next])?.focus());
     };
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2(Head, { h: h3 }),
+      /* @__PURE__ */ u2(Head2, { h: h3 }),
       /* @__PURE__ */ u2(ClipStrip, {}),
       L2.canStructure() ? /* @__PURE__ */ u2("div", { class: "tabs", role: "tablist", "aria-label": "Inspector section", children: inspectorTabs.map(([k3, label]) => /* @__PURE__ */ u2(
         "button",
@@ -17343,7 +18419,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const base = t3.css.d || {};
     const ph = (k3) => styleDev === "d" ? "" : base[k3] || "";
     const bucket = () => t3.css[styleDev] = t3.css[styleDev] || {};
-    const commit = () => {
+    const commit2 = () => {
       L2.paintCss();
       L2.save();
     };
@@ -17351,7 +18427,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       L2.tx("tsval:" + t3.id + prop);
       if (raw === "") delete bucket()[prop];
       else bucket()[prop] = unit ? raw + unit : raw;
-      commit();
+      commit2();
     };
     const Unit = ({ prop, units }) => {
       const p3 = C2.parseU(b2[prop]);
@@ -17414,7 +18490,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (v3 === null) delete bucket().color;
       else bucket().color = v3;
       L2.endTx();
-      commit();
+      commit2();
       repaint("styles");
     };
     return /* @__PURE__ */ u2("div", { class: "tsedit", children: [
@@ -17458,7 +18534,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           if (v3) bucket()["font-family"] = v3;
           else delete bucket()["font-family"];
           L2.endTx();
-          commit();
+          commit2();
           repaint("styles");
         } })
       ] }),
@@ -18104,7 +19180,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       });
     });
     observer.observe(document.body, { childList: true });
-    const key = (event) => {
+    const key2 = (event) => {
       if (!blocked) return;
       event.stopImmediatePropagation();
       if (!gate.contains(event.target) || event.ctrlKey || event.metaKey) event.preventDefault();
@@ -18112,7 +19188,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const focus = (event) => {
       if (blocked && !gate.contains(event.target)) gate.focus();
     };
-    window.addEventListener("keydown", key, true);
+    window.addEventListener("keydown", key2, true);
     window.addEventListener("focusin", focus, true);
     window.addEventListener("resize", sync);
     queueMicrotask(sync);
@@ -18120,7 +19196,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       return blocked;
     }, destroy() {
       observer.disconnect();
-      window.removeEventListener("keydown", key, true);
+      window.removeEventListener("keydown", key2, true);
       window.removeEventListener("focusin", focus, true);
       window.removeEventListener("resize", sync);
       gate.remove();
@@ -18302,6 +19378,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
        Deliberately not `copy` — two identical squares is what a component is *not*, and the
        Blocks tab is the thing next to it in the panel. */
     component: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><rect x="5.5" y="5.5" width="5" height="5" rx="1" fill="currentColor" stroke="none"/>',
+    /* A library: two upright spines and one leaning, the shelf the reusable items come from. */
+    library: '<rect x="2" y="2.5" width="3" height="11" rx=".6"/><rect x="6.4" y="2.5" width="3" height="11" rx=".6"/><path d="M10.4 3.6l2.8-.8 2.3 9.9-2.8.8z" stroke-linejoin="round"/>',
     /* Three dots in a row. It exists because the overflow button used to be `drag`
        rotated 90 degrees, and a 3x2 dot grid beside a 2x3 dot grid is the same glyph
        twice at 12px — "drag to move" and "everything else" were indistinguishable. */
@@ -18391,7 +19469,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   // app/src/core/index.ts
   var _seq = 0;
   var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
-  var clone2 = (o3) => JSON.parse(JSON.stringify(o3));
+  var clone3 = (o3) => JSON.parse(JSON.stringify(o3));
   var HOME = "index.html";
   var FILTER_OPS = [
     ["is", "is"],
@@ -19738,10 +20816,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     }
     return null;
   }
-  function eachNode(list2, fn, parent = null, depth = 0) {
+  function eachNode2(list2, fn, parent = null, depth = 0) {
     list2.forEach((n2, i3) => {
       fn(n2, parent, i3, depth);
-      eachNode(n2.children || [], fn, n2, depth + 1);
+      eachNode2(n2.children || [], fn, n2, depth + 1);
     });
   }
   function reid(n2) {
@@ -19925,16 +21003,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const global = bl.filter((b2) => b2 && b2.sync && b2.node);
       if (global.length) {
         d3.meta.components = Array.isArray(d3.meta.components) ? d3.meta.components : [];
-        const shape = (n2) => JSON.stringify(n2, (key, val) => {
-          if (key === "id") return void 0;
-          if (key === "adv" && val) {
+        const shape = (n2) => JSON.stringify(n2, (key2, val) => {
+          if (key2 === "id") return void 0;
+          if (key2 === "adv" && val) {
             const { block, ...rest } = val;
             return rest;
           }
           return val;
         });
         for (const b2 of global) {
-          const def = { id: b2.id, name: b2.name, node: reid(clone2(b2.node)), props: [] };
+          const def = { id: b2.id, name: b2.name, node: reid(clone3(b2.node)), props: [] };
           const want = shape(b2.node);
           everyNode((n2) => {
             if (!n2.adv || n2.adv.block !== b2.id) return;
@@ -19951,7 +21029,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             delete n2.bind;
             delete n2.src;
           });
-          eachNode([def.node], (n2) => {
+          eachNode2([def.node], (n2) => {
             const adv = n2.adv;
             if (adv && adv.block === b2.id) delete adv.block;
           });
@@ -20060,7 +21138,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     }
     let adopted;
     try {
-      adopted = migrate(clone2(input));
+      adopted = migrate(clone3(input));
     } catch (error) {
       throw new DocumentSchemaError(
         `This Pagecraft document is invalid and could not be migrated: ${error instanceof Error ? error.message : String(error)}`,
@@ -20334,6 +21412,36 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             path: `/api/sites/${site}/publication-preview`,
             body: input
           });
+        }
+      },
+      libraries: {
+        async list() {
+          return (await transport.request({ path: "/api/libraries" })).body.libraries;
+        },
+        async create(name) {
+          return (await transport.request({ method: "POST", path: "/api/libraries", body: { name } })).body.library;
+        },
+        async get(id) {
+          return (await transport.request({ path: `/api/libraries/${encodeURIComponent(id)}` })).body;
+        },
+        async version(id, version) {
+          return (await transport.request({
+            path: `/api/libraries/${encodeURIComponent(id)}/versions/${encodeURIComponent(String(version))}`
+          })).body;
+        },
+        async publish(id, input) {
+          return (await transport.request({
+            method: "POST",
+            path: `/api/libraries/${encodeURIComponent(id)}/versions`,
+            body: { siteId: options.siteId, ...input }
+          })).body.version;
+        },
+        async copyAssets(input) {
+          return (await transport.request({
+            method: "POST",
+            path: `/api/sites/${site}/library-assets`,
+            body: { ...input }
+          })).body.assets;
         }
       }
     };
@@ -22914,6 +24022,11 @@ const ui = () => UI || (UI = PC_UI.mount(
   { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent, wordpressContent,
     select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
     askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart,
+    /* Libraries are account-owned and cookie-authenticated, so a connected editor session and
+       a non-owner never see them. See docs/phase5-libraries-design.md. */
+    libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
+    siteDraft: () => (SRV && !IS_WORDPRESS ? { siteId: SRV.siteId, version: SRV.version } : null),
+    flushDraft, assetsReload: assetsLoadServer,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },

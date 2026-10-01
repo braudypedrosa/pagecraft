@@ -96,6 +96,16 @@ export interface Legacy {
   cmsModal(collectionId: string): void;
   /** Persist a CMS candidate before changing the live document or undo history. */
   cmsCommit(collections: import('../core/types').Collection[]): Promise<void>;
+  /* Libraries (Phase 5). `libraries()` is null outside the hosted editor and for anyone but the
+     site's owner, because publishing from a site and importing into one both need its owner. */
+  libraries(): import('../host/types').WebLibraryAdapter | null;
+  /** the hosted site and the draft version the server last acknowledged */
+  siteDraft(): { siteId: string; version: number } | null;
+  /** Save the draft now and wait for it, so the server holds what the owner sees. Rejects when
+      the save failed. */
+  flushDraft(): Promise<void>;
+  /** Re-read the site's images, after an import copied some in, so the canvas can show them. */
+  assetsReload(): Promise<void>;
   /** the save-as-block flow, which asks for a name and whether it is global */
   saveBlockFlow(nodeId: string): void;
   /** a short confirmation in the corner */
