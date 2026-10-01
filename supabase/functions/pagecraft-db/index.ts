@@ -42,7 +42,8 @@ const invitationRedirect = (raw: unknown) => {
     if (origin.trim()) allowedOrigins.add(origin.trim());
   }
   if (
-    !allowedOrigins.has(redirect.origin) || redirect.pathname !== "/auth/confirm"
+    !allowedOrigins.has(redirect.origin) ||
+    redirect.pathname !== "/auth/confirm"
   ) {
     throw Object.assign(new Error("invalid invitation redirect"), {
       status: 400,
@@ -2437,16 +2438,31 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       return Number(row?.used || 0);
     }
     case "asset.tag": {
-      if (!Array.isArray(args.tags) || args.tags.length > 20 || args.tags.some((tag: unknown) => typeof tag !== 'string' || tag.length > 40)
-        || !Number.isInteger(args.version) || Number(args.version) < 0) throw new Error('Invalid media metadata');
-      return one(await sql`
-        update assets set tags = ${sql.array(args.tags as string[])}, metadata_version = metadata_version + 1
-        where site_id = ${text(args.siteId)} and id = ${text(args.id)} and metadata_version = ${Number(args.version)}
+      if (
+        !Array.isArray(args.tags) || args.tags.length > 20 ||
+        args.tags.some((tag: unknown) =>
+          typeof tag !== "string" || tag.length > 40
+        ) ||
+        !Number.isInteger(args.version) || Number(args.version) < 0
+      ) throw new Error("Invalid media metadata");
+      return one(
+        await sql`
+        update assets set tags = ${
+          sql.array(args.tags as string[])
+        }, metadata_version = metadata_version + 1
+        where site_id = ${text(args.siteId)} and id = ${
+          text(args.id)
+        } and metadata_version = ${Number(args.version)}
         returning id, site_id, name, type, w, h, stored_bytes, original_bytes, content_hash, optimized, tags, metadata_version, created_at, retired
-      `);
+      `,
+      );
     }
     case "asset.retire": {
-      return !!one(await sql`update assets set retired = true where site_id = ${text(args.siteId)} and id = ${text(args.id)} returning id`);
+      return !!one(
+        await sql`update assets set retired = true where site_id = ${
+          text(args.siteId)
+        } and id = ${text(args.id)} returning id`,
+      );
     }
     case "asset.remove": {
       const row = one(
@@ -3034,19 +3050,23 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           !Array.isArray(args.input))
         ? args.input as Record<string, unknown>
         : {};
-      return one(await sql`
+      return one(
+        await sql`
         insert into api_credentials (id, owner_id, name, token_digest, token_prefix)
         values (${text(input.id)}, ${text(input.ownerId)}, ${text(input.name)},
           ${text(input.tokenDigest)}, ${text(input.tokenPrefix)})
         returning *
-      `);
+      `,
+      );
     }
     case "auth.apiCredential.byAccess":
-      return one(await sql`
+      return one(
+        await sql`
         update api_credentials set last_used_at = now()
         where token_digest = ${text(args.digest)} and status = 'active'
         returning *
-      `);
+      `,
+      );
     case "auth.apiCredential.forOwner":
       return await sql`
         select * from api_credentials
