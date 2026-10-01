@@ -161,14 +161,14 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
         return (await transport.request<{ members: WebLibraryMember[] }>({ path: `/api/libraries/${encodeURIComponent(id)}/members` })).body.members;
       },
       async share(id, email) {
-        return (await transport.request<{ added: boolean; members: WebLibraryMember[] }>({
+        return (await transport.request<{ added: boolean; member: WebLibraryMember }>({
           method: 'POST', path: `/api/libraries/${encodeURIComponent(id)}/members`, body: { email }
         })).body;
       },
       async unshare(id, userId) {
-        return (await transport.request<{ members: WebLibraryMember[] }>({
+        await transport.request<unknown>({
           method: 'DELETE', path: `/api/libraries/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}`
-        })).body.members;
+        });
       },
       async leave(id) {
         await transport.request<unknown>({ method: 'DELETE', path: `/api/libraries/${encodeURIComponent(id)}/members/me` });

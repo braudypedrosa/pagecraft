@@ -294,8 +294,9 @@ export interface WebLibraryAdapter {
   copyAssets(input: { libraryId: string; version: number; assets: string[] }): Promise<Record<string, string>>;
   /* Read-only sharing (slice 2): owner only, except leave. */
   members(id: string): Promise<WebLibraryMember[]>;
-  share(id: string, email: string): Promise<{ added: boolean; members: WebLibraryMember[] }>;
-  unshare(id: string, userId: string): Promise<WebLibraryMember[]>;
+  /** `added` is false when they already had access; `member` is them either way. */
+  share(id: string, email: string): Promise<{ added: boolean; member: WebLibraryMember }>;
+  unshare(id: string, userId: string): Promise<void>;
   /** A viewer stops seeing a library shared with them. */
   leave(id: string): Promise<void>;
 }

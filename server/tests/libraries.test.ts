@@ -144,6 +144,8 @@ test('importing into another site copies the images in once, and the document pl
 
 /* ---- read-only sharing (slice 2) ---- */
 
+const settled = () => new Promise(resolve => setTimeout(resolve, 10));
+
 async function sharedRig() {
   const r = await rig();
   const lib = (await r.call('/api/libraries', { method: 'POST', body: { name: 'Brand kit' } })).body.library;
@@ -157,7 +159,10 @@ test('sharing lets a viewer list, read and import into their own site, and nothi
   const shared = await r.call(`/api/libraries/${r.lib.id}/members`, { method: 'POST', body: { email: ' Friend@Example.test ' } });
   a.equal(shared.status, 201);
   a.equal(shared.body.added, true);
-  a.deepEqual(shared.body.members.map((m: { email: string }) => m.email), ['friend@example.test']);
+  a.equal(shared.body.member.email, 'friend@example.test');
+  a.deepEqual((await r.call(`/api/libraries/${r.lib.id}/members`)).body.members.map((m: { email: string }) => m.email), ['friend@example.test']);
+  // The notice goes out after the response, so the owner never waits on mail.
+  await settled();
   a.equal(r.notices.length, 1, 'the person shared with is told');
   a.equal(r.notices[0].to, 'friend@example.test');
   a.match(r.notices[0].subject, /Owner shared a library with you/);
@@ -198,6 +203,7 @@ test('sharing refuses your own address and bad ones, and a double click is harml
   a.equal((await r.call(path, { method: 'POST', body: { email: 'friend@example.test' } })).status, 201);
   const again = await r.call(path, { method: 'POST', body: { email: 'friend@example.test' } });
   a.equal(again.status, 429, 'the same address twice in a minute is held back');
+  await settled();
   a.equal(r.notices.length, 1);
   a.equal((await r.call(path)).body.members.length, 1);
 });
@@ -228,7 +234,8 @@ test('the owner removes someone, a viewer can leave, and the owner cannot be rem
   a.equal((await r.call(`/api/libraries/${r.lib.id}`, { cookie: r.friendCookie })).status, 404);
 
   const removed = await r.call(`${path}/${stranger!.id}`, { method: 'DELETE' });
-  a.deepEqual(removed.body.members, []);
+  a.deepEqual(removed.body, { removed: true });
+  a.deepEqual((await r.call(path)).body.members, []);
   a.equal((await r.call(`/api/libraries/${r.lib.id}`, { cookie: r.strangerCookie })).status, 404);
   a.equal((await r.call(`${path}/${stranger!.id}`, { method: 'DELETE' })).status, 404);
   a.equal((await r.call(`${path}/me`, { method: 'DELETE' })).status, 400, 'the owner cannot leave');

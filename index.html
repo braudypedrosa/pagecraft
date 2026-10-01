@@ -13970,7 +13970,7 @@ var PC_UI = (() => {
       setBusy(true);
       try {
         const result = await libs.share(id, address);
-        setMembers(result.members);
+        if (result.added) setMembers([...shown2.filter((m3) => m3.userId !== result.member.userId), result.member]);
         setEmail("");
         L2.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
       } catch (error) {
@@ -13988,7 +13988,8 @@ var PC_UI = (() => {
       if (!ok) return;
       setBusy(true);
       try {
-        setMembers(await libs.unshare(id, member.userId));
+        await libs.unshare(id, member.userId);
+        setMembers((members || state2.data || []).filter((m3) => m3.userId !== member.userId));
         L2.toast(`Stopped sharing with ${member.email}`);
       } catch (error) {
         L2.toast(problem(error), { tone: "error" });
@@ -21610,10 +21611,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           })).body;
         },
         async unshare(id, userId) {
-          return (await transport.request({
+          await transport.request({
             method: "DELETE",
             path: `/api/libraries/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}`
-          })).body.members;
+          });
         },
         async leave(id) {
           await transport.request({ method: "DELETE", path: `/api/libraries/${encodeURIComponent(id)}/members/me` });

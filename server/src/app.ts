@@ -2759,11 +2759,12 @@ export function createApp(o: Options) {
       c.header("retry-after", "60");
       return c.json({ error: "rate_limited", detail: "Too many shares just now. Try again in a minute." }, 429);
     }
-    const current = await gate.libraries.members(gate.library.id);
+    // Independent reads, so in parallel: every gateway round trip is about half a second.
+    const [current, existing] = await Promise.all([gate.libraries.members(gate.library.id), o.auth.userByEmail(email)]);
     if (current.length >= LIBRARY_MEMBERS_MAX) {
       return c.json({ error: "too_many_members", detail: `A library can be shared with up to ${LIBRARY_MEMBERS_MAX} people.` }, 409);
     }
-    let user = await o.auth.userByEmail(email);
+    let user = existing;
     if (!user) {
       // Two shares to a new address at once: the loser of the unique email finds the winner's row.
       try {
@@ -2776,14 +2777,21 @@ export function createApp(o: Options) {
     const added = await gate.libraries.addMember({ libraryId: gate.library.id, userId: user.id, invitedBy: gate.user.id });
     if (added) {
       const owner = displayName(gate.user);
-      await notifyReview(c, {
+      /* Not awaited: the share is already made, and the owner should not wait on mail. The
+         notice is queued before sending, and a failed send is logged, as for review notices. */
+      notifyReview(c, {
         userId: user.id, email: user.email, kind: "library_shared",
         title: `${owner} shared a library with you`,
         body: `“${gate.library.name}” is now in your Libraries. Open a site you own, choose Add, then Libraries, to import from it. You can import and take its updates; only ${owner} publishes new versions.`,
         href: "/",
-      });
+      }).catch((error) => console.error("library share notice failed:", (error as Error).message));
     }
-    return c.json({ added, members: await libraryMembers(gate.library.id) }, added ? 201 : 200);
+    // The new member alone; the editor adds it to the list it already shows.
+    const member = {
+      userId: user.id, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId,
+      createdAt: new Date().toISOString(),
+    };
+    return c.json({ added, member }, added ? 201 : 200);
   });
 
   /* The owner removes someone, or a viewer leaves. What they already imported stays in their
@@ -2799,7 +2807,7 @@ export function createApp(o: Options) {
     if (!await gate.libraries.removeMember(gate.library.id, target)) {
       return c.json({ error: "not_member", detail: "They no longer have access." }, 404);
     }
-    return c.json(gate.access === "owner" ? { members: await libraryMembers(gate.library.id) } : { left: true });
+    return c.json({ removed: true });
   });
 
   /* ---- Scheduled publication (Phase 4). A schedule names an exact prepared snapshot and

@@ -429,7 +429,7 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
     setBusy(true);
     try {
       const result = await libs.share(id, address);
-      setMembers(result.members);
+      if (result.added) setMembers([...shown.filter(m => m.userId !== result.member.userId), result.member]);
       setEmail('');
       L.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
     } catch (error) {
@@ -445,7 +445,8 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
     if (!ok) return;
     setBusy(true);
     try {
-      setMembers(await libs.unshare(id, member.userId));
+      await libs.unshare(id, member.userId);
+      setMembers((members || state.data || []).filter(m => m.userId !== member.userId));
       L.toast(`Stopped sharing with ${member.email}`);
     } catch (error) {
       L.toast(problem(error), { tone: 'error' });

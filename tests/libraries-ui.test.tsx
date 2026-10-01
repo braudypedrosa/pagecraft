@@ -75,14 +75,14 @@ function fakeLibraries() {
     async share(id, email) {
       const rows = members.get(id) || [];
       const address = email.trim().toLowerCase();
-      if (rows.some(m => m.email === address)) return { added: false, members: clone(rows) };
+      const found = rows.find(m => m.email === address);
+      if (found) return { added: false, member: clone(found) };
       const row = { userId: `u-${rows.length + 1}`, email: address, name: '', pending: address.startsWith('new'), createdAt: '' };
       members.set(id, [...rows, row]);
-      return { added: true, members: clone(members.get(id)!) };
+      return { added: true, member: clone(row) };
     },
     async unshare(id, userId) {
       members.set(id, (members.get(id) || []).filter(m => m.userId !== userId));
-      return clone(members.get(id)!);
     },
     async leave(id) {
       left.push(id);

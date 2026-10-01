@@ -130,8 +130,10 @@ For each linked item, compare the new version with the link:
     actions get a 403 `only_owner`, with a reason.
 - **Members API.**
   - `GET /api/libraries/:id/members` lists members.
-  - `POST` with `{email}` adds one. It is throttled with the site-invitation limits, and a library
-    holds at most 50 members.
+  - `POST` with `{email}` adds one and returns just that member. It is throttled with the
+    site-invitation limits, and a library holds at most 50 members. The member count and the
+    address lookup run in parallel, and the notice is sent after the response, because each
+    gateway round trip costs about half a second.
   - `DELETE /api/libraries/:id/members/:userId` removes someone; `me` means leave.
 - **Notice.** A new share posts an in-app notice and, when mail is configured, an email: "Owner
   shared a library with you". It goes through the same path as review notices.
