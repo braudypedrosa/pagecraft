@@ -10,7 +10,7 @@ Keep local overrides and require resolution of definition conflicts.*
 | Question | Decision |
 | --- | --- |
 | Contents | Components (props, variants, slots), saved blocks, and design tokens: colours, text styles, classes. No CMS schemas yet. |
-| Sharing | Personal first: an owner's libraries work across the owner's own sites. Read-only sharing with invited people is slice 2. |
+| Sharing | Personal first: an owner's libraries work across the owner's own sites. Read-only sharing with invited people is slice 2 (built 2026-10-01). |
 | Images | Copied into the library when a version is published, and copied into the receiving site on import. A version never depends on its source site. |
 | Conflicts | Per item: keep mine or take theirs, with a preview. Instance content (text, chosen variant, slot content) is always kept. |
 
@@ -112,4 +112,37 @@ For each linked item, compare the new version with the link:
    the import plan, and the upgrade plan with conflicts.
 2. **1b:** storage, gateway operations, API and image copying.
 3. **1c:** editor UI and acceptance on staging (shipped 2026-10-01).
-4. **2:** read-only sharing: invite, list and import only. Only owners publish.
+4. **2:** read-only sharing: invite, list and import only. Only owners publish. See
+   [Sharing (slice 2)](#sharing-slice-2).
+
+## Sharing (slice 2)
+
+- **Table.** `library_members(library_id, user_id, invited_by, created_at)` (migration
+  `20261001200000_library_members.sql`), with RLS on and client grants revoked. Membership is by
+  user row: an address with no account yet gets a pending `users` row, exactly like a site
+  invitation. The share takes effect when they sign in with that address.
+- **Access.** Every library route goes through one gate (`libraryGate` in `server/src/app.ts`),
+  backed by the gateway op `library.getFor`. A library nobody shared with you is a 404, like
+  someone else's site.
+  - **Owner:** publish versions (`POST …/versions`), see, add and remove members.
+  - **Viewer:** list it (`GET /api/libraries` returns `access` and `ownerName`), read its versions,
+    and copy its images into a site they own. That site's storage owner pays for the copy. Owner
+    actions get a 403 `only_owner`, with a reason.
+- **Members API.**
+  - `GET /api/libraries/:id/members` lists members.
+  - `POST` with `{email}` adds one. It is throttled with the site-invitation limits, and a library
+    holds at most 50 members.
+  - `DELETE /api/libraries/:id/members/:userId` removes someone; `me` means leave.
+- **Notice.** A new share posts an in-app notice and, when mail is configured, an email: "Owner
+  shared a library with you". It goes through the same path as review notices.
+- **Leaving or removal.** Imported items stay in the member's sites as their own copies. Their
+  links remain, but the library stops appearing, so no update is offered.
+- **Editor.**
+  - Owners get **Share…** in a library: an email field, the member list with "No Pagecraft
+    account yet" for pending people, and a remove button.
+  - Viewers see "Shared by …" in the list, and no Publish or Share. They can import, take updates,
+    and choose "Leave this library".
+  - "Add to library…" offers only libraries you own.
+- **Gateway ops.** `library.listForUser`, `library.getFor`, `library.members`,
+  `library.addMember` and `library.removeMember`. `library.listForOwner` and `library.get` stay
+  for older app builds.

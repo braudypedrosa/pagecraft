@@ -4,7 +4,7 @@ import { FetchHostTransport, type FetchLike, type HostTransport } from './transp
 import { adoptHostDocument } from './schema';
 import type { LibraryBundle } from '../core/libraries';
 import type {
-  HostCapability, HostFeatures, HostMedia, HostSession, WebLibrary, WebLibraryVersionSummary, WebPublicationSchedule,
+  HostCapability, HostFeatures, HostMedia, HostSession, WebLibrary, WebLibraryMember, WebLibraryVersionSummary, WebPublicationSchedule,
   WebPublicationSnapshot, WebHostAdapter
 } from './types';
 
@@ -156,6 +156,22 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
         return (await transport.request<{ assets: Record<string, string> }>({
           method: 'POST', path: `/api/sites/${site}/library-assets`, body: { ...input }
         })).body.assets;
+      },
+      async members(id) {
+        return (await transport.request<{ members: WebLibraryMember[] }>({ path: `/api/libraries/${encodeURIComponent(id)}/members` })).body.members;
+      },
+      async share(id, email) {
+        return (await transport.request<{ added: boolean; members: WebLibraryMember[] }>({
+          method: 'POST', path: `/api/libraries/${encodeURIComponent(id)}/members`, body: { email }
+        })).body;
+      },
+      async unshare(id, userId) {
+        return (await transport.request<{ members: WebLibraryMember[] }>({
+          method: 'DELETE', path: `/api/libraries/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}`
+        })).body.members;
+      },
+      async leave(id) {
+        await transport.request<unknown>({ method: 'DELETE', path: `/api/libraries/${encodeURIComponent(id)}/members/me` });
       }
     }
   };

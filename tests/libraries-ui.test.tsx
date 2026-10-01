@@ -11,7 +11,7 @@ import { render } from 'preact';
 import * as C from '../app/src/core/index';
 import { extractLibraryBundle, type LibraryBundle, type LibraryItemRef } from '../app/src/core/libraries';
 import type { ComponentDef, Doc, Node } from '../app/src/core/types';
-import type { WebLibrary, WebLibraryAdapter, WebLibraryVersionSummary } from '../app/src/host/types';
+import type { WebLibrary, WebLibraryAdapter, WebLibraryMember, WebLibraryVersionSummary } from '../app/src/host/types';
 import { HostRequestError } from '../app/src/host/transport';
 import { Add } from '../app/src/ui/Add';
 import { rig, type Rig } from './ui.setup';
@@ -39,6 +39,8 @@ function authorDoc(components: ComponentDef[]): Doc {
 
 function fakeLibraries() {
   const libraries: WebLibrary[] = [];
+  const members = new Map<string, WebLibraryMember[]>();
+  const left: string[] = [];
   const versions = new Map<string, { version: WebLibraryVersionSummary; bundle: LibraryBundle }[]>();
   const sent = { publish: [] as { id: string; sourceVersion: number; items: LibraryItemRef[] }[], copied: [] as string[][], versionReads: 0 };
   let failNextPublish: Error | null = null;
@@ -69,10 +71,33 @@ function fakeLibraries() {
       sent.copied.push(input.assets);
       return Object.fromEntries(input.assets.map(id => [id, 'asite' + id.slice(1)]));
     },
+    async members(id) { return clone(members.get(id) || []); },
+    async share(id, email) {
+      const rows = members.get(id) || [];
+      const address = email.trim().toLowerCase();
+      if (rows.some(m => m.email === address)) return { added: false, members: clone(rows) };
+      const row = { userId: `u-${rows.length + 1}`, email: address, name: '', pending: address.startsWith('new'), createdAt: '' };
+      members.set(id, [...rows, row]);
+      return { added: true, members: clone(members.get(id)!) };
+    },
+    async unshare(id, userId) {
+      members.set(id, (members.get(id) || []).filter(m => m.userId !== userId));
+      return clone(members.get(id)!);
+    },
+    async leave(id) {
+      left.push(id);
+      libraries.splice(libraries.findIndex(l => l.id === id), 1);
+    },
+  };
+  /** A library someone else owns, shared with this account. */
+  const sharedWithMe = (name: string, ownerName: string) => {
+    const library: WebLibrary = { id: `lib-${libraries.length + 1}`, name, latestVersion: 0, createdAt: '', updatedAt: '', access: 'viewer', ownerName };
+    libraries.push(library);
+    return library;
   };
   /** Publish from another site straight into the store, the way a second editor would. */
   const publishFrom = (id: string, doc: Doc, items: LibraryItemRef[]) => add(id, extractLibraryBundle(doc, items, C.SCHEMA), AUTHOR);
-  return { adapter, sent, publishFrom, failPublishOnce: (error: Error) => { failNextPublish = error; } };
+  return { adapter, sent, publishFrom, sharedWithMe, left, failPublishOnce: (error: Error) => { failNextPublish = error; } };
 }
 
 let r: Rig;
@@ -290,4 +315,58 @@ test('a published version is read once, however often its views open', async () 
   await click(r.$('.lib-back'));
   expect(r.$('.lib-head small')?.textContent).toBe('Version 1 · 1 item');
   expect(fake.sent.versionReads).toBe(1);
+});
+
+test('the owner shares by email and can stop sharing', async () => {
+  await fake.adapter.create('Brand kit');
+  await openLibrary('Brand kit');
+  await click(button('Share…'));
+  expect(r.$('.lib-head small')?.textContent).toBe('Share');
+  expect(r.$$('.lib-note').map(n => n.textContent)).toContain('Not shared with anyone yet.');
+
+  const field = r.$('.lib-share input') as HTMLInputElement;
+  await act(async () => { r.type(field, 'newcomer@example.test'); });
+  await act(async () => { r.$('.lib-share')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })); });
+  await settle();
+  expect(toasts().at(-1)).toBe('Shared with newcomer@example.test');
+  expect(r.$$('.lib-member').map(m => m.textContent)).toEqual(['newcomer@example.testNo Pagecraft account yet']);
+  expect((r.$('.lib-share input') as HTMLInputElement).value).toBe('');
+
+  await click(r.$('.lib-member .bx'));
+  expect(r.arg('askConfirm')![0]).toBe('Stop sharing?');
+  expect(r.$$('.lib-member')).toEqual([]);
+  expect(toasts().at(-1)).toBe('Stopped sharing with newcomer@example.test');
+});
+
+test('a library shared with you imports and updates, but never publishes or shares', async () => {
+  const shared = fake.sharedWithMe('Agency kit', 'Riley');
+  fake.publishFrom(shared.id, authorDoc([card('From the agency')]), [{ kind: 'component', id: 'card' }]);
+  await openTab();
+  expect(r.$$('button.lib-row small')[0].textContent).toBe('Version 1 · Shared by Riley');
+  await click(r.$$('button.lib-row')[0]);
+  expect(button('Publish a new version…')).toBeUndefined();
+  expect(button('Share…')).toBeUndefined();
+  expect(r.$$('.lib-note').some(n => /Shared with you by Riley/.test(n.textContent || ''))).toBe(true);
+
+  await tick('Card');
+  await click(button('Import 1 item'));
+  expect(C.findComponent('card')).toBeTruthy();
+  expect(toasts().at(-1)).toMatch(/Imported 2 items from Agency kit/);
+
+  await click(button('Leave this library'));
+  expect(r.arg('askConfirm')![0]).toBe('Leave this library?');
+  expect(fake.left).toEqual([shared.id]);
+  expect(toasts().at(-1)).toBe('You left Agency kit');
+  expect(r.$$('button.lib-row')).toEqual([]);
+  // The copy stays this site's own.
+  expect(C.findComponent('card')).toBeTruthy();
+});
+
+test('“Add to library…” offers only libraries you own', async () => {
+  C.state.meta.components = [card('Hello')];
+  await fake.adapter.create('Mine');
+  fake.sharedWithMe('Theirs', 'Riley');
+  await draw('components');
+  await click(r.$('.brow [title="Add to library…"]'));
+  expect(r.$$('button.lib-row b').map(b => b.textContent)).toEqual(['Mine']);
 });

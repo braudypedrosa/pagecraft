@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-01T11:01:59.420Z",
+  "capturedAt": "2026-10-01T11:50:28.043Z",
   "browser": "Headless Chrome",
   "browserVersion": "Chrome/154.0.8037.58",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "03a3b448444c64f7353551e602195199143fd4a66dddc530b43236e08ba51d22",
+    "builder.html": "98980837d5b621253e5ef5a1f05447be0e4aece53a85215fa2a4586791f26564",
     "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
     "app/src/ui/CmsWorkspace.tsx": "9e98962d8e31c2285d59c3b56e2f1ceaf1851748538e67c4e222c70bf71bdabd",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",

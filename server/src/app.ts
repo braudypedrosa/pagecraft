@@ -84,7 +84,8 @@ import type { Doc } from "../../app/src/core/types.ts";
 import { assetFile, SCHEMA as CORE_SCHEMA } from "../../app/src/core/index.ts";
 import { LibraryError, type LibraryItemKind, type LibraryItemRef } from "../../app/src/core/libraries.ts";
 import {
-  copyLibraryAssetsToSite, LIBRARY_ITEMS_MAX, LIBRARY_NAME_MAX, LibraryImageError, publishLibraryVersion, type LibraryStore,
+  copyLibraryAssetsToSite, LIBRARY_ITEMS_MAX, LIBRARY_MEMBERS_MAX, LIBRARY_NAME_MAX, LibraryImageError, publishLibraryVersion,
+  type LibraryStore,
 } from "./libraries.ts";
 import {
   type AuthStore,
@@ -2590,19 +2591,26 @@ export function createApp(o: Options) {
     return c.body(new Uint8Array(bytes).buffer);
   });
 
-  /* ---- Libraries (Phase 5, slice 1b). Personal for now: only the owner sees, publishes and
-     imports from a library. The document side is pure and runs in the editor; these routes
-     keep versions immutable and move image bytes. See docs/phase5-libraries-design.md. */
+  /* ---- Libraries (Phase 5). The owner publishes; people the owner shared with (slice 2) list,
+     read and import, never publish. The document side is pure and runs in the editor; these
+     routes keep versions immutable and move image bytes. See docs/phase5-libraries-design.md. */
   const LIBRARY_KINDS = new Set<LibraryItemKind>(["component", "block", "color", "textStyle", "class"]);
-  const ownLibrary = async (c: Context, libraryId: string) => {
+  /* Every library route goes through here. A library nobody shared with you is concealed exactly
+     like someone else's site; a viewer reaching an owner's action is told why instead. */
+  const libraryGate = async (c: Context, libraryId: string, need: "read" | "owner") => {
     if (!o.libraries) return { ok: false as const, response: c.json({ error: "libraries are unavailable" }, 503) };
     const user = await who(c);
     if (!user) return { ok: false as const, response: deny(c, 401) };
     if (!/^[0-9a-f-]{36}$/i.test(libraryId)) return { ok: false as const, response: deny(c, 404) };
-    const library = await o.libraries.get(libraryId);
-    // Someone else's library is concealed, exactly like someone else's site.
-    if (!library || library.ownerId !== user.id) return { ok: false as const, response: deny(c, 404) };
-    return { ok: true as const, user, library, libraries: o.libraries };
+    const found = await o.libraries.getFor(libraryId, user.id);
+    if (!found) return { ok: false as const, response: deny(c, 404) };
+    if (need === "owner" && found.access !== "owner") {
+      return {
+        ok: false as const,
+        response: c.json({ error: "only_owner", detail: "Only the library’s owner can do that." }, 403),
+      };
+    }
+    return { ok: true as const, user, library: found.library, access: found.access, libraries: o.libraries };
   };
   const libraryProblem = (c: Context, error: unknown) => {
     if (error instanceof LibraryError) return c.json({ error: "library_invalid", problems: error.problems }, 422);
@@ -2615,12 +2623,19 @@ export function createApp(o: Options) {
     }
     throw error;
   };
+  const displayName = (user: { name?: string; email: string } | null) => (user ? user.name || user.email : "");
 
   app.get("/api/libraries", async (c) => {
     if (!o.libraries) return c.json({ error: "libraries are unavailable" }, 503);
     const user = await who(c);
     if (!user) return deny(c, 401);
-    return c.json({ libraries: await o.libraries.listForOwner(user.id) });
+    const list = await o.libraries.listForUser(user.id);
+    // A shared library says whose it is; the owners are looked up once each, in parallel.
+    const ownerIds = [...new Set(list.filter((l) => l.access === "viewer").map((l) => l.ownerId))];
+    const owners = new Map(await Promise.all(ownerIds.map(async (id) => [id, displayName(await o.auth.userById(id))] as const)));
+    return c.json({
+      libraries: list.map((l) => (l.access === "viewer" ? { ...l, ownerName: owners.get(l.ownerId) || "" } : l)),
+    });
   });
 
   app.post("/api/libraries", async (c) => {
@@ -2630,17 +2645,17 @@ export function createApp(o: Options) {
     const body = await c.req.json().catch(() => null) as { name?: string } | null;
     const name = String(body?.name || "").trim();
     if (!name || name.length > LIBRARY_NAME_MAX) return c.json({ error: `a name of 1–${LIBRARY_NAME_MAX} characters is required` }, 400);
-    return c.json({ library: await o.libraries.create({ ownerId: user.id, name }) }, 201);
+    return c.json({ library: { ...await o.libraries.create({ ownerId: user.id, name }), access: "owner" } }, 201);
   });
 
   app.get("/api/libraries/:id", async (c) => {
-    const gate = await ownLibrary(c, c.req.param("id"));
+    const gate = await libraryGate(c, c.req.param("id"), "read");
     if (!gate.ok) return gate.response;
-    return c.json({ library: gate.library, versions: await gate.libraries.versions(gate.library.id) });
+    return c.json({ library: { ...gate.library, access: gate.access }, versions: await gate.libraries.versions(gate.library.id) });
   });
 
   app.get("/api/libraries/:id/versions/:version", async (c) => {
-    const gate = await ownLibrary(c, c.req.param("id"));
+    const gate = await libraryGate(c, c.req.param("id"), "read");
     if (!gate.ok) return gate.response;
     const number = Number(c.req.param("version"));
     const row = Number.isInteger(number) && number > 0 ? await gate.libraries.version(gate.library.id, number) : null;
@@ -2652,7 +2667,7 @@ export function createApp(o: Options) {
   /* Publish from a site's current saved version: the editor saves first, then publishes, so the
      library always receives exactly what the owner sees. */
   app.post("/api/libraries/:id/versions", async (c) => {
-    const gate = await ownLibrary(c, c.req.param("id"));
+    const gate = await libraryGate(c, c.req.param("id"), "owner");
     if (!gate.ok) return gate.response;
     const body = await c.req.json().catch(() => null) as { siteId?: string; sourceVersion?: number; items?: LibraryItemRef[] } | null;
     const siteId = String(body?.siteId || "");
@@ -2680,13 +2695,14 @@ export function createApp(o: Options) {
   });
 
   /* Copy a library version's images into a site before the editor applies an import or an
-     update; the document then names the site's own copies. Charged to the site's storage owner. */
+     update; the document then names the site's own copies. Charged to the site's storage owner,
+     which is how a viewer importing into their own site pays for their own copy. */
   app.post("/api/sites/:id/library-assets", async (c) => {
     const id = c.req.param("id");
     const site = await allowed(c, id, "admin");
     if (!site.ok) return deny(c, site.status);
     const body = await c.req.json().catch(() => null) as { libraryId?: string; version?: number; assets?: string[] } | null;
-    const gate = await ownLibrary(c, String(body?.libraryId || ""));
+    const gate = await libraryGate(c, String(body?.libraryId || ""), "read");
     if (!gate.ok) return gate.response;
     const row = Number.isInteger(body?.version) ? await gate.libraries.version(gate.library.id, Number(body!.version)) : null;
     if (!row) return c.json({ error: "version_not_found" }, 404);
@@ -2703,6 +2719,87 @@ export function createApp(o: Options) {
     } catch (error) {
       return libraryProblem(c, error);
     }
+  });
+
+  /* ---- Sharing (slice 2). Read-only: the people an owner shares with can list, read and import,
+     and nothing they do reaches the library. Like a site invitation, an address with no account
+     yet gets a pending user row and the share takes effect when they sign in with it. */
+  const libraryMembers = async (libraryId: string) => {
+    const rows = await o.libraries!.members(libraryId);
+    const users = await Promise.all(rows.map((m) => o.auth.userById(m.userId)));
+    return rows.flatMap((m, i) => {
+      const user = users[i];
+      return user
+        ? [{ userId: m.userId, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId, createdAt: m.createdAt }]
+        : [];
+    });
+  };
+
+  app.get("/api/libraries/:id/members", async (c) => {
+    const gate = await libraryGate(c, c.req.param("id"), "owner");
+    if (!gate.ok) return gate.response;
+    return c.json({ members: await libraryMembers(gate.library.id) });
+  });
+
+  app.post("/api/libraries/:id/members", async (c) => {
+    const gate = await libraryGate(c, c.req.param("id"), "owner");
+    if (!gate.ok) return gate.response;
+    const body = await c.req.json().catch(() => null) as { email?: string } | null;
+    const email = normalEmail(body?.email || "");
+    if (!validEmail(email)) return c.json({ error: "invalid_email", detail: "Enter a valid email address." }, 400);
+    if (email === normalEmail(gate.user.email)) {
+      return c.json({ error: "self", detail: "That’s your own address — you already own this library." }, 400);
+    }
+    // The same limits as site invitations, which can also email an address someone typed.
+    const allowedShare = inviteSourceLimit.take(requestSource(c)) &&
+      inviteAccountLimit.take(gate.user.id) &&
+      inviteEmailLimit.take(email) &&
+      inviteCooldown.take(`library:${gate.library.id}|${email}`);
+    if (!allowedShare) {
+      c.header("retry-after", "60");
+      return c.json({ error: "rate_limited", detail: "Too many shares just now. Try again in a minute." }, 429);
+    }
+    const current = await gate.libraries.members(gate.library.id);
+    if (current.length >= LIBRARY_MEMBERS_MAX) {
+      return c.json({ error: "too_many_members", detail: `A library can be shared with up to ${LIBRARY_MEMBERS_MAX} people.` }, 409);
+    }
+    let user = await o.auth.userByEmail(email);
+    if (!user) {
+      // Two shares to a new address at once: the loser of the unique email finds the winner's row.
+      try {
+        user = await o.auth.createUser(email);
+      } catch (error) {
+        user = await o.auth.userByEmail(email);
+        if (!user) throw error;
+      }
+    }
+    const added = await gate.libraries.addMember({ libraryId: gate.library.id, userId: user.id, invitedBy: gate.user.id });
+    if (added) {
+      const owner = displayName(gate.user);
+      await notifyReview(c, {
+        userId: user.id, email: user.email, kind: "library_shared",
+        title: `${owner} shared a library with you`,
+        body: `“${gate.library.name}” is now in your Libraries. Open a site you own, choose Add, then Libraries, to import from it. You can import and take its updates; only ${owner} publishes new versions.`,
+        href: "/",
+      });
+    }
+    return c.json({ added, members: await libraryMembers(gate.library.id) }, added ? 201 : 200);
+  });
+
+  /* The owner removes someone, or a viewer leaves. What they already imported stays in their
+     sites as their own copies; they stop seeing the library and its updates. */
+  app.delete("/api/libraries/:id/members/:userId", async (c) => {
+    const gate = await libraryGate(c, c.req.param("id"), "read");
+    if (!gate.ok) return gate.response;
+    const target = c.req.param("userId") === "me" ? gate.user.id : c.req.param("userId");
+    if (gate.access !== "owner" && target !== gate.user.id) {
+      return c.json({ error: "only_owner", detail: "Only the library’s owner can do that." }, 403);
+    }
+    if (target === gate.library.ownerId) return c.json({ error: "owner", detail: "The owner cannot leave their own library." }, 400);
+    if (!await gate.libraries.removeMember(gate.library.id, target)) {
+      return c.json({ error: "not_member", detail: "They no longer have access." }, 404);
+    }
+    return c.json(gate.access === "owner" ? { members: await libraryMembers(gate.library.id) } : { left: true });
   });
 
   /* ---- Scheduled publication (Phase 4). A schedule names an exact prepared snapshot and

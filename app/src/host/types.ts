@@ -262,6 +262,18 @@ export interface WebLibrary {
   latestVersion: number;
   createdAt: string;
   updatedAt: string;
+  /** The owner publishes and shares; a viewer was shared with and can import. Absent means owner. */
+  access?: 'owner' | 'viewer';
+  /** whose a shared library is, for a viewer */
+  ownerName?: string;
+}
+/** Someone a library is shared with. Pending until they sign in with that address. */
+export interface WebLibraryMember {
+  userId: string;
+  email: string;
+  name: string;
+  pending: boolean;
+  createdAt: string;
 }
 export interface WebLibraryVersionSummary {
   version: number;
@@ -280,6 +292,12 @@ export interface WebLibraryAdapter {
   publish(id: string, input: { sourceVersion: number; items: import('../core/libraries').LibraryItemRef[] }): Promise<WebLibraryVersionSummary>;
   /** Copy a version's images into this site; returns library image id → site asset id. */
   copyAssets(input: { libraryId: string; version: number; assets: string[] }): Promise<Record<string, string>>;
+  /* Read-only sharing (slice 2): owner only, except leave. */
+  members(id: string): Promise<WebLibraryMember[]>;
+  share(id: string, email: string): Promise<{ added: boolean; members: WebLibraryMember[] }>;
+  unshare(id: string, userId: string): Promise<WebLibraryMember[]>;
+  /** A viewer stops seeing a library shared with them. */
+  leave(id: string): Promise<void>;
 }
 
 export interface WebHostAdapter extends PagecraftHostAdapter {

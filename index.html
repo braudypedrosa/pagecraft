@@ -447,6 +447,15 @@ body.content-only .s-hud [data-x=down]{display:none}
 .lib-problem{margin:var(--gap-1) 0;padding:9px 11px;border-radius:var(--r-md);background:var(--risk-bg);color:var(--risk-fg);font-size:var(--fs-1);line-height:1.45}
 .lib-problem p{margin:0}
 .lib-problem p+p{margin-top:4px}
+.lib-actions{display:flex;flex-direction:column;gap:var(--sp-3)}
+.lib-share{display:flex;gap:var(--sp-3);margin:0 0 var(--gap-1)}
+.lib-share .ctl{flex:1;min-width:0}
+.lib-member{display:flex;align-items:center;gap:var(--sp-3);padding:6px 2px;border-bottom:1px solid var(--line)}
+.lib-member .bn{flex:1;min-width:0}
+.lib-member .bn b{display:block;font-size:var(--fs-2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-member .bn small{display:block;color:var(--text-3);font-size:var(--fs-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-member .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;flex:0 0 auto}
+.lib-member .bx:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .pvgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
 .pvcard{
   display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;cursor:grab;
@@ -13575,8 +13584,10 @@ var PC_UI = (() => {
   // app/src/ui/Libraries.tsx
   var known = /* @__PURE__ */ new Map();
   var remember = (library) => {
-    known.set(library.id, library);
+    known.set(library.id, { ...known.get(library.id), ...library });
   };
+  var owns = (library) => (library.access || "owner") === "owner";
+  var ownerOf = (library) => library.ownerName || known.get(library.id)?.ownerName || "its owner";
   var versionCache = /* @__PURE__ */ new WeakMap();
   function versionOf(libs, id, version) {
     const cache = versionCache.get(libs) || /* @__PURE__ */ new Map();
@@ -13627,6 +13638,7 @@ var PC_UI = (() => {
     const oldest = versions.length ? Math.min(...versions) : 0;
     return oldest && oldest < library.latestVersion ? oldest : 0;
   };
+  var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   function problem(error) {
     if (error instanceof LibraryError) return error.problems.join(" ");
     const e3 = error;
@@ -13668,7 +13680,7 @@ var PC_UI = (() => {
     const [view, setView] = d2({ at: "list" });
     if (!libs) return /* @__PURE__ */ u2("div", { class: "hint", children: "Libraries are available in the hosted editor, for the site\u2019s owner." });
     const open = (next) => setView(next);
-    return view.at === "list" ? /* @__PURE__ */ u2(LibraryList, { libs, open }) : view.at === "publish" ? /* @__PURE__ */ u2(PublishPick, { libs, id: view.id, open }, view.id) : view.at === "update" ? /* @__PURE__ */ u2(UpdateReview, { libs, id: view.id, open }, view.id) : /* @__PURE__ */ u2(LibraryDetail, { libs, id: view.id, open }, view.id);
+    return view.at === "list" ? /* @__PURE__ */ u2(LibraryList, { libs, open }) : view.at === "publish" ? /* @__PURE__ */ u2(PublishPick, { libs, id: view.id, open }, view.id) : view.at === "update" ? /* @__PURE__ */ u2(UpdateReview, { libs, id: view.id, open }, view.id) : view.at === "share" ? /* @__PURE__ */ u2(ShareView, { libs, id: view.id, open }, view.id) : /* @__PURE__ */ u2(LibraryDetail, { libs, id: view.id, open }, view.id);
   }
   function LibraryList({ libs, open }) {
     const list2 = useLoad(async () => {
@@ -13711,7 +13723,7 @@ var PC_UI = (() => {
         list2.error,
         " ",
         /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny", onClick: list2.reload, children: "Try again" })
-      ] }) : !list2.data ? /* @__PURE__ */ u2("div", { class: "hint", "aria-busy": "true", children: "Loading your libraries\u2026" }) : list2.data.length ? list2.data.map((library) => {
+      ] }) : !list2.data ? /* @__PURE__ */ u2("div", { class: "hint", "aria-busy": "true", children: "Loading your libraries\u2026" }) : list2.data.length ? list2.data.filter((library) => !waiting || owns(library)).map((library) => {
         const old = behind(library);
         const here = linksFor(library.id).length;
         return /* @__PURE__ */ u2(
@@ -13726,6 +13738,7 @@ var PC_UI = (() => {
                 /* @__PURE__ */ u2("b", { children: library.name }),
                 /* @__PURE__ */ u2("small", { children: [
                   library.latestVersion ? `Version ${library.latestVersion}` : "Nothing published yet",
+                  owns(library) ? "" : ` \xB7 Shared by ${ownerOf(library)}`,
                   old ? " \xB7 Update available" : here ? " \xB7 In this site" : ""
                 ] })
               ] }),
@@ -13822,6 +13835,24 @@ var PC_UI = (() => {
         setBusy(false);
       }
     };
+    const leave = async () => {
+      const ok = await L2.askConfirm(
+        "Leave this library?",
+        `You stop seeing <b>${esc3(library.name)}</b> and its updates. What you already imported stays in your sites as your own.`,
+        { ok: "Leave library" }
+      );
+      if (!ok) return;
+      setBusy(true);
+      try {
+        await libs.leave(id);
+        known.delete(id);
+        L2.toast(`You left ${library.name}`);
+        open({ at: "list" });
+      } catch (error) {
+        L2.toast(problem(error), { tone: "error" });
+        setBusy(false);
+      }
+    };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(
         Head,
@@ -13886,21 +13917,128 @@ var PC_UI = (() => {
           ),
           /* @__PURE__ */ u2("p", { class: "lib-note", children: "Imported items become this site\u2019s own. Whatever they use \u2014 nested components, styles, colors and images \u2014 comes with them." })
         ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: "Everything in this version is already in this site." })
-      ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: "Publish components, blocks or styles from this site to make version 1." }),
-      /* @__PURE__ */ u2(
-        "button",
-        {
-          type: "button",
-          class: "btn block",
-          disabled: busy,
-          style: { fontSize: "var(--fs-2)" },
-          onClick: () => open({ at: "publish", id }),
-          children: [
-            /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
-            " Publish a new version\u2026"
-          ]
-        }
-      )
+      ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: owns(library) ? "Publish components, blocks or styles from this site to make version 1." : `${ownerOf(library)} has not published anything yet.` }),
+      owns(library) ? /* @__PURE__ */ u2("div", { class: "lib-actions", children: [
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "btn block",
+            disabled: busy,
+            style: { fontSize: "var(--fs-2)" },
+            onClick: () => open({ at: "publish", id }),
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+              " Publish a new version\u2026"
+            ]
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "btn block",
+            disabled: busy,
+            style: { fontSize: "var(--fs-2)" },
+            onClick: () => open({ at: "share", id }),
+            children: "Share\u2026"
+          }
+        )
+      ] }) : /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2("p", { class: "lib-note", children: [
+          "Shared with you by ",
+          ownerOf(library),
+          ". You can import from it and take its updates; only they publish new versions."
+        ] }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn ghost block", disabled: busy, style: { fontSize: "var(--fs-2)" }, onClick: leave, children: "Leave this library" })
+      ] })
+    ] });
+  }
+  function ShareView({ libs, id, open }) {
+    const state2 = useLoad(() => libs.members(id), [id]);
+    const [members, setMembers] = d2(null);
+    const [email, setEmail] = d2("");
+    const [busy, setBusy] = d2(false);
+    const back = () => open({ at: "library", id });
+    const library = known.get(id);
+    const shown2 = members || state2.data;
+    if (!shown2) return /* @__PURE__ */ u2(Loading, { state: state2, back, id });
+    const share = async (e3) => {
+      e3.preventDefault();
+      const address = email.trim();
+      if (!address || busy) return;
+      setBusy(true);
+      try {
+        const result = await libs.share(id, address);
+        setMembers(result.members);
+        setEmail("");
+        L2.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
+      } catch (error) {
+        L2.toast(problem(error), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    const remove = async (member) => {
+      const ok = await L2.askConfirm(
+        "Stop sharing?",
+        `<b>${esc3(member.name || member.email)}</b> stops seeing this library and its updates. What they already imported stays in their sites as their own.`,
+        { ok: "Stop sharing" }
+      );
+      if (!ok) return;
+      setBusy(true);
+      try {
+        setMembers(await libs.unshare(id, member.userId));
+        L2.toast(`Stopped sharing with ${member.email}`);
+      } catch (error) {
+        L2.toast(problem(error), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(Head, { library, back, sub: "Share" }),
+      /* @__PURE__ */ u2("p", { class: "lib-note", children: "People you share with can import from this library into sites they own and take its updates. Only you publish new versions." }),
+      /* @__PURE__ */ u2("form", { class: "lib-share", onSubmit: share, children: [
+        /* @__PURE__ */ u2(
+          "input",
+          {
+            class: "ctl",
+            type: "email",
+            required: true,
+            placeholder: "name@example.com",
+            "aria-label": "Email address",
+            value: email,
+            disabled: busy,
+            onInput: (e3) => setEmail(e3.currentTarget.value)
+          }
+        ),
+        /* @__PURE__ */ u2("button", { type: "submit", class: "btn primary", disabled: busy || !email.trim(), children: busy ? "Sharing\u2026" : "Share" })
+      ] }),
+      shown2.length ? /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2("div", { class: "plabel", children: "Shared with" }),
+        shown2.map((member) => /* @__PURE__ */ u2("div", { class: "lib-member", children: [
+          /* @__PURE__ */ u2("span", { class: "bn", children: [
+            /* @__PURE__ */ u2("b", { children: member.name || member.email }),
+            /* @__PURE__ */ u2("small", { children: [
+              member.name ? member.email : "",
+              member.pending ? `${member.name ? " \xB7 " : ""}No Pagecraft account yet` : ""
+            ] })
+          ] }),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: "bx danger",
+              title: `Stop sharing with ${member.email}`,
+              "aria-label": `Stop sharing with ${member.email}`,
+              disabled: busy,
+              onClick: () => remove(member),
+              children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 })
+            }
+          )
+        ] }, member.userId))
+      ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: "Not shared with anyone yet." })
     ] });
   }
   function PublishPick({ libs, id, open }) {
@@ -13924,6 +14062,7 @@ var PC_UI = (() => {
     }, [state2.data]);
     if (!state2.data || !picked) return /* @__PURE__ */ u2(Loading, { state: state2, back, id });
     const { library } = state2.data;
+    if (!owns(library)) return /* @__PURE__ */ u2(Loading, { state: { error: `Only ${ownerOf(library)} publishes to this library.` }, back, id });
     const next = library.latestVersion + 1;
     const chosen = [...picked].map(parseKey).filter((ref) => siteItem(ref.kind, ref.id));
     let problems = [];
@@ -14307,7 +14446,7 @@ var PC_UI = (() => {
       if (!b2) return;
       const ok = await L2.askConfirm(
         "Forget this block?",
-        `<b>${esc3(b2.name)}</b> leaves the Blocks tab. Copies already placed stay.`,
+        `<b>${esc4(b2.name)}</b> leaves the Blocks tab. Copies already placed stay.`,
         { ok: "Forget block" }
       );
       if (!ok) return;
@@ -14390,7 +14529,7 @@ var PC_UI = (() => {
       const n2 = C2.componentUsage(id);
       const ok = await L2.askConfirm(
         "Delete this component?",
-        `<b>${esc3(cd.name)}</b> stops being a component. ` + (n2 ? `The ${n2 === 1 ? "one place" : n2 + " places"} using it keep what they show, as ordinary elements \u2014 they simply stop changing together.` : `Nothing is using it.`),
+        `<b>${esc4(cd.name)}</b> stops being a component. ` + (n2 ? `The ${n2 === 1 ? "one place" : n2 + " places"} using it keep what they show, as ordinary elements \u2014 they simply stop changing together.` : `Nothing is using it.`),
         { ok: "Delete component" }
       );
       if (!ok) return;
@@ -14506,7 +14645,7 @@ var PC_UI = (() => {
       /* @__PURE__ */ u2("div", { class: "palette", id: "add-category-panel", role: "tabpanel", "aria-labelledby": "add-tab-" + t3, children: t3 === "widgets" ? /* @__PURE__ */ u2(Widgets, {}) : t3 === "components" ? /* @__PURE__ */ u2(Components, {}) : t3 === "templates" ? /* @__PURE__ */ u2(Templates, {}) : t3 === "libraries" ? /* @__PURE__ */ u2(Libraries, {}) : /* @__PURE__ */ u2(Blocks, {}) })
     ] });
   }
-  var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc4 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // shared/ui-motion.js
   var UI_MOTION_CSS = `:root{
@@ -14778,7 +14917,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
       const ok = await L2.askConfirm(
         "Delete this page?",
-        `<b>${esc4(C2.state.pages[i3].name)}</b> and everything on it. \u2318Z will bring it back until you reload.`,
+        `<b>${esc5(C2.state.pages[i3].name)}</b> and everything on it. \u2318Z will bring it back until you reload.`,
         { ok: "Delete page" }
       );
       if (ok) {
@@ -15220,7 +15359,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] }) }) })
     ] });
   }
-  var esc4 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc5 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/inspector/ctl.ts
   function bound(n2, c3) {
@@ -15333,10 +15472,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   function ResponsiveBadge({ n: n2, c: c3 }) {
     const dev = C2.dk();
-    const owns = ownsValue(n2, c3);
-    const clearable = owns && dev !== "d";
+    const owns2 = ownsValue(n2, c3);
+    const clearable = owns2 && dev !== "d";
     const w3 = writer(n2, c3);
-    const label = dev === "d" ? "Editing the desktop base value" : owns ? "Clear " + C2.DEV_LABEL[dev] + " override for " + c3.label : "Set a " + C2.DEV_LABEL[dev] + " override";
+    const label = dev === "d" ? "Editing the desktop base value" : owns2 ? "Clear " + C2.DEV_LABEL[dev] + " override for " + c3.label : "Set a " + C2.DEV_LABEL[dev] + " override";
     return clearable ? /* @__PURE__ */ u2(
       "button",
       {
@@ -17018,7 +17157,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const k3 = t3 ? C2.tsUsage(t3.id) : 0;
       if (k3 > 1 && !await L2.askConfirm(
         "Update the style everywhere?",
-        `<b>${esc5(t3.name)}</b> is used ${k3}\xD7. Taking this element's typography into the style changes the other ${k3 - 1} too.`,
+        `<b>${esc6(t3.name)}</b> is used ${k3}\xD7. Taking this element's typography into the style changes the other ${k3 - 1} too.`,
         { ok: "Update style", danger: false }
       )) return;
       C2.edit(() => C2.tsUpdateFrom(n2));
@@ -17441,10 +17580,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     }
     return /* @__PURE__ */ u2(Cmp, { n: n2, c: c3 });
   }
-  var esc5 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc6 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/inspector/Inspector.tsx
-  var esc6 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc7 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   function Group({ title, n: n2, items, gk, collapsed = false }) {
     const bodyId = g2();
     const key2 = gk || n2.type + ":" + title;
@@ -17923,7 +18062,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const used = C2.componentUsage(cid);
       const ok = await L2.askConfirm(
         "Remove this property?",
-        `<b>${esc6(label)}</b> stops varying between instances. Every element that reads it goes back to the value written in the definition` + (used ? `, on ${used === 1 ? "the one instance" : "all " + used + " instances"}.` : "."),
+        `<b>${esc7(label)}</b> stops varying between instances. Every element that reads it goes back to the value written in the definition` + (used ? `, on ${used === 1 ? "the one instance" : "all " + used + " instances"}.` : "."),
         { ok: "Remove property" }
       );
       if (!ok) return;
@@ -18195,7 +18334,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const used = C2.colorUsage(id);
       if (used && !await L2.askConfirm(
         "Delete this colour token?",
-        `<b>${esc7(t3.name)}</b> is used ${used}\xD7. Those elements keep the colour, as a literal value \u2014 they just stop following the token.`,
+        `<b>${esc8(t3.name)}</b> is used ${used}\xD7. Those elements keep the colour, as a literal value \u2014 they just stop following the token.`,
         { ok: "Delete token" }
       )) return;
       C2.edit(() => C2.colorDelete(id));
@@ -18280,7 +18419,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       )
     ] });
   }
-  var esc7 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc8 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/StyleClasses.tsx
   function StyleClasses() {
@@ -18301,7 +18440,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const uses = C2.classUsage(id);
       if (uses && !await L2.askConfirm(
         "Delete this class?",
-        `<b>${esc8(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
+        `<b>${esc9(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
         { ok: "Delete class" }
       )) return;
       C2.edit(() => C2.classDelete(id));
@@ -18375,7 +18514,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       /* @__PURE__ */ u2("div", { class: "note", children: "Lower overrides higher. Element styling wins." })
     ] });
   }
-  var esc8 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc9 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/FontSelect.tsx
   function FontSelect({ value, onChange, ariaLabel = "Font" }) {
@@ -18625,7 +18764,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const used = C2.tsUsage(t3.id);
       if (used && !await L2.askConfirm(
         "Delete this text style?",
-        `<b>${esc9(t3.name)}</b> is used by ${used} element${used === 1 ? "" : "s"}. They keep their current look \u2014 they just stop following the style.`,
+        `<b>${esc10(t3.name)}</b> is used by ${used} element${used === 1 ? "" : "s"}. They keep their current look \u2014 they just stop following the style.`,
         { ok: "Delete style" }
       )) return;
       C2.edit(() => C2.styleDelete(t3.id));
@@ -18755,7 +18894,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] })
     ] });
   }
-  var esc9 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var esc10 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
   // app/src/ui/ReviewList.tsx
   var REGION_MODE = {
@@ -21459,6 +21598,25 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             path: `/api/sites/${site}/library-assets`,
             body: { ...input }
           })).body.assets;
+        },
+        async members(id) {
+          return (await transport.request({ path: `/api/libraries/${encodeURIComponent(id)}/members` })).body.members;
+        },
+        async share(id, email) {
+          return (await transport.request({
+            method: "POST",
+            path: `/api/libraries/${encodeURIComponent(id)}/members`,
+            body: { email }
+          })).body;
+        },
+        async unshare(id, userId) {
+          return (await transport.request({
+            method: "DELETE",
+            path: `/api/libraries/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}`
+          })).body.members;
+        },
+        async leave(id) {
+          await transport.request({ method: "DELETE", path: `/api/libraries/${encodeURIComponent(id)}/members/me` });
         }
       }
     };

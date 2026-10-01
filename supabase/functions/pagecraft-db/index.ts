@@ -2470,6 +2470,63 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         from libraries l where l.id = ${text(args.id)}::uuid
       `,
       );
+    /* Slice 2: owners and the people they shared with. `access` is how the app gates every
+       library route, so a library someone cannot see is indistinguishable from none. */
+    case "library.listForUser":
+      return await sql`
+        select l.*, coalesce((select max(version) from library_versions v
+          where v.library_id = l.id), 0) as latest_version,
+          case when l.owner_id = ${
+        text(args.userId)
+      } then 'owner' else 'viewer' end as access
+        from libraries l
+        where l.owner_id = ${text(args.userId)}
+          or exists (select 1 from library_members m
+            where m.library_id = l.id and m.user_id = ${text(args.userId)})
+        order by l.updated_at desc
+      `;
+    case "library.getFor":
+      return one(
+        await sql`
+        select l.*, coalesce((select max(version) from library_versions v
+          where v.library_id = l.id), 0) as latest_version,
+          case when l.owner_id = ${
+          text(args.userId)
+        } then 'owner' else 'viewer' end as access
+        from libraries l
+        where l.id = ${text(args.id)}::uuid
+          and (l.owner_id = ${text(args.userId)}
+            or exists (select 1 from library_members m
+              where m.library_id = l.id and m.user_id = ${text(args.userId)}))
+      `,
+      );
+    case "library.members":
+      return await sql`
+        select user_id, invited_by, created_at from library_members
+        where library_id = ${text(args.libraryId)}::uuid
+        order by created_at
+      `;
+    case "library.addMember":
+      return Boolean(one(
+        await sql`
+        insert into library_members (library_id, user_id, invited_by)
+        values (${text(args.libraryId)}::uuid, ${text(args.userId)}, ${
+          text(args.invitedBy)
+        })
+        on conflict (library_id, user_id) do nothing
+        returning user_id
+      `,
+      ));
+    case "library.removeMember":
+      return Boolean(one(
+        await sql`
+        delete from library_members
+        where library_id = ${text(args.libraryId)}::uuid and user_id = ${
+          text(args.userId)
+        }
+        returning user_id
+      `,
+      ));
     case "library.versions":
       return await sql`
         select version, content_hash, item_count, source_site_id, created_by, created_at

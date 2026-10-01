@@ -1131,6 +1131,29 @@ test("libraries go through fixed gateway operations and map rows to camelCase", 
   a.match(String(calls[0].args.id), /^[0-9a-f-]{36}$/);
 });
 
+test("library sharing goes through its own gateway operations", async () => {
+  const row = { id: "7b4c1a2e-0000-4000-8000-000000000001", owner_id: "u1", name: "Brand kit", created_at: "2026-10-01T00:00:00.000Z", updated_at: "2026-10-01T00:00:00.000Z", latest_version: 1 };
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op === "library.listForUser") return [{ ...row, access: "viewer" }];
+    if (call.op === "library.getFor") return call.args.userId === "u2" ? { ...row, access: "viewer" } : null;
+    if (call.op === "library.members") return [{ user_id: "u2", invited_by: "u1", created_at: new Date("2026-10-01T01:00:00.000Z") }];
+    if (call.op === "library.addMember") return true;
+    if (call.op === "library.removeMember") return false;
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const libraries = new GatewayLibraryStore(gateway);
+  a.equal((await libraries.listForUser("u2"))[0].access, "viewer");
+  a.deepEqual(await libraries.getFor(row.id, "u2"), {
+    library: { id: row.id, ownerId: "u1", name: "Brand kit", createdAt: row.created_at, updatedAt: row.updated_at, latestVersion: 1 },
+    access: "viewer",
+  });
+  a.equal(await libraries.getFor(row.id, "u3"), null, "no access reads as no library");
+  a.deepEqual(await libraries.members(row.id), [{ userId: "u2", invitedBy: "u1", createdAt: "2026-10-01T01:00:00.000Z" }]);
+  a.equal(await libraries.addMember({ libraryId: row.id, userId: "u2", invitedBy: "u1" }), true);
+  a.equal(await libraries.removeMember(row.id, "u9"), false);
+  a.deepEqual(calls.map((c) => c.op), ["library.listForUser", "library.getFor", "library.getFor", "library.members", "library.addMember", "library.removeMember"]);
+});
+
 test("library images upload through the chunk protocol, and a full allowance is a quota error", async () => {
   const calls: Call[] = [];
   let full = false;

@@ -28,23 +28,30 @@ async function rig() {
   const libraries = new MemoryLibraryStore();
   const owner = await auth.createUser('owner@example.test', 'Owner');
   const stranger = await auth.createUser('stranger@example.test', 'Stranger');
+  const friend = await auth.createUser('friend@example.test', 'Friend');
   const author = await store.create({ host: 'author.test', name: 'Author', slug: 'author', doc: blankDoc() });
   const recipient = await store.create({ host: 'recipient.test', name: 'Recipient', slug: 'recipient', doc: blankDoc() });
   await auth.grant(author.id, owner.id, 'owner');
   await auth.grant(recipient.id, owner.id, 'owner');
+  const friendSite = await store.create({ host: 'friend.test', name: 'Friend site', slug: 'friend', doc: blankDoc() });
+  await auth.grant(friendSite.id, friend.id, 'owner');
   const image = await assets.put({ siteId: author.id, name: 'hero.webp', type: 'image/webp', w: 8, h: 8, bytes: imageBytes, contentHash: sha(imageBytes) });
   const doc = structuredClone(author.doc);
   const card: ComponentDef = { id: 'card', name: 'Card', props: [], node: node('c1', 'box', { css: { d: { background: `url(asset:${image.id})` } } as never }) };
   doc.meta.components = [card];
   const saved = await store.save(author.id, doc, author.version, owner.id);
   a.equal(saved.ok, true);
-  const app = createApp({ store, auth, assets, libraries, editorHost: 'admin.test', editorOrigin: 'http://admin.test', editorHtml: '<title>Builder</title>' });
+  const notices: { to: string; subject: string; text: string }[] = [];
+  const app = createApp({
+    store, auth, assets, libraries, editorHost: 'admin.test', editorOrigin: 'http://admin.test', editorHtml: '<title>Builder</title>',
+    sendNotice: (to, subject, text) => { notices.push({ to, subject, text }); },
+  });
   const cookieFor = async (userId: string) => {
     const token = newToken();
     await auth.putSession(hashToken(token), userId, Date.now() + 60 * 60_000);
     return `pc_session=${token}`;
   };
-  const ownerCookie = await cookieFor(owner.id), strangerCookie = await cookieFor(stranger.id);
+  const ownerCookie = await cookieFor(owner.id), strangerCookie = await cookieFor(stranger.id), friendCookie = await cookieFor(friend.id);
   const call = async (path: string, init: { method?: string; body?: unknown; cookie?: string } = {}) => {
     const res = await app.request(new Request(`http://admin.test${path}`, {
       method: init.method || 'GET',
@@ -53,7 +60,7 @@ async function rig() {
     }));
     return { status: res.status, body: await res.json().catch(() => null) as any };
   };
-  return { store, assets, libraries, author, recipient, image, call, ownerCookie, strangerCookie };
+  return { store, auth, assets, libraries, author, recipient, friend, friendSite, image, call, notices, ownerCookie, strangerCookie, friendCookie };
 }
 
 test('an owner creates a library that nobody else can see', async () => {
@@ -133,4 +140,96 @@ test('importing into another site copies the images in once, and the document pl
   a.equal((await r.call(`/api/sites/${r.recipient.id}/library-assets`, { method: 'POST', body: { libraryId: lib.id, version: 1, assets: ['0'.repeat(64)] } })).status, 400,
     'only images the version uses can be copied out');
   a.equal((await r.call(`/api/sites/${r.recipient.id}/library-assets`, { method: 'POST', cookie: r.strangerCookie, body: { libraryId: lib.id, version: 1 } })).status, 404);
+});
+
+/* ---- read-only sharing (slice 2) ---- */
+
+async function sharedRig() {
+  const r = await rig();
+  const lib = (await r.call('/api/libraries', { method: 'POST', body: { name: 'Brand kit' } })).body.library;
+  const site = await r.store.byId(r.author.id);
+  await r.call(`/api/libraries/${lib.id}/versions`, { method: 'POST', body: { siteId: r.author.id, sourceVersion: site!.version, items: [{ kind: 'component', id: 'card' }] } });
+  return { ...r, lib };
+}
+
+test('sharing lets a viewer list, read and import into their own site, and nothing more', async () => {
+  const r = await sharedRig();
+  const shared = await r.call(`/api/libraries/${r.lib.id}/members`, { method: 'POST', body: { email: ' Friend@Example.test ' } });
+  a.equal(shared.status, 201);
+  a.equal(shared.body.added, true);
+  a.deepEqual(shared.body.members.map((m: { email: string }) => m.email), ['friend@example.test']);
+  a.equal(r.notices.length, 1, 'the person shared with is told');
+  a.equal(r.notices[0].to, 'friend@example.test');
+  a.match(r.notices[0].subject, /Owner shared a library with you/);
+  a.match(r.notices[0].text, /“Brand kit”/);
+
+  const asFriend = { cookie: r.friendCookie };
+  const listed = (await r.call('/api/libraries', asFriend)).body.libraries;
+  a.deepEqual(listed.map((l: { name: string; access: string; ownerName: string }) => [l.name, l.access, l.ownerName]), [['Brand kit', 'viewer', 'Owner']]);
+  const read = await r.call(`/api/libraries/${r.lib.id}`, asFriend);
+  a.equal(read.body.library.access, 'viewer');
+  a.equal((await r.call(`/api/libraries/${r.lib.id}/versions/1`, asFriend)).status, 200);
+
+  // Import into a site the viewer owns; their site pays for its own copy of the image.
+  const copied = await r.call(`/api/sites/${r.friendSite.id}/library-assets`, { method: 'POST', cookie: r.friendCookie, body: { libraryId: r.lib.id, version: 1 } });
+  a.equal(copied.status, 200);
+  a.equal((await r.assets.list(r.friendSite.id)).length, 1);
+  // …but not into a site that is not theirs.
+  a.equal((await r.call(`/api/sites/${r.recipient.id}/library-assets`, { method: 'POST', cookie: r.friendCookie, body: { libraryId: r.lib.id, version: 1 } })).status, 404);
+
+  // Owner-only actions are refused with a reason, not concealed.
+  const site = await r.store.byId(r.author.id);
+  const publish = await r.call(`/api/libraries/${r.lib.id}/versions`, { method: 'POST', cookie: r.friendCookie, body: { siteId: r.friendSite.id, sourceVersion: site!.version, items: [{ kind: 'component', id: 'card' }] } });
+  a.equal(publish.status, 403);
+  a.equal(publish.body.error, 'only_owner');
+  a.equal((await r.call(`/api/libraries/${r.lib.id}/members`, asFriend)).status, 403);
+  a.equal((await r.call(`/api/libraries/${r.lib.id}/members`, { method: 'POST', cookie: r.friendCookie, body: { email: 'other@example.test' } })).status, 403);
+
+  // Someone it was not shared with still sees nothing at all.
+  a.equal((await r.call(`/api/libraries/${r.lib.id}`, { cookie: r.strangerCookie })).status, 404);
+  a.equal((await r.call('/api/libraries', { cookie: r.strangerCookie })).body.libraries.length, 0);
+});
+
+test('sharing refuses your own address and bad ones, and a double click is harmless', async () => {
+  const r = await sharedRig();
+  const path = `/api/libraries/${r.lib.id}/members`;
+  a.equal((await r.call(path, { method: 'POST', body: { email: 'owner@example.test' } })).status, 400);
+  a.equal((await r.call(path, { method: 'POST', body: { email: 'not an address' } })).status, 400);
+  a.equal((await r.call(path, { method: 'POST', body: { email: 'friend@example.test' } })).status, 201);
+  const again = await r.call(path, { method: 'POST', body: { email: 'friend@example.test' } });
+  a.equal(again.status, 429, 'the same address twice in a minute is held back');
+  a.equal(r.notices.length, 1);
+  a.equal((await r.call(path)).body.members.length, 1);
+});
+
+test('an address with no account yet waits for them, then works when they sign in', async () => {
+  const r = await sharedRig();
+  const shared = await r.call(`/api/libraries/${r.lib.id}/members`, { method: 'POST', body: { email: 'newcomer@example.test' } });
+  a.equal(shared.status, 201);
+  const newcomer = await r.auth.userByEmail('newcomer@example.test');
+  a.ok(newcomer, 'a pending user row holds the share');
+  const token = newToken();
+  await r.auth.putSession(hashToken(token), newcomer!.id, Date.now() + 60_000);
+  const listed = await r.call('/api/libraries', { cookie: `pc_session=${token}` });
+  a.deepEqual(listed.body.libraries.map((l: { name: string }) => l.name), ['Brand kit']);
+});
+
+test('the owner removes someone, a viewer can leave, and the owner cannot be removed', async () => {
+  const r = await sharedRig();
+  const path = `/api/libraries/${r.lib.id}/members`;
+  await r.call(path, { method: 'POST', body: { email: 'friend@example.test' } });
+  await r.call(path, { method: 'POST', body: { email: 'stranger@example.test' } });
+
+  // A viewer may not remove someone else, and may leave themselves.
+  const stranger = await r.auth.userByEmail('stranger@example.test');
+  a.equal((await r.call(`${path}/${stranger!.id}`, { method: 'DELETE', cookie: r.friendCookie })).status, 403);
+  const left = await r.call(`${path}/me`, { method: 'DELETE', cookie: r.friendCookie });
+  a.equal(left.status, 200);
+  a.equal((await r.call(`/api/libraries/${r.lib.id}`, { cookie: r.friendCookie })).status, 404);
+
+  const removed = await r.call(`${path}/${stranger!.id}`, { method: 'DELETE' });
+  a.deepEqual(removed.body.members, []);
+  a.equal((await r.call(`/api/libraries/${r.lib.id}`, { cookie: r.strangerCookie })).status, 404);
+  a.equal((await r.call(`${path}/${stranger!.id}`, { method: 'DELETE' })).status, 404);
+  a.equal((await r.call(`${path}/me`, { method: 'DELETE' })).status, 400, 'the owner cannot leave');
 });

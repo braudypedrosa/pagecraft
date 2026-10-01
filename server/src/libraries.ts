@@ -31,11 +31,23 @@ export interface LibraryVersionSummary {
 }
 export interface LibraryVersion extends LibraryVersionSummary { content: LibraryBundle }
 export interface LibraryAsset { id: string; name: string; type: string; w: number; h: number; bytes: Uint8Array }
+/** The owner publishes; a viewer was invited and may list, read and import (slice 2). */
+export type LibraryAccess = 'owner' | 'viewer';
+export interface LibraryMember { userId: string; invitedBy: string; createdAt: string }
 
 export interface LibraryStore {
   create(input: { ownerId: string; name: string }): Promise<Library>;
   listForOwner(ownerId: string): Promise<Library[]>;
+  /** Libraries this user owns or was invited to, newest first. */
+  listForUser(userId: string): Promise<(Library & { access: LibraryAccess })[]>;
   get(id: string): Promise<Library | null>;
+  /** The library as this user may see it, or null when they may not see it at all. */
+  getFor(id: string, userId: string): Promise<{ library: Library; access: LibraryAccess } | null>;
+  members(libraryId: string): Promise<LibraryMember[]>;
+  /** False when they were already a member. */
+  addMember(input: { libraryId: string; userId: string; invitedBy: string }): Promise<boolean>;
+  /** False when they were not a member. */
+  removeMember(libraryId: string, userId: string): Promise<boolean>;
   versions(id: string): Promise<LibraryVersionSummary[]>;
   version(id: string, version: number): Promise<LibraryVersion | null>;
   /** Insert-only: the next number is assigned atomically, a published version never changes. */
@@ -49,6 +61,7 @@ export interface LibraryStore {
 
 export const LIBRARY_NAME_MAX = 80;
 export const LIBRARY_ITEMS_MAX = 200;
+export const LIBRARY_MEMBERS_MAX = 50;
 const HASH = /^[a-f0-9]{64}$/;
 const sha256 = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 export const libraryContentHash = (bundle: LibraryBundle) => sha256(JSON.stringify(bundle));
@@ -57,6 +70,7 @@ export class MemoryLibraryStore implements LibraryStore {
   private libraries = new Map<string, Library>();
   private versionRows = new Map<string, LibraryVersion[]>();
   private assets = new Map<string, Map<string, LibraryAsset>>();
+  private memberRows = new Map<string, LibraryMember[]>();
 
   async create(input: { ownerId: string; name: string }) {
     const now = new Date().toISOString();
@@ -68,9 +82,38 @@ export class MemoryLibraryStore implements LibraryStore {
     return [...this.libraries.values()].filter(l => l.ownerId === ownerId)
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(l => ({ ...l }));
   }
+  async listForUser(userId: string) {
+    return [...this.libraries.values()]
+      .filter(l => l.ownerId === userId || (this.memberRows.get(l.id) || []).some(m => m.userId === userId))
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .map(l => ({ ...l, access: (l.ownerId === userId ? 'owner' : 'viewer') as LibraryAccess }));
+  }
   async get(id: string) {
     const library = this.libraries.get(id);
     return library ? { ...library } : null;
+  }
+  async getFor(id: string, userId: string) {
+    const library = this.libraries.get(id);
+    if (!library) return null;
+    if (library.ownerId === userId) return { library: { ...library }, access: 'owner' as const };
+    return (this.memberRows.get(id) || []).some(m => m.userId === userId)
+      ? { library: { ...library }, access: 'viewer' as const }
+      : null;
+  }
+  async members(libraryId: string) {
+    return (this.memberRows.get(libraryId) || []).map(m => ({ ...m }));
+  }
+  async addMember(input: { libraryId: string; userId: string; invitedBy: string }) {
+    const rows = this.memberRows.get(input.libraryId) || [];
+    if (rows.some(m => m.userId === input.userId)) return false;
+    this.memberRows.set(input.libraryId, [...rows, { userId: input.userId, invitedBy: input.invitedBy, createdAt: new Date().toISOString() }]);
+    return true;
+  }
+  async removeMember(libraryId: string, userId: string) {
+    const rows = this.memberRows.get(libraryId) || [];
+    const kept = rows.filter(m => m.userId !== userId);
+    this.memberRows.set(libraryId, kept);
+    return kept.length !== rows.length;
   }
   async versions(id: string) {
     return (this.versionRows.get(id) || []).map(({ content: _content, ...summary }) => ({ ...summary })).reverse();

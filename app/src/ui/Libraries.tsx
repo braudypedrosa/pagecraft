@@ -16,7 +16,7 @@ import {
   type LibraryBundle, type LibraryItemKind, type LibraryItemRef, type LibraryLink, type Resolution, type UpdateItem,
 } from '../core/libraries';
 import type { Doc } from '../core/types';
-import type { WebLibrary, WebLibraryAdapter, WebLibraryVersionSummary } from '../host/types';
+import type { WebLibrary, WebLibraryAdapter, WebLibraryMember, WebLibraryVersionSummary } from '../host/types';
 import { C, L } from './ctx';
 import { Icon } from './Icon';
 
@@ -25,7 +25,11 @@ import { Icon } from './Icon';
 /* The last summary seen for each library: a component row can name where it came from without
    a request, and a view can start fetching the latest version alongside the library itself. */
 const known = new Map<string, WebLibrary>();
-const remember = (library: WebLibrary) => { known.set(library.id, library); };
+// Merged, because only the listing says whose a shared library is.
+const remember = (library: WebLibrary) => { known.set(library.id, { ...known.get(library.id), ...library }); };
+/** The owner publishes and shares; someone it was shared with imports and takes updates. */
+const owns = (library: WebLibrary) => (library.access || 'owner') === 'owner';
+const ownerOf = (library: WebLibrary) => library.ownerName || known.get(library.id)?.ownerName || 'its owner';
 
 /* A published version never changes, so each is fetched once. Per adapter, so a different
    account or host never reads another's copy. */
@@ -89,6 +93,10 @@ const behind = (library: WebLibrary) => {
   return oldest && oldest < library.latestVersion ? oldest : 0;
 };
 
+/* askConfirm takes HTML, so the names in it are escaped by hand. */
+const esc = (s: string) => String(s ?? '').replace(/[&<>"']/g, ch =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));
+
 /** One sentence for whatever went wrong, from the server's own detail when it gave one. */
 function problem(error: unknown) {
   if (error instanceof LibraryError) return error.problems.join(' ');
@@ -124,7 +132,7 @@ function commit(doc: Doc) {
 
 /* ---- the panel --------------------------------------------------------- */
 
-type View = { at: 'list' } | { at: 'library' | 'publish' | 'update'; id: string };
+type View = { at: 'list' } | { at: 'library' | 'publish' | 'update' | 'share'; id: string };
 
 export function Libraries() {
   const libs = L.libraries();
@@ -134,7 +142,8 @@ export function Libraries() {
   return view.at === 'list' ? <LibraryList libs={libs} open={open} />
     : view.at === 'publish' ? <PublishPick key={view.id} libs={libs} id={view.id} open={open} />
       : view.at === 'update' ? <UpdateReview key={view.id} libs={libs} id={view.id} open={open} />
-        : <LibraryDetail key={view.id} libs={libs} id={view.id} open={open} />;
+        : view.at === 'share' ? <ShareView key={view.id} libs={libs} id={view.id} open={open} />
+          : <LibraryDetail key={view.id} libs={libs} id={view.id} open={open} />;
 }
 
 type Props = { libs: WebLibraryAdapter; open: (view: View) => void };
@@ -181,7 +190,7 @@ function LibraryList({ libs, open }: Props) {
         </div>
       ) : !list.data ? (
         <div class="hint" aria-busy="true">Loading your libraries…</div>
-      ) : list.data.length ? list.data.map(library => {
+      ) : list.data.length ? list.data.filter(library => !waiting || owns(library)).map(library => {
         const old = behind(library);
         const here = linksFor(library.id).length;
         return (
@@ -192,6 +201,7 @@ function LibraryList({ libs, open }: Props) {
               <b>{library.name}</b>
               <small>
                 {library.latestVersion ? `Version ${library.latestVersion}` : 'Nothing published yet'}
+                {owns(library) ? '' : ` · Shared by ${ownerOf(library)}`}
                 {old ? ' · Update available' : here ? ' · In this site' : ''}
               </small>
             </span>
@@ -301,6 +311,23 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
     }
   };
 
+  const leave = async () => {
+    const ok = await L.askConfirm('Leave this library?',
+      `You stop seeing <b>${esc(library.name)}</b> and its updates. What you already imported stays in your sites as your own.`,
+      { ok: 'Leave library' });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      await libs.leave(id);
+      known.delete(id);
+      L.toast(`You left ${library.name}`);
+      open({ at: 'list' });
+    } catch (error) {
+      L.toast(problem(error), { tone: 'error' });
+      setBusy(false);
+    }
+  };
+
   return (
     <>
       <Head library={library} back={back}
@@ -353,12 +380,111 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
           )}
         </>
       ) : (
-        <p class="lib-note">Publish components, blocks or styles from this site to make version 1.</p>
+        <p class="lib-note">
+          {owns(library) ? 'Publish components, blocks or styles from this site to make version 1.' : `${ownerOf(library)} has not published anything yet.`}
+        </p>
       )}
-      <button type="button" class="btn block" disabled={busy} style={{ fontSize: 'var(--fs-2)' }}
-        onClick={() => open({ at: 'publish', id })}>
-        <Icon name="plus" size={12} /> Publish a new version…
-      </button>
+      {owns(library) ? (
+        <div class="lib-actions">
+          <button type="button" class="btn block" disabled={busy} style={{ fontSize: 'var(--fs-2)' }}
+            onClick={() => open({ at: 'publish', id })}>
+            <Icon name="plus" size={12} /> Publish a new version…
+          </button>
+          <button type="button" class="btn block" disabled={busy} style={{ fontSize: 'var(--fs-2)' }}
+            onClick={() => open({ at: 'share', id })}>
+            Share…
+          </button>
+        </div>
+      ) : (
+        <>
+          <p class="lib-note">
+            Shared with you by {ownerOf(library)}. You can import from it and take its updates; only
+            they publish new versions.
+          </p>
+          <button type="button" class="btn ghost block" disabled={busy} style={{ fontSize: 'var(--fs-2)' }} onClick={leave}>
+            Leave this library
+          </button>
+        </>
+      )}
+    </>
+  );
+}
+
+/* Sharing is read-only: the people here can import and take updates, never publish. An address
+   with no account yet is held for them, and they are told in the app and by email. */
+function ShareView({ libs, id, open }: Props & { id: string }) {
+  const state = useLoad(() => libs.members(id), [id]);
+  const [members, setMembers] = useState<WebLibraryMember[] | null>(null);
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const back = () => open({ at: 'library', id });
+  const library = known.get(id);
+  const shown = members || state.data;
+  if (!shown) return <Loading state={state} back={back} id={id} />;
+
+  const share = async (e: Event) => {
+    e.preventDefault();
+    const address = email.trim();
+    if (!address || busy) return;
+    setBusy(true);
+    try {
+      const result = await libs.share(id, address);
+      setMembers(result.members);
+      setEmail('');
+      L.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
+    } catch (error) {
+      L.toast(problem(error), { tone: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async (member: WebLibraryMember) => {
+    const ok = await L.askConfirm('Stop sharing?',
+      `<b>${esc(member.name || member.email)}</b> stops seeing this library and its updates. What they already imported stays in their sites as their own.`,
+      { ok: 'Stop sharing' });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      setMembers(await libs.unshare(id, member.userId));
+      L.toast(`Stopped sharing with ${member.email}`);
+    } catch (error) {
+      L.toast(problem(error), { tone: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <Head library={library} back={back} sub="Share" />
+      <p class="lib-note">
+        People you share with can import from this library into sites they own and take its updates.
+        Only you publish new versions.
+      </p>
+      <form class="lib-share" onSubmit={share}>
+        <input class="ctl" type="email" required placeholder="name@example.com" aria-label="Email address"
+          value={email} disabled={busy} onInput={e => setEmail((e.currentTarget as HTMLInputElement).value)} />
+        <button type="submit" class="btn primary" disabled={busy || !email.trim()}>{busy ? 'Sharing…' : 'Share'}</button>
+      </form>
+      {shown.length ? (
+        <>
+          <div class="plabel">Shared with</div>
+          {shown.map(member => (
+            <div class="lib-member" key={member.userId}>
+              <span class="bn">
+                <b>{member.name || member.email}</b>
+                <small>{member.name ? member.email : ''}{member.pending ? `${member.name ? ' · ' : ''}No Pagecraft account yet` : ''}</small>
+              </span>
+              <button type="button" class="bx danger" title={`Stop sharing with ${member.email}`}
+                aria-label={`Stop sharing with ${member.email}`} disabled={busy} onClick={() => remove(member)}>
+                <Icon name="trash" size={11} />
+              </button>
+            </div>
+          ))}
+        </>
+      ) : (
+        <p class="lib-note">Not shared with anyone yet.</p>
+      )}
     </>
   );
 }
@@ -385,6 +511,7 @@ function PublishPick({ libs, id, open }: Props & { id: string }) {
 
   if (!state.data || !picked) return <Loading state={state} back={back} id={id} />;
   const { library } = state.data;
+  if (!owns(library)) return <Loading state={{ error: `Only ${ownerOf(library)} publishes to this library.` }} back={back} id={id} />;
   const next = library.latestVersion + 1;
   const chosen = [...picked].map(parseKey).filter(ref => siteItem(ref.kind, ref.id));
 

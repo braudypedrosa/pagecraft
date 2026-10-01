@@ -442,6 +442,15 @@ body.content-only .s-hud [data-x=down]{display:none}
 .lib-problem{margin:var(--gap-1) 0;padding:9px 11px;border-radius:var(--r-md);background:var(--risk-bg);color:var(--risk-fg);font-size:var(--fs-1);line-height:1.45}
 .lib-problem p{margin:0}
 .lib-problem p+p{margin-top:4px}
+.lib-actions{display:flex;flex-direction:column;gap:var(--sp-3)}
+.lib-share{display:flex;gap:var(--sp-3);margin:0 0 var(--gap-1)}
+.lib-share .ctl{flex:1;min-width:0}
+.lib-member{display:flex;align-items:center;gap:var(--sp-3);padding:6px 2px;border-bottom:1px solid var(--line)}
+.lib-member .bn{flex:1;min-width:0}
+.lib-member .bn b{display:block;font-size:var(--fs-2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-member .bn small{display:block;color:var(--text-3);font-size:var(--fs-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-member .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;flex:0 0 auto}
+.lib-member .bx:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .pvgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)}
 .pvcard{
   display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;cursor:grab;

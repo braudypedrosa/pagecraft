@@ -60,7 +60,9 @@ import {
 import type { LibraryBundle } from "../../app/src/core/libraries.ts";
 import type {
   Library,
+  LibraryAccess,
   LibraryAsset,
+  LibraryMember,
   LibraryStore,
   LibraryVersion,
   LibraryVersionSummary,
@@ -2153,9 +2155,27 @@ export class GatewayLibraryStore implements LibraryStore {
   async listForOwner(ownerId: string) {
     return (await this.gateway.call<LibraryWire[]>("library.listForOwner", { ownerId })).map(toLibrary);
   }
+  async listForUser(userId: string) {
+    return (await this.gateway.call<(LibraryWire & { access: LibraryAccess })[]>("library.listForUser", { userId }))
+      .map((row) => ({ ...toLibrary(row), access: row.access === "owner" ? "owner" as const : "viewer" as const }));
+  }
   async get(id: string) {
     const row = await this.gateway.call<LibraryWire | null>("library.get", { id });
     return row ? toLibrary(row) : null;
+  }
+  async getFor(id: string, userId: string) {
+    const row = await this.gateway.call<(LibraryWire & { access: LibraryAccess }) | null>("library.getFor", { id, userId });
+    return row ? { library: toLibrary(row), access: row.access === "owner" ? "owner" as const : "viewer" as const } : null;
+  }
+  async members(libraryId: string): Promise<LibraryMember[]> {
+    return (await this.gateway.call<{ user_id: string; invited_by: string; created_at: string | Date }[]>("library.members", { libraryId }))
+      .map((row) => ({ userId: row.user_id, invitedBy: row.invited_by, createdAt: iso(row.created_at) }));
+  }
+  addMember(input: { libraryId: string; userId: string; invitedBy: string }) {
+    return this.gateway.call<boolean>("library.addMember", { ...input });
+  }
+  removeMember(libraryId: string, userId: string) {
+    return this.gateway.call<boolean>("library.removeMember", { libraryId, userId });
   }
   async versions(id: string) {
     return (await this.gateway.call<LibraryVersionWire[]>("library.versions", { id })).map(toLibraryVersion);
