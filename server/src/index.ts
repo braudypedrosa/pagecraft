@@ -42,6 +42,7 @@ import {
 } from "./accounts.ts";
 import { FileHostedPublicationStore } from "./publications.ts";
 import { FilePublicationReviewStore } from "./reviews.ts";
+import { AnalyticsRecorder, FileAnalyticsStore } from "./analytics.ts";
 import { FilePublicationScheduleStore } from "./schedules.ts";
 import { runDueSchedules } from "./schedule-runner.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
@@ -524,6 +525,11 @@ if (scheduleRunnerKey && scheduleRunnerKey.length < 32) {
 /* Dark until something can actually run schedules: offering "Schedule…" with no trigger would
    accept schedules that never publish. Deploy the gateway operation before enabling either. */
 const schedulingEnabled = process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" || !!scheduleRunnerKey;
+/* Phase 6. Counts live with this environment's publications, so staging traffic never reaches
+   production's numbers. The flush only writes these local files; it is not one of the
+   shared-database workers that PAGECRAFT_BACKGROUND_WORKERS turns off. */
+const analytics = new AnalyticsRecorder(new FileAnalyticsStore(join(resolve(publicationRoot), ".analytics")));
+analytics.start();
 
 const app = createApp({
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
@@ -531,6 +537,7 @@ const app = createApp({
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   reviews,
   libraries,
+  analytics,
   schedules: schedulingEnabled ? schedules : undefined,
   scheduleRunnerKey,
   liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),

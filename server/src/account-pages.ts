@@ -17,6 +17,7 @@ import type { ReviewAssignment, ReviewComment, ReviewDecision, ReviewNotice } fr
 import type { LiveLink } from './live-reviews.ts';
 import type { SiteTemplateSummary } from './site-templates.ts';
 import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
+import { DIRECT, NOT_FOUND, OTHER, RANGES, change, type AnalyticsReport, type RangeKey } from './analytics.ts';
 
 const esc = (value: unknown) => String(value ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -26,6 +27,7 @@ const closeIcon = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 1
 
 const messages: Record<string, string> = {
   invalid: 'Please check the information below and try again.',
+  analytics_confirm: 'Tick the confirmation to delete this site’s analytics.',
   auth: 'We could not sign you in with those details.',
   oauth: 'Google sign-in is unavailable right now. Please use your email and password.',
   verify: 'Confirm your email before signing in.',
@@ -131,7 +133,8 @@ const noticeIconFor = (kind: string) => {
 };
 const sitesRail = () =>
   `<nav class="pc-rail" aria-label="Sites navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a href="/">${ownedIcon}<span>Owned</span></a><a href="/">${sharedIcon}<span>Shared</span></a><span class="pc-rail-gap"></span></nav>`;
-type ManagementSection = 'overview' | 'people' | 'reviews' | 'settings' | 'integrations' | 'submissions';
+type ManagementSection = 'overview' | 'people' | 'reviews' | 'settings' | 'integrations' | 'submissions' | 'analytics';
+const analyticsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3.5 16.5h13"/><path d="M6 13.5v-4M10 13.5v-8M14 13.5v-6"/></svg>`;
 const managementRail = (
   site: Pick<SiteOverviewData, 'id' | 'role'>, current: ManagementSection
 ) => {
@@ -140,7 +143,7 @@ const managementRail = (
     item === current ? ' aria-current="page"' : '';
   const canReview = site.role === 'owner' || site.role === 'reviewer';
   const reviewer = site.role === 'reviewer';
-  return `<nav class="pc-rail pc-management-rail" aria-label="Site management"><a href="/">${sitesIcon}<span>Sites</span></a><a href="${base}"${selected('overview')}>${ownedIcon}<span>Overview</span></a><a href="${base}/people"${selected('people')}>${sharedIcon}<span>People</span></a>${canReview ? `<a href="${base}/reviews"${selected('reviews')}>${reviewsIcon}<span>Reviews</span></a>` : ''}${reviewer ? '' : `<a href="${base}/submissions"${selected('submissions')}>${submissionsIcon}<span>Submissions</span></a>`}${site.role === 'owner' ? `<a href="${base}/integrations"${selected('integrations')}><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M7 2v4m6-4v4M5 6h10v3a5 5 0 01-10 0V6zm5 8v4"/></svg><span>Integrations</span></a><a href="${base}/settings"${selected('settings')}>${settingsIcon}<span>Settings</span></a>` : ''}<span class="pc-rail-gap"></span></nav>`;
+  return `<nav class="pc-rail pc-management-rail" aria-label="Site management"><a href="/">${sitesIcon}<span>Sites</span></a><a href="${base}"${selected('overview')}>${ownedIcon}<span>Overview</span></a><a href="${base}/people"${selected('people')}>${sharedIcon}<span>People</span></a>${canReview ? `<a href="${base}/reviews"${selected('reviews')}>${reviewsIcon}<span>Reviews</span></a>` : ''}${reviewer ? '' : `<a href="${base}/submissions"${selected('submissions')}>${submissionsIcon}<span>Submissions</span></a>`}${site.role === 'owner' ? `<a href="${base}/analytics"${selected('analytics')}>${analyticsIcon}<span>Analytics</span></a><a href="${base}/integrations"${selected('integrations')}><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M7 2v4m6-4v4M5 6h10v3a5 5 0 01-10 0V6zm5 8v4"/></svg><span>Integrations</span></a><a href="${base}/settings"${selected('settings')}>${settingsIcon}<span>Settings</span></a>` : ''}<span class="pc-rail-gap"></span></nav>`;
 };
 
 /** Review access uses the same auth shell, panel and controls as sign-in. */
@@ -318,6 +321,129 @@ export const siteSettingsPage = (
       const value=button.dataset.copyValue||'';
       try{try{await navigator.clipboard.writeText(value);}catch{const field=document.createElement('textarea');field.value=value;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw new Error('Copy was blocked. Select and copy the ID manually.');}action.success('ID copied.');}catch(error){action.error(error.message||'Could not copy the ID. Try again.');}
     }));const field=document.querySelector('[data-delete-confirm]'),submit=document.querySelector('[data-delete-submit]');if(field&&submit){const sync=()=>{submit.disabled=field.value!==field.dataset.deleteConfirm;};field.addEventListener('input',sync);sync();}})();</script>`);
+};
+
+/* ---- Analytics (Phase 6) ------------------------------------------------------ */
+
+const siteAnalyticsCss = `<style>
+.pc-an{width:min(100%,1040px)}.pc-an-head{padding-bottom:22px;border-bottom:1px solid var(--pc-line)}.pc-an-head h1{font-size:clamp(1.8rem,3.3vw,2.5rem);line-height:1;letter-spacing:-.04em;margin:0 0 8px}.pc-an-head p{max-width:68ch;margin:0;color:var(--pc-text-2);font-size:.9rem}.pc-an>.notice{margin-top:20px}
+.pc-an-off{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:clamp(28px,6vw,72px);padding:var(--pc-space-6) 0;border-bottom:1px solid var(--pc-line)}.pc-an-off h2,.pc-an-card h2,.pc-an-manage h2{font-size:1.05rem;letter-spacing:-.02em;margin:0}.pc-an-off p,.pc-an-manage p{margin:7px 0 0;color:var(--pc-text-2);font-size:.8rem;line-height:1.6}.pc-an-off ul{margin:10px 0 0;padding-left:18px;color:var(--pc-text-2);font-size:.8rem;line-height:1.7}.pc-an-off form{align-self:start}
+.pc-an-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 0}.pc-an-ranges{display:flex;gap:4px;padding:3px;border:1px solid var(--pc-line);border-radius:8px;background:var(--pc-panel)}.pc-an-ranges a{padding:6px 11px;border-radius:5px;color:var(--pc-text-2);font-size:.78rem;font-weight:600;text-decoration:none}.pc-an-ranges a:hover{background:var(--pc-hover-bg);color:var(--pc-text)}.pc-an-ranges a[aria-current="page"]{background:var(--pc-text);color:#fff}.pc-an-status{display:inline-flex;align-items:center;gap:7px;color:var(--pc-text-2);font-family:"DM Sans",system-ui,sans-serif;font-size:.74rem}.pc-an-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#5d8f1f}.pc-an-status.paused:before{background:#d18a32}
+.pc-an-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.pc-an-tile{padding:16px 18px;border:1px solid var(--pc-line);border-radius:8px;background:var(--pc-panel)}.pc-an-tile dt{color:var(--pc-text-2);font-size:.78rem}.pc-an-tile dd{margin:6px 0 0}.pc-an-value{display:block;font-size:1.9rem;font-weight:650;letter-spacing:-.03em;line-height:1.1;color:var(--pc-text)}.pc-an-delta{display:block;margin-top:6px;font-family:"DM Sans",system-ui,sans-serif;font-size:.72rem;color:var(--pc-text-2)}.pc-an-delta.up{color:#3f6b12}.pc-an-delta.down{color:var(--pc-danger)}
+.pc-an-card{margin-top:16px;padding:18px;border:1px solid var(--pc-line);border-radius:8px;background:var(--pc-panel);min-width:0}.pc-an-card>p{margin:4px 0 0;color:var(--pc-text-2);font-size:.76rem}
+.pc-an-chart{position:relative;margin-top:14px}.pc-an-chart svg{display:block;width:100%;height:auto;overflow:visible}.pc-an-grid{stroke:#e8ecee;stroke-width:1}.pc-an-axis{fill:#6f7771;font-family:"DM Sans",system-ui,sans-serif;font-size:11px;font-variant-numeric:tabular-nums}.pc-an-col{fill:#5d8f1f;pointer-events:none}.pc-an-hit{fill:transparent;cursor:default;outline:none}.pc-an-hit:hover+.pc-an-col,.pc-an-hit:focus-visible+.pc-an-col{fill:#74a83a}.pc-an-hit:focus-visible{stroke:var(--pc-text);stroke-width:1.5}
+.pc-an-tip{position:absolute;z-index:2;pointer-events:none;padding:7px 10px;border:1px solid var(--pc-line-2);border-radius:6px;background:#fff;box-shadow:0 6px 18px rgba(17,19,17,.12);font-size:.74rem;white-space:nowrap;transform:translate(-50%,-100%)}.pc-an-tip strong{display:block;font-size:.9rem;color:var(--pc-text)}.pc-an-tip span{color:var(--pc-text-2)}.pc-an-tip[hidden]{display:none}
+.pc-an-table-toggle{margin-top:10px;font-size:.76rem}.pc-an-table-toggle summary{cursor:pointer;color:var(--pc-text-2)}
+.pc-an-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.pc-an-cards .pc-an-card{margin-top:16px}
+.pc-an-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.78rem}.pc-an-table th{text-align:left;font-weight:600;color:var(--pc-text-2);font-size:.7rem;padding:0 0 6px;border-bottom:1px solid var(--pc-line)}.pc-an-table td{padding:7px 0;border-bottom:1px solid var(--pc-line);vertical-align:top}.pc-an-table td:first-child{overflow-wrap:anywhere;padding-right:12px}.pc-an-table .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;padding-left:10px}.pc-an-table th.num{text-align:right}.pc-an-sub{display:block;color:var(--pc-text-2);font-size:.7rem;margin-top:2px}.pc-an-empty{margin:10px 0 0;color:var(--pc-text-2);font-size:.78rem}
+.pc-an-note{margin:18px 0 0;color:var(--pc-text-2);font-size:.74rem;line-height:1.6;max-width:80ch}
+.pc-an-manage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:22px;padding-top:22px;border-top:1px solid var(--pc-line)}.pc-an-manage form{display:grid;gap:10px;align-content:start}.pc-an-manage label{display:flex;gap:8px;align-items:flex-start;font-size:.78rem;color:var(--pc-text-2)}.pc-an-manage .pc-btn{width:max-content}.pc-an-danger{color:var(--pc-danger)!important;border-color:#d4aaa5!important}@media(max-width:760px){.pc-an-off,.pc-an-manage,.pc-an-cards{grid-template-columns:1fr}.pc-an-tiles{grid-template-columns:1fr}}
+</style>`;
+
+const analyticsNumber = (n: number) => n.toLocaleString('en-US');
+const analyticsDay = (day: string) => new Date(day + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const analyticsSpan = (start: string, end: string) => (start === end ? analyticsDay(start) : `${analyticsDay(start)} – ${analyticsDay(end)}`);
+const analyticsShare = (n: number, of: number) => (of ? `${Math.round((n / of) * 100)}%` : '—');
+const referrerLabel = (key: string) => (key === DIRECT ? 'Direct or unknown' : key === OTHER ? 'Other sites' : key);
+const pageLabel = (key: string) => (key === NOT_FOUND ? 'Page not found' : key === OTHER ? 'Other pages' : key);
+const targetLabel = (target: string) =>
+  !target ? '' : target === 'mailto:' ? 'Email link' : target === 'tel:' ? 'Phone link' : target === 'sms:' ? 'Text message link'
+    : target.startsWith('/') ? target : `${target} (another site)`;
+const deviceLabel: Record<string, string> = { desktop: 'Desktop', mobile: 'Phone', tablet: 'Tablet' };
+
+/** Daily (or weekly) views as columns, one series. Values reach screen readers and keyboards
+    through each column's label; the same numbers are in the table beneath. */
+function analyticsChart(report: AnalyticsReport) {
+  const W = 720, H = 220, left = 44, right = 8, top = 10, bottom = 26;
+  const plotW = W - left - right, plotH = H - top - bottom;
+  const peak = Math.max(0, ...report.columns.map(c => c.views));
+  const nice = (() => {
+    if (peak <= 4) return 4;
+    const unit = 10 ** Math.floor(Math.log10(peak));
+    return [1, 2, 2.5, 5, 10].map(m => m * unit).find(v => v >= peak)!;
+  })();
+  const ticks = [0, nice / 2, nice].map(v => Math.round(v));
+  const band = plotW / Math.max(1, report.columns.length);
+  const barW = Math.max(1, Math.min(24, band - 2));
+  const unit = report.range === '12m' ? 'Week of' : '';
+  const columns = report.columns.map((col, i) => {
+    const x = left + i * band + (band - barW) / 2;
+    const h = nice ? (col.views / nice) * plotH : 0;
+    const y = top + plotH - h;
+    const r = Math.min(4, barW / 2, h);
+    const label = `${unit ? unit + ' ' : ''}${analyticsSpan(col.start, col.end)}: ${analyticsNumber(col.views)} ${col.views === 1 ? 'view' : 'views'}`;
+    const mark = h > 0
+      ? `<path class="pc-an-col" d="M${x.toFixed(1)} ${(top + plotH).toFixed(1)}V${(y + r).toFixed(1)}Q${x.toFixed(1)} ${y.toFixed(1)} ${(x + r).toFixed(1)} ${y.toFixed(1)}H${(x + barW - r).toFixed(1)}Q${(x + barW).toFixed(1)} ${y.toFixed(1)} ${(x + barW).toFixed(1)} ${(y + r).toFixed(1)}V${(top + plotH).toFixed(1)}Z"/>`
+      : '<path class="pc-an-col" d=""/>';
+    return `<rect class="pc-an-hit" x="${(left + i * band).toFixed(1)}" y="${top}" width="${band.toFixed(1)}" height="${plotH}" tabindex="0" role="img" aria-label="${esc(label)}" data-when="${esc((unit ? unit + ' ' : '') + analyticsSpan(col.start, col.end))}" data-value="${col.views}"/>${mark}`;
+  }).join('');
+  const grid = ticks.map(v => {
+    const y = top + plotH - (nice ? (v / nice) * plotH : 0);
+    return `<line class="pc-an-grid" x1="${left}" x2="${W - right}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/><text class="pc-an-axis" x="${left - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end">${analyticsNumber(v)}</text>`;
+  }).join('');
+  const marks = report.columns.length;
+  const xLabels = [...new Set([0, Math.floor((marks - 1) / 2), marks - 1])].filter(i => i >= 0 && i < marks).map(i => {
+    const x = left + i * band + band / 2;
+    const anchor = i === 0 ? 'start' : i === marks - 1 ? 'end' : 'middle';
+    return `<text class="pc-an-axis" x="${(anchor === 'start' ? left : anchor === 'end' ? W - right : x).toFixed(1)}" y="${H - 6}" text-anchor="${anchor}">${esc(analyticsDay(report.columns[i].start))}</text>`;
+  }).join('');
+  return `<div class="pc-an-chart"><svg viewBox="0 0 ${W} ${H}" aria-label="${report.range === '12m' ? 'Weekly' : 'Daily'} page views">${grid}${columns}${xLabels}</svg><div class="pc-an-tip" hidden><strong></strong><span></span></div></div>`;
+}
+
+function analyticsTable(title: string, sub: string, heads: [string, string], rows: { name: string; detail?: string; count: number }[], of: number, empty: string) {
+  return `<section class="pc-an-card"><h2>${esc(title)}</h2><p>${esc(sub)}</p>${rows.length
+    ? `<table class="pc-an-table"><thead><tr><th scope="col">${esc(heads[0])}</th><th scope="col" class="num">${esc(heads[1])}</th><th scope="col" class="num">Share</th></tr></thead><tbody>${rows.map(row => `<tr><td>${esc(row.name)}${row.detail ? `<span class="pc-an-sub">${esc(row.detail)}</span>` : ''}</td><td class="num">${analyticsNumber(row.count)}</td><td class="num">${analyticsShare(row.count, of)}</td></tr>`).join('')}</tbody></table>`
+    : `<p class="pc-an-empty">${esc(empty)}</p>`}</section>`;
+}
+
+export interface SiteAnalyticsView {
+  available: boolean;
+  enabled: boolean;
+  report: AnalyticsReport | null;
+}
+
+export const siteAnalyticsPage = (
+  user: User, site: SiteOverviewData, view: SiteAnalyticsView, input: { error?: string; message?: string } = {},
+) => {
+  const base = `/sites/${encodeURIComponent(site.id)}`;
+  const report = view.report;
+  const period = report ? RANGES[report.range].label.replace(/^Last/, 'previous') : '';
+  const tile = (label: string, now: number, before: number) => {
+    const delta = change(now, before);
+    const text = delta === null
+      ? (now ? `Nothing to compare with in the ${period}` : `None in this period`)
+      : delta === 0 ? `No change vs the ${period}`
+        : `${delta > 0 ? '▲' : '▼'} ${Math.abs(Math.round(delta * 100))}% vs the ${period}`;
+    return `<div class="pc-an-tile"><dt>${label}</dt><dd><span class="pc-an-value">${analyticsNumber(now)}</span><span class="pc-an-delta ${delta && delta > 0 ? 'up' : delta && delta < 0 ? 'down' : ''}">${esc(text)}</span></dd></div>`;
+  };
+  const what = `<ul><li>Page views, by page</li><li>Where visitors came from: the referring site's address only</li><li>Desktop, phone or tablet</li><li>Clicks on buttons and links, by their label and where they go</li><li>Form submissions the site accepted</li></ul>`;
+  const exclusions = 'Not counted: your own visits while you are signed in to Pagecraft, visitors whose browser asks not to be tracked (Global Privacy Control or Do Not Track), known bots, and repeat views of the same page within half an hour. No cookies are set and nothing that identifies a visitor is stored: no IP addresses, no browser details, no query strings, no form contents. Times are in UTC, and new numbers can take up to a minute to appear.';
+
+  const ranges = report ? `<nav class="pc-an-ranges" aria-label="Date range">${(Object.keys(RANGES) as RangeKey[]).map(key => `<a href="${base}/analytics?range=${key}"${key === report.range ? ' aria-current="page"' : ''}>${esc(RANGES[key].label.replace('Last ', ''))}</a>`).join('')}</nav>` : '';
+  const body = !view.available
+    ? `<section class="pc-an-off"><div><h2>Analytics isn't available here</h2><p>This Pagecraft server doesn't keep analytics. Ask the person who runs it to enable published-site storage.</p></div></section>`
+    : !view.enabled && !report?.hasData
+      ? `<section class="pc-an-off"><div><h2>Analytics is off</h2><p>Turn it on to count, for this site’s published pages:</p>${what}<p>${esc(exclusions)}</p></div><form method="post" action="${base}/analytics/enable"><button class="pc-btn primary" type="submit">Turn on analytics</button></form></section>`
+      : `<div class="pc-an-bar">${ranges}<span class="pc-an-status${view.enabled ? '' : ' paused'}">${view.enabled ? 'Counting' : 'Paused — nothing new is counted'}</span><a class="pc-btn" href="${base}/analytics.csv?range=${report!.range}" download>Download CSV</a></div>
+  <dl class="pc-an-tiles">${tile('Page views', report!.totals.views, report!.previous.views)}${tile('Clicks', report!.totals.clicks, report!.previous.clicks)}${tile('Form submissions', report!.totals.forms, report!.previous.forms)}</dl>
+  <section class="pc-an-card"><h2>${report!.range === '12m' ? 'Page views by week' : 'Page views by day'}</h2><p>${esc(analyticsSpan(report!.from, report!.to))}</p>${report!.totals.views ? analyticsChart(report!) : '<p class="pc-an-empty">No page views in this period yet. A visit shows up here within about a minute.</p>'}<details class="pc-an-table-toggle"><summary>Show as a table</summary><table class="pc-an-table"><thead><tr><th scope="col">${report!.range === '12m' ? 'Week' : 'Day'}</th><th scope="col" class="num">Views</th></tr></thead><tbody>${report!.columns.map(col => `<tr><td>${esc(analyticsSpan(col.start, col.end))}</td><td class="num">${analyticsNumber(col.views)}</td></tr>`).join('')}</tbody></table></details></section>
+  <div class="pc-an-cards">
+  ${analyticsTable('Top pages', 'Views of each published page.', ['Page', 'Views'], report!.pages.map(([k, n]) => ({ name: pageLabel(k), count: n })), report!.totals.views, 'No page views in this period.')}
+  ${analyticsTable('Referrers', 'The site a visitor followed a link from.', ['Site', 'Views'], report!.referrers.map(([k, n]) => ({ name: referrerLabel(k), count: n })), report!.totals.views, 'No referrers in this period.')}
+  ${analyticsTable('Devices', 'Worked out from the browser at the time, then discarded.', ['Device', 'Views'], report!.devices.map(([k, n]) => ({ name: deviceLabel[k] || k, count: n })), report!.totals.views, 'No page views in this period.')}
+  ${analyticsTable('Clicks', 'Buttons and links visitors clicked, by label.', ['Button or link', 'Clicks'], report!.actions.map(a => ({ name: a.label === OTHER ? 'Other clicks' : a.label, detail: targetLabel(a.target), count: a.count })), report!.totals.clicks, 'No clicks in this period.')}
+  ${analyticsTable('Forms', 'Submissions the site accepted. Rejected and spam submissions are not counted.', ['Form', 'Submissions'], report!.forms.map(f => ({ name: f.name, count: f.count })), report!.totals.forms, 'No form submissions in this period.')}
+  </div>
+  <p class="pc-an-note">${esc(exclusions)}</p>
+  <section class="pc-an-manage" aria-label="Manage analytics">${view.enabled
+    ? `<form method="post" action="${base}/analytics/disable"><h2>Turn off</h2><p>Stops counting. The numbers so far stay until you delete them.</p><button class="pc-btn" type="submit">Turn off analytics</button></form>`
+    : `<form method="post" action="${base}/analytics/enable"><h2>Turn back on</h2><p>Counting starts again from the next visit.</p><button class="pc-btn primary" type="submit">Turn on analytics</button></form>`}
+  <form method="post" action="${base}/analytics/delete"><h2>Delete all analytics</h2><p>Removes every number for this site and turns analytics off. This cannot be undone.</p><label><input type="checkbox" name="confirmed" value="yes" required> I understand every number for this site will be removed</label><button class="pc-btn pc-an-danger" type="submit">Delete all analytics</button></form></section>`;
+
+  return shell(`${site.name} analytics`, `<main class="dashboard-app">${accountMenuCss}${siteOverviewCss}${siteAnalyticsCss}${workbenchHeader(user, site.name)}
+  <div class="pc-main">${managementRail(site, 'analytics')}<section class="pc-workspace"><div class="pc-manage-content"><div class="pc-an"><header class="pc-an-head pc-workspace-head"><div><a class="pc-manage-back" href="${base}"><span aria-hidden="true">←</span> Site overview</a><h1>Analytics</h1><p>Visits, clicks and form submissions on ${esc(site.name)}, counted without cookies or anything that identifies a visitor.</p></div></header>${notice(input.error, input.message)}
+  ${body}
+  </div></div></section></div></main><script>(()=>{const chart=document.querySelector('.pc-an-chart');if(!chart)return;const tip=chart.querySelector('.pc-an-tip'),value=tip.querySelector('strong'),when=tip.querySelector('span');const show=hit=>{const bar=hit.nextElementSibling,barBox=bar&&bar.getBBox&&bar.getBBox().height?bar.getBoundingClientRect():null,box=barBox||hit.getBoundingClientRect(),frame=chart.getBoundingClientRect();const n=Number(hit.dataset.value||0);value.textContent=n.toLocaleString('en-US')+(n===1?' view':' views');when.textContent=hit.dataset.when||'';tip.hidden=false;const x=Math.min(Math.max(box.left-frame.left+box.width/2,70),frame.width-70);tip.style.left=x+'px';tip.style.top=Math.max((barBox?box.top:box.bottom)-frame.top-6,48)+'px';};const hide=()=>{tip.hidden=true;};chart.querySelectorAll('.pc-an-hit').forEach(hit=>{hit.addEventListener('pointerenter',()=>show(hit));hit.addEventListener('focus',()=>show(hit));hit.addEventListener('blur',hide);});chart.addEventListener('pointerleave',hide);})();</script>`);
 };
 
 const sitePeopleCss = `<style>

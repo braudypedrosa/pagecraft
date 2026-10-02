@@ -8,12 +8,15 @@ import type { HostedPublicationStore } from './publications.ts';
 import { FileSubmissionStore, siteForms, submissionValues, submissionOutcome, submissionsCsv } from './submissions.ts';
 import { siteSubmissionsPage } from './account-pages.ts';
 import { throttle } from './mail.ts';
+import type { AnalyticsRecorder } from './analytics.ts';
 
 type Gate = { ok: true; user: User; role: Role } | { ok: false; status: 401 | 403 | 404 };
 export function submissionRoutes(app: Hono, o: {
   store: Store; submissions?: FileSubmissionStore; publications?: HostedPublicationStore;
   allowed(c: Context, id: string, verb: 'read' | 'write'): Promise<Gate>;
   editorOrigin?: string; requestSource(c: Context): string;
+  /** Phase 6: accepted submissions are counted where they are stored, while analytics is on. */
+  analytics?: AnalyticsRecorder;
 }) {
   const base = '/sites/:id/submissions';
   const gate = (c: Context, verb: 'read' | 'write') => {
@@ -132,7 +135,8 @@ export function submissionRoutes(app: Hono, o: {
     }
     const request = data.get('_pc_request') || '';
     try {
-      await o.submissions.add(id, { id: /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(request) ? request : randomUUID(), formId, formName: form.name, values, status: 'success', createdAt: new Date().toISOString() });
+      const created = await o.submissions.add(id, { id: /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(request) ? request : randomUUID(), formId, formName: form.name, values, status: 'success', createdAt: new Date().toISOString() });
+      if (created && o.analytics && await o.analytics.enabled(id).catch(() => false)) o.analytics.form(id, formId);
       return c.redirect('/forms/thanks', 303);
     } catch { return c.text('Your submission was not saved. Please try again shortly.', 503); }
   });

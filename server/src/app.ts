@@ -15,7 +15,7 @@ import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
 import { UI_MOTION_BOOT_SCRIPT, UI_MOTION_CSS } from '../../shared/ui-motion.js';
 import { submissionRoutes } from './submissions-routes.ts';
-import type { FileSubmissionStore } from './submissions.ts';
+import { siteForms, type FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
 import {
@@ -44,6 +44,9 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { fileURLToPath } from "node:url";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { bodyLimit } from "hono/body-limit";
+import {
+  AnalyticsRecorder, NOT_FOUND, analyticsReport, csvRows, isRange, rangeDays, toCsv, withClickScript, type RangeKey,
+} from "./analytics.ts";
 import {
   cmsItemKey,
   type Site,
@@ -169,6 +172,7 @@ import {
   siteReviewsPage,
   siteReviewDetailPage,
   siteSettingsPage,
+  siteAnalyticsPage,
   notificationsPage,
   notificationStatusExamples,
   notificationsMiniMarkup,
@@ -334,6 +338,8 @@ export interface Options {
   schedules?: PublicationScheduleStore;
   /** Account-owned libraries (Phase 5); shared across environments like sites. */
   libraries?: LibraryStore;
+  /** Aggregate analytics for published sites (Phase 6), off per site until its owner turns it on. */
+  analytics?: AnalyticsRecorder;
   /** Bearer key for the cron-driven run endpoint; without one the endpoint does not exist. */
   scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -1564,6 +1570,49 @@ export function createApp(o: Options) {
     });
   });
 
+  /* ---------------------------------------------------------------- analytics (Phase 6) */
+
+  /* A published page is counted only while its owner has analytics on, only for GET, and only
+     through the filters in analytics.ts. Private routes (editor, previews, review snapshots)
+     never come through serveHostedPublication, so they are never counted. */
+  const countingFor = async (c: Context, publication: PublicationSummary, sharedHost: boolean): Promise<Counting | null> => {
+    if (!o.analytics || c.req.method !== "GET") return null;
+    if (!await o.analytics.enabled(publication.siteId).catch(() => false)) return null;
+    const request = { header: (name: string) => c.req.header(name), source: requestSource(c), host: c.req.header("host") || "" };
+    const own = { prefix: sharedHost ? publication.slug : undefined };
+    return { view: (page) => { o.analytics!.view(publication.siteId, page, request, own); } };
+  };
+
+  /* Clicks reported by a published page's counter. Public and anonymous, so bounded: per source
+     and per site, a 1 KB body, a site published here with analytics on, and a page that its
+     publication has. Always 204, so it says nothing about any site. */
+  const clickSource = throttle(60, 60_000, 20_000), clickSite = throttle(3000, 60_000, 5000);
+  app.post("/_pc/a/:id", bodyLimit({ maxSize: 1024, onError: (c) => c.body(null, 413) }), async (c) => {
+    c.header("cache-control", "no-store");
+    const id = c.req.param("id");
+    const done = () => c.body(null, 204);
+    if (!o.analytics || !o.publications || !/^[A-Za-z0-9_-]{1,80}$/.test(id)) return done();
+    if (!clickSource.take(requestSource(c)) || !clickSite.take(id)) return done();
+    if (!await o.analytics.enabled(id).catch(() => false)) return done();
+    const body = await c.req.text().then((text) => JSON.parse(text)).catch(() => null) as { p?: unknown; l?: unknown; t?: unknown } | null;
+    if (!body || typeof body.p !== "string" || body.p.length > 300) return done();
+    // Which publication the page is in: its slug on the shared host, the host anywhere else.
+    const page = new URL(body.p, "https://page.invalid").pathname;
+    const shared = isEditorHost(c.req.header("host"), o);
+    const [, first, ...rest] = page.split("/");
+    const slug = shared ? validSlug(first || "") : null;
+    const publication = shared
+      ? (slug ? await o.publications.currentBySlug(slug) : null)
+      : await o.publications.currentByHost((c.req.header("host") || "").split(":")[0]);
+    if (!publication || publication.siteId !== id) return done();
+    const file = resolvePath(shared ? "/" + rest.join("/") : page);
+    if (!publication.files.some((f) => f.path === file)) return done();
+    o.analytics.click(id, { label: body.l, target: body.t }, {
+      header: (name: string) => c.req.header(name), source: requestSource(c), host: c.req.header("host") || "",
+    });
+    return done();
+  });
+
   /* ---------------------------------------------------------------- the editor */
 
   app.get("/", async (c) => {
@@ -1572,7 +1621,7 @@ export function createApp(o: Options) {
       if (o.publications) {
         const publication = await o.publications.currentByHost(host);
         return publication
-          ? serveHostedPublication(c, o.publications, publication, "/", false)
+          ? serveHostedPublication(c, o.publications, publication, "/", false, await countingFor(c, publication, false))
           : c.text(`No published site for host ${host}`, 404);
       }
       const site = await o.store.byHost(host);
@@ -2122,8 +2171,99 @@ export function createApp(o: Options) {
     return c.html(notificationsPage(user, notices));
   });
 
-  submissionRoutes(app, { store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource });
+  submissionRoutes(app, { store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource, analytics: o.analytics });
   cloudIntegrationRoutes(app, { store: o.store, integrations: o.cloudIntegrations, assets: o.assets, allowed, editorOrigin: o.editorOrigin });
+
+  /* ---- the owner's Analytics page (Phase 6). Owners only, like Integrations and Settings. */
+  const analyticsGate = async (c: Context) => {
+    const id = c.req.param("id")!;
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) {
+      return {
+        ok: false as const,
+        response: gate.status === 401
+          ? c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname)}`)
+          : deny(c, gate.status),
+      };
+    }
+    const site = await o.store.byId(id);
+    if (!site) return { ok: false as const, response: deny(c, 404) };
+    return { ok: true as const, gate, site };
+  };
+  const analyticsRange = (c: Context): RangeKey => {
+    const range = c.req.query("range");
+    return isRange(range) ? range : "30d";
+  };
+  /** The report for a range, from the files and this process's latest counts. */
+  const analyticsFor = async (siteId: string, range: RangeKey, doc: Doc) => {
+    const recorder = o.analytics!;
+    await recorder.flush();
+    const span = rangeDays(range, new Date());
+    const [current, previous] = await Promise.all([
+      recorder.store.read(siteId, span.from, span.to),
+      recorder.store.read(siteId, span.previous.from, span.previous.to),
+    ]);
+    const names = new Map(siteForms(doc).map((form) => [form.id, form.name]));
+    return { current, report: analyticsReport(range, current, previous, (id) => names.get(id) || id), names };
+  };
+
+  app.get("/sites/:id/analytics", async (c) => {
+    const found = await analyticsGate(c);
+    if (!found.ok) return found.response;
+    const { gate, site } = found;
+    const publishedRevision = site.publishedVersion > 0 ? await o.store.revision(site.id, site.publishedVersion) : null;
+    const overview = {
+      id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt, url: shareUrl(c, o, site),
+      published: site.version === site.publishedVersion, version: site.version, publishedVersion: site.publishedVersion,
+      publishedAt: publishedRevision?.createdAt, customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
+    };
+    if (!o.analytics) return c.html(siteAnalyticsPage(gate.user, overview, { available: false, enabled: false, report: null }));
+    const enabled = (await o.analytics.store.settings(site.id)).enabled;
+    const { report } = await analyticsFor(site.id, analyticsRange(c), site.doc);
+    return c.html(siteAnalyticsPage(gate.user, overview, { available: true, enabled, report }, {
+      error: c.req.query("error"), message: c.req.query("message"),
+    }));
+  });
+
+  app.get("/sites/:id/analytics.csv", async (c) => {
+    const found = await analyticsGate(c);
+    if (!found.ok) return found.response;
+    if (!o.analytics) return deny(c, 404);
+    const range = analyticsRange(c);
+    const { current, names } = await analyticsFor(found.site.id, range, found.site.doc);
+    const name = found.site.slug || "site";
+    return c.body(toCsv(csvRows(current), (id) => names.get(id) || id), 200, {
+      "content-type": "text/csv; charset=utf-8",
+      "content-disposition": `attachment; filename="${name}-analytics-${range}.csv"`,
+      "cache-control": "no-store",
+    });
+  });
+
+  for (const [action, enabled, message] of [
+    ["enable", true, "Analytics is on. Visits are counted from now on."],
+    ["disable", false, "Analytics is off. The numbers so far are kept until you delete them."],
+  ] as const) {
+    app.post(`/sites/:id/analytics/${action}`, async (c) => {
+      const found = await analyticsGate(c);
+      if (!found.ok) return found.response;
+      if (!o.analytics) return deny(c, 404);
+      await o.analytics.store.setEnabled(found.site.id, enabled, found.gate.user.id);
+      return c.redirect(`/sites/${encodeURIComponent(found.site.id)}/analytics?message=${encodeURIComponent(message)}`, 303);
+    });
+  }
+
+  app.post("/sites/:id/analytics/delete", async (c) => {
+    const found = await analyticsGate(c);
+    if (!found.ok) return found.response;
+    if (!o.analytics) return deny(c, 404);
+    const base = `/sites/${encodeURIComponent(found.site.id)}/analytics`;
+    const form = await c.req.parseBody().catch(() => ({} as Record<string, unknown>));
+    if (form.confirmed !== "yes") return c.redirect(`${base}?error=analytics_confirm`, 303);
+    // Flush first, so nothing buffered in this process is written back after the delete.
+    await o.analytics.flush();
+    await o.analytics.store.remove(found.site.id);
+    return c.redirect(`${base}?message=${encodeURIComponent("Every number for this site was deleted, and analytics is off.")}`, 303);
+  });
 
   app.get("/sites/:id/settings", async (c) => {
     const id = c.req.param("id");
@@ -6724,6 +6864,7 @@ export function createApp(o: Options) {
           publication,
           "/" + rest.join("/"),
           true,
+          await countingFor(c, publication, true),
         );
       }
       const site = slug ? await o.store.bySlug(slug) : null;
@@ -6754,6 +6895,7 @@ export function createApp(o: Options) {
           publication,
           url.pathname,
           false,
+          await countingFor(c, publication, false),
         )
         : c.text(`No published site for host ${host}`, 404);
     }
@@ -6989,6 +7131,8 @@ async function serveHostedPublication(
   publication: PublicationSummary,
   urlPath: string,
   sharedHost: boolean,
+  /** Present only while the site's analytics is on (Phase 6). */
+  counting: Counting | null = null,
 ) {
   const path = resolvePath(urlPath);
   const prefix = sharedHost ? publication.slug : "";
@@ -7035,6 +7179,12 @@ async function serveHostedPublication(
     } catch {
       return c.text("Published HTML unavailable", 503);
     }
+    /* Added at serve time, never to the stored files: exports, previews and the immutable
+       publication stay exactly what was reviewed. */
+    if (counting) {
+      body = withClickScript(body, publication.siteId);
+      counting.view(status === 404 ? NOT_FOUND : publicPath(record.path));
+    }
   }
   const etag = `"${
     sha256(typeof body === "string" ? new TextEncoder().encode(body) : body)
@@ -7062,6 +7212,9 @@ async function serveHostedPublication(
     "content-length": String(body.byteLength),
   });
 }
+
+/** What serveHostedPublication needs to count a page while analytics is on. */
+interface Counting { view(page: string): void }
 
 const publicationAssetHeaders = (
   mediaType: string,

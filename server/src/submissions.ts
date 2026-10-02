@@ -103,8 +103,10 @@ export class FileSubmissionStore {
     // Exclusive creation makes a repeated request ID idempotent.
     const temp = join(dir, randomUUID() + '.tmp');
     await writeFile(temp, JSON.stringify(entry), { flag: 'wx', mode: 0o600 });
-    try { await link(temp, join(dir, entry.id + '.json')); }
-    catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e; }
+    /* True when this call stored it; false for a repeated request ID, so a retried submission is
+       stored once and counted once. */
+    try { await link(temp, join(dir, entry.id + '.json')); return true; }
+    catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e; return false; }
     finally { await unlink(temp); }
   }
   async remove(site: string, id: string) {
