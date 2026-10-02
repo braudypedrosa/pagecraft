@@ -447,14 +447,22 @@ export class AnalyticsRecorder {
     return this.flushing;
   }
 
-  /** Flush every 10 s while there is something to write, and on the way out. */
-  start() {
+  /** Flush every 10 s while there is something to write, and on the way out.
+
+      A SIGTERM listener replaces Node's default of exiting, so this one flushes for at most two
+      seconds and then raises the signal again, with itself already removed: the process still
+      ends the way Passenger and the deploy's startup proof expect. Without that it never exits. */
+  start(options: { raise?: (signal: NodeJS.Signals) => void } = {}) {
     if (this.timer) return;
     this.timer = setInterval(() => { void this.flush(); }, 10_000);
     this.timer.unref?.();
-    const last = () => { void this.flush(); };
-    process.once('beforeExit', last);
-    process.once('SIGTERM', last);
+    process.once('beforeExit', () => { void this.flush(); });
+    const raise = options.raise || ((signal: NodeJS.Signals) => process.kill(process.pid, signal));
+    process.once('SIGTERM', () => {
+      this.stop();
+      const limit = new Promise(resolve => setTimeout(resolve, 2000).unref?.());
+      void Promise.race([this.flush().catch(() => undefined), limit]).then(() => raise('SIGTERM'));
+    });
   }
   stop() {
     if (this.timer) clearInterval(this.timer);

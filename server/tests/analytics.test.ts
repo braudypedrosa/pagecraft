@@ -177,3 +177,22 @@ test('the click counter goes just before </body> and posts to the site’s own e
   a.match(html, /<p>Hi<\/p><script>.*\/_pc\/a\/site-1.*<\/script><\/body>/s);
   a.doesNotMatch(html, /cookie|localStorage|sessionStorage/);
 });
+
+test('on SIGTERM the counts are flushed and the signal raised again, so the process still exits', async () => {
+  const { recorder, store } = await rig();
+  const before = process.listeners('SIGTERM');
+  const raised: string[] = [];
+  recorder.start({ raise: signal => { raised.push(signal); } });
+  const added = process.listeners('SIGTERM').filter(l => !before.includes(l));
+  a.equal(added.length, 1);
+  try {
+    recorder.view('s1', '/', visitor());
+    (added[0] as () => void)();
+    await new Promise(resolve => setTimeout(resolve, 50));
+    a.deepEqual(raised, ['SIGTERM'], 'the default exit still happens');
+    a.equal((await store.read('s1', '2026-10-02', '2026-10-02'))[0].total.views, 1, 'counted before exiting');
+  } finally {
+    for (const l of added) process.removeListener('SIGTERM', l as () => void);
+    recorder.stop();
+  }
+});
