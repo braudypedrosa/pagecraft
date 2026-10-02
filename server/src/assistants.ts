@@ -8,7 +8,7 @@
    staging is a staging token. One file per token and per proposal, so no two writers share a
    file. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ProposalChange } from '../../app/src/core/index.ts';
 
@@ -22,6 +22,8 @@ export interface AssistantToken {
   createdAt: string;
   createdBy: string;
   revokedAt: string | null;
+  /** set when the token came from an assistant app signing in (OAuth), not from the page */
+  clientId?: string;
 }
 export type AssistantTokenView = Omit<AssistantToken, 'digest'> & { lastUsedAt: string | null };
 
@@ -82,8 +84,14 @@ export class FileAssistantStore {
   constructor(root: string) { this.root = root; }
   dir(site: string) { return join(this.root, sha256(site)); }
 
-  /** A new token for one site. The plain token is returned once and never stored. */
-  async createToken(siteId: string, name: string, userId: string) {
+  /** A new token for one site. The plain token is returned once and never stored. An app that
+      signs in again replaces the token it had for this site rather than adding another. */
+  async createToken(siteId: string, name: string, userId: string, options: { clientId?: string } = {}) {
+    if (options.clientId) {
+      for (const t of await this.tokens(siteId)) {
+        if (!t.revokedAt && t.clientId === options.clientId && t.createdBy === userId) await this.revokeToken(siteId, t.id);
+      }
+    }
     const active = (await this.tokens(siteId)).filter(t => !t.revokedAt);
     if (active.length >= ASSISTANT_LIMITS.tokens) throw new AssistantLimitError(`A site can have up to ${ASSISTANT_LIMITS.tokens} active assistant tokens. Revoke one first.`);
     const id = randomBytes(8).toString('hex');
@@ -92,6 +100,7 @@ export class FileAssistantStore {
     const record: AssistantToken = {
       id, siteId, name: name.trim().slice(0, ASSISTANT_LIMITS.nameMax) || 'Assistant', hint: token.slice(0, 12),
       digest: sha256(token), createdAt: new Date().toISOString(), createdBy: userId, revokedAt: null,
+      ...(options.clientId ? { clientId: options.clientId } : {}),
     };
     const dir = join(this.dir(siteId), 'tokens');
     await mkdir(dir, { recursive: true, mode: 0o700 });
@@ -183,5 +192,54 @@ export class FileAssistantStore {
 }
 
 const withoutDigest = ({ digest: _digest, ...rest }: AssistantToken) => rest;
+
+/* ---- OAuth for assistant apps (claude.ai, Claude Desktop, and other MCP clients) ----
+   Public clients only: they register themselves, prove the code with PKCE, and receive the same
+   kind of per-site token as the Assistants page makes. Consents and codes are single use and
+   expire in ten minutes. Files under `oauth/`, alongside the per-site directories. */
+
+export interface OAuthClient { id: string; name: string; redirectUris: string[]; createdAt: string }
+export interface OAuthConsent { userId: string; clientId: string; redirectUri: string; challenge: string; state: string; resource: string }
+export interface OAuthCode extends OAuthConsent { siteId: string }
+
+const OAUTH_TTL = 10 * 60_000;
+
+export class FileOAuthStore {
+  readonly root: string;
+  constructor(root: string) { this.root = root; }
+  private file(kind: 'clients' | 'consents' | 'codes', key: string) { return join(this.root, 'oauth', kind, `${key}.json`); }
+
+  async registerClient(input: { name: string; redirectUris: string[] }) {
+    const client: OAuthClient = { id: `pcc_${randomBytes(12).toString('hex')}`, name: input.name, redirectUris: input.redirectUris, createdAt: new Date().toISOString() };
+    await mkdir(join(this.root, 'oauth', 'clients'), { recursive: true, mode: 0o700 });
+    await writeAtomic(this.file('clients', client.id), client);
+    return client;
+  }
+  async client(id: string) {
+    if (!/^pcc_[a-f0-9]{24}$/.test(id)) return null;
+    return json<OAuthClient>(this.file('clients', id)).catch(() => null);
+  }
+
+  /** Store a one-time secret's payload under its digest; returns the secret. */
+  private async put(kind: 'consents' | 'codes', payload: object) {
+    const secret = randomBytes(32).toString('base64url');
+    await mkdir(join(this.root, 'oauth', kind), { recursive: true, mode: 0o700 });
+    await writeAtomic(this.file(kind, sha256(secret)), { ...payload, expiresAt: Date.now() + OAUTH_TTL });
+    return secret;
+  }
+  /** Take a one-time secret's payload. Renaming first makes it single use across processes. */
+  private async take<T>(kind: 'consents' | 'codes', secret: string): Promise<T | null> {
+    if (!/^[A-Za-z0-9_-]{43}$/.test(secret)) return null;
+    const file = this.file(kind, sha256(secret)), claimed = `${file}.${randomBytes(6).toString('hex')}.taken`;
+    try { await rename(file, claimed); } catch { return null; }
+    const row = await json<T & { expiresAt: number }>(claimed).catch(() => null);
+    await rm(claimed, { force: true });
+    return row && row.expiresAt > Date.now() ? row : null;
+  }
+  createConsent(consent: OAuthConsent) { return this.put('consents', consent); }
+  takeConsent(secret: string) { return this.take<OAuthConsent>('consents', secret); }
+  createCode(code: OAuthCode) { return this.put('codes', code); }
+  takeCode(secret: string) { return this.take<OAuthCode>('codes', secret); }
+}
 
 export class AssistantLimitError extends Error {}

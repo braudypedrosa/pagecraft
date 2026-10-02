@@ -52,7 +52,7 @@ export function installAccountActions() {
     if (url.origin !== location.origin) return;
     const button = event.submitter || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
     // OAuth needs a real cross-origin navigation, not fetch following its redirect.
-    if (url.pathname === '/auth/google' || /^\/v1\/(oauth|wordpress-import)\/authorize$/.test(url.pathname)) {
+    if (url.pathname === '/auth/google' || /^\/(v1\/(oauth|wordpress-import)|oauth\/assistants)\/authorize$/.test(url.pathname)) {
       if(native.has(form)){event.preventDefault();return;}
       // A disabled native submitter is omitted from the request. Preserve its choice.
       let choice;

@@ -36,7 +36,7 @@ const change = z.discriminatedUnion("type", [
     type: z.literal("text"),
     nodeId: z.string().describe("an element id from pagecraft_get_page"),
     slot: z.string().optional().describe("which text, e.g. text, alt, caption or items.0.label; defaults to the element's first"),
-    value: z.string().describe("plain text; rich text is turned into paragraphs, and markup is shown literally"),
+    value: z.string().describe("plain text. In rich text (elements marked `formatting`, and rich component properties) **bold**, *italic*, [text](/page-or-https-url) and \"- \" list lines work; HTML is always shown literally"),
   }),
   z.object({
     type: z.literal("image"),

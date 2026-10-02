@@ -17,7 +17,8 @@ import { UI_MOTION_BOOT_SCRIPT, UI_MOTION_CSS } from '../../shared/ui-motion.js'
 import { submissionRoutes } from './submissions-routes.ts';
 import { assistantMcpContext, assistantRoutes, type AssistantDeps } from './assistant-routes.ts';
 import { assistantMcpResponse } from './assistant-mcp.ts';
-import { isAssistantToken, type FileAssistantStore } from './assistants.ts';
+import { isAssistantToken, type FileAssistantStore, type FileOAuthStore } from './assistants.ts';
+import { assistantOAuthRoutes, resourceMetadataUrl } from './assistant-oauth.ts';
 import { siteForms, type FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
@@ -48,7 +49,8 @@ import { fileURLToPath } from "node:url";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { bodyLimit } from "hono/body-limit";
 import {
-  AnalyticsRecorder, NOT_FOUND, analyticsReport, csvRows, isRange, rangeDays, toCsv, withClickScript, type RangeKey,
+  AnalyticsRecorder, NOT_FOUND, analyticsReport, csvRows, excluded, isRange, rangeDays, timeZones, toCsv, validTimeZone, withClickScript,
+  type RangeKey,
 } from "./analytics.ts";
 import {
   cmsItemKey,
@@ -345,6 +347,8 @@ export interface Options {
   analytics?: AnalyticsRecorder;
   /** Assistant tokens and their proposals (Phase 7). */
   assistants?: FileAssistantStore;
+  /** Sign-in for assistant apps (claude.ai, Claude Desktop) that issues those tokens. */
+  assistantOAuth?: FileOAuthStore;
   /** Bearer key for the cron-driven run endpoint; without one the endpoint does not exist. */
   scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -1582,8 +1586,12 @@ export function createApp(o: Options) {
      never come through serveHostedPublication, so they are never counted. */
   const countingFor = async (c: Context, publication: PublicationSummary, sharedHost: boolean): Promise<Counting | null> => {
     if (!o.analytics || c.req.method !== "GET") return null;
+    /* A visit that is not counted gets no click counter either: signed-in Pagecraft users (whose
+       beacons would not carry the cookie), privacy signals, prefetches and bots. */
+    const header = (name: string) => c.req.header(name);
+    if (excluded(header)) return null;
     if (!await o.analytics.enabled(publication.siteId).catch(() => false)) return null;
-    const request = { header: (name: string) => c.req.header(name), source: requestSource(c), host: c.req.header("host") || "" };
+    const request = { header, source: requestSource(c), host: c.req.header("host") || "" };
     const own = { prefix: sharedHost ? publication.slug : undefined };
     return { view: (page) => { o.analytics!.view(publication.siteId, page, request, own); } };
   };
@@ -2183,6 +2191,12 @@ export function createApp(o: Options) {
     render: (doc, assets) => candidate(doc, assets), assetHeaders: (asset) => assetHeaders(asset as Pick<Asset, "type" | "name">),
   };
   assistantRoutes(app, assistantDeps);
+  assistantOAuthRoutes(app, {
+    assistants: o.assistants, oauth: o.assistantOAuth, editorOrigin: o.editorOrigin, who, requestSource,
+    isEditorHost: (c) => isEditorHost(c.req.header("host"), o),
+    ownedSites: async (user) => (await visibleSites(user)).filter((x) => x.role === "owner").map((x) => ({ id: x.site.id, name: x.site.name })),
+    page: shell,
+  });
   cloudIntegrationRoutes(app, { store: o.store, integrations: o.cloudIntegrations, assets: o.assets, allowed, editorOrigin: o.editorOrigin });
 
   /* ---- the owner's Analytics page (Phase 6). Owners only, like Integrations and Settings. */
@@ -2209,10 +2223,11 @@ export function createApp(o: Options) {
   const analyticsFor = async (siteId: string, range: RangeKey, doc: Doc) => {
     const recorder = o.analytics!;
     await recorder.flush();
-    const span = rangeDays(range, new Date());
+    const tz = (await recorder.store.settings(siteId)).timeZone || "UTC";
+    const span = rangeDays(range, new Date(), tz);
     const [current, previous] = await Promise.all([
-      recorder.store.read(siteId, span.from, span.to),
-      recorder.store.read(siteId, span.previous.from, span.previous.to),
+      recorder.store.read(siteId, span.from, span.to, tz),
+      recorder.store.read(siteId, span.previous.from, span.previous.to, tz),
     ]);
     const names = new Map(siteForms(doc).map((form) => [form.id, form.name]));
     return { current, report: analyticsReport(range, current, previous, (id) => names.get(id) || id), names };
@@ -2228,10 +2243,12 @@ export function createApp(o: Options) {
       published: site.version === site.publishedVersion, version: site.version, publishedVersion: site.publishedVersion,
       publishedAt: publishedRevision?.createdAt, customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
     };
-    if (!o.analytics) return c.html(siteAnalyticsPage(gate.user, overview, { available: false, enabled: false, report: null }));
-    const enabled = (await o.analytics.store.settings(site.id)).enabled;
+    if (!o.analytics) return c.html(siteAnalyticsPage(gate.user, overview, { available: false, enabled: false, report: null, timeZone: "UTC", timeZones: [] }));
+    const settings = await o.analytics.store.settings(site.id);
     const { report } = await analyticsFor(site.id, analyticsRange(c), site.doc);
-    return c.html(siteAnalyticsPage(gate.user, overview, { available: true, enabled, report }, {
+    return c.html(siteAnalyticsPage(gate.user, overview, {
+      available: true, enabled: settings.enabled, report, timeZone: settings.timeZone || "UTC", timeZones: timeZones(),
+    }, {
       error: c.req.query("error"), message: c.req.query("message"),
     }));
   });
@@ -2258,10 +2275,26 @@ export function createApp(o: Options) {
       const found = await analyticsGate(c);
       if (!found.ok) return found.response;
       if (!o.analytics) return deny(c, 404);
-      await o.analytics.store.setEnabled(found.site.id, enabled, found.gate.user.id);
+      // The first time it is turned on, days follow the owner's own time zone, sent by their browser.
+      const form = await c.req.parseBody().catch(() => ({} as Record<string, unknown>));
+      const current = await o.analytics.store.settings(found.site.id);
+      const zone = enabled && !current.timeZone ? validTimeZone(form.timeZone) : null;
+      await o.analytics.store.setEnabled(found.site.id, enabled, found.gate.user.id, zone);
       return c.redirect(`/sites/${encodeURIComponent(found.site.id)}/analytics?message=${encodeURIComponent(message)}`, 303);
     });
   }
+
+  app.post("/sites/:id/analytics/timezone", async (c) => {
+    const found = await analyticsGate(c);
+    if (!found.ok) return found.response;
+    if (!o.analytics) return deny(c, 404);
+    const base = `/sites/${encodeURIComponent(found.site.id)}/analytics`;
+    const form = await c.req.parseBody().catch(() => ({} as Record<string, unknown>));
+    const zone = validTimeZone(form.timeZone);
+    if (!zone) return c.redirect(`${base}?error=analytics_timezone`, 303);
+    await o.analytics.store.setTimeZone(found.site.id, zone, found.gate.user.id);
+    return c.redirect(`${base}?message=${encodeURIComponent(`Days now follow ${zone}.`)}`, 303);
+  });
 
   app.post("/sites/:id/analytics/delete", async (c) => {
     const found = await analyticsGate(c);
@@ -4277,7 +4310,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "invalid_token",
           error_description: "This assistant token is not valid. Create a new one on the site's Assistants page.",
-        }, 401, { "www-authenticate": 'Bearer realm="Pagecraft"' });
+        }, 401, { "www-authenticate": `Bearer realm="Pagecraft", error="invalid_token", resource_metadata="${resourceMetadataUrl(o.editorOrigin || new URL(c.req.url).origin)}"` });
       }
       if (Number(c.req.header("content-length") || 0) > 1_000_000) return c.json({ error: "request_too_large" }, 413);
       return assistantMcpResponse(c.req.raw, context);
@@ -4289,8 +4322,10 @@ export function createApp(o: Options) {
         error: "invalid_token",
         error_description: "Connect Pagecraft and supply a valid integration token.",
       }, 401, {
+        /* `resource_metadata` is how an MCP client (claude.ai, Claude Desktop) finds assistant
+           sign-in; the WordPress plugin reads only the realm and scope, as before. */
         "www-authenticate":
-          'Bearer realm="Pagecraft", scope="projects:read packages:read"',
+          `Bearer realm="Pagecraft", scope="projects:read packages:read", resource_metadata="${resourceMetadataUrl(o.editorOrigin || new URL(c.req.url).origin)}"`,
       });
     }
     return pagecraftMcpResponse(c.req.raw, read);

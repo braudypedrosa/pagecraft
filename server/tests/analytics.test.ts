@@ -4,8 +4,8 @@ import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  AnalyticsRecorder, DIRECT, FileAnalyticsStore, NOT_FOUND, OTHER, change, cleanTarget, deviceOf, excluded,
-  rangeDays, referrerOf, sumBuckets, toCsv, withClickScript, emptyBucket,
+  AnalyticsRecorder, DIRECT, FileAnalyticsStore, NOT_FOUND, OTHER, change, cleanTarget, csvRows, deviceOf, excluded,
+  localParts, rangeDays, referrerOf, sumBuckets, toCsv, validTimeZone, withClickScript, emptyBucket,
 } from '../src/analytics.ts';
 
 const CHROME = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
@@ -102,7 +102,7 @@ test('counts reach disk per process, two processes add up, and nothing is counte
   a.deepEqual(total.devices, { desktop: 2, mobile: 1 });
   a.deepEqual(total.actions, { 'Call us\ttel:': 1 });
   a.deepEqual(total.formIds, { contact: 1 });
-  a.equal(days[1].hours!['09'].views, 3, 'hours are kept');
+  a.equal(days[1].hours!['2026-10-02T09:00Z'].views, 3, 'hours are kept, by local time with its offset');
 });
 
 test('finished days merge into one file and the month, then expire on schedule', async () => {
@@ -195,4 +195,33 @@ test('on SIGTERM the counts are flushed and the signal raised again, so the proc
     for (const l of added) process.removeListener('SIGTERM', l as () => void);
     recorder.stop();
   }
+});
+
+test('days follow the site’s time zone: an evening in UTC is the next morning in Manila', async () => {
+  const { clock, store, recorder } = await rig();
+  a.equal(validTimeZone('asia/manila'), 'Asia/Manila', 'canonicalised');
+  a.equal(validTimeZone('Mars/Olympus'), null);
+  a.deepEqual(localParts(Date.parse('2026-10-02T20:30:00Z'), 'Asia/Manila'), { day: '2026-10-03', hour: '04', offset: '+08:00' });
+  a.deepEqual(rangeDays('7d', new Date('2026-10-02T20:30:00Z'), 'Asia/Manila').to, '2026-10-03');
+
+  clock.at = Date.parse('2026-10-02T09:15:00Z'); // 17:15 in Manila, same day
+  recorder.view('s1', '/', visitor());
+  clock.at = Date.parse('2026-10-02T20:15:00Z'); // 04:15 the next morning in Manila
+  recorder.view('s1', '/', visitor({}, '198.51.100.3'));
+  await recorder.flush();
+
+  const utc = await store.read('s1', '2026-10-02', '2026-10-03');
+  a.deepEqual(utc.map(d => d.total.views), [2, 0]);
+  const manila = await store.read('s1', '2026-10-02', '2026-10-03', 'Asia/Manila');
+  a.deepEqual(manila.map(d => d.total.views), [1, 1]);
+  a.deepEqual(Object.keys(manila[1].hours!), ['2026-10-03T04:00+08:00']);
+  a.match(toCsv(csvRows(manila)), /2026-10-03T04:00\+08:00,views,,1/);
+
+  // Once merged, daily totals are filed under the site's local days.
+  await store.setTimeZone('s1', 'Asia/Manila', 'u1');
+  clock.at = Date.parse('2027-01-10T12:00:00Z');
+  await store.compact('s1', true);
+  const later = await store.read('s1', '2026-10-02', '2026-10-03', 'Asia/Manila');
+  a.deepEqual(later.map(d => [d.total.views, d.hours]), [[1, null], [1, null]]);
+  a.equal((await store.settings('s1')).timeZone, 'Asia/Manila');
 });

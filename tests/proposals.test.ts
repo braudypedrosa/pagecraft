@@ -120,3 +120,34 @@ test('what a proposal cannot do is refused with a reason the assistant can act o
   // One bad change refuses the whole proposal: nothing is half-prepared.
   a.deepEqual(C.proposalPrepare([{ type: 'text', nodeId: 'h1', value: 'ok' }, { type: 'text', nodeId: 'nope', value: 'x' }], { assets }).changes, []);
 });
+
+test('rich text takes bold, italic, safe links and lists, and nothing else', () => {
+  const prepare = (value: string) => C.proposalPrepare([{ type: 'text', nodeId: 'copy', value }], { assets });
+  const ok = prepare('Make it **bold**, *calm* and [visit us](/about).\n\n- One\n- Two [site](https://example.com/a?b=1&c=2)');
+  a.deepEqual(ok.problems, []);
+  a.equal(ok.changes[0].value,
+    '<p>Make it <strong>bold</strong>, <em>calm</em> and <a href="about.html">visit us</a>.</p>'
+    + '<ul><li>One</li><li>Two <a href="https://example.com/a?b=1&amp;c=2">site</a></li></ul>');
+  a.equal(prepare('<b>x</b> <a href="javascript:alert(1)">y</a>').changes[0].value, '<p>&lt;b&gt;x&lt;/b&gt; &lt;a href=&quot;javascript:alert(1)&quot;&gt;y&lt;/a&gt;</p>',
+    'HTML is shown, never run');
+  a.match(prepare('[bad](javascript:alert(1))').problems.join(' '), /the link “javascript:alert\(1” must be a page of this site/);
+  a.equal(prepare('a*b*c and 2 * 3 * 4').changes[0].value, '<p>a*b*c and 2 * 3 * 4</p>', 'stray asterisks stay asterisks');
+
+  // A rich component property formats the same way; a plain one keeps the asterisks.
+  C.state.meta.components![0].props.push({ k: 'note', label: 'Note', t: 'text', def: '' });
+  const props = C.proposalPrepare([
+    { type: 'property', nodeId: 'inst', property: 'body', value: '**Open** daily' },
+    { type: 'property', nodeId: 'inst', property: 'note', value: '**Open** daily' },
+  ], { assets });
+  a.deepEqual(props.changes.map(ch => ch.value), ['<p><strong>Open</strong> daily</p>', '**Open** daily']);
+});
+
+test('reading a page gives rich text back as the same markdown', () => {
+  (C.locateAny('copy').node.props as { html: string }).html = '<p>Hello <strong>there</strong></p><ul><li>One</li><li><a href="about.html">Two</a></li></ul>';
+  const copy = C.proposalOutline(C.state.pages[0].id)!.find(e => e.id === 'copy') as { text: { html: string }; formatting: string };
+  a.equal(copy.text.html, 'Hello **there**\n\n- One\n- [Two](about.html)');
+  a.match(copy.formatting, /\*\*bold\*\*/);
+  // Round trip: sending it back unchanged writes the same formatting.
+  const again = C.proposalPrepare([{ type: 'text', nodeId: 'copy', value: copy.text.html }], { assets });
+  a.equal(again.changes[0].value, '<p>Hello <strong>there</strong></p><ul><li>One</li><li><a href="about.html">Two</a></li></ul>');
+});

@@ -94,8 +94,10 @@ test('views are counted by page, referrer and device, without repeats, signals o
   await r.visit('/acme/', { referer: 'https://www.google.com/', ip: '203.0.113.50' }); // a reload
   await r.visit('/acme/about', { referer: 'http://admin.test/acme/' });             // inside the site
   await r.visit('/acme/missing');
-  await r.visit('/acme/', { 'sec-gpc': '1' });
-  await r.visit('/acme/', { cookie: 'pc_session=abc' });
+  const signal = await r.visit('/acme/', { 'sec-gpc': '1' });
+  a.doesNotMatch(await signal.text(), /_pc\/a\//, 'a visit that is not counted gets no click counter');
+  const signedIn = await r.visit('/acme/', { cookie: 'pc_session=abc' });
+  a.doesNotMatch(await signedIn.text(), /_pc\/a\//, 'nor does a signed-in Pagecraft user');
   await r.visit('/acme/', { 'user-agent': 'Mozilla/5.0 (compatible; bingbot/2.0)' });
   const totals = await r.totals();
   a.equal(totals.views, 3);
@@ -146,9 +148,14 @@ test('owners turn analytics on and off, read the numbers, download them and dele
   a.equal((await r.manage('/analytics', { cookie: r.editorCookie })).status, 403, 'owners only');
   a.equal((await r.manage('/analytics', { cookie: '' })).status, 302);
 
-  const on = await r.manage('/analytics/enable', { method: 'POST', body: '' });
+  a.match(offHtml, /name="timeZone" value="" data-browser-tz/, 'the browser sends the owner’s time zone');
+  const on = await r.manage('/analytics/enable', { method: 'POST', body: 'timeZone=Europe%2FLondon' });
   a.equal(on.status, 303);
   a.equal((await r.analyticsStore.settings(r.site.id)).enabled, true);
+  a.equal((await r.analyticsStore.settings(r.site.id)).timeZone, 'Europe/London');
+  a.match((await r.manage('/analytics/timezone', { method: 'POST', body: 'timeZone=Nowhere%2FLand' })).headers.get('location') || '', /error=analytics_timezone/);
+  a.equal((await r.manage('/analytics/timezone', { method: 'POST', body: 'timeZone=UTC' })).status, 303);
+  a.equal((await r.analyticsStore.settings(r.site.id)).timeZone, 'UTC');
 
   await r.visit('/acme/', { referer: 'https://news.example/story' });
   await r.visit('/acme/about');

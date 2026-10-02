@@ -7989,12 +7989,48 @@ function proposalLink(raw: string): { value?: string; problem?: string } {
   return { problem: 'must be a page of this site (like /contact), a web address, an email or a phone link' };
 }
 
+/** Rich text from a proposal: a small markdown subset, escaped first and then given back only
+    the formatting it asks for — **bold**, *italic*, [text](link) and "- " list lines. Links pass
+    the same check as a link property, so nothing can arrive that the editor could not make. */
+function proposalRich(raw: string): { value?: string; problem?: string } {
+  const text = raw.replace(/\r\n?/g, '\n').trim();
+  if (!text) return { value: '' };
+  let problem = '';
+  const inline = (line: string) => esc(line)
+    .replace(/\[([^\]\n]+)\]\(([^)\s]+)\)/g, (_m, label: string, href: string) => {
+      const link = proposalLink(href.replace(/&amp;/g, '&'));
+      if (link.problem || !link.value) { problem = problem || `the link “${href}” ${link.problem || 'is empty'}`; return label; }
+      return `<a href="${esc(link.value)}">${label}</a>`;
+    })
+    // As in markdown, a marker hugs its words: "2 * 3 * 4" is arithmetic, not emphasis.
+    .replace(/\*\*(?!\s)([^*\n]*?[^*\s])\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*\w])\*(?!\s)([^*\n]*?[^*\s])\*(?![*\w])/g, '$1<em>$2</em>');
+  const html = text.split(/\n{2,}/).map(block => {
+    const lines = block.split('\n');
+    if (lines.every(l => /^\s*[-*]\s+/.test(l))) return `<ul>${lines.map(l => `<li>${inline(l.replace(/^\s*[-*]\s+/, ''))}</li>`).join('')}</ul>`;
+    return `<p>${lines.map(inline).join('<br>')}</p>`;
+  }).join('');
+  return problem ? { problem } : { value: html };
+}
+
+/** The other way, for reading: rich HTML as the same markdown subset, so an assistant sees the
+    formatting it would otherwise drop. Anything else becomes plain text. */
+function proposalMarkdown(html: string): string {
+  return String(html || '')
+    .replace(/<\/(p|div|h[1-6]|blockquote)>\s*/gi, '\n\n').replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ').replace(/<\/li>\s*/gi, '\n')
+    .replace(/<(strong|b)\b[^>]*>([\s\S]*?)<\/\1>/gi, '**$2**').replace(/<(em|i)\b[^>]*>([\s\S]*?)<\/\1>/gi, '*$2*')
+    .replace(/<a\b[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, (_m, href: string, label: string) => `[${label}](${href})`)
+    .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 function proposalPropValue(pr: ComponentProp, raw: unknown, assets: ReadonlySet<string>): { value?: string; problem?: string } {
   const v = typeof raw === 'string' ? raw : raw == null ? '' : String(raw);
   if (v.length > PROPOSAL_LIMITS.text) return { problem: 'is too long' };
   switch (pr.t) {
     case 'text': return { value: v };
-    case 'rich': return { value: para(v) };
+    case 'rich': return proposalRich(v);
     case 'img': {
       const id = v.replace(/^asset:/, '').split('@')[0];
       return assets.has(id) ? { value: 'asset:' + id } : { problem: `names an image this site doesn't have (${id || 'none'})` };
@@ -8064,8 +8100,13 @@ function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string>
       const key = `${node.id}|${proposalSlotKey(slot)}`;
       if (seen.has(key)) return fail('changes the same text twice.');
       seen.add(key);
-      const rich = node.type === 'text' && slot.prop === 'html';
-      changes.push({ type: 'text', region, nodeId: node.id, slot: proposalSlotKey(slot), value: rich ? para(raw) : raw,
+      let value = raw;
+      if (node.type === 'text' && slot.prop === 'html') {
+        const rich = proposalRich(raw);
+        if (rich.problem) return fail(rich.problem + '.');
+        value = rich.value!;
+      }
+      changes.push({ type: 'text', region, nodeId: node.id, slot: proposalSlotKey(slot), value,
         before: String(slotGet(node, slot) ?? ''), label: `${proposalNodeLabel(node)} · ${slotName(slot)}` });
       return;
     }
@@ -8137,7 +8178,7 @@ function proposalOutline(region: string) {
     const text: Record<string, string> = {}, images: Record<string, string> = {};
     if (!OWNER_ONLY_CONTENT.has(n.type)) {
       for (const sl of textSlots(n)) text[proposalSlotKey(sl)] = n.type === 'text' && sl.prop === 'html'
-        ? proposalWords(String(slotGet(n, sl) || ''), 4000) : String(slotGet(n, sl) ?? '');
+        ? proposalMarkdown(String(slotGet(n, sl) || '')).slice(0, 4000) : String(slotGet(n, sl) ?? '');
     }
     for (const sl of proposalImageSlots(n)) images[proposalSlotKey(sl)] = String(slotGet(n, sl) ?? '');
     const def = n.use ? findComponent(n.use) : null;
@@ -8145,8 +8186,9 @@ function proposalOutline(region: string) {
     out.push({
       id: n.id, type: n.type, kind: def ? def.name : labelOf(n.type), depth, parentId: parent ? parent.id : null,
       ...(Object.keys(text).length ? { text } : {}),
+      ...(n.type === 'text' ? { formatting: 'html is rich text: **bold**, *italic*, [text](link) and "- " lists' } : {}),
       ...(Object.keys(images).length ? { images } : {}),
-      ...(def ? { component: { id: def.id, name: def.name, values: Object.fromEntries((def.props || []).map(pr => [pr.k, instValue(n, def, pr.k)])) } } : {}),
+      ...(def ? { component: { id: def.id, name: def.name, values: Object.fromEntries((def.props || []).map(pr => [pr.k, pr.t === 'rich' ? proposalMarkdown(instValue(n, def, pr.k)) : instValue(n, def, pr.k)])) } } : {}),
       ...(fits.length ? { canHold: fits } : {}),
     });
   });

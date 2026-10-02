@@ -54,8 +54,12 @@ The core holds the proposal engine (`app/src/core/index.ts`, "assistant proposal
   write and the value it replaces (`before`). One bad change refuses the whole proposal, with a
   reason the assistant can act on.
   - **Text** must be one of the node's own text slots. Embed code is refused. Values are plain
-    text: the WYSIWYG `html` slot turns them into escaped paragraphs, and every other slot is
-    escaped when rendered.
+    text, and every plain slot is escaped when rendered.
+    - Rich text (the WYSIWYG `html` slot and rich component properties) also takes a markdown
+      subset: `**bold**`, `*italic*`, `[text](link)` and `- ` list lines. It is escaped first and
+      then given back only those tags. Links pass the same check as link properties.
+    - `proposalOutline` returns existing rich text as the same markdown, so sending it back
+      unchanged keeps its formatting.
   - **Images** must be one of this site's assets.
   - **Properties** are validated by kind:
     - text as is, and rich text into escaped paragraphs;
@@ -124,9 +128,34 @@ Decided proposals are kept for 90 days.
   (fingerprinted).
 - Tests: `server/tests/assistants.test.ts` and `tests/proposals-ui.test.tsx`.
 
+## Signing in from the Claude app (OAuth, added 2026-10-03)
+
+claude.ai, Claude Desktop and other MCP clients can connect without a pasted token
+(`server/src/assistant-oauth.ts`).
+- **Discovery.** `/mcp`'s 401 carries `resource_metadata`, which points to
+  `/.well-known/oauth-protected-resource`. That names this server as the authorization server,
+  described at `/.well-known/oauth-authorization-server`. The WordPress plugin still reads only
+  the realm and scope.
+- **Registration** (RFC 7591) at `/oauth/assistants/register`. Public clients only. Redirects
+  must be HTTPS, or http on localhost. Rate-limited per source.
+- **Consent** at `/oauth/assistants/authorize`:
+  - It requires PKCE S256, and a `resource` must be this `/mcp`.
+  - The owner signs in, sees the app's name and where it returns to, and picks one of the sites
+    they own.
+  - The consent and the code are single use for ten minutes; a failed exchange spends the code.
+  - The form navigates natively, because its redirect leaves Pagecraft. That is why
+    `shared/account-actions.js` exempts it.
+- **Token** at `/oauth/assistants/token`. The code exchange issues the same per-site assistant
+  token as the Assistants page, named "<app> (connected app)":
+  - it is listed and revocable there;
+  - it lapses with its maker's ownership;
+  - signing in again replaces the app's previous token for that site.
+
+  There is no refresh token, and the token has no expiry beyond revocation.
+- **Tests.** `server/tests/assistant-oauth.test.ts` covers this, including the MCP SDK's own
+  client signing in end to end.
+
 ## Not in this version
 
-- Rich formatting (bold, links) in proposed text.
 - Uploading new images.
 - Proposals for content editors.
-- OAuth sign-in from claude.ai or Claude Desktop connectors, which today need a token header.

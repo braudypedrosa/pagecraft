@@ -14,7 +14,7 @@ import {MemoryHostedPublicationStore} from '../server/src/publications.ts';
 import {MemoryPublicationScheduleStore} from '../server/src/schedules.ts';
 import {MemoryLibraryStore} from '../server/src/libraries.ts';
 import {AnalyticsRecorder,FileAnalyticsStore,emptyBucket} from '../server/src/analytics.ts';
-import {FileAssistantStore} from '../server/src/assistants.ts';
+import {FileAssistantStore,FileOAuthStore} from '../server/src/assistants.ts';
 import {TestHumanChallenge} from '../server/src/turnstile.ts';
 import {blankDoc} from '../server/src/render.ts';
 import {QA_SITE_NAME,uiFixtureDocument} from './fixtures/ui-site.ts';
@@ -63,7 +63,7 @@ const accountAuth={identity:async()=>identity,oauth:unavailable,signUp:unavailab
 // In-memory publications and schedules let review previews and scheduling run locally.
 const app=createApp({store,auth,assets,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),
  publications:new MemoryHostedPublicationStore(),schedules:new MemoryPublicationScheduleStore(),libraries:new MemoryLibraryStore(),analytics,
- assistants:new FileAssistantStore(await mkdtemp(join(tmpdir(),'pagecraft-qa-assistants-'))),
+ ...await (async()=>{const dir=await mkdtemp(join(tmpdir(),'pagecraft-qa-assistants-'));return {assistants:new FileAssistantStore(dir),assistantOAuth:new FileOAuthStore(dir)};})(),
  challenge:new TestHumanChallenge(),turnstileSiteKey:'local-ui-fixture',
  componentGallery:true,editorHost:'localhost',editorOrigin:'http://localhost:4944',
  editorHtml:await readFile(new URL('../index.html',import.meta.url),'utf8')});

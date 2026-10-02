@@ -138,9 +138,34 @@ export const RANGES: Record<RangeKey, { days: number; label: string }> = {
   '12m': { days: 365, label: 'Last 12 months' },
 };
 export const isRange = (s: unknown): s is RangeKey => typeof s === 'string' && s in RANGES;
-/** The range ending today, and the period of the same length just before it. */
-export function rangeDays(range: RangeKey, now: Date) {
-  const to = dayOf(now);
+
+/* Counts are stored by UTC hour and read in the site's time zone: an hour is an hour everywhere,
+   and which day it belongs to is decided when reading. */
+const zoneFormats = new Map<string, Intl.DateTimeFormat>();
+const zoneFormat = (tz: string) => {
+  let f = zoneFormats.get(tz);
+  if (!f) {
+    f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', timeZoneName: 'longOffset' });
+    zoneFormats.set(tz, f);
+  }
+  return f;
+};
+/** The local day, hour and UTC offset (`+08:00`, or `Z`) of an instant in a time zone. */
+export function localParts(at: number, tz: string) {
+  const parts = Object.fromEntries(zoneFormat(tz).formatToParts(new Date(at)).map(p => [p.type, p.value]));
+  const offset = String(parts.timeZoneName || 'GMT').replace('GMT', '');
+  return { day: `${parts.year}-${parts.month}-${parts.day}`, hour: String(parts.hour).padStart(2, '0'), offset: !offset || /^[+-]00:00$/.test(offset) ? 'Z' : offset };
+}
+/** An IANA time zone name, canonicalised, or null when it is not one. */
+export function validTimeZone(raw: unknown): string | null {
+  if (typeof raw !== 'string' || !raw || raw.length > 64) return null;
+  try { return new Intl.DateTimeFormat('en-US', { timeZone: raw }).resolvedOptions().timeZone; } catch { return null; }
+}
+export const timeZones = () => ['UTC', ...Intl.supportedValuesOf('timeZone').filter(z => z !== 'UTC')];
+
+/** The range ending today in `tz`, and the period of the same length just before it. */
+export function rangeDays(range: RangeKey, now: Date, tz = 'UTC') {
+  const to = localParts(now.getTime(), tz).day;
   const from = addDays(to, 1 - RANGES[range].days);
   return { from, to, previous: { from: addDays(from, -RANGES[range].days), to: addDays(from, -1) } };
 }
@@ -175,7 +200,13 @@ export function toCsv(rows: { time: string; bucket: Bucket }[], formName: (id: s
 
 /* ---- storage ------------------------------------------------------------ */
 
-export interface AnalyticsSettings { enabled: boolean; changedAt: string | null; changedBy: string | null }
+export interface AnalyticsSettings {
+  enabled: boolean;
+  changedAt: string | null;
+  changedBy: string | null;
+  /** IANA name; which day a visit belongs to. UTC until the owner (or their browser) picks one. */
+  timeZone?: string;
+}
 /** `merged` names the process files already folded in, so a crash between writing the merged day
     and deleting its parts can never count them twice. */
 type DayFile = { hours: Record<string, Bucket>; merged?: string[] };
@@ -216,10 +247,17 @@ export class FileAnalyticsStore {
     if (this.settingsCache.size > 5000) this.settingsCache.delete(this.settingsCache.keys().next().value!);
     return value;
   }
-  async setEnabled(site: string, enabled: boolean, userId: string) {
+  async setEnabled(site: string, enabled: boolean, userId: string, timeZone?: string | null) {
+    return this.writeSettings(site, { enabled, changedAt: this.now().toISOString(), changedBy: userId, ...(timeZone ? { timeZone } : {}) });
+  }
+  async setTimeZone(site: string, timeZone: string, userId: string) {
+    return this.writeSettings(site, { timeZone, changedAt: this.now().toISOString(), changedBy: userId });
+  }
+  private async writeSettings(site: string, patch: Partial<AnalyticsSettings>) {
     const dir = this.dir(site);
     await mkdir(dir, { recursive: true, mode: 0o700 });
-    const value = { enabled, changedAt: this.now().toISOString(), changedBy: userId };
+    this.settingsCache.delete(site);
+    const value: AnalyticsSettings = { ...await this.settings(site), ...patch };
     await writeAtomic(join(dir, 'settings.json'), value);
     this.settingsCache.set(site, { at: Date.now(), value });
     return value;
@@ -237,25 +275,37 @@ export class FileAnalyticsStore {
     await writeAtomic(join(dir, `${day}.${this.processId}.json`), file);
   }
 
-  /** Per-day totals (and hours where they are still kept) for a range of UTC days. */
-  async read(site: string, from: string, to: string) {
+  /** Per-day totals for a range of days in `tz`, with the hours while they are kept. Hours are
+      keyed by their local time with its offset, e.g. `2026-10-03T09:00+08:00`. */
+  async read(site: string, from: string, to: string, tz = 'UTC') {
     await this.compact(site);
     const hoursDir = join(this.dir(site), 'hours');
     const files = await readdir(hoursDir).catch(() => [] as string[]);
-    const months = new Map<string, MonthFile | null>();
-    const days: { day: string; total: Bucket; hours: Record<string, Bucket> | null }[] = [];
-    for (const day of daysBetween(from, to)) {
+    // The UTC days that can hold hours of these local days: one either side covers every offset.
+    const local = new Map<string, Record<string, Bucket>>();
+    for (const day of daysBetween(addDays(from, -1), addDays(to, 1))) {
       const settled = files.includes(`${day}.json`) ? await json<DayFile>(join(hoursDir, `${day}.json`)).catch(() => null) : null;
       const done = new Set(settled?.merged || []);
       const parts = files.filter(f => /^\d{4}-\d{2}-\d{2}\.[a-z0-9]+\.json$/.test(f) && f.startsWith(`${day}.`) && !done.has(f));
-      if (settled || parts.length) {
-        const hours: Record<string, Bucket> = {};
-        for (const [hour, bucket] of Object.entries(settled?.hours || {})) addInto(hours[hour] ||= emptyBucket(), bucket);
-        for (const part of parts) {
-          const data = await json<DayFile>(join(hoursDir, part)).catch(() => null);
-          for (const [hour, bucket] of Object.entries(data?.hours || {})) addInto(hours[hour] ||= emptyBucket(), bucket);
+      const sources = [settled, ...await Promise.all(parts.map(part => json<DayFile>(join(hoursDir, part)).catch(() => null)))];
+      for (const data of sources) {
+        for (const [hour, bucket] of Object.entries(data?.hours || {})) {
+          const at = localParts(Date.parse(`${day}T${hour}:00:00Z`), tz);
+          const hours = local.get(at.day) || {};
+          local.set(at.day, hours);
+          addInto(hours[`${at.day}T${at.hour}:00${at.offset}`] ||= emptyBucket(), bucket);
         }
-        days.push({ day, total: sumBuckets(Object.values(hours)), hours });
+      }
+    }
+    // Inside the hourly window the hours are the record, even when there are none; before it,
+    // the daily totals, filed in the time zone the site had when they were merged.
+    const hourlyFrom = addDays(dayOf(this.now()), 1 - HOURLY_DAYS);
+    const months = new Map<string, MonthFile | null>();
+    const days: StoredDay[] = [];
+    for (const day of daysBetween(from, to)) {
+      const hours = local.get(day);
+      if (hours || day >= hourlyFrom) {
+        days.push({ day, total: sumBuckets(Object.values(hours || {})), hours: hours || {} });
         continue;
       }
       const month = day.slice(0, 7);
@@ -291,6 +341,7 @@ export class FileAnalyticsStore {
         const m = /^(\d{4}-\d{2}-\d{2})\.[a-z0-9]+\.json$/.exec(f);
         if (m && m[1] <= settled) live.set(m[1], [...(live.get(m[1]) || []), f]);
       }
+      const tz = (await this.settings(site)).timeZone || 'UTC';
       for (const [day, parts] of [...live].sort()) {
         const merged: DayFile = (await json<DayFile>(join(hoursDir, `${day}.json`))) || { hours: {} };
         const done = new Set(merged.merged || []);
@@ -308,10 +359,15 @@ export class FileAnalyticsStore {
         await writeAtomic(join(hoursDir, `${day}.json`), merged);
         const daysDir = join(dir, 'days');
         await mkdir(daysDir, { recursive: true, mode: 0o700 });
-        const monthPath = join(daysDir, `${day.slice(0, 7)}.json`);
-        const month = (await json<MonthFile>(monthPath)) || { days: {} };
-        addInto(month.days[day.slice(8)] ||= emptyBucket(), sumBuckets(Object.values(added)));
-        await writeAtomic(monthPath, month);
+        // Each hour joins the local day it fell on, which near midnight can be another month.
+        const touched = new Map<string, MonthFile>();
+        for (const [hour, bucket] of Object.entries(added)) {
+          const at = localParts(Date.parse(`${day}T${hour}:00:00Z`), tz);
+          const key = at.day.slice(0, 7);
+          if (!touched.has(key)) touched.set(key, (await json<MonthFile>(join(daysDir, `${key}.json`))) || { days: {} });
+          addInto(touched.get(key)!.days[at.day.slice(8)] ||= emptyBucket(), bucket);
+        }
+        for (const [key, month] of touched) await writeAtomic(join(daysDir, `${key}.json`), month);
         for (const part of parts) await rm(join(hoursDir, part), { force: true });
       }
       // Retention: hourly detail for 90 days, daily totals for 13 months.
@@ -486,7 +542,7 @@ export function withClickScript(html: string, siteId: string) {
 
 /* ---- the owner's report ---------------------------------------------------- */
 
-type StoredDay = { day: string; total: Bucket; hours: Record<string, Bucket> | null };
+export type StoredDay = { day: string; total: Bucket; hours: Record<string, Bucket> | null };
 export interface AnalyticsReport {
   range: RangeKey;
   from: string;
@@ -537,7 +593,7 @@ export function analyticsReport(
 export function csvRows(days: StoredDay[]) {
   const rows: { time: string; bucket: Bucket }[] = [];
   for (const d of days) {
-    if (d.hours) for (const hour of Object.keys(d.hours).sort()) rows.push({ time: `${d.day}T${hour}:00Z`, bucket: d.hours[hour] });
+    if (d.hours) for (const hour of Object.keys(d.hours).sort()) rows.push({ time: hour, bucket: d.hours[hour] });
     else if (d.total.views + d.total.clicks + d.total.forms) rows.push({ time: d.day, bucket: d.total });
   }
   return rows;
