@@ -133,7 +133,8 @@ const noticeIconFor = (kind: string) => {
 };
 const sitesRail = () =>
   `<nav class="pc-rail" aria-label="Sites navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a href="/">${ownedIcon}<span>Owned</span></a><a href="/">${sharedIcon}<span>Shared</span></a><span class="pc-rail-gap"></span></nav>`;
-type ManagementSection = 'overview' | 'people' | 'reviews' | 'settings' | 'integrations' | 'submissions' | 'analytics';
+type ManagementSection = 'overview' | 'people' | 'reviews' | 'settings' | 'integrations' | 'submissions' | 'analytics' | 'assistants';
+const assistantsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8l1.5 3.7 3.7 1.5-3.7 1.5L10 13.2 8.5 9.5 4.8 8l3.7-1.5z"/><path d="M15.2 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg>`;
 const analyticsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3.5 16.5h13"/><path d="M6 13.5v-4M10 13.5v-8M14 13.5v-6"/></svg>`;
 const managementRail = (
   site: Pick<SiteOverviewData, 'id' | 'role'>, current: ManagementSection
@@ -143,7 +144,7 @@ const managementRail = (
     item === current ? ' aria-current="page"' : '';
   const canReview = site.role === 'owner' || site.role === 'reviewer';
   const reviewer = site.role === 'reviewer';
-  return `<nav class="pc-rail pc-management-rail" aria-label="Site management"><a href="/">${sitesIcon}<span>Sites</span></a><a href="${base}"${selected('overview')}>${ownedIcon}<span>Overview</span></a><a href="${base}/people"${selected('people')}>${sharedIcon}<span>People</span></a>${canReview ? `<a href="${base}/reviews"${selected('reviews')}>${reviewsIcon}<span>Reviews</span></a>` : ''}${reviewer ? '' : `<a href="${base}/submissions"${selected('submissions')}>${submissionsIcon}<span>Submissions</span></a>`}${site.role === 'owner' ? `<a href="${base}/analytics"${selected('analytics')}>${analyticsIcon}<span>Analytics</span></a><a href="${base}/integrations"${selected('integrations')}><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M7 2v4m6-4v4M5 6h10v3a5 5 0 01-10 0V6zm5 8v4"/></svg><span>Integrations</span></a><a href="${base}/settings"${selected('settings')}>${settingsIcon}<span>Settings</span></a>` : ''}<span class="pc-rail-gap"></span></nav>`;
+  return `<nav class="pc-rail pc-management-rail" aria-label="Site management"><a href="/">${sitesIcon}<span>Sites</span></a><a href="${base}"${selected('overview')}>${ownedIcon}<span>Overview</span></a><a href="${base}/people"${selected('people')}>${sharedIcon}<span>People</span></a>${canReview ? `<a href="${base}/reviews"${selected('reviews')}>${reviewsIcon}<span>Reviews</span></a>` : ''}${reviewer ? '' : `<a href="${base}/submissions"${selected('submissions')}>${submissionsIcon}<span>Submissions</span></a>`}${site.role === 'owner' ? `<a href="${base}/analytics"${selected('analytics')}>${analyticsIcon}<span>Analytics</span></a><a href="${base}/assistants"${selected('assistants')}>${assistantsIcon}<span>Assistants</span></a><a href="${base}/integrations"${selected('integrations')}><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M7 2v4m6-4v4M5 6h10v3a5 5 0 01-10 0V6zm5 8v4"/></svg><span>Integrations</span></a><a href="${base}/settings"${selected('settings')}>${settingsIcon}<span>Settings</span></a>` : ''}<span class="pc-rail-gap"></span></nav>`;
 };
 
 /** Review access uses the same auth shell, panel and controls as sign-in. */
@@ -321,6 +322,74 @@ export const siteSettingsPage = (
       const value=button.dataset.copyValue||'';
       try{try{await navigator.clipboard.writeText(value);}catch{const field=document.createElement('textarea');field.value=value;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw new Error('Copy was blocked. Select and copy the ID manually.');}action.success('ID copied.');}catch(error){action.error(error.message||'Could not copy the ID. Try again.');}
     }));const field=document.querySelector('[data-delete-confirm]'),submit=document.querySelector('[data-delete-submit]');if(field&&submit){const sync=()=>{submit.disabled=field.value!==field.dataset.deleteConfirm;};field.addEventListener('input',sync);sync();}})();</script>`);
+};
+
+/* ---- Assistants (Phase 7) ----------------------------------------------------- */
+
+const siteAssistantsCss = `<style>
+.pc-as{width:min(100%,920px)}.pc-as-head{padding-bottom:22px;border-bottom:1px solid var(--pc-line)}.pc-as-head h1{font-size:clamp(1.8rem,3.3vw,2.5rem);line-height:1;letter-spacing:-.04em;margin:0 0 8px}.pc-as-head p{max-width:68ch;margin:0;color:var(--pc-text-2);font-size:.9rem}.pc-as>.notice{margin-top:20px}
+.pc-as-new{margin-top:22px;padding:18px;border:1px solid #9fc96b;border-radius:8px;background:#f4faef}.pc-as-new h2{margin:0;font-size:1rem}.pc-as-new p{margin:6px 0 12px;color:var(--pc-text-2);font-size:.8rem;line-height:1.55}.pc-as-copy{display:flex;gap:8px;align-items:center;margin:8px 0}.pc-as-copy code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;padding:9px 11px;border:1px solid var(--pc-line);border-radius:6px;background:#fff;font-size:.74rem}.pc-as-label{display:block;margin-top:12px;font-size:.72rem;font-weight:600;color:var(--pc-text-2)}
+.pc-as-section{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(0,1.3fr);gap:clamp(28px,6vw,64px);padding:var(--pc-space-6) 0;border-bottom:1px solid var(--pc-line)}.pc-as-section h2{font-size:1.05rem;letter-spacing:-.02em;margin:0}.pc-as-section .pc-as-copy-text{margin:7px 0 0;color:var(--pc-text-2);font-size:.78rem;line-height:1.55}
+.pc-as-can{display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:.8rem}.pc-as-can h3{margin:0 0 6px;font-size:.8rem}.pc-as-can ul{margin:0;padding-left:18px;color:var(--pc-text-2);line-height:1.7}
+.pc-as-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}.pc-as-form label{grid-column:1/-1;font-size:.78rem}.pc-as-form input{width:100%;height:var(--pc-control-height);padding:var(--pc-control-padding);border:1px solid var(--pc-line-2);border-radius:7px;background:var(--pc-field);color:var(--pc-text)}
+.pc-as-table{width:100%;border-collapse:collapse;font-size:.78rem}.pc-as-table th{text-align:left;font-weight:600;color:var(--pc-text-2);font-size:.7rem;padding:0 8px 6px 0;border-bottom:1px solid var(--pc-line)}.pc-as-table td{padding:9px 8px 9px 0;border-bottom:1px solid var(--pc-line);vertical-align:middle}.pc-as-table code{font-size:.72rem}.pc-as-table form{margin:0}.pc-as-table .pc-btn{height:var(--pc-control-compact);min-height:var(--pc-control-compact)}.pc-as-muted{color:var(--pc-text-2)}.pc-as-state{display:inline-flex;align-items:center;gap:6px}.pc-as-state:before{content:"";width:7px;height:7px;border-radius:50%;background:#5d8f1f}.pc-as-state.off:before{background:#a3a9a4}.pc-as-state.wait:before{background:#d18a32}.pc-as-empty{margin:0;color:var(--pc-text-2);font-size:.78rem}@media(max-width:760px){.pc-as-section{grid-template-columns:1fr;gap:16px}.pc-as-can{grid-template-columns:1fr}.pc-as-form{grid-template-columns:1fr}}
+</style>`;
+
+export interface SiteAssistantsView {
+  tokens: { id: string; name: string; hint: string; createdAt: string; lastUsedAt: string | null; revokedAt: string | null }[];
+  proposals: { id: string; title: string; tokenName: string; createdAt: string; status: string; changes: unknown[] }[];
+  mcpUrl: string;
+  editorUrl: string;
+  /** a token just created, shown once */
+  token?: string;
+  error?: string;
+  message?: string;
+}
+
+export const siteAssistantsPage = (user: User, site: { id: string; name: string; slug: string }, view: SiteAssistantsView) => {
+  const base = `/sites/${encodeURIComponent(site.id)}`;
+  const copy = (value: string, label: string) => `<div class="pc-as-copy"><code>${esc(value)}</code><button class="pc-btn" type="button" data-copy-value="${esc(value)}">${esc(label)}</button></div>`;
+  const serverName = `pagecraft-${site.slug || 'site'}`.slice(0, 40);
+  const fresh = view.token ? `<section class="pc-as-new" role="status" aria-label="New token"><h2>Copy your new token now</h2><p>This is the only time it is shown. Paste it into your assistant’s MCP settings; anyone with it can read this site and propose changes, but only you can apply them.</p>
+    <span class="pc-as-label">Token</span>${copy(view.token, 'Copy token')}
+    <span class="pc-as-label">Claude Code</span>${copy(`claude mcp add --transport http ${serverName} ${view.mcpUrl} --header "Authorization: Bearer ${view.token}"`, 'Copy command')}
+    <span class="pc-as-label">Any other MCP assistant: an HTTP server at</span>${copy(view.mcpUrl, 'Copy URL')}<p>with the header <code>Authorization: Bearer &lt;token&gt;</code>.</p></section>` : '';
+  const statusOf = (t: SiteAssistantsView['tokens'][number]) => t.revokedAt ? '<span class="pc-as-state off">Revoked</span>' : '<span class="pc-as-state">Active</span>';
+  const tokens = view.tokens.length
+    ? `<table class="pc-as-table"><thead><tr><th scope="col">Name</th><th scope="col">Token</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${view.tokens.map(t => `<tr><td>${esc(t.name)}</td><td><code>${esc(t.hint)}…</code></td><td title="${esc(fullDate(t.createdAt))}">${esc(relativeTime(t.createdAt))}</td><td class="pc-as-muted">${t.lastUsedAt ? esc(relativeTime(t.lastUsedAt)) : 'Never'}</td><td>${statusOf(t)}</td><td>${t.revokedAt ? '' : `<form method="post" action="${base}/assistants/tokens/${encodeURIComponent(t.id)}/revoke"><button class="pc-btn" type="submit">Revoke<span class="sr-only"> ${esc(t.name)}</span></button></form>`}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="pc-as-empty">No tokens yet.</p>';
+  const proposalState = (s: string) => s === 'pending' ? '<span class="pc-as-state wait">Waiting for review</span>' : s === 'applied' ? '<span class="pc-as-state">Applied</span>' : '<span class="pc-as-state off">Declined</span>';
+  const proposals = view.proposals.length
+    ? `<table class="pc-as-table"><thead><tr><th scope="col">Proposal</th><th scope="col">From</th><th scope="col">Changes</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${view.proposals.map(p => `<tr><td>${esc(p.title)}<div class="pc-as-muted" title="${esc(fullDate(p.createdAt))}">${esc(relativeTime(p.createdAt))}</div></td><td>${esc(p.tokenName)}</td><td>${p.changes.length}</td><td>${proposalState(p.status)}</td><td>${p.status === 'pending' ? `<a class="pc-btn" href="${esc(view.editorUrl)}?proposal=${encodeURIComponent(p.id)}">Review in editor</a>` : ''}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="pc-as-empty">No proposals yet. When an assistant proposes changes, they appear here and in the editor.</p>';
+  return shell(`${site.name} assistants`, `<main class="dashboard-app">${accountMenuCss}${siteOverviewCss}${siteAssistantsCss}${workbenchHeader(user, site.name)}
+  <div class="pc-main">${managementRail({ id: site.id, role: 'owner' }, 'assistants')}<section class="pc-workspace"><div class="pc-manage-content"><div class="pc-as"><header class="pc-as-head pc-workspace-head"><div><a class="pc-manage-back" href="${base}"><span aria-hidden="true">←</span> Site overview</a><h1>Assistants</h1><p>Let an AI assistant read ${esc(site.name)} and propose changes over MCP. You review every proposal in the editor and decide what to apply.</p></div></header>${view.error ? `<div class="notice error" role="alert">${esc(view.error)}</div>` : notice(undefined, view.message)}
+  ${fresh}
+  <section class="pc-as-section"><div><h2>What an assistant can do</h2><p class="pc-as-copy-text">A token is for this site only.</p></div><div class="pc-as-can"><div><h3>Can</h3><ul><li>Read pages, components and images</li><li>Propose new text and alt text</li><li>Propose one of the site’s existing images</li><li>Propose component property values</li><li>Propose adding existing components</li></ul></div><div><h3>Cannot</h3><ul><li>Apply anything: you do, in the editor</li><li>Publish</li><li>Change layout, styles or code</li><li>Upload images</li><li>Change settings or people</li></ul></div></div></section>
+  <section class="pc-as-section"><div><h2>Create a token</h2><p class="pc-as-copy-text">Name it after where you’ll use it, so you know which one to revoke.</p></div><form class="pc-as-form" method="post" action="${base}/assistants/tokens"><label for="assistant-token-name">Name</label><input id="assistant-token-name" name="name" maxlength="60" placeholder="Claude Code on my laptop" required><button class="pc-btn primary" type="submit">Create token</button></form></section>
+  <section class="pc-as-section"><div><h2>Tokens</h2><p class="pc-as-copy-text">Revoking takes effect immediately.</p></div><div>${tokens}</div></section>
+  <section class="pc-as-section"><div><h2>Recent proposals</h2><p class="pc-as-copy-text">Proposals wait until you apply or decline them in the editor.</p></div><div>${proposals}</div></section>
+  </div></div></section></div></main><script>(()=>{
+    /* Delegated, because creating a token swaps in a new copy of the page section. */
+    document.addEventListener('click',async event=>{const button=event.target.closest&&event.target.closest('[data-copy-value]');if(!button)return;
+      const action=window.__pcFeedback.begin(button,'Copying…');if(!action)return;
+      const value=button.dataset.copyValue||'';
+      try{try{await navigator.clipboard.writeText(value);}catch{const field=document.createElement('textarea');field.value=value;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw new Error('Copy was blocked. Select and copy it manually.');}action.success('Copied.');}catch(error){action.error(error.message||'Could not copy. Try again.');}
+    });
+    /* The new token is in this response only, never in a URL, so the page is updated in place
+       rather than by the shared post-then-navigate handler, which would lose it. Capture phase,
+       so this runs first and that handler stands aside. */
+    document.addEventListener('submit',async event=>{const form=event.target;if(!(form instanceof HTMLFormElement)||!form.matches('.pc-as-form'))return;
+      event.preventDefault();const button=form.querySelector('button[type=submit]');const action=window.__pcFeedback&&window.__pcFeedback.begin(button,'Creating token…');
+      try{const response=await fetch(form.action,{method:'POST',credentials:'same-origin',headers:{accept:'text/html'},body:new URLSearchParams(new FormData(form))});
+        const next=new DOMParser().parseFromString(await response.text(),'text/html').querySelector('.pc-as');
+        if(!response.ok||!next)throw new Error('The token was not created. Try again.');
+        document.querySelector('.pc-as').replaceWith(next);
+        const shown=next.querySelector('.pc-as-new,.notice.error');if(shown){shown.tabIndex=-1;shown.focus();}
+        if(next.querySelector('.pc-as-new'))action&&action.success('Token created. Copy it now.');else action&&action.cancel();
+      }catch(error){action&&action.error(error.message||'The token was not created. Try again.');}
+    },true);
+  })();</script>`);
 };
 
 /* ---- Analytics (Phase 6) ------------------------------------------------------ */

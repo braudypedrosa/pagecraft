@@ -1481,6 +1481,44 @@ body.submissions-loading::after{content:"Loading submissions…";position:fixed;
 #submissions-workspace{flex:1;min-width:0;min-height:0;border:0;background:var(--panel)}
 body.submissions-open #app>.main>.left,body.submissions-open #app>.main>.stage,body.submissions-open #app>.main>.right,body.submissions-open #cms-workspace-host{display:none}
 body:not(.cms-open) #cms-workspace-host,#cms-workspace-host:empty{display:none}
+/* ---- assistant proposals (Phase 7): a full workspace, like the CMS ---------------------- */
+body:not(.proposals-open) #proposals-workspace-host,#proposals-workspace-host:empty{display:none}
+#proposals-workspace-host{flex:1;min-width:0;min-height:0}
+body.proposals-open #app>.main>.left,body.proposals-open #app>.main>.stage,body.proposals-open #app>.main>.right,body.proposals-open #cms-workspace-host{display:none}
+#leftRail button{position:relative}
+#leftRail .rail-badge{position:absolute;top:7px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--green);color:var(--on-green);font-size:10px;font-weight:700;line-height:16px;text-align:center}
+#leftRail .rail-badge[hidden]{display:none}
+.pw{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--panel);color:var(--text);font-size:var(--fs-3)}
+.pw-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-5);padding:18px 24px;border-bottom:1px solid var(--line)}
+.pw-head h1{margin:0;font-size:1.35rem;letter-spacing:-.02em}.pw-head p{margin:4px 0 0;color:var(--text-3);font-size:var(--fs-2)}
+.pw-head-actions{display:flex;gap:var(--sp-3);flex-wrap:wrap;justify-content:flex-end}
+.pw-empty{margin:0;padding:28px 24px;max-width:70ch;color:var(--text-2);line-height:1.55}.pw-empty p{margin:0 0 14px}
+.pw-main{flex:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr)}
+.pw-list{border-right:1px solid var(--line);overflow:auto;padding:8px}
+.pw-item{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:10px;border:1px solid transparent;border-radius:var(--r-md);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pw-item:hover{background:var(--pc-hover-bg)}.pw-item.on{border-color:var(--line-2);background:var(--lift-bg)}
+.pw-item b{font-size:var(--fs-2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pw-item small{grid-column:1;color:var(--text-3);font-size:var(--fs-1)}.pw-item .pw-chip{grid-column:2;grid-row:1/3}
+.pw-chip{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-1);color:var(--text-2);white-space:nowrap}.pw-chip:before{content:"";width:7px;height:7px;border-radius:50%;background:#d18a32}.pw-chip.applied:before{background:#5d8f1f}.pw-chip.declined:before{background:#a3a9a4}
+.pw-detail{min-width:0;min-height:0;display:flex;flex-direction:column}
+.pw-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-5);padding:16px 20px;border-bottom:1px solid var(--line)}
+.pw-detail-head h2{margin:0;font-size:1.05rem}.pw-meta{margin:3px 0 0;color:var(--text-3);font-size:var(--fs-1)}.pw-summary{margin:8px 0 0;max-width:72ch;color:var(--text-2);font-size:var(--fs-2);line-height:1.5}
+.pw-actions{display:flex;gap:var(--sp-3);flex:0 0 auto}
+.pw-blocked{margin:0;padding:10px 20px;background:var(--risk-bg);color:var(--risk-fg);font-size:var(--fs-2);line-height:1.5}
+.pw-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(280px,.9fr) minmax(0,1.1fr)}
+.pw-changes{margin:0;padding:12px 20px;list-style:none;overflow:auto;border-right:1px solid var(--line)}
+.pw-change{padding:12px 0;border-bottom:1px solid var(--line)}.pw-change:last-child{border-bottom:0}.pw-change.off{opacity:.7}
+.pw-change-head{display:flex;align-items:center;gap:7px}.pw-change-head svg{color:var(--text-3);flex:0 0 auto}.pw-change-head b{font-size:var(--fs-2);font-weight:600}
+.pw-diff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.pw-diff>div{min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-md)}.pw-diff>div+div{border-color:#9fc96b;background:#f4faef}
+.pw-side{display:block;margin-bottom:4px;color:var(--text-3);font-size:var(--fs-1);font-weight:600}
+.pw-text{display:block;font-size:var(--fs-2);line-height:1.45;overflow-wrap:anywhere;max-height:9em;overflow:auto}.pw-none{color:var(--text-3);font-size:var(--fs-2);font-style:italic}
+.pw-pic{display:block;max-width:100%;max-height:96px;border-radius:4px;object-fit:contain;background:var(--line)}
+.pw-values{display:grid;gap:4px;margin:8px 0 0}.pw-values>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px}.pw-values dt{color:var(--text-3);font-size:var(--fs-1)}.pw-values dd{margin:0;font-size:var(--fs-2);overflow-wrap:anywhere}
+.pw-warn{margin:8px 0 0;color:var(--risk-fg);font-size:var(--fs-1)}
+.pw-preview{min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--lift-bg)}
+.pw-preview-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+.pw-preview-name{font-size:var(--fs-2)}
+.pw-tabs{display:flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:var(--r-md);overflow-x:auto}.pw-tabs button{padding:5px 10px;border:0;border-radius:5px;background:transparent;color:var(--text-2);font:inherit;font-size:var(--fs-1);white-space:nowrap;cursor:pointer}.pw-tabs button.on{background:var(--text);color:#fff}
+.pw-frame{flex:1;width:100%;min-height:320px;border:0;background:#fff}
 #cms-workspace-host{flex:1;min-width:0;min-height:0}
 body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #app>.main>.right{display:none}
 .cms-workspace{--h-ctl:var(--pc-control-height,44px);--cms-gap:var(--pc-space-4,16px);height:100%;min-height:0;background:var(--panel);color:var(--text);display:flex;flex-direction:column;font-family:inherit;font-size:var(--fs-3)}
@@ -1776,6 +1814,15 @@ if (SRV && !IS_WORDPRESS) {
   submissions.setAttribute('aria-label', 'Submissions');
   submissions.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg><span>Submissions</span>';
   document.querySelector('#leftRail [data-t="cms"]').after(submissions);
+  /* Assistant proposals (Phase 7) are the owner's to review, so only an owner gets the button. */
+  if (SRV.role === 'owner' && !SRV.editorSessionToken) {
+    const proposals = document.createElement('button');
+    proposals.title = 'Proposals';
+    proposals.dataset.act = 'proposals';
+    proposals.setAttribute('aria-label', 'Proposals');
+    proposals.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8l1.5 3.7 3.7 1.5-3.7 1.5L10 13.2 8.5 9.5 4.8 8l3.7-1.5z"/><path d="M15.2 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg><span>Proposals</span><b class="rail-badge" hidden></b>';
+    submissions.after(proposals);
+  }
 }
 const brandHome = $('#brandHome');
 if (brandHome) {
@@ -4120,6 +4167,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
     siteDraft: () => (SRV && !IS_WORDPRESS ? { siteId: SRV.siteId, version: SRV.version } : null),
     flushDraft, assetsReload: assetsLoadServer,
+    proposals: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.proposals) || null,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
@@ -6438,6 +6486,23 @@ function bindTop() {
   };
   // Start the authorized inbox request while the user works, not after their click.
   if (SRV?.siteId) setTimeout(prepareSubmissions, 0);
+  const proposalsButton = $('#leftRail [data-act="proposals"]');
+  const refreshProposals = () => {
+    const api = HOST && HOST.proposals;
+    if (!proposalsButton || !api) return;
+    api.list('pending').then(list => {
+      const badge = proposalsButton.querySelector('.rail-badge');
+      badge.hidden = !list.length;
+      badge.textContent = list.length > 9 ? '9+' : String(list.length);
+      proposalsButton.setAttribute('aria-label', list.length ? `Proposals, ${list.length} waiting` : 'Proposals');
+    }).catch(() => {});
+  };
+  const openProposals = focus => { closeSubmissions(); ui().openProposals(focus, refreshProposals); };
+  if (proposalsButton) {
+    setTimeout(refreshProposals, 0);
+    const focus = new URLSearchParams(location.search).get('proposal');
+    if (focus && /^[a-f0-9]{16}$/.test(focus)) setTimeout(() => openProposals(focus), 0);
+  }
   window.addEventListener('message', event => {
     if (event.origin === location.origin && submissionsFrame && event.source === submissionsFrame.contentWindow
       && event.data === 'pagecraft:close-submissions') {
@@ -6445,6 +6510,7 @@ function bindTop() {
     }
   });
   window.showPanel = t => {
+    if (document.body.classList.contains('proposals-open')) ui().closeProposals();
     closeSubmissions();
     closePages();
     document.body.classList.remove('cms-open');
@@ -6470,6 +6536,8 @@ function bindTop() {
     /* Media and Project open dialogs rather than swapping the panel, so they set
        neither `state.ui.tab` nor the `on` treatment — the panel behind them has not
        changed. Scoping the toggle to `[data-t]` is what keeps them out of it. */
+    if (b.dataset.act === 'proposals') { openProposals(); return; }
+    if (document.body.classList.contains('proposals-open')) ui().closeProposals();
     if (b.dataset.act === 'submissions') { openSubmissions(); return; }
     closeSubmissions();
     closePages();

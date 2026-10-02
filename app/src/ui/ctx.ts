@@ -106,6 +106,8 @@ export interface Legacy {
   flushDraft(): Promise<void>;
   /** Re-read the site's images, after an import copied some in, so the canvas can show them. */
   assetsReload(): Promise<void>;
+  /** Assistant proposals (Phase 7): the hosted editor, for the site's owner; null otherwise. */
+  proposals(): import('../host/types').WebProposalAdapter | null;
   /** the save-as-block flow, which asks for a name and whether it is global */
   saveBlockFlow(nodeId: string): void;
   /** a short confirmation in the corner */

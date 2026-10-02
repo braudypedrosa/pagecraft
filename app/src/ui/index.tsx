@@ -10,6 +10,7 @@ import { install, registerPainter, type Core, type Legacy } from './ctx';
 import { Layers } from './Layers';
 import { Cms } from './Cms';
 import { CmsWorkspace } from './CmsWorkspace';
+import { ProposalsWorkspace } from './ProposalsWorkspace';
 import { Add } from './Add';
 import { Pages, PagesWorkspace } from './Pages';
 import { Inspector } from './inspector/Inspector';
@@ -129,6 +130,7 @@ export function mount(core: Core, legacy: Legacy) {
     legacy.restoreCanvasLayout();
   };
   const openPages = () => {
+    closeProposals();
     let host = document.getElementById('pages-workspace-host');
     if (!host) { host = document.createElement('div'); host.id = 'pages-workspace-host'; document.querySelector('#app > .main')!.append(host); }
     document.body.classList.remove('cms-open');
@@ -141,6 +143,7 @@ export function mount(core: Core, legacy: Legacy) {
   };
   const openCms = (collectionId: string) => {
     closePages();
+    closeProposals();
     let host = document.getElementById('cms-workspace-host');
     if (!host) { host = document.createElement('div'); host.id = 'cms-workspace-host'; document.querySelector('#app > .main')!.append(host); }
     const previous = document.activeElement as HTMLElement | null;
@@ -165,5 +168,32 @@ export function mount(core: Core, legacy: Legacy) {
     const surface = host.firstElementChild as HTMLElement | null;
     if (surface) installUiMotion()?.enter(surface, { kind: 'panel' });
   };
-  return { ...painters, openPages, closePages, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
+  /* Assistant proposals (Phase 7): a full workspace like the CMS, because a review needs room for
+     the before and after of each change and a preview of the page it lands on. */
+  let closeProposalsNow: (() => void) | null = null;
+  const closeProposals = () => { closeProposalsNow?.(); };
+  const openProposals = (focus?: string, onClose?: () => void) => {
+    closePages();
+    let host = document.getElementById('proposals-workspace-host');
+    if (!host) { host = document.createElement('div'); host.id = 'proposals-workspace-host'; document.querySelector('#app > .main')!.append(host); }
+    const previous = document.activeElement as HTMLElement | null;
+    document.body.classList.remove('cms-open');
+    document.body.classList.add('proposals-open');
+    const railButtons = [...document.querySelectorAll('#leftRail button')];
+    const active = railButtons.filter(b => b.classList.contains('on'));
+    railButtons.forEach(b => b.classList.toggle('on', b.getAttribute('data-act') === 'proposals'));
+    closeProposalsNow = () => {
+      closeProposalsNow = null;
+      render(null, host!);
+      document.body.classList.remove('proposals-open');
+      legacy.restoreCanvasLayout();
+      railButtons.forEach(b => b.classList.toggle('on', active.includes(b)));
+      previous?.focus({ preventScroll: true });
+      onClose?.();
+    };
+    render(<ProposalsWorkspace key={focus || 'all'} focus={focus} close={closeProposals} changed={onClose} />, host);
+    const surface = host.firstElementChild as HTMLElement | null;
+    if (surface) installUiMotion()?.enter(surface, { kind: 'panel' });
+  };
+  return { ...painters, openPages, closePages, openCms, openProposals, closeProposals, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
 }

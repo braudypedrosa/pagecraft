@@ -68,6 +68,7 @@ __export(index_exports, {
   PATTERNS: () => PATTERNS,
   PFX: () => PFX,
   PH: () => PH,
+  PROPOSAL_LIMITS: () => PROPOSAL_LIMITS,
   PROP_KIND: () => PROP_KIND,
   REF_DEPTH: () => REF_DEPTH,
   RESERVED: () => RESERVED,
@@ -315,6 +316,10 @@ __export(index_exports, {
   propMove: () => propMove,
   propRename: () => propRename,
   propVal: () => propVal,
+  proposalApply: () => proposalApply,
+  proposalCheck: () => proposalCheck,
+  proposalOutline: () => proposalOutline,
+  proposalPrepare: () => proposalPrepare,
   published: () => published,
   redo: () => redo,
   refId: () => refId,
@@ -8353,6 +8358,270 @@ ${ANIM_JS}
 </html>
 `;
 }
+var PROPOSAL_LIMITS = { changes: 50, text: 1e4, title: 120, summary: 2e3 };
+function proposalFind(nodeId) {
+  const lists = [
+    ["header", state.header],
+    ["footer", state.footer],
+    ...state.pages.map((pg2) => [pg2.id, pg2.tree])
+  ];
+  for (const [region, list] of lists) {
+    let hit = null;
+    eachNode(list, (n) => {
+      if (!hit && n.id === nodeId) hit = n;
+    });
+    if (hit) return { node: hit, region };
+  }
+  return null;
+}
+var proposalSlotKey = (sl) => sl.i < 0 ? sl.prop : `${sl.prop}.${sl.i}.${sl.sub}`;
+function proposalImageSlots(n) {
+  const out = [];
+  for (const spec of ASSET_SLOTS[n.type] || []) {
+    if (typeof spec === "string") {
+      if (typeof n.props[spec] === "string") out.push({ prop: spec, i: -1, sub: "" });
+      continue;
+    }
+    const [arr, ...subs] = spec;
+    const rows = Array.isArray(n.props[arr]) ? n.props[arr] : [];
+    rows.forEach((row, i) => subs.forEach((sub) => {
+      if (row && typeof row[sub] === "string") out.push({ prop: arr, i, sub });
+    }));
+  }
+  return out;
+}
+var proposalWords = (v, max = 48) => {
+  const t = String(v || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return t.length > max ? t.slice(0, max - 1) + "\u2026" : t;
+};
+var proposalNodeLabel = (n) => {
+  const words = proposalWords(textSlots(n).map((sl) => String(slotGet(n, sl) || "")).find(Boolean) || "", 32);
+  const kind = n.use ? findComponent(n.use)?.name || "Component" : labelOf(n.type);
+  return `${kind}${words ? ` \u201C${words}\u201D` : ""}`;
+};
+function proposalLink(raw) {
+  const v = raw.trim();
+  if (!v) return { value: "" };
+  if (/^#[\w-]*$/.test(v)) return { value: v };
+  const page2 = /^\/?([\w-]+)(?:\.html)?(#[\w-]+)?$/.exec(v);
+  if (page2 && state.pages.some((pg2) => pg2.slug === page2[1])) return { value: `${page2[1]}.html${page2[2] || ""}` };
+  if (/^(https?:|mailto:|tel:)/i.test(v) && safeUrl(v)) return { value: v };
+  return { problem: "must be a page of this site (like /contact), a web address, an email or a phone link" };
+}
+function proposalPropValue(pr, raw, assets) {
+  const v = typeof raw === "string" ? raw : raw == null ? "" : String(raw);
+  if (v.length > PROPOSAL_LIMITS.text) return { problem: "is too long" };
+  switch (pr.t) {
+    case "text":
+      return { value: v };
+    case "rich":
+      return { value: para(v) };
+    case "img": {
+      const id = v.replace(/^asset:/, "").split("@")[0];
+      return assets.has(id) ? { value: "asset:" + id } : { problem: `names an image this site doesn't have (${id || "none"})` };
+    }
+    case "link":
+      return proposalLink(v);
+    case "select":
+      return (pr.opts || []).some(([val]) => val === v) ? { value: v } : { problem: `must be one of: ${(pr.opts || []).map(([val]) => val).join(", ")}` };
+    case "bool":
+      return /^(1|0|true|false|)$/i.test(v) ? { value: /^(1|true)$/i.test(v) ? "1" : "" } : { problem: "must be true or false" };
+    case "color":
+      return /^#[0-9a-f]{3,8}$/i.test(v) || colors().some((c) => cvar(c.id) === v) ? { value: v } : { problem: "must be a hex colour or one of the site\u2019s colours" };
+    case "icon":
+      return ICON_NAMES.includes(v) ? { value: v } : { problem: "must be one of the icon names" };
+    default:
+      return { problem: "cannot be set by a proposal" };
+  }
+}
+function proposalPrepare(inputs, options) {
+  const problems = [];
+  const changes = [];
+  const list = Array.isArray(inputs) ? inputs : [];
+  if (!list.length) return { changes, problems: ["Propose at least one change."] };
+  if (list.length > PROPOSAL_LIMITS.changes) return { changes, problems: [`A proposal can hold at most ${PROPOSAL_LIMITS.changes} changes.`] };
+  const seen = /* @__PURE__ */ new Set();
+  list.forEach((input, i) => {
+    const at = `Change ${i + 1}`;
+    const fail = (why) => {
+      problems.push(`${at}: ${why}`);
+    };
+    if (!input || typeof input !== "object") return fail("is not a change.");
+    if (input.type === "insert") {
+      const def = findComponent(String(input.componentId || ""));
+      if (!def) return fail(`there is no component "${input.componentId}". List components to see what can be placed.`);
+      const region2 = String(input.region || "");
+      if (region2 !== "header" && region2 !== "footer" && !state.pages.some((pg2) => pg2.id === region2)) return fail(`"${region2}" is not a page id, header or footer.`);
+      let parentId = null;
+      if (input.parentId) {
+        const parent = proposalFind(String(input.parentId));
+        if (!parent || parent.region !== region2) return fail(`there is no element "${input.parentId}" in that region.`);
+        if (!fitsIn(parent.node.type, def.node.type)) return fail(`a ${def.name} cannot go inside a ${nameOf(parent.node)}.`);
+        parentId = parent.node.id;
+      }
+      const values = {};
+      for (const [k, raw] of Object.entries(input.values || {})) {
+        const pr = findProp(def, k);
+        if (!pr) return fail(`${def.name} has no property "${k}".`);
+        const checked = proposalPropValue(pr, raw, options.assets);
+        if (checked.problem) return fail(`${def.name} \xB7 ${pr.label} ${checked.problem}.`);
+        values[k] = checked.value;
+      }
+      const index = Number.isInteger(input.index) ? Math.max(0, input.index) : 1e6;
+      const where = region2 === "header" ? "the header" : region2 === "footer" ? "the footer" : `page \u201C${state.pages.find((pg2) => pg2.id === region2).name}\u201D`;
+      changes.push({ type: "insert", region: region2, componentId: def.id, parentId, index, values, value: "", before: "", label: `Add ${def.name} to ${where}` });
+      return;
+    }
+    if (input.type !== "text" && input.type !== "image" && input.type !== "property") {
+      return fail(`"${input.type}" is not a change a proposal can make (text, image, property or insert).`);
+    }
+    const found = proposalFind(String(input.nodeId || ""));
+    if (!found) return fail(`there is no element "${input.nodeId}" on a page, in the header or in the footer.`);
+    const { node, region } = found;
+    if (input.type === "text") {
+      if (OWNER_ONLY_CONTENT.has(node.type)) return fail("embedded code cannot be changed by a proposal.");
+      const slots = textSlots(node);
+      const slot = input.slot ? slots.find((sl) => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no text "${input.slot || ""}". Its text slots: ${slots.map(proposalSlotKey).join(", ") || "none"}.`);
+      const raw = String(input.value ?? "");
+      if (raw.length > PROPOSAL_LIMITS.text) return fail("the text is too long.");
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail("changes the same text twice.");
+      seen.add(key);
+      const rich = node.type === "text" && slot.prop === "html";
+      changes.push({
+        type: "text",
+        region,
+        nodeId: node.id,
+        slot: proposalSlotKey(slot),
+        value: rich ? para(raw) : raw,
+        before: String(slotGet(node, slot) ?? ""),
+        label: `${proposalNodeLabel(node)} \xB7 ${slotName(slot)}`
+      });
+      return;
+    }
+    if (input.type === "image") {
+      const slots = proposalImageSlots(node);
+      const slot = input.slot ? slots.find((sl) => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no image "${input.slot || ""}".`);
+      const id = String(input.assetId || "").replace(/^asset:/, "").split("@")[0];
+      if (!options.assets.has(id)) return fail(`names an image this site doesn't have (${id || "none"}). List images to see what is uploaded.`);
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail("changes the same image twice.");
+      seen.add(key);
+      changes.push({
+        type: "image",
+        region,
+        nodeId: node.id,
+        slot: proposalSlotKey(slot),
+        value: "asset:" + id,
+        before: String(slotGet(node, slot) ?? ""),
+        label: `${proposalNodeLabel(node)} \xB7 ${slotName(slot)}`
+      });
+      return;
+    }
+    if (input.type === "property") {
+      const def = node.use ? findComponent(node.use) : null;
+      if (!def) return fail(`${nameOf(node)} is not a component instance, so it has no properties.`);
+      const pr = findProp(def, String(input.property || ""));
+      if (!pr) return fail(`${def.name} has no property "${input.property}". Its properties: ${(def.props || []).map((x) => x.k).join(", ") || "none"}.`);
+      const checked = proposalPropValue(pr, input.value, options.assets);
+      if (checked.problem) return fail(`${def.name} \xB7 ${pr.label} ${checked.problem}.`);
+      const key = `${node.id}|${VAL}${pr.k}`;
+      if (seen.has(key)) return fail("changes the same property twice.");
+      seen.add(key);
+      changes.push({
+        type: "property",
+        region,
+        nodeId: node.id,
+        property: pr.k,
+        value: checked.value,
+        before: instValue(node, def, pr.k),
+        label: `${def.name} \xB7 ${pr.label}`
+      });
+    }
+  });
+  return { changes: problems.length ? [] : changes, problems };
+}
+var proposalSlotOf = (n, key, image) => (image ? proposalImageSlots(n) : textSlots(n)).find((sl) => proposalSlotKey(sl) === key) || null;
+function proposalCheck(changes) {
+  return changes.map((ch) => {
+    if (ch.type === "insert") {
+      if (!findComponent(ch.componentId || "")) return "missing";
+      if (ch.parentId) return proposalFind(ch.parentId)?.region === ch.region ? "ok" : "missing";
+      return ch.region === "header" || ch.region === "footer" || state.pages.some((pg2) => pg2.id === ch.region) ? "ok" : "missing";
+    }
+    const found = proposalFind(ch.nodeId || "");
+    if (!found) return "missing";
+    if (ch.type === "property") {
+      const def = found.node.use ? findComponent(found.node.use) : null;
+      if (!def || !findProp(def, ch.property || "")) return "missing";
+      return instValue(found.node, def, ch.property) === ch.before ? "ok" : "stale";
+    }
+    const slot = proposalSlotOf(found.node, ch.slot || "", ch.type === "image");
+    if (!slot) return "missing";
+    return String(slotGet(found.node, slot) ?? "") === ch.before ? "ok" : "stale";
+  });
+}
+function proposalOutline(region) {
+  const list = region === "header" ? state.header : region === "footer" ? state.footer : state.pages.find((pg2) => pg2.id === region)?.tree;
+  if (!list) return null;
+  const comps = components();
+  const out = [];
+  eachNode(list, (n, parent, _i, depth) => {
+    const text = {}, images = {};
+    if (!OWNER_ONLY_CONTENT.has(n.type)) {
+      for (const sl of textSlots(n)) text[proposalSlotKey(sl)] = n.type === "text" && sl.prop === "html" ? proposalWords(String(slotGet(n, sl) || ""), 4e3) : String(slotGet(n, sl) ?? "");
+    }
+    for (const sl of proposalImageSlots(n)) images[proposalSlotKey(sl)] = String(slotGet(n, sl) ?? "");
+    const def = n.use ? findComponent(n.use) : null;
+    const fits = comps.filter((cd) => fitsIn(n.type, cd.node.type)).map((cd) => cd.id);
+    out.push({
+      id: n.id,
+      type: n.type,
+      kind: def ? def.name : labelOf(n.type),
+      depth,
+      parentId: parent ? parent.id : null,
+      ...Object.keys(text).length ? { text } : {},
+      ...Object.keys(images).length ? { images } : {},
+      ...def ? { component: { id: def.id, name: def.name, values: Object.fromEntries((def.props || []).map((pr) => [pr.k, instValue(n, def, pr.k)])) } } : {},
+      ...fits.length ? { canHold: fits } : {}
+    });
+  });
+  return out;
+}
+function proposalApply(changes) {
+  const placed = [];
+  for (const ch of changes) {
+    if (ch.type === "insert") {
+      const parent = ch.parentId ? proposalFind(ch.parentId).node : null;
+      const mode = state.ui.mode, cur = state.cur, cedit = state.ui.cedit;
+      if (!parent) {
+        state.ui.mode = ch.region === "header" || ch.region === "footer" ? ch.region : "page";
+        if (state.ui.mode === "page") state.cur = state.pages.findIndex((pg2) => pg2.id === ch.region);
+      }
+      try {
+        const made = instanceInsert(ch.componentId, parent, ch.index ?? 1e6);
+        if (made) {
+          for (const [k, v] of Object.entries(ch.values || {})) instSet(made, k, v);
+          placed.push(made.id);
+        }
+      } finally {
+        state.ui.mode = mode;
+        state.cur = cur;
+        state.ui.cedit = cedit;
+      }
+      continue;
+    }
+    const found = proposalFind(ch.nodeId);
+    if (ch.type === "property") {
+      instSet(found.node, ch.property, ch.value);
+      continue;
+    }
+    slotSet(found.node, proposalSlotOf(found.node, ch.slot, ch.type === "image"), ch.value);
+  }
+  return placed;
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   ADV_SHARED,
@@ -8402,6 +8671,7 @@ ${ANIM_JS}
   PATTERNS,
   PFX,
   PH,
+  PROPOSAL_LIMITS,
   PROP_KIND,
   REF_DEPTH,
   RESERVED,
@@ -8649,6 +8919,10 @@ ${ANIM_JS}
   propMove,
   propRename,
   propVal,
+  proposalApply,
+  proposalCheck,
+  proposalOutline,
+  proposalPrepare,
   published,
   redo,
   refId,

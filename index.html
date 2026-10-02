@@ -1486,6 +1486,44 @@ body.submissions-loading::after{content:"Loading submissions…";position:fixed;
 #submissions-workspace{flex:1;min-width:0;min-height:0;border:0;background:var(--panel)}
 body.submissions-open #app>.main>.left,body.submissions-open #app>.main>.stage,body.submissions-open #app>.main>.right,body.submissions-open #cms-workspace-host{display:none}
 body:not(.cms-open) #cms-workspace-host,#cms-workspace-host:empty{display:none}
+/* ---- assistant proposals (Phase 7): a full workspace, like the CMS ---------------------- */
+body:not(.proposals-open) #proposals-workspace-host,#proposals-workspace-host:empty{display:none}
+#proposals-workspace-host{flex:1;min-width:0;min-height:0}
+body.proposals-open #app>.main>.left,body.proposals-open #app>.main>.stage,body.proposals-open #app>.main>.right,body.proposals-open #cms-workspace-host{display:none}
+#leftRail button{position:relative}
+#leftRail .rail-badge{position:absolute;top:7px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--green);color:var(--on-green);font-size:10px;font-weight:700;line-height:16px;text-align:center}
+#leftRail .rail-badge[hidden]{display:none}
+.pw{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--panel);color:var(--text);font-size:var(--fs-3)}
+.pw-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-5);padding:18px 24px;border-bottom:1px solid var(--line)}
+.pw-head h1{margin:0;font-size:1.35rem;letter-spacing:-.02em}.pw-head p{margin:4px 0 0;color:var(--text-3);font-size:var(--fs-2)}
+.pw-head-actions{display:flex;gap:var(--sp-3);flex-wrap:wrap;justify-content:flex-end}
+.pw-empty{margin:0;padding:28px 24px;max-width:70ch;color:var(--text-2);line-height:1.55}.pw-empty p{margin:0 0 14px}
+.pw-main{flex:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr)}
+.pw-list{border-right:1px solid var(--line);overflow:auto;padding:8px}
+.pw-item{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:10px;border:1px solid transparent;border-radius:var(--r-md);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pw-item:hover{background:var(--pc-hover-bg)}.pw-item.on{border-color:var(--line-2);background:var(--lift-bg)}
+.pw-item b{font-size:var(--fs-2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pw-item small{grid-column:1;color:var(--text-3);font-size:var(--fs-1)}.pw-item .pw-chip{grid-column:2;grid-row:1/3}
+.pw-chip{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-1);color:var(--text-2);white-space:nowrap}.pw-chip:before{content:"";width:7px;height:7px;border-radius:50%;background:#d18a32}.pw-chip.applied:before{background:#5d8f1f}.pw-chip.declined:before{background:#a3a9a4}
+.pw-detail{min-width:0;min-height:0;display:flex;flex-direction:column}
+.pw-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-5);padding:16px 20px;border-bottom:1px solid var(--line)}
+.pw-detail-head h2{margin:0;font-size:1.05rem}.pw-meta{margin:3px 0 0;color:var(--text-3);font-size:var(--fs-1)}.pw-summary{margin:8px 0 0;max-width:72ch;color:var(--text-2);font-size:var(--fs-2);line-height:1.5}
+.pw-actions{display:flex;gap:var(--sp-3);flex:0 0 auto}
+.pw-blocked{margin:0;padding:10px 20px;background:var(--risk-bg);color:var(--risk-fg);font-size:var(--fs-2);line-height:1.5}
+.pw-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(280px,.9fr) minmax(0,1.1fr)}
+.pw-changes{margin:0;padding:12px 20px;list-style:none;overflow:auto;border-right:1px solid var(--line)}
+.pw-change{padding:12px 0;border-bottom:1px solid var(--line)}.pw-change:last-child{border-bottom:0}.pw-change.off{opacity:.7}
+.pw-change-head{display:flex;align-items:center;gap:7px}.pw-change-head svg{color:var(--text-3);flex:0 0 auto}.pw-change-head b{font-size:var(--fs-2);font-weight:600}
+.pw-diff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.pw-diff>div{min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-md)}.pw-diff>div+div{border-color:#9fc96b;background:#f4faef}
+.pw-side{display:block;margin-bottom:4px;color:var(--text-3);font-size:var(--fs-1);font-weight:600}
+.pw-text{display:block;font-size:var(--fs-2);line-height:1.45;overflow-wrap:anywhere;max-height:9em;overflow:auto}.pw-none{color:var(--text-3);font-size:var(--fs-2);font-style:italic}
+.pw-pic{display:block;max-width:100%;max-height:96px;border-radius:4px;object-fit:contain;background:var(--line)}
+.pw-values{display:grid;gap:4px;margin:8px 0 0}.pw-values>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px}.pw-values dt{color:var(--text-3);font-size:var(--fs-1)}.pw-values dd{margin:0;font-size:var(--fs-2);overflow-wrap:anywhere}
+.pw-warn{margin:8px 0 0;color:var(--risk-fg);font-size:var(--fs-1)}
+.pw-preview{min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--lift-bg)}
+.pw-preview-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+.pw-preview-name{font-size:var(--fs-2)}
+.pw-tabs{display:flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:var(--r-md);overflow-x:auto}.pw-tabs button{padding:5px 10px;border:0;border-radius:5px;background:transparent;color:var(--text-2);font:inherit;font-size:var(--fs-1);white-space:nowrap;cursor:pointer}.pw-tabs button.on{background:var(--text);color:#fff}
+.pw-frame{flex:1;width:100%;min-height:320px;border:0;background:#fff}
 #cms-workspace-host{flex:1;min-width:0;min-height:0}
 body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #app>.main>.right{display:none}
 .cms-workspace{--h-ctl:var(--pc-control-height,44px);--cms-gap:var(--pc-space-4,16px);height:100%;min-height:0;background:var(--panel);color:var(--text);display:flex;flex-direction:column;font-family:inherit;font-size:var(--fs-3)}
@@ -10022,6 +10060,270 @@ ${ANIM_JS}
 </html>
 `;
 }
+var PROPOSAL_LIMITS = { changes: 50, text: 1e4, title: 120, summary: 2e3 };
+function proposalFind(nodeId) {
+  const lists = [
+    ["header", state.header],
+    ["footer", state.footer],
+    ...state.pages.map((pg2) => [pg2.id, pg2.tree])
+  ];
+  for (const [region, list] of lists) {
+    let hit = null;
+    eachNode(list, (n) => {
+      if (!hit && n.id === nodeId) hit = n;
+    });
+    if (hit) return { node: hit, region };
+  }
+  return null;
+}
+var proposalSlotKey = (sl) => sl.i < 0 ? sl.prop : `${sl.prop}.${sl.i}.${sl.sub}`;
+function proposalImageSlots(n) {
+  const out = [];
+  for (const spec of ASSET_SLOTS[n.type] || []) {
+    if (typeof spec === "string") {
+      if (typeof n.props[spec] === "string") out.push({ prop: spec, i: -1, sub: "" });
+      continue;
+    }
+    const [arr, ...subs] = spec;
+    const rows = Array.isArray(n.props[arr]) ? n.props[arr] : [];
+    rows.forEach((row, i) => subs.forEach((sub) => {
+      if (row && typeof row[sub] === "string") out.push({ prop: arr, i, sub });
+    }));
+  }
+  return out;
+}
+var proposalWords = (v, max = 48) => {
+  const t = String(v || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return t.length > max ? t.slice(0, max - 1) + "\u2026" : t;
+};
+var proposalNodeLabel = (n) => {
+  const words = proposalWords(textSlots(n).map((sl) => String(slotGet(n, sl) || "")).find(Boolean) || "", 32);
+  const kind = n.use ? findComponent(n.use)?.name || "Component" : labelOf(n.type);
+  return `${kind}${words ? ` \u201C${words}\u201D` : ""}`;
+};
+function proposalLink(raw) {
+  const v = raw.trim();
+  if (!v) return { value: "" };
+  if (/^#[\w-]*$/.test(v)) return { value: v };
+  const page2 = /^\/?([\w-]+)(?:\.html)?(#[\w-]+)?$/.exec(v);
+  if (page2 && state.pages.some((pg2) => pg2.slug === page2[1])) return { value: `${page2[1]}.html${page2[2] || ""}` };
+  if (/^(https?:|mailto:|tel:)/i.test(v) && safeUrl(v)) return { value: v };
+  return { problem: "must be a page of this site (like /contact), a web address, an email or a phone link" };
+}
+function proposalPropValue(pr, raw, assets) {
+  const v = typeof raw === "string" ? raw : raw == null ? "" : String(raw);
+  if (v.length > PROPOSAL_LIMITS.text) return { problem: "is too long" };
+  switch (pr.t) {
+    case "text":
+      return { value: v };
+    case "rich":
+      return { value: para(v) };
+    case "img": {
+      const id = v.replace(/^asset:/, "").split("@")[0];
+      return assets.has(id) ? { value: "asset:" + id } : { problem: `names an image this site doesn't have (${id || "none"})` };
+    }
+    case "link":
+      return proposalLink(v);
+    case "select":
+      return (pr.opts || []).some(([val]) => val === v) ? { value: v } : { problem: `must be one of: ${(pr.opts || []).map(([val]) => val).join(", ")}` };
+    case "bool":
+      return /^(1|0|true|false|)$/i.test(v) ? { value: /^(1|true)$/i.test(v) ? "1" : "" } : { problem: "must be true or false" };
+    case "color":
+      return /^#[0-9a-f]{3,8}$/i.test(v) || colors().some((c) => cvar(c.id) === v) ? { value: v } : { problem: "must be a hex colour or one of the site\u2019s colours" };
+    case "icon":
+      return ICON_NAMES.includes(v) ? { value: v } : { problem: "must be one of the icon names" };
+    default:
+      return { problem: "cannot be set by a proposal" };
+  }
+}
+function proposalPrepare(inputs, options) {
+  const problems = [];
+  const changes = [];
+  const list = Array.isArray(inputs) ? inputs : [];
+  if (!list.length) return { changes, problems: ["Propose at least one change."] };
+  if (list.length > PROPOSAL_LIMITS.changes) return { changes, problems: [`A proposal can hold at most ${PROPOSAL_LIMITS.changes} changes.`] };
+  const seen = /* @__PURE__ */ new Set();
+  list.forEach((input, i) => {
+    const at = `Change ${i + 1}`;
+    const fail = (why) => {
+      problems.push(`${at}: ${why}`);
+    };
+    if (!input || typeof input !== "object") return fail("is not a change.");
+    if (input.type === "insert") {
+      const def = findComponent(String(input.componentId || ""));
+      if (!def) return fail(`there is no component "${input.componentId}". List components to see what can be placed.`);
+      const region2 = String(input.region || "");
+      if (region2 !== "header" && region2 !== "footer" && !state.pages.some((pg2) => pg2.id === region2)) return fail(`"${region2}" is not a page id, header or footer.`);
+      let parentId = null;
+      if (input.parentId) {
+        const parent = proposalFind(String(input.parentId));
+        if (!parent || parent.region !== region2) return fail(`there is no element "${input.parentId}" in that region.`);
+        if (!fitsIn(parent.node.type, def.node.type)) return fail(`a ${def.name} cannot go inside a ${nameOf(parent.node)}.`);
+        parentId = parent.node.id;
+      }
+      const values = {};
+      for (const [k, raw] of Object.entries(input.values || {})) {
+        const pr = findProp(def, k);
+        if (!pr) return fail(`${def.name} has no property "${k}".`);
+        const checked = proposalPropValue(pr, raw, options.assets);
+        if (checked.problem) return fail(`${def.name} \xB7 ${pr.label} ${checked.problem}.`);
+        values[k] = checked.value;
+      }
+      const index = Number.isInteger(input.index) ? Math.max(0, input.index) : 1e6;
+      const where = region2 === "header" ? "the header" : region2 === "footer" ? "the footer" : `page \u201C${state.pages.find((pg2) => pg2.id === region2).name}\u201D`;
+      changes.push({ type: "insert", region: region2, componentId: def.id, parentId, index, values, value: "", before: "", label: `Add ${def.name} to ${where}` });
+      return;
+    }
+    if (input.type !== "text" && input.type !== "image" && input.type !== "property") {
+      return fail(`"${input.type}" is not a change a proposal can make (text, image, property or insert).`);
+    }
+    const found = proposalFind(String(input.nodeId || ""));
+    if (!found) return fail(`there is no element "${input.nodeId}" on a page, in the header or in the footer.`);
+    const { node, region } = found;
+    if (input.type === "text") {
+      if (OWNER_ONLY_CONTENT.has(node.type)) return fail("embedded code cannot be changed by a proposal.");
+      const slots = textSlots(node);
+      const slot = input.slot ? slots.find((sl) => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no text "${input.slot || ""}". Its text slots: ${slots.map(proposalSlotKey).join(", ") || "none"}.`);
+      const raw = String(input.value ?? "");
+      if (raw.length > PROPOSAL_LIMITS.text) return fail("the text is too long.");
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail("changes the same text twice.");
+      seen.add(key);
+      const rich = node.type === "text" && slot.prop === "html";
+      changes.push({
+        type: "text",
+        region,
+        nodeId: node.id,
+        slot: proposalSlotKey(slot),
+        value: rich ? para(raw) : raw,
+        before: String(slotGet(node, slot) ?? ""),
+        label: `${proposalNodeLabel(node)} \xB7 ${slotName(slot)}`
+      });
+      return;
+    }
+    if (input.type === "image") {
+      const slots = proposalImageSlots(node);
+      const slot = input.slot ? slots.find((sl) => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no image "${input.slot || ""}".`);
+      const id = String(input.assetId || "").replace(/^asset:/, "").split("@")[0];
+      if (!options.assets.has(id)) return fail(`names an image this site doesn't have (${id || "none"}). List images to see what is uploaded.`);
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail("changes the same image twice.");
+      seen.add(key);
+      changes.push({
+        type: "image",
+        region,
+        nodeId: node.id,
+        slot: proposalSlotKey(slot),
+        value: "asset:" + id,
+        before: String(slotGet(node, slot) ?? ""),
+        label: `${proposalNodeLabel(node)} \xB7 ${slotName(slot)}`
+      });
+      return;
+    }
+    if (input.type === "property") {
+      const def = node.use ? findComponent(node.use) : null;
+      if (!def) return fail(`${nameOf(node)} is not a component instance, so it has no properties.`);
+      const pr = findProp(def, String(input.property || ""));
+      if (!pr) return fail(`${def.name} has no property "${input.property}". Its properties: ${(def.props || []).map((x) => x.k).join(", ") || "none"}.`);
+      const checked = proposalPropValue(pr, input.value, options.assets);
+      if (checked.problem) return fail(`${def.name} \xB7 ${pr.label} ${checked.problem}.`);
+      const key = `${node.id}|${VAL}${pr.k}`;
+      if (seen.has(key)) return fail("changes the same property twice.");
+      seen.add(key);
+      changes.push({
+        type: "property",
+        region,
+        nodeId: node.id,
+        property: pr.k,
+        value: checked.value,
+        before: instValue(node, def, pr.k),
+        label: `${def.name} \xB7 ${pr.label}`
+      });
+    }
+  });
+  return { changes: problems.length ? [] : changes, problems };
+}
+var proposalSlotOf = (n, key, image) => (image ? proposalImageSlots(n) : textSlots(n)).find((sl) => proposalSlotKey(sl) === key) || null;
+function proposalCheck(changes) {
+  return changes.map((ch) => {
+    if (ch.type === "insert") {
+      if (!findComponent(ch.componentId || "")) return "missing";
+      if (ch.parentId) return proposalFind(ch.parentId)?.region === ch.region ? "ok" : "missing";
+      return ch.region === "header" || ch.region === "footer" || state.pages.some((pg2) => pg2.id === ch.region) ? "ok" : "missing";
+    }
+    const found = proposalFind(ch.nodeId || "");
+    if (!found) return "missing";
+    if (ch.type === "property") {
+      const def = found.node.use ? findComponent(found.node.use) : null;
+      if (!def || !findProp(def, ch.property || "")) return "missing";
+      return instValue(found.node, def, ch.property) === ch.before ? "ok" : "stale";
+    }
+    const slot = proposalSlotOf(found.node, ch.slot || "", ch.type === "image");
+    if (!slot) return "missing";
+    return String(slotGet(found.node, slot) ?? "") === ch.before ? "ok" : "stale";
+  });
+}
+function proposalOutline(region) {
+  const list = region === "header" ? state.header : region === "footer" ? state.footer : state.pages.find((pg2) => pg2.id === region)?.tree;
+  if (!list) return null;
+  const comps = components();
+  const out = [];
+  eachNode(list, (n, parent, _i, depth) => {
+    const text = {}, images = {};
+    if (!OWNER_ONLY_CONTENT.has(n.type)) {
+      for (const sl of textSlots(n)) text[proposalSlotKey(sl)] = n.type === "text" && sl.prop === "html" ? proposalWords(String(slotGet(n, sl) || ""), 4e3) : String(slotGet(n, sl) ?? "");
+    }
+    for (const sl of proposalImageSlots(n)) images[proposalSlotKey(sl)] = String(slotGet(n, sl) ?? "");
+    const def = n.use ? findComponent(n.use) : null;
+    const fits = comps.filter((cd) => fitsIn(n.type, cd.node.type)).map((cd) => cd.id);
+    out.push({
+      id: n.id,
+      type: n.type,
+      kind: def ? def.name : labelOf(n.type),
+      depth,
+      parentId: parent ? parent.id : null,
+      ...Object.keys(text).length ? { text } : {},
+      ...Object.keys(images).length ? { images } : {},
+      ...def ? { component: { id: def.id, name: def.name, values: Object.fromEntries((def.props || []).map((pr) => [pr.k, instValue(n, def, pr.k)])) } } : {},
+      ...fits.length ? { canHold: fits } : {}
+    });
+  });
+  return out;
+}
+function proposalApply(changes) {
+  const placed = [];
+  for (const ch of changes) {
+    if (ch.type === "insert") {
+      const parent = ch.parentId ? proposalFind(ch.parentId).node : null;
+      const mode = state.ui.mode, cur = state.cur, cedit = state.ui.cedit;
+      if (!parent) {
+        state.ui.mode = ch.region === "header" || ch.region === "footer" ? ch.region : "page";
+        if (state.ui.mode === "page") state.cur = state.pages.findIndex((pg2) => pg2.id === ch.region);
+      }
+      try {
+        const made = instanceInsert(ch.componentId, parent, ch.index ?? 1e6);
+        if (made) {
+          for (const [k, v] of Object.entries(ch.values || {})) instSet(made, k, v);
+          placed.push(made.id);
+        }
+      } finally {
+        state.ui.mode = mode;
+        state.cur = cur;
+        state.ui.cedit = cedit;
+      }
+      continue;
+    }
+    const found = proposalFind(ch.nodeId);
+    if (ch.type === "property") {
+      instSet(found.node, ch.property, ch.value);
+      continue;
+    }
+    slotSet(found.node, proposalSlotOf(found.node, ch.slot, ch.type === "image"), ch.value);
+  }
+  return placed;
+}
 /* The core as one object, derived from its own export list above. */
 var __CORE = {
   ADV_SHARED,
@@ -10071,6 +10373,7 @@ var __CORE = {
   PATTERNS,
   PFX,
   PH,
+  PROPOSAL_LIMITS,
   PROP_KIND,
   REF_DEPTH,
   RESERVED,
@@ -10318,6 +10621,10 @@ var __CORE = {
   propMove,
   propRename,
   propVal,
+  proposalApply,
+  proposalCheck,
+  proposalOutline,
+  proposalPrepare,
   published,
   redo,
   refId,
@@ -13108,6 +13415,262 @@ var PC_UI = (() => {
     return affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
   }
 
+  // app/src/ui/ProposalsWorkspace.tsx
+  var plain = (v3) => String(v3 || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+  var when = (iso) => {
+    const t3 = Date.parse(iso);
+    if (!t3) return "";
+    const minutes = Math.round((Date.now() - t3) / 6e4);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} h ago`;
+    return new Date(t3).toLocaleDateString(void 0, { day: "numeric", month: "short" });
+  };
+  function problem(error) {
+    const e3 = error;
+    const detail = e3?.payload?.detail || String(e3?.message || "").trim();
+    return detail && !/^[a-z][a-z0-9_ -]*$/i.test(detail) ? detail : "That did not work. Try again.";
+  }
+  function Picture({ value }) {
+    const id = String(value || "").replace(/^asset:/, "").split("@")[0];
+    const asset = id ? L2.asset(id) : null;
+    if (!value) return /* @__PURE__ */ u2("span", { class: "pw-none", children: "None" });
+    return asset ? /* @__PURE__ */ u2("img", { class: "pw-pic", src: asset.url, alt: asset.name }) : /* @__PURE__ */ u2("span", { class: "pw-none", children: value });
+  }
+  function Value({ change, side }) {
+    const value = side === "before" ? change.before : change.value;
+    const image = change.type === "image" || change.type === "property" && /^asset:/.test(value);
+    if (image) return /* @__PURE__ */ u2(Picture, { value });
+    const text = plain(value);
+    return text ? /* @__PURE__ */ u2("span", { class: "pw-text", children: text }) : /* @__PURE__ */ u2("span", { class: "pw-none", children: "Empty" });
+  }
+  var STATUS = {
+    stale: "Changed in the editor since the proposal was made",
+    missing: "No longer on the site"
+  };
+  function ChangeRow({ change, status }) {
+    if (change.type === "insert") {
+      const def = C2.findComponent(change.componentId || "");
+      const values = Object.entries(change.values || {});
+      return /* @__PURE__ */ u2("li", { class: "pw-change" + (status === "ok" ? "" : " off"), children: [
+        /* @__PURE__ */ u2("div", { class: "pw-change-head", children: [
+          /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
+          /* @__PURE__ */ u2("b", { children: change.label })
+        ] }),
+        values.length > 0 && /* @__PURE__ */ u2("dl", { class: "pw-values", children: values.map(([k3, v3]) => /* @__PURE__ */ u2("div", { children: [
+          /* @__PURE__ */ u2("dt", { children: C2.findProp(def, k3)?.label || k3 }),
+          /* @__PURE__ */ u2("dd", { children: /^asset:/.test(v3) ? /* @__PURE__ */ u2(Picture, { value: v3 }) : plain(v3) || "\u2014" })
+        ] }, k3)) }),
+        status !== "ok" && /* @__PURE__ */ u2("p", { class: "pw-warn", children: STATUS[status] })
+      ] });
+    }
+    return /* @__PURE__ */ u2("li", { class: "pw-change" + (status === "ok" ? "" : " off"), children: [
+      /* @__PURE__ */ u2("div", { class: "pw-change-head", children: [
+        /* @__PURE__ */ u2(Icon, { name: change.type === "image" ? "image" : change.type === "property" ? "component" : "text", size: 12 }),
+        /* @__PURE__ */ u2("b", { children: change.label })
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "pw-diff", children: [
+        /* @__PURE__ */ u2("div", { children: [
+          /* @__PURE__ */ u2("span", { class: "pw-side", children: "Now" }),
+          /* @__PURE__ */ u2(Value, { change, side: "before" })
+        ] }),
+        /* @__PURE__ */ u2("div", { children: [
+          /* @__PURE__ */ u2("span", { class: "pw-side", children: "Proposed" }),
+          /* @__PURE__ */ u2(Value, { change, side: "after" })
+        ] })
+      ] }),
+      status !== "ok" && /* @__PURE__ */ u2("p", { class: "pw-warn", children: STATUS[status] })
+    ] });
+  }
+  function Detail({ api, proposal, busy, apply, decline }) {
+    const [tab2, setTab] = d2(0);
+    const [side, setSide] = d2("after");
+    h2(() => {
+      setTab(0);
+      setSide("after");
+    }, [proposal.id]);
+    const pending2 = proposal.status === "pending";
+    const statuses = pending2 ? C2.proposalCheck(proposal.changes) : proposal.changes.map(() => "ok");
+    const blocked = statuses.filter((s3) => s3 !== "ok").length;
+    const preview = proposal.previews[Math.min(tab2, proposal.previews.length - 1)];
+    return /* @__PURE__ */ u2("section", { class: "pw-detail", "aria-labelledby": "pw-title", children: [
+      /* @__PURE__ */ u2("header", { class: "pw-detail-head", children: [
+        /* @__PURE__ */ u2("div", { children: [
+          /* @__PURE__ */ u2("h2", { id: "pw-title", children: proposal.title }),
+          /* @__PURE__ */ u2("p", { class: "pw-meta", children: [
+            "From ",
+            proposal.tokenName,
+            " \xB7 ",
+            when(proposal.createdAt),
+            " \xB7 ",
+            proposal.changes.length,
+            " ",
+            proposal.changes.length === 1 ? "change" : "changes"
+          ] }),
+          proposal.summary && /* @__PURE__ */ u2("p", { class: "pw-summary", children: proposal.summary })
+        ] }),
+        pending2 ? /* @__PURE__ */ u2("div", { class: "pw-actions", children: [
+          /* @__PURE__ */ u2("button", { type: "button", class: "btn", disabled: busy, onClick: () => decline(proposal), children: "Decline" }),
+          /* @__PURE__ */ u2("button", { type: "button", class: "btn primary", disabled: busy || blocked > 0, onClick: () => apply(proposal), children: busy ? "Applying\u2026" : "Apply to draft" })
+        ] }) : /* @__PURE__ */ u2("span", { class: "pw-chip " + proposal.status, children: proposal.status === "applied" ? "Applied" : "Declined" })
+      ] }),
+      pending2 && blocked > 0 && /* @__PURE__ */ u2("p", { class: "pw-blocked", role: "status", children: [
+        blocked === 1 ? "One change no longer matches" : `${blocked} changes no longer match`,
+        " the draft, so this proposal can\u2019t be applied as it is. Decline it and ask the assistant to read the site again and propose afresh."
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "pw-body", children: [
+        /* @__PURE__ */ u2("ol", { class: "pw-changes", children: proposal.changes.map((change, i3) => /* @__PURE__ */ u2(ChangeRow, { change, status: statuses[i3] }, i3)) }),
+        preview && /* @__PURE__ */ u2("div", { class: "pw-preview", children: [
+          /* @__PURE__ */ u2("div", { class: "pw-preview-bar", children: [
+            proposal.previews.length > 1 ? /* @__PURE__ */ u2("div", { class: "pw-tabs", role: "tablist", "aria-label": "Affected pages", children: proposal.previews.map((v3, i3) => /* @__PURE__ */ u2(
+              "button",
+              {
+                type: "button",
+                role: "tab",
+                "aria-selected": i3 === tab2 ? "true" : "false",
+                class: i3 === tab2 ? "on" : "",
+                onClick: () => setTab(i3),
+                children: v3.label
+              },
+              v3.region
+            )) }) : /* @__PURE__ */ u2("b", { class: "pw-preview-name", children: preview.label }),
+            /* @__PURE__ */ u2("div", { class: "pw-tabs", role: "group", "aria-label": "Preview", children: [
+              /* @__PURE__ */ u2("button", { type: "button", "aria-pressed": side === "after" ? "true" : "false", class: side === "after" ? "on" : "", onClick: () => setSide("after"), children: "Proposed" }),
+              /* @__PURE__ */ u2("button", { type: "button", "aria-pressed": side === "before" ? "true" : "false", class: side === "before" ? "on" : "", onClick: () => setSide("before"), children: "Now" })
+            ] })
+          ] }),
+          /* @__PURE__ */ u2(
+            "iframe",
+            {
+              class: "pw-frame",
+              title: `${preview.label}, ${side === "after" ? "with the proposal" : "as it is now"}`,
+              src: api.previewUrl(proposal.id, preview.path, side === "before"),
+              sandbox: "allow-same-origin",
+              loading: "lazy"
+            }
+          )
+        ] })
+      ] })
+    ] });
+  }
+  function ProposalsWorkspace({ focus, close, changed }) {
+    const api = L2.proposals();
+    const [list2, setList] = d2(null);
+    const [error, setError] = d2("");
+    const [selected, setSelected] = d2(focus || null);
+    const [busy, setBusy] = d2(false);
+    const load = async (keep) => {
+      if (!api) return;
+      try {
+        const all = await api.list();
+        setList(all);
+        setError("");
+        changed?.();
+        const want = keep ?? selected;
+        setSelected(want && all.some((p3) => p3.id === want) ? want : all.find((p3) => p3.status === "pending")?.id || all[0]?.id || null);
+      } catch (e3) {
+        setError(problem(e3));
+      }
+    };
+    h2(() => {
+      void load(focus || null);
+    }, []);
+    h2(() => {
+      const onKey = (e3) => {
+        if (e3.key === "Escape" && !busy) close();
+      };
+      document.addEventListener("keydown", onKey);
+      return () => document.removeEventListener("keydown", onKey);
+    }, [busy]);
+    const apply = async (p3) => {
+      if (C2.proposalCheck(p3.changes).some((s3) => s3 !== "ok")) {
+        L2.toast("This proposal no longer matches the draft.", { tone: "error" });
+        return;
+      }
+      setBusy(true);
+      try {
+        C2.edit(() => {
+          C2.proposalApply(p3.changes);
+        });
+        L2.appRender();
+        try {
+          await L2.flushDraft();
+        } catch (e3) {
+          L2.toast(`Applied in the editor, but the draft was not saved: ${problem(e3)}`, { tone: "error" });
+          return;
+        }
+        await api.decide(p3.id, "applied", L2.siteDraft()?.version);
+        L2.toast(`Applied \u201C${p3.title}\u201D to the draft. Undo reverses it; publish when you\u2019re ready.`);
+        await load(p3.id);
+      } catch (e3) {
+        L2.toast(problem(e3), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    const decline = async (p3) => {
+      const ok = await L2.askConfirm("Decline this proposal?", "Nothing on the site changes. The assistant can see that it was declined.", { ok: "Decline" });
+      if (!ok) return;
+      setBusy(true);
+      try {
+        await api.decide(p3.id, "declined");
+        L2.toast(`Declined \u201C${p3.title}\u201D.`);
+        await load(p3.id);
+      } catch (e3) {
+        L2.toast(problem(e3), { tone: "error" });
+      } finally {
+        setBusy(false);
+      }
+    };
+    const current = list2?.find((p3) => p3.id === selected) || null;
+    const pending2 = list2?.filter((p3) => p3.status === "pending").length || 0;
+    return /* @__PURE__ */ u2("div", { class: "pw", role: "region", "aria-label": "Assistant proposals", children: [
+      /* @__PURE__ */ u2("header", { class: "pw-head", children: [
+        /* @__PURE__ */ u2("div", { children: [
+          /* @__PURE__ */ u2("h1", { children: "Proposals" }),
+          /* @__PURE__ */ u2("p", { children: "Changes AI assistants suggested for this site. Nothing changes until you apply it." })
+        ] }),
+        /* @__PURE__ */ u2("div", { class: "pw-head-actions", children: [
+          api && /* @__PURE__ */ u2("a", { class: "btn ghost", href: api.settingsUrl, target: "_blank", rel: "noopener", children: "Assistants and tokens" }),
+          /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: close, disabled: busy, children: "Back to editor" })
+        ] })
+      ] }),
+      !api ? /* @__PURE__ */ u2("p", { class: "pw-empty", children: "Proposals are available in the hosted editor, for the site\u2019s owner." }) : error && !list2 ? /* @__PURE__ */ u2("p", { class: "pw-empty", role: "alert", children: [
+        error,
+        " ",
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny", onClick: () => load(), children: "Try again" })
+      ] }) : !list2 ? /* @__PURE__ */ u2("p", { class: "pw-empty", "aria-busy": "true", children: "Loading proposals\u2026" }) : !list2.length ? /* @__PURE__ */ u2("div", { class: "pw-empty", children: [
+        /* @__PURE__ */ u2("p", { children: [
+          /* @__PURE__ */ u2("b", { children: "No proposals yet." }),
+          " Create a token on the Assistants page and add it to an MCP assistant such as Claude Code. Its proposals appear here for you to review."
+        ] }),
+        /* @__PURE__ */ u2("a", { class: "btn primary", href: api.settingsUrl, target: "_blank", rel: "noopener", children: "Set up an assistant" })
+      ] }) : /* @__PURE__ */ u2("div", { class: "pw-main", children: [
+        /* @__PURE__ */ u2("nav", { class: "pw-list", "aria-label": `${pending2} waiting for review`, children: list2.map((p3) => /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "pw-item" + (p3.id === selected ? " on" : ""),
+            "aria-current": p3.id === selected ? "true" : void 0,
+            onClick: () => setSelected(p3.id),
+            children: [
+              /* @__PURE__ */ u2("b", { children: p3.title }),
+              /* @__PURE__ */ u2("small", { children: [
+                p3.tokenName,
+                " \xB7 ",
+                when(p3.createdAt)
+              ] }),
+              /* @__PURE__ */ u2("span", { class: "pw-chip " + p3.status, children: p3.status === "pending" ? "Waiting" : p3.status === "applied" ? "Applied" : "Declined" })
+            ]
+          },
+          p3.id
+        )) }),
+        current ? /* @__PURE__ */ u2(Detail, { api, proposal: current, busy, apply, decline }) : null
+      ] })
+    ] });
+  }
+
   // app/src/core/libraries.ts
   var FOUNDATION = {
     color: /* @__PURE__ */ new Set(["text", "bg", "brand", "ink", "muted", "muted-i", "slate", "line", "surface"]),
@@ -13639,7 +14202,7 @@ var PC_UI = (() => {
     return oldest && oldest < library.latestVersion ? oldest : 0;
   };
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
-  function problem(error) {
+  function problem2(error) {
     if (error instanceof LibraryError) return error.problems.join(" ");
     const e3 = error;
     if (e3?.status === 503) return "Libraries are not available on this server yet.";
@@ -13659,7 +14222,7 @@ var PC_UI = (() => {
           if (live) set({ data, loading: false });
         },
         (error) => {
-          if (live) set({ error: problem(error), loading: false });
+          if (live) set({ error: problem2(error), loading: false });
         }
       );
       return () => {
@@ -13702,7 +14265,7 @@ var PC_UI = (() => {
         remember(library);
         open({ at: pending ? "publish" : "library", id: library.id });
       } catch (error) {
-        L2.toast(problem(error), { tone: "error" });
+        L2.toast(problem2(error), { tone: "error" });
       } finally {
         setBusy(false);
       }
@@ -13830,7 +14393,7 @@ var PC_UI = (() => {
         const renamed = plan.items.filter((i3) => i3.how === "renamed").length;
         L2.toast(added ? `Imported ${plural(added, "item")} from ${library.name}` + (renamed ? ` \xB7 ${plural(renamed, "was", "were")} renamed to avoid a clash` : "") : `Already in this site \u2014 now linked to ${library.name}`);
       } catch (error) {
-        L2.toast(problem(error), { tone: "error" });
+        L2.toast(problem2(error), { tone: "error" });
       } finally {
         setBusy(false);
       }
@@ -13849,7 +14412,7 @@ var PC_UI = (() => {
         L2.toast(`You left ${library.name}`);
         open({ at: "list" });
       } catch (error) {
-        L2.toast(problem(error), { tone: "error" });
+        L2.toast(problem2(error), { tone: "error" });
         setBusy(false);
       }
     };
@@ -13974,7 +14537,7 @@ var PC_UI = (() => {
         setEmail("");
         L2.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
       } catch (error) {
-        L2.toast(problem(error), { tone: "error" });
+        L2.toast(problem2(error), { tone: "error" });
       } finally {
         setBusy(false);
       }
@@ -13992,7 +14555,7 @@ var PC_UI = (() => {
         setMembers((members || state2.data || []).filter((m3) => m3.userId !== member.userId));
         L2.toast(`Stopped sharing with ${member.email}`);
       } catch (error) {
-        L2.toast(problem(error), { tone: "error" });
+        L2.toast(problem2(error), { tone: "error" });
       } finally {
         setBusy(false);
       }
@@ -14073,7 +14636,7 @@ var PC_UI = (() => {
         const preview = extractLibraryBundle(C2.doc(), chosen, C2.SCHEMA);
         carried = GROUPS.reduce((n2, [kind]) => n2 + bundleList(preview, kind).filter((item) => !isFoundation(kind, item.id)).length, 0) - chosen.length;
       } catch (error) {
-        problems = error instanceof LibraryError ? error.problems : [problem(error)];
+        problems = error instanceof LibraryError ? error.problems : [problem2(error)];
       }
     }
     const toggle = (k3, on) => setPicked((prev) => {
@@ -14101,7 +14664,7 @@ var PC_UI = (() => {
         L2.toast(`Published version ${version.version} of ${library.name}`);
         open({ at: "library", id });
       } catch (error) {
-        L2.toast(problem(error), { tone: "error" });
+        L2.toast(problem2(error), { tone: "error" });
       } finally {
         setBusy(false);
       }
@@ -14193,7 +14756,7 @@ var PC_UI = (() => {
         L2.toast(`Updated to version ${summary.version} of ${library.name}`);
         open({ at: "library", id });
       } catch (error) {
-        L2.toast(problem(error), { tone: "error" });
+        L2.toast(problem2(error), { tone: "error" });
       } finally {
         setBusy(false);
       }
@@ -21619,6 +22182,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         async leave(id) {
           await transport.request({ method: "DELETE", path: `/api/libraries/${encodeURIComponent(id)}/members/me` });
         }
+      },
+      proposals: {
+        async list(status) {
+          return (await transport.request({
+            path: `/api/sites/${site}/proposals${status ? `?status=${status}` : ""}`
+          })).body.proposals;
+        },
+        async decide(id, status, version) {
+          await transport.request({
+            method: "POST",
+            path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/decision`,
+            body: { status, version }
+          });
+        },
+        previewUrl: (id, path, before) => `${options.baseUrl || ""}/api/sites/${site}/proposals/${encodeURIComponent(id)}/preview/${path.split("/").map(encodeURIComponent).join("/")}${before ? "?before=1" : ""}`,
+        settingsUrl: `${options.baseUrl || ""}/sites/${site}/assistants`
       }
     };
   }
@@ -21774,6 +22353,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       legacy.restoreCanvasLayout();
     };
     const openPages = () => {
+      closeProposals();
       let host = document.getElementById("pages-workspace-host");
       if (!host) {
         host = document.createElement("div");
@@ -21790,6 +22370,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     const openCms = (collectionId) => {
       closePages();
+      closeProposals();
       let host = document.getElementById("cms-workspace-host");
       if (!host) {
         host = document.createElement("div");
@@ -21819,7 +22400,38 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const surface = host.firstElementChild;
       if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
     };
-    return { ...painters2, openPages, closePages, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
+    let closeProposalsNow = null;
+    const closeProposals = () => {
+      closeProposalsNow?.();
+    };
+    const openProposals = (focus, onClose) => {
+      closePages();
+      let host = document.getElementById("proposals-workspace-host");
+      if (!host) {
+        host = document.createElement("div");
+        host.id = "proposals-workspace-host";
+        document.querySelector("#app > .main").append(host);
+      }
+      const previous = document.activeElement;
+      document.body.classList.remove("cms-open");
+      document.body.classList.add("proposals-open");
+      const railButtons = [...document.querySelectorAll("#leftRail button")];
+      const active = railButtons.filter((b2) => b2.classList.contains("on"));
+      railButtons.forEach((b2) => b2.classList.toggle("on", b2.getAttribute("data-act") === "proposals"));
+      closeProposalsNow = () => {
+        closeProposalsNow = null;
+        R(null, host);
+        document.body.classList.remove("proposals-open");
+        legacy.restoreCanvasLayout();
+        railButtons.forEach((b2) => b2.classList.toggle("on", active.includes(b2)));
+        previous?.focus({ preventScroll: true });
+        onClose?.();
+      };
+      R(/* @__PURE__ */ u2(ProposalsWorkspace, { focus, close: closeProposals, changed: onClose }, focus || "all"), host);
+      const surface = host.firstElementChild;
+      if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
+    };
+    return { ...painters2, openPages, closePages, openCms, openProposals, closeProposals, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
   }
   return __toCommonJS(index_exports);
 })();
@@ -21859,6 +22471,15 @@ if (SRV && !IS_WORDPRESS) {
   submissions.setAttribute('aria-label', 'Submissions');
   submissions.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg><span>Submissions</span>';
   document.querySelector('#leftRail [data-t="cms"]').after(submissions);
+  /* Assistant proposals (Phase 7) are the owner's to review, so only an owner gets the button. */
+  if (SRV.role === 'owner' && !SRV.editorSessionToken) {
+    const proposals = document.createElement('button');
+    proposals.title = 'Proposals';
+    proposals.dataset.act = 'proposals';
+    proposals.setAttribute('aria-label', 'Proposals');
+    proposals.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8l1.5 3.7 3.7 1.5-3.7 1.5L10 13.2 8.5 9.5 4.8 8l3.7-1.5z"/><path d="M15.2 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg><span>Proposals</span><b class="rail-badge" hidden></b>';
+    submissions.after(proposals);
+  }
 }
 const brandHome = $('#brandHome');
 if (brandHome) {
@@ -24203,6 +24824,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
     siteDraft: () => (SRV && !IS_WORDPRESS ? { siteId: SRV.siteId, version: SRV.version } : null),
     flushDraft, assetsReload: assetsLoadServer,
+    proposals: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.proposals) || null,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
@@ -26521,6 +27143,23 @@ function bindTop() {
   };
   // Start the authorized inbox request while the user works, not after their click.
   if (SRV?.siteId) setTimeout(prepareSubmissions, 0);
+  const proposalsButton = $('#leftRail [data-act="proposals"]');
+  const refreshProposals = () => {
+    const api = HOST && HOST.proposals;
+    if (!proposalsButton || !api) return;
+    api.list('pending').then(list => {
+      const badge = proposalsButton.querySelector('.rail-badge');
+      badge.hidden = !list.length;
+      badge.textContent = list.length > 9 ? '9+' : String(list.length);
+      proposalsButton.setAttribute('aria-label', list.length ? `Proposals, ${list.length} waiting` : 'Proposals');
+    }).catch(() => {});
+  };
+  const openProposals = focus => { closeSubmissions(); ui().openProposals(focus, refreshProposals); };
+  if (proposalsButton) {
+    setTimeout(refreshProposals, 0);
+    const focus = new URLSearchParams(location.search).get('proposal');
+    if (focus && /^[a-f0-9]{16}$/.test(focus)) setTimeout(() => openProposals(focus), 0);
+  }
   window.addEventListener('message', event => {
     if (event.origin === location.origin && submissionsFrame && event.source === submissionsFrame.contentWindow
       && event.data === 'pagecraft:close-submissions') {
@@ -26528,6 +27167,7 @@ function bindTop() {
     }
   });
   window.showPanel = t => {
+    if (document.body.classList.contains('proposals-open')) ui().closeProposals();
     closeSubmissions();
     closePages();
     document.body.classList.remove('cms-open');
@@ -26553,6 +27193,8 @@ function bindTop() {
     /* Media and Project open dialogs rather than swapping the panel, so they set
        neither `state.ui.tab` nor the `on` treatment — the panel behind them has not
        changed. Scoping the toggle to `[data-t]` is what keeps them out of it. */
+    if (b.dataset.act === 'proposals') { openProposals(); return; }
+    if (document.body.classList.contains('proposals-open')) ui().closeProposals();
     if (b.dataset.act === 'submissions') { openSubmissions(); return; }
     closeSubmissions();
     closePages();

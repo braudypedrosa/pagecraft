@@ -4,7 +4,7 @@ import { FetchHostTransport, type FetchLike, type HostTransport } from './transp
 import { adoptHostDocument } from './schema';
 import type { LibraryBundle } from '../core/libraries';
 import type {
-  HostCapability, HostFeatures, HostMedia, HostSession, WebLibrary, WebLibraryMember, WebLibraryVersionSummary, WebPublicationSchedule,
+  HostCapability, HostFeatures, HostMedia, HostSession, WebLibrary, WebLibraryMember, WebLibraryVersionSummary, WebProposal, WebPublicationSchedule,
   WebPublicationSnapshot, WebHostAdapter
 } from './types';
 
@@ -173,6 +173,21 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
       async leave(id) {
         await transport.request<unknown>({ method: 'DELETE', path: `/api/libraries/${encodeURIComponent(id)}/members/me` });
       }
+    },
+    proposals: {
+      async list(status) {
+        return (await transport.request<{ proposals: WebProposal[] }>({
+          path: `/api/sites/${site}/proposals${status ? `?status=${status}` : ''}`
+        })).body.proposals;
+      },
+      async decide(id, status, version) {
+        await transport.request<unknown>({
+          method: 'POST', path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/decision`, body: { status, version }
+        });
+      },
+      previewUrl: (id, path, before) =>
+        `${options.baseUrl || ''}/api/sites/${site}/proposals/${encodeURIComponent(id)}/preview/${path.split('/').map(encodeURIComponent).join('/')}${before ? '?before=1' : ''}`,
+      settingsUrl: `${options.baseUrl || ''}/sites/${site}/assistants`
     }
   };
 }

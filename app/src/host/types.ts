@@ -301,10 +301,35 @@ export interface WebLibraryAdapter {
   leave(id: string): Promise<void>;
 }
 
+/** An assistant's proposal, as the editor reviews it (Phase 7). */
+export interface WebProposal {
+  id: string;
+  baseVersion: number;
+  title: string;
+  summary: string;
+  changes: import('../core/index').ProposalChange[];
+  regions: string[];
+  createdAt: string;
+  tokenName: string;
+  status: 'pending' | 'applied' | 'declined';
+  decidedAt: string | null;
+  /** rendered files that show the affected regions */
+  previews: { region: string; label: string; path: string }[];
+}
+export interface WebProposalAdapter {
+  list(status?: 'pending'): Promise<WebProposal[]>;
+  decide(id: string, status: 'applied' | 'declined', version?: number): Promise<void>;
+  /** where an affected page renders, with the proposal applied or, with `before`, without */
+  previewUrl(id: string, path: string, before?: boolean): string;
+  /** the owner page where assistant tokens are made */
+  settingsUrl: string;
+}
+
 export interface WebHostAdapter extends PagecraftHostAdapter {
   readonly kind: 'web';
   readonly releases: WebReleaseAdapter;
   readonly libraries: WebLibraryAdapter;
+  readonly proposals: WebProposalAdapter;
 }
 
 export interface WordPressHostAdapter extends PagecraftHostAdapter {

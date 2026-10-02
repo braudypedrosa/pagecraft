@@ -15,6 +15,9 @@ import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
 import { UI_MOTION_BOOT_SCRIPT, UI_MOTION_CSS } from '../../shared/ui-motion.js';
 import { submissionRoutes } from './submissions-routes.ts';
+import { assistantMcpContext, assistantRoutes, type AssistantDeps } from './assistant-routes.ts';
+import { assistantMcpResponse } from './assistant-mcp.ts';
+import { isAssistantToken, type FileAssistantStore } from './assistants.ts';
 import { siteForms, type FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
@@ -340,6 +343,8 @@ export interface Options {
   libraries?: LibraryStore;
   /** Aggregate analytics for published sites (Phase 6), off per site until its owner turns it on. */
   analytics?: AnalyticsRecorder;
+  /** Assistant tokens and their proposals (Phase 7). */
+  assistants?: FileAssistantStore;
   /** Bearer key for the cron-driven run endpoint; without one the endpoint does not exist. */
   scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -2172,6 +2177,12 @@ export function createApp(o: Options) {
   });
 
   submissionRoutes(app, { store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource, analytics: o.analytics });
+  /* Phase 7: assistants propose over MCP, owners review in the editor. */
+  const assistantDeps: AssistantDeps = {
+    store: o.store, auth: o.auth, assets: o.assets, assistants: o.assistants, reviews, editorOrigin: o.editorOrigin, allowed,
+    render: (doc, assets) => candidate(doc, assets), assetHeaders: (asset) => assetHeaders(asset as Pick<Asset, "type" | "name">),
+  };
+  assistantRoutes(app, assistantDeps);
   cloudIntegrationRoutes(app, { store: o.store, integrations: o.cloudIntegrations, assets: o.assets, allowed, editorOrigin: o.editorOrigin });
 
   /* ---- the owner's Analytics page (Phase 6). Owners only, like Integrations and Settings. */
@@ -4256,6 +4267,21 @@ export function createApp(o: Options) {
 
   app.all("/mcp", async (c) => {
     if (!isEditorHost(c.req.header("host"), o)) return c.notFound();
+    /* An assistant token (Phase 7) gets its own site-scoped tools. Every other credential keeps
+       exactly the read-only tools it had: none of them gains a proposal. */
+    const bearer = (c.req.header("authorization") || "").replace(/^Bearer\s+/i, "").trim();
+    if (isAssistantToken(bearer)) {
+      const verified = o.assistants ? await o.assistants.authenticate(bearer) : null;
+      const context = verified ? await assistantMcpContext(assistantDeps, c, verified) : null;
+      if (!context) {
+        return c.json({
+          error: "invalid_token",
+          error_description: "This assistant token is not valid. Create a new one on the site's Assistants page.",
+        }, 401, { "www-authenticate": 'Bearer realm="Pagecraft"' });
+      }
+      if (Number(c.req.header("content-length") || 0) > 1_000_000) return c.json({ error: "request_too_large" }, 413);
+      return assistantMcpResponse(c.req.raw, context);
+    }
     const digest = manualImportAccessDigest(c.req.header("authorization"));
     const read = await manualImportCatalogReadDigest(digest);
     if (!read.authorized) {

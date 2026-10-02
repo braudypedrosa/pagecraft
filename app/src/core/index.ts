@@ -7907,8 +7907,287 @@ ${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : 
 }
 
 
+/* ---- assistant proposals (Phase 7) ----------------------------------------------------
+   An assistant connected over MCP proposes; the site's owner reviews and applies in the editor.
+   The server checks a proposal against the draft with `proposalPrepare`, on a restored copy:
+   every change gets a concrete target, the exact value it will write and what it replaces. The
+   editor applies with `proposalApply` inside one edit(), after `proposalCheck` confirms that
+   everything it replaces is still there, so a proposal whose targets moved is refused whole
+   rather than half-applied. Only words, the site's own images, a component's exposed
+   properties, and new instances of existing components: no layout, styles, code or settings.
+   See docs/phase7-assistant-proposals-design.md. */
+
+/** What an assistant asks for, before anything has checked it. */
+type ProposalInput =
+  | { type: 'text'; nodeId: string; slot?: string; value: string }
+  | { type: 'image'; nodeId: string; slot?: string; assetId: string }
+  | { type: 'property'; nodeId: string; property: string; value: string }
+  | { type: 'insert'; componentId: string; region: string; parentId?: string | null; index?: number; values?: Record<string, string> };
+
+/** A checked change: where, the value to write, and what it replaces. */
+interface ProposalChange {
+  type: 'text' | 'image' | 'property' | 'insert';
+  /** `header`, `footer`, or a page id */
+  region: string;
+  nodeId?: string;
+  slot?: string;
+  property?: string;
+  componentId?: string;
+  parentId?: string | null;
+  index?: number;
+  values?: Record<string, string>;
+  value: string;
+  before: string;
+  /** what the owner reads in the review: "Heading “Welcome” · Text" */
+  label: string;
+}
+
+const PROPOSAL_LIMITS = { changes: 50, text: 10000, title: 120, summary: 2000 };
+
+/** A node in the header, the footer or a page — never inside a component definition, which
+    would change every instance at once and is the owner's to edit. */
+function proposalFind(nodeId: string): { node: PcNode; region: string } | null {
+  const lists: [string, PcNode[]][] = [['header', state.header], ['footer', state.footer],
+    ...state.pages.map(pg => [pg.id, pg.tree] as [string, PcNode[]])];
+  for (const [region, list] of lists) {
+    let hit: PcNode | null = null;
+    eachNode(list, n => { if (!hit && n.id === nodeId) hit = n; });
+    if (hit) return { node: hit, region };
+  }
+  return null;
+}
+const proposalSlotKey = (sl: Slot) => (sl.i < 0 ? sl.prop : `${sl.prop}.${sl.i}.${sl.sub}`);
+/** The image slots a node has, the way textSlots lists its words. */
+function proposalImageSlots(n: PcNode): Slot[] {
+  const out: Slot[] = [];
+  for (const spec of ASSET_SLOTS[n.type] || []) {
+    if (typeof spec === 'string') { if (typeof (n.props as PropBag)[spec] === 'string') out.push({ prop: spec, i: -1, sub: '' }); continue; }
+    const [arr, ...subs] = spec;
+    const rows = Array.isArray((n.props as PropBag)[arr]) ? (n.props as PropBag)[arr] as any[] : [];
+    rows.forEach((row: any, i: number) => subs.forEach(sub => { if (row && typeof row[sub] === 'string') out.push({ prop: arr, i, sub }); }));
+  }
+  return out;
+}
+const proposalWords = (v: string, max = 48) => {
+  const t = String(v || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return t.length > max ? t.slice(0, max - 1) + '…' : t;
+};
+const proposalNodeLabel = (n: PcNode) => {
+  const words = proposalWords(textSlots(n).map(sl => String(slotGet(n, sl) || '')).find(Boolean) || '', 32);
+  const kind = n.use ? findComponent(n.use)?.name || 'Component' : labelOf(n.type);
+  return `${kind}${words ? ` “${words}”` : ''}`;
+};
+
+/** An internal page, a web, email or phone address, or an anchor; stored the way links are. */
+function proposalLink(raw: string): { value?: string; problem?: string } {
+  const v = raw.trim();
+  if (!v) return { value: '' };
+  if (/^#[\w-]*$/.test(v)) return { value: v };
+  const page = /^\/?([\w-]+)(?:\.html)?(#[\w-]+)?$/.exec(v);
+  if (page && state.pages.some(pg => pg.slug === page[1])) return { value: `${page[1]}.html${page[2] || ''}` };
+  if (/^(https?:|mailto:|tel:)/i.test(v) && safeUrl(v)) return { value: v };
+  return { problem: 'must be a page of this site (like /contact), a web address, an email or a phone link' };
+}
+
+function proposalPropValue(pr: ComponentProp, raw: unknown, assets: ReadonlySet<string>): { value?: string; problem?: string } {
+  const v = typeof raw === 'string' ? raw : raw == null ? '' : String(raw);
+  if (v.length > PROPOSAL_LIMITS.text) return { problem: 'is too long' };
+  switch (pr.t) {
+    case 'text': return { value: v };
+    case 'rich': return { value: para(v) };
+    case 'img': {
+      const id = v.replace(/^asset:/, '').split('@')[0];
+      return assets.has(id) ? { value: 'asset:' + id } : { problem: `names an image this site doesn't have (${id || 'none'})` };
+    }
+    case 'link': return proposalLink(v);
+    case 'select': return (pr.opts || []).some(([val]) => val === v) ? { value: v }
+      : { problem: `must be one of: ${(pr.opts || []).map(([val]) => val).join(', ')}` };
+    case 'bool': return /^(1|0|true|false|)$/i.test(v) ? { value: /^(1|true)$/i.test(v) ? '1' : '' } : { problem: 'must be true or false' };
+    case 'color': return /^#[0-9a-f]{3,8}$/i.test(v) || colors().some(c => cvar(c.id) === v) ? { value: v }
+      : { problem: 'must be a hex colour or one of the site’s colours' };
+    case 'icon': return ICON_NAMES.includes(v) ? { value: v } : { problem: 'must be one of the icon names' };
+    default: return { problem: 'cannot be set by a proposal' };
+  }
+}
+
+/** Check a proposal against the current document and resolve it into changes. Reads `state`;
+    the server restores the draft first. Never writes. */
+function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string> }): { changes: ProposalChange[]; problems: string[] } {
+  const problems: string[] = [];
+  const changes: ProposalChange[] = [];
+  const list = Array.isArray(inputs) ? inputs as ProposalInput[] : [];
+  if (!list.length) return { changes, problems: ['Propose at least one change.'] };
+  if (list.length > PROPOSAL_LIMITS.changes) return { changes, problems: [`A proposal can hold at most ${PROPOSAL_LIMITS.changes} changes.`] };
+  const seen = new Set<string>();
+  list.forEach((input, i) => {
+    const at = `Change ${i + 1}`;
+    const fail = (why: string) => { problems.push(`${at}: ${why}`); };
+    if (!input || typeof input !== 'object') return fail('is not a change.');
+    if (input.type === 'insert') {
+      const def = findComponent(String(input.componentId || ''));
+      if (!def) return fail(`there is no component "${input.componentId}". List components to see what can be placed.`);
+      const region = String(input.region || '');
+      if (region !== 'header' && region !== 'footer' && !state.pages.some(pg => pg.id === region)) return fail(`"${region}" is not a page id, header or footer.`);
+      let parentId: string | null = null;
+      if (input.parentId) {
+        const parent = proposalFind(String(input.parentId));
+        if (!parent || parent.region !== region) return fail(`there is no element "${input.parentId}" in that region.`);
+        if (!fitsIn(parent.node.type, def.node.type)) return fail(`a ${def.name} cannot go inside a ${nameOf(parent.node)}.`);
+        parentId = parent.node.id;
+      }
+      const values: Record<string, string> = {};
+      for (const [k, raw] of Object.entries(input.values || {})) {
+        const pr = findProp(def, k);
+        if (!pr) return fail(`${def.name} has no property "${k}".`);
+        const checked = proposalPropValue(pr, raw, options.assets);
+        if (checked.problem) return fail(`${def.name} · ${pr.label} ${checked.problem}.`);
+        values[k] = checked.value!;
+      }
+      const index = Number.isInteger(input.index) ? Math.max(0, input.index as number) : 1e6;
+      const where = region === 'header' ? 'the header' : region === 'footer' ? 'the footer' : `page “${state.pages.find(pg => pg.id === region)!.name}”`;
+      changes.push({ type: 'insert', region, componentId: def.id, parentId, index, values, value: '', before: '', label: `Add ${def.name} to ${where}` });
+      return;
+    }
+    if (input.type !== 'text' && input.type !== 'image' && input.type !== 'property') {
+      return fail(`"${(input as { type?: string }).type}" is not a change a proposal can make (text, image, property or insert).`);
+    }
+    const found = proposalFind(String(input.nodeId || ''));
+    if (!found) return fail(`there is no element "${input.nodeId}" on a page, in the header or in the footer.`);
+    const { node, region } = found;
+    if (input.type === 'text') {
+      if (OWNER_ONLY_CONTENT.has(node.type)) return fail('embedded code cannot be changed by a proposal.');
+      const slots = textSlots(node);
+      const slot = input.slot ? slots.find(sl => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no text "${input.slot || ''}". Its text slots: ${slots.map(proposalSlotKey).join(', ') || 'none'}.`);
+      const raw = String(input.value ?? '');
+      if (raw.length > PROPOSAL_LIMITS.text) return fail('the text is too long.');
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail('changes the same text twice.');
+      seen.add(key);
+      const rich = node.type === 'text' && slot.prop === 'html';
+      changes.push({ type: 'text', region, nodeId: node.id, slot: proposalSlotKey(slot), value: rich ? para(raw) : raw,
+        before: String(slotGet(node, slot) ?? ''), label: `${proposalNodeLabel(node)} · ${slotName(slot)}` });
+      return;
+    }
+    if (input.type === 'image') {
+      const slots = proposalImageSlots(node);
+      const slot = input.slot ? slots.find(sl => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no image "${input.slot || ''}".`);
+      const id = String(input.assetId || '').replace(/^asset:/, '').split('@')[0];
+      if (!options.assets.has(id)) return fail(`names an image this site doesn't have (${id || 'none'}). List images to see what is uploaded.`);
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail('changes the same image twice.');
+      seen.add(key);
+      changes.push({ type: 'image', region, nodeId: node.id, slot: proposalSlotKey(slot), value: 'asset:' + id,
+        before: String(slotGet(node, slot) ?? ''), label: `${proposalNodeLabel(node)} · ${slotName(slot)}` });
+      return;
+    }
+    if (input.type === 'property') {
+      const def = node.use ? findComponent(node.use) : null;
+      if (!def) return fail(`${nameOf(node)} is not a component instance, so it has no properties.`);
+      const pr = findProp(def, String(input.property || ''));
+      if (!pr) return fail(`${def.name} has no property "${input.property}". Its properties: ${(def.props || []).map(x => x.k).join(', ') || 'none'}.`);
+      const checked = proposalPropValue(pr, input.value, options.assets);
+      if (checked.problem) return fail(`${def.name} · ${pr.label} ${checked.problem}.`);
+      const key = `${node.id}|${VAL}${pr.k}`;
+      if (seen.has(key)) return fail('changes the same property twice.');
+      seen.add(key);
+      changes.push({ type: 'property', region, nodeId: node.id, property: pr.k, value: checked.value!,
+        before: instValue(node, def, pr.k), label: `${def.name} · ${pr.label}` });
+    }
+  });
+  return { changes: problems.length ? [] : changes, problems };
+}
+
+const proposalSlotOf = (n: PcNode, key: string, image: boolean) =>
+  (image ? proposalImageSlots(n) : textSlots(n)).find(sl => proposalSlotKey(sl) === key) || null;
+
+/** Whether each change can still be applied: `ok`, or `stale` when what it replaces has changed
+    since the proposal was made, or `missing` when its target is gone. */
+function proposalCheck(changes: ProposalChange[]): ('ok' | 'stale' | 'missing')[] {
+  return changes.map(ch => {
+    if (ch.type === 'insert') {
+      if (!findComponent(ch.componentId || '')) return 'missing';
+      if (ch.parentId) return proposalFind(ch.parentId)?.region === ch.region ? 'ok' : 'missing';
+      return ch.region === 'header' || ch.region === 'footer' || state.pages.some(pg => pg.id === ch.region) ? 'ok' : 'missing';
+    }
+    const found = proposalFind(ch.nodeId || '');
+    if (!found) return 'missing';
+    if (ch.type === 'property') {
+      const def = found.node.use ? findComponent(found.node.use) : null;
+      if (!def || !findProp(def, ch.property || '')) return 'missing';
+      return instValue(found.node, def, ch.property!) === ch.before ? 'ok' : 'stale';
+    }
+    const slot = proposalSlotOf(found.node, ch.slot || '', ch.type === 'image');
+    if (!slot) return 'missing';
+    return String(slotGet(found.node, slot) ?? '') === ch.before ? 'ok' : 'stale';
+  });
+}
+
+/** A region as an assistant reads it: every element with its id, its words and images by slot,
+    a component instance's values, and which components could be placed inside it. Rich text is
+    given as plain text, since that is what a proposal sends back. */
+function proposalOutline(region: string) {
+  const list = region === 'header' ? state.header : region === 'footer' ? state.footer
+    : state.pages.find(pg => pg.id === region)?.tree;
+  if (!list) return null;
+  const comps = components();
+  const out: Record<string, unknown>[] = [];
+  eachNode(list, (n, parent, _i, depth) => {
+    const text: Record<string, string> = {}, images: Record<string, string> = {};
+    if (!OWNER_ONLY_CONTENT.has(n.type)) {
+      for (const sl of textSlots(n)) text[proposalSlotKey(sl)] = n.type === 'text' && sl.prop === 'html'
+        ? proposalWords(String(slotGet(n, sl) || ''), 4000) : String(slotGet(n, sl) ?? '');
+    }
+    for (const sl of proposalImageSlots(n)) images[proposalSlotKey(sl)] = String(slotGet(n, sl) ?? '');
+    const def = n.use ? findComponent(n.use) : null;
+    const fits = comps.filter(cd => fitsIn(n.type, cd.node.type)).map(cd => cd.id);
+    out.push({
+      id: n.id, type: n.type, kind: def ? def.name : labelOf(n.type), depth, parentId: parent ? parent.id : null,
+      ...(Object.keys(text).length ? { text } : {}),
+      ...(Object.keys(images).length ? { images } : {}),
+      ...(def ? { component: { id: def.id, name: def.name, values: Object.fromEntries((def.props || []).map(pr => [pr.k, instValue(n, def, pr.k)])) } } : {}),
+      ...(fits.length ? { canHold: fits } : {}),
+    });
+  });
+  return out;
+}
+
+/** Write the changes. Call inside one edit(), after proposalCheck said every one is ok. Inserts
+    go through instanceInsert, so they follow the same structure rules as dragging one in. */
+function proposalApply(changes: ProposalChange[]) {
+  const placed: string[] = [];
+  for (const ch of changes) {
+    if (ch.type === 'insert') {
+      const parent = ch.parentId ? proposalFind(ch.parentId)!.node : null;
+      // A root insert lands in the region's own tree: point the editor's scope there for the call.
+      const mode = state.ui.mode, cur = state.cur, cedit = state.ui.cedit;
+      if (!parent) {
+        state.ui.mode = ch.region === 'header' || ch.region === 'footer' ? ch.region as any : 'page';
+        if (state.ui.mode === 'page') state.cur = state.pages.findIndex(pg => pg.id === ch.region);
+      }
+      try {
+        const made = instanceInsert(ch.componentId!, parent, ch.index ?? 1e6);
+        if (made) {
+          for (const [k, v] of Object.entries(ch.values || {})) instSet(made, k, v);
+          placed.push(made.id);
+        }
+      } finally {
+        state.ui.mode = mode; state.cur = cur; state.ui.cedit = cedit;
+      }
+      continue;
+    }
+    const found = proposalFind(ch.nodeId!)!;
+    if (ch.type === 'property') { instSet(found.node, ch.property!, ch.value); continue; }
+    slotSet(found.node, proposalSlotOf(found.node, ch.slot!, ch.type === 'image')!, ch.value);
+  }
+  return placed;
+}
+
 export {
+  PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline,
   esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
 };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";
+export type { ProposalChange, ProposalInput };

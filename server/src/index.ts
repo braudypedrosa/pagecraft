@@ -43,6 +43,7 @@ import {
 import { FileHostedPublicationStore } from "./publications.ts";
 import { FilePublicationReviewStore } from "./reviews.ts";
 import { AnalyticsRecorder, FileAnalyticsStore } from "./analytics.ts";
+import { FileAssistantStore } from "./assistants.ts";
 import { FilePublicationScheduleStore } from "./schedules.ts";
 import { runDueSchedules } from "./schedule-runner.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
@@ -538,6 +539,8 @@ const app = createApp({
   reviews,
   libraries,
   analytics,
+  // Phase 7: per-environment, like reviews: a staging token is a staging token.
+  assistants: new FileAssistantStore(join(resolve(publicationRoot), ".assistants")),
   schedules: schedulingEnabled ? schedules : undefined,
   scheduleRunnerKey,
   liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),
