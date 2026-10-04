@@ -17,6 +17,16 @@ def receive_bundle(stream, target, idle_timeout=120):
    if total>300*1024*1024:raise ValueError('Bundle too large')
    output.write(chunk)
 
+def stop_candidate(process,grace=10):
+ """The candidate must never outlive verification. A server that ignores SIGTERM (an
+ exit handler that never returns) once raised TimeoutExpired here and kept running for
+ days against the live file stores, so escalate to SIGKILL instead of raising."""
+ if process.poll() is not None:return
+ process.terminate()
+ try:process.wait(timeout=grace)
+ except subprocess.TimeoutExpired:
+  process.kill();process.wait(timeout=grace)
+
 def main(home='/home/itspbuku'):
  os.umask(0o077)
  HOME=pathlib.Path(home); CONTROL=HOME/'pagecraft-deploy'
@@ -84,7 +94,7 @@ def main(home='/home/itspbuku'):
     except Exception:time.sleep(1)
    else:raise ValueError('Candidate readiness timed out')
   finally:
-   process.terminate();process.wait(timeout=10)
+   stop_candidate(process)
   previous=current.resolve() if current.is_symlink() else None
   # Released template versions are immutable, including versions omitted accidentally.
   oldroot=(previous/'premade-sites') if previous else HOME/'pagecraft-template-library'

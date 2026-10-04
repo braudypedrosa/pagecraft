@@ -152,6 +152,19 @@ class ReceiverTests(unittest.TestCase):
         self.assert_preserved()
         self.assertEqual(self.restarts[-1], self.active)
 
+    def test_candidate_that_ignores_sigterm_is_killed(self):
+        self.process.wait.side_effect = [receive.subprocess.TimeoutExpired('node', 10), 0]
+        self.run_receiver()
+        self.process.terminate.assert_called_once()
+        self.process.kill.assert_called_once()
+
+    def test_candidate_that_already_exited_is_left_alone(self):
+        process = Mock()
+        process.poll.return_value = 0
+        receive.stop_candidate(process)
+        process.terminate.assert_not_called()
+        process.kill.assert_not_called()
+
     def test_verified_release_records_rollback_and_success_marker(self):
         self.run_receiver()
         new = self.current.resolve()
