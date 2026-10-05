@@ -1012,3 +1012,42 @@ test('media usage navigation opens the page without changing content or Undo', a
   a.equal(C.hist.u.length,depth);
   a.equal(JSON.stringify(C.doc()),before);
 });
+
+test('inline editing an instance writes its property, and refuses text the definition owns', async () => {
+  const {window:w,doc}=await boot(), C=w.__CORE;
+  const frame=doc.querySelector('#canvas');
+  if (!frame.contentDocument.querySelector('#s-root')) {
+    const initial=frame.srcdoc;
+    frame.contentDocument.open(); frame.contentDocument.write(initial); frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+    await new Promise(r=>setTimeout(r,20));
+  }
+  // jsdom has no innerText; the editor reads a heading's words through it
+  Object.defineProperty(frame.contentWindow.HTMLElement.prototype,'innerText',{configurable:true,
+    get(){return this.textContent;},set(v){this.textContent=v;}});
+  const original=C.state.meta.components, pg=C.state.pages[C.state.cur];
+  const bound=C.N('heading'); bound.use='qa-inline-prop';
+  const fixed=C.N('heading'); fixed.use='qa-inline-fixed';
+  C.state.meta.components=[...(original||[]),
+    {id:'qa-inline-prop',name:'Inline QA',node:Object.assign(C.N('heading'),{bind:{text:{src:'prop',path:'title'}}}),
+      props:[{k:'title',t:'text',label:'Title',def:'Fallback'}]},
+    {id:'qa-inline-fixed',name:'Fixed QA',node:C.N('heading',{text:'Owned by the definition'}),props:[]}];
+  pg.tree.push(bound,fixed);
+  try {
+    C.state.ui.mode='page'; w.render();
+    w.enterEdit(bound.id);
+    const host=frame.contentDocument.getElementById(bound.id);
+    a.ok(host,'the instance is on the canvas');
+    host.textContent='Typed on the canvas';
+    w.exitEdit();
+    a.equal(bound.vals?.title,'Typed on the canvas','the words land in the property the root reads');
+    a.match(C.buildPage(pg),/>Typed on the canvas</,'so they are what renders, not what snaps back');
+
+    const history=C.hist.u.length;
+    w.enterEdit(fixed.id);
+    a.match(doc.querySelector('#toast').textContent,/belongs to the component/);
+    a.equal(C.hist.u.length,history,'no inline-edit transaction is opened');
+  } finally {
+    pg.tree.splice(pg.tree.indexOf(bound),2);C.state.meta.components=original;C.selSet([]);w.render();
+  }
+});

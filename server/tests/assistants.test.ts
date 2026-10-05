@@ -1,6 +1,6 @@
 import { afterEach, test } from 'vitest';
 import a from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
@@ -9,7 +9,7 @@ import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, hashToken, newToken } from '../src/auth.ts';
 import { MemoryAssetStore } from '../src/assets.ts';
-import { FileAssistantStore } from '../src/assistants.ts';
+import { CLAIM_TTL, FileAssistantStore } from '../src/assistants.ts';
 import { MemoryPublicationReviewStore } from '../src/reviews.ts';
 import { blankDoc } from '../src/render.ts';
 
@@ -171,4 +171,38 @@ test('the editor lists proposals with previews, and each is decided once', async
   a.equal(decided.status, 200);
   a.equal(((await decided.json()) as any).proposal.appliedVersion, 9);
   a.equal((await r.call(`/api/sites/${r.site.id}/proposals/${filed.proposal.id}/decision`, { method: 'POST', json: { status: 'declined' } })).status, 409);
+});
+
+test('the editor claims a proposal before applying it, once, and an abandoned claim can be taken again', async () => {
+  const r = await rig();
+  const mcp = await r.mcpFor(await r.newAssistantToken());
+  const filed = (await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
+    baseVersion: r.site.version, title: 'Add a card', changes: [{ type: 'insert', componentId: 'card', region: r.site.doc.pages[0].id }],
+  } })).structuredContent as any;
+  await mcp.close();
+  const id = filed.proposal.id;
+  const claim = (cookie?: string) => r.call(`/api/sites/${r.site.id}/proposals/${id}/claim`, { method: 'POST', json: {}, ...(cookie ? { cookie } : {}) });
+
+  a.equal((await claim(r.editorCookie)).status, 403, 'owners only');
+  const first = await claim();
+  a.equal(first.status, 200);
+  a.equal(((await first.json()) as any).proposal.status, 'applying');
+  const second = await claim();
+  a.equal(second.status, 409, 'a second tab or a second click is refused');
+  a.match(((await second.json()) as any).detail, /already being applied/);
+  a.equal((await r.call(`/api/sites/${r.site.id}/proposals/0123456789abcdef/claim`, { method: 'POST', json: {} })).status, 404);
+
+  // A tab that closed mid-apply leaves its claim behind; ten minutes on, it can be taken again.
+  await writeFile(join(r.assistants.dir(r.site.id), 'proposals', `${id}.claim`), String(Date.now() - CLAIM_TTL - 1000));
+  a.equal((await claim()).status, 200);
+  a.equal((await claim()).status, 409, 'and the new claim is single use too');
+
+  const decided = await r.call(`/api/sites/${r.site.id}/proposals/${id}/decision`, { method: 'POST', json: { status: 'applied', version: 5 } });
+  a.equal(decided.status, 200, 'applying → applied');
+  a.equal(((await decided.json()) as any).proposal.status, 'applied');
+  a.equal((await claim()).status, 409, 'an applied proposal cannot be claimed again');
+
+  // And the preview of an applied insert does not show it twice.
+  const listed = await (await r.call(`/api/sites/${r.site.id}/proposals`)).json() as any;
+  a.equal(listed.proposals[0].status, 'applied');
 });

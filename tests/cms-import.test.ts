@@ -86,6 +86,26 @@ test('an unmatched ID creates and a matching ID updates', () => {
   a.ok(result.collections, 'a clean plan is applicable');
 });
 
+test('a short row on an update keeps the fields it does not reach, and an empty cell still clears', () => {
+  const { col, title, summary, year, one } = fixture();
+  C.itemSet(col.id, one.id, summary.id, 'Timber and glass');
+  C.itemSet(col.id, one.id, year.id, '2019');
+  const result = plan(col.id, [
+    ['id', 'title', 'summary', 'year'],
+    [one.id, 'Harbour house rebuilt', ''],
+    ['', 'Ridge studio'],
+  ], [IMPORT_ID, title.id, summary.id, year.id]);
+
+  a.equal(result.invalid, 0);
+  const items = result.collections!.find((c) => c.id === col.id)!.items;
+  const updated = items.find((i) => i.id === one.id)!;
+  a.equal(updated.values[title.id], 'Harbour house rebuilt');
+  a.equal(updated.values[summary.id], '', 'a cell that is there and empty clears the value');
+  a.equal(updated.values[year.id], '2019', 'a missing trailing cell leaves the value alone');
+  const created = items.find((i) => i.slug === 'ridge-studio')!;
+  a.equal(created.values[year.id], '', 'a new entry still starts every mapped field empty');
+});
+
 test('blank rows are skipped rather than creating empty entries', () => {
   const { col, title } = fixture();
   const result = plan(col.id, [['title'], ['Ridge studio'], ['   '], ['']], [title.id]);

@@ -16,9 +16,18 @@ const node = (id: string, type: string, props: Record<string, unknown> = {}, ext
 
 let r: Rig;
 let decided: [string, string, number | undefined][];
+let claimed: string[];
 let proposals: WebProposal[];
 const api: WebProposalAdapter = {
   async list() { return structuredClone(proposals); },
+  async claim(id) {
+    // single use, the way the server's claim is
+    if (proposals.find(p => p.id === id)?.status !== 'pending') {
+      throw Object.assign(new Error('claimed'), { status: 409, payload: { detail: 'This proposal is already being applied, in another tab or window.' } });
+    }
+    claimed.push(id);
+    proposals = proposals.map(p => (p.id === id ? { ...p, status: 'applying' as const } : p));
+  },
   async decide(id, status, version) {
     decided.push([id, status, version]);
     proposals = proposals.map(p => (p.id === id ? { ...p, status } : p));
@@ -44,7 +53,7 @@ function proposal(id: string, changes: unknown[], title = 'Clearer welcome'): We
 }
 
 beforeEach(() => {
-  decided = [];
+  decided = []; claimed = [];
   r = rig({ proposals: api, siteDraft: () => ({ siteId: 's1', version: 4 }) });
   seedSite();
   C.hist.u.length = 0;
@@ -86,6 +95,7 @@ test('applying writes every change in one Undo step, saves, and records it as ap
   expect(C.hist.u.length).toBe(1);
   expect(r.names()).toContain('flushDraft');
   expect(r.names().indexOf('appRender')).toBeLessThan(r.names().indexOf('flushDraft'));
+  expect(claimed).toEqual(['aaaaaaaaaaaaaaaa']); // claimed on the server before anything was written
   expect(decided).toEqual([['aaaaaaaaaaaaaaaa', 'applied', 4]]);
   expect(toasts().at(-1)).toMatch(/Applied “Clearer welcome” to the draft/);
   expect(r.$('.pw-detail-head .pw-chip')?.textContent).toBe('Applied');
@@ -122,4 +132,39 @@ test('a link from the assistant opens its proposal, and with none there is a way
   await draw();
   expect(r.$('.pw-empty')?.textContent).toMatch(/No proposals yet/);
   expect(r.$$('a').find(a => a.textContent === 'Set up an assistant')?.getAttribute('href')).toBe('/sites/s1/assistants');
+});
+
+test('a proposal another tab already claimed is refused before anything is written', async () => {
+  await draw();
+  proposals = proposals.map(p => ({ ...p, status: 'applying' as const }));   // claimed elsewhere meanwhile
+  await act(async () => { r.click(button('Apply to draft')!); });
+  await settle();
+  expect(toasts().at(-1)).toMatch(/already being applied/);
+  expect((C.locateAny('h1').node.props as { text: string }).text).toBe('Welcome');
+  expect(C.hist.u.length).toBe(0);
+  expect(decided).toEqual([]);
+  expect(r.$$('.pw-item .pw-chip').map(c => c.textContent)).toEqual(['Being applied']);
+});
+
+test('a plain slot whose text looks like markup reads as that text, not as Empty', async () => {
+  (C.locateAny('h1').node.props as { text: string }).text = '<img src=x onerror=alert(1)>';
+  proposals = [proposal('cccccccccccccccc', [{ type: 'text', nodeId: 'h1', value: 'Safe words' }])];
+  await draw();
+  const now = r.$('.pw-change .pw-diff .pw-text');
+  expect(now?.textContent).toBe('<img src=x onerror=alert(1)>');
+  expect(r.$('.pw-change img')).toBe(null);
+});
+
+test('an insert already in the draft says so, and cannot be applied a second time', async () => {
+  proposals = [proposal('dddddddddddddddd', [{ type: 'insert', componentId: 'card', region: C.state.pages[0].id, values: { title: 'Visit us' } }], 'Add a card')];
+  await draw();
+  await act(async () => { r.click(button('Apply to draft')!); });
+  await settle();
+  expect(decided).toEqual([['dddddddddddddddd', 'applied', 4]]);
+  // The same proposal shown pending again — a stale list in another tab — is blocked by the draft itself.
+  proposals = proposals.map(p => ({ ...p, status: 'pending' as const }));
+  render(null, r.host);
+  await draw();
+  expect(button('Apply to draft')!.disabled).toBe(true);
+  expect(r.$('.pw-change .pw-warn')?.textContent).toBe('Already in the draft — this was applied before');
 });
