@@ -76,6 +76,8 @@ export interface PublicationScheduleStore {
   /** Exclusive claim for one run. False when another runner holds a live claim. */
   claim(id: string, worker: string, now?: Date): Promise<boolean>;
   settle(id: string, worker: string, outcome: ScheduleOutcome, now?: Date): Promise<PublicationSchedule | null>;
+  /** Every schedule of a deleted site, in any state. */
+  removeSite(siteId: string): Promise<void>;
 }
 
 /** A claim older than this belongs to a runner that died mid-run. */
@@ -177,6 +179,13 @@ export class MemoryPublicationScheduleStore implements PublicationScheduleStore 
     this.rows.set(id, next);
     this.claims.delete(id);
     return { ...next };
+  }
+  async removeSite(siteId: string) {
+    for (const row of [...this.rows.values()]) {
+      if (row.siteId !== siteId) continue;
+      this.rows.delete(row.id);
+      this.claims.delete(row.id);
+    }
   }
 }
 
@@ -367,5 +376,13 @@ export class FilePublicationScheduleStore implements PublicationScheduleStore {
     } finally {
       await this.release(id, worker);
     }
+  }
+
+  async removeSite(siteId: string) {
+    for (const row of (await this.all()).filter(row => row.siteId === siteId)) {
+      await rm(this.rowPath(row.id), { force: true });
+      await rm(this.claimPath(row.id), { force: true });
+    }
+    await rm(this.mutexPath(siteId), { force: true });
   }
 }

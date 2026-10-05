@@ -83,6 +83,8 @@ export interface PublicationReviewStore {
   enqueueEmail(input: { to: string; subject: string; body: string }): Promise<ReviewEmailWork>;
   markEmailDelivered(id: string): Promise<boolean>;
   drainEmail(limit?: number): Promise<{ processed: number; pending: number }>;
+  /** A deleted site's assignments, comments and decisions. Notices stay in their inboxes. */
+  removeSite(siteId: string): Promise<void>;
 }
 
 const now = () => new Date().toISOString();
@@ -269,6 +271,15 @@ export class MemoryPublicationReviewStore implements PublicationReviewStore {
     }
     return { processed, pending: this.emailRows.filter(row => !row.deliveredAt).length };
   }
+
+  async removeSite(siteId: string) {
+    for (const row of [...this.assignmentRows.values()]) {
+      if (row.siteId !== siteId) continue;
+      this.assignmentRows.delete(row.id);
+      this.commentRows.delete(row.id);
+      this.decisionRows.delete(row.id);
+    }
+  }
 }
 
 export interface FileReviewState {
@@ -372,6 +383,9 @@ export class FilePublicationReviewStore implements PublicationReviewStore {
   }
   drainEmail(limit?: number) {
     return this.run(() => this.memory.drainEmail(limit));
+  }
+  removeSite(siteId: string) {
+    return this.run(() => this.memory.removeSite(siteId));
   }
 }
 

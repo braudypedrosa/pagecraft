@@ -183,13 +183,42 @@ const immutableAssetName = (name: unknown, id: unknown) => {
 const immutableAssetPath = (row: { id?: unknown; name?: unknown }) =>
   legacyAssetPath({ id: row.id, name: immutableAssetName(row.name, row.id) });
 
+/* The key check runs before every operation and anyone can send a key, so it must not cost a
+   pooled connection: three are easy to queue behind. The configured hash is cached for a minute.
+   A mismatch may mean the key was just rotated, so it refreshes early, but at most once every
+   ten seconds however many wrong keys arrive. */
+const GATEWAY_KEY_TTL_MS = 60_000;
+const GATEWAY_KEY_RETRY_MS = 10_000;
+let gatewayKey = { hash: "", loadedAt: -Infinity };
+let gatewayKeyTriedAt = -Infinity;
+let gatewayKeyLoad: Promise<void> | null = null;
+
+async function configuredKeyHash(mismatch: boolean) {
+  const now = Date.now();
+  if (
+    !gatewayKeyLoad && now - gatewayKeyTriedAt >= GATEWAY_KEY_RETRY_MS &&
+    (mismatch || now - gatewayKey.loadedAt >= GATEWAY_KEY_TTL_MS)
+  ) {
+    gatewayKeyTriedAt = now;
+    gatewayKeyLoad = (async () => {
+      const rows = await sql<{ secret_hash: string }[]>`
+        select secret_hash from gateway_config where id = 'primary'
+      `;
+      gatewayKey = { hash: text(rows[0]?.secret_hash), loadedAt: Date.now() };
+    })().finally(() => {
+      gatewayKeyLoad = null;
+    });
+  }
+  if (gatewayKeyLoad) await gatewayKeyLoad;
+  return gatewayKey.hash;
+}
+
 async function authorised(request: Request) {
   const supplied = request.headers.get("x-pagecraft-gateway-key") || "";
   if (!supplied) return false;
-  const rows = await sql<{ secret_hash: string }[]>`
-    select secret_hash from gateway_config where id = 'primary'
-  `;
-  return !!rows[0] && sameHex(await sha256(supplied), rows[0].secret_hash);
+  const hash = await sha256(supplied);
+  return sameHex(hash, await configuredKeyHash(false)) ||
+    sameHex(hash, await configuredKeyHash(true));
 }
 
 async function dispatch(op: string, args: Record<string, unknown>) {
@@ -343,14 +372,55 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `,
       );
     case "site.delete": {
-      const storedAssets = await sql<Record<string, unknown>[]>`
-        select storage_path from assets
-        where site_id = ${text(args.id)} and storage_path is not null
-      `;
-      const deleted = !!one(
-        await sql`delete from sites where id = ${text(args.id)} returning id`,
-      );
-      if (!deleted) return false;
+      const siteId = text(args.id);
+      /* WordPress connections, signed releases and their publication ledger refer to the site
+         with `on delete restrict`, so a connected site could never be deleted. A deleted site
+         keeps none of that history: it goes in the site's own transaction, children first.
+         Release rows are immutable by trigger, and `session_replication_role = replica` is the
+         one way to remove them without a migration. It is on only for those deletes; it also
+         suspends foreign keys there, which the children-first order satisfies anyway. */
+      const storedAssets = await sql.begin(async (transaction) => {
+        if (
+          !one(
+            await transaction`select id from sites where id = ${siteId} for update`,
+          )
+        ) return null;
+        const stored = await transaction<Record<string, unknown>[]>`
+          select storage_path from assets
+          where site_id = ${siteId} and storage_path is not null
+        `;
+        await transaction`
+          delete from wordpress_webhook_outbox
+          where connection_id in (select id from wordpress_connections where site_id = ${siteId})
+            or release_id in (select id from site_releases where site_id = ${siteId})
+        `;
+        if (
+          one(
+            await transaction`select id from site_releases where site_id = ${siteId} limit 1`,
+          )
+        ) {
+          await transaction`set local session_replication_role = replica`;
+          await transaction`
+            delete from deployments
+            where release_id in (select id from site_releases where site_id = ${siteId})
+          `;
+          await transaction`
+            delete from release_targets
+            where release_id in (select id from site_releases where site_id = ${siteId})
+          `;
+          await transaction`
+            delete from release_assets
+            where release_id in (select id from site_releases where site_id = ${siteId})
+          `;
+          await transaction`delete from site_release_publications where site_id = ${siteId}`;
+          await transaction`delete from site_releases where site_id = ${siteId}`;
+          await transaction`set local session_replication_role = origin`;
+        }
+        await transaction`delete from wordpress_connections where site_id = ${siteId}`;
+        await transaction`delete from sites where id = ${siteId}`;
+        return stored;
+      });
+      if (!storedAssets) return false;
       const paths = storedAssets.map((row) => text(row.storage_path)).filter(
         Boolean,
       );
@@ -2344,13 +2414,13 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               },
             );
           }
-          uploadedPath = assetStoragePath(ownerId, siteId, id, blob.hash, type);
+          const path = assetStoragePath(ownerId, siteId, id, blob.hash, type);
           replacedPath =
-            prior?.storage_path && text(prior.storage_path) !== uploadedPath
+            prior?.storage_path && text(prior.storage_path) !== path
               ? text(prior.storage_path)
               : "";
           const stored = await storage.from(ASSET_BUCKET).upload(
-            uploadedPath,
+            path,
             bytes,
             {
               contentType: type,
@@ -2366,13 +2436,16 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               `stored asset could not be written: ${stored.error.message}`,
             );
           }
+          /* A file that already existed may be a live asset's; only one this call wrote is
+             this call's to remove if the transaction then fails. */
+          if (!stored.error) uploadedPath = path;
           const row = connected
             ? one(
               await transaction<Record<string, unknown>[]>`
               insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
                 storage_path, stored_bytes, original_bytes, content_hash, optimized)
               values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
-                ${uploadedPath}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
+                ${path}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
               on conflict (id) do update set id = assets.id
               where assets.site_id = excluded.site_id
                 and assets.name = excluded.name and assets.type = excluded.type
@@ -2387,7 +2460,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
                 storage_path, stored_bytes, original_bytes, content_hash, optimized)
               values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
-                ${uploadedPath}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
+                ${path}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
               on conflict (id) do update set
                 name = excluded.name, type = excluded.type,
                 w = excluded.w, h = excluded.h, bytes = null,
@@ -2411,6 +2484,8 @@ async function dispatch(op: string, args: Record<string, unknown>) {
            abandoned staging rows without touching durable assets. */
           return row;
         });
+        // Committed: the row owns the file now, whatever happens below.
+        uploadedPath = "";
         if (replacedPath) {
           const removed = await storage.from(ASSET_BUCKET).remove([
             replacedPath,
@@ -2622,6 +2697,10 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       let uploaded = false;
       try {
         return await sql.begin(async (transaction) => {
+          /* The quota is shared with site media, whose uploads fence on the owner's row. Take
+             that row first here too, the same order as site uploads, so neither can deadlock
+             and two uploads cannot both fit into the last free bytes. */
+          await transaction`select id from users where id = ${ownerId} for update`;
           const library = one(
             await transaction`
             select owner_id from libraries where id = ${libraryId}::uuid for update
@@ -3388,14 +3467,34 @@ Deno.serve(async (request) => {
     const error = caught as Error & {
       code?: string;
       status?: number;
-      detail?: string;
+      constraint_name?: string;
     };
     console.error(error);
-    return failure(
-      [error.message, error.detail].filter(Boolean).join(" — ") ||
-        "gateway failure",
-      error.status || (error.code === "23505" ? 409 : 500),
-      error.code,
-    );
+    if (error.status) {
+      return failure(
+        error.message || "gateway failure",
+        error.status,
+        error.code,
+      );
+    }
+    /* Database and driver errors name tables, hosts and row values. They stay in this log;
+       the caller gets a stable code. A unique violation keeps its constraint's name, which is
+       how the server tells a taken slug or host from any other conflict. */
+    if (error.name === "PostgresError") {
+      return error.code === "23505"
+        ? failure(
+          `duplicate key value violates unique constraint "${
+            text(error.constraint_name)
+          }"`,
+          409,
+          "23505",
+        )
+        : failure("database operation failed", 500, "DATABASE_ERROR");
+    }
+    // This function's own refusals are plain errors with a message written for the server.
+    if (Object.getPrototypeOf(error) === Error.prototype && !error.code) {
+      return failure(error.message || "gateway failure", 500);
+    }
+    return failure("gateway failure", 500, "GATEWAY_FAILURE");
   }
 });

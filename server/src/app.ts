@@ -777,6 +777,19 @@ export function createApp(o: Options) {
         : "no such site",
     }, status);
 
+  /* Gateway, database and file-system errors can carry SQL text, row values or server paths.
+     The log keeps them whole and people see the route's own sentence. Errors this server
+     raised itself, such as validation and ordering checks, keep their words. */
+  const shownError = (error: unknown, fallback: string) => {
+    const e = error as { name?: unknown; severity?: unknown; syscall?: unknown };
+    if (
+      error instanceof Error && e.name !== "GatewayError" &&
+      typeof e.severity !== "string" && typeof e.syscall !== "string"
+    ) return error.message;
+    console.error(`${fallback}:`, error);
+    return fallback;
+  };
+
   const bearerConnection = async (c: Context) => {
     if (!o.connected) return null;
     const match = (c.req.header("authorization") || "").match(
@@ -2416,14 +2429,36 @@ export function createApp(o: Options) {
       );
     }
     const memberIds = (await o.auth.members(id)).map((member) => member.userId);
-    // Fail closed: do not report deletion or remove management access while public
-    // routing is still active. A retry is safe if the database delete then fails.
+    /* The database delete goes first and the files follow only once it has succeeded, so a
+       failed delete leaves the site, its inbox and its public address exactly as they were.
+       After it nobody can manage these files, so a cleanup failure is logged, not reported as
+       a failed delete. The publication tombstone goes first so public routing ends first. */
     const remove = async () => {
-      await o.submissions?.removeSite(id);
-      await sitePreviews.remove(id);
-      await o.cloudIntegrations?.connections.put(id, null);
-      await o.publications?.removeSite(id);
-      return o.store.delete(id);
+      if (!await o.store.delete(id)) return false;
+      const cleanup: [string, () => Promise<unknown>][] = [
+        ["publication", async () => o.publications?.removeSite(id)],
+        ["submissions", async () => o.submissions?.removeSite(id)],
+        ["preview", () => sitePreviews.remove(id)],
+        ["integration", async () => o.cloudIntegrations?.connections.put(id, null)],
+        ["analytics", async () => {
+          // Flush first, so nothing buffered in this process is written back afterwards.
+          await o.analytics?.flush();
+          await o.analytics?.store.remove(id);
+        }],
+        ["assistant", async () => o.assistants?.removeSite(id)],
+        ["schedule", async () => o.schedules?.removeSite(id)],
+        ["review", () => reviews.removeSite(id)],
+        ["live review", () => liveReviews.removeSite(id)],
+      ];
+      for (const [kind, run] of cleanup) {
+        await run().catch((error) =>
+          console.error(
+            `deleted site ${id}: ${kind} files could not be removed:`,
+            error,
+          )
+        );
+      }
+      return true;
     };
     const deleted = o.cloudIntegrations
       ? await o.cloudIntegrations.connections.exclusive(id, remove)
@@ -3153,7 +3188,10 @@ export function createApp(o: Options) {
           return c.json({
             error: "publication_pointer_unavailable",
             retryable: true,
-            detail: String((error as Error).message),
+            detail: shownError(
+              error,
+              "The public address could not be updated. Publish again in a moment.",
+            ),
           }, 503);
         }
         return c.json({
@@ -3281,7 +3319,10 @@ export function createApp(o: Options) {
     } catch (error) {
       return c.json({
         error: "publication_write_failed",
-        detail: String((error as Error).message),
+        detail: shownError(
+          error,
+          "The published files could not be written. Publish again in a moment.",
+        ),
       }, 503);
     }
     if (prepareSnapshot) {
@@ -3365,7 +3406,10 @@ export function createApp(o: Options) {
         error: "publication_pointer_unavailable",
         retryable: true,
         publicationId: effective.id,
-        detail: String((error as Error).message),
+        detail: shownError(
+          error,
+          "The public address could not be updated. Publish again in a moment.",
+        ),
       }, 503);
     }
     return c.json({
@@ -4628,7 +4672,9 @@ export function createApp(o: Options) {
         }),
       );
     } catch (error) {
-      return c.json({ error: (error as Error).message }, 422);
+      return c.json({
+        error: shownError(error, "the package could not be built"),
+      }, 422);
     }
   });
 
@@ -4686,7 +4732,9 @@ export function createApp(o: Options) {
           }),
         );
       } catch (error) {
-        return c.json({ error: (error as Error).message }, 422);
+        return c.json({
+          error: shownError(error, "the package could not be built"),
+        }, 422);
       }
     },
   );
@@ -4940,7 +4988,21 @@ export function createApp(o: Options) {
         activeHash: null,
       });
     } catch (error) {
-      return c.json({ error: String((error as Error).message) }, 409);
+      /* The memory store words these for people; Postgres names the unique index instead. */
+      const message = String((error as Error).message);
+      const taken = !/unique|duplicate/i.test(message)
+        ? ""
+        : /one_environment/.test(message)
+        ? `site already has a ${request.environment} connection`
+        : /installation_idx/.test(message)
+        ? "WordPress installation is already paired"
+        : /target_idx/.test(message)
+        ? "WordPress target is already paired"
+        : "";
+      return c.json({
+        error: taken ||
+          shownError(error, "the WordPress connection could not be created"),
+      }, 409);
     }
     const redirect = new URL(request.redirectUri);
     redirect.searchParams.set("code", code);
@@ -5389,7 +5451,9 @@ export function createApp(o: Options) {
         }),
       );
     } catch (error) {
-      return c.json({ error: (error as Error).message }, 422);
+      return c.json({
+        error: shownError(error, "the package could not be built"),
+      }, 422);
     }
   });
 
@@ -5418,7 +5482,9 @@ export function createApp(o: Options) {
         }),
       );
     } catch (error) {
-      return c.json({ error: (error as Error).message }, 422);
+      return c.json({
+        error: shownError(error, "the package could not be built"),
+      }, 422);
     }
   });
 
@@ -5524,7 +5590,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "the current publication is still being finalized",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Try this publish again in a few seconds."),
         }, 503);
       }
     }
@@ -5733,10 +5799,10 @@ export function createApp(o: Options) {
             "Retry this same publish after the in-progress release finishes or its lease expires.",
         }, 409);
       }
-      return c.json(
-        { error: "release sequence could not be reserved", detail },
-        409,
-      );
+      return c.json({
+        error: "release sequence could not be reserved",
+        detail: shownError(error, "Try this publish again in a moment."),
+      }, 409);
     }
     const releaseId = reservation.releaseId;
     const createdAt = reservation.createdAt;
@@ -5807,7 +5873,9 @@ export function createApp(o: Options) {
     try {
       made = await o.connected!.createRelease(proposed);
     } catch (error) {
-      return c.json({ error: String((error as Error).message) }, 409);
+      return c.json({
+        error: shownError(error, "the release could not be recorded"),
+      }, 409);
     }
     if (
       !made.created && (made.release.sourceVersion !== sourceVersion ||
@@ -5841,7 +5909,10 @@ export function createApp(o: Options) {
       return c.json({
         error: "source revision could not be published",
         retryable: true,
-        detail: String((error as Error).message),
+        detail: shownError(
+          error,
+          "The release was built but not published. Publish again to finish.",
+        ),
       }, 503);
     }
     if (!published) {
@@ -5873,7 +5944,7 @@ export function createApp(o: Options) {
          a reported failure that invites the owner to publish different content. */
       reconciliation = {
         status: "pending",
-        detail: String((error as Error).message),
+        detail: shownError(error, "WordPress delivery will be retried."),
       };
       console.error(
         "WordPress release delivery is pending:",
@@ -5933,7 +6004,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "production promotion is pending",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Promotion is retried on the next poll."),
         }, 503);
       }
       connection = await o.connected!.connection(connection.id) || connection;
@@ -5975,7 +6046,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "production promotion is pending",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Promotion is retried on the next poll."),
         }, 503);
       }
     }
@@ -6006,7 +6077,7 @@ export function createApp(o: Options) {
           return c.json({
             error: "hosted publication finalization is pending",
             retryable: true,
-            detail: String((error as Error).message),
+            detail: shownError(error, "Finalization is retried on the next poll."),
           }, 503);
         }
       }
@@ -6034,7 +6105,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "staging delivery is pending",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Delivery is retried on the next poll."),
         }, 503);
       }
       connection = await o.connected!.connection(connection.id) || connection;
@@ -6050,7 +6121,7 @@ export function createApp(o: Options) {
       return c.json({
         error: "release target is not ready",
         retryable: true,
-        detail: String((error as Error).message),
+        detail: shownError(error, "Delivery is retried on the next poll."),
       }, 503);
     }
     const etag =
@@ -6416,7 +6487,7 @@ export function createApp(o: Options) {
          The production pending pointer / desired target is a durable reconciliation job. */
       reconciliation = {
         status: "pending",
-        detail: String((error as Error).message),
+        detail: shownError(error, "The follow-up will be retried."),
       };
       console.error(
         "WordPress deployment follow-up is pending:",

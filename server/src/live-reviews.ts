@@ -68,4 +68,9 @@ export class LiveReviewStore {
     const pin = d.pins.find(p => p.siteId === siteId && p.id === id); if (!pin) throw new Error('missing_pin');
     pin.done = done; pin.resolvedBy = done ? author : undefined; return pin;
   }, true); }
+  /** A deleted site's links, pins, invitations and guests. */
+  removeSite(siteId: string) { return this.transact(d => {
+    d.links = d.links.filter(l => l.siteId !== siteId); d.pins = d.pins.filter(p => p.siteId !== siteId);
+    d.invites = d.invites.filter(i => i.siteId !== siteId); d.guests = d.guests.filter(g => g.siteId !== siteId);
+  }, true); }
 }
