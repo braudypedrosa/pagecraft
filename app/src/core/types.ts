@@ -803,6 +803,9 @@ export interface RenderOpts {
       inlining five copies of every image to save bandwidth on one of them is worse than
       not trying. Off means a single `src` and no `srcset`. */
   variants?: boolean;
+  /** Preview on the editor's canvas, which shares the editor's origin. Otherwise the export's
+      markup, except that an Embed is drawn in a sandboxed frame of its own. */
+  canvas?: boolean;
 }
 
 /** One file the export will write. */

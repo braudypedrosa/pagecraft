@@ -2,7 +2,8 @@ import { beforeEach, test } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
 import {
-  LibraryError, bundleItemCount, extractLibraryBundle, itemHash, planLibraryImport, planLibraryUpdate, remapBundleAssets, sha256,
+  LibraryError, bundleItemCount, extractLibraryBundle, importCustomCode, itemHash, planLibraryImport, planLibraryUpdate,
+  previewLibraryUpdate, remapBundleAssets, sha256,
   type LibraryBundle,
 } from '../app/src/core/libraries';
 import type { ComponentDef, Doc, Node } from '../app/src/core/types';
@@ -254,5 +255,80 @@ test('publishing swaps site image ids for content hashes, and equal content keep
   a.equal(again.hashes['component:card'], published.hashes['component:card']);
   a.equal(bundleItemCount(published), 7, "card, badge, shadow, accent, brand, ink, title");
   a.throws(() => remapBundleAssets(bundleOf(), {}), /No library copy for images: a0123456789ab/);
+});
+
+/* A library can be published by anyone and shared with anyone, so its bundle is untrusted: what
+   becomes markup is cleaned on the way in, and custom code is reported rather than slipped in. */
+const XSS = '<img src=x onerror=alert(1)>';
+const BAD_CLASS = 'x" onmouseover="alert(1)';
+const BAD_STYLE = 'y"><img src=x onerror=alert(1)>';
+function hostileBundle(withEmbed = true) {
+  const doc = blankSite('Hostile');
+  doc.meta.tokens!.classes.push({ id: BAD_CLASS, name: 'Evil class', css: { d: { color: 'red' } } as never });
+  doc.meta.tokens!.text.push({ id: BAD_STYLE, name: 'Evil style', css: { d: {}, t: {}, m: {} } as never });
+  const promo: ComponentDef = {
+    id: 'promo', name: XSS,
+    props: [{ k: 'body', label: 'Body', t: 'rich', def: `<p>Hi</p>${XSS}` }, { k: 'go', label: 'Go', t: 'link', def: 'javascript:alert(1)' }],
+    variants: [{ id: 'loud', name: 'Loud', values: { body: `<p>Loud</p>${XSS}`, go: 'javascript:alert(2)' } }],
+    node: node('r', 'box', {
+      cls: [BAD_CLASS],
+      props: { link: 'javascript:alert(1)', target: '" onmouseover="alert(1)' } as never,
+      children: [
+        node('t', 'text', { props: { html: `<p>Words</p>${XSS}`, ts: BAD_STYLE } as never }),
+        node('c', 'crumbs', { props: { mode: 'manual', items: [{ label: 'Home', href: 'javascript:alert(1)', target: '"x' }, { label: 'Here', href: '' }] } as never }),
+        ...(withEmbed ? [node('e', 'embed', { props: { html: '<script>steal()</script>' } as never })] : []),
+      ],
+    }),
+  };
+  doc.meta.components = [promo];
+  return extractLibraryBundle(doc, [{ kind: 'component', id: 'promo' }], C.SCHEMA);
+}
+
+test('an import cleans what becomes markup: rich text, links, targets and unsafe ids', () => {
+  const bundle = hostileBundle();
+  const plan = planLibraryImport(blankSite('Owner'), bundle, source(1), [{ kind: 'component', id: 'promo' }], { newId });
+  const doc = plan.doc;
+  const cls = doc.meta.tokens!.classes.find(c => c.name === 'Evil class')!;
+  const ts = doc.meta.tokens!.text.find(t => t.name === 'Evil style')!;
+  a.match(cls.id, /^[a-z0-9][a-z0-9_-]*$/);
+  a.match(ts.id, /^[a-z0-9][a-z0-9_-]*$/);
+  a.ok(plan.items.some(i => i.kind === 'class' && i.sourceId === BAD_CLASS && i.how === 'renamed'));
+  const promo = doc.meta.components!.find(c => c.id === 'promo')!;
+  a.deepEqual(promo.node.cls, [cls.id], 'references follow the new id');
+  const [text, crumbs, embed] = promo.node.children;
+  a.equal((text.props as { ts: string }).ts, ts.id);
+  a.equal((text.props as { html: string }).html, '<p>Words</p>');
+  a.equal(promo.props[0].def, '<p>Hi</p>');
+  a.equal(promo.props[1].def, '');
+  a.deepEqual(promo.variants![0].values, { body: '<p>Loud</p>', go: '' });
+  a.deepEqual(promo.node.props, { link: '', target: '' });
+  a.deepEqual((crumbs.props as { items: unknown[] }).items[0], { label: 'Home', href: '', target: '' });
+  a.equal(promo.name, XSS, 'a name stays plain text; everything that shows one escapes it');
+  a.equal((embed.props as { html: string }).html, '<script>steal()</script>', 'an Embed is code by design: reported, not rewritten');
+
+  // and placed on a page, nothing of it can run in the canvas
+  C.restore(doc);
+  C.state.pages[0].tree = [node('p1', 'box', { use: 'promo' })];
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: true });
+  a.doesNotMatch(html, /\son\w+=|<img|javascript:|<script/);
+  a.equal((html.match(/"/g) || []).length % 2, 0, 'no attribute was broken open');
+});
+
+test('an import and an update report the Embeds they would bring, before anything is copied', () => {
+  const bundle = hostileBundle();
+  const chosen = [{ kind: 'component' as const, id: 'promo' }];
+  const expected = [{ kind: 'component', id: 'promo', name: XSS, embeds: 1 }];
+  a.deepEqual(importCustomCode(bundle, chosen), expected);
+  a.deepEqual(planLibraryImport(blankSite('Owner'), bundle, source(1), chosen, { newId }).customCode, expected);
+  a.deepEqual(importCustomCode(hostileBundle(false), chosen), []);
+
+  // Version 1 had no embed; version 2 adds one to an item this site already took.
+  const site = planLibraryImport(blankSite('Owner'), hostileBundle(false), source(1), chosen, { newId }).doc;
+  a.deepEqual(previewLibraryUpdate(site, bundle, source(2)).customCode, expected);
+  const plan = planLibraryUpdate(site, bundle, source(2), {}, { newId });
+  a.deepEqual(plan.customCode, expected);
+  // Taken from upstream, the update is cleaned exactly as an import is.
+  const promo = plan.doc!.meta.components!.find(c => c.id === 'promo')!;
+  a.doesNotMatch(JSON.stringify([promo.props, promo.variants, promo.node.props, promo.node.children[0]]), /<img|javascript:/);
 });
 

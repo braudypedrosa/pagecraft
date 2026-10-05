@@ -678,6 +678,9 @@ test("a Cloud curated site links template images without uploads or quota usage"
   );
   a.equal(preview.status, 200);
   a.match(preview.headers.get("content-security-policy") || "", /script-src/);
+  // Its scripts run in an opaque origin, never with the editor's cookie or API.
+  a.match(preview.headers.get("content-security-policy") || "", /^sandbox allow-scripts;/);
+  a.doesNotMatch(preview.headers.get("content-security-policy") || "", /allow-same-origin/);
   const previewHtml = await preview.text();
   a.match(previewHtml, /scrollbar-width:none/);
   a.match(previewHtml, /Direction is made in the open\./);

@@ -14,6 +14,7 @@ import type { ComponentDef, Doc, Node } from '../app/src/core/types';
 import type { WebLibrary, WebLibraryAdapter, WebLibraryMember, WebLibraryVersionSummary } from '../app/src/host/types';
 import { HostRequestError } from '../app/src/host/transport';
 import { Add } from '../app/src/ui/Add';
+import { L } from '../app/src/ui/ctx';
 import { rig, type Rig } from './ui.setup';
 
 const SITE = 'site-recipient';
@@ -292,6 +293,56 @@ test('an update asks about each conflict, then applies as one undo step', async 
   expect(r.$('.lib-banner')).toBeNull();
   C.undo();
   expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Changed here');
+});
+
+const withEmbed = (title: string) => {
+  const def = card(title);
+  def.node.children.push(node('c3', 'embed', { props: { html: '<script>track()</script>' } as never }));
+  return def;
+};
+
+test('custom code in a library is named and confirmed before an import copies anything', async () => {
+  const shared = fake.sharedWithMe('Agency kit', 'Riley <b>');
+  fake.publishFrom(shared.id, authorDoc([withEmbed('One')]), [{ kind: 'component', id: 'card' }]);
+  let answer = false;
+  const asked: string[][] = [];
+  L.askConfirm = async (title: string, html: string) => { asked.push([title, html]); return answer; };
+  await openTab();
+  await click(r.$$('button.lib-row')[0]);
+  await tick('Card');
+
+  await click(button('Import 1 item'));
+  expect(asked[0][0]).toBe('This library includes custom code');
+  expect(asked[0][1]).toContain('<b>Card</b> (1 embed)');
+  expect(asked[0][1]).toContain('Riley &lt;b&gt;');
+  expect(fake.sent.copied).toEqual([]);
+  expect(C.findComponent('card')).toBeFalsy();
+
+  answer = true;
+  await click(button('Import 1 item'));
+  expect(C.findComponent('card')).toBeTruthy();
+  expect(fake.sent.copied).toEqual([['aauthorimage1']]);
+});
+
+test('an update that would bring custom code asks first, and declining changes nothing', async () => {
+  const lib = await fake.adapter.create('Brand kit');
+  fake.publishFrom(lib.id, authorDoc([card('One')]), [{ kind: 'component', id: 'card' }]);
+  const asked: string[] = [];
+  L.askConfirm = async (title: string) => { asked.push(title); return false; };
+  await openLibrary('Brand kit');
+  await tick('Card');
+  await click(button('Import 1 item'));
+  expect(asked, 'no custom code, no question').toEqual([]);
+  expect(C.findComponent('card')).toBeTruthy();
+
+  fake.publishFrom(lib.id, authorDoc([withEmbed('Two')]), [{ kind: 'component', id: 'card' }]);
+  await click(r.$('.lib-back'));
+  await click(r.$$('button.lib-row')[0]);
+  await click(button('Review update'));
+  await click(r.$$('button').find(b => /Apply update/.test(b.textContent || '')));
+  expect(asked).toEqual(['This library includes custom code']);
+  expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('One');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(1);
 });
 
 test('components imported from a library say where they came from', async () => {

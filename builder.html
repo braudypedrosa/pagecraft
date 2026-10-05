@@ -3048,9 +3048,13 @@ const assetsUsedIn = str => [...new Set([...str.matchAll(A_RE)].map(m => m[1]))]
 
 /* =============================================================== canvas */
 let cwin = null, cdoc = null;
+/* A fresh nonce per canvas: the only scripts that run in it are the ones the editor injects with
+   it (`runPreviewRuntime`). It is never written into the canvas markup. */
+let canvasNonce = '';
 
 function mountCanvas() {
   const f = $('#canvas');
+  canvasNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
   return new Promise(res => {
     f.onload = () => {
       cwin = f.contentWindow; cdoc = f.contentDocument;
@@ -3061,6 +3065,7 @@ function mountCanvas() {
       bindCanvas(); res();
     };
     f.srcdoc = '<!doctype html><html><head><meta charset="utf-8">'
+      + `<meta http-equiv="Content-Security-Policy" content="${canvasCsp(canvasNonce)}">`
       + '<link id="s-gf" rel="stylesheet" href="">'
       + '<style id="s-fonts"></style><style id="s-css"></style>'
       + '</head><body><div id="s-root"></div><div id="s-hud"></div></body></html>';
@@ -3194,6 +3199,7 @@ function runPreviewRuntime(html, editing = false) {
     scripts.forEach(([used, source]) => {
       if (!used || (editing && source !== SLIDE_JS)) return;
       const script = cdoc.createElement('script');
+      script.nonce = canvasNonce;
       script.textContent = previewScriptBody(source);
       cdoc.body.appendChild(script);
       script.remove();
@@ -3231,7 +3237,7 @@ function paint() {
        bindings unresolved — every bound heading showing the literal it stands in for —
        which is the one page where the preview matters most. Edit mode passed it all
        along; preview was the branch that forgot. */
-    if (!editing) { html += renderList(nodes, { edit: false, ...pageCtx() }); continue; }
+    if (!editing) { html += renderList(nodes, { edit: false, canvas: true, ...pageCtx() }); continue; }
     if (!nodes.length && !live) continue;                 // nothing to show as context
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })
@@ -3246,8 +3252,8 @@ function paint() {
       + (live
         ? (R.kind === 'main'
           ? `<span class="s-lockchip">${svg('page', 11)} Page content</span>`
-          : `<span class="s-lockchip on">${svg('globe', 11)} Editing ${R.label.toLowerCase()}</span>`)
-        : `<span class="s-lockchip">${svg(R.kind === 'main' ? 'page' : 'globe', 11)} ${R.label} ${svg('lock', 10)}</span>`
+          : `<span class="s-lockchip on">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())}</span>`)
+        : `<span class="s-lockchip">${svg(R.kind === 'main' ? 'page' : 'globe', 11)} ${esc(R.label)} ${svg('lock', 10)}</span>`
         + `<button class="s-lockopen" data-goto="${modeFor(R.kind)}">Edit ${R.kind === 'main' ? 'page' : R.kind} ${svg('edit', 10)}</button>`)
       + `</div><div class="s-rbody">${inner}</div></div>`;
   }
@@ -3707,6 +3713,14 @@ function bindCanvas() {
      scrolls it is pointing at whatever moved into that spot */
   cwin.addEventListener('scroll', () => { closeCtx(); positionHud(); if (editing.on) placeRT(); }, { passive: true });
   cwin.addEventListener('resize', () => { positionHud(); if (editing.on) placeRT(); });
+  /* A Preview embed is a sandboxed frame with an opaque origin, so it cannot be measured from
+     here. It reports its height, and that number is the only thing read from it. */
+  cwin.addEventListener('message', e => {
+    const h = e.data && e.data.pagecraftEmbedHeight;
+    if (typeof h !== 'number' || !(h >= 0)) return;
+    const frame = $$('iframe[data-embed-frame]', cdoc).find(f => f.contentWindow === e.source);
+    if (frame) frame.style.height = Math.min(Math.ceil(h), 20000) + 'px';
+  });
   /* Right-click selects what is under the pointer if it is not already selected — a
      menu that acts on something you cannot see selected is how you delete the wrong
      thing — then opens on the element, in outer-document coordinates. */
