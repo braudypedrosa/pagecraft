@@ -5,7 +5,7 @@
 import { afterEach, test, vi } from 'vitest';
 import a from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -96,7 +96,11 @@ async function rig() {
     submissions: (await files.submissions.list(siteId)).length > 0,
     preview: !!(await files.sitePreviews.get(siteId)),
     integration: !!(await files.connections.get(siteId)),
-    analytics: existsSync(files.analytics.dir(siteId)),
+    /* Deleting analytics keeps a small settings.json (off, with a reset time) so that counts
+       another process still holds can't come back; anything beyond it is a leftover. */
+    analytics: existsSync(files.analytics.dir(siteId))
+      && (readdirSync(files.analytics.dir(siteId)).some(name => name !== 'settings.json')
+        || (await files.analytics.settings(siteId)).enabled),
     assistant: existsSync(files.assistants.dir(siteId)),
     schedule: (await new FilePublicationScheduleStore(root).forSite(siteId)).length > 0,
     review: (await new FilePublicationReviewStore(root).assignmentsForSite(siteId)).length > 0,

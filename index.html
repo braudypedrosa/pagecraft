@@ -2983,6 +2983,206 @@ var ANIM_JS = `/**
 
 `;
 
+// app/src/core/safe-html.ts
+var safeUrl = (u) => {
+  const v = String(u == null ? "" : u).trim();
+  if (!v) return "";
+  if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
+  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
+  if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
+  return "";
+};
+var escAttr = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+var NAMED = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: "\xA0",
+  colon: ":",
+  Tab: "	",
+  NewLine: "\n",
+  sol: "/",
+  lpar: "(",
+  rpar: ")",
+  period: ".",
+  comma: ",",
+  semi: ";",
+  equals: "=",
+  excl: "!",
+  num: "#",
+  quest: "?",
+  plus: "+"
+};
+var decode = (s) => s.replace(/&(?:#(\d+)|#x([0-9a-f]+));?|&([A-Za-z]+);/gi, (whole, dec, hex, name) => {
+  if (name) return Object.prototype.hasOwnProperty.call(NAMED, name) ? NAMED[name] : whole;
+  const cp = dec ? parseInt(dec, 10) : parseInt(hex, 16);
+  return cp > 0 && cp <= 1114111 && !(cp >= 55296 && cp <= 57343) ? String.fromCodePoint(cp) : "\uFFFD";
+});
+var urlProbe = (raw) => decode(raw).replace(/[\u0000- \u007f]/g, "").toLowerCase();
+var ws = (c) => c === " " || c === "	" || c === "\n" || c === "\r" || c === "\f";
+function startTag(src, at) {
+  let i = at + 1, name = "";
+  while (i < src.length && !ws(src[i]) && src[i] !== "/" && src[i] !== ">") name += src[i++];
+  const attrs = [];
+  let selfClosing = false;
+  while (i < src.length) {
+    const c = src[i];
+    if (ws(c)) {
+      i++;
+      continue;
+    }
+    if (c === ">") return { name, attrs, selfClosing, end: i + 1 };
+    if (c === "/") {
+      i++;
+      selfClosing = src[i] === ">";
+      continue;
+    }
+    selfClosing = false;
+    let an = src[i++];
+    while (i < src.length && !ws(src[i]) && src[i] !== "/" && src[i] !== ">" && src[i] !== "=") an += src[i++];
+    while (i < src.length && ws(src[i])) i++;
+    if (src[i] !== "=") {
+      attrs.push({ name: an, value: null });
+      continue;
+    }
+    i++;
+    while (i < src.length && ws(src[i])) i++;
+    const q = src[i];
+    if (q === '"' || q === "'") {
+      const close = src.indexOf(q, i + 1);
+      if (close < 0) return null;
+      attrs.push({ name: an, value: decode(src.slice(i + 1, close)) });
+      i = close + 1;
+      continue;
+    }
+    let v = "";
+    while (i < src.length && !ws(src[i]) && src[i] !== ">") v += src[i++];
+    attrs.push({ name: an, value: decode(v) });
+  }
+  return null;
+}
+function stripScripts(html) {
+  let stripped = 0;
+  const src = String(html == null ? "" : html).replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => {
+    stripped++;
+    return "";
+  }).replace(/<script\b[^>]*\/?>/gi, () => {
+    stripped++;
+    return "";
+  });
+  const tagAt = /<[a-z]/gi;
+  let out = "", at = 0;
+  for (; ; ) {
+    tagAt.lastIndex = at;
+    const hit = tagAt.exec(src);
+    if (!hit) {
+      out += src.slice(at);
+      break;
+    }
+    out += src.slice(at, hit.index);
+    const t = startTag(src, hit.index);
+    if (!t) break;
+    at = t.end;
+    if (t.name.toLowerCase() === "script") {
+      stripped++;
+      continue;
+    }
+    const kept = t.attrs.filter((a) => {
+      const name = a.name.toLowerCase();
+      const value = a.value == null ? "" : urlProbe(a.value);
+      const bad = !/^[a-z_:][-a-z0-9_:.]*$/.test(name) || name.startsWith("on") || name === "srcdoc" || /(java|vb)script:/.test(value) || name === "attributename" && value.startsWith("on");
+      if (bad) stripped++;
+      return !bad;
+    });
+    out += `<${t.name}${kept.map((a) => " " + a.name + (a.value == null ? "" : `="${escAttr(a.value)}"`)).join("")}${t.selfClosing ? "/" : ""}>`;
+  }
+  return { html: out, stripped };
+}
+var RICH_TAGS = /* @__PURE__ */ new Set(["p", "br", "h2", "h3", "blockquote", "ul", "ol", "li", "b", "strong", "i", "em", "u", "s", "strike", "a", "div"]);
+var DROP_WITH_TEXT = /* @__PURE__ */ new Set(["script", "style", "textarea", "option", "noscript", "template", "title", "iframe", "xmp", "noembed", "noframes"]);
+var COMMENT_OPEN = String.fromCharCode(60, 33, 45, 45);
+var CLOSES_P = /* @__PURE__ */ new Set(["p", "div", "h2", "h3", "ul", "ol", "blockquote"]);
+var richHref = (v) => {
+  const probe = urlProbe(v);
+  if (/^(https?:|mailto:|tel:)/.test(probe)) return true;
+  return !probe.startsWith("//") && !/^[^/?#]*:/.test(probe);
+};
+function cleanRich(html) {
+  const src = String(html == null ? "" : html);
+  const lower = src.toLowerCase();
+  const endTag = /<\/([a-z][^\s/>]*)[^>]*>/iy;
+  const open = [];
+  const close = (k) => {
+    let s = "";
+    while (open.length > k) s += `</${open.pop()}>`;
+    return s;
+  };
+  let out = "", at = 0;
+  while (at < src.length) {
+    const lt = src.indexOf("<", at);
+    if (lt < 0) {
+      out += src.slice(at).replace(/>/g, "&gt;");
+      break;
+    }
+    out += src.slice(at, lt).replace(/>/g, "&gt;");
+    const next = src[lt + 1] || "";
+    if (src.startsWith(COMMENT_OPEN, lt)) {
+      const end = src.indexOf("-->", lt + 2);
+      at = end < 0 ? src.length : end + 3;
+      continue;
+    }
+    if (next === "!" || next === "?" || next === "/" && !/[a-z]/i.test(src[lt + 2] || "")) {
+      const end = src.indexOf(">", lt);
+      at = end < 0 ? src.length : end + 1;
+      continue;
+    }
+    if (next === "/") {
+      endTag.lastIndex = lt;
+      const m = endTag.exec(src);
+      if (!m) break;
+      const k = open.lastIndexOf(m[1].toLowerCase());
+      if (k >= 0) out += close(k);
+      at = lt + m[0].length;
+      continue;
+    }
+    if (!/[a-z]/i.test(next)) {
+      out += "&lt;";
+      at = lt + 1;
+      continue;
+    }
+    const t = startTag(src, lt);
+    if (!t) break;
+    const name = t.name.toLowerCase();
+    at = t.end;
+    if (DROP_WITH_TEXT.has(name)) {
+      const shut = lower.indexOf(`</${name}`, at);
+      const end = shut < 0 ? -1 : src.indexOf(">", shut);
+      at = end < 0 ? src.length : end + 1;
+      continue;
+    }
+    if (!RICH_TAGS.has(name)) continue;
+    if (name === "br") {
+      out += "<br>";
+      continue;
+    }
+    if (CLOSES_P.has(name) && open.includes("p")) out += close(open.lastIndexOf("p"));
+    if (name === "li") {
+      for (let k = open.length - 1; k >= 0 && !["ul", "ol", "blockquote", "h2", "h3"].includes(open[k]); k--) {
+        if (open[k] === "li") {
+          out += close(k);
+          break;
+        }
+      }
+    }
+    const href = name === "a" ? t.attrs.find((a) => a.name.toLowerCase() === "href" && a.value != null) : null;
+    out += href && richHref(href.value) ? `<a href="${escAttr(href.value)}">` : `<${name}>`;
+    open.push(name);
+  }
+  return out + close(0);
+}
+
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
 var tokenPattern = () => /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
@@ -3067,14 +3267,6 @@ function replaceMediaReferences(document, sourceId, replacementId) {
 var _seq = 0;
 var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 var esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-var safeUrl = (u) => {
-  const v = String(u == null ? "" : u).trim();
-  if (!v) return "";
-  if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
-  if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
-  return "";
-};
 var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs";
 var WORDPRESS_CONTENT_REFERENCE_PREFIX = "pagecraft:wordpress-content:";
 var WORDPRESS_CONTENT_TOKEN_PREFIX = "%%PAGECRAFT_WP_CONTENT:";
@@ -4965,7 +5157,9 @@ var holds = (pt, t) => {
   return lvl(b) > lvl(pt) || (DEF[pt] || {}).alsoHolds?.includes(b) === true;
 };
 var fitsIn = (pt, t) => pt === null || holds(pt, t);
+var nowhere = (parentNode) => !parentNode && state.ui.mode === "component";
 function insert(type, parentNode, index) {
+  if (nowhere(parentNode)) return null;
   const leaf = makeFor(type);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();
@@ -4974,7 +5168,7 @@ function insert(type, parentNode, index) {
 }
 function moveNode(id, parentNode, index) {
   const h = locate(id);
-  if (!h) return;
+  if (!h || nowhere(parentNode)) return;
   if (parentNode && (parentNode.id === id || locate(parentNode.id, [h.node]))) return;
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
@@ -5014,6 +5208,7 @@ function menuFor(ids) {
   return out;
 }
 function moveMany(ids, parentNode, index) {
+  if (nowhere(parentNode)) return 0;
   const order = topMost(selOrder(ids));
   let at = Math.max(0, index), moved = 0;
   order.forEach((id) => {
@@ -5080,7 +5275,7 @@ function pageDup(i) {
   c.id = uid();
   c.tree.forEach(reid);
   c.name += " copy";
-  c.slug = slugify(c.slug + "-copy");
+  c.slug = uniqueId(c.slug + "-copy", state.pages.map((p) => p.slug));
   state.pages.splice(i + 1, 0, c);
   state.cur = i + 1;
   selSet([]);
@@ -5130,18 +5325,18 @@ function delMany(ids) {
   selSet(fallback ? [fallback] : []);
   return top.length;
 }
-function applyCols(row, ws) {
+function applyCols(row, ws2) {
   const kids = row.children;
-  while (kids.length < ws.length) kids.push(N("column"));
-  if (kids.length > ws.length) {
-    const dropped = kids.splice(ws.length);
+  while (kids.length < ws2.length) kids.push(N("column"));
+  if (kids.length > ws2.length) {
+    const dropped = kids.splice(ws2.length);
     dropped.forEach((d) => {
       kids[kids.length - 1].children.push(...d.children);
     });
   }
   kids.forEach((k, i) => {
     k.css.d = k.css.d || {};
-    k.css.d["flex-grow"] = String(+ws[i].toFixed(4));
+    k.css.d["flex-grow"] = String(+ws2[i].toFixed(4));
   });
 }
 var MIN_COL = 4;
@@ -5178,24 +5373,24 @@ function rowRatiosAt(row, b) {
   });
 }
 function resizeCols(row, i, pct, b = "d") {
-  const ws = rowRatiosAt(row, b);
-  if (i < 0 || i + 1 >= ws.length) return null;
-  const total = ws.reduce((a2, x) => a2 + x, 0);
+  const ws2 = rowRatiosAt(row, b);
+  if (i < 0 || i + 1 >= ws2.length) return null;
+  const total = ws2.reduce((a2, x) => a2 + x, 0);
   if (!total) return null;
-  const min = total * (MIN_COL / 100), pair = ws[i] + ws[i + 1];
+  const min = total * (MIN_COL / 100), pair = ws2[i] + ws2[i + 1];
   if (pair < min * 2) return null;
-  let a = ws[i] + pct / 100 * total;
+  let a = ws2[i] + pct / 100 * total;
   a = Math.max(min, Math.min(pair - min, a));
-  const out = ws.slice();
+  const out = ws2.slice();
   out[i] = a;
   out[i + 1] = pair - a;
   return out;
 }
-function applyColsAt(row, ws, b = "d") {
+function applyColsAt(row, ws2, b = "d") {
   (row.children || []).forEach((k, i) => {
-    if (ws[i] === void 0) return;
+    if (ws2[i] === void 0) return;
     k.css[b] = k.css[b] || {};
-    k.css[b]["flex-grow"] = String(+ws[i].toFixed(4));
+    k.css[b]["flex-grow"] = String(+ws2[i].toFixed(4));
   });
 }
 var RESERVED = ["text", "bg", "brand"];
@@ -5452,6 +5647,13 @@ function classDelete(id) {
     ["d", "t", "m"].forEach((b) => {
       x.css[b] = { ...c.css && c.css[b] || {}, ...x.css[b] || {} };
     });
+    STATES.forEach(([k]) => {
+      const from = c.st && c.st[k];
+      if (!from) return;
+      const own = x.st && x.st[k] || EMPTY_CSS;
+      x.st = x.st || {};
+      x.st[k] = { d: { ...from.d, ...own.d }, t: { ...from.t, ...own.t }, m: { ...from.m, ...own.m } };
+    });
     classRemove(x, id);
   }));
   ensureTokens().classes = classes().filter((x) => x.id !== id);
@@ -5535,14 +5737,23 @@ function styleDelete(id) {
   }));
   ensureTokens().text = styles().filter((t) => t.id !== id);
 }
+function eachDecls(fn) {
+  const visit = (o) => [o.css, ...STATES.map(([k]) => o.st && o.st[k])].forEach((c) => {
+    if (c) ["d", "t", "m"].forEach((b) => {
+      if (c[b]) fn(c[b]);
+    });
+  });
+  allTrees().forEach((l) => eachNode(l, visit));
+  styles().forEach(visit);
+  classes().forEach(visit);
+}
 function colorDelete(id) {
   if (RESERVED.includes(id)) return false;
   const lit = resolveColor(cvar(id)) || "transparent";
-  const swap2 = (o) => {
-    for (const k in o) if (refId(o[k]) === id) o[k] = lit;
-  };
-  allTrees().forEach((l) => eachNode(l, (x) => ["d", "t", "m"].forEach((b) => swap2(x.css[b] || {}))));
-  styles().forEach((t) => ["d", "t", "m"].forEach((b) => swap2(t.css && t.css[b] || {})));
+  const ref = cvar(id);
+  eachDecls((o) => {
+    for (const k in o) if (String(o[k]).includes(ref)) o[k] = String(o[k]).split(ref).join(lit);
+  });
   ensureTokens().colors = colors().filter((c) => c.id !== id);
   return true;
 }
@@ -5555,11 +5766,10 @@ function colorAdd(name, value) {
 }
 var colorUsage = (id) => {
   let k = 0;
-  const hits = (o) => {
-    for (const p in o) if (refId(o[p]) === id) k++;
-  };
-  allTrees().forEach((l) => eachNode(l, (x) => ["d", "t", "m"].forEach((b) => hits(x.css[b] || {}))));
-  styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
+  const ref = cvar(id);
+  eachDecls((o) => {
+    for (const p in o) if (String(o[p]).includes(ref)) k++;
+  });
   return k;
 };
 var A_RE = /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
@@ -6273,7 +6483,7 @@ function pasteNode(intoId) {
 }
 function dropTree(fresh, intoId) {
   const place = (list2, index, parentType) => {
-    if (!fitsIn(parentType, fresh.type)) return false;
+    if (!fitsIn(parentType, fresh.type) || nowhere(parentType)) return false;
     list2.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
@@ -6812,15 +7022,16 @@ function guessBindings(slots, col) {
   slots.forEach((s) => {
     if (s.current) out[key(s)] = s.current;
   });
+  const fits = (s, f) => s.ctl === "rich" ? f.type === "rich" : !s.fieldTypes || s.fieldTypes.includes(f.type);
   slots.filter(free).forEach((s) => {
-    const f = left.find((x) => (!s.fieldTypes || s.fieldTypes.includes(x.type)) && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
+    const f = left.find((x) => fits(s, x) && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
     if (f) take(s, f);
   });
   const first = (pred) => slots.filter(free).find(pred);
   const rules = [
     [(s) => s.key === "src", () => byType("image")],
     [(s) => s.key === "text" && s.type === "heading", () => title && left.includes(title) ? title : null],
-    [(s) => s.key === "html", () => byType("rich") || left.find((f) => f.type === "text" && f !== title)],
+    [(s) => s.key === "html", () => byType("rich")],
     [(s) => s.key === "link" && s.type === "button", () => byType("link")],
     [(s) => s.key === "text" && s.type === "button", () => left.find((f) => f.type === "text" && f !== title)]
   ];
@@ -6899,6 +7110,14 @@ var fieldValue = (col, item, path, depth = 0) => {
   const hit = to ? findItem(to, v) : null;
   return hit ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
 };
+var fieldAt = (col, path, depth = 0) => {
+  if (!col) return null;
+  const bits = String(path || "").split(".");
+  const f = findField(col, bits[0]);
+  if (!f || bits.length === 1) return f || null;
+  if (f.type !== "ref" || !f.ref || depth >= REF_DEPTH) return null;
+  return fieldAt(findCollection(f.ref), bits.slice(1).join("."), depth + 1);
+};
 function fieldPaths(col) {
   if (!col) return [];
   const out = [];
@@ -6914,16 +7133,23 @@ function fieldPaths(col) {
   }
   return out;
 }
+var richProp = (type, k) => (((DEF[type] || {}).controls || {}).content || []).some((c) => c.t === "rich" && c.k === k);
+var cmsRich = (v, f) => f && f.type === "rich" ? cleanRich(v) : para(v);
 function boundProps(n, col, item, inst, def) {
   if (!n.bind) return n.props;
   const out = { ...n.props };
   for (const [k, b] of Object.entries(n.bind)) {
+    const rich = richProp(n.type, k);
     if (b.src === "prop") {
-      if (inst) out[k] = instValue(inst, def || null, b.path, col, item);
+      if (!inst) continue;
+      const v2 = instValue(inst, def || null, b.path, col, item);
+      const field = col ? boundField(inst, VAL + b.path) : "";
+      out[k] = !rich ? v2 : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
       continue;
     }
     if (b.src !== "field" || !col || !item) continue;
-    out[k] = fieldValue(col, item, b.path);
+    const v = fieldValue(col, item, b.path);
+    out[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : v;
   }
   return out;
 }
@@ -6995,6 +7221,7 @@ function blockInsert(id, parentNode, index = 0) {
   if (!b) return null;
   const fresh = reid(clone(b.node));
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -7187,9 +7414,8 @@ function componentFromNode(nodeId, name) {
   h.node.css = { d: {}, t: {}, m: {} };
   h.node.cls = [];
   h.node.hide = {};
-  h.node.adv = { htmlId: "", cls: "", css: "" };
+  h.node.adv = { htmlId: h.node.adv?.htmlId || "", cls: h.node.adv?.cls || "", css: "" };
   delete h.node.st;
-  delete h.node.anim;
   delete h.node.bind;
   delete h.node.src;
   return id;
@@ -7216,6 +7442,7 @@ function instanceInsert(cid, parentNode, index = 0) {
   delete fresh.st;
   delete fresh.anim;
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -7230,6 +7457,10 @@ function instances(cid) {
   scan(state.header, "header");
   scan(state.footer, "footer");
   state.pages.forEach((p, i) => scan(p.tree, "page:" + i));
+  components().forEach((c) => {
+    if (c.id !== cid) scan([c.node], "component:" + c.id);
+  });
+  blocks().forEach((b) => scan([b.node], "block:" + b.id));
   return out;
 }
 var componentUsage = (cid) => instances(cid).length;
@@ -7285,17 +7516,71 @@ function componentDelete(cid) {
   for (const { node } of instances(cid)) {
     const copy = reid(clone(def.node));
     const kept = node.children || [];
+    const placed = /* @__PURE__ */ new Set();
+    const settle = (x) => {
+      if (x !== copy && x.use) return;
+      Object.entries(x.bind || {}).forEach(([key, b]) => {
+        if (b.src !== "prop") return;
+        const field = boundField(node, VAL + b.path);
+        x.props[key] = instValue(node, def, b.path);
+        bindSet(x, key, field ? bindField(field) : null);
+      });
+      const c = x.showIf;
+      if (c && c.bind && c.bind.src === "prop") {
+        const field = boundField(node, VAL + c.bind.path);
+        if (field) condSet(x, { ...c, bind: { src: "field", path: field } });
+        else {
+          if (!showsNode(x, null, null, node, def)) x.hide = { d: true, t: true, m: true };
+          delete x.showIf;
+        }
+      }
+      const filled = x.slot && DEF[x.type].level < 4 ? slotKids(node, def, x.slot) : [];
+      delete x.slot;
+      if (filled.length) {
+        filled.forEach((k) => placed.add(k));
+        x.children = filled;
+        return;
+      }
+      (x.children || []).forEach(settle);
+    };
+    settle(copy);
+    const over = (a, b) => ({ d: { ...a?.d, ...b?.d }, t: { ...a?.t, ...b?.t }, m: { ...a?.m, ...b?.m } });
+    const st = {};
+    STATES.forEach(([k]) => {
+      if (copy.st?.[k] || node.st?.[k]) st[k] = over(copy.st?.[k], node.st?.[k]);
+    });
+    const ts = node.props.ts && findStyle(node.props.ts) ? node.props.ts : "";
+    const hide = node.hide || {};
     node.type = copy.type;
     node.props = copy.props;
+    if (ts) node.props.ts = ts;
     node.children = copy.children;
     node.bind = copy.bind;
+    node.css = over(copy.css, node.css);
+    if (Object.keys(st).length) node.st = st;
+    else delete node.st;
+    node.cls = [.../* @__PURE__ */ new Set([...node.cls || [], ...copy.cls || []])];
+    node.hide = { ...copy.hide };
+    ["d", "t", "m"].forEach((b) => {
+      if (hide[b]) node.hide[b] = true;
+    });
+    node.adv = {
+      htmlId: node.adv?.htmlId || "",
+      cls: node.adv?.cls || "",
+      css: [copy.adv?.css, node.adv?.css].filter(Boolean).join("\n")
+    };
+    const src = node.src || copy.src;
+    if (src) node.src = src;
+    else delete node.src;
+    if (copy.showIf) node.showIf = copy.showIf;
     delete node.use;
     delete node.vals;
     delete node.variant;
-    if (kept.length) (node.children = node.children || []).push(...kept.map((c) => {
+    const left = kept.filter((c) => !placed.has(c));
+    if (left.length) (node.children = node.children || []).push(...left);
+    kept.forEach((c) => {
       delete c.slot;
-      return c;
-    }));
+    });
     n++;
   }
   state.meta.components = components().filter((c) => c.id !== cid);
@@ -8203,6 +8488,7 @@ function patternInsert(pid, parentNode, index = 0) {
   if (!p) return null;
   const node = p.build();
   if (parentNode === void 0) return dropTree(node, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -9424,20 +9710,6 @@ function para(str) {
   if (!t) return "";
   return t.split(/\n{2,}/).map((b) => `<p>${esc(b).replace(/\n/g, "<br>")}</p>`).join("");
 }
-function stripScripts(html) {
-  let stripped = 0;
-  const out = String(html == null ? "" : html).replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => {
-    stripped++;
-    return "";
-  }).replace(/<script\b[^>]*\/?>/gi, () => {
-    stripped++;
-    return "";
-  }).replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, () => {
-    stripped++;
-    return "";
-  });
-  return { html: out, stripped };
-}
 function demoteMainTags(html) {
   const source = String(html == null ? "" : html);
   const lower = source.toLowerCase();
@@ -9523,10 +9795,10 @@ function renderNode(n, o) {
   if (n.use && !(o.inst && o.inst === n)) {
     const cd = findComponent(n.use);
     if (cd && (o.stack || []).includes(n.use)) {
-      return o.edit ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">${esc(cd.name)} contains itself</div>` : "";
+      return o.edit ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">${esc(cd.name)} contains itself</div>` : "";
     }
     if (!cd) {
-      return o.edit ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
+      return o.edit ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
     }
     return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...o.stack || [], n.use] });
   }
@@ -9537,11 +9809,11 @@ function renderNode(n, o) {
   const managed = nodeClasses(self).map((c) => " c-" + c.id).join("") + (host ? nodeClasses(n).map((c) => " c-" + c.id).join("") : "");
   const anim = o.edit ? { cls: "", at: "" } : animAttrs(self);
   let condCls = "";
-  const cx = (c) => `class="${c} ${nodeClass(n)}${host ? " " + nodeClass(host) : ""}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
+  const cx = (c) => `class="${c} ${esc(nodeClass(n))}${host ? " " + esc(nodeClass(host)) : ""}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
   const rep = o.repeat && o.item ? "-" + o.item.slug : "";
   const ins = inner && o.inst ? "-" + String(o.inst.id).replace(/^n/, "") : "";
-  const domId = o.edit ? o.repIndex ? self.id + rep + ins : self.id + ins : esc(domIdOf(self) + rep + ins);
-  const hooks = inner ? "" : ` data-id="${self.id}" data-t="${self.type}"${state.ui.sel === self.id ? " data-sel" : ""}`;
+  const domId = o.edit ? esc(o.repIndex ? self.id + rep + ins : self.id + ins) : esc(domIdOf(self) + rep + ins);
+  const hooks = inner ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${state.ui.sel === self.id ? " data-sel" : ""}`;
   const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const source = self.src || n.src;
   const sc = source ? findCollection(source) : null;
@@ -9551,6 +9823,7 @@ function renderNode(n, o) {
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
   const kids = n.type === "list" ? "" : kidList.map((c) => renderNode(c, kidOpts)).join("");
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
+  const blank = p.target === "_blank" ? ' target="_blank" rel="noopener"' : "";
   if (n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
     if (!o.edit) return "";
     condCls = " s-cond-off";
@@ -9569,7 +9842,7 @@ function renderNode(n, o) {
       const decorative = n.css.d?.position === "absolute" && !!(n.css.d?.["background-image"] || n.css.d?.["background-color"] || n.css.d?.background);
       const inner2 = kids || (o.edit && !decorative ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
       if (href) {
-        return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${inner2}</a>`;
+        return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${blank}>${inner2}</a>`;
       }
       const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : "div";
       return `<${tag} ${at} ${cx("pagecraft-box" + mode)}>${inner2}</${tag}>`;
@@ -9603,7 +9876,7 @@ function renderNode(n, o) {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : "h2";
       const body = esc(p.text).replace(/\n/g, "<br>");
       const href = pageHref(p.link, o);
-      const inner2 = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${body}</a>` : body;
+      const inner2 = href ? `<a href="${esc(href)}"${blank}>${body}</a>` : body;
       return `<${tg} ${at} ${cx("pagecraft-heading")}>${inner2}</${tg}>`;
     }
     case "text":
@@ -9627,9 +9900,9 @@ function renderNode(n, o) {
       const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${blank}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
       return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
     }
     case "video": {
@@ -9642,7 +9915,7 @@ function renderNode(n, o) {
       const ico = p.icon && p.icon !== "none" ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${BICON[p.icon] || ""}</svg>` : "";
       const bhref = pageHref(p.link, o);
       const tag = bhref ? "a" : "button";
-      const attrs = bhref ? `href="${esc(bhref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}` : 'type="button"';
+      const attrs = bhref ? `href="${esc(bhref)}"${blank}` : 'type="button"';
       return `<${tag} ${at} ${cx("pagecraft-button")} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case "nav": {
@@ -9707,7 +9980,7 @@ function renderNode(n, o) {
         const last = i === trail.length - 1;
         const label = esc(c.label);
         const href = last ? "" : pageHref(c.href, o);
-        return "<li>" + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${href}">${label}</a>`) + "</li>";
+        return "<li>" + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${esc(href)}">${label}</a>`) + "</li>";
       }).join("");
       return `<nav ${at} ${cx("pagecraft-crumbs")} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || "chevron"))}"><ol>${li}</ol></nav>`;
     }
@@ -9765,7 +10038,11 @@ function renderNode(n, o) {
       const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : "";
       const ecls = "pagecraft-embed" + (p.ratio ? " pagecraft-embed-ratio" : "");
       if (!raw.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-embed")}><div class="s-empty">${svg("code", 12)} Paste embed HTML in the panel</div></div>` : "";
-      if (!o.edit) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      if (!o.edit && !o.canvas) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      if (!o.edit) {
+        const frame = '<!doctype html><meta charset="utf-8"><style>html,body{margin:0}body{display:flow-root}</style>' + raw + (p.ratio ? "" : `<script>${EMBED_FRAME_JS}<\/script>`);
+        return `<div ${at} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame${p.ratio ? "" : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
+      }
       const { html, stripped } = stripScripts(raw);
       const note = stripped ? `<div class="s-held">${stripped} script${stripped === 1 ? "" : "s"} held back here \u2014 ${stripped === 1 ? "it runs" : "they run"} on the exported page</div>` : "";
       return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? "" : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
@@ -9774,7 +10051,7 @@ function renderNode(n, o) {
       const nm = p.name && ICON_PATHS[p.name] ? p.name : "check";
       const lab = String(p.label == null ? "" : p.label).trim();
       const ihref2 = pageHref(p.link, o);
-      if (ihref2) return `<a ${at} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
+      if (ihref2) return `<a ${at} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${blank}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
       return iconSvg(nm, `${at} ${cx("pagecraft-icon pagecraft-icon-glyph")} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
     }
     case "gallery": {
@@ -9891,6 +10168,9 @@ document.addEventListener('click',function(e){if(!w.contains(e.target))set(false
 });})();
 <\/script>
 `;
+var EMBED_FRAME_JS = "(function(){var b=document.body,h=-1;function s(){var n=Math.ceil(b.getBoundingClientRect().height);if(n!==h){h=n;parent.postMessage({pagecraftEmbedHeight:n},'*');}}if(window.ResizeObserver)new ResizeObserver(s).observe(b);addEventListener('load',s);s();})();";
+var EMBED_FRAME_HASH = "sha256-fKWA8D62TWnX/ElarnS4cjNHmTS5nuDLPuJmhSPuQyY=";
+var canvasCsp = (nonce) => `script-src 'nonce-${nonce}' '${EMBED_FRAME_HASH}'; object-src 'none'; base-uri 'none'`;
 var FACADE_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-facade] .pagecraft-video-play'),function(b){
 b.addEventListener('click',function(){
@@ -10273,9 +10553,11 @@ function proposalPrepare(inputs, options) {
   return { changes: problems.length ? [] : changes, problems };
 }
 var proposalSlotOf = (n, key, image) => (image ? proposalImageSlots(n) : textSlots(n)).find((sl) => proposalSlotKey(sl) === key) || null;
-function proposalCheck(changes) {
-  return changes.map((ch) => {
+var proposalNodeId = (proposalId, index) => "np" + String(proposalId).replace(/[^a-z0-9]/gi, "").slice(0, 32) + "x" + index.toString(36);
+function proposalCheck(changes, proposalId = "") {
+  return changes.map((ch, i) => {
     if (ch.type === "insert") {
+      if (proposalId && proposalFind(proposalNodeId(proposalId, i))) return "applied";
       if (!findComponent(ch.componentId || "")) return "missing";
       if (ch.parentId) return proposalFind(ch.parentId)?.region === ch.region ? "ok" : "missing";
       return ch.region === "header" || ch.region === "footer" || state.pages.some((pg2) => pg2.id === ch.region) ? "ok" : "missing";
@@ -10320,9 +10602,11 @@ function proposalOutline(region) {
   });
   return out;
 }
-function proposalApply(changes) {
+function proposalApply(changes, proposalId = "") {
   const placed = [];
-  for (const ch of changes) {
+  const status = proposalCheck(changes, proposalId);
+  for (const [i, ch] of changes.entries()) {
+    if (status[i] !== "ok") continue;
     if (ch.type === "insert") {
       const parent = ch.parentId ? proposalFind(ch.parentId).node : null;
       const mode = state.ui.mode, cur = state.cur, cedit = state.ui.cedit;
@@ -10333,6 +10617,7 @@ function proposalApply(changes) {
       try {
         const made = instanceInsert(ch.componentId, parent, ch.index ?? 1e6);
         if (made) {
+          if (proposalId) made.id = proposalNodeId(proposalId, i);
           for (const [k, v] of Object.entries(ch.values || {})) instSet(made, k, v);
           placed.push(made.id);
         }
@@ -10377,6 +10662,8 @@ var __CORE = {
   DEV_KEY,
   DEV_LABEL,
   DEV_W,
+  EMBED_FRAME_HASH,
+  EMBED_FRAME_JS,
   FACADE_JS,
   FIELD_TYPES,
   FILTER_OPS,
@@ -10458,6 +10745,7 @@ var __CORE = {
   buildWordPressContentReference,
   canDo,
   canFacade,
+  canvasCsp,
   canvasWidth,
   chainTo,
   classAdd,
@@ -10468,6 +10756,7 @@ var __CORE = {
   classRemove,
   classUsage,
   classes,
+  cleanRich,
   clip,
   clone,
   cloudFormEndpoint,
@@ -10530,6 +10819,7 @@ var __CORE = {
   familyOf,
   fanTargets,
   fieldAdd,
+  fieldAt,
   fieldDelete,
   fieldMove,
   fieldPaths,
@@ -10651,6 +10941,7 @@ var __CORE = {
   propVal,
   proposalApply,
   proposalCheck,
+  proposalNodeId,
   proposalOutline,
   proposalPrepare,
   published,
@@ -12150,6 +12441,7 @@ var PC_UI = (() => {
       const action = existing ? "update" : "create";
       for (const { target, index } of columns) {
         if (RESERVED.includes(target)) continue;
+        if (existing && index >= row.length) continue;
         item.values[target] = (row[index] ?? "").trim();
       }
       const draft = cell(IMPORT_DRAFT);
@@ -13466,16 +13758,23 @@ var PC_UI = (() => {
     if (!value) return /* @__PURE__ */ u2("span", { class: "pw-none", children: "None" });
     return asset ? /* @__PURE__ */ u2("img", { class: "pw-pic", src: asset.url, alt: asset.name }) : /* @__PURE__ */ u2("span", { class: "pw-none", children: value });
   }
+  function richChange(change) {
+    if (change.type === "text") return change.slot === "html";
+    if (change.type !== "property") return false;
+    const n2 = change.nodeId ? C2.locateAny(change.nodeId)?.node : null;
+    return C2.findProp(C2.findComponent(n2?.use || ""), change.property || "")?.t === "rich";
+  }
   function Value({ change, side }) {
     const value = side === "before" ? change.before : change.value;
     const image = change.type === "image" || change.type === "property" && /^asset:/.test(value);
     if (image) return /* @__PURE__ */ u2(Picture, { value });
-    const text = plain(value);
-    return text ? /* @__PURE__ */ u2("span", { class: "pw-text", children: text }) : /* @__PURE__ */ u2("span", { class: "pw-none", children: "Empty" });
+    const text = richChange(change) ? plain(value) : String(value ?? "");
+    return text.trim() ? /* @__PURE__ */ u2("span", { class: "pw-text", children: text }) : /* @__PURE__ */ u2("span", { class: "pw-none", children: "Empty" });
   }
   var STATUS = {
     stale: "Changed in the editor since the proposal was made",
-    missing: "No longer on the site"
+    missing: "No longer on the site",
+    applied: "Already in the draft \u2014 this was applied before"
   };
   function ChangeRow({ change, status }) {
     if (change.type === "insert") {
@@ -13488,7 +13787,7 @@ var PC_UI = (() => {
         ] }),
         values.length > 0 && /* @__PURE__ */ u2("dl", { class: "pw-values", children: values.map(([k3, v3]) => /* @__PURE__ */ u2("div", { children: [
           /* @__PURE__ */ u2("dt", { children: C2.findProp(def, k3)?.label || k3 }),
-          /* @__PURE__ */ u2("dd", { children: /^asset:/.test(v3) ? /* @__PURE__ */ u2(Picture, { value: v3 }) : plain(v3) || "\u2014" })
+          /* @__PURE__ */ u2("dd", { children: /^asset:/.test(v3) ? /* @__PURE__ */ u2(Picture, { value: v3 }) : (C2.findProp(def, k3)?.t === "rich" ? plain(v3) : v3) || "\u2014" })
         ] }, k3)) }),
         status !== "ok" && /* @__PURE__ */ u2("p", { class: "pw-warn", children: STATUS[status] })
       ] });
@@ -13518,8 +13817,8 @@ var PC_UI = (() => {
       setTab(0);
       setSide("after");
     }, [proposal.id]);
-    const pending2 = proposal.status === "pending";
-    const statuses = pending2 ? C2.proposalCheck(proposal.changes) : proposal.changes.map(() => "ok");
+    const pending2 = proposal.status === "pending" || proposal.status === "applying";
+    const statuses = pending2 ? C2.proposalCheck(proposal.changes, proposal.id) : proposal.changes.map(() => "ok");
     const blocked = statuses.filter((s3) => s3 !== "ok").length;
     const preview = proposal.previews[Math.min(tab2, proposal.previews.length - 1)];
     return /* @__PURE__ */ u2("section", { class: "pw-detail", "aria-labelledby": "pw-title", children: [
@@ -13612,14 +13911,21 @@ var PC_UI = (() => {
       return () => document.removeEventListener("keydown", onKey);
     }, [busy]);
     const apply = async (p3) => {
-      if (C2.proposalCheck(p3.changes).some((s3) => s3 !== "ok")) {
+      if (C2.proposalCheck(p3.changes, p3.id).some((s3) => s3 !== "ok")) {
         L2.toast("This proposal no longer matches the draft.", { tone: "error" });
         return;
       }
       setBusy(true);
       try {
+        try {
+          await api.claim(p3.id);
+        } catch (e3) {
+          L2.toast(problem(e3), { tone: "error" });
+          await load(p3.id);
+          return;
+        }
         C2.edit(() => {
-          C2.proposalApply(p3.changes);
+          C2.proposalApply(p3.changes, p3.id);
         });
         L2.appRender();
         try {
@@ -13689,7 +13995,7 @@ var PC_UI = (() => {
                 " \xB7 ",
                 when(p3.createdAt)
               ] }),
-              /* @__PURE__ */ u2("span", { class: "pw-chip " + p3.status, children: p3.status === "pending" ? "Waiting" : p3.status === "applied" ? "Applied" : "Declined" })
+              /* @__PURE__ */ u2("span", { class: "pw-chip " + p3.status, children: p3.status === "pending" ? "Waiting" : p3.status === "applying" ? "Being applied" : p3.status === "applied" ? "Applied" : "Declined" })
             ]
           },
           p3.id
@@ -13697,6 +14003,169 @@ var PC_UI = (() => {
         current ? /* @__PURE__ */ u2(Detail, { api, proposal: current, busy, apply, decline }) : null
       ] })
     ] });
+  }
+
+  // app/src/core/safe-html.ts
+  var safeUrl = (u4) => {
+    const v3 = String(u4 == null ? "" : u4).trim();
+    if (!v3) return "";
+    if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v3)) return v3;
+    if (/^data:image\//i.test(v3) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v3)) return v3;
+    if (/^[\w.-]+(\/|\?|#|$)/.test(v3)) return v3;
+    return "";
+  };
+  var escAttr = (s3) => s3.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  var NAMED = {
+    amp: "&",
+    lt: "<",
+    gt: ">",
+    quot: '"',
+    apos: "'",
+    nbsp: "\xA0",
+    colon: ":",
+    Tab: "	",
+    NewLine: "\n",
+    sol: "/",
+    lpar: "(",
+    rpar: ")",
+    period: ".",
+    comma: ",",
+    semi: ";",
+    equals: "=",
+    excl: "!",
+    num: "#",
+    quest: "?",
+    plus: "+"
+  };
+  var decode = (s3) => s3.replace(/&(?:#(\d+)|#x([0-9a-f]+));?|&([A-Za-z]+);/gi, (whole, dec, hex, name) => {
+    if (name) return Object.prototype.hasOwnProperty.call(NAMED, name) ? NAMED[name] : whole;
+    const cp = dec ? parseInt(dec, 10) : parseInt(hex, 16);
+    return cp > 0 && cp <= 1114111 && !(cp >= 55296 && cp <= 57343) ? String.fromCodePoint(cp) : "\uFFFD";
+  });
+  var urlProbe = (raw) => decode(raw).replace(/[\u0000- \u007f]/g, "").toLowerCase();
+  var ws = (c3) => c3 === " " || c3 === "	" || c3 === "\n" || c3 === "\r" || c3 === "\f";
+  function startTag(src, at) {
+    let i3 = at + 1, name = "";
+    while (i3 < src.length && !ws(src[i3]) && src[i3] !== "/" && src[i3] !== ">") name += src[i3++];
+    const attrs = [];
+    let selfClosing = false;
+    while (i3 < src.length) {
+      const c3 = src[i3];
+      if (ws(c3)) {
+        i3++;
+        continue;
+      }
+      if (c3 === ">") return { name, attrs, selfClosing, end: i3 + 1 };
+      if (c3 === "/") {
+        i3++;
+        selfClosing = src[i3] === ">";
+        continue;
+      }
+      selfClosing = false;
+      let an = src[i3++];
+      while (i3 < src.length && !ws(src[i3]) && src[i3] !== "/" && src[i3] !== ">" && src[i3] !== "=") an += src[i3++];
+      while (i3 < src.length && ws(src[i3])) i3++;
+      if (src[i3] !== "=") {
+        attrs.push({ name: an, value: null });
+        continue;
+      }
+      i3++;
+      while (i3 < src.length && ws(src[i3])) i3++;
+      const q2 = src[i3];
+      if (q2 === '"' || q2 === "'") {
+        const close = src.indexOf(q2, i3 + 1);
+        if (close < 0) return null;
+        attrs.push({ name: an, value: decode(src.slice(i3 + 1, close)) });
+        i3 = close + 1;
+        continue;
+      }
+      let v3 = "";
+      while (i3 < src.length && !ws(src[i3]) && src[i3] !== ">") v3 += src[i3++];
+      attrs.push({ name: an, value: decode(v3) });
+    }
+    return null;
+  }
+  var RICH_TAGS = /* @__PURE__ */ new Set(["p", "br", "h2", "h3", "blockquote", "ul", "ol", "li", "b", "strong", "i", "em", "u", "s", "strike", "a", "div"]);
+  var DROP_WITH_TEXT = /* @__PURE__ */ new Set(["script", "style", "textarea", "option", "noscript", "template", "title", "iframe", "xmp", "noembed", "noframes"]);
+  var COMMENT_OPEN = String.fromCharCode(60, 33, 45, 45);
+  var CLOSES_P = /* @__PURE__ */ new Set(["p", "div", "h2", "h3", "ul", "ol", "blockquote"]);
+  var richHref = (v3) => {
+    const probe = urlProbe(v3);
+    if (/^(https?:|mailto:|tel:)/.test(probe)) return true;
+    return !probe.startsWith("//") && !/^[^/?#]*:/.test(probe);
+  };
+  function cleanRich(html) {
+    const src = String(html == null ? "" : html);
+    const lower = src.toLowerCase();
+    const endTag = /<\/([a-z][^\s/>]*)[^>]*>/iy;
+    const open = [];
+    const close = (k3) => {
+      let s3 = "";
+      while (open.length > k3) s3 += `</${open.pop()}>`;
+      return s3;
+    };
+    let out = "", at = 0;
+    while (at < src.length) {
+      const lt = src.indexOf("<", at);
+      if (lt < 0) {
+        out += src.slice(at).replace(/>/g, "&gt;");
+        break;
+      }
+      out += src.slice(at, lt).replace(/>/g, "&gt;");
+      const next = src[lt + 1] || "";
+      if (src.startsWith(COMMENT_OPEN, lt)) {
+        const end = src.indexOf("-->", lt + 2);
+        at = end < 0 ? src.length : end + 3;
+        continue;
+      }
+      if (next === "!" || next === "?" || next === "/" && !/[a-z]/i.test(src[lt + 2] || "")) {
+        const end = src.indexOf(">", lt);
+        at = end < 0 ? src.length : end + 1;
+        continue;
+      }
+      if (next === "/") {
+        endTag.lastIndex = lt;
+        const m3 = endTag.exec(src);
+        if (!m3) break;
+        const k3 = open.lastIndexOf(m3[1].toLowerCase());
+        if (k3 >= 0) out += close(k3);
+        at = lt + m3[0].length;
+        continue;
+      }
+      if (!/[a-z]/i.test(next)) {
+        out += "&lt;";
+        at = lt + 1;
+        continue;
+      }
+      const t3 = startTag(src, lt);
+      if (!t3) break;
+      const name = t3.name.toLowerCase();
+      at = t3.end;
+      if (DROP_WITH_TEXT.has(name)) {
+        const shut = lower.indexOf(`</${name}`, at);
+        const end = shut < 0 ? -1 : src.indexOf(">", shut);
+        at = end < 0 ? src.length : end + 1;
+        continue;
+      }
+      if (!RICH_TAGS.has(name)) continue;
+      if (name === "br") {
+        out += "<br>";
+        continue;
+      }
+      if (CLOSES_P.has(name) && open.includes("p")) out += close(open.lastIndexOf("p"));
+      if (name === "li") {
+        for (let k3 = open.length - 1; k3 >= 0 && !["ul", "ol", "blockquote", "h2", "h3"].includes(open[k3]); k3--) {
+          if (open[k3] === "li") {
+            out += close(k3);
+            break;
+          }
+        }
+      }
+      const href = name === "a" ? t3.attrs.find((a3) => a3.name.toLowerCase() === "href" && a3.value != null) : null;
+      out += href && richHref(href.value) ? `<a href="${escAttr(href.value)}">` : `<${name}>`;
+      open.push(name);
+    }
+    return out + close(0);
   }
 
   // app/src/core/libraries.ts
@@ -13948,6 +14417,61 @@ var PC_UI = (() => {
     for (const [k3, v3] of seen) bundle.hashes[k3] = itemHash(v3.kind, v3.item);
     return bundle;
   }
+  var SAFE_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/i;
+  var TOKEN_KINDS = ["color", "textStyle", "class"];
+  var safeTokenId = (kind, id) => !TOKEN_KINDS.includes(kind) || SAFE_ID.test(id);
+  var tokenIdFrom = (id, kind) => String(id).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || kind.toLowerCase();
+  var cleanHref = (v3) => {
+    const s3 = String(v3 ?? "");
+    return s3 === "cms:item" || s3.startsWith("pagecraft:wordpress-content:") ? s3 : safeUrl(s3);
+  };
+  var cleanTarget = (v3) => v3 === "_blank" ? "_blank" : "";
+  function cleanItem(kind, item, components2) {
+    const byKind = (def, k3) => def?.props.find((p3) => p3.k === k3)?.t;
+    const cleanValue = (t3, v3) => t3 === "rich" ? cleanRich(v3) : t3 === "link" ? cleanHref(v3) : v3;
+    const cleanValues = (def, values) => {
+      for (const k3 of Object.keys(values || {})) values[k3] = cleanValue(byKind(def, k3), values[k3]);
+    };
+    const cleanNode = (n2) => {
+      const p3 = n2.props || {};
+      if (n2.type === "text" && typeof p3.html === "string") p3.html = cleanRich(p3.html);
+      if ("target" in p3) p3.target = cleanTarget(p3.target);
+      if (typeof p3.link === "string") p3.link = cleanHref(p3.link);
+      if ((n2.type === "nav" || n2.type === "crumbs") && Array.isArray(p3.items)) {
+        for (const row of p3.items) {
+          if (!row || typeof row !== "object") continue;
+          if (typeof row.href === "string") row.href = cleanHref(row.href);
+          if ("target" in row) row.target = cleanTarget(row.target);
+        }
+      }
+      if (n2.use) cleanValues(components2.find((c3) => c3.id === n2.use), n2.vals);
+    };
+    if (kind === "component") {
+      const def = item;
+      for (const prop of def.props || []) if (typeof prop.def === "string") prop.def = cleanValue(prop.t, prop.def);
+      for (const variant of def.variants || []) cleanValues(def, variant.values);
+    }
+    const root = kind === "component" ? item.node : kind === "block" ? item.node : null;
+    if (root) eachNode(root, cleanNode);
+    return item;
+  }
+  var embedsIn = (kind, item) => {
+    const root = kind === "component" ? item.node : kind === "block" ? item.node : null;
+    let embeds = 0;
+    if (root) eachNode(root, (n2) => {
+      if (n2.type === "embed") embeds++;
+    });
+    return embeds;
+  };
+  var customCodeOf = (bundle, refs) => {
+    const lists = bundleLists(bundle);
+    return refs.flatMap((ref) => {
+      const item = find(lists, ref.kind, ref.id);
+      const embeds = item ? embedsIn(ref.kind, item) : 0;
+      return embeds ? [{ kind: ref.kind, id: ref.id, name: String(item.name || ref.id), embeds }] : [];
+    });
+  };
+  var importCustomCode = (bundle, chosen) => customCodeOf(bundle, closure(bundle, chosen));
   var fallbackSeq = 0;
   var fallbackId = () => `l${Date.now().toString(36).slice(-5)}${(fallbackSeq++).toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
   var KINDS_IN_ORDER = ["color", "textStyle", "class", "component", "block"];
@@ -14021,6 +14545,9 @@ var PC_UI = (() => {
         if (linked && find(target, kind, linked.localId)) {
           localId = linked.localId;
           how = "linked";
+        } else if (!safeTokenId(kind, ref.id)) {
+          localId = freeId(taken, tokenIdFrom(ref.id, kind));
+          how = "renamed";
         } else if (existing && isFoundation(kind, ref.id)) how = "site-foundation";
         else if (existing && itemHash(kind, existing) === bundle.hashes[key(kind, ref.id)]) how = "reused";
         else if (existing) {
@@ -14034,7 +14561,8 @@ var PC_UI = (() => {
     }
     for (const entry of items) {
       if (entry.how !== "added" && entry.how !== "renamed") continue;
-      const copy2 = rewrite(entry.kind, clone2(find(lists, entry.kind, entry.sourceId)), renames, assetMap);
+      const clean = cleanItem(entry.kind, clone2(find(lists, entry.kind, entry.sourceId)), bundle.components);
+      const copy2 = rewrite(entry.kind, clean, renames, assetMap);
       copy2.id = entry.localId;
       if (copy2.node) reidTree(copy2.node, newId);
       place(next, entry.kind, copy2);
@@ -14056,7 +14584,8 @@ var PC_UI = (() => {
       else links.push(link);
     }
     next.meta.libraryLinks = links;
-    return { doc: next, items, assets: needed };
+    const landed = items.filter((i3) => i3.how === "added" || i3.how === "renamed").map((i3) => ({ kind: i3.kind, id: i3.sourceId }));
+    return { doc: next, items, assets: needed, customCode: customCodeOf(bundle, landed) };
   }
   function instancesOf(doc, id) {
     const found = [];
@@ -14136,7 +14665,8 @@ var PC_UI = (() => {
     const newDeps = closure(bundle, taking.map((i3) => ({ kind: i3.kind, id: i3.sourceId }))).filter((ref) => !linkedKeys.has(key(ref.kind, ref.id)));
     const needed = /* @__PURE__ */ new Set();
     [...taking.map((i3) => ({ kind: i3.kind, id: i3.sourceId })), ...newDeps].forEach((ref) => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach((id) => needed.add(id)));
-    return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort() } };
+    const customCode = customCodeOf(bundle, [...taking.map((i3) => ({ kind: i3.kind, id: i3.sourceId })), ...newDeps]);
+    return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort(), customCode } };
   }
   function planLibraryUpdate(doc, bundle, source, resolutions = {}, options = {}) {
     const { lists, items, taking, newDeps, preview } = updateScope(doc, bundle, source, resolutions);
@@ -14153,7 +14683,8 @@ var PC_UI = (() => {
     const allRenames = {};
     for (const link of nextLinks.filter((l3) => l3.libraryId === source.libraryId)) (allRenames[link.kind] ||= /* @__PURE__ */ new Map()).set(link.sourceId, link.localId);
     for (const item of taking) {
-      const copy2 = rewrite(item.kind, clone2(find(lists, item.kind, item.sourceId)), allRenames, assetMap);
+      const clean = cleanItem(item.kind, clone2(find(lists, item.kind, item.sourceId)), bundle.components);
+      const copy2 = rewrite(item.kind, clean, allRenames, assetMap);
       copy2.id = item.localId;
       if (copy2.node) reidTree(copy2.node, newId);
       replaceItem(next, item.kind, item.localId, copy2);
@@ -14169,7 +14700,7 @@ var PC_UI = (() => {
       if (kept.has(k3)) return { ...l3, version: source.version, sourceHash: bundle.hashes[k3] };
       return { ...l3, version: Math.max(l3.version, source.version), sourceHash: bundle.hashes[k3] ?? l3.sourceHash };
     });
-    return { items, unresolved, doc: next, assets: needed };
+    return { items, unresolved, doc: next, assets: needed, customCode: preview.customCode };
   }
 
   // app/src/ui/Libraries.tsx
@@ -14230,6 +14761,11 @@ var PC_UI = (() => {
     return oldest && oldest < library.latestVersion ? oldest : 0;
   };
   var esc3 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var allowCustomCode = (library, code, ok) => !code.length || L2.askConfirm(
+    "This library includes custom code",
+    `This library includes custom code that runs on your published site: ` + code.map((c3) => `<b>${esc3(c3.name)}</b> (${esc3(plural(c3.embeds, "embed"))})`).join(", ") + `. Only continue if you trust ${esc3(ownerOf(library))}.`,
+    { ok, danger: true }
+  );
   function problem2(error) {
     if (error instanceof LibraryError) return error.problems.join(" ");
     const e3 = error;
@@ -14409,6 +14945,7 @@ var PC_UI = (() => {
       if (!bundle || !summary || !picked.size) return;
       const chosen = [...picked].map(parseKey);
       const source = { libraryId: id, version: summary.version };
+      if (!await allowCustomCode(library, importCustomCode(bundle, chosen), "Import with custom code")) return;
       setBusy(true);
       try {
         const needed = importAssetsNeeded(bundle, chosen);
@@ -14770,6 +15307,8 @@ var PC_UI = (() => {
     const label = (item) => nameOf(siteItem(item.kind, item.localId) || bundleList(bundle, item.kind).find((i3) => i3.id === item.sourceId), item.localId);
     const resolve = (item, choice) => setResolutions((prev) => ({ ...prev, [refKey({ kind: item.kind, id: item.sourceId })]: choice }));
     const apply = async () => {
+      const before = previewLibraryUpdate(C2.doc(), bundle, source, resolutions);
+      if (!await allowCustomCode(library, before.customCode, "Update with custom code")) return;
       setBusy(true);
       try {
         const needed = previewLibraryUpdate(C2.doc(), bundle, source, resolutions).assets;
@@ -19970,6 +20509,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
 
   // app/src/host/transport.ts
+  var KEEPALIVE_MAX = 6e4;
   var HostRequestError = class extends Error {
     constructor(message, status, payload) {
       super(message);
@@ -19996,10 +20536,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         customHeaders["content-type"] ||= "application/json";
         body = JSON.stringify(body);
       }
+      const keepalive = !!request.keepalive && (typeof body !== "string" || new TextEncoder().encode(body).length < KEEPALIVE_MAX);
       const response = await this.fetcher(this.baseUrl + request.path, {
         method: request.method,
         headers: customHeaders,
-        body
+        body,
+        ...keepalive ? { keepalive } : {}
       });
       const type = request.responseType || "json";
       let parsed;
@@ -21931,7 +22473,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             doc: document2,
             version: input.version,
             ...input.compiled ? { compiled: input.compiled } : {}
-          }
+          },
+          ...input.keepalive ? { keepalive: true } : {}
         })).body;
       }
     };
@@ -22101,7 +22644,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           return (await transport.request({
             method: "PUT",
             path: `/api/sites/${site}`,
-            body: { doc, version: input.version }
+            body: { doc, version: input.version },
+            ...input.keepalive ? { keepalive: true } : {}
           })).body;
         }
       },
@@ -22217,6 +22761,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             path: `/api/sites/${site}/proposals${status ? `?status=${status}` : ""}`
           })).body.proposals;
         },
+        async claim(id) {
+          await transport.request({ method: "POST", path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/claim`, body: {} });
+        },
         async decide(id, status, version) {
           await transport.request({
             method: "POST",
@@ -22249,14 +22796,42 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     globals: "wordpress",
     dynamicContent: "wordpress"
   });
+  var expiredNonce = (error) => error instanceof HostRequestError && error.status === 403 && error.payload?.code === "rest_cookie_invalid_nonce";
   function createWordPressHostAdapter(options) {
     let nonce = options.nonce;
     const capabilities = [...options.capabilities || []];
-    const transport = options.transport || new FetchHostTransport(
+    const fetcher = options.fetch || globalThis.fetch.bind(globalThis);
+    const rest = options.transport || new FetchHostTransport(
       normalizeRestUrl(options.restUrl || "/wp-json/pagecraft/v1"),
-      options.fetch || globalThis.fetch.bind(globalThis),
+      fetcher,
       () => ({ "X-WP-Nonce": nonce })
     );
+    let asking = null;
+    const ask = async () => {
+      try {
+        const response = await fetcher(options.nonceUrl, { credentials: "same-origin" });
+        const text = (await response.text()).trim();
+        return response.ok && /^[a-z0-9]{6,32}$/i.test(text) ? text : null;
+      } catch {
+        return null;
+      }
+    };
+    const freshNonce = () => asking || (asking = ask().finally(() => {
+      asking = null;
+    }));
+    const transport = {
+      async request(request) {
+        try {
+          return await rest.request(request);
+        } catch (error) {
+          if (!options.nonceUrl || !expiredNonce(error)) throw error;
+          const fresh = await freshNonce();
+          if (!fresh) throw error;
+          nonce = fresh;
+          return rest.request(request);
+        }
+      }
+    };
     const page2 = encodeURIComponent(String(options.pageId));
     const documentPath = options.documentPath || `/pages/${page2}/document`;
     const revisionsPath = options.revisionsPath || `/pages/${page2}/revisions`;
@@ -22483,6 +23058,12 @@ const TABID = Math.random().toString(36).slice(2, 10);
 let saveState = 'idle';                 // idle | ok | failed
 let saveWarned = false;
 let lastCloudDocument = null;
+/* The stored document could not be opened, so the demo is showing in its place. Nothing may be
+   written for the rest of this session: a save would replace the real project with the demo. */
+let loadBlocked = false;
+/* A change exists that no write has carried yet — set when a save is scheduled, cleared when a
+   write takes the document. What the unload prompt and the `pagehide` flush ask. */
+let dirty = false;
 
 /* Set by the server when it serves the editor; absent in the single-file build. `version`
    is the one mutable field: every accepted save returns the next one, and sending a stale
@@ -22525,6 +23106,10 @@ const HOST = WP ? PC_UI.createWordPressHostAdapter({
   documentPath: WP.documentPath,
   revisionsPath: WP.revisionsPath,
   nonce: WP.nonce,
+  /* WordPress core answers a fresh REST nonce here. The plugin serves this editor from
+     wp-admin/admin-ajax.php, so the path is a sibling of this page unless it says otherwise. */
+  nonceUrl: WP.restNonceUrl
+    || (/\/wp-admin\//.test(location.pathname) ? new URL('admin-ajax.php?action=rest-nonce', location.href).href : ''),
   capabilities: WP.capabilities || [],
   userId: WP.user && WP.user.id,
   userName: WP.user && WP.user.name,
@@ -23204,10 +23789,12 @@ function stamp(txt, bad) {
 }
 
 function writeNow() {
+  if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
   if (SRV) return writeServer();
   try {
     localStorage.setItem(LS, JSON.stringify({ ...doc(), v: SCHEMA, cur: state.cur, tab: TABID }));
     saveState = 'ok';
+    dirty = false;
     stamp('Saved ' + new Date().toTimeString().slice(0, 5), false);
   } catch (e) {
     saveState = 'failed';
@@ -23222,16 +23809,21 @@ function writeNow() {
    a conflict it caused itself. */
 let saving = false, saveAgain = false;
 
-async function writeServer() {
+async function writeServer(opts = {}) {
+  if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
   if (saving) { saveAgain = true; return; }
   const cloudDocument = !IS_WORDPRESS ? JSON.stringify(doc()) : null;
-  if (!IS_WORDPRESS && saveState === 'ok' && cloudDocument === lastCloudDocument) return;
+  if (!IS_WORDPRESS && saveState === 'ok' && cloudDocument === lastCloudDocument) { dirty = false; return; }
   saving = true;
   stamp('Saving…', false);
   try {
+    /* cleared as the request takes its copy of the document, so an edit made while it is in
+       flight marks the page dirty again rather than being counted as saved */
+    dirty = false;
     const body = await HOST.documents.save({
       document: doc(),
       version: SRV.version,
+      keepalive: !!opts.keepalive,
       ...(IS_WORDPRESS ? { compiled: {
         html: assetsToBlob(buildPage(page())),
         globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
@@ -23246,13 +23838,19 @@ async function writeServer() {
   } catch (e) {
     // A failed write needs a deliberate retry, not a queued automatic replay.
     saveAgain = false;
+    dirty = true;
     if (e && e.status === 409 && e.payload?.retryable === true && !e.payload.conflict) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnSaveBusy(); return;
     }
     if (e && e.status === 409) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
     }
-    if (e && e.status === 403) {
+    /* The adapter already fetched a fresh nonce and retried once; this one means the WordPress
+       login itself is gone. It is not a permission the account lacks. */
+    if (e && e.status === 403 && e.payload?.code === 'rest_cookie_invalid_nonce') {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnSessionExpired(); return;
+    }
+    if (e && e.status === 403 && !IS_WORDPRESS) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(e.payload || {}); return;
     }
     saveState = 'failed';
@@ -23326,7 +23924,28 @@ function warnContentOnly(info) {
   $('#coBackup').addEventListener('click', event => backupJson(event));
   $('#coReload').addEventListener('click', () => location.reload());
 }
-const save = dbounce(writeNow, 500);
+
+/* WordPress refused the REST nonce even after a fresh one was asked for, which means the login
+   behind it has ended. Signing in again is the fix, and only a reload picks the new session up. */
+function warnSessionExpired() {
+  if (saveWarned) return;
+  saveWarned = true;
+  openModal('Your WordPress session expired', `
+    <div class="alert">
+      <b>Your WordPress session expired. Reload to keep editing.</b>
+      <span>Your latest changes were not saved. They are still here in this tab.</span>
+    </div>
+    <p class="note">Download a copy first if you want to keep them, then reload and sign in again.</p>`, `
+    <button class="btn" id="seBackup">Download my copy</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" id="seReload">Reload</button>`);
+  $('#seBackup').addEventListener('click', event => backupJson(event));
+  $('#seReload').addEventListener('click', () => location.reload());
+}
+const saveSoon = dbounce(writeNow, 500);
+/* Dirty from the moment a save is scheduled, not from when it runs: closing the tab inside that
+   half-second is a change the page has to know it has not written yet. */
+const save = () => { dirty = true; saveSoon(); };
 
 /* A failed write must never be a whisper — it means work is being lost. */
 function warnSaveFailed(err) {
@@ -23357,7 +23976,16 @@ const backupJson = event => withAction(event?.currentTarget || null, 'Preparing 
   'application/json'), 'Project backup ready. Download started.', {key:'project-backup', paint:true});
 
 window.addEventListener('beforeunload', e => {
-  if (saveState === 'failed') { e.preventDefault(); e.returnValue = ''; return ''; }
+  if (loadBlocked) return;                 // nothing here was ever going to be saved
+  if (saveState === 'failed' || dirty || saving) { e.preventDefault(); e.returnValue = ''; return ''; }
+});
+/* The last edit before the tab closes is still waiting on the debounce. Write it now: localStorage
+   is synchronous, and the hosted PUT goes as `keepalive` so it can outlive the page — when it is
+   small enough for the browser to allow that, which the transport decides. A bigger one, or one
+   behind a save still in flight, is what the prompt above is for. */
+window.addEventListener('pagehide', () => {
+  if (loadBlocked || !dirty || saving) return;
+  if (SRV) writeServer({ keepalive: true }); else writeNow();
 });
 
 /* Another tab wrote this project — never silently clobber it. localStorage only: on the
@@ -23425,11 +24053,13 @@ function load() {
       return;
     }
     /* A document the server holds and this build cannot read is not a case to paper over
-       with the demo site — that would look like the site had been replaced. */
+       with the demo site — that would look like the site had been replaced. Nor may the demo be
+       saved: the first edit would put it on the server under the real site's version. */
     seed();
+    loadBlocked = true;
     setTimeout(() => openModal('This site cannot be opened by this build', `
       <div class="alert"><b>The server holds a document this Pagecraft build cannot read.</b>
-      <span>You are looking at the demo site. Nothing has been saved and nothing has been lost.</span></div>
+      <span>You are looking at the demo site, and nothing you do here will be saved. The site on the server is untouched.</span></div>
       <div class="note" style="margin-top:var(--gap-2)">${esc(loadError && loadError.message || 'Update this host to a matching Pagecraft build.')}</div>`,
       `<button class="btn primary" id="svOk">Understood</button>`) || $('#svOk').addEventListener('click', closeModal), 300);
     return;
@@ -23449,9 +24079,11 @@ function load() {
   try { d = PC_UI.adoptHostDocument(parsed); } catch (error) { loadError = error; }
   if (!d) {
     seed();
+    /* the unreadable project is still in localStorage, and the first save would overwrite it */
+    loadBlocked = true;
     if (loadError) setTimeout(() => openModal('Saved project cannot be opened by this build', `
       <div class="alert"><b>This browser holds a project this Pagecraft build cannot read.</b>
-      <span>It was left untouched rather than loaded and possibly mangled. You are looking at the demo site.</span></div>
+      <span>It was left untouched rather than loaded and possibly mangled. You are looking at the demo site, and nothing you do here will be saved.</span></div>
       <div class="note" style="margin-top:var(--gap-2)">${esc(loadError.message)}</div>`,
       `<button class="btn primary" id="nvOk">Understood</button>`) || $('#nvOk').addEventListener('click', closeModal), 300);
     return;
@@ -23733,9 +24365,13 @@ const assetsUsedIn = str => [...new Set([...str.matchAll(A_RE)].map(m => m[1]))]
 
 /* =============================================================== canvas */
 let cwin = null, cdoc = null;
+/* A fresh nonce per canvas: the only scripts that run in it are the ones the editor injects with
+   it (`runPreviewRuntime`). It is never written into the canvas markup. */
+let canvasNonce = '';
 
 function mountCanvas() {
   const f = $('#canvas');
+  canvasNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
   return new Promise(res => {
     f.onload = () => {
       cwin = f.contentWindow; cdoc = f.contentDocument;
@@ -23746,6 +24382,7 @@ function mountCanvas() {
       bindCanvas(); res();
     };
     f.srcdoc = '<!doctype html><html><head><meta charset="utf-8">'
+      + `<meta http-equiv="Content-Security-Policy" content="${canvasCsp(canvasNonce)}">`
       + '<link id="s-gf" rel="stylesheet" href="">'
       + '<style id="s-fonts"></style><style id="s-css"></style>'
       + '</head><body><div id="s-root"></div><div id="s-hud"></div></body></html>';
@@ -23879,6 +24516,7 @@ function runPreviewRuntime(html, editing = false) {
     scripts.forEach(([used, source]) => {
       if (!used || (editing && source !== SLIDE_JS)) return;
       const script = cdoc.createElement('script');
+      script.nonce = canvasNonce;
       script.textContent = previewScriptBody(source);
       cdoc.body.appendChild(script);
       script.remove();
@@ -23916,7 +24554,7 @@ function paint() {
        bindings unresolved — every bound heading showing the literal it stands in for —
        which is the one page where the preview matters most. Edit mode passed it all
        along; preview was the branch that forgot. */
-    if (!editing) { html += renderList(nodes, { edit: false, ...pageCtx() }); continue; }
+    if (!editing) { html += renderList(nodes, { edit: false, canvas: true, ...pageCtx() }); continue; }
     if (!nodes.length && !live) continue;                 // nothing to show as context
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })
@@ -23931,8 +24569,8 @@ function paint() {
       + (live
         ? (R.kind === 'main'
           ? `<span class="s-lockchip">${svg('page', 11)} Page content</span>`
-          : `<span class="s-lockchip on">${svg('globe', 11)} Editing ${R.label.toLowerCase()}</span>`)
-        : `<span class="s-lockchip">${svg(R.kind === 'main' ? 'page' : 'globe', 11)} ${R.label} ${svg('lock', 10)}</span>`
+          : `<span class="s-lockchip on">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())}</span>`)
+        : `<span class="s-lockchip">${svg(R.kind === 'main' ? 'page' : 'globe', 11)} ${esc(R.label)} ${svg('lock', 10)}</span>`
         + `<button class="s-lockopen" data-goto="${modeFor(R.kind)}">Edit ${R.kind === 'main' ? 'page' : R.kind} ${svg('edit', 10)}</button>`)
       + `</div><div class="s-rbody">${inner}</div></div>`;
   }
@@ -24392,6 +25030,14 @@ function bindCanvas() {
      scrolls it is pointing at whatever moved into that spot */
   cwin.addEventListener('scroll', () => { closeCtx(); positionHud(); if (editing.on) placeRT(); }, { passive: true });
   cwin.addEventListener('resize', () => { positionHud(); if (editing.on) placeRT(); });
+  /* A Preview embed is a sandboxed frame with an opaque origin, so it cannot be measured from
+     here. It reports its height, and that number is the only thing read from it. */
+  cwin.addEventListener('message', e => {
+    const h = e.data && e.data.pagecraftEmbedHeight;
+    if (typeof h !== 'number' || !(h >= 0)) return;
+    const frame = $$('iframe[data-embed-frame]', cdoc).find(f => f.contentWindow === e.source);
+    if (frame) frame.style.height = Math.min(Math.ceil(h), 20000) + 'px';
+  });
   /* Right-click selects what is under the pointer if it is not already selected — a
      menu that acts on something you cannot see selected is how you delete the wrong
      thing — then opens on the element, in outer-document coordinates. */
@@ -24541,6 +25187,9 @@ function findDrop(x, y, type, movingId) {
     const n = locate(chain[i].dataset.id).node;
     if (holds(n.type, type)) { container = n; ci = i; break; }
   }
+  /* A component has one root and no page around it: a drop that found no container would land
+     in a list that is thrown away, and the node with it. */
+  if (!container && state.ui.mode === 'component') return null;
   const list = container ? container.children : tree();
   const horiz = !!(container && container.type === 'row');
   let index = list.length;
@@ -24615,8 +25264,9 @@ function onDrop(e, fromFrame) {
     const cd = findComponent(d.componentId);
     toast(made ? (cd ? cd.name : 'Component') + ' placed' : 'That component does not fit there');
   } else if (d.kind === 'new') {
-    edit(() => { const leaf = insert(d.type, container, index); selSet([leaf.id]); });
-    toast(labelOf(d.type) + ' added');
+    let leaf = null;
+    edit(() => { leaf = insert(d.type, container, index); if (leaf) selSet([leaf.id]); });
+    toast(leaf ? labelOf(d.type) + ' added' : 'That does not fit there');
   } else {
     const set = d.ids && d.ids.length > 1 ? d.ids : null;
     if (set) {
@@ -24630,7 +25280,7 @@ function onDrop(e, fromFrame) {
 }
 
 /* ========================================================= inline editing */
-const editing = { on: false, id: null, el: null, kind: null, off: [] };
+const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [] };
 
 document.head.insertAdjacentHTML('beforeend', `<style>
 #rt{
@@ -24727,6 +25377,12 @@ function enterEdit(id) {
     toast('This value comes from CMS. Edit the CMS entry or disconnect the field.');
     return;
   }
+  /* An instance shows its definition's words unless they are a property. Typing into one that
+     is not would write text nothing renders, and it would snap back on exit. */
+  if (n.use && property?.src !== 'prop') {
+    toast('This text belongs to the component. Edit the component to change it everywhere.');
+    return;
+  }
   if (editing.on) exitEdit();
   if (state.ui.sel !== id || multiOn()) { selSet([id]); paintSel(); renderRight(); renderLayers(); }
 
@@ -24735,6 +25391,7 @@ function enterEdit(id) {
 
   hist.u.push(clone(doc())); hist.r.length = 0;
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
+  editing.prop = n.use ? property.path : null;
   target.contentEditable = 'true';
   host.setAttribute('data-editing', '');
   if (d.edit === 'rich') target.style.outline = 'none';
@@ -24772,13 +25429,16 @@ function syncEdit() {
   if (!editing.on) return;
   const h = locate(editing.id); if (!h) return;
   const n = h.node, host = editing.el;
-  if (n.type === 'text') n.props.html = host.innerHTML.trim();
-  else if (n.type === 'button') n.props.text = editTarget(n, host).innerText.replace(/\n+/g, ' ').trim();
-  else n.props.text = editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+  /* an instance renders its definition, so its words are the property the root is bound to */
+  const out = editing.prop ? {} : n.props;
+  if (n.type === 'text') out.html = host.innerHTML.trim();
+  else if (n.type === 'button') out.text = editTarget(n, host).innerText.replace(/\n+/g, ' ').trim();
+  else out.text = editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+  if (editing.prop) instSet(n, editing.prop, n.type === 'text' ? out.html : out.text);
   /* keep the inspector honest while typing on the canvas — a full re-render
      would steal focus, so the bound field is updated in place */
   const field = $('#right [data-x="v"]');
-  if (field && n.type !== 'text' && field.value !== n.props.text) field.value = n.props.text;
+  if (field && n.type !== 'text' && field.value !== out.text) field.value = out.text;
   save();
   renderLayers();
 }
@@ -24788,7 +25448,7 @@ function exitEdit() {
   syncEdit();
   editing.off.forEach(f => f());
   if (editing.el) editing.el.removeAttribute('data-editing');
-  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.off = [];
+  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.prop = null; editing.off = [];
   $('#rt').classList.remove('show');
   paint(); renderRight();
 }
@@ -24823,7 +25483,9 @@ async function saveBlockFlow(nodeId) {
 
 function appendSmart(key) {
   const [container, index] = smartTarget(key);
-  edit(() => { const leaf = insert(key, container, index); selSet([leaf.id]); });
+  let leaf = null;
+  edit(() => { leaf = insert(key, container, index); if (leaf) selSet([leaf.id]); });
+  if (!leaf) { toast('That does not fit there'); return; }
   toast(labelOf(key) + ' added');
   const el = cdoc && cdoc.getElementById(state.ui.sel);
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -25096,6 +25758,7 @@ function mediaDetails(root, id, refresh, origin) {
 /* Pin the reviewed draft; save before adopting it so rejected versions never enter Undo. */
 async function mediaReplaceCommit(sourceId, replacementId, baseline) {
   while (saving) await new Promise(resolve => setTimeout(resolve, 25));
+  if (loadBlocked) throw new Error('This site could not be opened, so nothing is being saved.');
   if (saveState === 'failed' || JSON.stringify(doc()) !== baseline) throw new Error('The draft changed. Review the replacement again.');
   if (!HOST?.assets?.retainsHistory || !SRV) throw new Error('This host does not support retained replacements.');
   const next = replaceMediaReferences(doc(), sourceId, replacementId);
@@ -25264,13 +25927,14 @@ function mediaModal() {
       let made = null;
       edit(() => {
         made = insert('image', ...smartTarget('image'));
+        if (!made) return;
         made.props.src = 'asset:' + a.id;
         made.props.alt = '';
         if (a.w) { made.props.w = String(a.w); made.props.h = String(a.h); }
         selSet([made.id]);
       });
       closeModal();
-      toast(`${a.name} placed — add alt text`);
+      toast(made ? `${a.name} placed — add alt text` : 'That does not fit there');
     }, async (id, b) => {
       if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
       if (!await assetDel(id, b)) return;
@@ -25290,6 +25954,7 @@ function renderCms() { ui().renderCms(); }
 async function cmsCommit(collections) {
   // Wait for the existing write queue before using its acknowledged version.
   while (saving) await new Promise(resolve => setTimeout(resolve, 25));
+  if (loadBlocked) throw new Error('This site could not be opened, so nothing is being saved.');
   if (saveState === 'failed') throw new Error('Resolve the draft save error in the builder before saving CMS changes. Your entry is still here.');
   const next = JSON.parse(JSON.stringify(doc()));
   next.meta.collections = collections;
@@ -25521,8 +26186,12 @@ function tx(key) {
   paintHistory();
 }
 const endTx = () => { txKey = null; paintHistory(); };
-const repaint = dbounce(() => { paint(); save(); renderLayers(); refreshReview(); paintHistory(); }, 90);
-const repaintCss = dbounce(() => { paintCss(); save(); refreshReview(); paintHistory(); }, 60);
+/* Both end in a save, and the change they paint is already in the document — so it is unsaved
+   from the call, not from when the debounce lets it through. */
+const repaintSoon = dbounce(() => { paint(); save(); renderLayers(); refreshReview(); paintHistory(); }, 90);
+const repaintCssSoon = dbounce(() => { paintCss(); save(); refreshReview(); paintHistory(); }, 60);
+const repaint = () => { dirty = true; repaintSoon(); };
+const repaintCss = () => { dirty = true; repaintCssSoon(); };
 
 
 
@@ -27252,7 +27921,9 @@ HOOKS.note = msg => toast(msg);
   applyHostFeatures();
   await assetsLoad();
   load();
-  if (SRV && !IS_WORDPRESS) {
+  /* not after a failed load: what is on screen is the demo, and calling it saved would let
+     publishing and the settings flows treat it as the site's draft */
+  if (SRV && !IS_WORDPRESS && !loadBlocked) {
     lastCloudDocument = JSON.stringify(doc());
     saveState = 'ok';
   }
@@ -27260,7 +27931,8 @@ HOOKS.note = msg => toast(msg);
   bindTop();
   renderPalette();
   setDev(state.ui.dev);
-  stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ? 'Draft ready' : 'Ready'), false);
+  if (loadBlocked) stamp('Not saving', true);
+  else stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ? 'Draft ready' : 'Ready'), false);
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   await window.PC_BUILDER_LOADING.ready();
 })().catch(error => {

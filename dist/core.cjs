@@ -44,6 +44,8 @@ __export(index_exports, {
   DEV_KEY: () => DEV_KEY,
   DEV_LABEL: () => DEV_LABEL,
   DEV_W: () => DEV_W,
+  EMBED_FRAME_HASH: () => EMBED_FRAME_HASH,
+  EMBED_FRAME_JS: () => EMBED_FRAME_JS,
   FACADE_JS: () => FACADE_JS,
   FIELD_TYPES: () => FIELD_TYPES,
   FILTER_OPS: () => FILTER_OPS,
@@ -125,6 +127,7 @@ __export(index_exports, {
   buildWordPressContentReference: () => buildWordPressContentReference,
   canDo: () => canDo,
   canFacade: () => canFacade,
+  canvasCsp: () => canvasCsp,
   canvasWidth: () => canvasWidth,
   chainTo: () => chainTo,
   classAdd: () => classAdd,
@@ -135,6 +138,7 @@ __export(index_exports, {
   classRemove: () => classRemove,
   classUsage: () => classUsage,
   classes: () => classes,
+  cleanRich: () => cleanRich,
   clip: () => clip,
   clone: () => clone,
   cloudFormEndpoint: () => cloudFormEndpoint,
@@ -197,6 +201,7 @@ __export(index_exports, {
   familyOf: () => familyOf,
   fanTargets: () => fanTargets,
   fieldAdd: () => fieldAdd,
+  fieldAt: () => fieldAt,
   fieldDelete: () => fieldDelete,
   fieldMove: () => fieldMove,
   fieldPaths: () => fieldPaths,
@@ -318,6 +323,7 @@ __export(index_exports, {
   propVal: () => propVal,
   proposalApply: () => proposalApply,
   proposalCheck: () => proposalCheck,
+  proposalNodeId: () => proposalNodeId,
   proposalOutline: () => proposalOutline,
   proposalPrepare: () => proposalPrepare,
   published: () => published,
@@ -1281,6 +1287,206 @@ var ANIM_JS = `/**
 
 `;
 
+// app/src/core/safe-html.ts
+var safeUrl = (u) => {
+  const v = String(u == null ? "" : u).trim();
+  if (!v) return "";
+  if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
+  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
+  if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
+  return "";
+};
+var escAttr = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+var NAMED = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: "\xA0",
+  colon: ":",
+  Tab: "	",
+  NewLine: "\n",
+  sol: "/",
+  lpar: "(",
+  rpar: ")",
+  period: ".",
+  comma: ",",
+  semi: ";",
+  equals: "=",
+  excl: "!",
+  num: "#",
+  quest: "?",
+  plus: "+"
+};
+var decode = (s) => s.replace(/&(?:#(\d+)|#x([0-9a-f]+));?|&([A-Za-z]+);/gi, (whole, dec, hex, name) => {
+  if (name) return Object.prototype.hasOwnProperty.call(NAMED, name) ? NAMED[name] : whole;
+  const cp = dec ? parseInt(dec, 10) : parseInt(hex, 16);
+  return cp > 0 && cp <= 1114111 && !(cp >= 55296 && cp <= 57343) ? String.fromCodePoint(cp) : "\uFFFD";
+});
+var urlProbe = (raw) => decode(raw).replace(/[\u0000- \u007f]/g, "").toLowerCase();
+var ws = (c) => c === " " || c === "	" || c === "\n" || c === "\r" || c === "\f";
+function startTag(src, at) {
+  let i = at + 1, name = "";
+  while (i < src.length && !ws(src[i]) && src[i] !== "/" && src[i] !== ">") name += src[i++];
+  const attrs = [];
+  let selfClosing = false;
+  while (i < src.length) {
+    const c = src[i];
+    if (ws(c)) {
+      i++;
+      continue;
+    }
+    if (c === ">") return { name, attrs, selfClosing, end: i + 1 };
+    if (c === "/") {
+      i++;
+      selfClosing = src[i] === ">";
+      continue;
+    }
+    selfClosing = false;
+    let an = src[i++];
+    while (i < src.length && !ws(src[i]) && src[i] !== "/" && src[i] !== ">" && src[i] !== "=") an += src[i++];
+    while (i < src.length && ws(src[i])) i++;
+    if (src[i] !== "=") {
+      attrs.push({ name: an, value: null });
+      continue;
+    }
+    i++;
+    while (i < src.length && ws(src[i])) i++;
+    const q = src[i];
+    if (q === '"' || q === "'") {
+      const close = src.indexOf(q, i + 1);
+      if (close < 0) return null;
+      attrs.push({ name: an, value: decode(src.slice(i + 1, close)) });
+      i = close + 1;
+      continue;
+    }
+    let v = "";
+    while (i < src.length && !ws(src[i]) && src[i] !== ">") v += src[i++];
+    attrs.push({ name: an, value: decode(v) });
+  }
+  return null;
+}
+function stripScripts(html) {
+  let stripped = 0;
+  const src = String(html == null ? "" : html).replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => {
+    stripped++;
+    return "";
+  }).replace(/<script\b[^>]*\/?>/gi, () => {
+    stripped++;
+    return "";
+  });
+  const tagAt = /<[a-z]/gi;
+  let out = "", at = 0;
+  for (; ; ) {
+    tagAt.lastIndex = at;
+    const hit = tagAt.exec(src);
+    if (!hit) {
+      out += src.slice(at);
+      break;
+    }
+    out += src.slice(at, hit.index);
+    const t = startTag(src, hit.index);
+    if (!t) break;
+    at = t.end;
+    if (t.name.toLowerCase() === "script") {
+      stripped++;
+      continue;
+    }
+    const kept = t.attrs.filter((a) => {
+      const name = a.name.toLowerCase();
+      const value = a.value == null ? "" : urlProbe(a.value);
+      const bad = !/^[a-z_:][-a-z0-9_:.]*$/.test(name) || name.startsWith("on") || name === "srcdoc" || /(java|vb)script:/.test(value) || name === "attributename" && value.startsWith("on");
+      if (bad) stripped++;
+      return !bad;
+    });
+    out += `<${t.name}${kept.map((a) => " " + a.name + (a.value == null ? "" : `="${escAttr(a.value)}"`)).join("")}${t.selfClosing ? "/" : ""}>`;
+  }
+  return { html: out, stripped };
+}
+var RICH_TAGS = /* @__PURE__ */ new Set(["p", "br", "h2", "h3", "blockquote", "ul", "ol", "li", "b", "strong", "i", "em", "u", "s", "strike", "a", "div"]);
+var DROP_WITH_TEXT = /* @__PURE__ */ new Set(["script", "style", "textarea", "option", "noscript", "template", "title", "iframe", "xmp", "noembed", "noframes"]);
+var COMMENT_OPEN = String.fromCharCode(60, 33, 45, 45);
+var CLOSES_P = /* @__PURE__ */ new Set(["p", "div", "h2", "h3", "ul", "ol", "blockquote"]);
+var richHref = (v) => {
+  const probe = urlProbe(v);
+  if (/^(https?:|mailto:|tel:)/.test(probe)) return true;
+  return !probe.startsWith("//") && !/^[^/?#]*:/.test(probe);
+};
+function cleanRich(html) {
+  const src = String(html == null ? "" : html);
+  const lower = src.toLowerCase();
+  const endTag = /<\/([a-z][^\s/>]*)[^>]*>/iy;
+  const open = [];
+  const close = (k) => {
+    let s = "";
+    while (open.length > k) s += `</${open.pop()}>`;
+    return s;
+  };
+  let out = "", at = 0;
+  while (at < src.length) {
+    const lt = src.indexOf("<", at);
+    if (lt < 0) {
+      out += src.slice(at).replace(/>/g, "&gt;");
+      break;
+    }
+    out += src.slice(at, lt).replace(/>/g, "&gt;");
+    const next = src[lt + 1] || "";
+    if (src.startsWith(COMMENT_OPEN, lt)) {
+      const end = src.indexOf("-->", lt + 2);
+      at = end < 0 ? src.length : end + 3;
+      continue;
+    }
+    if (next === "!" || next === "?" || next === "/" && !/[a-z]/i.test(src[lt + 2] || "")) {
+      const end = src.indexOf(">", lt);
+      at = end < 0 ? src.length : end + 1;
+      continue;
+    }
+    if (next === "/") {
+      endTag.lastIndex = lt;
+      const m = endTag.exec(src);
+      if (!m) break;
+      const k = open.lastIndexOf(m[1].toLowerCase());
+      if (k >= 0) out += close(k);
+      at = lt + m[0].length;
+      continue;
+    }
+    if (!/[a-z]/i.test(next)) {
+      out += "&lt;";
+      at = lt + 1;
+      continue;
+    }
+    const t = startTag(src, lt);
+    if (!t) break;
+    const name = t.name.toLowerCase();
+    at = t.end;
+    if (DROP_WITH_TEXT.has(name)) {
+      const shut = lower.indexOf(`</${name}`, at);
+      const end = shut < 0 ? -1 : src.indexOf(">", shut);
+      at = end < 0 ? src.length : end + 1;
+      continue;
+    }
+    if (!RICH_TAGS.has(name)) continue;
+    if (name === "br") {
+      out += "<br>";
+      continue;
+    }
+    if (CLOSES_P.has(name) && open.includes("p")) out += close(open.lastIndexOf("p"));
+    if (name === "li") {
+      for (let k = open.length - 1; k >= 0 && !["ul", "ol", "blockquote", "h2", "h3"].includes(open[k]); k--) {
+        if (open[k] === "li") {
+          out += close(k);
+          break;
+        }
+      }
+    }
+    const href = name === "a" ? t.attrs.find((a) => a.name.toLowerCase() === "href" && a.value != null) : null;
+    out += href && richHref(href.value) ? `<a href="${escAttr(href.value)}">` : `<${name}>`;
+    open.push(name);
+  }
+  return out + close(0);
+}
+
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
 var tokenPattern = () => /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
@@ -1365,14 +1571,6 @@ function replaceMediaReferences(document, sourceId, replacementId) {
 var _seq = 0;
 var uid = () => (_seq++, "n" + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 var esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-var safeUrl = (u) => {
-  const v = String(u == null ? "" : u).trim();
-  if (!v) return "";
-  if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
-  if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;
-  return "";
-};
 var hasItemHrefs = (node) => node.type === "nav" || node.type === "crumbs";
 var WORDPRESS_CONTENT_REFERENCE_PREFIX = "pagecraft:wordpress-content:";
 var WORDPRESS_CONTENT_TOKEN_PREFIX = "%%PAGECRAFT_WP_CONTENT:";
@@ -3263,7 +3461,9 @@ var holds = (pt, t) => {
   return lvl(b) > lvl(pt) || (DEF[pt] || {}).alsoHolds?.includes(b) === true;
 };
 var fitsIn = (pt, t) => pt === null || holds(pt, t);
+var nowhere = (parentNode) => !parentNode && state.ui.mode === "component";
 function insert(type, parentNode, index) {
+  if (nowhere(parentNode)) return null;
   const leaf = makeFor(type);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();
@@ -3272,7 +3472,7 @@ function insert(type, parentNode, index) {
 }
 function moveNode(id, parentNode, index) {
   const h = locate(id);
-  if (!h) return;
+  if (!h || nowhere(parentNode)) return;
   if (parentNode && (parentNode.id === id || locate(parentNode.id, [h.node]))) return;
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
@@ -3312,6 +3512,7 @@ function menuFor(ids) {
   return out;
 }
 function moveMany(ids, parentNode, index) {
+  if (nowhere(parentNode)) return 0;
   const order = topMost(selOrder(ids));
   let at = Math.max(0, index), moved = 0;
   order.forEach((id) => {
@@ -3378,7 +3579,7 @@ function pageDup(i) {
   c.id = uid();
   c.tree.forEach(reid);
   c.name += " copy";
-  c.slug = slugify(c.slug + "-copy");
+  c.slug = uniqueId(c.slug + "-copy", state.pages.map((p) => p.slug));
   state.pages.splice(i + 1, 0, c);
   state.cur = i + 1;
   selSet([]);
@@ -3428,18 +3629,18 @@ function delMany(ids) {
   selSet(fallback ? [fallback] : []);
   return top.length;
 }
-function applyCols(row, ws) {
+function applyCols(row, ws2) {
   const kids = row.children;
-  while (kids.length < ws.length) kids.push(N("column"));
-  if (kids.length > ws.length) {
-    const dropped = kids.splice(ws.length);
+  while (kids.length < ws2.length) kids.push(N("column"));
+  if (kids.length > ws2.length) {
+    const dropped = kids.splice(ws2.length);
     dropped.forEach((d) => {
       kids[kids.length - 1].children.push(...d.children);
     });
   }
   kids.forEach((k, i) => {
     k.css.d = k.css.d || {};
-    k.css.d["flex-grow"] = String(+ws[i].toFixed(4));
+    k.css.d["flex-grow"] = String(+ws2[i].toFixed(4));
   });
 }
 var MIN_COL = 4;
@@ -3476,24 +3677,24 @@ function rowRatiosAt(row, b) {
   });
 }
 function resizeCols(row, i, pct, b = "d") {
-  const ws = rowRatiosAt(row, b);
-  if (i < 0 || i + 1 >= ws.length) return null;
-  const total = ws.reduce((a2, x) => a2 + x, 0);
+  const ws2 = rowRatiosAt(row, b);
+  if (i < 0 || i + 1 >= ws2.length) return null;
+  const total = ws2.reduce((a2, x) => a2 + x, 0);
   if (!total) return null;
-  const min = total * (MIN_COL / 100), pair = ws[i] + ws[i + 1];
+  const min = total * (MIN_COL / 100), pair = ws2[i] + ws2[i + 1];
   if (pair < min * 2) return null;
-  let a = ws[i] + pct / 100 * total;
+  let a = ws2[i] + pct / 100 * total;
   a = Math.max(min, Math.min(pair - min, a));
-  const out = ws.slice();
+  const out = ws2.slice();
   out[i] = a;
   out[i + 1] = pair - a;
   return out;
 }
-function applyColsAt(row, ws, b = "d") {
+function applyColsAt(row, ws2, b = "d") {
   (row.children || []).forEach((k, i) => {
-    if (ws[i] === void 0) return;
+    if (ws2[i] === void 0) return;
     k.css[b] = k.css[b] || {};
-    k.css[b]["flex-grow"] = String(+ws[i].toFixed(4));
+    k.css[b]["flex-grow"] = String(+ws2[i].toFixed(4));
   });
 }
 var RESERVED = ["text", "bg", "brand"];
@@ -3750,6 +3951,13 @@ function classDelete(id) {
     ["d", "t", "m"].forEach((b) => {
       x.css[b] = { ...c.css && c.css[b] || {}, ...x.css[b] || {} };
     });
+    STATES.forEach(([k]) => {
+      const from = c.st && c.st[k];
+      if (!from) return;
+      const own = x.st && x.st[k] || EMPTY_CSS;
+      x.st = x.st || {};
+      x.st[k] = { d: { ...from.d, ...own.d }, t: { ...from.t, ...own.t }, m: { ...from.m, ...own.m } };
+    });
     classRemove(x, id);
   }));
   ensureTokens().classes = classes().filter((x) => x.id !== id);
@@ -3833,14 +4041,23 @@ function styleDelete(id) {
   }));
   ensureTokens().text = styles().filter((t) => t.id !== id);
 }
+function eachDecls(fn) {
+  const visit = (o) => [o.css, ...STATES.map(([k]) => o.st && o.st[k])].forEach((c) => {
+    if (c) ["d", "t", "m"].forEach((b) => {
+      if (c[b]) fn(c[b]);
+    });
+  });
+  allTrees().forEach((l) => eachNode(l, visit));
+  styles().forEach(visit);
+  classes().forEach(visit);
+}
 function colorDelete(id) {
   if (RESERVED.includes(id)) return false;
   const lit = resolveColor(cvar(id)) || "transparent";
-  const swap2 = (o) => {
-    for (const k in o) if (refId(o[k]) === id) o[k] = lit;
-  };
-  allTrees().forEach((l) => eachNode(l, (x) => ["d", "t", "m"].forEach((b) => swap2(x.css[b] || {}))));
-  styles().forEach((t) => ["d", "t", "m"].forEach((b) => swap2(t.css && t.css[b] || {})));
+  const ref = cvar(id);
+  eachDecls((o) => {
+    for (const k in o) if (String(o[k]).includes(ref)) o[k] = String(o[k]).split(ref).join(lit);
+  });
   ensureTokens().colors = colors().filter((c) => c.id !== id);
   return true;
 }
@@ -3853,11 +4070,10 @@ function colorAdd(name, value) {
 }
 var colorUsage = (id) => {
   let k = 0;
-  const hits = (o) => {
-    for (const p in o) if (refId(o[p]) === id) k++;
-  };
-  allTrees().forEach((l) => eachNode(l, (x) => ["d", "t", "m"].forEach((b) => hits(x.css[b] || {}))));
-  styles().forEach((t) => ["d", "t", "m"].forEach((b) => hits(t.css && t.css[b] || {})));
+  const ref = cvar(id);
+  eachDecls((o) => {
+    for (const p in o) if (String(o[p]).includes(ref)) k++;
+  });
   return k;
 };
 var A_RE = /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
@@ -4571,7 +4787,7 @@ function pasteNode(intoId) {
 }
 function dropTree(fresh, intoId) {
   const place = (list2, index, parentType) => {
-    if (!fitsIn(parentType, fresh.type)) return false;
+    if (!fitsIn(parentType, fresh.type) || nowhere(parentType)) return false;
     list2.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
@@ -5110,15 +5326,16 @@ function guessBindings(slots, col) {
   slots.forEach((s) => {
     if (s.current) out[key(s)] = s.current;
   });
+  const fits = (s, f) => s.ctl === "rich" ? f.type === "rich" : !s.fieldTypes || s.fieldTypes.includes(f.type);
   slots.filter(free).forEach((s) => {
-    const f = left.find((x) => (!s.fieldTypes || s.fieldTypes.includes(x.type)) && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
+    const f = left.find((x) => fits(s, x) && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
     if (f) take(s, f);
   });
   const first = (pred) => slots.filter(free).find(pred);
   const rules = [
     [(s) => s.key === "src", () => byType("image")],
     [(s) => s.key === "text" && s.type === "heading", () => title && left.includes(title) ? title : null],
-    [(s) => s.key === "html", () => byType("rich") || left.find((f) => f.type === "text" && f !== title)],
+    [(s) => s.key === "html", () => byType("rich")],
     [(s) => s.key === "link" && s.type === "button", () => byType("link")],
     [(s) => s.key === "text" && s.type === "button", () => left.find((f) => f.type === "text" && f !== title)]
   ];
@@ -5197,6 +5414,14 @@ var fieldValue = (col, item, path, depth = 0) => {
   const hit = to ? findItem(to, v) : null;
   return hit ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
 };
+var fieldAt = (col, path, depth = 0) => {
+  if (!col) return null;
+  const bits = String(path || "").split(".");
+  const f = findField(col, bits[0]);
+  if (!f || bits.length === 1) return f || null;
+  if (f.type !== "ref" || !f.ref || depth >= REF_DEPTH) return null;
+  return fieldAt(findCollection(f.ref), bits.slice(1).join("."), depth + 1);
+};
 function fieldPaths(col) {
   if (!col) return [];
   const out = [];
@@ -5212,16 +5437,23 @@ function fieldPaths(col) {
   }
   return out;
 }
+var richProp = (type, k) => (((DEF[type] || {}).controls || {}).content || []).some((c) => c.t === "rich" && c.k === k);
+var cmsRich = (v, f) => f && f.type === "rich" ? cleanRich(v) : para(v);
 function boundProps(n, col, item, inst, def) {
   if (!n.bind) return n.props;
   const out = { ...n.props };
   for (const [k, b] of Object.entries(n.bind)) {
+    const rich = richProp(n.type, k);
     if (b.src === "prop") {
-      if (inst) out[k] = instValue(inst, def || null, b.path, col, item);
+      if (!inst) continue;
+      const v2 = instValue(inst, def || null, b.path, col, item);
+      const field = col ? boundField(inst, VAL + b.path) : "";
+      out[k] = !rich ? v2 : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
       continue;
     }
     if (b.src !== "field" || !col || !item) continue;
-    out[k] = fieldValue(col, item, b.path);
+    const v = fieldValue(col, item, b.path);
+    out[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : v;
   }
   return out;
 }
@@ -5293,6 +5525,7 @@ function blockInsert(id, parentNode, index = 0) {
   if (!b) return null;
   const fresh = reid(clone(b.node));
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -5485,9 +5718,8 @@ function componentFromNode(nodeId, name) {
   h.node.css = { d: {}, t: {}, m: {} };
   h.node.cls = [];
   h.node.hide = {};
-  h.node.adv = { htmlId: "", cls: "", css: "" };
+  h.node.adv = { htmlId: h.node.adv?.htmlId || "", cls: h.node.adv?.cls || "", css: "" };
   delete h.node.st;
-  delete h.node.anim;
   delete h.node.bind;
   delete h.node.src;
   return id;
@@ -5514,6 +5746,7 @@ function instanceInsert(cid, parentNode, index = 0) {
   delete fresh.st;
   delete fresh.anim;
   if (parentNode === void 0) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -5528,6 +5761,10 @@ function instances(cid) {
   scan(state.header, "header");
   scan(state.footer, "footer");
   state.pages.forEach((p, i) => scan(p.tree, "page:" + i));
+  components().forEach((c) => {
+    if (c.id !== cid) scan([c.node], "component:" + c.id);
+  });
+  blocks().forEach((b) => scan([b.node], "block:" + b.id));
   return out;
 }
 var componentUsage = (cid) => instances(cid).length;
@@ -5583,17 +5820,71 @@ function componentDelete(cid) {
   for (const { node } of instances(cid)) {
     const copy = reid(clone(def.node));
     const kept = node.children || [];
+    const placed = /* @__PURE__ */ new Set();
+    const settle = (x) => {
+      if (x !== copy && x.use) return;
+      Object.entries(x.bind || {}).forEach(([key, b]) => {
+        if (b.src !== "prop") return;
+        const field = boundField(node, VAL + b.path);
+        x.props[key] = instValue(node, def, b.path);
+        bindSet(x, key, field ? bindField(field) : null);
+      });
+      const c = x.showIf;
+      if (c && c.bind && c.bind.src === "prop") {
+        const field = boundField(node, VAL + c.bind.path);
+        if (field) condSet(x, { ...c, bind: { src: "field", path: field } });
+        else {
+          if (!showsNode(x, null, null, node, def)) x.hide = { d: true, t: true, m: true };
+          delete x.showIf;
+        }
+      }
+      const filled = x.slot && DEF[x.type].level < 4 ? slotKids(node, def, x.slot) : [];
+      delete x.slot;
+      if (filled.length) {
+        filled.forEach((k) => placed.add(k));
+        x.children = filled;
+        return;
+      }
+      (x.children || []).forEach(settle);
+    };
+    settle(copy);
+    const over = (a, b) => ({ d: { ...a?.d, ...b?.d }, t: { ...a?.t, ...b?.t }, m: { ...a?.m, ...b?.m } });
+    const st = {};
+    STATES.forEach(([k]) => {
+      if (copy.st?.[k] || node.st?.[k]) st[k] = over(copy.st?.[k], node.st?.[k]);
+    });
+    const ts = node.props.ts && findStyle(node.props.ts) ? node.props.ts : "";
+    const hide = node.hide || {};
     node.type = copy.type;
     node.props = copy.props;
+    if (ts) node.props.ts = ts;
     node.children = copy.children;
     node.bind = copy.bind;
+    node.css = over(copy.css, node.css);
+    if (Object.keys(st).length) node.st = st;
+    else delete node.st;
+    node.cls = [.../* @__PURE__ */ new Set([...node.cls || [], ...copy.cls || []])];
+    node.hide = { ...copy.hide };
+    ["d", "t", "m"].forEach((b) => {
+      if (hide[b]) node.hide[b] = true;
+    });
+    node.adv = {
+      htmlId: node.adv?.htmlId || "",
+      cls: node.adv?.cls || "",
+      css: [copy.adv?.css, node.adv?.css].filter(Boolean).join("\n")
+    };
+    const src = node.src || copy.src;
+    if (src) node.src = src;
+    else delete node.src;
+    if (copy.showIf) node.showIf = copy.showIf;
     delete node.use;
     delete node.vals;
     delete node.variant;
-    if (kept.length) (node.children = node.children || []).push(...kept.map((c) => {
+    const left = kept.filter((c) => !placed.has(c));
+    if (left.length) (node.children = node.children || []).push(...left);
+    kept.forEach((c) => {
       delete c.slot;
-      return c;
-    }));
+    });
     n++;
   }
   state.meta.components = components().filter((c) => c.id !== cid);
@@ -6501,6 +6792,7 @@ function patternInsert(pid, parentNode, index = 0) {
   if (!p) return null;
   const node = p.build();
   if (parentNode === void 0) return dropTree(node, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -7722,20 +8014,6 @@ function para(str) {
   if (!t) return "";
   return t.split(/\n{2,}/).map((b) => `<p>${esc(b).replace(/\n/g, "<br>")}</p>`).join("");
 }
-function stripScripts(html) {
-  let stripped = 0;
-  const out = String(html == null ? "" : html).replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => {
-    stripped++;
-    return "";
-  }).replace(/<script\b[^>]*\/?>/gi, () => {
-    stripped++;
-    return "";
-  }).replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, () => {
-    stripped++;
-    return "";
-  });
-  return { html: out, stripped };
-}
 function demoteMainTags(html) {
   const source = String(html == null ? "" : html);
   const lower = source.toLowerCase();
@@ -7821,10 +8099,10 @@ function renderNode(n, o) {
   if (n.use && !(o.inst && o.inst === n)) {
     const cd = findComponent(n.use);
     if (cd && (o.stack || []).includes(n.use)) {
-      return o.edit ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">${esc(cd.name)} contains itself</div>` : "";
+      return o.edit ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">${esc(cd.name)} contains itself</div>` : "";
     }
     if (!cd) {
-      return o.edit ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
+      return o.edit ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
     }
     return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...o.stack || [], n.use] });
   }
@@ -7835,11 +8113,11 @@ function renderNode(n, o) {
   const managed = nodeClasses(self).map((c) => " c-" + c.id).join("") + (host ? nodeClasses(n).map((c) => " c-" + c.id).join("") : "");
   const anim = o.edit ? { cls: "", at: "" } : animAttrs(self);
   let condCls = "";
-  const cx = (c) => `class="${c} ${nodeClass(n)}${host ? " " + nodeClass(host) : ""}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
+  const cx = (c) => `class="${c} ${esc(nodeClass(n))}${host ? " " + esc(nodeClass(host)) : ""}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
   const rep = o.repeat && o.item ? "-" + o.item.slug : "";
   const ins = inner && o.inst ? "-" + String(o.inst.id).replace(/^n/, "") : "";
-  const domId = o.edit ? o.repIndex ? self.id + rep + ins : self.id + ins : esc(domIdOf(self) + rep + ins);
-  const hooks = inner ? "" : ` data-id="${self.id}" data-t="${self.type}"${state.ui.sel === self.id ? " data-sel" : ""}`;
+  const domId = o.edit ? esc(o.repIndex ? self.id + rep + ins : self.id + ins) : esc(domIdOf(self) + rep + ins);
+  const hooks = inner ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${state.ui.sel === self.id ? " data-sel" : ""}`;
   const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const source = self.src || n.src;
   const sc = source ? findCollection(source) : null;
@@ -7849,6 +8127,7 @@ function renderNode(n, o) {
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
   const kids = n.type === "list" ? "" : kidList.map((c) => renderNode(c, kidOpts)).join("");
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
+  const blank = p.target === "_blank" ? ' target="_blank" rel="noopener"' : "";
   if (n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
     if (!o.edit) return "";
     condCls = " s-cond-off";
@@ -7867,7 +8146,7 @@ function renderNode(n, o) {
       const decorative = n.css.d?.position === "absolute" && !!(n.css.d?.["background-image"] || n.css.d?.["background-color"] || n.css.d?.background);
       const inner2 = kids || (o.edit && !decorative ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
       if (href) {
-        return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${inner2}</a>`;
+        return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${blank}>${inner2}</a>`;
       }
       const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : "div";
       return `<${tag} ${at} ${cx("pagecraft-box" + mode)}>${inner2}</${tag}>`;
@@ -7901,7 +8180,7 @@ function renderNode(n, o) {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : "h2";
       const body = esc(p.text).replace(/\n/g, "<br>");
       const href = pageHref(p.link, o);
-      const inner2 = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${body}</a>` : body;
+      const inner2 = href ? `<a href="${esc(href)}"${blank}>${body}</a>` : body;
       return `<${tg} ${at} ${cx("pagecraft-heading")}>${inner2}</${tg}>`;
     }
     case "text":
@@ -7925,9 +8204,9 @@ function renderNode(n, o) {
       const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${blank}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
       return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
     }
     case "video": {
@@ -7940,7 +8219,7 @@ function renderNode(n, o) {
       const ico = p.icon && p.icon !== "none" ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${BICON[p.icon] || ""}</svg>` : "";
       const bhref = pageHref(p.link, o);
       const tag = bhref ? "a" : "button";
-      const attrs = bhref ? `href="${esc(bhref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}` : 'type="button"';
+      const attrs = bhref ? `href="${esc(bhref)}"${blank}` : 'type="button"';
       return `<${tag} ${at} ${cx("pagecraft-button")} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case "nav": {
@@ -8005,7 +8284,7 @@ function renderNode(n, o) {
         const last = i === trail.length - 1;
         const label = esc(c.label);
         const href = last ? "" : pageHref(c.href, o);
-        return "<li>" + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${href}">${label}</a>`) + "</li>";
+        return "<li>" + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${esc(href)}">${label}</a>`) + "</li>";
       }).join("");
       return `<nav ${at} ${cx("pagecraft-crumbs")} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || "chevron"))}"><ol>${li}</ol></nav>`;
     }
@@ -8063,7 +8342,11 @@ function renderNode(n, o) {
       const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : "";
       const ecls = "pagecraft-embed" + (p.ratio ? " pagecraft-embed-ratio" : "");
       if (!raw.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-embed")}><div class="s-empty">${svg("code", 12)} Paste embed HTML in the panel</div></div>` : "";
-      if (!o.edit) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      if (!o.edit && !o.canvas) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      if (!o.edit) {
+        const frame = '<!doctype html><meta charset="utf-8"><style>html,body{margin:0}body{display:flow-root}</style>' + raw + (p.ratio ? "" : `<script>${EMBED_FRAME_JS}</script>`);
+        return `<div ${at} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame${p.ratio ? "" : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
+      }
       const { html, stripped } = stripScripts(raw);
       const note = stripped ? `<div class="s-held">${stripped} script${stripped === 1 ? "" : "s"} held back here \u2014 ${stripped === 1 ? "it runs" : "they run"} on the exported page</div>` : "";
       return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? "" : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
@@ -8072,7 +8355,7 @@ function renderNode(n, o) {
       const nm = p.name && ICON_PATHS[p.name] ? p.name : "check";
       const lab = String(p.label == null ? "" : p.label).trim();
       const ihref2 = pageHref(p.link, o);
-      if (ihref2) return `<a ${at} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${p.target ? ` target="${p.target}" rel="noopener"` : ""}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
+      if (ihref2) return `<a ${at} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${blank}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
       return iconSvg(nm, `${at} ${cx("pagecraft-icon pagecraft-icon-glyph")} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
     }
     case "gallery": {
@@ -8189,6 +8472,9 @@ document.addEventListener('click',function(e){if(!w.contains(e.target))set(false
 });})();
 </script>
 `;
+var EMBED_FRAME_JS = "(function(){var b=document.body,h=-1;function s(){var n=Math.ceil(b.getBoundingClientRect().height);if(n!==h){h=n;parent.postMessage({pagecraftEmbedHeight:n},'*');}}if(window.ResizeObserver)new ResizeObserver(s).observe(b);addEventListener('load',s);s();})();";
+var EMBED_FRAME_HASH = "sha256-fKWA8D62TWnX/ElarnS4cjNHmTS5nuDLPuJmhSPuQyY=";
+var canvasCsp = (nonce) => `script-src 'nonce-${nonce}' '${EMBED_FRAME_HASH}'; object-src 'none'; base-uri 'none'`;
 var FACADE_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-facade] .pagecraft-video-play'),function(b){
 b.addEventListener('click',function(){
@@ -8571,9 +8857,11 @@ function proposalPrepare(inputs, options) {
   return { changes: problems.length ? [] : changes, problems };
 }
 var proposalSlotOf = (n, key, image) => (image ? proposalImageSlots(n) : textSlots(n)).find((sl) => proposalSlotKey(sl) === key) || null;
-function proposalCheck(changes) {
-  return changes.map((ch) => {
+var proposalNodeId = (proposalId, index) => "np" + String(proposalId).replace(/[^a-z0-9]/gi, "").slice(0, 32) + "x" + index.toString(36);
+function proposalCheck(changes, proposalId = "") {
+  return changes.map((ch, i) => {
     if (ch.type === "insert") {
+      if (proposalId && proposalFind(proposalNodeId(proposalId, i))) return "applied";
       if (!findComponent(ch.componentId || "")) return "missing";
       if (ch.parentId) return proposalFind(ch.parentId)?.region === ch.region ? "ok" : "missing";
       return ch.region === "header" || ch.region === "footer" || state.pages.some((pg2) => pg2.id === ch.region) ? "ok" : "missing";
@@ -8618,9 +8906,11 @@ function proposalOutline(region) {
   });
   return out;
 }
-function proposalApply(changes) {
+function proposalApply(changes, proposalId = "") {
   const placed = [];
-  for (const ch of changes) {
+  const status = proposalCheck(changes, proposalId);
+  for (const [i, ch] of changes.entries()) {
+    if (status[i] !== "ok") continue;
     if (ch.type === "insert") {
       const parent = ch.parentId ? proposalFind(ch.parentId).node : null;
       const mode = state.ui.mode, cur = state.cur, cedit = state.ui.cedit;
@@ -8631,6 +8921,7 @@ function proposalApply(changes) {
       try {
         const made = instanceInsert(ch.componentId, parent, ch.index ?? 1e6);
         if (made) {
+          if (proposalId) made.id = proposalNodeId(proposalId, i);
           for (const [k, v] of Object.entries(ch.values || {})) instSet(made, k, v);
           placed.push(made.id);
         }
@@ -8675,6 +8966,8 @@ function proposalApply(changes) {
   DEV_KEY,
   DEV_LABEL,
   DEV_W,
+  EMBED_FRAME_HASH,
+  EMBED_FRAME_JS,
   FACADE_JS,
   FIELD_TYPES,
   FILTER_OPS,
@@ -8756,6 +9049,7 @@ function proposalApply(changes) {
   buildWordPressContentReference,
   canDo,
   canFacade,
+  canvasCsp,
   canvasWidth,
   chainTo,
   classAdd,
@@ -8766,6 +9060,7 @@ function proposalApply(changes) {
   classRemove,
   classUsage,
   classes,
+  cleanRich,
   clip,
   clone,
   cloudFormEndpoint,
@@ -8828,6 +9123,7 @@ function proposalApply(changes) {
   familyOf,
   fanTargets,
   fieldAdd,
+  fieldAt,
   fieldDelete,
   fieldMove,
   fieldPaths,
@@ -8949,6 +9245,7 @@ function proposalApply(changes) {
   propVal,
   proposalApply,
   proposalCheck,
+  proposalNodeId,
   proposalOutline,
   proposalPrepare,
   published,
