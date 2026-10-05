@@ -13,6 +13,15 @@ async function page(tab, base, host, section, { reducedMotion }) {
 }
 const js = (tab, fn, arg) => tab.playwright.evaluate(fn, arg);
 const click = (tab, role, name) => tab.playwright.getByRole(role, { name, exact: true }).click();
+// Observe the 120ms exit before a native input wrapper's settling delay completes.
+// This is real pointer input on a measured, visible gallery control.
+async function immediateClick(tab, role, name) {
+  const rect = await tab.playwright.getByRole(role, { name, exact: true }).evaluate(element => element.getBoundingClientRect().toJSON());
+  const cdp = await tab.capabilities.get('cdp');
+  const pointer = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, button: 'left', clickCount: 1 };
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...pointer });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...pointer });
+}
 
 const CHECKS = [
   ['Select Escape preserves Home, closes picker and returns focus', async (tab, base, host) => {
@@ -37,7 +46,7 @@ const CHECKS = [
     await click(tab, 'button', 'Open dialog');
     await sleep(200);
     await tab.playwright.locator('#dialog-name').click();
-    await js(tab, () => { const input = document.getElementById('dialog-name'); input.setSelectionRange(input.value.length, input.value.length); });
+    await tab.playwright.locator('#dialog-name').press('End');
     await tab.type(' (unsaved QA edit)');
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 768, height: 900, deviceScaleFactor: 1, mobile: false });
     await sleep(400);
@@ -106,9 +115,9 @@ const CHECKS = [
     await click(tab, 'button', 'Toggle details');
     await sleep(400);
     const open = await state();
-    await click(tab, 'button', 'Toggle details');
+    await immediateClick(tab, 'button', 'Toggle details');
     const exiting = await state();
-    await click(tab, 'button', 'Toggle details');
+    await immediateClick(tab, 'button', 'Toggle details');
     await sleep(500);
     const reopened = await state();
     return { passed: !open.hidden && open.expanded === 'true' && !exiting.hidden && exiting.height > 0 && exiting.expanded === 'false'

@@ -440,7 +440,7 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
       const result = await libs.share(id, address);
       if (result.added) setMembers([...shown.filter(m => m.userId !== result.member.userId), result.member]);
       setEmail('');
-      L.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
+      L.toast(result.member.awaitingAcceptance ? `Invitation sent to ${address}` : `${address} already has access`);
     } catch (error) {
       L.toast(problem(error), { tone: 'error' });
     } finally {
@@ -468,7 +468,7 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
     <>
       <Head library={library} back={back} sub="Share" />
       <p class="lib-note">
-        People you share with can import from this library into sites they own and take its updates.
+        After accepting your invitation, people can import from this library into sites they own and take its updates.
         Only you publish new versions.
       </p>
       <form class="lib-share" onSubmit={share}>
@@ -483,7 +483,7 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
             <div class="lib-member" key={member.userId}>
               <span class="bn">
                 <b>{member.name || member.email}</b>
-                <small>{member.name ? member.email : ''}{member.pending ? `${member.name ? ' · ' : ''}No Pagecraft account yet` : ''}</small>
+                <small>{member.name ? member.email : ''}{member.awaitingAcceptance ? `${member.name ? ' · ' : ''}Awaiting acceptance` : member.pending ? `${member.name ? ' · ' : ''}No Pagecraft account yet` : ''}</small>
               </span>
               <button type="button" class="bx danger" title={`Stop sharing with ${member.email}`}
                 aria-label={`Stop sharing with ${member.email}`} disabled={busy} onClick={() => remove(member)}>

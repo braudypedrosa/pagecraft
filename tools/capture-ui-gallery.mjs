@@ -20,7 +20,8 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
    }
    await tab.playwright.getByRole('link',{name:section[0].toUpperCase()+section.slice(1),exact:true}).click();
    await tab.playwright.locator(`body[data-gallery-host="${host}"][data-gallery-section="${section}"]`).waitFor({state:'attached'});
-   await tab.playwright.evaluate(async()=>{scrollTo(0,0);await document.fonts.ready;return document.documentElement.dataset.galleryReady;});
+   await tab.playwright.locator('body').press('Control+Home');
+   await tab.playwright.evaluate(async()=>{await document.fonts.ready;return document.documentElement.dataset.galleryReady;});
    if(section==='fields')await tab.playwright.locator(host==='cloud'?'#site-name':'#editor-name').click();
    if(section==='actions')await tab.playwright.getByRole('button',{name:'Start processing',exact:true}).click();
    if(section==='menus')await tab.playwright.getByRole('combobox',{name:'Current page',exact:true}).click();

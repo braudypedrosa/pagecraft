@@ -27,10 +27,10 @@ import {
   type Asset, type AssetQuota, type AssetRecord, type AssetStore
 } from './assets.ts';
 import {
-  AUTH_SCHEMA, normalEmail, type AuthStore, type InviteDeliveryResult,
+  AUTH_SCHEMA, MANUAL_IMPORT_IDLE_MS, normalEmail, type AuthStore, type InviteDeliveryResult,
   type InvitationDrainResult, type InvitationProvisionResult,
   type MemberChangeResult, type MemberRemovalResult, type Role, type Session,
-  type ManualImportCredential, type User
+  type ManualImportCredential, type ManualImportRefreshResult, type User
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -2170,23 +2170,35 @@ export class PgAuthStore implements AuthStore {
   }
   async createManualImportCredential(input: Omit<ManualImportCredential,
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {
-    const { rows } = await this.db.query<{
-      id:string; owner_id:string; installation_id:string; access_token_digest:string;
-      access_expires_at:Date|string; refresh_token_digest:string; status:'active'|'revoked';
-      created_at:Date|string; updated_at:Date|string; revoked_at:Date|string|null;
-    }>(`insert into wordpress_import_credentials (
-        id, owner_id, installation_id, access_token_digest, access_expires_at, refresh_token_digest
-      ) values ($1, $2, $3, $4, $5, $6)
-      on conflict (owner_id, installation_id) do update set
-        access_token_digest = excluded.access_token_digest,
-        access_expires_at = excluded.access_expires_at,
-        refresh_token_digest = excluded.refresh_token_digest,
-        status = 'active', revoked_at = null, updated_at = now()
-      returning *`, [
-      input.id, input.ownerId, input.installationId, input.accessTokenDigest,
-      new Date(input.accessExpiresAt).toISOString(), input.refreshTokenDigest
-    ]);
-    return this.manualCredential(rows[0]);
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      const { rows } = await client.query<any>(`insert into wordpress_import_credentials (
+          id, owner_id, installation_id, site_url, access_token_digest,
+          access_expires_at, refresh_token_digest
+        ) values ($1, $2, $3, $4, $5, $6, $7)
+        on conflict (owner_id, installation_id) do update set
+          site_url = excluded.site_url,
+          access_token_digest = excluded.access_token_digest,
+          access_expires_at = excluded.access_expires_at,
+          refresh_token_digest = excluded.refresh_token_digest,
+          status = 'active', revoked_at = null, updated_at = now()
+        returning *`, [
+        input.id, input.ownerId, input.installationId, input.siteUrl ?? null,
+        input.accessTokenDigest, new Date(input.accessExpiresAt).toISOString(),
+        input.refreshTokenDigest
+      ]);
+      await client.query(
+        'delete from wordpress_import_used_refresh_tokens where credential_id = $1',
+        [rows[0].id]);
+      await client.query('commit');
+      return this.manualCredential(rows[0]);
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
   }
   async manualImportByAccess(digest: string) {
     const { rows } = await this.db.query<any>(
@@ -2214,6 +2226,76 @@ export class PgAuthStore implements AuthStore {
          where id = $1 and status = 'active' returning *`, [id, digest, new Date(expiresAt).toISOString()]);
     return rows[0] ? this.manualCredential(rows[0]) : null;
   }
+  async exchangeManualImportRefresh(presentedDigest: string, nextAccessDigest: string,
+    nextAccessExpiresAt: number, nextRefreshDigest: string): Promise<ManualImportRefreshResult> {
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      const current = await client.query<any>(
+        `select * from wordpress_import_credentials
+         where refresh_token_digest = $1 for update`, [presentedDigest]);
+      const credential = current.rows[0];
+      if (credential) {
+        if (credential.status !== 'active' ||
+            ms(credential.updated_at) <= Date.now() - MANUAL_IMPORT_IDLE_MS) {
+          await client.query('commit');
+          return { status: 'invalid' };
+        }
+        /* Re-pairing locks the credential before clearing its history. Keep this same lock
+           order, so refresh and reconnect cannot deadlock each other. */
+        await client.query(
+          `delete from wordpress_import_used_refresh_tokens
+           where credential_id = $1 and expires_at <= now()`, [credential.id]);
+        await client.query(
+          `insert into wordpress_import_used_refresh_tokens (digest, credential_id, expires_at)
+           values ($1, $2, now() + interval '90 days')`,
+          [presentedDigest, credential.id]);
+        const rotated = await client.query<any>(
+          `update wordpress_import_credentials
+           set access_token_digest = $2, access_expires_at = $3,
+             refresh_token_digest = $4, updated_at = now()
+           where id = $1 and status = 'active' and refresh_token_digest = $5
+           returning *`, [credential.id, nextAccessDigest,
+            new Date(nextAccessExpiresAt).toISOString(), nextRefreshDigest, presentedDigest]);
+        if (!rotated.rows[0]) {
+          await client.query('rollback');
+          return { status: 'invalid' };
+        }
+        await client.query('commit');
+        return { status: 'rotated', credential: this.manualCredential(rotated.rows[0]) };
+      }
+      const reused = await client.query<any>(
+        `select credential.* from wordpress_import_used_refresh_tokens used
+         join wordpress_import_credentials credential on credential.id = used.credential_id
+         where used.digest = $1 and used.expires_at > now()
+         for update of credential`, [presentedDigest]);
+      if (!reused.rows[0] || reused.rows[0].status !== 'active') {
+        await client.query('commit');
+        return { status: 'invalid' };
+      }
+      /* The join can find old history before waiting on a concurrent re-pair's credential
+         lock. Re-read after acquiring that lock: re-pair may have cleared the old family. */
+      const stillUsed = await client.query<{ digest: string }>(
+        `select digest from wordpress_import_used_refresh_tokens
+         where digest = $1 and credential_id = $2 and expires_at > now()`,
+        [presentedDigest, reused.rows[0].id]);
+      if (!stillUsed.rows[0]) {
+        await client.query('commit');
+        return { status: 'invalid' };
+      }
+      await client.query(
+        `update wordpress_import_credentials
+         set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+         where id = $1 and status = 'active'`, [reused.rows[0].id]);
+      await client.query('commit');
+      return { status: 'reused' };
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
+  }
   async revokeManualImportCredential(id: string, refreshDigest: string) {
     const { rows } = await this.db.query<{ id:string }>(
       `update wordpress_import_credentials set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
@@ -2235,6 +2317,7 @@ export class PgAuthStore implements AuthStore {
   private manualCredential(row: any): ManualImportCredential {
     return {
       id: row.id, ownerId: row.owner_id, installationId: row.installation_id,
+      siteUrl: row.site_url ?? null,
       accessTokenDigest: row.access_token_digest, accessExpiresAt: ms(row.access_expires_at),
       refreshTokenDigest: row.refresh_token_digest, status: row.status,
       createdAt: ms(row.created_at), updatedAt: ms(row.updated_at),

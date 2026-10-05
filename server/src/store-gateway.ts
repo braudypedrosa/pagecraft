@@ -21,6 +21,7 @@ import {
   type InvitationProvisionResult,
   type InviteDeliveryResult,
   type ManualImportCredential,
+  type ManualImportRefreshResult,
   type MemberChangeResult,
   type MemberRemovalResult,
   type Membership,
@@ -1635,6 +1636,7 @@ interface ManualImportWire {
   id: string;
   owner_id: string;
   installation_id: string;
+  site_url?: string | null;
   access_token_digest: string;
   access_expires_at: string;
   refresh_token_digest: string;
@@ -1647,6 +1649,7 @@ const toManualImport = (row: ManualImportWire): ManualImportCredential => ({
   id: row.id,
   ownerId: row.owner_id,
   installationId: row.installation_id,
+  siteUrl: row.site_url ?? null,
   accessTokenDigest: row.access_token_digest,
   accessExpiresAt: new Date(row.access_expires_at).getTime(),
   refreshTokenDigest: row.refresh_token_digest,
@@ -2105,6 +2108,25 @@ export class GatewayAuthStore implements AuthStore {
       },
     );
     return row ? toManualImport(row) : null;
+  }
+  async exchangeManualImportRefresh(
+    presentedDigest: string,
+    nextAccessDigest: string,
+    nextAccessExpiresAt: number,
+    nextRefreshDigest: string,
+  ): Promise<ManualImportRefreshResult> {
+    const result = await this.gateway.call<
+      | { status: "rotated"; credential: ManualImportWire }
+      | { status: "reused" | "invalid" }
+    >("auth.manualImport.exchangeRefresh", {
+      presentedDigest,
+      nextAccessDigest,
+      nextAccessExpiresAt: new Date(nextAccessExpiresAt).toISOString(),
+      nextRefreshDigest,
+    });
+    return result.status === "rotated"
+      ? { status: "rotated", credential: toManualImport(result.credential) }
+      : result;
   }
   revokeManualImportCredential(id: string, refreshDigest: string) {
     return this.gateway.call<boolean>("auth.manualImport.revoke", {

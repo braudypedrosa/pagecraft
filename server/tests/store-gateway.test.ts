@@ -202,6 +202,7 @@ test("gateway manual-import credentials never expose plaintext token material to
     id: "manual-one",
     owner_id: "u1",
     installation_id: "wp-one",
+    site_url: "https://wordpress.test/subdirectory",
     access_token_digest: "a".repeat(64),
     access_expires_at: "2026-08-27T01:00:00.000Z",
     refresh_token_digest: "r".repeat(64),
@@ -218,6 +219,17 @@ test("gateway manual-import credentials never expose plaintext token material to
     ) return row;
     if (call.op === "auth.manualImport.rotate") {
       return { ...row, access_token_digest: call.args.digest };
+    }
+    if (call.op === "auth.manualImport.exchangeRefresh") {
+      return {
+        status: "rotated",
+        credential: {
+          ...row,
+          access_token_digest: call.args.nextAccessDigest,
+          access_expires_at: call.args.nextAccessExpiresAt,
+          refresh_token_digest: call.args.nextRefreshDigest,
+        },
+      };
     }
     if (call.op === "auth.manualImport.revoke") return true;
     throw new Error(`unexpected ${call.op}`);
@@ -245,6 +257,17 @@ test("gateway manual-import credentials never expose plaintext token material to
     "b".repeat(64),
     Date.now() + 60_000,
   );
+  const exchanged = await auth.exchangeManualImportRefresh(
+    row.refresh_token_digest,
+    "c".repeat(64),
+    new Date(row.access_expires_at).getTime() + 60_000,
+    "s".repeat(64),
+  );
+  a.equal(exchanged.status, "rotated");
+  if (exchanged.status === "rotated") {
+    a.equal(exchanged.credential.siteUrl, row.site_url);
+    a.equal(exchanged.credential.refreshTokenDigest, "s".repeat(64));
+  }
   a.equal(
     await auth.revokeManualImportCredential(row.id, row.refresh_token_digest),
     true,
@@ -254,12 +277,17 @@ test("gateway manual-import credentials never expose plaintext token material to
     "auth.manualImport.byAccess",
     "auth.manualImport.byRefresh",
     "auth.manualImport.rotate",
+    "auth.manualImport.exchangeRefresh",
     "auth.manualImport.revoke",
   ]);
   a.equal(
     (calls[0].args.input as Record<string, unknown>).accessExpiresAt,
     row.access_expires_at,
     "gateway timestamps cross the HTTPS boundary as ISO-8601 strings",
+  );
+  a.equal(
+    calls[4].args.nextAccessExpiresAt,
+    new Date(new Date(row.access_expires_at).getTime() + 60_000).toISOString(),
   );
   a.equal(JSON.stringify(calls).includes("access-secret"), false);
 });

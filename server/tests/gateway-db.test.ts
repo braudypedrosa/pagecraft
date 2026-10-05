@@ -145,6 +145,69 @@ const count = async (sql: string, params: unknown[] = []) =>
   Number((await db.query<{ n: number }>(`select count(*)::integer as n from (${sql}) rows`, params)).rows[0].n);
 
 const doc = { schemaVersion: 1, meta: {}, header: [], footer: [], pages: [] };
+
+const operation = async (op: string, args: Record<string, unknown>) => {
+  const response = await call(op, args);
+  return { status: response.status, body: response.body.data as any };
+};
+
+test('consent gateway keeps library and owner access pending until the exact recipient accepts', async () => {
+  const siteId = 'consent-site', ownerId = 'consent-owner', recipientId = 'consent-recipient';
+  await siteWithOwner(siteId, ownerId);
+  await db.query(`insert into users (id, email) values ($1, $2)`, [recipientId, 'consent-recipient@example.test']);
+  const invited = await operation('collaboration.invite', { kind: 'site_owner', resourceId: siteId, recipientId, invitedBy: ownerId });
+  a.equal(invited.status, 200, JSON.stringify(invited.body));
+  a.equal(invited.body.status, 'pending');
+  const invitationId = (invited.body.invitation as { id: string }).id;
+  a.equal(await count(`select * from site_users where site_id=$1 and user_id=$2`, [siteId, recipientId]), 0);
+  a.equal((await operation('collaboration.decide', { id: invitationId, userId: ownerId, accept: true })).body, 'missing');
+  a.equal((await operation('collaboration.decide', { id: invitationId, userId: recipientId, accept: true })).body, 'accepted');
+  a.equal(await count(`select * from site_users where site_id=$1 and user_id=$2 and role='owner'`, [siteId, recipientId]), 1);
+  a.equal((await operation('collaboration.decide', { id: invitationId, userId: recipientId, accept: true })).body, 'missing');
+
+  const libraryId = randomUUID();
+  await operation('library.create', { id: libraryId, ownerId, name: 'Consent library' });
+  const pending = await operation('collaboration.invite', { kind: 'library', resourceId: libraryId, recipientId, invitedBy: ownerId });
+  a.equal((await operation('library.getFor', { id: libraryId, userId: recipientId })).body, null);
+  const libraryInvitationId = (pending.body.invitation as { id: string }).id;
+  a.equal((await operation('collaboration.listForUser', { userId: recipientId })).body.length, 1);
+  a.equal((await operation('collaboration.decide', { id: libraryInvitationId, userId: recipientId, accept: false })).body, 'declined');
+  a.equal(await count(`select * from library_members where library_id=$1`, [libraryId]), 0);
+});
+
+test('resource deletion removes pending consent and its tables are inaccessible to client roles', async () => {
+  await siteWithOwner('consent-delete', 'consent-delete-owner');
+  await operation('collaboration.invite', { kind: 'site_owner', resourceId: 'consent-delete', recipientId: 'consent-recipient', invitedBy: 'consent-delete-owner' });
+  await db.query(`delete from sites where id=$1`, ['consent-delete']);
+  a.equal(await count(`select * from collaboration_invitations where resource_id='consent-delete'`), 0);
+  for (const table of ['collaboration_invitations', 'wordpress_import_used_refresh_tokens']) {
+    for (const role of ['anon', 'authenticated']) {
+      const permissions = await db.query<{ allowed: boolean }>(`select has_table_privilege($1, $2, 'SELECT') as allowed`, [role, table]);
+      a.equal(permissions.rows[0].allowed, false);
+    }
+    const security = await db.query<{ enabled: boolean }>(`select relrowsecurity as enabled from pg_class where oid=$1::regclass`, [table]);
+    a.equal(security.rows[0].enabled, true);
+  }
+});
+
+test('manual import gateway revokes a replayed token family and preserves legacy calls', async () => {
+  const input = { id: 'replay-credential', ownerId: 'consent-owner', installationId: 'replay-wordpress', siteUrl: 'https://wordpress.example.test/subdirectory/', accessTokenDigest: hex('replay-access-1'), accessExpiresAt: new Date(Date.now()+900000).toISOString(), refreshTokenDigest: hex('replay-refresh-1') };
+  const created = await operation('auth.manualImport.create', { input });
+  a.equal(created.status, 200, JSON.stringify(created.body));
+  a.equal(created.body.site_url, input.siteUrl);
+  const exchanged = await operation('auth.manualImport.exchangeRefresh', { presentedDigest: input.refreshTokenDigest, nextAccessDigest: hex('replay-access-2'), nextAccessExpiresAt: input.accessExpiresAt, nextRefreshDigest: hex('replay-refresh-2') });
+  a.equal(exchanged.body.status, 'rotated');
+  a.equal((await operation('auth.manualImport.exchangeRefresh', { presentedDigest: hex('unknown-refresh'), nextAccessDigest: hex('unknown-access'), nextAccessExpiresAt: input.accessExpiresAt, nextRefreshDigest: hex('unknown-next') })).body.status, 'invalid');
+  a.equal((await operation('auth.manualImport.byAccess', { digest: hex('replay-access-2') })).body.id, input.id);
+  const replay = await operation('auth.manualImport.exchangeRefresh', { presentedDigest: input.refreshTokenDigest, nextAccessDigest: hex('replay-access-3'), nextAccessExpiresAt: input.accessExpiresAt, nextRefreshDigest: hex('replay-refresh-3') });
+  a.equal(replay.body.status, 'reused');
+  a.equal((await operation('auth.manualImport.byAccess', { digest: hex('replay-access-2') })).body, null);
+  a.equal((await operation('auth.manualImport.byRefresh', { digest: hex('replay-refresh-2') })).body, null);
+  await operation('auth.manualImport.create', { input: { ...input, accessTokenDigest: hex('repaired-access'), refreshTokenDigest: hex('repaired-refresh'), siteUrl: undefined } });
+  a.equal((await operation('auth.manualImport.exchangeRefresh', { presentedDigest: input.refreshTokenDigest, nextAccessDigest: hex('old-family-access'), nextAccessExpiresAt: input.accessExpiresAt, nextRefreshDigest: hex('old-family-refresh') })).body.status, 'invalid');
+  a.equal((await operation('auth.manualImport.rotate', { id: input.id, digest: hex('legacy-access'), expiresAt: input.accessExpiresAt })).body.refresh_token_digest, hex('repaired-refresh'));
+  a.equal((await operation('auth.manualImport.byAccess', { digest: hex('legacy-access') })).body.site_url, null);
+});
 async function siteWithOwner(siteId: string, userId: string) {
   await db.query(`insert into users (id, email) values ($1, $2) on conflict do nothing`, [userId, `${userId}@example.test`]);
   await db.query(`insert into sites (id, host, slug, name, doc) values ($1, $2, $1, $1, $3)`,

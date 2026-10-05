@@ -15100,7 +15100,7 @@ var PC_UI = (() => {
         const result = await libs.share(id, address);
         if (result.added) setMembers([...shown2.filter((m3) => m3.userId !== result.member.userId), result.member]);
         setEmail("");
-        L2.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
+        L2.toast(result.member.awaitingAcceptance ? `Invitation sent to ${address}` : `${address} already has access`);
       } catch (error) {
         L2.toast(problem2(error), { tone: "error" });
       } finally {
@@ -15127,7 +15127,7 @@ var PC_UI = (() => {
     };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(Head, { library, back, sub: "Share" }),
-      /* @__PURE__ */ u2("p", { class: "lib-note", children: "People you share with can import from this library into sites they own and take its updates. Only you publish new versions." }),
+      /* @__PURE__ */ u2("p", { class: "lib-note", children: "After accepting your invitation, people can import from this library into sites they own and take its updates. Only you publish new versions." }),
       /* @__PURE__ */ u2("form", { class: "lib-share", onSubmit: share, children: [
         /* @__PURE__ */ u2(
           "input",
@@ -15151,7 +15151,7 @@ var PC_UI = (() => {
             /* @__PURE__ */ u2("b", { children: member.name || member.email }),
             /* @__PURE__ */ u2("small", { children: [
               member.name ? member.email : "",
-              member.pending ? `${member.name ? " \xB7 " : ""}No Pagecraft account yet` : ""
+              member.awaitingAcceptance ? `${member.name ? " \xB7 " : ""}Awaiting acceptance` : member.pending ? `${member.name ? " \xB7 " : ""}No Pagecraft account yet` : ""
             ] })
           ] }),
           /* @__PURE__ */ u2(

@@ -955,7 +955,31 @@ test("site People lets owners invite and manage collaborators while content sees
     { role: "owner" },
   );
   a.equal(promoted.status, 303);
+  a.match(promoted.headers.get("location") || "", /Ownership\+invitation\+sent/);
+  a.equal((await auth.membership(site.id, collaborator!.id))?.role, "content",
+    "owner promotion waits for recipient consent");
+  a.match(await (await request(`/sites/${site.id}/people`)).text(), /Awaiting acceptance/);
+
+  accountAuth.current = {
+    authUserId: "auth-collaborator",
+    email: "collaborator@example.test",
+    name: "Collaborator",
+  };
+  await auth.ensureAuthUser("auth-collaborator", "collaborator@example.test", "Collaborator");
+  const ownershipInvitations = await (await request("/api/invitations")).json() as {
+    invitations: { id: string; kind: string; resourceId: string }[];
+  };
+  a.deepEqual(ownershipInvitations.invitations.map(item => [item.kind, item.resourceId]), [["site_owner", site.id]]);
+  a.deepEqual(await (await request(`/api/invitations/${ownershipInvitations.invitations[0].id}/accept`, {
+    method: "POST",
+  })).json(), { status: "accepted" });
   a.equal((await auth.membership(site.id, collaborator!.id))?.role, "owner");
+
+  accountAuth.current = {
+    authUserId: "auth-owner",
+    email: "owner@example.test",
+    name: "Owner",
+  };
   const demoted = await form(
     `/sites/${site.id}/people/${collaborator!.id}/role`,
     { role: "content" },

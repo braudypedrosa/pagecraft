@@ -324,3 +324,49 @@ test('a WordPress refresh token rotates once per use and lapses after 90 idle da
     vi.restoreAllMocks();
   }
 });
+
+test('reusing any retained WordPress refresh token revokes its credential family', async () => {
+  const auth = new MemoryAuthStore();
+  const owner = await auth.createUser('refresh-owner@acme.test');
+  const first = hashToken('family-refresh-1');
+  const credential = await auth.createManualImportCredential({
+    id: 'wp-family-1', ownerId: owner.id, installationId: 'wp-family-install',
+    siteUrl: 'https://wordpress.test/client',
+    accessTokenDigest: hashToken('family-access-1'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: first,
+  });
+  const second = hashToken('family-refresh-2');
+  const rotated = await auth.exchangeManualImportRefresh(
+    first, hashToken('family-access-2'), Date.now() + 60_000, second);
+  a.equal(rotated.status, 'rotated');
+  if (rotated.status === 'rotated') {
+    a.equal(rotated.credential.siteUrl, 'https://wordpress.test/client');
+    a.equal(rotated.credential.refreshTokenDigest, second);
+  }
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    first, hashToken('attacker-access'), Date.now() + 60_000, hashToken('attacker-refresh')),
+  { status: 'reused' });
+  a.equal(await auth.manualImportByRefresh(second), null, 'reuse revokes the current token too');
+  a.equal((await auth.manualImportsForOwner(owner.id)).length, 0);
+
+  const repaired = await auth.createManualImportCredential({
+    id: 'wp-family-2', ownerId: owner.id, installationId: credential.installationId,
+    accessTokenDigest: hashToken('repaired-access'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: hashToken('repaired-refresh'),
+  });
+  a.equal(repaired.siteUrl, null);
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    first, hashToken('old-access'), Date.now() + 60_000, hashToken('old-refresh')),
+  { status: 'invalid' }, 're-pairing clears the old token family');
+  a.ok(await auth.manualImportByRefresh(hashToken('repaired-refresh')));
+  const now = Date.now();
+  vi.spyOn(Date, 'now').mockReturnValue(now + MANUAL_IMPORT_IDLE_MS + 1);
+  try {
+    a.deepEqual(await auth.exchangeManualImportRefresh(
+      hashToken('repaired-refresh'), hashToken('idle-access'), now + 120_000,
+      hashToken('idle-refresh')),
+    { status: 'invalid' }, 'the exchange itself enforces the idle limit');
+  } finally {
+    vi.restoreAllMocks();
+  }
+});

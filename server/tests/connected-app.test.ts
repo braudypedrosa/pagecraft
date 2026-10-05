@@ -104,7 +104,7 @@ test.each([
   'https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
   'https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
 ])('manual WordPress import preserves PKCE and ownership for callback %s', async (callback) => {
-  const { site, first, second, admin, request } = await rig();
+  const { auth, site, owner, first, second, admin, request } = await rig();
   const discovery = await request(first, '/.well-known/pagecraft-integrations');
   a.equal(discovery.status, 200);
   a.deepEqual((await discovery.json() as { mcp:{ tools:string[] } }).mcp.tools, [
@@ -163,6 +163,11 @@ test.each([
   const tokens = await tokenResponse.json() as {
     access_token:string; refresh_token:string; credential_id:string;
   };
+  const expectedSiteUrl = new URL(callback);
+  expectedSiteUrl.pathname = expectedSiteUrl.pathname.replace(/wp-admin\/admin-post\.php$/, '');
+  expectedSiteUrl.search = '';
+  a.equal((await auth.manualImportsForOwner(owner.id))[0]?.siteUrl, expectedSiteUrl.href,
+    'the credential retains the validated WordPress root, including any subdirectory');
   const bearer = { authorization: `Bearer ${tokens.access_token}` };
   const connectionResponse = await request(first, '/v1/integrations/wordpress/connection', {
     headers: bearer
@@ -246,12 +251,44 @@ test.each([
   const rotated = await refreshed.json() as { access_token:string; refresh_token:string };
   a.ok(rotated.refresh_token && rotated.refresh_token !== tokens.refresh_token, 'each refresh issues a new refresh token');
   a.equal((await refresh(first, tokens.refresh_token)).status, 401, 'the replaced refresh token is spent');
+  a.equal((await request(second, '/v1/integrations/wordpress/connection', {
+    headers: { authorization: `Bearer ${rotated.access_token}` }
+  })).status, 401, 'reusing a spent refresh token revokes the replacement access token');
+  a.equal((await refresh(second, rotated.refresh_token)).status, 401,
+    'reusing a spent refresh token revokes the replacement refresh token');
+
+  /* A lost refresh response makes the retry look like reuse. Reconnecting the same installation
+     starts a clean token family and removes the old replay history. */
+  const reconnectConsent = await admin(first, `/v1/integrations/wordpress/authorize?${query}`);
+  const reconnectCsrf = (await reconnectConsent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
+  a.ok(reconnectCsrf);
+  const reconnectApproval = await admin(second, '/v1/integrations/wordpress/authorize', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ csrf: reconnectCsrf! })
+  });
+  const reconnectCode = new URL(reconnectApproval.headers.get('location')!).searchParams.get('code');
+  const reconnectResponse = await request(first, '/v1/integrations/wordpress/token', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      grant_type: 'authorization_code', code: reconnectCode,
+      code_verifier: verifier, redirect_uri: callback
+    })
+  });
+  a.equal(reconnectResponse.status, 200, await reconnectResponse.clone().text());
+  const reconnected = await reconnectResponse.json() as {
+    access_token:string; refresh_token:string; credential_id:string;
+  };
+  a.equal((await request(second, '/v1/integrations/wordpress/connection', {
+    headers: { authorization: `Bearer ${reconnected.access_token}` }
+  })).status, 200, 'reconnect starts a usable replacement family');
   const revoked = await request(first, '/v1/integrations/wordpress/revoke', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ credential_id: tokens.credential_id, refresh_token: rotated.refresh_token })
+    body: JSON.stringify({
+      credential_id: reconnected.credential_id, refresh_token: reconnected.refresh_token
+    })
   });
   a.equal(revoked.status, 200);
-  const afterRevoke = await refresh(second, rotated.refresh_token);
+  const afterRevoke = await refresh(second, reconnected.refresh_token);
   a.equal(afterRevoke.status, 401);
 });
 

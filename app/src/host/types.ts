@@ -275,6 +275,7 @@ export interface WebLibraryMember {
   email: string;
   name: string;
   pending: boolean;
+  awaitingAcceptance?: boolean;
   createdAt: string;
 }
 export interface WebLibraryVersionSummary {

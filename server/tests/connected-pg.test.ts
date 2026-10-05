@@ -671,3 +671,62 @@ test('Postgres counts only created owned sites, and rotates, expires, lists and 
   a.equal(await auth.revokeManualImportForOwner('wp-pg', owner.id), true);
   a.deepEqual(await auth.manualImportsForOwner(owner.id), []);
 });
+
+test('Postgres detects refresh-token reuse, revokes the family, and resets history on re-pair', async () => {
+  const { db, auth, owner } = await rig();
+  const first = hashToken('pg-family-refresh-1');
+  await auth.createManualImportCredential({
+    id: 'wp-pg-family', ownerId: owner.id, installationId: 'wp-family-install',
+    siteUrl: 'https://wordpress.test/subdirectory',
+    accessTokenDigest: hashToken('pg-family-access-1'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: first,
+  });
+  const second = hashToken('pg-family-refresh-2');
+  const rotated = await auth.exchangeManualImportRefresh(
+    first, hashToken('pg-family-access-2'), Date.now() + 60_000, second);
+  a.equal(rotated.status, 'rotated');
+  if (rotated.status === 'rotated') {
+    a.equal(rotated.credential.siteUrl, 'https://wordpress.test/subdirectory');
+  }
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    first, hashToken('pg-replay-access'), Date.now() + 60_000, hashToken('pg-replay-refresh')),
+  { status: 'reused' });
+  a.equal(await auth.manualImportByRefresh(second), null);
+
+  await auth.createManualImportCredential({
+    id: 'wp-pg-family-new', ownerId: owner.id, installationId: 'wp-family-install',
+    accessTokenDigest: hashToken('pg-new-access'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: hashToken('pg-new-refresh'),
+  });
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    first, hashToken('pg-old-access'), Date.now() + 60_000, hashToken('pg-old-refresh')),
+  { status: 'invalid' });
+  a.ok(await auth.manualImportByRefresh(hashToken('pg-new-refresh')));
+
+  const expiredSpent = hashToken('pg-expired-spent-refresh');
+  const expiredCurrent = hashToken('pg-expired-current-refresh');
+  await auth.createManualImportCredential({
+    id: 'wp-pg-expired-history', ownerId: owner.id, installationId: 'wp-expired-history-install',
+    accessTokenDigest: hashToken('pg-expired-access'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: expiredSpent,
+  });
+  a.equal((await auth.exchangeManualImportRefresh(
+    expiredSpent, hashToken('pg-expired-access-2'), Date.now() + 60_000, expiredCurrent)).status,
+  'rotated');
+  await db.query(
+    `update wordpress_import_used_refresh_tokens set expires_at = now() - interval '1 second'
+     where digest = $1`, [expiredSpent]);
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    expiredSpent, hashToken('pg-expired-replay-access'), Date.now() + 60_000,
+    hashToken('pg-expired-replay-refresh')),
+  { status: 'invalid' }, 'expired replay history cannot revoke the active family');
+  a.ok(await auth.manualImportByRefresh(expiredCurrent));
+
+  await db.query(
+    `update wordpress_import_credentials set updated_at = now() - interval '91 days'
+     where installation_id = 'wp-family-install'`);
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    hashToken('pg-new-refresh'), hashToken('pg-idle-access'), Date.now() + 60_000,
+    hashToken('pg-idle-refresh')),
+  { status: 'invalid' }, 'the exchange itself enforces the idle limit');
+});

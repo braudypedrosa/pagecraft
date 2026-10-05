@@ -92,6 +92,7 @@ import {
 import type { Doc } from "../../app/src/core/types.ts";
 import { assetFile, SCHEMA as CORE_SCHEMA } from "../../app/src/core/index.ts";
 import { LibraryError, type LibraryItemKind, type LibraryItemRef } from "../../app/src/core/libraries.ts";
+import { MemoryCollaborationInvitationStore, type CollaborationInvitationStore } from "./collaboration-invitations.ts";
 import {
   copyLibraryAssetsToSite, LIBRARY_ITEMS_MAX, LIBRARY_MEMBERS_MAX, LIBRARY_NAME_MAX, LibraryImageError, publishLibraryVersion,
   type LibraryStore,
@@ -170,6 +171,7 @@ import {
   accountSettingsPage,
   confirmLinkPage,
   dashboardPage,
+  collaborationInvitationsPage,
   forgotPage,
   privacyPage,
   resetPage,
@@ -346,6 +348,8 @@ export interface Options {
   schedules?: PublicationScheduleStore;
   /** Account-owned libraries (Phase 5); shared across environments like sites. */
   libraries?: LibraryStore;
+  /** Pending invitations grant no access until the addressed person accepts. */
+  collaborationInvitations?: CollaborationInvitationStore;
   /** Aggregate analytics for published sites (Phase 6), off per site until its owner turns it on. */
   analytics?: AnalyticsRecorder;
   /** Assistant tokens and their proposals (Phase 7). */
@@ -382,6 +386,7 @@ const typeOf = (path: string) =>
 
 export function createApp(o: Options) {
   const app = new Hono();
+  const invitations = o.collaborationInvitations || new MemoryCollaborationInvitationStore(o.store, o.auth, o.libraries);
   const sitePreviews = o.sitePreviews || new MemorySitePreviewStore();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
   /* The address every per-source limit keys on. Nothing sits in front of the origin unless
@@ -432,7 +437,7 @@ export function createApp(o: Options) {
     const path = new URL(c.req.url).pathname;
     const privateRoute = !path.startsWith("/v1/wordpress-distribution/") &&
         /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path) ||
-      /^\/account(?:\/|$)/.test(path) ||
+      /^\/(?:account|invitations)(?:\/|$)/.test(path) ||
       /^\/internal\/components(?:\/|$)/.test(path) ||
       path === "/mcp" ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
@@ -465,6 +470,8 @@ export function createApp(o: Options) {
   app.use("/account", editorOnly);
   app.use("/account/*", editorOnly);
   app.use("/sites/*", editorOnly);
+  app.use("/invitations", editorOnly);
+  app.use("/invitations/*", editorOnly);
   app.use("/review/*", editorOnly);
   app.use("/privacy", editorOnly);
   app.use("/terms", editorOnly);
@@ -509,6 +516,17 @@ export function createApp(o: Options) {
       onError: (c) => c.text("Request too large", 413),
     }),
   );
+  // Invitation decisions are browser actions in both account and legacy cookie modes.
+  app.use("*", async (c, next) => {
+    const path = new URL(c.req.url).pathname;
+    if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method) && /^\/(?:api\/)?invitations(?:\/|$)/.test(path)) {
+      const expected = new URL(o.editorOrigin || c.req.url).origin;
+      let origin = c.req.header("origin") || "";
+      if (!origin) try { origin = new URL(c.req.header("referer") || "").origin; } catch { /* Missing origin fails closed. */ }
+      if (origin !== expected) return c.json({ error: "origin_not_allowed" }, 403);
+    }
+    await next();
+  });
   if (o.accountAuth) {
     app.use("*", async (c, next) => {
       const method = c.req.method.toUpperCase();
@@ -1668,6 +1686,7 @@ export function createApp(o: Options) {
         wordpress: wordpress.map((credential) => ({
           id: credential.id,
           installationId: credential.installationId,
+          siteUrl: credential.siteUrl,
           createdAt: new Date(credential.createdAt).toISOString(),
           lastUsedAt: new Date(credential.updatedAt).toISOString(),
         })),
@@ -1865,6 +1884,31 @@ export function createApp(o: Options) {
 
   /* ---------------------------------------------------------------- the editor */
 
+  app.get("/invitations", async (c) => {
+    const user = await who(c);
+    if (!user) return c.redirect("/sign-in?next=%2Finvitations");
+    return c.html(collaborationInvitationsPage(user, await invitations.listForUser(user.id), {
+      error: c.req.query("error"), message: c.req.query("message"),
+    }));
+  });
+  app.get("/api/invitations", async (c) => {
+    const user = await who(c);
+    if (!user) return deny(c, 401);
+    return c.json({ invitations: await invitations.listForUser(user.id) });
+  });
+  for (const decision of ["accept", "decline"] as const) {
+    const decide = async (c: Context, json: boolean) => {
+      if (c.req.header("x-pagecraft-editor-session")) return deny(c, 403);
+      const user = await who(c);
+      if (!user) return json ? deny(c, 401) : c.redirect("/sign-in?next=%2Finvitations", 303);
+      const result = await invitations.decide(c.req.param("id") || "", user.id, decision === "accept");
+      if (result === "missing") return json ? deny(c, 404) : c.redirect("/invitations?error=invitation_missing", 303);
+      return json ? c.json({ status: result }) : c.redirect(`/invitations?message=Invitation+${result}.`, 303);
+    };
+    app.post(`/invitations/:id/${decision}`, c => decide(c, false));
+    app.post(`/api/invitations/:id/${decision}`, c => decide(c, true));
+  }
+
   app.get("/", async (c) => {
     if (!isEditorHost(c.req.header("host"), o)) {
       const host = (c.req.header("host") || "").split(":")[0];
@@ -1882,11 +1926,12 @@ export function createApp(o: Options) {
     if (o.accountAuth) {
       if (!user) return c.redirect("/sign-in");
       /* Independent reads: the site list and the storage meter used to wait for each other. */
-      const [visible, storage] = await Promise.all([
+      const [visible, storage, pendingInvitations] = await Promise.all([
         visibleSites(user),
         o.assets
           ? o.assets.usage(user.id, FREE_STORAGE_BYTES)
           : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES },
+        invitations.listForUser(user.id),
       ]);
       const mine = visible.sort((a, b) =>
         new Date(b.site.updatedAt).getTime() -
@@ -1918,6 +1963,7 @@ export function createApp(o: Options) {
         templates,
         c.req.query("error"),
         c.req.query("message"),
+        pendingInvitations.length,
       ));
     }
     if (!user) return c.html(signInPage());
@@ -2039,6 +2085,7 @@ export function createApp(o: Options) {
     }
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
+    const pendingOwners = gate.role === "owner" ? await invitations.listForResource("site_owner", id) : [];
     const members = gate.role === "owner" ? await o.auth.members(id) : [{
       userId: gate.user.id,
       email: gate.user.email,
@@ -2059,13 +2106,13 @@ export function createApp(o: Options) {
         version: site.version,
         publishedVersion: site.publishedVersion,
       },
-      members.map((member) => ({
-        userId: member.userId,
-        email: member.email,
-        name: member.name,
-        role: member.role,
-        active: !!member.authUserId,
-      })),
+      [...members.map((member) => ({
+        userId: member.userId, email: member.email, name: member.name,
+        role: member.role, active: !!member.authUserId,
+      })), ...pendingOwners.map(invitation => ({
+        userId: invitation.recipientId, email: invitation.recipientEmail, name: invitation.recipientName,
+        role: "owner" as const, active: false, awaitingAcceptance: true,
+      }))],
       { error: c.req.query("error"), message: c.req.query("message") },
     ));
   });
@@ -2101,6 +2148,14 @@ export function createApp(o: Options) {
       `${base}?message=Access+updated.+An+invitation+was+sent+if+needed.`;
     const origin = o.editorOrigin || new URL(c.req.url).origin;
     const next = `/sites/${id}/people`;
+    if (role === "owner") {
+      const recipient = await invitationRecipient(email);
+      const invited = await inviteOwnership(c, id, gate.user, recipient);
+      if (invited.status === "forbidden") return deny(c, 404);
+      return c.redirect(`${base}?message=${invited.status === "pending" ? "Ownership+invitation+sent.+Access+starts+after+acceptance." : "This+person+already+owns+the+site."}`, 303);
+    }
+    const recipient = await o.auth.userByEmail(email);
+    if (recipient) await invitations.removeForRecipient("site_owner", id, recipient.id);
     const provisioned = await o.auth.provisionInvitation({
       siteId: id,
       actorUserId: gate.user.id,
@@ -2144,11 +2199,16 @@ export function createApp(o: Options) {
       const owners = (await o.auth.members(id)).filter((member) => member.role === "owner");
       return c.redirect(`${base}?error=${owners.some((member) => member.userId !== gate.user.id) ? "people_self_role" : "people_last_owner"}`, 303);
     }
-    const changed = await o.auth.changeMemberRole(
-      id,
-      c.req.param("userId"),
-      role,
-    );
+    const target = c.req.param("userId");
+    if (role === "owner") {
+      const recipient = await o.auth.userById(target);
+      if (!recipient || !await o.auth.membership(id, target)) return c.redirect(`${base}?error=people_missing`, 303);
+      const invited = await inviteOwnership(c, id, gate.user, recipient);
+      if (invited.status === "forbidden") return deny(c, 404);
+      return c.redirect(`${base}?message=Ownership+invitation+sent.+Access+starts+after+acceptance.`, 303);
+    }
+    await invitations.removeForRecipient("site_owner", id, target);
+    const changed = await o.auth.changeMemberRole(id, target, role);
     if (changed.status === "last_owner") {
       return c.redirect(`${base}?error=people_last_owner`, 303);
     }
@@ -2158,23 +2218,32 @@ export function createApp(o: Options) {
     return c.redirect(`${base}?message=Role+updated.`, 303);
   });
 
+  app.post("/sites/:id/people/:userId/invitation/cancel", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const base = `/sites/${encodeURIComponent(id)}/people`;
+    const cancelled = await invitations.removeForRecipient("site_owner", id, c.req.param("userId"));
+    return c.redirect(`${base}?${cancelled ? "message=Ownership+invitation+cancelled." : "error=people_missing"}`, 303);
+  });
+
   app.post("/sites/:id/people/:userId/remove", async (c) => {
     const id = c.req.param("id");
     const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
     const base = `/sites/${encodeURIComponent(id)}/people`;
+    const pendingRemoved = await invitations.removeForRecipient("site_owner", id, c.req.param("userId"));
     const removed = await o.auth.removeMember(id, c.req.param("userId"));
     if (removed.status === "last_owner") {
       return c.redirect(`${base}?error=people_last_owner`, 303);
     }
-    if (removed.status === "missing") {
+    if (removed.status === "missing" && !pendingRemoved) {
       return c.redirect(`${base}?error=people_missing`, 303);
     }
     return c.redirect(`${base}?message=Collaborator+removed.`, 303);
   });
 
-  /* Anyone can be added to a site, including as an owner, without being asked. So anyone can
-     also leave: reviewers, content editors, and owners while another owner remains. */
+  /* Every member can leave; an owner must leave another owner in place. */
   app.post("/sites/:id/people/leave", async (c) => {
     const id = c.req.param("id");
     // Only the person, in their own browser: an editor session cannot give up its owner's access.
@@ -2192,6 +2261,35 @@ export function createApp(o: Options) {
     return c.redirect("/?message=You+left+the+site.", 303);
   });
 
+  const invitationRecipient = async (email: string) => {
+    const existing = await o.auth.userByEmail(email);
+    if (existing) return existing;
+    try { return await o.auth.createUser(email); }
+    catch (error) {
+      const concurrent = await o.auth.userByEmail(email);
+      if (!concurrent) throw error;
+      return concurrent;
+    }
+  };
+  const inviteOwnership = async (c: Context, siteId: string, actor: User, recipient: User) => {
+    const invited = await invitations.invite({ kind: "site_owner", resourceId: siteId, recipientId: recipient.id, invitedBy: actor.id });
+    if (invited.status === "pending") {
+      const site = await o.store.byId(siteId);
+      notifyReview(c, {
+        userId: recipient.id, email: recipient.email, kind: "review_assigned",
+        title: `${actor.name || actor.email} invited you to own a site`,
+        body: `Accept the ownership invitation for “${site?.name || "this site"}” before gaining owner access. Declining keeps your existing access unchanged.`,
+        href: "/invitations",
+      }).catch(error => console.error("ownership invitation notice failed:", (error as Error).message));
+    }
+    return invited;
+  };
+  const wordpressSiteUrl = (callback: string) => {
+    const url = new URL(callback);
+    url.pathname = url.pathname.replace(/wp-admin\/admin-post\.php$/, "");
+    url.search = ""; url.hash = "";
+    return url.href;
+  };
   const notifyReview = async (c: Context, input: {
     userId: string; email: string; kind: string; title: string; body: string; href: string;
   }) => {
@@ -3233,17 +3331,20 @@ export function createApp(o: Options) {
   });
 
   /* ---- Sharing (slice 2). Read-only: the people an owner shares with can list, read and import,
-     and nothing they do reaches the library. Like a site invitation, an address with no account
-     yet gets a pending user row and the share takes effect when they sign in with it. */
+     and nothing they do reaches the library. An address with no account yet gets a pending
+     user row; access starts only after that person signs in and accepts the invitation. */
   const libraryMembers = async (libraryId: string) => {
-    const rows = await o.libraries!.members(libraryId);
+    const [rows, pending] = await Promise.all([
+      o.libraries!.members(libraryId), invitations.listForResource("library", libraryId),
+    ]);
     const users = await Promise.all(rows.map((m) => o.auth.userById(m.userId)));
-    return rows.flatMap((m, i) => {
+    return [...rows.flatMap((m, i) => {
       const user = users[i];
-      return user
-        ? [{ userId: m.userId, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId, createdAt: m.createdAt }]
-        : [];
-    });
+      return user ? [{ userId: m.userId, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId, createdAt: m.createdAt }] : [];
+    }), ...pending.filter(m => !rows.some(row => row.userId === m.recipientId)).map(m => ({
+      userId: m.recipientId, email: m.recipientEmail, name: m.recipientName,
+      pending: false, awaitingAcceptance: true, createdAt: m.createdAt,
+    }))];
   };
 
   app.get("/api/libraries/:id/members", async (c) => {
@@ -3285,22 +3386,26 @@ export function createApp(o: Options) {
         if (!user) throw error;
       }
     }
-    const added = await gate.libraries.addMember({ libraryId: gate.library.id, userId: user.id, invitedBy: gate.user.id });
+    const invited = await invitations.invite({ kind: "library", resourceId: gate.library.id, recipientId: user.id, invitedBy: gate.user.id });
+    if (invited.status === "forbidden") return deny(c, 404);
+    if (invited.status === "limit") return c.json({ error: "too_many_members", detail: `A library can be shared with up to ${LIBRARY_MEMBERS_MAX} people.` }, 409);
+    const added = invited.status === "pending";
     if (added) {
       const owner = displayName(gate.user);
-      /* Not awaited: the share is already made, and the owner should not wait on mail. The
+      /* Not awaited: the invitation is already saved, and the owner should not wait on mail. The
          notice is queued before sending, and a failed send is logged, as for review notices. */
       notifyReview(c, {
         userId: user.id, email: user.email, kind: "library_shared",
-        title: `${owner} shared a library with you`,
-        body: `“${gate.library.name}” is now in your Libraries. Open a site you own, choose Add, then Libraries, to import from it. You can import and take its updates; only ${owner} publishes new versions.`,
-        href: "/",
+        title: `${owner} invited you to a library`,
+        body: `Accept the invitation to “${gate.library.name}” before it appears in your Libraries. You can then import and take its updates; only ${owner} publishes new versions.`,
+        href: "/invitations",
       }).catch((error) => console.error("library share notice failed:", (error as Error).message));
     }
     // The new member alone; the editor adds it to the list it already shows.
     const member = {
       userId: user.id, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId,
-      createdAt: new Date().toISOString(),
+      awaitingAcceptance: added,
+      createdAt: invited.status === "pending" ? invited.invitation.createdAt : new Date().toISOString(),
     };
     return c.json({ added, member }, added ? 201 : 200);
   });
@@ -3315,7 +3420,8 @@ export function createApp(o: Options) {
       return c.json({ error: "only_owner", detail: "Only the library’s owner can do that." }, 403);
     }
     if (target === gate.library.ownerId) return c.json({ error: "owner", detail: "The owner cannot leave their own library." }, 400);
-    if (!await gate.libraries.removeMember(gate.library.id, target)) {
+    const cancelled = await invitations.removeForRecipient("library", gate.library.id, target);
+    if (!await gate.libraries.removeMember(gate.library.id, target) && !cancelled) {
       return c.json({ error: "not_member", detail: "They no longer have access." }, 404);
     }
     return c.json({ removed: true });
@@ -4393,7 +4499,16 @@ export function createApp(o: Options) {
       }, 409);
     }
 
-    const user = existing || await o.auth.createUser(email);
+    const user = existing || await invitationRecipient(email);
+    if (role === "owner") {
+      const invited = await inviteOwnership(c, id, gate.user, user);
+      if (invited.status === "forbidden") return deny(c, 404);
+      return c.json({ userId: user.id, email: user.email, name: user.name, role,
+        awaitingAcceptance: invited.status === "pending",
+        ...(invited.status === "pending" ? { invitationId: invited.invitation.id } : {}),
+      }, 201);
+    }
+    await invitations.removeForRecipient("site_owner", id, user.id);
     const current = await o.auth.membership(id, user.id);
     if (current) {
       const changed = await o.auth.changeMemberRole(id, user.id, role);
@@ -4430,6 +4545,7 @@ export function createApp(o: Options) {
     if (!gate.ok) return deny(c, gate.status);
 
     const target = c.req.param("userId");
+    const pendingRemoved = await invitations.removeForRecipient("site_owner", id, target);
     const removed = await o.auth.removeMember(id, target);
     if (removed.status === "last_owner") {
       return c.json({
@@ -4437,7 +4553,7 @@ export function createApp(o: Options) {
           "the last owner cannot be removed — a site with no owner cannot be managed",
       }, 409);
     }
-    if (removed.status === "missing") {
+    if (removed.status === "missing" && !pendingRemoved) {
       return c.json({ error: "they had no access to remove" }, 404);
     }
     /* Their sessions stay valid and are harmless: access is checked per request against the
@@ -4800,7 +4916,7 @@ export function createApp(o: Options) {
       </header>
       <div class="consent__body">
         <div class="consent__destination"><span>WordPress site</span><strong>${
-        escapeHtml(redirect.origin)
+        escapeHtml(wordpressSiteUrl(redirect.href))
       }</strong></div>
         <p class="consent__note">This gives the WordPress site read-only access to projects you own. Imports are manual and do not stay in sync. Pagecraft does not receive your WordPress password.</p>
         <form class="consent__actions" method="post" action="/v1/wordpress-import/authorize">
@@ -4886,6 +5002,7 @@ export function createApp(o: Options) {
         id: crypto.randomUUID(),
         ownerId: consent.userId,
         installationId: consent.installationId,
+        siteUrl: wordpressSiteUrl(consent.redirectUri),
         accessTokenDigest: hashToken(accessToken),
         accessExpiresAt: expiresAt,
         refreshTokenDigest: hashToken(refreshToken),
@@ -4901,24 +5018,12 @@ export function createApp(o: Options) {
     }
     if (grantType === "refresh_token") {
       const refreshDigest = hashToken(String(body?.refresh_token || ""));
-      /* Lapses after 90 idle days and rotates on every use, so a copied refresh token is good
-         only until whichever copy refreshes first. */
-      const credential = await o.auth.manualImportByRefresh(refreshDigest);
-      if (!credential) {
-        return c.json({ error: "invalid_grant", reconnect: true }, 401);
-      }
-      const accessToken = newToken(),
-        refreshToken = newToken(),
-        expiresAt = Date.now() + 15 * 60 * 1000;
-      const rotated = await o.auth.rotateManualImportAccess(
-        credential.id,
-        hashToken(accessToken),
-        expiresAt,
-        { digest: hashToken(refreshToken), previous: refreshDigest },
+      const accessToken = newToken(), refreshToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
+      const exchanged = await o.auth.exchangeManualImportRefresh(
+        refreshDigest, hashToken(accessToken), expiresAt, hashToken(refreshToken),
       );
-      if (!rotated) {
-        return c.json({ error: "invalid_grant", reconnect: true }, 401);
-      }
+      if (exchanged.status !== "rotated") return c.json({ error: "invalid_grant", reconnect: true }, 401);
+      const rotated = exchanged.credential;
       return c.json({
         token_type: "Bearer",
         access_token: accessToken,

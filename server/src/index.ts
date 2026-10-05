@@ -22,6 +22,7 @@ import { MemoryStore, type Store } from "./store.ts";
 import { type AuthStore, MemoryAuthStore } from "./auth.ts";
 import { type AssetStore, MemoryAssetStore } from "./assets.ts";
 import { type LibraryStore, MemoryLibraryStore } from "./libraries.ts";
+import { GatewayCollaborationInvitationStore, MemoryCollaborationInvitationStore, PgCollaborationInvitationStore, type CollaborationInvitationStore } from "./collaboration-invitations.ts";
 import { mailRoles, smtpNoticeSender, smtpSender } from "./mail.ts";
 import { type ConnectedStore, MemoryConnectedStore } from "./release-store.ts";
 import {
@@ -88,6 +89,7 @@ async function pickStores(): Promise<{
   cloudMutations?: CloudMutationFastPath;
   manualImports?: ManualImportReadFastPath;
   libraries?: LibraryStore;
+  collaborationInvitations: CollaborationInvitationStore;
 }> {
   const gatewayUrl = process.env.DATABASE_GATEWAY_URL;
   const gatewayKey = process.env.DATABASE_GATEWAY_KEY;
@@ -131,6 +133,7 @@ async function pickStores(): Promise<{
       cloudMutations,
       manualImports: new GatewayManualImportReader(gateway),
       libraries: new GatewayLibraryStore(gateway),
+      collaborationInvitations: new GatewayCollaborationInvitationStore(gateway),
     };
   }
   const url = process.env.DATABASE_URL;
@@ -144,14 +147,15 @@ async function pickStores(): Promise<{
       "DATABASE_URL is not set — using the in-memory stores. Nothing survives a restart,",
     );
     console.warn("including who is signed in and who has been invited.");
-    const store = new MemoryStore(), auth = new MemoryAuthStore();
+    const store = new MemoryStore(), auth = new MemoryAuthStore(), libraries = new MemoryLibraryStore();
     return {
       store,
       assets: new MemoryAssetStore(),
       auth,
       connected: new MemoryConnectedStore(),
       owned: new MemoryOwnedSiteStore(store, auth),
-      libraries: new MemoryLibraryStore(),
+      libraries,
+      collaborationInvitations: new MemoryCollaborationInvitationStore(store, auth, libraries),
     };
   }
   /* Imported here rather than at the top so a run without a database needs no driver. */
@@ -168,8 +172,10 @@ async function pickStores(): Promise<{
   await auth.init();
   await assets.init();
   await connected.init();
+  const collaborationInvitations = new PgCollaborationInvitationStore(pool);
+  await collaborationInvitations.init();
   console.log("store: postgres");
-  return { store, assets, auth, connected, owned: new PgOwnedSiteStore(pool) };
+  return { store, assets, auth, connected, owned: new PgOwnedSiteStore(pool), collaborationInvitations };
 }
 
 const {
@@ -182,6 +188,7 @@ const {
   cloudMutations,
   manualImports,
   libraries,
+  collaborationInvitations,
 } = await pickStores();
 
 const production = process.env.NODE_ENV === "production";
@@ -538,6 +545,7 @@ const app = createApp({
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   reviews,
   libraries,
+  collaborationInvitations,
   analytics,
   // Phase 7: per-environment, like reviews: a staging token is a staging token.
   assistants: new FileAssistantStore(join(resolve(publicationRoot), ".assistants")),

@@ -78,7 +78,10 @@ function fakeLibraries() {
       const address = email.trim().toLowerCase();
       const found = rows.find(m => m.email === address);
       if (found) return { added: false, member: clone(found) };
-      const row = { userId: `u-${rows.length + 1}`, email: address, name: '', pending: address.startsWith('new'), createdAt: '' };
+      const row = {
+        userId: `u-${rows.length + 1}`, email: address, name: '', pending: address.startsWith('new'),
+        awaitingAcceptance: true, createdAt: '',
+      };
       members.set(id, [...rows, row]);
       return { added: true, member: clone(row) };
     },
@@ -379,8 +382,8 @@ test('the owner shares by email and can stop sharing', async () => {
   await act(async () => { r.type(field, 'newcomer@example.test'); });
   await act(async () => { r.$('.lib-share')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })); });
   await settle();
-  expect(toasts().at(-1)).toBe('Shared with newcomer@example.test');
-  expect(r.$$('.lib-member').map(m => m.textContent)).toEqual(['newcomer@example.testNo Pagecraft account yet']);
+  expect(toasts().at(-1)).toBe('Invitation sent to newcomer@example.test');
+  expect(r.$$('.lib-member').map(m => m.textContent)).toEqual(['newcomer@example.testAwaiting acceptance']);
   expect((r.$('.lib-share input') as HTMLInputElement).value).toBe('');
 
   await click(r.$('.lib-member .bx'));

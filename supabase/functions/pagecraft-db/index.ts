@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts";
 import postgres from "npm:postgres@3.4.7";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import { dispatchCollaboration, isCollaborationOp } from "./collaboration-invitations.ts";
+import { exchangeManualImportRefresh } from "./manual-import-refresh.ts";
 import {
   assembleStoredGatewayBlob,
   GATEWAY_ASSET_BLOB_MAX_BYTES,
@@ -222,6 +224,7 @@ async function authorised(request: Request) {
 }
 
 async function dispatch(op: string, args: Record<string, unknown>) {
+  if (isCollaborationOp(op)) return await dispatchCollaboration(sql, op, args);
   switch (op) {
     case "site.list":
       return await sql`select * from sites order by name`;
@@ -3333,13 +3336,14 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           !Array.isArray(args.input))
         ? args.input as Record<string, unknown>
         : {};
-      return one(
-        await sql`
+      return await sql.begin(async transaction => {
+      const credential = one(
+        await transaction`
         insert into wordpress_import_credentials (
-          id, owner_id, installation_id, access_token_digest, access_expires_at, refresh_token_digest
+          id, owner_id, installation_id, site_url, access_token_digest, access_expires_at, refresh_token_digest
         ) values (${text(input.id)}, ${text(input.ownerId)}, ${
           text(input.installationId)
-        },
+        }, ${input.siteUrl ? text(input.siteUrl) : null},
           ${text(input.accessTokenDigest)}, ${text(input.accessExpiresAt)}, ${
           text(input.refreshTokenDigest)
         })
@@ -3347,11 +3351,22 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           access_token_digest = excluded.access_token_digest,
           access_expires_at = excluded.access_expires_at,
           refresh_token_digest = excluded.refresh_token_digest,
+          site_url = excluded.site_url,
           status = 'active', revoked_at = null, updated_at = now()
         returning *
       `,
       );
+      if (credential) await transaction`delete from wordpress_import_used_refresh_tokens where credential_id = ${credential.id}`;
+      return credential;
+      });
     }
+    case "auth.manualImport.exchangeRefresh":
+      return await exchangeManualImportRefresh(sql, {
+        presentedDigest: text(args.presentedDigest),
+        nextAccessDigest: text(args.nextAccessDigest),
+        nextAccessExpiresAt: text(args.nextAccessExpiresAt),
+        nextRefreshDigest: text(args.nextRefreshDigest),
+      });
     case "auth.manualImport.byAccess":
       return one(
         await sql`
