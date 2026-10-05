@@ -8,6 +8,7 @@ import { blankDoc, renderSite } from '../src/render.ts';
 import { FileSubmissionStore, siteForms, submissionValues, submissionsCsv } from '../src/submissions.ts';
 import { submissionRoutes } from '../src/submissions-routes.ts';
 import { MemoryStore } from '../src/store.ts';
+import { GatewayStore, PagecraftGateway } from '../src/store-gateway.ts';
 import { FileHostedPublicationStore } from '../src/publications.ts';
 import { siteSubmissionsPage } from '../src/account-pages.ts';
 
@@ -85,6 +86,32 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect((await remove('https://editor.test')).status).toBe(404);
     expect((await app.request(base, { headers: { cookie: 'owner=1', 'x-pagecraft-editor-session': 'wp' } })).status).toBe(403);
     await submissions.removeSite(site.id); expect(await submissions.list(site.id)).toHaveLength(0);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+test('a form posted after another process changed the slug still reaches the site', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-submissions-'));
+  try {
+    const doc = source();
+    let row = { id: 's1', host: 'forms.invalid', slug: 'before', name: 'QA', doc, version: 1, published_version: 1, published_release_id: null, published_publication_id: null, updated_at: '2026-10-01T00:00:00.000Z' };
+    const gateway = new PagecraftGateway('https://gateway.invalid', 'test-key', (async (_url: unknown, init?: RequestInit) => {
+      const { op, args } = JSON.parse(String(init?.body));
+      if (op === 'site.byId') return Response.json({ data: row });
+      if (op === 'site.revision') return Response.json({ data: { site_id: row.id, version: args.version, doc, saved_by: null, context: null, created_at: row.updated_at } });
+      throw new Error('unexpected ' + op);
+    }) as typeof fetch);
+    const store = new GatewayStore(gateway), submissions = new FileSubmissionStore(join(root, 'entries'));
+    const publications = new FileHostedPublicationStore(join(root, 'published'));
+    const pub = await publications.create({ siteId: 's1', slug: 'before', host: row.host, sourceVersion: 1, files: [{ path: 'index.html', mediaType: 'text/html', bytes: new TextEncoder().encode('<h1>QA</h1>') }] });
+    await publications.promote(pub);
+    const app = new Hono();
+    submissionRoutes(app, { store, submissions, publications, editorOrigin: 'https://editor.test', requestSource: () => 'qa', allowed: async () => ({ ok: false, status: 403 }) });
+    const post = () => app.request('https://editor.test/forms/s1/qa-form', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'https://editor.test' }, body: 'email=qa@example.test' });
+    await store.byId('s1'); // this process has the row cached under the old slug
+    // Another process moves the site and its public pointer.
+    row = { ...row, slug: 'after', updated_at: '2026-10-01T00:01:00.000Z' };
+    await publications.relocate('s1', 'after', row.host);
+    expect((await post()).status).toBe(303);
+    expect(await submissions.list('s1')).toHaveLength(1);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 test('inbox discovers empty forms and preserves removed form entries', () => {

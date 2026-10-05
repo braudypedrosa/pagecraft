@@ -47,7 +47,8 @@ export function cloudIntegrationRoutes(app: Hono, o: {
     if (!body || typeof body !== 'object') return c.json({ error: 'Invalid request.' }, 400);
     try {
       return await o.integrations.connections.exclusive(id, async () => {
-        const site = await o.store.byId(id);
+        // Fresh: the version check below must compare against the latest save from any process.
+        const site = await o.store.byId(id, { fresh: true });
         if (!site) return c.notFound();
         const connections = o.integrations!.connections, client = o.integrations!.client;
         const connection = await connections.get(id);

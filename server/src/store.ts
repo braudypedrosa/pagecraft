@@ -88,7 +88,9 @@ export interface Store {
   byHost(host: string): Promise<Site | null>;
   /** the site answering under `/<slug>/…` on the editor's host */
   bySlug(slug: string): Promise<Site | null>;
-  byId(id: string): Promise<Site | null>;
+  /** `fresh` skips any per-process cache. Other processes change sites without telling this
+      one, so use it where acting on a stale slug, host or version would be wrong. */
+  byId(id: string, options?: { fresh?: boolean }): Promise<Site | null>;
   list(): Promise<Site[]>;
   listMeta(): Promise<SiteMeta[]>;
   create(input: { host: string; slug?: string; name: string; doc: Doc; savedBy?: string }): Promise<Site>;

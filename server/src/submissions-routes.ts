@@ -110,7 +110,8 @@ export function submissionRoutes(app: Hono, o: {
     if (!o.submissions || !o.publications) return c.text('Submissions are temporarily unavailable. Please try again.', 503);
     if (!perSource.take(o.requestSource(c)) || !perSite.take(id)) { c.header('Retry-After', '60'); return c.text('Please wait a minute before trying again.', 429); }
     if (!(c.req.header('content-type') || '').startsWith('application/x-www-form-urlencoded')) return c.text('Unsupported submission format.', 415);
-    const site = await o.store.byId(id);
+    // Fresh: a slug changed through another process would otherwise send this to the old pointer.
+    const site = await o.store.byId(id, { fresh: true });
     if (!site) return c.notFound();
     // The environment's actual public pointer is authoritative, not a draft or another environment's DB pointer.
     const published = await o.publications.currentBySlug(site.slug);

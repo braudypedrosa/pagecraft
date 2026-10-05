@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import * as Core from '../../app/src/core/index.ts';
 import { FileCloudConnectionStore, IntegrationError, parseProperties, syncProperties, UplistingClient } from '../src/cloud-uplisting.ts';
 import { cloudIntegrationRoutes } from '../src/cloud-integrations-routes.ts';
-import { MemoryStore } from '../src/store.ts';
+import { MemoryStore, type Store } from '../src/store.ts';
 import { siteIntegrationsPage } from '../src/account-pages.ts';
 
 const payload = () => ({ data: [{ id: '42', type: 'properties', attributes: { name: 'QA Waterline', description: 'A woodland stay.\nSpace & quiet. <script>unsafe</script>', bedrooms: 2, bathrooms: 1.5, maximum_capacity: 4, wifi_password: 'never-import', currency: 'USD' }, relationships: {
@@ -120,6 +120,31 @@ test('Cloud routes gate owners, reject cross-origin/WP access, sync drafts with 
     expect(await page.text()).not.toContain('secret-key');
     await request('disconnect', {}); expect(await connections.get(site.id)).toBeNull();
     expect((await store.byId(site.id))!.doc).toEqual(current.doc);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('Uplisting sync checks the latest save, not a copy this process held before another one saved', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pc-integration-'));
+  try {
+    const memory = new MemoryStore(), connections = new FileCloudConnectionStore(root);
+    const site = await memory.create({ name: 'Integration QA', host: 'integration.invalid', doc: doc() });
+    const cached = (await memory.byId(site.id))!;
+    await memory.save(site.id, cached.doc, cached.version, 'someone-else');
+    // A per-process cache: stale unless asked for a fresh read.
+    const store = {
+      byId: async (id: string, options?: { fresh?: boolean }) => options?.fresh ? memory.byId(id) : structuredClone(cached),
+      save: memory.save.bind(memory),
+    } as unknown as Store;
+    const user = { id: 'owner', email: 'owner@example.test', name: 'Owner', createdAt: '' };
+    const request = (action: string, body: unknown) => {
+      const app = new Hono();
+      cloudIntegrationRoutes(app, { store, editorOrigin: 'https://admin.test', integrations: { connections, client: new UplistingClient(async () => { const body = payload(); body.data[0].relationships.photos.data = []; return Response.json(body); }) }, allowed: async () => ({ ok: true, user, role: 'owner' }) });
+      return app.request('https://admin.test/sites/' + site.id + '/integrations/uplisting/' + action, { method: 'POST', headers: { origin: 'https://admin.test', 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    };
+    expect((await request('connect', { key: 'secret-key' })).status).toBe(200);
+    const listed = await (await request('list', {})).json() as { version: number };
+    expect(listed.version).toBe(cached.version + 1);
+    expect((await request('sync', { selected: ['42'], version: listed.version })).status).toBe(200);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

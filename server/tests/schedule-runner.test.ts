@@ -1,11 +1,20 @@
-import { test } from 'vitest';
+import { afterAll, test, vi } from 'vitest';
 import a from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore } from '../src/auth.ts';
 import { MemoryHostedPublicationStore } from '../src/publications.ts';
 import { MemoryPublicationReviewStore } from '../src/reviews.ts';
-import { MemoryPublicationScheduleStore, scheduleRetryDelayMs } from '../src/schedules.ts';
+import {
+  FilePublicationScheduleStore,
+  MemoryPublicationScheduleStore,
+  SCHEDULE_CLAIM_LEASE_MS,
+  scheduleRetryDelayMs,
+  type PublicationScheduleStore,
+} from '../src/schedules.ts';
 import { runDueSchedules } from '../src/schedule-runner.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
@@ -20,11 +29,10 @@ const later = (ms: number) => new Date(t0.getTime() + ms);
 
 /* A site that is live on version 1, with version 2 prepared as a snapshot and scheduled for t0,
    and the draft already moved on to version 3. */
-async function rig() {
+async function rig(schedules: PublicationScheduleStore = new MemoryPublicationScheduleStore()) {
   const store = new MemoryStore();
   const auth = new MemoryAuthStore();
   const publications = new MemoryHostedPublicationStore();
-  const schedules = new MemoryPublicationScheduleStore();
   const reviews = new MemoryPublicationReviewStore();
   const mailed: { to: string; subject: string }[] = [];
   const site = await store.create({ host: 'cabins.test', name: 'Cabins', slug: 'cabins', doc: doc() });
@@ -135,3 +143,86 @@ test('two runners at once publish once', async () => {
   a.equal(one.length + two.length, 1);
   a.equal((await r.reviews.notices(r.owner.id)).length, 1);
 });
+
+test('the runner reads the site past any cache, so a slug changed elsewhere pauses before the commit', async () => {
+  const r = await rig();
+  const cached = (await r.store.byId(r.site.id))!;
+  // Another process moves the site; this process still holds the row it read earlier.
+  await r.store.setSlug(r.site.id, 'cabins-moved');
+  await r.publications.relocate(r.site.id, 'cabins-moved', 'cabins.test');
+  const byId = r.store.byId.bind(r.store);
+  r.store.byId = (async (id: string, options?: { fresh?: boolean }) =>
+    options?.fresh ? byId(id) : structuredClone(cached)) as typeof r.store.byId;
+
+  a.deepEqual((await runDueSchedules(r.deps, t0)).map(x => x.reason), ['site_address_changed']);
+  a.equal((await byId(r.site.id))?.publishedPublicationId, r.live.id, 'nothing was committed');
+  a.equal((await r.publications.currentBySlug('cabins-moved'))?.id, r.live.id);
+  a.equal(await r.publications.currentBySlug('cabins'), null, 'the old address stays empty');
+});
+
+test('a site moved between the read and the commit is paused, not promoted at its old address', async () => {
+  const r = await rig();
+  const publishScheduled = r.store.publishScheduled.bind(r.store);
+  r.store.publishScheduled = async input => {
+    await r.store.setSlug(r.site.id, 'cabins-moved');
+    return publishScheduled(input);
+  };
+  a.deepEqual((await runDueSchedules(r.deps, t0)).map(x => x.reason), ['site_address_changed']);
+  a.equal((await r.publications.currentBySlug('cabins'))?.id, r.live.id, 'the snapshot was not promoted');
+});
+
+const roots: string[] = [];
+afterAll(async () => {
+  await Promise.all(roots.map(root => rm(root, { recursive: true, force: true })));
+});
+const scheduleStores: [string, () => Promise<PublicationScheduleStore>][] = [
+  ['memory', async () => new MemoryPublicationScheduleStore()],
+  ['file', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pagecraft-runner-'));
+    roots.push(root);
+    return new FilePublicationScheduleStore(root);
+  }],
+];
+
+for (const [kind, make] of scheduleStores) {
+  test(`${kind}: a schedule cancelled after the due list was read is not published`, async () => {
+    const r = await rig(await make());
+    const due = r.schedules.due.bind(r.schedules);
+    r.schedules.due = async (now, limit) => {
+      const rows = await due(now, limit);
+      a.equal((await r.schedules.cancel(r.site.id, r.schedule.id)).status, 'cancelled');
+      return rows;
+    };
+    a.deepEqual(await runDueSchedules(r.deps, t0), []);
+    a.equal((await r.schedules.get(r.site.id, r.schedule.id))?.status, 'cancelled');
+    a.equal((await r.store.byId(r.site.id))?.publishedPublicationId, r.live.id);
+    a.equal((await r.publications.currentBySlug('cabins'))?.id, r.live.id);
+    a.deepEqual(await r.reviews.notices(r.owner.id), []);
+    a.equal(await r.schedules.claim(r.schedule.id, 'next-runner'), true, 'the runner let go of its claim');
+  });
+
+  test(`${kind}: claims stay live through a batch that runs longer than the lease`, async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(t0);
+      const r = await rig(await make());
+      // Due first, for a site the creator does not own. Its run is the slow one.
+      await r.schedules.create({
+        siteId: 'slow-site', snapshotId: randomUUID(), baselinePublicationId: null,
+        publishAt: later(-60_000).toISOString(), createdBy: r.owner.id, idempotencyKey: `key-${randomUUID()}`,
+      }, later(-2 * 60 * 60_000));
+      let stolen: boolean | undefined;
+      const membership = r.auth.membership.bind(r.auth);
+      r.auth.membership = async (siteId, userId) => {
+        if (siteId === 'slow-site') vi.setSystemTime(Date.now() + SCHEDULE_CLAIM_LEASE_MS + 60_000);
+        else stolen = await r.schedules.claim(r.schedule.id, 'other-runner', new Date());
+        return membership(siteId, userId);
+      };
+      const results = await runDueSchedules(r.deps, new Date());
+      a.deepEqual(results.map(x => x.status), ['paused', 'published']);
+      a.equal(stolen, false, 'another runner cannot take over a claim made moments ago');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+}

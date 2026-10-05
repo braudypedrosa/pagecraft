@@ -247,33 +247,40 @@ const toRevision = (row: RevisionRow): SiteRevision => ({
   createdAt: new Date(row.created_at).toISOString(),
 });
 
-/* Editor source data is version-checked again by every atomic write. Keep it for the working
- * session so the first save after a quiet period does not fall back to several HTTPS hops. */
-const EDITOR_SOURCE_CACHE_MS = 4 * 60 * 60 * 1000;
+/* Site rows are cached per process, but LiteSpeed may run several processes and a deploy runs a
+ * candidate beside them, and none hears about another's saves, publishes or address changes. So
+ * a cached row answers ordinary reads only briefly. Reads that must not act on a stale slug, host
+ * or version pass `{ fresh: true }`. The gateway has no per-site freshness check (listMeta
+ * returns every site and costs the same round trip as a read), so expiry is by age alone. */
+export const SITE_CACHE_MS = 30_000;
+/* Editor source data: asset lists and bodies, publish owners, and the save fast path's row.
+ * Every atomic write checks version and membership again, so a few minutes only bounds how long
+ * an upload, removal or role change made through another process goes unnoticed here. The save
+ * fast path reuses a site row only at the exact version the editor loaded, whose document never
+ * changes, so it may last as long as the asset list it is paired with. */
+export const EDITOR_SOURCE_CACHE_MS = 5 * 60_000;
 
 export class GatewayStore implements Store {
   private gateway: PagecraftGateway;
-  private cached = new Map<string, { until: number; site: Site | null }>();
-  private cacheMs = EDITOR_SOURCE_CACHE_MS;
+  private cached = new Map<string, { at: number; site: Site | null }>();
   constructor(gateway: PagecraftGateway) {
     this.gateway = gateway;
   }
 
-  private readCache(key: string): Site | null | undefined {
+  private readCache(key: string, maxAge = SITE_CACHE_MS): Site | null | undefined {
     const hit = this.cached.get(key);
-    if (!hit || hit.until <= Date.now()) {
-      this.cached.delete(key);
-      return undefined;
-    }
+    const age = hit ? Date.now() - hit.at : Infinity;
+    if (age >= EDITOR_SOURCE_CACHE_MS) this.cached.delete(key);
+    if (!hit || age >= maxAge) return undefined;
     return hit.site ? structuredClone(hit.site) : null;
   }
   private remember(site: Site | null) {
-    const until = Date.now() + this.cacheMs;
+    const at = Date.now();
     if (!site) return;
     const copy = structuredClone(site);
-    this.cached.set(`id:${site.id}`, { until, site: copy });
-    this.cached.set(`host:${site.host}`, { until, site: copy });
-    this.cached.set(`slug:${site.slug}`, { until, site: copy });
+    this.cached.set(`id:${site.id}`, { at, site: copy });
+    this.cached.set(`host:${site.host}`, { at, site: copy });
+    this.cached.set(`slug:${site.slug}`, { at, site: copy });
   }
   private clearCache() {
     this.cached.clear();
@@ -299,16 +306,16 @@ export class GatewayStore implements Store {
     this.remember(site);
     return site;
   }
-  async byId(id: string) {
-    const hit = this.readCache(`id:${id}`);
+  async byId(id: string, options: { fresh?: boolean } = {}) {
+    const hit = options.fresh ? undefined : this.readCache(`id:${id}`);
     if (hit !== undefined) return hit;
     const row = await this.gateway.call<SiteRow | null>("site.byId", { id });
     const site = row ? toSite(row) : null;
     this.remember(site);
     return site;
   }
-  cachedById(id: string, version?: number) {
-    const site = this.readCache(`id:${id}`);
+  cachedById(id: string, version?: number, maxAge = SITE_CACHE_MS) {
+    const site = this.readCache(`id:${id}`, maxAge);
     if (!site || (version != null && site.version !== version)) return null;
     return site;
   }
@@ -1744,7 +1751,7 @@ export class GatewayHostedPublishPreparer
   }
 
   cachedSaveSource(siteId: string, sourceVersion: number) {
-    const site = this.store?.cachedById(siteId, sourceVersion);
+    const site = this.store?.cachedById(siteId, sourceVersion, EDITOR_SOURCE_CACHE_MS);
     const assets = this.assets?.cachedList(siteId);
     return site && assets ? { site, assets } : null;
   }
