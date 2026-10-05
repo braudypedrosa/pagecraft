@@ -2197,19 +2197,39 @@ export class PgAuthStore implements AuthStore {
   async manualImportByRefresh(digest: string) {
     const { rows } = await this.db.query<any>(
       `select * from wordpress_import_credentials
-       where refresh_token_digest = $1 and status = 'active' limit 1`, [digest]);
+       where refresh_token_digest = $1 and status = 'active'
+         and updated_at > now() - interval '90 days' limit 1`, [digest]);
     return rows[0] ? this.manualCredential(rows[0]) : null;
   }
-  async rotateManualImportAccess(id: string, digest: string, expiresAt: number) {
-    const { rows } = await this.db.query<any>(
-      `update wordpress_import_credentials set access_token_digest = $2, access_expires_at = $3, updated_at = now()
-       where id = $1 and status = 'active' returning *`, [id, digest, new Date(expiresAt).toISOString()]);
+  async rotateManualImportAccess(id: string, digest: string, expiresAt: number,
+    refresh?: { digest: string; previous: string }) {
+    const { rows } = refresh
+      ? await this.db.query<any>(
+        `update wordpress_import_credentials set access_token_digest = $2, access_expires_at = $3,
+           refresh_token_digest = $4, updated_at = now()
+         where id = $1 and status = 'active' and refresh_token_digest = $5 returning *`,
+        [id, digest, new Date(expiresAt).toISOString(), refresh.digest, refresh.previous])
+      : await this.db.query<any>(
+        `update wordpress_import_credentials set access_token_digest = $2, access_expires_at = $3, updated_at = now()
+         where id = $1 and status = 'active' returning *`, [id, digest, new Date(expiresAt).toISOString()]);
     return rows[0] ? this.manualCredential(rows[0]) : null;
   }
   async revokeManualImportCredential(id: string, refreshDigest: string) {
     const { rows } = await this.db.query<{ id:string }>(
       `update wordpress_import_credentials set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
        where id = $1 and refresh_token_digest = $2 returning id`, [id, refreshDigest]);
+    return rows.length > 0;
+  }
+  async manualImportsForOwner(ownerId: string) {
+    const { rows } = await this.db.query<any>(
+      `select * from wordpress_import_credentials
+       where owner_id = $1 and status = 'active' order by created_at desc`, [ownerId]);
+    return rows.map(row => this.manualCredential(row));
+  }
+  async revokeManualImportForOwner(id: string, ownerId: string) {
+    const { rows } = await this.db.query<{ id:string }>(
+      `update wordpress_import_credentials set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+       where id = $1 and owner_id = $2 and status = 'active' returning id`, [id, ownerId]);
     return rows.length > 0;
   }
   private manualCredential(row: any): ManualImportCredential {

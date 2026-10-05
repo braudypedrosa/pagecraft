@@ -1,5 +1,6 @@
 import { LiveReviewStore } from './live-reviews.ts';
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import type { IncomingMessage } from "node:http";
 import { runDueSchedules } from "./schedule-runner.ts";
 import type { PublicationScheduleStore } from "./schedules.ts";
 import { liveReviewRoutes } from './live-review-routes.ts';
@@ -18,7 +19,7 @@ import { submissionRoutes } from './submissions-routes.ts';
 import { assistantMcpContext, assistantRoutes, type AssistantDeps } from './assistant-routes.ts';
 import { assistantMcpResponse } from './assistant-mcp.ts';
 import { isAssistantToken, type FileAssistantStore, type FileOAuthStore } from './assistants.ts';
-import { assistantOAuthRoutes, resourceMetadataUrl } from './assistant-oauth.ts';
+import { ASSISTANT_SCOPES, assistantOAuthRoutes, resourceMetadataUrl } from './assistant-oauth.ts';
 import { siteForms, type FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
@@ -107,6 +108,7 @@ import {
   roleAllows,
   isSiteRole,
   roleMayReview,
+  sameDigest,
   SESSION_TTL_MS,
   type User,
   validEmail,
@@ -166,6 +168,7 @@ import {
 } from "./integrations.ts";
 import {
   accountSettingsPage,
+  confirmLinkPage,
   dashboardPage,
   forgotPage,
   privacyPage,
@@ -360,6 +363,11 @@ export interface Options {
   /** Cloudflare Turnstile verifier for public account forms. */
   challenge?: HumanChallenge;
   turnstileSiteKey?: string;
+  /** Believe `CF-Connecting-IP`. Only true when Cloudflare really fronts the origin. */
+  trustCloudflare?: boolean;
+  /** Signs short-lived account cookies. Absent means a per-process key, which is enough for
+      one Node process; several processes behind one host need the same configured value. */
+  cookieSecret?: string;
 }
 
 const TYPES: Record<string, string> = {
@@ -376,9 +384,16 @@ export function createApp(o: Options) {
   const app = new Hono();
   const sitePreviews = o.sitePreviews || new MemorySitePreviewStore();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
+  /* The address every per-source limit keys on. Nothing sits in front of the origin unless
+     `trustCloudflare` says so, and without Cloudflare its header is whatever the caller typed.
+     LiteSpeed replaces `X-Forwarded-For` with the real client, so its leftmost entry is next;
+     a direct connection has only its socket peer (LiteSpeed's Unix socket has none). */
   const requestSource = (c: Context) =>
-    c.req.header("cf-connecting-ip") ||
-    (c.req.header("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+    (o.trustCloudflare && c.req.header("cf-connecting-ip")) ||
+    (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
+    (c.env as { incoming?: IncomingMessage } | undefined)?.incoming?.socket
+      ?.remoteAddress ||
+    "unknown";
   /* Invitations can send transactional email and create pending access records. These limits
      are deliberately independent: rotating addresses must not evade the source/account limit,
      while rotating callers must not mail-bomb one recipient. The short recipient cooldown
@@ -683,6 +698,15 @@ export function createApp(o: Options) {
     });
   };
 
+  /* What the dashboard and plan show against the owned-site limit, counted the way creation
+     counts it. Until the gateway knows `account.ownedSiteCount`, every owner row (the old,
+     stricter count) is shown instead of failing the page. */
+  const ownedSiteCount = async (user: User, mine: { role: Role }[]) => {
+    const every = mine.filter((item) => item.role === "owner").length;
+    if (!o.ownedSites) return every;
+    return o.ownedSites.owned(user.id).catch(() => every);
+  };
+
   const storageOwner = async (siteId: string, actor: User, role: Role) => {
     if (role === "owner") return actor.id;
     const owners = (await o.auth.members(siteId))
@@ -717,6 +741,12 @@ export function createApp(o: Options) {
       if (!user || membership?.role !== "owner") {
         return { ok: false as const, status: 403 as const };
       }
+      /* Connected mode is retired, and what is left of its embedded editor may open and save
+         this one document. It never administers the site: no deleting, people, publishing,
+         hosts or settings, whatever its owner may do in their own browser. */
+      if (verb === "admin") {
+        return { ok: false as const, status: 403 as const };
+      }
       return { ok: true as const, user, role: membership.role };
     }
     if (o.accountAuth) {
@@ -742,13 +772,16 @@ export function createApp(o: Options) {
   };
 
   const allowedMember = async (c: Context, siteId: string) => {
+    /* An editor session is capped at `write`, so it never stands in for an owner here either. */
+    if (c.req.header("x-pagecraft-editor-session")) {
+      const read = await allowed(c, siteId, "read");
+      return read.ok ? { ...read, role: "content" as Role } : read;
+    }
     const access = await allowed(c, siteId, "admin");
     if (access.ok) return access;
     const read = await allowed(c, siteId, "read");
     if (read.ok) return read;
     if (read.status !== 403) return read;
-    const scoped = c.req.header("x-pagecraft-editor-session");
-    if (scoped) return read;
     const user = await who(c);
     if (!user) return { ok: false as const, status: 401 as const };
     const membership = await o.auth.membership(siteId, user.id);
@@ -1089,11 +1122,8 @@ export function createApp(o: Options) {
           return c.json({ error: "a valid email address is required" }, 400);
         }
 
-        const source = c.req.header("cf-connecting-ip") ||
-          (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
-          "unknown";
         if (
-          sourceLimit.take(source) && limit.take(email) &&
+          sourceLimit.take(requestSource(c)) && limit.take(email) &&
           await o.auth.userByEmail(email)
         ) {
           const token = newToken();
@@ -1165,12 +1195,18 @@ export function createApp(o: Options) {
 
   if (o.accountAuth) {
     const siteKey = o.turnstileSiteKey || "";
+    /* A browser drops tabs and newlines inside a URL, so "/\t/evil.test" is "//evil.test" to
+       it. Resolve the value the way a browser would and keep it only if it stays here. */
     const safeNext = (raw: unknown) => {
       const value = String(raw || "");
-      return value.startsWith("/") && !value.startsWith("//") &&
-          !value.includes("\\")
-        ? value
-        : "/";
+      if (!value.startsWith("/") || /[\u0000-\u001f\u007f\\]/.test(value)) return "/";
+      try {
+        const here = new URL("https://pagecraft.invalid");
+        const url = new URL(value, here);
+        return url.origin === here.origin ? url.pathname + url.search + url.hash : "/";
+      } catch {
+        return "/";
+      }
     };
     const form = async (c: Context) => {
       const type = c.req.header("content-type") || "";
@@ -1197,6 +1233,55 @@ export function createApp(o: Options) {
           await o.challenge.verify({ token, ip: requestSource(c), action })
         ? token
         : "";
+    };
+    /* Setting a password without the current one is for a session that has just come through a
+       recovery or invitation link. That arrival is recorded in a short signed cookie bound to
+       the identity it verified; any other session changes its password from Security, which
+       asks for the current one. */
+    const RECOVERY_COOKIE = "pc_recovery";
+    const RECOVERY_TTL_MS = 15 * 60 * 1000;
+    const recoveryKey = o.cookieSecret || randomBytes(32).toString("hex");
+    const recoverySignature = (authUserId: string, expires: string) =>
+      createHmac("sha256", recoveryKey)
+        .update(`pagecraft-recovery-v1\0${authUserId}\0${expires}`)
+        .digest("base64url");
+    const markRecovery = (c: Context, authUserId: string) => {
+      const expires = String(Date.now() + RECOVERY_TTL_MS);
+      setCookie(
+        c,
+        RECOVERY_COOKIE,
+        `${expires}.${recoverySignature(authUserId, expires)}`,
+        {
+          httpOnly: true,
+          sameSite: "Lax",
+          path: "/",
+          secure: !!o.secureCookies,
+          maxAge: RECOVERY_TTL_MS / 1000,
+        },
+      );
+    };
+    const recovering = (c: Context, authUserId?: string | null) => {
+      const [expires = "", signature = ""] = (getCookie(c, RECOVERY_COOKIE) || "")
+        .split(".");
+      return !!authUserId && Number(expires) > Date.now() &&
+        sameDigest(signature, recoverySignature(authUserId, expires));
+    };
+    /* WordPress import credentials outlive any browser session, so a new password ends them.
+       Revocation failing must not undo a password that has already changed. */
+    const revokeWordPressImports = async (userId: string) => {
+      try {
+        const credentials = await o.auth.manualImportsForOwner(userId);
+        for (const credential of credentials) {
+          await o.auth.revokeManualImportForOwner(credential.id, userId);
+        }
+        return credentials.length;
+      } catch (error) {
+        console.error(
+          "WordPress import credentials could not be revoked:",
+          (error as Error).message,
+        );
+        return 0;
+      }
     };
 
     app.get(
@@ -1227,12 +1312,14 @@ export function createApp(o: Options) {
     );
     app.get("/reset-password", async (c) => {
       const user = await who(c);
-      return user
-        ? c.html(resetPage({
-          error: c.req.query("error"),
-          next: safeNext(c.req.query("next")),
-        }))
-        : c.redirect("/sign-in?error=reset");
+      if (!user) return c.redirect("/sign-in?error=reset");
+      if (!recovering(c, user.authUserId)) {
+        return c.redirect("/account?tab=security&error=reset");
+      }
+      return c.html(resetPage({
+        error: c.req.query("error"),
+        next: safeNext(c.req.query("next")),
+      }));
     });
 
     app.post(
@@ -1256,26 +1343,32 @@ export function createApp(o: Options) {
         if (password !== confirmation) {
           return c.redirect("/sign-up?error=mismatch", 303);
         }
+        const captchaToken = await challengeToken(c, body, "signup");
+        if (!captchaToken) {
+          return c.redirect("/sign-up?error=challenge", 303);
+        }
+        /* An address is charged only for requests whose challenge passed, so requests without
+           one cannot use up somebody else's allowance. */
         if (
-          !authSourceLimit.take(requestSource(c)) || !authEmailLimit.take(email)
+          !authSourceLimit.take(requestSource(c)) || authEmailLimit.limited(email)
         ) {
           return c.redirect(
             "/sign-up?message=Check+your+email+to+finish+creating+your+account.",
             303,
           );
         }
-        const captchaToken = await challengeToken(c, body, "signup");
-        if (!captchaToken) {
-          return c.redirect("/sign-up?error=challenge", 303);
-        }
         const origin = o.editorOrigin || new URL(c.req.url).origin;
-        await o.accountAuth!.signUp(c, {
+        const created = await o.accountAuth!.signUp(c, {
           email,
           password,
           name,
           redirectTo: `${origin}/auth/confirm`,
           captchaToken,
         });
+        if (created === "challenge") {
+          return c.redirect("/sign-up?error=challenge", 303);
+        }
+        authEmailLimit.take(email);
         return c.redirect(
           "/sign-in?message=Check+your+email+to+confirm+your+account.",
           303,
@@ -1294,14 +1387,20 @@ export function createApp(o: Options) {
         const email = normalEmail(String(body.email || ""));
         const password = String(body.password || "");
         const next = safeNext(body.next);
-        const limited = !authSourceLimit.take(requestSource(c)) ||
-          !authEmailLimit.take(email);
+        /* The challenge comes first, and only a wrong password counts against an address.
+           Counting every request let anyone lock somebody else out with eight empty forms. */
         const captchaToken = await challengeToken(c, body, "login");
-        if (!validEmail(email) || !password || limited || !captchaToken) {
+        if (!validEmail(email) || !password || !captchaToken) {
           return c.redirect(
-            `/sign-in?error=${limited ? "auth" : "challenge"}&next=${
-              encodeURIComponent(next)
-            }`,
+            `/sign-in?error=challenge&next=${encodeURIComponent(next)}`,
+            303,
+          );
+        }
+        if (
+          !authSourceLimit.take(requestSource(c)) || authEmailLimit.limited(email)
+        ) {
+          return c.redirect(
+            `/sign-in?error=auth&next=${encodeURIComponent(next)}`,
             303,
           );
         }
@@ -1310,7 +1409,14 @@ export function createApp(o: Options) {
           password,
           captchaToken,
         });
+        if (identity === "challenge") {
+          return c.redirect(
+            `/sign-in?error=challenge&next=${encodeURIComponent(next)}`,
+            303,
+          );
+        }
         if (!identity) {
+          authEmailLimit.take(email);
           return c.redirect(
             `/sign-in?error=auth&next=${encodeURIComponent(next)}`,
             303,
@@ -1355,14 +1461,12 @@ export function createApp(o: Options) {
       },
     );
 
-    app.get("/auth/confirm", async (c) => {
-      const type = c.req.query("type");
-      const next = safeNext(c.req.query("next"));
-      const identity = await o.accountAuth!.confirm(c, {
-        code: c.req.query("code"),
-        tokenHash: c.req.query("token_hash"),
-        type,
-      });
+    const confirmed = async (
+      c: Context,
+      identity: VerifiedIdentity | null,
+      type: string | undefined,
+      next: string,
+    ) => {
       if (!identity) {
         return c.redirect("/sign-in?error=expired", 303);
       }
@@ -1371,13 +1475,56 @@ export function createApp(o: Options) {
         identity.email,
         identity.name,
       );
-      return c.redirect(
-        type === "recovery" || type === "invite"
-          ? `/reset-password?next=${encodeURIComponent(next)}`
-          : next,
-        303,
+      if (type === "recovery" || type === "invite") {
+        markRecovery(c, identity.authUserId);
+        return c.redirect(
+          `/reset-password?next=${encodeURIComponent(next)}`,
+          303,
+        );
+      }
+      return c.redirect(next, 303);
+    };
+
+    /* A `token_hash` link signs in whoever opens it, so verifying it on GET would let any page
+       sign a visitor into the sender's account. It is verified from this page's own form
+       instead, which the origin check confines to Pagecraft. A PKCE `code` is already bound to
+       the browser that started the flow, so it is exchanged directly. */
+    app.get("/auth/confirm", async (c) => {
+      const type = c.req.query("type");
+      const next = safeNext(c.req.query("next"));
+      const code = c.req.query("code");
+      const tokenHash = c.req.query("token_hash");
+      if (tokenHash && !code) {
+        return c.html(confirmLinkPage({ tokenHash, type: type || "", next }));
+      }
+      return confirmed(
+        c,
+        await o.accountAuth!.confirm(c, { code, type }),
+        type,
+        next,
       );
     });
+
+    app.post(
+      "/auth/confirm",
+      bodyLimit({
+        maxSize: 4 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const body = await form(c);
+        const type = String(body.type || "") || undefined;
+        const next = safeNext(body.next);
+        const tokenHash = String(body.token_hash || "");
+        if (!tokenHash) return c.redirect("/sign-in?error=expired", 303);
+        return confirmed(
+          c,
+          await o.accountAuth!.confirm(c, { tokenHash, type }),
+          type,
+          next,
+        );
+      },
+    );
 
     app.post(
       "/auth/forgot-password",
@@ -1389,17 +1536,18 @@ export function createApp(o: Options) {
         const body = await form(c);
         const email = normalEmail(String(body.email || ""));
         const captchaToken = await challengeToken(c, body, "forgot");
-        const allowedRequest = validEmail(email) &&
+        const allowedRequest = validEmail(email) && !!captchaToken &&
           authSourceLimit.take(requestSource(c)) &&
-          authEmailLimit.take(email) &&
-          !!captchaToken;
+          !authEmailLimit.limited(email);
         if (allowedRequest) {
           const origin = o.editorOrigin || new URL(c.req.url).origin;
-          await o.accountAuth!.forgot(c, {
+          const sent = await o.accountAuth!.forgot(c, {
             email,
             redirectTo: `${origin}/auth/confirm?type=recovery`,
             captchaToken,
           }).catch(() => undefined);
+          // Only a request whose challenge Auth accepted counts against the address it mails.
+          if (sent !== "challenge") authEmailLimit.take(email);
         }
         return c.redirect(
           "/forgot-password?message=If+an+account+matches,+reset+instructions+are+on+the+way.",
@@ -1409,6 +1557,11 @@ export function createApp(o: Options) {
     );
 
     app.post("/auth/reset-password", async (c) => {
+      const user = await who(c);
+      if (!user) return c.redirect("/sign-in?error=reset", 303);
+      if (!recovering(c, user.authUserId)) {
+        return c.redirect("/account?tab=security&error=reset", 303);
+      }
       const body = await form(c);
       const password = String(body.password || "");
       const next = safeNext(body.next);
@@ -1427,6 +1580,8 @@ export function createApp(o: Options) {
       if (!await o.accountAuth!.reset(c, password)) {
         return c.redirect("/sign-in?error=reset", 303);
       }
+      deleteCookie(c, RECOVERY_COOKIE, { path: "/" });
+      await revokeWordPressImports(user.id);
       return c.redirect(
         `${next}${next.includes("?") ? "&" : "?"}message=Password+updated.`,
         303,
@@ -1449,15 +1604,24 @@ export function createApp(o: Options) {
       const tab = requestedTab === "security" || requestedTab === "plan"
         ? requestedTab
         : "profile";
-      const mine = await visibleSites(user);
+      const [mine, wordpress] = await Promise.all([
+        visibleSites(user),
+        o.auth.manualImportsForOwner(user.id),
+      ]);
       const storage = o.assets
         ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
         : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
       return c.html(accountSettingsPage(user, {
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
-        ownerCount: mine.filter((item) => item.role === "owner").length,
+        ownerCount: await ownedSiteCount(user, mine),
         storage,
+        wordpress: wordpress.map((credential) => ({
+          id: credential.id,
+          installationId: credential.installationId,
+          createdAt: new Date(credential.createdAt).toISOString(),
+          lastUsedAt: new Date(credential.updatedAt).toISOString(),
+        })),
       }, {
         error: c.req.query("error"),
         message: c.req.query("message"),
@@ -1514,6 +1678,21 @@ export function createApp(o: Options) {
       },
     );
 
+    app.post("/account/wordpress/:credentialId/revoke", async (c) => {
+      const user = await who(c);
+      if (!user) return c.redirect("/sign-in?next=%2Faccount", 303);
+      const revoked = await o.auth.revokeManualImportForOwner(
+        c.req.param("credentialId"),
+        user.id,
+      );
+      return c.redirect(
+        revoked
+          ? "/account?tab=security&message=WordPress+site+disconnected."
+          : "/account?tab=security&error=wordpress_missing",
+        303,
+      );
+    });
+
     app.post(
       "/account/password",
       bodyLimit({
@@ -1546,9 +1725,17 @@ export function createApp(o: Options) {
           password,
           ...(hasPassword ? { currentPassword } : {}),
         });
-        return changed
-          ? c.redirect("/account?tab=security&message=Password+updated.", 303)
-          : c.redirect("/account?tab=security&error=password_current", 303);
+        if (!changed) {
+          return c.redirect("/account?tab=security&error=password_current", 303);
+        }
+        const user = await o.auth.userByAuthId(identity.authUserId);
+        const revoked = user ? await revokeWordPressImports(user.id) : 0;
+        return c.redirect(
+          revoked
+            ? "/account?tab=security&message=Password+updated.+Connected+WordPress+sites+were+disconnected."
+            : "/account?tab=security&message=Password+updated.",
+          303,
+        );
       },
     );
   }
@@ -1672,7 +1859,7 @@ export function createApp(o: Options) {
           published: !!site.publishedPublicationId &&
             site.version === site.publishedVersion,
         }; })),
-        mine.filter((item) => item.role === "owner").length,
+        await ownedSiteCount(user, mine),
         storage,
         templates,
         c.req.query("error"),
@@ -1905,6 +2092,25 @@ export function createApp(o: Options) {
     return c.redirect(`${base}?message=Collaborator+removed.`, 303);
   });
 
+  /* Anyone can be added to a site, including as an owner, without being asked. So anyone can
+     also leave: reviewers, content editors, and owners while another owner remains. */
+  app.post("/sites/:id/people/leave", async (c) => {
+    const id = c.req.param("id");
+    // Only the person, in their own browser: an editor session cannot give up its owner's access.
+    if (c.req.header("x-pagecraft-editor-session")) return deny(c, 403);
+    const gate = await allowedMember(c, id);
+    if (!gate.ok) return deny(c, gate.status);
+    const base = `/sites/${encodeURIComponent(id)}/people`;
+    const removed = await o.auth.removeMember(id, gate.user.id);
+    if (removed.status === "last_owner") {
+      return c.redirect(`${base}?error=people_last_owner`, 303);
+    }
+    if (removed.status === "missing") {
+      return c.redirect(`${base}?error=people_missing`, 303);
+    }
+    return c.redirect("/?message=You+left+the+site.", 303);
+  });
+
   const notifyReview = async (c: Context, input: {
     userId: string; email: string; kind: string; title: string; body: string; href: string;
   }) => {
@@ -1929,7 +2135,7 @@ export function createApp(o: Options) {
   };
 
   liveReviewRoutes(app, {
-    store: o.store, auth: o.auth, reviews: liveReviews, who,
+    store: o.store, auth: o.auth, reviews: liveReviews, who, requestSource,
     origin: o.editorOrigin, secure: o.secureCookies,
     notifyInvitation: async (c, user, href, kind) => {
       await notifyReview(c, { userId: user.id, email: user.email, kind: 'review_assigned', title: 'A site was shared with you', body: `You have been invited as a ${kind === 'developer' ? 'developer' : 'reviewer'}. Sign in with this email to view the site under Shared.`, href });
@@ -4019,6 +4225,16 @@ export function createApp(o: Options) {
     if (!validEmail(email)) {
       return c.json({ error: "a valid email address is required" }, 400);
     }
+    // The same limits as the People form: this grants access just as that does.
+    const allowedInvitation = inviteSourceLimit.take(requestSource(c)) &&
+      inviteAccountLimit.take(gate.user.id) &&
+      inviteSiteLimit.take(id) &&
+      inviteEmailLimit.take(email) &&
+      inviteCooldown.take(`${id}|${email}`);
+    if (!allowedInvitation) {
+      c.header("retry-after", "60");
+      return c.json({ error: "too many invitations — wait a minute and try again" }, 429);
+    }
 
     /* An owner changing their own role is how a site ends up with nobody who can manage it. */
     const existing = await o.auth.userByEmail(email);
@@ -4318,14 +4534,19 @@ export function createApp(o: Options) {
     const digest = manualImportAccessDigest(c.req.header("authorization"));
     const read = await manualImportCatalogReadDigest(digest);
     if (!read.authorized) {
+      /* No token at all is an MCP client (claude.ai, Claude Desktop) about to sign in, which
+         follows `resource_metadata` and asks for the scope named here, so that is the assistant
+         scope the metadata lists. A rejected integration token keeps exactly the realm and
+         scope it always had. */
+      const scope = digest
+        ? "projects:read packages:read"
+        : ASSISTANT_SCOPES.join(" ");
       return c.json({
         error: "invalid_token",
         error_description: "Connect Pagecraft and supply a valid integration token.",
       }, 401, {
-        /* `resource_metadata` is how an MCP client (claude.ai, Claude Desktop) finds assistant
-           sign-in; the WordPress plugin reads only the realm and scope, as before. */
         "www-authenticate":
-          `Bearer realm="Pagecraft", scope="projects:read packages:read", resource_metadata="${resourceMetadataUrl(o.editorOrigin || new URL(c.req.url).origin)}"`,
+          `Bearer realm="Pagecraft", scope="${scope}", resource_metadata="${resourceMetadataUrl(o.editorOrigin || new URL(c.req.url).origin)}"`,
       });
     }
     return pagecraftMcpResponse(c.req.raw, read);
@@ -4339,7 +4560,7 @@ export function createApp(o: Options) {
       "/v1/integrations/wordpress/",
       "/v1/wordpress-import/",
     );
-    return app.fetch(new Request(target, c.req.raw));
+    return app.fetch(new Request(target, c.req.raw), c.env);
   });
 
   app.get("/v1/wordpress-import/authorize", async (c) => {
@@ -4531,18 +4752,21 @@ export function createApp(o: Options) {
       });
     }
     if (grantType === "refresh_token") {
-      const refreshToken = String(body?.refresh_token || "");
-      const credential = await o.auth.manualImportByRefresh(
-        hashToken(refreshToken),
-      );
+      const refreshDigest = hashToken(String(body?.refresh_token || ""));
+      /* Lapses after 90 idle days and rotates on every use, so a copied refresh token is good
+         only until whichever copy refreshes first. */
+      const credential = await o.auth.manualImportByRefresh(refreshDigest);
       if (!credential) {
         return c.json({ error: "invalid_grant", reconnect: true }, 401);
       }
-      const accessToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
+      const accessToken = newToken(),
+        refreshToken = newToken(),
+        expiresAt = Date.now() + 15 * 60 * 1000;
       const rotated = await o.auth.rotateManualImportAccess(
         credential.id,
         hashToken(accessToken),
         expiresAt,
+        { digest: hashToken(refreshToken), previous: refreshDigest },
       );
       if (!rotated) {
         return c.json({ error: "invalid_grant", reconnect: true }, 401);
@@ -4551,6 +4775,11 @@ export function createApp(o: Options) {
         token_type: "Bearer",
         access_token: accessToken,
         expires_in: 15 * 60,
+        /* A gateway that does not rotate yet keeps the old refresh token; the plugin keeps its
+           stored one when this is absent. */
+        ...(rotated.refreshTokenDigest === hashToken(refreshToken)
+          ? { refresh_token: refreshToken }
+          : {}),
       });
     }
     return c.json({ error: "unsupported_grant_type" }, 400);

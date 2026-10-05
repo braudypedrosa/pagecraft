@@ -105,15 +105,12 @@ export function assistantOAuthRoutes(app: Hono, d: AssistantOAuthDeps) {
     const redirectUri = String(q.redirect_uri || '');
     // Without a known client and one of its own redirects, nothing is sent anywhere.
     if (!client || !client.redirectUris.includes(redirectUri)) return problemPage(c, 'This app is not registered with Pagecraft, or it asked to return somewhere it did not register.');
-    const back = (error: string) => {
-      const to = new URL(redirectUri);
-      to.searchParams.set('error', error);
-      if (q.state) to.searchParams.set('state', String(q.state));
-      return c.redirect(to.href, 302);
-    };
-    if (q.response_type !== 'code') return back('unsupported_response_type');
-    if (q.code_challenge_method !== 'S256' || !/^[A-Za-z0-9_-]{43}$/.test(String(q.code_challenge || ''))) return back('invalid_request');
-    if (q.resource && q.resource !== `${origin(c)}/mcp`) return back('invalid_target');
+    /* Anyone may register a client, so redirecting before the owner has decided would send any
+       visitor to any registered address. Bad parameters are explained here instead; the app is
+       only sent back to after a decision on the consent page. */
+    if (q.response_type !== 'code') return problemPage(c, 'This app asked to sign in in a way Pagecraft does not support.');
+    if (q.code_challenge_method !== 'S256' || !/^[A-Za-z0-9_-]{43}$/.test(String(q.code_challenge || ''))) return problemPage(c, 'This app did not send the PKCE (S256) challenge Pagecraft requires.');
+    if (q.resource && q.resource !== `${origin(c)}/mcp`) return problemPage(c, 'This app asked for access to something other than this Pagecraft server.');
     const user = await d.who(c);
     if (!user) return c.redirect(`/sign-in?next=${encodeURIComponent(new URL(c.req.url).pathname + new URL(c.req.url).search)}`, 302);
     const sites = await d.ownedSites(user);

@@ -236,20 +236,21 @@ test.each([
   a.equal((readTool.structuredContent as { page:{id:string} }).page.id, pages.pages[0].id);
   await mcp.close();
 
-  const refreshed = await request(second, '/v1/integrations/wordpress/token', {
+  const refresh = (app: typeof first, refreshToken: string) => request(app, '/v1/integrations/wordpress/token', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: refreshToken })
   });
+  const refreshed = await refresh(second, tokens.refresh_token);
   a.equal(refreshed.status, 200);
+  const rotated = await refreshed.json() as { access_token:string; refresh_token:string };
+  a.ok(rotated.refresh_token && rotated.refresh_token !== tokens.refresh_token, 'each refresh issues a new refresh token');
+  a.equal((await refresh(first, tokens.refresh_token)).status, 401, 'the replaced refresh token is spent');
   const revoked = await request(first, '/v1/integrations/wordpress/revoke', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ credential_id: tokens.credential_id, refresh_token: tokens.refresh_token })
+    body: JSON.stringify({ credential_id: tokens.credential_id, refresh_token: rotated.refresh_token })
   });
   a.equal(revoked.status, 200);
-  const afterRevoke = await request(second, '/v1/integrations/wordpress/token', {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
-  });
+  const afterRevoke = await refresh(second, rotated.refresh_token);
   a.equal(afterRevoke.status, 401);
 });
 
@@ -761,6 +762,51 @@ test('native WordPress content ordering is UTF-8 deterministic and response-loss
   });
   a.deepEqual((await connected.wordpressContentIndexesForSite(site.id))[0], beforeRetry,
     'an exact response-loss replay preserves the original immutable snapshot');
+});
+
+test('a scoped editor session may open and save its site but never administer it', async () => {
+  const { connected, site, owner, first, second, request, store, auth } = await rig();
+  await connected.createConnection(connection(site.id, owner.id, 'staging', 'editor-cap-token'));
+  const minted = await request(first, '/v1/connections/staging/editor-sessions', {
+    method: 'POST', headers: {
+      authorization: 'Bearer editor-cap-token', 'content-type': 'application/json'
+    }, body: JSON.stringify({ installationId: 'installation-staging' })
+  });
+  a.equal(minted.status, 201, await minted.clone().text());
+  const url = new URL((await minted.json() as { url: string }).url);
+  const redeemed = await request(second, url.pathname + url.search, {
+    headers: { referer: 'https://staging.wp.test/wp-admin/' }
+  });
+  const raw = (await redeemed.text()).match(/window\.PC_SERVER=([^<]+)<\/script>/)?.[1]
+    ?.replace(/;\s*$/, '');
+  const session = JSON.parse(raw!.replace(/\\u003c/g, '<')) as { editorSessionToken: string };
+  const scoped = { 'x-pagecraft-editor-session': session.editorSessionToken };
+
+  const loaded = await request(first, `/api/sites/${site.id}`, { headers: scoped });
+  a.equal(loaded.status, 200);
+  const current = await store.byId(site.id);
+  const saved = await request(first, `/api/sites/${site.id}`, {
+    method: 'PUT', headers: { ...scoped, 'content-type': 'application/json' },
+    body: JSON.stringify({ doc: current!.doc, version: current!.version })
+  });
+  a.equal(saved.status, 200, await saved.clone().text());
+
+  const deleted = await request(first, `/sites/${site.id}/settings/delete`, {
+    method: 'POST', headers: { ...scoped, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ confirmation: site.name })
+  });
+  a.equal(deleted.status, 403, 'the embedded editor cannot delete the site');
+  a.ok(await store.byId(site.id), 'and the site is still there');
+  a.equal((await request(first, `/api/sites/${site.id}/people`, { headers: scoped })).status, 403);
+  const invited = await request(first, `/api/sites/${site.id}/people`, {
+    method: 'POST', headers: { ...scoped, 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'intruder@site.test', role: 'owner' })
+  });
+  a.equal(invited.status, 403, 'nor add people');
+  a.equal(await auth.userByEmail('intruder@site.test'), null);
+  const left = await request(first, `/sites/${site.id}/people/leave`, { method: 'POST', headers: scoped });
+  a.equal(left.status, 403, 'nor give up its owner\'s access');
+  a.equal((await auth.membership(site.id, owner.id))?.role, 'owner');
 });
 
 test('Disconnect immediately invalidates an already redeemed scoped editor session', async () => {

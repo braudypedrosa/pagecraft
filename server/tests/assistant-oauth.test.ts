@@ -66,7 +66,13 @@ test('MCP clients can discover how to sign in from the 401 and the metadata', as
   const unauthorized = await r.call('/mcp', { method: 'POST', json: { jsonrpc: '2.0', id: 1, method: 'tools/list' }, cookie: '' });
   a.equal(unauthorized.status, 401);
   a.match(unauthorized.headers.get('www-authenticate') || '', /resource_metadata="http:\/\/admin\.test\/\.well-known\/oauth-protected-resource"/);
-  a.match(unauthorized.headers.get('www-authenticate') || '', /scope="projects:read packages:read"/, 'the WordPress plugin still sees its scope');
+  a.match(unauthorized.headers.get('www-authenticate') || '', /scope="site:read proposals:write"/, 'a client signing in is told the assistant scopes the metadata lists');
+  const integration = await r.app.request(new Request('http://admin.test/mcp', {
+    method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    headers: { host: 'admin.test', 'content-type': 'application/json', authorization: 'Bearer not-a-real-integration-token' },
+  }));
+  a.equal(integration.status, 401);
+  a.match(integration.headers.get('www-authenticate') || '', /^Bearer realm="Pagecraft", scope="projects:read packages:read", /, 'a rejected integration token sees what it always did');
   const resource = await (await r.call('/.well-known/oauth-protected-resource')).json() as any;
   a.equal(resource.resource, 'http://admin.test/mcp');
   a.deepEqual(resource.authorization_servers, ['http://admin.test']);
@@ -145,8 +151,22 @@ test('declining, someone else’s site, and stale approvals are all refused', as
   a.equal((await r.call('/oauth/assistants/authorize', { method: 'POST', form: { consent, siteId: r.notMine.id, decision: 'allow' } })).status, 403);
   a.equal((await r.call('/oauth/assistants/authorize', { method: 'POST', form: { consent, siteId: r.site.id, decision: 'allow' } })).status, 400, 'an approval is used once');
 
-  const noPkce = await r.call(`/oauth/assistants/authorize?response_type=code&client_id=${client_id}&redirect_uri=${encodeURIComponent(CALLBACK)}&state=s1`);
-  a.match(noPkce.headers.get('location') || '', /error=invalid_request/);
+  /* Registration is open, so a parameter error is shown here, never redirected to the client:
+     otherwise anyone could bounce a visitor to any address they registered. */
+  const anyone = { cookie: '' };
+  const problems = [
+    [`/oauth/assistants/authorize?response_type=code&client_id=${client_id}&redirect_uri=${encodeURIComponent(CALLBACK)}&state=s1`, /PKCE/],
+    [`/oauth/assistants/authorize?response_type=token&client_id=${client_id}&redirect_uri=${encodeURIComponent(CALLBACK)}&code_challenge=${challenge}&code_challenge_method=S256`, /does not support/],
+    [`/oauth/assistants/authorize?response_type=code&client_id=${client_id}&redirect_uri=${encodeURIComponent(CALLBACK)}&code_challenge=${challenge}&code_challenge_method=S256&resource=${encodeURIComponent('https://evil.example/mcp')}`, /something other than this Pagecraft server/],
+  ] as const;
+  for (const [path, why] of problems) {
+    for (const init of [{}, anyone]) {
+      const page = await r.call(path, init);
+      a.equal(page.status, 400, path);
+      a.equal(page.headers.get('location'), null, 'nothing is redirected before a decision');
+      a.match(await page.text(), why);
+    }
+  }
   a.equal((await r.call(`/oauth/assistants/authorize?response_type=code&client_id=${client_id}&redirect_uri=${encodeURIComponent('https://evil.example/cb')}`)).status, 400, 'never redirects somewhere unregistered');
   a.equal((await r.call(`/oauth/assistants/authorize?response_type=code&client_id=pcc_${'0'.repeat(24)}&redirect_uri=${encodeURIComponent(CALLBACK)}`)).status, 400);
 });

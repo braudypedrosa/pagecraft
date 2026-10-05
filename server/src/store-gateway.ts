@@ -2081,6 +2081,7 @@ export class GatewayAuthStore implements AuthStore {
     id: string,
     digest: string,
     expiresAt: number,
+    refresh?: { digest: string; previous: string },
   ) {
     const row = await this.gateway.call<ManualImportWire | null>(
       "auth.manualImport.rotate",
@@ -2088,6 +2089,12 @@ export class GatewayAuthStore implements AuthStore {
         id,
         digest,
         expiresAt: new Date(expiresAt).toISOString(),
+        ...(refresh
+          ? {
+            refreshDigest: refresh.digest,
+            previousRefreshDigest: refresh.previous,
+          }
+          : {}),
       },
     );
     return row ? toManualImport(row) : null;
@@ -2096,6 +2103,18 @@ export class GatewayAuthStore implements AuthStore {
     return this.gateway.call<boolean>("auth.manualImport.revoke", {
       id,
       refreshDigest,
+    });
+  }
+  async manualImportsForOwner(ownerId: string) {
+    return (await this.gateway.call<ManualImportWire[]>(
+      "auth.manualImport.forOwner",
+      { ownerId },
+    )).map(toManualImport);
+  }
+  revokeManualImportForOwner(id: string, ownerId: string) {
+    return this.gateway.call<boolean>("auth.manualImport.revokeForOwner", {
+      id,
+      ownerId,
     });
   }
 }

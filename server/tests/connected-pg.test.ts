@@ -8,6 +8,7 @@ import {
   PgAssetStore, PgAuthStore, PgConnectedStore, PgStore, type Queryable
 } from '../src/store-pg.ts';
 import type { DeploymentStatus, SiteRelease, WordPressConnection } from '../src/release-store.ts';
+import { PgOwnedSiteStore } from '../src/accounts.ts';
 
 const digest = (value: unknown) => sha256(new TextEncoder().encode(canonicalJson(value)));
 
@@ -636,4 +637,37 @@ test('Postgres publish CAS rejects a delayed lower release sequence', async () =
   const delayed = await sites.publish(site.id, 1, older.id, older.sequence);
   a.equal(delayed?.publishedReleaseId, newer.id);
   a.equal((await sites.byId(site.id))?.publishedReleaseId, newer.id);
+});
+
+test('Postgres counts only created owned sites, and rotates, expires, lists and revokes WordPress credentials', async () => {
+  const { db, sites, auth, owner } = await rig();
+  const owned = new PgOwnedSiteStore(db as unknown as Queryable);
+  const stranger = await auth.createUser('stranger@connected.test', 'Stranger');
+  a.equal(await owned.owned(owner.id), 1, 'a site with no recorded author still counts');
+  const forced = await sites.create({ host: 'forced.test', name: 'Forced', doc: blankDoc('Forced'), savedBy: stranger.id });
+  await auth.grant(forced.id, stranger.id, 'owner');
+  await auth.grant(forced.id, owner.id, 'owner');
+  a.equal(await owned.owned(owner.id), 1, 'being added as an owner uses none of the allowance');
+  a.equal(await owned.owned(stranger.id), 1);
+  const made = await owned.create({ ownerId: owner.id, host: 'mine.test', name: 'Mine', doc: blankDoc('Mine') });
+  a.ok(made.ok);
+  a.equal(await owned.owned(owner.id), 2);
+
+  await auth.createManualImportCredential({
+    id: 'wp-pg', ownerId: owner.id, installationId: 'wp-install', accessTokenDigest: hashToken('access-1'),
+    accessExpiresAt: Date.now() + 60_000, refreshTokenDigest: hashToken('refresh-1'),
+  });
+  const rotated = await auth.rotateManualImportAccess('wp-pg', hashToken('access-2'), Date.now() + 60_000,
+    { digest: hashToken('refresh-2'), previous: hashToken('refresh-1') });
+  a.equal(rotated?.refreshTokenDigest, hashToken('refresh-2'));
+  a.equal(await auth.rotateManualImportAccess('wp-pg', hashToken('access-3'), Date.now() + 60_000,
+    { digest: hashToken('refresh-3'), previous: hashToken('refresh-1') }), null, 'a replayed token cannot rotate');
+  a.equal(await auth.manualImportByRefresh(hashToken('refresh-1')), null);
+  a.ok(await auth.manualImportByRefresh(hashToken('refresh-2')));
+  await db.query(`update wordpress_import_credentials set updated_at = now() - interval '91 days' where id = 'wp-pg'`);
+  a.equal(await auth.manualImportByRefresh(hashToken('refresh-2')), null, 'unused for 90 days');
+  a.deepEqual((await auth.manualImportsForOwner(owner.id)).map(item => item.id), ['wp-pg']);
+  a.equal(await auth.revokeManualImportForOwner('wp-pg', stranger.id), false);
+  a.equal(await auth.revokeManualImportForOwner('wp-pg', owner.id), true);
+  a.deepEqual(await auth.manualImportsForOwner(owner.id), []);
 });

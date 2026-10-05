@@ -15,10 +15,12 @@ export interface VerifiedIdentity {
 export interface AccountAuth {
   identity(c: Context): Promise<VerifiedIdentity | null>;
   oauth(c: Context, input: { provider: 'google'; redirectTo: string }): Promise<string | null>;
-  signUp(c: Context, input: { email: string; password: string; name: string; redirectTo: string; captchaToken: string }): Promise<'confirmation_required' | 'exists'>;
-  signIn(c: Context, input: { email: string; password: string; captchaToken: string }): Promise<VerifiedIdentity | null>;
+  /* 'challenge' means Auth refused the human-challenge token, so the attempt proved nothing
+     about the address or password and must not count against either. */
+  signUp(c: Context, input: { email: string; password: string; name: string; redirectTo: string; captchaToken: string }): Promise<'confirmation_required' | 'exists' | 'challenge'>;
+  signIn(c: Context, input: { email: string; password: string; captchaToken: string }): Promise<VerifiedIdentity | 'challenge' | null>;
   confirm(c: Context, input: { code?: string; tokenHash?: string; type?: string }): Promise<VerifiedIdentity | null>;
-  forgot(c: Context, input: { email: string; redirectTo: string; captchaToken: string }): Promise<void>;
+  forgot(c: Context, input: { email: string; redirectTo: string; captchaToken: string }): Promise<void | 'challenge'>;
   reset(c: Context, password: string): Promise<boolean>;
   updateEmail(c: Context, input: { email: string; redirectTo: string }): Promise<boolean>;
   updatePassword(c: Context, input: { password: string; currentPassword?: string }): Promise<boolean>;
@@ -88,6 +90,7 @@ export class SupabaseAccountAuth implements AccountAuth {
       password: input.password,
       options: { emailRedirectTo: input.redirectTo, data: { name: input.name }, captchaToken: input.captchaToken }
     });
+    if (error?.code === 'captcha_failed') return 'challenge' as const;
     /* Supabase deliberately returns an obfuscated user for duplicate confirmed accounts.
        Keep Pagecraft's response non-enumerating in both cases. */
     if (error || !data.user || data.user.identities?.length === 0) return 'exists' as const;
@@ -106,7 +109,7 @@ export class SupabaseAccountAuth implements AccountAuth {
     const { data, error } = await this.client(c).auth.signInWithPassword({
       email: input.email, password: input.password, options: { captchaToken: input.captchaToken }
     });
-    if (error) return null;
+    if (error) return error.code === 'captcha_failed' ? 'challenge' as const : null;
     return verified(data.user);
   }
 
@@ -127,9 +130,10 @@ export class SupabaseAccountAuth implements AccountAuth {
   }
 
   async forgot(c: Context, input: { email: string; redirectTo: string; captchaToken: string }) {
-    await this.client(c).auth.resetPasswordForEmail(input.email, {
+    const { error } = await this.client(c).auth.resetPasswordForEmail(input.email, {
       redirectTo: input.redirectTo, captchaToken: input.captchaToken
     });
+    if (error?.code === 'captcha_failed') return 'challenge' as const;
   }
 
   async reset(c: Context, password: string) {

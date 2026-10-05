@@ -146,26 +146,32 @@ export function smtpNoticeSender(cfg: MailConfig, transport?: Transporter): Noti
  */
 export function throttle(max = 5, windowMs = 15 * 60 * 1000, maxKeys = 5000) {
   const hits = new Map<string, number[]>();
+  const recentOf = (key: string, now: number) => (hits.get(key) || []).filter(t => now - t < windowMs);
   return {
     /** true when this address may be sent another link. Records the attempt when it may. */
     take(key: string, now = Date.now()) {
       if (!hits.has(key) && hits.size >= maxKeys) {
+        /* Swept here rather than on a timer: the only thing that grows this map is traffic, and
+           traffic is also what cleans it. A timer would be a second thing to get wrong. */
         for (const [k, v] of hits) if (!v.some(t => now - t < windowMs)) hits.delete(k);
-        /* Active attacker-controlled keys do not earn unbounded memory. A new key waits until
-           an old window expires; existing legitimate keys continue to receive normal answers. */
-        if (hits.size >= maxKeys) return false;
+        /* Active attacker-controlled keys still do not earn unbounded memory, but refusing every
+           new key while the map is full would let one caller with many keys lock out everyone
+           else. The least recently seen keys are forgotten instead. */
+        for (const k of hits.keys()) {
+          if (hits.size < maxKeys) break;
+          hits.delete(k);
+        }
       }
-      const recent = (hits.get(key) || []).filter(t => now - t < windowMs);
-      if (recent.length >= max) { hits.set(key, recent); return false; }
-      recent.push(now);
+      const recent = recentOf(key, now);
+      // Re-inserted so the map's order is recency: eviction above takes the stalest key first.
+      hits.delete(key);
       hits.set(key, recent);
-      /* Swept here rather than on a timer: the only thing that grows this map is traffic, and
-         traffic is also what cleans it. A timer would be a second thing to get wrong. */
-      if (hits.size > maxKeys) {
-        for (const [k, v] of hits) if (!v.some(t => now - t < windowMs)) hits.delete(k);
-      }
+      if (recent.length >= max) return false;
+      recent.push(now);
       return true;
     },
+    /** true when `take` would refuse this key now. Records nothing. */
+    limited: (key: string, now = Date.now()) => recentOf(key, now).length >= max,
     size: () => hits.size
   };
 }

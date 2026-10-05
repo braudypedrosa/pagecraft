@@ -70,6 +70,9 @@ export interface ManualImportCredential {
 export const LINK_TTL_MS = 15 * 60 * 1000;
 /** Thirty days. A client who edits monthly should not be locked out for being slow. */
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+/** Ninety days. A WordPress refresh token unused for this long stops working. Every refresh
+    rotates it and moves `updatedAt`, so that column is when it was last used. */
+export const MANUAL_IMPORT_IDLE_MS = 90 * 24 * 60 * 60 * 1000;
 
 /** 32 bytes of urandom, base64url. Guessing is not a threat model at this width. */
 export const newToken = () => randomBytes(32).toString('base64url');
@@ -138,8 +141,13 @@ export interface AuthStore {
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>): Promise<ManualImportCredential>;
   manualImportByAccess(digest: string): Promise<ManualImportCredential | null>;
   manualImportByRefresh(digest: string): Promise<ManualImportCredential | null>;
-  rotateManualImportAccess(id: string, digest: string, expiresAt: number): Promise<ManualImportCredential | null>;
+  /** New access token; with `refresh`, also a new refresh token, only while `previous` is current. */
+  rotateManualImportAccess(id: string, digest: string, expiresAt: number,
+    refresh?: { digest: string; previous: string }): Promise<ManualImportCredential | null>;
   revokeManualImportCredential(id: string, refreshDigest: string): Promise<boolean>;
+  /** The owner's active WordPress credentials, newest first, so they can see and revoke them. */
+  manualImportsForOwner(ownerId: string): Promise<ManualImportCredential[]>;
+  revokeManualImportForOwner(id: string, ownerId: string): Promise<boolean>;
 }
 
 /** The auth half of the schema, beside the site half in `store-pg.ts`. */
@@ -429,14 +437,18 @@ export class MemoryAuthStore implements AuthStore {
   }
   async manualImportByRefresh(digest: string) {
     const item = [...this.manualImports.values()].find(candidate =>
-      candidate.status === 'active' && candidate.refreshTokenDigest === digest);
+      candidate.status === 'active' && candidate.refreshTokenDigest === digest &&
+      candidate.updatedAt > Date.now() - MANUAL_IMPORT_IDLE_MS);
     return item ? { ...item } : null;
   }
-  async rotateManualImportAccess(id: string, digest: string, expiresAt: number) {
+  async rotateManualImportAccess(id: string, digest: string, expiresAt: number,
+    refresh?: { digest: string; previous: string }) {
     const item = this.manualImports.get(id);
     if (!item || item.status !== 'active') return null;
+    if (refresh && item.refreshTokenDigest !== refresh.previous) return null;
     item.accessTokenDigest = digest;
     item.accessExpiresAt = expiresAt;
+    if (refresh) item.refreshTokenDigest = refresh.digest;
     item.updatedAt = Date.now();
     return { ...item };
   }
@@ -444,6 +456,19 @@ export class MemoryAuthStore implements AuthStore {
     const item = this.manualImports.get(id);
     if (!item || item.refreshTokenDigest !== refreshDigest) return false;
     if (item.status === 'revoked') return true;
+    item.status = 'revoked';
+    item.revokedAt = item.updatedAt = Date.now();
+    return true;
+  }
+  async manualImportsForOwner(ownerId: string) {
+    return [...this.manualImports.values()]
+      .filter(item => item.ownerId === ownerId && item.status === 'active')
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map(item => ({ ...item }));
+  }
+  async revokeManualImportForOwner(id: string, ownerId: string) {
+    const item = this.manualImports.get(id);
+    if (!item || item.ownerId !== ownerId || item.status !== 'active') return false;
     item.status = 'revoked';
     item.revokedAt = item.updatedAt = Date.now();
     return true;

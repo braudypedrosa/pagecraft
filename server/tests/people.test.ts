@@ -229,3 +229,20 @@ test('another owner may demote you, which is the way that is meant to work', asy
   const list = await (await people(cookie)).json() as { email: string; role: Role }[];
   a.equal(list.find(p => p.email === one.email)!.role, 'content');
 });
+
+test('inviting through the API is rate limited like the People form', async () => {
+  /* Each invitation can create an account and grant ownership, so it is limited per caller,
+     per site, and per recipient, and one recipient gets one change a minute. */
+  const { signIn, member, invite } = await rig();
+  const owner = await member('owner@acme.test', 'owner');
+  const cookie = await signIn(owner.email);
+  a.equal((await invite(cookie, 'client@acme.test')).status, 201);
+  const again = await invite(cookie, 'client@acme.test', 'owner');
+  a.equal(again.status, 429, 'the same recipient twice in a minute');
+  a.equal(again.headers.get('retry-after'), '60');
+  const statuses: number[] = [];
+  for (let i = 0; i < 25; i++) statuses.push((await invite(cookie, `person${i}@acme.test`)).status);
+  /* Twenty attempts an hour per site and per owner, and the refused one above was an attempt. */
+  a.deepEqual(statuses.slice(0, 18), Array(18).fill(201));
+  a.ok(statuses.slice(18).every(status => status === 429), statuses.join(','));
+});

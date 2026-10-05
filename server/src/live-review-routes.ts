@@ -10,7 +10,7 @@ import { reviewBridge } from './live-review-client.ts';
 import { throttle } from './mail.ts';
 export function liveReviewRoutes(app: Hono, o: {
   store: Store; auth: AuthStore; reviews: LiveReviewStore; who: (c: Context) => Promise<User | null>;
-  origin?: string; secure?: boolean;
+  requestSource(c: Context): string; origin?: string; secure?: boolean;
   notifyInvitation?: (c: Context, user: User, href: string, kind: string) => Promise<void>;
   preview: (siteId: string, page: string) => Promise<{ html: string; version: number; pages: { path: string; name: string }[] } | null>;
 }) {
@@ -35,7 +35,7 @@ export function liveReviewRoutes(app: Hono, o: {
       const expected = new URL(o.origin || c.req.url).origin;
       let origin = c.req.header('origin'); if (!origin) { try { origin = new URL(c.req.header('referer') || '').origin; } catch {} }
       if (origin !== expected) return c.json({ error: 'Please reload this review and try again.' }, 403);
-      if (!limit.take(c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown')) return c.json({ error: 'Too many requests. Try again in a minute.' }, 429);
+      if (!limit.take(o.requestSource(c))) return c.json({ error: 'Too many requests. Try again in a minute.' }, 429);
     }
     await next();
   });
