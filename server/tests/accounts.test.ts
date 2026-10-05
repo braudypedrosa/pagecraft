@@ -603,7 +603,7 @@ test("premade library includes the latest release of every curated site", async 
   a.doesNotMatch(html, /pc-template-picker is-single/);
 });
 
-test("a Cloud curated site links template images without uploads or quota usage", async () => {
+test("a Cloud curated site copies template images into its own media without quota usage", async () => {
   const assets = new ConcurrentAssetStore();
   const siteTemplates = new FileSiteTemplateStore(
     resolve(process.cwd(), "premade-sites"),
@@ -644,11 +644,15 @@ test("a Cloud curated site links template images without uploads or quota usage"
   a.ok(result.files.includes("index.html"));
   a.ok(result.files.includes("about.html"));
   const installed = await assets.list(site.id);
-  a.equal(installed.length, 0);
-  a.equal(assets.peak, 0, "template creation performs no image uploads");
+  a.equal(installed.length, 5, "every template image is in the site's own media library");
+  a.equal(assets.peak, 3, "template uploads use bounded concurrency");
+  a.ok(installed.every((asset) => /^a[a-f0-9]{12}$/.test(asset.id)));
+  a.ok(installed.every((asset) => /^[a-f0-9]{64}$/.test(asset.contentHash || "")),
+    "copied images keep the content hash the production gateway requires");
   const serialized = JSON.stringify(site.doc);
-  a.doesNotMatch(serialized, /asset:/);
-  a.match(serialized, /http:\/\/admin.test\/templates\/independent-studio\/2\.0\.9\/preview\/assets\//);
+  a.doesNotMatch(serialized, /\/templates\//, "no image is loaded from the editor host's package");
+  a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
+  // Template images are the site's starting point, not the owner's uploads.
   a.deepEqual(await assets.usage(owner.id), {
     usedBytes: 0,
     limitBytes: 100 * 1024 * 1024,

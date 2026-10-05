@@ -90,6 +90,16 @@ export interface RenderedSite {
   files: Map<string, string>;
   /** what the review found, so a save can report it without a second pass */
   findings: ReturnType<typeof Core.lint>;
+  /** Only when asked for (hosted publications): the foundation stylesheet every page opens
+      its `<style>` with, so `shareHostedStyles` can ship it once instead of in every page. */
+  foundation?: RenderedFoundation;
+}
+
+export interface RenderedFoundation {
+  /** The rules as a file in `assets/` writes them: asset paths relative to that folder. */
+  css: string;
+  /** Per page: how deep it sits, and the exact text its own `<style>` starts with. */
+  pages: Map<string, { rel: string; inline: string }>;
 }
 
 /**
@@ -103,7 +113,12 @@ export interface RenderedSite {
  * `variants` is still off. A `srcset` needs downscaled copies, and making those needs an
  * image library the server does not have; one `src` that works beats five that do not.
  */
-export function renderSite(doc: Doc, assets: Asset[] = [], formEndpoint = ''): RenderedSite {
+export function renderSite(
+  doc: Doc,
+  assets: Asset[] = [],
+  formEndpoint = '',
+  options: { foundation?: boolean } = {},
+): RenderedSite {
   const previousEndpoint = Core.cloudFormEndpoint;
   Core.setCloudFormEndpoint(formEndpoint);
   try {
@@ -112,11 +127,22 @@ export function renderSite(doc: Doc, assets: Asset[] = [], formEndpoint = ''): R
     const byId = new Map(assets.map(a => [a.id, a]));
     const get = (id: string) => byId.get(id) || null;
 
+    /* Every page's stylesheet opens with the same foundation: the base rules, the project CSS
+       and the design tokens' desktop rules (`treeCss` in the core). It is a prefix, so moving it
+       into a file linked just before the page's own `<style>` keeps the cascade byte-for-byte;
+       the element rules after it differ per page and stay inline. Computed here because only
+       here is the core holding this document. */
+    const foundation = options.foundation ? Core.tidy(Core.baseCss(false) + Core.tokenCss().d) : '';
+    const shared: RenderedFoundation | undefined = foundation
+      ? { css: Core.assetPaths(foundation, get, '../'), pages: new Map() }
+      : undefined;
+
     const files = new Map<string, string>();
     for (const t of Core.exportTargets()) {
       /* `rel` is how deep the file sits, so a detail page one directory down asks for
          `../assets/logo.png` rather than a path that only resolves at the root. */
       files.set(t.path, Core.assetPaths(Core.buildPage(t.pg, t), get, t.rel || ''));
+      shared?.pages.set(t.path, { rel: t.rel || '', inline: Core.assetPaths(foundation, get, t.rel || '') });
     }
 
     /* Both are empty without a base URL, and an empty sitemap is worse than none: it tells a
@@ -125,7 +151,7 @@ export function renderSite(doc: Doc, assets: Asset[] = [], formEndpoint = ''): R
     if (sitemap) files.set('sitemap.xml', hostedSitemap(sitemap, files, Core.state.meta.baseUrl || ''));
     files.set('robots.txt', Core.robotsTxt());
 
-    return { files, findings: Core.lint() };
+    return { files, findings: Core.lint(), ...(shared ? { foundation: shared } : {}) };
   } finally { Core.setCloudFormEndpoint(previousEndpoint); }
 }
 

@@ -47,6 +47,40 @@ for (const backend of ['memory', 'file'] as const) {
       await rm(root, { recursive: true, force: true });
     }
   });
+
+  test(`${backend}: a slug a published site left leads to where it is now until someone takes it`, async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pagecraft-moved-'));
+    try {
+      const store = backend === 'file' ? new FileHostedPublicationStore(root) : new MemoryHostedPublicationStore();
+      const publication = await store.create(input());
+      await store.promote(publication);
+      assert.equal(await store.movedSlug('site-one'), null, 'a live slug has nowhere else to go');
+      await store.relocate(publication.siteId, 'second', 'site-one.test');
+      await store.relocate(publication.siteId, 'third', 'site-one.test');
+      const reader = backend === 'file' ? new FileHostedPublicationStore(root) : store;
+      assert.equal(await reader.movedSlug('site-one'), 'third', 'a record survives a restart and follows later moves');
+      assert.equal(await reader.movedSlug('second'), 'third');
+      assert.equal(await reader.movedSlug('never-used'), null);
+
+      await reader.releaseSlug('second', publication.siteId);
+      assert.equal(await reader.movedSlug('second'), 'third', 'the site itself reclaiming nothing changes nothing');
+      await reader.releaseSlug('second', 'someone-else');
+      assert.equal(await reader.movedSlug('second'), null, 'another site took the slug before publishing');
+
+      const other = await reader.create({ ...input(), siteId: 'other-site', host: 'other.test' });
+      await reader.promote(other);
+      assert.equal(await reader.movedSlug('site-one'), null, 'another site published at the old slug');
+      assert.equal((await reader.currentBySlug('site-one'))?.siteId, 'other-site');
+
+      await reader.relocate(publication.siteId, 'second', 'site-one.test');
+      assert.equal(await reader.movedSlug('second'), null, 'moving back makes the slug live again');
+      assert.equal(await reader.movedSlug('third'), 'second');
+      await reader.removeSite(publication.siteId);
+      assert.equal(await reader.movedSlug('third'), null, 'a deleted site redirects nowhere');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
 }
 
 test('publication paths reject traversal and ambiguous segments', () => {

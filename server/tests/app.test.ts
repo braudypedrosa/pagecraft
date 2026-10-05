@@ -244,14 +244,18 @@ test('hosted addresses move immediately and deleting the site revokes both publi
   a.equal(published.status, 200, await published.text());
   const move = await admin(`/api/sites/${site.id}/slug`, { method: 'PUT', body: JSON.stringify({ slug: 'new-address' }) }, cookie);
   a.equal(move.status, 200);
-  a.equal((await admin(`/${site.slug}/`)).status, 404);
+  const old = await admin(`/${site.slug}/about?ref=card`);
+  a.equal(old.status, 301, 'the address a site left keeps its links');
+  a.equal(old.headers.get('location'), '/new-address/about?ref=card');
   a.equal((await admin('/new-address/')).status, 200);
   a.equal((await admin('/new-address')).headers.get('location'), '/new-address/');
   const movedAgain = await admin(`/sites/${site.id}/settings/slug`, {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'slug=final-address'
   }, cookie);
   a.equal(movedAgain.status, 303);
-  a.equal((await admin('/new-address/')).status, 404);
+  a.equal((await admin('/new-address/')).headers.get('location'), '/final-address/');
+  a.equal((await admin(`/${site.slug}`)).headers.get('location'), '/final-address/',
+    'every earlier address follows the site to where it is now');
   a.equal((await admin('/final-address/')).status, 200);
   const host = await admin(`/api/sites/${site.id}/host`, { method: 'PUT', body: JSON.stringify({ host: 'moved.test' }) }, cookie);
   a.equal(host.status, 200);
@@ -269,6 +273,7 @@ test('hosted addresses move immediately and deleting the site revokes both publi
   a.equal((await deleteRequest()).status, 303);
   a.equal(await store.byId(site.id), null);
   a.equal((await admin('/final-address/')).status, 404);
+  a.equal((await admin('/new-address/')).status, 404, 'a deleted site redirects nowhere');
   a.equal((await get('/', 'moved.test')).status, 404);
 });
 
@@ -291,6 +296,25 @@ test('a failed publication write explains itself without the server path behind 
   });
   a.ok(logged.mock.calls.some(args => String(args[1]).includes('/home/pagecraft')));
   logged.mockRestore();
+});
+
+test('an old address stops redirecting once another site takes that slug', async () => {
+  const { site, store, auth, user, get, admin, signIn } = await rig('owner', true);
+  const { cookie } = await signIn();
+  const old = site.slug;
+  a.equal((await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
+  }, cookie)).status, 200);
+  a.equal((await admin(`/api/sites/${site.id}/slug`, { method: 'PUT', body: JSON.stringify({ slug: 'renamed' }) }, cookie)).status, 200);
+  a.equal((await admin(`/${old}/`)).headers.get('location'), '/renamed/');
+
+  const other = await store.create({ host: 'other.test', name: 'Other', doc: demo() });
+  await auth.grant(other.id, user.id, 'owner');
+  a.equal((await admin(`/api/sites/${other.id}/slug`, { method: 'PUT', body: JSON.stringify({ slug: old }) }, cookie)).status, 200);
+  const taken = await admin(`/${old}/`);
+  a.equal(taken.status, 404, 'an unpublished new owner of the slug is not overridden by a redirect');
+  a.equal(taken.headers.get('location'), null);
+  a.equal((await get('/', 'acme.test')).status, 200);
 });
 
 test('a save carrying a stale version is refused rather than winning', async () => {

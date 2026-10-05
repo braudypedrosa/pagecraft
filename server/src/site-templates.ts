@@ -29,7 +29,7 @@ export interface InstantiatedSiteTemplate {
 
 export interface SiteTemplateStore {
   list(): Promise<SiteTemplateSummary[]>;
-  instantiate(id: string, version?: string, assetOrigin?: string): Promise<InstantiatedSiteTemplate | null>;
+  instantiate(id: string, version?: string, linkAssets?: boolean): Promise<InstantiatedSiteTemplate | null>;
   preview(id: string, version: string, path: string): Promise<{ bytes: Uint8Array; mediaType: string } | null>;
 }
 
@@ -144,19 +144,20 @@ export class FileSiteTemplateStore implements SiteTemplateStore {
     return validated;
   }
 
-  async instantiate(id: string, version?: string, assetOrigin?: string): Promise<InstantiatedSiteTemplate | null> {
+  async instantiate(id: string, version?: string, linkAssets = false): Promise<InstantiatedSiteTemplate | null> {
     const templates = await this.list();
     const matches = templates.filter(item => item.id === id && (!version || item.version === version));
     const template = matches.sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }))[0];
     if (!template) return null;
     const validated = await this.load(template);
-    // Cloud placeholders stay in the immutable template package. Other importers retain
-    // the independent asset-copy contract by omitting assetOrigin.
-    if (assetOrigin) {
-      const base = new URL(assetOrigin).origin;
+    /* A site owns its images: by default each one is returned as an asset for the site's own
+       media library, under a fresh id. Linking to the package instead is only for a server with
+       nowhere to store them, and then the link is origin-relative, so a site created on one
+       environment never loads its images from another one's host. */
+    if (linkAssets) {
       const urls = new Map(validated.manifest.files.filter(file => file.role === 'asset')
         .map(file => [file.asset!.id,
-          `${base}/templates/${template.id}/${template.version}/preview/${file.path}`]));
+          `/templates/${template.id}/${template.version}/preview/${file.path}`]));
       const link = (value: unknown): unknown => {
         if (typeof value === 'string') return value.replace(
           /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?/g,

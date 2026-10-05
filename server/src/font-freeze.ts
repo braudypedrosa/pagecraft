@@ -205,3 +205,86 @@ export async function freezeGoogleFontStylesheets(
   }
   return output;
 }
+
+export interface HostedStyleFile { path: string; mediaType: string; bytes: Uint8Array }
+
+const FROZEN_STYLE = /<style data-pagecraft-frozen-fonts="([a-f0-9]{64})">\n([\s\S]*?)\n<\/style>\n?/;
+const FROZEN_URL = /url\('data:font\/woff2;pagecraft-sha256=([a-f0-9]{64});base64,([A-Za-z0-9+/=]+)'\)/g;
+const fontSlug = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'font';
+
+/** Hosted publications: ship what every page repeats once, as content-addressed files.
+ *
+ * The frozen Google faces arrive as base64 inside a `<style>` in every page (about 295 KB for
+ * one family of eight faces, before the page says anything), and the foundation rules open
+ * every page's own stylesheet. Both move into `assets/site.<hash>.css`, linked where the
+ * foundation used to start, with each face's bytes in `assets/fonts/`. Under `assets/` because
+ * the hosted router already turns that folder into absolute URLs, which a 404 page served at
+ * any depth needs. A page whose stylesheet does not start with the foundation keeps it inline:
+ * the cascade is never reordered to save bytes. Exports and connected releases do not call
+ * this; their pages stay self-contained. */
+export function shareHostedStyles(
+  files: Map<string, string>,
+  foundation?: { css: string; pages: Map<string, { rel: string; inline: string }> },
+): { files: Map<string, string>; extra: HostedStyleFile[] } {
+  const fonts = new Map<string, HostedStyleFile>();
+  const fontCss = new Map<string, string>();
+  const frozenCss = (digest: string, css: string) => {
+    const known = fontCss.get(digest);
+    if (known !== undefined) return known;
+    if (hash(new TextEncoder().encode(css)) !== digest) {
+      throw new Error('frozen font stylesheet failed verification');
+    }
+    /* Google serves a variable family as one file per subset for every weight asked for, so
+       the faces are grouped by bytes and a file is named for the weights it carries. */
+    const faces = new Map<string, { family: string; style: string; weights: Set<number> }>();
+    for (const rule of css.split('\n')) {
+      const pick = (name: string) => rule.match(new RegExp(`${name}:'?([^;']+)'?;`))?.[1] || '';
+      for (const match of rule.matchAll(FROZEN_URL)) {
+        const face = faces.get(match[1])
+          || { family: pick('font-family'), style: pick('font-style') || 'normal', weights: new Set<number>() };
+        face.weights.add(Number.parseInt(pick('font-weight'), 10) || 400);
+        faces.set(match[1], face);
+      }
+    }
+    const shared = css.replace(FROZEN_URL, (_whole, digest: string, base64: string) => {
+      const bytes = new Uint8Array(Buffer.from(base64, 'base64'));
+      if (hash(bytes) !== digest) throw new Error('frozen font file failed verification');
+      const face = faces.get(digest)!;
+      const weights = [...face.weights].sort((a, b) => a - b);
+      const weight = weights.length > 1 ? `${weights[0]}-${weights.at(-1)}` : String(weights[0]);
+      const name = `${fontSlug(face.family)}-${weight}-${fontSlug(face.style)}.${digest.slice(0, 16)}.woff2`;
+      fonts.set(digest, { path: `assets/fonts/${name}`, mediaType: 'font/woff2', bytes });
+      return `url('fonts/${name}')`;
+    });
+    fontCss.set(digest, shared);
+    return shared;
+  };
+
+  const sheets = new Map<string, HostedStyleFile>();
+  const sheet = (css: string) => {
+    const bytes = new TextEncoder().encode(css + '\n');
+    const path = `assets/site.${hash(bytes).slice(0, 16)}.css`;
+    if (!sheets.has(path)) sheets.set(path, { path, mediaType: 'text/css; charset=utf-8', bytes });
+    return path;
+  };
+
+  const output = new Map<string, string>();
+  for (const [path, source] of files) {
+    if (!path.toLowerCase().endsWith('.html')) { output.set(path, source); continue; }
+    let html = source;
+    const frozen = html.match(FROZEN_STYLE);
+    const page = foundation?.pages.get(path);
+    const opening = page ? '<style>\n' + page.inline : '';
+    const hasFoundation = !!opening && html.includes(opening);
+    if (!frozen && !hasFoundation) { output.set(path, html); continue; }
+    const css = [frozen ? frozenCss(frozen[1], frozen[2]) : '', hasFoundation ? foundation!.css : '']
+      .filter(Boolean).join('\n');
+    const rel = page ? page.rel : '../'.repeat(path.split('/').length - 1);
+    const link = `<link rel="stylesheet" href="${rel}${sheet(css)}">\n`;
+    if (frozen) html = html.replace(frozen[0], () => hasFoundation ? '' : link);
+    if (hasFoundation) html = html.replace(opening, () => `${link}<style>\n`);
+    output.set(path, html);
+  }
+  return { files: output, extra: [...sheets.values(), ...fonts.values()] };
+}
