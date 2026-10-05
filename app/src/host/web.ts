@@ -85,7 +85,8 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
       async save(input) {
         const doc = adoptHostDocument(input.document);
         return (await transport.request<{ version: number }>({
-          method: 'PUT', path: `/api/sites/${site}`, body: { doc, version: input.version }
+          method: 'PUT', path: `/api/sites/${site}`, body: { doc, version: input.version },
+          ...(input.keepalive ? { keepalive: true } : {})
         })).body;
       }
     },
@@ -179,6 +180,9 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
         return (await transport.request<{ proposals: WebProposal[] }>({
           path: `/api/sites/${site}/proposals${status ? `?status=${status}` : ''}`
         })).body.proposals;
+      },
+      async claim(id) {
+        await transport.request<unknown>({ method: 'POST', path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/claim`, body: {} });
       },
       async decide(id, status, version) {
         await transport.request<unknown>({

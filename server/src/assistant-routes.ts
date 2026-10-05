@@ -5,7 +5,6 @@
    or apply, take what is needed, all before the next await. */
 import type { Context, Hono } from 'hono';
 import * as Core from '../../app/src/core/index.ts';
-import type { ProposalChange } from '../../app/src/core/index.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import type { AssetRecord, AssetStore } from './assets.ts';
 import type { AuthStore, Role, User } from './auth.ts';
@@ -33,11 +32,11 @@ export interface AssistantDeps {
 const load = (doc: Doc) => { Core.restore(structuredClone(doc) as never); };
 const snapshot = () => structuredClone(Core.doc()) as Doc;
 
-/** The draft with the proposal's still-applicable changes written in, for previews. */
-function withProposal(doc: Doc, changes: ProposalChange[]) {
+/** The draft with the proposal's still-applicable changes written in, for previews. An insert
+    already in the draft is skipped, so an applied proposal does not preview it twice. */
+function withProposal(doc: Doc, proposal: Proposal) {
   load(doc);
-  const ok = Core.proposalCheck(changes).map(s => s === 'ok');
-  Core.proposalApply(changes.filter((_, i) => ok[i]));
+  Core.proposalApply(proposal.changes, proposal.id);
   return snapshot();
 }
 
@@ -142,11 +141,26 @@ export function assistantRoutes(app: Hono, d: AssistantDeps) {
       return c.body(asset.bytes as unknown as ArrayBuffer, 200, d.assetHeaders(asset));
     }
     const assets = d.assets ? await d.assets.list(g.site.id) : [];
-    const doc = c.req.query('before') === '1' ? g.site.doc : withProposal(g.site.doc, proposal.changes);
+    const doc = c.req.query('before') === '1' ? g.site.doc : withProposal(g.site.doc, proposal);
     const html = d.render(doc, assets)?.files.get(path);
     if (!html || !/\.html$/.test(path)) return c.notFound();
     c.header('content-security-policy', "sandbox allow-same-origin; default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; font-src 'self' https://fonts.gstatic.com data:; frame-src 'none'; form-action 'none'; frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
     return c.html(html);
+  });
+
+  /* Claimed before the editor applies it: single use, so a second tab or a second click is told
+     no instead of inserting the same instances again. */
+  app.post('/api/sites/:id/proposals/:proposal/claim', async c => {
+    const g = await editorGate(c);
+    if (!g.ok) return g.response;
+    const claimed = await g.assistants.claim(g.site.id, c.req.param('proposal')!, g.gate.user.id);
+    if (!claimed) return c.json({ error: 'not found' }, 404);
+    if (!claimed.ok) {
+      return c.json({ error: 'claimed', detail: claimed.proposal.status === 'applying'
+        ? 'This proposal is already being applied, in another tab or window. Reload the proposals to see where it stands.'
+        : 'This proposal was already applied or declined.' }, 409);
+    }
+    return c.json({ proposal: claimed.proposal });
   });
 
   app.post('/api/sites/:id/proposals/:proposal/decision', async c => {

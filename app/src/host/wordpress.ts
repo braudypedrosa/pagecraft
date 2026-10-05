@@ -1,5 +1,5 @@
 import { assetAdapter, authenticationAdapter, contentAdapter, documentAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
-import { FetchHostTransport, type FetchLike, type HostTransport } from './transport';
+import { FetchHostTransport, HostRequestError, type FetchLike, type HostRequest, type HostTransport } from './transport';
 import type { HostCapability, HostFeatures, HostSession, WordPressHostAdapter } from './types';
 
 export interface WordPressHostOptions {
@@ -8,6 +8,9 @@ export interface WordPressHostOptions {
   documentPath?: string;
   revisionsPath?: string;
   nonce: string;
+  /** WordPress core's `admin-ajax.php?action=rest-nonce`, which answers a fresh `wp_rest` nonce
+      while the login behind it is still valid. */
+  nonceUrl?: string;
   capabilities?: readonly HostCapability[];
   userId?: string | number;
   userName?: string;
@@ -35,14 +38,44 @@ export const WORDPRESS_HOST_FEATURES: Readonly<HostFeatures> = Object.freeze({
   dynamicContent: 'wordpress'
 });
 
+const expiredNonce = (error: unknown) => error instanceof HostRequestError && error.status === 403
+  && (error.payload as { code?: string } | null)?.code === 'rest_cookie_invalid_nonce';
+
 export function createWordPressHostAdapter(options: WordPressHostOptions): WordPressHostAdapter {
   let nonce = options.nonce;
   const capabilities = [...(options.capabilities || [])];
-  const transport = options.transport || new FetchHostTransport(
+  const fetcher = options.fetch || globalThis.fetch.bind(globalThis);
+  const rest = options.transport || new FetchHostTransport(
     normalizeRestUrl(options.restUrl || '/wp-json/pagecraft/v1'),
-    options.fetch || globalThis.fetch.bind(globalThis),
+    fetcher,
     () => ({ 'X-WP-Nonce': nonce })
   );
+  /* The editor gets one nonce when it opens, and WordPress stops accepting it after 12 to 24
+     hours — so an editor left open overnight failed every save with a 403. On exactly that
+     refusal, ask WordPress for a fresh nonce and try once more. One request at a time asks; a
+     login that has really ended answers with no nonce, and the original error stands. */
+  let asking: Promise<string | null> | null = null;
+  const ask = async () => {
+    try {
+      const response = await fetcher(options.nonceUrl!, { credentials: 'same-origin' });
+      const text = (await response.text()).trim();
+      return response.ok && /^[a-z0-9]{6,32}$/i.test(text) ? text : null;
+    } catch { return null; }
+  };
+  const freshNonce = () => asking || (asking = ask().finally(() => { asking = null; }));
+  const transport: HostTransport = {
+    async request<T>(request: HostRequest) {
+      try {
+        return await rest.request<T>(request);
+      } catch (error) {
+        if (!options.nonceUrl || !expiredNonce(error)) throw error;
+        const fresh = await freshNonce();
+        if (!fresh) throw error;
+        nonce = fresh;
+        return rest.request<T>(request);
+      }
+    }
+  };
   const page = encodeURIComponent(String(options.pageId));
   const documentPath = options.documentPath || `/pages/${page}/document`;
   const revisionsPath = options.revisionsPath || `/pages/${page}/revisions`;

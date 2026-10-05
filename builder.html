@@ -1798,6 +1798,12 @@ const TABID = Math.random().toString(36).slice(2, 10);
 let saveState = 'idle';                 // idle | ok | failed
 let saveWarned = false;
 let lastCloudDocument = null;
+/* The stored document could not be opened, so the demo is showing in its place. Nothing may be
+   written for the rest of this session: a save would replace the real project with the demo. */
+let loadBlocked = false;
+/* A change exists that no write has carried yet — set when a save is scheduled, cleared when a
+   write takes the document. What the unload prompt and the `pagehide` flush ask. */
+let dirty = false;
 
 /* Set by the server when it serves the editor; absent in the single-file build. `version`
    is the one mutable field: every accepted save returns the next one, and sending a stale
@@ -1840,6 +1846,10 @@ const HOST = WP ? PC_UI.createWordPressHostAdapter({
   documentPath: WP.documentPath,
   revisionsPath: WP.revisionsPath,
   nonce: WP.nonce,
+  /* WordPress core answers a fresh REST nonce here. The plugin serves this editor from
+     wp-admin/admin-ajax.php, so the path is a sibling of this page unless it says otherwise. */
+  nonceUrl: WP.restNonceUrl
+    || (/\/wp-admin\//.test(location.pathname) ? new URL('admin-ajax.php?action=rest-nonce', location.href).href : ''),
   capabilities: WP.capabilities || [],
   userId: WP.user && WP.user.id,
   userName: WP.user && WP.user.name,
@@ -2519,10 +2529,12 @@ function stamp(txt, bad) {
 }
 
 function writeNow() {
+  if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
   if (SRV) return writeServer();
   try {
     localStorage.setItem(LS, JSON.stringify({ ...doc(), v: SCHEMA, cur: state.cur, tab: TABID }));
     saveState = 'ok';
+    dirty = false;
     stamp('Saved ' + new Date().toTimeString().slice(0, 5), false);
   } catch (e) {
     saveState = 'failed';
@@ -2537,16 +2549,21 @@ function writeNow() {
    a conflict it caused itself. */
 let saving = false, saveAgain = false;
 
-async function writeServer() {
+async function writeServer(opts = {}) {
+  if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
   if (saving) { saveAgain = true; return; }
   const cloudDocument = !IS_WORDPRESS ? JSON.stringify(doc()) : null;
-  if (!IS_WORDPRESS && saveState === 'ok' && cloudDocument === lastCloudDocument) return;
+  if (!IS_WORDPRESS && saveState === 'ok' && cloudDocument === lastCloudDocument) { dirty = false; return; }
   saving = true;
   stamp('Saving…', false);
   try {
+    /* cleared as the request takes its copy of the document, so an edit made while it is in
+       flight marks the page dirty again rather than being counted as saved */
+    dirty = false;
     const body = await HOST.documents.save({
       document: doc(),
       version: SRV.version,
+      keepalive: !!opts.keepalive,
       ...(IS_WORDPRESS ? { compiled: {
         html: assetsToBlob(buildPage(page())),
         globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
@@ -2561,13 +2578,19 @@ async function writeServer() {
   } catch (e) {
     // A failed write needs a deliberate retry, not a queued automatic replay.
     saveAgain = false;
+    dirty = true;
     if (e && e.status === 409 && e.payload?.retryable === true && !e.payload.conflict) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnSaveBusy(); return;
     }
     if (e && e.status === 409) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
     }
-    if (e && e.status === 403) {
+    /* The adapter already fetched a fresh nonce and retried once; this one means the WordPress
+       login itself is gone. It is not a permission the account lacks. */
+    if (e && e.status === 403 && e.payload?.code === 'rest_cookie_invalid_nonce') {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnSessionExpired(); return;
+    }
+    if (e && e.status === 403 && !IS_WORDPRESS) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(e.payload || {}); return;
     }
     saveState = 'failed';
@@ -2641,7 +2664,28 @@ function warnContentOnly(info) {
   $('#coBackup').addEventListener('click', event => backupJson(event));
   $('#coReload').addEventListener('click', () => location.reload());
 }
-const save = dbounce(writeNow, 500);
+
+/* WordPress refused the REST nonce even after a fresh one was asked for, which means the login
+   behind it has ended. Signing in again is the fix, and only a reload picks the new session up. */
+function warnSessionExpired() {
+  if (saveWarned) return;
+  saveWarned = true;
+  openModal('Your WordPress session expired', `
+    <div class="alert">
+      <b>Your WordPress session expired. Reload to keep editing.</b>
+      <span>Your latest changes were not saved. They are still here in this tab.</span>
+    </div>
+    <p class="note">Download a copy first if you want to keep them, then reload and sign in again.</p>`, `
+    <button class="btn" id="seBackup">Download my copy</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" id="seReload">Reload</button>`);
+  $('#seBackup').addEventListener('click', event => backupJson(event));
+  $('#seReload').addEventListener('click', () => location.reload());
+}
+const saveSoon = dbounce(writeNow, 500);
+/* Dirty from the moment a save is scheduled, not from when it runs: closing the tab inside that
+   half-second is a change the page has to know it has not written yet. */
+const save = () => { dirty = true; saveSoon(); };
 
 /* A failed write must never be a whisper — it means work is being lost. */
 function warnSaveFailed(err) {
@@ -2672,7 +2716,16 @@ const backupJson = event => withAction(event?.currentTarget || null, 'Preparing 
   'application/json'), 'Project backup ready. Download started.', {key:'project-backup', paint:true});
 
 window.addEventListener('beforeunload', e => {
-  if (saveState === 'failed') { e.preventDefault(); e.returnValue = ''; return ''; }
+  if (loadBlocked) return;                 // nothing here was ever going to be saved
+  if (saveState === 'failed' || dirty || saving) { e.preventDefault(); e.returnValue = ''; return ''; }
+});
+/* The last edit before the tab closes is still waiting on the debounce. Write it now: localStorage
+   is synchronous, and the hosted PUT goes as `keepalive` so it can outlive the page — when it is
+   small enough for the browser to allow that, which the transport decides. A bigger one, or one
+   behind a save still in flight, is what the prompt above is for. */
+window.addEventListener('pagehide', () => {
+  if (loadBlocked || !dirty || saving) return;
+  if (SRV) writeServer({ keepalive: true }); else writeNow();
 });
 
 /* Another tab wrote this project — never silently clobber it. localStorage only: on the
@@ -2740,11 +2793,13 @@ function load() {
       return;
     }
     /* A document the server holds and this build cannot read is not a case to paper over
-       with the demo site — that would look like the site had been replaced. */
+       with the demo site — that would look like the site had been replaced. Nor may the demo be
+       saved: the first edit would put it on the server under the real site's version. */
     seed();
+    loadBlocked = true;
     setTimeout(() => openModal('This site cannot be opened by this build', `
       <div class="alert"><b>The server holds a document this Pagecraft build cannot read.</b>
-      <span>You are looking at the demo site. Nothing has been saved and nothing has been lost.</span></div>
+      <span>You are looking at the demo site, and nothing you do here will be saved. The site on the server is untouched.</span></div>
       <div class="note" style="margin-top:var(--gap-2)">${esc(loadError && loadError.message || 'Update this host to a matching Pagecraft build.')}</div>`,
       `<button class="btn primary" id="svOk">Understood</button>`) || $('#svOk').addEventListener('click', closeModal), 300);
     return;
@@ -2764,9 +2819,11 @@ function load() {
   try { d = PC_UI.adoptHostDocument(parsed); } catch (error) { loadError = error; }
   if (!d) {
     seed();
+    /* the unreadable project is still in localStorage, and the first save would overwrite it */
+    loadBlocked = true;
     if (loadError) setTimeout(() => openModal('Saved project cannot be opened by this build', `
       <div class="alert"><b>This browser holds a project this Pagecraft build cannot read.</b>
-      <span>It was left untouched rather than loaded and possibly mangled. You are looking at the demo site.</span></div>
+      <span>It was left untouched rather than loaded and possibly mangled. You are looking at the demo site, and nothing you do here will be saved.</span></div>
       <div class="note" style="margin-top:var(--gap-2)">${esc(loadError.message)}</div>`,
       `<button class="btn primary" id="nvOk">Understood</button>`) || $('#nvOk').addEventListener('click', closeModal), 300);
     return;
@@ -3856,6 +3913,9 @@ function findDrop(x, y, type, movingId) {
     const n = locate(chain[i].dataset.id).node;
     if (holds(n.type, type)) { container = n; ci = i; break; }
   }
+  /* A component has one root and no page around it: a drop that found no container would land
+     in a list that is thrown away, and the node with it. */
+  if (!container && state.ui.mode === 'component') return null;
   const list = container ? container.children : tree();
   const horiz = !!(container && container.type === 'row');
   let index = list.length;
@@ -3930,8 +3990,9 @@ function onDrop(e, fromFrame) {
     const cd = findComponent(d.componentId);
     toast(made ? (cd ? cd.name : 'Component') + ' placed' : 'That component does not fit there');
   } else if (d.kind === 'new') {
-    edit(() => { const leaf = insert(d.type, container, index); selSet([leaf.id]); });
-    toast(labelOf(d.type) + ' added');
+    let leaf = null;
+    edit(() => { leaf = insert(d.type, container, index); if (leaf) selSet([leaf.id]); });
+    toast(leaf ? labelOf(d.type) + ' added' : 'That does not fit there');
   } else {
     const set = d.ids && d.ids.length > 1 ? d.ids : null;
     if (set) {
@@ -3945,7 +4006,7 @@ function onDrop(e, fromFrame) {
 }
 
 /* ========================================================= inline editing */
-const editing = { on: false, id: null, el: null, kind: null, off: [] };
+const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [] };
 
 document.head.insertAdjacentHTML('beforeend', `<style>
 #rt{
@@ -4042,6 +4103,12 @@ function enterEdit(id) {
     toast('This value comes from CMS. Edit the CMS entry or disconnect the field.');
     return;
   }
+  /* An instance shows its definition's words unless they are a property. Typing into one that
+     is not would write text nothing renders, and it would snap back on exit. */
+  if (n.use && property?.src !== 'prop') {
+    toast('This text belongs to the component. Edit the component to change it everywhere.');
+    return;
+  }
   if (editing.on) exitEdit();
   if (state.ui.sel !== id || multiOn()) { selSet([id]); paintSel(); renderRight(); renderLayers(); }
 
@@ -4050,6 +4117,7 @@ function enterEdit(id) {
 
   hist.u.push(clone(doc())); hist.r.length = 0;
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
+  editing.prop = n.use ? property.path : null;
   target.contentEditable = 'true';
   host.setAttribute('data-editing', '');
   if (d.edit === 'rich') target.style.outline = 'none';
@@ -4087,13 +4155,16 @@ function syncEdit() {
   if (!editing.on) return;
   const h = locate(editing.id); if (!h) return;
   const n = h.node, host = editing.el;
-  if (n.type === 'text') n.props.html = host.innerHTML.trim();
-  else if (n.type === 'button') n.props.text = editTarget(n, host).innerText.replace(/\n+/g, ' ').trim();
-  else n.props.text = editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+  /* an instance renders its definition, so its words are the property the root is bound to */
+  const out = editing.prop ? {} : n.props;
+  if (n.type === 'text') out.html = host.innerHTML.trim();
+  else if (n.type === 'button') out.text = editTarget(n, host).innerText.replace(/\n+/g, ' ').trim();
+  else out.text = editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+  if (editing.prop) instSet(n, editing.prop, n.type === 'text' ? out.html : out.text);
   /* keep the inspector honest while typing on the canvas — a full re-render
      would steal focus, so the bound field is updated in place */
   const field = $('#right [data-x="v"]');
-  if (field && n.type !== 'text' && field.value !== n.props.text) field.value = n.props.text;
+  if (field && n.type !== 'text' && field.value !== out.text) field.value = out.text;
   save();
   renderLayers();
 }
@@ -4103,7 +4174,7 @@ function exitEdit() {
   syncEdit();
   editing.off.forEach(f => f());
   if (editing.el) editing.el.removeAttribute('data-editing');
-  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.off = [];
+  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.prop = null; editing.off = [];
   $('#rt').classList.remove('show');
   paint(); renderRight();
 }
@@ -4138,7 +4209,9 @@ async function saveBlockFlow(nodeId) {
 
 function appendSmart(key) {
   const [container, index] = smartTarget(key);
-  edit(() => { const leaf = insert(key, container, index); selSet([leaf.id]); });
+  let leaf = null;
+  edit(() => { leaf = insert(key, container, index); if (leaf) selSet([leaf.id]); });
+  if (!leaf) { toast('That does not fit there'); return; }
   toast(labelOf(key) + ' added');
   const el = cdoc && cdoc.getElementById(state.ui.sel);
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -4411,6 +4484,7 @@ function mediaDetails(root, id, refresh, origin) {
 /* Pin the reviewed draft; save before adopting it so rejected versions never enter Undo. */
 async function mediaReplaceCommit(sourceId, replacementId, baseline) {
   while (saving) await new Promise(resolve => setTimeout(resolve, 25));
+  if (loadBlocked) throw new Error('This site could not be opened, so nothing is being saved.');
   if (saveState === 'failed' || JSON.stringify(doc()) !== baseline) throw new Error('The draft changed. Review the replacement again.');
   if (!HOST?.assets?.retainsHistory || !SRV) throw new Error('This host does not support retained replacements.');
   const next = replaceMediaReferences(doc(), sourceId, replacementId);
@@ -4579,13 +4653,14 @@ function mediaModal() {
       let made = null;
       edit(() => {
         made = insert('image', ...smartTarget('image'));
+        if (!made) return;
         made.props.src = 'asset:' + a.id;
         made.props.alt = '';
         if (a.w) { made.props.w = String(a.w); made.props.h = String(a.h); }
         selSet([made.id]);
       });
       closeModal();
-      toast(`${a.name} placed — add alt text`);
+      toast(made ? `${a.name} placed — add alt text` : 'That does not fit there');
     }, async (id, b) => {
       if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
       if (!await assetDel(id, b)) return;
@@ -4605,6 +4680,7 @@ function renderCms() { ui().renderCms(); }
 async function cmsCommit(collections) {
   // Wait for the existing write queue before using its acknowledged version.
   while (saving) await new Promise(resolve => setTimeout(resolve, 25));
+  if (loadBlocked) throw new Error('This site could not be opened, so nothing is being saved.');
   if (saveState === 'failed') throw new Error('Resolve the draft save error in the builder before saving CMS changes. Your entry is still here.');
   const next = JSON.parse(JSON.stringify(doc()));
   next.meta.collections = collections;
@@ -4836,8 +4912,12 @@ function tx(key) {
   paintHistory();
 }
 const endTx = () => { txKey = null; paintHistory(); };
-const repaint = dbounce(() => { paint(); save(); renderLayers(); refreshReview(); paintHistory(); }, 90);
-const repaintCss = dbounce(() => { paintCss(); save(); refreshReview(); paintHistory(); }, 60);
+/* Both end in a save, and the change they paint is already in the document — so it is unsaved
+   from the call, not from when the debounce lets it through. */
+const repaintSoon = dbounce(() => { paint(); save(); renderLayers(); refreshReview(); paintHistory(); }, 90);
+const repaintCssSoon = dbounce(() => { paintCss(); save(); refreshReview(); paintHistory(); }, 60);
+const repaint = () => { dirty = true; repaintSoon(); };
+const repaintCss = () => { dirty = true; repaintCssSoon(); };
 
 
 
@@ -6567,7 +6647,9 @@ HOOKS.note = msg => toast(msg);
   applyHostFeatures();
   await assetsLoad();
   load();
-  if (SRV && !IS_WORDPRESS) {
+  /* not after a failed load: what is on screen is the demo, and calling it saved would let
+     publishing and the settings flows treat it as the site's draft */
+  if (SRV && !IS_WORDPRESS && !loadBlocked) {
     lastCloudDocument = JSON.stringify(doc());
     saveState = 'ok';
   }
@@ -6575,7 +6657,8 @@ HOOKS.note = msg => toast(msg);
   bindTop();
   renderPalette();
   setDev(state.ui.dev);
-  stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ? 'Draft ready' : 'Ready'), false);
+  if (loadBlocked) stamp('Not saving', true);
+  else stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ? 'Draft ready' : 'Ready'), false);
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   await window.PC_BUILDER_LOADING.ready();
 })().catch(error => {

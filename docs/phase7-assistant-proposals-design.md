@@ -102,18 +102,24 @@ Decided proposals are kept for 90 days.
   - a preview of each affected page, proposed or as it is now. The previews come from
     `/api/sites/:id/proposals/:p/preview/<file>`, rendered server-side with the applicable
     changes and the same script-free CSP as the dashboard preview.
-- **Apply to draft** is disabled while any change is stale or missing. When clicked it:
-  1. runs `C.edit(() => C.proposalApply(...))`, which is one Undo step;
-  2. re-renders the editor;
-  3. flushes the draft;
-  4. records the proposal as applied, with the saved version.
+- **Apply to draft** is disabled while any change is stale, missing or already applied. When
+  clicked it:
+  1. claims the proposal on the server, which moves it to `applying` once — a second claim gets
+     a 409, and a claim older than ten minutes was abandoned and can be taken again;
+  2. runs `C.edit(() => C.proposalApply(changes, proposalId))`, which is one Undo step. An
+     inserted instance takes an id derived from the proposal id and the change's index, so
+     `proposalCheck` reports an insert that is already in the draft as `applied`;
+  3. re-renders the editor;
+  4. flushes the draft;
+  5. records the proposal as applied, with the saved version.
 
   Publishing stays a separate, deliberate step. **Decline** asks first.
 - **Editor API**, owners only:
   - `GET /api/sites/:id/proposals[?status=pending]` (with preview paths);
   - the preview route;
-  - `POST /api/sites/:id/proposals/:p/decision` with `{status, version}`. A proposal is decided
-    once; a second decision gets a 409.
+  - `POST /api/sites/:id/proposals/:p/claim`, single use as above;
+  - `POST /api/sites/:id/proposals/:p/decision` with `{status, version}`, from `pending` or
+    `applying`. A proposal is decided once; a second decision gets a 409.
 
 ## Code
 

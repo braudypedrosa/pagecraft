@@ -27,7 +27,8 @@ export interface AssistantToken {
 }
 export type AssistantTokenView = Omit<AssistantToken, 'digest'> & { lastUsedAt: string | null };
 
-export type ProposalStatus = 'pending' | 'applied' | 'declined';
+/** `applying` is held by the editor between claiming a proposal and saying it was applied. */
+export type ProposalStatus = 'pending' | 'applying' | 'applied' | 'declined';
 export interface Proposal {
   id: string;
   siteId: string;
@@ -46,9 +47,14 @@ export interface Proposal {
   decidedBy: string | null;
   /** the draft version the applied changes were saved as */
   appliedVersion: number | null;
+  /** when, and by whom, the editor claimed it to apply */
+  claimedAt?: string | null;
+  claimedBy?: string | null;
 }
 
 export const ASSISTANT_LIMITS = { tokens: 10, pending: 25, keepDays: 90, nameMax: 60 };
+/** A claim this old was abandoned — the tab closed while applying — and can be taken again. */
+export const CLAIM_TTL = 10 * 60_000;
 
 const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 const b64 = (s: string) => Buffer.from(s, 'utf8').toString('base64url');
@@ -168,7 +174,7 @@ export class FileAssistantStore {
   async proposals(siteId: string): Promise<Proposal[]> {
     const cutoff = new Date(Date.now() - ASSISTANT_LIMITS.keepDays * 86_400_000).toISOString();
     return (await listJson<Proposal>(join(this.dir(siteId), 'proposals')))
-      .filter(p => p.status === 'pending' || (p.decidedAt || p.createdAt) >= cutoff)
+      .filter(p => p.status === 'pending' || p.status === 'applying' || (p.decidedAt || p.createdAt) >= cutoff)
       .sort((x, y) => y.createdAt.localeCompare(x.createdAt));
   }
 
@@ -178,15 +184,46 @@ export class FileAssistantStore {
     return row && row.siteId === siteId ? row : null;
   }
 
-  /** Pending → applied or declined, once. */
+  /** Pending → applying, once. The editor claims a proposal before it applies anything, so a
+      second tab or a second click gets a refusal instead of applying the same changes twice. The
+      claim is an exclusive file, which holds across processes; one older than `CLAIM_TTL` was
+      abandoned and can be taken again. Null when there is no such proposal. */
+  async claim(siteId: string, id: string, by: string): Promise<{ ok: boolean; proposal: Proposal } | null> {
+    const row = await this.proposal(siteId, id);
+    if (!row) return null;
+    if (row.status !== 'pending' && row.status !== 'applying') return { ok: false, proposal: row };
+    const dir = join(this.dir(siteId), 'proposals');
+    if (!(await this.lock(join(dir, `${id}.claim`)))) return { ok: false, proposal: row };
+    const next: Proposal = { ...row, status: 'applying', claimedAt: new Date().toISOString(), claimedBy: by };
+    await writeAtomic(join(dir, `${id}.json`), next);
+    return { ok: true, proposal: next };
+  }
+  private async lock(file: string) {
+    const take = () => writeFile(file, String(Date.now()), { flag: 'wx', mode: 0o600 }).then(() => true, (e: NodeJS.ErrnoException) => {
+      if (e.code === 'EEXIST') return false;
+      throw e;
+    });
+    if (await take()) return true;
+    const at = Number((await readFile(file, 'utf8').catch(() => '')).trim()) || 0;
+    if (Date.now() - at <= CLAIM_TTL) return false;
+    // Abandoned. Whoever moves it aside first is the one who may take it.
+    const aside = `${file}.${randomBytes(6).toString('hex')}.stale`;
+    try { await rename(file, aside); } catch { return false; }
+    await rm(aside, { force: true });
+    return take();
+  }
+
+  /** Pending or applying → applied or declined, once. */
   async decide(siteId: string, id: string, input: { status: 'applied' | 'declined'; by: string; version?: number }) {
     const row = await this.proposal(siteId, id);
-    if (!row || row.status !== 'pending') return null;
+    if (!row || (row.status !== 'pending' && row.status !== 'applying')) return null;
     const next: Proposal = {
       ...row, status: input.status, decidedAt: new Date().toISOString(), decidedBy: input.by,
       appliedVersion: input.status === 'applied' && Number.isInteger(input.version) ? input.version! : null,
     };
-    await writeAtomic(join(this.dir(siteId), 'proposals', `${id}.json`), next);
+    const dir = join(this.dir(siteId), 'proposals');
+    await writeAtomic(join(dir, `${id}.json`), next);
+    await rm(join(dir, `${id}.claim`), { force: true });
     return next;
   }
 

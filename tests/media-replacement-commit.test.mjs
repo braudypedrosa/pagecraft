@@ -7,7 +7,7 @@ function setup(save=vi.fn(async()=>({version:8}))){
  C.seed();C.blankProject('Replacement QA');
  const document=structuredClone(C.doc());document.pages[0].tree=[C.N('image',{src:'asset:old'})];
  const undo=[];
- const context={saving:false,saveAgain:false,saveState:'ok',lastCloudDocument:'',SRV:{version:7},HOST:{assets:{retainsHistory:true},documents:{save}},state:structuredClone(document),JSON,Error,Promise,setTimeout,replaceMediaReferences:C.replaceMediaReferences,stamp:vi.fn(),writeNow:vi.fn()};
+ const context={loadBlocked:false,saving:false,saveAgain:false,saveState:'ok',lastCloudDocument:'',SRV:{version:7},HOST:{assets:{retainsHistory:true},documents:{save}},state:structuredClone(document),JSON,Error,Promise,setTimeout,replaceMediaReferences:C.replaceMediaReferences,stamp:vi.fn(),writeNow:vi.fn()};
  context.doc=()=>({meta:context.state.meta,pages:context.state.pages,header:context.state.header,footer:context.state.footer});
  context.edit=fn=>{undo.push(structuredClone(context.doc()));fn();};
  vm.createContext(context);vm.runInContext(source.slice(source.indexOf('async function mediaReplaceCommit('),source.indexOf('async function mediaReplace(id)')),context);
@@ -31,6 +31,10 @@ test('local edits after preview reject replacement before writing',async()=>{
 test('hosts without retained bytes never write replacements',async()=>{
  const {context,save,baseline}=setup();context.HOST.assets.retainsHistory=false;
  await expect(context.mediaReplaceCommit('old','new',baseline)).rejects.toThrow('host');expect(save).not.toHaveBeenCalled();
+});
+test('a site that could not be opened never writes a replacement over the real draft',async()=>{
+ const {context,save,baseline}=setup();context.loadBlocked=true;
+ await expect(context.mediaReplaceCommit('old','new',baseline)).rejects.toThrow('nothing is being saved');expect(save).not.toHaveBeenCalled();
 });
 
 test('edits made during the request are preserved and queued against the acknowledged version',async()=>{

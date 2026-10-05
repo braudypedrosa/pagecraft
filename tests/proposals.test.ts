@@ -151,3 +151,20 @@ test('reading a page gives rich text back as the same markdown', () => {
   const again = C.proposalPrepare([{ type: 'text', nodeId: 'copy', value: copy.text.html }], { assets });
   a.equal(again.changes[0].value, '<p>Hello <strong>there</strong></p><ul><li>One</li><li><a href="about.html">Two</a></li></ul>');
 });
+
+test('an insert takes an id from the proposal, so applying it twice is detected rather than repeated', () => {
+  const { changes } = C.proposalPrepare([
+    { type: 'insert', componentId: 'card', region: 'about-page', index: 0, values: { title: 'Visit us' } },
+  ], { assets });
+  a.deepEqual(C.proposalCheck(changes, 'abcdef0123456789'), ['ok']);
+  let placed: string[] = [];
+  C.edit(() => { placed = C.proposalApply(changes, 'abcdef0123456789'); });
+  a.deepEqual(placed, [C.proposalNodeId('abcdef0123456789', 0)]);
+  a.deepEqual(C.proposalCheck(changes, 'abcdef0123456789'), ['applied'], 'the instance it would insert is already there');
+  a.deepEqual(C.proposalApply(changes, 'abcdef0123456789'), [], 'and applying again writes nothing');
+  let cards = 0;
+  C.eachNode(C.state.pages[1].tree, n => { if (n.use === 'card') cards++; });
+  a.equal(cards, 1);
+  C.undo();
+  a.deepEqual(C.proposalCheck(changes, 'abcdef0123456789'), ['ok'], 'undone, it can be applied again');
+});

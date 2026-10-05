@@ -145,6 +145,63 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   a.ok(fixture.calls.every(call => call.url.startsWith('https://wp.test/wp-json/pagecraft/v1/')));
 });
 
+test('an expired WordPress REST nonce is refreshed once and the request retried', async () => {
+  /* WordPress stops accepting the nonce the editor opened with after 12 to 24 hours. */
+  const doc = currentDocument();
+  const calls: { url: string; nonce: string | null }[] = [];
+  let valid = 'a1b2c3d4e5', handed = 'a1b2c3d4e5';
+  const host = createWordPressHostAdapter({
+    restUrl: 'https://wp.test/wp-json/pagecraft/v1', pageId: 42, nonce: 'nonce-stale',
+    nonceUrl: 'https://wp.test/wp-admin/admin-ajax.php?action=rest-nonce',
+    fetch: async (input, init = {}) => {
+      const url = String(input);
+      const nonce = new Headers(init.headers).get('X-WP-Nonce');
+      calls.push({ url, nonce });
+      if (url.includes('admin-ajax.php')) return new Response(handed);
+      if (nonce !== valid) return json({ code: 'rest_cookie_invalid_nonce', message: 'Cookie check failed' }, 403);
+      return json({ version: 10 });
+    }
+  });
+
+  a.equal((await host.documents.save({ document: doc, version: 9 })).version, 10);
+  a.deepEqual(calls.map(c => [new URL(c.url).pathname, c.nonce]), [
+    ['/wp-json/pagecraft/v1/pages/42/document', 'nonce-stale'],
+    ['/wp-admin/admin-ajax.php', null],
+    ['/wp-json/pagecraft/v1/pages/42/document', 'a1b2c3d4e5']
+  ]);
+
+  /* a login that has really ended answers `0`: one retry at most, and the refusal stands */
+  valid = 'never'; handed = '0'; calls.length = 0;
+  await a.rejects(host.documents.save({ document: doc, version: 10 }),
+    (e: any) => e.status === 403 && e.payload.code === 'rest_cookie_invalid_nonce');
+  a.equal(calls.filter(c => c.url.includes('/document')).length, 1, 'no retry without a fresh nonce');
+
+  /* and any other 403 is not a nonce problem, so nothing is asked for */
+  calls.length = 0;
+  const plain = createWordPressHostAdapter({
+    restUrl: 'https://wp.test/wp-json/pagecraft/v1', pageId: 42, nonce: 'n',
+    nonceUrl: 'https://wp.test/wp-admin/admin-ajax.php?action=rest-nonce',
+    fetch: async input => { calls.push({ url: String(input), nonce: null }); return json({ code: 'rest_forbidden' }, 403); }
+  });
+  await a.rejects(plain.documents.save({ document: doc, version: 1 }));
+  a.equal(calls.length, 1);
+});
+
+test('a save sent as the tab closes goes as keepalive only when the body is small enough', async () => {
+  const seen: (boolean | undefined)[] = [];
+  const host = createWebHostAdapter({
+    siteId: 'site-1', role: 'owner',
+    fetch: async (_input, init = {}) => { seen.push(init.keepalive); return json({ version: 2 }); }
+  });
+  const small = currentDocument();
+  await host.documents.save({ document: small, version: 1, keepalive: true });
+  const big = currentDocument();
+  big.meta.css = 'x'.repeat(70_000);
+  await host.documents.save({ document: big, version: 1, keepalive: true });
+  await host.documents.save({ document: small, version: 1 });
+  a.deepEqual(seen, [true, undefined, undefined], 'browsers refuse a keepalive body over 64 KiB outright');
+});
+
 test('WordPress adapter can target a native global-element document without changing other host services', async () => {
   const calls: string[] = [];
   const doc = currentDocument();

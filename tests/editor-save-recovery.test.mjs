@@ -87,3 +87,124 @@ test('busy saves preserve edits, wait for explicit retry, and retain real confli
     dom.window.close();
   }
 });
+
+const marker = '<script>\n/* =====================================================================';
+const built = () => readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const settle = () => new Promise(resolve => setTimeout(resolve, 800));
+
+test('a hosted document this build cannot open is never overwritten by the demo', async () => {
+  const server = { siteId: 'site-newer', version: 12, role: 'owner', doc: { schemaVersion: 9999, pages: [] } };
+  const html = built().replace(marker, `<script>window.PC_SERVER=${JSON.stringify(server)}</script>\n${marker}`);
+  const writes = [];
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole(),
+    beforeParse(window) {
+      window.fetch = async (url, options = {}) => {
+        if (options.method && options.method !== 'GET') writes.push([String(url), options.method]);
+        return { ok: true, status: 200, json: async () => [] };
+      };
+    }
+  });
+  try {
+    await settle();
+    const window = dom.window, document = window.document;
+    assert.match(document.querySelector('#mBody').textContent, /nothing you do here will be saved/);
+    window.__CORE.edit(() => { window.__CORE.state.meta.name = 'Demo edit'; });
+    await new Promise(resolve => setTimeout(resolve, 700));      // past the save debounce
+    await window.writeNow();
+    assert.deepEqual(writes, [], 'not one write reached the server');
+    assert.equal(document.querySelector('#savedTag').textContent, 'Not saving');
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('an unreadable project in this browser is left exactly as it was', async () => {
+  const stored = JSON.stringify({ schemaVersion: 9999, meta: {}, pages: [] });
+  const dom = new JSDOM(built(), {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole(),
+    beforeParse(window) { window.localStorage.setItem('pagecraft.project.v1', stored); }
+  });
+  try {
+    await settle();
+    const window = dom.window;
+    window.__CORE.edit(() => { window.__CORE.state.meta.name = 'Demo edit'; });
+    await new Promise(resolve => setTimeout(resolve, 700));
+    window.writeNow();
+    window.dispatchEvent(new window.Event('pagehide'));
+    assert.equal(window.localStorage.getItem('pagecraft.project.v1'), stored);
+    assert.equal(window.document.querySelector('#savedTag').textContent, 'Not saving');
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('closing the tab inside the save debounce prompts, and pagehide writes the last edit', async () => {
+  const dom = new JSDOM(built(), { runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole() });
+  try {
+    await settle();
+    const window = dom.window, C = window.__CORE;
+    const unload = () => {
+      const e = new window.Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(e);
+      return e.defaultPrevented;
+    };
+    window.writeNow();
+    assert.equal(unload(), false, 'nothing unsaved, nothing to ask');
+    C.edit(() => { C.state.meta.name = 'Typed just before closing'; });
+    assert.equal(unload(), true, 'an edit still waiting on the debounce is unsaved');
+    window.dispatchEvent(new window.Event('pagehide'));
+    assert.equal(JSON.parse(window.localStorage.getItem('pagecraft.project.v1')).meta.name, 'Typed just before closing');
+    assert.equal(unload(), false);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('an expired WordPress nonce is refreshed once; an ended session says so, never “not yours to make”', async () => {
+  const config = {
+    restUrl: 'http://localhost/wp-json/pagecraft/v1', nonce: 'stale00000', version: 2, doc: null, role: 'owner',
+    page: { id: 42, title: 'Nonce QA', slug: 'nonce-qa' }, capabilities: ['edit_document', 'edit_structure']
+  };
+  const html = built().replace(marker, `<script>window.PC_WORDPRESS=${JSON.stringify(config)}</script>\n${marker}`);
+  const puts = [], asked = [];
+  let accepted = 'fresh00000', handed = 'fresh00000';
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, virtualConsole: new VirtualConsole(),
+    url: 'http://localhost/wp-admin/admin-ajax.php?action=pagecraft_editor_frame',
+    beforeParse(window) {
+      window.fetch = async (url, options = {}) => {
+        if (String(url).includes('action=rest-nonce')) {
+          asked.push(String(url));
+          return { ok: true, status: 200, text: async () => handed };
+        }
+        if (String(url).endsWith('/document') && options.method === 'PUT') {
+          const nonce = new window.Headers(options.headers).get('X-WP-Nonce');
+          puts.push(nonce);
+          return nonce === accepted
+            ? { ok: true, status: 200, json: async () => ({ version: 3 }) }
+            : { ok: false, status: 403, json: async () => ({ code: 'rest_cookie_invalid_nonce', message: 'Cookie check failed' }) };
+        }
+        return { ok: true, status: 200, json: async () => [] };
+      };
+    }
+  });
+  try {
+    await settle();
+    const window = dom.window, document = window.document;
+    await window.writeNow();
+    assert.deepEqual(puts, ['stale00000', 'fresh00000'], 'refreshed once and retried');
+    assert.deepEqual(asked, ['http://localhost/wp-admin/admin-ajax.php?action=rest-nonce']);
+    assert.match(document.querySelector('#savedTag').textContent, /Draft saved/);
+
+    // The login itself has ended: WordPress hands out no nonce, so the save fails once, plainly.
+    accepted = 'never'; handed = '0'; puts.length = 0;
+    await window.writeNow();
+    assert.deepEqual(puts, ['fresh00000'], 'no retry without a fresh nonce');
+    assert.equal(document.querySelector('#mTitle').textContent, 'Your WordPress session expired');
+    assert.match(document.querySelector('#mBody').textContent, /Your WordPress session expired\. Reload to keep editing\./);
+    assert.doesNotMatch(document.querySelector('#mBody').textContent, /not yours|text and CMS content/);
+  } finally {
+    dom.window.close();
+  }
+});

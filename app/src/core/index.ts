@@ -1879,8 +1879,13 @@ const holds = (pt: any, t: string) => {
    A place that re-derives an answer somebody already declared is the shape of bug this file
    keeps finding. */
 const fitsIn = (pt: string | null, t: string) => pt === null || holds(pt, t);
+/* Editing a component, the root `tree()` returns is a throwaway list around the definition's
+   one root: a node put there is put nowhere, and a node moved there is lost. Every verb that
+   places a node with no parent asks this first and refuses. */
+const nowhere = (parentNode: unknown) => !parentNode && state.ui.mode === 'component';
 
 function insert(type: string, parentNode: any, index: number) {
+  if (nowhere(parentNode)) return null;
   const leaf = makeFor(type);
   /* `takes`, not the parent's own level: a Box takes children at level 4, so a heading dropped
      into a Grid goes in as it is rather than arriving inside a Column nothing asked for. The
@@ -1892,7 +1897,7 @@ function insert(type: string, parentNode: any, index: number) {
   return leaf;
 }
 function moveNode(id: string, parentNode: any, index: number) {
-  const h = locate(id); if (!h) return;
+  const h = locate(id); if (!h || nowhere(parentNode)) return;
   if (parentNode && (parentNode.id === id || locate(parentNode.id, [h.node]))) return; // no self-nesting
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
@@ -1961,6 +1966,7 @@ function menuFor(ids: string[] | null) {
    that was already ahead of the target in the same list leaves a hole behind it when
    it goes — assuming the index is stable puts the set in the wrong order. */
 function moveMany(ids: string[], parentNode: PcNode | null, index: number) {
+  if (nowhere(parentNode)) return 0;
   const order = topMost(selOrder(ids));
   let at = Math.max(0, index), moved = 0;
   order.forEach(id => {
@@ -2047,7 +2053,9 @@ function pageDup(i: number) {
   c.id = uid();
   c.tree.forEach(reid);
   c.name += ' copy';
-  c.slug = slugify(c.slug + '-copy');
+  /* unique among every page, or copying "about" twice makes two `about-copy` pages and one
+     overwrites the other on publish */
+  c.slug = uniqueId(c.slug + '-copy', state.pages.map(p => p.slug));
   state.pages.splice(i + 1, 0, c);
   state.cur = i + 1;
   selSet([]);
@@ -2473,13 +2481,21 @@ const classUsage = (id: string) => {
   allTrees().forEach(l => eachNode(l, x => { if ((x.cls || []).includes(id)) k++; }));
   return k;
 };
-/* deleting a class bakes its declarations into every user, so nothing moves */
+/* deleting a class bakes its declarations into every user, so nothing moves — its hover and
+   focus rules included, or every card that lifted on hover would go flat */
 function classDelete(id: string) {
   const c = findClass(id);
   if (!c) return false;
   allTrees().forEach(l => eachNode(l, x => {
     if (!(x.cls || []).includes(id)) return;
     (['d', 't', 'm'] as Bp[]).forEach(b => { x.css[b] = { ...((c.css && c.css[b]) || {}), ...(x.css[b] || {}) }; });
+    STATES.forEach(([k]) => {
+      const from = c.st && c.st[k];
+      if (!from) return;
+      const own = (x.st && x.st[k]) || EMPTY_CSS;
+      x.st = x.st || {};
+      x.st[k] = { d: { ...from.d, ...own.d }, t: { ...from.t, ...own.t }, m: { ...from.m, ...own.m } };
+    });
     classRemove(x, id);
   }));
   ensureTokens().classes = classes().filter(x => x.id !== id);
@@ -2613,13 +2629,25 @@ function styleDelete(id: string) {
   allTrees().forEach(l => eachNode(l, x => { if (x.props.ts === id) tsUnlink(x); }));
   ensureTokens().text = styles().filter(t => t.id !== id);
 }
-/* deleting a colour inlines its literal everywhere, so nothing silently breaks */
+/* Every declaration block a colour can be written into: each element's breakpoints and its
+   hover and focus states, then the same on every text style and class. One walk, so deleting a
+   colour and counting its uses cannot disagree about where to look. */
+function eachDecls(fn: (o: Decls) => void) {
+  const visit = (o: { css?: Css; st?: States }) =>
+    [o.css, ...STATES.map(([k]) => o.st && o.st[k])].forEach(c => {
+      if (c) (['d', 't', 'm'] as Bp[]).forEach(b => { if (c[b]) fn(c[b]); });
+    });
+  allTrees().forEach(l => eachNode(l, visit));
+  styles().forEach(visit);
+  classes().forEach(visit);
+}
+/* deleting a colour inlines its literal everywhere, so nothing silently breaks — including
+   inside a composite value, `1px solid var(--c-line)`, which a whole-value match skipped */
 function colorDelete(id: string) {
   if (RESERVED.includes(id)) return false;
   const lit = resolveColor(cvar(id)) || 'transparent';
-  const swap = (o: Decls) => { for (const k in o) if (refId(o[k]) === id) o[k] = lit; };
-  allTrees().forEach(l => eachNode(l, x => (['d', 't', 'm'] as Bp[]).forEach(b => swap(x.css[b] || {}))));
-  styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => swap((t.css && t.css[b]) || {})));
+  const ref = cvar(id);
+  eachDecls(o => { for (const k in o) if (String(o[k]).includes(ref)) o[k] = String(o[k]).split(ref).join(lit); });
   ensureTokens().colors = colors().filter(c => c.id !== id);
   return true;
 }
@@ -2632,9 +2660,8 @@ function colorAdd(name: string, value: string) {
 }
 const colorUsage = (id: string) => {
   let k = 0;
-  const hits = (o: Decls) => { for (const p in o) if (refId(o[p]) === id) k++; };
-  allTrees().forEach(l => eachNode(l, x => (['d', 't', 'm'] as Bp[]).forEach(b => hits(x.css[b] || {}))));
-  styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => hits((t.css && t.css[b]) || {})));
+  const ref = cvar(id);
+  eachDecls(o => { for (const p in o) if (String(o[p]).includes(ref)) k++; });
   return k;
 };
 
@@ -3559,7 +3586,7 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
      because that is what it means — the first pass typed it `PcNode | null` and then
      changed the code to suit the annotation, which is backwards. */
   const place = (list: PcNode[], index: number, parentType: string | null): boolean => {
-    if (!fitsIn(parentType, fresh.type)) return false;
+    if (!fitsIn(parentType, fresh.type) || nowhere(parentType)) return false;
     list.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
@@ -4493,6 +4520,7 @@ function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
   if (!b) return null;
   const fresh = reid(clone(b.node));
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -4751,14 +4779,16 @@ function componentFromNode(nodeId: string, name: string) {
   /* The node stays where it is and becomes an instance of what it just defined. Its styling
      goes with the tree: the definition carries it now, it reaches the page through the
      definition's class, and leaving a copy on the instance would freeze today's definition into
-     this one element — the same reason `instanceInsert` starts an instance unstyled. */
+     this one element — the same reason `instanceInsert` starts an instance unstyled. Its anchor,
+     its extra classes and its motion stay: the render reads those from the instance, never the
+     definition, so moving them would break every `#anchor` link and still the animation. */
   h.node.use = id;
   h.node.children = [];
   h.node.css = { d: {}, t: {}, m: {} };
   h.node.cls = [];
   h.node.hide = {};
-  h.node.adv = { htmlId: '', cls: '', css: '' };
-  delete h.node.st; delete h.node.anim; delete h.node.bind; delete h.node.src;
+  h.node.adv = { htmlId: h.node.adv?.htmlId || '', cls: h.node.adv?.cls || '', css: '' };
+  delete h.node.st; delete h.node.bind; delete h.node.src;
   return id;
 }
 /** Place an instance. Levels come from the definition's root, the way a block's do. */
@@ -4775,13 +4805,17 @@ function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
   };
   delete fresh.vals; delete fresh.variant; delete fresh.slot; delete fresh.st; delete fresh.anim;
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
   list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
-/** Every instance of a definition, across every page and both global regions. */
+/** Every instance of a definition, across every page, both global regions, the other
+    definitions and the saved blocks. A definition that places this one is a place it is used —
+    missing it is how deleting the inner one left the outer pointing at nothing. Its own tree is
+    not scanned: a definition that contains itself is refused at render, not a place it is used. */
 function instances(cid: string) {
   const out: { node: PcNode; where: string }[] = [];
   const scan = (list: PcNode[], where: string) => eachNode(list, n => {
@@ -4790,6 +4824,8 @@ function instances(cid: string) {
   scan(state.header, 'header');
   scan(state.footer, 'footer');
   state.pages.forEach((p, i) => scan(p.tree, 'page:' + i));
+  components().forEach(c => { if (c.id !== cid) scan([c.node], 'component:' + c.id); });
+  blocks().forEach(b => scan([b.node], 'block:' + b.id));
   return out;
 }
 const componentUsage = (cid: string) => instances(cid).length;
@@ -4853,14 +4889,66 @@ function componentDelete(cid: string) {
   for (const { node } of instances(cid)) {
     const copy = reid(clone(def.node));
     const kept = node.children || [];                 // slot content stays with the page
+    const placed = new Set<PcNode>();
+    /* What this instance showed, written down before its values go: a property binding becomes
+       the instance's value (or the CMS field the instance bound it to), a condition on a property
+       is answered now, and a slot holds what the page put in it. A nested instance is left
+       alone — its insides answer to its own definition, not to this one. */
+    const settle = (x: PcNode) => {
+      if (x !== copy && x.use) return;
+      Object.entries(x.bind || {}).forEach(([key, b]) => {
+        if (b.src !== 'prop') return;
+        const field = boundField(node, VAL + b.path);
+        (x.props as PropBag)[key] = instValue(node, def, b.path);
+        bindSet(x, key, field ? bindField(field) : null);
+      });
+      const c = x.showIf;
+      if (c && c.bind && c.bind.src === 'prop') {
+        const field = boundField(node, VAL + c.bind.path);
+        if (field) condSet(x, { ...c, bind: { src: 'field', path: field } });
+        else {
+          /* no condition says "never", so an element that was not showing stays hidden at every
+             width — still on the canvas to find, still absent from the page */
+          if (!showsNode(x, null, null, node, def)) x.hide = { d: true, t: true, m: true };
+          delete x.showIf;
+        }
+      }
+      const filled = x.slot && DEF[x.type].level < 4 ? slotKids(node, def, x.slot) : [];
+      delete x.slot;                                  // not a definition any more
+      if (filled.length) { filled.forEach(k => placed.add(k)); x.children = filled; return; }
+      (x.children || []).forEach(settle);
+    };
+    settle(copy);
+    /* The root's styling reached the page through the definition's class, written before the
+       instance's own rules — so the instance's win, declaration by declaration, and the element
+       keeps both. Its id, its extra classes and its motion were always the instance's own. */
+    const over = (a?: Partial<Css>, b?: Partial<Css>): Css =>
+      ({ d: { ...a?.d, ...b?.d }, t: { ...a?.t, ...b?.t }, m: { ...a?.m, ...b?.m } });
+    const st: States = {};
+    STATES.forEach(([k]) => { if (copy.st?.[k] || node.st?.[k]) st[k] = over(copy.st?.[k], node.st?.[k]); });
+    const ts = node.props.ts && findStyle(node.props.ts) ? node.props.ts : '';
+    const hide = node.hide || {};
     node.type = copy.type;
     node.props = copy.props;
+    if (ts) node.props.ts = ts;
     node.children = copy.children;
     node.bind = copy.bind;
+    node.css = over(copy.css, node.css);
+    if (Object.keys(st).length) node.st = st; else delete node.st;
+    node.cls = [...new Set([...(node.cls || []), ...(copy.cls || [])])];
+    node.hide = { ...copy.hide };
+    (['d', 't', 'm'] as Bp[]).forEach(b => { if (hide[b]) node.hide[b] = true; });
+    node.adv = { htmlId: node.adv?.htmlId || '', cls: node.adv?.cls || '',
+      css: [copy.adv?.css, node.adv?.css].filter(Boolean).join('\n') };
+    const src = node.src || copy.src;
+    if (src) node.src = src; else delete node.src;
+    if (copy.showIf) node.showIf = copy.showIf;
     delete node.use; delete node.vals; delete node.variant;
     /* the slot's own content, appended where it can be: an instance's children were the page's
        nodes and dropping them is the one thing worse than a flattened component */
-    if (kept.length) (node.children = node.children || []).push(...kept.map(c => { delete c.slot; return c; }));
+    const left = kept.filter(c => !placed.has(c));
+    if (left.length) (node.children = node.children || []).push(...left);
+    kept.forEach(c => { delete c.slot; });
     n++;
   }
   state.meta.components = components().filter(c => c.id !== cid);
@@ -5699,6 +5787,7 @@ function patternInsert(pid: string, parentNode?: PcNode | null, index = 0) {
   if (!p) return null;
   const node = p.build();
   if (parentNode === undefined) return dropTree(node, state.ui.sel);
+  if (nowhere(parentNode)) return null;
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -8143,11 +8232,19 @@ function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string>
 const proposalSlotOf = (n: PcNode, key: string, image: boolean) =>
   (image ? proposalImageSlots(n) : textSlots(n)).find(sl => proposalSlotKey(sl) === key) || null;
 
+/** The id an inserted instance takes: the proposal's and the change's place in it, so the same
+    insert applied a second time would be the same node — and `proposalCheck` can see it is there.
+    An insert has no "before" to go stale, which is how one used to be applicable twice. */
+const proposalNodeId = (proposalId: string, index: number) =>
+  'np' + String(proposalId).replace(/[^a-z0-9]/gi, '').slice(0, 32) + 'x' + index.toString(36);
+
 /** Whether each change can still be applied: `ok`, or `stale` when what it replaces has changed
-    since the proposal was made, or `missing` when its target is gone. */
-function proposalCheck(changes: ProposalChange[]): ('ok' | 'stale' | 'missing')[] {
-  return changes.map(ch => {
+    since the proposal was made, or `missing` when its target is gone, or — given the proposal's
+    id — `applied` when the instance it inserts is already in the draft. */
+function proposalCheck(changes: ProposalChange[], proposalId = ''): ('ok' | 'stale' | 'missing' | 'applied')[] {
+  return changes.map((ch, i) => {
     if (ch.type === 'insert') {
+      if (proposalId && proposalFind(proposalNodeId(proposalId, i))) return 'applied';
       if (!findComponent(ch.componentId || '')) return 'missing';
       if (ch.parentId) return proposalFind(ch.parentId)?.region === ch.region ? 'ok' : 'missing';
       return ch.region === 'header' || ch.region === 'footer' || state.pages.some(pg => pg.id === ch.region) ? 'ok' : 'missing';
@@ -8195,11 +8292,15 @@ function proposalOutline(region: string) {
   return out;
 }
 
-/** Write the changes. Call inside one edit(), after proposalCheck said every one is ok. Inserts
-    go through instanceInsert, so they follow the same structure rules as dragging one in. */
-function proposalApply(changes: ProposalChange[]) {
+/** Write the changes. Call inside one edit(), after proposalCheck said every one is ok; a change
+    that is not is skipped, which is what a preview of a half-stale proposal wants. Inserts go
+    through instanceInsert, so they follow the same structure rules as dragging one in, and with
+    the proposal's id they take the id `proposalNodeId` derives. */
+function proposalApply(changes: ProposalChange[], proposalId = '') {
   const placed: string[] = [];
-  for (const ch of changes) {
+  const status = proposalCheck(changes, proposalId);
+  for (const [i, ch] of changes.entries()) {
+    if (status[i] !== 'ok') continue;
     if (ch.type === 'insert') {
       const parent = ch.parentId ? proposalFind(ch.parentId)!.node : null;
       // A root insert lands in the region's own tree: point the editor's scope there for the call.
@@ -8211,6 +8312,7 @@ function proposalApply(changes: ProposalChange[]) {
       try {
         const made = instanceInsert(ch.componentId!, parent, ch.index ?? 1e6);
         if (made) {
+          if (proposalId) made.id = proposalNodeId(proposalId, i);
           for (const [k, v] of Object.entries(ch.values || {})) instSet(made, k, v);
           placed.push(made.id);
         }
@@ -8227,7 +8329,7 @@ function proposalApply(changes: ProposalChange[]) {
 }
 
 export {
-  PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline,
+  PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
 };
 

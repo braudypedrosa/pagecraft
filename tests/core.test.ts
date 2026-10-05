@@ -2380,6 +2380,30 @@ test('deleting a colour inlines its literal everywhere', () => {
   a.equal(style('body').css.d.color, '#00ddaa');
 });
 
+test('deleting a colour reaches hover styles, classes and composite values too', () => {
+  /* Each of these kept `var(--c-…)` after the token was gone, which renders as nothing. */
+  blank();
+  const h = insert('heading', null, 0);
+  const id = C.colorAdd('Highlight', '#00ddaa');
+  const ref = C.cvar(id);
+  h.st = { hover: { d: { color: ref }, t: {}, m: {} } };
+  h.css.d['border-bottom'] = `2px solid ${ref}`;
+  const cls = C.classAdd('Accent', { d: { 'background-color': ref } });
+  klass(cls).st = { focus: { d: {}, t: {}, m: { 'outline-color': ref } } };
+  /* a longer id sharing the prefix is a different colour and must be left alone */
+  const other = C.colorAdd('Highlight 2', '#112233');
+  h.css.d['background-color'] = C.cvar(other);
+
+  a.equal(C.colorUsage(id), 4, 'hover, composite, class and class state are all uses');
+  C.colorDelete(id);
+  a.equal(h.st.hover!.d.color, '#00ddaa');
+  a.equal(h.css.d['border-bottom'], '2px solid #00ddaa');
+  a.equal(klass(cls).css.d['background-color'], '#00ddaa');
+  a.equal(klass(cls).st!.focus!.m['outline-color'], '#00ddaa');
+  a.equal(h.css.d['background-color'], C.cvar(other));
+  a.equal(C.colorUsage(id), 0);
+});
+
 test('the three reserved colours cannot be deleted', () => {
   C.RESERVED.forEach(id => {
     a.equal(C.colorDelete(id), false, id + ' must survive');
@@ -2762,6 +2786,19 @@ test('deleting a class bakes it into its users so nothing moves', () => {
   a.equal((h.cls || []).length, 0);
   a.equal(h.css.d['padding-top'], '50px', 'the element override wins on the way out');
   a.equal(h.css.m['padding-top'], '20px', 'and the class value is kept where there was none');
+});
+
+test('deleting a class keeps its hover styles on the elements that used it', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const id = C.classAdd('Lift');
+  klass(id).st = { hover: { d: { transform: 'translateY(-2px)', color: '#111111' }, t: {}, m: {} } };
+  C.classApply(h, id);
+  h.st = { hover: { d: { color: '#222222' }, t: {}, m: {} } };   // the element's own still wins
+  C.classDelete(id);
+  a.equal(h.st.hover!.d.transform, 'translateY(-2px)');
+  a.equal(h.st.hover!.d.color, '#222222');
+  a.match(C.treeCss([C.state.pages[0].tree], false), new RegExp('\\.' + C.nodeClass(h) + ':hover\\{[^}]*transform:translateY\\(-2px\\)'));
 });
 
 test('removing a class from one element leaves the others alone', () => {
@@ -6815,6 +6852,17 @@ test('pageDup names and slugs the copy so neither collides', () => {
   a.notEqual(copy.slug, slug, 'two pages exporting to the same file would overwrite each other');
 });
 
+test('pageDup twice from the same page gives every copy its own slug', () => {
+  fresh();
+  const slug = C.state.pages[0].slug;
+  const first = C.pageDup(0)!;
+  const second = C.pageDup(0)!;
+  a.equal(first.slug, slug + '-copy');
+  a.equal(second.slug, slug + '-copy-2', 'not a second page that overwrites the first on publish');
+  const slugs = C.state.pages.map(p => p.slug);
+  a.equal(new Set(slugs).size, slugs.length);
+});
+
 test('pageDup clears the selection, which belonged to the page you left', () => {
   fresh();
   const h = C.flatten(C.state.pages[0].tree).find((n: any) => n.type === 'heading');
@@ -7314,6 +7362,49 @@ test('every instance ships its own element ids, because a repeated id is invalid
   a.equal(ids.length, new Set(ids).size, `duplicate id in: ${ids.join(', ')}`);
 });
 
+test('saving a component keeps the element’s anchor and extra classes, so #links still land', () => {
+  const { box } = card();
+  box.adv.htmlId = 'features';
+  box.adv.cls = 'js-hook';
+  const cid = componentFromNode(box.id, 'Feature card');
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /id="features"/);
+  a.match(html, /class="[^"]*js-hook/);
+  a.equal(comp(cid).node.adv.htmlId, '', 'the definition takes no copy of the anchor');
+
+  C.componentDelete(cid);
+  a.equal(at(box.id).node.adv.htmlId, 'features', 'and it survives the component going away');
+  a.match(C.buildPage(C.state.pages[0]), /id="features"/);
+});
+
+test('editing a component, a move or insert with no parent is refused rather than lost', () => {
+  /* `tree()` is a throwaway list around the definition's root in this mode, so a drop on empty
+     canvas used to splice the node out of the definition and into nothing. */
+  const { box, h } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  a.equal(C.componentOpen(cid), true);
+  const root = comp(cid).node;
+  const heading = root.children[0];
+  const before = JSON.stringify(root);
+
+  C.moveNode(heading.id, null, 0);
+  a.equal(C.moveMany([heading.id, root.children[1].id], null, 0), 0);
+  a.equal(C.insert('heading', null, 0), null);
+  a.equal(C.instanceInsert(cid, null, 0), null);
+  a.equal(C.blockInsert(must(C.blockSave(heading.id, 'Copy'), 'block'), null, 0), null);
+  C.selSet([root.id]);
+  a.equal(C.patternInsert(C.PATTERNS[0].id, undefined), null, 'a section has nowhere to go but the root');
+  a.equal(JSON.stringify(comp(cid).node), before, 'the definition is exactly as it was');
+  a.equal(at(heading.id).parent?.id, root.id);
+
+  /* and an ordinary move inside the definition still works */
+  const col = root.children[1].children[0];
+  C.moveNode(heading.id, col, 0);
+  a.equal(at(heading.id).parent?.id, col.id);
+  C.componentClose();
+  void h;
+});
+
 test('inside an instance nothing else is selectable, so a click reaches the component', () => {
   /* An instance's internals belong to the definition. Giving them their own `data-id` would
      offer the author a panel that cannot change anything, on a node the page does not own. */
@@ -7569,6 +7660,80 @@ test('a variant on a component that is deleted goes with it', () => {
   const back = at(inst.id).node;
   a.equal(back.variant, undefined);
   a.equal(back.use, undefined);
+});
+
+test('an instance inside another definition is an instance, and deleting its component flattens it there', () => {
+  /* Reproduced live: deleting the inner component left the outer definition pointing at it, so
+     every page that placed the outer one lost the inner one's content. */
+  const { box } = card();
+  const inner = componentFromNode(box.id, 'Feature card');
+  const outer = componentFromNode(C.state.pages[0].tree[0].id, 'Banner');
+  a.equal(C.componentUsage(inner), 1, 'the only instance lives inside the Banner definition');
+  a.equal(C.instances(inner)[0].where, 'component:' + outer);
+  a.equal(C.instances(outer).length, 1, 'and a definition is not counted as using itself');
+
+  a.equal(C.componentDelete(inner), 1);
+  let dangling = 0;
+  C.eachNode([comp(outer).node], n => { if (n.use === inner) dangling++; });
+  a.equal(dangling, 0, 'nothing in the Banner points at the deleted component');
+  a.match(C.buildPage(C.state.pages[0]), />Standing in</, 'and the page still shows its content');
+});
+
+test('deleting a definition keeps what each instance showed: its words, its variant and the root’s styling', () => {
+  const { cid, title, inst } = varied();
+  const root = comp(cid).node;
+  /* styling on the definition's root reaches every instance through the definition's class */
+  C.setCss(root, 'padding-top', '40px');
+  root.st = { hover: { d: { 'background-color': '#ff0000' }, t: {}, m: {} } };
+  root.hide = { m: true };
+  root.adv.css = '&{outline:1px solid red}';
+  C.setCss(inst, 'padding-top', '12px');
+  C.instSet(inst, title, 'Loud and clear');
+  const other = must(C.instanceInsert(cid, null, 1), 'second');
+  comp(cid).variants = [{ id: 'calm', name: 'Calm', values: { [title]: 'From the variant' } }];
+  C.variantSet(other, 'calm');
+
+  const shape = (x: string) => x.slice(x.indexOf('<body')).replace(/ (id|class)="[^"]*"/g, '');
+  const before = C.buildPage(C.state.pages[0]);
+  a.equal(C.componentDelete(cid), 2);
+  const after = C.buildPage(C.state.pages[0]);
+  a.equal(shape(after), shape(before), 'the same tags, the same nesting, the same words');
+  a.match(after, />Loud and clear</, 'the instance’s own text, not the definition’s default');
+  a.match(after, />From the variant</, 'and the variant’s');
+  a.equal(/>Untitled</.test(after), false);
+
+  const mine = at(inst.id).node, theirs = at(other.id).node;
+  a.equal(mine.css.d['padding-top'], '12px', 'the instance’s own rule still wins');
+  a.equal(theirs.css.d['padding-top'], '40px', 'the root’s rule is the element’s own now');
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  for (const n of [mine, theirs]) {
+    a.match(css, new RegExp('\\.' + C.nodeClass(n) + ':hover\\{background-color:#ff0000'), 'hover kept');
+    a.match(css, new RegExp('\\.' + C.nodeClass(n) + '\\{outline:1px solid red'), 'custom CSS kept');
+    a.equal(n.hide.m, true, 'and hidden where the root was');
+  }
+});
+
+test('deleting a definition answers its property conditions and fills its slots where they were', () => {
+  const { box, hole } = card();
+  const cid = componentFromNode(box.id, 'Feature card');
+  const badge = propAdd(cid, 'Badge', 'text', '');
+  const def = comp(cid);
+  C.condSet(def.node.children[0], { bind: { src: 'prop', path: badge }, op: 'set' });
+  C.slotMark(cid, def.node.children[1].id, 'body');
+  const shown = must(C.instanceInsert(cid, null, 1), 'second');
+  C.instSet(shown, badge, 'New');
+  const q = insert('quote', at(box.id).node, 0);
+  q.props.text = 'From the page';
+
+  C.componentDelete(cid);
+  const hidden = at(box.id).node, kept = at(shown.id).node;
+  a.equal(hidden.children[0].showIf, undefined, 'a property condition means nothing outside a component');
+  a.deepEqual(hidden.children[0].hide, { d: true, t: true, m: true }, 'so the heading that was not showing stays hidden');
+  a.equal(kept.children[0].showIf, undefined);
+  a.deepEqual(kept.children[0].hide, {}, 'and the one that was showing still shows');
+  a.deepEqual(hidden.children[1].children.map(n => n.id), [q.id], 'the page’s content sits in the slot it filled');
+  a.equal(hidden.children.length, 2, 'rather than appended after it');
+  void hole;
 });
 
 /* ------------------------------------------------------------------- the Box

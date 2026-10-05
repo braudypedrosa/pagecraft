@@ -38,20 +38,30 @@ function Picture({ value }: { value: string }) {
   return asset ? <img class="pw-pic" src={asset.url} alt={asset.name} /> : <span class="pw-none">{value}</span>;
 }
 
+/** Rich text is HTML and reads as its words. Every other slot holds exactly what it shows, so it
+    reads literally — a heading whose text is `<img src=x>` says that, rather than "Empty". */
+function richChange(change: ProposalChange) {
+  if (change.type === 'text') return change.slot === 'html';
+  if (change.type !== 'property') return false;
+  const n = change.nodeId ? C.locateAny(change.nodeId)?.node : null;
+  return C.findProp(C.findComponent(n?.use || ''), change.property || '')?.t === 'rich';
+}
+
 function Value({ change, side }: { change: ProposalChange; side: 'before' | 'after' }) {
   const value = side === 'before' ? change.before : change.value;
   const image = change.type === 'image' || (change.type === 'property' && /^asset:/.test(value));
   if (image) return <Picture value={value} />;
-  const text = plain(value);
-  return text ? <span class="pw-text">{text}</span> : <span class="pw-none">Empty</span>;
+  const text = richChange(change) ? plain(value) : String(value ?? '');
+  return text.trim() ? <span class="pw-text">{text}</span> : <span class="pw-none">Empty</span>;
 }
 
 const STATUS: Record<string, string> = {
   stale: 'Changed in the editor since the proposal was made',
   missing: 'No longer on the site',
+  applied: 'Already in the draft — this was applied before',
 };
 
-function ChangeRow({ change, status }: { change: ProposalChange; status: 'ok' | 'stale' | 'missing' }) {
+function ChangeRow({ change, status }: { change: ProposalChange; status: 'ok' | 'stale' | 'missing' | 'applied' }) {
   if (change.type === 'insert') {
     const def = C.findComponent(change.componentId || '');
     const values = Object.entries(change.values || {});
@@ -60,7 +70,7 @@ function ChangeRow({ change, status }: { change: ProposalChange; status: 'ok' | 
         <div class="pw-change-head"><Icon name="plus" size={12} /><b>{change.label}</b></div>
         {values.length > 0 && (
           <dl class="pw-values">{values.map(([k, v]) => (
-            <div key={k}><dt>{C.findProp(def, k)?.label || k}</dt><dd>{/^asset:/.test(v) ? <Picture value={v} /> : plain(v) || '—'}</dd></div>
+            <div key={k}><dt>{C.findProp(def, k)?.label || k}</dt><dd>{/^asset:/.test(v) ? <Picture value={v} /> : (C.findProp(def, k)?.t === 'rich' ? plain(v) : v) || '—'}</dd></div>
           ))}</dl>
         )}
         {status !== 'ok' && <p class="pw-warn">{STATUS[status]}</p>}
@@ -86,9 +96,10 @@ function Detail({ api, proposal, busy, apply, decline }: {
   const [tab, setTab] = useState(0);
   const [side, setSide] = useState<'after' | 'before'>('after');
   useEffect(() => { setTab(0); setSide('after'); }, [proposal.id]);
-  const pending = proposal.status === 'pending';
+  // Claimed but never decided — a tab closed mid-apply — is still the owner's to finish or decline.
+  const pending = proposal.status === 'pending' || proposal.status === 'applying';
   // Whether a change still matches only means something while it waits; once applied, it won't.
-  const statuses = pending ? C.proposalCheck(proposal.changes) : proposal.changes.map(() => 'ok' as const);
+  const statuses = pending ? C.proposalCheck(proposal.changes, proposal.id) : proposal.changes.map(() => 'ok' as const);
   const blocked = statuses.filter(s => s !== 'ok').length;
   const preview = proposal.previews[Math.min(tab, proposal.previews.length - 1)];
   return (
@@ -171,10 +182,19 @@ export function ProposalsWorkspace({ focus, close, changed }: { focus?: string; 
   }, [busy]);
 
   const apply = async (p: WebProposal) => {
-    if (C.proposalCheck(p.changes).some(s => s !== 'ok')) { L.toast('This proposal no longer matches the draft.', { tone: 'error' }); return; }
+    if (C.proposalCheck(p.changes, p.id).some(s => s !== 'ok')) { L.toast('This proposal no longer matches the draft.', { tone: 'error' }); return; }
     setBusy(true);
     try {
-      C.edit(() => { C.proposalApply(p.changes); });
+      /* Claimed first, on the server: a second tab or a second click is refused here, before
+         anything is written, rather than inserting the same instances twice. */
+      try {
+        await api!.claim(p.id);
+      } catch (e) {
+        L.toast(problem(e), { tone: 'error' });
+        await load(p.id);
+        return;
+      }
+      C.edit(() => { C.proposalApply(p.changes, p.id); });
       L.appRender();
       try {
         await L.flushDraft();
@@ -239,7 +259,7 @@ export function ProposalsWorkspace({ focus, close, changed }: { focus?: string; 
                 onClick={() => setSelected(p.id)}>
                 <b>{p.title}</b>
                 <small>{p.tokenName} · {when(p.createdAt)}</small>
-                <span class={'pw-chip ' + p.status}>{p.status === 'pending' ? 'Waiting' : p.status === 'applied' ? 'Applied' : 'Declined'}</span>
+                <span class={'pw-chip ' + p.status}>{p.status === 'pending' ? 'Waiting' : p.status === 'applying' ? 'Being applied' : p.status === 'applied' ? 'Applied' : 'Declined'}</span>
               </button>
             ))}
           </nav>

@@ -59,6 +59,8 @@ export interface HostDocumentSave {
     globalCss: string;
     pageCss: string;
   };
+  /** Sent as the tab closes: the transport may let the request outlive the page. */
+  keepalive?: boolean;
 }
 
 export interface HostPage {
@@ -311,13 +313,16 @@ export interface WebProposal {
   regions: string[];
   createdAt: string;
   tokenName: string;
-  status: 'pending' | 'applied' | 'declined';
+  /** `applying` between the editor's claim and its decision */
+  status: 'pending' | 'applying' | 'applied' | 'declined';
   decidedAt: string | null;
   /** rendered files that show the affected regions */
   previews: { region: string; label: string; path: string }[];
 }
 export interface WebProposalAdapter {
   list(status?: 'pending'): Promise<WebProposal[]>;
+  /** Take a pending proposal to apply it. Single use: a second claim is refused with a 409. */
+  claim(id: string): Promise<void>;
   decide(id: string, status: 'applied' | 'declined', version?: number): Promise<void>;
   /** where an affected page renders, with the proposal applied or, with `before`, without */
   previewUrl(id: string, path: string, before?: boolean): string;
