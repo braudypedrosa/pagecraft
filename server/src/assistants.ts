@@ -8,7 +8,7 @@
    staging is a staging token. One file per token and per proposal, so no two writers share a
    file. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ProposalChange } from '../../app/src/core/index.ts';
 
@@ -203,18 +203,67 @@ const withoutDigest = ({ digest: _digest, ...rest }: AssistantToken) => rest;
    kind of per-site token as the Assistants page makes. Consents and codes are single use and
    expire in ten minutes. Files under `oauth/`, alongside the per-site directories. */
 
-export interface OAuthClient { id: string; name: string; redirectUris: string[]; createdAt: string }
+export interface OAuthClient {
+  id: string; name: string; redirectUris: string[]; createdAt: string;
+  /** when a sign-in with it last started, at most daily */
+  usedAt?: string;
+}
 export interface OAuthConsent { userId: string; clientId: string; redirectUri: string; challenge: string; state: string; resource: string }
 export interface OAuthCode extends OAuthConsent { siteId: string }
 
 const OAUTH_TTL = 10 * 60_000;
+const CLIENT_IDLE = 30 * 86_400_000;
 
 export class FileOAuthStore {
   readonly root: string;
+  private sweptAt = 0;
   constructor(root: string) { this.root = root; }
   private file(kind: 'clients' | 'consents' | 'codes', key: string) { return join(this.root, 'oauth', kind, `${key}.json`); }
 
+  /** Clear out what nobody can use any more: consents and codes past their ten minutes, whether
+      taken or not, and registered apps with no live token that have started no sign-in for 30
+      days. Registration is open to anyone, so without this the folders only grow. */
+  async sweep(now = Date.now()) {
+    this.sweptAt = now;
+    for (const kind of ['consents', 'codes'] as const) {
+      const dir = join(this.root, 'oauth', kind);
+      // Each file is written once, so its time is when it was issued.
+      for (const name of await readdir(dir).catch(() => [] as string[])) {
+        const info = await stat(join(dir, name)).catch(() => null);
+        if (info && now - info.mtimeMs > OAUTH_TTL) await rm(join(dir, name), { force: true });
+      }
+    }
+    const dir = join(this.root, 'oauth', 'clients');
+    const names = await readdir(dir).catch(() => [] as string[]);
+    if (!names.length) return;
+    const withToken = await this.clientsWithTokens();
+    for (const name of names) {
+      const m = /^(pcc_[a-f0-9]{24})\.json$/.exec(name);
+      if (!m || withToken.has(m[1])) continue;
+      const client = await json<OAuthClient>(join(dir, name)).catch(() => null);
+      if (client && now - Date.parse(client.usedAt || client.createdAt) > CLIENT_IDLE) await rm(join(dir, name), { force: true });
+    }
+  }
+  /** Lazily, at most hourly per process; a failed sweep never fails the request. */
+  private async sweepHourly() {
+    if (Date.now() - this.sweptAt < 3_600_000) return;
+    await this.sweep().catch(error => console.error('assistant sign-in files could not be swept:', (error as Error).message));
+  }
+  /** Apps holding an unrevoked token for any site. Tokens live in the per-site folders beside
+      `oauth/`: FileAssistantStore and this store share a root. */
+  private async clientsWithTokens() {
+    const ids = new Set<string>();
+    for (const site of await readdir(this.root).catch(() => [] as string[])) {
+      if (!/^[a-f0-9]{64}$/.test(site)) continue;
+      for (const token of await listJson<AssistantToken>(join(this.root, site, 'tokens'))) {
+        if (token.clientId && !token.revokedAt) ids.add(token.clientId);
+      }
+    }
+    return ids;
+  }
+
   async registerClient(input: { name: string; redirectUris: string[] }) {
+    await this.sweepHourly();
     const client: OAuthClient = { id: `pcc_${randomBytes(12).toString('hex')}`, name: input.name, redirectUris: input.redirectUris, createdAt: new Date().toISOString() };
     await mkdir(join(this.root, 'oauth', 'clients'), { recursive: true, mode: 0o700 });
     await writeAtomic(this.file('clients', client.id), client);
@@ -241,7 +290,15 @@ export class FileOAuthStore {
     await rm(claimed, { force: true });
     return row && row.expiresAt > Date.now() ? row : null;
   }
-  createConsent(consent: OAuthConsent) { return this.put('consents', consent); }
+  /** The owner reached the approval page: the app is in use, so the sweep keeps it. */
+  async createConsent(consent: OAuthConsent) {
+    const client = await this.client(consent.clientId);
+    if (client && Date.now() - Date.parse(client.usedAt || client.createdAt) > 86_400_000) {
+      await writeAtomic(this.file('clients', client.id), { ...client, usedAt: new Date().toISOString() });
+    }
+    await this.sweepHourly();
+    return this.put('consents', consent);
+  }
   takeConsent(secret: string) { return this.take<OAuthConsent>('consents', secret); }
   createCode(code: OAuthCode) { return this.put('codes', code); }
   takeCode(secret: string) { return this.take<OAuthCode>('codes', secret); }

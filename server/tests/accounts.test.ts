@@ -1156,7 +1156,7 @@ test("account settings shows profile, security, providers, and real free-plan us
   a.match(html, /0 of 3 used/);
   a.match(html, /0 KB of 100 MB/);
   a.match(html, /Paid plans are not available yet/);
-  a.match(html, /Joined Jan 12, 2026/);
+  a.match(html, /Joined <time datetime="2026-01-12T00:00:00.000Z" data-local="date">Jan 12, 2026<\/time>/, "a UTC date the browser rewrites in its own time zone");
   a.match(html, /role="tablist" aria-label="Account settings"/);
   a.match(html, /aria-label="Sites navigation"/);
   a.doesNotMatch(html, /\.pc-settings-section\{[^}]*border-bottom:1px solid/);

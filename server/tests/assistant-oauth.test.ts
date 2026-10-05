@@ -1,7 +1,7 @@
 import { afterEach, test } from 'vitest';
 import a from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, rm, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client, StreamableHTTPClientTransport, auth, type OAuthClientProvider } from '@modelcontextprotocol/client';
@@ -192,4 +192,48 @@ test('the MCP SDK’s own client signs in end to end, the way Claude Desktop and
   await client.connect(new StreamableHTTPClientTransport(new URL('https://admin.test/mcp'), { authProvider: provider, fetch: fetchFn }));
   a.equal(((await client.callTool({ name: 'pagecraft_site', arguments: {} })).structuredContent as any).site.name, 'Beta');
   await client.close();
+});
+
+test('expired consents and codes, and registered apps nobody uses, are swept at most hourly', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pc-oauth-sweep-'));
+  roots.push(root);
+  const seed = new FileOAuthStore(root), assistants = new FileAssistantStore(root);
+  const oauthFile = (kind: string, name: string) => join(root, 'oauth', kind, name);
+  const digest = (secret: string) => createHash('sha256').update(secret).digest('hex') + '.json';
+  const age = (file: string, ms: number) => utimes(file, new Date(Date.now() - ms), new Date(Date.now() - ms));
+  const register = (name: string, store = seed) => store.registerClient({ name, redirectUris: [CALLBACK] });
+  const [idle, connected, revoked, recent, reused] = await Promise.all(['Idle', 'Connected', 'Revoked', 'Recent', 'Reused'].map(name => register(name)));
+  // Registered 31 days ago and never used since, except as noted.
+  for (const client of [idle, connected, revoked, reused]) {
+    await writeFile(oauthFile('clients', `${client.id}.json`), JSON.stringify({ ...client, createdAt: new Date(Date.now() - 31 * 86_400_000).toISOString() }));
+  }
+  await assistants.createToken('site-1', 'Connected app', 'u1', { clientId: connected.id });
+  const gone = await assistants.createToken('site-1', 'Revoked app', 'u1', { clientId: revoked.id });
+  await assistants.revokeToken('site-1', gone.view.id);
+  const consent = { userId: 'u1', clientId: recent.id, redirectUri: CALLBACK, challenge: 'c'.repeat(43), state: '', resource: 'http://admin.test/mcp' };
+  const staleConsent = await seed.createConsent(consent), freshConsent = await seed.createConsent(consent);
+  const staleCode = await seed.createCode({ ...consent, siteId: 'site-1' });
+  await age(oauthFile('consents', digest(staleConsent)), 11 * 60_000);
+  await age(oauthFile('codes', digest(staleCode)), 11 * 60_000);
+  await writeFile(oauthFile('codes', 'leftover.json.abc.taken'), '{}');
+  await age(oauthFile('codes', 'leftover.json.abc.taken'), 11 * 60_000);
+
+  // A new process: its first registration sweeps; starting a sign-in counts as use.
+  const oauth = new FileOAuthStore(root);
+  await oauth.createConsent({ ...consent, clientId: reused.id });
+  const added = await register('New', oauth);
+  a.equal(await oauth.client(idle.id), null, 'no token and unused for 30 days');
+  a.equal(await oauth.client(revoked.id), null, 'a revoked token is no token');
+  for (const kept of [connected, recent, reused, added]) a.ok(await oauth.client(kept.id), kept.name);
+  a.deepEqual(await readdir(join(root, 'oauth', 'codes')), []);
+  a.equal(await oauth.takeConsent(staleConsent), null);
+  a.equal((await oauth.takeConsent(freshConsent))?.clientId, recent.id);
+
+  // Within the hour nothing is swept again; an explicit sweep still works.
+  const later = await oauth.createConsent(consent);
+  await age(oauthFile('consents', digest(later)), 11 * 60_000);
+  await register('Another', oauth);
+  a.ok((await readdir(join(root, 'oauth', 'consents'))).includes(digest(later)));
+  await oauth.sweep();
+  a.equal((await readdir(join(root, 'oauth', 'consents'))).includes(digest(later)), false);
 });
