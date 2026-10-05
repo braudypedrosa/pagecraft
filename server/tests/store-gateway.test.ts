@@ -1,11 +1,13 @@
 /* The HTTPS gateway is the production persistence path. These tests hold the wire contract
    without contacting Supabase: operation names, metadata-only listings, binary reads, and the
    bulk auth/site calls that keep one page request from becoming an N+1 sequence. */
-import { test } from "vitest";
+import { test, vi } from "vitest";
 import a from "node:assert/strict";
 import {
   GatewayAssetStore,
   AUTH_USER_CACHE_MS,
+  EDITOR_SOURCE_CACHE_MS,
+  SITE_CACHE_MS,
   GatewayAuthStore,
   GatewayLibraryStore,
   GatewayConnectedStore,
@@ -325,6 +327,38 @@ test("gateway site metadata excludes documents and hot public lookups are bounde
     "a hot public path does not call a multi-second gateway twice",
   );
   a.deepEqual(calls.map((call) => call.op), ["site.listMeta", "site.bySlug"]);
+});
+
+test("gateway site rows expire in seconds, fresh reads skip them, and the save fast path keeps its exact version for minutes", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  try {
+    vi.setSystemTime(new Date("2026-10-05T09:00:00.000Z"));
+    const { gateway, calls } = fakeGateway((call) => {
+      if (call.op === "site.byId") return siteRow;
+      if (call.op === "asset.list") return [];
+      throw new Error(`unexpected ${call.op}`);
+    });
+    const sites = new GatewayStore(gateway);
+    const assets = new GatewayAssetStore(gateway);
+    const cloud = new GatewayHostedPublishPreparer(gateway, sites, assets);
+    const reads = () => calls.filter((call) => call.op === "site.byId").length;
+    await Promise.all([sites.byId("s1"), assets.list("s1")]);
+    await sites.byId("s1");
+    a.equal(reads(), 1, "a recent row answers ordinary reads");
+    await sites.byId("s1", { fresh: true });
+    a.equal(reads(), 2, "a fresh read always asks the gateway");
+
+    vi.setSystemTime(Date.now() + SITE_CACHE_MS);
+    a.equal(sites.cachedById("s1", 3), null, "another process may have moved or published it since");
+    a.equal(cloud.cachedSaveSource("s1", 3)?.site.version, 3, "the version the editor loaded is still that version");
+    await sites.byId("s1");
+    a.equal(reads(), 3, "an ordinary read past the short window asks again");
+
+    vi.setSystemTime(Date.now() + EDITOR_SOURCE_CACHE_MS);
+    a.equal(cloud.cachedSaveSource("s1", 3), null, "editor source data lasts minutes, not hours");
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test("gateway site settings use fixed rename and deletion operations", async () => {

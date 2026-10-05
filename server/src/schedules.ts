@@ -75,6 +75,8 @@ export interface PublicationScheduleStore {
   due(now: Date, limit?: number): Promise<PublicationSchedule[]>;
   /** Exclusive claim for one run. False when another runner holds a live claim. */
   claim(id: string, worker: string, now?: Date): Promise<boolean>;
+  /** Give up a claim without settling, when the schedule turned out to need no run. */
+  release(id: string, worker: string): Promise<void>;
   settle(id: string, worker: string, outcome: ScheduleOutcome, now?: Date): Promise<PublicationSchedule | null>;
 }
 
@@ -169,6 +171,9 @@ export class MemoryPublicationScheduleStore implements PublicationScheduleStore 
     if (held && now.getTime() - held.at < SCHEDULE_CLAIM_LEASE_MS) return false;
     this.claims.set(id, { worker, at: now.getTime() });
     return true;
+  }
+  async release(id: string, worker: string) {
+    if (this.claims.get(id)?.worker === worker) this.claims.delete(id);
   }
   async settle(id: string, worker: string, outcome: ScheduleOutcome, now = new Date()) {
     const row = this.rows.get(id);
@@ -342,7 +347,7 @@ export class FilePublicationScheduleStore implements PublicationScheduleStore {
     return this.lock(path, body);
   }
 
-  private async release(id: string, worker: string) {
+  async release(id: string, worker: string) {
     try {
       const held = JSON.parse(await readFile(this.claimPath(id), 'utf8')) as { worker?: string };
       if (held.worker === worker) await rm(this.claimPath(id), { force: true });

@@ -2,9 +2,10 @@ import { test, expect } from 'vitest';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, hashToken, newToken } from '../src/auth.ts';
-import { LiveReviewStore } from '../src/live-reviews.ts';
+import { LiveReviewStore, digest, secret } from '../src/live-reviews.ts';
 import { blankDoc } from '../src/render.ts';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 async function setup() {
@@ -108,4 +109,71 @@ test('owners, reviewers and developers can annotate; only owners and developers 
     const created = await response.json();
     expect((await s.req(path + '/resolve', cookie, {pinId:created.id,done:true})).status).toBe(user === s.reviewer ? 403 : 200);
   }
+});
+
+const author = (name: string) => ({ id: name, name });
+const sitePin = { ...pin, device: 'desktop' as const, siteId: 'site', author: author('A') };
+
+test('a link revoked in one process is refused by the others, and their later writes do not restore it', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'live-review-'));
+  try {
+    const file = join(dir, 'reviews.json'), one = new LiveReviewStore(file), two = new LiveReviewStore(file);
+    const link = await one.createLink('site', 'public');
+    expect(await two.link(link.token)).toEqual(link);
+    await one.revoke('site', link.id);
+    expect(await two.link(link.token)).toBeNull();
+    // The other process keeps writing; none of it brings the link back.
+    await two.addPin(sitePin); await two.createLink('site', 'private'); await two.invite('site', 'r@example.test', 'private');
+    expect(await one.link(link.token)).toBeNull();
+    expect((await new LiveReviewStore(file).links('site')).find(l => l.id === link.id)?.active).toBe(false);
+
+    // Replies to one pin from two processes at once both land, and resolving keeps them.
+    const row = await one.addPin(sitePin);
+    await Promise.all([one.reply('site', row.id, author('A'), 'From one'), two.reply('site', row.id, author('B'), 'From two')]);
+    await two.resolve('site', row.id, author('B'), true);
+    const stored = (await one.pins('site')).find(p => p.id === row.id)!;
+    expect(stored.replies.map(r => r.body).sort()).toEqual(['From one', 'From two']);
+    expect(stored).toMatchObject({ done: true, resolvedBy: author('B') });
+    await expect(one.reply('other-site', row.id, author('A'), 'Wrong site')).rejects.toThrow('missing_pin');
+
+    await one.invite('site', 'dev@example.test', 'developer');
+    expect(await two.invited('site', 'dev@example.test', 'developer')).toBe(true);
+    expect(await two.invited('site', 'dev@example.test', 'private')).toBe(false);
+    await two.removeInvite('site', 'dev@example.test');
+    expect(await one.invited('site', 'dev@example.test')).toBe(false);
+    const guest = await one.addGuest('site', 'Guest');
+    expect(await two.guest('site', guest)).toEqual({ id: 'guest:' + digest(guest), name: 'Guest' });
+    expect(await two.guest('other-site', guest)).toBeNull();
+  } finally { await rm(dir, { recursive: true }); }
+});
+
+test('the old live-review file is split into records on first use, and a revocation it holds wins', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'live-review-'));
+  try {
+    const file = join(dir, 'reviews.json'), guestToken = secret();
+    const link = (access: 'public' | 'private', active: boolean) => ({ id: randomUUID(), siteId: 'site', token: secret(), access, active, createdAt: '2026-09-01T00:00:00.000Z' });
+    const live = link('public', true), revoked = link('private', false);
+    const reply = (body: string, createdAt: string) => ({ id: randomUUID(), author: author('A'), body, createdAt });
+    const legacy = {
+      links: [live, revoked],
+      pins: [{ ...sitePin, id: randomUUID(), createdAt: '2026-09-01T00:01:00.000Z', done: false, replies: [reply('First', '2026-09-01T00:02:00.000Z'), reply('Second', '2026-09-01T00:03:00.000Z')] }],
+      invites: [{ siteId: 'site', email: 'r@example.test', kind: 'private' }],
+      guests: [{ digest: digest(guestToken), siteId: 'site', name: 'Guest', expires: Date.now() + 60_000 }, { digest: digest(secret()), siteId: 'site', name: 'Gone', expires: Date.now() - 1 }],
+    };
+    await writeFile(file, JSON.stringify(legacy));
+    const one = new LiveReviewStore(file), two = new LiveReviewStore(file);
+    const [links, pins] = await Promise.all([one.links('site'), two.pins('site')]);
+    expect(links).toHaveLength(2);
+    expect(pins).toEqual(legacy.pins);
+    expect(await one.link(live.token)).toEqual(live);
+    expect(await one.link(revoked.token)).toBeNull();
+    expect(await two.invited('site', 'r@example.test', 'private')).toBe(true);
+    expect(await two.guest('site', guestToken)).toMatchObject({ name: 'Guest' });
+    await expect(stat(file)).rejects.toThrow(/ENOENT/);
+    expect(JSON.parse(await readFile(file + '.migrated', 'utf8'))).toEqual(legacy);
+
+    // A process still on the old code revokes the live link and writes the file again.
+    await writeFile(file, JSON.stringify({ ...legacy, links: [{ ...live, active: false }, revoked] }));
+    expect(await new LiveReviewStore(file).link(live.token)).toBeNull();
+  } finally { await rm(dir, { recursive: true }); }
 });

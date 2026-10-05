@@ -1,13 +1,14 @@
 import { test } from 'vitest';
 import a from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, hashToken, newToken } from '../src/auth.ts';
 import { MemoryHostedPublicationStore } from '../src/publications.ts';
-import { FilePublicationReviewStore, MemoryPublicationReviewStore } from '../src/reviews.ts';
+import { FilePublicationReviewStore, MemoryPublicationReviewStore, type FileReviewState } from '../src/reviews.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
 const doc = (): Doc => ({
@@ -211,6 +212,107 @@ test('file review storage survives a new process', async () => {
     const stored = await second.assignment(assignment.siteId, assignment.id);
     a.equal(stored?.reviewerUserId, 'u-reviewer');
     a.equal((await second.comments(assignment.id))[0]?.body, 'Keep this snapshot');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+const publicationId = '11111111-1111-4111-8111-111111111111';
+const otherPublicationId = '22222222-2222-4222-8222-222222222222';
+const assignInput = (publication = publicationId) => ({
+  siteId: 'site-one', publicationId: publication, reviewerUserId: 'u-reviewer', assignedBy: 'u-owner',
+});
+const noticeInput = (title: string) => ({ userId: 'u-reviewer', kind: 'review_comment', title, body: '', href: '/r' });
+
+test('file reviews from two processes on one root are seen by both and overwrite nothing', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-reviews-'));
+  try {
+    const one = new FilePublicationReviewStore(root), two = new FilePublicationReviewStore(root);
+    // The second process has read before the first one writes.
+    a.equal(await two.canViewSnapshot('site-one', publicationId, 'u-reviewer', 'reviewer'), false);
+    const assignment = await one.assign(assignInput());
+    a.equal(await two.canViewSnapshot('site-one', publicationId, 'u-reviewer', 'reviewer'), true,
+      'a new assignment is visible to the other process at once');
+
+    await Promise.all([
+      one.addComment({ assignmentId: assignment.id, authorUserId: 'u-reviewer', body: 'From one' }),
+      two.addComment({ assignmentId: assignment.id, authorUserId: 'u-owner', body: 'From two' }),
+      one.notify(noticeInput('First')),
+      two.notify(noticeInput('Second')),
+      two.decide({ assignmentId: assignment.id, actorUserId: 'u-reviewer', status: 'approved' }),
+    ]);
+    const third = new FilePublicationReviewStore(root);
+    a.deepEqual((await third.comments(assignment.id)).map(row => row.body).sort(), ['From one', 'From two']);
+    a.equal((await third.decision(assignment.id))?.status, 'approved');
+    const notices = await third.notices('u-reviewer');
+    a.deepEqual(notices.map(row => row.title).sort(), ['First', 'Second']);
+    a.equal(await one.markRead('u-reviewer', notices[0].id), true);
+    a.ok((await two.notices('u-reviewer')).find(row => row.id === notices[0].id)?.readAt);
+
+    // The same reviewer and snapshot assigned from both processes at once is one assignment.
+    const [x, y] = await Promise.all([one.assign(assignInput(otherPublicationId)), two.assign(assignInput(otherPublicationId))]);
+    a.equal(x.id, y.id);
+    a.equal((await third.assignmentsForSite('site-one')).length, 2);
+
+    // A cancellation racing another decision is final.
+    await Promise.all([
+      one.decide({ assignmentId: assignment.id, actorUserId: 'u-owner', status: 'cancelled' }),
+      two.decide({ assignmentId: assignment.id, actorUserId: 'u-reviewer', status: 'changes_requested' }),
+    ]);
+    a.equal((await third.decision(assignment.id))?.status, 'cancelled');
+    await a.rejects(one.decide({ assignmentId: assignment.id, actorUserId: 'u-reviewer', status: 'approved' }), /review_cancelled/);
+
+    const email = await one.enqueueEmail({ to: 'reviewer@example.test', subject: 'Hello', body: 'Body' });
+    a.equal(await two.markEmailDelivered(email.id), true);
+    a.equal(await one.markEmailDelivered(email.id), false, 'delivered once');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('the old review state file is split into records on first use, also by two processes at once', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-reviews-'));
+  const dir = join(root, 'reviews'), legacy = join(dir, 'state.json');
+  try {
+    const assignment = { id: randomUUID(), ...assignInput(), createdAt: '2026-09-01T00:00:00.000Z' };
+    const notice = (title: string, createdAt: string) => ({
+      ...noticeInput(title), id: randomUUID(), createdAt, readAt: null,
+    });
+    const state: FileReviewState = {
+      assignments: [assignment],
+      comments: [{
+        id: randomUUID(), assignmentId: assignment.id, siteId: 'site-one', publicationId,
+        authorUserId: 'u-reviewer', body: 'Old comment', pageSlug: 'index', nodeId: '', createdAt: '2026-09-01T00:01:00.000Z',
+      }],
+      decisions: [{
+        id: randomUUID(), assignmentId: assignment.id, status: 'changes_requested', actorUserId: 'u-reviewer',
+        note: '', createdAt: '2026-09-01T00:02:00.000Z',
+      }],
+      notices: [notice('Newer', '2026-09-01T00:04:00.000Z'), notice('Older', '2026-09-01T00:03:00.000Z')],
+      emails: [{ id: randomUUID(), to: 'r@example.test', subject: 'S', body: 'B', createdAt: '2026-09-01T00:05:00.000Z', deliveredAt: null }],
+    };
+    await mkdir(dir, { recursive: true });
+    await writeFile(legacy, JSON.stringify(state));
+
+    const one = new FilePublicationReviewStore(root), two = new FilePublicationReviewStore(root);
+    const [found, comments] = await Promise.all([one.assignment('site-one', assignment.id), two.comments(assignment.id)]);
+    a.deepEqual(found, assignment);
+    a.deepEqual(comments, state.comments);
+    a.equal((await two.decision(assignment.id))?.status, 'changes_requested');
+    a.deepEqual((await one.notices('u-reviewer')).map(row => row.title), ['Newer', 'Older']);
+    a.equal(await two.canViewSnapshot('site-one', publicationId, 'u-reviewer', 'reviewer'), true);
+    a.deepEqual(await two.drainEmail(), { processed: 1, pending: 0 });
+    await a.rejects(stat(legacy), /ENOENT/);
+    a.deepEqual(JSON.parse(await readFile(`${legacy}.migrated`, 'utf8')), state, 'the old file is kept as a backup');
+
+    // A process still on the old code writes the file again during a deploy, with a notice of its
+    // own. The next start adds that notice and keeps what the records already say.
+    a.equal(await one.markRead('u-reviewer', state.notices[0].id), true);
+    await writeFile(legacy, JSON.stringify({ ...state, notices: [...state.notices, notice('From the old process', '2026-09-01T00:06:00.000Z')] }));
+    const next = new FilePublicationReviewStore(root);
+    const notices = await next.notices('u-reviewer');
+    a.deepEqual(notices.map(row => row.title), ['From the old process', 'Newer', 'Older']);
+    a.ok(notices[1].readAt, 'the record, not the old copy, decides');
   } finally {
     await rm(root, { recursive: true, force: true });
   }

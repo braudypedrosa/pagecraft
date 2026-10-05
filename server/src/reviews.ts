@@ -3,9 +3,9 @@
    Phase 2 already freezes publication snapshots. This store records who may inspect a
    snapshot, what they said, and whether they asked for changes, approved, or cancelled.
    Approval belongs to that immutable snapshot, not to a later draft. */
-import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { createHash, randomUUID } from 'node:crypto';
+import { join, resolve } from 'node:path';
+import { FileRecords, migrateStateFile } from './record-files.ts';
 
 export const REVIEW_DECISIONS = ['changes_requested', 'approved', 'cancelled'] as const;
 export type ReviewDecisionStatus = typeof REVIEW_DECISIONS[number];
@@ -88,6 +88,48 @@ export interface PublicationReviewStore {
 const now = () => new Date().toISOString();
 const clean = (value: unknown, max = 4000) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
 
+/* Row builders shared by both stores, so they clean and limit input the same way. */
+function newComment(assignment: ReviewAssignment, input: Parameters<PublicationReviewStore['addComment']>[0]) {
+  const body = clean(input.body, 4000);
+  if (!body) throw new Error('comment_required');
+  const row: ReviewComment = {
+    id: randomUUID(),
+    assignmentId: assignment.id,
+    siteId: assignment.siteId,
+    publicationId: assignment.publicationId,
+    authorUserId: input.authorUserId,
+    body,
+    pageSlug: clean(input.pageSlug, 180),
+    nodeId: clean(input.nodeId, 180),
+    createdAt: now(),
+  };
+  return row;
+}
+
+function newDecision(assignment: ReviewAssignment, input: Parameters<PublicationReviewStore['decide']>[0]) {
+  const row: ReviewDecision = {
+    id: randomUUID(),
+    assignmentId: assignment.id,
+    status: input.status,
+    actorUserId: input.actorUserId,
+    note: clean(input.note, 1000),
+    createdAt: now(),
+  };
+  return row;
+}
+
+function newEmail(input: Parameters<PublicationReviewStore['enqueueEmail']>[0]) {
+  const row: ReviewEmailWork = {
+    id: randomUUID(),
+    to: clean(input.to, 254),
+    subject: clean(input.subject, 180),
+    body: clean(input.body, 4000),
+    createdAt: now(),
+    deliveredAt: null,
+  };
+  return row;
+}
+
 export class MemoryPublicationReviewStore implements PublicationReviewStore {
   private assignmentRows = new Map<string, ReviewAssignment>();
   private commentRows = new Map<string, ReviewComment[]>();
@@ -144,19 +186,7 @@ export class MemoryPublicationReviewStore implements PublicationReviewStore {
   }) {
     const assignment = this.assignmentRows.get(input.assignmentId);
     if (!assignment) throw new Error('missing_assignment');
-    const body = clean(input.body, 4000);
-    if (!body) throw new Error('comment_required');
-    const row: ReviewComment = {
-      id: randomUUID(),
-      assignmentId: assignment.id,
-      siteId: assignment.siteId,
-      publicationId: assignment.publicationId,
-      authorUserId: input.authorUserId,
-      body,
-      pageSlug: clean(input.pageSlug, 180),
-      nodeId: clean(input.nodeId, 180),
-      createdAt: now(),
-    };
+    const row = newComment(assignment, input);
     const list = this.commentRows.get(assignment.id) || [];
     list.push(row);
     this.commentRows.set(assignment.id, list);
@@ -175,14 +205,7 @@ export class MemoryPublicationReviewStore implements PublicationReviewStore {
     if (!assignment) throw new Error('missing_assignment');
     const existing = this.decisionRows.get(assignment.id);
     if (existing?.status === 'cancelled') throw new Error('review_cancelled');
-    const row: ReviewDecision = {
-      id: randomUUID(),
-      assignmentId: assignment.id,
-      status: input.status,
-      actorUserId: input.actorUserId,
-      note: clean(input.note, 1000),
-      createdAt: now(),
-    };
+    const row = newDecision(assignment, input);
     this.decisionRows.set(assignment.id, row);
     return { ...row };
   }
@@ -213,14 +236,7 @@ export class MemoryPublicationReviewStore implements PublicationReviewStore {
   }
 
   async enqueueEmail(input: { to: string; subject: string; body: string }) {
-    const row: ReviewEmailWork = {
-      id: randomUUID(),
-      to: clean(input.to, 254),
-      subject: clean(input.subject, 180),
-      body: clean(input.body, 4000),
-      createdAt: now(),
-      deliveredAt: null,
-    };
+    const row = newEmail(input);
     this.emailRows.push(row);
     return { ...row };
   }
@@ -230,34 +246,6 @@ export class MemoryPublicationReviewStore implements PublicationReviewStore {
     if (!row || row.deliveredAt) return false;
     row.deliveredAt = now();
     return true;
-  }
-
-  exportState(): FileReviewState {
-    return {
-      assignments: [...this.assignmentRows.values()].map(row => ({ ...row })),
-      comments: [...this.commentRows.values()].flat().map(row => ({ ...row })),
-      decisions: [...this.decisionRows.values()].map(row => ({ ...row })),
-      notices: [...this.noticeRows.values()].flat().map(row => ({ ...row })),
-      emails: this.emailRows.map(row => ({ ...row })),
-    };
-  }
-
-  importState(state: FileReviewState) {
-    this.assignmentRows = new Map((state.assignments || []).map(row => [row.id, { ...row }]));
-    this.commentRows = new Map();
-    for (const row of state.comments || []) {
-      const list = this.commentRows.get(row.assignmentId) || [];
-      list.push({ ...row });
-      this.commentRows.set(row.assignmentId, list);
-    }
-    this.decisionRows = new Map((state.decisions || []).map(row => [row.assignmentId, { ...row }]));
-    this.noticeRows = new Map();
-    for (const row of state.notices || []) {
-      const list = this.noticeRows.get(row.userId) || [];
-      list.push({ ...row });
-      this.noticeRows.set(row.userId, list);
-    }
-    this.emailRows = (state.emails || []).map(row => ({ ...row }));
   }
 
   async drainEmail(limit = 10) {
@@ -271,6 +259,7 @@ export class MemoryPublicationReviewStore implements PublicationReviewStore {
   }
 }
 
+/** The single state file earlier versions kept at `reviews/state.json`. */
 export interface FileReviewState {
   assignments: ReviewAssignment[];
   comments: ReviewComment[];
@@ -279,99 +268,162 @@ export interface FileReviewState {
   emails: ReviewEmailWork[];
 }
 
-/** Durable reviews beside publication bytes so staging workers can stay disabled. */
+const ID = /^[0-9a-f-]{36}$/i;
+const digest = (value: string) => createHash('sha256').update(value).digest('hex');
+const oldestFirst = (a: { createdAt: string }, b: { createdAt: string }) => a.createdAt.localeCompare(b.createdAt);
+const newestFirst = (a: { createdAt: string }, b: { createdAt: string }) => b.createdAt.localeCompare(a.createdAt);
+
+/* A reviewer has one assignment per snapshot. Deriving the id from that pair makes two
+   processes assigning at once write the same file, so the second finds the first. */
+function derivedAssignmentId(siteId: string, publicationId: string, reviewerUserId: string) {
+  const hex = digest(JSON.stringify([siteId, publicationId, reviewerUserId]));
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
+
+/** Durable reviews beside publication bytes so staging workers can stay disabled.
+
+    Several processes serve one root, so nothing is kept in memory. Each assignment, comment,
+    decision, notice and email is its own file under `reviews/`, read from disk on every call.
+    Decisions are kept as a history rather than one overwritten row, so a cancellation that races
+    another decision still wins. The first call splits an older `reviews/state.json`. */
 export class FilePublicationReviewStore implements PublicationReviewStore {
-  private readonly path: string;
-  private memory = new MemoryPublicationReviewStore();
-  private loaded = false;
+  private readonly files: FileRecords;
+  private ready?: Promise<void>;
 
   constructor(root: string) {
     if (!root || !resolve(root).startsWith('/')) {
       throw new Error('review storage root must be an absolute path');
     }
-    this.path = join(resolve(root), 'reviews', 'state.json');
+    this.files = new FileRecords(join(resolve(root), 'reviews'));
   }
 
-  private async hydrate() {
-    if (this.loaded) return;
-    this.loaded = true;
-    try {
-      const raw = JSON.parse(await readFile(this.path, 'utf8')) as FileReviewState;
-      this.memory.importState(raw);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  private async records() {
+    this.ready ??= migrateStateFile<FileReviewState>(join(this.files.root, 'state.json'), state => this.split(state))
+      .catch(error => {
+        this.ready = undefined;
+        throw error;
+      });
+    await this.ready;
+    return this.files;
+  }
+  private async split(state: FileReviewState) {
+    const valid = <T extends { id: string }>(rows: T[] | undefined) => (rows || []).filter(row => ID.test(row.id));
+    for (const row of valid(state.assignments)) await this.files.create(`assignments/${row.id}.json`, row);
+    for (const row of valid(state.comments)) {
+      if (ID.test(row.assignmentId)) await this.files.create(`comments/${row.assignmentId}/${row.id}.json`, row);
     }
+    for (const row of valid(state.decisions)) {
+      if (ID.test(row.assignmentId)) await this.files.create(`decisions/${row.assignmentId}/${row.id}.json`, row);
+    }
+    for (const row of valid(state.notices)) await this.files.create(`notices/${digest(row.userId)}/${row.id}.json`, row);
+    for (const row of valid(state.emails)) await this.files.create(`emails/${row.id}.json`, row);
+  }
+  private async readAssignment(id: string) {
+    return ID.test(id) ? (await this.records()).read<ReviewAssignment>(`assignments/${id}.json`) : null;
   }
 
-  private async persist() {
-    const temporary = `${this.path}.${randomUUID()}.tmp`;
-    await mkdir(dirname(this.path), { recursive: true });
-    await writeFile(temporary, `${JSON.stringify(this.memory.exportState(), null, 2)}\n`);
-    await rename(temporary, this.path);
-  }
-
-  private async run<T>(work: () => Promise<T>) {
-    await this.hydrate();
-    const result = await work();
-    await this.persist();
-    return result;
-  }
-
-  assign(input: Parameters<PublicationReviewStore['assign']>[0]) {
-    return this.run(() => this.memory.assign(input));
+  async assign(input: Parameters<PublicationReviewStore['assign']>[0]) {
+    const existing = await this.assignmentFor(input.siteId, input.publicationId, input.reviewerUserId);
+    if (existing) return existing;
+    const row: ReviewAssignment = {
+      id: derivedAssignmentId(input.siteId, input.publicationId, input.reviewerUserId),
+      siteId: input.siteId,
+      publicationId: input.publicationId,
+      reviewerUserId: input.reviewerUserId,
+      assignedBy: input.assignedBy,
+      createdAt: now(),
+    };
+    if (await (await this.records()).create(`assignments/${row.id}.json`, row)) return row;
+    return (await this.readAssignment(row.id)) || row;
   }
   async assignment(siteId: string, assignmentId: string) {
-    await this.hydrate();
-    return this.memory.assignment(siteId, assignmentId);
+    const row = await this.readAssignment(assignmentId);
+    return row?.siteId === siteId ? row : null;
   }
   async assignmentFor(siteId: string, publicationId: string, reviewerUserId: string) {
-    await this.hydrate();
-    return this.memory.assignmentFor(siteId, publicationId, reviewerUserId);
+    const derived = await this.readAssignment(derivedAssignmentId(siteId, publicationId, reviewerUserId));
+    if (derived) return derived;
+    // Assignments made before ids were derived have random ids.
+    return (await this.assignmentsForSite(siteId)).find(row =>
+      row.publicationId === publicationId && row.reviewerUserId === reviewerUserId) || null;
   }
   async assignmentsForSite(siteId: string) {
-    await this.hydrate();
-    return this.memory.assignmentsForSite(siteId);
+    return (await (await this.records()).list<ReviewAssignment>('assignments'))
+      .filter(row => row.siteId === siteId).sort(newestFirst);
   }
   async assignmentsForReviewer(siteId: string, reviewerUserId: string) {
-    await this.hydrate();
-    return this.memory.assignmentsForReviewer(siteId, reviewerUserId);
+    return (await this.assignmentsForSite(siteId)).filter(row => row.reviewerUserId === reviewerUserId);
   }
   async canViewSnapshot(siteId: string, publicationId: string, userId: string, role: string) {
-    await this.hydrate();
-    return this.memory.canViewSnapshot(siteId, publicationId, userId, role);
+    if (role === 'owner') return true;
+    return !!(await this.assignmentFor(siteId, publicationId, userId));
   }
-  addComment(input: Parameters<PublicationReviewStore['addComment']>[0]) {
-    return this.run(() => this.memory.addComment(input));
+  async addComment(input: Parameters<PublicationReviewStore['addComment']>[0]) {
+    const assignment = await this.readAssignment(input.assignmentId);
+    if (!assignment) throw new Error('missing_assignment');
+    const row = newComment(assignment, input);
+    await (await this.records()).write(`comments/${assignment.id}/${row.id}.json`, row);
+    return row;
   }
   async comments(assignmentId: string) {
-    await this.hydrate();
-    return this.memory.comments(assignmentId);
+    if (!ID.test(assignmentId)) return [];
+    return (await (await this.records()).list<ReviewComment>(`comments/${assignmentId}`)).sort(oldestFirst);
   }
-  decide(input: Parameters<PublicationReviewStore['decide']>[0]) {
-    return this.run(() => this.memory.decide(input));
+  async decide(input: Parameters<PublicationReviewStore['decide']>[0]) {
+    if (!REVIEW_DECISIONS.includes(input.status)) throw new Error('invalid_decision');
+    const assignment = await this.readAssignment(input.assignmentId);
+    if (!assignment) throw new Error('missing_assignment');
+    if ((await this.decision(assignment.id))?.status === 'cancelled') throw new Error('review_cancelled');
+    const row = newDecision(assignment, input);
+    await (await this.records()).write(`decisions/${assignment.id}/${row.id}.json`, row);
+    return row;
   }
+  /** The latest decision, except that a cancellation is final. */
   async decision(assignmentId: string) {
-    await this.hydrate();
-    return this.memory.decision(assignmentId);
+    if (!ID.test(assignmentId)) return null;
+    const rows = (await (await this.records()).list<ReviewDecision>(`decisions/${assignmentId}`)).sort(oldestFirst);
+    return rows.find(row => row.status === 'cancelled') || rows.at(-1) || null;
   }
-  notify(input: Parameters<PublicationReviewStore['notify']>[0]) {
-    return this.run(() => this.memory.notify(input));
+  async notify(input: Parameters<PublicationReviewStore['notify']>[0]) {
+    const row: ReviewNotice = { ...input, id: randomUUID(), createdAt: now(), readAt: null };
+    await (await this.records()).write(`notices/${digest(input.userId)}/${row.id}.json`, row);
+    return row;
   }
   async notices(userId: string) {
-    await this.hydrate();
-    return this.memory.notices(userId);
+    return (await (await this.records()).list<ReviewNotice>(`notices/${digest(userId)}`)).sort(newestFirst);
   }
-  markRead(userId: string, noticeId: string) {
-    return this.run(() => this.memory.markRead(userId, noticeId));
+  async markRead(userId: string, noticeId: string) {
+    if (!ID.test(noticeId)) return false;
+    const files = await this.records(), path = `notices/${digest(userId)}/${noticeId}.json`;
+    const row = await files.read<ReviewNotice>(path);
+    if (!row) return false;
+    await files.write(path, { ...row, readAt: now() });
+    return true;
   }
-  enqueueEmail(input: Parameters<PublicationReviewStore['enqueueEmail']>[0]) {
-    return this.run(() => this.memory.enqueueEmail(input));
+  async enqueueEmail(input: Parameters<PublicationReviewStore['enqueueEmail']>[0]) {
+    const row = newEmail(input);
+    await (await this.records()).write(`emails/${row.id}.json`, row);
+    return row;
   }
-  markEmailDelivered(id: string) {
-    return this.run(() => this.memory.markEmailDelivered(id));
+  async markEmailDelivered(id: string) {
+    if (!ID.test(id)) return false;
+    const files = await this.records(), path = `emails/${id}.json`;
+    const row = await files.read<ReviewEmailWork>(path);
+    if (!row || row.deliveredAt) return false;
+    await files.write(path, { ...row, deliveredAt: now() });
+    return true;
   }
-  drainEmail(limit?: number) {
-    return this.run(() => this.memory.drainEmail(limit));
+  async drainEmail(limit = 10) {
+    const files = await this.records();
+    const rows = (await files.list<ReviewEmailWork>('emails')).sort(oldestFirst);
+    let processed = 0;
+    for (const row of rows) {
+      if (row.deliveredAt || processed >= limit) continue;
+      row.deliveredAt = now();
+      await files.write(`emails/${row.id}.json`, row);
+      processed += 1;
+    }
+    return { processed, pending: rows.filter(row => !row.deliveredAt).length };
   }
 }
 
