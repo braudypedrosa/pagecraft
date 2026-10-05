@@ -114,6 +114,7 @@ test('clicks are counted only for a real page of this site, and the endpoint nev
     { p: '/acme/about', l: 'Email us', t: 'mailto:' },
     { p: '/acme/not-a-page', l: 'Ghost', t: '' },
     { p: '/other/', l: 'Elsewhere', t: '' },
+    { p: 'http://[', l: 'Broken', t: '' }, // not a URL at all: still 204, never a 500
     'not json',
   ]) a.equal((await r.click(body)).status, 204);
   a.equal((await r.click({ p: '/acme/about', l: 'Wrong site', t: '' }, 'another-site')).status, 204);

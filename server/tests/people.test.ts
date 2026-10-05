@@ -229,3 +229,20 @@ test('another owner may demote you, which is the way that is meant to work', asy
   const list = await (await people(cookie)).json() as { email: string; role: Role }[];
   a.equal(list.find(p => p.email === one.email)!.role, 'content');
 });
+
+test('an owner changing their own role is told to ask another owner, not that they are the last one', async () => {
+  const { app, auth, site, signIn, member } = await rig();
+  const one = await member('one@acme.test', 'owner');
+  const cookie = await signIn(one.email);
+  const demote = () => app.request(new Request(`http://admin.test/sites/${site.id}/people/${one.id}/role`, {
+    method: 'POST', body: 'role=content',
+    headers: { host: 'admin.test', origin: 'http://admin.test', cookie, 'content-type': 'application/x-www-form-urlencoded' },
+  }));
+  a.match((await demote()).headers.get('location') || '', /\?error=people_last_owner$/, 'alone, they really are the last owner');
+  await member('two@acme.test', 'owner');
+  const res = await demote();
+  a.match(res.headers.get('location') || '', /\?error=people_self_role$/);
+  a.equal((await auth.membership(site.id, one.id))!.role, 'owner', 'still refused');
+  const page = await app.request(new Request(`http://admin.test${res.headers.get('location')}`, { headers: { host: 'admin.test', cookie } }));
+  a.match(await page.text(), /You can’t change your own role\. Ask another owner to do it\./);
+});

@@ -1610,7 +1610,8 @@ export function createApp(o: Options) {
     const body = await c.req.text().then((text) => JSON.parse(text)).catch(() => null) as { p?: unknown; l?: unknown; t?: unknown } | null;
     if (!body || typeof body.p !== "string" || body.p.length > 300) return done();
     // Which publication the page is in: its slug on the shared host, the host anywhere else.
-    const page = new URL(body.p, "https://page.invalid").pathname;
+    let page: string;
+    try { page = new URL(body.p, "https://page.invalid").pathname; } catch { return done(); }
     const shared = isEditorHost(c.req.header("host"), o);
     const [, first, ...rest] = page.split("/");
     const slug = shared ? validSlug(first || "") : null;
@@ -1874,7 +1875,9 @@ export function createApp(o: Options) {
       return c.redirect(`${base}?error=people_role`, 303);
     }
     if (c.req.param("userId") === gate.user.id && role !== "owner") {
-      return c.redirect(`${base}?error=people_last_owner`, 303);
+      // Refused either way; only say "last owner" when it is true.
+      const owners = (await o.auth.members(id)).filter((member) => member.role === "owner");
+      return c.redirect(`${base}?error=${owners.some((member) => member.userId !== gate.user.id) ? "people_self_role" : "people_last_owner"}`, 303);
     }
     const changed = await o.auth.changeMemberRole(
       id,
@@ -1973,6 +1976,11 @@ export function createApp(o: Options) {
     const liveDeveloper = await liveReviews.invited(id, normalEmail(gate.user.email), 'developer');
     const liveLinks = (await liveReviews.links(id)).filter(link => link.active && (gate.role === 'owner' || link.access === 'public' || link.access === 'private' && liveInvited || link.access === 'developer' && liveDeveloper));
     const invitations = gate.role === 'owner' ? await liveReviews.invitations(id) : [];
+    // Snapshot reviews still waiting on this person, otherwise found only through Notifications.
+    const assigned = gate.role === "owner" || gate.role === "reviewer"
+      ? (await Promise.all((await reviews.assignmentsForReviewer(id, gate.user.id))
+        .map(async (row) => (await reviews.decision(row.id)) ? null : row))).filter((row) => row !== null)
+      : [];
     return c.html(siteReviewsPage(gate.user, {
       id: site.id,
       name: site.name,
@@ -1986,6 +1994,7 @@ export function createApp(o: Options) {
     }, {
       links: liveLinks,
       invitations,
+      assigned,
       error: c.req.query("error"),
       message: c.req.query("message"),
     }));

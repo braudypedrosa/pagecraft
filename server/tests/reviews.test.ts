@@ -119,6 +119,10 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
 
   const assignment = (await reviews.assignmentsForReviewer(site.id, reviewer.id))[0];
   a.ok(assignment);
+  // The reviewer finds the assigned snapshot on the Reviews page, not only through Notifications.
+  a.match(listHtml, /<h2 id="assigned-reviews-title">Assigned to you<\/h2>/);
+  a.ok(listHtml.includes(`href="/sites/${encodeURIComponent(site.id)}/reviews/${assignment.id}"`));
+  a.doesNotMatch(await (await as(ownerCookie, `/sites/${site.id}/reviews`)).text(), /Assigned to you/, 'nothing is assigned to the owner');
   const commented = await as(reviewerCookie, `/sites/${site.id}/reviews/${assignment.id}/comments`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -140,6 +144,7 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
   } as RequestInit);
   a.equal(decided.status, 303);
   a.equal((await reviews.decision(assignment.id))?.status, 'changes_requested');
+  a.doesNotMatch(await (await as(reviewerCookie, `/sites/${site.id}/reviews`)).text(), /Assigned to you/, 'a decided review is no longer open');
 
   const cancelled = await as(ownerCookie, `/sites/${site.id}/reviews/${assignment.id}/decision`, {
     method: 'POST',

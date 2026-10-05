@@ -181,3 +181,66 @@ test('Date header toggles order and retains it for filtering, export and deletio
   expect(html).toContain('name="order" value="asc"');
   expect(html).not.toContain('<th>Received</th>');
 });
+
+test('failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pc-inbox-cap-'));
+  try {
+    const store = new FileSubmissionStore(root);
+    const {mkdir, readdir, writeFile} = await import('node:fs/promises');
+    const {createHash} = await import('node:crypto');
+    const dir = join(root, createHash('sha256').update('site').digest('hex'));
+    const id = (prefix: string, n: number) => `${prefix}-0000-4000-8000-${String(n).padStart(12,'0')}`;
+    const entry = (n: number, status: 'success' | 'failed', extra = {}) => ({id:id(status === 'failed' ? 'ffffffff' : '00000000', n),formId:'contact',formName:'Contact',status,createdAt:new Date(n*1000).toISOString(),values:[],...extra});
+    // A full inbox from before failed entries had their own folder: 9,950 entries and 50 failures.
+    await mkdir(dir);
+    for (let offset=0; offset<10000; offset+=250) await Promise.all(Array.from({length:250}, (_,j) => {
+      const n = offset + j, row = n < 50 ? entry(n, 'failed', {error:'Enter a valid email address.'}) : entry(n, 'success');
+      return writeFile(join(dir, row.id + '.json'), JSON.stringify(row));
+    }));
+    // The old failures are moved out of the way, so a real submission is still accepted.
+    expect(await store.add('site', entry(20000, 'success'))).toBe(true);
+    expect((await readdir(join(dir, 'failed'))).filter(f => f.endsWith('.json'))).toHaveLength(50);
+
+    // Junk keeps only the most recent 200 failures, and never blocks real entries.
+    for (let n=30000; n<30250; n++) await store.add('site', entry(n, 'failed', {error:'Enter a valid email address.'}));
+    const failed = (await store.overview('site')).filter(e => e.status === 'failed');
+    expect(failed).toHaveLength(200);
+    expect(failed.map(e => e.createdAt).sort()[0]).toBe(new Date(30050*1000).toISOString());
+    for (let n=20001; n<20050; n++) expect(await store.add('site', entry(n, 'success'))).toBe(true);
+    await expect(store.add('site', entry(20050, 'success'))).rejects.toThrow('Inbox is full.');
+    expect(await store.add('site', entry(30250, 'failed', {error:'Check Email.'}))).toBe(true);
+
+    // The inbox and the CSV still list failures with their reason and no values.
+    const summary = await store.overview('site');
+    expect(summary.filter(e => e.status !== 'failed')).toHaveLength(10000);
+    const shown = await store.page('site', summary, 'contact', 'failed', 1);
+    expect(shown.items[0]).toMatchObject({status:'failed', error:'Check Email.', values:[]});
+    expect(submissionsCsv(shown.items)).toContain('"failed","Check Email."');
+    expect(await store.remove('site', shown.items[0].id)).toBe(true);
+    expect((await store.list('site')).filter(e => e.status === 'failed')).toHaveLength(199);
+  } finally { await rm(root,{recursive:true,force:true}); }
+}, 30000);
+
+test('a failed entry stored beside successful ones before they were separated still opens', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pc-inbox-legacy-'));
+  try {
+    const store = new FileSubmissionStore(root);
+    const {mkdir, writeFile} = await import('node:fs/promises');
+    const {createHash} = await import('node:crypto');
+    const dir = join(root, createHash('sha256').update('site').digest('hex'));
+    await mkdir(dir);
+    const old = {id:'00000000-0000-4000-8000-000000000001',formId:'contact',formName:'Contact',status:'failed',error:'Enter a valid date.',createdAt:'2026-09-01T00:00:00Z',values:[]};
+    await writeFile(join(dir, old.id + '.json'), JSON.stringify(old));
+    const summary = await store.overview('site');
+    expect((await store.page('site', summary, 'contact', 'failed', 1)).items).toMatchObject([{error:'Enter a valid date.'}]);
+    expect(await store.remove('site', old.id)).toBe(true);
+  } finally { await rm(root,{recursive:true,force:true}); }
+});
+
+test('submission dates are UTC <time> elements the browser rewrites in its own time zone', () => {
+  const entry = {id:'one',formId:'qa-form',formName:'Contact QA',status:'success' as const,createdAt:'2026-09-10T23:30:00.000Z',values:[]};
+  const html = siteSubmissionsPage({id:'qa',email:'qa@example.test',name:'QA'},{id:'site',name:'QA'},'owner',siteForms(source()),[entry],'qa-form','',1,true,[entry]);
+  expect(html).toMatch(/<time datetime="2026-09-10T23:30:00.000Z" data-local="full">Sep 10, 2026, 11:30\sPM<\/time>/);
+  expect(html).toContain("new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'})");
+  expect(html).toContain('new MutationObserver(local)');
+});
