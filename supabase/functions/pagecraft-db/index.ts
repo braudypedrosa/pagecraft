@@ -322,6 +322,19 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `,
         )
       );
+    /* The owned-site limit counts sites a person created, not ones somebody else added them to
+       as an owner. The creator is the author of the site's first revision, which every created
+       site writes; a site with no recorded author still counts. */
+    case "account.ownedSiteCount":
+      return integer(one(
+        await sql<{ count: number }[]>`
+        select count(*)::integer as count from site_users membership
+        where membership.user_id = ${text(args.ownerId)} and membership.role = 'owner'
+          and coalesce((select first.saved_by from site_revisions first
+            where first.site_id = membership.site_id order by first.version limit 1),
+            membership.user_id) = membership.user_id
+      `,
+      )?.count);
     case "account.createOwnedSite":
       return await sql.begin(async (transaction) => {
         const ownerId = text(args.ownerId);
@@ -329,8 +342,11 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           await transaction`select id from users where id = ${ownerId} for update`;
         if (!owner[0]) return { status: "missing" };
         const owned = await transaction<{ count: number }[]>`
-          select count(*)::integer as count from site_users
-          where user_id = ${ownerId} and role = 'owner'
+          select count(*)::integer as count from site_users membership
+          where membership.user_id = ${ownerId} and membership.role = 'owner'
+            and coalesce((select first.saved_by from site_revisions first
+              where first.site_id = membership.site_id order by first.version limit 1),
+              membership.user_id) = membership.user_id
         `;
         if (integer(owned[0]?.count) >= 3) {
           return { status: "limit" };
@@ -3346,16 +3362,35 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         limit 1
       `,
       );
+    /* A refresh token unused for 90 days stops working. Every refresh moves `updated_at`, so
+       that column is when the token was last used. */
     case "auth.manualImport.byRefresh":
       return one(
         await sql`
         select * from wordpress_import_credentials
         where refresh_token_digest = ${
           text(args.digest)
-        } and status = 'active' limit 1
+        } and status = 'active' and updated_at > now() - interval '90 days'
+        limit 1
       `,
       );
     case "auth.manualImport.rotate":
+      /* With `refreshDigest` the refresh token rotates too, but only while the presented one is
+         still current, so a replayed old token cannot rotate. Without it (older servers), only
+         the access token changes. */
+      if (args.refreshDigest) {
+        return one(
+          await sql`
+          update wordpress_import_credentials
+          set access_token_digest = ${text(args.digest)}, access_expires_at = ${
+            text(args.expiresAt)
+          }, refresh_token_digest = ${text(args.refreshDigest)}, updated_at = now()
+          where id = ${text(args.id)} and status = 'active'
+            and refresh_token_digest = ${text(args.previousRefreshDigest)}
+          returning *
+        `,
+        );
+      }
       return one(
         await sql`
         update wordpress_import_credentials

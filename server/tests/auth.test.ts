@@ -4,14 +4,14 @@
    no, because those are the ones that are wrong silently: a token that works twice, a
    session that outlives its expiry, a signed-in stranger reading somebody else's document.
    `app.test.ts` already exercises the flow end to end for every write it makes. */
-import { test } from 'vitest';
+import { test, vi } from 'vitest';
 import a from 'node:assert/strict';
 import * as Core from '../../app/src/core/index.ts';
 import { createApp, SESSION_COOKIE } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import {
   MemoryAuthStore, hashToken, newToken, roleAllows, roleMayReview, normalEmail, sameDigest,
-  LINK_TTL_MS, SESSION_TTL_MS, type Role
+  LINK_TTL_MS, SESSION_TTL_MS, MANUAL_IMPORT_IDLE_MS, type Role
 } from '../src/auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
@@ -296,4 +296,31 @@ test('the site itself stays public — a visitor is never asked who they are', a
 test('the two lifetimes are the ones the comments claim', () => {
   a.equal(LINK_TTL_MS, 15 * 60 * 1000);
   a.equal(SESSION_TTL_MS, 30 * 24 * 60 * 60 * 1000);
+});
+
+test('a WordPress refresh token rotates once per use and lapses after 90 idle days', async () => {
+  a.equal(MANUAL_IMPORT_IDLE_MS, 90 * 24 * 60 * 60 * 1000);
+  const auth = new MemoryAuthStore();
+  const owner = await auth.createUser('owner@acme.test');
+  const first = hashToken('refresh-1'), second = hashToken('refresh-2');
+  const credential = await auth.createManualImportCredential({
+    id: 'wp-1', ownerId: owner.id, installationId: 'wp-install', accessTokenDigest: hashToken('access-1'),
+    accessExpiresAt: Date.now() + 60_000, refreshTokenDigest: first,
+  });
+  const rotated = await auth.rotateManualImportAccess(credential.id, hashToken('access-2'), Date.now() + 60_000,
+    { digest: second, previous: first });
+  a.equal(rotated?.refreshTokenDigest, second);
+  a.equal(await auth.manualImportByRefresh(first), null, 'the old refresh token is gone');
+  a.equal(await auth.rotateManualImportAccess(credential.id, hashToken('access-3'), Date.now() + 60_000,
+    { digest: hashToken('refresh-3'), previous: first }), null, 'a replayed old token cannot rotate');
+
+  const now = Date.now();
+  vi.spyOn(Date, 'now').mockReturnValue(now + MANUAL_IMPORT_IDLE_MS - 60_000);
+  try {
+    a.ok(await auth.manualImportByRefresh(second), 'still usable just inside 90 days');
+    vi.spyOn(Date, 'now').mockReturnValue(now + MANUAL_IMPORT_IDLE_MS + 60_000);
+    a.equal(await auth.manualImportByRefresh(second), null, 'unused for 90 days, it no longer works');
+  } finally {
+    vi.restoreAllMocks();
+  }
 });

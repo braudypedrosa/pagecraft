@@ -562,6 +562,9 @@ const app = createApp({
   siteTemplates,
   challenge,
   turnstileSiteKey: testAuth ? "pagecraft-local-test" : turnstileSiteKey,
+  // Only when Cloudflare really fronts the origin; otherwise anyone can send CF-Connecting-IP.
+  trustCloudflare: process.env.PAGECRAFT_TRUST_CLOUDFLARE === "1",
+  cookieSecret: process.env.PAGECRAFT_COOKIE_SECRET || undefined,
   publications,
   hostedPublish,
   cloudMutations,
@@ -596,12 +599,13 @@ console.log(schedulingEnabled
   ? `scheduling enabled (run endpoint ${scheduleRunnerKey ? "on" : "off"}, timer ${process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" ? "on" : "off"})`
   : "scheduling disabled: set PAGECRAFT_SCHEDULE_RUNNER=1 and/or PAGECRAFT_SCHEDULE_RUNNER_KEY");
 
-serve({ fetch: (request) => {
+serve({ fetch: (request, env) => {
   const url = new URL(request.url);
   if (deployment && url.hostname === EDITOR_HOST && url.pathname === "/__deployment") {
     return Response.json(deployment, { headers: { "cache-control": "no-store" } });
   }
-  return app.fetch(request);
+  // `env` carries the socket, the last resort for a client address with no proxy header.
+  return app.fetch(request, env);
 }, port: PORT, hostname: process.env.BIND_HOST }, (info) => {
   console.log(`editor   http://${EDITOR_HOST}:${info.port}/`);
   console.log(`api      http://${EDITOR_HOST}:${info.port}/api/sites`);
