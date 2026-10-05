@@ -483,7 +483,10 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
             <div class="lib-member" key={member.userId}>
               <span class="bn">
                 <b>{member.name || member.email}</b>
-                <small>{member.name ? member.email : ''}{member.awaitingAcceptance ? `${member.name ? ' · ' : ''}Awaiting acceptance` : member.pending ? `${member.name ? ' · ' : ''}No Pagecraft account yet` : ''}</small>
+                {member.awaitingAcceptance ? <>
+                  {member.name && <small>{member.email}</small>}
+                  <small>Awaiting acceptance</small>
+                </> : <small>{member.name ? member.email : ''}{member.pending ? `${member.name ? ' · ' : ''}No Pagecraft account yet` : ''}</small>}
               </span>
               <button type="button" class="bx danger" title={`Stop sharing with ${member.email}`}
                 aria-label={`Stop sharing with ${member.email}`} disabled={busy} onClick={() => remove(member)}>

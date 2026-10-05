@@ -15149,9 +15149,12 @@ var PC_UI = (() => {
         shown2.map((member) => /* @__PURE__ */ u2("div", { class: "lib-member", children: [
           /* @__PURE__ */ u2("span", { class: "bn", children: [
             /* @__PURE__ */ u2("b", { children: member.name || member.email }),
-            /* @__PURE__ */ u2("small", { children: [
+            member.awaitingAcceptance ? /* @__PURE__ */ u2(S, { children: [
+              member.name && /* @__PURE__ */ u2("small", { children: member.email }),
+              /* @__PURE__ */ u2("small", { children: "Awaiting acceptance" })
+            ] }) : /* @__PURE__ */ u2("small", { children: [
               member.name ? member.email : "",
-              member.awaitingAcceptance ? `${member.name ? " \xB7 " : ""}Awaiting acceptance` : member.pending ? `${member.name ? " \xB7 " : ""}No Pagecraft account yet` : ""
+              member.pending ? `${member.name ? " \xB7 " : ""}No Pagecraft account yet` : ""
             ] })
           ] }),
           /* @__PURE__ */ u2(
