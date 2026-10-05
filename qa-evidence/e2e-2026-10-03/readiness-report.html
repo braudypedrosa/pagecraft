@@ -87,6 +87,11 @@ details > summary { cursor: pointer; font: 700 16px/1.4 var(--display); padding:
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px }
 .box { background: var(--surface); border: 1px solid var(--rule); padding: 14px 16px; display: grid; gap: 8px; min-width: 0 }
 .box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px }
+.fstatus { font-size: 13.5px; margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap }
+.chip.st-fixed { color: var(--pass); background: var(--pass-bg) } .chip.st-partial, .chip.st-open { color: var(--watch); background: var(--watch-bg) } .chip.st-kept { color: var(--low); background: var(--accent-soft) }
+.update { background: var(--pass-bg); border-left: 4px solid var(--pass); padding: 18px 20px; display: grid; gap: 10px }
+.update strong.v { font: 800 13px/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--pass) }
+.update ul { margin: 0; padding-left: 18px; display: grid; gap: 4px }
 @media (max-width: 560px) { .finding dl { grid-template-columns: 1fr } .finding dt { margin-top: 4px } }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto } }
 </style>
@@ -98,8 +103,31 @@ details > summary { cursor: pointer; font: 700 16px/1.4 var(--display); padding:
     <p class="lede">A full end-to-end pass over every feature and role, plus a risk-first code review of the whole codebase with each finding checked against the code before it was listed.</p>
   </div>
 
+  <div class="update" role="note">
+    <strong class="v">Update · 5 October 2026: fixes deployed to staging</strong>
+    <p>Staging now runs <code>58555d8</code>. It fixes every verified finding except the shared database, which is intentional. Production still runs <code>cc026d6</code>. The gateway (v23) is shared with production and was checked for compatibility before deploying.</p>
+    <p>Fixed and checked:</p>
+    <ul>
+      <li>All 1,607 tests pass, and all 24 UI gallery baselines match.</li>
+      <li>Spoofed IP headers no longer bypass rate limits.</li>
+      <li>The published home page is 81 KB instead of 397 KB, and loads in 2.2 s instead of 26 s.</li>
+      <li>The sitemap, a styled 404 page and old-slug redirects work.</li>
+      <li>Failed form posts no longer count toward the inbox cap.</li>
+      <li>Dates show in the reader's own time zone.</li>
+      <li>The review stores migrated to one file per record.</li>
+      <li>The editor runs under the new canvas script policy.</li>
+    </ul>
+    <p>Still open:</p>
+    <ul>
+      <li>Signed-in latency is still 1–2.6 s; fixing it needs a hosting decision.</li>
+      <li>Three follow-ups need a database migration: an accept step for library shares, the WordPress site URL in the credentials list, and token reuse detection.</li>
+      <li>Owner invites still take effect without the person accepting.</li>
+      <li>Schedules still run on a 5-minute cron.</li>
+    </ul>
+    <p>Each finding below has its status.</p>
+  </div>
   <div class="verdict" role="note">
-    <strong class="v">Not ready for production yet</strong>
+    <strong class="v">As reviewed on 3 October: not ready for production</strong>
     <p>The product works: 71 of 90 end-to-end checks pass, and every permission boundary held under test. What blocks launch is a short list of problems that would hurt real customers:</p>
     <ul>
       <li>A content editor can run script in the owner's editor.</li>
@@ -153,66 +181,77 @@ details > summary { cursor: pointer; font: 700 16px/1.4 var(--display); padding:
     <div class="findings">
 <article class="finding f-high" id="h1">
   <header><span class="fid">H1</span><span class="farea">Security</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. CMS text in rich slots is escaped and rich fields go through an allowlist.</p>
   <h4>A content editor can run script in the owner&#x27;s editor</h4>
   <p>A CMS text field bound to a Text widget&#x27;s rich-text slot is inserted as raw HTML. The auto-mapper makes that binding by default when a collection has no rich field. The server accepts any text in a text field, and the editor canvas is same-origin with no CSP, so the script runs with the owner&#x27;s session. On the published site it is a visitor-facing XSS.</p>
   <dl><dt>Where</dt><dd><code>core index.ts:4209, 4277, 4414, 7258 · content.ts:154, 215 · cms-validation.ts:170</code></dd><dt>Fix</dt><dd>Escape field-bound values unless the field is rich text, limit rich slots to rich fields, and sanitize rich output at render.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-high" id="h2">
   <header><span class="fid">H2</span><span class="farea">Infrastructure</span></header>
+  <p class="fstatus s-kept"><span class="chip st-kept">Kept</span> Kept by decision: sharing one database is intentional for now.</p>
   <h4>Staging can change production sites</h4>
   <p>Staging and production share one database and the sites table has no environment scoping. A staging delete cascades production memberships, a staging rename re-points the row, and a staging publish writes a pointer production can&#x27;t resolve.</p>
   <dl><dt>Where</dt><dd><code>staging-environment.ts (only background workers are blocked) · gateway sites table</code></dd><dt>Fix</dt><dd>Give production its own Supabase project before launch, or scope every site row and gateway op by environment.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-high" id="h3">
   <header><span class="fid">H3</span><span class="farea">Security</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed and verified on staging: spoofed headers no longer escape the limit.</p>
   <h4>Anyone can spoof their IP, defeating every rate limit</h4>
   <p>Both domains resolve straight to the origin (67.223.118.197, LiteSpeed) with no Cloudflare in front, yet the server trusts the client&#x27;s cf-connecting-ip and X-Forwarded-For headers. Per-source limits on sign-in, forms, registration and clicks can be bypassed. Flooding fake sources fills the 5,000-key throttle maps, which then refuse every new real visitor.</p>
   <dl><dt>Where</dt><dd><code>app.ts:379-381 · mail.ts throttle().take · checked live 3 Oct</code></dd><dt>Fix</dt><dd>Use the socket peer address (or the hop LiteSpeed appends); trust CF headers only from Cloudflare ranges; evict the oldest key instead of refusing.</dd><dt>Found by</dt><dd>review, verified</dd></dl>
 </article>
 <article class="finding f-high" id="h4">
   <header><span class="fid">H4</span><span class="farea">Security</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Captcha runs first, and only wrong passwords count against an email.</p>
   <h4>Sign-in can be locked for any email without solving the captcha</h4>
   <p>The per-email limiter is spent before the captcha check, so 8 empty-token requests lock a victim&#x27;s sign-in and password reset for 15 minutes. Combined with H3 it can be repeated indefinitely from fake sources.</p>
   <dl><dt>Where</dt><dd><code>app.ts:1260, 1297-1299, 1391-1394</code></dd><dt>Fix</dt><dd>Run the captcha first; count only failed password attempts against an email.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-high" id="h5">
   <header><span class="fid">H5</span><span class="farea">Forms</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed and verified: failed posts are kept separately (200 max) and don’t count toward the cap.</p>
   <h4>Failed submissions can fill a site&#x27;s inbox and block real ones</h4>
   <p>Validation failures are stored as entries, and the inbox refuses everything once 10,000 entries exist. Anonymous POSTs missing a required field can fill it in under 2 hours (faster with H3). After that every real submission gets a 503, and recovery is one delete at a time.</p>
   <dl><dt>Where</dt><dd><code>submissions-routes.ts:125-130 · submissions.ts:102</code></dd><dt>Fix</dt><dd>Don&#x27;t store failures (log a count instead), or exclude them from the cap.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-high" id="h6">
   <header><span class="fid">H6</span><span class="farea">Data loss</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed and verified: one file per record; the migration ran on staging.</p>
   <h4>Reviews and live-review links lose data across server processes</h4>
   <p>Each process reads the state file once and rewrites its whole in-memory copy on every change, so one process overwrites another&#x27;s assignments, comments and decisions, and a revoked review link comes back active. Today each app runs one Node process, but LiteSpeed starts more under load, and a leftover deploy process is running against the same files (H11).</p>
   <dl><dt>Where</dt><dd><code>reviews.ts:295-318 · live-reviews.ts:21-40</code></dd><dt>Fix</dt><dd>One file per record (as schedules and assistants already do), or lock and re-read on every write.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-high" id="h7">
   <header><span class="fid">H7</span><span class="farea">Data integrity</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Site cache cut to 30 s; schedules, forms and syncs read fresh.</p>
   <h4>A 4-hour per-process site cache goes stale across processes</h4>
   <p>Whole site records (doc, version, slug, host, publication) are cached for 4 hours and cleared only by the process that wrote them. A schedule run can republish at an old slug, forms get 404 after a slug change, the editor loads an old draft, and Uplisting syncs keep failing with 409.</p>
   <dl><dt>Where</dt><dd><code>store-gateway.ts:252, 270-277 · schedule-runner.ts:50-54</code></dd><dt>Fix</dt><dd>Read fresh in the schedule runner and form route; shorten the TTL to about 30 s or check updated_at.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-high" id="h8">
   <header><span class="fid">H8</span><span class="farea">Editor</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Nested instances are found, and deletes keep each instance’s text, variant and styling.</p>
   <h4>Deleting a component loses content</h4>
   <p>Instances nested inside another component&#x27;s definition aren&#x27;t found, so they&#x27;re left pointing at a component that no longer exists and their content disappears (reproduced). Every other instance loses the definition&#x27;s root styling and reverts its own text and variant to the definition&#x27;s defaults.</p>
   <dl><dt>Where</dt><dd><code>core index.ts:4785 instances() · 4849 componentDelete · E2E L37, L38</code></dd><dt>Fix</dt><dd>Scan definitions in instances(); merge root fields and resolve property values into each instance before flattening.</dd><dt>Found by</dt><dd>E2E L37, L38 + review</dd></dl>
 </article>
 <article class="finding f-high" id="h9">
   <header><span class="fid">H9</span><span class="farea">Editor</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Saving is blocked after a failed load.</p>
   <h4>A document the editor can&#x27;t read is replaced by the demo on the next edit</h4>
   <p>If the stored document can&#x27;t be adopted (newer schema, corrupt), the editor seeds the demo, marks it saved, and the first edit PUTs the demo over the real draft with the right version. Hosted drafts can be recovered from history; the single-file build loses the project permanently.</p>
   <dl><dt>Where</dt><dd><code>builder.html:2744, 2766, 6568-6571</code></dd><dt>Fix</dt><dd>Block saving after a failed load and show a clear &#x27;not saving&#x27; state.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-high" id="h10">
   <header><span class="fid">H10</span><span class="farea">Performance</span></header>
+  <p class="fstatus s-partial"><span class="chip st-partial">Partly fixed</span> Page weight fixed and verified (397 → 81 KB, 26 s → 2.2 s). Signed-in latency is unchanged at 1–2.6 s: it needs a hosting decision.</p>
   <h4>Published pages are heavy and the host is slow</h4>
   <p>Every page inlines 8 woff2 fonts (295 KB base64) in 353 KB of CSS: about 400 KB per page, 243 KB gzipped. The host sends about 16 KB/s, so full loads take 15–31 s. Signed-in pages and APIs take 1–2 s each, and writes 2.4–8.7 s.</p>
   <dl><dt>Where</dt><dd><code>E2E S16, S47</code></dd><dt>Fix</dt><dd>Serve fonts as cached files (one per face, shared across pages); put a CDN in front; profile the auth and gateway round trips per request.</dd><dt>Found by</dt><dd>E2E S16, S47</dd></dl>
 </article>
 <article class="finding f-high" id="h11">
   <header><span class="fid">H11</span><span class="farea">Operations</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. The process was stopped, and the deploy receiver now kills a stuck candidate.</p>
   <h4>A failed deploy left a server process running old code against live staging files</h4>
   <p>PID 1710557 has been running for about 35 hours from a deleted release directory (commit af1cbcdd). It listens only on localhost:35893 but uses the live staging publication root. Every per-process store in H6 and H7 can be overwritten by it.</p>
   <dl><dt>Where</dt><dd><code>Checked on the server 3 Oct</code></dd><dt>Fix</dt><dd>Stop the process, and make the deploy script kill its candidate on every exit path.</dd><dt>Found by</dt><dd>verified</dd></dl>
@@ -225,84 +264,98 @@ details > summary { cursor: pointer; font: 700 16px/1.4 var(--display); padding:
     <div class="findings">
 <article class="finding f-medium" id="m1">
   <header><span class="fid">M1</span><span class="farea">Security</span></header>
+  <p class="fstatus s-partial"><span class="chip st-partial">Partly fixed</span> Imports are sanitized and embeds need confirmation. An accept step for shares needs a migration and is not done.</p>
   <h4>Shared libraries can deliver script into the recipient&#x27;s editor</h4>
   <p>Anyone can share a library to any email with no accept step. On import, or on accepting an update, raw text HTML, embeds, link targets and names are copied as is. A library that was harmless at v1 can turn malicious at v2.</p>
   <dl><dt>Where</dt><dd><code>app.ts:2928-2961 · libraries.ts:321, 378 · E2E L43</code></dd><dt>Fix</dt><dd>Sanitize bundles on import (rich-text allowlist, confirm embeds, validate ids and targets); add an accept step for shares.</dd><dt>Found by</dt><dd>review, E2E L43</dd></dl>
 </article>
 <article class="finding f-medium" id="m2">
   <header><span class="fid">M2</span><span class="farea">Security</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Canvas CSP, a stricter stripScripts, sandboxed preview embeds and escaped sinks; checked in a real browser.</p>
   <h4>The editor canvas has no isolation</h4>
   <p>The canvas is an unsandboxed same-origin srcdoc iframe with no CSP, and stripScripts misses handlers written without a leading space (svg/onload, img src=x/onerror) and javascript: iframes. Every gap above becomes session riding.</p>
   <dl><dt>Where</dt><dd><code>builder.html:3063, 3258 · core index.ts:6982-6989</code></dd><dt>Fix</dt><dd>Add a nonce CSP meta to the canvas srcdoc; render embeds in a sandboxed iframe; escape target, ids and crumb hrefs.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m3">
   <header><span class="fid">M3</span><span class="farea">Security</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Same-origin check on next.</p>
   <h4>Open redirect after sign-in</h4>
   <p>safeNext accepts /\t/evil.com, which browsers resolve to evil.com. It fires after login, email confirmation, password reset and Google sign-in.</p>
   <dl><dt>Where</dt><dd><code>app.ts:1168-1174</code></dd><dt>Fix</dt><dd>Resolve against the origin and require the same origin, or reject control characters and backslashes.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m4">
   <header><span class="fid">M4</span><span class="farea">Security</span></header>
+  <p class="fstatus s-partial"><span class="chip st-partial">Partly fixed</span> List, revoke, rotation, a 90-day expiry and revocation on password change are done, and editor sessions are capped. Showing the site URL needs a migration.</p>
   <h4>WordPress credentials and sessions are too powerful</h4>
   <p>Import credentials never expire, can&#x27;t be listed or revoked by the owner, survive a password change, and cover every site the user will ever own. A connected-mode editor session (routes still live) acts as a full owner and skips the origin check.</p>
   <dl><dt>Where</dt><dd><code>store-pg.ts:2197-2213 · app.ts:504, 703-720, 4694</code></dd><dt>Fix</dt><dd>Add owner list/revoke, expiry and rotation; revoke on password change; cap editor sessions at write access or remove the retired routes.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m5">
   <header><span class="fid">M5</span><span class="farea">Security</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Email links sign in on POST, and reset needs a recovery session.</p>
   <h4>Login CSRF and weak password reset</h4>
   <p>A token_hash link signs the victim into the attacker&#x27;s account on GET. Any session can set a new password without the current one or a recovery marker.</p>
   <dl><dt>Where</dt><dd><code>account-auth.ts:121-127 · app.ts:1228, 1411-1431</code></dd><dt>Fix</dt><dd>Confirm token_hash sign-in with a POST; bind password reset to a fresh recovery session; turn on Supabase&#x27;s &#x27;require current password&#x27;.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m6">
   <header><span class="fid">M6</span><span class="farea">Data integrity</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed differently: the database delete runs first; a site with signed releases is refused cleanly (none exist).</p>
   <h4>Deleting a WordPress-connected site half-completes</h4>
   <p>Node wipes submissions and takes the site offline, then the database delete fails on a restrict foreign key. The inbox is gone, the site is offline but still listed, and every retry fails.</p>
   <dl><dt>Where</dt><dd><code>wordpress_connected_v1.sql:59, 127 · app.ts:2421-2425</code></dd><dt>Fix</dt><dd>Delete database rows first in one transaction, then files.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m7">
   <header><span class="fid">M7</span><span class="farea">Infrastructure</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. The key hash is cached.</p>
   <h4>Bogus gateway keys each cost a database query</h4>
   <p>The gateway function is public, and any non-empty key runs a query against a 3-connection pool, so junk requests can exhaust it.</p>
   <dl><dt>Where</dt><dd><code>pagecraft-db/index.ts:186-193 · config.toml:416</code></dd><dt>Fix</dt><dd>Cache the key hash in memory and reject before touching the pool.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m8">
   <header><span class="fid">M8</span><span class="farea">Analytics</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Caps apply when merging, and a reset time stops deleted counts coming back.</p>
   <h4>Analytics files can grow without limit, and deletes come back</h4>
   <p>Per-hour caps apply only to the 10-second buffer; merging uses no cap, and labels and referrers come from visitors. After Delete, in-memory day totals are rewritten by the next flush.</p>
   <dl><dt>Where</dt><dd><code>analytics.ts:104-108, 406, 430, 444 · app.ts:2306-2308</code></dd><dt>Fix</dt><dd>Apply caps when merging; store a reset time and drop older in-memory data.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m9">
   <header><span class="fid">M9</span><span class="farea">Scheduling</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Schedules are re-read after claiming.</p>
   <h4>A cancelled schedule can still publish</h4>
   <p>The runner works from a list it read once, so a schedule cancelled mid-run is claimed and published anyway, with no notice. Must be fixed before turning scheduling on in production.</p>
   <dl><dt>Where</dt><dd><code>schedule-runner.ts:107-111 · schedules.ts:306-331</code></dd><dt>Fix</dt><dd>Re-read after claiming and skip anything not pending; timestamp claims with the current time.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m10">
   <header><span class="fid">M10</span><span class="farea">CMS</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Short rows keep their values.</p>
   <h4>A CSV update blanks fields a short row leaves out</h4>
   <p>Missing trailing cells are written as empty strings, wiping existing values.</p>
   <dl><dt>Where</dt><dd><code>cms-import.ts:163 · E2E L35</code></dd><dt>Fix</dt><dd>Only write cells that exist in the row.</dd><dt>Found by</dt><dd>E2E L35</dd></dl>
 </article>
 <article class="finding f-medium" id="m11">
   <header><span class="fid">M11</span><span class="farea">Templates</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed for new sites: template images are copied into the site’s media.</p>
   <h4>Template-created sites hot-link images from the editor host</h4>
   <p>Images, favicon and og:image point at absolute https://staging.itspagecraft.com/templates/… URLs and aren&#x27;t in the site&#x27;s Media library. A site made on staging but published from production loads images from staging.</p>
   <dl><dt>Where</dt><dd><code>E2E L40</code></dd><dt>Fix</dt><dd>Copy template images into the site&#x27;s assets on creation (or use relative template paths).</dd><dt>Found by</dt><dd>E2E L40</dd></dl>
 </article>
 <article class="finding f-medium" id="m12">
   <header><span class="fid">M12</span><span class="farea">Editor</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed.</p>
   <h4>Component-mode drops and instance edits lose work</h4>
   <p>Dropping a node on empty canvas while editing a component removes it (undo recovers it). Inline-editing text on an instance root reverts on exit.</p>
   <dl><dt>Where</dt><dd><code>builder.html:3859 · core index.ts:1663, 1897 · builder.html:4090</code></dd><dt>Fix</dt><dd>Refuse drops without a container in component mode; write instance text through instSet.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m13">
   <header><span class="fid">M13</span><span class="farea">Editor</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed.</p>
   <h4>Duplicating a page twice produces duplicate slugs</h4>
   <p>Both copies become about-copy, and one silently replaces the other on publish or export.</p>
   <dl><dt>Where</dt><dd><code>core index.ts:2050</code></dd><dt>Fix</dt><dd>Make the duplicate&#x27;s slug unique.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-medium" id="m14">
   <header><span class="fid">M14</span><span class="farea">WordPress</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed in the editor (nonce refresh and retry). The plugin can optionally send restNonceUrl.</p>
   <h4>WordPress editor saves fail after 12–24 hours</h4>
   <p>The REST nonce is never refreshed. Saves then fail with a message wrongly saying the change isn&#x27;t the user&#x27;s to make.</p>
   <dl><dt>Where</dt><dd><code>Admin.php:788 · wordpress.ts:72 · builder.html:2571</code></dd><dt>Fix</dt><dd>Refresh the nonce on rest_cookie_invalid_nonce and through the heartbeat.</dd><dt>Found by</dt><dd>review</dd></dl>
@@ -315,66 +368,77 @@ details > summary { cursor: pointer; font: 700 16px/1.4 var(--display); padding:
     <div class="lowgrid">
 <article class="finding f-low" id="l1">
   <header><span class="fid">L1</span><span class="farea">Security</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed.</p>
   <h4>OAuth authorize redirects before sign-in</h4>
   <p>Open registration plus an error redirect gives an open redirector on the Pagecraft domain.</p>
   <dl><dt>Where</dt><dd><code>assistant-oauth.ts:80-116</code></dd><dt>Fix</dt><dd>Show an error page for parameter errors.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-low" id="l2">
   <header><span class="fid">L2</span><span class="farea">People</span></header>
+  <p class="fstatus s-partial"><span class="chip st-partial">Partly fixed</span> Leave site added, the quota counts only sites a person created, and the API is rate-limited. Owner invites are still immediate.</p>
   <h4>Owners can be added without consent</h4>
   <p>Forced ownership uses up the person&#x27;s 3-site quota and there is no Leave button. A co-owner can demote the site&#x27;s creator.</p>
   <dl><dt>Where</dt><dd><code>gateway site_users · accounts.ts:32 · E2E L17</code></dd><dt>Fix</dt><dd>Pending owner invites; a Leave site control.</dd><dt>Found by</dt><dd>review, E2E L17</dd></dl>
 </article>
 <article class="finding f-low" id="l3">
   <header><span class="fid">L3</span><span class="farea">Operations</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed.</p>
   <h4>Server-side clutter</h4>
   <p>OAuth client, consent and code files are never swept; site deletion leaves analytics, assistants, schedules and reviews behind.</p>
   <dl><dt>Where</dt><dd><code>assistants.ts:212-238 · app.ts:2420-2426</code></dd><dt>Fix</dt><dd>Sweep expired files; clean up on delete.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-low" id="l4">
   <header><span class="fid">L4</span><span class="farea">Assets</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed.</p>
   <h4>Asset upload edge cases</h4>
   <p>A failed putBlob can delete an existing stored file; library uploads can race past the storage quota.</p>
   <dl><dt>Where</dt><dd><code>pagecraft-db/index.ts:2347, 2424-2429, 2627</code></dd><dt>Fix</dt><dd>Track whether this call uploaded; lock the user row.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-low" id="l5">
   <header><span class="fid">L5</span><span class="farea">Assistants</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Proposals are claimed on the server, and insert ids are deterministic.</p>
   <h4>An insert proposal can be applied twice</h4>
   <p>Inserts only check that the component exists, so a retry after a failed decision duplicates content.</p>
   <dl><dt>Where</dt><dd><code>ProposalsWorkspace.tsx:173-186</code></dd><dt>Fix</dt><dd>Claim the proposal on the server before applying.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-low" id="l6">
   <header><span class="fid">L6</span><span class="farea">Editor</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed.</p>
   <h4>Smaller editor gaps</h4>
   <p>Making a component wipes the element&#x27;s HTML id; deleting a colour or class misses hover styles; about 0.6 s of edits can be lost on close.</p>
   <dl><dt>Where</dt><dd><code>core index.ts:4760, 2477, 2617 · builder.html:2644, 2674</code></dd><dt>Fix</dt><dd>Keep htmlId; cover hover styles; flush on pagehide.</dd><dt>Found by</dt><dd>review</dd></dl>
 </article>
 <article class="finding f-low" id="l7">
   <header><span class="fid">L7</span><span class="farea">Analytics</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed.</p>
   <h4>Analytics edge cases</h4>
   <p>Half-hour time zones get wrong CSV hour labels; the local day at the 90-day boundary is undercounted; a malformed click beacon returns 500.</p>
   <dl><dt>Where</dt><dd><code>analytics.ts:148, 157, 296, 307 · E2E S24</code></dd><dt>Fix</dt><dd>Include minutes; guard new URL().</dd><dt>Found by</dt><dd>review, E2E S24</dd></dl>
 </article>
 <article class="finding f-low" id="l8">
   <header><span class="fid">L8</span><span class="farea">Visitor</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed and verified on staging.</p>
   <h4>Hosted-site polish</h4>
   <p>sitemap.xml is 404 for hosted sites; a missing page is plain text; changing the slug breaks old links with no redirect.</p>
   <dl><dt>Where</dt><dd><code>E2E S17, S18, S41</code></dd><dt>Fix</dt><dd>Default the base URL to the site&#x27;s address; redirect old slugs.</dd><dt>Found by</dt><dd>E2E</dd></dl>
 </article>
 <article class="finding f-low" id="l9">
   <header><span class="fid">L9</span><span class="farea">UI</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Local dates verified on staging.</p>
   <h4>Small UI issues</h4>
   <p>Account pages show times in the server&#x27;s time zone; Proposals shows &#x27;Empty&#x27; for plain text that looks like HTML; reviewers find assignments only via notifications; self-demotion says &#x27;last owner&#x27;.</p>
   <dl><dt>Where</dt><dd><code>account-pages.ts:270-273 · E2E S31, L9, L16, L26</code></dd><dt>Fix</dt><dd>Format dates in the browser; fix the copy.</dd><dt>Found by</dt><dd>E2E</dd></dl>
 </article>
 <article class="finding f-low" id="l10">
   <header><span class="fid">L10</span><span class="farea">Policy</span></header>
+  <p class="fstatus s-fixed"><span class="chip st-fixed">Fixed</span> Fixed. Policy written down, /mcp scope corrected, template previews sandboxed.</p>
   <h4>Content and scope inconsistencies</h4>
   <p>Content editors can add links inside rich text though the content rules exclude links; /mcp advertises the WordPress scopes; template previews run inline script without a sandbox.</p>
   <dl><dt>Where</dt><dd><code>content.ts · E2E L5, S45 · app.ts:1704-1731</code></dd><dt>Fix</dt><dd>Decide the link policy; align the advertised scope; sandbox previews.</dd><dt>Found by</dt><dd>E2E, review</dd></dl>
 </article>
 <article class="finding f-low" id="l11">
   <header><span class="fid">L11</span><span class="farea">Scheduling</span></header>
+  <p class="fstatus s-open"><span class="chip st-open">Open</span> Not changed: the host cron still runs every 5 minutes.</p>
   <h4>Schedules can run up to 5 minutes late</h4>
   <p>The staging cron runs every 5 minutes. Production has no runner key, so scheduling is off there.</p>
   <dl><dt>Where</dt><dd><code>crontab · E2E S36</code></dd><dt>Fix</dt><dd>Run every minute, or say &#x27;within 5 minutes&#x27; in the UI.</dd><dt>Found by</dt><dd>E2E S36</dd></dl>

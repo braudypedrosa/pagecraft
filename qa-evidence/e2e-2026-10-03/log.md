@@ -146,3 +146,20 @@ path                                  owner  coowner content reviewer           
 - Delete the throwaway site "QA E2E 2026-10-03" on staging (Settings, Delete). It holds 4 test submissions, analytics, and 2 schedules.
 - Delete the staging library "QA E2E 2026-10-03 library" (shared with hello@braudyp.dev). hello@braudyp.dev is also a reviewer on the QA site.
 - The local copy runs on localhost:8787 with local Supabase in Docker; `npm run local:stop` stops Supabase.
+
+## Re-test after fixes — 2026-10-05
+
+Staging runs `58555d8`. The gateway is `pagecraft-db-v3` v23; it is shared with production, and its backward compatibility with production's `cc026d6` was checked first. The full suite passes: 1607 tests, 5 skipped. The UI gallery matches all 24 reviewed baselines, and every behaviour check passes.
+
+| # | Area | Check | Result | Notes |
+| --- | --- | --- | --- | --- |
+| R1 | Security | A spoofed `cf-connecting-ip` or `X-Forwarded-For` no longer escapes the per-source form limit (10× 415, then 429 for every spoofed value) | PASS | Was: escaped (S16 follow-up) |
+| R2 | Operations | No stray deploy candidate after a deploy; the receiver now kills a candidate that ignores SIGTERM | PASS | |
+| R3 | Performance | Republished home page: **81 KB** (was 397 KB), full load **2.2 s** (was 15–31 s); no base64 fonts | PASS | Fixes S16 |
+| R4 | Performance | Shared `assets/site.<hash>.css` (23 KB) and `assets/fonts/*.woff2`, cached for a year as immutable; fonts carry CORS for the sandboxed page | PASS | |
+| R5 | Visitor | `sitemap.xml` 200; a missing page gets a styled 404; an old slug 301-redirects with path and query kept | PASS | Fixes S17, S18, S41 |
+| R6 | Forms | An invalid post is listed as failed with its reason and doesn't count toward the 10,000 cap | PASS | Fixes H5 |
+| R7 | Account pages | Dates render in the reader's zone: 03:06 UTC reads "3 Oct 2026, 11:06" in Manila (was "Oct 2, 11:06 PM") | PASS | Fixes S31 |
+| R8 | Reviews | The review and live-review stores migrated to per-record files on first use, keeping the old files as `.migrated` | PASS | Fixes H6 |
+| R9 | Editor | The editor loads on staging with the canvas CSP and renders the site (157 nodes) | PASS | Inline editing, insert, preview and the embed frame were checked in a real browser before merging |
+| R10 | Performance | Signed-in latency: TTFB 1.0–2.6 s, about the same as before | WATCH | Every remaining call crosses to the database in ap-southeast-1. Fixing this needs hosting decisions (app near the database, or caching), not code |
