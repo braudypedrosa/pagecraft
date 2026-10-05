@@ -7,6 +7,7 @@
 import type {
   ColorToken, ComponentDef, Doc, LibraryItemKind, LibraryLink, Node, SavedBlock, StyleClass, TextStyle,
 } from './types.ts';
+import { cleanRich, safeUrl } from './safe-html.ts';
 
 export type { LibraryItemKind, LibraryLink } from './types.ts';
 export interface LibraryItemRef { kind: LibraryItemKind; id: string }
@@ -257,6 +258,83 @@ export function remapBundleAssets(bundle: LibraryBundle, map: Record<string, str
 export const bundleItemCount = (bundle: LibraryBundle) =>
   BUNDLE_LISTS.reduce((n, [, field]) => n + (bundle[field] as unknown[]).length, 0);
 
+/* ---- what a bundle may carry into a site ------------------------------------
+   Anybody can publish a library and share it, and what it holds lands in the owner's editor.
+   So an import does not trust the bundle: the parts that become markup are cleaned on the way
+   in — rich text through the renderer's allowlist, links through `safeUrl`, a link target is
+   `_blank` or nothing, and a class or text style id that would not survive inside a class
+   attribute gets a new one. Names stay as they are; every place that shows one escapes it.
+
+   An Embed is the exception, because running code is its purpose. It is not cleaned — it is
+   reported, so the editor can name it and ask before it lands in the site. */
+
+const SAFE_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/i;
+const TOKEN_KINDS: LibraryItemKind[] = ['color', 'textStyle', 'class'];
+/** A token id that is safe wherever the renderer writes one: a class name, a CSS selector. */
+const safeTokenId = (kind: LibraryItemKind, id: string) => !TOKEN_KINDS.includes(kind) || SAFE_ID.test(id);
+const tokenIdFrom = (id: string, kind: LibraryItemKind) =>
+  String(id).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || kind.toLowerCase();
+
+/* `cms:item` and a WordPress reference are not URLs and are resolved, safely, where they render */
+const cleanHref = (v: unknown) => {
+  const s = String(v ?? '');
+  return s === 'cms:item' || s.startsWith('pagecraft:wordpress-content:') ? s : safeUrl(s);
+};
+const cleanTarget = (v: unknown) => (v === '_blank' ? '_blank' : '');
+
+/** One item as a site may hold it. `components` is the bundle's, so a nested instance's values
+    can be cleaned by the kind its own definition gives them. */
+function cleanItem<T>(kind: LibraryItemKind, item: T, components: ComponentDef[]): T {
+  const byKind = (def: ComponentDef | undefined, k: string) => def?.props.find(p => p.k === k)?.t;
+  const cleanValue = (t: string | undefined, v: string) => (t === 'rich' ? cleanRich(v) : t === 'link' ? cleanHref(v) : v);
+  const cleanValues = (def: ComponentDef | undefined, values: Record<string, string> | undefined) => {
+    for (const k of Object.keys(values || {})) values![k] = cleanValue(byKind(def, k), values![k]);
+  };
+  const cleanNode = (n: Node) => {
+    const p = (n.props || {}) as Record<string, unknown>;
+    if (n.type === 'text' && typeof p.html === 'string') p.html = cleanRich(p.html);
+    if ('target' in p) p.target = cleanTarget(p.target);
+    if (typeof p.link === 'string') p.link = cleanHref(p.link);
+    if ((n.type === 'nav' || n.type === 'crumbs') && Array.isArray(p.items)) {
+      for (const row of p.items as Record<string, unknown>[]) {
+        if (!row || typeof row !== 'object') continue;
+        if (typeof row.href === 'string') row.href = cleanHref(row.href);
+        if ('target' in row) row.target = cleanTarget(row.target);
+      }
+    }
+    if (n.use) cleanValues(components.find(c => c.id === n.use), n.vals);
+  };
+  if (kind === 'component') {
+    const def = item as unknown as ComponentDef;
+    for (const prop of def.props || []) if (typeof prop.def === 'string') prop.def = cleanValue(prop.t, prop.def);
+    for (const variant of def.variants || []) cleanValues(def, variant.values);
+  }
+  const root = kind === 'component' ? (item as unknown as ComponentDef).node : kind === 'block' ? (item as unknown as SavedBlock).node : null;
+  if (root) eachNode(root, cleanNode);
+  return item;
+}
+
+/** A component or block of a bundle that carries custom code, and how many Embeds it holds. */
+export interface LibraryCustomCode { kind: LibraryItemKind; id: string; name: string; embeds: number }
+const embedsIn = (kind: LibraryItemKind, item: unknown) => {
+  const root = kind === 'component' ? (item as ComponentDef).node : kind === 'block' ? (item as SavedBlock).node : null;
+  let embeds = 0;
+  if (root) eachNode(root, n => { if (n.type === 'embed') embeds++; });
+  return embeds;
+};
+const customCodeOf = (bundle: LibraryBundle, refs: LibraryItemRef[]): LibraryCustomCode[] => {
+  const lists = bundleLists(bundle);
+  return refs.flatMap(ref => {
+    const item = find(lists, ref.kind, ref.id) as { id: string; name?: string } | undefined;
+    const embeds = item ? embedsIn(ref.kind, item) : 0;
+    return embeds ? [{ kind: ref.kind, id: ref.id, name: String(item!.name || ref.id), embeds }] : [];
+  });
+};
+/** The Embeds an import of `chosen` would bring, for the editor to name before anything is
+    copied: the chosen items and everything they depend on. */
+export const importCustomCode = (bundle: LibraryBundle, chosen: LibraryItemRef[]) =>
+  customCodeOf(bundle, closure(bundle, chosen));
+
 /* ---- import -------------------------------------------------------------- */
 
 export interface LibrarySource { libraryId: string; version: number }
@@ -268,7 +346,11 @@ export interface ImportedItem {
       imported from this library. site-foundation: the site's own token is used. */
   how: 'added' | 'renamed' | 'reused' | 'linked' | 'site-foundation';
 }
-export interface LibraryImportPlan { doc: Doc; items: ImportedItem[]; assets: string[] }
+export interface LibraryImportPlan {
+  doc: Doc; items: ImportedItem[]; assets: string[];
+  /** the new copies that carry Embeds, which the editor confirms before committing */
+  customCode: LibraryCustomCode[];
+}
 export interface LibraryImportOptions {
   /** library asset id → the site asset id the storage layer copied it to */
   assets?: Record<string, string>;
@@ -363,6 +445,8 @@ export function planLibraryImport(
       // Already imported from this library: keep the site's copy and its link exactly as they
       // are. Changes arrive only through an update, which knows what this site changed.
       if (linked && find(target, kind, linked.localId)) { localId = linked.localId; how = 'linked'; }
+      // An id that could break out of a class attribute is never kept, whatever is here already.
+      else if (!safeTokenId(kind, ref.id)) { localId = freeId(taken, tokenIdFrom(ref.id, kind)); how = 'renamed'; }
       else if (existing && isFoundation(kind, ref.id)) how = 'site-foundation';
       else if (existing && itemHash(kind, existing) === bundle.hashes[key(kind, ref.id)]) how = 'reused';
       else if (existing) { localId = freeId(taken, ref.id); how = 'renamed'; }
@@ -373,7 +457,8 @@ export function planLibraryImport(
   }
   for (const entry of items) {
     if (entry.how !== 'added' && entry.how !== 'renamed') continue;
-    const copy = rewrite(entry.kind, clone(find(lists, entry.kind, entry.sourceId)!), renames, assetMap) as { id: string; node?: Node };
+    const clean = cleanItem(entry.kind, clone(find(lists, entry.kind, entry.sourceId)!), bundle.components);
+    const copy = rewrite(entry.kind, clean, renames, assetMap) as { id: string; node?: Node };
     copy.id = entry.localId;
     if (copy.node) reidTree(copy.node, newId);
     place(next, entry.kind, copy);
@@ -389,7 +474,8 @@ export function planLibraryImport(
     if (at >= 0) links[at] = link; else links.push(link);
   }
   next.meta.libraryLinks = links;
-  return { doc: next, items, assets: needed };
+  const landed = items.filter(i => i.how === 'added' || i.how === 'renamed').map(i => ({ kind: i.kind, id: i.sourceId }));
+  return { doc: next, items, assets: needed, customCode: customCodeOf(bundle, landed) };
 }
 
 /* ---- updates ------------------------------------------------------------- */
@@ -413,6 +499,8 @@ export interface LibraryUpdatePlan {
   doc: Doc | null;
   /** library asset ids the chosen updates need copied into the site */
   assets: string[];
+  /** what this update writes that carries Embeds: updated items and new dependencies */
+  customCode: LibraryCustomCode[];
 }
 
 /** Every instance of component `id` anywhere in the document. */
@@ -456,6 +544,8 @@ export interface LibraryUpdatePreview {
   unresolved: string[];
   /** library asset ids the chosen updates need copied into the site */
   assets: string[];
+  /** what this update writes that carries Embeds: updated items and new dependencies */
+  customCode: LibraryCustomCode[];
 }
 
 /** What moving to `bundle` would change, before anything is written: each linked item's action,
@@ -501,7 +591,8 @@ function updateScope(doc: Doc, bundle: LibraryBundle, source: LibrarySource, res
   const needed = new Set<string>();
   [...taking.map(i => ({ kind: i.kind, id: i.sourceId })), ...newDeps]
     .forEach(ref => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach(id => needed.add(id)));
-  return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort() } };
+  const customCode = customCodeOf(bundle, [...taking.map(i => ({ kind: i.kind, id: i.sourceId })), ...newDeps]);
+  return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort(), customCode } };
 }
 
 /** Plan moving every item linked to `source.libraryId` to `bundle`, a newer version. */
@@ -527,7 +618,8 @@ export function planLibraryUpdate(
   for (const link of nextLinks.filter(l => l.libraryId === source.libraryId)) (allRenames[link.kind] ||= new Map()).set(link.sourceId, link.localId);
 
   for (const item of taking) {
-    const copy = rewrite(item.kind, clone(find(lists, item.kind, item.sourceId)!), allRenames, assetMap) as { id: string; node?: Node };
+    const clean = cleanItem(item.kind, clone(find(lists, item.kind, item.sourceId)!), bundle.components);
+    const copy = rewrite(item.kind, clean, allRenames, assetMap) as { id: string; node?: Node };
     copy.id = item.localId;
     if (copy.node) reidTree(copy.node, newId);
     replaceItem(next, item.kind, item.localId, copy);
@@ -544,5 +636,5 @@ export function planLibraryUpdate(
     if (kept.has(k)) return { ...l, version: source.version, sourceHash: bundle.hashes[k] };
     return { ...l, version: Math.max(l.version, source.version), sourceHash: bundle.hashes[k] ?? l.sourceHash };
   });
-  return { items, unresolved, doc: next, assets: needed };
+  return { items, unresolved, doc: next, assets: needed, customCode: preview.customCode };
 }

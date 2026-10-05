@@ -11,9 +11,9 @@
    per item, so neither earns a modal over the canvas the owner is comparing against. */
 import { useEffect, useState } from 'preact/hooks';
 import {
-  extractLibraryBundle, importAssetsNeeded, isFoundation, itemHash, planLibraryImport, planLibraryUpdate,
+  extractLibraryBundle, importAssetsNeeded, importCustomCode, isFoundation, itemHash, planLibraryImport, planLibraryUpdate,
   previewLibraryUpdate, LibraryError,
-  type LibraryBundle, type LibraryItemKind, type LibraryItemRef, type LibraryLink, type Resolution, type UpdateItem,
+  type LibraryBundle, type LibraryCustomCode, type LibraryItemKind, type LibraryItemRef, type LibraryLink, type Resolution, type UpdateItem,
 } from '../core/libraries';
 import type { Doc } from '../core/types';
 import type { WebLibrary, WebLibraryAdapter, WebLibraryMember, WebLibraryVersionSummary } from '../host/types';
@@ -96,6 +96,14 @@ const behind = (library: WebLibrary) => {
 /* askConfirm takes HTML, so the names in it are escaped by hand. */
 const esc = (s: string) => String(s ?? '').replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));
+
+/* An Embed runs on the published site, and a library may come from anyone. Asked before anything
+   is copied, naming each item, so custom code never arrives as a side effect of taking a card. */
+const allowCustomCode = (library: WebLibrary, code: LibraryCustomCode[], ok: string) => !code.length
+  || L.askConfirm('This library includes custom code',
+    `This library includes custom code that runs on your published site: `
+    + code.map(c => `<b>${esc(c.name)}</b> (${esc(plural(c.embeds, 'embed'))})`).join(', ')
+    + `. Only continue if you trust ${esc(ownerOf(library))}.`, { ok, danger: true });
 
 /** One sentence for whatever went wrong, from the server's own detail when it gave one. */
 function problem(error: unknown) {
@@ -291,6 +299,7 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
     if (!bundle || !summary || !picked.size) return;
     const chosen = [...picked].map(parseKey);
     const source = { libraryId: id, version: summary.version };
+    if (!await allowCustomCode(library, importCustomCode(bundle, chosen), 'Import with custom code')) return;
     setBusy(true);
     try {
       const needed = importAssetsNeeded(bundle, chosen);
@@ -633,6 +642,8 @@ function UpdateReview({ libs, id, open }: Props & { id: string }) {
   const resolve = (item: UpdateItem, choice: Resolution) => setResolutions(prev => ({ ...prev, [refKey({ kind: item.kind, id: item.sourceId })]: choice }));
 
   const apply = async () => {
+    const before = previewLibraryUpdate(C.doc(), bundle, source, resolutions);
+    if (!await allowCustomCode(library, before.customCode, 'Update with custom code')) return;
     setBusy(true);
     try {
       const needed = previewLibraryUpdate(C.doc(), bundle, source, resolutions).assets;

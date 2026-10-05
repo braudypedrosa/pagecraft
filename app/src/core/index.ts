@@ -23,21 +23,14 @@ import type {
 import { UI_TEXT_SIZES } from '../../../shared/ui-tokens.js';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons.ts';
 import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim.ts';
+/* `safeUrl` and the two markup cleaners live in their own module so the library import, which
+   must not pull in this stateful core, shares the same answers. */
+import { safeUrl, stripScripts, cleanRich } from './safe-html.ts';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
 const uid = () => (_seq++, 'n' + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 const esc = (s: unknown) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-/* Only link schemes that are safe to put in an exported href. Anything else
-   (javascript:, vbscript:, data:text/html, …) becomes an empty link. */
-const safeUrl = (u: unknown) => {
-  const v = String(u == null ? '' : u).trim();
-  if (!v) return '';
-  if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
-  if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;            // page.html, example.com/x
-  return '';
-};
 /** Nav menu and manual Breadcrumb are the two widgets whose links live in `props.items`.
  * Keep every link traversal on this semantic predicate so review, page renames, rendering,
  * and Connected release migration cannot quietly disagree about one of them. */
@@ -4290,9 +4283,13 @@ function guessBindings(slots: any[], col: Collection | null) {
   /* an existing binding is a decision already made, and is never guessed over */
   slots.forEach(s => { if (s.current) out[key(s)] = s.current; });
 
+  /* A rich slot takes a text field when somebody chooses one — it renders as escaped words —
+     but a guess only offers it rich text, so the body of a card never quietly becomes a
+     field's raw characters. */
+  const fits = (s: any, f: Field) => (s.ctl === 'rich' ? f.type === 'rich' : (!s.fieldTypes || s.fieldTypes.includes(f.type)));
   /* 1. a control whose label or key reads like a field's name */
   slots.filter(free).forEach(s => {
-    const f = left.find(x => (!s.fieldTypes || s.fieldTypes.includes(x.type))
+    const f = left.find(x => fits(s, x)
       && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
     if (f) take(s, f);
   });
@@ -4301,7 +4298,7 @@ function guessBindings(slots: any[], col: Collection | null) {
   const rules: [(s: any) => boolean, () => Field | undefined | null][] = [
     [s => s.key === 'src', () => byType('image')],
     [s => s.key === 'text' && s.type === 'heading', () => (title && left.includes(title) ? title : null)],
-    [s => s.key === 'html', () => byType('rich') || left.find(f => f.type === 'text' && f !== title)],
+    [s => s.key === 'html', () => byType('rich')],
     [s => s.key === 'link' && s.type === 'button', () => byType('link')],
     [s => s.key === 'text' && s.type === 'button', () => left.find(f => f.type === 'text' && f !== title)]
   ];
@@ -4402,6 +4399,16 @@ const fieldValue = (col: Collection | null, item: Item | null, path: string, dep
   const hit = to ? findItem(to, v) : null;
   return hit ? fieldValue(to, hit, bits.slice(1).join('.'), depth + 1) : '';
 };
+/** The field a path ends on, followed the way `fieldValue` follows it — what a value *is*, which
+    decides how it may be rendered. */
+const fieldAt = (col: Collection | null, path: string, depth = 0): Field | null => {
+  if (!col) return null;
+  const bits = String(path || '').split('.');
+  const f = findField(col, bits[0]);
+  if (!f || bits.length === 1) return f || null;
+  if (f.type !== 'ref' || !f.ref || depth >= REF_DEPTH) return null;
+  return fieldAt(findCollection(f.ref), bits.slice(1).join('.'), depth + 1);
+};
 
 /** Every path a binding can offer for this collection: its own fields, and one hop through
     each reference. One hop rather than every depth on purpose — the paths are a list someone
@@ -4421,6 +4428,16 @@ function fieldPaths(col: Collection | null): { path: string; label: string; type
   }
   return out;
 }
+/** Does this prop hold markup rather than words? Read from the controls, so a second rich
+    control is covered the day it is declared. */
+const richProp = (type: string, k: string) =>
+  (((DEF[type] || {}).controls || {}).content || []).some((c: Control) => c.t === 'rich' && c.k === k);
+/* A CMS value in a rich slot. An entry is written by whoever may edit the CMS — a content
+   account, a CSV import — so only a rich field is markup, and that through the allowlist; any
+   other field is words, escaped into paragraphs, so `<img onerror>` in a text field reads as
+   exactly that. */
+const cmsRich = (v: unknown, f: Field | null) => (f && f.type === 'rich' ? cleanRich(v) : para(v));
+
 /* Props with bindings resolved. A bound value always wins, even when it is
    empty — the canvas should show what the export will, not a placeholder that
    quietly disappears at build time. Returns the identity object when nothing is
@@ -4430,15 +4447,24 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
   if (!n.bind) return n.props;
   const out = { ...n.props };
   for (const [k, b] of Object.entries(n.bind)) {
+    const rich = richProp(n.type, k);
     /* A property, when this node is being rendered inside an instance. Outside one there is no
        instance to ask, and the value authored in the definition is exactly what belongs on
        screen — not an empty string, and not a field lookup that would find nothing. */
     if (b.src === 'prop') {
-      if (inst) (out as PropBag)[k] = instValue(inst, def || null, b.path, col, item);
+      if (!inst) continue;
+      const v = instValue(inst, def || null, b.path, col, item);
+      /* In a rich slot: a CMS field the placement binds is treated as above; a value the
+         instance holds is markup only when the property is rich text. */
+      const field = col ? boundField(inst, VAL + b.path) : '';
+      (out as PropBag)[k] = !rich ? v
+        : field ? cmsRich(v, fieldAt(col, field))
+          : (findProp(def || null, b.path) || { t: '' }).t === 'rich' ? v : para(v);
       continue;
     }
     if (b.src !== 'field' || !col || !item) continue;
-    (out as PropBag)[k] = fieldValue(col, item, b.path);
+    const v = fieldValue(col, item, b.path);
+    (out as PropBag)[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : v;
   }
   return out;
 }
@@ -7062,21 +7088,6 @@ function para(str: unknown) {
   return t.split(/\n{2,}/).map(b => `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('');
 }
 
-/* What the canvas is allowed to run from an Embed: nothing. The export ships the
-   markup verbatim — that is the whole point of the widget — but the editor renders
-   inside a live iframe on the same origin, so a pasted analytics tag or a widget
-   loader would execute on every repaint, once per keystroke. Both forms go: the
-   `<script>` element and the inline `on*` handler. Returns how many it held back,
-   because an embed that renders as nothing needs to say why. */
-function stripScripts(html: unknown) {
-  let stripped = 0;
-  const out = String(html == null ? '' : html)
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => { stripped++; return ''; })
-    .replace(/<script\b[^>]*\/?>/gi, () => { stripped++; return ''; })
-    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, () => { stripped++; return ''; });
-  return { html: out, stripped };
-}
-
 /* Pagecraft owns the document's one page-level `<main>`. Authors can still choose `main` in
    semantic controls or paste one into rich/embed markup, but those fragments live *inside*
    the page landmark and therefore become divs at publish time. This scanner changes actual
@@ -7178,7 +7189,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          thousandth, because the alternative is a page builder that can hang the tab it renders
          in — and the author needs to be told, not left with a blank space. */
       return o.edit
-        ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">${esc(cd.name)} contains itself</div>`
+        ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">${esc(cd.name)} contains itself</div>`
         : '';
     }
     if (!cd) {
@@ -7186,7 +7197,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          a broken one — and named in the editor, because a component nobody can find is a thing
          somebody has to fix. */
       return o.edit
-        ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">Missing component: ${esc(n.use)}</div>`
+        ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">Missing component: ${esc(n.use)}</div>`
         : '';
     }
     return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...(o.stack || []), n.use] });
@@ -7212,7 +7223,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      stylesheet writer cannot answer it at all, which is why the marker is a class the render
      adds rather than a declaration `bucket` emits. */
   let condCls = '';
-  const cx = (c: string) => `class="${c} ${nodeClass(n)}${host ? ' ' + nodeClass(host) : ''}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? ' ' + esc(self.adv.cls) : ''}"`;
+  const cx = (c: string) => `class="${c} ${esc(nodeClass(n))}${host ? ' ' + esc(nodeClass(host)) : ''}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? ' ' + esc(self.adv.cls) : ''}"`;
   /* The editor addresses elements by node id; the export uses the readable one.
      A repeat is the same node rendered many times, so both need a per-item suffix
      or every card in a Collection List ships the same id — invalid markup, and it
@@ -7227,12 +7238,12 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      pointing at one. */
   const ins = inner && o.inst ? '-' + String(o.inst.id).replace(/^n/, '') : '';
   const domId = o.edit
-    ? (o.repIndex ? self.id + rep + ins : self.id + ins)
+    ? esc(o.repIndex ? self.id + rep + ins : self.id + ins)
     : esc(domIdOf(self) + rep + ins);
   /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
      on the nearest ancestor that has one — the instance — which is the element whose panel can
      actually change anything. Its internals belong to the definition. */
-  const hooks = inner ? '' : ` data-id="${self.id}" data-t="${self.type}"${state.ui.sel === self.id ? ' data-sel' : ''}`;
+  const hooks = inner ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${state.ui.sel === self.id ? ' data-sel' : ''}`;
   const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
   /* a node that declares a source opens a scope for itself and everything under
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
@@ -7249,6 +7260,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
   const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
+  /* A link opens in a new tab or it does not. `target` is a prop a binding can write anything
+     into, so nothing but `_blank` becomes an attribute. */
+  const blank = p.target === '_blank' ? ' target="_blank" rel="noopener"' : '';
 
   /* A condition decides whether this element is on the page. Not in the editor, where it stays
      visible and selectable and wears a marker instead — an element you cannot see is an element
@@ -7284,7 +7298,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       if (href) {
         /* An anchor, and never a nested one: an `<a>` inside an `<a>` is invalid markup that
            browsers silently unnest, so the review flags it rather than this render guessing. */
-        return `<a ${at} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${inner}</a>`;
+        return `<a ${at} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${blank}>${inner}</a>`;
       }
       const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : 'div';
       return `<${tag} ${at} ${cx('pagecraft-box' + mode)}>${inner}</${tag}>`;
@@ -7340,7 +7354,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : 'h2';
       const body = esc(p.text).replace(/\n/g, '<br>');
       const href = pageHref(p.link, o);
-      const inner = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${body}</a>` : body;
+      const inner = href ? `<a href="${esc(href)}"${blank}>${body}</a>` : body;
       return `<${tg} ${at} ${cx('pagecraft-heading')}>${inner}</${tg}>`;
     }
     case 'text':
@@ -7376,9 +7390,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? ` srcset="${esc(set.join(', '))}" sizes="${esc(sizesFor(n.id))}"` : '';
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${blank}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
       return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
     }
     case 'video': {
@@ -7394,7 +7408,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const ico = p.icon && p.icon !== 'none' ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${BICON[p.icon] || ''}</svg>` : '';
       const bhref = pageHref(p.link, o);
       const tag = bhref ? 'a' : 'button';
-      const attrs = bhref ? `href="${esc(bhref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}` : 'type="button"';
+      const attrs = bhref ? `href="${esc(bhref)}"${blank}` : 'type="button"';
       return `<${tag} ${at} ${cx('pagecraft-button')} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case 'nav': {
@@ -7495,7 +7509,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         const href = last ? '' : pageHref(c.href, o);
         return '<li>' + (last || !href
           ? `<span aria-current="page">${label}</span>`
-          : `<a href="${href}">${label}</a>`) + '</li>';
+          : `<a href="${esc(href)}">${label}</a>`) + '</li>';
       }).join('');
       /* The separator is a `data-sep` for CSS to draw, never a character in the markup: a
          screen reader should read the trail, not the punctuation between it. */
@@ -7596,7 +7610,18 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const ecls = 'pagecraft-embed' + (p.ratio ? ' pagecraft-embed-ratio' : '');
       if (!raw.trim()) return o.edit
         ? `<div ${at} ${cx('pagecraft-embed')}><div class="s-empty">${svg('code', 12)} Paste embed HTML in the panel</div></div>` : '';
-      if (!o.edit) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      if (!o.edit && !o.canvas) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      /* Preview draws on the canvas, which is the editor's origin. The embed gets a frame of its
+         own there, sandboxed without allow-same-origin, so nothing in it can reach the editor,
+         its session or its API. The canvas policy still holds inside the frame, so the embed's
+         scripts wait for the exported page as they always have; the frame's one script reports
+         its height, because an opaque frame cannot be measured from outside. */
+      if (!o.edit) {
+        const frame = '<!doctype html><meta charset="utf-8"><style>html,body{margin:0}body{display:flow-root}</style>'
+          + raw + (p.ratio ? '' : `<script>${EMBED_FRAME_JS}</script>`);
+        return `<div ${at} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame`
+          + `${p.ratio ? '' : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
+      }
       const { html, stripped } = stripScripts(raw);
       const note = stripped
         ? `<div class="s-held">${stripped} script${stripped === 1 ? '' : 's'} held back here — ${stripped === 1 ? 'it runs' : 'they run'} on the exported page</div>` : '';
@@ -7610,7 +7635,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          the label becomes the link's name and the glyph goes hidden. Unlinked, the
          glyph carries the label itself — or is hidden when there is none, which is
          the right answer for an icon sitting beside text that already says it. */
-      if (ihref2) return `<a ${at} ${cx('pagecraft-icon')} href="${esc(ihref2)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}`
+      if (ihref2) return `<a ${at} ${cx('pagecraft-icon')} href="${esc(ihref2)}"${blank}`
         + `${lab ? ` aria-label="${esc(lab)}"` : ''}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
       return iconSvg(nm, `${at} ${cx('pagecraft-icon pagecraft-icon-glyph')} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
     }
@@ -7777,6 +7802,18 @@ document.addEventListener('click',function(e){if(!w.contains(e.target))set(false
 });})();
 <\/script>
 `;
+
+/* The one script an Embed's Preview frame runs: it reports the frame's content height to the
+   canvas, which sizes the frame. Allowed by hash rather than by the canvas nonce, so the nonce
+   never appears in markup; `EMBED_FRAME_HASH` is checked against this text by the suite. */
+const EMBED_FRAME_JS = "(function(){var b=document.body,h=-1;function s(){var n=Math.ceil(b.getBoundingClientRect().height);if(n!==h){h=n;parent.postMessage({pagecraftEmbedHeight:n},'*');}}if(window.ResizeObserver)new ResizeObserver(s).observe(b);addEventListener('load',s);s();})();";
+const EMBED_FRAME_HASH = 'sha256-fKWA8D62TWnX/ElarnS4cjNHmTS5nuDLPuJmhSPuQyY=';
+/* The canvas is an srcdoc frame on the editor's origin, beside the session cookie and the API, so
+   nothing a document carries may run in it. Scripts run only with the nonce the editor sets on
+   its own preview payloads, which rules out inline handlers and `javascript:` URLs; plugins and
+   `<base>` are off. Styles are not restricted — the canvas is styled inline throughout. */
+const canvasCsp = (nonce: string) =>
+  `script-src 'nonce-${nonce}' '${EMBED_FRAME_HASH}'; object-src 'none'; base-uri 'none'`;
 
 /* Swaps a facade for the real player on click. Emitted only when a page has one. */
 const FACADE_JS = `<script>
@@ -8330,7 +8367,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";

@@ -1966,9 +1966,14 @@ export function createApp(o: Options) {
        can only do with CORS. These bytes are public and immutable; the preview page itself
        stays same-origin. */
     if (!file.mediaType.startsWith("text/html")) c.header("access-control-allow-origin", "*");
+    /* A template page runs its own interaction scripts, and it is served from the editor's
+       origin, framed by the dashboard. `sandbox allow-scripts` gives it an opaque origin, as the
+       publication preview has: the scripts run, but never with the editor's cookie or API. Its
+       images and fonts still load — `'self'` matches the URL it came from, and the assets carry
+       the CORS header an opaque origin needs. */
     c.header(
       "content-security-policy",
-      "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'",
+      "sandbox allow-scripts; default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'",
     );
     return c.body(file.bytes.slice().buffer);
   });

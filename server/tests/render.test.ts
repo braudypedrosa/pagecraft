@@ -419,6 +419,21 @@ test('a collection is one served file per item, each with its own content', () =
     'an empty field means the element is not in the file at all');
 });
 
+test('a CMS entry reaches the published page as words or cleaned rich text, never as markup', () => {
+  /* The fixture binds a text field (Aside) and a rich one (Body) to WYSIWYG bodies — the shape
+     a CSV import or a content account fills in. */
+  const { doc } = cmsSite();
+  const col = doc.meta.collections![0];
+  const [bodyId, asideId] = [col.fields[1].id, col.fields[2].id];
+  col.items[0].values[asideId] = '<img src=x onerror=alert(1)>';
+  col.items[0].values[bodyId] = '<p>Kept <b>bold</b></p><img src=x onerror=alert(2)><a href="javascript:alert(3)">x</a>';
+  const page = renderSite(doc).files.get('notes/first-note.html')!;
+  const body = page.slice(page.indexOf('<body'));
+  a.match(body, /<p>&lt;img src=x onerror=alert\(1\)&gt;<\/p>/, 'a text field is shown as the words it holds');
+  a.match(body, /<p>Kept <b>bold<\/b><\/p>/);
+  a.doesNotMatch(body, /<img src=x|javascript:alert/);
+});
+
 test('a detail page asks for its assets one directory up', () => {
   /* `rel` is why: the file sits in `notes/`, so a root-relative path would only resolve from
      the root. Getting this wrong breaks every image on every detail page and nothing else. */

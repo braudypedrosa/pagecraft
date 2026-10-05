@@ -716,6 +716,60 @@ test('Preview runs the same Tabs, Gallery, Code, Slider, Video, navigation and a
   w.togglePreview();
 });
 
+test('the canvas runs only the editor’s own nonce-bearing scripts, and Preview frames an Embed', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  const frame = doc.querySelector('#canvas');
+  /* The canvas shares the editor's origin, so the policy is part of its document from the
+     first byte: no inline handlers, no javascript: URLs, no plugins, no <base>. */
+  if (!frame.contentDocument.getElementById('s-root')) {
+    // jsdom does not navigate srcdoc; load it the way the Preview case above does
+    frame.contentDocument.open(); frame.contentDocument.write(frame.srcdoc); frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+  }
+  const meta = frame.srcdoc.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/);
+  a.ok(meta, 'the canvas srcdoc declares a policy');
+  const nonce = (meta[1].match(/'nonce-([^']+)'/) || [])[1];
+  a.ok(nonce && nonce.length >= 16, 'scripts need a nonce');
+  a.match(meta[1], /object-src 'none'/);
+  a.match(meta[1], /base-uri 'none'/);
+  a.doesNotMatch(meta[1], /unsafe-inline|unsafe-eval/);
+  a.equal(frame.contentDocument.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content'), meta[1]);
+  a.equal(frame.srcdoc.split(nonce).length, 2, 'the nonce is in the policy and nowhere else');
+
+  const cd = frame.contentDocument;
+  const scripts = [];
+  const watch = new frame.contentWindow.MutationObserver(records => records.forEach(r =>
+    r.addedNodes.forEach(n => { if (n.nodeName === 'SCRIPT') scripts.push(n); })));
+  watch.observe(cd.body, { childList: true });
+  const embed = C.N('embed', { html: '<img src=x onerror="window.__ran=1"><p>Widget</p>' });
+  const tabs = C.N('tabs');
+  C.state.header = []; C.state.footer = [];
+  C.page().tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [tabs, embed])])])];
+  if (!doc.body.classList.contains('preview')) w.togglePreview();
+  await new Promise(r => setTimeout(r, 0));
+  watch.disconnect();
+  a.ok(scripts.length > 0, 'Preview injected its runtime');
+  scripts.forEach(s => a.equal(s.nonce, nonce, 'every injected payload carries the nonce'));
+  const embedded = cd.querySelector('iframe[data-embed-frame]');
+  a.ok(embedded, 'Preview draws an Embed in a frame of its own');
+  a.equal(embedded.getAttribute('sandbox'), 'allow-scripts');
+  a.equal(cd.querySelector('#s-root img[onerror]'), null, 'and none of its markup is canvas markup');
+  w.togglePreview();
+
+  /* The lock bar names a component: as text. */
+  const evil = C.N('box');
+  C.page().tree = [evil];
+  const cid = C.componentFromNode(evil.id, '<img src=x onerror=alert(1)>');
+  C.componentOpen(cid);
+  w.paint();
+  const chip = cd.querySelector('.s-lockchip.on');
+  a.match(chip.textContent, /Editing component — <img src=x onerror=alert\(1\)>/);
+  a.equal(chip.querySelector('img'), null);
+  C.componentClose();
+  w.paint();
+});
+
 test('the server media picker wires trash to durable DELETE before removing the card', async () => {
   const base = await boot();
   const server = {

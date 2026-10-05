@@ -702,3 +702,34 @@ test('a client can manage entries but cannot change the schema', async () => {
   col(held).items[0].draft = 1;
   a.equal(contentOnly(base, held).ok, true, 'holding one back is content — it is their words');
 });
+
+test('a link inside rich text is content only with a safe scheme, wherever the rich text lives', () => {
+  for (const href of ['https://example.com/a?b=1&amp;c=2', 'mailto:hello@example.com', '/about.html', '#team']) {
+    a.equal(change(d => { find(d, 'text').props.html = `<p><a href="${href}">ok</a></p>`; }).ok, true, href);
+  }
+  const bad = ['JaVaScRiPt:alert(1)', ' javascript:alert(1)', '&#106;avascript:alert(1)', 'java&#x09;script:alert(1)', 'vbscript:msgbox(1)', 'data:text/html,x'];
+  for (const href of bad) {
+    const result = change(d => { find(d, 'text').props.html = `<p><a href="${href}">x</a></p>`; });
+    a.equal(result.ok, false, href);
+  }
+
+  // a rich CMS field
+  const site = notesSite();
+  for (const href of bad) {
+    const after = structuredClone(site);
+    const col = after.meta.collections![0];
+    col.items[0].values[col.fields[1].id] = `<p><a href="${href}">x</a></p>`;
+    a.equal(contentOnly(site, after).ok, false, `CMS ${href}`);
+  }
+
+  // a rich component property on an instance
+  const { doc, cid, instId } = withComponent();
+  const body = Core.propAdd(cid, 'Body', 'rich', '')!;
+  const withProp = structuredClone({ ...doc, meta: Core.state.meta }) as Doc;
+  const after = structuredClone(withProp);
+  (instOf(after, instId) as unknown as { vals?: Record<string, string> }).vals = { [body]: '<p><a href="javascript:alert(1)">x</a></p>' };
+  const refused = contentOnly(withProp, after);
+  a.equal(refused.ok, false);
+  a.match(refused.where || '', /markup this account may not publish/);
+});
+
