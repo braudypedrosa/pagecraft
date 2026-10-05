@@ -118,4 +118,19 @@ export class LiveReviewStore {
     await records.write(pinPath(siteId, pin.id), next);
     return withReplies(next, await records.list<StoredReply>(repliesDir(siteId)));
   }
+  /** A deleted site's links, pins, replies, invitations and guests. */
+  async removeSite(siteId: string) {
+    const records = await this.store();
+    const [links, guests, pins, replies, invites] = await Promise.all([
+      records.list<LiveLink>('links'), records.list<Guest>('guests'), records.list<StoredPin>(`pins/${digest(siteId)}`),
+      records.list<StoredReply>(repliesDir(siteId)), records.list<Invite>(invitesDir(siteId)),
+    ]);
+    await Promise.all([
+      ...links.filter(l => l.siteId === siteId).map(l => records.remove(linkPath(l.token))),
+      ...guests.filter(g => g.siteId === siteId).map(g => records.remove(guestPath(g.digest))),
+      ...pins.map(pin => records.remove(pinPath(siteId, pin.id))),
+      ...replies.map(reply => records.remove(`${repliesDir(siteId)}/${reply.id}.json`)),
+      ...invites.map(i => records.remove(invitePath(siteId, i.email, i.kind))),
+    ]);
+  }
 }

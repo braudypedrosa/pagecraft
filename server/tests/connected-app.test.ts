@@ -15,6 +15,7 @@ import {
 } from '../src/releases.ts';
 import { assetFile, N } from '../../app/src/core/index.ts';
 import { validatePortablePackage } from '../src/portable-packages.ts';
+import { GatewayError } from '../src/store-gateway.ts';
 
 const privateKey = (value: string) => createPrivateKey({
   key: Buffer.from(value, 'base64url'), format: 'der', type: 'pkcs8'
@@ -251,6 +252,44 @@ test.each([
     body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
   });
   a.equal(afterRevoke.status, 401);
+});
+
+test('a refused WordPress pairing shows a sentence, never the database text behind it', async () => {
+  const { connected, site, first, admin } = await rig();
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const approve = async (failure: Error) => {
+    connected.createConnection = async () => { throw failure; };
+    const query = new URLSearchParams({
+      siteId: site.id, installationId: 'wordpress-install-123', environment: 'staging',
+      profile: 'existing-theme', targetOrigin: 'https://staging.wp.test', targetPath: '/',
+      redirectUri: 'https://staging.wp.test/wp-admin/admin.php?page=pagecraft',
+      webhookUrl: 'https://staging.wp.test/wp-json/pagecraft/v1/releases/available',
+      codeChallenge: 'c'.repeat(43), codeChallengeMethod: 'S256', state: 'state-state-state-1',
+      scope: 'release:read deploy:ack cms:write editor:open content:index'
+    });
+    const csrf = (await (await admin(first, `/v1/oauth/authorize?${query}`)).text())
+      .match(/name="csrf" value="([^"]+)"/)?.[1];
+    const refused = await admin(first, '/v1/oauth/authorize', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ csrf: csrf!, siteId: site.id })
+    });
+    a.equal(refused.status, 409);
+    return await refused.json() as { error: string };
+  };
+  // A gateway that predates sanitizing still sends the whole Postgres message.
+  a.deepEqual(await approve(new GatewayError(
+    'duplicate key value violates unique constraint "wordpress_connections_target_idx" — '
+      + 'Key (target_origin, target_path)=(https://staging.wp.test, /) already exists.', '23505'
+  )), { error: 'WordPress target is already paired' });
+  a.deepEqual(await approve(new GatewayError(
+    'insert or update on table "wordpress_connections" violates foreign key constraint '
+      + '"wordpress_connections_created_by_fkey" — Key (created_by)=(user-1) is not present.', '23503'
+  )), { error: 'the WordPress connection could not be created' });
+  a.deepEqual(await approve(new Error('site already has a staging connection')),
+    { error: 'site already has a staging connection' }, 'messages written for people pass');
+  a.ok(logged.mock.calls.some(args => String(args[1]).includes('created_by_fkey')),
+    'the log keeps the database text');
+  logged.mockRestore();
 });
 
 test('OAuth consent and one-time editor SSO work across app workers and reject replay/demotion', async () => {

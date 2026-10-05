@@ -83,6 +83,8 @@ export interface PublicationReviewStore {
   enqueueEmail(input: { to: string; subject: string; body: string }): Promise<ReviewEmailWork>;
   markEmailDelivered(id: string): Promise<boolean>;
   drainEmail(limit?: number): Promise<{ processed: number; pending: number }>;
+  /** A deleted site's assignments, comments and decisions. Notices stay in their inboxes. */
+  removeSite(siteId: string): Promise<void>;
 }
 
 const now = () => new Date().toISOString();
@@ -257,6 +259,15 @@ export class MemoryPublicationReviewStore implements PublicationReviewStore {
     }
     return { processed, pending: this.emailRows.filter(row => !row.deliveredAt).length };
   }
+
+  async removeSite(siteId: string) {
+    for (const row of [...this.assignmentRows.values()]) {
+      if (row.siteId !== siteId) continue;
+      this.assignmentRows.delete(row.id);
+      this.commentRows.delete(row.id);
+      this.decisionRows.delete(row.id);
+    }
+  }
 }
 
 /** The single state file earlier versions kept at `reviews/state.json`. */
@@ -424,6 +435,19 @@ export class FilePublicationReviewStore implements PublicationReviewStore {
       processed += 1;
     }
     return { processed, pending: rows.filter(row => !row.deliveredAt).length };
+  }
+  async removeSite(siteId: string) {
+    const records = await this.records();
+    for (const row of await this.assignmentsForSite(siteId)) {
+      const [comments, decisions] = await Promise.all([
+        records.list<ReviewComment>(`comments/${row.id}`), records.list<ReviewDecision>(`decisions/${row.id}`),
+      ]);
+      await Promise.all([
+        ...comments.map(comment => records.remove(`comments/${row.id}/${comment.id}.json`)),
+        ...decisions.map(decision => records.remove(`decisions/${row.id}/${decision.id}.json`)),
+      ]);
+      await records.remove(`assignments/${row.id}.json`);
+    }
   }
 }
 

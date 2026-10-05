@@ -51,6 +51,7 @@ const messages: Record<string, string> = {
   site_name: 'Enter a site name between 1 and 120 characters.',
   site_slug: 'Use lowercase letters, numbers, and single hyphens for the Pagecraft address.',
   site_slug_taken: 'That Pagecraft address is already used by another site.',
+  site_has_releases: 'This site has signed WordPress releases, which are kept permanently, so it can’t be deleted.',
   site_delete_confirm: 'Type the complete site name to confirm permanent deletion.',
   site_settings: 'We could not update this site. Refresh the page and try again.',
   people_email: 'Enter a valid email address.',

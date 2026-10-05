@@ -189,6 +189,11 @@ export class FileAssistantStore {
     await writeAtomic(join(this.dir(siteId), 'proposals', `${id}.json`), next);
     return next;
   }
+
+  /** A deleted site's tokens and proposals, gone. */
+  async removeSite(siteId: string) {
+    await rm(this.dir(siteId), { recursive: true, force: true });
+  }
 }
 
 const withoutDigest = ({ digest: _digest, ...rest }: AssistantToken) => rest;

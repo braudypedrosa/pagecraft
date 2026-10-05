@@ -2,7 +2,7 @@
 
    No browser and no database — Hono apps take a `Request` and return a `Response`, so the
    whole round trip is assertable in-process. */
-import { test } from 'vitest';
+import { test, vi } from 'vitest';
 import a from 'node:assert/strict';
 import * as Core from '../../app/src/core/index.ts';
 import { createApp } from '../src/app.ts';
@@ -236,7 +236,7 @@ test('hosted publishing promotes immutable bytes and public reads bypass the app
 });
 
 test('hosted addresses move immediately and deleting the site revokes both public routes', async () => {
-  const { site, store, publications, get, admin, signIn } = await rig('owner', true);
+  const { site, store, get, admin, signIn } = await rig('owner', true);
   const { cookie } = await signIn();
   const published = await admin(`/api/sites/${site.id}/publish`, {
     method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
@@ -257,18 +257,40 @@ test('hosted addresses move immediately and deleting the site revokes both publi
   a.equal(host.status, 200);
   a.equal((await get('/')).status, 404);
   a.equal((await get('/', 'moved.test')).status, 200);
-  const removeSite = publications!.removeSite.bind(publications);
-  publications!.removeSite = async () => { throw new Error('fixture pointer failure'); };
+  const deleteSite = store.delete.bind(store);
+  store.delete = async () => { throw new Error('fixture database failure'); };
   const deleteRequest = () => admin(`/sites/${site.id}/settings/delete`, {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ confirmation: site.name }).toString()
   }, cookie);
   a.equal((await deleteRequest()).status, 500);
-  a.ok(await store.byId(site.id), 'failed public revocation must not remove management access');
-  publications!.removeSite = removeSite;
+  a.ok(await store.byId(site.id), 'a failed database delete keeps management access');
+  a.equal((await admin('/final-address/')).status, 200, 'and leaves the site public as it was');
+  store.delete = deleteSite;
   a.equal((await deleteRequest()).status, 303);
   a.equal(await store.byId(site.id), null);
   a.equal((await admin('/final-address/')).status, 404);
   a.equal((await get('/', 'moved.test')).status, 404);
+});
+
+test('a failed publication write explains itself without the server path behind it', async () => {
+  const { site, publications, admin, signIn } = await rig('owner', true);
+  const { cookie } = await signIn();
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  publications!.create = async () => {
+    throw Object.assign(new Error("EACCES: permission denied, open '/home/pagecraft/publications/x.json'"), {
+      code: 'EACCES', syscall: 'open', path: '/home/pagecraft/publications/x.json'
+    });
+  };
+  const failed = await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
+  }, cookie);
+  a.equal(failed.status, 503);
+  a.deepEqual(await failed.json(), {
+    error: 'publication_write_failed',
+    detail: 'The published files could not be written. Publish again in a moment.'
+  });
+  a.ok(logged.mock.calls.some(args => String(args[1]).includes('/home/pagecraft')));
+  logged.mockRestore();
 });
 
 test('a save carrying a stale version is refused rather than winning', async () => {
