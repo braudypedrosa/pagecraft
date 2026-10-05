@@ -145,7 +145,7 @@ import {
   signReleaseManifest,
   utf8ByteCompare,
 } from "./releases.ts";
-import { freezeGoogleFontStylesheets } from "./font-freeze.ts";
+import { freezeGoogleFontStylesheets, shareHostedStyles } from "./font-freeze.ts";
 import type { PackageRegistry } from "./packages.ts";
 import type {
   HostedPublicationStore,
@@ -558,7 +558,12 @@ export function createApp(o: Options) {
   /* A render needs the site's assets, and fetching them is asynchronous while the render is
      not — so they are fetched first and handed in. `renderSite` stays synchronous, which is
      the property the singleton core depends on. */
-  const render = (doc: Doc, assets: AssetRecord[] = [], formEndpoint = '') => {
+  const render = (
+    doc: Doc,
+    assets: AssetRecord[] = [],
+    formEndpoint = '',
+    options: { foundation?: boolean } = {},
+  ) => {
     /* Every served byte comes through here, so this is where a document written by an older
        editor is brought up to date. `adopt` returning null means a newer editor wrote it; it
        is in the table already, so render it as it stands rather than take the site down. */
@@ -572,7 +577,7 @@ export function createApp(o: Options) {
     if (!adopted) {
       throw new Error("document schema is newer than this Pagecraft renderer");
     }
-    return renderSite(adopted, refs, formEndpoint);
+    return renderSite(adopted, refs, formEndpoint, options);
   };
   const assetsOf = async (id: string) => o.assets ? o.assets.list(id) : [];
   const assetBodiesOf = async (
@@ -625,6 +630,15 @@ export function createApp(o: Options) {
     });
     return out;
   };
+  /** Where a hosted publication is read: the site's own domain, or the editor host and its
+      slug. From the configured editor origin rather than request headers, because it is
+      written into the published files. */
+  const publicAddress = (c: Context, site: Pick<Site, "host" | "slug">) => {
+    const editor = new URL(o.editorOrigin || c.req.url);
+    return /\.invalid$/.test(site.host)
+      ? `${editor.origin}/${site.slug}/`
+      : `${editor.protocol}//${site.host.toLowerCase()}/`;
+  };
   const cloudReceiver = (c: Context, id: string) => o.submissions && !c.req.header('x-pagecraft-editor-session')
     ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '';
   const candidate = (doc: Doc, assets: AssetRecord[], formEndpoint = '') => {
@@ -641,20 +655,42 @@ export function createApp(o: Options) {
 
   /* ------------------------------------------------------------------- who, and what */
 
-  /** The person behind this request, or null. A bad cookie is the same as no cookie. */
-  const who = async (c: Context): Promise<User | null> => {
-    if (o.accountAuth) {
-      const identity = await timed("auth.verify", () => o.accountAuth!.identity(c));
-      if (!identity) return null;
-      return o.auth.ensureAuthUser(
-        identity.authUserId,
-        identity.email,
-        identity.name,
-      );
+  /* One identity check per request. A gate, the route behind it and pages such as /account all
+     ask who is calling; each ask used to be another Supabase Auth round trip (about 0.35 s)
+     with the same request cookies and therefore the same answer. Keyed by the request object,
+     so nothing outlives the request and no answer is shared between two of them. */
+  const identities = new WeakMap<Request, Promise<VerifiedIdentity | null>>();
+  const verifiedIdentity = (c: Context) => {
+    let pending = identities.get(c.req.raw);
+    if (!pending) {
+      pending = timed("auth.verify", () => o.accountAuth!.identity(c));
+      identities.set(c.req.raw, pending);
     }
-    const token = getCookie(c, SESSION_COOKIE);
-    if (!token) return null;
-    return o.auth.userForSession(hashToken(token));
+    return pending;
+  };
+  const users = new WeakMap<Request, Promise<User | null>>();
+
+  /** The person behind this request, or null. A bad cookie is the same as no cookie. */
+  const who = (c: Context): Promise<User | null> => {
+    let pending = users.get(c.req.raw);
+    if (!pending) {
+      pending = (async () => {
+        if (o.accountAuth) {
+          const identity = await verifiedIdentity(c);
+          if (!identity) return null;
+          return o.auth.ensureAuthUser(
+            identity.authUserId,
+            identity.email,
+            identity.name,
+          );
+        }
+        const token = getCookie(c, SESSION_COOKIE);
+        if (!token) return null;
+        return o.auth.userForSession(hashToken(token));
+      })();
+      users.set(c.req.raw, pending);
+    }
+    return pending;
   };
 
   app.get('/internal/components', async c => {
@@ -692,14 +728,12 @@ export function createApp(o: Options) {
   };
 
   /**
-   * May this person do this to this site? Every answer comes from here, so a route cannot
-   * forget the membership half and check only that somebody is logged in.
+   * Who this person is to this site: one identity check and one membership lookup. `allowed`
+   * then asks whether that role may do something; `allowedMember` accepts any role. Both used
+   * to repeat the whole lookup for each role they tried, so a content editor opening a site
+   * paid for two identity checks and two membership reads, and a reviewer for three.
    */
-  const allowed = async (
-    c: Context,
-    siteId: string,
-    verb: "read" | "write" | "admin",
-  ) => {
+  const siteAccess = async (c: Context, siteId: string) => {
     const scoped = c.req.header("x-pagecraft-editor-session");
     if (scoped) {
       const credential = await o.connected?.editorCredential(
@@ -724,9 +758,6 @@ export function createApp(o: Options) {
       if (!user) return { ok: false as const, status: 401 as const };
       const membership = await o.auth.membership(siteId, user.id);
       if (!membership) return { ok: false as const, status: 404 as const };
-      if (!roleAllows(membership.role, verb)) {
-        return { ok: false as const, status: 403 as const };
-      }
       return { ok: true as const, user, role: membership.role };
     } else {
       const token = getCookie(c, SESSION_COOKIE);
@@ -734,27 +765,28 @@ export function createApp(o: Options) {
       const access = await o.auth.accessForSession(hashToken(token), siteId);
       if (!access) return { ok: false as const, status: 401 as const };
       if (!access.role) return { ok: false as const, status: 404 as const }; // conceal existence
-      if (!roleAllows(access.role, verb)) {
-        return { ok: false as const, status: 403 as const };
-      }
       return { ok: true as const, user: access.user, role: access.role };
     }
   };
 
-  const allowedMember = async (c: Context, siteId: string) => {
-    const access = await allowed(c, siteId, "admin");
-    if (access.ok) return access;
-    const read = await allowed(c, siteId, "read");
-    if (read.ok) return read;
-    if (read.status !== 403) return read;
-    const scoped = c.req.header("x-pagecraft-editor-session");
-    if (scoped) return read;
-    const user = await who(c);
-    if (!user) return { ok: false as const, status: 401 as const };
-    const membership = await o.auth.membership(siteId, user.id);
-    if (!membership) return { ok: false as const, status: 404 as const };
-    return { ok: true as const, user, role: membership.role };
+  /**
+   * May this person do this to this site? Every answer comes from here, so a route cannot
+   * forget the membership half and check only that somebody is logged in.
+   */
+  const allowed = async (
+    c: Context,
+    siteId: string,
+    verb: "read" | "write" | "admin",
+  ) => {
+    const access = await siteAccess(c, siteId);
+    if (access.ok && !roleAllows(access.role, verb)) {
+      return { ok: false as const, status: 403 as const };
+    }
+    return access;
   };
+
+  /* Any member, whatever their role: an editor-session credential still has to be the owner's. */
+  const allowedMember = (c: Context, siteId: string) => siteAccess(c, siteId);
 
   const allowedReview = async (c: Context, siteId: string) => {
     const member = await allowedMember(c, siteId);
@@ -1442,17 +1474,19 @@ export function createApp(o: Options) {
     app.get("/account", async (c) => {
       const [user, identity] = await Promise.all([
         who(c),
-        o.accountAuth!.identity(c),
+        verifiedIdentity(c),
       ]);
       if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
       const requestedTab = c.req.query("tab");
       const tab = requestedTab === "security" || requestedTab === "plan"
         ? requestedTab
         : "profile";
-      const mine = await visibleSites(user);
-      const storage = o.assets
-        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
-        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+      const [mine, storage] = await Promise.all([
+        visibleSites(user),
+        o.assets
+          ? o.assets.usage(user.id, FREE_STORAGE_BYTES)
+          : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES },
+      ]);
       return c.html(accountSettingsPage(user, {
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
@@ -1474,7 +1508,7 @@ export function createApp(o: Options) {
       async (c) => {
         const [user, identity] = await Promise.all([
           who(c),
-          o.accountAuth!.identity(c),
+          verifiedIdentity(c),
         ]);
         if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
         const body = await form(c);
@@ -1521,7 +1555,7 @@ export function createApp(o: Options) {
         onError: (c) => c.text("Request too large", 413),
       }),
       async (c) => {
-        const identity = await o.accountAuth!.identity(c);
+        const identity = await verifiedIdentity(c);
         if (!identity) return c.redirect("/sign-in?next=%2Faccount");
         if (!accountChangeLimit.take(`${requestSource(c)}|password`)) {
           return c.redirect("/account?tab=security&error=password_rate", 303);
@@ -1644,13 +1678,17 @@ export function createApp(o: Options) {
     const user = await who(c);
     if (o.accountAuth) {
       if (!user) return c.redirect("/sign-in");
-      const mine = (await visibleSites(user)).sort((a, b) =>
+      /* Independent reads: the site list and the storage meter used to wait for each other. */
+      const [visible, storage] = await Promise.all([
+        visibleSites(user),
+        o.assets
+          ? o.assets.usage(user.id, FREE_STORAGE_BYTES)
+          : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES },
+      ]);
+      const mine = visible.sort((a, b) =>
         new Date(b.site.updatedAt).getTime() -
         new Date(a.site.updatedAt).getTime()
       );
-      const storage = o.assets
-        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
-        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
       const templates = o.siteTemplates ? latestSiteTemplates(await o.siteTemplates.list().catch(error => {
         console.error('site template catalog unavailable', error);
         return [];
@@ -1719,10 +1757,11 @@ export function createApp(o: Options) {
     if (!file) return c.notFound();
     c.header("content-type", file.mediaType);
     c.header("cache-control", "public, max-age=31536000, immutable");
-    /* Instantiated documents keep absolute asset URLs so custom domains resolve them. The
-       dashboard thumbnail inlines images with fetch(), which a document saved on the other
-       environment's origin (shared pre-launch database) can only do with CORS. These bytes
-       are public and immutable; the preview page itself stays same-origin. */
+    /* Sites created before template images were copied into each site keep absolute URLs to
+       these files, so they stay served. The dashboard thumbnail inlines images with fetch(),
+       which a document saved on the other environment's origin (shared pre-launch database)
+       can only do with CORS. These bytes are public and immutable; the preview page itself
+       stays same-origin. */
     if (!file.mediaType.startsWith("text/html")) c.header("access-control-allow-origin", "*");
     c.header(
       "content-security-policy",
@@ -1733,7 +1772,24 @@ export function createApp(o: Options) {
 
   app.get("/sites/:id", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowedMember(c, id);
+    /* The same overlap as the editor route: read the row while access is checked, and say
+       nothing about it until the check passes. The published revision only dates the last
+       publish; for a signed-in caller it is read beside the membership check, not after it. */
+    const loading = o.store.byId(id);
+    const revisionOf = (site: Site | null) => site && site.publishedVersion > 0
+      ? o.store.revision(site.id, site.publishedVersion)
+      : Promise.resolve(null);
+    const [access, snapshot, early] = await Promise.allSettled([
+      allowedMember(c, id),
+      loading,
+      c.req.header("x-pagecraft-editor-session")
+        ? Promise.resolve(undefined)
+        : Promise.all([who(c), loading]).then(([user, site]) =>
+          user ? revisionOf(site) : undefined
+        ),
+    ]);
+    if (access.status === "rejected") throw access.reason;
+    const gate = access.value;
     if (!gate.ok) {
       return gate.status === 401
         ? c.redirect(
@@ -1741,11 +1797,13 @@ export function createApp(o: Options) {
         )
         : deny(c, gate.status);
     }
-    const site = await o.store.byId(id);
+    if (snapshot.status === "rejected") throw snapshot.reason;
+    const site = snapshot.value;
     if (!site) return deny(c, 404);
-    const publishedRevision = site.publishedVersion > 0
-      ? await o.store.revision(site.id, site.publishedVersion)
-      : null;
+    if (early.status === "rejected") throw early.reason;
+    const publishedRevision = early.value === undefined
+      ? await revisionOf(site)
+      : early.value;
     return c.html(siteOverviewPage(gate.user, {
       id: site.id,
       name: site.name,
@@ -2389,6 +2447,7 @@ export function createApp(o: Options) {
         303,
       );
     }
+    await o.publications?.releaseSlug(moved.slug, id);
     await o.publications?.relocate(id, moved.slug, moved.host);
     built.delete(id);
     return c.redirect(
@@ -2553,9 +2612,14 @@ export function createApp(o: Options) {
 
   app.get("/api/sites/:id", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowed(c, id, "read");
+    const [access, snapshot] = await Promise.allSettled([
+      allowed(c, id, "read"), o.store.byId(id),
+    ]);
+    if (access.status === "rejected") throw access.reason;
+    const gate = access.value;
     if (!gate.ok) return deny(c, gate.status);
-    const site = await o.store.byId(id);
+    if (snapshot.status === "rejected") throw snapshot.reason;
+    const site = snapshot.value;
     if (!site) return deny(c, 404);
     return c.json({
       id: site.id,
@@ -3107,7 +3171,7 @@ export function createApp(o: Options) {
     let preparedAssets: AssetRecord[] | undefined;
     let publishIdentity: VerifiedIdentity | undefined;
     if (o.hostedPublish && o.accountAuth) {
-      const identity = await timed("auth.verify", () => o.accountAuth!.identity(c));
+      const identity = await verifiedIdentity(c);
       if (!identity) return deny(c, 401);
       publishIdentity = identity;
       // Publishing must recheck the authoritative version and membership, even when the
@@ -3201,9 +3265,15 @@ export function createApp(o: Options) {
     }
 
     const metadata = preparedAssets || await assetsOf(id);
+    /* A hosted site always has an address, so it gets the canonical tags and the sitemap the
+       core writes only for a Site URL. The owner's own Site URL still wins; the stored document
+       is not changed, only what this publication renders. */
+    const addressed: Doc = document.meta.baseUrl
+      ? document
+      : { ...document, meta: { ...document.meta, baseUrl: publicAddress(c, site) } };
     let rendered: ReturnType<typeof render>;
     try {
-      rendered = render(document, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '');
+      rendered = render(addressed, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '', { foundation: true });
       if (releaseStylesheetLinks(rendered.files).length) {
         rendered.files = await freezeGoogleFontStylesheets(
           rendered.files,
@@ -3256,12 +3326,16 @@ export function createApp(o: Options) {
       releaseAssetIds(document, rendered.files, metadata),
       preparedAssets,
     );
+    /* Fonts and the shared foundation become files every page links, instead of ~315 KB that
+       each page used to carry inline. */
+    const hostedStyles = shareHostedStyles(rendered.files, rendered.foundation);
     const files = [
-      ...[...rendered.files].map(([path, content]) => ({
+      ...[...hostedStyles.files].map(([path, content]) => ({
         path,
         mediaType: typeOf(path),
         bytes: new TextEncoder().encode(content),
       })),
+      ...hostedStyles.extra,
       ...assets.map((asset) => ({
         path: assetFile(asset),
         mediaType: asset.type,
@@ -3422,10 +3496,15 @@ export function createApp(o: Options) {
         return c.json({ error: "site_templates_unavailable" }, 503);
       }
       await progress(0, "Preparing the template…");
+      /* Template images are copied into the new site's media library, like uploads, so the
+         site owns them and its pages load them from wherever the site is served. Linking to the
+         editor host's package (as Cloud did) made a site created on staging and published from
+         production load its images from staging. Only a server with no asset store links, and
+         then origin-relatively. */
       templateInstall = await o.siteTemplates.instantiate(
         templateId,
         templateVersion || undefined,
-        o.accountAuth ? (o.editorOrigin || new URL(c.req.url).origin) : undefined,
+        !o.assets && !!o.accountAuth,
       ).catch(() => null);
       if (!templateInstall) {
         return c.json({ error: "site_template_not_found" }, 422);
@@ -3519,6 +3598,8 @@ export function createApp(o: Options) {
         savedBy: user.id,
       });
       if (!o.accountAuth) await o.auth.grant(site.id, user.id, "owner");
+      // A slug another site left now belongs to this one; stop redirecting it away.
+      await o.publications?.releaseSlug(site.slug, site.id).catch(() => undefined);
       /* A curated package's assets are independent immutable blobs. Installing them one at a
          time multiplied gateway latency by the image count (the five-image studio template
          could leave the create dialog spinning for nearly a minute). Let every upload settle
@@ -3614,7 +3695,7 @@ export function createApp(o: Options) {
     /* Preserve authentication-first behavior. Besides avoiding needless parsing work, this
        keeps unauthenticated requests from learning which payloads the save endpoint accepts. */
     if (accountFastPath) {
-      const identity = await o.accountAuth!.identity(c);
+      const identity = await verifiedIdentity(c);
       if (!identity) return deny(c, 401);
       fastIdentity = identity;
     } else {
@@ -3909,6 +3990,7 @@ export function createApp(o: Options) {
         409,
       );
     }
+    await o.publications?.releaseSlug(moved.slug, id);
     await o.publications?.relocate(id, moved.slug, moved.host);
     return c.json({
       id: moved.id,
@@ -6908,6 +6990,12 @@ export function createApp(o: Options) {
         const publication = slug
           ? await o.publications.currentBySlug(slug)
           : null;
+        /* A renamed site keeps its old links: the slug it left points on to where it is now,
+           until another site takes that slug. */
+        const moved = !publication && slug ? await o.publications.movedSlug(slug) : null;
+        if (moved) {
+          return c.redirect(`/${moved}/${rest.join("/")}${url.search}`, 301);
+        }
         if (!publication) {
           return c.text(
             first
@@ -7221,8 +7309,11 @@ async function serveHostedPublication(
   let status: 200 | 404 = 200;
   let record = records.get(path);
   if (!record) {
+    /* The site's own 404 page is the page whose slug is `404`, exported as `404.html`. */
     record = records.get("404.html");
-    if (!record) return c.text(`Not found: /${path}`, 404);
+    if (!record) {
+      return c.html(missingPage(publicPath("index.html", prefix)), 404, publishedHeaders(TYPES.html));
+    }
     status = 404;
   }
   const bytes = await publications.file(publication, record.path);
@@ -7259,7 +7350,12 @@ async function serveHostedPublication(
     : {
       ...publicationAssetHeaders(record.mediaType, record.path),
       etag,
-      "cache-control": "public, max-age=31536000, immutable",
+      /* Everything under assets/ is named for its bytes (an image's id, a stylesheet's or a
+         font's hash), so a change is a new URL. sitemap.xml and robots.txt keep their names
+         across publishes and are revalidated like pages. */
+      "cache-control": record.path.startsWith("assets/")
+        ? "public, max-age=31536000, immutable"
+        : "public, max-age=0, must-revalidate",
     };
   if (
     c.req.header("if-none-match")?.split(",").map((value) => value.trim())
@@ -7291,7 +7387,44 @@ const publicationAssetHeaders = (
       }"`,
       "x-content-type-options": "nosniff",
     }
+    : mediaType.startsWith("font/")
+    /* Published pages run in an opaque-origin sandbox, so to the browser even the site's own
+       font is a cross-origin font load, and fonts load in CORS mode. */
+    ? {
+      "content-type": mediaType,
+      "x-content-type-options": "nosniff",
+      "access-control-allow-origin": "*",
+    }
     : { "content-type": mediaType, "x-content-type-options": "nosniff" };
+
+/** What a hosted site answers for a path it does not have, when it has no 404 page of its own:
+    still a page, in the site's sandbox, with a way back to its home. No external resources. */
+const missingPage = (home: string) => `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page not found</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;
+font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1d211e;background:#f8f6ef}
+main{max-width:32rem;text-align:center}
+h1{margin:0 0 8px;font-size:clamp(28px,6vw,40px);line-height:1.15;letter-spacing:-.02em}
+p{margin:0 0 24px;color:#5f6660}
+a{display:inline-block;padding:10px 18px;border-radius:8px;background:#1d211e;color:#fff;text-decoration:none}
+a:focus-visible{outline:3px solid #1d211e;outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+<h1>Page not found</h1>
+<p>There is nothing at this address. It may have moved, or the link may be mistyped.</p>
+<a href="${escapeHtml(home)}">Go to the home page</a>
+</main>
+</body>
+</html>
+`;
 
 async function serveSite(
   c: Context,
@@ -7468,7 +7601,7 @@ async function serveSite(
         publishedHeaders(TYPES.html),
       );
     }
-    return c.text(`Not found: /${path}`, 404);
+    return c.html(missingPage(publicPath("index.html", prefix)), 404, publishedHeaders(TYPES.html));
   }
   const type = typeOf(path);
   let served = type.startsWith("text/html")

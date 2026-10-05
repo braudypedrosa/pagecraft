@@ -66,6 +66,11 @@ export interface HostedPublicationStore {
   currentByHost(host: string): Promise<PublicationSummary | null>;
   promote(publication: PublicationSummary): Promise<void>;
   relocate(siteId: string, slug: string, host: string): Promise<void>;
+  /** A published site moved off `slug`: the slug it is published at now, so the old address
+      can redirect. Null when nothing moved from there, the site is gone, or the slug is live. */
+  movedSlug(slug: string): Promise<string | null>;
+  /** Another site has taken `slug`, published or not: its old owner's visitors stop being sent on. */
+  releaseSlug(slug: string, siteId: string): Promise<void>;
   removeSite(siteId: string): Promise<void>;
   discard(publication: PublicationSummary): Promise<void>;
   file(
@@ -198,6 +203,8 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
   private slugs = new Map<string, string>();
   private hosts = new Map<string, string>();
   private siteAliases = new Map<string, { slug: string; host: string }>();
+  /** old slug -> the site that was published there */
+  private movedSlugs = new Map<string, string>();
   private previews = new Map<string, Uint8Array>();
 
   async create(input: {
@@ -301,7 +308,9 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
         publication.siteId
     ) {
       this.slugs.delete(previous.slug);
+      this.movedSlugs.set(previous.slug, publication.siteId);
     }
+    this.movedSlugs.delete(publication.slug);
     if (
       previous && previous.host !== publication.host.toLowerCase() &&
       this.publications.get(previousHostId || "")?.summary.siteId ===
@@ -309,6 +318,17 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
     ) {
       this.hosts.delete(previous.host);
     }
+  }
+
+  async movedSlug(slug: string) {
+    const siteId = this.movedSlugs.get(slug);
+    if (!siteId || this.deletedSites.has(siteId) || this.slugs.has(slug)) return null;
+    const aliases = this.siteAliases.get(siteId);
+    return aliases && aliases.slug !== slug ? aliases.slug : null;
+  }
+
+  async releaseSlug(slug: string, siteId: string) {
+    if (this.movedSlugs.get(slug) !== siteId) this.movedSlugs.delete(slug);
   }
 
   async discard(publication: PublicationSummary) {
@@ -372,6 +392,11 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
 
   private deletionPath(siteId: string) {
     return join(this.root, "pointers", "deleted", `${sha256(siteId)}.json`);
+  }
+
+  /** A slug a published site left, kept so its old address can redirect. */
+  private movedPath(slug: string) {
+    return join(this.root, "pointers", "moved", `${sha256(slug.toLowerCase())}.json`);
   }
 
   private async deleted(siteId: string) {
@@ -573,11 +598,45 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
     await Promise.all([
       previous.slug && previous.slug !== publication.slug
         ? this.removeOwnedPointer("slug", previous.slug, publication.siteId)
+          .then((removed) => removed
+            ? this.atomicJson(this.movedPath(previous.slug!), {
+              siteId: publication.siteId,
+              value: previous.slug,
+            })
+            : undefined)
         : undefined,
       previous.host && previous.host !== publication.host.toLowerCase()
         ? this.removeOwnedPointer("host", previous.host, publication.siteId)
         : undefined,
+      // The slug is live again, so nothing should redirect away from it.
+      rm(this.movedPath(publication.slug), { force: true }),
     ]);
+  }
+
+  async movedSlug(slug: string) {
+    try {
+      const moved = JSON.parse(decoder.decode(await readFile(this.movedPath(slug)))) as {
+        siteId?: string;
+        value?: string;
+      };
+      if (!moved.siteId || moved.value !== slug.toLowerCase()) return null;
+      if (await this.deleted(moved.siteId) || await this.currentBySlug(slug)) return null;
+      const aliases = await this.aliases(moved.siteId);
+      return aliases?.slug && aliases.slug !== moved.value ? aliases.slug : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async releaseSlug(slug: string, siteId: string) {
+    try {
+      const moved = JSON.parse(decoder.decode(await readFile(this.movedPath(slug)))) as {
+        siteId?: string;
+      };
+      if (moved.siteId !== siteId) await unlink(this.movedPath(slug));
+    } catch {
+      /* Nothing moved from this slug. */
+    }
   }
 
   async discard(publication: PublicationSummary) {
@@ -597,9 +656,12 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
       const pointer = JSON.parse(decoder.decode(await readFile(path))) as {
         siteId?: string;
       };
-      if (pointer.siteId === siteId) await unlink(path);
+      if (pointer.siteId !== siteId) return false;
+      await unlink(path);
+      return true;
     } catch {
       /* Missing or malformed stale pointers are already unavailable. */
+      return false;
     }
   }
 
