@@ -23,12 +23,13 @@ disabled controls and recoverable errors. Use only fictional fixture values; do
 not lengthen real account identities or edit existing client records for a capture.
 Test error recovery through a controlled failed request and record whether the
 previous result and unsaved input survive. Confirm no additional horizontal
-overflow at 768, 1024 and 1440px. At 767px the editor's larger-screen message must
-prevent interaction with its underlying menus, dialogs and shortcuts; widening
-must restore the same session. Gallery demonstrations cannot substitute for these
+overflow at 768, 1024 and 1440px. Also test desktop enlargement using 720 and 640
+CSS-pixel layout widths: editing, menus, dialogs and shortcuts must remain usable,
+and resizing must preserve unsaved values in the same session. These are desktop
+zoom-equivalent layouts, not a phone-support commitment. Gallery demonstrations cannot substitute for these
 real-screen behaviors or server permission checks.
 
-Shared roles: `pc-heading-actions` uses 37px actions; `pc-pagination` uses 32px actions; `pc-list-empty` uses a compact left-aligned result message with 12px body/11px help. A simple empty table cell retains normal table density. Full form submissions remain 44px. Project settings field grids respond to available content width, not the canvas preview setting.
+Shared roles: `pc-heading-actions` uses 40px actions; `pc-pagination` uses 32px actions; `pc-list-empty` uses a compact left-aligned result message with 14px body/13px help. A simple empty table cell retains normal table density. Full form submissions remain 44px. Project settings field grids respond to available content width, not the canvas preview setting.
 
 ## Capture and compare
 

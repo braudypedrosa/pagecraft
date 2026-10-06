@@ -424,7 +424,7 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // shared/ui-tokens.js
-var UI_TEXT_SIZES = Object.freeze({ label: "11px", body: "12px" });
+var UI_TEXT_SIZES = Object.freeze({ label: "13px", body: "14px" });
 var UI_TOKENS_CSS = `:root{
   --pc-surface-subtle:#fafbfc;
   --pc-surface-muted:#f3f5f6;
@@ -445,7 +445,7 @@ var UI_TOKENS_CSS = `:root{
   --pc-control-padding:var(--pc-control-padding-y) var(--pc-control-padding-x);
   --pc-control-height:44px;
   --pc-control-compact:36px;
-  --pc-control-editor:37px;
+  --pc-control-editor:40px;
   --pc-control-row:32px;
   --pc-field-label-gap:8px;
   --pc-field-gap:16px;
@@ -468,15 +468,17 @@ var UI_TOKENS_CSS = `:root{
   --pc-table-icon-gap:8px;
   --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
   --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
-  --pc-text-caption:11px;
+  --pc-text-caption:12px;
   --pc-text-label:${UI_TEXT_SIZES.label};
   --pc-text-body:${UI_TEXT_SIZES.body};
-  --pc-text-panel:15px;
-  --pc-text-dialog:16px;
+  --pc-text-prose:16px;
+  --pc-text-panel:16px;
+  --pc-text-dialog:18px;
   --pc-text-section:18px;
   --pc-text-workspace:22px;
   --pc-type-input:400 var(--pc-text-body)/1.4 var(--pc-font-body);
   --pc-type-control:500 var(--pc-text-body)/1.4 var(--pc-font-body);
+  --pc-type-body:400 var(--pc-text-prose)/1.55 var(--pc-font-body);
   --pc-type-toolbar:500 var(--pc-text-label)/1.4 var(--pc-font-body);
   --pc-type-label:500 var(--pc-text-label)/1.5 var(--pc-font-label);
   --pc-type-description:400 var(--pc-text-label)/1.55 var(--pc-font-label);
@@ -7563,10 +7565,11 @@ img,video,svg{max-width:100%}
 .pagecraft-box.l-grid{display:grid}
 .pagecraft-box>*{min-width:0}
 a.pagecraft-box{color:inherit;text-decoration:none}
-.pagecraft-heading{margin:0;font-family:${m.headFont || "inherit"}}
+.pagecraft-heading{margin:0;font-family:${m.headFont || "inherit"};overflow-wrap:break-word}
 .pagecraft-heading a{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg>:first-child{margin-top:0}
 .pagecraft-wysiwyg>:last-child{margin-bottom:0}
+.pagecraft-wysiwyg,.pagecraft-quote{overflow-wrap:break-word}
 .pagecraft-wysiwyg a{text-decoration:underline;text-underline-offset:2px}
 .pagecraft-wysiwyg ul,.pagecraft-wysiwyg ol{padding-left:1.3em;margin:.7em 0}
 .pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:${m.headFont || "inherit"}}
@@ -7953,7 +7956,8 @@ ${m.css || ""}
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar{
-  position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
+  position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
+  box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
   transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;
   font:500 12px "DM Sans",system-ui,sans-serif;

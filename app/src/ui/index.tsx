@@ -26,7 +26,6 @@ import { installUiMotion } from '../../../shared/ui-motion.js';
 import { installAccountActions } from '../../../shared/account-actions.js';
 export { installActionFeedback } from '../../../shared/action-feedback.js';
 export { installUiMotion } from '../../../shared/ui-motion.js';
-export { installEditorViewport } from './editor-viewport';
 export { projectIdentity, renameHostedSite } from './hosted-identity';
 
 /* Host factories ship in the same sealed bundle as the editor UI. The classic single-file

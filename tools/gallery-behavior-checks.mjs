@@ -150,9 +150,9 @@ const CHECKS = [
   }],
 ];
 
-export async function runBehaviorChecks(tab, base) {
+export async function runBehaviorChecks(tab, base, { hosts = ['cloud', 'builder'] } = {}) {
   const results = [];
-  for (const host of ['cloud', 'builder']) {
+  for (const host of hosts) {
     for (const [check, run] of CHECKS) {
       let outcome;
       try { outcome = await run(tab, base, host); } catch (error) { outcome = { passed: false, detail: String(error.message) }; }

@@ -10,8 +10,19 @@ import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { bound, writer } from './ctl';
 import type { Control, Node as PcNode } from '../../core/types';
-import { useId } from 'preact/hooks';
+import { useRef } from 'preact/hooks';
 import { cloneElement, Fragment, isValidElement, toChildArray } from 'preact';
+
+let nextFieldId = 0;
+
+/** Preact's useId counter restarts for each root render. Inspector groups can survive while
+ * their controls remount, so a remounted field could reuse a persistent group's id. Keep a
+ * component-stable id in a field-only namespace instead. */
+function useFieldId() {
+  const id = useRef('');
+  if (!id.current) id.current = `inspector-field-${++nextFieldId}`;
+  return id.current;
+}
 
 /** Associate native leaves with this field without replacing their DOM nodes. Composite
  * parts declare a suffix; badge actions never become part of the input's name. */
@@ -156,7 +167,7 @@ function PropBadge({ n, c }: { n: PcNode; c: Control }) {
 }
 
 export function Field({ n, c, children }: { n: PcNode; c: Control; children?: any }) {
-  const labelId = useId();
+  const labelId = useFieldId();
   const { scope, fid } = bound(n, c);
   const bindable = C.cmsBindable(n, c);
   /* Anything a control writes can vary between instances — a colour, a variant, a link — so

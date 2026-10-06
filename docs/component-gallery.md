@@ -4,7 +4,7 @@ Open [the staging component gallery](https://staging.itspagecraft.com/internal/c
 
 The gallery renders Cloud through its real account shell and route styles. Builder specimens consume the compiled editor's actual style blocks, with the same local product font files. Menus, selects, notifications and dialogs use the existing shared implementations. Gallery-specific CSS owns only composition, navigation and specimen-container sizing; it does not redefine input or button geometry. Specimen markup is representative, not a substitute for testing the consuming application screens.
 
-Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedback. Read the sample's role before comparing: full forms are 44px, inspector fields 37px, CMS schema 36px, dense rows 32px and nested toolbar pickers 30px. Multiline fields grow. These intentional densities are not supposed to collapse into one height.
+Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedback. Read the sample's role before comparing: full forms are 44px, inspector fields 40px, CMS schema 36px, dense rows 32px and nested toolbar pickers 30px. Multiline fields grow. These intentional densities are not supposed to collapse into one height.
 
 ## Baseline coverage
 

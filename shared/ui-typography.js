@@ -30,7 +30,8 @@ export const UI_TYPOGRAPHY_CSS = `
 
 /* Section explanations use body text; field help retains the smaller role. */
 .pc-body-text,
-.dashboard-app :is(.pc-settings-title,.pc-site-setting-copy,.pc-role-guide,.pc-invite,.pc-members-head,.pc-manage-summary,.pc-manage-section,.pc-integration) p{font:var(--pc-type-input);line-height:1.55}
+.dashboard-app .pc-workspace-head p,
+.dashboard-app :is(.pc-settings-title,.pc-site-setting-copy,.pc-role-guide,.pc-invite,.pc-members-head,.pc-manage-summary,.pc-manage-section,.pc-integration) p{font:var(--pc-type-body)}
 
 .pc-caption,.brow .bn small,.imgset .an small,.imgdrop span,.navitem-main small,
 .cms-entry-open small,.cms-entry-row>span,

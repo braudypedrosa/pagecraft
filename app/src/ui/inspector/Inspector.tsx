@@ -9,7 +9,7 @@
 
    None of that survives. A control's handlers are written beside its markup, `CUR` and
    `data-ci` are gone, and the guard has nothing left to check. */
-import { useEffect, useId } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Ctl } from './Controls';
@@ -20,10 +20,20 @@ import type { Control, Node as PcNode } from '../../core/types';
 const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));
 
+let nextGroupId = 0;
+
+/** Group bodies need ids that remain unique when child controls remount between inspector
+    renders. A dedicated namespace also keeps aria-controls distinct from field labels. */
+function useGroupId() {
+  const id = useRef('');
+  if (!id.current) id.current = `inspector-group-${++nextGroupId}`;
+  return id.current;
+}
+
 /** A collapsible group. Its open state is keyed by widget type and title, so folding
     Spacing away on a Section does not fold it on every Heading too. */
 function Group({ title, n, items, gk, collapsed = false }: { title: string; n: PcNode; items?: Control[]; gk?: string; collapsed?: boolean; children?: any }) {
-  const bodyId = useId();
+  const bodyId = useGroupId();
   const key = gk || (n.type + ':' + title);
   const closed = C.state.ui.open[key] === false || (C.state.ui.open[key] === undefined && collapsed);
   /* `when` lets a control depend on the node: a background's position appears once
@@ -47,7 +57,7 @@ function Group({ title, n, items, gk, collapsed = false }: { title: string; n: P
 
 /** Same, but for a group whose body is markup rather than a control list. */
 function Panel({ title, n, gk, children }: { title: string; n: PcNode; gk?: string; children: any }) {
-  const bodyId = useId();
+  const bodyId = useGroupId();
   const key = gk || (n.type + ':' + title);
   const closed = C.state.ui.open[key] === false;
   return (

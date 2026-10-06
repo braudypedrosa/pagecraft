@@ -1,9 +1,36 @@
 // @vitest-environment jsdom
 import { beforeEach, afterEach, test, expect, vi } from 'vitest';
 import { installActionFeedback } from '../shared/action-feedback.js';
+const originalWidth=Object.getOwnPropertyDescriptor(window,'innerWidth')!;
+const originalHeight=Object.getOwnPropertyDescriptor(window,'innerHeight')!;
 beforeEach(()=>{ document.body.innerHTML='<button id="save"><svg aria-hidden="true"></svg>Save changes</button>';vi.useFakeTimers(); });
-afterEach(()=>{window.__pcFeedback?.destroy();vi.useRealTimers();});
+afterEach(()=>{window.__pcFeedback?.destroy();vi.restoreAllMocks();vi.useRealTimers();Object.defineProperty(window,'innerWidth',originalWidth);Object.defineProperty(window,'innerHeight',originalHeight);});
 const button=()=>document.querySelector<HTMLButtonElement>('#save')!;
+test('editor notices fit inside the available canvas and clear its zoom controls after resize',()=>{
+ document.body.insertAdjacentHTML('beforeend','<main id="stage"><div id="dim"></div></main>');
+ const stage=document.querySelector<HTMLElement>('#stage')!,dim=document.querySelector<HTMLElement>('#dim')!;
+ let bounds={x:88,y:52,left:88,top:52,right:468,bottom:1024,width:380,height:972,toJSON:()=>({})};
+ vi.spyOn(stage,'getBoundingClientRect').mockImplementation(()=>bounds);
+ vi.spyOn(dim,'getBoundingClientRect').mockReturnValue({x:88,y:970,left:88,top:970,right:468,bottom:1010,width:380,height:40,toJSON:()=>({})});
+ Object.defineProperty(window,'innerWidth',{configurable:true,value:768});
+ Object.defineProperty(window,'innerHeight',{configurable:true,value:1024});
+ const feedback=installActionFeedback();
+ feedback.notify('Style updated everywhere',{tone:'success'});
+ const notices=document.querySelector<HTMLElement>('#pc-notifications')!;
+ expect(parseFloat(notices.style.right)).toBe(316);
+ expect(parseFloat(notices.style.width)).toBe(348);
+ expect(parseFloat(notices.style.bottom)).toBe(66);
+ expect(768-parseFloat(notices.style.right)).toBeLessThan(bounds.right);
+ bounds={...bounds,width:332,right:420};
+ Object.defineProperty(window,'innerWidth',{configurable:true,value:720});
+ window.dispatchEvent(new Event('resize'));
+ expect(parseFloat(notices.style.width)).toBe(300);
+ expect(720-parseFloat(notices.style.right)).toBeLessThan(bounds.right);
+ bounds={...bounds,width:0,height:0};
+ window.dispatchEvent(new Event('resize'));
+ expect(notices.style.right).toBe('');
+ expect(notices.style.width).toBe('');
+});
 test('pending actions prevent duplicate requests and restore the original icon and accessible name on failure',()=>{
  const feedback=installActionFeedback(), original=button().innerHTML;
  button().setAttribute('aria-label','Save this collection');

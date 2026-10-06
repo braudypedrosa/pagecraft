@@ -11,7 +11,7 @@ export const NOTIFY_MENU_CSS = `
 .pc-notify-panel{position:absolute;right:0;top:46px;width:min(340px,calc(100vw - 24px));padding:10px;background:var(--pc-panel,#fff);border:1px solid var(--pc-line,var(--pc-border));border-radius:8px;box-shadow:0 14px 30px rgba(17,19,17,.16);color:var(--pc-text,#171a17);z-index:60}
 .pc-notify-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 6px 10px;border-bottom:1px solid var(--pc-line,var(--pc-border))}
 .pc-notify-head strong{font-size:.82rem;font-weight:650;letter-spacing:-.01em}
-.pc-notify-head a{font-family:"DM Sans",system-ui,sans-serif;font-size:.7rem;font-weight:600;color:var(--pc-text-2,#6f7771);text-decoration:none}
+.pc-notify-head a{font-family:"DM Sans",system-ui,sans-serif;font-size:var(--pc-text-label,13px);font-weight:600;color:var(--pc-text-2,#6f7771);text-decoration:none}
 .pc-notify-head a:hover{color:var(--pc-text,#171a17);text-decoration:underline;text-underline-offset:2px}
 .pc-notify-list{display:grid;gap:2px;padding-top:6px;max-height:min(360px,50vh);overflow:auto}
 .pc-notify-item{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;align-items:start;padding:10px 8px;border-radius:6px;color:inherit;text-decoration:none}
@@ -20,9 +20,9 @@ export const NOTIFY_MENU_CSS = `
 .pc-notify-item-icon svg{display:block;width:16px;height:16px}
 .pc-notify-item.is-new .pc-notify-item-icon{border-color:#c5d9b0;background:#f4f8ef}
 .pc-notify-item-copy{min-width:0;display:grid;gap:3px;padding-top:2px}
-.pc-notify-item-copy strong{font-size:.78rem;font-weight:650;line-height:1.35;color:var(--pc-text,#171a17)}
-.pc-notify-item-copy time{font-family:"DM Sans",system-ui,sans-serif;font-size:.68rem;color:var(--pc-text-2,#6f7771)}
-.pc-notify-empty{margin:0;padding:18px 8px;color:var(--pc-text-2,#6f7771);font-size:.78rem;line-height:1.45}
+.pc-notify-item-copy strong{font-size:var(--pc-text-body,14px);font-weight:650;line-height:1.35;color:var(--pc-text,#171a17)}
+.pc-notify-item-copy time{font-family:"DM Sans",system-ui,sans-serif;font-size:var(--pc-text-caption,12px);color:var(--pc-text-2,#6f7771)}
+.pc-notify-empty{margin:0;padding:18px 8px;color:var(--pc-text-2,#6f7771);font-size:var(--pc-text-body,14px);line-height:1.45}
 `;
 
 export const NOTIFY_MENU_BOOT_SCRIPT = `(()=>{

@@ -534,18 +534,18 @@ function TstyleCtl({ n, c }: P) {
       <option value="">— None (styled directly) —</option>
       {C.styles().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
     </select>
-    <div class="pc-field-actions">
+    <div class="pc-field-actions pc-text-style-actions">
       {cur
         ? <>
-          <button class="btn ghost grow" style={{ fontSize: 'var(--fs-2)' }}
+          <button class="btn"
             title="Copy this element's typography into the style, everywhere it is used"
             onClick={push}>Update style{used > 1 ? ` · ${used} uses` : ''}</button>
-          <button class="btn ghost" style={{ fontSize: 'var(--fs-2)' }}
+          <button class="btn"
             title="Keep the look, stop following the style"
             onClick={() => { C.edit(() => C.tsUnlink(n)); L.toast('Detached — the look is now local'); }}>
             Detach</button>
         </>
-        : <button class="btn grow" style={{ fontSize: 'var(--fs-1)' }}
+        : <button class="btn"
           onClick={create}><Icon name="plus" size={12} /> Save as text style</button>}
     </div>
     <div class="note">{cur

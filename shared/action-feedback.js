@@ -26,6 +26,20 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     if (!host) return;
     const parent=destination();
     if(host.parentElement!==parent)parent.append(host);
+    // Keep editor feedback in the canvas, above its zoom controls. Inspector actions
+    // remain visible; other Cloud surfaces and dialogs retain their usual placement.
+    const stage=parent===document.body ? document.getElementById('stage') : null;
+    const bounds=stage?.getBoundingClientRect();
+    if(bounds?.width>160 && bounds.height>0){
+      const dim=document.getElementById('dim')?.getBoundingClientRect();
+      const bottom=dim?.height ? Math.max(20,window.innerHeight-dim.top+12) : 20;
+      host.style.right=Math.max(16,window.innerWidth-bounds.right+16)+'px';
+      host.style.bottom=bottom+'px';
+      host.style.width=Math.min(420,bounds.width-32)+'px';
+      host.style.maxHeight=Math.max(80,window.innerHeight-Math.max(52,bounds.top)-16-bottom)+'px';
+    }else{
+      for(const property of ['right','bottom','width','max-height'])host.style.removeProperty(property);
+    }
     if(typeof host.showPopover==='function'&&host.childElementCount){
       host.setAttribute('popover','manual');
       if(host.matches(':popover-open'))host.hidePopover();
@@ -126,9 +140,13 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const flash = (message, path = location.pathname) => { try { sessionStorage.setItem('pc-action-result',JSON.stringify({message,at:Date.now(),path})); } catch {} };
   const restoreFlash = () => { try { const raw=sessionStorage.getItem('pc-action-result'); if(!raw)return;sessionStorage.removeItem('pc-action-result');const value=JSON.parse(raw);if(value.path===location.pathname&&Date.now()-value.at<60000)notify(value.message,{tone:'success',id:'navigation-result'}); } catch {} };
   if(document.body)restoreFlash();else document.addEventListener('DOMContentLoaded',restoreFlash,{once:true});
-  const observer = new MutationObserver(()=>{if(host&&host.parentElement!==destination())place();});
-  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden']});
-  const destroy=()=>{observer.disconnect();for(const record of records.values())clearTimeout(record.timer);records.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
+  const observer = new MutationObserver(changes=>{
+    if(host?.childElementCount && (host.parentElement!==destination() || changes.some(change=>
+      change.target===document.body || ['right','rightAux','stage','modal','ask'].includes(change.target.id))))place();
+  });
+  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','class']});
+  window.addEventListener('resize',place);
+  const destroy=()=>{observer.disconnect();window.removeEventListener('resize',place);for(const record of records.values())clearTimeout(record.timer);records.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
   const api={notify,begin,run,flash,destroy}; window.__pcFeedback=api;
   return api;
 }

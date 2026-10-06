@@ -92,6 +92,53 @@ const marker = '<script>\n/* ===================================================
 const built = () => readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const settle = () => new Promise(resolve => setTimeout(resolve, 800));
 
+test('hosted network failure gives connection guidance and retry preserves the unsaved document', async () => {
+  // Hosted editing requires a readable saved project. Seed it from the same built
+  // editor rather than accidentally testing the incompatible-document guard.
+  const seed = new JSDOM(built(), {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole()
+  });
+  await settle();
+  const server = { siteId: 'offline-qa', version: 1, role: 'owner', doc: seed.window.__CORE.clone(seed.window.__CORE.doc()) };
+  seed.window.close();
+  const html = built().replace(marker, `<script>window.PC_SERVER=${JSON.stringify(server)}</script>\n${marker}`);
+  const requests = [];
+  let online = false;
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole(),
+    beforeParse(window) {
+      window.fetch = async (_url, options = {}) => {
+        if (options.method === 'PUT') {
+          requests.push(JSON.parse(options.body));
+          if (!online) throw new TypeError('Failed to fetch');
+          return { ok: true, status: 200, json: async () => ({ version: 2 }) };
+        }
+        return { ok: true, status: 200, json: async () => [] };
+      };
+    }
+  });
+  try {
+    await settle();
+    const window = dom.window, document = window.document;
+    window.__CORE.state.meta.name = 'Keep the offline QA draft';
+    await window.writeNow();
+    assert.match(document.querySelector('#mBody').textContent, /connection to the host was lost/i);
+    assert.match(document.querySelector('#mBody').textContent, /Check your connection/);
+    assert.doesNotMatch(document.querySelector('#mBody').textContent, /Private.browsing|blocked cookies/);
+    assert.equal(window.__CORE.state.meta.name, 'Keep the offline QA draft');
+    assert.ok(document.querySelector('#svBackup'));
+    online = true;
+    document.querySelector('#svRetry').click();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    assert.equal(requests.length, 2);
+    assert.deepEqual(requests[1], requests[0]);
+    assert.equal(document.querySelector('#modal').hidden, true);
+    assert.match(document.querySelector('#savedTag').textContent, /Draft saved/);
+  } finally {
+    dom.window.close();
+  }
+});
+
 test('a hosted document this build cannot open is never overwritten by the demo', async () => {
   const server = { siteId: 'site-newer', version: 12, role: 'owner', doc: { schemaVersion: 9999, pages: [] } };
   const html = built().replace(marker, `<script>window.PC_SERVER=${JSON.stringify(server)}</script>\n${marker}`);
