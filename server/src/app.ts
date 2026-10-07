@@ -7,6 +7,7 @@ import { liveReviewRoutes } from './live-review-routes.ts';
 import { publicationPreviewHtml } from "./publication-preview.ts";
 import { publicationChanges } from "./publication-changes.ts";
 import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
+import { prepareHostedEditor } from './editor-assets.ts';
 import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
@@ -386,6 +387,9 @@ const typeOf = (path: string) =>
 
 export function createApp(o: Options) {
   const app = new Hono();
+  // Split only the static source, before any account or document configuration is injected.
+  // The canonical single-file editor remains available to offline and WordPress hosts.
+  const hostedEditor = o.editorHtml ? prepareHostedEditor(o.editorHtml) : undefined;
   const invitations = o.collaborationInvitations || new MemoryCollaborationInvitationStore(o.store, o.auth, o.libraries);
   const sitePreviews = o.sitePreviews || new MemorySitePreviewStore();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
@@ -481,6 +485,14 @@ export function createApp(o: Options) {
   for (const { file } of UI_FONT_FACES) {
     app.get(`/brand/fonts/${file}`, editorOnly, serveStatic({ path: brandFile(`fonts/${file}`) }));
   }
+  app.get('/brand/builder-assets/*', editorOnly, (c) => {
+    const asset = hostedEditor?.assets.get(new URL(c.req.url).pathname);
+    if (!asset) return c.notFound();
+    return new Response(new Uint8Array(asset.body), { headers: {
+      'content-type': asset.contentType,
+      'cache-control': 'public, max-age=31536000, immutable',
+    } });
+  });
   app.get(
     "/brand/pagecraft-logo.svg",
     editorOnly,
@@ -2885,7 +2897,7 @@ export function createApp(o: Options) {
     if (gate.role === "reviewer") {
       return c.redirect(`/sites/${encodeURIComponent(id)}/reviews`);
     }
-    if (!o.editorHtml) {
+    if (!hostedEditor) {
       return c.text("No editor build. Run `node build.mjs` first.", 503);
     }
 
@@ -2927,7 +2939,7 @@ export function createApp(o: Options) {
       doc: site.doc,
       wordpressContent,
     };
-    return c.html(inject(o.editorHtml, config));
+    return c.html(inject(hostedEditor.html, config));
   });
 
   /* The list is per person: a site nobody granted you is a site you do not know exists. */
