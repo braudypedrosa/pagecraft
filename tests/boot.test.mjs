@@ -464,7 +464,7 @@ test('generic dialogs isolate shortcuts, trap focus, restore focus, and pickers 
 
   const launch = doc.createElement('button');
   launch.textContent = 'Launch'; doc.body.appendChild(launch); launch.focus();
-  w.openModal('Test dialog', '<button id="dialogAction">Action</button>', '<button id="dialogLast">Last</button>');
+  w.openModal('Test dialog', '<input id="pendingDialogValue" value="Unsaved dialog draft"><button id="dialogAction">Action</button>', '<button id="dialogLast">Last</button>');
   const modal = doc.querySelector('#modalBox');
   a.equal(modal.getAttribute('role'), 'dialog');
   a.equal(modal.getAttribute('aria-modal'), 'true');
@@ -489,12 +489,18 @@ test('generic dialogs isolate shortcuts, trap focus, restore focus, and pickers 
   a.equal(doc.querySelector('#modal').hasAttribute('inert'), true,
     'the underlying dialog is inert while a nested confirmation is open');
   a.equal(doc.querySelector('#modal').getAttribute('aria-hidden'), 'true');
+  a.equal(w.getComputedStyle(doc.querySelector('#modal')).visibility, 'hidden',
+    'only the focused prompt is visible, with no second dialog card behind it');
+  const pendingValue = doc.querySelector('#pendingDialogValue');
   a.equal(doc.activeElement, first, 'the first choice receives focus');
   first.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
   a.equal(await picked, 'alpha', 'Enter resolves the picker value, not a hidden Yes button');
   a.equal(doc.activeElement, action, 'closing the nested picker returns focus to its launcher');
   a.equal(doc.querySelector('#modal').hasAttribute('inert'), false);
   a.equal(doc.querySelector('#modal').hasAttribute('aria-hidden'), false);
+  a.equal(w.getComputedStyle(doc.querySelector('#modal')).visibility, 'visible');
+  a.equal(doc.querySelector('#pendingDialogValue'), pendingValue, 'the original dialog input stays mounted');
+  a.equal(pendingValue.value, 'Unsaved dialog draft', 'returning from a prompt preserves the unsaved dialog value');
 
   modal.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
   a.equal(doc.querySelector('#modal').hidden, true);
@@ -502,6 +508,29 @@ test('generic dialogs isolate shortcuts, trap focus, restore focus, and pickers 
   a.equal(doc.activeElement, launch, 'focus returns to the control that opened the dialog');
   a.equal(doc.querySelector('#app').hasAttribute('inert'), false);
   launch.remove();
+});
+
+test('Enter on a focused prompt exit never activates its confirmation', async () => {
+  const { window: w, doc } = await boot();
+  for (const id of ['askNo', 'askX']) {
+    let resolved = false;
+    const pending = w.askConfirm('Publish?', 'Review before publishing.').then(value => {
+      resolved = true; return value;
+    });
+    const exit = doc.querySelector('#' + id); exit.focus();
+    const enter = new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    exit.dispatchEvent(enter);
+    await Promise.resolve();
+    a.equal(enter.defaultPrevented, false, 'the focused exit retains its native keyboard activation');
+    a.equal(resolved, false, 'Enter does not activate the unrelated confirmation button');
+    exit.click(); // jsdom does not synthesize native button activation from KeyboardEvent.
+    a.equal(await pending, false, 'the native exit click cancels the action');
+  }
+  const named = w.askText('Name', 'Site name', 'Draft name');
+  doc.querySelector('#askIn').dispatchEvent(new w.KeyboardEvent('keydown', {
+    key: 'Enter', bubbles: true, cancelable: true
+  }));
+  a.equal(await named, 'Draft name', 'Enter in a prompt input still submits its value');
 });
 
 test('status messages and narrow-workspace controls expose accessible hooks', async () => {

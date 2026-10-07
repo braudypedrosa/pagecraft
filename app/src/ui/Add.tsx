@@ -234,8 +234,9 @@ function Templates() {
     if (jumped) L.setMode(want);
 
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.patternInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    C.edit(() => { made = C.patternInsert(id, undefined); });
     if (!made) { L.toast('That does not fit there'); return; }
+    L.select((made as { id: string }).id);
     /* say where it went when that is not where you were looking, or a header appearing to
        replace the page you had open reads as the template having gone wrong */
     L.toast(pat.scope && jumped
@@ -282,7 +283,8 @@ function Blocks() {
   const place = (id: string) => {
     if (L.consumeDragMoved()) return;
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.blockInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    C.edit(() => { made = C.blockInsert(id, undefined); });
+    if (made) L.select((made as { id: string }).id);
     L.toast(made ? C.findBlock(id)!.name + ' placed' : 'That block does not fit there');
   };
 
@@ -353,7 +355,8 @@ function Components() {
   const place = (id: string) => {
     if (L.consumeDragMoved()) return;
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.instanceInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    C.edit(() => { made = C.instanceInsert(id, undefined); });
+    if (made) L.select((made as { id: string }).id);
     L.toast(made ? C.findComponent(id)!.name + ' placed' : 'That component does not fit there');
   };
 

@@ -441,6 +441,19 @@ function LayoutHelp({ n }: { n: PcNode }) {
   return help ? <ContextHelp kind="layout" summary={help.summary}>{help.body}</ContextHelp> : null;
 }
 
+const SHARED_CONTENT_TYPES = new Set(['heading', 'text', 'image', 'button']);
+
+/** Content values on these common elements do not fork by breakpoint. Keep the note narrower
+ * than the whole tab: some neighbouring Content controls write responsive CSS. */
+function ContentScopeHint({ n }: { n: PcNode }) {
+  if (C.dk() === 'd' || !SHARED_CONTENT_TYPES.has(n.type)) return null;
+  return (
+    <div class="pc-context-help" data-context-help="content-scope">
+      Text, images and links are shared across screen sizes.
+    </div>
+  );
+}
+
 const RESPONSIVE_BOX_SIDES = ['top', 'right', 'bottom', 'left'];
 
 /** Count the same responsive values whose device badges can clear them. CSS that always writes
@@ -715,6 +728,7 @@ export function Inspector() {
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
         {tab === 'content' || many ? null : <StatePick />}
         {tab === 'content' && !many && L.canStructure() ? <LayoutHelp n={n} /> : null}
+        {tab === 'content' && !many ? <ContentScopeHint n={n} /> : null}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
         {tab === 'content' && n.type === 'form' && C.cloudFormsEnabled() ? <p class="note" style="padding:12px">Saved to Submissions when published.</p> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}

@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { act } from 'preact/test-utils';
+import * as C from '../app/src/core/index';
 import { Add } from '../app/src/ui/Add';
-import { repaint } from '../app/src/ui/ctx';
+import { L, repaint } from '../app/src/ui/ctx';
 import { rig, type Rig } from './ui.setup';
 
 let r: Rig;
@@ -90,5 +91,68 @@ describe('Add element discovery', () => {
     r.click(image);
     expect(r.arg('appendSmart')).toEqual(['image']);
     expect(r.names().filter(name => name === 'appendSmart')).toHaveLength(1);
+  });
+
+  test('template clicks canonically select the inserted section', () => {
+    C.state.ui.atab = 'templates';
+    act(() => repaint('add'));
+
+    act(() => r.click(r.$$('.pvcard').find(card => /Split hero/.test(card.textContent || ''))!));
+
+    const selected = r.arg('select');
+    expect(selected).toHaveLength(1);
+    expect(C.locate(selected![0])?.node.type).toBe('section');
+  });
+
+  test.each([
+    ['block', () => {
+      const source = C.insert('heading', null, 0)!;
+      const id = C.blockSave(source.id, 'Reusable heading')!;
+      C.state.pages[0].tree = [];
+      C.selSet([]);
+      return { id, tab: 'blocks' as const, expectedUse: undefined };
+    }],
+    ['component', () => {
+      const source = C.insert('heading', null, 0)!;
+      const id = C.componentFromNode(source.id, 'Reusable heading')!;
+      C.state.pages[0].tree = [];
+      C.selSet([]);
+      return { id, tab: 'components' as const, expectedUse: id };
+    }]
+  ])('%s clicks canonically select the inserted reusable item', (_kind, setup) => {
+    const item = setup();
+    C.state.ui.atab = item.tab;
+    act(() => repaint('add'));
+
+    act(() => r.click(r.$('.brow')));
+
+    const selected = r.arg('select');
+    expect(selected).toHaveLength(1);
+    const node = C.locate(selected![0])?.node;
+    expect(node).toBeTruthy();
+    expect(node?.use).toBe(item.expectedUse);
+  });
+
+  test('consumed template drags and failed reusable inserts do not select', () => {
+    C.state.ui.atab = 'templates';
+    act(() => repaint('add'));
+    const before = C.state.pages[0].tree.length;
+    L.consumeDragMoved = () => true;
+    act(() => r.click(r.$$('.pvcard').find(card => /Split hero/.test(card.textContent || ''))!));
+    expect(C.state.pages[0].tree).toHaveLength(before);
+    expect(r.arg('select')).toBeNull();
+
+    const source = C.insert('heading', null, 0)!;
+    C.blockSave(source.id, 'Cannot place here');
+    C.state.pages[0].tree = [];
+    C.selSet([]);
+    C.state.ui.mode = 'component';
+    C.state.ui.atab = 'blocks';
+    L.consumeDragMoved = () => false;
+    act(() => repaint('add'));
+    act(() => r.click(r.$('.brow')));
+
+    expect(r.arg('select')).toBeNull();
+    expect(r.arg('toast')).toEqual(['That block does not fit there']);
   });
 });

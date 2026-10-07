@@ -1267,7 +1267,9 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .modal.lg,#ask .modal.media-library{max-width:1060px}
 /* The ask layer sits above #modal rather than reusing it: over half of these
    prompts fire from inside Project settings, and reusing the one modal element
-   would tear the dialog underneath out from under the user. */
+   would tear the dialog underneath out from under the user. Keep that dialog's
+   draft mounted but hide its mask and card while the focused prompt is shown. */
+#modal[inert][aria-hidden="true"]{visibility:hidden}
 #ask{z-index:300;padding:24px}
 #ask .modal{max-width:420px}
 #askBody{padding:var(--mpad)}
@@ -15706,12 +15708,12 @@ var PC_UI = (() => {
       let made = null;
       C2.edit(() => {
         made = C2.patternInsert(id, void 0);
-        if (made) C2.selSet([made.id]);
       });
       if (!made) {
         L2.toast("That does not fit there");
         return;
       }
+      L2.select(made.id);
       L2.toast(pat.scope && jumped ? `${pat.name} added \u2014 now editing the global ${pat.scope}` : `${pat.name} added`);
     };
     return /* @__PURE__ */ u2(S, { children: cats.map((cat) => /* @__PURE__ */ u2(S, { children: [
@@ -15744,8 +15746,8 @@ var PC_UI = (() => {
       let made = null;
       C2.edit(() => {
         made = C2.blockInsert(id, void 0);
-        if (made) C2.selSet([made.id]);
       });
+      if (made) L2.select(made.id);
       L2.toast(made ? C2.findBlock(id).name + " placed" : "That block does not fit there");
     };
     const forget = async (e3, id) => {
@@ -15822,8 +15824,8 @@ var PC_UI = (() => {
       let made = null;
       C2.edit(() => {
         made = C2.instanceInsert(id, void 0);
-        if (made) C2.selSet([made.id]);
       });
+      if (made) L2.select(made.id);
       L2.toast(made ? C2.findComponent(id).name + " placed" : "That component does not fit there");
     };
     const open = (e3, id) => {
@@ -19419,6 +19421,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const help = CONTAINER_HELP[kind];
     return help ? /* @__PURE__ */ u2(ContextHelp, { kind: "layout", summary: help.summary, children: help.body }) : null;
   }
+  var SHARED_CONTENT_TYPES = /* @__PURE__ */ new Set(["heading", "text", "image", "button"]);
+  function ContentScopeHint({ n: n2 }) {
+    if (C2.dk() === "d" || !SHARED_CONTENT_TYPES.has(n2.type)) return null;
+    return /* @__PURE__ */ u2("div", { class: "pc-context-help", "data-context-help": "content-scope", children: "Text, images and links are shared across screen sizes." });
+  }
   var RESPONSIVE_BOX_SIDES = ["top", "right", "bottom", "left"];
   function responsiveOverrideCount(n2, controls) {
     const bag = C2.stRead(C2.tgtObj(n2))[C2.dk()] || {};
@@ -19704,6 +19711,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           children: [
             tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
             tab2 === "content" && !many && L2.canStructure() ? /* @__PURE__ */ u2(LayoutHelp, { n: n2 }) : null,
+            tab2 === "content" && !many ? /* @__PURE__ */ u2(ContentScopeHint, { n: n2 }) : null,
             tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
             tab2 === "content" && n2.type === "form" && C2.cloudFormsEnabled() ? /* @__PURE__ */ u2("p", { class: "note", style: "padding:12px", children: "Saved to Submissions when published." }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
@@ -25870,8 +25878,11 @@ async function saveBlockFlow(nodeId) {
 function appendSmart(key) {
   const [container, index] = smartTarget(key);
   let leaf = null;
-  edit(() => { leaf = insert(key, container, index); if (leaf) selSet([leaf.id]); });
+  edit(() => { leaf = insert(key, container, index); });
   if (!leaf) { toast('That does not fit there'); return; }
+  /* Use the same selection transition as a canvas click so the tablet inspector
+     replaces the Add panel immediately after an element is placed. */
+  select(leaf.id);
   toast(labelOf(key) + ' added');
   const el = cdoc && cdoc.getElementById(state.ui.sel);
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -27136,6 +27147,9 @@ $('#ask').addEventListener('keydown', e => {
     if (choice) { e.preventDefault(); e.stopPropagation(); choice.click(); }
     return;
   }
+  /* Let focused buttons keep their native Enter action, including Cancel and Close.
+     Inputs still submit the prompt; a dialog-level shortcut must not override a button. */
+  if (e.target.closest && e.target.closest('button, a')) return;
   e.preventDefault(); e.stopPropagation(); yes.click();
 });
 

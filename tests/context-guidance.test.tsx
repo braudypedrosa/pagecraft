@@ -69,6 +69,35 @@ test('content-only accounts get content editing without structural layout guidan
   assert.equal(editor.disabled, false);
 });
 
+test('non-Desktop Content names values shared across screen sizes only for common content elements', () => {
+  for (const type of ['heading', 'text', 'image', 'button'] as const) {
+    inspect(C.N(type), 'content', 'tablet');
+    const note = r.$('[data-context-help="content-scope"]')!;
+    assert.equal(note.tagName, 'DIV', 'the scope note is visible rather than another disclosure');
+    assert.equal(note.textContent!.trim(), 'Text, images and links are shared across screen sizes.');
+  }
+
+  inspect(C.N('heading'), 'content', 'desktop');
+  assert.equal(r.$('[data-context-help="content-scope"]'), null, 'Desktop does not need a cross-breakpoint reminder');
+  inspect(C.N('heading'), 'style', 'tablet');
+  assert.equal(r.$('[data-context-help="content-scope"]'), null, 'the note belongs only to Content');
+  inspect(C.N('section'), 'content', 'tablet');
+  assert.equal(r.$('[data-context-help="content-scope"]'), null, 'container Content controls can include responsive CSS');
+});
+
+test('content-only roles retain editable copy and the shared-content hint on Tablet', () => {
+  r.host.remove();
+  r = rig({ canStructure: false });
+  const heading = C.N('heading', { text: 'Shared heading' });
+  inspect(heading, 'advanced', 'tablet');
+
+  assert.equal(r.$('.tabs'), null);
+  assert.equal(r.$('[data-context-help="content-scope"]')!.textContent!.trim(), 'Text, images and links are shared across screen sizes.');
+  const editor = r.$('textarea') as HTMLTextAreaElement;
+  assert.equal(editor.value, 'Shared heading');
+  assert.equal(editor.disabled, false);
+});
+
 test('responsive help distinguishes the desktop base, inherited Tablet styles and Tablet overrides', () => {
   const heading = C.N('heading');
   heading.css.d['font-size'] = '48px';

@@ -1262,7 +1262,9 @@ body.dragging{cursor:grabbing !important;user-select:none}
 .modal.lg,#ask .modal.media-library{max-width:1060px}
 /* The ask layer sits above #modal rather than reusing it: over half of these
    prompts fire from inside Project settings, and reusing the one modal element
-   would tear the dialog underneath out from under the user. */
+   would tear the dialog underneath out from under the user. Keep that dialog's
+   draft mounted but hide its mask and card while the focused prompt is shown. */
+#modal[inert][aria-hidden="true"]{visibility:hidden}
 #ask{z-index:300;padding:24px}
 #ask .modal{max-width:420px}
 #askBody{padding:var(--mpad)}
@@ -4313,8 +4315,11 @@ async function saveBlockFlow(nodeId) {
 function appendSmart(key) {
   const [container, index] = smartTarget(key);
   let leaf = null;
-  edit(() => { leaf = insert(key, container, index); if (leaf) selSet([leaf.id]); });
+  edit(() => { leaf = insert(key, container, index); });
   if (!leaf) { toast('That does not fit there'); return; }
+  /* Use the same selection transition as a canvas click so the tablet inspector
+     replaces the Add panel immediately after an element is placed. */
+  select(leaf.id);
   toast(labelOf(key) + ' added');
   const el = cdoc && cdoc.getElementById(state.ui.sel);
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -5579,6 +5584,9 @@ $('#ask').addEventListener('keydown', e => {
     if (choice) { e.preventDefault(); e.stopPropagation(); choice.click(); }
     return;
   }
+  /* Let focused buttons keep their native Enter action, including Cancel and Close.
+     Inputs still submit the prompt; a dialog-level shortcut must not override a button. */
+  if (e.target.closest && e.target.closest('button, a')) return;
   e.preventDefault(); e.stopPropagation(); yes.click();
 });
 
