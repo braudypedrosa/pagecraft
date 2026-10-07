@@ -97,6 +97,117 @@ test('untrusted messages are text and failures retain an accessible manual dismi
  expect(document.querySelector('.pc-notification')).toBeNull();
 });
 
+test('failure guidance survives timed and manual notification dismissal without browser storage',()=>{
+ const feedback=installActionFeedback();
+ feedback.notify('The image could not be uploaded. Try uploading it again.',{tone:'error',id:'upload'});
+ vi.advanceTimersByTime(5001);
+ expect(document.querySelector('.pc-notification')).toBeNull();
+ expect(feedback.problems()).toEqual([expect.objectContaining({id:'upload',message:'The image could not be uploaded. Try uploading it again.'})]);
+ feedback.notify('<img src=x onerror=alert(1)>',{tone:'error',id:'untrusted'});
+ document.querySelector<HTMLButtonElement>('[aria-label="Dismiss notification"]')!.click();
+ expect(feedback.problems().map(problem=>problem.id)).toEqual(['untrusted','upload']);
+ feedback.resolveProblem('untrusted');
+ expect(feedback.problems().map(problem=>problem.id)).toEqual(['upload']);
+});
+
+test('retrying the same action retains its failure until the retry succeeds',()=>{
+ const feedback=installActionFeedback();
+ feedback.begin(button(),'Saving…','save')!.error('Connection lost. Try again.');
+ expect(feedback.problems()).toHaveLength(1);
+ const retry=feedback.begin(button(),'Saving…','save')!;
+ expect(feedback.problems()).toHaveLength(1);
+ retry.cancel();
+ expect(feedback.problems()).toHaveLength(1);
+ feedback.begin(button(),'Saving…','save')!.success('Saved.');
+ expect(feedback.problems()).toHaveLength(0);
+});
+
+test('a replaced control with the same DOM id clears the logical action failure on success',()=>{
+ const feedback=installActionFeedback();
+ feedback.begin(button(),'Publishing…')!.error('Publishing failed. Try again.');
+ const first=feedback.problems()[0];
+ expect(first).toMatchObject({id:'button-id-save',canRecover:true});
+
+ button().outerHTML='<button id="save">Publish</button>';
+ expect(feedback.problems()[0]).toMatchObject({id:'button-id-save',canRecover:false});
+ feedback.begin(button(),'Publishing…')!.success('Published.');
+ expect(feedback.problems()).toEqual([]);
+});
+
+test('a replaced control cannot restart its logical action until the pending attempt ends',()=>{
+ const feedback=installActionFeedback();
+ const first=feedback.begin(button(),'Publishing…')!;
+ button().outerHTML='<button id="save">Publish</button>';
+
+ expect(feedback.begin(button(),'Publishing twice…')).toBeNull();
+ expect(button().disabled).toBe(false);
+ first.cancel();
+
+ const retry=feedback.begin(button(),'Publishing again…');
+ expect(retry).not.toBeNull();
+ expect(button().disabled).toBe(true);
+ retry!.cancel();
+ expect(button().disabled).toBe(false);
+});
+
+test('pending anonymous and no-control actions remain independent',()=>{
+ document.body.insertAdjacentHTML('beforeend','<button class="anonymous">First</button><button class="anonymous">Second</button>');
+ const controls=[...document.querySelectorAll<HTMLButtonElement>('.anonymous')];
+ const feedback=installActionFeedback();
+ const first=feedback.begin(controls[0],'Trying first…')!;
+ const second=feedback.begin(controls[1],'Trying second…')!;
+ const backgroundA=feedback.begin(null,'Background A…')!;
+ const backgroundB=feedback.begin(null,'Background B…')!;
+
+ expect(first).toBeTruthy();
+ expect(second).toBeTruthy();
+ expect(backgroundA).toBeTruthy();
+ expect(backgroundB).toBeTruthy();
+ first.cancel();second.cancel();backgroundA.cancel();backgroundB.cancel();
+});
+
+test('anonymous controls keep independent action failures',()=>{
+ document.body.insertAdjacentHTML('beforeend','<button class="anonymous">Retry</button><button class="anonymous">Retry</button>');
+ const controls=[...document.querySelectorAll<HTMLButtonElement>('.anonymous')];
+ const feedback=installActionFeedback();
+ feedback.begin(controls[0],'Trying…')!.error('First failed.');
+ feedback.begin(controls[1],'Trying…')!.error('Second failed.');
+ const problems=feedback.problems();
+ expect(problems).toHaveLength(2);
+ expect(new Set(problems.map(problem=>problem.id)).size).toBe(2);
+
+ feedback.begin(controls[0],'Trying…')!.success('First succeeded.');
+ expect(feedback.problems()).toEqual([expect.objectContaining({message:'Second failed.'})]);
+});
+
+test('return-to-action availability follows the original control and never automatically retries',()=>{
+ const feedback=installActionFeedback(),clicked=vi.fn();
+ button().addEventListener('click',clicked);
+ feedback.begin(button(),'Saving…')!.error('Try again.');
+ const id=feedback.problems()[0].id;
+ expect(feedback.problems()[0].canRecover).toBe(true);
+ expect(feedback.recoverProblem(id)).toBe(true);
+ expect(document.activeElement).toBe(button());
+ expect(clicked).not.toHaveBeenCalled();
+ button().remove();
+ expect(feedback.problems()[0].canRecover).toBe(false);
+ expect(feedback.recoverProblem(id)).toBe(false);
+});
+
+test('silent recovery messages are deduplicated, bounded, and cleared on destroy',()=>{
+ const feedback=installActionFeedback(),recover=vi.fn();
+ feedback.rememberProblem('Keep this draft open.',{id:'draft',label:'Save draft',recover});
+ feedback.rememberProblem('Download a backup before reloading.',{id:'draft',label:'Save draft',recover});
+ expect(document.querySelector('.pc-notification')).toBeNull();
+ expect(feedback.problems()).toHaveLength(1);
+ feedback.recoverProblem('draft');expect(recover).toHaveBeenCalledTimes(1);
+ for(let i=0;i<25;i++)feedback.rememberProblem('Problem '+i,{id:'problem-'+i});
+ expect(feedback.problems()).toHaveLength(20);
+ const snapshot=feedback.problems();snapshot[0].message='Changed externally';
+ expect(feedback.problems()[0].message).not.toBe('Changed externally');
+ feedback.destroy();expect(feedback.problems()).toEqual([]);
+});
+
 test('builder custom dialogs keep notifications within their focus trap',async()=>{
  const mask=document.createElement('div');mask.innerHTML='<div role="dialog" aria-modal="true"><button>Close</button></div>';document.body.append(mask);
  installActionFeedback().notify('Export ready.',{tone:'success'});

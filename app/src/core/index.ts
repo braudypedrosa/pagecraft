@@ -615,7 +615,7 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   text: {
-    label: 'WYSIWYG', icon: 'text', level: 4, edit: 'rich', styleLabel: 'Typography & fill',
+    label: 'Rich text', icon: 'text', level: 4, edit: 'rich', styleLabel: 'Typography & fill',
     caps: ['spacing', 'effects', 'typography', 'animation'],
     make: () => ({
       props: { html: '<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings — everything exports as clean semantic HTML.</p>', ts: 'body' },
@@ -6439,7 +6439,8 @@ function decl(map: Decls) {
 /* Everything Pagecraft emits is namespaced. The per-element class is what the
    generated stylesheet targets; the id is for anchors and can be overridden. */
 const PFX = 'pagecraft-';
-const widgetSlug = (type: string) => slugify((DEF[type] && DEF[type].label) || type);
+// UI labels can change; existing CSS selectors and automatic anchor IDs must remain stable.
+const widgetSlug = (type: string) => type === 'text' ? 'wysiwyg' : slugify((DEF[type] && DEF[type].label) || type);
 const nodeClass = (n: PcNode) => PFX + String(n.id).replace(/^n/, '');
 const autoId = (n: PcNode) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, '')}`;
 const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);

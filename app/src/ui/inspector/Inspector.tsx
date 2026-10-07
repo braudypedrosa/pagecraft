@@ -13,6 +13,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Ctl } from './Controls';
+import { ContextHelp } from './ContextHelp';
 import type { Control, Node as PcNode } from '../../core/types';
 
 /* `askConfirm` takes HTML, so the one value interpolated into it is escaped by hand — the same
@@ -373,7 +374,7 @@ function ContentSource({ n }: { n: PcNode }) {
   const col = n.src ? C.findCollection(n.src) : null;
   return (
     <Panel title="Content source" n={n}>
-      <select class="ctl" value={n.src || ''}
+      <select class="ctl" aria-label="Content source collection" value={n.src || ''}
         onChange={e => {
           const v = (e.target as HTMLSelectElement).value;
           C.edit(() => C.srcSet(n, v));
@@ -396,7 +397,90 @@ function ContentSource({ n }: { n: PcNode }) {
         : C.collections().length
           ? 'Point this at a collection to bind fields inside it.'
           : <>No collections yet — make one in <b>CMS</b>.</>}</div>
+      <ContextHelp kind="cms" summary="How CMS content works">
+        {col ? <>
+          <p><b>{col.name}</b> sets which items and fields are available inside this container. It does not replace any content by itself.</p>
+          <p>Next, select something inside and use its CMS button to choose a field, or use <b>Bind the fields inside</b> above.</p>
+        </> : <>
+          <p>First choose a collection. That sets which items and fields are available inside this container.</p>
+          <p>Then select something inside and use its CMS button to bind a field.</p>
+        </>}
+      </ContextHelp>
     </Panel>
+  );
+}
+
+const CONTAINER_HELP: Record<string, { summary: string; body: string }> = {
+  section: {
+    summary: 'About this Section',
+    body: 'A Section creates a page-wide region. Set its content width, then place Rows or Boxes inside it.'
+  },
+  row: {
+    summary: 'About this Row and its Columns',
+    body: 'A Row arranges Columns side by side. Add or remove columns here, then set their gap, alignment, wrapping, and width share.'
+  },
+  box: {
+    summary: 'About this Box',
+    body: 'A Box stacks its direct children in normal document order. Use it to group content before adding spacing, decoration, or effects.'
+  },
+  flex: {
+    summary: 'About this Flex container',
+    body: 'A Flex container arranges direct children along one flexible axis. Set direction, alignment, wrapping, and gap on the container.'
+  },
+  grid: {
+    summary: 'About this Grid',
+    body: 'A Grid arranges direct children in tracks. Set the column pattern and gap on the grid; each direct child occupies a grid cell.'
+  }
+};
+
+function LayoutHelp({ n }: { n: PcNode }) {
+  const kind = n.type === 'box'
+    ? n.props.layout === 'grid' ? 'grid' : n.props.layout === 'flex' ? 'flex' : 'box'
+    : n.type;
+  const help = CONTAINER_HELP[kind];
+  return help ? <ContextHelp kind="layout" summary={help.summary}>{help.body}</ContextHelp> : null;
+}
+
+const RESPONSIVE_BOX_SIDES = ['top', 'right', 'bottom', 'left'];
+
+/** Count the same responsive values whose device badges can clear them. CSS that always writes
+ * to Desktop must not make Tablet or Mobile look overridden merely because a document happens
+ * to contain that property in the breakpoint bag. */
+function responsiveOverrideCount(n: PcNode, controls: Control[]) {
+  const bag = C.stRead(C.tgtObj(n))[C.dk()] || {};
+  const seen = new Set<string>();
+  return controls.filter(c => {
+    if (!c.r || !c.c || (c.when && !c.when(n))) return false;
+    const key = c.t + ':' + c.c;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    if (c.paint) return bag[c.c] !== undefined
+      || /^linear-gradient\(/i.test(String(bag['background-image'] || ''))
+      || /^linear-gradient\(/i.test(String(bag.background || ''));
+    return c.t === 'box'
+      ? bag[c.c] !== undefined || RESPONSIVE_BOX_SIDES.some(side => bag[c.c + '-' + side] !== undefined)
+      : bag[c.c] !== undefined;
+  }).length;
+}
+
+function ResponsiveHelp({ n, controls }: { n: PcNode; controls: Control[] }) {
+  const dev = C.dk();
+  if (dev === 'd') return (
+    <ContextHelp kind="responsive" summary="Responsive styles · Desktop base">
+      Desktop is the base for responsive styles. Tablet and Mobile inherit these values until you change a responsive control at those breakpoints.
+    </ContextHelp>
+  );
+  const count = responsiveOverrideCount(n, controls);
+  const label = C.DEV_LABEL[dev];
+  const inheritance = dev === 'm' ? 'Tablet, then Desktop' : 'Desktop';
+  const inheritedValues = dev === 'm' ? 'values from Tablet where set, then Desktop for the rest' : 'Desktop values';
+  return (
+    <ContextHelp kind="responsive" summary={`Responsive styles · ${label} ${count ? 'has overrides' : `inherits ${inheritance}`}`}>
+      {count
+        ? <>{label} has {count} saved responsive {count === 1 ? 'override' : 'overrides'} in this panel. Other responsive controls use {inheritedValues}.</>
+        : <>{label} has no saved responsive overrides in this panel. It uses {inheritedValues}. Changing a responsive control creates a {label} override.</>}
+      {' '}The canvas shows the {label} breakpoint; it does not describe your browser window size. Use a lit device badge to clear that field's override.
+    </ContextHelp>
   );
 }
 
@@ -593,6 +677,11 @@ export function Inspector() {
   const all = C.contentControls(n);
   const keys = L.canStructure() ? null : C.contentKeysOf(n);
   const content = keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all;
+  const styleControls = [
+    ...style,
+    ...C.COMMON_STYLE.filter(group => C.canDo(n, group.cap)).flatMap(group => group.items)
+  ];
+  const advanced = advControls(n);
   const many = C.selIds().length > 1;
   const inspectorTabs = [['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']];
   const chooseTab = (key: string) => { C.state.ui.stab = key; repaint('right'); };
@@ -625,6 +714,7 @@ export function Inspector() {
       <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
         {tab === 'content' || many ? null : <StatePick />}
+        {tab === 'content' && !many && L.canStructure() ? <LayoutHelp n={n} /> : null}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
         {tab === 'content' && n.type === 'form' && C.cloudFormsEnabled() ? <p class="note" style="padding:12px">Saved to Submissions when published.</p> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}
@@ -647,6 +737,7 @@ export function Inspector() {
             </Panel>
         ) : tab === 'style' ? (
           <>
+            {!many ? <ResponsiveHelp n={n} controls={styleControls} /> : null}
             <StylingTarget n={n} />
             {style.length ? <Group title={d.styleLabel || (n.type === 'box' ? C.nameOf(n) : d.label)} n={n} items={style} /> : null}
             {/* A group appears because the widget declares the capability it belongs to, not
@@ -665,7 +756,8 @@ export function Inspector() {
           </>
         ) : (
           <>
-            <Group title="Identity & layout" n={n} items={advControls(n)} />
+            {!many ? <ResponsiveHelp n={n} controls={advanced} /> : null}
+            <Group title="Identity & layout" n={n} items={advanced} />
             {d.level < 4 ? <ContentSource n={n} /> : null}
             <Visibility n={n} />
           </>

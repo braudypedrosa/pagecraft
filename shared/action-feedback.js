@@ -12,7 +12,22 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const style = document.createElement('style');
   style.id = 'pc-action-feedback-styles'; style.textContent = css; document.head.append(style);
   let host;
-  const records = new Map(), pending = new WeakMap(), keys = new WeakMap(), jobs = new Set();
+  const records = new Map(), pending = new WeakMap(), keys = new WeakMap(), jobs = new Set(), activeActions = new Set();
+  // Failure messages remain available after their short-lived notification closes.
+  // Keep them in this page session, not in a project or browser storage.
+  const problems = new Map();
+  const problemChanged = () => window.dispatchEvent(new CustomEvent('pc-feedback-problems'));
+  const rememberProblem = (message, options = {}) => {
+    const id = options.id || 'problem-'+(++sequence);
+    problems.delete(id);
+    problems.set(id, {id,message:String(message),at:Date.now(),label:options.label || '',recover:options.recover,available:options.available});
+    if(problems.size>20)problems.delete(problems.keys().next().value);
+    problemChanged();
+    return id;
+  };
+  const resolveProblem = id => { if(problems.delete(id))problemChanged(); };
+  const readProblems = () => [...problems.values()].reverse().map(({id,message,at,label,recover,available})=>({id,message,at,label,canRecover:typeof recover==='function'&&(!available||available())}));
+  const recoverProblem = id => { const problem=problems.get(id);if(typeof problem?.recover!=='function'||(problem.available&&!problem.available()))return false;problem.recover();return true; };
   let sequence = 0;
   const paths = {
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>',
@@ -79,6 +94,8 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     const resume = () => { if(!record.remaining||record.node.matches(':hover')||record.node.contains(document.activeElement))return; record.started=Date.now();record.timer=setTimeout(dismiss,record.remaining); };
     clearTimeout(record.timer); record.timer=0;
     const tone=options.tone || 'info'; record.node.dataset.tone=tone;
+    if(tone==='error')rememberProblem(message,{id,label:options.label,recover:options.recover,available:options.available});
+    else if(tone==='success')resolveProblem(id);
     record.mark.innerHTML=icon(tone); record.text.setAttribute('role',tone==='error'?'alert':'status');
     record.text.textContent=String(message); place();
     // Five seconds is the shared default for completed notices, including failures.
@@ -87,7 +104,8 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     record.remaining=options.duration ?? (tone==='progress'?0:5000); resume();
     // Keep the stack bounded while preserving only work that is still in progress.
     if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&r.node.dataset.tone!=='progress'){clearTimeout(r.timer);records.delete(key);const motion=window.__pcMotion;if(motion)motion.exit(r.node,{kind:'notification',remove:true});else r.node.remove();} }
-    return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone}), success:value=>notify(value,{id,tone:'success'}), error:value=>notify(value,{id,tone:'error'}) };
+    const context={label:options.label,recover:options.recover,available:options.available};
+    return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone,...context}), success:value=>notify(value,{id,tone:'success',...context}), error:value=>notify(value,{id,tone:'error',...context}) };
   };
   const isIconOnly = control => {
     if (!control) return false;
@@ -101,13 +119,22 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   };
   const begin = (button, message, key, options = {}) => {
     if (button && pending.has(button)) return null;
-    if(button&&!keys.has(button))keys.set(button,'button-'+(++sequence));
-    const notice=options.announce === false ? {update:()=>{},success:()=>{},error:()=>{},dismiss:()=>{}} : notify(message,{tone:'progress',...(key?{id:'job-'+key}:button?{id:keys.get(button)}:{})});
+    // Modal and panel controls are often rebuilt between attempts. A DOM id names the
+    // same logical action across those replacements; anonymous controls remain isolated
+    // by object identity. An explicit key still owns identity when the caller supplies one.
+    if(button&&!button.id&&!keys.has(button))keys.set(button,'button-'+(++sequence));
+    const actionId=key?'job-'+key:button?.id?'button-id-'+button.id:button?keys.get(button):undefined;
+    if(actionId&&activeActions.has(actionId))return null;
+    if(actionId)activeActions.add(actionId);
+    const label=button?.getAttribute('aria-label') || button?.textContent?.trim() || button?.getAttribute('title') || '';
+    const recover=button ? ()=>{if(button.isConnected){button.scrollIntoView?.({block:'nearest'});button.focus();}} : undefined;
+    const available=button ? ()=>button.isConnected&&!button.disabled&&!button.closest('[hidden],dialog:not([open])') : undefined;
+    const notice=options.announce === false ? {update:()=>{},success:()=>{},error:()=>{},dismiss:()=>{}} : notify(message,{tone:'progress',label,recover,available,...(actionId?{id:actionId}:{})});
     const iconOnly=isIconOnly(button);
     const snapshot=button?{html:button.innerHTML,disabled:button.disabled,busy:button.getAttribute('aria-busy'),label:button.getAttribute('aria-label'),ariaDisabled:button.getAttribute('aria-disabled'),iconOnly}:null;
     let done=false;
     if(button){pending.set(button,true);button.disabled=true;button.setAttribute('aria-busy','true');button.setAttribute('aria-disabled','true');button.setAttribute('aria-label',message);button.setAttribute('data-pc-pending','');if(iconOnly){button.setAttribute('data-pc-pending-icon','');button.replaceChildren();}else button.textContent=message;}
-    const restore=()=>{if(done)return false;done=true;if(button){pending.delete(button);button.innerHTML=snapshot.html;button.disabled=snapshot.disabled;button.removeAttribute('data-pc-pending');button.removeAttribute('data-pc-pending-icon');for(const [name,value] of [['aria-busy',snapshot.busy],['aria-label',snapshot.label],['aria-disabled',snapshot.ariaDisabled]]){if(value===null)button.removeAttribute(name);else button.setAttribute(name,value);}}return true;};
+    const restore=()=>{if(done)return false;done=true;if(actionId)activeActions.delete(actionId);if(button){pending.delete(button);button.innerHTML=snapshot.html;button.disabled=snapshot.disabled;button.removeAttribute('data-pc-pending');button.removeAttribute('data-pc-pending-icon');for(const [name,value] of [['aria-busy',snapshot.busy],['aria-label',snapshot.label],['aria-disabled',snapshot.ariaDisabled]]){if(value===null)button.removeAttribute(name);else button.setAttribute(name,value);}}return true;};
     return { update:notice.update, success:message=>{if(restore())notice.success(message);}, error:message=>{if(restore())notice.error(message);}, cancel:()=>{if(restore())notice.dismiss();} };
   };
   // Foreground work enters here once, at the user-action boundary, not once per fetch.
@@ -146,8 +173,8 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   });
   observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','class']});
   window.addEventListener('resize',place);
-  const destroy=()=>{observer.disconnect();window.removeEventListener('resize',place);for(const record of records.values())clearTimeout(record.timer);records.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
-  const api={notify,begin,run,flash,destroy}; window.__pcFeedback=api;
+  const destroy=()=>{observer.disconnect();window.removeEventListener('resize',place);for(const record of records.values())clearTimeout(record.timer);records.clear();problems.clear();activeActions.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
+  const api={notify,begin,run,flash,destroy,rememberProblem,resolveProblem,problems:readProblems,recoverProblem}; window.__pcFeedback=api;
   return api;
 }
 export const ACTION_FEEDBACK_BOOT_SCRIPT = `(${installActionFeedback.toString()})(${JSON.stringify(ACTION_FEEDBACK_CSS)});`;

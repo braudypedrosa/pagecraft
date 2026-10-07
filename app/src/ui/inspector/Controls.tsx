@@ -13,6 +13,7 @@ import { useImageUpload } from '../useImageUpload';
 import { useProcessingAction } from '../useProcessingAction';
 import { valueOf, bound, writer } from './ctl';
 import { ColorPop } from './ColorPop';
+import { ContextHelp } from './ContextHelp';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
 import type { Control, Node as PcNode, PropBag } from '../../core/types';
@@ -278,6 +279,7 @@ function boxValues(n: PcNode, base: string): string[] {
 
 function BoxCtl({ n, c }: P) {
   const key = n.id + '|' + (c.c || c.k || c.t);
+  const w = writer(n, c);
   const vals = boxValues(n, c.c!).map(C.parseU);
   const withUnit = vals.find(x => x.u);
   const u = withUnit ? withUnit.u : 'px';
@@ -308,10 +310,10 @@ function BoxCtl({ n, c }: P) {
     <div class="row4">
       {SIDES.map((s, k) => (
         <input data-field-part={s} class="ctl" key={s} type="number" value={vals[k].n} placeholder="0" title={s}
-          onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={L.endTx} />
+          onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={w.done} />
       ))}
       <select data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
-        onChange={e => { push((e.target as HTMLElement).closest('.f')!); L.endTx(); }}>
+        onChange={e => { push((e.target as HTMLElement).closest('.f')!); w.done(); }}>
         {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
       </select>
     </div>
@@ -487,6 +489,15 @@ function SourceCtl({ n, c }: P) {
         onClick={() => L.bindModal(n.id)}><Icon name="cms" size={13} /> Bind the fields inside…</button>
     ) : null}
     {C.collections().length ? null : <div class="note">No collections yet — make one in <b>CMS</b>.</div>}
+    <ContextHelp kind="cms" summary="How CMS content works">
+      {cur ? <>
+        <p>The collection supplies the repeated items and makes its fields available inside this list. Choosing it does not replace any content by itself.</p>
+        <p>Next, select something inside and use its CMS button to choose a field, or use <b>Bind the fields inside</b> above.</p>
+      </> : <>
+        <p>First choose the collection whose items this list should repeat.</p>
+        <p>Then select something inside and use its CMS button to bind a field.</p>
+      </>}
+    </ContextHelp>
   </Field>;
 }
 

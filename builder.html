@@ -370,6 +370,39 @@ body.content-only .s-hud [data-x=down]{display:none}
 .palette{padding:12px 14px 20px}
 .plabel{font-size:var(--fs-2);font-weight:600;color:var(--text-3);padding:14px 0 8px;letter-spacing:-.005em}
 .plabel:first-child{padding-top:2px}
+.pc-add-search{display:grid;gap:var(--gap-1);margin-bottom:var(--gap-2)}
+.pc-add-search>label{font-size:var(--fs-2);font-weight:600;color:var(--text-2)}
+.pc-add-search>div{display:flex;align-items:center;gap:var(--sp-3);min-height:var(--h-ctl);padding:0 var(--sp-3);border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--field);color:var(--text-2)}
+.pc-add-search>div:focus-within{background:var(--pc-focus-bg);color:var(--pc-focus-text)}
+.pc-add-search input{min-width:0;flex:1;width:100%;height:var(--h-ctl);border:0;background:transparent;font-size:var(--fs-3);color:var(--text);outline:0}
+.pc-add-search input::-webkit-search-cancel-button{display:none}
+.pc-add-search .bx{display:grid;place-items:center;flex:0 0 var(--ic-sm);width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm)}
+.pc-add-search .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
+.pc-add-group{margin-bottom:var(--gap-2)}
+details.pc-add-group{border-top:1px solid var(--line);padding-top:var(--gap-1);margin-bottom:var(--gap-1)}
+.pc-add-group-summary{min-height:var(--h-ctl);padding:var(--gap-1) 0;cursor:pointer;font-size:var(--fs-3);font-weight:600;color:var(--text)}
+.pc-add-group-summary>span{float:right;font-weight:400;color:var(--text-2)}
+.pc-add-group[open]>.pc-add-group-summary{margin-bottom:var(--gap-1)}
+.pc-add-guide{display:grid;gap:var(--gap-1);margin:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3);line-height:1.5}
+.pc-add-guide>.btn{width:100%;white-space:normal}
+.pc-add-empty{display:grid;gap:var(--gap-1);padding:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3)}
+.pc-add-empty>b{color:var(--text)}
+.pc-context-help{padding:var(--gap-1) var(--gap-3);border-bottom:1px solid var(--line);color:var(--text-2);font-size:var(--fs-3);line-height:1.5}
+.gb .pc-context-help{padding:var(--gap-1) 0;border-bottom:0}
+.pc-context-help>summary{padding:var(--gap-1) 0;cursor:pointer;font-weight:500;color:var(--text-2);overflow-wrap:anywhere}
+.pc-context-help[open]>summary{color:var(--text)}
+.pc-context-help__body{margin:var(--gap-1) 0;font-size:var(--fs-3);line-height:1.6}
+.pc-context-help__body>p{margin:0 0 var(--gap-1)}
+.pc-context-help__body>p:last-child{margin-bottom:0}
+.pc-problem-list{list-style:none;padding:0;margin:var(--gap-2) 0}
+.pc-problem-list>li{padding:var(--gap-2) 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.pc-problem-list>li>p{margin:var(--gap-1) 0;color:var(--text-2)}
+.pc-problem-actions{display:flex;flex-wrap:wrap;gap:var(--gap-1)}
+.pc-workflow-help{margin-bottom:var(--gap-3)}
+.pc-workflow-help h3{margin:var(--gap-2) 0 var(--gap-1)}
+.pc-workflow-help h3:first-child{margin-top:0}
+.pc-workflow-help p{margin:0 0 var(--gap-1);color:var(--text-2);line-height:1.6;max-width:70ch}
+.pc-workflow-help a{color:var(--text);text-decoration:underline;text-underline-offset:3px}
 
 .brow{
   display:flex;align-items:center;gap:var(--sp-4);padding:8px 9px;margin-bottom:5px;
@@ -1635,7 +1668,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
       <button class="iconbtn" id="redoBtn" title="Redo (⌘⇧Z)" aria-label="Redo">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 8H5.5a3 3 0 000 6H9"/><path d="M10.5 5.5L13 8l-2.5 2.5"/></svg>
       </button>
-      <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
+      <button class="iconbtn" id="helpBtn" title="Help & keyboard shortcuts" aria-label="Help & keyboard shortcuts">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><path d="M6.2 6a1.8 1.8 0 013.6.3c0 1.2-1.8 1.4-1.8 2.7" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".7" fill="currentColor" stroke="none"/></svg>
       </button>
     </div>
@@ -1643,8 +1676,8 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
     <span class="saved" id="savedTag">—</span>
 
     <div class="topgroup topUtility">
-      <button class="btn ghost" id="reviewBtn" title="Review this project" aria-label="Review this project">
-        <span id="reviewDot" class="rdot"></span><span id="reviewText" class="actionLabel">Review</span>
+      <button class="btn ghost" id="reviewBtn" title="Site checks" aria-label="Site checks">
+        <span id="reviewDot" class="rdot"></span><span id="reviewText" class="actionLabel">Checks</span>
       </button>
       <button class="btn ghost" id="historyBtn" title="Version history" aria-label="Version history" hidden>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3.2 4.1A6 6 0 118 14"/><path d="M3.2 1.8v2.3H.9"/><path d="M8 4.4V8l2.4 1.4"/></svg>
@@ -1652,16 +1685,16 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
       </button>
     </div>
     <div class="topgroup topActions divided">
-    <button class="btn ghost" id="previewBtn" title="Preview (⌘P)" aria-label="Preview">
+    <button class="btn ghost" id="previewBtn" title="Preview your working draft (⌘P)" aria-label="Preview your working draft">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="1.9"/></svg>
       <span class="collapseLabel">Preview</span>
     </button>
     <!-- Server mode only, and hidden otherwise: the single-file build has nowhere to share
          *to*. Beside Publish because it answers the same question — "how does somebody else
          see this?" — and a live URL is the answer that needs no download. -->
-    <button class="btn ghost" id="shareBtn" title="Copy the link to this site" aria-label="Copy the link to this site" hidden>
+    <button class="btn ghost" id="shareBtn" title="Copy the published site link" aria-label="Copy the published site link" hidden>
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
-      <span class="collapseLabel">Share</span>
+      <span class="collapseLabel">Live link</span>
     </button>
     <button class="btn primary" id="exportBtn" title="Publish this draft">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 10.5V2"/><path d="M4.8 5.2L8 2l3.2 3.2"/><path d="M2 10.5v2A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5v-2"/></svg>
@@ -1973,13 +2006,24 @@ const wordpressContent = () => WORDPRESS_CONTENT;
 
    Copy, with the link shown as a fallback. `navigator.clipboard` needs a secure context, which
    a local run over plain http is not, so the toast carries the URL either way. */
+function paintShareState() {
+  const btn = $('#shareBtn');
+  if (!btn || btn.hidden) return;
+  const waiting = !IS_WORDPRESS && !SRV?.publishedPublicationId;
+  btn.disabled = waiting;
+  const label = IS_WORDPRESS ? 'Copy the WordPress preview link'
+    : waiting ? 'Publish the site before copying a live link' : 'Copy the published site link';
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
+}
 function wireShare() {
   const btn = $('#shareBtn');
   if (!HOST_FEATURES.sharing) return;
   const url = IS_WORDPRESS ? WP.previewUrl : SRV && SRV.url;
   if (!btn || !url) return;
   btn.hidden = false;
-  btn.title = `Copy ${url}`;
+  btn.querySelector('.collapseLabel').textContent = IS_WORDPRESS ? 'Preview link' : 'Live link';
+  paintShareState();
   btn.addEventListener('click', () => withAction(btn, 'Copying link…',
     () => navigator.clipboard.writeText(url), 'Link copied.',
     {key:'share-link', error:'Could not copy automatically. Copy this link: ' + url}));
@@ -2277,6 +2321,7 @@ async function publishDraft(button, reviewed = null) {
       : undefined).catch(() => undefined);
     SRV.publishedPublicationId = payload.publicationId;
     SRV.publishedVersion = payload.sourceVersion ?? SRV.publishedVersion;
+    paintShareState();
     renderReleasePanel(payload);
     action.success(payload.status === 'unchanged' ? 'This version is already published' : 'Published to Pagecraft');
     button.textContent = 'Published';
@@ -2371,7 +2416,7 @@ async function preparePublicationReview(button) {
     publish.onclick = () => publishDraft(publish, reviewed);
     const schedule = $('#releaseSchedule');
     if (schedule) { schedule.disabled = false; schedule.onclick = () => openSchedulePanel(reviewed); }
-    action.success('Review preview ready');
+    action.success('Publication preview ready');
   } catch (error) { action.error(error.message || 'Could not prepare the preview. Try again.'); }
 }
 
@@ -2459,13 +2504,13 @@ function publishModal() {
   const mayPublish = SRV.role === 'owner' && !counts.error;
   openModal('Publish', `
     <div class="review" id="exReview"></div>
-    ${HOST.releases.prepare ? '<div id="publicationChanges"><p>Create an immutable preview to review the saved draft against the published site.</p></div>' : ''}
+    ${HOST.releases.prepare ? '<div id="publicationChanges"><p>Create a publication preview of your saved draft, compare it with the live site, then publish that version. Later edits stay in your draft.</p></div>' : ''}
     ${HOST.releases.schedules && SRV.schedulingAvailable ? '<div id="scheduleStatus" aria-live="polite"></div>' : ''}
     <div id="releasePanel" role="status" aria-live="polite" aria-atomic="true" aria-busy="false"></div>`, `
     <button class="btn" id="releaseWordPress">Publish on WordPress</button>
     <span style="flex:1"></span>
     <button class="btn" id="releaseClose">Close</button>
-    ${SRV.role === 'owner' && HOST.releases.prepare ? '<button class="btn" id="releasePrepare">Create review preview</button>' : ''}
+    ${SRV.role === 'owner' && HOST.releases.prepare ? '<button class="btn" id="releasePrepare">Create publication preview</button>' : ''}
     ${SRV.role === 'owner' && HOST.releases.schedule && SRV.schedulingAvailable ? '<button class="btn" id="releaseSchedule" disabled title="Create a review preview first">Schedule…</button>' : ''}
     ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
   ui().mountReview('exReview', true);
@@ -2483,19 +2528,57 @@ function publishModal() {
   } else if (publish) publish.addEventListener('click', () => publishDraft(publish));
 }
 
+function actionProblemsHtml() {
+  return '<div id="actionProblems"></div>';
+}
+function renderActionProblems() {
+  const host = $('#actionProblems');
+  if (!host) return;
+  const problems = feedback().problems();
+  host.hidden = !problems.length;
+  host.innerHTML = problems.length ? `<h3>Actions needing attention</h3>
+    <p class="note">Messages stay here after their notifications close. Return to the action to try again.</p>
+    <ul class="pc-problem-list">${problems.map(problem => `<li>
+      ${problem.label ? `<b>${esc(problem.label)}</b>` : ''}<p>${esc(problem.message)}</p>
+      <div class="pc-problem-actions">${problem.canRecover ? `<button class="btn" type="button" data-problem-return="${esc(problem.id)}">Return to action</button>` : ''}
+        <button class="btn ghost" type="button" data-problem-dismiss="${esc(problem.id)}">Dismiss from list</button></div>
+    </li>`).join('')}</ul>` : '';
+  host.querySelectorAll('[data-problem-dismiss]').forEach(button => button.addEventListener('click', () => {
+    feedback().resolveProblem(button.dataset.problemDismiss);
+    // Acknowledging a message does not claim that the failed operation succeeded.
+    ($('#reviewClose') || $('#rightSurfaceClose'))?.focus();
+  }));
+  host.querySelectorAll('[data-problem-return]').forEach(button => button.addEventListener('click', () => {
+    const id = button.dataset.problemReturn;
+    const recover = () => {
+      if (!feedback().recoverProblem(id)) toast('Open the action again to retry. Its message is still in Site checks.');
+    };
+    if (IS_WORDPRESS) { closeRightSurface(); recover(); } else closeModal(recover);
+  }));
+}
+function rememberSaveProblem(message, recover) {
+  feedback().rememberProblem(message, {id:'draft-save',label:'Save draft',recover:() => {
+    saveWarned = false;
+    recover();
+  }});
+}
+window.addEventListener('pc-feedback-problems', () => { paintReview(); renderActionProblems(); });
+
 function reviewModal() {
   if (editing.on) exitEdit();
-  openModal('Review', '<div class="review" id="exReview"></div>',
+  openModal('Site checks', `${actionProblemsHtml()}<p class="note">Check links, content and accessibility before publishing. These checks are separate from client feedback.</p><div class="review" id="exReview"></div>`,
     '<span style="flex:1"></span><button class="btn primary" id="reviewClose">Close</button>');
-  ui().mountReview();
+  ui().mountReview('exReview', true);
+  renderActionProblems();
   $('#reviewClose').addEventListener('click', closeModal);
 }
 
 function reviewPanel() {
   if (editing.on) exitEdit();
-  const panel = openRightSurface('Review', 'Checks for this WordPress page',
-    '<div class="review" id="rightReview"></div>', $('#reviewBtn'));
+  const panel = openRightSurface('Site checks', 'Checks for this WordPress page',
+    actionProblemsHtml() + '<div class="review" id="rightReview"></div>', $('#reviewBtn'));
   if (panel) ui().mountReview('rightReview', true);
+  renderActionProblems();
 }
 
 /* May this session change the shape of the site, as opposed to its words?
@@ -2516,6 +2599,7 @@ function stamp(txt, bad) {
   const t = $('#savedTag');
   t.textContent = txt;
   t.classList.toggle('bad', !!bad);
+  if (!bad && saveState === 'ok') window.__pcFeedback?.resolveProblem('draft-save');
 }
 
 function writeNow() {
@@ -2594,6 +2678,7 @@ async function writeServer(opts = {}) {
 
 // A lock is temporary, not proof that the document version has changed.
 function warnSaveBusy() {
+  rememberSaveProblem('Saving is busy. Your changes are still in this tab. Keep it open, then try saving again.', warnSaveBusy);
   // Do not suppress a later real conflict after this warning is dismissed.
   saveWarned = false;
   openModal('Saving is temporarily busy', `
@@ -2615,6 +2700,7 @@ function warnSaveBusy() {
    only honest offer: merging two documents is not something this can do, and pretending
    otherwise would lose one of them quietly. */
 function warnStale(info) {
+  rememberSaveProblem('A newer draft was saved elsewhere. Download your copy before reloading; saving would overwrite their work.', () => warnStale(info));
   if (saveWarned) return;
   saveWarned = true;
   const theirs = info && info.conflict ? info.conflict.theirs : '?';
@@ -2637,6 +2723,7 @@ function warnStale(info) {
 /* A content account tried to change something structural. Not an error on their part —
    the editor let them, which is the thing worth fixing next. */
 function warnContentOnly(info) {
+  rememberSaveProblem('This account can edit content, but the latest change includes layout or styling. Download your copy before reloading.', () => warnContentOnly(info));
   if (saveWarned) return;
   saveWarned = true;
   openModal('That change is not yours to make', `
@@ -2658,6 +2745,7 @@ function warnContentOnly(info) {
 /* WordPress refused the REST nonce even after a fresh one was asked for, which means the login
    behind it has ended. Signing in again is the fix, and only a reload picks the new session up. */
 function warnSessionExpired() {
+  rememberSaveProblem('Your WordPress session expired. Download your unsaved changes before reloading and signing in again.', warnSessionExpired);
   if (saveWarned) return;
   saveWarned = true;
   openModal('Your WordPress session expired', `
@@ -2679,6 +2767,7 @@ const save = () => { dirty = true; saveSoon(); };
 
 /* A failed write must never be a whisper — it means work is being lost. */
 function warnSaveFailed(err) {
+  rememberSaveProblem('Your latest changes were not saved. Keep this tab open, download a backup, and try saving again.', () => warnSaveFailed(err));
   if (saveWarned) return;
   saveWarned = true;
   const quota = err && /quota|exceed/i.test(err.name + ' ' + err.message);
@@ -2689,7 +2778,7 @@ function warnSaveFailed(err) {
       <span>Everything you do from now on lives only in this tab. Closing or reloading it will lose the work.</span>
     </div>
     <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
-      Download a project file now — it restores everything through <b>Export → Import JSON</b>.
+      <b>Download backup now</b> keeps a project file of your current draft.
       ${quota ? 'Then free space by removing unused images from <b>Project → Images</b>, or by clearing other sites’ data.' : (SRV ? 'Check your connection, reconnect if needed, then choose <b>Try saving again</b>. Keep this tab open until the draft is saved.' : 'Check this browser’s storage permissions. Private-browsing windows and blocked cookies can prevent local saves.')}
     </div>`, `
     <button class="btn" id="svRetry">Try saving again</button>
@@ -3331,12 +3420,16 @@ let manualSavePending = false;
 async function saveExplicitly() {
   if (manualSavePending) return;
   manualSavePending = true;
-  const action = feedback().begin(null, SRV ? 'Saving draft…' : 'Saving project…');
+  const action = feedback().begin(null, SRV ? 'Saving draft…' : 'Saving project…', 'draft-save');
   try {
     if (SRV) await flushDraft();
     else { writeNow(); if (saveState !== 'ok') throw new Error('The project could not be saved.'); }
     action.success(SRV ? 'Draft saved. Publish the site to make it public.' : 'Project saved in this browser.');
-  } catch (error) { action.error((error.message || 'Could not save.') + ' Keep this tab open and try again.'); }
+  } catch (error) {
+    action.cancel();
+    // Save recovery has its own durable message and backup/retry dialog.
+    toast((error.message || 'Could not save.') + ' Keep this tab open and try again.', {tone:'error',id:'draft-save',label:'Save draft',recover:()=>{saveWarned=false;warnSaveFailed(error);}});
+  }
   finally { manualSavePending = false; }
 }
 
@@ -5092,13 +5185,21 @@ const refreshReview = dbounce(() => {
 function paintReview() {
   const dot = $('#reviewDot'), txt = $('#reviewText');
   if (!dot || !txt) return;
-  if (!reviewCounts) { dot.className = 'rdot'; txt.textContent = 'Review'; return; }
-  const { error, warn } = reviewCounts;
+  const actionErrors = window.__pcFeedback?.problems().length || 0;
+  if (!reviewCounts && !actionErrors) {
+    dot.className = 'rdot'; txt.textContent = 'Checks';
+    $('#reviewBtn').title = 'Site checks';
+    $('#reviewBtn').setAttribute('aria-label', 'Site checks');
+    return;
+  }
+  const error = (reviewCounts?.error || 0) + actionErrors, warn = reviewCounts?.warn || 0;
   dot.className = 'rdot ' + (error ? 'bad' : warn ? 'warn' : 'ok');
   txt.textContent = error ? `${error} problem${error === 1 ? '' : 's'}`
-    : warn ? `${warn} suggestion${warn === 1 ? '' : 's'}`
-      : 'No problems';
-  $('#reviewBtn').title = (error || warn) ? 'Open the review' : 'Nothing to fix';
+    : warn ? `Checks · ${warn}` : 'Checks';
+  const label = error ? `Site checks: ${error} problem${error === 1 ? '' : 's'} need attention`
+    : warn ? `Site checks: ${warn} suggestion${warn === 1 ? '' : 's'}` : 'Site checks: no problems found';
+  $('#reviewBtn').title = label;
+  $('#reviewBtn').setAttribute('aria-label', label);
 }
 
 function render(opts = {}) {
@@ -5143,6 +5244,8 @@ function togglePreview() {
   $('#previewBtn').innerHTML = on
     ? `${svg('edit', 14)} Exit preview`
     : `${svg('eye', 14)} Preview`;
+  $('#previewBtn').title = on ? 'Return to editing (⌘P)' : 'Preview your working draft (⌘P)';
+  $('#previewBtn').setAttribute('aria-label', on ? 'Return to editing' : 'Preview your working draft');
   layoutCanvas();
   paint();
   if (!on) paintSel();
@@ -5301,14 +5404,18 @@ function openModal(title, bodyHtml, footHtml, size) {
     (first || $('#modalBox')).focus();
   }
 }
-const closeModal = () => {
+const closeModal = afterClose => {
   const mask = $('#modal'), box = $('#modalBox');
-  if (mask.hidden || mask.hasAttribute('data-pc-motion-closing')) return;
+  // Click handlers pass an event; only explicit callbacks run after the exit.
+  const resume = typeof afterClose === 'function' ? afterClose : () => {};
+  if (mask.hidden) { resume(); return; }
+  if (mask.hasAttribute('data-pc-motion-closing')) return;
   const finish = () => {
     mask.hidden = true; box.hidden = false;
     syncDialogLayers(); endTx();
     const back = modalReturnFocus; modalReturnFocus = null;
     if (back && back.isConnected) back.focus({preventScroll:true});
+    resume();
   };
   const fx = PC_UI.installUiMotion();
   if (!fx || fx.reduced()) { finish(); return; }
@@ -6277,7 +6384,17 @@ function helpModal() {
     ...(HOST_FEATURES.projectExport ? [['Export static HTML', '⌘E']] : []),
     ['Bold / italic while editing', '⌘B · ⌘I'], ['Insert link while editing', '⌘K']
   ];
-  openModal('Keyboard & tips', `
+  openModal('Help & keyboard shortcuts', `
+    <div class="pc-workflow-help">
+      <h3>Build your first page</h3>
+      <p>Add a heading, rich text or an image from Common, or choose a ready-made section. Pagecraft creates the needed layout containers for you. Select content on the canvas to edit it.</p>
+      <h3>From draft to finished site</h3>
+      <p>${IS_WORDPRESS ? 'Preview checks your WordPress page. Changes save to WordPress; use Done when finished. Publish from WordPress.'
+        : SRV ? 'Preview shows your working draft. Site checks helps find problems. Saving keeps your draft; Publish makes a reviewed version public. Live link copies the published site address.'
+        : 'Preview shows your working page. Site checks helps find problems. Export downloads the site; changes save only in this browser.'}</p>
+      ${SRV && !IS_WORDPRESS ? `<p>For client feedback, open <a href="/sites/${encodeURIComponent(SRV.siteId)}/reviews">Reviews</a>. Review links show the latest saved draft and shared comments. A publication preview freezes one saved version for publishing.</p>` : ''}
+    </div>
+    <h3>Keyboard shortcuts</h3>
     <table class="kt">${K.map(([a, b]) => `<tr><td>${a}</td><td><span class="kbd">${b}</span></td></tr>`).join('')}</table>
     <div class="note" style="margin-top:var(--gap-3);line-height:1.7">
       <b style="color:var(--text-2)">Structure</b> — Section → Row → Column → content. Missing wrappers are
@@ -6317,7 +6434,7 @@ function hotkey(e) {
   const k = (e.key || '').toLowerCase() || (e.code || '').toLowerCase();
   /* Native controls own activation and navigation keys. Let Enter/Space reach their
      default action instead of entering canvas text editing or moving its selection. */
-  if (!meta && t.closest?.('button,a[href],[role="button"],[role="combobox"],[role="listbox"]')) return;
+  if (!meta && t.closest?.('button,summary,a[href],[role="button"],[role="combobox"],[role="listbox"]')) return;
   if (meta && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (meta && k === 'y') { e.preventDefault(); redo(); return; }
   if (document.body.classList.contains('pages-open')) {
@@ -6514,13 +6631,13 @@ function bindTop() {
          may review and export, but must not be offered an action the API will refuse. */
       primary.hidden = true;
     }
-    $('#reviewBtn').addEventListener('click', publishModal);
+    $('#reviewBtn').addEventListener('click', reviewModal);
   } else {
     primary.title = 'Export HTML (⌘E)';
     primary.setAttribute('aria-label', 'Export HTML');
     primaryLabel.textContent = 'Export';
     primary.addEventListener('click', exportModal);
-    $('#reviewBtn').addEventListener('click', exportModal);
+    $('#reviewBtn').addEventListener('click', reviewModal);
   }
   wireShare();
   wireHistory();

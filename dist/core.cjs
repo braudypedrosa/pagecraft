@@ -2161,7 +2161,7 @@ var DEF = {
     }
   },
   text: {
-    label: "WYSIWYG",
+    label: "Rich text",
     icon: "text",
     level: 4,
     edit: "rich",
@@ -7440,7 +7440,7 @@ function decl(map) {
   return out;
 }
 var PFX = "pagecraft-";
-var widgetSlug = (type) => slugify(DEF[type] && DEF[type].label || type);
+var widgetSlug = (type) => type === "text" ? "wysiwyg" : slugify(DEF[type] && DEF[type].label || type);
 var nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
 var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
 var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);

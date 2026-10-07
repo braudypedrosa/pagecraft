@@ -13,6 +13,7 @@ import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { Libraries, addToLibrary, fromLabel, linkOf } from './Libraries';
 import type { LibraryItemKind } from '../core/libraries';
+import { useState } from 'preact/hooks';
 
 /* Lives here because the Add panel is the only thing that reads it: which widgets are
    offered, and how they are grouped. */
@@ -34,7 +35,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
   },
   {
     g: 'Content', items: [
-      ['heading', 'Heading'], ['text', 'WYSIWYG'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
+      ['heading', 'Heading'], ['text', 'Rich text'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
       ['image', 'Image'], ['gallery', 'Gallery'], ['video', 'Video'], ['icon', 'Icon']
     ]
   },
@@ -48,6 +49,26 @@ const PAL: { g: string; items: [string, string][] }[] = [
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
 ];
+
+/* The first five choices cover the usual blank-page start without making the complete
+   catalog disappear. Keys, rather than copied item definitions, keep this as a display
+   order over the one palette above. */
+const COMMON = ['heading', 'text', 'image', 'button', 'columns'];
+const ALIASES: Record<string, string> = {
+  heading: 'title headline',
+  text: 'paragraph copy wysiwyg',
+  image: 'photo picture media',
+  button: 'link call to action cta',
+  section: 'layout container wrapper',
+  columns: 'layout column row split',
+  row: 'layout columns horizontal',
+  flex: 'layout align alignment stack',
+  grid: 'layout tiles repeated',
+  box: 'layout container wrapper',
+  linkbox: 'layout clickable card link',
+  slider: 'carousel slideshow',
+  list: 'collection cms dynamic',
+};
 
 const TABS = [
   ['widgets', 'Elements', 'Basic elements for building a page', 'plus'],
@@ -79,29 +100,101 @@ function LibraryAdd({ kind, id }: { kind: LibraryItemKind; id: string }) {
   );
 }
 
-function Widgets() {
+type PaletteGroup = (typeof PAL)[number];
+
+function WidgetTiles({ group }: { group: PaletteGroup }) {
+  return (
+    <div class="pgrid">
+      {group.items.map(([k, label]) => (
+        <button type="button" class="pitem" key={k} title="Drag onto the canvas — or click to append"
+          onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
+            { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
+          onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
+          <Icon name={C.iconOf(k)} size={19} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Widgets({ templates }: { templates(): void }) {
+  const [query, setQuery] = useState('');
   const groups = PAL.map(group => ({
     ...group,
     items: group.items.filter(([key]) => key !== 'list' || L.dynamicContentProvider() === 'pagecraft')
   }));
+  const allowed = groups.flatMap(group => group.items.map(item => ({ group: group.g, item })));
+  const common = COMMON.flatMap(key => {
+    const found = allowed.find(({ item }) => item[0] === key);
+    return found ? [found.item] : [];
+  });
+  const commonKeys = new Set(common.map(([key]) => key));
+  const advanced = groups.map(group => ({
+    ...group,
+    items: group.items.filter(([key]) => !commonKeys.has(key))
+  })).filter(group => group.items.length);
+  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = groups.map(group => ({
+    ...group,
+    items: group.items.filter(([key, label]) => {
+      const haystack = `${group.g} ${label} ${key} ${ALIASES[key] || ''}`.toLowerCase();
+      return terms.every(term => haystack.includes(term));
+    })
+  })).filter(group => group.items.length);
+  const clear = () => setQuery('');
+
   return (
     <>
-      {groups.map(g => (
-        <>
-          <div class="plabel">{g.g}</div>
-          <div class="pgrid">
-            {g.items.map(([k, label]) => (
-              <button type="button" class="pitem" key={k} title="Drag onto the canvas — or click to append"
-                onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
-                  { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
-                onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
-                <Icon name={C.iconOf(k)} size={19} />
-                <span>{label}</span>
-              </button>
-            ))}
+      <div class="pc-add-search">
+        <label for="add-element-search">Find an element</label>
+        <div>
+          <Icon name="search" size={14} />
+          <input id="add-element-search" type="search" value={query}
+            placeholder="Search text, photo, layout…" autocomplete="off"
+            onInput={e => setQuery(e.currentTarget.value)}
+            onKeyDown={e => {
+              if (e.key !== 'Escape') return;
+              e.stopPropagation();
+              if (query) { e.preventDefault(); clear(); }
+            }} />
+          {query ? <button type="button" class="bx" aria-label="Clear element search" onClick={clear}>
+            <Icon name="close" size={12} />
+          </button> : null}
+        </div>
+      </div>
+
+      {terms.length ? (
+        matches.length ? matches.map(group => (
+          <div class="pc-add-group" key={group.g}>
+            <div class="plabel">{group.g}</div>
+            <WidgetTiles group={group} />
           </div>
+        )) : (
+          <div class="pc-add-empty" role="status">
+            <b>No elements found</b>
+            <span>Try another word, or clear the search to browse every group.</span>
+            <button type="button" class="btn" onClick={clear}>Clear search</button>
+          </div>
+        )
+      ) : (
+        <>
+          <div class="pc-add-group">
+            <div class="plabel">Common</div>
+            <WidgetTiles group={{ g: 'Common', items: common }} />
+          </div>
+          <div class="pc-add-guide">
+            <span><b>Add text, images, or buttons to begin.</b> Pagecraft creates the layout for you. Or use a ready-made section.</span>
+            <button type="button" class="btn" onClick={templates}>Browse starter sections</button>
+          </div>
+          {advanced.map(group => (
+            <details class="pc-add-group" key={group.g}>
+              <summary class="pc-add-group-summary">{group.g}<span>{group.items.length}</span></summary>
+              <WidgetTiles group={group} />
+            </details>
+          ))}
         </>
-      ))}
+      )}
     </>
   );
 }
@@ -382,7 +475,7 @@ export function Add() {
       </div>
       <div class="addContext">{current[2]}</div>
       <div class="palette" id="add-category-panel" role="tabpanel" aria-labelledby={'add-tab-' + t}>
-        {t === 'widgets' ? <Widgets />
+        {t === 'widgets' ? <Widgets templates={() => choose('templates')} />
           : t === 'components' ? <Components />
             : t === 'templates' ? <Templates />
               : t === 'libraries' ? <Libraries /> : <Blocks />}

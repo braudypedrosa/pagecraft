@@ -5,11 +5,25 @@ export interface Notice {
   success(message: string): Notice;
   error(message: string): Notice;
 }
+export interface ProblemOptions {
+  id?: string;
+  label?: string;
+  recover?: () => void;
+  available?: () => boolean;
+}
+export interface NoticeOptions extends ProblemOptions {
+  tone?: FeedbackTone;
+  duration?: number;
+}
 export interface ActionFeedback {
+  rememberProblem(message: string, options?: ProblemOptions): string;
+  resolveProblem(id: string): void;
+  problems(): {id: string; message: string; at: number; label: string; canRecover: boolean}[];
+  recoverProblem(id: string): boolean;
   run<T>(options: ProcessingOptions<T>, work: (action: {update: Notice['update']}) => T | false | Promise<T | false>): Promise<ProcessingResult<T>>;
   destroy(): void;
   flash(message: string, path?: string): void;
-  notify(message: string, options?: {tone?: FeedbackTone; id?: string; duration?: number}): Notice;
+  notify(message: string, options?: NoticeOptions): Notice;
   begin(button: HTMLElement | null, message: string, key?: string, options?: {announce?: boolean}): {update: Notice['update'];success(message: string): void;error(message: string): void;cancel(): void} | null;
 }
 export interface ProcessingOptions<T> {

@@ -120,6 +120,8 @@ test('hosted network failure gives connection guidance and retry preserves the u
   try {
     await settle();
     const window = dom.window, document = window.document;
+    // jsdom can stop boot at the iframe load boundary; real browsers dispatch it.
+    if (document.querySelector('#savedTag').textContent === '—') window.bindTop();
     window.__CORE.state.meta.name = 'Keep the offline QA draft';
     await window.writeNow();
     assert.match(document.querySelector('#mBody').textContent, /connection to the host was lost/i);
@@ -127,6 +129,26 @@ test('hosted network failure gives connection guidance and retry preserves the u
     assert.doesNotMatch(document.querySelector('#mBody').textContent, /Private.browsing|blocked cookies/);
     assert.equal(window.__CORE.state.meta.name, 'Keep the offline QA draft');
     assert.ok(document.querySelector('#svBackup'));
+    document.querySelector('#mClose').click();
+    await new Promise(resolve => setTimeout(resolve, 200));
+    document.querySelector('#reviewBtn').focus();
+    document.querySelector('#reviewBtn').click();
+    assert.equal(document.querySelector('#mTitle').textContent, 'Site checks');
+    assert.match(document.querySelector('#actionProblems').textContent, /latest changes were not saved/);
+    assert.equal(document.querySelector('#releasePublish'), null, 'checking issues must not open publishing');
+    assert.equal(document.querySelector('#exZip'), null, 'checking issues must not open exporting');
+    document.querySelector('[data-problem-return]').click();
+    await new Promise(resolve => setTimeout(resolve, 200));
+    assert.equal(requests.length, 1, 'returning to recovery must not replay the failed save');
+    assert.equal(document.querySelector('#mTitle').textContent, 'Your work is no longer being saved');
+    assert.equal(document.querySelector('#modal').hidden, false);
+    assert.ok(document.querySelector('#modalBox').contains(document.activeElement), 'focus stays in the reopened recovery dialog after the previous exit');
+    document.querySelector('#mClose').click();
+    await new Promise(resolve => setTimeout(resolve, 200));
+    assert.equal(document.activeElement, document.querySelector('#reviewBtn'), 'recovery returns focus to the original checks trigger');
+    document.querySelector('#reviewBtn').click();
+    document.querySelector('[data-problem-return]').click();
+    await new Promise(resolve => setTimeout(resolve, 200));
     online = true;
     document.querySelector('#svRetry').click();
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -134,6 +156,8 @@ test('hosted network failure gives connection guidance and retry preserves the u
     assert.deepEqual(requests[1], requests[0]);
     assert.equal(document.querySelector('#modal').hidden, true);
     assert.match(document.querySelector('#savedTag').textContent, /Draft saved/);
+    document.querySelector('#reviewBtn').click();
+    assert.equal(document.querySelector('#actionProblems').hidden, true, 'successful retry clears the retained save problem');
   } finally {
     dom.window.close();
   }
