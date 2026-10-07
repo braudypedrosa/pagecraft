@@ -138,6 +138,47 @@ const CHECKS = [
     await tab.pressKey('Escape');
     return { passed: footer.open && footer.children === 0 && (footer.display === 'none' || footer.height === 0), detail: footer };
   }],
+  ['Long native form keeps fixed dialog edges and a scrolling body', async (tab, base, host) => {
+    const cdp = await page(tab, base, host, 'dialogs', { reducedMotion: true });
+    await click(tab, 'button', 'Open long form dialog');
+    await sleep(200);
+    const sizes = [[1440, 900], [768, 600], [768, 900]];
+    const measurements = [];
+    for (const [width, height] of sizes) {
+      await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+      await sleep(250);
+      await tab.playwright.locator('#long-dialog-field-1').click();
+      const beforeScroll = await js(tab, () => document.querySelector('#long-form-dialog .pc-dialog-body').scrollTop);
+      await tab.playwright.locator('#long-dialog-field-10').click();
+      measurements.push(await js(tab, beforeScroll => {
+        const dialog = document.getElementById('long-form-dialog');
+        const form = dialog.querySelector('.pc-dialog-form');
+        const header = form.querySelector('.pc-dialog-head');
+        const body = form.querySelector('.pc-dialog-body');
+        const footer = form.querySelector('.pc-dialog-foot');
+        const action = footer.querySelector('button');
+        const inputs = [...body.querySelectorAll('input')];
+        const dr = dialog.getBoundingClientRect(), hr = header.getBoundingClientRect(), fr = footer.getBoundingClientRect(), ar = action.getBoundingClientRect();
+        const footerStyle = getComputedStyle(footer);
+        return { width: innerWidth, height: innerHeight, open: dialog.open, modal: dialog.matches(':modal'),
+          headerInside: hr.top >= dr.top - 1 && hr.bottom <= dr.bottom + 1,
+          footerInside: fr.top >= dr.top - 1 && fr.bottom <= dr.bottom + 1,
+          footerPadding: Number.parseFloat(footerStyle.paddingBottom), actualBottomPadding: fr.bottom - ar.bottom,
+          inputHeights: [...new Set(inputs.map(input => Math.round(input.getBoundingClientRect().height)))],
+          bodyScrollable: body.scrollHeight > body.clientHeight && body.scrollTop > beforeScroll,
+          scrollBefore: beforeScroll, scrollAfter: body.scrollTop,
+          horizontalOverflow: document.documentElement.scrollWidth > innerWidth };
+      }, beforeScroll));
+    }
+    await tab.pressKey('Escape');
+    await sleep(200);
+    const closed = await js(tab, () => ({ open: document.getElementById('long-form-dialog').open,
+      focus: document.activeElement?.textContent.trim() }));
+    const layoutsPass = measurements.every(state => state.open && state.modal && state.headerInside && state.footerInside
+      && state.footerPadding === 16 && Math.abs(state.actualBottomPadding - state.footerPadding) < 1
+      && state.inputHeights.length === 1 && state.inputHeights[0] === 44 && state.bodyScrollable && !state.horizontalOverflow);
+    return { passed: layoutsPass && !closed.open && closed.focus === 'Open long form dialog', detail: { measurements, closed } };
+  }],
   ['Processing prevents duplicate activation', async (tab, base, host) => {
     await page(tab, base, host, 'actions', { reducedMotion: true });
     await click(tab, 'button', 'Start processing');

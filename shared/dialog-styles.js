@@ -3,6 +3,7 @@
 export const DIALOG_CSS = `
 .pc-dialog:not(.project-settings){padding:0;border:1px solid var(--pc-border);border-radius:var(--pc-dialog-radius);max-height:calc(100svh - 48px);background:var(--pc-popup-bg);color:var(--pc-ui-text);box-shadow:0 20px 60px #11131124}
 .pc-dialog::backdrop{background:var(--pc-dialog-scrim)}
+.pc-dialog[open]:has(>.pc-dialog-form){display:flex;flex-direction:column;overflow:hidden}
 .pc-dialog .pc-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:var(--pc-space-4);padding:var(--pc-dialog-edge) var(--pc-dialog-inset);border-bottom:1px solid var(--pc-border);flex-shrink:0}
 .pc-dialog .pc-dialog-title{margin:0;font-family:var(--pc-font-body);font-size:var(--pc-text-dialog);font-weight:600;line-height:1.4;letter-spacing:-.02em;min-width:0;overflow-wrap:anywhere}
 .pc-dialog .pc-dialog-head>div{min-width:0}
@@ -18,6 +19,8 @@ export const DIALOG_CSS = `
 .pc-dialog .pc-dialog-close:hover{background:var(--pc-hover-bg)}
 .pc-dialog .pc-dialog-close svg{width:16px;height:16px}
 .pc-dialog .pc-dialog-form{display:block;padding:0;margin:0}
+.pc-dialog>.pc-dialog-form{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.pc-dialog>.pc-dialog-form>.pc-dialog-body{flex:1 1 auto}
 .pc-dialog .pc-dialog-field{display:grid;gap:var(--pc-field-label-gap);margin:var(--pc-field-gap) 0 0}
 .pc-dialog .pc-dialog-field input{height:var(--pc-control-height);min-height:var(--pc-control-height)}
 .pc-dialog .pc-dialog-description{margin:0;font:var(--pc-type-input);line-height:1.55}

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-07T17:49:55.951Z",
+  "capturedAt": "2026-10-07T18:28:22.539Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -20,13 +20,13 @@
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
     "shared/workspace-styles.js": "f963eae63734c0fd9b5a5fb65b4778aefbd33898e24ecb3953e9d5e8e5cf3ba5",
-    "shared/dialog-styles.js": "255688104c88c71069090660109cf9e3336f035986630b684426be978b14e6ea",
+    "shared/dialog-styles.js": "69dec71c358816f39a565f833feb3542ee23276af69005ac936a346375f8b28c",
     "shared/custom-select.js": "6bd55524bee5ea2d98d6f5fd430831ca84f42bc4be4f6ce3003677cf261309be",
     "shared/action-feedback.js": "86bdef865b9bbd177929f953efcfb1eff61205cd5bb035fcbfec5ea9a8a95172",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "38ddb52454c5ae5382fdc43f6fac96f8259d8877a65398d8765cf325c4677caf",
-    "server/src/component-gallery.ts": "1b0bccc8cac8c7c9c2d15e87a6e38974a3594d5702b6cd733ed530b34b712d4e",
+    "server/src/account-pages.ts": "35ba9ae1e3cafa2e163cb510a6e47a3dc1f85e1ea5dbb59106ae7724dd96260a",
+    "server/src/component-gallery.ts": "f69cce571fb95455cd2f20b6ca09b844c6cfdaef245f4923315b2e7af7ad5602",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
@@ -137,6 +137,70 @@
         "display": "none",
         "height": 0,
         "open": true
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Long native form keeps fixed dialog edges and a scrolling body",
+      "passed": true,
+      "detail": {
+        "measurements": [
+          {
+            "actualBottomPadding": 16,
+            "bodyScrollable": true,
+            "footerInside": true,
+            "footerPadding": 16,
+            "headerInside": true,
+            "height": 900,
+            "horizontalOverflow": false,
+            "inputHeights": [
+              44
+            ],
+            "modal": true,
+            "open": true,
+            "scrollAfter": 258,
+            "scrollBefore": 0,
+            "width": 1440
+          },
+          {
+            "actualBottomPadding": 16,
+            "bodyScrollable": true,
+            "footerInside": true,
+            "footerPadding": 16,
+            "headerInside": true,
+            "height": 600,
+            "horizontalOverflow": false,
+            "inputHeights": [
+              44
+            ],
+            "modal": true,
+            "open": true,
+            "scrollAfter": 558,
+            "scrollBefore": 0,
+            "width": 768
+          },
+          {
+            "actualBottomPadding": 16,
+            "bodyScrollable": true,
+            "footerInside": true,
+            "footerPadding": 16,
+            "headerInside": true,
+            "height": 900,
+            "horizontalOverflow": false,
+            "inputHeights": [
+              44
+            ],
+            "modal": true,
+            "open": true,
+            "scrollAfter": 258,
+            "scrollBefore": 0,
+            "width": 768
+          }
+        ],
+        "closed": {
+          "focus": "Open long form dialog",
+          "open": false
+        }
       }
     },
     {
@@ -339,6 +403,70 @@
     },
     {
       "host": "builder",
+      "check": "Long native form keeps fixed dialog edges and a scrolling body",
+      "passed": true,
+      "detail": {
+        "measurements": [
+          {
+            "actualBottomPadding": 16,
+            "bodyScrollable": true,
+            "footerInside": true,
+            "footerPadding": 16,
+            "headerInside": true,
+            "height": 900,
+            "horizontalOverflow": false,
+            "inputHeights": [
+              44
+            ],
+            "modal": true,
+            "open": true,
+            "scrollAfter": 334,
+            "scrollBefore": 0,
+            "width": 1440
+          },
+          {
+            "actualBottomPadding": 16,
+            "bodyScrollable": true,
+            "footerInside": true,
+            "footerPadding": 16,
+            "headerInside": true,
+            "height": 600,
+            "horizontalOverflow": false,
+            "inputHeights": [
+              44
+            ],
+            "modal": true,
+            "open": true,
+            "scrollAfter": 634,
+            "scrollBefore": 0,
+            "width": 768
+          },
+          {
+            "actualBottomPadding": 16,
+            "bodyScrollable": true,
+            "footerInside": true,
+            "footerPadding": 16,
+            "headerInside": true,
+            "height": 900,
+            "horizontalOverflow": false,
+            "inputHeights": [
+              44
+            ],
+            "modal": true,
+            "open": true,
+            "scrollAfter": 334,
+            "scrollBefore": 0,
+            "width": 768
+          }
+        ],
+        "closed": {
+          "focus": "Open long form dialog",
+          "open": false
+        }
+      }
+    },
+    {
+      "host": "builder",
       "check": "Processing prevents duplicate activation",
       "passed": true,
       "detail": {
@@ -486,7 +614,7 @@
       "state": "Open dialog with header, body and footer"
     },
     "cloud-dialogs-768.png": {
-      "sha256": "6eef5870050f8e9029a15d821bcaf121dc62b5980599144967638c6c627ac443",
+      "sha256": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
@@ -546,7 +674,7 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-menus-768.png": {
-      "sha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+      "sha256": "246b0b16c0ccd4df2345028c2a0f95116e89822e3b0a598609247e3e80d8e676",
       "width": 768,
       "height": 959,
       "state": "Open picker, selected/disabled options and menu items"
@@ -558,7 +686,7 @@
       "state": "Open dialog with header, body and footer"
     },
     "builder-dialogs-768.png": {
-      "sha256": "e0b14e82849cd4826f9d2abea1f9d80b5435a3a7ddcaeabd399e88be7e2097bc",
+      "sha256": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
