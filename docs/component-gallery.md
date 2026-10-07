@@ -19,7 +19,7 @@ Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedbac
 | Dialogs | Open dialog with header, body, footer and corner close |
 | Feedback | Persistent error notification and recoverable refresh error |
 
-The behavior checklist additionally covers select Escape/value preservation, dialog focus return, empty footer, unsaved dialog values across resizing, processing state and success/failure recovery, silent refresh recovery, mounted-through-exit behavior, rapid reopening, and reduced-motion completion. Success notifications and ordinary keyboard interaction remain interactive examples; the PNG set is not exhaustive state coverage.
+The behavior checklist additionally covers select Escape/value preservation, dialog focus return, modal dropdown pointer visibility and value preservation on resize, picker-first Escape, Tab/Shift+Tab navigation within the dialog, rapid picker reopening and parent-close cleanup, empty footer, unsaved dialog values across resizing, processing state and success/failure recovery, silent refresh recovery, mounted-through-exit behavior, rapid reopening, and reduced-motion completion. Success notifications and ordinary keyboard interaction remain interactive examples; the PNG set is not exhaustive state coverage.
 
 Each family also contains a **Long content and recovery** fixture using production
 components: multiline labels/help, long action labels, populated multiline rows,

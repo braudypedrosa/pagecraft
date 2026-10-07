@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-06T13:22:43.681Z",
+  "capturedAt": "2026-10-07T06:18:13.694Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -8,7 +8,7 @@
   "sources": {
     "builder.html": "8dc7af5653d916d326d5e10f050d89bd899c696b910f3ca00a94636a9e7ce1a6",
     "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
-    "app/src/ui/CmsWorkspace.tsx": "9e98962d8e31c2285d59c3b56e2f1ceaf1851748538e67c4e222c70bf71bdabd",
+    "app/src/ui/CmsWorkspace.tsx": "11b19eb457f1d90e68414857c727a869baded14343eff36c563d9f21645fcaf0",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "308fed9afa5e00ac08524fbc1f4fbe6ba6c9e71582a7fe47bc4b87ac16197d36",
     "app/src/ui/inspector/Inspector.tsx": "53e6c6576441984e289a21391c7ed2a0f0a633debec7812215693e32deeedf78",
@@ -19,14 +19,14 @@
     "shared/ui-typography.js": "46c0e124216b38c3731cc9a9d204c3138de8104c09f780801fa8dcdbf981456c",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
-    "shared/workspace-styles.js": "725e97499c5deb1b8746f160500e244dd4bdd6f279ac93dcf1dc8c738eb0e6e5",
-    "shared/dialog-styles.js": "4bc8bf9e9520fa0ecd0104b9510e934ca4542c3014a7b0ec9123cb05a0ebae16",
-    "shared/custom-select.js": "94cad1392779344b12526a9294ece8bccfb7856747e535f7129fdb082981893f",
-    "shared/action-feedback.js": "259c7d00074d344959ce03c6caa11db61c4695a5c226646e6054eed164cd2ddb",
+    "shared/workspace-styles.js": "f963eae63734c0fd9b5a5fb65b4778aefbd33898e24ecb3953e9d5e8e5cf3ba5",
+    "shared/dialog-styles.js": "255688104c88c71069090660109cf9e3336f035986630b684426be978b14e6ea",
+    "shared/custom-select.js": "6bd55524bee5ea2d98d6f5fd430831ca84f42bc4be4f6ce3003677cf261309be",
+    "shared/action-feedback.js": "95ba300681b38ea722860dba479cd50c516197cddd37a2ea981ea33c39e5cacf",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "579b410d95e3029e86f4564756932f6c9799c1c77cba3114973c581d84a2a4a8",
-    "server/src/component-gallery.ts": "b75665b7bb2fd75ce808d4bfb334bc57660b7d19a336fb41b3de883bc81a5731",
+    "server/src/account-pages.ts": "3422d086accf05613b737b0107a0ae0474ee94e1868a814edff0c1e4225e5929",
+    "server/src/component-gallery.ts": "1b0bccc8cac8c7c9c2d15e87a6e38974a3594d5702b6cd733ed530b34b712d4e",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
@@ -48,6 +48,62 @@
           "popovers": 0,
           "role": "combobox",
           "value": "Home"
+        }
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
+      "passed": true,
+      "detail": {
+        "before": {
+          "modal": true,
+          "receivesPointer": true,
+          "topLayer": true,
+          "withinViewport": true
+        },
+        "resized": {
+          "anchored": true,
+          "menuVisible": true,
+          "overflow": false,
+          "value": "public"
+        }
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
+      "passed": true,
+      "detail": {
+        "escaped": {
+          "expanded": "false",
+          "focus": "Sample access",
+          "menus": 0,
+          "open": true,
+          "value": "private"
+        },
+        "tabbed": {
+          "focusInDialog": true,
+          "menus": 0,
+          "open": true
+        },
+        "backwards": "dialog-name",
+        "parentClosed": true
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
+      "passed": true,
+      "detail": {
+        "reopened": {
+          "expanded": "true",
+          "visible": true
+        },
+        "closed": {
+          "menus": 0,
+          "open": false,
+          "topLayer": 0
         }
       }
     },
@@ -190,6 +246,62 @@
           "popovers": 0,
           "role": "combobox",
           "value": "Home"
+        }
+      }
+    },
+    {
+      "host": "builder",
+      "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
+      "passed": true,
+      "detail": {
+        "before": {
+          "modal": true,
+          "receivesPointer": true,
+          "topLayer": true,
+          "withinViewport": true
+        },
+        "resized": {
+          "anchored": true,
+          "menuVisible": true,
+          "overflow": false,
+          "value": "public"
+        }
+      }
+    },
+    {
+      "host": "builder",
+      "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
+      "passed": true,
+      "detail": {
+        "escaped": {
+          "expanded": "false",
+          "focus": "Sample access",
+          "menus": 0,
+          "open": true,
+          "value": "private"
+        },
+        "tabbed": {
+          "focusInDialog": true,
+          "menus": 0,
+          "open": true
+        },
+        "backwards": "dialog-name",
+        "parentClosed": true
+      }
+    },
+    {
+      "host": "builder",
+      "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
+      "passed": true,
+      "detail": {
+        "reopened": {
+          "expanded": "true",
+          "visible": true
+        },
+        "closed": {
+          "menus": 0,
+          "open": false,
+          "topLayer": 0
         }
       }
     },
@@ -368,13 +480,13 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "7040dcdd1f20c3f2e621173018694b6b411ab583b6c20ad92ce5eece00210014",
+      "sha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "cloud-dialogs-768.png": {
-      "sha256": "6dd3c180c95681594cedc441774870f6c0c736a4da03cffc2cf214891397f7d6",
+      "sha256": "6eef5870050f8e9029a15d821bcaf121dc62b5980599144967638c6c627ac443",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
@@ -440,13 +552,13 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-dialogs-1440.png": {
-      "sha256": "8f399d77e292928ea3f1e0a03bb162326ab81d69352081a550d81fed146ac550",
+      "sha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "builder-dialogs-768.png": {
-      "sha256": "3f44823658331f36d6c0a0c6f0f5eb32562e3eb7af00fb3d83cc57474a777678",
+      "sha256": "e0b14e82849cd4826f9d2abea1f9d80b5435a3a7ddcaeabd399e88be7e2097bc",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"

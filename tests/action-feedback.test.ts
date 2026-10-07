@@ -132,6 +132,18 @@ test('processing failures auto-dismiss, release the lock and still allow a retry
  expect(document.querySelector('[role=alert]')).toBeNull();
  expect(document.querySelector('[data-tone=success]')?.textContent).toContain('Image dimensions detected.');
 });
+test('announce false keeps the action lock but leaves result announcements to the caller',async()=>{
+ const feedback=installActionFeedback(),options=Object.assign(
+   {key:'cms-save',button:button(),pending:'Saving entry…',success:'Entry saved.'},
+   {announce:false},
+ );
+ const job=feedback.run(options,async()=>{await Promise.resolve();return true;});
+ expect(button().disabled).toBe(true);
+ expect(document.querySelector('#pc-notifications')).toBeNull();
+ expect(await job).toEqual({status:'success',value:true});
+ expect(button().disabled).toBe(false);
+ expect(document.querySelector('#pc-notifications')).toBeNull();
+});
 
 test('progress and explicitly persistent notices remain until resolved or dismissed',()=>{
  const feedback=installActionFeedback();

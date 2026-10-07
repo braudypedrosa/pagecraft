@@ -12,7 +12,7 @@ export const CUSTOM_SELECT_CSS = `
 .pc-custom-select-trigger>svg{width:14px;height:14px;flex:0 0 14px;color:currentColor;opacity:.64;transition:transform .14s ease}
 .pc-custom-select-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .pc-custom-select-trigger:disabled{cursor:not-allowed;opacity:.5}
-.pc-custom-select-popover{box-sizing:border-box;--pc-cs-bg:var(--pc-popup-bg,#fff);--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:0;border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
+.pc-custom-select-popover{box-sizing:border-box;--pc-cs-bg:var(--pc-popup-bg,#fff);--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;inset:auto;margin:0;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:0;border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
 .pc-custom-select-popover[hidden]{display:none}
 .pc-custom-select-group{padding:8px 9px 4px;color:var(--pc-cs-muted);font-family:"DM Sans",system-ui,sans-serif;font-size:var(--pc-text-label,13px);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
 .pc-custom-select-option{width:100%!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0!important;padding:var(--pc-control-padding,6px 8px)!important;border:0!important;border-radius:4px!important;background:transparent!important;color:var(--pc-cs-fg)!important;box-shadow:none!important;font:inherit!important;font-weight:500!important;line-height:1.35!important;text-align:left!important;cursor:pointer!important;filter:none!important}
@@ -77,6 +77,15 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   ].join('\u0001')).join('\u0002');
   const enabledOptions = select => [...select.options].filter(option => !option.disabled && !option.parentElement?.disabled);
   const isClosed = menu => menu.hidden || menu.hasAttribute('data-pc-motion-closing');
+  const modalFor = record => {
+    const dialog = record.trigger.closest('dialog[open]');
+    if (!dialog) return null;
+    try {
+      return !window.CSS?.supports?.('selector(:modal)') || dialog.matches(':modal') ? dialog : null;
+    } catch {
+      return dialog;
+    }
+  };
 
   const position = record => {
     if (record.menu.hidden) return;
@@ -111,9 +120,20 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     record.trigger.setAttribute('aria-expanded', 'false');
     if (openRecord === record) openRecord = null;
     if (focus) record.trigger.focus();
+    const finishPopover = () => {
+      if (record.popoverOpen) {
+        try { record.menu.hidePopover(); } catch {}
+        record.popoverOpen = false;
+      }
+    };
     const motion = window.__pcMotion;
-    if (motion) motion.exit(record.menu, { kind: 'popover' });
-    else record.menu.hidden = true;
+    if (motion && record.popoverOpen) {
+      motion.exit(record.menu, {
+        kind: 'popover', hide: false,
+        onFinish: () => { finishPopover(); record.menu.hidden = true; }
+      });
+    } else if (motion) motion.exit(record.menu, { kind: 'popover' });
+    else { finishPopover(); record.menu.hidden = true; }
   };
 
   const choose = (record, option) => {
@@ -123,6 +143,23 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     record.select.dispatchEvent(new Event('change', { bubbles: true }));
     sync(record);
     close(record, true);
+  };
+
+  const moveModalFocus = (record, backwards) => {
+    if (!record.modal) return false;
+    const focusable = [...record.modal.querySelectorAll('a[href],area[href],button,input,select,textarea,iframe,summary,[contenteditable],[tabindex]')]
+      .filter(element => element instanceof HTMLElement
+        && element.tabIndex >= 0
+        && !element.hidden
+        && !element.matches(':disabled,[aria-disabled="true"]')
+        && !element.closest('[hidden],[inert],.pc-custom-select-popover'));
+    const index = focusable.indexOf(record.trigger);
+    if (index < 0 || focusable.length < 2) return false;
+    const offset = backwards ? -1 : 1;
+    const target = focusable[(index + offset + focusable.length) % focusable.length];
+    close(record, true);
+    target.focus({ preventScroll: true });
+    return true;
   };
 
   const optionsForButton = (record, button) => [...record.select.options].find(option => option.value === button.dataset.value);
@@ -171,6 +208,24 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   const open = record => {
     if (record.select.disabled) return;
     if (openRecord && openRecord !== record) close(openRecord);
+    record.modal = modalFor(record);
+    const host = record.modal || document.body;
+    if (record.menu.parentElement !== host) host.append(record.menu);
+    const usePopover = Boolean(record.modal && record.menu.showPopover && record.menu.hidePopover);
+    if (usePopover) {
+      record.menu.setAttribute('popover', 'manual');
+      record.menu.hidden = false;
+      if (!record.popoverOpen) {
+        try { record.menu.showPopover(); record.popoverOpen = true; }
+        catch { record.menu.removeAttribute('popover'); record.popoverOpen = false; }
+      }
+    } else {
+      if (record.popoverOpen) {
+        try { record.menu.hidePopover(); } catch {}
+        record.popoverOpen = false;
+      }
+      record.menu.removeAttribute('popover');
+    }
     renderMenu(record);
     const styles = getComputedStyle(record.trigger);
     record.menu.style.font = styles.font || 'var(--pc-type-control)';
@@ -237,7 +292,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     select.setAttribute('aria-hidden', 'true');
     select.tabIndex = -1;
 
-    const record = { select, trigger, label, menu, signature: '' };
+    const record = { select, trigger, label, menu, signature: '', modal: null, popoverOpen: false };
     records.set(select, record);
     sync(record);
     select.addEventListener('change', () => sync(record));
@@ -248,8 +303,15 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     trigger.addEventListener('keydown', event => {
       const options = enabledOptions(select);
       const currentIndex = Math.max(0, options.indexOf(selectedOption(select)));
-      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(record, true); return; }
-      if (event.key === 'Tab') { close(record); return; }
+      if (event.key === 'Escape') {
+        if (!isClosed(menu)) { event.preventDefault(); event.stopPropagation(); close(record, true); }
+        return;
+      }
+      if (event.key === 'Tab') {
+        if (moveModalFocus(record, event.shiftKey)) event.preventDefault();
+        else close(record);
+        return;
+      }
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         isClosed(menu) ? open(record) : choose(record, selectedOption(select));
@@ -278,7 +340,11 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
       const buttons = [...menu.querySelectorAll('.pc-custom-select-option:not(:disabled)')];
       const index = Math.max(0, buttons.indexOf(document.activeElement));
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(record, true); return; }
-      if (event.key === 'Tab') { close(record); return; }
+      if (event.key === 'Tab') {
+        if (moveModalFocus(record, event.shiftKey)) event.preventDefault();
+        else close(record);
+        return;
+      }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
         event.preventDefault();
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
@@ -306,6 +372,15 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
 
   document.addEventListener('pointerdown', event => {
     if (openRecord && !openRecord.trigger.contains(event.target) && !openRecord.menu.contains(event.target)) close(openRecord);
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !openRecord) return;
+    event.preventDefault();
+    event.stopPropagation();
+    close(openRecord, true);
+  }, true);
+  document.addEventListener('close', event => {
+    if (openRecord?.modal === event.target) close(openRecord);
   }, true);
   document.addEventListener('pagecraft:outside-pointer', () => openRecord && close(openRecord));
   window.addEventListener('blur', () => openRecord && close(openRecord));

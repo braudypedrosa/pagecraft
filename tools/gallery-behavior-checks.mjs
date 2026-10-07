@@ -41,6 +41,70 @@ const CHECKS = [
     return { passed: before === 'Home' && opened.expanded === 'true' && opened.popovers === 1 && after.value === 'Home' && after.expanded === 'false' && after.role === 'combobox' && !after.popovers,
       detail: { before, opened, after } };
   }],
+  ['Modal picker receives pointer input above the dialog and preserves value on resize', async (tab, base, host) => {
+    const cdp = await page(tab, base, host, 'dialogs', { reducedMotion: true });
+    await click(tab, 'button', 'Open dialog');
+    await click(tab, 'combobox', 'Sample access');
+    const before = await js(tab, () => {
+      const menu = document.querySelector('#sample-dialog .pc-custom-select-popover:not([hidden])');
+      const option = menu?.querySelector('[data-value="public"]'), r = option?.getBoundingClientRect();
+      return { modal: document.getElementById('sample-dialog').matches(':modal'),
+        topLayer: menu?.matches(':popover-open'), receivesPointer: !!r && option.contains(document.elementFromPoint(r.x+r.width/2, r.y+r.height/2)),
+        withinViewport: !!r && r.x >= 0 && r.right <= innerWidth && r.y >= 0 && r.bottom <= innerHeight };
+    });
+    await click(tab, 'option', 'Anyone with the link');
+    await click(tab, 'combobox', 'Sample access');
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 768, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(250);
+    const resized = await js(tab, () => {
+      const trigger = document.querySelector('#sample-dialog .pc-custom-select-trigger'), menu = document.querySelector('#sample-dialog .pc-custom-select-popover:not([hidden])');
+      const t = trigger.getBoundingClientRect(), m = menu.getBoundingClientRect();
+      return { value: document.getElementById('dialog-access').value, anchored: Math.abs(t.left-m.left)<2,
+        overflow: document.documentElement.scrollWidth > innerWidth, menuVisible: m.width > 0 && m.right <= innerWidth && m.bottom <= innerHeight };
+    });
+    await tab.pressKey('Escape');
+    await tab.pressKey('Escape');
+    return { passed: before.modal && before.topLayer && before.receivesPointer && before.withinViewport && resized.value === 'public' && resized.anchored && !resized.overflow && resized.menuVisible, detail: { before, resized } };
+  }],
+  ['Modal picker Escape cancels first and Tab preserves dialog navigation', async (tab, base, host) => {
+    await page(tab, base, host, 'dialogs', { reducedMotion: true });
+    await click(tab, 'button', 'Open dialog');
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('ArrowDown');
+    await tab.pressKey('Escape');
+    const escaped = await js(tab, () => ({ open: document.getElementById('sample-dialog').open, value: document.getElementById('dialog-access').value,
+      focus: document.activeElement?.getAttribute('aria-label'), expanded: document.activeElement?.getAttribute('aria-expanded'),
+      menus: document.querySelectorAll('.pc-custom-select-popover:not([hidden])').length }));
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('Tab');
+    const tabbed = await js(tab, () => ({ open: document.getElementById('sample-dialog').open, focusInDialog: document.getElementById('sample-dialog').contains(document.activeElement),
+      menus: document.querySelectorAll('.pc-custom-select-popover:not([hidden])').length }));
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('Shift+Tab');
+    const backwards = await js(tab, () => document.activeElement?.id);
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('Escape');
+    await tab.pressKey('Escape');
+    await sleep(200);
+    const parentClosed = await js(tab, () => !document.getElementById('sample-dialog').open);
+    return { passed: escaped.open && escaped.value === 'private' && escaped.focus === 'Sample access' && escaped.expanded === 'false' && !escaped.menus && tabbed.open && tabbed.focusInDialog && !tabbed.menus && backwards === 'dialog-name' && parentClosed, detail: { escaped, tabbed, backwards, parentClosed } };
+  }],
+  ['Modal picker rapid reopening cancels exit and parent close leaves no orphan', async (tab, base, host) => {
+    await page(tab, base, host, 'dialogs', { reducedMotion: false });
+    await click(tab, 'button', 'Open dialog');
+    await click(tab, 'combobox', 'Sample access');
+    await immediateClick(tab, 'combobox', 'Sample access');
+    await immediateClick(tab, 'combobox', 'Sample access');
+    await sleep(350);
+    const reopened = await js(tab, () => ({ expanded: document.querySelector('#sample-dialog .pc-custom-select-trigger').getAttribute('aria-expanded'),
+      visible: [...document.querySelectorAll('#sample-dialog .pc-custom-select-popover')].some(m => !m.hidden && m.matches(':popover-open') && m.getBoundingClientRect().height > 0) }));
+    await click(tab, 'button', 'Close dialog');
+    await sleep(350);
+    const closed = await js(tab, () => ({ open: document.getElementById('sample-dialog').open,
+      menus: document.querySelectorAll('.pc-custom-select-popover:not([hidden])').length,
+      topLayer: document.querySelectorAll('.pc-custom-select-popover:popover-open').length }));
+    return { passed: reopened.expanded === 'true' && reopened.visible && !closed.open && !closed.menus && !closed.topLayer, detail: { reopened, closed } };
+  }],
   ['Unsaved dialog value survives resize from 1440px to 768px', async (tab, base, host) => {
     const cdp = await page(tab, base, host, 'dialogs', { reducedMotion: true });
     await click(tab, 'button', 'Open dialog');

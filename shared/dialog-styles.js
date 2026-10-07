@@ -20,5 +20,5 @@ export const DIALOG_CSS = `
 .pc-dialog .pc-dialog-form{display:block;padding:0;margin:0}
 .pc-dialog .pc-dialog-field{display:grid;gap:var(--pc-field-label-gap);margin:var(--pc-field-gap) 0 0}
 .pc-dialog .pc-dialog-field input{height:var(--pc-control-height);min-height:var(--pc-control-height)}
-.pc-dialog .pc-dialog-description{font:var(--pc-type-input);line-height:1.55}
+.pc-dialog .pc-dialog-description{margin:0;font:var(--pc-type-input);line-height:1.55}
 `;

@@ -116,7 +116,7 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const run = async (options, work) => {
     const key = options.key || options.button;
     if (key && jobs.has(key)) return {status:'busy'};
-    const action = begin(options.button || null, options.pending, options.key);
+    const action = begin(options.button || null, options.pending, options.key, options);
     if (!action) return {status:'busy'};
     if (key) jobs.add(key);
     try {

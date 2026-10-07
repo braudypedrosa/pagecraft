@@ -50,5 +50,17 @@ export const REVIEW_CSS = `${brandCss}${UI_TOKENS_CSS}${UI_FONTS_CSS}${WORKSPACE
 ${CLOUD_HEADER_CSS}${UI_TYPOGRAPHY_CSS}${CUSTOM_SELECT_CSS}${UI_FOCUS_CSS}${UI_MOTION_CSS}
 .pc-toolbar-context .pc-custom-select-trigger{width:auto}
 .target-control .pc-custom-select-trigger{min-width:92px}
+/* Share dialog fields use the same readable description and label rhythm as other
+ * product dialogs. The row actions remain compact controls by design. */
+#share-dialog .sharing>p{margin:0;font:var(--pc-type-input);line-height:1.55}
+#share-dialog .sharing form{margin:var(--pc-field-gap) 0;align-items:flex-end}
+#share-dialog .sharing label{gap:var(--pc-field-label-gap);font:var(--pc-type-label)}
+#share-dialog .sharing label :is(input,select){font:var(--pc-type-input)}
+#share-dialog .sharing li button,#share-dialog .sharing li .button{font:var(--pc-type-label)}
+/* Review copy is prose; author and timestamp metadata keep their compact roles. */
+.review-workspace .thread>p,.review-workspace .reply-content>p{font:var(--pc-type-body)}
+.review-workspace .empty{font:var(--pc-type-description)}
+.review-workspace .thread form{margin-top:var(--pc-field-gap)}
+/* Tablet users retain the same direct route back to review management. */
+.pc-topbar .all-reviews{flex-shrink:0}@media(min-width:768px) and (max-width:1100px){.pc-topbar .all-reviews{display:inline-flex}}
 `;
-

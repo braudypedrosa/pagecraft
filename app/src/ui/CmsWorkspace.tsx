@@ -24,7 +24,10 @@ import { recoverableFailure } from '../../../shared/account-actions.js';
 /** Keep CMS save failures human-readable; never prefix recovery copy with a machine code. */
 function cmsSaveFailure(error: unknown) {
   const fallback = 'Could not save. Your changes are still here. Try again.';
-  const mapped = recoverableFailure(error instanceof Error ? error.message : '', fallback);
+  const message = error instanceof Error ? error.message : '';
+  if (/failed to fetch|networkerror|load failed/i.test(message))
+    return 'Could not reach Pagecraft. Your changes are still here. Try again when connected.';
+  const mapped = recoverableFailure(message, fallback);
   return /still here/i.test(mapped) ? mapped : `${mapped} Your changes are still here. Try again.`;
 }
 
@@ -173,8 +176,10 @@ export function CmsWorkspace({
     setErrors({});
     try {
       const message = success + ' Saved to the site draft. Publish the site to make it public.';
-      const result = await installActionFeedback().run({key:'cms-save', pending:label, success:message,
-        error: cmsSaveFailure}, () => L.cmsCommit(next));
+      const result = await installActionFeedback().run(Object.assign(
+        {key:'cms-save', pending:label, success:message, error: cmsSaveFailure},
+        {announce:false},
+      ), () => L.cmsCommit(next));
       if (result.status === 'error') setErrors({ _save: result.message });
       if (result.status !== 'success') return false;
       refresh(revision + 1);
@@ -487,7 +492,7 @@ export function CmsWorkspace({
                     ? 'Collection name and fields'
                     : importing
                       ? 'Match your columns, then review what changes'
-                      : `${col.items.length} entries`}
+                      : `${col.items.length} ${col.items.length === 1 ? 'entry' : 'entries'}`}
               </p>
             </div>
             {!entry && !schema && !importing && (
@@ -1061,7 +1066,7 @@ export function CmsWorkspace({
                   Previous
                 </button>
                 <span>
-                  Page {current + 1} of {pages} · {filtered.length} entries
+                  Page {current + 1} of {pages} · {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'}
                 </span>
                 <button
                   class="btn"

@@ -45,6 +45,8 @@ test('entry edits stay local; successful save is one undo step and remains a dra
   expect(saved.draft).toBe(1);
   expect(saved.slug).toBe('forest-cabin');
   expect(C.hist.u.length).toBe(undo + 1);
+  await vi.waitFor(() => expect(r.$('.cms-save-status')?.textContent).toContain('Entry saved. Saved to the site draft.'));
+  expect(r.$('#pc-notifications')).toBeNull();
   await act(() => r.type(r.$('#cms-value-title')!, 'New name'));
   await act(async () => {
     r.$('form')!.dispatchEvent(
@@ -68,6 +70,30 @@ test('failed persistence retains the form and does not mutate the document', asy
   expect(col.items).toHaveLength(0);
   expect((r.$('#cms-value-title') as HTMLInputElement).value).toBe('Keep this');
   await vi.waitFor(()=>expect(r.$('[role="alert"]')?.textContent).toContain('Connection lost'));
+});
+test('browser network failures stay human-readable and retry the unchanged entry', async () => {
+  start();
+  let attempts = 0;
+  L.cmsCommit = async collections => {
+    attempts += 1;
+    if (attempts === 1) throw new Error('Failed to fetch');
+    C.edit(() => { C.state.meta.collections = collections; });
+  };
+  await click('New entry');
+  await act(() => r.type(r.$('#cms-value-title')!, 'Retry after network loss'));
+  await act(async () => {
+    r.$('form')!.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true }),
+    );
+  });
+  await vi.waitFor(() => expect(r.$('[role="alert"]')?.textContent).toContain('Could not reach Pagecraft'));
+  expect(r.$('[role="alert"]')?.textContent).not.toContain('Failed to fetch');
+  expect((r.$('#cms-value-title') as HTMLInputElement).value).toBe('Retry after network loss');
+  expect(button('Try again')).toBeTruthy();
+  await click('Try again');
+  await vi.waitFor(() => expect(button('Saved')).toBeTruthy());
+  expect(C.collections()[0].items[0].values.title).toBe('Retry after network loss');
+  expect(r.$('#pc-notifications')).toBeNull();
 });
 test('machine save codes stay recoverable and never appear in the form', async () => {
   const col = start();
