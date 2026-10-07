@@ -535,8 +535,8 @@ test("dashboard create modal independently keeps only the latest template versio
     templates,
   );
 
-  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Independent Studio"/);
-  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Coastal Rental Collection"/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Northline · Creative Studio"/);
+  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Marea · Coastal Stays"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
@@ -549,7 +549,7 @@ test("dashboard create modal independently keeps only the latest template versio
   a.match(html, /pc-path-grid/);
   a.match(html, /pc-path-template-sheet/);
   a.match(html, /\.pc-create-modal \.pc-template-choice:has\(input:checked\)\{border-color:var\(--pc-text\);box-shadow:none\}/);
-  a.match(html, /\.pc-template-picker\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  a.match(html, /\.pc-template-picker\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
   a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-layout\{grid-template-columns:1fr;gap:24px\}/);
   a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-summary\{[^}]*flex-direction:row;[^}]*border-bottom:1px solid var\(--pc-line\);border-radius:0;background:transparent\}/);
   a.match(html, /data-create-title/);
@@ -685,7 +685,7 @@ test("a Cloud curated site copies template images into its own media without quo
 
   const dashboard = await request("/");
   const html = await dashboard.text();
-  a.match(html, /Independent Studio/);
+  a.match(html, /Northline · Creative Studio/);
   a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
