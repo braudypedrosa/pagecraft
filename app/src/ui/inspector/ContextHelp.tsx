@@ -8,7 +8,7 @@ export function ContextHelp({ kind, summary, children }: {
   return (
     <details class="pc-context-help" data-context-help={kind}>
       <summary>{summary}</summary>
-      <div class="note pc-context-help__body">{children}</div>
+      <div class="pc-context-help__body">{children}</div>
     </details>
   );
 }
