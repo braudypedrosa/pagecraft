@@ -62,5 +62,5 @@ ${CLOUD_HEADER_CSS}${UI_TYPOGRAPHY_CSS}${CUSTOM_SELECT_CSS}${UI_FOCUS_CSS}${UI_M
 .review-workspace .empty{font:var(--pc-type-description)}
 .review-workspace .thread form{margin-top:var(--pc-field-gap)}
 /* Tablet users retain the same direct route back to review management. */
-.pc-topbar .all-reviews{flex-shrink:0}@media(min-width:768px) and (max-width:1100px){.pc-topbar .all-reviews{display:inline-flex}}
+.pc-topbar .all-reviews{flex-shrink:0}@media(min-width:768px) and (max-width:1100px){.pc-topbar .all-reviews{display:inline-flex}.pc-topbar:has(.review-devices){min-height:52px;padding-bottom:0}}
 `;

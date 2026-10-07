@@ -12,7 +12,9 @@ const restoreProperty = (target: object, key: PropertyKey, descriptor?: Property
   else Reflect.deleteProperty(target, key);
 };
 
-afterEach(() => {
+afterEach(async () => {
+  // Drain deferred picker focus before removing the browser API mocks.
+  await new Promise(resolve => requestAnimationFrame(resolve));
   restoreProperty(HTMLElement.prototype, 'scrollIntoView', scrollIntoViewDescriptor);
   restoreProperty(HTMLElement.prototype, 'showPopover', showPopoverDescriptor);
   restoreProperty(HTMLElement.prototype, 'hidePopover', hidePopoverDescriptor);
