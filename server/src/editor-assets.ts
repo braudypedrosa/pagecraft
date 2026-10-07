@@ -1,10 +1,13 @@
 import { createHash } from "node:crypto";
+import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 
 export type EditorAssetBody = Uint8Array;
 
 export interface EditorAsset {
   body: EditorAssetBody;
   contentType: string;
+  br: Uint8Array;
+  gzip: Uint8Array;
 }
 
 export interface HostedEditorAssets {
@@ -12,10 +15,18 @@ export interface HostedEditorAssets {
   assets: Map<string, EditorAsset>;
 }
 
-const asset = (body: string | Uint8Array, contentType: string): EditorAsset => ({
-  body: typeof body === "string" ? new TextEncoder().encode(body) : body,
-  contentType,
-});
+const asset = (body: string | Uint8Array, contentType: string): EditorAsset => {
+  const bytes = typeof body === "string" ? new TextEncoder().encode(body) : body;
+  return {
+    body: bytes,
+    contentType,
+    // Compression is prepared once with the hosted shell, never during a request.
+    br: brotliCompressSync(bytes, {
+      params: { [constants.BROTLI_PARAM_QUALITY]: 6 },
+    }),
+    gzip: gzipSync(bytes),
+  };
+};
 
 const pathFor = (body: Uint8Array, extension: "css" | "js" | "ttf") => {
   const hash = createHash("sha256").update(body).digest("hex");

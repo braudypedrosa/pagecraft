@@ -1,6 +1,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { brotliDecompressSync, gunzipSync } from 'node:zlib';
 import { createApp } from '../src/app.ts';
 import { MemoryAuthStore, hashToken } from '../src/auth.ts';
 import { MemoryStore } from '../src/store.ts';
@@ -18,8 +19,9 @@ async function fixture() {
     host: 'fixture.example.invalid', doc: blankDoc('Private fixture </script> marker') });
   await auth.grant(site.id, user.id, 'owner');
   const app = createApp({ store, auth, editorHtml, editorHost: 'admin.test' });
-  const request = (path: string, cookie = '', host = 'admin.test') =>
-    app.request(`http://${host}${path}`, { headers: { host, ...(cookie ? { cookie } : {}) } });
+  const request = (path: string, cookie = '', host = 'admin.test', encoding?: string) =>
+    app.request(`http://${host}${path}`, { headers: { host, ...(cookie ? { cookie } : {}),
+      ...(encoding ? { 'accept-encoding': encoding } : {}) } });
   return { app, site, request, cookie: `pc_session=${token}` };
 }
 
@@ -59,6 +61,28 @@ test('hosted editor keeps private configuration in a small uncached document bef
       assert.equal(asset.headers.get('content-type'), 'font/ttf');
       assert.ok((await asset.arrayBuffer()).byteLength > 1000);
     }
+  }
+});
+
+test('cached builder assets negotiate byte-identical Brotli, gzip and identity representations', async () => {
+  const { site, request, cookie } = await fixture();
+  const html = await (await request(`/edit/${site.id}`, cookie)).text();
+  const paths = [...new Set([...html.matchAll(/\/brand\/builder-assets\/[a-f0-9]{64}\.(?:js|ttf)/g)].map(m => m[0]))];
+  for (const path of paths) {
+    const original = Buffer.from(await (await request(path)).arrayBuffer());
+    const br = await request(path, '', 'admin.test', 'gzip, deflate, br');
+    assert.equal(br.headers.get('content-encoding'), 'br');
+    assert.equal(br.headers.get('vary'), 'Accept-Encoding');
+    const compressed = Buffer.from(await br.arrayBuffer());
+    assert.deepEqual(brotliDecompressSync(compressed), original);
+    assert.ok(compressed.byteLength < original.byteLength);
+    const gzip = await request(path, '', 'admin.test', 'br;q=0.4, gzip;q=0.8');
+    assert.equal(gzip.headers.get('content-encoding'), 'gzip');
+    assert.deepEqual(gunzipSync(Buffer.from(await gzip.arrayBuffer())), original);
+    const identity = await request(path, '', 'admin.test', 'br;q=0, gzip;q=0');
+    assert.equal(identity.headers.get('content-encoding'), null);
+    assert.deepEqual(Buffer.from(await identity.arrayBuffer()), original);
+    assert.equal((await request(path, '', 'admin.test', '*;q=0')).status, 406);
   }
 });
 

@@ -385,6 +385,24 @@ const typeOf = (path: string) =>
   TYPES[(path.split(".").pop() || "").toLowerCase()] ||
   "application/octet-stream";
 
+function editorAssetEncoding(header = ''): 'br' | 'gzip' | 'identity' | null {
+  const weights = new Map<string, number>();
+  for (const part of header.split(',')) {
+    const [name, ...parameters] = part.trim().split(';');
+    if (!name) continue;
+    const parameter = parameters.map(value => value.trim()).find(value => /^q=/i.test(value));
+    const weight = parameter ? Number(parameter.slice(2)) : 1;
+    weights.set(name.toLowerCase(), Number.isFinite(weight) && weight >= 0 && weight <= 1 ? weight : 0);
+  }
+  const quality = (name: string) => weights.get(name) ?? weights.get('*') ?? 0;
+  const br = quality('br'), gzip = quality('gzip');
+  const identity = weights.get('identity') ?? (weights.get('*') === 0 ? 0 : 1);
+  if (weights.has('identity') && identity > Math.max(br, gzip)) return 'identity';
+  if (br > 0 && br >= gzip) return 'br';
+  if (gzip > 0) return 'gzip';
+  return identity > 0 ? 'identity' : null;
+}
+
 export function createApp(o: Options) {
   const app = new Hono();
   // Split only the static source, before any account or document configuration is injected.
@@ -488,9 +506,15 @@ export function createApp(o: Options) {
   app.get('/brand/builder-assets/*', editorOnly, (c) => {
     const asset = hostedEditor?.assets.get(new URL(c.req.url).pathname);
     if (!asset) return c.notFound();
-    return new Response(new Uint8Array(asset.body), { headers: {
+    const encoding = editorAssetEncoding(c.req.header('accept-encoding'));
+    c.header('vary', 'Accept-Encoding');
+    if (!encoding) return c.text('No acceptable asset encoding.', 406);
+    const body = encoding === 'identity' ? asset.body : asset[encoding];
+    return new Response(new Uint8Array(body), { headers: {
       'content-type': asset.contentType,
       'cache-control': 'public, max-age=31536000, immutable',
+      'vary': 'Accept-Encoding',
+      ...(encoding === 'identity' ? {} : { 'content-encoding': encoding }),
     } });
   });
   app.get(

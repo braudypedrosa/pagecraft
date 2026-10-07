@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { brotliDecompressSync, gunzipSync } from "node:zlib";
 import { extractHostedEditorAssets } from "../server/src/editor-assets.ts";
 
 const text = (body: Uint8Array) => new TextDecoder().decode(body);
@@ -20,6 +21,18 @@ describe("hosted editor asset extraction", () => {
     expect(first.html).toContain('<script id="small">window.small=1</script>');
     expect(first.html).toContain('<script type="text/javascript" defer data-x="1" src="/brand/builder-assets/');
     expect(first.html.indexOf('src="/brand/builder-assets/')).toBeLessThan(first.html.indexOf('data-last'));
+  });
+
+  it("prepares compressed variants that exactly decompress to the hashed source", () => {
+    const result = extractHostedEditorAssets(`<style>${long(".a{color:red}")}</style>`);
+    expect(result.assets.size).toBe(1);
+    for (const [path, item] of result.assets) {
+      expect(Uint8Array.from(gunzipSync(item.gzip))).toEqual(item.body);
+      expect(Uint8Array.from(brotliDecompressSync(item.br))).toEqual(item.body);
+      expect(item.gzip.byteLength).toBeLessThan(item.body.byteLength);
+      expect(item.br.byteLength).toBeLessThan(item.body.byteLength);
+      expect(path).toMatch(/^\/brand\/builder-assets\/[a-f0-9]{64}\.css$/);
+    }
   });
 
   it("keeps small boot styles inline", () => {
