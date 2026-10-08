@@ -19,7 +19,10 @@ import {
 /* Namecheap blocks outbound PostgreSQL ports. This function is the deliberately narrow bridge:
    HTTPS in, a fixed operation set, parameterized SQL out. It never accepts SQL from its caller. */
 const sql = postgres(Deno.env.get("SUPABASE_DB_URL")!, {
-  max: 3,
+  /* Each warm Edge isolate owns its own postgres.js pool. Three connections per isolate
+     multiplied with traffic bursts and exhausted this project's direct Postgres slots. One
+     connection queues concurrent work inside the isolate instead of amplifying it. */
+  max: 1,
   prepare: false,
   connect_timeout: 10,
   idle_timeout: 20,
@@ -194,6 +197,30 @@ const GATEWAY_KEY_RETRY_MS = 10_000;
 let gatewayKey = { hash: "", loadedAt: -Infinity };
 let gatewayKeyTriedAt = -Infinity;
 let gatewayKeyLoad: Promise<void> | null = null;
+const CONNECTION_SLOT_RETRY_MS = 50;
+
+const connectionSlotsUnavailable = (caught: unknown) => {
+  const error = caught as { name?: unknown; code?: unknown } | null;
+  return error?.name === "PostgresError" && error.code === "53300";
+};
+
+async function loadConfiguredKeyHash() {
+  const select = () =>
+    sql<{ secret_hash: string }[]>`
+      select secret_hash from gateway_config where id = 'primary'
+    `;
+  try {
+    return await select();
+  } catch (error) {
+    /* Authentication has not accepted or dispatched an operation yet. Repeating this one
+       read once is safe; gateway operations include writes and must never be retried here. */
+    if (!connectionSlotsUnavailable(error)) throw error;
+    await new Promise((resolve) =>
+      setTimeout(resolve, CONNECTION_SLOT_RETRY_MS)
+    );
+    return await select();
+  }
+}
 
 async function configuredKeyHash(mismatch: boolean) {
   const now = Date.now();
@@ -203,9 +230,7 @@ async function configuredKeyHash(mismatch: boolean) {
   ) {
     gatewayKeyTriedAt = now;
     gatewayKeyLoad = (async () => {
-      const rows = await sql<{ secret_hash: string }[]>`
-        select secret_hash from gateway_config where id = 'primary'
-      `;
+      const rows = await loadConfiguredKeyHash();
       gatewayKey = { hash: text(rows[0]?.secret_hash), loadedAt: Date.now() };
     })().finally(() => {
       gatewayKeyLoad = null;

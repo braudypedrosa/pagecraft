@@ -22,11 +22,18 @@ const harness = vi.hoisted(() => ({
   handler: null as null | ((request: Request) => Promise<Response>),
   statements: [] as string[],
   failWhen: null as RegExp | null,
+  failOnceWhen: null as RegExp | null,
+  postgresOptions: null as null | Record<string, unknown>,
   files: new Map<string, Uint8Array>(),
 }));
 
 vi.mock('jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts', () => ({}));
-vi.mock('npm:postgres@3.4.7', () => ({ default: () => harness.sql }));
+vi.mock('npm:postgres@3.4.7', () => ({
+  default: (_url: string, options: Record<string, unknown>) => {
+    harness.postgresOptions = options;
+    return harness.sql;
+  },
+}));
 vi.mock('npm:@supabase/supabase-js@2.112.4', () => ({
   createClient: () => ({
     auth: { admin: { inviteUserByEmail: async () => ({ error: null }) } },
@@ -78,6 +85,13 @@ function postgresShape(query: Query): unknown {
       text += strings[index + 1];
     });
     harness.statements.push(text.replace(/\s+/g, ' ').trim());
+    if (harness.failOnceWhen?.test(text)) {
+      harness.failOnceWhen = null;
+      return Promise.reject(new PostgresError({
+        message: 'remaining connection slots are reserved for roles with the SUPERUSER attribute',
+        severity: 'FATAL', code: '53300',
+      }));
+    }
     if (harness.failWhen?.test(text)) {
       return Promise.reject(new PostgresError({
         message: 'could not serialize access due to concurrent update', severity: 'ERROR',
@@ -151,6 +165,26 @@ const operation = async (op: string, args: Record<string, unknown>) => {
   const response = await call(op, args);
   return { status: response.status, body: response.body.data as any };
 };
+
+test('an Edge isolate owns one connection and retries only its idempotent key lookup', async () => {
+  a.deepEqual(harness.postgresOptions, {
+    max: 1,
+    prepare: false,
+    connect_timeout: 10,
+    idle_timeout: 20,
+  });
+  harness.statements.length = 0;
+  harness.failOnceWhen = /select secret_hash from gateway_config/;
+  const response = await call('site.listMeta', {});
+  a.equal(response.status, 200, JSON.stringify(response.body));
+  a.equal(
+    harness.statements.filter(statement =>
+      statement.includes('select secret_hash from gateway_config')
+    ).length,
+    2,
+    'a transient slot refusal retries the read once before any operation is dispatched',
+  );
+});
 
 test('consent gateway keeps library and owner access pending until the exact recipient accepts', async () => {
   const siteId = 'consent-site', ownerId = 'consent-owner', recipientId = 'consent-recipient';
