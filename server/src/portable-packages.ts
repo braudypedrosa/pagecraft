@@ -11,6 +11,9 @@ import {
   type PortablePackageKind, type PortablePackageManifestV1,
   type PortablePackageProvenanceV1
 } from '../../app/src/package/types.ts';
+import {
+  PORTABLE_RENDERER_REVISION, portableRendererVersionForSchema, supportsPortableRendererContract
+} from '../../app/src/package/renderer-version.ts';
 import { ALLOWED as ALLOWED_ASSET_TYPES, type Asset } from './assets.ts';
 import {
   assertSafeStaticSvg, canonicalJson, sha256, utf8ByteCompare
@@ -23,7 +26,6 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 const DOCUMENT_PATH = 'source/document.json' as const;
 const PROVENANCE_PATH = 'source/provenance.json' as const;
 const DEPENDENCIES_PATH = 'source/dependencies.json' as const;
-const RENDERER_VERSION = `pagecraft-core-${SCHEMA}`;
 const HASH = /^[a-f0-9]{64}$/;
 
 interface PackageContent {
@@ -260,7 +262,8 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     packageVersion: 1,
     kind,
     schemaVersion: document.schemaVersion,
-    rendererVersion: RENDERER_VERSION,
+    rendererVersion: portableRendererVersionForSchema(document.schemaVersion),
+    rendererRevision: PORTABLE_RENDERER_REVISION,
     documentPath: DOCUMENT_PATH,
     provenancePath: PROVENANCE_PATH,
     dependenciesPath: DEPENDENCIES_PATH,
@@ -344,9 +347,14 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   if (!Number.isInteger(manifest.schemaVersion) || manifest.schemaVersion < 1) {
     throw new Error('portable package schema version is invalid');
   }
-  const renderer = /^pagecraft-core-(\d+)$/.exec(manifest.rendererVersion || '');
-  if (!renderer || Number(renderer[1]) > SCHEMA || Number(renderer[1]) !== manifest.schemaVersion) {
-    throw new Error(`portable package requires unsupported renderer ${String(manifest.rendererVersion || 'unknown')}`);
+  if (!supportsPortableRendererContract(
+    manifest.rendererVersion,
+    manifest.rendererRevision,
+    manifest.schemaVersion,
+    SCHEMA,
+  )) {
+    const renderer = [manifest.rendererVersion, manifest.rendererRevision].filter(Boolean).join(' / ');
+    throw new Error(`portable package requires unsupported renderer ${renderer || 'unknown'}`);
   }
   if (manifest.documentPath !== DOCUMENT_PATH || manifest.provenancePath !== PROVENANCE_PATH
     || manifest.dependenciesPath !== DEPENDENCIES_PATH
@@ -416,5 +424,6 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   return { manifest, document, provenance, dependencies, files, sha256: sha256(archive) };
 }
 
-export const portablePackageRendererVersion = RENDERER_VERSION;
+export const portablePackageRendererVersion = portableRendererVersionForSchema(SCHEMA);
+export const portablePackageRendererRevision = PORTABLE_RENDERER_REVISION;
 export const selectPortablePageDocument = (document: Doc, pageId: string) => packageDocumentForPage(document, pageId);

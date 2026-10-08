@@ -603,7 +603,7 @@ test("premade library includes the latest release of every curated site", async 
   a.doesNotMatch(html, /pc-template-picker is-single/);
 });
 
-test("a Cloud curated site copies template images into its own media without quota usage", async () => {
+test("a Cloud curated site charges optimized template images to its owner's media quota", async () => {
   const assets = new ConcurrentAssetStore();
   const siteTemplates = new FileSiteTemplateStore(
     resolve(process.cwd(), "premade-sites"),
@@ -652,11 +652,18 @@ test("a Cloud curated site copies template images into its own media without quo
   const serialized = JSON.stringify(site.doc);
   a.doesNotMatch(serialized, /\/templates\//, "no image is loaded from the editor host's package");
   a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
-  // Template images are the site's starting point, not the owner's uploads.
+  const storedBytes = (await Promise.all(installed.map(asset => assets.get(site.id, asset.id))))
+    .reduce((total, asset) => total + (asset?.bytes.byteLength || 0), 0);
   a.deepEqual(await assets.usage(owner.id), {
-    usedBytes: 0,
+    usedBytes: storedBytes,
     limitBytes: 100 * 1024 * 1024,
   });
+  a.ok(storedBytes > 0 && storedBytes < 100 * 1024 * 1024,
+    "the owner is charged for the prepared bytes actually retained");
+  a.deepEqual(await assets.usage("unrelated-owner"), {
+    usedBytes: 0,
+    limitBytes: 100 * 1024 * 1024,
+  }, "template media is charged only to the site's owner");
 
   const edited = structuredClone(site.doc);
   const pending: PageNode[] = [...edited.pages[0].tree];

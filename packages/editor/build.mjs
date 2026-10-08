@@ -7,6 +7,9 @@ import { ANIM_JS } from '../../app/src/core/anim.ts';
 import {
   PAGE_PACKAGE_FORMAT_V1, PORTABLE_PACKAGE_LIMITS_V1, SITE_PACKAGE_FORMAT_V1
 } from '../../app/src/package/types.ts';
+import {
+  PORTABLE_RENDERER_REVISION, portableRendererVersionForSchema
+} from '../../app/src/package/renderer-version.ts';
 import { blankDoc } from '../../server/src/render.ts';
 import { createPagePackage, createSitePackage } from '../../server/src/portable-packages.ts';
 
@@ -65,7 +68,8 @@ writeFileSync(join(dist, 'contract.json'), JSON.stringify({
   format: 'pagecraft.editor-contract.v1',
   editorVersion: '0.2.16',
   schemaVersion: Core.SCHEMA,
-  rendererVersion: `pagecraft-core-${Core.SCHEMA}`,
+  rendererVersion: portableRendererVersionForSchema(Core.SCHEMA),
+  rendererRevision: PORTABLE_RENDERER_REVISION,
   hosts: {
     wordpress: 'explicit-feature-contract',
     web: 'explicit-feature-contract'

@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { assetFile } from '../app/src/core/index.ts';
-import { validateTemplateSourceConfig } from '../premade-sites/lib/authoring.ts';
+import { assertTemplateDocument, validateTemplateSourceConfig } from '../premade-sites/lib/authoring.ts';
 import { dimensions, sniff } from '../server/src/assets.ts';
 import { createSitePackage, validatePortablePackage } from '../server/src/portable-packages.ts';
 import { canonicalJson } from '../server/src/releases.ts';
@@ -15,6 +15,20 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = resolve(root, 'premade-sites');
 const defaultOutput = resolve(root, 'qa-evidence/template-library-2026-10-08/package-audit.json');
 const encoder = new TextEncoder();
+const argumentsList = process.argv.slice(2);
+const argumentValues = name => argumentsList.flatMap((value, index) => {
+  if (value === `--${name}` && argumentsList[index + 1]) return [argumentsList[index + 1]];
+  if (value.startsWith(`--${name}=`)) return [value.slice(name.length + 3)];
+  return [];
+});
+const argumentValue = name => argumentValues(name).at(-1);
+const requestedId = argumentValue('id');
+const requestedVersion = argumentValue('version');
+const exists = path => stat(path).then(() => true, () => false);
+
+if (requestedVersion && !requestedId) throw new Error('--version requires --id');
+if (requestedId && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(requestedId)) throw new Error('--id must be a lowercase hyphenated segment');
+if (requestedVersion && !/^\d+\.\d+\.\d+$/.test(requestedVersion)) throw new Error('--version must use semver x.y.z');
 
 const configuredFormPrerequisites = new Set([
   'architecture-studio@1.0.0:contact:cg-inquiry-form-33',
@@ -26,6 +40,14 @@ const configuredFormPrerequisites = new Set([
   'stillwood@1.0.0:meadow-house:stillwood-stay-form-308',
   'stillwood@1.0.0:contact:stillwood-stay-form-438',
 ]);
+for (const value of argumentValues('allow-form-no-action')) {
+  const full = value.includes('@') ? value
+    : requestedId && requestedVersion ? `${requestedId}@${requestedVersion}:${value}` : '';
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*@\d+\.\d+\.\d+:[a-z0-9]+(?:-[a-z0-9]+)*:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(full)) {
+    throw new Error('--allow-form-no-action must identify one exact id@version:slug:nodeId (or slug:nodeId with exact --id and --version)');
+  }
+  configuredFormPrerequisites.add(full);
+}
 
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const jsonDigest = value => digest(encoder.encode(canonicalJson(value)));
@@ -98,6 +120,22 @@ const textLineDelta = (archivedBytes, currentBytes) => {
   return { removed: changed(archived, current), added: changed(current, archived) };
 };
 
+const templateManifest = (config, document, assets, packageSha256) => ({
+  format: 'pagecraft.site-template.v1',
+  id: config.id,
+  version: config.version,
+  name: config.name,
+  sampleName: config.sampleName,
+  description: config.description,
+  categories: config.categories,
+  pages: document.pages.map(page => ({ id: page.id, name: page.name, slug: page.slug })),
+  packageFile: 'site.pagecraft-site.zip',
+  packageSha256,
+  previewPage: config.previewPage,
+  assetCount: assets.length,
+  assetBytes: assets.reduce((total, asset) => total + asset.bytes.byteLength, 0),
+});
+
 const sourceOutput = async directory => {
   const config = validateTemplateSourceConfig(JSON.parse(await readFile(resolve(directory, 'template.config.json'), 'utf8')));
   const sourcePath = resolve(directory, config.source);
@@ -106,6 +144,7 @@ const sourceOutput = async directory => {
   const factory = source[config.sourceExport];
   if (typeof factory !== 'function') throw new Error(`${config.source} does not export ${config.sourceExport}()`);
   const document = await factory();
+  assertTemplateDocument(document, config);
   const assets = [];
   for (const spec of config.assets) {
     const path = resolve(directory, spec.file);
@@ -125,21 +164,7 @@ const sourceOutput = async directory => {
   };
   const built = createSitePackage({ document, assets, provenance });
   const validated = validatePortablePackage(built.bytes);
-  const manifest = {
-    format: 'pagecraft.site-template.v1',
-    id: config.id,
-    version: config.version,
-    name: config.name,
-    sampleName: config.sampleName,
-    description: config.description,
-    categories: config.categories,
-    pages: validated.document.pages.map(page => ({ id: page.id, name: page.name, slug: page.slug })),
-    packageFile: 'site.pagecraft-site.zip',
-    packageSha256: built.sha256,
-    previewPage: config.previewPage,
-    assetCount: assets.length,
-    assetBytes: assets.reduce((total, asset) => total + asset.bytes.byteLength, 0),
-  };
+  const manifest = templateManifest(config, validated.document, assets, built.sha256);
   return { config, assets, provenance, built, validated, manifest };
 };
 
@@ -219,69 +244,111 @@ const auditRender = (templateId, templateVersion, rendered, assets) => {
 
 const audit = async () => {
   const catalog = JSON.parse(await readFile(resolve(templateRoot, 'catalog.json'), 'utf8')).templates;
-  const latest = latestSiteTemplates(catalog);
+  const selected = requestedId && requestedVersion
+    ? [{ id: requestedId, version: requestedVersion }]
+    : latestSiteTemplates(requestedId ? catalog.filter(record => record.id === requestedId) : catalog)
+      .map(record => ({ id: record.id, version: record.version }));
+  if (!selected.length) throw new Error('no matching template releases found');
   const store = new FileSiteTemplateStore(templateRoot);
   const results = [];
 
-  for (const record of latest) {
-    const directory = resolve(templateRoot, record.id, record.version);
-    const archivedManifest = JSON.parse(await readFile(resolve(directory, 'manifest.json'), 'utf8'));
-    const archiveBytes = new Uint8Array(await readFile(resolve(directory, record.packageFile)));
+  for (const selection of selected) {
+    const directory = resolve(templateRoot, selection.id, selection.version);
+    const current = await sourceOutput(directory);
+    if (current.config.id !== selection.id || current.config.version !== selection.version) {
+      throw new Error(`${selection.id}@${selection.version} source config does not match its directory`);
+    }
+    const record = catalog.find(item => item.id === selection.id && item.version === selection.version) || null;
+    const draftDirectory = resolve(directory, 'draft');
+    const hasDraft = await exists(resolve(draftDirectory, 'manifest.json'))
+      && await exists(resolve(draftDirectory, 'site.pagecraft-site.zip'));
+    const artifactState = record ? 'released' : hasDraft ? 'draft' : 'source-candidate';
+    const artifactDirectory = record ? directory : hasDraft ? draftDirectory : null;
+    const archivedManifest = artifactDirectory
+      ? JSON.parse(await readFile(resolve(artifactDirectory, 'manifest.json'), 'utf8'))
+      : current.manifest;
+    const archiveBytes = artifactDirectory
+      ? new Uint8Array(await readFile(resolve(artifactDirectory, 'site.pagecraft-site.zip')))
+      : current.built.bytes;
     const archiveHash = digest(archiveBytes);
     let archived;
     let archiveValidationError = null;
     try { archived = validatePortablePackage(archiveBytes); }
     catch (error) { archiveValidationError = error instanceof Error ? error.message : String(error); }
-    const current = await sourceOutput(directory);
-    const installed = await store.instantiate(record.id, record.version);
-    if (!installed) throw new Error(`${record.id}@${record.version} could not be instantiated`);
-    const rendered = renderSite(installed.document, installed.assets);
+    if (archived) assertTemplateDocument(archived.document, current.config);
+    const installed = record ? await store.instantiate(record.id, record.version) : null;
+    if (record && !installed) throw new Error(`${record.id}@${record.version} could not be instantiated`);
+    const rendered = renderSite(installed?.document || current.validated.document, installed?.assets || current.assets);
 
     const archivedAssetFiles = new Map((archived?.manifest.files || [])
       .filter(file => file.role === 'asset').map(file => [file.asset.id, file]));
     const sourceAssetParity = current.assets.map(asset => {
       const file = archivedAssetFiles.get(asset.id);
+      const metadataEqual = !!file && file.mediaType === asset.type
+        && file.asset.name === asset.name && file.asset.width === asset.w && file.asset.height === asset.h;
       return {
         id: asset.id,
         sourceSha256: digest(asset.bytes),
         archivedSha256: file?.sha256 || null,
         bytes: asset.bytes.byteLength,
-        equal: !!file && file.sha256 === digest(asset.bytes) && file.bytes === asset.bytes.byteLength,
+        metadataEqual,
+        equal: metadataEqual && file.sha256 === digest(asset.bytes) && file.bytes === asset.bytes.byteLength,
       };
     });
     const internalDiff = archived ? packageManifestDiff(archived.manifest, current.validated.manifest) : null;
     const outerDiff = valueDiff(archivedManifest, current.manifest);
     const sourceDocumentSha256 = jsonDigest(current.validated.document);
     const archivedDocumentSha256 = archived ? jsonDigest(archived.document) : null;
+    const expectedArchivedManifest = archived ? templateManifest(
+      current.config,
+      archived.document,
+      archived.manifest.files.filter(file => file.role === 'asset').map(file => ({
+        bytes: archived.files.get(file.path),
+      })),
+      archiveHash,
+    ) : null;
+    const sourceParity = {
+      nativeDocumentEqual: archivedDocumentSha256 === sourceDocumentSha256,
+      archivedDocumentSha256,
+      sourceDocumentSha256,
+      provenanceEqual: !!archived && same(archived.provenance, current.provenance),
+      assetsEqual: sourceAssetParity.every(asset => asset.equal)
+        && sourceAssetParity.length === archivedAssetFiles.size,
+      assets: sourceAssetParity,
+    };
+    const manifestMatchesArchiveAndConfig = !!expectedArchivedManifest
+      && same(archivedManifest, expectedArchivedManifest);
+    const catalogMatchesManifest = record ? same(record, archivedManifest) : null;
+    const archiveIntegrityValid = !archiveValidationError && manifestMatchesArchiveAndConfig
+      && (!record || catalogMatchesManifest)
+      && sourceParity.nativeDocumentEqual && sourceParity.provenanceEqual && sourceParity.assetsEqual;
+    const rebuildReproducible = outerDiff.length === 0 && current.built.sha256 === archiveHash;
 
     results.push({
-      id: record.id,
-      version: record.version,
-      pages: record.pages.length,
+      id: selection.id,
+      version: selection.version,
+      artifactState,
+      pages: current.validated.document.pages.length,
       catalog: {
-        packageSha256: record.packageSha256,
-        equalsArchivedManifest: same(record, archivedManifest),
+        packageSha256: record?.packageSha256 || null,
+        equalsArchivedManifest: catalogMatchesManifest,
       },
       archive: {
         packageSha256: archiveHash,
-        hashMatchesCatalog: archiveHash === record.packageSha256,
+        hashMatchesCatalog: record ? archiveHash === record.packageSha256 : null,
         hashMatchesArchivedManifest: archiveHash === archivedManifest.packageSha256,
         validatesWithCurrentImporter: !archiveValidationError,
         validationError: archiveValidationError,
         rendererVersion: archived?.manifest.rendererVersion || null,
+        rendererRevision: archived?.manifest.rendererRevision || null,
+        manifestMatchesArchiveAndConfig,
+        integrityValid: archiveIntegrityValid,
       },
-      sourceParity: {
-        nativeDocumentEqual: archivedDocumentSha256 === sourceDocumentSha256,
-        archivedDocumentSha256,
-        sourceDocumentSha256,
-        provenanceEqual: !!archived && same(archived.provenance, current.provenance),
-        assetsEqual: sourceAssetParity.every(asset => asset.equal)
-          && sourceAssetParity.length === archivedAssetFiles.size,
-        assets: sourceAssetParity,
-      },
+      sourceParity,
       currentCompiler: {
         packageSha256: current.built.sha256,
         rendererVersion: current.validated.manifest.rendererVersion,
+        rendererRevision: current.validated.manifest.rendererRevision,
         equalsArchivedPackage: current.built.sha256 === archiveHash,
         outerManifestDifferences: outerDiff,
         packageManifestDifferences: internalDiff,
@@ -291,22 +358,28 @@ const audit = async () => {
         ) : null,
       },
       checkCommand: {
-        passes: outerDiff.length === 0 && current.built.sha256 === archiveHash,
-        firstFailure: outerDiff.length ? 'manifest is stale'
-          : current.built.sha256 !== archiveHash ? 'package is stale' : null,
+        passes: artifactState === 'released' ? archiveIntegrityValid : archiveIntegrityValid && rebuildReproducible,
+        firstFailure: !archiveIntegrityValid ? 'archive integrity or source parity failed'
+          : artifactState !== 'released' && !rebuildReproducible ? 'draft is stale' : null,
+        rebuildReproducible,
       },
-      render: auditRender(record.id, record.version, rendered, installed.assets),
+      render: auditRender(selection.id, selection.version, rendered, installed?.assets || current.assets),
     });
   }
 
   return {
     format: 'pagecraft.template-library-audit.v1',
     generatedAt: new Date().toISOString(),
-    scope: 'Latest catalog release for each of the five template IDs; archived files were read only.',
+    scope: requestedId && requestedVersion
+      ? `Exact ${requestedId}@${requestedVersion} ${results[0].artifactState} artifact; source and archived files were read only.`
+      : requestedId
+        ? `Latest catalog release for ${requestedId}; archived files were read only.`
+        : 'Latest catalog release for each template ID; archived files were read only.',
     summary: {
       templates: results.length,
       pages: results.reduce((total, item) => total + item.render.pages, 0),
-      archivedHashesValid: results.filter(item => item.archive.hashMatchesCatalog && item.archive.hashMatchesArchivedManifest).length,
+      archivedHashesValid: results.filter(item => item.archive.hashMatchesArchivedManifest
+        && item.archive.hashMatchesCatalog !== false).length,
       archivedPackagesValid: results.filter(item => item.archive.validatesWithCurrentImporter).length,
       nativeSourcesEqual: results.filter(item => item.sourceParity.nativeDocumentEqual).length,
       sourceAssetsEqual: results.filter(item => item.sourceParity.assetsEqual).length,
@@ -318,19 +391,18 @@ const audit = async () => {
         (total, item) => total + item.render.configuredIntegrationFindings.length, 0,
       ),
     },
-    interpretation: 'A current check failure at “manifest is stale” is compiler drift only when the archived checksum and importer validation pass, source document/assets/provenance remain equal, and the manifest difference is limited to the compiler-derived package hash. The per-template records show those facts independently.',
+    interpretation: 'Released archive integrity is independent from current rebuild reproducibility. Integrity requires importer validation, archive/config/manifest agreement, catalog agreement for releases, and source document/assets/provenance parity. Drafts remain valid only when they reproduce the current build exactly.',
     risks: [
-      'The check command compares the immutable release manifest with a current recompilation before it reports archive integrity, so compiler-derived byte changes surface as “manifest is stale” even when the archived checksum and importer validation pass.',
-      'All archived and current packages declare pagecraft-core-13 although current generated CSS and HTML bytes differ. Renderer-version policy does not currently distinguish these compiler output changes.',
-      'Current lint reports content-quality warnings recorded per template. Eight form-no-action findings are separately classified as configured-integration placeholders because the demo copy says those forms remain disabled until an endpoint is supplied.',
+      'A released archive can remain valid while a newer renderer produces different generated HTML or CSS. Rebuild differences are recorded and must not overwrite immutable releases.',
+      'The schema-compatible pagecraft-core renderer tag remains stable for existing WordPress readers. New packages add an independent renderer revision, and updated readers reject unknown revisions.',
+      'Configured form prerequisites are exempted only by exact template version, page slug and node ID. Unexpected missing actions remain errors.',
     ],
     limitations: 'This is a static archive, reconstruction, render, image-reference and link-target audit. It does not replace real browser, Cloud or WordPress import/edit/save/reopen/publication checks.',
     templates: results,
   };
 };
 
-const outputFlag = process.argv.indexOf('--out');
-const output = outputFlag >= 0 ? resolve(process.cwd(), process.argv[outputFlag + 1]) : defaultOutput;
+const output = argumentValue('out') ? resolve(process.cwd(), argumentValue('out')) : defaultOutput;
 const report = await audit();
 await mkdir(dirname(output), { recursive: true });
 await writeFile(output, `${JSON.stringify(report, null, 2)}\n`);

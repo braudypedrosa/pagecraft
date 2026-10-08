@@ -88,6 +88,8 @@ export interface PortablePackageManifestV1 {
   kind: PortablePackageKind;
   schemaVersion: number;
   rendererVersion: string;
+  /** Independent generated-output revision. Missing on legacy v1 archives. */
+  rendererRevision?: string;
   documentPath: 'source/document.json';
   provenancePath: 'source/provenance.json';
   dependenciesPath: 'source/dependencies.json';

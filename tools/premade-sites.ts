@@ -12,6 +12,7 @@ import {
 } from '../premade-sites/lib/authoring.ts';
 import { dimensions, sniff, type Asset } from '../server/src/assets.ts';
 import { createSitePackage, validatePortablePackage } from '../server/src/portable-packages.ts';
+import { canonicalJson } from '../server/src/releases.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = resolve(root, 'premade-sites');
@@ -73,18 +74,27 @@ async function compile(directory: string) {
     assets.push({ id: spec.id, siteId: `template:${config.id}:${config.version}`, name: path.split(sep).at(-1)!, type, w, h, bytes });
   }
 
-  const built = createSitePackage({
-    document,
-    assets,
-    provenance: {
-      format: 'pagecraft.provenance.v1',
-      origin: 'pagecraft-cloud',
-      sourceId: `template:${config.id}:${config.version}`,
-      sourceVersion: 1,
-      exportedBy: 'Pagecraft curated templates',
-    },
-  });
-  const manifest = {
+  const provenance = {
+    format: 'pagecraft.provenance.v1' as const,
+    origin: 'pagecraft-cloud' as const,
+    sourceId: `template:${config.id}:${config.version}`,
+    sourceVersion: 1,
+    exportedBy: 'Pagecraft curated templates',
+  };
+  const built = createSitePackage({ document, assets, provenance });
+  const manifest = templateManifest(config, document, assets.length,
+    assets.reduce((sum, asset) => sum + asset.bytes.byteLength, 0), built.sha256);
+  return { config, document, assets, provenance, built, manifest };
+}
+
+function templateManifest(
+  config: TemplateSourceConfig,
+  document: Doc,
+  assetCount: number,
+  assetBytes: number,
+  packageSha256: string,
+) {
+  return {
     format: 'pagecraft.site-template.v1' as const,
     id: config.id,
     version: config.version,
@@ -94,12 +104,11 @@ async function compile(directory: string) {
     categories: config.categories,
     pages: document.pages.map(page => ({ id: page.id, name: page.name, slug: page.slug })),
     packageFile: PACKAGE_FILE,
-    packageSha256: built.sha256,
+    packageSha256,
     previewPage: config.previewPage,
-    assetCount: assets.length,
-    assetBytes: assets.reduce((sum, asset) => sum + asset.bytes.byteLength, 0),
+    assetCount,
+    assetBytes,
   };
-  return { config, document, assets, built, manifest };
 }
 
 async function build(id?: string, version?: string) {
@@ -136,14 +145,57 @@ async function checked(directory: string) {
   const manifest = JSON.parse(await readFile(resolve(artifactDirectory, 'manifest.json'), 'utf8'));
   const packageBytes = new Uint8Array(await readFile(resolve(artifactDirectory, PACKAGE_FILE)));
   const stored = validatePortablePackage(packageBytes);
-  if (JSON.stringify(manifest) !== JSON.stringify(output.manifest)) throw new Error(`${output.config.id}@${output.config.version} manifest is stale`);
-  if (stored.sha256 !== output.built.sha256) throw new Error(`${output.config.id}@${output.config.version} package is stale`);
-  if (!released) for (const file of stored.manifest.files) {
-    if (!['compiled-page', 'compiled-support', 'asset'].includes(file.role)) continue;
-    const path = resolve(artifactDirectory, 'preview', file.path.replace(/^compiled\//, ''));
-    if (!await exists(path) || digest(await readFile(path)) !== digest(stored.files.get(file.path)!)) throw new Error(`preview:${file.path}: missing or changed; rebuild draft`);
+  const rebuilt = validatePortablePackage(output.built.bytes);
+  if (released) {
+    assertTemplateDocument(stored.document, output.config);
+    if (canonicalJson(stored.document) !== canonicalJson(rebuilt.document)) {
+      throw new Error(`${output.config.id}@${output.config.version} archived native document differs from source`);
+    }
+    if (canonicalJson(stored.provenance) !== canonicalJson(output.provenance)) {
+      throw new Error(`${output.config.id}@${output.config.version} archived provenance differs from source`);
+    }
+    const archivedAssets = stored.manifest.files.filter(file => file.role === 'asset');
+    const archivedById = new Map(archivedAssets.map(file => [file.asset!.id, file]));
+    if (archivedAssets.length !== output.assets.length) {
+      throw new Error(`${output.config.id}@${output.config.version} archived asset set differs from source`);
+    }
+    for (const asset of output.assets) {
+      const archived = archivedById.get(asset.id);
+      const bytes = archived && stored.files.get(archived.path);
+      if (!archived || !bytes || archived.mediaType !== asset.type
+        || archived.asset!.name !== asset.name || archived.asset!.width !== asset.w
+        || archived.asset!.height !== asset.h || digest(bytes) !== digest(asset.bytes)) {
+        throw new Error(`${output.config.id}@${output.config.version} archived asset ${asset.id} differs from source`);
+      }
+    }
+    const expectedManifest = templateManifest(
+      output.config,
+      stored.document,
+      archivedAssets.length,
+      archivedAssets.reduce((sum, file) => sum + file.bytes, 0),
+      stored.sha256,
+    );
+    if (canonicalJson(manifest) !== canonicalJson(expectedManifest)) {
+      throw new Error(`${output.config.id}@${output.config.version} released manifest does not match its archive and source config`);
+    }
+    const catalog = JSON.parse(await readFile(resolve(templateRoot, 'catalog.json'), 'utf8'));
+    const catalogRecord = catalog.templates?.find((item: { id?: string; version?: string }) =>
+      item.id === output.config.id && item.version === output.config.version);
+    if (!catalogRecord || canonicalJson(catalogRecord) !== canonicalJson(manifest)) {
+      throw new Error(`${output.config.id}@${output.config.version} catalog record does not match its released manifest`);
+    }
+  } else {
+    if (canonicalJson(manifest) !== canonicalJson(output.manifest)) throw new Error(`${output.config.id}@${output.config.version} draft manifest is stale`);
+    if (stored.sha256 !== output.built.sha256) throw new Error(`${output.config.id}@${output.config.version} draft package is stale`);
+    for (const file of stored.manifest.files) {
+      if (!['compiled-page', 'compiled-support', 'asset'].includes(file.role)) continue;
+      const path = resolve(artifactDirectory, 'preview', file.path.replace(/^compiled\//, ''));
+      if (!await exists(path) || digest(await readFile(path)) !== digest(stored.files.get(file.path)!)) throw new Error(`preview:${file.path}: missing or changed; rebuild draft`);
+    }
   }
-  return { ...output, released, artifactDirectory };
+  const rebuildReproducible = canonicalJson(manifest) === canonicalJson(output.manifest)
+    && stored.sha256 === output.built.sha256;
+  return { ...output, released, artifactDirectory, stored, packageSha256: stored.sha256, rebuildReproducible };
 }
 
 async function check(id?: string, version?: string) {
@@ -151,7 +203,13 @@ async function check(id?: string, version?: string) {
   if (!directories.length) throw new Error('no configured template releases found');
   for (const directory of directories) {
     const output = await checked(directory);
-    console.log(`checked ${output.config.id}@${output.config.version} — native document, assets, manifest and package agree (${output.released ? 'released' : 'draft'})`);
+    if (output.released && process.argv.includes('--require-reproducible') && !output.rebuildReproducible) {
+      throw new Error(`${output.config.id}@${output.config.version} archive is valid but current rebuild differs`);
+    }
+    const rebuild = output.released
+      ? `; current rebuild ${output.rebuildReproducible ? 'reproducible' : 'differs'}`
+      : '';
+    console.log(`checked ${output.config.id}@${output.config.version} — ${output.released ? 'released archive integrity and source parity' : 'draft reproducibility'} valid${rebuild}`);
   }
 }
 
@@ -160,7 +218,7 @@ async function readiness(directory: string, output: Awaited<ReturnType<typeof ch
   const path = resolve(directory, 'workflow.json');
   if (!await exists(path)) return { record: null, findings: ['workflow: missing workflow.json'] };
   const record = JSON.parse(await readFile(path, 'utf8'));
-  const findings = promotionFindings(record, output.built.sha256, output.document.pages.map(p => p.slug));
+  const findings = promotionFindings(record, output.packageSha256, output.document.pages.map(p => p.slug));
   const parsed = workflowSchema.safeParse(record);
   if (parsed.success) {
     const w = parsed.data;
@@ -179,7 +237,15 @@ async function status(id?: string, version?: string) {
     try {
       const output = await checked(directory);
       const review = output.released ? { findings: [] } : await readiness(directory, output);
-      console.log(JSON.stringify({ id: output.config.id, version: output.config.version, packageSha256: output.built.sha256, status: output.released ? 'released' : review.findings.length ? 'revision' : 'ready', findings: review.findings }, null, 2));
+      console.log(JSON.stringify({
+        id: output.config.id,
+        version: output.config.version,
+        packageSha256: output.packageSha256,
+        status: output.released ? 'released' : review.findings.length ? 'revision' : 'ready',
+        archiveIntegrity: output.released ? 'valid' : undefined,
+        rebuildReproducible: output.rebuildReproducible,
+        findings: review.findings,
+      }, null, 2));
     } catch (error) {
       console.log(JSON.stringify({ directory: relative(root, directory), status: 'unbuilt-or-stale', findings: [String(error)] }, null, 2));
     }
@@ -189,8 +255,10 @@ async function status(id?: string, version?: string) {
 async function promote(id?: string, version?: string) {
   if (!id || !version) throw new Error('promote requires an exact id and version');
   const [directory] = await releaseDirectories(id, version);
+  if (await exists(resolve(directory, 'manifest.json')) || await exists(resolve(directory, PACKAGE_FILE))) {
+    throw new Error('released versions are immutable');
+  }
   const output = await checked(directory);
-  if (output.released || await exists(resolve(directory, PACKAGE_FILE))) throw new Error('released versions are immutable');
   const review = await readiness(directory, output);
   if (review.findings.length) throw new Error(`promotion blocked:\n${review.findings.join('\n')}`);
   // Exclusive lock serializes catalog read/modify/write across template promotions.

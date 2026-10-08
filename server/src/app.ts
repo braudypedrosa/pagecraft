@@ -4030,10 +4030,45 @@ export function createApp(o: Options) {
       // so image-heavy templates do not exhaust the gateway and time out midway.
       const assetResults: PromiseSettledResult<AssetRecord>[] = [];
       const templateAssets = templateInstall?.assets || [];
+      const templateAssetQuota = templateAssets.length
+        ? {
+          ownerId: user.id,
+          limitBytes: await storageLimitForOwner(user.id, user),
+        }
+        : null;
       await progress(2, templateAssets.length ? `Copying images: 0 of ${templateAssets.length}` : "Preparing the builder…");
       for (let start = 0; start < templateAssets.length; start += 3) {
-        const batch = await Promise.allSettled(templateAssets.slice(start, start + 3)
-          .map(asset => o.assets!.put({ ...asset, siteId: site.id })));
+        const prepared = await Promise.allSettled(templateAssets.slice(start, start + 3)
+          .map(async asset => {
+            const sourceType = sniff(asset.bytes);
+            if (!sourceType || !ALLOWED.has(sourceType)) {
+              throw new Error(`template asset ${asset.id} is not a supported image`);
+            }
+            const output = await optimizeAsset(asset.bytes, sourceType);
+            return {
+              asset: {
+                ...asset,
+                siteId: site.id,
+                name: optimizedName(asset.name, output.extension),
+                type: output.type,
+                bytes: output.bytes,
+                w: output.w,
+                h: output.h,
+                contentHash: sha256(asset.bytes),
+              },
+              quota: {
+                ownerId: templateAssetQuota!.ownerId,
+                limitBytes: templateAssetQuota!.limitBytes,
+                originalBytes: asset.bytes.byteLength,
+                optimized: true,
+              },
+            };
+          }));
+        const batch = await Promise.allSettled(prepared.map(result =>
+          result.status === "fulfilled"
+            ? o.assets!.put(result.value.asset, result.value.quota)
+            : Promise.reject(result.reason)
+        ));
         assetResults.push(...batch);
         const copied = assetResults.filter(result => result.status === "fulfilled").length;
         await progress(2 + copied / templateAssets.length, `Copying images: ${copied} of ${templateAssets.length}`);
@@ -4049,6 +4084,12 @@ export function createApp(o: Options) {
         }
         await o.store.delete(site.id).catch(() => false);
         console.error("site template asset installation failed", failedAsset.reason);
+        if (failedAsset.reason instanceof AssetQuotaError) {
+          return c.json({
+            error: "storage_limit_reached",
+            usage: failedAsset.reason.usage,
+          }, 409);
+        }
         return c.json({
           error: "site_template_install_failed",
           detail: "The curated site could not be installed. Nothing was kept.",
