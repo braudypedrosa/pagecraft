@@ -39,7 +39,7 @@ function Group({ title, n, items, gk, collapsed = false }: { title: string; n: P
   const closed = C.state.ui.open[key] === false || (C.state.ui.open[key] === undefined && collapsed);
   /* `when` lets a control depend on the node: a background's position appears once
      there is a background, the collection filter's operator once a field is chosen. */
-  const shown = items ? items.filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && n.type === 'form' && ['mode', 'action', 'method'].includes(c.k || ''))) : null;
+  const shown = items ? items.filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && n.type === 'form' && c.k === 'mode')) : null;
   /* A group whose every control is out of scope for this widget is not an empty group,
      it is no group — a heading has no Background section to collapse. */
   if (shown && !shown.length) return null;
@@ -696,6 +696,8 @@ export function Inspector() {
   ];
   const advanced = advControls(n);
   const many = C.selIds().length > 1;
+  const formHandling = n.type === 'form' && C.cloudFormsEnabled()
+    ? C.resolveFormHandling(n.props, n.id) : null;
   const inspectorTabs = [['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']];
   const chooseTab = (key: string) => { C.state.ui.stab = key; repaint('right'); };
   const tabKey = (e: KeyboardEvent, key: string) => {
@@ -730,7 +732,7 @@ export function Inspector() {
         {tab === 'content' && !many && L.canStructure() ? <LayoutHelp n={n} /> : null}
         {tab === 'content' && !many ? <ContentScopeHint n={n} /> : null}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
-        {tab === 'content' && n.type === 'form' && C.cloudFormsEnabled() ? <p class="note" style="padding:12px">Saved to Submissions when published.</p> : null}
+        {tab === 'content' && formHandling ? <p class="note" style="padding:12px">{formHandling.note}</p> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}
         {tab === 'content' ? (
           content.length

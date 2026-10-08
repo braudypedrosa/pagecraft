@@ -16,6 +16,20 @@ const templateRoot = resolve(root, 'premade-sites');
 const defaultOutput = resolve(root, 'qa-evidence/template-library-2026-10-08/package-audit.json');
 const encoder = new TextEncoder();
 const argumentsList = process.argv.slice(2);
+const usage = 'Usage: node tools/audit-template-library.mjs [--id <id> --version <version>] [--out <path>] [--allow-form-no-action <id@version:slug:nodeId>]';
+if (argumentsList.includes('--help') || argumentsList.includes('-h')) {
+  console.log(usage);
+  process.exit(0);
+}
+// Reject misspelled or incomplete options before the default audit file can be written.
+const supportedOptions = new Set(['--id', '--version', '--out', '--allow-form-no-action']);
+for (let index = 0; index < argumentsList.length; index += 1) {
+  const argument = argumentsList[index];
+  const name = argument.split('=', 1)[0];
+  if (!supportedOptions.has(name)) throw new Error(`Unknown option: ${argument}. ${usage}`);
+  const value = argument.includes('=') ? argument.slice(argument.indexOf('=') + 1) : argumentsList[++index];
+  if (!value || value.startsWith('--')) throw new Error(`Missing value for ${name}. ${usage}`);
+}
 const argumentValues = name => argumentsList.flatMap((value, index) => {
   if (value === `--${name}` && argumentsList[index + 1]) return [argumentsList[index + 1]];
   if (value.startsWith(`--${name}=`)) return [value.slice(name.length + 3)];

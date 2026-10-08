@@ -1106,15 +1106,24 @@ test('descriptive and dynamic selectors use the full panel while short reviewed 
   a.equal(r.$('.f-inline'), null, 'future selectors are full width unless explicitly reviewed');
 });
 
-test('Cloud forms expose native submissions instead of external or WordPress handling', () => {
+test('Cloud form controls describe the actual submission destination', () => {
   const n = C.insert('form', null, 0)!;
   C.state.ui.sel = n.id;
   try {
     C.setCloudFormEndpoint('https://cloud.test/forms/site');
     r.draw(<Inspector />);
-    a.match(r.host.textContent || '', /Saved to Submissions/);
-    a.doesNotMatch(r.host.textContent || '', /External HTTPS|WordPress managed|Where submissions go/);
+    a.match(r.host.textContent || '', /Submissions inbox/);
+    a.match(r.host.textContent || '', /Where submissions go/);
+    a.match(r.host.textContent || '', /Method/);
     a.equal(r.$('select option[value="wordpress"]'), null);
+    n.props.action = 'https://provider.test/inquiry';
+    r.draw(<Inspector />);
+    a.match(r.host.textContent || '', /Sends entries to the configured external HTTPS destination/);
+    a.doesNotMatch(r.host.textContent || '', /Submissions inbox when published/);
+    n.props.action = '';
+    n.props.method = 'get';
+    r.draw(<Inspector />);
+    a.match(r.host.textContent || '', /Add an HTTPS destination for this search/);
     C.setCloudFormEndpoint('');
     r.draw(<Inspector />);
     a.ok(r.$('select option[value="wordpress"]'), 'portable host keeps its existing receiver choices');

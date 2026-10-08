@@ -43,10 +43,28 @@ test('known templates receive clear names and separate controlled facets', () =>
       siteTypes: ['Accommodation'],
     },
     {
+      id: 'neighborhood-cafe',
+      name: 'Morning Field · Neighborhood Café',
+      industries: ['Food & Drink'],
+      siteTypes: ['Restaurant', 'Business'],
+    },
+    {
+      id: 'advisory-studio',
+      name: 'North Measure · Advisory Studio',
+      industries: ['Professional Services'],
+      siteTypes: ['Business'],
+    },
+    {
       id: 'independent-studio',
       name: 'Northline · Creative Studio',
       industries: ['Creative Services'],
       siteTypes: ['Portfolio', 'Business'],
+    },
+    {
+      id: 'photographic-portfolio',
+      name: 'Noor Vale · Photography Portfolio',
+      industries: ['Creative Services'],
+      siteTypes: ['Portfolio'],
     },
     {
       id: 'salt-house',
@@ -59,6 +77,12 @@ test('known templates receive clear names and separate controlled facets', () =>
       name: 'Stillwood · Cabin Retreat',
       industries: ['Travel & Hospitality'],
       siteTypes: ['Accommodation'],
+    },
+    {
+      id: 'wellness-practice',
+      name: 'Still Day · Wellness Practice',
+      industries: ['Health & Wellness'],
+      siteTypes: ['Business'],
     },
   ];
 
@@ -93,6 +117,32 @@ test('search text keeps old catalog terms and adds useful aliases', () => {
     'travel & hospitality',
     'coastal homes',
   ]) a.ok(discovery.searchText.includes(term), `expected search text to contain ${term}`);
+});
+
+test('native draft metadata is factual and searchable by supplied aliases', () => {
+  const cases: Array<{ id: string; terms: string[] }> = [
+    {
+      id: 'neighborhood-cafe',
+      terms: ['morning field · neighborhood café', 'neighborhood cafe', 'home', 'menu', 'story', 'visit', 'coffee shop', 'breakfast'],
+    },
+    {
+      id: 'advisory-studio',
+      terms: ['north measure · advisory studio', 'advisory studio', 'services', 'case studies', 'approach', 'inquiry', 'consultancy', 'business advisory'],
+    },
+    {
+      id: 'photographic-portfolio',
+      terms: ['noor vale · photography portfolio', 'documentary photography', 'series', 'field notes', 'commissions', 'contact', 'photographer'],
+    },
+    {
+      id: 'wellness-practice',
+      terms: ['still day · wellness practice', 'wellness practice', 'services', 'what to expect', 'practitioners', 'contact', 'appointment'],
+    },
+  ];
+
+  for (const expected of cases) {
+    const discovery = getTemplateDiscovery(template({ id: expected.id }));
+    for (const term of expected.terms) a.ok(discovery.searchText.includes(term), `expected ${expected.id} search text to contain ${term}`);
+  }
 });
 
 test('unrecognized templates retain catalog copy and remain searchable without invented facets', () => {
@@ -134,6 +184,30 @@ test('facet options are deduplicated and sorted independently', () => {
     { id: 'business', label: 'Business' },
     { id: 'portfolio', label: 'Portfolio' },
   ]);
+});
+
+test('draft facets appear only when their mapped templates are supplied', () => {
+  const templates = [
+    template({ id: 'neighborhood-cafe' }),
+    template({ id: 'advisory-studio' }),
+    template({ id: 'photographic-portfolio' }),
+    template({ id: 'wellness-practice' }),
+  ];
+
+  a.deepEqual(discoveryOptions(templates, 'industries'), [
+    { id: 'creative-services', label: 'Creative Services' },
+    { id: 'food-and-drink', label: 'Food & Drink' },
+    { id: 'health-and-wellness', label: 'Health & Wellness' },
+    { id: 'professional-services', label: 'Professional Services' },
+  ]);
+  a.deepEqual(discoveryOptions(templates, 'siteTypes'), [
+    { id: 'business', label: 'Business' },
+    { id: 'portfolio', label: 'Portfolio' },
+    { id: 'restaurant', label: 'Restaurant' },
+  ]);
+
+  a.deepEqual(discoveryOptions([template({ id: 'future-template' })], 'industries'), []);
+  a.deepEqual(discoveryOptions([template({ id: 'future-template' })], 'siteTypes'), []);
 });
 
 test('discovery does not mutate catalog identity or expose mutable taxonomy state', () => {

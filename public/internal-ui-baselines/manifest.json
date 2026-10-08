@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-08T01:50:17.848Z",
+  "capturedAt": "2026-10-08T05:49:06.206Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -11,7 +11,7 @@
     "app/src/ui/CmsWorkspace.tsx": "11b19eb457f1d90e68414857c727a869baded14343eff36c563d9f21645fcaf0",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "308fed9afa5e00ac08524fbc1f4fbe6ba6c9e71582a7fe47bc4b87ac16197d36",
-    "app/src/ui/inspector/Inspector.tsx": "7214f1502b5b080997db6a7976c27b9d948e2eb8c80e4e74dec9b3001b5a3c63",
+    "app/src/ui/inspector/Inspector.tsx": "68703cb7e3fd1175bad3d4aba67c17a49a641e0f5fd32f893c4816481458e759",
     "app/src/ui/inspector/Lists.tsx": "e61d813ba1db4bfa28d8f2b444e4bcbb631dadc6cea5e2af5575113a32679a3e",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",

@@ -337,6 +337,7 @@ __export(index_exports, {
   replaceMediaReferences: () => replaceMediaReferences,
   resizeCols: () => resizeCols,
   resolveColor: () => resolveColor,
+  resolveFormHandling: () => resolveFormHandling,
   restore: () => restore,
   rgb2hsv: () => rgb2hsv,
   robotsTxt: () => robotsTxt,
@@ -1663,6 +1664,43 @@ var safeFormAction = (u) => {
     return "";
   }
 };
+function resolveFormHandling(props, formId = "") {
+  const rawAction = String(props.action || "").trim();
+  const external = safeFormAction(rawAction);
+  const method = props.method === "get" ? "get" : "post";
+  if (cloudFormEndpoint) {
+    if (rawAction) return external ? { kind: "external", action: external, method, reason: "", note: "Sends entries to the configured external HTTPS destination." } : { kind: "disabled", action: "", method, reason: "unsafe", note: "Disabled until the destination is a complete HTTPS URL." };
+    if (method === "get") {
+      return { kind: "disabled", action: "", method, reason: "missing", note: "Add an HTTPS destination for this search, or choose POST to save inquiries in Submissions." };
+    }
+    return {
+      kind: "cloud",
+      action: cloudFormEndpoint + "/" + encodeURIComponent(formId),
+      method: "post",
+      reason: "",
+      note: "Saves entries to this site\u2019s Submissions inbox when published."
+    };
+  }
+  if (props.mode === "wordpress") {
+    return {
+      kind: "wordpress",
+      action: `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%`,
+      method: "post",
+      reason: "",
+      note: "Handled by the connected WordPress site."
+    };
+  }
+  if (external) {
+    return { kind: "external", action: external, method, reason: "", note: "Sends entries to the configured external HTTPS destination." };
+  }
+  return {
+    kind: "disabled",
+    action: "",
+    method,
+    reason: rawAction ? "unsafe" : "missing",
+    note: rawAction ? "Disabled until the destination is a complete HTTPS URL." : `${method.toUpperCase()} needs a complete HTTPS destination before publishing.`
+  };
+}
 var clone = (o) => JSON.parse(JSON.stringify(o));
 var slugify = (s) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "page";
 var dbounce = (fn, ms) => {
@@ -2486,8 +2524,8 @@ var DEF = {
         { t: "fields", k: "fields", label: "Fields" },
         { t: "text", k: "submit", label: "Submit button label" },
         { t: "select", k: "mode", label: "Handling", opts: [["external", "External HTTPS endpoint"], ["wordpress", "WordPress managed"]] },
-        { t: "text", k: "action", label: "Where submissions go", ph: "https://formspree.io/f/\u2026", note: "Paste the complete https:// endpoint for the form service.", when: (n) => n.props.mode !== "wordpress" },
-        { t: "select", k: "method", label: "Method", layout: "inline", opts: [["post", "POST"], ["get", "GET"]], when: (n) => n.props.mode !== "wordpress" },
+        { t: "text", k: "action", label: "Where submissions go", ph: "Paste an HTTPS destination", note: "Paste your service\u2019s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.", when: (n) => cloudFormsEnabled() || n.props.mode !== "wordpress" },
+        { t: "select", k: "method", label: "Method", layout: "inline", opts: [["post", "POST"], ["get", "GET"]], when: (n) => cloudFormsEnabled() || n.props.mode !== "wordpress" },
         { t: "text", k: "aria", label: "Accessible name", ph: "Contact form" }
       ],
       style: [
@@ -4427,11 +4465,10 @@ function lint() {
         headings.push({ level: +String(n.props.level)[1], node: n, region });
       if (n.type === "form") {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
-        const rawAction = String(n.props.action || "").trim();
-        const wordpressManaged = !!cloudFormEndpoint || n.props.mode === "wordpress";
-        if (!wordpressManaged && !rawAction)
-          add("error", "form-no-action", `A form in the ${region} has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.`, w, n.id);
-        else if (!wordpressManaged && !safeFormAction(rawAction))
+        const handling = resolveFormHandling(n.props, n.id);
+        if (handling.reason === "missing")
+          add(handling.method === "get" ? "warn" : "error", "form-no-action", `A form in the ${region} has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.`, w, n.id);
+        else if (handling.reason === "unsafe")
           add("error", "unsafe-form-action", `A form in the ${region} does not use an explicit, secure endpoint, so submission is disabled when published. Paste a complete https:// URL for the form service that will receive it.`, w, n.id);
         if (!fields.length)
           add("warn", "form-no-fields", `A form in the ${region} has no fields.`, w, n.id);
@@ -8256,13 +8293,16 @@ function renderNode(n, o) {
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const fid = (i) => domId + "-f" + i;
-      const wordpressManaged = !cloudFormEndpoint && p.mode === "wordpress";
+      const fieldName = (f, i) => String(f.name || slugify(f.label) || "field-" + (i + 1));
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
-      const act = cloudFormEndpoint ? cloudFormEndpoint + "/" + encodeURIComponent(formId) : wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
+      const handling = resolveFormHandling(p, formId);
+      const act = handling.action;
       const disabled = act ? "" : " disabled";
+      const authoredNames = new Set(fields.map(fieldName));
+      const getQueryFields = handling.kind === "external" && handling.method === "get" ? Array.from(new URL(handling.action).searchParams.entries()).filter(([name]) => !authoredNames.has(name)).map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`).join("") : "";
       const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
-        const name = esc(f.name || slugify(f.label) || "field-" + (i + 1));
+        const name = esc(fieldName(f, i));
         const req = f.required ? " required" : "";
         const ph2 = f.ph ? ` placeholder="${esc(f.ph)}"` : "";
         const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
@@ -8277,8 +8317,8 @@ function renderNode(n, o) {
         const status = domId + "-status";
         return `<div ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
       }
-      const managed2 = wordpressManaged ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${cloudFormEndpoint || wordpressManaged ? "post" : p.method === "get" ? "get" : "post"}"${managed2}>` + body + (cloudFormEndpoint ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (cloudFormEndpoint && !o.edit ? `<script>(function(f){var i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=crypto.randomUUID();f.appendChild(i);f.addEventListener('input',function(){i.value=crypto.randomUUID()});window.addEventListener('pageshow',function(){f.querySelector('button[type=submit]').disabled=false});f.addEventListener('submit',function(){setTimeout(function(){f.querySelector('button[type=submit]').disabled=true},0)})})(document.currentScript.previousElementSibling)</script>` : "");
+      const managed2 = handling.kind === "wordpress" ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
+      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${handling.method}"${managed2}>` + getQueryFields + body + (handling.kind === "cloud" ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (handling.kind === "cloud" && !o.edit ? `<script>(function(f){var i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=crypto.randomUUID();f.appendChild(i);f.addEventListener('input',function(){i.value=crypto.randomUUID()});window.addEventListener('pageshow',function(){f.querySelector('button[type=submit]').disabled=false});f.addEventListener('submit',function(){setTimeout(function(){f.querySelector('button[type=submit]').disabled=true},0)})})(document.currentScript.previousElementSibling)</script>` : "");
     }
     case "crumbs": {
       const manual = p.mode === "manual";
@@ -9263,6 +9303,7 @@ function proposalApply(changes, proposalId = "") {
   replaceMediaReferences,
   resizeCols,
   resolveColor,
+  resolveFormHandling,
   restore,
   rgb2hsv,
   robotsTxt,

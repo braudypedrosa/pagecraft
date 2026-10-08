@@ -15,11 +15,15 @@ interface TemplateDiscoveryConfig {
 
 const architectureDesign = { id: 'architecture-design', label: 'Architecture & Design' };
 const creativeServices = { id: 'creative-services', label: 'Creative Services' };
+const foodAndDrink = { id: 'food-and-drink', label: 'Food & Drink' };
+const healthAndWellness = { id: 'health-and-wellness', label: 'Health & Wellness' };
+const professionalServices = { id: 'professional-services', label: 'Professional Services' };
 const travelHospitality = { id: 'travel-hospitality', label: 'Travel & Hospitality' };
 
 const portfolio = { id: 'portfolio', label: 'Portfolio' };
 const business = { id: 'business', label: 'Business' };
 const accommodation = { id: 'accommodation', label: 'Accommodation' };
+const restaurant = { id: 'restaurant', label: 'Restaurant' };
 
 const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
   'architecture-studio': {
@@ -36,6 +40,20 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     siteTypes: [accommodation],
     aliases: ['coastal stays', 'holiday rental', 'short-term rental', 'vacation rental', 'guest house'],
   },
+  'neighborhood-cafe': {
+    name: 'Morning Field · Neighborhood Café',
+    description: 'A warm four-page neighborhood cafe site with an editorial menu, story and visit details across Home, Menu, Story and Visit pages.',
+    industries: [foodAndDrink],
+    siteTypes: [restaurant, business],
+    aliases: ['cafe', 'coffee shop', 'breakfast', 'local cafe'],
+  },
+  'advisory-studio': {
+    name: 'North Measure · Advisory Studio',
+    description: 'A five-page advisory studio site with Services, Case Studies, Approach and Inquiry pages for presenting service scopes and case notes.',
+    industries: [professionalServices],
+    siteTypes: [business],
+    aliases: ['consultant', 'consultancy', 'professional firm', 'business advisory'],
+  },
   'independent-studio': {
     name: 'Northline · Creative Studio',
     description: 'A high-contrast portfolio and business site for independent creative studios, with services, about and contact pages.',
@@ -43,12 +61,26 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     siteTypes: [portfolio, business],
     aliases: ['creative agency', 'creative practice', 'design portfolio', 'design studio', 'independent studio'],
   },
+  'photographic-portfolio': {
+    name: 'Noor Vale · Photography Portfolio',
+    description: 'A five-page documentary photography portfolio with Series, Field Notes, Commissions and Contact pages for sequenced work and commission guidance.',
+    industries: [creativeServices],
+    siteTypes: [portfolio],
+    aliases: ['photographer', 'documentary photography', 'photography portfolio'],
+  },
   'salt-house': {
     name: 'Salt House · Holiday Homes',
     description: 'A coastal accommodation site for a small holiday-home collection, with property galleries and space for booking-provider links.',
     industries: [travelHospitality],
     siteTypes: [accommodation],
     aliases: ['coastal homes', 'holiday homes', 'holiday rental', 'vacation homes', 'vacation rental collection'],
+  },
+  'wellness-practice': {
+    name: 'Still Day · Wellness Practice',
+    description: 'A calm five-page wellness practice site with Services, What to Expect, Practitioners and Contact pages for explaining support and practitioner information.',
+    industries: [healthAndWellness],
+    siteTypes: [business],
+    aliases: ['wellness', 'practitioner', 'studio', 'appointment'],
   },
   stillwood: {
     name: 'Stillwood · Cabin Retreat',
