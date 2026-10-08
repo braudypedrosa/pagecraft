@@ -1,17 +1,6 @@
-import type { AccountPlan } from './auth.ts';
-
-export interface PlanEntitlements {
-  id: AccountPlan;
-  label: string;
-  ownedSites: number;
-  storageBytes: number;
-}
-
-export const FREE_PLAN: PlanEntitlements = Object.freeze({
-  id: 'free',
-  label: 'Free',
-  ownedSites: 3,
-  storageBytes: 100 * 1024 * 1024
-});
-
-export const planEntitlements = (_plan: AccountPlan = 'free') => FREE_PLAN;
+/* Node and the database gateway use the same entitlement catalog. Plans are assigned in
+   Pagecraft's protected user record, never by a browser or editable Auth metadata. */
+export {
+  FREE_PLAN, PRO_PLAN, planEntitlements,
+  type AccountPlan, type PlanEntitlements
+} from '../../supabase/functions/pagecraft-db/plan-entitlements.ts';

@@ -20,6 +20,8 @@
    Both, in that order, or a client could rewrite the layout of a site they were given a
    text-editing account for. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import type { AccountPlan } from './plans.ts';
+export type { AccountPlan } from './plans.ts';
 
 export const SITE_ROLES = ['owner', 'content', 'reviewer'] as const;
 export type Role = typeof SITE_ROLES[number];
@@ -31,8 +33,6 @@ export function roleLabel(role: Role) {
   if (role === 'reviewer') return 'Reviewer';
   return 'Content editor';
 }
-export type AccountPlan = 'free';
-
 export interface User {
   id: string;
   email: string;

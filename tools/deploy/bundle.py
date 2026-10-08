@@ -7,7 +7,9 @@ assert sha==subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=Tru
 # Only tracked source files can enter a release. Never traverse ignored env/QA files.
 tracked=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split('\0')
 prefixes=('app/','server/','shared/','public/','brand/','packages/editor/')
-files=[root/name for name in tracked if name.startswith(prefixes) and '/tests/' not in name]
+files=[root/name for name in tracked if
+       (name.startswith(prefixes) and '/tests/' not in name)
+       or name == 'supabase/functions/pagecraft-db/plan-entitlements.ts']
 files += [root/name for name in ('app.cjs','index.html','package.json','package-lock.json')]
 catalog=json.loads((root/'premade-sites/catalog.json').read_text())
 files.append(root/'premade-sites/catalog.json')

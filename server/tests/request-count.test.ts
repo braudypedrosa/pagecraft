@@ -140,7 +140,8 @@ test("signed-in routes keep their gateway calls and sequential round trips bound
     },
     content: {
       "/": [4, 3], "/api/sites": [3, 3], "/api/sites/:id": [3, 3],
-      "/sites/:id": [4, 3], "/edit/:id": [5, 5],
+      // Resolve the owner's plan beside usage; this adds a call, not a sequential trip.
+      "/sites/:id": [4, 3], "/edit/:id": [6, 5],
     },
     reviewer: {
       "/": [4, 3], "/api/sites": [3, 3], "/api/sites/:id": [3, 3],

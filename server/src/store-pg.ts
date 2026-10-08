@@ -17,6 +17,7 @@
    what has run — this one is safe to re-run only because every statement in it says
    `if not exists`. */
 import type { Doc } from '../../app/src/core/types.ts';
+import { planEntitlements } from './plans.ts';
 import {
   validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SaveResult, type Store,
   type ScheduledPublishInput, type ScheduledPublishResult
@@ -30,7 +31,7 @@ import {
   AUTH_SCHEMA, MANUAL_IMPORT_IDLE_MS, normalEmail, type AuthStore, type InviteDeliveryResult,
   type InvitationDrainResult, type InvitationProvisionResult,
   type MemberChangeResult, type MemberRemovalResult, type Role, type Session,
-  type ManualImportCredential, type ManualImportRefreshResult, type User
+  type ManualImportCredential, type ManualImportRefreshResult, type User, type AccountPlan
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -1752,15 +1753,16 @@ export class PgAssetStore implements AssetStore {
     try {
       await client.query('begin');
       if (quota) {
-        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [quota.ownerId]);
+        const owner = await client.query<{ id: string; plan: AccountPlan }>('select id, plan from users where id = $1 for update', [quota.ownerId]);
         if (!owner.rows[0]) throw new Error('storage owner does not exist');
         const current = await client.query<{ used: string }>(
           `select coalesce(sum(stored_bytes),0)::text as used from assets where owner_id = $1`, [quota.ownerId]);
         const prior = await client.query<{ bytes: string }>(
           `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [id, quota.ownerId]);
         const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
-        if (used - replacing + a.bytes.byteLength > quota.limitBytes) {
-          throw new AssetQuotaError({ usedBytes: used, limitBytes: quota.limitBytes });
+        const limitBytes = Math.min(quota.limitBytes, planEntitlements(owner.rows[0].plan).storageBytes);
+        if (used - replacing + a.bytes.byteLength > limitBytes) {
+          throw new AssetQuotaError({ usedBytes: used, limitBytes });
         }
       }
       const { rows } = await client.query<AssetMetaRow>(
@@ -1806,15 +1808,16 @@ export class PgAssetStore implements AssetStore {
       }
       const ownerId = quota?.ownerId || guard.rows[0].created_by;
       if (quota) {
-        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [ownerId]);
+        const owner = await client.query<{ id: string; plan: AccountPlan }>('select id, plan from users where id = $1 for update', [ownerId]);
         if (!owner.rows[0]) throw new Error('storage owner does not exist');
         const current = await client.query<{ used: string }>(
           `select coalesce(sum(stored_bytes),0)::text as used from assets where owner_id = $1`, [ownerId]);
         const prior = await client.query<{ bytes: string }>(
           `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [a.id, ownerId]);
         const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
-        if (used - replacing + a.bytes.byteLength > quota.limitBytes) {
-          throw new AssetQuotaError({ usedBytes: used, limitBytes: quota.limitBytes });
+        const limitBytes = Math.min(quota.limitBytes, planEntitlements(owner.rows[0].plan).storageBytes);
+        if (used - replacing + a.bytes.byteLength > limitBytes) {
+          throw new AssetQuotaError({ usedBytes: used, limitBytes });
         }
       }
       const { rows } = await client.query<AssetMetaRow>(
@@ -1870,7 +1873,7 @@ export class PgAssetStore implements AssetStore {
 
 interface UserRow {
   id: string; email: string; name: string; auth_user_id?: string | null;
-  plan?: 'free'; created_at?: Date | string;
+  plan?: AccountPlan; created_at?: Date | string;
 }
 interface SessionRow { digest: string; user_id: string; expires_at: Date | string }
 interface MemberRow { site_id: string; user_id: string; role: Role }
@@ -1930,7 +1933,7 @@ export class PgAuthStore implements AuthStore {
     const unique = [...new Set(ids)];
     if (!unique.length) return [];
     const { rows } = await this.db.query<UserRow>(
-      'select id, email, name, auth_user_id from users where id = any($1::text[])', [unique]);
+      'select id, email, name, auth_user_id, plan, created_at from users where id = any($1::text[])', [unique]);
     return rows.map(row => this.user(row));
   }
   async createUser(email: string, name = '') {

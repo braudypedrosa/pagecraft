@@ -12,6 +12,7 @@ import { join } from 'node:path';
 import { PGlite, type Transaction } from '@electric-sql/pglite';
 import { splitGatewayBlob } from '../src/gateway-blobs.ts';
 import { GatewayStore, PagecraftGateway } from '../src/store-gateway.ts';
+import { FREE_PLAN, PRO_PLAN } from '../../supabase/functions/pagecraft-db/plan-entitlements.ts';
 
 type Query = (text: string, params: unknown[]) => Promise<{ rows: Record<string, unknown>[] }>;
 type Handler = (request: Request) => Promise<Response>;
@@ -379,6 +380,83 @@ async function stage(bytes: Uint8Array) {
   }
   return split.descriptor;
 }
+
+test('owned-site creation uses the locked database plan and ignores caller plan fields', async () => {
+  const create = (ownerId: string, id: string, plan: string) =>
+    operation('account.createOwnedSite', {
+      ownerId, id, host: `${id}.example.test`, slug: id, name: id, doc, plan,
+    });
+  await db.query(`insert into users (id, email, plan) values ($1, $2, 'free')`,
+    ['plan-free-owner', 'plan-free-owner@example.test']);
+  await db.query(`insert into users (id, email, plan) values ($1, $2, 'pro')`,
+    ['plan-pro-owner', 'plan-pro-owner@example.test']);
+
+  for (let index = 1; index <= FREE_PLAN.ownedSites!; index++) {
+    a.equal((await create('plan-free-owner', `plan-free-${index}`, 'pro')).body.status, 'created');
+  }
+  a.equal((await create('plan-free-owner', 'plan-free-refused', 'enterprise')).body.status, 'limit',
+    'a caller cannot spoof an unknown plan for a Free database user');
+
+  for (let index = 1; index <= 4; index++) {
+    a.equal((await create('plan-pro-owner', `plan-pro-${index}`, 'free')).body.status, 'created',
+      'stored Pro stays unlimited when the caller claims Free');
+  }
+  const plans = await db.query<{ id: string; plan: string }>(
+    `select id, plan from users where id in ('plan-free-owner', 'plan-pro-owner') order by id`);
+  a.deepEqual(plans.rows, [
+    { id: 'plan-free-owner', plan: 'free' },
+    { id: 'plan-pro-owner', plan: 'pro' },
+  ]);
+  a.ok(harness.statements.some(text =>
+    /select id, plan from users where id = \$1 for update/.test(text)),
+  'creation reads the authoritative plan under the owner lock');
+});
+
+test('site and library storage clamp caller limits to the locked database plan', async () => {
+  await siteWithOwner('quota-free-site', 'quota-free-owner');
+  await siteWithOwner('quota-pro-site', 'quota-pro-owner');
+  await db.query(`update users set plan='pro' where id='quota-pro-owner'`);
+  await db.query(`insert into assets
+    (id, site_id, name, type, w, h, owner_id, storage_path, stored_bytes)
+    values ($1, $2, 'charged.webp', 'image/webp', 1, 1, $3, $4, $5)`,
+  ['quota-free-charge', 'quota-free-site', 'quota-free-owner',
+    'quota-free-owner/quota-free-site/charged.webp', FREE_PLAN.storageBytes - 32]);
+  await db.query(`insert into assets
+    (id, site_id, name, type, w, h, owner_id, storage_path, stored_bytes)
+    values ($1, $2, 'charged.webp', 'image/webp', 1, 1, $3, $4, $5)`,
+  ['quota-pro-charge', 'quota-pro-site', 'quota-pro-owner',
+    'quota-pro-owner/quota-pro-site/charged.webp', FREE_PLAN.storageBytes]);
+
+  const putSiteAsset = async (ownerId: string, siteId: string, marker: number) => {
+    const bytes = webp(marker);
+    return call('asset.putBlob', { asset: {
+      id: `${siteId}-upload`, siteId, ownerId, name: 'upload.webp', type: 'image/webp',
+      w: 8, h: 8, contentHash: hex(bytes), blob: await stage(bytes),
+      limitBytes: PRO_PLAN.storageBytes, plan: 'enterprise',
+    } });
+  };
+  a.equal((await putSiteAsset('quota-free-owner', 'quota-free-site', 21)).status, 409,
+    'Free cannot use a caller-supplied Pro allowance');
+  a.equal((await putSiteAsset('quota-pro-owner', 'quota-pro-site', 22)).status, 200,
+    'stored Pro can exceed the Free allowance');
+
+  const freeLibrary = randomUUID(), proLibrary = randomUUID();
+  await operation('library.create', { id: freeLibrary, ownerId: 'quota-free-owner', name: 'Free kit' });
+  await operation('library.create', { id: proLibrary, ownerId: 'quota-pro-owner', name: 'Pro kit' });
+  const putLibraryAsset = async (
+    libraryId: string,
+    ownerId: string,
+    marker: number,
+  ) => {
+    const bytes = webp(marker);
+    return call('library.asset.putBlob', {
+      libraryId, ownerId, id: hex(bytes), name: 'kit.webp', type: 'image/webp', w: 8, h: 8,
+      blob: await stage(bytes), limitBytes: PRO_PLAN.storageBytes, plan: 'enterprise',
+    });
+  };
+  a.equal((await putLibraryAsset(freeLibrary, 'quota-free-owner', 23)).status, 409);
+  a.equal((await putLibraryAsset(proLibrary, 'quota-pro-owner', 24)).status, 200);
+});
 
 test('a failed asset upload never removes a file it did not write, and hides the database text', async () => {
   await siteWithOwner('media', 'owner-4');

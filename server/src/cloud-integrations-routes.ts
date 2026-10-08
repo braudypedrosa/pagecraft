@@ -5,6 +5,7 @@ import { throttle } from './mail.ts';
 import type { Hono, Context } from 'hono';
 import type { Store } from './store.ts';
 import type { User } from './auth.ts';
+import { planEntitlements } from './plans.ts';
 import { randomUUID } from 'node:crypto';
 import { IntegrationError, syncProperties, type CloudConnectionStore, UplistingClient } from './cloud-uplisting.ts';
 import { siteIntegrationsPage } from './account-pages.ts';
@@ -72,7 +73,8 @@ export function cloudIntegrationRoutes(app: Hono, o: {
         if (selected.length > 25) throw new IntegrationError('Sync up to 25 properties at a time. Choose fewer properties.');
         // Validate selection before downloading or storing any media.
         syncProperties(site.doc, connection, properties, selected);
-        const imported = await importUplistingCovers(properties.filter(p => selected.includes(p.id)), id, access.user.id, o.assets);
+        const imported = await importUplistingCovers(properties.filter(p => selected.includes(p.id)), id, access.user.id, o.assets,
+          fetch, planEntitlements(access.user.plan).storageBytes);
         const doc = syncProperties(site.doc, connection, imported, selected);
         const assetIds = new Set((await o.assets?.list(id) || []).map(a => a.id));
         const errors = cmsDocumentErrors(site.doc, doc, assetIds);

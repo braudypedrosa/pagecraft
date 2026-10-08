@@ -29,6 +29,7 @@ import {
   type Role,
   type Session,
   type User,
+  type AccountPlan,
 } from "./auth.ts";
 import {
   type CmsWriteHead,
@@ -1613,7 +1614,7 @@ interface UserWire {
   email: string;
   name: string;
   auth_user_id?: string | null;
-  plan?: "free";
+  plan?: AccountPlan;
   created_at?: string;
 }
 interface SessionWire {

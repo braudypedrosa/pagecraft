@@ -16,7 +16,9 @@ class BundleTests(unittest.TestCase):
         self.root = pathlib.Path(self.temp.name)
         (self.root / 'tools/deploy').mkdir(parents=True)
         shutil.copy(SCRIPT, self.root / 'tools/deploy/bundle.py')
-        for name in ['app.cjs', 'index.html', 'package.json', 'package-lock.json', 'server/src/index.ts']:
+        for name in ['app.cjs', 'index.html', 'package.json', 'package-lock.json', 'server/src/index.ts',
+                     'supabase/functions/pagecraft-db/plan-entitlements.ts',
+                     'supabase/functions/pagecraft-db/index.ts']:
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('{}')
@@ -44,6 +46,8 @@ class BundleTests(unittest.TestCase):
         with tarfile.open(self.root / 'release.tar.gz') as archive:
             self.assertNotIn('server/.env', archive.getnames())
             self.assertIn('premade-sites/demo/1.0.0/site.zip', archive.getnames())
+            self.assertIn('supabase/functions/pagecraft-db/plan-entitlements.ts', archive.getnames())
+            self.assertNotIn('supabase/functions/pagecraft-db/index.ts', archive.getnames())
             self.assertEqual(json.load(archive.extractfile('deployment.json')),
                              {'commit':self.sha, 'branch':'development'})
 

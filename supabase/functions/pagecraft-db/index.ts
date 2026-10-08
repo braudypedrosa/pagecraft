@@ -3,6 +3,7 @@ import postgres from "npm:postgres@3.4.7";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { dispatchCollaboration, isCollaborationOp } from "./collaboration-invitations.ts";
 import { exchangeManualImportRefresh } from "./manual-import-refresh.ts";
+import { planEntitlements } from "./plan-entitlements.ts";
 import {
   assembleStoredGatewayBlob,
   GATEWAY_ASSET_BLOB_MAX_BYTES,
@@ -30,7 +31,6 @@ const supabase = createClient(
 );
 const storage = supabase.storage;
 const ASSET_BUCKET = "pagecraft-assets";
-const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
 const invitationRedirect = (raw: unknown) => {
   const redirect = new URL(text(raw));
   const allowedOrigins = new Set([
@@ -341,9 +341,11 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     case "account.createOwnedSite":
       return await sql.begin(async (transaction) => {
         const ownerId = text(args.ownerId);
-        const owner =
-          await transaction`select id from users where id = ${ownerId} for update`;
+        const owner = await transaction<Record<string, unknown>[]>`
+          select id, plan from users where id = ${ownerId} for update
+        `;
         if (!owner[0]) return { status: "missing" };
+        const ownedSites = planEntitlements(text(owner[0].plan)).ownedSites;
         const owned = await transaction<{ count: number }[]>`
           select count(*)::integer as count from site_users membership
           where membership.user_id = ${ownerId} and membership.role = 'owner'
@@ -351,7 +353,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               where first.site_id = membership.site_id order by first.version limit 1),
               membership.user_id) = membership.user_id
         `;
-        if (integer(owned[0]?.count) >= 3) {
+        if (ownedSites !== null && integer(owned[0]?.count) >= ownedSites) {
           return { status: "limit" };
         }
         const made = one(
@@ -2247,13 +2249,17 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const w = integer(input.w);
       const h = integer(input.h);
       const requestedOwnerId = text(input.ownerId);
-      const limitBytes = Number(input.limitBytes || FREE_STORAGE_BYTES);
+      const requestedLimitBytes = input.limitBytes == null
+        ? null
+        : Number(input.limitBytes);
       const originalBytes = Number(input.originalBytes || blob.bytes);
       const contentHash = text(input.contentHash);
       const optimized = Boolean(input.optimized);
       if (
         !id || !siteId || !name || !type || (connected && !connectionId) ||
-        !Number.isSafeInteger(limitBytes) || limitBytes < 1 ||
+        (requestedLimitBytes !== null &&
+          (!Number.isSafeInteger(requestedLimitBytes) ||
+            requestedLimitBytes < 1)) ||
         !Number.isSafeInteger(originalBytes) || originalBytes < 0 ||
         !/^[a-f0-9]{64}$/i.test(contentHash) ||
         !Number.isSafeInteger(w) || w < 0 ||
@@ -2305,7 +2311,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           }
           const owner = one(
             await transaction<Record<string, unknown>[]>`
-          select id from users where id = ${ownerId} for update
+          select id, plan from users where id = ${ownerId} for update
         `,
           );
           if (!owner) {
@@ -2317,6 +2323,10 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               },
             );
           }
+          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+          const limitBytes = requestedLimitBytes === null
+            ? planStorageBytes
+            : Math.min(requestedLimitBytes, planStorageBytes);
           const prior = one(
             await transaction<Record<string, unknown>[]>`
           select id, site_id, owner_id, name, type, w, h, bytes, storage_path,
@@ -2413,7 +2423,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             : 0;
           if (usedBytes - replacingBytes + bytes.byteLength > limitBytes) {
             throw Object.assign(
-              new Error("free account media storage limit reached"),
+              new Error("account media storage limit reached"),
               {
                 status: 409,
                 code: "STORAGE_LIMIT",
@@ -2685,11 +2695,16 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const ownerId = text(args.ownerId);
       const id = text(args.id);
       const type = text(args.type);
-      const limitBytes = Number(args.limitBytes || FREE_STORAGE_BYTES);
+      const requestedLimitBytes = args.limitBytes == null
+        ? null
+        : Number(args.limitBytes);
       if (
         !libraryId || !ownerId || !/^[a-f0-9]{64}$/.test(id) ||
         !text(args.name) ||
-        !type || !Number.isSafeInteger(limitBytes) || limitBytes < 1 ||
+        !type ||
+        (requestedLimitBytes !== null &&
+          (!Number.isSafeInteger(requestedLimitBytes) ||
+            requestedLimitBytes < 1)) ||
         blob.bytes > GATEWAY_ASSET_BLOB_MAX_BYTES
       ) {
         throw Object.assign(new Error("invalid library asset"), {
@@ -2706,7 +2721,21 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           /* The quota is shared with site media, whose uploads fence on the owner's row. Take
              that row first here too, the same order as site uploads, so neither can deadlock
              and two uploads cannot both fit into the last free bytes. */
-          await transaction`select id from users where id = ${ownerId} for update`;
+          const owner = one(
+            await transaction<Record<string, unknown>[]>`
+              select id, plan from users where id = ${ownerId} for update
+            `,
+          );
+          if (!owner) {
+            throw Object.assign(new Error("library owner does not exist"), {
+              status: 404,
+              code: "LIBRARY_NOT_FOUND",
+            });
+          }
+          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+          const limitBytes = requestedLimitBytes === null
+            ? planStorageBytes
+            : Math.min(requestedLimitBytes, planStorageBytes);
           const library = one(
             await transaction`
             select owner_id from libraries where id = ${libraryId}::uuid for update
@@ -2760,7 +2789,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           const usedBytes = Number(usedRow?.used || 0);
           if (usedBytes + bytes.byteLength > limitBytes) {
             throw Object.assign(
-              new Error("free account media storage limit reached"),
+              new Error("account media storage limit reached"),
               { status: 409, code: "STORAGE_LIMIT", usedBytes, limitBytes },
             );
           }

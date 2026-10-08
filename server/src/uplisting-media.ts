@@ -5,7 +5,7 @@ import { IntegrationError, type Property } from './cloud-uplisting.ts';
 
 /** Verified Uplisting image hosts: API documentation and current property UI. No provider credential is sent to image hosts. */
 const PHOTO_HOSTS = new Set(['cdn.filestackcontent.com', 'djts5lg061pqs.cloudfront.net']);
-export async function importUplistingCovers(properties: Property[], siteId: string, ownerId: string, assets?: AssetStore, request: typeof fetch = fetch) {
+export async function importUplistingCovers(properties: Property[], siteId: string, ownerId: string, assets?: AssetStore, request: typeof fetch = fetch, limitBytes = FREE_STORAGE_BYTES) {
   if (!properties.some(p => p.values.image)) return properties;
   if (!assets) throw new IntegrationError('The media library is unavailable. Try again before importing photos.');
   const copies = structuredClone(properties), controller = new AbortController();
@@ -36,7 +36,7 @@ export async function importUplistingCovers(properties: Property[], siteId: stri
       if (!await assets.get(siteId, id)) {
         const output = await optimizeImage(bytes, type);
         await assets.put({ id, siteId, name: `uplisting-cover-${hash.slice(0, 8)}.${output.extension}`, type: output.type, bytes: output.bytes, w: output.w, h: output.h, contentHash: hash },
-          { ownerId, limitBytes: FREE_STORAGE_BYTES, originalBytes: bytes.length, optimized: true });
+          { ownerId, limitBytes, originalBytes: bytes.length, optimized: true });
       }
       property.values.image = 'asset:' + id;
     }

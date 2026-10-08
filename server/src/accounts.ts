@@ -1,9 +1,9 @@
 import type { Doc } from '../../app/src/core/types.ts';
-import type { AuthStore } from './auth.ts';
+import type { AccountPlan, AuthStore } from './auth.ts';
 import { slugFrom, validSlug, type Site, type Store } from './store.ts';
 import type { Queryable } from './store-pg.ts';
 import type { PagecraftGateway } from './store-gateway.ts';
-import { FREE_PLAN } from './plans.ts';
+import { FREE_PLAN, planEntitlements } from './plans.ts';
 
 export const OWNED_SITE_LIMIT = FREE_PLAN.ownedSites;
 export type CreateOwnedResult =
@@ -40,8 +40,10 @@ export class MemoryOwnedSiteStore implements OwnedSiteStore {
     this.queues.set(input.ownerId, queued);
     await previous;
     try {
-      if (!await this.auth.userById(input.ownerId)) return { ok: false, reason: 'profile_missing' } as const;
-      if (await this.owned(input.ownerId) >= OWNED_SITE_LIMIT) {
+      const owner = await this.auth.userById(input.ownerId);
+      if (!owner) return { ok: false, reason: 'profile_missing' } as const;
+      const limit = planEntitlements(owner.plan).ownedSites;
+      if (limit !== null && await this.owned(input.ownerId) >= limit) {
         return { ok: false, reason: 'site_limit_reached' } as const;
       }
       const site = await this.store.create({ ...input, savedBy: input.ownerId });
@@ -95,13 +97,14 @@ export class PgOwnedSiteStore implements OwnedSiteStore {
       const client = this.db.connect ? await this.db.connect() : this.db;
       try {
         await client.query('begin');
-        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [input.ownerId]);
+        const owner = await client.query<{ id: string; plan: AccountPlan }>('select id, plan from users where id = $1 for update', [input.ownerId]);
         if (!owner.rows[0]) {
           await client.query('rollback');
           return { ok: false, reason: 'profile_missing' } as const;
         }
         const count = await client.query<{ count: number }>(OWNED_COUNT_SQL, [input.ownerId]);
-        if (Number(count.rows[0]?.count || 0) >= OWNED_SITE_LIMIT) {
+        const limit = planEntitlements(owner.rows[0].plan).ownedSites;
+        if (limit !== null && Number(count.rows[0]?.count || 0) >= limit) {
           await client.query('rollback');
           return { ok: false, reason: 'site_limit_reached' } as const;
         }

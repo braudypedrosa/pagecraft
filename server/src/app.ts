@@ -73,6 +73,7 @@ import {
 import { contentOnly } from "./content.ts";
 import { assertTypedCmsWrite } from "./cms-values.ts";
 import { throttle, type NoticeSender } from "./mail.ts";
+import { planEntitlements } from "./plans.ts";
 import {
   ALLOWED,
   documentAssetIds,
@@ -804,6 +805,10 @@ export function createApp(o: Options) {
       .sort((a, b) => a.userId.localeCompare(b.userId));
     return owners[0]?.userId || null;
   };
+
+  // Shared-site uploads consume the storage owner's allowance, not the collaborator's.
+  const storageLimitForOwner = async (ownerId: string, knownUser?: User) =>
+    planEntitlements((ownerId === knownUser?.id ? knownUser : await o.auth.userById(ownerId))?.plan).storageBytes;
 
   /**
    * Who this person is to this site: one identity check and one membership lookup. `allowed`
@@ -1711,8 +1716,8 @@ export function createApp(o: Options) {
         visibleSites(user),
         o.auth.manualImportsForOwner(user.id),
         o.assets
-          ? o.assets.usage(user.id, FREE_STORAGE_BYTES)
-          : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES },
+          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
       ]);
       return c.html(accountSettingsPage(user, {
         providers: identity.providers || [],
@@ -1856,7 +1861,7 @@ export function createApp(o: Options) {
       role,
     }));
     const storage = o.assets
-      ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
+      ? await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
       : null;
     return c.json({
       user: {
@@ -1965,8 +1970,8 @@ export function createApp(o: Options) {
       const [visible, storage, pendingInvitations] = await Promise.all([
         visibleSites(user),
         o.assets
-          ? o.assets.usage(user.id, FREE_STORAGE_BYTES)
-          : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES },
+          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
         invitations.listForUser(user.id),
       ]);
       const mine = visible.sort((a, b) =>
@@ -2930,9 +2935,11 @@ export function createApp(o: Options) {
     const [storage, wordpressContent, schedules] = await Promise.all([
       (async () => {
         const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
-        return o.assets && mediaOwnerId
-          ? o.assets.usage(mediaOwnerId, FREE_STORAGE_BYTES)
-          : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+        const [usage, limitBytes] = await Promise.all([
+          o.assets && mediaOwnerId ? o.assets.usage(mediaOwnerId) : { usedBytes: 0 },
+          mediaOwnerId ? storageLimitForOwner(mediaOwnerId, gate.user) : FREE_STORAGE_BYTES,
+        ]);
+        return { usedBytes: usage.usedBytes, limitBytes };
       })(),
       wordpressContentForSite(site.id),
       // Local files beside the publication bytes; injected so opening Publish needs no request.
@@ -3002,9 +3009,9 @@ export function createApp(o: Options) {
     const user = await who(c);
     if (!user) return deny(c, 401);
     if (!o.assets) {
-      return c.json({ usedBytes: 0, limitBytes: FREE_STORAGE_BYTES });
+      return c.json({ usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes });
     }
-    return c.json(await o.assets.usage(user.id, FREE_STORAGE_BYTES));
+    return c.json(await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes));
   });
 
   app.get("/api/sites/:id", async (c) => {
@@ -3263,7 +3270,7 @@ export function createApp(o: Options) {
     if (error instanceof AssetQuotaError) {
       return c.json({
         error: "storage_limit_reached", ...error.usage,
-        detail: "Your free account has used its 100 MB media allowance. Remove unused images and try again.",
+        detail: "The storage owner’s media allowance is full. Remove unused images and try again.",
       }, 409);
     }
     throw error;
@@ -3331,7 +3338,7 @@ export function createApp(o: Options) {
     try {
       const version = await publishLibraryVersion({ libraries: gate.libraries, assets: o.assets! }, {
         library: gate.library, siteId, doc: stored.doc, items: items.map(({ kind, id }) => ({ kind, id })),
-        userId: gate.user.id, schemaVersion: CORE_SCHEMA, limitBytes: FREE_STORAGE_BYTES,
+        userId: gate.user.id, schemaVersion: CORE_SCHEMA, limitBytes: await storageLimitForOwner(gate.library.ownerId, gate.user),
       });
       return c.json({ version }, 201);
     } catch (error) {
@@ -3358,7 +3365,7 @@ export function createApp(o: Options) {
     if (!ownerId) return c.json({ error: "this site has no storage owner" }, 409);
     try {
       const assets = await copyLibraryAssetsToSite({ libraries: gate.libraries, assets: o.assets! }, {
-        libraryId: gate.library.id, ids: wanted, siteId: id, ownerId, limitBytes: FREE_STORAGE_BYTES,
+        libraryId: gate.library.id, ids: wanted, siteId: id, ownerId, limitBytes: await storageLimitForOwner(ownerId, site.user),
       });
       return c.json({ assets });
     } catch (error) {
@@ -3996,7 +4003,7 @@ export function createApp(o: Options) {
         if (created.reason === "site_limit_reached") {
           return htmlForm
             ? c.redirect("/?error=limit", 303)
-            : c.json({ error: "site_limit_reached", limit: 3 }, 409);
+            : c.json({ error: "site_limit_reached", limit: planEntitlements(user.plan).ownedSites }, 409);
         }
         return htmlForm ? c.redirect("/?error=account", 303) : c.json({
           error: "profile_missing",
@@ -4670,7 +4677,7 @@ export function createApp(o: Options) {
         contentHash: sha256(bytes),
       }, {
         ownerId,
-        limitBytes: FREE_STORAGE_BYTES,
+        limitBytes: await storageLimitForOwner(ownerId, gate.user),
         originalBytes: file.size,
         optimized: true,
       });
@@ -4680,7 +4687,7 @@ export function createApp(o: Options) {
           error: "storage_limit_reached",
           ...error.usage,
           detail:
-            "Your free account has used its 100 MB media allowance. Remove unused images and try again.",
+            "The storage owner’s media allowance is full. Remove unused images and try again.",
         }, 409);
       }
       throw error;
@@ -7102,7 +7109,7 @@ export function createApp(o: Options) {
         },
         {
           ownerId: connection.createdBy,
-          limitBytes: FREE_STORAGE_BYTES,
+          limitBytes: await storageLimitForOwner(connection.createdBy),
           originalBytes: bytes.byteLength,
           optimized: true,
         },

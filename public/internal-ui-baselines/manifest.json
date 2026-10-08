@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-07T18:41:01.127Z",
+  "capturedAt": "2026-10-08T01:50:17.848Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -25,7 +25,7 @@
     "shared/action-feedback.js": "86bdef865b9bbd177929f953efcfb1eff61205cd5bb035fcbfec5ea9a8a95172",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "0aeaf948d0c57064d31642eeb6de9038329b9927be658b76f3451bb5dc1a9c07",
+    "server/src/account-pages.ts": "ab5e7b04b4cf36c4650280c2b36798d10f9effcf05fdeba3e8a3793cd7a31588",
     "server/src/component-gallery.ts": "f69cce571fb95455cd2f20b6ca09b844c6cfdaef245f4923315b2e7af7ad5602",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
