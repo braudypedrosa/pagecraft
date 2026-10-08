@@ -41,6 +41,22 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     if (!host) return;
     const parent=destination();
     if(host.parentElement!==parent)parent.append(host);
+    const dialog=parent.matches?.('.pc-dialog') ? parent : null;
+    const foot=dialog ? [...dialog.querySelectorAll('.pc-dialog-foot')].filter(node=>
+      !node.closest('[hidden]')&&node.getBoundingClientRect().height>0).at(-1) : null;
+    const dialogBounds=dialog?.getBoundingClientRect();
+    const footBounds=foot?.getBoundingClientRect();
+    if(dialogBounds?.width>160&&dialogBounds.height>0&&footBounds?.height){
+      const body=[...dialog.querySelectorAll('.pc-dialog-body')].find(node=>
+        !node.closest('[hidden]')&&node.getBoundingClientRect().height>0);
+      const bodyBounds=body?.getBoundingClientRect();
+      const inset=12;
+      const top=Math.max(dialogBounds.top+inset,bodyBounds?.top||dialogBounds.top+inset);
+      host.style.right=Math.max(16,window.innerWidth-dialogBounds.right+inset)+'px';
+      host.style.bottom=Math.max(16,window.innerHeight-footBounds.top+inset)+'px';
+      host.style.width=Math.min(420,dialogBounds.width-inset*2)+'px';
+      host.style.maxHeight=Math.max(0,footBounds.top-top-inset)+'px';
+    }else{
     // Keep editor feedback in the canvas, above its zoom controls. Inspector actions
     // remain visible; other Cloud surfaces and dialogs retain their usual placement.
     const stage=parent===document.body ? document.getElementById('stage') : null;
@@ -54,6 +70,7 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
       host.style.maxHeight=Math.max(80,window.innerHeight-Math.max(52,bounds.top)-16-bottom)+'px';
     }else{
       for(const property of ['right','bottom','width','max-height'])host.style.removeProperty(property);
+    }
     }
     if(typeof host.showPopover==='function'&&host.childElementCount){
       host.setAttribute('popover','manual');
@@ -168,8 +185,10 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const restoreFlash = () => { try { const raw=sessionStorage.getItem('pc-action-result'); if(!raw)return;sessionStorage.removeItem('pc-action-result');const value=JSON.parse(raw);if(value.path===location.pathname&&Date.now()-value.at<60000)notify(value.message,{tone:'success',id:'navigation-result'}); } catch {} };
   if(document.body)restoreFlash();else document.addEventListener('DOMContentLoaded',restoreFlash,{once:true});
   const observer = new MutationObserver(changes=>{
-    if(host?.childElementCount && (host.parentElement!==destination() || changes.some(change=>
-      change.target===document.body || ['right','rightAux','stage','modal','ask'].includes(change.target.id))))place();
+    const parent=host?.parentElement;
+    if(host?.childElementCount && (parent!==destination() || changes.some(change=>
+      change.target===document.body || ['right','rightAux','stage','modal','ask'].includes(change.target.id)
+      || (parent?.matches?.('.pc-dialog')&&change.target instanceof Element&&!host.contains(change.target)&&change.target.closest('.pc-dialog')===parent))))place();
   });
   observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','class']});
   window.addEventListener('resize',place);

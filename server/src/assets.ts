@@ -213,12 +213,23 @@ export class MemoryAssetStore implements AssetStore {
       }
       this.quotas.set(id, quota);
     }
-    const rec: Asset = { ...a, id, tags: a.tags || [], metadataVersion: a.metadataVersion || 0, createdAt: a.createdAt || new Date().toISOString() };
+    /* Memory is the local/demo implementation of the same store contract as Postgres and
+       the gateway. Persist the computed quota metadata on the record itself: returning it
+       only from this call made the next list() forget the file size, so local Cloud rendered
+       every server-owned image as the UI's 1 KB fallback. */
+    const rec: Asset = {
+      ...a,
+      id,
+      storedBytes: a.bytes.byteLength,
+      originalBytes: quota?.originalBytes ?? a.originalBytes ?? a.bytes.byteLength,
+      ownerId: quota?.ownerId ?? a.ownerId,
+      optimized: quota?.optimized ?? a.optimized ?? false,
+      tags: a.tags || [],
+      metadataVersion: a.metadataVersion || 0,
+      createdAt: a.createdAt || new Date().toISOString(),
+    };
     this.all.set(id, rec);
-    const { bytes: _bytes, ...meta } = rec;
-    return { ...meta, storedBytes: rec.bytes.byteLength,
-      originalBytes: quota?.originalBytes, ownerId: quota?.ownerId,
-      optimized: quota?.optimized };
+    return metaOfRecord(rec);
   }
   async putConnected(a: Omit<Asset, 'id'> & { id: string }, _connectionId: string,
     active?: () => Promise<boolean>, quota?: AssetQuota) {

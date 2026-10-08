@@ -20,7 +20,8 @@ import { FileSubmissionStore } from '../server/src/submissions.ts';
 if (!process.argv.includes('--local-only') || process.env.NODE_ENV === 'production') {
   throw new Error('Explicit --local-only required; this is never a production server');
 }
-const port = 4949;
+const port = Number(process.env.TEMPLATE_QA_PORT || 4949);
+if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid local QA port');
 const templates = new FileSiteTemplateStore(process.env.TEMPLATE_ACCEPTANCE_CATALOG || new URL('../premade-sites/', import.meta.url).pathname);
 const latest = latestSiteTemplates(await templates.list());
 const fixtures = new Map(latest.map(template => [template.id, {

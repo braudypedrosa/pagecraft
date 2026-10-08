@@ -7,6 +7,25 @@ import { blankDoc } from '../src/render.ts';
 import type { AccountAuth } from '../src/account-auth.ts';
 import * as C from '../../app/src/core/index.ts';
 
+/* Publishing freezes renderer-selected Google fonts. This lifecycle test exercises CMS
+   snapshots, not Google's availability, so keep its release bytes deterministic and offline.
+   A live fetch made a later publish intermittently fail with publication_compile_failed in CI. */
+const fontCss = `/* latin */
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:400;font-display:swap;
+src:url(https://fonts.gstatic.com/s/dmsans/v1/cms-lifecycle.woff2) format('woff2');unicode-range:U+0000-00FF}`;
+const fontFetch = (async (input: string | URL | Request) => {
+  const url = new URL(input instanceof Request ? input.url : String(input));
+  if (url.hostname === 'fonts.googleapis.com') {
+    return new Response(fontCss, { headers: { 'content-type': 'text/css' } });
+  }
+  if (url.href === 'https://fonts.gstatic.com/s/dmsans/v1/cms-lifecycle.woff2') {
+    return new Response(new TextEncoder().encode('wOF2-cms-lifecycle'), {
+      headers: { 'content-type': 'font/woff2' },
+    });
+  }
+  return new Response('missing', { status: 404 });
+}) as typeof fetch;
+
 test('CMS HTTP lifecycle protects drafts, versions, ownership and published snapshots', async () => {
   const store = new MemoryStore(),
     auth = new MemoryAuthStore(),
@@ -94,6 +113,7 @@ test('CMS HTTP lifecycle protects drafts, versions, ownership and published snap
     editorHost: 'builder.test',
     editorOrigin: 'https://builder.test',
     editorHtml: '<title>CMS QA</title>',
+    fontFetch,
   });
   const req = (path: string, body?: unknown, method = body ? 'POST' : 'GET') =>
     app.request('https://builder.test' + path, {
@@ -147,7 +167,8 @@ test('CMS HTTP lifecycle protects drafts, versions, ownership and published snap
   ).toBe(403);
   expect((await publish()).status).toBe(403);
   identity = ownerIdentity;
-  expect((await publish()).status).toBe(200);
+  const republished = await publish();
+  expect(republished.status, await republished.clone().text()).toBe(200);
   expect(await (await req('/cms-qa/')).text()).toContain('Draft edit');
   expect((await req('/cms-qa/cabins/cabin-b')).status).toBe(404);
   identity = editorIdentity;

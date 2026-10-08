@@ -76,7 +76,11 @@ const rig = async (assets: StorageCompatibleAssetStore, siteTemplates: SiteTempl
     },
     body: JSON.stringify(body),
   }));
-  return { store, owner, request };
+  const listAssets = (siteId: string) => app.request(new Request(
+    `http://admin.test/api/sites/${encodeURIComponent(siteId)}/assets`,
+    { headers: { host: "admin.test" } },
+  ));
+  return { store, owner, request, listAssets };
 };
 
 test("Common Ground prepares raw package PNGs for storage and owner accounting", async () => {
@@ -88,7 +92,7 @@ test("Common Ground prepares raw package PNGs for storage and owner accounting",
   const originals = new Map(source.assets.map(asset => [asset.name.replace(/\.png$/i, ".webp"), asset]));
 
   const assets = new StorageCompatibleAssetStore();
-  const { store, owner, request } = await rig(assets, siteTemplates);
+  const { store, owner, request, listAssets } = await rig(assets, siteTemplates);
   const response = await request({
     name: "Common Ground",
     templateId: "architecture-studio",
@@ -122,6 +126,25 @@ test("Common Ground prepares raw package PNGs for storage and owner accounting",
     usedBytes: storedBytes,
     limitBytes: 100 * 1024 * 1024,
   });
+
+  const listedResponse = await listAssets(site.id);
+  a.equal(listedResponse.status, 200, await listedResponse.clone().text());
+  const listed = await listedResponse.json() as Array<{
+    id: string;
+    storedBytes?: number;
+    originalBytes?: number;
+    optimized?: boolean;
+  }>;
+  a.equal(listed.length, assets.writes.length);
+  for (const write of assets.writes) {
+    const row = listed.find(candidate => candidate.id === write.asset.id);
+    a.ok(row, `the media API lists installed template asset ${write.asset.id}`);
+    a.equal(row.storedBytes, write.asset.bytes.byteLength,
+      "the media API retains the optimized file size after the initial write");
+    a.equal(row.originalBytes, write.quota?.originalBytes,
+      "the media API retains the package source size separately");
+    a.equal(row.optimized, true);
+  }
 }, 30_000);
 
 test("a prepared template asset write failure rolls back the site and completed media", async () => {

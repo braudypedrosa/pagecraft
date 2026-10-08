@@ -31,6 +31,43 @@ test('editor notices fit inside the available canvas and clear its zoom controls
  expect(notices.style.right).toBe('');
  expect(notices.style.width).toBe('');
 });
+test('active shared dialogs keep notices above wrapping footer actions and restore body placement on close',async()=>{
+ document.body.insertAdjacentHTML('beforeend','<dialog class="pc-dialog" open><form class="pc-dialog-form"><header class="pc-dialog-head">Publish</header><div class="pc-dialog-body">Review</div><footer class="pc-dialog-foot"><button>Cancel</button><button>Publish site</button></footer></form></dialog>');
+ const dialog=document.querySelector<HTMLDialogElement>('.pc-dialog')!;
+ const body=dialog.querySelector<HTMLElement>('.pc-dialog-body')!;
+ const foot=dialog.querySelector<HTMLElement>('.pc-dialog-foot')!;
+ vi.spyOn(dialog,'getBoundingClientRect').mockReturnValue({x:280,y:45,left:280,top:45,right:1160,bottom:965,width:880,height:920,toJSON:()=>({})});
+ vi.spyOn(body,'getBoundingClientRect').mockReturnValue({x:280,y:120,left:280,top:120,right:1160,bottom:912.95,width:880,height:792.95,toJSON:()=>({})});
+ let footBounds={x:280,y:912.95,left:280,top:912.95,right:1160,bottom:965,width:880,height:52.05,toJSON:()=>({})};
+ vi.spyOn(foot,'getBoundingClientRect').mockImplementation(()=>footBounds);
+ Object.defineProperty(window,'innerWidth',{configurable:true,value:1440});
+ Object.defineProperty(window,'innerHeight',{configurable:true,value:1000});
+
+ installActionFeedback().notify('Site published.',{tone:'success'});
+ const notices=dialog.querySelector<HTMLElement>('#pc-notifications')!;
+ expect(notices.parentElement).toBe(dialog);
+ expect(parseFloat(notices.style.right)).toBe(292);
+ expect(parseFloat(notices.style.bottom)).toBeCloseTo(99.05);
+ expect(parseFloat(notices.style.width)).toBe(420);
+ expect(parseFloat(notices.style.maxHeight)).toBeCloseTo(780.95);
+ const noticeLeft=window.innerWidth-parseFloat(notices.style.right)-parseFloat(notices.style.width);
+ const noticeBottom=window.innerHeight-parseFloat(notices.style.bottom);
+ expect(noticeLeft).toBeGreaterThanOrEqual(292);
+ expect(noticeBottom).toBeCloseTo(900.95);
+ expect(footBounds.top-noticeBottom).toBeCloseTo(12);
+
+ footBounds={...footBounds,y:850,top:850,height:115,bottom:965};
+ foot.append(document.createElement('span'));await Promise.resolve();
+ expect(parseFloat(notices.style.bottom)).toBe(162);
+ expect(parseFloat(notices.style.maxHeight)).toBe(718);
+
+ dialog.removeAttribute('open');await Promise.resolve();
+ expect(document.querySelector('#pc-notifications')?.parentElement).toBe(document.body);
+ expect(notices.style.right).toBe('');
+ expect(notices.style.bottom).toBe('');
+ expect(notices.style.width).toBe('');
+ expect(notices.style.maxHeight).toBe('');
+});
 test('pending actions prevent duplicate requests and restore the original icon and accessible name on failure',()=>{
  const feedback=installActionFeedback(), original=button().innerHTML;
  button().setAttribute('aria-label','Save this collection');
