@@ -1,0 +1,28 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent vacation-rental hosts using the existing Marea template",
+    "primaryAction": "Preserve the approved Marea site while correcting confirmed accessibility findings",
+    "pages": [
+      "index",
+      "stays",
+      "stone-cove-house",
+      "pine-court-house",
+      "harbor-studio",
+      "garden-casita",
+      "services",
+      "about",
+      "contact"
+    ],
+    "content": "Preserve Marea composition and native IDs. Correct muted contrast, Stays image loading and property heading order. Replace false endpoint setup claims with host-neutral destination and receipt guidance; an inquiry does not confirm availability or a reservation.",
+    "imagery": "Reuse the seven released Marea assets without substitution.",
+    "provenance": []
+  },
+  "directions": [],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

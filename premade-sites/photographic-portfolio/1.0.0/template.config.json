@@ -1,0 +1,22 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "photographic-portfolio",
+  "version": "1.0.0",
+  "name": "Photographic Portfolio",
+  "sampleName": "Noor Vale",
+  "description": "A five-page documentary photography portfolio with sequenced series, field notes and commission guidance.",
+  "categories": [
+    "Photography",
+    "Portfolio"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "coastal-road", "file": "assets/coastal-road.png" },
+    { "id": "tidal-river", "file": "assets/tidal-river.png" },
+    { "id": "craftsperson", "file": "assets/craftsperson.png" }
+  ],
+  "customCssPolicy": "native-only"
+}

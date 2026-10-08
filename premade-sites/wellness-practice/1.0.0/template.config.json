@@ -1,0 +1,22 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "wellness-practice",
+  "version": "1.0.0",
+  "name": "Wellness Practice",
+  "sampleName": "Still Day Practice",
+  "description": "A calm five-page wellness practice template with services, visit expectations, practitioners and inquiry.",
+  "categories": [
+    "Wellness",
+    "Professional services"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "room", "file": "assets/room.png" },
+    { "id": "practitioner", "file": "assets/practitioner.png" },
+    { "id": "garden-walk", "file": "assets/garden-walk.png" }
+  ],
+  "customCssPolicy": "native-only"
+}

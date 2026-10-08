@@ -1,0 +1,27 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent strategy and service advisory studios explaining work to prospective organizational clients",
+    "primaryAction": "Understand the service approach and send a scoped inquiry",
+    "pages": ["index", "services", "case-studies", "approach", "inquiry"],
+    "content": "Fictional North Measure studio. Service scopes and case notes are examples without invented clients, outcomes, awards or endorsements. Inquiry delivery remains unconfigured.",
+    "imagery": "Generated documentary studio, workshop and civic service scenes with a charcoal, paper and cobalt identity; original vector logo.",
+    "provenance": [
+      {"asset":"logo","source":"Original SVG authored for North Measure in this template directory, 2026-10-08","license":"Original template artwork; fictional mark with no third-party trademark claim."},
+      {"asset":"worktable","source":"OpenAI image generation, 2026-10-08, exec-e95ccd0c-5f91-4fa0-a62c-d3fd54db0c6f.png","license":"AI-generated demonstration scene; no real client materials."},
+      {"asset":"workshop","source":"OpenAI image generation, 2026-10-08, exec-238897ec-55e0-4a53-b835-2e1a0367ba60.png","license":"AI-generated demonstration workshop; no real participants or engagement."},
+      {"asset":"library","source":"OpenAI image generation, 2026-10-08, exec-b3f1cc34-70aa-4ed3-8033-9dc9f55d71fa.png","license":"AI-generated demonstration civic interior; not a real institution or client."}
+    ]
+  },
+  "directions": [
+    {"id":"decision-table","thesis":"A sharp editorial studio organized around the decisions clients need to make, with working materials as the visual anchor.","fingerprint":{"header":"white rule with cobalt geometric logo","hero":"typographic thesis beside worktable","textAnchor":"left-aligned compact sans","inventory":"three-part service ledger","cta":"scoped inquiry form","footer":"charcoal utility bar"},"comparison":"Selected as the concrete authored draft because it avoids generic consultancy proof claims and makes method and scope legible. Awaiting user review.","sections":[{"purpose":"Frame the studio around a real decision","archetype":"thesis-worktable-split","composition":"large statement beside documentary still life","typography":"heavy modern sans with cobalt label","imagery":"maps and working papers","action":"Explore the approach"},{"purpose":"Explain service paths without card repetition","archetype":"service-ledger","composition":"open rows with scope and example outputs","typography":"three reading roles","imagery":"none","action":"Open service details"}]},
+    {"id":"civic-observer","thesis":"A field-led direction that begins with public environments and reads like an evidence notebook.","fingerprint":{"header":"compact blue masthead","hero":"civic interior with attached caption","textAnchor":"caption-led lower edge","inventory":"case-note chapters","cta":"problem statement prompt","footer":"paper colophon"},"comparison":"More observational and case-led than Decision Table; retained as an unselected fingerprint only.","sections":[{"purpose":"Show attention to real service environments","archetype":"field-image-caption","composition":"wide civic scene with narrow analysis","typography":"editorial caption system","imagery":"fictional library service environment","action":"Read case note"},{"purpose":"Explain evidence handling","archetype":"case-chapter","composition":"question, method and honest endpoint","typography":"stacked subheads","imagery":"none","action":"Discuss a similar question"}]},
+    {"id":"working-session","thesis":"A facilitation-led direction centered on people sorting, deciding and leaving a usable record.","fingerprint":{"header":"dark bar with reverse mark","hero":"overhead workshop scene","textAnchor":"bottom-right white stack","inventory":"process timeline","cta":"session inquiry","footer":"blue closing band"},"comparison":"More collaborative and session-led than Decision Table; retained as an unselected fingerprint only.","sections":[{"purpose":"Show the work in motion","archetype":"workshop-overhead","composition":"edge-to-edge table process with overlay","typography":"reverse compact sans","imagery":"collaborators and blank cards","action":"See the working rhythm"},{"purpose":"Make the method transparent","archetype":"process-divider-list","composition":"four open stages without counters","typography":"plain action-led subheads","imagery":"none","action":"Start an inquiry"}]}
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

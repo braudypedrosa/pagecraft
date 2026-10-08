@@ -1,0 +1,22 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "advisory-studio",
+  "version": "1.0.0",
+  "name": "Advisory Studio",
+  "sampleName": "North Measure",
+  "description": "A five-page advisory studio template with services, case notes, approach and inquiry.",
+  "categories": [
+    "Professional services",
+    "Consulting"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "worktable", "file": "assets/worktable.png" },
+    { "id": "workshop", "file": "assets/workshop.png" },
+    { "id": "library", "file": "assets/library.png" }
+  ],
+  "customCssPolicy": "native-only"
+}

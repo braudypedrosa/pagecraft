@@ -1,0 +1,61 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent holiday-home hosts using Salt House",
+    "primaryAction": "Preserve the existing coastal composition while improving Coast contrast, Home heading wrapping, and host-neutral inquiry setup guidance",
+    "pages": [
+      "index",
+      "homes",
+      "dune-house",
+      "blue-shutter-cottage",
+      "coast",
+      "plan-your-stay"
+    ],
+    "content": "Keep released content, media and identities. Change the Coast photo shade opacity from .34 to .65, let the Home heading use its available column width with a balanced native tablet grid, and replace false inquiry connection statements with host-neutral destination and receipt-test guidance. Keep the no-live-availability and no-reservation-service claims.",
+    "imagery": "Reuse seven immutable Salt House assets.",
+    "provenance": [
+      {
+        "asset": "terrace",
+        "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-f6514c50-8ac0-4943-b5fd-04bc4360350e.png; source PNG SHA-256 b601ca85681e1a65d24e6c8c12c2536402b9eaf0a134dae01d8b05b2b2f61ec6",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "cottage",
+        "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-0aaa59b2-5026-496b-bcd4-f640fdd7031c.png; source PNG SHA-256 329ae0ba31572e81a01025d6f0b751a15f044e2cb7cb37169b0b7a394a0958fc",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "exterior",
+        "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-1327b140-f37b-4281-b01b-a63e5bc5c604.png; source PNG SHA-256 22e8e1f0254144d86299179d4feb5741279410bd892b15fc2b4931df3e9824fd",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "bedroom",
+        "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-8a90544a-a056-465a-93c0-2f8cc7d2ef06.png; source PNG SHA-256 a92799c00a8665f80147c117627ae0ff20e545b57ad449280e386ea5d701456f",
+        "license": "AI-generated demonstration scene, not a real listing or third-party photograph."
+      },
+      {
+        "asset": "cove",
+      "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-bde2d468-156e-4ad1-8818-b61f6bb06ae4.png; source PNG SHA-256 fbe8c5efbf90388774109e72bf4ab9c79fd9156e1d4965b24362daca8d71e637",
+        "license": "AI-generated fictional demonstration scene, not a real property."
+      },
+      {
+        "asset": "lunch",
+      "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-56632be5-6a68-44e4-9cc1-7458c79801b1.png; source PNG SHA-256 93b5fa2a8c34baa6eeb71a8ffab9d828f996bbdd975d7b868709cc7db163713e",
+        "license": "AI-generated fictional demonstration scene, not a real property."
+      },
+      {
+        "asset": "evening",
+      "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-fdb69029-dba5-457d-94f8-82417032e980.png; source PNG SHA-256 4d836a452773163b0f001566788013cc1bcffe39d0571baef34a25d5aea55437",
+        "license": "AI-generated fictional coastal scene."
+      }
+    ]
+  },
+  "directions": [],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

@@ -1,0 +1,36 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent architecture practices presenting residential and adaptive reuse work to prospective clients",
+    "primaryAction": "Present architecture projects and receive inquiries through a verified destination",
+    "pages": [
+      "index",
+      "projects",
+      "project-detail",
+      "about",
+      "services",
+      "contact"
+    ],
+    "content": "Preserve released native pages, assets and identities. Reduce the Home tablet H1 to 36px for long-word readability, and replace false unconnected-form copy with host-neutral destination and receipt guidance.",
+    "imagery": "Courtyard exterior explains enclosure and light; reading room interior explains adaptive reuse. Same two images across alternatives enable comparison of composition.",
+    "provenance": [
+      {
+        "asset": "courtyard-house",
+        "source": "OpenAI image generation, 2026-09-07, task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-9b9df3e0-bdc9-414f-84bd-88b24d055e9a.png",
+        "license": "AI-generated demonstration imagery; no claim of real architectural authorship or third-party photographer attribution."
+      },
+      {
+        "asset": "reading-room",
+        "source": "OpenAI image generation, 2026-09-07, task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-af12b493-1a8a-4f43-81e4-e5ade4d1bb9c.png",
+        "license": "AI-generated demonstration imagery; no claim of real architectural authorship or third-party photographer attribution."
+      }
+    ]
+  },
+  "directions": [],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}
