@@ -435,8 +435,15 @@ export function createApp(o: Options) {
   app.use('*', async (c, next) => {
     const trace = newRequestTiming();
     await requestTiming.run(trace, next);
-    if (isEditorHost(c.req.header('host'), o) && /^\/(edit|api|sites)(\/|$)/.test(new URL(c.req.url).pathname)) {
+    const editorTiming = isEditorHost(c.req.header('host'), o) &&
+      /^\/(edit|api|sites)(\/|$)/.test(new URL(c.req.url).pathname);
+    const publicationTiming = trace.spans.some((span) =>
+      span.name.startsWith('publication.')
+    );
+    if (editorTiming || publicationTiming) {
       c.header('Server-Timing', timingHeader(trace));
+    }
+    if (editorTiming) {
       c.header('X-Request-ID', trace.id);
     }
   });

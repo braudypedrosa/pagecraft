@@ -87,6 +87,26 @@ export interface HostedPublicationStore {
   ): Promise<void>;
 }
 
+export type PublicationStoreTimingEvent = {
+  name:
+    | "route.pointer.read"
+    | "route.pointer.decode"
+    | "route.alias.read"
+    | "route.alias.decode"
+    | "route.deleted.stat"
+    | "manifest.read"
+    | "manifest.decode"
+    | "file.stat"
+    | "file.read"
+    | "file.hash";
+  durationMs: number;
+  outcome: "ok" | "missing" | "invalid" | "error";
+};
+
+export type PublicationStoreTimingSink = (
+  event: PublicationStoreTimingEvent,
+) => void;
+
 const sha256 = (bytes: Uint8Array | string) =>
   createHash("sha256").update(bytes).digest("hex");
 
@@ -361,12 +381,86 @@ export class MemoryHostedPublicationStore implements HostedPublicationStore {
 
 export class FileHostedPublicationStore implements HostedPublicationStore {
   private readonly root: string;
+  private readonly timing?: PublicationStoreTimingSink;
+  private readonly now: () => number;
 
-  constructor(root: string) {
+  constructor(
+    root: string,
+    options: { timing?: PublicationStoreTimingSink; now?: () => number } = {},
+  ) {
     if (!root || !resolve(root).startsWith("/")) {
       throw new Error("PAGECRAFT_PUBLICATION_ROOT must be an absolute path");
     }
     this.root = resolve(root);
+    this.timing = options.timing;
+    this.now = options.now || (() => performance.now());
+  }
+
+  private emitTiming(
+    name: PublicationStoreTimingEvent["name"],
+    started: number,
+    outcome: PublicationStoreTimingEvent["outcome"],
+  ) {
+    if (!this.timing) return;
+    try {
+      this.timing({
+        name,
+        durationMs: Math.max(0, this.now() - started),
+        outcome,
+      });
+    } catch {
+      /* Diagnostics must never affect publication availability. */
+    }
+  }
+
+  private async observe<T>(
+    name: PublicationStoreTimingEvent["name"],
+    work: () => Promise<T>,
+    outcomeFor: (value: T) => PublicationStoreTimingEvent["outcome"] = () =>
+      "ok",
+  ): Promise<T> {
+    if (!this.timing) return work();
+    let started: number;
+    try {
+      started = this.now();
+    } catch {
+      return work();
+    }
+    try {
+      const value = await work();
+      this.emitTiming(name, started, outcomeFor(value));
+      return value;
+    } catch (error) {
+      this.emitTiming(
+        name,
+        started,
+        (error as NodeJS.ErrnoException).code === "ENOENT" ? "missing" : "error",
+      );
+      throw error;
+    }
+  }
+
+  private observeSync<T>(
+    name: PublicationStoreTimingEvent["name"],
+    work: () => T,
+    outcomeFor: (value: T) => PublicationStoreTimingEvent["outcome"] = () =>
+      "ok",
+  ): T {
+    if (!this.timing) return work();
+    let started: number;
+    try {
+      started = this.now();
+    } catch {
+      return work();
+    }
+    try {
+      const value = work();
+      this.emitTiming(name, started, outcomeFor(value));
+      return value;
+    } catch (error) {
+      this.emitTiming(name, started, "invalid");
+      throw error;
+    }
   }
 
   private publicationRoot(siteId: string, publicationId: string) {
@@ -401,7 +495,10 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
 
   private async deleted(siteId: string) {
     try {
-      await stat(this.deletionPath(siteId));
+      await this.observe(
+        "route.deleted.stat",
+        () => stat(this.deletionPath(siteId)),
+      );
       return true;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false;
@@ -473,17 +570,23 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
   async byId(siteId: string, publicationId: string) {
     if (!/^[0-9a-f-]{36}$/i.test(publicationId)) return null;
     try {
-      const value = JSON.parse(
-        decoder.decode(
-          await readFile(
-            join(this.publicationRoot(siteId, publicationId), "manifest.json"),
-          ),
+      const bytes = await this.observe(
+        "manifest.read",
+        () => readFile(
+          join(this.publicationRoot(siteId, publicationId), "manifest.json"),
         ),
       );
-      return validSummary(value) && value.siteId === siteId &&
-          value.id === publicationId
-        ? value
-        : null;
+      return this.observeSync(
+        "manifest.decode",
+        () => {
+          const value = JSON.parse(decoder.decode(bytes));
+          return validSummary(value) && value.siteId === siteId &&
+              value.id === publicationId
+            ? value
+            : null;
+        },
+        (value) => value ? "ok" : "invalid",
+      );
     } catch {
       return null;
     }
@@ -518,13 +621,22 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
 
   private async current(kind: "slug" | "host", value: string) {
     try {
-      const pointer = JSON.parse(
-        decoder.decode(await readFile(this.pointerPath(kind, value))),
-      ) as {
-        siteId?: string;
-        publicationId?: string;
-        value?: string;
-      };
+      const pointerBytes = await this.observe(
+        "route.pointer.read",
+        () => readFile(this.pointerPath(kind, value)),
+      );
+      const pointer = this.observeSync(
+        "route.pointer.decode",
+        () => JSON.parse(decoder.decode(pointerBytes)) as {
+          siteId?: string;
+          publicationId?: string;
+          value?: string;
+        },
+        (pointer) => pointer.value === value.toLowerCase() &&
+            !!pointer.siteId && !!pointer.publicationId
+          ? "ok"
+          : "invalid",
+      );
       if (
         pointer.value !== value.toLowerCase() || !pointer.siteId ||
         !pointer.publicationId
@@ -549,7 +661,14 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
 
   private async aliases(siteId: string): Promise<{ slug?: string; host?: string; publicationId?: string } | null> {
     try {
-      return JSON.parse(decoder.decode(await readFile(this.siteAliasPath(siteId))));
+      const bytes = await this.observe(
+        "route.alias.read",
+        () => readFile(this.siteAliasPath(siteId)),
+      );
+      return this.observeSync(
+        "route.alias.decode",
+        () => JSON.parse(decoder.decode(bytes)),
+      );
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
       throw error;
@@ -675,10 +794,24 @@ export class FileHostedPublicationStore implements HostedPublicationStore {
       path,
     );
     try {
-      const info = await stat(location);
+      const info = await this.observe(
+        "file.stat",
+        () => stat(location),
+        (value) => value.isFile() && value.size === record.bytes
+          ? "ok"
+          : "invalid",
+      );
       if (!info.isFile() || info.size !== record.bytes) return null;
-      const bytes = new Uint8Array(await readFile(location));
-      return sha256(bytes) === record.sha256 ? bytes : null;
+      const bytes = new Uint8Array(await this.observe(
+        "file.read",
+        () => readFile(location),
+      ));
+      const valid = this.observeSync(
+        "file.hash",
+        () => sha256(bytes) === record.sha256,
+        (value) => value ? "ok" : "invalid",
+      );
+      return valid ? bytes : null;
     } catch {
       return null;
     }

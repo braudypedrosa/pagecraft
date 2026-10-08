@@ -49,6 +49,7 @@ import { FilePublicationScheduleStore } from "./schedules.ts";
 import { runDueSchedules } from "./schedule-runner.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
 import { validateStagingEnvironment } from "./staging-environment.ts";
+import { recordTiming } from "./request-timing.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
@@ -199,7 +200,10 @@ if (!publicationRoot) {
     "production requires PAGECRAFT_PUBLICATION_ROOT for immutable hosted publications",
   );
 }
-const publications = new FileHostedPublicationStore(publicationRoot);
+const publications = new FileHostedPublicationStore(publicationRoot, {
+  timing: ({ name, durationMs, outcome }) =>
+    recordTiming(`publication.${name}.${outcome}`, durationMs),
+});
 // A sibling private directory survives deployments and is isolated by environment.
 const cloudIntegrations = { connections: new FileCloudConnectionStore(resolve(publicationRoot) + "-integrations"), client: new UplistingClient() };
 const supabaseUrl = process.env.SUPABASE_URL;
