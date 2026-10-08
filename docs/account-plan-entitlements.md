@@ -22,7 +22,7 @@ Being invited to another person’s site does not consume the creation allowance
 Media uploads, connected WordPress uploads, Uplisting cover imports, library publication,
 and library imports use the storage owner’s allowance. Durable gateway and Postgres writes
 read the owner’s plan under the quota lock; a supplied quota can only reduce its cap.
-Existing curated-template images remain exempt as before. Authentication, rate limits,
+Curated-template installation retains its existing media ownership and accounting. Authentication, rate limits,
 file size checks, document limits, and invitation permissions remain independent of plans.
 
 For a private assignment, resolve the exact signed-in profile and confirmed Auth identity,
