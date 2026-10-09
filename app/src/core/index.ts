@@ -6865,6 +6865,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
 .pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:calc(100dvh - var(--nav-top,0px));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
 .pagecraft-mobile-menu::backdrop{background:rgba(0,0,0,.18)}
+.pagecraft-mobile-menu[data-layout=dropdown]::backdrop{background:transparent;pointer-events:none}
 .pagecraft-mobile-menu[data-layout=fullscreen]{inset:0;height:100dvh;max-height:none;display:flex;flex-direction:column;gap:24px}
 .pagecraft-mobile-menu-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
 .pagecraft-mobile-menu-close{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;padding:0;border:1px solid currentColor;border-radius:50%;color:inherit;background:transparent;cursor:pointer}
@@ -7905,28 +7906,36 @@ function set(o,restore){
  if(o===!!dialog)return;
  if(o){
   if(getComputedStyle(b).display==='none')return;
-  dialog=document.createElement('dialog');dialog.className='pagecraft-mobile-menu';
-  dialog.dataset.layout=w.dataset.mobileMenu==='fullscreen'?'fullscreen':'dropdown';
+  var fullscreen=w.dataset.mobileMenu==='fullscreen';
+  dialog=document.createElement(fullscreen?'dialog':'div');dialog.className='pagecraft-mobile-menu';
+  dialog.dataset.layout=fullscreen?'fullscreen':'dropdown';
+  if(!fullscreen){dialog.setAttribute('popover','manual');dialog.setAttribute('role','navigation');}
   dialog.setAttribute('aria-label',(w.getAttribute('aria-label')||'Navigation')+' menu');
   var head=document.createElement('div');head.className='pagecraft-mobile-menu-head';
   var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
   var close=document.createElement('button');close.type='button';close.className='pagecraft-mobile-menu-close';close.setAttribute('aria-label','Close menu');
   close.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg>';
-  head.append(label,close);content.hidden=false;dialog.append(head,content);w.append(dialog);position();
+  head.append(label,close);content.hidden=false;if(fullscreen)dialog.append(head);dialog.append(content);w.append(dialog);position();
   overflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';
   w.classList.add('is-open');b.setAttribute('aria-expanded','true');
   close.addEventListener('click',function(){set(false,true);});
   dialog.addEventListener('cancel',function(e){e.preventDefault();set(false,true);});
   dialog.addEventListener('click',function(e){var r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))set(false,true);});
-  dialog.addEventListener('close',function(){if(dialog)set(false,true);});
-  dialog.showModal();
+  var opened=dialog;
+  dialog.addEventListener('close',function(){if(dialog===opened)set(false,true);});
+  if(fullscreen)dialog.showModal();
+  else if(dialog.showPopover)dialog.showPopover();
+  else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
  }else{
-  var old=dialog;dialog=null;anchor.after(content);if(content!==list)content.hidden=true;old.close();old.remove();
+  var old=dialog;dialog=null;anchor.after(content);if(content!==list)content.hidden=true;if(old.dataset.layout==='fullscreen')old.close();else if(old.hidePopover)old.hidePopover();old.remove();
   document.documentElement.style.overflow=overflow;w.classList.remove('is-open');b.setAttribute('aria-expanded','false');
   if(restore)b.focus();
  }
 }
 b.addEventListener('click',function(e){e.stopPropagation();set(!dialog,true);});
+document.addEventListener('keydown',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&e.key==='Escape'){e.preventDefault();set(false,true);}});
+document.addEventListener('click',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
+document.addEventListener('focusin',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
 Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
 window.addEventListener('resize',function(){if(dialog){if(getComputedStyle(b).display==='none')set(false,false);else position();}});
 });})();

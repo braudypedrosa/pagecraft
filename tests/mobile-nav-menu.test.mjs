@@ -17,10 +17,12 @@ function runtime(props = {}) {
   // the standard open/close lifecycle so the nav cleanup can be exercised here.
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true; this.querySelector('button')?.focus(); };
   w.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new w.Event('close')); };
+  w.HTMLElement.prototype.showPopover = function () { this.dataset.testOpen = 'true'; };
+  w.HTMLElement.prototype.hidePopover = function () { delete this.dataset.testOpen; };
   d.querySelector('header').getBoundingClientRect = () => ({ bottom: 72 });
   w.eval(C.NAV_JS.replace(/^<script>\s*/, '').replace(/<\/script>\s*$/, ''));
   const nav = d.querySelector('[data-nav]'), toggle = nav.querySelector('[data-nav-t]'), list = nav.querySelector('[data-nav-l]');
-  return { w, d, nav, toggle, list, dialog: () => nav.querySelector('dialog') };
+  return { w, d, nav, toggle, list, dialog: () => nav.querySelector('.pagecraft-mobile-menu') };
 }
 
 for (const [label, props, expected] of [
@@ -33,7 +35,7 @@ for (const [label, props, expected] of [
     expect(nav.dataset.mobileMenu).toBe(expected);
     toggle.click();
     expect(dialog().dataset.layout).toBe(expected);
-    expect(dialog().open).toBe(true);
+    expect(dialog().open || dialog().dataset.testOpen === 'true').toBe(true);
     expect(dialog().getAttribute('aria-label')).toBe('Primary menu');
     expect(dialog().contains(list)).toBe(true);
     expect(list.querySelector('.sub-menu a').textContent).toBe('Courtyard');
@@ -84,7 +86,7 @@ test('resizing across the collapse breakpoint closes the dialog and desktop cann
   expect(dialog()).toBeNull();
   toggle.style.display = 'flex';
   toggle.click();
-  expect(dialog().open).toBe(true);
+  expect(dialog().open || dialog().dataset.testOpen === 'true').toBe(true);
 });
 
 
@@ -159,7 +161,7 @@ test('custom panel opens in the dialog and returns hidden to its original place 
   expect([...content.children]).toEqual(children);
   expect(d.documentElement.style.overflow).toBe('clip');
   toggle.click();
-  dialog().querySelector('button').click();
+  toggle.click();
   expect(content.hidden).toBe(true);
   expect(content.parentElement).toBe(nav);
 });
@@ -171,3 +173,24 @@ test('legacy navigation inspector reads the same default as the renderer', () =>
   n.props.mobileMenu = 'fullscreen';
   expect(C.propVal(n, 'mobileMenu')).toBe('fullscreen');
 });
+
+for (const action of ['header toggle', 'Escape', 'outside click', 'focus leaves navigation']) {
+  test(`dropdown uses only the header close control and closes on ${action}`, () => {
+    const { w, d, toggle, dialog, list } = runtime();
+    toggle.focus(); toggle.click();
+    expect(dialog().tagName).toBe('DIV');
+    expect(dialog().getAttribute('popover')).toBe('manual');
+    expect(dialog().querySelector('.pagecraft-mobile-menu-head')).toBeNull();
+    expect(dialog().querySelector('.pagecraft-mobile-menu-close')).toBeNull();
+    expect(d.activeElement).toBe(toggle);
+    expect(d.querySelector('header').inert).not.toBe(true);
+    if (action === 'header toggle') toggle.click();
+    if (action === 'Escape') d.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    if (action === 'outside click') d.body.click();
+    if (action === 'focus leaves navigation') { const input = d.createElement('input'); d.body.append(input); input.focus(); }
+    expect(dialog()).toBeNull();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(list.parentElement.hasAttribute('data-nav')).toBe(true);
+    expect(d.documentElement.style.overflow).toBe('clip');
+  });
+}
