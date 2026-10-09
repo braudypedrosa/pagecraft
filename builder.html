@@ -132,6 +132,7 @@ input,select,textarea{font:inherit;color:inherit}
 .pc-preview-state{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;padding:8px 0;font-size:var(--fs-2);color:var(--text-2)}
 .pc-preview-state[hidden]{display:none}
 #canvasPreviewState{position:absolute;bottom:12px;left:12px;right:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 12px;z-index:5}
+#canvasPreviewState.is-ready{position:absolute;width:1px;height:1px;min-height:0;padding:0;border:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;left:0;right:auto;bottom:0}
 .pc-insertion-hint{margin:8px 0 0;font-size:var(--fs-1);line-height:1.5;color:var(--text-2)}
 .modebar .selectionCrumb{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;overflow-x:auto}
 .selectionCrumb button{flex-shrink:0;max-width:140px;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;border-radius:var(--r-sm);font-size:var(--fs-1);color:var(--text-2)}
@@ -678,7 +679,7 @@ body.pages-open #app>.main>.left,body.pages-open #app>.main>.stage,body.pages-op
   background:var(--stage);overflow:auto;padding:14px 16px 12px;position:relative;
 }
 .stage>.modebar{width:100%}
-body.preview .stage{padding:0}
+body.preview .stage{padding:0;overflow:hidden}
 /* layoutCanvas() sets the width, and the iframe's own width and scale: the frame
    renders at the breakpoint's real width and is scaled to fit the space. The device
    max-widths that used to live here are gone — a width the CSS guesses at and a
@@ -3357,10 +3358,12 @@ function runPreviewRuntime(html, editing = false) {
   if (!cdoc) return;
 
   let runtimeStyle = null;
-  if (!editing && /\bbp-animate\b/.test(html)) {
+  if (!editing) {
     runtimeStyle = cdoc.createElement('style');
     runtimeStyle.id = 's-preview-runtime';
-    runtimeStyle.textContent = ANIM_CSS + '\n' + ANIM_CALM;
+    /* Keep the frame's only scrollbar discreet and on the site's own surface. */
+    runtimeStyle.textContent = 'html{background:var(--c-bg,#fff);scrollbar-width:thin;scrollbar-color:var(--c-muted,#5f6660) var(--c-bg,#fff)}'
+      + (/\bbp-animate\b/.test(html) ? '\n' + ANIM_CSS + '\n' + ANIM_CALM : '');
     cdoc.head.appendChild(runtimeStyle);
   }
 
@@ -3425,6 +3428,7 @@ function watchCanvasPreview(source) {
   canvasReadyCleanup();
   const strip = $('#canvasPreviewState');
   if (!strip) return;
+  strip.classList.remove('is-ready');
   strip.hidden = !document.body.classList.contains('preview');
   if (strip.hidden) return;
   const status = strip.querySelector('span'), retry = strip.querySelector('button');
@@ -3452,6 +3456,8 @@ function watchCanvasPreview(source) {
       if (pending && !expired) { status.textContent = 'Preview displayed; images are still loading…'; return; }
       status.textContent = failed || pending ? 'Some preview images could not load. Check them before publishing.' : 'Preview displayed.';
       retry.hidden = !(failed || pending);
+      /* Announce success without leaving a banner over the rendered page. */
+      strip.classList.toggle('is-ready', !failed && !pending);
       clearTimeout(timer);
     };
     images.filter(image => !image.complete).forEach(image => {

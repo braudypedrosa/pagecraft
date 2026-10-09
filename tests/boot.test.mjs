@@ -1029,6 +1029,32 @@ test('hidden workspaces preserve canvas geometry and restore it when shown after
  } finally {delete stage.clientWidth;delete wrap.clientHeight;}
 });
 
+test('preview readiness clears the visual success banner but retains actionable asset failures', async () => {
+  const {window:w,doc}=await boot();
+  const frame=doc.querySelector('#canvas'), strip=doc.querySelector('#canvasPreviewState');
+  if (!frame.contentDocument.getElementById('s-root')) {
+    frame.contentDocument.open();frame.contentDocument.write(frame.srcdoc);frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+  }
+  const cd=frame.contentDocument;
+  Object.defineProperty(cd,'images',{configurable:true,value:[]});
+  doc.body.classList.add('preview');
+  const settle=()=>new Promise(resolve=>setTimeout(resolve,60));
+  try {
+    w.watchCanvasPreview('');await settle();
+    a.equal(strip.hidden,false,'success remains available to assistive technology');
+    a.equal(strip.classList.contains('is-ready'),true,'success does not cover the page');
+    a.equal(strip.querySelector('[role=status]').textContent,'Preview displayed.');
+    w.watchCanvasPreview('asset:missing-preview-regression');await settle();
+    a.equal(strip.classList.contains('is-ready'),false,'a later asset failure becomes visible');
+    a.equal(strip.querySelector('button').hidden,false,'failed assets retain their retry action');
+    w.watchCanvasPreview('');await settle();
+    a.equal(strip.classList.contains('is-ready'),true,'recovery clears the failure banner');
+  } finally {
+    delete cd.images;doc.body.classList.remove('preview');w.watchCanvasPreview('');
+  }
+});
+
 test('component Done is a UI transition; it adds neither history nor a content edit',async()=>{
  const {window:w,doc}=await boot(),C=w.__CORE;
  const old=C.state.meta.components,history=[...C.hist.u],redo=[...C.hist.r];
