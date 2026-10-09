@@ -58,5 +58,4 @@ serve({
     }
     return app.fetch(request, ...args);
   },
-});
-console.log('Private founder reports listening');
+}, () => console.log('Private founder reports listening'));
