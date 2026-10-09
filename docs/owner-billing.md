@@ -20,6 +20,17 @@ The current dataset is **staging**, as explicitly selected by the founder. A rep
 
 CRM annotations never change a Pagecraft profile, plan, membership or paid entitlement. A manual lead with the same normalized email as an account is merged into the directory. The first verified account edit may attach that lead to its account; afterward the account link is immutable. Linked names and emails come from the verified platform snapshot. Conflicting revisions preserve the submitted draft and ask for a reload instead of silently overwriting a newer edit. Archive records by selecting the Archived stage.
 
+## Interactive analytics and tables
+
+The independent CRM uses **Apache ECharts 6.1.0** for line, bar and plan-distribution charts, and **TanStack Table core 9.2.8** for directory, payment, budget, metric and chart-data tables. Both libraries are pinned and bundled locally. No third-party analytics service receives the private records.
+
+- Charts disclose exact values on pointer hover or tap. Line charts have a draggable date-range slider, Reset zoom and PNG download controls. A keyboard-readable data table remains available under every chart, including when a library fails to initialize. Reduced-motion preferences disable chart animation.
+- Tables support search, correctly typed sorting, column visibility, 10/25/50/100-row pagination and CSV downloads. Downloads include all matching rows in the current sort order and visible data columns, rather than only the current page. CSV metadata preserves dataset, report range, test setting and currency; UTF-8 BOM, quoting and formula-prefix escaping support spreadsheet import. Action forms are excluded from exports and retain their original DOM nodes and listeners during sorting.
+- Customers and Pipeline share plan/stage controls, Due follow-ups and No published site quick filters. Overview action links open those filtered directories. Column choices expose joined date, last site edit and media bytes without making the initial table unnecessarily wide. Missing site or payment values remain unknown, not zero.
+- Overview compares profile and site creation in the selected period against the previous equal-length period, using retained inventory records. Deleted records are absent from both periods; partial retrieval remains visibly labeled. These are creation comparisons, not traffic, retention or conversion analytics.
+
+The reports entry point serves only the explicitly allowlisted `/assets/founder-crm.js` and `/assets/founder-crm.css`. `npm run build` generates both, and the release bundler requires and includes them even though generated assets are Git-ignored. Sign-in does not load the chart/table bundle. The customer Pagecraft process does not serve these CRM assets.
+
 ## Metric definitions
 
 - Account profiles are Pagecraft application profiles, including legacy/unlinked profiles. They are not all paying customers.

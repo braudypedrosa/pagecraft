@@ -93,6 +93,30 @@ test('preview labeling is explicit, escaped, and opt-in on dashboard and sign-in
   }
 });
 
+test('private pages load same-origin libraries and carry export context while sign-in stays light', () => {
+  const doc = new JSDOM(founderCrmPage(founder, base(), input())).window.document;
+  a.equal(doc.querySelector('script[src]')?.getAttribute('src'), '/assets/founder-crm.js');
+  a.ok(doc.querySelector('script[src]')?.hasAttribute('defer'));
+  a.equal(doc.querySelector('link[rel="stylesheet"]')?.getAttribute('href'), '/assets/founder-crm.css');
+  a.equal(doc.body.dataset.reportRange, '30d');
+  a.equal(doc.body.dataset.reportTests, 'exclude');
+  a.equal(doc.body.dataset.reportCurrency, 'USD');
+  a.equal(doc.body.dataset.reportEnvironment, 'staging');
+  a.equal(doc.body.dataset.reportDay, '2026-10-09');
+  const signIn = new JSDOM(founderCrmSignInPage({ dataEnvironment: 'staging' })).window.document;
+  a.equal(signIn.querySelector('[src="/assets/founder-crm.js"]'), null);
+});
+
+test('embedded library chart data cannot close a script or create markup', () => {
+  const label = '</script><img src=x onerror=alert(1)>&';
+  const data = base({ analytics: { ...base().analytics, planMix: [{ label, value: 2 }] } });
+  const doc = new JSDOM(founderCrmPage(founder, data, input())).window.document;
+  a.equal(doc.querySelector('img'), null);
+  const specs = Array.from(doc.querySelectorAll('[data-chart-spec]'), (node: Element) => JSON.parse(node.textContent || 'null'));
+  a.equal(specs.find((spec: {title: string}) => spec.title === 'Plan mix').points[0].label, label);
+  a.doesNotMatch(doc.querySelector('[data-chart-spec]')!.textContent || '', /<\/script>/);
+});
+
 test('overview chart has keyboard-readable values and a disclosed data table', () => {
   const html = founderCrmPage(founder, base(), input());
   a.match(html, /Account creation trend/);
@@ -101,7 +125,8 @@ test('overview chart has keyboard-readable values and a disclosed data table', (
   a.match(html, /class="chart-x-axis" aria-hidden="true"><span>Sep 10<\/span><span><\/span><span>Oct 9<\/span>/);
   a.match(html, /preserveAspectRatio="none" role="img" aria-label="Account creation trend\. Values range from 0 to 2\."/);
   a.match(html, /<summary>View chart data<\/summary>/);
-  a.match(html, /<th>Date<\/th><th>Value<\/th>/);
+  const doc = new JSDOM(html).window.document;
+  a.deepEqual(Array.from(doc.querySelectorAll('[data-crm-table="account-chart-data"] th'), (cell: Element) => cell.textContent), ['Date', 'Value']);
   a.match(html, /Paddle is not connected\. No revenue trend is shown/);
   a.doesNotMatch(html, /USD(?:&nbsp;|\s)0\.00/);
 });
@@ -167,6 +192,11 @@ test('single-point counts and equal positive charges render safely with exact bi
   a.match(html, /aria-label="2026-10-09: USD(?:&nbsp;|\s)9,007,199,254,740,993,123\.45"/);
   a.equal((html.match(/class="chart-dot" cx="(?:8|712)\.00" cy="8\.00"/g) || []).length, 2);
   a.match(html, /class="chart-dot" cx="360\.00" cy="8\.00"/);
+  const doc = new JSDOM(html).window.document;
+  const spec = JSON.parse(doc.querySelector('[aria-labelledby="charges-chart-title"] [data-chart-spec]')!.textContent || 'null');
+  a.equal(spec.unit, 'money');
+  a.equal(spec.currencyCode, 'USD');
+  a.equal(spec.points[0].value, '900719925474099312345');
 });
 
 test('all-zero count and money charts stay flat on the zero baseline', () => {

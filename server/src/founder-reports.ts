@@ -29,6 +29,8 @@ export interface FounderReportsAppOptions {
   challengeSiteKey?: string;
   /** Absolute Pagecraft brand directory. Only the explicit assets below are served. */
   brandRoot?: string;
+  /** Built, self-hosted CRM JavaScript/CSS; never a user-selected directory. */
+  assetRoot?: string;
 }
 
 const signInError = (o: FounderReportsAppOptions, error?: string) => founderCrmSignInPage({
@@ -76,6 +78,9 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
   if (o.appOrigin) strictOrigin(o.appOrigin, 'Pagecraft app origin');
   if (o.brandRoot && !isAbsolute(o.brandRoot)) {
     throw new Error('Founder reports brand root must be absolute');
+  }
+  if (o.assetRoot && !isAbsolute(o.assetRoot)) {
+    throw new Error('Founder reports asset root must be absolute');
   }
 
   const app = new Hono();
@@ -145,6 +150,21 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
       } catch {
         return c.notFound();
       }
+    });
+  }
+
+  for (const [file, type] of [
+    ['founder-crm.js', 'text/javascript; charset=utf-8'],
+    ['founder-crm.css', 'text/css; charset=utf-8'],
+  ]) {
+    app.on(['GET', 'HEAD'], `/assets/${file}`, async c => {
+      if (!o.assetRoot) return c.notFound();
+      try {
+        const bytes = await readFile(join(o.assetRoot, file));
+        return new Response(c.req.method === 'HEAD' ? null : bytes, {
+          headers: { 'content-type': type, 'content-length': String(bytes.byteLength) },
+        });
+      } catch { return c.notFound(); }
     });
   }
 

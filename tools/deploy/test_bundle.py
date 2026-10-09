@@ -32,6 +32,10 @@ class BundleTests(unittest.TestCase):
         self.git('add', '.')
         self.git('-c', 'user.name=Test', '-c', 'user.email=test@example.com', 'commit', '-qm', 'fixture')
         self.sha = self.git('rev-parse', 'HEAD').strip()
+        # Built assets are ignored locally; only these explicit files may ship.
+        (self.root / 'server/public').mkdir(parents=True)
+        (self.root / 'server/public/founder-crm.js').write_text('/* built charts and tables */')
+        (self.root / 'server/public/founder-crm.css').write_text('/* built controls */')
 
     def git(self, *args):
         return subprocess.check_output(['git', *args], cwd=self.root, text=True)
@@ -45,6 +49,8 @@ class BundleTests(unittest.TestCase):
         self.assertEqual(self.bundle().returncode, 0)
         with tarfile.open(self.root / 'release.tar.gz') as archive:
             self.assertNotIn('server/.env', archive.getnames())
+            self.assertIn('server/public/founder-crm.js', archive.getnames())
+            self.assertIn('server/public/founder-crm.css', archive.getnames())
             self.assertIn('premade-sites/demo/1.0.0/site.zip', archive.getnames())
             self.assertIn('supabase/functions/pagecraft-db/plan-entitlements.ts', archive.getnames())
             self.assertNotIn('supabase/functions/pagecraft-db/index.ts', archive.getnames())
@@ -54,6 +60,16 @@ class BundleTests(unittest.TestCase):
     def test_modified_release_is_rejected(self):
         (self.root / 'premade-sites/demo/1.0.0/site.zip').write_bytes(b'changed')
         self.assertNotEqual(self.bundle().returncode, 0)
+
+    def test_missing_crm_build_is_rejected(self):
+        (self.root / 'server/public/founder-crm.js').unlink()
+        self.assertNotEqual(self.bundle().returncode, 0)
+
+    def test_unlisted_generated_assets_do_not_ship(self):
+        (self.root / 'server/public/other.js').write_text('unverified')
+        self.assertEqual(self.bundle().returncode, 0)
+        with tarfile.open(self.root / 'release.tar.gz') as archive:
+            self.assertNotIn('server/public/other.js', archive.getnames())
 
     def test_wrong_commit_is_rejected(self):
         self.assertNotEqual(self.bundle('0' * 40).returncode, 0)

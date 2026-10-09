@@ -35,6 +35,8 @@
     "@modelcontextprotocol/server": "^2.0.0",
     "@supabase/ssr": "0.12.5",
     "@supabase/supabase-js": "2.112.4",
+    "@tanstack/table-core": "9.2.8",
+    "echarts": "6.1.0",
     "hono": "4.13.3",
     "nodemailer": "9.0.5",
     "pg": "8.23.0",

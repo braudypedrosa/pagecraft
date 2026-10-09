@@ -7,6 +7,10 @@ node_modules
 # records its hash, so both belong in history. Only the Vite output is generated.
 dist/next
 
+# Rebuilt by build.mjs; included explicitly in the deployment artifact.
+/server/public/founder-crm.js
+/server/public/founder-crm.css
+
 # Encrypted database backups are generated locally or in CI and retained off-repository.
 .backups/
 

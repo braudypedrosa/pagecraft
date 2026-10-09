@@ -44,6 +44,7 @@ function makeRig(input: {
   current?: VerifiedIdentity | null;
   ids?: string[];
   brandRoot?: string;
+  assetRoot?: string;
   now?: () => Date;
   challengeSiteKey?: string;
 } = {}) {
@@ -54,6 +55,7 @@ function makeRig(input: {
     dataEnvironment: 'staging', accountAuth: auth as unknown as AccountAuth,
     challengeSiteKey: input.challengeSiteKey,
     brandRoot: input.brandRoot,
+    assetRoot: input.assetRoot,
     billing: { ownerAuthUserIds: input.ids ?? [OWNER], now: input.now },
   });
   const request = (path: string, init: RequestInit = {}) => app.request(new Request(`http://reports.test${path}`, {
@@ -279,4 +281,32 @@ test('invalid standalone host and origin configuration fails before serving', ()
   a.throws(() => createFounderReportsApp({ ...base, host: 'reports.test', origin: 'https://other.test' }));
   a.throws(() => createFounderReportsApp({ ...base, host: 'reports.test/path', origin: 'https://reports.test' }));
   a.throws(() => createFounderReportsApp({ ...base, host: 'reports.test', origin: 'javascript:alert(1)' }));
+  a.throws(() => createFounderReportsApp({ ...base, host: 'reports.test', origin: 'http://reports.test', assetRoot: 'relative/assets' }));
+});
+
+test('CRM libraries are self-hosted code assets with a strict filename and method allowlist', async () => {
+  const assetRoot = await mkdtemp(join(tmpdir(), 'pagecraft-crm-assets-'));
+  roots.push(assetRoot);
+  await writeFile(join(assetRoot, 'founder-crm.js'), '/* library bundle */');
+  await writeFile(join(assetRoot, 'founder-crm.css'), '/* library styles */');
+  await writeFile(join(assetRoot, 'private.json'), '{"secret":"never serve"}');
+  const r = makeRig({ assetRoot });
+  for (const [file, type] of [['founder-crm.js', 'text/javascript'], ['founder-crm.css', 'text/css']]) {
+    const response = await r.request(`/assets/${file}`);
+    a.equal(response.status, 200);
+    a.match(response.headers.get('content-type') || '', new RegExp(type));
+    a.match(response.headers.get('cache-control') || '', /no-store/);
+    a.match(response.headers.get('content-security-policy') || '', /script-src 'self'/);
+    const bytes = await response.text();
+    a.equal(Number(response.headers.get('content-length')), Buffer.byteLength(bytes));
+    const head = await r.request(`/assets/${file}`, { method: 'HEAD' });
+    a.equal(head.status, 200);
+    a.equal(await head.text(), '');
+  }
+  for (const path of ['/assets/private.json', '/assets/founder-crm.js.map', '/assets/%2e%2e/private.json']) {
+    a.equal((await r.request(path)).status, 404, path);
+  }
+  a.equal((await r.request('/assets/founder-crm.js', { method: 'POST', headers: { origin: 'http://reports.test' } })).status, 404);
+  a.equal((await r.request('/assets/founder-crm.js', { headers: { host: 'staging.itspagecraft.com' } })).status, 404);
+  a.equal((await makeRig().request('/assets/founder-crm.js')).status, 404);
 });

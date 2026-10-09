@@ -39,6 +39,7 @@ const crmGateway = config.reportsDataGatewayUrl && config.gatewayKey
   ? new PagecraftGateway(config.reportsDataGatewayUrl, config.gatewayKey, fetch, config.gatewayRegion) : undefined;
 const app = createFounderReportsApp({
   brandRoot: join(repo, 'brand'),
+  assetRoot: join(repo, 'server', 'public'),
   host: config.host, origin: config.origin, appOrigin: config.appOrigin,
   dataEnvironment: config.dataEnvironment, challengeSiteKey: config.challengeSiteKey,
   accountAuth,
