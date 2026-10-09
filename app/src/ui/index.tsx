@@ -12,6 +12,7 @@ import { Cms } from './Cms';
 import { CmsWorkspace } from './CmsWorkspace';
 import { ProposalsWorkspace } from './ProposalsWorkspace';
 import { Add } from './Add';
+export { recordElementUse } from './Add';
 import { Pages, PagesWorkspace } from './Pages';
 import { Inspector } from './inspector/Inspector';
 import { AssetField } from './AssetField';

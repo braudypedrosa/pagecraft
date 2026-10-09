@@ -13,7 +13,8 @@ import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { Libraries, addToLibrary, fromLabel, linkOf } from './Libraries';
 import type { LibraryItemKind } from '../core/libraries';
-import { useState } from 'preact/hooks';
+import { useLayoutEffect, useState } from 'preact/hooks';
+import { createRecentElementsStore } from './recent-elements';
 import { FirstEditGuide } from './FirstEditGuide';
 
 /* Lives here because the Add panel is the only thing that reads it: which widgets are
@@ -51,10 +52,10 @@ const PAL: { g: string; items: [string, string][] }[] = [
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
 ];
 
-/* The first five choices cover the usual blank-page start without making the complete
-   catalog disappear. Keys, rather than copied item definitions, keep this as a display
-   order over the one palette above. */
-const COMMON = ['heading', 'text', 'image', 'button', 'columns'];
+const recentElements = createRecentElementsStore(PAL.flatMap(group => group.items.map(([key]) => key)));
+/* Called by the successful click/drop insertion paths, never by hover or drag start. */
+export const recordElementUse = recentElements.record;
+
 const ALIASES: Record<string, string> = {
   heading: 'title headline',
   text: 'paragraph copy wysiwyg',
@@ -125,20 +126,17 @@ function WidgetTiles({ group }: { group: PaletteGroup }) {
 
 function Widgets({ templates }: { templates(): void }) {
   const [query, setQuery] = useState('');
+  const [recent, setRecent] = useState(() => recentElements.read());
+  useLayoutEffect(() => recentElements.subscribe(setRecent), []);
   const groups = PAL.map(group => ({
     ...group,
     items: group.items.filter(([key]) => key !== 'list' || L.dynamicContentProvider() === 'pagecraft')
   }));
   const allowed = groups.flatMap(group => group.items.map(item => ({ group: group.g, item })));
-  const common = COMMON.flatMap(key => {
+  const recentItems = recent.flatMap(key => {
     const found = allowed.find(({ item }) => item[0] === key);
     return found ? [found.item] : [];
   });
-  const commonKeys = new Set(common.map(([key]) => key));
-  const advanced = groups.map(group => ({
-    ...group,
-    items: group.items.filter(([key]) => !commonKeys.has(key))
-  })).filter(group => group.items.length);
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const matches = groups.map(group => ({
     ...group,
@@ -184,15 +182,14 @@ function Widgets({ templates }: { templates(): void }) {
         )
       ) : (
         <>
-          <div class="pc-add-group">
-            <div class="plabel">Common</div>
-            <WidgetTiles group={{ g: 'Common', items: common }} />
-          </div>
+          {recentItems.length ? <div class="pc-add-group">
+            <div class="plabel">Recently used</div>
+            <WidgetTiles group={{ g: 'Recently used', items: recentItems }} />
+          </div> : null}
           <div class="pc-add-guide">
-            <span><b>Add text, images, or buttons to begin.</b> Pagecraft creates the layout for you. Or use a ready-made section.</span>
             <button type="button" class="btn" onClick={templates}>Browse starter sections</button>
           </div>
-          {advanced.map(group => (
+          {groups.filter(group => group.items.length).map(group => (
             <details class="pc-add-group" key={group.g}>
               <summary class="pc-add-group-summary">{group.g}<span>{group.items.length}</span></summary>
               <WidgetTiles group={group} />
@@ -482,7 +479,7 @@ export function Add() {
           </button>
         ))}
       </div>
-      <div class="addContext">{current[2]}</div>
+      {t !== 'widgets' ? <div class="addContext">{current[2]}</div> : null}
       <div class="palette" id="add-category-panel" role="tabpanel" aria-labelledby={'add-tab-' + t}>
         {t === 'widgets' ? <Widgets templates={() => choose('templates')} />
           : t === 'components' ? <Components />

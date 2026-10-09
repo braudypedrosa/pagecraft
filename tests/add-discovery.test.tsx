@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
-import { Add } from '../app/src/ui/Add';
+import { Add, recordElementUse } from '../app/src/ui/Add';
 import { L, repaint } from '../app/src/ui/ctx';
 import { rig, type Rig } from './ui.setup';
 
@@ -14,6 +14,11 @@ const search = () => r.$('#add-element-search') as HTMLInputElement;
 const type = (value: string) => act(() => r.type(search(), value));
 
 beforeEach(() => {
+  const values = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+  });
   r = rig();
   r.draw(() => <Add />, 'add');
 });
@@ -21,19 +26,30 @@ beforeEach(() => {
 afterEach(() => {
   act(() => r.draw(null));
   r.host.remove();
+  vi.unstubAllGlobals();
 });
 
 describe('Add element discovery', () => {
-  test('starts with a compact Common set and keeps every other group in accessible disclosure', () => {
-    expect(commonLabels()).toEqual(['Heading', 'Rich text', 'Image', 'Button', 'Columns']);
+  test('omits empty history and exposes every element in its category', () => {
+    expect(commonLabels()).toEqual([]);
+    expect(r.$('.addContext')).toBeNull();
     expect(r.$$('details.pc-add-group').map(group => group.querySelector('summary')?.textContent)).toEqual([
-      'Layout8', 'Content6', 'Interactive6', 'Spacing2'
+      'Layout9', 'Content9', 'Interactive7', 'Spacing2'
     ]);
     expect(r.$$('details.pc-add-group').every(group => group.hasAttribute('open'))).toBe(false);
-    expect(r.$('.pc-add-guide')?.textContent).toMatch(/Add text, images, or buttons.*layout for you.*ready-made section/i);
+    expect(r.$('.pc-add-guide')?.textContent).toBe('Browse starter sections');
 
     act(() => r.click(r.$$('.pc-add-guide button')[0]));
     expect(r.$('.addSwitcher button[aria-selected="true"]')?.textContent?.trim()).toBe('Templates');
+  });
+
+  test('shows the six most recent successful element types without removing category entries', () => {
+    act(() => ['heading', 'text', 'button', 'image', 'columns', 'nav', 'spacer', 'heading'].forEach(recordElementUse));
+    expect(commonLabels()).toEqual(['Heading', 'Spacer', 'Nav menu', 'Columns', 'Image', 'Button']);
+    expect(r.$$('.pc-add-group:not(details) .plabel')[0]?.textContent).toBe('Recently used');
+    expect(r.$$('details .pitem span').map(item => item.textContent)).toContain('Heading');
+    act(() => repaint('add'));
+    expect(commonLabels()).toHaveLength(6);
   });
 
   test('search uses aliases and exposes matches from collapsed groups without duplicates', () => {

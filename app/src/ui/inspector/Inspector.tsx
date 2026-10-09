@@ -14,6 +14,7 @@ import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Ctl } from './Controls';
 import { ContextHelp } from './ContextHelp';
+import { MobileMenuBuilder } from './MobileMenuBuilder';
 import type { Control, Node as PcNode } from '../../core/types';
 
 /* `askConfirm` takes HTML, so the one value interpolated into it is escaped by hand — the same
@@ -778,6 +779,10 @@ export function Inspector() {
             <Visibility n={n} />
           </>
         )}
+        {tab === 'content' && n.type === 'nav' && !n.use && !many && L.canStructure()
+          && n.props.collapse !== 'never' && n.props.mobileMenu !== 'fullscreen' ? (
+          <Panel title="Mobile menu builder" n={n}><MobileMenuBuilder n={n} /></Panel>
+        ) : null}
       </div>
       <div class="sFoot">
         <button class="btn" onClick={() => L.runAct('dup', C.selIds())}>

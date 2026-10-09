@@ -119,6 +119,8 @@ export interface ButtonProps extends Linkable, Styled {
   text?: string; variant?: string; icon?: string; align?: string; wrap?: string;
 }
 export interface NavProps {
+  mobileMenu?: 'dropdown' | 'fullscreen';
+  mobileMenuComponent?: string;
   items?: NavItem[];
   collapse?: string;
   aria?: string;
@@ -426,6 +428,8 @@ export interface Variant {
 }
 
 export interface ComponentDef {
+  /** Reusable native layout for a full-width mobile navigation panel. */
+  mobileMenu?: boolean;
   id: string;
   name: string;
   /** the tree. Nodes inside it bind props to `{ src: 'prop' }` and may be slots. */

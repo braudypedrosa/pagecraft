@@ -195,6 +195,7 @@ __export(index_exports, {
   effective: () => effective,
   effectiveAt: () => effectiveAt,
   embedUrl: () => embedUrl,
+  ensureMobileMenuComponent: () => ensureMobileMenuComponent,
   ensureTokens: () => ensureTokens,
   esc: () => esc,
   exportTargets: () => exportTargets,
@@ -277,6 +278,7 @@ __export(index_exports, {
   mediaReferences: () => mediaReferences,
   menuFor: () => menuFor,
   migrate: () => migrate,
+  mobileMenuComponents: () => mobileMenuComponents,
   moveMany: () => moveMany,
   moveNode: () => moveNode,
   multiOn: () => multiOn,
@@ -2446,6 +2448,7 @@ var DEF = {
            dead link reads as working markup. */
         items: [{ label: "Work", href: HOME }, { label: "About", href: HOME }, { label: "Contact", href: HOME }],
         collapse: "mobile",
+        mobileMenu: "dropdown",
         aria: "Main"
       },
       css: {
@@ -2468,6 +2471,7 @@ var DEF = {
       content: [
         { t: "items", k: "items", label: "Menu links" },
         { t: "select", k: "collapse", label: "Collapse at", opts: [["mobile", "On mobile (\u2264767px)"], ["tablet", "On tablet and below (\u22641024px)"], ["never", "Never \u2014 always inline"]] },
+        { t: "select", k: "mobileMenu", label: "Mobile menu", opts: [["dropdown", "Full-width dropdown"], ["fullscreen", "Fullscreen"]] },
         { t: "pick", c: "justify-content", label: "Alignment", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] },
         { t: "text", k: "aria", label: "Accessible name", ph: "Main", note: "Read by screen readers as \u201C<name> menu\u201D." }
       ],
@@ -5067,7 +5071,7 @@ function animAttrs(n) {
 }
 var animUsed = (lists) => {
   let hit = false;
-  lists.forEach((l) => eachNode(l, (n) => {
+  [...lists, ...usedComponents(lists).map((c) => [c.node])].forEach((l) => eachNode(l, (n) => {
     if (!hit && animOf(n)) hit = true;
   }));
   return hit;
@@ -5580,6 +5584,30 @@ function components() {
 function findComponent(id) {
   return id ? components().find((c) => c.id === id) || null : null;
 }
+var mobileMenuComponents = () => components().filter((c) => c.mobileMenu);
+function ensureMobileMenuComponent(n) {
+  const current = findComponent(n.props.mobileMenuComponent);
+  if (current) return current;
+  const name = (n.props.aria || "Main") + " mobile menu";
+  const base = tokenId(name) || "mobile-menu";
+  let id = base, suffix = 2;
+  while (findComponent(id)) id = base + "-" + suffix++;
+  const links = (n.props.items || []).map((item) => N(
+    "button",
+    { text: item.label || "Link", link: item.href || HOME },
+    { d: { background: "transparent", color: cvar("text"), "font-size": "22px", "justify-content": "flex-start", padding: "12px 0", border: "0" }, t: {}, m: {} }
+  ));
+  const node = N(
+    "section",
+    { tag: "div", width: "full" },
+    { d: { padding: "16px 0", background: "transparent" }, t: {}, m: {} },
+    [N("row", {}, {}, [N("column", {}, {}, links)])]
+  );
+  const definition = { id, name, mobileMenu: true, node, props: [] };
+  components().push(definition);
+  n.props.mobileMenuComponent = id;
+  return definition;
+}
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
 var variantsOf = (def) => def && def.variants || [];
 var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
@@ -5806,7 +5834,13 @@ function instances(cid) {
   blocks().forEach((b) => scan([b.node], "block:" + b.id));
   return out;
 }
-var componentUsage = (cid) => instances(cid).length;
+var componentUsage = (cid) => {
+  let count = instances(cid).length;
+  allTrees().forEach((list) => eachNode(list, (n) => {
+    if (n.type === "nav" && n.props.mobileMenuComponent === cid) count++;
+  }));
+  return count;
+};
 function propAdd(cid, label, t, def = "") {
   const c = findComponent(cid);
   if (!c) return null;
@@ -7507,7 +7541,7 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   if (n.type === "text" && map["--link"]) rules.push(`${selOf(n)} a{color:${map["--link"]}}`);
   return rules.join("");
 }
-var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}${selOf(n)}.is-open .pagecraft-nav-list{display:flex}${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
+var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
   if (n.type === "form" && n.props.fields?.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
@@ -7537,12 +7571,14 @@ function usedComponents(lists) {
   const seen = /* @__PURE__ */ new Set();
   const out = [];
   const visit = (list) => eachNode(list, (n) => {
-    if (!n.use || seen.has(n.use)) return;
-    const cd = findComponent(n.use);
-    if (!cd) return;
-    seen.add(n.use);
-    out.push(cd);
-    visit([cd.node]);
+    for (const id of [n.use, n.type === "nav" && n.props.mobileMenu !== "fullscreen" ? n.props.mobileMenuComponent : null]) {
+      if (!id || seen.has(id)) continue;
+      const cd = findComponent(id);
+      if (!cd) continue;
+      seen.add(id);
+      out.push(cd);
+      visit([cd.node]);
+    }
   });
   lists.forEach(visit);
   return out;
@@ -7766,6 +7802,15 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
+.pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:calc(100dvh - var(--nav-top,0px));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
+.pagecraft-mobile-menu::backdrop{background:rgba(0,0,0,.18)}
+.pagecraft-mobile-menu[data-layout=fullscreen]{inset:0;height:100dvh;max-height:none;display:flex;flex-direction:column;gap:24px}
+.pagecraft-mobile-menu-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
+.pagecraft-mobile-menu-close{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;padding:0;border:1px solid currentColor;border-radius:50%;color:inherit;background:transparent;cursor:pointer}
+.pagecraft-nav-menu .pagecraft-mobile-menu .pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:4px;min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}
+.pagecraft-mobile-menu .pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}
+.pagecraft-mobile-menu[data-layout=fullscreen]>.pagecraft-nav-list{margin-block:auto;font-size:clamp(24px,6vw,44px);gap:12px}
+.pagecraft-nav-menu .pagecraft-mobile-menu .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}
 .pagecraft-nav-icon{position:relative;display:block;width:20px;height:2px;background:currentColor;border-radius:2px;transition:background-color .2s ease}
 .pagecraft-nav-icon::before,.pagecraft-nav-icon::after{content:"";position:absolute;left:0;width:20px;height:2px;background:currentColor;border-radius:2px;transition:transform .2s ease}
 .pagecraft-nav-icon::before{transform:translateY(-6px)}
@@ -8288,7 +8333,18 @@ function renderNode(n, o) {
         const relationship = rel.length ? ` rel="${esc(rel.join(" "))}"` : "";
         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}${relationship}>${esc(it.label || "")}</a>` + (nested ? `<ul class="sub-menu">${nested}</ul>` : "") + `</li>`;
       }).join("");
-      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul></nav>`;
+      const mobileDefinition = p.mobileMenu !== "fullscreen" ? findComponent(p.mobileMenuComponent) : null;
+      const mobileInstance = mobileDefinition ? {
+        ...mobileDefinition.node,
+        id: self.id + "-mobile",
+        use: mobileDefinition.id,
+        children: [],
+        css: { d: {}, t: {}, m: {} },
+        cls: [],
+        adv: { htmlId: "", cls: "", css: "" }
+      } : null;
+      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: void 0, cdef: void 0 })}</div>` : "";
+      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav data-mobile-menu="${p.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown"}"${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + "-content" : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul>${mobileContent}</nav>`;
     }
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
@@ -8507,12 +8563,43 @@ var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus()
 `;
 var NAV_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
-var b=w.querySelector('[data-nav-t]');if(!b)return;
-function set(o){w.classList.toggle('is-open',o);b.setAttribute('aria-expanded',o?'true':'false');}
-b.addEventListener('click',function(e){e.stopPropagation();set(!w.classList.contains('is-open'));});
-Array.prototype.forEach.call(w.querySelectorAll('[data-nav-l] a'),function(a){a.addEventListener('click',function(){set(false);});});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
-document.addEventListener('click',function(e){if(!w.contains(e.target))set(false);});
+var b=w.querySelector('[data-nav-t]'),list=w.querySelector('[data-nav-l]');if(!b||!list)return;
+var content=w.querySelector('[data-nav-content]')||list;
+var dialog=null,overflow='',anchor=document.createComment('mobile menu');content.before(anchor);
+function position(){
+ if(!dialog)return;
+ var host=w.closest('header,[data-kind="header"]')||w;
+ if(host===w)while(host.parentElement&&host.parentElement!==document.body&&host.parentElement.id!=='s-root'&&!host.parentElement.matches('.s-rbody,main'))host=host.parentElement;
+ dialog.style.setProperty('--nav-top',Math.max(0,Math.min(window.innerHeight-80,host.getBoundingClientRect().bottom))+'px');
+}
+function set(o,restore){
+ if(o===!!dialog)return;
+ if(o){
+  if(getComputedStyle(b).display==='none')return;
+  dialog=document.createElement('dialog');dialog.className='pagecraft-mobile-menu';
+  dialog.dataset.layout=w.dataset.mobileMenu==='fullscreen'?'fullscreen':'dropdown';
+  dialog.setAttribute('aria-label',(w.getAttribute('aria-label')||'Navigation')+' menu');
+  var head=document.createElement('div');head.className='pagecraft-mobile-menu-head';
+  var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
+  var close=document.createElement('button');close.type='button';close.className='pagecraft-mobile-menu-close';close.setAttribute('aria-label','Close menu');
+  close.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg>';
+  head.append(label,close);content.hidden=false;dialog.append(head,content);w.append(dialog);position();
+  overflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';
+  w.classList.add('is-open');b.setAttribute('aria-expanded','true');
+  close.addEventListener('click',function(){set(false,true);});
+  dialog.addEventListener('cancel',function(e){e.preventDefault();set(false,true);});
+  dialog.addEventListener('click',function(e){var r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))set(false,true);});
+  dialog.addEventListener('close',function(){if(dialog)set(false,true);});
+  dialog.showModal();
+ }else{
+  var old=dialog;dialog=null;anchor.after(content);if(content!==list)content.hidden=true;old.close();old.remove();
+  document.documentElement.style.overflow=overflow;w.classList.remove('is-open');b.setAttribute('aria-expanded','false');
+  if(restore)b.focus();
+ }
+}
+b.addEventListener('click',function(e){e.stopPropagation();set(!dialog,true);});
+Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
+window.addEventListener('resize',function(){if(dialog){if(getComputedStyle(b).display==='none')set(false,false);else position();}});
 });})();
 </script>
 `;
@@ -9161,6 +9248,7 @@ function proposalApply(changes, proposalId = "") {
   effective,
   effectiveAt,
   embedUrl,
+  ensureMobileMenuComponent,
   ensureTokens,
   esc,
   exportTargets,
@@ -9243,6 +9331,7 @@ function proposalApply(changes, proposalId = "") {
   mediaReferences,
   menuFor,
   migrate,
+  mobileMenuComponents,
   moveMany,
   moveNode,
   multiOn,

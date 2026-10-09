@@ -855,7 +855,7 @@ const DEF: Record<string, WidgetDef> = {
            errors the author had not caused. Repeated destinations read as placeholders; a
            dead link reads as working markup. */
         items: [{ label: 'Work', href: HOME }, { label: 'About', href: HOME }, { label: 'Contact', href: HOME }],
-        collapse: 'mobile', aria: 'Main'
+        collapse: 'mobile', mobileMenu: 'dropdown', aria: 'Main'
       },
       css: {
         d: {
@@ -869,6 +869,7 @@ const DEF: Record<string, WidgetDef> = {
       content: [
         { t: 'items', k: 'items', label: 'Menu links' },
         { t: 'select', k: 'collapse', label: 'Collapse at', opts: [['mobile', 'On mobile (≤767px)'], ['tablet', 'On tablet and below (≤1024px)'], ['never', 'Never — always inline']] },
+        { t: 'select', k: 'mobileMenu', label: 'Mobile menu', opts: [['dropdown', 'Full-width dropdown'], ['fullscreen', 'Fullscreen']] },
         { t: 'pick', c: 'justify-content', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] },
         { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Main', note: 'Read by screen readers as “<name> menu”.' }
       ],
@@ -3921,7 +3922,7 @@ function animAttrs(n: PcNode) {
 }
 const animUsed = (lists: PcNode[][]) => {
   let hit = false;
-  lists.forEach(l => eachNode(l, n => { if (!hit && animOf(n)) hit = true; }));
+  [...lists, ...usedComponents(lists).map(c => [c.node])].forEach(l => eachNode(l, n => { if (!hit && animOf(n)) hit = true; }));
   return hit;
 };
 /* `bp-animate` starts its elements hidden, so a visitor who has asked for less motion would be
@@ -4629,6 +4630,26 @@ function findComponent(id?: string | null): ComponentDef | null {
   return id ? components().find(c => c.id === id) || null : null;
 }
 
+/** Menu layouts use the same persisted definitions and canvas as global components. */
+const mobileMenuComponents = () => components().filter(c => c.mobileMenu);
+function ensureMobileMenuComponent(n: PcNode): ComponentDef {
+  const current = findComponent(n.props.mobileMenuComponent);
+  if (current) return current;
+  const name = (n.props.aria || 'Main') + ' mobile menu';
+  const base = tokenId(name) || 'mobile-menu';
+  let id = base, suffix = 2;
+  while (findComponent(id)) id = base + '-' + suffix++;
+  const links = ((n.props.items || []) as NavItem[]).map(item => N('button', { text: item.label || 'Link', link: item.href || HOME },
+    { d: { background: 'transparent', color: cvar('text'), 'font-size': '22px', 'justify-content': 'flex-start', padding: '12px 0', border: '0' }, t: {}, m: {} }));
+  const node = N('section', { tag: 'div', width: 'full' },
+    { d: { padding: '16px 0', background: 'transparent' }, t: {}, m: {} },
+    [N('row', {}, {}, [N('column', {}, {}, links)])]);
+  const definition: ComponentDef = { id, name, mobileMenu: true, node, props: [] };
+  components().push(definition);
+  n.props.mobileMenuComponent = id;
+  return definition;
+}
+
 /** The declared property, or null. */
 const findProp = (def: ComponentDef | null, k: string) =>
   (def && (def.props || []).find((x: ComponentProp) => x.k === k)) || null;
@@ -4903,7 +4924,11 @@ function instances(cid: string) {
   blocks().forEach(b => scan([b.node], 'block:' + b.id));
   return out;
 }
-const componentUsage = (cid: string) => instances(cid).length;
+const componentUsage = (cid: string) => {
+  let count = instances(cid).length;
+  allTrees().forEach(list => eachNode(list, n => { if (n.type === 'nav' && n.props.mobileMenuComponent === cid) count++; }));
+  return count;
+};
 
 /** Declare a property. The key is derived from the label and made unique, so nobody types an
     identifier — the binding picker offers labels and stores keys. */
@@ -6534,14 +6559,10 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
   return rules.join('');
 }
 
-/* a burger menu is just "the inline list stops being inline below X" */
+/* Mobile lists move into a native top-layer dialog when opened. This keeps full-width
+   menus clear of clipped or transformed header containers. */
 const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}`
-  + `${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;`
-  + `flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;`
-  + `background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}`
-  + `${selOf(n)}.is-open .pagecraft-nav-list{display:flex}`
-  + `${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`
-  + `${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
+  + `${selOf(n)} .pagecraft-nav-list{display:none}`;
 
 function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string },
   parent: PcNode | null = null, detachedComponentRoot = false) {
@@ -6576,12 +6597,14 @@ function usedComponents(lists: PcNode[][]): ComponentDef[] {
   const seen = new Set<string>();
   const out: ComponentDef[] = [];
   const visit = (list: PcNode[]) => eachNode(list, n => {
-    if (!n.use || seen.has(n.use)) return;
-    const cd = findComponent(n.use);
-    if (!cd) return;
-    seen.add(n.use);
-    out.push(cd);
-    visit([cd.node]);                              // a component may place another
+    for (const id of [n.use, n.type === 'nav' && n.props.mobileMenu !== 'fullscreen' ? n.props.mobileMenuComponent : null]) {
+      if (!id || seen.has(id)) continue;
+      const cd = findComponent(id);
+      if (!cd) continue;
+      seen.add(id);
+      out.push(cd);
+      visit([cd.node]);
+    }
   });
   lists.forEach(visit);
   return out;
@@ -6839,6 +6862,15 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
+.pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:calc(100dvh - var(--nav-top,0px));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
+.pagecraft-mobile-menu::backdrop{background:rgba(0,0,0,.18)}
+.pagecraft-mobile-menu[data-layout=fullscreen]{inset:0;height:100dvh;max-height:none;display:flex;flex-direction:column;gap:24px}
+.pagecraft-mobile-menu-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
+.pagecraft-mobile-menu-close{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;padding:0;border:1px solid currentColor;border-radius:50%;color:inherit;background:transparent;cursor:pointer}
+.pagecraft-nav-menu .pagecraft-mobile-menu .pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:4px;min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}
+.pagecraft-mobile-menu .pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}
+.pagecraft-mobile-menu[data-layout=fullscreen]>.pagecraft-nav-list{margin-block:auto;font-size:clamp(24px,6vw,44px);gap:12px}
+.pagecraft-nav-menu .pagecraft-mobile-menu .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}
 .pagecraft-nav-icon{position:relative;display:block;width:20px;height:2px;background:currentColor;border-radius:2px;transition:background-color .2s ease}
 .pagecraft-nav-icon::before,.pagecraft-nav-icon::after{content:"";position:absolute;left:0;width:20px;height:2px;background:currentColor;border-radius:2px;transition:transform .2s ease}
 .pagecraft-nav-icon::before{transform:translateY(-6px)}
@@ -7490,11 +7522,17 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || '#')}"${target}${relationship}>${esc(it.label || '')}</a>`
           + (nested ? `<ul class="sub-menu">${nested}</ul>` : '') + `</li>`;
       }).join('');
-      return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav${location} aria-label="${name}">`
-        + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
+      const mobileDefinition = p.mobileMenu !== 'fullscreen' ? findComponent(p.mobileMenuComponent) : null;
+      const mobileInstance: PcNode | null = mobileDefinition ? {
+        ...mobileDefinition.node, id: self.id + '-mobile', use: mobileDefinition.id,
+        children: [], css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
+      } : null;
+      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined })}</div>` : '';
+      return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav data-mobile-menu="${p.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown'}"${location} aria-label="${name}">`
+        + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + '-content' : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
         + childrenOf('', new Set())
-        + `</ul></nav>`;
+        + `</ul>${mobileContent}</nav>`;
     }
     case 'form': {
       const fields = Array.isArray(p.fields) ? p.fields : [];
@@ -7853,12 +7891,43 @@ var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus()
 
 const NAV_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
-var b=w.querySelector('[data-nav-t]');if(!b)return;
-function set(o){w.classList.toggle('is-open',o);b.setAttribute('aria-expanded',o?'true':'false');}
-b.addEventListener('click',function(e){e.stopPropagation();set(!w.classList.contains('is-open'));});
-Array.prototype.forEach.call(w.querySelectorAll('[data-nav-l] a'),function(a){a.addEventListener('click',function(){set(false);});});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
-document.addEventListener('click',function(e){if(!w.contains(e.target))set(false);});
+var b=w.querySelector('[data-nav-t]'),list=w.querySelector('[data-nav-l]');if(!b||!list)return;
+var content=w.querySelector('[data-nav-content]')||list;
+var dialog=null,overflow='',anchor=document.createComment('mobile menu');content.before(anchor);
+function position(){
+ if(!dialog)return;
+ var host=w.closest('header,[data-kind="header"]')||w;
+ if(host===w)while(host.parentElement&&host.parentElement!==document.body&&host.parentElement.id!=='s-root'&&!host.parentElement.matches('.s-rbody,main'))host=host.parentElement;
+ dialog.style.setProperty('--nav-top',Math.max(0,Math.min(window.innerHeight-80,host.getBoundingClientRect().bottom))+'px');
+}
+function set(o,restore){
+ if(o===!!dialog)return;
+ if(o){
+  if(getComputedStyle(b).display==='none')return;
+  dialog=document.createElement('dialog');dialog.className='pagecraft-mobile-menu';
+  dialog.dataset.layout=w.dataset.mobileMenu==='fullscreen'?'fullscreen':'dropdown';
+  dialog.setAttribute('aria-label',(w.getAttribute('aria-label')||'Navigation')+' menu');
+  var head=document.createElement('div');head.className='pagecraft-mobile-menu-head';
+  var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
+  var close=document.createElement('button');close.type='button';close.className='pagecraft-mobile-menu-close';close.setAttribute('aria-label','Close menu');
+  close.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg>';
+  head.append(label,close);content.hidden=false;dialog.append(head,content);w.append(dialog);position();
+  overflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';
+  w.classList.add('is-open');b.setAttribute('aria-expanded','true');
+  close.addEventListener('click',function(){set(false,true);});
+  dialog.addEventListener('cancel',function(e){e.preventDefault();set(false,true);});
+  dialog.addEventListener('click',function(e){var r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))set(false,true);});
+  dialog.addEventListener('close',function(){if(dialog)set(false,true);});
+  dialog.showModal();
+ }else{
+  var old=dialog;dialog=null;anchor.after(content);if(content!==list)content.hidden=true;old.close();old.remove();
+  document.documentElement.style.overflow=overflow;w.classList.remove('is-open');b.setAttribute('aria-expanded','false');
+  if(restore)b.focus();
+ }
+}
+b.addEventListener('click',function(e){e.stopPropagation();set(!dialog,true);});
+Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
+window.addEventListener('resize',function(){if(dialog){if(getComputedStyle(b).display==='none')set(false,false);else position();}});
 });})();
 <\/script>
 `;
@@ -8427,7 +8496,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";

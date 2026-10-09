@@ -692,7 +692,7 @@ body.preview .stage{padding:0;overflow:hidden}
      unreachable overflow that align-items:center would cause */
   margin-inline:auto;
 }
-body.preview .frameWrap{border-radius:0;box-shadow:none;width:100% !important}
+body.preview .frameWrap{border-radius:0;box-shadow:none}
 #canvas{
   width:100%;height:100%;border:0;display:block;background:var(--white);
   flex:0 0 auto;transform-origin:0 0;
@@ -4207,6 +4207,7 @@ function onDrop(e, fromFrame) {
   } else if (d.kind === 'new') {
     let leaf = null;
     edit(() => { leaf = insert(d.type, container, index); if (leaf) selSet([leaf.id]); });
+    if (leaf) PC_UI.recordElementUse(d.type);
     toast(leaf ? labelOf(d.type) + ' added' : 'That does not fit there');
   } else {
     const set = d.ids && d.ids.length > 1 ? d.ids : null;
@@ -4444,6 +4445,7 @@ function appendSmart(key) {
   let leaf = null;
   edit(() => { leaf = insert(key, container, index); });
   if (!leaf) { toast('That does not fit there'); return; }
+  PC_UI.recordElementUse(key);
   /* Use the same selection transition as a canvas click so the tablet inspector
      replaces the Add panel immediately after an element is placed. */
   select(leaf.id);
@@ -5276,19 +5278,15 @@ function restoreCanvasLayout() {
 function layoutCanvas() {
   const wrap = $('#frameWrap'), cv = $('#canvas');
   if (!wrap || !cv || !$('#stage')?.clientWidth || !wrap.clientHeight) return;
-  if (document.body.classList.contains('preview')) {
-    /* preview is the real thing at real size — no frame, no scale */
-    zoomK = 1;
-    wrap.style.width = ''; cv.style.width = ''; cv.style.height = '';
-    cv.style.transform = '';
-    return;
-  }
-  const target = canvasWidth(state.ui.dev, state.meta.maxWidth);
+  const preview = document.body.classList.contains('preview');
   const stage = $('#stage');
-  /* the stage's own padding is 16px a side; clientWidth already excludes any
-     scrollbar, which is why it is read rather than the window */
-  const avail = Math.max(120, stage.clientWidth - 32);
-  const k = zoomK = zoomFor(state.ui.zoom, target, avail);
+  /* Desktop preview fills the viewport. Device previews retain their actual
+     breakpoint width, even when the editor uses a custom zoom. */
+  const target = preview && state.ui.dev === 'desktop'
+    ? stage.clientWidth : canvasWidth(state.ui.dev, state.meta.maxWidth);
+  /* Preview has no stage padding; editor clientWidth excludes its scrollbar. */
+  const avail = preview ? stage.clientWidth : Math.max(120, stage.clientWidth - 32);
+  const k = zoomK = preview ? fitZoom(target, avail) : zoomFor(state.ui.zoom, target, avail);
   wrap.style.width = Math.round(target * k) + 'px';
   cv.style.width = target + 'px';
   /* the wrap's height comes from flex and does not depend on the iframe, so this
