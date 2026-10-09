@@ -104,15 +104,14 @@ function LibraryAdd({ kind, id }: { kind: LibraryItemKind; id: string }) {
 type PaletteGroup = (typeof PAL)[number];
 
 function WidgetTiles({ group }: { group: PaletteGroup }) {
-  const [hint, setHint] = useState('');
-  return (<>
+  return (
     <div class="pgrid">
       {group.items.map(([k, label]) => (
         <button type="button" class="pitem" key={k} title={L.insertionHint(k)}
-          onFocus={() => { setHint(k); L.previewInsertion(k); }}
-          onMouseEnter={() => { setHint(k); L.previewInsertion(k); }}
-          onBlur={() => { setHint(''); L.previewInsertion(null); }}
-          onMouseLeave={() => { setHint(''); L.previewInsertion(null); }}
+          onFocus={() => L.previewInsertion(k)}
+          onMouseEnter={() => L.previewInsertion(k)}
+          onBlur={() => L.previewInsertion(null)}
+          onMouseLeave={() => L.previewInsertion(null)}
           onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
             { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
           onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
@@ -121,8 +120,7 @@ function WidgetTiles({ group }: { group: PaletteGroup }) {
         </button>
       ))}
     </div>
-    {hint ? <p class="pc-insertion-hint" role="status">{L.insertionHint(hint)}</p> : null}
-  </>);
+  );
 }
 
 function Widgets({ templates }: { templates(): void }) {
