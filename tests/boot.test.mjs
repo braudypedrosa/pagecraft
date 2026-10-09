@@ -1039,7 +1039,7 @@ test('preview readiness clears the visual success banner but retains actionable 
   const cd=frame.contentDocument;
   Object.defineProperty(cd,'images',{configurable:true,value:[]});
   doc.body.classList.add('preview');
-  const settle=()=>new Promise(resolve=>setTimeout(resolve,60));
+  const settle=()=>new Promise(resolve=>w.requestAnimationFrame(()=>w.requestAnimationFrame(()=>w.requestAnimationFrame(resolve))));
   try {
     w.watchCanvasPreview('');await settle();
     a.equal(strip.hidden,false,'success remains available to assistive technology');
