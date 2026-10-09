@@ -250,6 +250,13 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     record.label.textContent = option?.label || 'Choose an option';
     record.trigger.disabled = record.select.disabled;
     record.trigger.setAttribute('aria-label', labelOf(record.select));
+    for (const name of ['aria-invalid', 'aria-describedby', 'aria-errormessage']) {
+      const value = record.select.getAttribute(name);
+      if (value === null) record.trigger.removeAttribute(name);
+      else record.trigger.setAttribute(name, value);
+    }
+    if (record.select.required) record.trigger.setAttribute('aria-required', 'true');
+    else record.trigger.removeAttribute('aria-required');
     record.trigger.title = record.select.title;
     if (!record.menu.hidden && record.signature !== optionSignature(record.select)) renderMenu(record);
   }
@@ -404,7 +411,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (affectsSelect) schedule();
   }).observe(document.documentElement, {
     subtree: true, childList: true, attributes: true,
-    attributeFilter: ['disabled', 'title', 'aria-label']
+    attributeFilter: ['disabled', 'required', 'title', 'aria-label', 'aria-invalid', 'aria-describedby', 'aria-errormessage']
   });
   scan();
 }

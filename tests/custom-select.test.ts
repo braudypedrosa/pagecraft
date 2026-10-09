@@ -110,3 +110,24 @@ test('floating options stay opaque when toolbar triggers are transparent or tint
     a.equal(document.activeElement, trigger);
   }
 });
+
+test('visible combobox carries native validation state and error descriptions as they change', async () => {
+  document.body.innerHTML = '<p id="currency-help">Choose a supported currency.</p><select aria-label="Currency" required aria-invalid="true" aria-describedby="currency-help" aria-errormessage="currency-help"><option value="">Choose currency</option><option value="USD">USD</option></select>';
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const select = document.querySelector('select')!;
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  a.equal(trigger.getAttribute('aria-required'), 'true');
+  a.equal(trigger.getAttribute('aria-invalid'), 'true');
+  a.equal(trigger.getAttribute('aria-describedby'), 'currency-help');
+  a.equal(trigger.getAttribute('aria-errormessage'), 'currency-help');
+
+  select.removeAttribute('aria-invalid');
+  select.removeAttribute('aria-errormessage');
+  select.setAttribute('aria-describedby', 'new-help');
+  select.required = false;
+  await new Promise(resolve => setTimeout(resolve, 30));
+  a.equal(trigger.getAttribute('aria-invalid'), null);
+  a.equal(trigger.getAttribute('aria-errormessage'), null);
+  a.equal(trigger.getAttribute('aria-describedby'), 'new-help');
+  a.equal(trigger.getAttribute('aria-required'), null);
+});

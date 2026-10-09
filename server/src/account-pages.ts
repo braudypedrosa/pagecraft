@@ -1,4 +1,6 @@
 import { cloudHeader, CLOUD_HEADER_CSS } from './cloud-header.ts';
+import { ownerBillingBody } from './owner-billing-page.ts';
+import type { OwnerBillingLoadResult } from './owner-billing.ts';
 import { SITE_PREVIEWS_BOOT_SCRIPT } from '../../shared/site-previews.js';
 import { submissionOutcome, sortSubmissions } from './submissions.ts';
 import { submissionsNavigation } from './submissions-navigation.ts';
@@ -125,7 +127,8 @@ const accountLabel = (user: User) => {
 const bellIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.2a3.6 3.6 0 0 1 3.6 3.6v1.8l1 1.8H3.4l1-1.8V5.8A3.6 3.6 0 0 1 8 2.2z"/><path d="M6.5 12.2a1.5 1.5 0 0 0 3 0"/></svg>`;
 const accountProfileIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="5" r="2.5"/><path d="M3.2 13.5c.35-2.8 2.05-4.2 4.8-4.2s4.45 1.4 4.8 4.2"/></svg>`;
 const accountLogoutIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3H4.5A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13H7"/><path d="M7 8h6.5M11 5.5 13.5 8 11 10.5"/></svg>`;
-const workbenchHeader = (user: User, label: string) => cloudHeader(label, `<a class="pc-iconbtn" href="mailto:hello@braudyp.dev" title="Help" aria-label="Help">${helpIcon}</a><details class="pc-notify" id="notify-menu" data-notify-root><summary class="pc-iconbtn" aria-label="Notifications" title="Notifications">${bellIcon}<span class="pc-notify-badge" data-notify-badge hidden></span></summary><div class="pc-notify-panel" role="dialog" aria-label="Notifications"><div class="pc-notify-head"><strong>Notifications</strong><a href="/notifications">View all</a></div><div class="pc-notify-list" data-notify-list><p class="pc-notify-empty">Loading…</p></div></div></details><details class="pc-account" id="account-menu"><summary title="${esc(user.email)}"><span class="pc-account-email">${esc(accountLabel(user))}</span><span class="pc-avatar" aria-hidden="true">${esc(initialsOf(user))}</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4.5 6.5L8 10l3.5-3.5"/></svg></summary><div class="pc-account-menu pc-menu"><p title="${esc(user.email)}">${esc(accountLabel(user))}</p><a class="pc-menu-item" href="/account">${accountProfileIcon}Account settings</a><a class="pc-menu-item" href="/notifications">${bellIcon}Notifications</a><form method="post" action="/auth/logout"><button class="pc-menu-item" type="submit">${accountLogoutIcon}Sign out</button></form></div></details>`);
+const ownerBillingIcon = `<svg aria-hidden="true" width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="15" height="12" rx="2"/><path d="M2.5 8h15M6 12h3"/></svg>`;
+const workbenchHeader = (user: User, label: string, ownerBilling = false) => cloudHeader(label, `<a class="pc-iconbtn" href="mailto:hello@braudyp.dev" title="Help" aria-label="Help">${helpIcon}</a><details class="pc-notify" id="notify-menu" data-notify-root><summary class="pc-iconbtn" aria-label="Notifications" title="Notifications">${bellIcon}<span class="pc-notify-badge" data-notify-badge hidden></span></summary><div class="pc-notify-panel" role="dialog" aria-label="Notifications"><div class="pc-notify-head"><strong>Notifications</strong><a href="/notifications">View all</a></div><div class="pc-notify-list" data-notify-list><p class="pc-notify-empty">Loading…</p></div></div></details><details class="pc-account" id="account-menu"><summary title="${esc(user.email)}"><span class="pc-account-email">${esc(accountLabel(user))}</span><span class="pc-avatar" aria-hidden="true">${esc(initialsOf(user))}</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4.5 6.5L8 10l3.5-3.5"/></svg></summary><div class="pc-account-menu pc-menu"><p title="${esc(user.email)}">${esc(accountLabel(user))}</p><a class="pc-menu-item" href="/account">${accountProfileIcon}Account settings</a>${ownerBilling ? `<a class="pc-menu-item" href="/owner/billing">${ownerBillingIcon}Owner billing</a>` : ''}<a class="pc-menu-item" href="/notifications">${bellIcon}Notifications</a><form method="post" action="/auth/logout"><button class="pc-menu-item" type="submit">${accountLogoutIcon}Sign out</button></form></div></details>`);
 const submissionsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg>`;
 const reviewsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 4.5h12v11H7l-3 2.5V4.5z"/><path d="M7 8h6M7 11h4"/></svg>`;
 const noticeCommentIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h12a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5H8.2L5 17.5V14.5H4A1.5 1.5 0 0 1 2.5 13V6A1.5 1.5 0 0 1 4 4.5z"/><path d="M6.5 9h7M6.5 11.5h4.5"/></svg>`;
@@ -139,6 +142,12 @@ const noticeIconFor = (kind: string) => {
 };
 const sitesRail = () =>
   `<nav class="pc-rail" aria-label="Sites navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a href="/">${ownedIcon}<span>Owned</span></a><a href="/">${sharedIcon}<span>Shared</span></a><span class="pc-rail-gap"></span></nav>`;
+export const ownerBillingPage = (
+  user: User,
+  data: Extract<OwnerBillingLoadResult, { status: 'ok' }>,
+  input: Parameters<typeof ownerBillingBody>[1] = {},
+) => shell('Owner billing', `<main class="dashboard-app">${accountMenuCss}${workbenchHeader(user, 'Owner billing', true)}<div class="pc-main"><nav class="pc-rail" aria-label="Owner navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a class="on" href="/owner/billing" aria-current="page">${ownerBillingIcon}<span>Billing</span></a><span class="pc-rail-gap"></span></nav><section class="pc-workspace">${ownerBillingBody(data, input)}</section></div></main>`);
+
 type ManagementSection = 'overview' | 'people' | 'reviews' | 'settings' | 'integrations' | 'submissions' | 'analytics' | 'assistants';
 const assistantsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8l1.5 3.7 3.7 1.5-3.7 1.5L10 13.2 8.5 9.5 4.8 8l3.7-1.5z"/><path d="M15.2 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg>`;
 const analyticsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3.5 16.5h13"/><path d="M6 13.5v-4M10 13.5v-8M14 13.5v-6"/></svg>`;
@@ -613,7 +622,7 @@ const accountSettingsCss = `<style>
 
 export const accountSettingsPage = (
   user: User, data: AccountSettingsData,
-  input: { error?: string; message?: string; tab?: AccountSettingsTab } = {}
+  input: { error?: string; message?: string; tab?: AccountSettingsTab; ownerBilling?: boolean } = {}
 ) => {
   const providers = new Set(data.providers);
   const hasPassword = providers.has('email');
@@ -634,7 +643,7 @@ export const accountSettingsPage = (
   const tabState = (tab: AccountSettingsTab) => selectedTab === tab
     ? 'aria-selected="true" tabindex="0"'
     : 'aria-selected="false" tabindex="-1"';
-  return shell('Account settings', `<main class="dashboard-app">${accountMenuCss}${accountSettingsCss}${workbenchHeader(user, 'Account')}
+  return shell('Account settings', `<main class="dashboard-app">${accountMenuCss}${accountSettingsCss}${workbenchHeader(user, 'Account', input.ownerBilling)}
   <div class="pc-main">${sitesRail()}<section class="pc-workspace"><div class="pc-settings-content"><header class="pc-settings-head pc-workspace-head"><div><h1>Account settings</h1><p>Manage your profile, sign-in security, and Pagecraft plan.</p></div></header>
   ${notice(input.error, input.message)}<div class="pc-settings-layout"><div class="pc-settings-nav" role="tablist" aria-label="Account settings"><button id="settings-tab-profile" type="button" role="tab" aria-controls="settings-panel-profile" data-settings-tab="profile" ${tabState('profile')}>Profile</button><button id="settings-tab-security" type="button" role="tab" aria-controls="settings-panel-security" data-settings-tab="security" ${tabState('security')}>Security</button><button id="settings-tab-plan" type="button" role="tab" aria-controls="settings-panel-plan" data-settings-tab="plan" ${tabState('plan')}>Plan &amp; billing</button></div><div class="pc-settings-main">
   <section class="pc-settings-section" id="settings-panel-profile" role="tabpanel" aria-labelledby="settings-tab-profile" tabindex="0" data-settings-panel="profile"><div class="pc-settings-title"><div><h2>Profile</h2><p>Your verified email is used for sign-in, collaboration invitations, and account notices.</p></div>${joinedCopy ? `<span class="pc-account-meta">Joined ${joinedCopy}</span>` : ''}</div>
@@ -685,7 +694,7 @@ const dashboardCreateFlowCss = `<style>
 
 export const dashboardPage = (
   user: User, sites: DashboardSite[], ownerCount: number, storage: DashboardStorage,
-  templates: SiteTemplateSummary[] = [], error?: string, message?: string, invitationCount = 0
+  templates: SiteTemplateSummary[] = [], error?: string, message?: string, invitationCount = 0, ownerBilling = false
 ) => {
   const plan = planEntitlements(user.plan);
   const atLimit = plan.ownedSites !== null && ownerCount >= plan.ownedSites;
@@ -728,8 +737,8 @@ export const dashboardPage = (
       <footer class="pc-create-modal-foot pc-dialog-foot"><button class="pc-btn" type="button" data-create-back hidden>Back</button><button class="pc-btn" type="button" data-create-close>Cancel</button><button class="pc-btn primary" type="button" data-create-next hidden>Continue</button></footer>
     </form>
   </dialog>`;
-  return shell('Sites', `<main class="dashboard-app">${accountMenuCss}${dashboardCreateModalCss}${dashboardCreateFlowCss}${workbenchHeader(user, 'Sites')}
-  <div class="pc-main"><nav class="pc-rail" aria-label="Sites navigation"><button type="button" data-site-view="sites" aria-pressed="true">${sitesIcon}<span>Sites</span></button><button type="button" data-site-view="owned" aria-pressed="false">${ownedIcon}<span>Owned</span></button><button type="button" data-site-view="shared" aria-pressed="false">${sharedIcon}<span>Shared</span></button><span class="pc-rail-gap"></span></nav>
+  return shell('Sites', `<main class="dashboard-app">${accountMenuCss}${dashboardCreateModalCss}${dashboardCreateFlowCss}${workbenchHeader(user, 'Sites', ownerBilling)}
+  <div class="pc-main"><nav class="pc-rail" aria-label="Sites navigation"><button type="button" data-site-view="sites" aria-pressed="true">${sitesIcon}<span>Sites</span></button><button type="button" data-site-view="owned" aria-pressed="false">${ownedIcon}<span>Owned</span></button><button type="button" data-site-view="shared" aria-pressed="false">${sharedIcon}<span>Shared</span></button>${ownerBilling ? `<a href="/owner/billing">${ownerBillingIcon}<span>Billing</span></a>` : ''}<span class="pc-rail-gap"></span></nav>
   <section class="pc-workspace"><div class="pc-content"><header class="pc-heading pc-workspace-head"><div><h1>Sites</h1><p>Manage and continue building your Pagecraft sites.</p></div>${newSiteAction}</header>
   ${invitationCount ? `<div class="notice"><a href="/invitations">${invitationCount} ${invitationCount === 1 ? 'invitation awaits' : 'invitations await'} your response</a></div>` : ''}
   <div class="pc-toolbar"><label class="pc-search"><span class="sr-only">Search sites</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/></svg><input type="search" placeholder="Search sites" data-site-search></label><label><span class="sr-only">Sort sites</span><select class="pc-sort" data-site-sort><option value="updated">Last edited</option><option value="name">Name</option></select></label></div>
