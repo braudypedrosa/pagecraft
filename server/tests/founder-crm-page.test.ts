@@ -1,5 +1,7 @@
 import a from 'node:assert/strict';
 import { test } from 'vitest';
+// @ts-expect-error jsdom has no bundled declarations in this workspace.
+import { JSDOM } from 'jsdom';
 import type { User } from '../src/auth.ts';
 import { founderCrmPage, founderCrmSignInPage } from '../src/founder-crm-page.ts';
 import type { FounderCrmData, FounderCrmPageInput } from '../src/founder-crm-types.ts';
@@ -7,6 +9,24 @@ import type { FounderCrmData, FounderCrmPageInput } from '../src/founder-crm-typ
 const founder: User = {
   id: 'founder-1', name: 'Braudy <Founder>', email: 'founder@example.test',
 };
+
+test('returning through browser history restores a usable submit form', async () => {
+  const dom = new JSDOM(founderCrmPage(founder, base(), input({ section:'customers', draftContact:{} })), {
+    url:'http://reports.test/customers?new=1', runScripts:'dangerously',
+  });
+  try {
+    const form = dom.window.document.querySelector('.detail-form')!;
+    const button = form.querySelector('button')!;
+    const submit = () => new dom.window.Event('submit', { bubbles:true, cancelable:true });
+    const first = submit(); form.dispatchEvent(first); a.equal(first.defaultPrevented,false);
+    a.equal(button.hasAttribute('disabled'),false);
+    const duplicate = submit(); form.dispatchEvent(duplicate); a.equal(duplicate.defaultPrevented,true);
+    await new Promise(resolve=>setTimeout(resolve,10)); a.equal(button.textContent,'Working…');
+    dom.window.dispatchEvent(new dom.window.PageTransitionEvent('pageshow',{persisted:true}));
+    a.equal(button.textContent,'Add lead'); a.equal(form.getAttribute('aria-busy'),null);
+    const retry = submit(); form.dispatchEvent(retry); a.equal(retry.defaultPrevented,false);
+  } finally { dom.window.close(); }
+});
 
 const base = (overrides: Partial<FounderCrmData> = {}): FounderCrmData => ({
   generatedAt: '2026-10-09T01:30:00.000Z',
@@ -226,7 +246,9 @@ test('new manual lead and pipeline forms post complete state to the CRM route', 
   a.match(html, /name="returnSection" value="pipeline"/);
   a.match(html, /name="isTest" value="true" checked/);
   a.match(html, /Archive a record by changing its stage to Archived/);
-  a.doesNotMatch(html, /delete|Remove contact/i);
+  const dom = new JSDOM(html);
+  a.ok(![...dom.window.document.querySelectorAll('button,a')].some(el => /delete|Remove contact/i.test(el.textContent || '')));
+  dom.window.close();
 });
 
 test('pipeline retains archived records for its Archived filter', () => {
@@ -286,6 +308,16 @@ test('connected partial billing labels coverage and keeps currencies separate', 
   a.match(html, /USD(?:&nbsp;|\s)10\.00/);
   a.doesNotMatch(html, /PHP(?:&nbsp;|\s)500\.00/);
   a.match(html, /Sandbox billing/);
+  a.match(founderCrmPage(founder, connected, input({ section: 'overview' })), /Partial Paddle coverage/);
+});
+
+test('overview distinguishes a provider outage from missing setup', () => {
+  const outage = base({ billing: { ...base().billing, billing: {
+    state: 'unavailable', environment: 'sandbox', reason: 'provider_unavailable',
+  } } });
+  const html = founderCrmPage(founder, outage, input({ section: 'overview' }));
+  a.match(html, /Paddle is temporarily unavailable/);
+  a.doesNotMatch(html, /Paddle is not connected/);
 });
 
 test('cost forms preserve draft fields and use existing mutation routes', () => {
@@ -316,10 +348,23 @@ test('cost forms preserve draft fields and use existing mutation routes', () => 
 test('contact success feedback is announced and receives focus on load', () => {
   const html = founderCrmPage(founder, base(), input({ section: 'customers', message: 'Contact saved.' }));
   a.match(html, /class="notice success" role="status" tabindex="-1" data-feedback>Contact saved\.<\/p>/);
-  a.match(html, /const feedback=document\.querySelector\('\[data-feedback\]'\);if\(feedback\)feedback\.focus\(\)/);
-  a.match(html, /if\(form\.dataset\.submitting==='true'\)\{event\.preventDefault\(\);return;\}/);
-  a.match(html, /setTimeout\(\(\)=>\{button\.dataset\.original/);
-  a.doesNotMatch(html, /button\.disabled=true/);
+  const dom = new JSDOM(html,{runScripts:'dangerously',url:'http://reports.test/customers'});
+  a.equal(dom.window.document.activeElement?.textContent,'Contact saved.');
+  dom.window.close();
+});
+
+test('saved account contacts with withheld platform fields are not labeled as manual leads', () => {
+  const customer: FounderCrmData['customers'][number] = {
+    id:'saved-contact',accountId:'saved-account',contactId:'saved-contact',name:'Saved contact',
+    email:'saved@example.test',company:'Example',plan:null,ownedSites:null,publishedSites:null,mediaBytes:null,
+    joinedAt:'2026-10-01T00:00:00Z',lastEditedAt:null,stage:'customer',source:'unknown',notes:'',
+    followUpOn:null,isTest:false,revision:1,
+  };
+  const dom = new JSDOM(founderCrmPage(founder,base({customers:[customer]}),input({section:'customers'})));
+  a.equal(dom.window.document.querySelector('[data-customer-row]')?.getAttribute('data-plan'),'unavailable');
+  a.equal(dom.window.document.querySelector('[data-customer-row] .tag')?.textContent,'Plan unavailable');
+  a.ok([...dom.window.document.querySelectorAll('[data-table-plan] option')].some(el=>el.textContent==='Unavailable plans'));
+  dom.window.close();
 });
 
 test('reports expose stateful CSV links and explain snapshot metrics', () => {
@@ -335,6 +380,9 @@ test('reports expose stateful CSV links and explain snapshot metrics', () => {
   a.match(html, /All account profiles \(unfiltered\)/);
   a.match(html, /Inventory total; derived metrics use retrieved profiles/);
   a.match(html, /Past 30 days; daily UTC buckets/);
+  const weekly = founderCrmPage(founder, base({ range: '90d' }), input({ section: 'reports' }));
+  a.match(weekly, /Past 90 days; weekly UTC buckets/);
+  a.doesNotMatch(weekly, /Past 90 days; daily UTC buckets/);
   a.match(html, /Site creation trend/);
   a.match(html, /aria-label="2026-10-09: 3"/);
   a.match(html, /Manual source distribution/);

@@ -41,8 +41,8 @@ const number = (value: number | null) => value === null || !Number.isFinite(valu
   ? 'Unavailable' : Math.max(0, Math.trunc(value)).toLocaleString('en');
 
 const rangeBasis = (range: FounderCrmData['range']) => range === '30d'
-  ? 'Past 30 days; daily UTC buckets' : range === '90d'
-    ? 'Past 90 days; daily UTC buckets'
+  ? 'Past 30 days; daily UTC buckets may include partial boundary days' : range === '90d'
+    ? 'Past 90 days; weekly UTC buckets may include partial boundary weeks'
     : 'Past year (365 days); monthly UTC buckets may include partial boundary months';
 
 const environment = (value: FounderCrmPageInput['dataEnvironment']) => value === 'production'
@@ -181,6 +181,9 @@ const topStats = (data: FounderCrmData, currency: string) => {
 
 const overview = (data: FounderCrmData, currency: string) => {
   const billingConnected = data.billing.billing.state === 'connected';
+  const missingChargeMessage = data.billing.billing.state === 'unavailable'
+    ? 'Paddle is temporarily unavailable. No revenue trend is shown.'
+    : 'Paddle is not connected. No revenue trend is shown.';
   const chargeSeries = billingConnected
     ? data.analytics.chargeHistory.find(series => series.currencyCode === currency) : undefined;
   const due = data.analytics.followUps.slice(0, 5);
@@ -194,16 +197,18 @@ const overview = (data: FounderCrmData, currency: string) => {
   const followUps = data.crm.state === 'available'
     ? `${dueRows ? `<ul>${dueRows}</ul>` : '<p class="empty-copy">No follow-ups are due.</p>'}`
     : `<p class="empty-copy">${crmGap} Follow-up status cannot be determined.</p>`;
-  return `<div class="screen overview-screen">${coverage}${topStats(data, currency)}<div class="chart-grid">${lineChart('account-chart', 'Account creation trend', data.analytics.accountGrowth, 'No account-creation history is available for this period.')}${billingConnected ? moneyChart(chargeSeries, currency) : '<div class="chart-empty"><strong>Collected customer charges</strong><p>Paddle is not connected. No revenue trend is shown.</p></div>'}</div><div class="overview-lower">${barList('Plan mix', data.analytics.planMix, 'No plan distribution is available.')}${pipelineSummary}<section class="mini followups"><div class="mini-head"><h3>Follow-ups due</h3>${data.crm.state === 'available' ? `<a href="${path('pipeline', data, currency)}">Open pipeline</a>` : ''}</div>${followUps}</section><section class="mini source-summary"><h3>Source status</h3><dl><div><dt>Pagecraft</dt><dd>${status(data.platform.state)}</dd></div><div><dt>Paddle</dt><dd>${status(data.billing.billing.state === 'connected' ? 'available' : data.billing.billing.state)}</dd></div><div><dt>CRM storage</dt><dd>${status(data.crm.state)}</dd></div></dl></section></div></div>`;
+  return `<div class="screen overview-screen">${coverage}${topStats(data, currency)}<div class="chart-grid">${lineChart('account-chart', 'Account creation trend', data.analytics.accountGrowth, 'No account-creation history is available for this period.')}${billingConnected ? moneyChart(chargeSeries, currency) : `<div class="chart-empty"><strong>Collected customer charges</strong><p>${esc(missingChargeMessage)}</p></div>`}</div><div class="overview-lower">${barList('Plan mix', data.analytics.planMix, 'No plan distribution is available.')}${pipelineSummary}<section class="mini followups"><div class="mini-head"><h3>Follow-ups due</h3>${data.crm.state === 'available' ? `<a href="${path('pipeline', data, currency)}">Open pipeline</a>` : ''}</div>${followUps}</section><section class="mini source-summary"><h3>Source status</h3><dl><div><dt>Pagecraft</dt><dd>${status(data.platform.state)}</dd></div><div><dt>Paddle</dt><dd>${status(data.billing.billing.state === 'connected' ? 'available' : data.billing.billing.state)}</dd></div><div><dt>CRM storage</dt><dd>${status(data.crm.state)}</dd></div></dl></section></div></div>`;
 };
 
 const customerHref = (customer: CrmCustomer, data: FounderCrmData, currency: string, section: 'customers' | 'pipeline') =>
   path(section, data, currency, customer.accountId
     ? `&editAccount=${enc(customer.accountId)}` : `&editContact=${enc(customer.contactId || customer.id)}`);
 
+const customerPlanKey = (customer: CrmCustomer) => customer.plan || (customer.accountId ? 'unavailable' : 'manual');
+
 const customerRows = (customers: CrmCustomer[], data: FounderCrmData, currency: string, section: 'customers' | 'pipeline') => customers.map(customer => {
   const searchable = [customer.name, customer.email, customer.company, customer.plan, customer.stage, customer.source].join(' ').toLowerCase();
-  return `<tr data-customer-row data-search="${esc(searchable)}" data-plan="${esc(customer.plan || 'manual')}" data-stage="${esc(customer.stage)}"><td><a class="row-link" href="${customerHref(customer, data, currency, section)}">${esc(customer.name || 'Unnamed contact')}</a><span>${esc(customer.email || 'No email')}</span></td><td>${customer.company ? esc(customer.company) : '<span class="muted">—</span>'}</td><td>${customer.plan ? `<span class="tag">${esc(label(customer.plan))}</span>` : '<span class="tag quiet">Manual lead</span>'}</td><td><span class="stage ${esc(customer.stage)}">${esc(label(customer.stage))}</span></td><td>${esc(label(customer.source))}</td><td>${customer.ownedSites === null ? '<span class="muted">—</span>' : number(customer.ownedSites)}</td><td>${customer.followUpOn ? date(customer.followUpOn) : '<span class="muted">None</span>'}</td></tr>`;
+  return `<tr data-customer-row data-search="${esc(searchable)}" data-plan="${esc(customerPlanKey(customer))}" data-stage="${esc(customer.stage)}"><td><a class="row-link" href="${customerHref(customer, data, currency, section)}">${esc(customer.name || 'Unnamed contact')}</a><span>${esc(customer.email || 'No email')}</span></td><td>${customer.company ? esc(customer.company) : '<span class="muted">—</span>'}</td><td>${customer.plan ? `<span class="tag">${esc(label(customer.plan))}</span>` : `<span class="tag quiet">${customer.accountId ? 'Plan unavailable' : 'Manual lead'}</span>`}</td><td><span class="stage ${esc(customer.stage)}">${esc(label(customer.stage))}</span></td><td>${esc(label(customer.source))}</td><td>${customer.ownedSites === null ? '<span class="muted">—</span>' : number(customer.ownedSites)}</td><td>${customer.followUpOn ? date(customer.followUpOn) : '<span class="muted">None</span>'}</td></tr>`;
 }).join('');
 
 const options = (values: readonly string[], selected: string) => values
@@ -236,8 +241,8 @@ const contactPanel = (data: FounderCrmData, input: FounderCrmPageInput, currency
 };
 
 const filters = (data: FounderCrmData, kind: 'customers' | 'pipeline') => {
-  const plans = [...new Set(data.customers.map(customer => customer.plan || 'manual'))].sort();
-  return `<div class="table-tools"><label class="search"><span>Search</span><input type="search" placeholder="Name, email, company…" data-table-search></label>${kind === 'customers' ? `<label><span>Plan</span><select data-table-plan><option value="">All plans</option>${plans.map(plan => `<option value="${esc(plan)}">${esc(plan === 'manual' ? 'Manual leads' : label(plan))}</option>`).join('')}</select></label>` : ''}<label><span>Stage</span><select data-table-stage><option value="">All stages</option>${options(CRM_STAGES, '')}</select></label><span class="filter-count" data-filter-count>${number(data.customers.length)} records</span></div>`;
+  const plans = [...new Set(data.customers.map(customerPlanKey))].sort();
+  return `<div class="table-tools"><label class="search"><span>Search</span><input type="search" placeholder="Name, email, company…" data-table-search></label>${kind === 'customers' ? `<label><span>Plan</span><select data-table-plan><option value="">All plans</option>${plans.map(plan => `<option value="${esc(plan)}">${esc(plan === 'manual' ? 'Manual leads' : plan === 'unavailable' ? 'Unavailable plans' : label(plan))}</option>`).join('')}</select></label>` : ''}<label><span>Stage</span><select data-table-stage><option value="">All stages</option>${options(CRM_STAGES, '')}</select></label><span class="filter-count" data-filter-count>${number(data.customers.length)} records</span></div>`;
 };
 
 const customers = (data: FounderCrmData, input: FounderCrmPageInput, currency: string) => `<div class="screen split-screen"><section class="list-pane" aria-labelledby="customers-title"><div class="section-heading"><div><span class="eyebrow">Directory</span><h2 id="customers-title">Customers &amp; leads</h2><p>Pagecraft accounts and manually tracked opportunities in one view.</p></div><a class="button primary" href="${path('customers', data, currency, '&new=1')}">Add lead</a></div>${filters(data, 'customers')}<div class="table-wrap customer-table"><table><thead><tr><th>Customer</th><th>Company</th><th>Plan</th><th>Stage</th><th>Source</th><th>Sites</th><th>Follow-up</th></tr></thead><tbody data-filter-body>${customerRows(data.customers, data, currency, 'customers') || '<tr class="empty-row"><td colspan="7"><strong>No customer records</strong><span>Imported accounts and manual leads will appear here.</span></td></tr>'}</tbody></table></div><p class="filter-empty" data-filter-empty hidden>No records match these filters.</p></section>${contactPanel(data, input, currency)}</div>`;
@@ -387,8 +392,10 @@ export function founderCrmPage(user: User, data: FounderCrmData, input: FounderC
           : input.section === 'costs' ? costs(data, input, currency)
             : input.section === 'reports' ? reports(data, currency) : sources(data);
   const currencyChoices = currencies(data);
-  const coverageFlag = data.platform.snapshot?.coverage === 'partial'
-    ? '<span class="coverage-flag">Partial Pagecraft coverage</span>' : '';
+  const coverageFlag = (data.platform.snapshot?.coverage === 'partial'
+    ? '<span class="coverage-flag">Partial Pagecraft coverage</span>' : '') +
+    (data.billing.billing.state === 'connected' && data.billing.billing.coverage === 'partial'
+      ? '<span class="coverage-flag">Partial Paddle coverage</span>' : '');
   const sourceWarnings = [
     data.platform.state === 'available' ? '' : `<p class="notice warning"><strong>Pagecraft source ${esc(label(data.platform.state).toLowerCase())}.</strong> The customer directory contains saved CRM contacts only; account, site, and plan values are withheld.</p>`,
     data.crm.state === 'available' ? '' : `<p class="notice warning"><strong>CRM storage ${esc(label(data.crm.state).toLowerCase())}.</strong> Saved notes, stages, sources, and follow-up dates cannot be read. Stage and source labels may fall back to incomplete defaults.</p>`,
@@ -424,4 +431,4 @@ const styles = `
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 `;
 
-const clientScript = `<script>(()=>{const feedback=document.querySelector('[data-feedback]');if(feedback)feedback.focus();document.querySelectorAll('[data-pending-form]').forEach(form=>form.addEventListener('submit',event=>{if(form.dataset.submitting==='true'){event.preventDefault();return;}form.dataset.submitting='true';form.setAttribute('aria-busy','true');const button=form.querySelector('[data-submit-label]');if(button)setTimeout(()=>{button.dataset.original=button.textContent||'';button.textContent='Working…';},0);}));const search=document.querySelector('[data-table-search]'),plan=document.querySelector('[data-table-plan]'),stage=document.querySelector('[data-table-stage]'),rows=[...document.querySelectorAll('[data-customer-row]')],count=document.querySelector('[data-filter-count]'),empty=document.querySelector('[data-filter-empty]');const filter=()=>{const q=(search?.value||'').trim().toLowerCase(),p=plan?.value||'',s=stage?.value||'';let shown=0;rows.forEach(row=>{const visible=(!q||row.dataset.search.includes(q))&&(!p||row.dataset.plan===p)&&(!s||row.dataset.stage===s);row.hidden=!visible;if(visible)shown++;});if(count)count.textContent=shown+' record'+(shown===1?'':'s');if(empty)empty.hidden=shown!==0;};[search,plan,stage].forEach(control=>control?.addEventListener(control===search?'input':'change',filter));document.querySelectorAll('[data-stage-jump]').forEach(link=>link.addEventListener('click',()=>{if(stage){stage.value=link.dataset.stageJump||'';filter();}}));})();</script>`;
+const clientScript = `<script>(()=>{const feedback=document.querySelector('[data-feedback]');if(feedback)feedback.focus();document.querySelectorAll('[data-pending-form]').forEach(form=>form.addEventListener('submit',event=>{if(form.dataset.submitting==='true'){event.preventDefault();return;}form.dataset.submitting='true';form.setAttribute('aria-busy','true');const button=form.querySelector('[data-submit-label]');if(button){button.dataset.original=button.textContent||'';setTimeout(()=>{if(form.dataset.submitting==='true')button.textContent='Working…';},0);}}));window.addEventListener('pageshow',event=>{if(!event.persisted)return;document.querySelectorAll('[data-pending-form]').forEach(form=>{delete form.dataset.submitting;form.removeAttribute('aria-busy');const button=form.querySelector('[data-submit-label]');if(button&&button.dataset.original)button.textContent=button.dataset.original;});});const search=document.querySelector('[data-table-search]'),plan=document.querySelector('[data-table-plan]'),stage=document.querySelector('[data-table-stage]'),rows=[...document.querySelectorAll('[data-customer-row]')],count=document.querySelector('[data-filter-count]'),empty=document.querySelector('[data-filter-empty]');const filter=()=>{const q=(search?.value||'').trim().toLowerCase(),p=plan?.value||'',s=stage?.value||'';let shown=0;rows.forEach(row=>{const visible=(!q||row.dataset.search.includes(q))&&(!p||row.dataset.plan===p)&&(!s||row.dataset.stage===s);row.hidden=!visible;if(visible)shown++;});if(count)count.textContent=shown+' record'+(shown===1?'':'s');if(empty)empty.hidden=shown!==0;};[search,plan,stage].forEach(control=>control?.addEventListener(control===search?'input':'change',filter));document.querySelectorAll('[data-stage-jump]').forEach(link=>link.addEventListener('click',()=>{if(stage){stage.value=link.dataset.stageJump||'';filter();}}));})();</script>`;
