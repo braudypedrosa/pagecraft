@@ -162,8 +162,6 @@ import {
   portableAssetIds,
 } from "./portable-packages.ts";
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
-import { ownerBillingAccess, type OwnerBillingOptions } from './owner-billing.ts';
-import { ownerBillingRoutes } from './owner-billing-routes.ts';
 import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
 import { latestSiteTemplates, type SiteTemplateStore } from "./site-templates.ts";
@@ -364,8 +362,6 @@ export interface Options {
   scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
   accountAuth?: AccountAuth;
-  /** Platform finances require a verified auth UUID allowlist, independent of any account plan. */
-  ownerBilling?: OwnerBillingOptions;
   /** Atomic site creation and owner grant, including the owned-site quota. */
   ownedSites?: OwnedSiteStore;
   /** Immutable, Pagecraft-curated full-site packages. */
@@ -775,12 +771,6 @@ export function createApp(o: Options) {
     }
     return pending;
   };
-
-  ownerBillingRoutes(app, {
-    billing: o.ownerBilling,
-    identity: c => o.accountAuth ? verifiedIdentity(c) : Promise.resolve(null),
-    who, editorOrigin: o.editorOrigin, requestSource,
-  });
 
   app.get('/internal/components', async c => {
     if (!o.componentGallery || !o.editorHtml) return c.notFound();
@@ -1754,7 +1744,6 @@ export function createApp(o: Options) {
         error: c.req.query("error"),
         message: c.req.query("message"),
         tab,
-        ownerBilling: ownerBillingAccess(identity, o.ownerBilling?.ownerAuthUserIds || []) === 'allowed',
       }));
     });
 
@@ -2025,7 +2014,6 @@ export function createApp(o: Options) {
         c.req.query("error"),
         c.req.query("message"),
         pendingInvitations.length,
-        ownerBillingAccess(await verifiedIdentity(c), o.ownerBilling?.ownerAuthUserIds || []) === 'allowed',
       ));
     }
     if (!user) return c.html(signInPage());

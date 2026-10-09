@@ -12100,7 +12100,7 @@ var PC_UI = (() => {
       const path = new URL(form.action, location.href).pathname;
       if (/delete|remove/.test(path)) return "Deleting\u2026";
       if (/invite/.test(path)) return "Sending invitation\u2026";
-      if (/login/.test(path)) return "Signing in\u2026";
+      if (/login|^\/auth\/sign-in$/.test(path)) return "Signing in\u2026";
       if (/logout/.test(path)) return "Signing out\u2026";
       if (/signup/.test(path)) return "Creating account\u2026";
       if (/forgot-password/.test(path)) return "Sending reset link\u2026";
@@ -12161,10 +12161,10 @@ var PC_UI = (() => {
         if (!response.ok || error || target.searchParams.has("error")) {
           throw new Error(error || accountActionFailure(text));
         }
-        if (!url.pathname.startsWith("/auth/") && target.pathname === "/login") throw new Error("Your session expired. Sign in again, then retry. Your input is still here.");
+        if (!url.pathname.startsWith("/auth/") && ["/login", "/sign-in"].includes(target.pathname)) throw new Error("Your session expired. Sign in again, then retry. Your input is still here.");
         if (target.origin !== location.origin) throw new Error("Could not complete this action. Refresh and try again.");
         const success = result.querySelector('.notice[role="status"]')?.textContent?.trim();
-        const completed = success || (/delete|remove/.test(url.pathname) ? "Deleted successfully." : /logout/.test(url.pathname) ? "Signed out." : /login/.test(url.pathname) ? "Signed in." : /signup/.test(url.pathname) ? "Account created. Check your email to confirm it." : "Changes saved.");
+        const completed = success || (/delete|remove/.test(url.pathname) ? "Deleted successfully." : /logout/.test(url.pathname) ? "Signed out." : /login|^\/auth\/sign-in$/.test(url.pathname) ? "Signed in." : /signup/.test(url.pathname) ? "Account created. Check your email to confirm it." : "Changes saved.");
         action.update("Done. Opening the updated page\u2026");
         feedback.flash(completed, target.pathname);
         active.delete(form);

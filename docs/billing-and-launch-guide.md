@@ -1,14 +1,14 @@
 # Pagecraft: first customers and billing
 
-Prepared 9 October 2026, Asia/Manila. The owner dashboard is a reporting foundation. A Paddle account, checkout, paid-plan provisioning, customer billing portal, and production launch are not yet complete.
+Prepared 9 October 2026, Asia/Manila. The private founder reports console is a reporting foundation separate from the customer Pagecraft app. It currently targets staging data. Its public deployment, DNS, founder login verification, Paddle connection, checkout, paid-plan provisioning, customer billing portal, and production launch are not yet complete.
 
 ## Start here
 
 1. **Choose one initial audience:** freelancers and small web studios delivering client sites. Demonstrate the complete build → client review → publish/export workflow. Position Pagecraft around an approachable editor, reusable native content and export ownership. Avoid a “cheapest overall” claim.
 2. **Recruit 5–10 guided beta users.** Use a short screen recording, a clear beta invitation and a concrete example site. Watch each person create a site, edit a template, ask for review and publish. Record where they need help and whether they return. Promote the free beta honestly while billing is being prepared.
-3. **Create your Paddle accounts yourself:** [live account](https://login.paddle.com/) and [separate sandbox account](https://sandbox-login.paddle.com/). You complete identity verification, payment details and acceptance of terms. Your account does not exist yet, so dashboard financial totals are unavailable.
+3. **Create your Paddle accounts yourself:** [live account](https://login.paddle.com/) and [separate sandbox account](https://sandbox-login.paddle.com/). You complete identity verification, payment details and acceptance of terms. No Paddle API key is configured, so founder reports correctly withholds provider financial totals.
 4. **Prepare the public purchase information:** product features, final prices and allowances, support contact, terms, privacy and refund policy. Identify the seller accurately in the terms. Submit the actual production checkout domain/subdomain for approval. Paddle requires HTTPS and accessible purchase policies; sandbox testing does not require domain approval. [Paddle domain review](https://www.paddle.com/help/start/account-verification/what-is-domain-verification)
-5. **Connect sandbox and finish subscription billing.** Run the acceptance cases below. Provision an isolated production database before real customers or live paid entitlements, then prove the production deployment and customer journey. Production promotion remains a separate action.
+5. **Connect sandbox and finish subscription billing.** Add a least-privilege sandbox reporting key to the private reports runtime, then run the acceptance cases below. Provision a clean isolated production database before real customers or live paid entitlements, then prove the production deployment and customer journey. Moving founder reports from staging to production data is a separate manual configuration change.
 6. **Start a controlled paid launch** after the provider, product, support and production checks pass. Begin with a small cohort and measure usage/support costs before increasing advertising.
 
 Pagecraft is a tablet/desktop editing app. Beta onboarding and advertising should explain that supported editing experience; mobile-device builder QA is outside this launch scope.
@@ -27,9 +27,11 @@ The [full pricing and margin proposal](../../research/pricing-2026-10-09/pricing
 
 Replace the model's assumptions with actual invoices and representative customer usage. Include infrastructure, email, media/traffic, support time, refunds, acquisition cost and founder compensation in the price floor. Paddle currently advertises 5% + $0.50 per checkout and no setup/monthly fee; sub-$10 products are directed to bespoke pricing. [Paddle pricing](https://www.paddle.com/pricing)
 
-## What the owner dashboard shows
+## What founder reports shows
 
-Open `/owner/billing` from the owner account's Billing link. Other users cannot obtain access by changing their name, email metadata or plan. The server verifies the signed-in Supabase auth UUID against a private deployment allowlist.
+Founder reports is implemented as a separate private process intended for `https://reports.itspagecraft.com`. The customer Pagecraft app has no financial route or Billing navigation. The reports host uses an independent host-only session cookie and verifies the signed-in Supabase auth UUID against a private allowlist; it has no customer signup or profile-creation flow.
+
+The current data-source setting is **staging**, and the console labels it explicitly. Promotion to production data must be done manually after the clean production database and its read gateway are ready. The separate `pagecraft-reports` deployment and live founder login have not been verified. Its DNS-only `A` record to `67.223.118.197` is still pending the user's Cloudflare login, so the intended hostname must not yet be treated as live.
 
 - Platform site inventory, including QA sites. Global account count is unavailable until an authorized aggregate source is implemented.
 - Paddle connection status, sandbox/live environment, refresh time and partial-data warnings.
@@ -42,7 +44,7 @@ No Paddle connection means unknown financial metrics, not zero revenue. Payout f
 
 ## Subscription billing still to implement
 
-The reporting dashboard makes only read requests to Paddle. It does not create subscriptions, open checkout, charge customers, issue refunds, change their plans or grant paid access.
+Founder reports makes only read requests to Paddle when a key is configured. It does not create subscriptions, open checkout, charge customers, issue refunds, change plans or grant paid access. No Paddle key is configured now.
 
 The customer billing integration needs:
 
@@ -51,7 +53,7 @@ The customer billing integration needs:
 3. Raw-body webhook signature verification, durable event storage, `event_id` deduplication and `occurred_at` ordering. Verify events against provider state when needed; handle retries/reconciliation and preserve later subscription changes. Checkout redirects alone must not activate paid plans. [Paddle provisioning guide](https://developer.paddle.com/build/subscriptions/provision-access-webhooks/)
 4. A persistent customer/subscription mirror linked to the verified Pagecraft owner account, with explicit active, trial, past-due, paused and canceled policy. Decide grace periods and downgrade behavior before launch. Preserve customer content when limits fall; block new excess usage instead of deleting sites.
 5. Customer self-service for receipts, card updates and cancellation through the provider's billing portal. Show the next billing date and scheduled cancellation clearly.
-6. Cost and acquisition reporting based on actual invoices and verified conversion events. The dashboard currently has budgets, not invoice reconciliation, SaaS signup attribution, CAC, conversion rate or audited profit.
+6. Cost and acquisition reporting based on actual invoices and verified conversion events. Founder reports currently has budgets, not invoice reconciliation, SaaS signup attribution, CAC, conversion rate or audited profit.
 
 ## Sandbox acceptance cases
 
@@ -92,7 +94,7 @@ You said the business is not registered. Confirm your jurisdiction, registration
 
 | When | You | Pagecraft development |
 |---|---|---|
-| Day 1 | Create Paddle live and sandbox accounts; gather real recurring costs | Review owner dashboard and populate genuine cost budgets |
+| Day 1 | Create Paddle live and sandbox accounts; gather real recurring costs | Review founder reports against staging data and populate genuine cost budgets |
 | Days 2–3 | Finalize audience, price policy, seller identity and public purchase policies | Implement confirmed plan enforcement, checkout mapping and signed webhook handling |
 | Days 3–5 | Run guided beta sessions; prepare one demo | Test renewal/cancellation/failure cases and production database isolation |
 | After acceptance | Approve launch and any advertising budget | Verify exact production commit and one controlled real purchase with explicit authorization |

@@ -262,3 +262,24 @@ test('background inbox refresh is silent while explicit Refresh retains its proc
   expect(status().hidden).toBe(true);expect(status().textContent).toBe('');
   expect(w.document.querySelector('[role=alert]')).toBeNull();
 });
+
+
+test.each(['/auth/login', '/auth/sign-in'])('account entry %s reports sign-in rather than a saved edit', async path => {
+  const {w, button, submit}=setup('<form method="post" action="'+path+'"><input name="email" value="owner@example.test"><button type="submit">Sign in</button></form>', 'https://example.test/sign-in');
+  let finish;
+  w.fetch=vi.fn(()=>new Promise(resolve=>{finish=resolve;}));
+  submit();
+  expect(button.textContent).toBe('Signing in…');
+  finish(response('<h1>Founder reports</h1>', 'https://example.test/owner/billing'));
+  await vi.waitFor(()=>expect(w.sessionStorage.getItem('pc-action-result')).toContain('Signed in.'));
+});
+
+test('a reports sign-in redirect preserves unsaved budget input without false success', async () => {
+  const {w,form,button,submit}=setup('<form method="post" action="/owner/billing/costs"><input name="label" value="Keep planned hosting"><button type="submit">Add budget</button></form>', 'https://example.test/owner/billing');
+  w.fetch=vi.fn(async()=>response('<h1>Founder reports sign in</h1>', 'https://example.test/sign-in?next=%2Fowner%2Fbilling'));
+  submit();
+  await vi.waitFor(()=>expect(form.querySelector('[data-action-error]')?.textContent).toContain('session expired'));
+  expect(form.querySelector('input').value).toBe('Keep planned hosting');
+  expect(button.disabled).toBe(false);
+  expect(w.sessionStorage.getItem('pc-action-result')).toBeNull();
+});

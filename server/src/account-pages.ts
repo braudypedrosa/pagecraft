@@ -127,8 +127,7 @@ const accountLabel = (user: User) => {
 const bellIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.2a3.6 3.6 0 0 1 3.6 3.6v1.8l1 1.8H3.4l1-1.8V5.8A3.6 3.6 0 0 1 8 2.2z"/><path d="M6.5 12.2a1.5 1.5 0 0 0 3 0"/></svg>`;
 const accountProfileIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="5" r="2.5"/><path d="M3.2 13.5c.35-2.8 2.05-4.2 4.8-4.2s4.45 1.4 4.8 4.2"/></svg>`;
 const accountLogoutIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3H4.5A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13H7"/><path d="M7 8h6.5M11 5.5 13.5 8 11 10.5"/></svg>`;
-const ownerBillingIcon = `<svg aria-hidden="true" width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="15" height="12" rx="2"/><path d="M2.5 8h15M6 12h3"/></svg>`;
-const workbenchHeader = (user: User, label: string, ownerBilling = false) => cloudHeader(label, `<a class="pc-iconbtn" href="mailto:hello@braudyp.dev" title="Help" aria-label="Help">${helpIcon}</a><details class="pc-notify" id="notify-menu" data-notify-root><summary class="pc-iconbtn" aria-label="Notifications" title="Notifications">${bellIcon}<span class="pc-notify-badge" data-notify-badge hidden></span></summary><div class="pc-notify-panel" role="dialog" aria-label="Notifications"><div class="pc-notify-head"><strong>Notifications</strong><a href="/notifications">View all</a></div><div class="pc-notify-list" data-notify-list><p class="pc-notify-empty">Loading…</p></div></div></details><details class="pc-account" id="account-menu"><summary title="${esc(user.email)}"><span class="pc-account-email">${esc(accountLabel(user))}</span><span class="pc-avatar" aria-hidden="true">${esc(initialsOf(user))}</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4.5 6.5L8 10l3.5-3.5"/></svg></summary><div class="pc-account-menu pc-menu"><p title="${esc(user.email)}">${esc(accountLabel(user))}</p><a class="pc-menu-item" href="/account">${accountProfileIcon}Account settings</a>${ownerBilling ? `<a class="pc-menu-item" href="/owner/billing">${ownerBillingIcon}Owner billing</a>` : ''}<a class="pc-menu-item" href="/notifications">${bellIcon}Notifications</a><form method="post" action="/auth/logout"><button class="pc-menu-item" type="submit">${accountLogoutIcon}Sign out</button></form></div></details>`);
+const workbenchHeader = (user: User, label: string) => cloudHeader(label, `<a class="pc-iconbtn" href="mailto:hello@braudyp.dev" title="Help" aria-label="Help">${helpIcon}</a><details class="pc-notify" id="notify-menu" data-notify-root><summary class="pc-iconbtn" aria-label="Notifications" title="Notifications">${bellIcon}<span class="pc-notify-badge" data-notify-badge hidden></span></summary><div class="pc-notify-panel" role="dialog" aria-label="Notifications"><div class="pc-notify-head"><strong>Notifications</strong><a href="/notifications">View all</a></div><div class="pc-notify-list" data-notify-list><p class="pc-notify-empty">Loading…</p></div></div></details><details class="pc-account" id="account-menu"><summary title="${esc(user.email)}"><span class="pc-account-email">${esc(accountLabel(user))}</span><span class="pc-avatar" aria-hidden="true">${esc(initialsOf(user))}</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4.5 6.5L8 10l3.5-3.5"/></svg></summary><div class="pc-account-menu pc-menu"><p title="${esc(user.email)}">${esc(accountLabel(user))}</p><a class="pc-menu-item" href="/account">${accountProfileIcon}Account settings</a><a class="pc-menu-item" href="/notifications">${bellIcon}Notifications</a><form method="post" action="/auth/logout"><button class="pc-menu-item" type="submit">${accountLogoutIcon}Sign out</button></form></div></details>`);
 const submissionsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg>`;
 const reviewsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 4.5h12v11H7l-3 2.5V4.5z"/><path d="M7 8h6M7 11h4"/></svg>`;
 const noticeCommentIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h12a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5H8.2L5 17.5V14.5H4A1.5 1.5 0 0 1 2.5 13V6A1.5 1.5 0 0 1 4 4.5z"/><path d="M6.5 9h7M6.5 11.5h4.5"/></svg>`;
@@ -142,11 +141,73 @@ const noticeIconFor = (kind: string) => {
 };
 const sitesRail = () =>
   `<nav class="pc-rail" aria-label="Sites navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a href="/">${ownedIcon}<span>Owned</span></a><a href="/">${sharedIcon}<span>Shared</span></a><span class="pc-rail-gap"></span></nav>`;
+
+export type FounderReportsDataEnvironment = 'staging' | 'production' | 'unconfigured';
+export interface FounderReportsContext {
+  appOrigin?: string;
+  dataEnvironment: FounderReportsDataEnvironment;
+}
+
+const trustedHttpOrigin = (value?: string) => {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'https:' || url.protocol === 'http:') && !url.username && !url.password
+      ? url.origin
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const founderEnvironment = (value: FounderReportsDataEnvironment | undefined) => {
+  if (value === 'production') return { key: 'production', label: 'Production data' };
+  if (value === 'staging') return { key: 'staging', label: 'Staging data' };
+  return { key: 'unconfigured', label: 'Data source unconfigured' };
+};
+
+const founderReportsCss = `<style>
+.pc-founder-app{background:var(--pc-ui-surface)}
+.pc-founder-topbar{height:52px;flex:0 0 52px;display:flex;align-items:center;gap:8px;padding:0 12px 0 16px;background:#111311;color:#f5f7f8;font:var(--pc-type-input);position:relative;z-index:40}
+.pc-founder-brand{display:flex;align-items:center;gap:8px;font-weight:650;font-size:var(--pc-text-dialog);letter-spacing:-.02em;white-space:nowrap}.pc-founder-brand svg{display:block;flex:0 0 17px}
+.pc-founder-divider{width:1px;height:22px;background:rgba(248,246,239,.16)}.pc-founder-topbar>strong{font-weight:500}.pc-founder-spacer{flex:1}
+.pc-founder-environment{padding:4px 8px;border:1px solid rgba(248,246,239,.2);border-radius:999px;color:#d9ded9;font:var(--pc-type-caption);white-space:nowrap}
+.pc-founder-environment[data-environment=production]{border-color:#759e3d;color:#dff5b9}.pc-founder-environment[data-environment=staging]{border-color:#a97838;color:#f6d3a5}.pc-founder-environment[data-environment=unconfigured]{border-color:#a95d56;color:#ffcbc5}
+.pc-founder-topbar .pc-header-action{height:34px;min-height:34px;padding:var(--pc-control-padding);border:1px solid rgba(248,246,239,.2);border-radius:var(--pc-control-radius);background:transparent;color:#f5f7f8;font:var(--pc-type-control);text-decoration:none}.pc-founder-topbar .pc-header-action:hover{background:#ffffff0f;filter:none}
+.pc-founder-topbar form{margin:0}.pc-founder-account{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#aeb5ad;font:var(--pc-type-description)}
+.pc-founder-app>.pc-workspace{min-height:0}
+.founder-signin-meta{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 16px}.founder-signin-meta .pc-founder-environment{color:var(--muted);border-color:var(--line)}
+.founder-signin-link{display:block;text-align:center;margin-top:16px;font-size:.82rem;color:var(--muted)}
+@media(max-width:800px){.pc-founder-account{display:none}.pc-founder-topbar{padding-left:12px}.pc-founder-topbar>strong{font-size:.82rem}.pc-founder-brand span{display:none}}
+</style>`;
+
 export const ownerBillingPage = (
   user: User,
   data: Extract<OwnerBillingLoadResult, { status: 'ok' }>,
   input: Parameters<typeof ownerBillingBody>[1] = {},
-) => shell('Owner billing', `<main class="dashboard-app">${accountMenuCss}${workbenchHeader(user, 'Owner billing', true)}<div class="pc-main"><nav class="pc-rail" aria-label="Owner navigation"><a href="/">${sitesIcon}<span>Sites</span></a><a class="on" href="/owner/billing" aria-current="page">${ownerBillingIcon}<span>Billing</span></a><span class="pc-rail-gap"></span></nav><section class="pc-workspace">${ownerBillingBody(data, input)}</section></div></main>`);
+  context: FounderReportsContext = { dataEnvironment: 'unconfigured' },
+) => {
+  const appOrigin = trustedHttpOrigin(context.appOrigin);
+  const environment = founderEnvironment(context.dataEnvironment);
+  const openPagecraft = appOrigin
+    ? `<a class="pc-header-action" href="${esc(appOrigin)}">Open Pagecraft</a>`
+    : '';
+  return shell('Founder reports', `<main class="dashboard-app pc-founder-app">${founderReportsCss}<header class="pc-founder-topbar"><div class="pc-founder-brand" aria-label="Pagecraft"><svg width="17" height="22" viewBox="0 0 73 95" aria-hidden="true"><path d="M0 0H73V71H52L46 65L40 71H18V77H40V95H0Z M18 18V77H40V53H55V18Z" fill="#b7f34a" fill-rule="evenodd"/></svg><span>Pagecraft</span></div><span class="pc-founder-divider" aria-hidden="true"></span><strong>Founder reports</strong><span class="pc-founder-spacer"></span><span class="pc-founder-environment" data-environment="${environment.key}">${environment.label}</span>${openPagecraft}<span class="pc-founder-account" title="${esc(user.email)}">${esc(accountLabel(user))}</span><form method="post" action="/auth/logout"><button class="pc-header-action" type="submit">Sign out</button></form></header><section class="pc-workspace">${ownerBillingBody(data, input)}</section></main>`);
+};
+
+export const founderReportsSignInPage = (input: {
+  error?: string;
+  appOrigin?: string;
+  dataEnvironment: FounderReportsDataEnvironment;
+  challengeSiteKey?: string;
+}) => {
+  const environment = founderEnvironment(input.dataEnvironment);
+  const appOrigin = trustedHttpOrigin(input.appOrigin);
+  const pagecraftLink = appOrigin
+    ? `<a class="founder-signin-link" href="${esc(appOrigin)}">Open Pagecraft</a>`
+    : '';
+  return shell('Founder reports sign in', `${founderReportsCss}<main class="account founder-signin"><div class="brand" aria-label="Pagecraft"><img src="/brand/pagecraft-logo.svg?v=dark-2" width="488" height="106" alt="Pagecraft"></div><div class="founder-signin-meta"><span class="pc-founder-environment" data-environment="${environment.key}">${environment.label}</span></div><section class="panel" aria-labelledby="founder-signin-title"><h1 id="founder-signin-title">Founder reports</h1><p>Sign in with your existing founder account to view private reporting.</p>${notice(input.error)}<form class="stack" method="post" action="/auth/sign-in"><div class="field"><label for="founder-email">Email</label><input id="founder-email" name="email" type="email" autocomplete="email" maxlength="254" required></div><div class="field"><label for="founder-password">Password</label><input id="founder-password" name="password" type="password" autocomplete="current-password" required></div>${input.challengeSiteKey ? challenge(input.challengeSiteKey, 'founder_sign_in') : ''}<button class="primary" type="submit">Sign in</button></form></section>${pagecraftLink}</main>`, input.challengeSiteKey);
+};
 
 type ManagementSection = 'overview' | 'people' | 'reviews' | 'settings' | 'integrations' | 'submissions' | 'analytics' | 'assistants';
 const assistantsIcon = `<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8l1.5 3.7 3.7 1.5-3.7 1.5L10 13.2 8.5 9.5 4.8 8l3.7-1.5z"/><path d="M15.2 12.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg>`;
@@ -622,7 +683,7 @@ const accountSettingsCss = `<style>
 
 export const accountSettingsPage = (
   user: User, data: AccountSettingsData,
-  input: { error?: string; message?: string; tab?: AccountSettingsTab; ownerBilling?: boolean } = {}
+  input: { error?: string; message?: string; tab?: AccountSettingsTab } = {}
 ) => {
   const providers = new Set(data.providers);
   const hasPassword = providers.has('email');
@@ -643,7 +704,7 @@ export const accountSettingsPage = (
   const tabState = (tab: AccountSettingsTab) => selectedTab === tab
     ? 'aria-selected="true" tabindex="0"'
     : 'aria-selected="false" tabindex="-1"';
-  return shell('Account settings', `<main class="dashboard-app">${accountMenuCss}${accountSettingsCss}${workbenchHeader(user, 'Account', input.ownerBilling)}
+  return shell('Account settings', `<main class="dashboard-app">${accountMenuCss}${accountSettingsCss}${workbenchHeader(user, 'Account')}
   <div class="pc-main">${sitesRail()}<section class="pc-workspace"><div class="pc-settings-content"><header class="pc-settings-head pc-workspace-head"><div><h1>Account settings</h1><p>Manage your profile, sign-in security, and Pagecraft plan.</p></div></header>
   ${notice(input.error, input.message)}<div class="pc-settings-layout"><div class="pc-settings-nav" role="tablist" aria-label="Account settings"><button id="settings-tab-profile" type="button" role="tab" aria-controls="settings-panel-profile" data-settings-tab="profile" ${tabState('profile')}>Profile</button><button id="settings-tab-security" type="button" role="tab" aria-controls="settings-panel-security" data-settings-tab="security" ${tabState('security')}>Security</button><button id="settings-tab-plan" type="button" role="tab" aria-controls="settings-panel-plan" data-settings-tab="plan" ${tabState('plan')}>Plan &amp; billing</button></div><div class="pc-settings-main">
   <section class="pc-settings-section" id="settings-panel-profile" role="tabpanel" aria-labelledby="settings-tab-profile" tabindex="0" data-settings-panel="profile"><div class="pc-settings-title"><div><h2>Profile</h2><p>Your verified email is used for sign-in, collaboration invitations, and account notices.</p></div>${joinedCopy ? `<span class="pc-account-meta">Joined ${joinedCopy}</span>` : ''}</div>
@@ -694,7 +755,7 @@ const dashboardCreateFlowCss = `<style>
 
 export const dashboardPage = (
   user: User, sites: DashboardSite[], ownerCount: number, storage: DashboardStorage,
-  templates: SiteTemplateSummary[] = [], error?: string, message?: string, invitationCount = 0, ownerBilling = false
+  templates: SiteTemplateSummary[] = [], error?: string, message?: string, invitationCount = 0
 ) => {
   const plan = planEntitlements(user.plan);
   const atLimit = plan.ownedSites !== null && ownerCount >= plan.ownedSites;
@@ -737,8 +798,8 @@ export const dashboardPage = (
       <footer class="pc-create-modal-foot pc-dialog-foot"><button class="pc-btn" type="button" data-create-back hidden>Back</button><button class="pc-btn" type="button" data-create-close>Cancel</button><button class="pc-btn primary" type="button" data-create-next hidden>Continue</button></footer>
     </form>
   </dialog>`;
-  return shell('Sites', `<main class="dashboard-app">${accountMenuCss}${dashboardCreateModalCss}${dashboardCreateFlowCss}${workbenchHeader(user, 'Sites', ownerBilling)}
-  <div class="pc-main"><nav class="pc-rail" aria-label="Sites navigation"><button type="button" data-site-view="sites" aria-pressed="true">${sitesIcon}<span>Sites</span></button><button type="button" data-site-view="owned" aria-pressed="false">${ownedIcon}<span>Owned</span></button><button type="button" data-site-view="shared" aria-pressed="false">${sharedIcon}<span>Shared</span></button>${ownerBilling ? `<a href="/owner/billing">${ownerBillingIcon}<span>Billing</span></a>` : ''}<span class="pc-rail-gap"></span></nav>
+  return shell('Sites', `<main class="dashboard-app">${accountMenuCss}${dashboardCreateModalCss}${dashboardCreateFlowCss}${workbenchHeader(user, 'Sites')}
+  <div class="pc-main"><nav class="pc-rail" aria-label="Sites navigation"><button type="button" data-site-view="sites" aria-pressed="true">${sitesIcon}<span>Sites</span></button><button type="button" data-site-view="owned" aria-pressed="false">${ownedIcon}<span>Owned</span></button><button type="button" data-site-view="shared" aria-pressed="false">${sharedIcon}<span>Shared</span></button><span class="pc-rail-gap"></span></nav>
   <section class="pc-workspace"><div class="pc-content"><header class="pc-heading pc-workspace-head"><div><h1>Sites</h1><p>Manage and continue building your Pagecraft sites.</p></div>${newSiteAction}</header>
   ${invitationCount ? `<div class="notice"><a href="/invitations">${invitationCount} ${invitationCount === 1 ? 'invitation awaits' : 'invitations await'} your response</a></div>` : ''}
   <div class="pc-toolbar"><label class="pc-search"><span class="sr-only">Search sites</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/></svg><input type="search" placeholder="Search sites" data-site-search></label><label><span class="sr-only">Sort sites</span><select class="pc-sort" data-site-sort><option value="updated">Last edited</option><option value="name">Name</option></select></label></div>

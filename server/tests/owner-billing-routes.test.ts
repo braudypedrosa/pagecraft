@@ -4,6 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from '../src/app.ts';
+import { createFounderReportsApp } from '../src/founder-reports.ts';
 import { MemoryAuthStore } from '../src/auth.ts';
 import { MemoryStore } from '../src/store.ts';
 import type { AccountAuth, VerifiedIdentity } from '../src/account-auth.ts';
@@ -22,11 +23,10 @@ async function rig(options: { ids?: string[]; legacy?: boolean; failCosts?: bool
   let identity: VerifiedIdentity | null = { authUserId: OWNER, email: 'owner@example.test', name: 'Owner' };
   const source = vi.fn(async () => 9);
   const accountAuth = { identity: async () => identity } as unknown as AccountAuth;
-  const app = createApp({
-    store: new MemoryStore(), auth: new MemoryAuthStore(),
-    accountAuth: options.legacy ? undefined : accountAuth,
-    editorHost: 'admin.test', editorOrigin: 'http://admin.test',
-    ownerBilling: { ownerAuthUserIds: options.ids ?? [OWNER],
+  if (options.legacy) identity = null;
+  const app = createFounderReportsApp({
+    accountAuth, host: 'admin.test', origin: 'http://admin.test', dataEnvironment: 'staging',
+    billing: { ownerAuthUserIds: options.ids ?? [OWNER],
       costs: options.failCosts ? { list: async () => { throw new Error('private file path'); }, put: async () => { throw new Error('private file path'); }, remove: async () => { throw new Error('private file path'); } } : costs,
       platform: { siteCount: source },
     },
@@ -80,12 +80,13 @@ test('missing configuration, legacy auth and custom site hosts cannot access fin
   a.equal(r.source.mock.calls.length, 0);
 });
 
-test('only the allowed owner gets a discoverable owner billing navigation link', async () => {
-  const r = await rig();
-  a.match(await (await r.request('/')).text(), /href="\/owner\/billing"/);
-  a.match(await (await r.request('/account')).text(), /href="\/owner\/billing"/);
-  r.setIdentity({ authUserId: OTHER, email: 'other@example.test', name: 'Owner' });
-  a.doesNotMatch(await (await r.request('/')).text(), /href="\/owner\/billing"/);
+test('the customer application exposes no founder billing routes or navigation', async () => {
+  const accountAuth = { identity: async () => ({ authUserId: OWNER, email: 'owner@example.test', name: 'Owner' }) } as unknown as AccountAuth;
+  const app = createApp({ store: new MemoryStore(), auth: new MemoryAuthStore(), accountAuth,
+    editorHost: 'admin.test', editorOrigin: 'http://admin.test' });
+  const request = (path: string) => app.request(new Request(`http://admin.test${path}`, { headers: {host:'admin.test'} }));
+  for (const path of ['/', '/account']) a.doesNotMatch(await (await request(path)).text(), /href="\/owner\/billing"/);
+  for (const path of ['/owner/billing', '/api/owner/billing']) a.equal((await request(path)).status, 404);
 });
 
 test('budget creation, editing and removal persist exact currencies without changing billing status', async () => {

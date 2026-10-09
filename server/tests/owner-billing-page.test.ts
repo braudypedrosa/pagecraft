@@ -2,6 +2,8 @@ import { test } from 'vitest';
 import a from 'node:assert/strict';
 import { formatOwnerMoney, ownerBillingBody } from '../src/owner-billing-page.ts';
 import type { OwnerBillingLoadResult } from '../src/owner-billing.ts';
+import type { User } from '../src/auth.ts';
+import { accountSettingsPage, dashboardPage, founderReportsSignInPage, ownerBillingPage } from '../src/account-pages.ts';
 
 type Data = Extract<OwnerBillingLoadResult, { status: 'ok' }>;
 
@@ -13,6 +15,8 @@ const base = (overrides: Partial<Data> = {}): Data => ({
   billing: { state: 'not_connected', environment: null },
   ...overrides,
 });
+
+const founder: User = { id: 'founder-1', email: 'founder@example.test', name: 'Founder' };
 
 test('disconnected billing is truthful and does not render invented zero totals', () => {
   const html = ownerBillingBody(base());
@@ -175,4 +179,54 @@ test('budget feedback stays inside costs and currency precision guidance follows
   });
   a.match(bhd, /pattern="\[0-9\]\+\(\[\.\]\[0-9\]\{1,3\}\)\?"/);
   a.match(bhd, /BHD allows up to 3 decimal places/);
+});
+
+test('founder reports render in a standalone shell with an explicit trusted data source', () => {
+  const html = ownerBillingPage(founder, base(), {}, {
+    dataEnvironment: 'staging',
+    appOrigin: 'https://app.itspagecraft.com/account?ignored=true',
+  });
+  a.match(html, /<title>Founder reports — Pagecraft<\/title>/);
+  a.match(html, /<strong>Founder reports<\/strong>/);
+  a.match(html, /Private founder view of Pagecraft subscriptions/);
+  a.match(html, /data-environment="staging">Staging data/);
+  a.match(html, /href="https:\/\/app\.itspagecraft\.com">Open Pagecraft<\/a>/);
+  a.match(html, /action="\/auth\/logout"/);
+  a.doesNotMatch(html, /data-notify-root|id="account-menu"|class="pc-rail"|Account settings/);
+});
+
+test('founder reports reject non-http app origins and always label an unconfigured source', () => {
+  const html = ownerBillingPage(founder, base(), {}, {
+    dataEnvironment: 'unconfigured',
+    appOrigin: 'javascript:alert(1)',
+  });
+  a.match(html, /data-environment="unconfigured">Data source unconfigured/);
+  a.doesNotMatch(html, /javascript:|Open Pagecraft/);
+});
+
+test('founder sign in uses only the existing-account flow and optional configured challenge', () => {
+  const html = founderReportsSignInPage({
+    error: 'auth',
+    appOrigin: 'https://app.itspagecraft.com',
+    dataEnvironment: 'production',
+    challengeSiteKey: 'site-key-123',
+  });
+  a.match(html, /data-environment="production">Production data/);
+  a.match(html, /action="\/auth\/sign-in"/);
+  a.match(html, /name="email" type="email"[^>]*autocomplete="email"/);
+  a.match(html, /name="password" type="password"[^>]*autocomplete="current-password"/);
+  a.match(html, /We could not sign you in with those details/);
+  a.match(html, /class="cf-turnstile" data-sitekey="site-key-123" data-action="founder_sign_in"/);
+  a.match(html, /https:\/\/challenges\.cloudflare\.com\/turnstile\/v0\/api\.js/);
+  a.doesNotMatch(html, /action="\/auth\/google"|href="\/sign-up"|>Continue with Google</i);
+});
+
+test('ordinary customer dashboard and account settings contain no founder billing navigation', () => {
+  const dashboard = dashboardPage(founder, [], 0, { usedBytes: 0, limitBytes: 100 * 1024 * 1024 });
+  const account = accountSettingsPage(founder, {
+    providers: ['email'], ownerCount: 0, storage: { usedBytes: 0, limitBytes: 100 * 1024 * 1024 },
+  });
+  for (const html of [dashboard, account]) {
+    a.doesNotMatch(html, /href="\/owner\/billing"|Owner billing|Founder reports/);
+  }
 });

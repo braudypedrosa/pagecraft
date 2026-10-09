@@ -9,12 +9,27 @@ import {
   type OwnerBillingOptions, type OwnerCostBudgetInput, type OwnerCostStore,
 } from './owner-billing.ts';
 
-interface OwnerBillingRouteOptions {
+export interface OwnerBillingPageInput {
+  error?: string;
+  message?: string;
+  editCostId?: string;
+  costsEnabled?: boolean;
+  draftCost?: { id: string; label: string; category: string; amount: string; currencyCode: string };
+}
+
+export type OwnerBillingPageRenderer = (
+  user: User,
+  data: Extract<Awaited<ReturnType<typeof loadOwnerBilling>>, { status: 'ok' }>,
+  input: OwnerBillingPageInput,
+) => string;
+
+export interface OwnerBillingRouteOptions {
   billing?: OwnerBillingOptions;
   identity(c: Context): ReturnType<AccountAuth['identity']>;
   who(c: Context): Promise<User | null>;
   editorOrigin?: string;
   requestSource(c: Context): string;
+  renderPage?: OwnerBillingPageRenderer;
 }
 
 /** Budget inputs are major currency units; storage and provider arithmetic use integers. */
@@ -45,7 +60,14 @@ export function ownerBillingRoutes(app: Hono, o: OwnerBillingRouteOptions) {
   }
 
   const gate = async (c: Context, api = false): Promise<{ response: Response } | { identity: VerifiedIdentity }> => {
-    const identity = await o.identity(c);
+    let identity: VerifiedIdentity | null;
+    try {
+      identity = await o.identity(c);
+    } catch {
+      return { response: api
+        ? c.json({ error: 'authentication_unavailable' }, 503)
+        : c.text('Sign-in verification is unavailable. Try again.', 503) };
+    }
     const access = ownerBillingAccess(identity, billing.ownerAuthUserIds);
     if (access === 'allowed') return { identity: identity! };
     if (access === 'unauthenticated') return {
@@ -58,18 +80,22 @@ export function ownerBillingRoutes(app: Hono, o: OwnerBillingRouteOptions) {
       : c.text('This area is restricted to the Pagecraft owner.', 403) };
   };
 
-  const render = async (c: Context, identity: VerifiedIdentity, input: {
-    error?: string;
-    message?: string;
-    draftCost?: { id: string; label: string; category: string; amount: string; currencyCode: string };
-  } = {}, status: 200 | 422 | 503 = 200) => {
-    const [user, data] = await Promise.all([o.who(c), loadOwnerBilling(identity, billing)]);
-    if (!user || data.status !== 'ok') return c.text('Billing data is unavailable. Try again.', 503);
-    return c.html(ownerBillingPage(user, data, {
-      ...input,
-      editCostId: c.req.query('edit'),
-      costsEnabled: !!billing.costs,
-    }), status);
+  const render = async (
+    c: Context, identity: VerifiedIdentity, input: OwnerBillingPageInput = {},
+    status: 200 | 422 | 503 = 200,
+  ) => {
+    try {
+      const [user, data] = await Promise.all([o.who(c), loadOwnerBilling(identity, billing)]);
+      if (!user || data.status !== 'ok') return c.text('Billing data is unavailable. Try again.', 503);
+      const pageInput = {
+        ...input,
+        editCostId: c.req.query('edit'),
+        costsEnabled: !!billing.costs,
+      };
+      return c.html((o.renderPage || ownerBillingPage)(user, data, pageInput), status);
+    } catch {
+      return c.text('Billing data is unavailable. Try again.', 503);
+    }
   };
 
   app.get('/owner/billing', async c => {
@@ -92,7 +118,11 @@ export function ownerBillingRoutes(app: Hono, o: OwnerBillingRouteOptions) {
       c.header('retry-after', '60');
       return c.json({ error: 'rate_limited' }, 429);
     }
-    return c.json(await loadOwnerBilling(granted.identity, billing));
+    try {
+      return c.json(await loadOwnerBilling(granted.identity, billing));
+    } catch {
+      return c.json({ error: 'billing_unavailable' }, 503);
+    }
   });
 
   /** Always enforce browser origin here, including requests carrying unrelated editor tokens. */

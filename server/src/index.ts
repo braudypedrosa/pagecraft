@@ -50,7 +50,6 @@ import { runDueSchedules } from "./schedule-runner.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
 import { validateStagingEnvironment } from "./staging-environment.ts";
 import { recordTiming } from "./request-timing.ts";
-import { FileOwnerCostStore, parseOwnerAuthUserIds } from './owner-billing.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
@@ -544,12 +543,6 @@ const schedulingEnabled = process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" || !!sch
 const analytics = new AnalyticsRecorder(new FileAnalyticsStore(join(resolve(publicationRoot), ".analytics")));
 analytics.start();
 
-const ownerAuthUserIds = parseOwnerAuthUserIds(process.env.PAGECRAFT_OWNER_AUTH_USER_IDS);
-const paddleEnvironment = process.env.PADDLE_ENVIRONMENT || 'sandbox';
-if (paddleEnvironment !== 'sandbox' && paddleEnvironment !== 'live') {
-  throw new Error('PADDLE_ENVIRONMENT must be sandbox or live');
-}
-
 const app = createApp({
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
@@ -577,14 +570,6 @@ const app = createApp({
   connected,
   packages,
   accountAuth,
-  ownerBilling: {
-    ownerAuthUserIds,
-    costs: new FileOwnerCostStore(join(resolve(publicationRoot), '.owner-billing', 'costs.json')),
-    platform: { siteCount: async () => (await store.listMeta()).length },
-    ...(process.env.PADDLE_API_KEY?.trim() ? {
-      paddle: { apiKey: process.env.PADDLE_API_KEY, environment: paddleEnvironment },
-    } : {}),
-  },
   ownedSites: owned,
   siteTemplates,
   challenge,
