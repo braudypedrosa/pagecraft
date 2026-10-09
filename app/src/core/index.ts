@@ -2650,6 +2650,7 @@ const propVal = (n: PcNode, k?: string) => {
     const scope = bindScope(n.id);
     return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
   }
+  if (n.type === 'nav' && k === 'mobileMenu') return n.props.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown';
   return (n.props as PropBag)[k];
 };
 

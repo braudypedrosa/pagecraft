@@ -163,3 +163,11 @@ test('custom panel opens in the dialog and returns hidden to its original place 
   expect(content.hidden).toBe(true);
   expect(content.parentElement).toBe(nav);
 });
+
+test('legacy navigation inspector reads the same default as the renderer', () => {
+  const n = C.N('nav');
+  delete n.props.mobileMenu;
+  expect(C.propVal(n, 'mobileMenu')).toBe('dropdown');
+  n.props.mobileMenu = 'fullscreen';
+  expect(C.propVal(n, 'mobileMenu')).toBe('fullscreen');
+});
