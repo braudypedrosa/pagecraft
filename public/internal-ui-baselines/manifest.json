@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-09T14:43:43.007Z",
+  "capturedAt": "2026-10-09T22:22:44.523Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "ee193dd482ddf1b03bd8222c3347f302c76b18dfcbef9c3c6e23a2586160a576",
+    "builder.html": "75f457b74c721ae0981197dc00d0cd46ddc7510b0b556bd783adfff8730deca8",
     "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
     "app/src/ui/CmsWorkspace.tsx": "11b19eb457f1d90e68414857c727a869baded14343eff36c563d9f21645fcaf0",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
@@ -668,7 +668,7 @@
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-menus-1440.png": {
-      "sha256": "96d00d6377cff13db153e4d7555f970d7c5ed01dd5d38400eb8131f077d9231f",
+      "sha256": "1b9a3980ea37d9365cfad3955644890d1e093144b149411e6ef7774b26acd497",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"

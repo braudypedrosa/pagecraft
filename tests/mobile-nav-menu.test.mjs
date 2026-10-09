@@ -194,3 +194,14 @@ for (const action of ['header toggle', 'Escape', 'outside click', 'focus leaves 
     expect(d.documentElement.style.overflow).toBe('clip');
   });
 }
+
+test('menu background can override mobile without changing desktop or tablet', () => {
+  const node = C.N('nav');
+  const control = C.DEF.nav.controls.style.find(c => c.c === '--nav-panel');
+  const base = node.css.d['--nav-panel'];
+  C.state.ui.dev = 'mobile';
+  C.setCss(node, control.c, '#123456', !!control.r);
+  expect(node.css.m['--nav-panel']).toBe('#123456');
+  expect(node.css.d['--nav-panel']).toBe(base);
+  expect(node.css.t['--nav-panel']).toBeUndefined();
+});

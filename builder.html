@@ -3401,7 +3401,7 @@ function runPreviewRuntime(html, editing = false) {
   ];
   try {
     scripts.forEach(([used, source]) => {
-      if (!used || (editing && source !== SLIDE_JS)) return;
+      if (!used || (editing && source !== SLIDE_JS && source !== NAV_JS)) return;
       const script = cdoc.createElement('script');
       script.nonce = canvasNonce;
       script.textContent = previewScriptBody(source);
@@ -3707,9 +3707,7 @@ function paintSel() {
   $$('[data-sel],[data-sel2]', cdoc).forEach(e => {
     e.removeAttribute('data-sel'); e.removeAttribute('data-sel2');
   });
-  /* Only the primary gets `data-sel` — widgets hang behaviour off it (a nav
-     opens its list), and that should follow the one element the inspector is
-     pointed at, not everything in the set. */
+  /* Only the primary gets `data-sel`, matching the element shown in the inspector. */
   selIds().forEach((id, i) => {
     const el = cdoc.getElementById(id);
     if (el && el.dataset.id) el.setAttribute(i ? 'data-sel2' : 'data-sel', '');

@@ -2481,7 +2481,7 @@ var DEF = {
         { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "color", c: "color", label: "Link colour" },
         { t: "color", c: "--nav-hover", label: "Hover colour" },
-        { t: "color", c: "--nav-panel", label: "Menu background" },
+        { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
@@ -7944,10 +7944,6 @@ ${m.css || ""}
 .s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
 [data-t=column]{min-height:40px}
-[data-t=nav][data-sel] .pagecraft-nav-list{display:flex !important}
-[data-t=nav][data-sel] .pagecraft-nav-icon{background-color:transparent}
-[data-t=nav][data-sel] .pagecraft-nav-icon::before{transform:rotate(45deg)}
-[data-t=nav][data-sel] .pagecraft-nav-icon::after{transform:rotate(-45deg)}
 [data-t=tabs] [data-tab-idle]{display:none}
 .pagecraft-video>iframe,.pagecraft-video>video{pointer-events:none}
 .pagecraft-button,.pagecraft-heading a,.pagecraft-wysiwyg a{cursor:default}
