@@ -204,6 +204,8 @@ input,select,textarea{font:inherit;color:inherit}
 .btn.danger{color:var(--danger);border-color:var(--line-2)}
 .btn.danger:not(:disabled):hover{background:var(--danger-soft);border-color:var(--danger)}
 .topbar .btn{background:transparent;border-color:var(--rail-line);color:var(--rail-text)}
+.topbar .btn.toolbarIcon{width:var(--ic-lg);height:var(--ic-lg);min-height:var(--ic-lg);padding:0}
+.topbar .toolbarIcon .actionLabel,.topbar .toolbarIcon .collapseLabel{display:none}
 .topbar .btn:not(:disabled):hover{background:#ffffff12;border-color:#ffffff2e}
 /* The dark bar has to restate `color` for every variant that sets its own on
    hover. `.topbar .btn:hover` and `.btn.ghost:hover` are both three classes, so
@@ -2045,23 +2047,23 @@ input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{f
       <button class="btn ghost" id="reviewBtn" title="Site checks" aria-label="Site checks">
         <span id="reviewDot" class="rdot"></span><span id="reviewText" class="actionLabel">Checks</span>
       </button>
-      <button class="btn ghost" id="historyBtn" title="Version history" aria-label="Version history" hidden>
+      <button class="btn ghost toolbarIcon" id="historyBtn" title="Version history" aria-label="Version history" hidden>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3.2 4.1A6 6 0 118 14"/><path d="M3.2 1.8v2.3H.9"/><path d="M8 4.4V8l2.4 1.4"/></svg>
         <span class="actionLabel">History</span>
       </button>
     </div>
     <div class="topgroup topActions divided">
-    <button class="btn ghost" id="previewBtn" title="Preview your working draft (⌘P)" aria-label="Preview your working draft">
+    <button class="btn ghost toolbarIcon" id="previewBtn" title="Preview your working draft (⌘P)" aria-label="Preview your working draft">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="1.9"/></svg>
       <span class="collapseLabel">Preview</span>
     </button>
     <!-- Server mode only, and hidden otherwise: the single-file build has nowhere to share
          *to*. Beside Publish because it answers the same question — "how does somebody else
          see this?" — and a live URL is the answer that needs no download. -->
-    <button class="btn ghost" id="clientReviewBtn" title="Client review" aria-label="Client review" hidden>
+    <button class="btn ghost toolbarIcon" id="clientReviewBtn" title="Client review" aria-label="Client review" hidden>
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2 2.5h12v8H7l-4 3v-3H2z"/><path d="M5 5h6M5 8h4"/></svg><span class="collapseLabel">Client review</span>
     </button>
-    <button class="btn ghost" id="shareBtn" title="Copy the published site link" aria-label="Copy the published site link" hidden>
+    <button class="btn ghost toolbarIcon" id="shareBtn" title="Copy the published site link" aria-label="Copy the published site link" hidden>
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
       <span class="collapseLabel">Live link</span>
     </button>
@@ -27146,8 +27148,8 @@ function togglePreview() {
   if (editing.on) exitEdit();
   const on = document.body.classList.toggle('preview');
   $('#previewBtn').innerHTML = on
-    ? `${svg('edit', 14)} Exit preview`
-    : `${svg('eye', 14)} Preview`;
+    ? svg('edit', 14)
+    : svg('eye', 14);
   $('#previewBtn').title = on ? 'Return to editing (⌘P)' : 'Preview your working draft (⌘P)';
   $('#previewBtn').setAttribute('aria-label', on ? 'Return to editing' : 'Preview your working draft');
   layoutCanvas();
