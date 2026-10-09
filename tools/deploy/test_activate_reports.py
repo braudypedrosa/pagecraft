@@ -94,7 +94,7 @@ class ActivationTests(unittest.TestCase):
             return Response({} if public_failure else self.meta)
         if parsed.path == '/__deployment':
             return Response(self.meta)
-        if parsed.path == '/api/owner/billing':
+        if parsed.path in ('/api/owner/billing', '/api/crm/summary', '/exports/customers.csv'):
             return Response({}, status=local_failure or 401,
                             headers={'cache-control': 'private, no-store'})
         return Response({}, status=404)

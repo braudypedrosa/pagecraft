@@ -31,7 +31,7 @@ test('native reports process boots independently and rejects anonymous data with
     REPORTS_DATA_ENVIRONMENT:'unconfigured', PAGECRAFT_REPORTS_STORAGE_ROOT:root,
     PAGECRAFT_REPORTS_CONFIG:'', PAGECRAFT_OWNER_AUTH_USER_IDS:'123e4567-e89b-42d3-a456-426614174000',
     SUPABASE_URL:'https://auth.example.test', SUPABASE_PUBLISHABLE_KEY:'disposable-test-only',
-    DATABASE_GATEWAY_URL:'', DATABASE_GATEWAY_KEY:'', PADDLE_API_KEY:'', PADDLE_ENVIRONMENT:'sandbox',
+    DATABASE_GATEWAY_URL:'', DATABASE_GATEWAY_KEY:'', REPORTS_DATA_GATEWAY_URL:'', PADDLE_API_KEY:'', PADDLE_ENVIRONMENT:'sandbox',
   }});
   let diagnostic = '';
   processUnderTest.stderr.on('data',data=>{diagnostic+=String(data);});
@@ -58,13 +58,13 @@ test('native reports process boots independently and rejects anonymous data with
       outgoing.on('error',reject);
       outgoing.setTimeout(5000,()=>outgoing.destroy(new Error('Reports request timed out')));
     });
-    let response=await request('/api/owner/billing');
+    let response=await request('/api/crm/summary');
     a.equal(response.status,401);
     a.match(response.headers.get('cache-control') || '',/no-store/);
     a.deepEqual(await response.json(),{error:'authentication_required'});
     response=await request('/sign-in');
     a.equal(response.status,200);
-    a.match(await response.text(),/Founder reports/);
+    a.match(await response.text(),/Pagecraft HQ/);
     for(const path of ['/sign-up','/edit/example','/api/sites'])a.equal((await request(path)).status,404);
     response=await request('/brand/pagecraft-logo.svg');
     a.equal(response.status,200);

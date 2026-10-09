@@ -21,7 +21,8 @@ export type OwnerBillingPageRenderer = (
   user: User,
   data: Extract<Awaited<ReturnType<typeof loadOwnerBilling>>, { status: 'ok' }>,
   input: OwnerBillingPageInput,
-) => string;
+  context?: Context,
+) => string | Promise<string>;
 
 export interface OwnerBillingRouteOptions {
   billing?: OwnerBillingOptions;
@@ -30,6 +31,8 @@ export interface OwnerBillingRouteOptions {
   editorOrigin?: string;
   requestSource(c: Context): string;
   renderPage?: OwnerBillingPageRenderer;
+  /** Trusted application route for budget responses and successful writes. */
+  pagePath?: string;
 }
 
 /** Budget inputs are major currency units; storage and provider arithmetic use integers. */
@@ -92,7 +95,8 @@ export function ownerBillingRoutes(app: Hono, o: OwnerBillingRouteOptions) {
         editCostId: c.req.query('edit'),
         costsEnabled: !!billing.costs,
       };
-      return c.html((o.renderPage || ownerBillingPage)(user, data, pageInput), status);
+      const page = o.renderPage ? await o.renderPage(user, data, pageInput, c) : ownerBillingPage(user, data, pageInput);
+      return c.html(page, status);
     } catch {
       return c.text('Billing data is unavailable. Try again.', 503);
     }
@@ -170,7 +174,7 @@ export function ownerBillingRoutes(app: Hono, o: OwnerBillingRouteOptions) {
     if (result.status !== 'ok') {
       return render(c, granted.identity, { error: 'unavailable', draftCost }, 503);
     }
-    return c.redirect('/owner/billing?message=saved#costs', 303);
+    return c.redirect(budgetLocation(c, o.pagePath || '/owner/billing', 'saved'), 303);
   });
 
   app.post('/owner/billing/costs/:id/remove', smallBody, async c => {
@@ -181,6 +185,17 @@ export function ownerBillingRoutes(app: Hono, o: OwnerBillingRouteOptions) {
       return render(c, granted.identity, { error: result.status === 'invalid' ? result.reason : 'unavailable' }, result.status === 'invalid' ? 422 : 503);
     }
     if (!result.removed) return render(c, granted.identity, { error: 'not_found' }, 422);
-    return c.redirect('/owner/billing?message=removed#costs', 303);
+    return c.redirect(budgetLocation(c, o.pagePath || '/owner/billing', 'removed'), 303);
   });
+}
+
+function budgetLocation(c: Context, path: string, message: 'saved' | 'removed') {
+  const query = new URLSearchParams({ message });
+  const range = c.req.query('range');
+  if (range === '30d' || range === '90d' || range === '12m') query.set('range', range);
+  const tests = c.req.query('tests');
+  if (tests === 'include' || tests === 'exclude') query.set('tests', tests);
+  const code = c.req.query('currency');
+  if (code && Intl.supportedValuesOf('currency').includes(code)) query.set('currency', code);
+  return path + '?' + query + (path === '/owner/billing' ? '#costs' : '');
 }

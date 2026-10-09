@@ -82,9 +82,10 @@ def main(commit, home=Path('/home/itspbuku')):
                         time.sleep(1)
                 else:
                     raise ValueError('Reports candidate readiness timed out')
-                with local('/api/owner/billing') as response:
-                    if response.status != 401 or 'no-store' not in response.headers.get('cache-control', ''):
-                        raise ValueError('Anonymous reports data must be denied privately')
+                for path in ('/api/owner/billing', '/api/crm/summary', '/exports/customers.csv'):
+                    with local(path) as response:
+                        if response.status != 401 or 'no-store' not in response.headers.get('cache-control', ''):
+                            raise ValueError('Anonymous reports data must be denied privately')
                 for path in ('/sign-up', '/edit/example', '/api/sites'):
                     with local(path) as response:
                         if response.status != 404:

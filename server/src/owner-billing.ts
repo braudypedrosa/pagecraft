@@ -87,6 +87,7 @@ export interface OwnerPlatformMetricsSource {
 
 export interface OwnerBillingOptions {
   ownerAuthUserIds: readonly string[];
+  reportDays?: 30 | 90 | 365;
   paddle?: {
     apiKey: string;
     environment?: PaddleEnvironment;
@@ -118,7 +119,11 @@ export type OwnerBillingLoadResult =
         environment: PaddleEnvironment;
         coverage: 'complete' | 'partial';
         coverageNote: string | null;
-        period: { kind: 'last_30_days_utc'; startsAt: string; endsAt: string };
+        period: {
+          kind: 'last_30_days_utc' | 'selected_days_utc';
+          startsAt: string;
+          endsAt: string;
+        };
         activeRecurringEstimate: OwnerRecurringEstimate[];
         atRiskRecurringEstimate: OwnerRecurringEstimate[];
         recurringEstimateNote: string;
@@ -446,10 +451,11 @@ async function paddleDashboard(
   options: NonNullable<OwnerBillingOptions['paddle']>,
   fetcher: typeof globalThis.fetch,
   now: Date,
+  reportDays: 30 | 90 | 365,
 ): Promise<Extract<Extract<OwnerBillingLoadResult, { status: 'ok' }>['billing'], { state: 'connected' | 'unavailable' }>> {
   const environment = options.environment || 'sandbox';
   const endsAt = now.toISOString();
-  const startsAt = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const startsAt = new Date(now.getTime() - reportDays * 24 * 60 * 60 * 1000).toISOString();
   const overallTimeoutMs = Math.max(100, Math.min(30_000, options.overallTimeoutMs || 15_000));
   const overallSignal = AbortSignal.timeout(overallTimeoutMs);
   try {
@@ -470,7 +476,11 @@ async function paddleDashboard(
     return {
       state: 'connected', environment, coverage: complete ? 'complete' : 'partial',
       coverageNote: complete ? null : coverageReasons.join(' '),
-      period: { kind: 'last_30_days_utc', startsAt, endsAt },
+      period: {
+        kind: reportDays === 30 ? 'last_30_days_utc' : 'selected_days_utc',
+        startsAt,
+        endsAt,
+      },
       activeRecurringEstimate: recurring.active,
       atRiskRecurringEstimate: recurring.atRisk,
       recurringEstimateNote: 'Monthly and annualized catalog-price estimates before discounts. Price tax mode may include or exclude tax. Past-due amounts are shown separately as at risk.',
@@ -481,7 +491,7 @@ async function paddleDashboard(
       approvedAdjustments: transaction.adjustments,
       financialDataNote: 'Gross charge and tax use transaction currency. Payout earnings and fees use payout currency and remain null until Paddle supplies payout totals. Approved adjustments include only provider-returned approved records; null means none were returned, not that refunds are impossible.',
       subscriptions: recurring.subscriptions,
-      recentTransactions: transaction.recent.slice(0, 100),
+      recentTransactions: transaction.recent,
     };
   } catch (error) {
     return {
@@ -498,6 +508,9 @@ export async function loadOwnerBilling(
   const access = ownerBillingAccess(identity, options.ownerAuthUserIds);
   if (access !== 'allowed') return { status: access };
   const now = (options.now || (() => new Date()))();
+  const reportDays = options.reportDays === 90 || options.reportDays === 365
+    ? options.reportDays
+    : 30;
   const [siteCount, accountCount, costResult] = await Promise.all([
     safeMetric(options.platform?.siteCount?.bind(options.platform)),
     safeMetric(options.platform?.accountCount?.bind(options.platform)),
@@ -514,7 +527,7 @@ export async function loadOwnerBilling(
     costs = { state: 'available', basis: 'monthly_budget', rows: costResult.rows, totals: moneyRows(costTotals) };
   }
   const paddle = options.paddle?.apiKey.trim()
-    ? await paddleDashboard(options.paddle, options.fetch || globalThis.fetch, now)
+    ? await paddleDashboard(options.paddle, options.fetch || globalThis.fetch, now, reportDays)
     : { state: 'not_connected' as const, environment: null };
   return {
     status: 'ok', generatedAt: now.toISOString(),

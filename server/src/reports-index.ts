@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { SupabaseAccountAuth } from './account-auth.ts';
 import { createFounderReportsApp } from './founder-reports.ts';
 import { FileOwnerCostStore } from './owner-billing.ts';
+import { FileFounderCrmStore } from './founder-crm-store.ts';
+import type { CrmPlatformSnapshot } from './founder-crm-types.ts';
 import { reportsConfigKeys, reportsRuntimeConfig } from './reports-config.ts';
 import { PagecraftGateway, GatewayStore } from './store-gateway.ts';
 
@@ -33,11 +35,17 @@ const store = config.gatewayUrl && config.gatewayKey
   ? new GatewayStore(new PagecraftGateway(config.gatewayUrl, config.gatewayKey, fetch, config.gatewayRegion))
   : undefined;
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const crmGateway = config.reportsDataGatewayUrl && config.gatewayKey
+  ? new PagecraftGateway(config.reportsDataGatewayUrl, config.gatewayKey, fetch, config.gatewayRegion) : undefined;
 const app = createFounderReportsApp({
   brandRoot: join(repo, 'brand'),
   host: config.host, origin: config.origin, appOrigin: config.appOrigin,
   dataEnvironment: config.dataEnvironment, challengeSiteKey: config.challengeSiteKey,
   accountAuth,
+  crm: {
+    contacts: new FileFounderCrmStore(config.contactsPath),
+    platform: crmGateway ? { snapshot: () => crmGateway.call<CrmPlatformSnapshot>('founder.snapshot') } : undefined,
+  },
   billing: {
     ownerAuthUserIds: config.ownerAuthUserIds,
     costs: new FileOwnerCostStore(config.costsPath),

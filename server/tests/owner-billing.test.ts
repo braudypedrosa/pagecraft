@@ -197,6 +197,35 @@ test('annual recurring normalization rounds only final exact fraction', async ()
   }]);
 });
 
+test('selected reporting periods use exact inclusive UTC boundaries', async () => {
+  for (const reportDays of [90, 365] as const) {
+    const requests: URL[] = [];
+    const fetcher: typeof fetch = async input => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      requests.push(url);
+      return Response.json({
+        data: [],
+        meta: { pagination: { next: `${url.origin}${url.pathname}?unused=1`, has_more: false } },
+      });
+    };
+    const result = await loadOwnerBilling(identity(), {
+      ownerAuthUserIds: [OWNER_ID], reportDays,
+      paddle: { apiKey: 'key' }, fetch: fetcher,
+      now: () => new Date('2026-10-09T12:34:56.789Z'),
+    });
+    if (result.status !== 'ok' || result.billing.state !== 'connected') throw new Error('not connected');
+    const expectedStart = new Date(Date.parse('2026-10-09T12:34:56.789Z') - reportDays * 86_400_000).toISOString();
+    a.deepEqual(result.billing.period, {
+      kind: 'selected_days_utc',
+      startsAt: expectedStart,
+      endsAt: '2026-10-09T12:34:56.789Z',
+    });
+    const transactionRequest = requests.find(url => url.pathname === '/transactions')!;
+    a.equal(transactionRequest.searchParams.get('billed_at[GTE]'), expectedStart);
+    a.equal(transactionRequest.searchParams.get('billed_at[LTE]'), '2026-10-09T12:34:56.789Z');
+  }
+});
+
 test('pagination is bounded, reports partial coverage, and rejects a cross-origin next URL', async () => {
   const partialFetch: typeof fetch = async input => {
     const url = new URL(input instanceof Request ? input.url : String(input));

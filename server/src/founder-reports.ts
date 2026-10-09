@@ -6,7 +6,10 @@ import { bodyLimit } from 'hono/body-limit';
 import { deleteCookie, getCookie } from 'hono/cookie';
 import { UI_FONT_FACES } from '../../shared/ui-fonts.js';
 import type { AccountAuth, VerifiedIdentity } from './account-auth.ts';
-import { founderReportsSignInPage, ownerBillingPage } from './account-pages.ts';
+import { founderCrmPage, founderCrmSignInPage } from './founder-crm-page.ts';
+import { founderCrmQuery, founderCrmRoutes } from './founder-crm-routes.ts';
+import { loadFounderCrm } from './founder-crm-data.ts';
+import type { CrmContactStore, CrmPlatformSource } from './founder-crm-types.ts';
 import { normalEmail, validEmail, type User } from './auth.ts';
 import { throttle } from './mail.ts';
 import { ownerBillingAccess, type OwnerBillingOptions } from './owner-billing.ts';
@@ -19,6 +22,8 @@ export interface FounderReportsAppOptions {
   origin: string;
   accountAuth: AccountAuth;
   billing: OwnerBillingOptions;
+  crm?: { platform?: CrmPlatformSource; contacts?: CrmContactStore };
+  previewLabel?: string;
   appOrigin?: string;
   dataEnvironment: FounderReportsDataEnvironment;
   challengeSiteKey?: string;
@@ -26,9 +31,10 @@ export interface FounderReportsAppOptions {
   brandRoot?: string;
 }
 
-const signInError = (o: FounderReportsAppOptions, error?: string) => founderReportsSignInPage({
-  error, appOrigin: o.appOrigin, dataEnvironment: o.dataEnvironment,
+const signInError = (o: FounderReportsAppOptions, error?: string) => founderCrmSignInPage({
+  error, dataEnvironment: o.dataEnvironment,
   challengeSiteKey: o.challengeSiteKey,
+  previewLabel: o.previewLabel,
 });
 
 const userFromIdentity = (identity: VerifiedIdentity): User => ({
@@ -116,7 +122,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
   app.use('*', async (c, next) => {
     const path = new URL(c.req.url).pathname;
     const browserWrite = path === '/auth/sign-in' || path === '/auth/logout' ||
-      path === '/owner/billing/costs' || /^\/owner\/billing\/costs\/[^/]+\/remove$/.test(path);
+      path === '/crm/contacts' || path === '/owner/billing/costs' || /^\/owner\/billing\/costs\/[^/]+\/remove$/.test(path);
     if (c.req.method === 'POST' && browserWrite && requestOrigin(c) !== origin.origin) {
       return c.json({ error: 'origin_not_allowed' }, 403);
     }
@@ -142,13 +148,14 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
     });
   }
 
-  app.get('/', c => c.redirect('/owner/billing', 303));
+  app.get('/', c => c.redirect('/overview', 303));
+  app.get('/owner/billing', c => c.redirect('/overview', 303));
 
   app.get('/sign-in', async c => {
     try {
       const current = await identity(c);
       const access = ownerBillingAccess(current, o.billing.ownerAuthUserIds);
-      if (access === 'allowed') return c.redirect('/owner/billing', 303);
+      if (access === 'allowed') return c.redirect('/overview', 303);
       if (current) {
         try { await o.accountAuth.signOut(c); } catch { /* Clear browser state below. */ }
         clearReportSession(c);
@@ -196,7 +203,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
       clearReportSession(c);
       return c.html(signInError(o, 'auth'), 403);
     }
-    return c.redirect('/owner/billing', 303);
+    return c.redirect('/overview', 303);
   });
 
   app.post('/auth/logout', bodyLimit({
@@ -208,20 +215,35 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
     return c.redirect('/sign-in', 303);
   });
 
+  const who = async (c: Context) => {
+    const current = await identity(c);
+    return current && ownerBillingAccess(current, o.billing.ownerAuthUserIds) === 'allowed'
+      ? userFromIdentity(current) : null;
+  };
+  founderCrmRoutes(app, {
+    billing: o.billing, platform: o.crm?.platform, contacts: o.crm?.contacts,
+    identity, origin: origin.origin, dataEnvironment: o.dataEnvironment,
+    previewLabel: o.previewLabel,
+  });
+
   ownerBillingRoutes(app, {
     billing: o.billing,
     editorOrigin: origin.origin,
     identity,
-    who: async c => {
-      const current = await identity(c);
-      return current && ownerBillingAccess(current, o.billing.ownerAuthUserIds) === 'allowed'
-        ? userFromIdentity(current) : null;
-    },
+    who,
     requestSource: callerAddress,
-    renderPage: (user, data, input) => ownerBillingPage(user, data, input, {
-      appOrigin: o.appOrigin,
-      dataEnvironment: o.dataEnvironment,
-    }),
+    pagePath: '/costs',
+    renderPage: async (user, billing, input, c) => {
+      const current = c ? await identity(c) : null;
+      const data = await loadFounderCrm(current, { billing: o.billing, platform: o.crm?.platform, contacts: o.crm?.contacts }, c ? founderCrmQuery(c) : { range: '30d', includeTests: true });
+      if ('status' in data) throw new Error('CRM unavailable');
+      // Reuse the already loaded budget result when rendering a validation failure.
+      return founderCrmPage(user, { ...data, billing }, {
+        section: 'costs', dataEnvironment: o.dataEnvironment, costInput: input,
+        previewLabel: o.previewLabel,
+        currencyCode: c?.req.query('currency'),
+      });
+    },
   });
 
   return app;

@@ -16,6 +16,9 @@ test('reports runtime is explicitly staged, separate and sandbox by default', ()
   a.equal(config.appOrigin, 'https://staging.itspagecraft.com');
   a.equal(config.secure, true);
   a.equal(config.costsPath, '/private/reports/costs.json');
+  a.equal(config.contactsPath, '/private/reports/contacts.json');
+  a.equal(config.reportsDataGatewayUrl, undefined);
+  a.equal(reportsRuntimeConfig({...env, REPORTS_DATA_GATEWAY_URL:'https://auth.example.test/functions/v1/pagecraft-reports'}).reportsDataGatewayUrl, 'https://auth.example.test/functions/v1/pagecraft-reports');
   a.equal(config.paddle, undefined);
   a.equal(reportsRuntimeConfig({...env, PADDLE_API_KEY:'private-test-only'}).paddle?.environment, 'sandbox');
   a.ok(!reportsConfigKeys.includes('NODE_OPTIONS' as never));
@@ -29,5 +32,10 @@ test('reports runtime fails closed for mistaken domains, owners, data or insecur
     {DATABASE_GATEWAY_KEY:''}, {DATABASE_GATEWAY_URL:'http://auth.example.test/read'},
     {REPORTS_DATA_ENVIRONMENT:'demo'}, {PAGECRAFT_REPORTS_STORAGE_ROOT:'public'},
     {PADDLE_ENVIRONMENT:'test'},
+    {REPORTS_DATA_GATEWAY_URL:'https://elsewhere.test/read'},
+    {REPORTS_DATA_GATEWAY_URL:'http://auth.example.test/read'},
+    {REPORTS_DATA_GATEWAY_URL:'https://auth.example.test/read?key=secret'},
+    {REPORTS_DATA_GATEWAY_URL:'https://person:password@auth.example.test/read'},
+    {REPORTS_DATA_GATEWAY_URL:'https://auth.example.test/read', DATABASE_GATEWAY_KEY:''},
   ]) a.throws(() => reportsRuntimeConfig({...env,...patch}));
 });

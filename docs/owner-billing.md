@@ -1,87 +1,113 @@
-# Founder reports operations
+# Pagecraft HQ founder CRM operations
 
 ## Product boundary
 
-Founder financial reporting is a separate private console intended for `https://reports.itspagecraft.com`. The customer Pagecraft app exposes no financial routes or Billing navigation. The reports process reuses Pagecraft’s account authentication and reporting code without booting the editor, creating customer profiles, initializing database schemas, running service or background workers, publishing sites, or sending customer messages.
+**Pagecraft HQ** is a standalone private CRM intended for `https://reports.itspagecraft.com`. It has its own navigation, sign-in, styles, server entry point and private storage. The customer Pagecraft application exposes no CRM or financial routes and no founder navigation.
 
-The current reports data source is **staging**. This is an explicit operational setting and is shown in the interface. It must not be described as production data.
+The current dataset is **staging**, as explicitly selected by the founder. A reports deployment does not promote data to production. The reports process does not boot the editor, create Pagecraft profiles, initialize database schemas, run service/background workers, publish sites, provision paid subscriptions or send customer messages.
+
+## Screens and available data
+
+| Screen | Purpose |
+|---|---|
+| Overview | Accounts, unique sites, activated accounts, recurring catalog-price estimates, account creation and completed-charge trends, plan mix, CRM pipeline and due follow-ups |
+| Customers | Searchable account/lead directory; company, stage, source, notes, follow-up date and test-record annotations |
+| Pipeline | Lead, contacted, qualified, customer and archived stages, with stage filters and follow-ups |
+| Revenue | Provider subscriptions, past-due estimates, transactions, taxes, payout earnings, fees and approved adjustments, separated by currency |
+| Costs | Private monthly cost budgets; exact currency amounts and edit/remove actions |
+| Reports | Metric definitions, site creation trend, manual source distribution and five CSV exports |
+| Sources | Availability, retrieval coverage and measurement gaps |
+
+CRM annotations never change a Pagecraft profile, plan, membership or paid entitlement. A manual lead with the same normalized email as an account is merged into the directory. The first verified account edit may attach that lead to its account; afterward the account link is immutable. Linked names and emails come from the verified platform snapshot. Conflicting revisions preserve the submitted draft and ask for a reload instead of silently overwriting a newer edit. Archive records by selecting the Archived stage.
+
+## Metric definitions
+
+- Account profiles are Pagecraft application profiles, including legacy/unlinked profiles. They are not all paying customers.
+- Current plan mix is assigned plans, including complimentary/internal plans. It is not subscription revenue.
+- Activation is the percentage of retrieved, verified Auth-linked profiles with at least one owned published site. Verified profiles with no sites remain in the denominator. This is a current snapshot, not period conversion.
+- Site totals count unique retrieved site IDs, avoiding double-counting co-owned sites.
+- Media bytes match Pagecraft quota ownership: assets by `assets.owner_id`, plus library assets by the owning library. Retired assets remain included, matching current quota accounting.
+- Account and site creation trends use profile timestamps and earliest site-revision timestamps. They are not traffic or daily active users.
+- Periods are rolling 30, 90 and 365 days. Charts use daily, weekly and monthly UTC buckets respectively; first/last buckets can be partial. Underlying records remain bounded by the exact period shown.
+- Due follow-ups have a date on or before the current UTC day and are not archived. Future follow-ups remain visible in the directory.
+- The test-record filter applies to marked CRM records and matched account/site metrics. It does not infer that a Paddle transaction is a test from a CRM annotation; the provider environment is labeled independently.
+- Current recurring estimates use active catalog prices, not a recognized-revenue ledger. Completed gross charges, taxes, fees, adjustments and payout earnings use provider-supplied amounts. Missing payout details remain unavailable.
+- Monthly cost budgets are planning figures, not actual expense records. They are not used to invent profit or margins.
+
+Traffic, acquisition sessions, customer acquisition cost, churn and retention require additional data sources and are explicitly unmeasured. Manual CRM source attribution is shown as such. No Paddle account/key is currently connected, so hosted revenue metrics remain unavailable rather than showing false zeroes. Local QA uses an unmistakably labeled synthetic dataset and sandbox-payment fixture.
 
 ## Authorization and privacy
 
-Access is limited to verified Supabase Auth UUIDs in `PAGECRAFT_OWNER_AUTH_USER_IDS`. Missing, malformed, or empty configuration stops the reports process. A display name, email, mutable user metadata, complimentary Pro plan, site membership, editor token, or assistant bearer token never grants financial access.
+Only verified Supabase Auth UUIDs in `PAGECRAFT_OWNER_AUTH_USER_IDS` can read or change CRM data. Missing/malformed configuration stops startup. A display name, email, user metadata, Pro plan, site membership, editor token or assistant bearer token never grants founder access.
 
-The reports host verifies the identity through Supabase Auth `getUser` and uses its own host-only `pc_reports_auth` cookie. It does not offer customer signup or profile creation. Anonymous users see the dedicated existing-account sign-in page; authenticated users outside the UUID allowlist receive 403.
+The reports host verifies the account through Supabase Auth `getUser` and uses a separate host-only `pc_reports_auth` cookie. It offers existing-account sign-in only. Ordinary authenticated accounts receive 403. Every reports response is private/no-store and noindex/nofollow; same-origin checks cover sign-in, sign-out, CRM edits and budgets, including requests carrying bearer credentials. Fixed export names, bounded request bodies and per-founder throttles limit the surface.
 
-Every founder route, API response, and deployment response uses `private, no-store` and `noindex, nofollow`. Budget mutations also require the configured reports origin. The optional **Open Pagecraft** link accepts only a configured absolute HTTP or HTTPS origin.
+The browser receives rendered records and private authenticated JSON, never database/provider secrets. CSV exports quote cells and escape spreadsheet formula prefixes. Exports retain selected period, test setting and currency metadata. Payment and budget rows are filtered to the requested currency; payout currency remains explicit. Unavailable required sources return 503 instead of a successful empty export.
 
 ## Runtime configuration
 
-`server/src/reports-config.ts` defines the allowlisted reports settings. `server/src/reports-index.ts` may load them from the owner-only JSON file named by `PAGECRAFT_REPORTS_CONFIG`. That file must be a regular file, no larger than 32 KiB, inaccessible to group and other users, and contain only supported string settings. Keep it outside the source checkout and never commit or paste its contents into chat.
+`server/src/reports-config.ts` allowlists reports settings. `server/src/reports-index.ts` may load them from the owner-only JSON file named by `PAGECRAFT_REPORTS_CONFIG`. This must be a regular file no larger than 32 KiB, inaccessible to group/other users, containing supported string settings only. Keep it outside the checkout; never commit or paste its contents.
 
 | Setting | Purpose |
 |---|---|
-| `REPORTS_HOST` | Exact reports hostname |
-| `REPORTS_ORIGIN` | Trusted absolute origin for the reports console |
-| `REPORTS_APP_ORIGIN` | Optional trusted absolute customer Pagecraft origin used only by the return link |
-| `REPORTS_DATA_ENVIRONMENT` | Visible data-source label: `staging`, `production`, or `unconfigured` |
-| `PAGECRAFT_REPORTS_STORAGE_ROOT` | Absolute private directory containing `costs.json` |
-| `PAGECRAFT_OWNER_AUTH_USER_IDS` | Verified founder auth UUID allowlist |
+| `REPORTS_HOST`, `REPORTS_ORIGIN` | Exact reports hostname and trusted origin |
+| `REPORTS_APP_ORIGIN` | Optional validated app origin retained for runtime compatibility |
+| `REPORTS_DATA_ENVIRONMENT` | Visible `staging`, `production` or `unconfigured` data label |
+| `PAGECRAFT_REPORTS_STORAGE_ROOT` | Absolute private directory for `costs.json` and `contacts.json` |
+| `PAGECRAFT_OWNER_AUTH_USER_IDS` | Verified founder Auth UUID allowlist |
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | Existing-account authentication |
 | `TURNSTILE_SITE_KEY` | Optional founder sign-in challenge |
-| `DATABASE_GATEWAY_URL`, `DATABASE_GATEWAY_KEY`, `DATABASE_GATEWAY_REGION` | Read gateway for the explicitly selected dataset |
-| `PADDLE_API_KEY`, `PADDLE_ENVIRONMENT` | Optional server-only Paddle reporting access |
+| `DATABASE_GATEWAY_URL`, `DATABASE_GATEWAY_KEY`, `DATABASE_GATEWAY_REGION` | Existing dataset gateway for legacy inventory reporting |
+| `REPORTS_DATA_GATEWAY_URL` | Separate read-only founder snapshot Edge Function, same trusted origin as the existing gateway |
+| `PADDLE_API_KEY`, `PADDLE_ENVIRONMENT` | Optional server-only Paddle reporting access, sandbox by default |
 
-The gateway URL and key must be provided together. Selecting `staging` or `production` requires a read gateway. Invalid origins, data environments, Paddle environments, or partial gateway configuration stop startup rather than falling back silently.
+Invalid origins, insecure production endpoints, partial gateway settings, or unsupported environments stop startup. No secret/configuration appears in evidence.
 
-No Paddle key is currently configured. Founder reports therefore shows Paddle as not connected and withholds provider financial metrics instead of presenting false zeroes. When a key is added, use a sandbox read key first. The reporting integration reads subscriptions, transactions, and included adjustments; it does not mutate Paddle. Give it only the required provider permissions. Requests use fixed HTTPS provider origins, strict pagination origins, timeouts, and response bounds, and surface partial or unavailable data without exposing provider errors. [Paddle authentication guidance](https://developer.paddle.com/api-reference/about/authentication/)
+The new `supabase/functions/pagecraft-reports` service accepts only `founder.snapshot`. It verifies the existing server-only gateway key against the stored SHA-256 hash before reading accounts/sites. It has no schema initialization or data mutation operations. Retrieval is bounded to 1,000 profiles and 5,000 sites and includes full inventory counts plus explicit complete/partial coverage. The existing Pagecraft database functions are left intact.
 
-This is separate from future checkout and webhook credentials. Customer subscription provisioning still needs trusted price mapping, verified webhooks, durable event handling, and explicit entitlement policy.
+Paddle reporting uses fixed HTTPS provider origins, strict pagination origins, timeouts, bounded responses and partial/unavailable states. It reads subscriptions, transactions and included adjustments only. Use a sandbox key with the needed read permissions first. [Paddle authentication guidance](https://developer.paddle.com/api-reference/about/authentication/)
 
-## Storage and money
+Checkout/webhook credentials and provisioning remain separate work: trusted prices, verified signed webhooks, durable event handling and explicit entitlement policy are required before live billing.
 
-Monthly cost budgets persist at `<PAGECRAFT_REPORTS_STORAGE_ROOT>/costs.json`. The reports deployment owns this private file independently of Pagecraft publication storage. Temporary writes use owner-only permissions and atomic rename; same-process writers serialize. Back up the directory with the reports runtime data.
+## Private storage
 
-Entries use stable UUIDs, bounded labels and categories, supported ISO currencies, and nonnegative integer minor-unit amounts. Form input follows each currency’s decimal precision and never passes through floating-point arithmetic. Currency totals remain independent. A failed storage read produces an unavailable state and suppresses the form and totals; it is never rendered as an empty budget.
+CRM contacts and monthly cost budgets belong to the independent reports deployment. New files use owner-only permissions and atomic rename; same-process writers serialize. CRM reads reject non-private files, symlinks, invalid records and oversized files. CRM revisions reject stale updates, duplicate emails and conflicting account links. Failed reads produce an unavailable state, not fabricated empty results.
 
-Filesystem storage matches the current single-process design. Multiple reports processes would need shared transactions or locking before horizontal scaling.
+Back up the private reports data directory independently of customer publication storage. Current limits are 2,000 CRM annotations/leads, a 2 MiB CRM file and 100 budget rows. Filesystem persistence suits the current single-process design. Multiple reports processes require shared transactions or cross-process locking before scaling.
 
-## Reports-host routes
+## Routes
 
-These routes belong to the founder reports process only; they are not mounted in the customer Pagecraft app.
+These routes exist only in the reports process:
 
-- `GET /`: founder reports dashboard; anonymous users are sent to `/sign-in`.
-- `GET /sign-in`: dedicated existing-account founder sign-in.
-- `POST /auth/sign-in` and `POST /auth/logout`: reports-host session lifecycle.
-- `GET /owner/billing`: authenticated reporting body.
-- `GET /api/owner/billing`: private reporting JSON.
-- `POST /owner/billing/costs`: create or edit a monthly cost budget.
-- `POST /owner/billing/costs/:id/remove`: remove one budget row.
-- `GET /__deployment`: host-gated private deployment identity.
+- `GET /` and `GET /owner/billing`: compatibility redirects to `/overview`.
+- `GET /overview`, `/customers`, `/pipeline`, `/revenue`, `/costs`, `/reports`, `/sources`: private CRM screens.
+- `GET /sign-in`, `POST /auth/sign-in`, `POST /auth/logout`: separate founder session.
+- `GET /api/crm/summary`: private CRM/analytics JSON.
+- `POST /crm/contacts`: create/edit founder annotations or a manual lead.
+- `GET /exports/customers.csv`, `/pipeline.csv`, `/payments.csv`, `/budgets.csv`, `/metrics.csv`: private CSV exports under `/exports`.
+- `GET /api/owner/billing`: retained private financial API.
+- `POST /owner/billing/costs`, `/owner/billing/costs/:id/remove`: budget writes returning to `/costs`.
+- `GET /__deployment`: host-gated private/no-store deployment identity.
 
-## Data-source promotion
+## Deployment and launch boundaries
 
-Reports currently reads staging data. Changing `REPORTS_DATA_ENVIRONMENT` to `production` is a manual production-launch step after Pagecraft has a clean isolated production database and the reports gateway points to that database. It is not an automatic consequence of deploying the reports process or promoting an editor release. Change the gateway and visible label together, then verify the reported site count and environment badge before relying on the console.
+The hosting account has a separate Node 24 application named `pagecraft-reports`, its own fixed-root startup, protected runtime configuration and data directory. It receives an immutable clone of an exact tested staging source release. Customer checkout, cookies and writable data are independent.
 
-The reports process performs no database schema initialization. Prepare and verify the target Pagecraft database separately.
+Public activation still requires the reports DNS record and valid HTTPS. Create a DNS-only `A` record named `reports` pointing to `67.223.118.197`, then provision/verify TLS. Run `tools/deploy/activate_reports.py <tested development commit>` on the hosting account. The helper tests native boot, denies anonymous financial access, rejects customer routes, switches only the reports pointer and verifies the exact release via real HTTPS. Failure restores the previous reports pointer. Preserve the active release and rollback copy when pruning.
 
-## Deployment and DNS status
+After the hostname is ready, the founder must sign in through the dedicated reports page and verify real staging data. Do not claim public availability or authenticated founder acceptance from a local sample-data screenshot, an Edge Function deployment or a successful CI run.
 
-The hosting account now has the reports subdomain and a separate Node 24 fixed-root application named `pagecraft-reports`. Protected runtime configuration and budget storage are provisioned separately. The application receives an immutable clone of the exact tested staging source release. Do not share the customer app’s writable checkout, auth cookie, or budget file.
+At customer launch, prepare the clean isolated production database separately. Change the reports gateway and `REPORTS_DATA_ENVIRONMENT` together only when it is ready; verify source counts and the Production data badge. The staging and production dataset currently remain shared, so this work does not authorize live payments or a production promotion.
 
-Activate a tested source release with `tools/deploy/activate_reports.py <development commit>` on the hosting account after DNS and HTTPS are ready. This helper verifies the native candidate, denies anonymous financial data, rejects customer routes, then switches only the reports pointer. Failed restart, HTTPS verification, or status persistence restores the previous reports pointer; customer data and configuration stay separate. Source releases are copied with their installed dependencies, so customer release retention cannot invalidate reports. Reports release pruning is currently manual; preserve the active release and its rollback copy.
+## Acceptance checks
 
-Public deployment is not yet verified. The Cloudflare DNS change is also pending user login: create a DNS-only `A` record for `reports.itspagecraft.com` pointing to `67.223.118.197`. Do not mark the hostname, deployment, or founder login complete until the live host is reachable and verified.
+1. Confirm exact `/__deployment` release, private/no-store headers and visible dataset label.
+2. Confirm ordinary accounts, editor tokens and wrong-host requests cannot read CRM/financial data or write annotations.
+3. Verify founder sign-in/sign-out, lead create/edit/reload/archive, stale revisions and matched-account identity protection.
+4. Verify search/plan/stage filters, archived records, test exclusion, UTC follow-up dates and all three reporting periods.
+5. Verify exact minor-unit money, separate currencies, missing/partial provider details, and budget create/edit/remove without touching existing records.
+6. Review real rendered desktop/tablet screens, readable chart values, keyboard focus, error drafts and contained table overflow. Mobile is outside the product scope.
+7. Verify all CSV exports and spreadsheet-safe text; unavailable sources must fail explicitly.
+8. Confirm customer Pagecraft still has no CRM/financial navigation or routes.
 
-## Verification
-
-Before accepting the reports deployment:
-
-1. Confirm `/__deployment` identifies the exact approved immutable source release and remains private/no-store.
-2. Confirm the page visibly says **Staging data** while the staging gateway is configured.
-3. Verify an ordinary authenticated Pagecraft account with the same display name or plan receives 403 and cannot read financial JSON.
-4. Verify the allowlisted UUID can sign in with the reports-only cookie, sign out, and cannot create a new customer profile through this host.
-5. Add, edit, reload, and remove one clearly disposable QA budget without altering existing rows.
-6. Review desktop and tablet layout, keyboard focus, validation recovery, table overflow, and private cache/search headers.
-7. Confirm the customer Pagecraft app has no founder financial route or navigation.
-
-Sandbox Paddle fixtures may verify presentation, but they are not proof of a live provider connection. Production reporting, checkout, paid entitlement enforcement, and a real purchase remain separate acceptance work.
+Local native HTTP tests exercise actual fixture writes independently of the browser. Built-in-browser POSTs were blocked by its inspector during this task; do not describe those mutations as browser-verified until the blocking condition is resolved. UI navigation/filters and rendered states are verified separately.

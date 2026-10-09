@@ -7,6 +7,7 @@ export const reportsConfigKeys = [
   'PAGECRAFT_REPORTS_STORAGE_ROOT', 'PAGECRAFT_OWNER_AUTH_USER_IDS',
   'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'TURNSTILE_SITE_KEY',
   'DATABASE_GATEWAY_URL', 'DATABASE_GATEWAY_KEY', 'DATABASE_GATEWAY_REGION',
+  'REPORTS_DATA_GATEWAY_URL',
   'PADDLE_API_KEY', 'PADDLE_ENVIRONMENT',
 ] as const;
 
@@ -46,6 +47,13 @@ export function reportsRuntimeConfig(env: Record<string, string | undefined>) {
       url.username || url.password || url.search || url.hash) throw new Error('Reports gateway URL is invalid');
   }
   if (dataEnvironment !== 'unconfigured' && !gatewayUrl) throw new Error('Reports data environment requires its read gateway');
+  const reportsDataGatewayUrl = env.REPORTS_DATA_GATEWAY_URL;
+  if (reportsDataGatewayUrl) {
+    const url = new URL(reportsDataGatewayUrl);
+    if (!gatewayKey || !gatewayUrl || url.origin !== new URL(gatewayUrl).origin || (secure && url.protocol !== 'https:') || !['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+      throw new Error('CRM read gateway must be a trusted configured endpoint');
+    }
+  }
   const storageRoot = env.PAGECRAFT_REPORTS_STORAGE_ROOT;
   if (!storageRoot || !isAbsolute(storageRoot)) throw new Error('Reports requires an absolute private storage root');
   const paddleEnvironment = env.PADDLE_ENVIRONMENT || 'sandbox';
@@ -57,7 +65,9 @@ export function reportsRuntimeConfig(env: Record<string, string | undefined>) {
     secure, ownerAuthUserIds, supabaseUrl, publishableKey,
     challengeSiteKey: env.TURNSTILE_SITE_KEY,
     gatewayUrl, gatewayKey, gatewayRegion: env.DATABASE_GATEWAY_REGION,
+    reportsDataGatewayUrl,
     costsPath: join(storageRoot, 'costs.json'),
+    contactsPath: join(storageRoot, 'contacts.json'),
     paddle: env.PADDLE_API_KEY?.trim() ? {
       apiKey: env.PADDLE_API_KEY,
       environment: paddleEnvironment as 'sandbox' | 'live',

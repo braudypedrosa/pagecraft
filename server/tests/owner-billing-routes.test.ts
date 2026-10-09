@@ -42,11 +42,11 @@ async function rig(options: { ids?: string[]; legacy?: boolean; failCosts?: bool
 
 test('billing pages and JSON use exact account authorization and private responses', async () => {
   const r = await rig();
-  let page = await r.request('/owner/billing');
+  let page = await r.request('/overview');
   a.equal(page.status, 200);
   a.match(page.headers.get('cache-control') || '', /private, no-store/);
   a.equal(page.headers.get('x-robots-tag'), 'noindex, nofollow');
-  a.match(await page.text(), /Paddle not connected/);
+  a.match(await page.text(), /Paddle is not connected/);
   const json = await r.request('/api/owner/billing');
   a.equal(json.status, 200);
   const data = await json.json();
@@ -56,26 +56,26 @@ test('billing pages and JSON use exact account authorization and private respons
   a.equal(data.billing.completedGrossCustomerCharges, undefined);
   r.source.mockClear();
   r.setIdentity({ authUserId: OTHER, email: 'owner@example.test', name: 'Owner' });
-  a.equal((await r.request('/owner/billing')).status, 403);
+  a.equal((await r.request('/overview')).status, 403);
   a.equal((await r.request('/api/owner/billing')).status, 403);
   a.equal((await r.post({label:'Attack',category:'other',amount:'1',currencyCode:'USD'})).status, 403);
   a.equal(r.source.mock.calls.length, 0);
   a.deepEqual(await r.costs.list(), []);
   r.setIdentity(null);
-  page = await r.request('/owner/billing');
+  page = await r.request('/overview');
   a.equal(page.status, 303);
-  a.equal(page.headers.get('location'), '/sign-in?next=%2Fowner%2Fbilling');
+  a.equal(page.headers.get('location'), '/sign-in');
   a.equal((await r.request('/api/owner/billing')).status, 401);
 });
 
 test('missing configuration, legacy auth and custom site hosts cannot access finances', async () => {
   const missing = await rig({ ids: [] });
-  a.equal((await missing.request('/owner/billing')).status, 403);
+  a.equal((await missing.request('/overview')).status, 403);
   a.equal(missing.source.mock.calls.length, 0);
   const legacy = await rig({ legacy: true });
   a.equal((await legacy.request('/api/owner/billing', { headers: { authorization: 'Bearer pretend-owner', 'x-pagecraft-editor-session': 'pretend-owner' } })).status, 401);
   const r = await rig();
-  a.equal((await r.request('/owner/billing', { headers: { host: 'customer.test' } })).status, 404);
+  a.equal((await r.request('/overview', { headers: { host: 'customer.test' } })).status, 404);
   a.equal((await r.request('/api/owner/billing', { headers: { host: 'customer.test' } })).status, 404);
   a.equal(r.source.mock.calls.length, 0);
 });
@@ -99,7 +99,7 @@ test('budget creation, editing and removal persist exact currencies without chan
   const update = await r.post({ id: rows[0].id, label: 'Hosting revised', category: 'hosting', amount: '15.50', currencyCode: 'USD' });
   a.equal(update.status, 303);
   a.equal((await r.costs.list())[0].amountMinor, '1550');
-  const page = await r.request(`/owner/billing?edit=${rows[0].id}`);
+  const page = await r.request(`/costs?edit=${rows[0].id}`);
   a.match(await page.text(), /value="15.50"/);
   const response = await r.request(`/owner/billing/costs/${rows[0].id}/remove`, { method: 'POST' });
   a.equal(response.status, 303);

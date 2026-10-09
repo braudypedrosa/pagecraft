@@ -76,7 +76,7 @@ test('strict host and privacy headers cover redirects, errors and unknown paths'
   const r = makeRig();
   const root = await r.request('/');
   a.equal(root.status, 303);
-  a.equal(root.headers.get('location'), '/owner/billing');
+  a.equal(root.headers.get('location'), '/overview');
   for (const response of [root, await r.request('/missing'), await r.request('/sign-in')]) {
     a.match(response.headers.get('cache-control') || '', /no-store/);
     a.match(response.headers.get('x-robots-tag') || '', /noindex/);
@@ -101,20 +101,20 @@ test('standalone route surface has only reports, sign-in, logout and explicit as
 
 test('billing authorizes only the immutable verified owner id and reuses identity per request', async () => {
   const r = makeRig({ current: owner() });
-  const page = await r.request('/owner/billing');
+  const page = await r.request('/overview');
   a.equal(page.status, 200);
   const html = await page.text();
-  a.match(html, /Founder reports/);
+  a.match(html, /Pagecraft HQ/);
   a.match(html, /Staging data/);
   a.match(html, /founder@example\.test/);
-  a.match(html, /Open Pagecraft/);
+  a.doesNotMatch(html, /dashboard-app|pc-app-sidebar/);
   a.equal(r.auth.identityCalls, 1);
 
   r.auth.current = owner(OTHER);
-  a.equal((await r.request('/owner/billing')).status, 403);
+  a.equal((await r.request('/overview')).status, 403);
   a.equal((await r.request('/api/owner/billing')).status, 403);
   r.auth.current = null;
-  a.equal((await r.request('/owner/billing')).status, 303);
+  a.equal((await r.request('/overview')).status, 303);
   a.equal((await r.request('/api/owner/billing')).status, 401);
 });
 
@@ -126,7 +126,7 @@ test('existing-account sign-in admits allowlisted ids and clears ordinary sessio
     'cf-turnstile-response': 'pagecraft-test-human',
   });
   a.equal(response.status, 303);
-  a.equal(response.headers.get('location'), '/owner/billing');
+  a.equal(response.headers.get('location'), '/overview');
   a.equal(r.auth.signIn.mock.calls[0]?.[1].email, 'founder@example.test');
 
   r.auth.signInResult = owner(OTHER);
@@ -159,7 +159,7 @@ test('existing-account sign-in admits allowlisted ids and clears ordinary sessio
 
 test('all POST routes require trusted origin even with bearer credentials', async () => {
   const r = makeRig({ current: owner() });
-  for (const path of ['/auth/sign-in', '/auth/logout', '/owner/billing/costs']) {
+  for (const path of ['/auth/sign-in', '/auth/logout', '/owner/billing/costs', '/crm/contacts']) {
     for (const headers of [
       {},
       { origin: 'https://evil.test' },
@@ -215,7 +215,7 @@ test('authentication and report failures are redacted and fail closed', async ()
   response = await reportFailure.request('/api/owner/billing');
   a.equal(response.status, 503);
   a.deepEqual(await response.json(), { error: 'billing_unavailable' });
-  response = await reportFailure.request('/owner/billing');
+  response = await reportFailure.request('/overview');
   a.equal(response.status, 503);
   a.doesNotMatch(await response.text(), /private\/report-store/);
 });
