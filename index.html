@@ -129,6 +129,19 @@ input,select,textarea{font:inherit;color:inherit}
 .topgroup.divided{border-left:1px solid var(--rail-line);padding-left:var(--sp-4)}
 .topTools{gap:var(--sp-1)}
 .topActions{gap:var(--sp-3)}
+.f>label .pc-responsive-status{font-size:var(--fs-1);font-weight:400;color:var(--text-3);line-height:1.3}
+.pc-first-edit{margin:12px;padding:12px;border:1px solid var(--line);border-radius:var(--r-md);display:grid;gap:8px;font-size:var(--fs-2)}
+.pc-first-edit-head{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.pc-first-edit p{margin:0;line-height:1.5;color:var(--text-2)}
+.pc-first-edit small{color:var(--text-3);line-height:1.4}
+.pc-preview-state{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;padding:8px 0;font-size:var(--fs-2);color:var(--text-2)}
+.pc-preview-state[hidden]{display:none}
+#canvasPreviewState{position:absolute;bottom:12px;left:12px;right:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 12px;z-index:5}
+.pc-insertion-hint{margin:8px 0 0;font-size:var(--fs-1);line-height:1.5;color:var(--text-2)}
+.modebar .selectionCrumb{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;overflow-x:auto}
+.selectionCrumb button{flex-shrink:0;max-width:140px;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;border-radius:var(--r-sm);font-size:var(--fs-1);color:var(--text-2)}
+.selectionCrumb button:hover{background:var(--pc-hover-bg)}
+.selectionCrumb button[aria-current]{font-weight:600;color:var(--text)}
 
 /* segmented controls on Ink — active state is a green underline, not a fill */
 .seg{display:flex;gap:var(--sp-1);align-items:center}
@@ -2045,6 +2058,9 @@ input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{f
     <!-- Server mode only, and hidden otherwise: the single-file build has nowhere to share
          *to*. Beside Publish because it answers the same question — "how does somebody else
          see this?" — and a live URL is the answer that needs no download. -->
+    <button class="btn ghost" id="clientReviewBtn" title="Client review" aria-label="Client review" hidden>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2 2.5h12v8H7l-4 3v-3H2z"/><path d="M5 5h6M5 8h4"/></svg><span class="collapseLabel">Client review</span>
+    </button>
     <button class="btn ghost" id="shareBtn" title="Copy the published site link" aria-label="Copy the published site link" hidden>
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
       <span class="collapseLabel">Live link</span>
@@ -2103,6 +2119,7 @@ input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{f
       <div class="modebar pc-toolbar-context" id="modebar"></div>
       <div class="frameWrap" id="frameWrap"><iframe id="canvas" title="Page canvas"></iframe></div>
       <div class="dim pc-toolbar-context" id="dim"></div>
+      <div id="canvasPreviewState" class="pc-preview-state" hidden><span role="status"></span><button type="button" class="btn tiny" hidden>Retry images</button></div>
     </div>
 
     <!-- ============ RIGHT ============ -->
@@ -11778,7 +11795,7 @@ var PC_UI = (() => {
     style.textContent = css;
     document.head.append(style);
     let host;
-    const records = /* @__PURE__ */ new Map(), pending2 = /* @__PURE__ */ new WeakMap(), keys = /* @__PURE__ */ new WeakMap(), jobs = /* @__PURE__ */ new Set(), activeActions = /* @__PURE__ */ new Set();
+    const records = /* @__PURE__ */ new Map(), pending2 = /* @__PURE__ */ new WeakMap(), keys2 = /* @__PURE__ */ new WeakMap(), jobs = /* @__PURE__ */ new Set(), activeActions = /* @__PURE__ */ new Set();
     const problems = /* @__PURE__ */ new Map();
     const problemChanged = () => window.dispatchEvent(new CustomEvent("pc-feedback-problems"));
     const rememberProblem = (message, options = {}) => {
@@ -11938,8 +11955,8 @@ var PC_UI = (() => {
     };
     const begin = (button, message, key2, options = {}) => {
       if (button && pending2.has(button)) return null;
-      if (button && !button.id && !keys.has(button)) keys.set(button, "button-" + ++sequence);
-      const actionId = key2 ? "job-" + key2 : button?.id ? "button-id-" + button.id : button ? keys.get(button) : void 0;
+      if (button && !button.id && !keys2.has(button)) keys2.set(button, "button-" + ++sequence);
+      const actionId = key2 ? "job-" + key2 : button?.id ? "button-id-" + button.id : button ? keys2.get(button) : void 0;
       if (actionId && activeActions.has(actionId)) return null;
       if (actionId) activeActions.add(actionId);
       const label = button?.getAttribute("aria-label") || button?.textContent?.trim() || button?.getAttribute("title") || "";
@@ -15543,6 +15560,108 @@ var PC_UI = (() => {
     ] });
   }
 
+  // app/src/ui/FirstEditGuide.tsx
+  var STEPS = [
+    { type: "heading", title: "Make the headline yours", action: "Edit heading", copy: "Describe what this site offers. Edit Heading text in the Content panel." },
+    { type: "image", title: "Replace a template image", action: "Choose image", copy: "Choose your own image in Content. Give it useful alternative text." },
+    { type: "button", title: "Personalize a button", action: "Edit button", copy: "Update the button text or destination in Content. Check that the link goes where you expect." }
+  ];
+  var keys = { heading: ["text"], image: ["src"], button: ["text", "link"] };
+  function guideFingerprint(node) {
+    const value = JSON.stringify((keys[node.type] || []).map((key2) => node.props?.[key2] ?? ""));
+    let hash = 2166136261;
+    for (let i3 = 0; i3 < value.length; i3++) hash = Math.imul(hash ^ value.charCodeAt(i3), 16777619);
+    return (hash >>> 0).toString(16);
+  }
+  function guideNodes(nodes) {
+    return nodes.flatMap((node) => {
+      if (node.bind && Object.keys(node.bind).length || node.type === "list" || node.use || node.src || node.showIf || node.hide && Object.values(node.hide).some(Boolean)) return [];
+      return [node, ...guideNodes(node.children || [])];
+    });
+  }
+  function createFirstEditGuide(document2) {
+    const page2 = document2.pages.find((page3) => guideNodes(page3.tree).some((node) => node.type === "heading")) || document2.pages[0];
+    const nodes = page2 ? guideNodes(page2.tree) : [];
+    return { version: 1, dismissed: false, tasks: STEPS.flatMap((step) => {
+      const node = nodes.find((node2) => node2.type === step.type);
+      return node ? [{ id: node.id, pageId: page2.id, type: step.type, before: guideFingerprint(node) }] : [];
+    }) };
+  }
+  function guideTaskState(task, document2) {
+    const page2 = document2.pages.find((page3) => page3.id === task.pageId);
+    const node = page2 && guideNodes(page2.tree).find((node2) => node2.id === task.id && node2.type === task.type);
+    return !node ? "missing" : guideFingerprint(node) === task.before ? "pending" : "saved";
+  }
+  function FirstEditGuide() {
+    const site = L2.siteDraft();
+    const storageKey = site ? `pagecraft:first-edit:v1:${site.siteId}` : "";
+    const [guide, setGuide] = d2(() => {
+      if (!site || !L2.canStructure()) return null;
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
+        if (stored?.version === 1 && typeof stored.dismissed === "boolean" && Array.isArray(stored.tasks) && stored.tasks.length <= STEPS.length && new Set(stored.tasks.map((task2) => task2?.type)).size === stored.tasks.length && stored.tasks.every((task2) => task2 && typeof task2.id === "string" && task2.id.length > 0 && task2.id.length <= 256 && typeof task2.pageId === "string" && task2.pageId.length > 0 && task2.pageId.length <= 256 && typeof task2.before === "string" && /^[a-f0-9]{1,8}$/.test(task2.before) && STEPS.some((step2) => step2.type === task2.type))) return stored;
+      } catch {
+      }
+      if (new URLSearchParams(location.search).get("start") !== "template") return null;
+      const next = createFirstEditGuide(C2.doc());
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+      }
+      return next;
+    });
+    if (!site || !guide || guide.dismissed || !L2.canStructure()) return null;
+    const saved = L2.guideSavedDocument();
+    const states = guide.tasks.map((task2) => saved ? guideTaskState(task2, saved) : "pending");
+    const currentIndex = states.findIndex((state2) => state2 === "pending");
+    const task = guide.tasks[currentIndex];
+    const step = task && STEPS.find((step2) => step2.type === task.type);
+    const completed = states.filter((state2) => state2 === "saved").length;
+    const missing = states.filter((state2) => state2 === "missing").length;
+    const dismiss = () => {
+      const next = { ...guide, dismissed: true };
+      setGuide(next);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+      }
+    };
+    const open = () => {
+      const index = C2.state.pages.findIndex((page2) => page2.id === task.pageId);
+      if (index < 0 || !guideNodes(C2.state.pages[index].tree).some((node) => node.id === task.id)) {
+        L2.toast("That template element is no longer here. Choose another element on the canvas.");
+        return;
+      }
+      L2.guideSelect(index, task.id);
+    };
+    return /* @__PURE__ */ u2("section", { class: "pc-first-edit", "aria-label": "Personalize your template", children: [
+      /* @__PURE__ */ u2("div", { class: "pc-first-edit-head", children: [
+        /* @__PURE__ */ u2("strong", { children: "Personalize your template" }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "bx", "aria-label": "Dismiss template guide", onClick: dismiss, children: /* @__PURE__ */ u2(Icon, { name: "close", size: 12 }) })
+      ] }),
+      /* @__PURE__ */ u2("span", { class: "note", role: "status", children: [
+        completed,
+        " of ",
+        guide.tasks.length,
+        " changes saved",
+        missing ? ` \xB7 ${missing} targets unavailable` : ""
+      ] }),
+      step ? /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2("b", { children: step.title }),
+        /* @__PURE__ */ u2("p", { children: step.copy }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: open, children: step.action })
+      ] }) : /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2("b", { children: missing || !guide.tasks.length ? "Continue with your page" : "Your first edits are saved" }),
+        /* @__PURE__ */ u2("p", { children: [
+          missing || !guide.tasks.length ? "Choose content directly on the canvas to personalize this template. " : "",
+          "Preview the result at each screen size. Configure any form destination before publishing."
+        ] }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: () => L2.guidePreview(), children: "Preview your page" })
+      ] }),
+      /* @__PURE__ */ u2("small", { children: "Progress reflects saved changes. Undoing a change can reopen its step." })
+    ] });
+  }
+
   // app/src/ui/Add.tsx
   var PAL = [
     {
@@ -15648,27 +15767,47 @@ var PC_UI = (() => {
     );
   }
   function WidgetTiles({ group }) {
-    return /* @__PURE__ */ u2("div", { class: "pgrid", children: group.items.map(([k3, label]) => /* @__PURE__ */ u2(
-      "button",
-      {
-        type: "button",
-        class: "pitem",
-        title: "Drag onto the canvas \u2014 or click to append",
-        onPointerDown: (e3) => L2.startDrag(
-          e3,
-          { kind: "new", type: k3, label: C2.labelOf(k3), icon: C2.iconOf(k3) },
-          false
-        ),
-        onClick: () => {
-          if (!L2.consumeDragMoved()) L2.appendSmart(k3);
+    const [hint, setHint] = d2("");
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2("div", { class: "pgrid", children: group.items.map(([k3, label]) => /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "pitem",
+          title: L2.insertionHint(k3),
+          onFocus: () => {
+            setHint(k3);
+            L2.previewInsertion(k3);
+          },
+          onMouseEnter: () => {
+            setHint(k3);
+            L2.previewInsertion(k3);
+          },
+          onBlur: () => {
+            setHint("");
+            L2.previewInsertion(null);
+          },
+          onMouseLeave: () => {
+            setHint("");
+            L2.previewInsertion(null);
+          },
+          onPointerDown: (e3) => L2.startDrag(
+            e3,
+            { kind: "new", type: k3, label: C2.labelOf(k3), icon: C2.iconOf(k3) },
+            false
+          ),
+          onClick: () => {
+            if (!L2.consumeDragMoved()) L2.appendSmart(k3);
+          },
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: C2.iconOf(k3), size: 19 }),
+            /* @__PURE__ */ u2("span", { children: label })
+          ]
         },
-        children: [
-          /* @__PURE__ */ u2(Icon, { name: C2.iconOf(k3), size: 19 }),
-          /* @__PURE__ */ u2("span", { children: label })
-        ]
-      },
-      k3
-    )) });
+        k3
+      )) }),
+      hint ? /* @__PURE__ */ u2("p", { class: "pc-insertion-hint", role: "status", children: L2.insertionHint(hint) }) : null
+    ] });
   }
   function Widgets({ templates }) {
     const [query, setQuery] = d2("");
@@ -15982,16 +16121,17 @@ var PC_UI = (() => {
       C2.state.ui.atab = key2;
       repaint("add");
     };
-    const keys = shown2.map(([key2]) => key2);
+    const keys2 = shown2.map(([key2]) => key2);
     const keyNav = (e3, key2) => {
       const move = e3.key === "ArrowRight" || e3.key === "ArrowDown" ? 1 : e3.key === "ArrowLeft" || e3.key === "ArrowUp" ? -1 : 0;
-      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys.length - 1 : move ? (keys.indexOf(key2) + move + keys.length) % keys.length : -1;
+      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys2.length - 1 : move ? (keys2.indexOf(key2) + move + keys2.length) % keys2.length : -1;
       if (next < 0) return;
       e3.preventDefault();
-      choose(keys[next]);
-      requestAnimationFrame(() => document.getElementById("add-tab-" + keys[next])?.focus());
+      choose(keys2[next]);
+      requestAnimationFrame(() => document.getElementById("add-tab-" + keys2[next])?.focus());
     };
     return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(FirstEditGuide, {}),
       /* @__PURE__ */ u2("div", { class: "addSwitcher", role: "tablist", "aria-label": "Add category", children: shown2.map(([key2, label, , icon]) => /* @__PURE__ */ u2(
         "button",
         {
@@ -16967,12 +17107,29 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const pb = c3.k && !c3.k.startsWith(C2.VAL) ? C2.bindGet(n2, c3.k) : null;
     const pbound = pb && pb.src === "prop" ? (C2.findProp(C2.findComponent(C2.state.ui.cedit), pb.path) || { label: pb.path }).label : "";
     const helpId = fid || pbound || c3.note ? `${labelId}-help` : void 0;
+    const dev = C2.dk();
+    const responsive = !!c3.r && !!c3.c && dev !== "d";
+    const owns2 = responsive && ownsValue(n2, c3);
+    const scopeId = responsive ? `${labelId}-scope` : void 0;
+    const scopeDescription = responsive ? owns2 ? `${C2.DEV_LABEL[dev]} override. Use the device badge to clear it and inherit ${dev === "m" ? "Tablet values where set, then Desktop" : "Desktop values"}.` : `Inherited from ${dev === "m" ? "Tablet where set, then Desktop" : "Desktop"}. Editing creates a ${C2.DEV_LABEL[dev]} override.` : "";
+    const describedBy = [helpId, scopeId].filter(Boolean).join(" ") || void 0;
     const inputIds = [];
-    const controls = labelControls(children, c3.label || "Value", labelId, helpId, "", inputIds);
+    const controls = labelControls(children, c3.label || "Value", labelId, describedBy, "", inputIds);
     return /* @__PURE__ */ u2("div", { class: "f" + (c3.layout === "inline" && c3.t !== "color" && !(bindable && C2.bindScope(n2.id)) && !pbound && C2.state.ui.mode !== "component" ? " f-inline" : "") + (fid ? " bound" : ""), role: "group", "aria-labelledby": labelId, children: [
       /* @__PURE__ */ u2("label", { for: inputIds[0], children: [
         /* @__PURE__ */ u2("span", { id: labelId, children: c3.label || "" }),
         c3.r ? /* @__PURE__ */ u2(ResponsiveBadge, { n: n2, c: c3 }) : null,
+        responsive ? /* @__PURE__ */ u2(
+          "span",
+          {
+            id: scopeId,
+            class: "pc-responsive-status",
+            role: "note",
+            title: scopeDescription,
+            "aria-label": scopeDescription,
+            children: owns2 ? "Override" : "Inherited"
+          }
+        ) : null,
         /* @__PURE__ */ u2(ResetBadge, { n: n2, c: c3 }),
         bindable ? /* @__PURE__ */ u2(BindBadge, { n: n2, c: c3 }) : null,
         varies ? /* @__PURE__ */ u2(PropBadge, { n: n2, c: c3 }) : null
@@ -19483,7 +19640,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var SHARED_CONTENT_TYPES = /* @__PURE__ */ new Set(["heading", "text", "image", "button"]);
   function ContentScopeHint({ n: n2 }) {
     if (C2.dk() === "d" || !SHARED_CONTENT_TYPES.has(n2.type)) return null;
-    return /* @__PURE__ */ u2("div", { class: "pc-context-help", "data-context-help": "content-scope", children: "Text, images and links are shared across screen sizes." });
+    return /* @__PURE__ */ u2("div", { class: "pc-context-help", "data-context-help": "content-scope", children: "Text, images and links are shared across screen sizes. Editing them here also updates Desktop." });
   }
   var RESPONSIVE_BOX_SIDES = ["top", "right", "bottom", "left"];
   function responsiveOverrideCount(n2, controls) {
@@ -19510,14 +19667,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         label,
         " has ",
         count,
-        " saved responsive ",
+        " responsive ",
         count === 1 ? "override" : "overrides",
         " in this panel. Other responsive controls use ",
         inheritedValues,
         "."
       ] }) : /* @__PURE__ */ u2(S, { children: [
         label,
-        " has no saved responsive overrides in this panel. It uses ",
+        " has no responsive overrides in this panel. It uses ",
         inheritedValues,
         ". Changing a responsive control creates a ",
         label,
@@ -19719,8 +19876,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const tab2 = L2.canStructure() ? C2.state.ui.stab : "content";
     const style = d3.controls.style || [];
     const all = C2.contentControls(n2);
-    const keys = L2.canStructure() ? null : C2.contentKeysOf(n2);
-    const content = keys ? all.filter((c3) => !c3.c && !!c3.k && keys.has(c3.k)) : all;
+    const keys2 = L2.canStructure() ? null : C2.contentKeysOf(n2);
+    const content = keys2 ? all.filter((c3) => !c3.c && !!c3.k && keys2.has(c3.k)) : all;
     const styleControls = [
       ...style,
       ...C2.COMMON_STYLE.filter((group) => C2.canDo(n2, group.cap)).flatMap((group) => group.items)
@@ -19734,13 +19891,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       repaint("right");
     };
     const tabKey = (e3, key2) => {
-      const keys2 = inspectorTabs.map(([k3]) => k3);
+      const keys3 = inspectorTabs.map(([k3]) => k3);
       const move = e3.key === "ArrowRight" ? 1 : e3.key === "ArrowLeft" ? -1 : 0;
-      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys2.length - 1 : move ? (keys2.indexOf(key2) + move + keys2.length) % keys2.length : -1;
+      const next = e3.key === "Home" ? 0 : e3.key === "End" ? keys3.length - 1 : move ? (keys3.indexOf(key2) + move + keys3.length) % keys3.length : -1;
       if (next < 0) return;
       e3.preventDefault();
-      chooseTab(keys2[next]);
-      requestAnimationFrame(() => document.getElementById("inspector-tab-" + keys2[next])?.focus());
+      chooseTab(keys3[next]);
+      requestAnimationFrame(() => document.getElementById("inspector-tab-" + keys3[next])?.focus());
     };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(Head2, { h: h3 }),
@@ -19775,7 +19932,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
             tab2 === "content" && formHandling ? /* @__PURE__ */ u2("p", { class: "note", style: "padding:12px", children: formHandling.note }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
-            tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys2]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys2.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
+            tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys3]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys3.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
               "Nothing varies between instances yet. Open this component in the",
               /* @__PURE__ */ u2("b", { children: " Components" }),
               " tab and mark what should."
@@ -24002,6 +24159,43 @@ async function wordpressPublishModal() {
   if (result.status === 'error' && host.isConnected) host.innerHTML = `<b>Importer download unavailable.</b><span>${esc(result.message)}</span>`;
 }
 
+const publicationFrameCleanup = new Map();
+function clearPublicationFrames() {
+  publicationFrameCleanup.forEach(cleanup => cleanup());
+  publicationFrameCleanup.clear();
+}
+function loadPublicationFrame(frame, source) {
+  publicationFrameCleanup.get(frame)?.();
+  let strip = frame.parentElement.querySelector('.pc-preview-state');
+  if (!strip) {
+    strip = document.createElement('div'); strip.className = 'pc-preview-state';
+    frame.before(strip);
+  }
+  strip.innerHTML = '<span role="status">Loading page preview…</span><button type="button" class="btn tiny" hidden>Retry preview</button>';
+  const status = strip.querySelector('span'), retry = strip.querySelector('button');
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), value => value.toString(16).padStart(2, '0')).join('');
+  let active = true;
+  const cleanup = () => { active = false; clearTimeout(timer); window.removeEventListener('message', received); };
+  const finish = (text, canRetry) => {
+    if (!active || !frame.isConnected) return;
+    status.textContent = text; retry.hidden = !canRetry;
+    frame.setAttribute('aria-busy', 'false'); cleanup();
+  };
+  const received = event => {
+    if (event.source !== frame.contentWindow || event.data?.type !== 'pagecraft-preview-ready' || event.data.token !== token) return;
+    if (event.data.status === 'ready') finish('Page preview displayed.', false);
+    else if (event.data.status === 'degraded') finish('Some preview assets could not load. Check the page before publishing.', true);
+  };
+  const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true), 15000);
+  window.addEventListener('message', received);
+  publicationFrameCleanup.set(frame, cleanup);
+  retry.addEventListener('click', () => loadPublicationFrame(frame, source));
+  frame.setAttribute('aria-busy', 'true');
+  frame.removeAttribute('srcdoc');
+  const target = new URL(source, location.href); target.searchParams.set('pcPreviewReady', token);
+  frame.src = target.href;
+}
+
 async function preparePublicationReview(button) {
   const action = feedback().begin(button, 'Preparing preview…');
   if (!action) return;
@@ -24019,6 +24213,7 @@ async function preparePublicationReview(button) {
     const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
     const groups = [...new Set(reviewed.changes.map(change => change.group))];
     if ($('#exReview')) $('#exReview').hidden = true;
+    clearPublicationFrames();
     host.innerHTML = `<h3>Changes to publish</h3>
       <p class="help">Review of saved version ${esc(reviewed.sourceVersion)}. Publication includes the whole site. Shared changes may affect every page.</p>
       ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : groups.length ? groups.map(group => `<details><summary>${esc(group)}</summary><ul>${reviewed.changes.filter(change => change.group === group).map(change => `<li>${esc(change.label)} · ${esc(change.status)}${change.pages.length ? `<small> — ${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join(' ')}</small>` : ''}</li>`).join('')}</ul></details>`).join('') : '<p>No document changes since the current publication.</p>'}
@@ -24033,8 +24228,11 @@ async function preparePublicationReview(button) {
       const show = (frame, id, paths) => {
         if (!frame) return;
         if (paths && !paths.includes(page.value)) {
+          publicationFrameCleanup.get(frame)?.();
+          frame.parentElement.querySelector('.pc-preview-state')?.remove();
+          frame.removeAttribute('aria-busy');
           frame.removeAttribute('src'); frame.srcdoc = '<p style="font:14px system-ui;padding:16px">This page is not included in this version.</p>';
-        } else { frame.removeAttribute('srcdoc'); frame.src = url(id, page.value); }
+        } else { loadPublicationFrame(frame, url(id, page.value)); }
       };
       show($('#publicationAfter'), reviewed.snapshotId, reviewed.draftPages);
       show($('#publicationBefore'), reviewed.baselinePublicationId, reviewed.publishedPages);
@@ -24052,7 +24250,7 @@ async function preparePublicationReview(button) {
     publish.onclick = () => publishDraft(publish, reviewed);
     const schedule = $('#releaseSchedule');
     if (schedule) { schedule.disabled = false; schedule.onclick = () => openSchedulePanel(reviewed); }
-    action.success('Publication preview ready');
+    action.success('Review snapshot prepared. Page previews are loading.');
   } catch (error) { action.error(error.message || 'Could not prepare the preview. Try again.'); }
 }
 
@@ -24235,7 +24433,10 @@ function stamp(txt, bad) {
   const t = $('#savedTag');
   t.textContent = txt;
   t.classList.toggle('bad', !!bad);
-  if (!bad && saveState === 'ok') window.__pcFeedback?.resolveProblem('draft-save');
+  if (!bad && saveState === 'ok') {
+    window.__pcFeedback?.resolveProblem('draft-save');
+    if (UI) drawBlocks();
+  }
 }
 
 function writeNow() {
@@ -24993,6 +25194,47 @@ function runPreviewRuntime(html, editing = false) {
   };
 }
 
+let canvasReadyCleanup = () => {};
+function watchCanvasPreview(source) {
+  canvasReadyCleanup();
+  const strip = $('#canvasPreviewState');
+  if (!strip) return;
+  strip.hidden = !document.body.classList.contains('preview');
+  if (strip.hidden) return;
+  const status = strip.querySelector('span'), retry = strip.querySelector('button');
+  status.textContent = 'Rendering preview…'; retry.hidden = true;
+  let active = true, timer = null;
+  const listeners = [];
+  canvasReadyCleanup = () => { active = false; clearTimeout(timer); listeners.forEach(([image, fn]) => { image.removeEventListener('load', fn); image.removeEventListener('error', fn); }); };
+  const refs = [...source.matchAll(new RegExp(A_RE.source, 'g'))];
+  const missing = refs.some(match => !AS.mem.get(match[1])?.url);
+  retry.onclick = async () => {
+    retry.disabled = true;
+    try { if (SRV) await assetsLoadServer(); }
+    finally { retry.disabled = false; if (active) paint(); }
+  };
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!active) return;
+    const images = [...cdoc.images].filter(image => {
+      const rect = image.getBoundingClientRect();
+      return image.loading !== 'lazy' || rect.top < cwin.innerHeight && rect.bottom > 0;
+    });
+    const check = (expired = false) => {
+      if (!active) return;
+      const pending = images.some(image => !image.complete);
+      const failed = missing || images.some(image => image.complete && !image.naturalWidth);
+      if (pending && !expired) { status.textContent = 'Preview displayed; images are still loading…'; return; }
+      status.textContent = failed || pending ? 'Some preview images could not load. Check them before publishing.' : 'Preview displayed.';
+      retry.hidden = !(failed || pending);
+      clearTimeout(timer);
+    };
+    images.filter(image => !image.complete).forEach(image => {
+      const fn = () => check(); listeners.push([image, fn]);
+      image.addEventListener('load', fn); image.addEventListener('error', fn);
+    });
+    timer = setTimeout(() => check(true), 10000); check();
+  }));
+}
 function paint() {
   if (!cdoc) return;
   previewDispose();
@@ -25037,6 +25279,7 @@ function paint() {
   cdoc.getElementById('s-root').innerHTML = assetsToBlob(html);
   $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
   runPreviewRuntime(html, editing);
+  watchCanvasPreview(html + css);
   positionHud();
 }
 
@@ -25946,8 +26189,25 @@ async function saveBlockFlow(nodeId) {
 }
 
 
-function appendSmart(key) {
+function insertionHint(key) {
   const [container, index] = smartTarget(key);
+  if (!container && state.ui.mode === 'component') return 'Choose a container inside this component before adding an element.';
+  const list = container ? container.children : tree();
+  const where = container ? nameOf(container) : (scopeOf() === 'main' ? 'this page' : scopeOf());
+  const before = list[index];
+  return `Add ${labelOf(key)} ${before ? 'before ' + nameOf(before) + ' in ' : 'at the end of '}${where}. Missing layout containers are created automatically.`;
+}
+function previewInsertion(key) {
+  if (drag) return;
+  if (!key) { showDrop(null); return; }
+  const [container, index] = smartTarget(key);
+  if (!container && state.ui.mode === 'component') { showDrop(null); return; }
+  showDrop({ container, index, horiz: container?.type === 'row', list: container ? container.children : tree() });
+}
+function appendSmart(key) {
+  showDrop(null);
+  const [container, index] = smartTarget(key);
+  if (!container && state.ui.mode === 'component') { toast('Choose a container inside this component first.'); return; }
   let leaf = null;
   edit(() => { leaf = insert(key, container, index); });
   if (!leaf) { toast('That does not fit there'); return; }
@@ -25956,7 +26216,7 @@ function appendSmart(key) {
   select(leaf.id);
   toast(labelOf(key) + ' added');
   const el = cdoc && cdoc.getElementById(state.ui.sel);
-  if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 /* =============================================================== layers */
@@ -25976,7 +26236,19 @@ const ui = () => UI || (UI = PC_UI.mount(
   __CORE,
   { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent, wordpressContent,
     select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
-    askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart,
+    askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart, insertionHint, previewInsertion,
+    guideSavedDocument: () => { try { return lastCloudDocument ? JSON.parse(lastCloudDocument) : null; } catch { return null; } },
+    guidePreview: () => { if (!document.body.classList.contains('preview')) togglePreview(); },
+    guideSelect: (index, id) => {
+      if (editing.on) exitEdit(); endTx();
+      if (state.ui.mode === 'component') componentClose();
+      state.cur = index; state.ui.mode = 'page'; state.ui.stab = 'content';
+      showPanel('add'); render(); select(id, { scroll: true });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const field = $('#inspector-panel textarea') || $('#inspector-panel input') || $('#inspector-panel button');
+        field?.focus({ preventScroll: true });
+      }));
+    },
     /* Libraries are account-owned and cookie-authenticated, so a connected editor session and
        a non-owner never see them. See docs/phase5-libraries-design.md. */
     libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
@@ -26697,9 +26969,13 @@ function renderModebar() {
         : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — shared by all ${state.pages.length} pages</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`) +
     (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
-    (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(kindOf(n))).join(' › ')}</span>` : '') +
+    (crumbs.length ? `<nav class="selectionCrumb" aria-label="Selected element path">${crumbs.map((n, i) => `<button type="button" data-select-ancestor="${esc(n.id)}" title="Select ${esc(nameOf(n))}"${i === crumbs.length - 1 ? ' aria-current="true"' : ''}>${esc(nameOf(n))}</button>`).join('<span aria-hidden="true">›</span>')}</nav>` : '') +
     itemBarHtml() +
     `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+  $$('[data-select-ancestor]', $('#modebar')).forEach(button => button.addEventListener('click', () => {
+    const id = button.dataset.selectAncestor; select(id, { scroll: true });
+    $('#modebar [data-select-ancestor="' + CSS.escape(id) + '"]')?.focus();
+  }));
   $('#quickPage')?.addEventListener('change', e => openPage(+e.target.value, state.ui.tab === 'pages'));
   $('#pageSettings')?.addEventListener('click', () => openPage(state.cur, true));
   const done = $('#doneScope');
@@ -27026,6 +27302,7 @@ function syncDialogLayers() {
   lock($('#ask'), false);
 }
 function openModal(title, bodyHtml, footHtml, size) {
+  clearPublicationFrames();
   modalMotionVersion++;
   const mask = $('#modal'), box = $('#modalBox');
   const wasHidden = mask.hidden || mask.hasAttribute('data-pc-motion-closing');
@@ -27044,6 +27321,7 @@ function openModal(title, bodyHtml, footHtml, size) {
   }
 }
 const closeModal = afterClose => {
+  clearPublicationFrames();
   const mask = $('#modal'), box = $('#modalBox');
   // Click handlers pass an event; only explicit callbacks run after the exit.
   const resume = typeof afterClose === 'function' ? afterClose : () => {};
@@ -28010,6 +28288,17 @@ function findModal() {
   q.focus(); q.select();
 }
 
+function clientReviewModal() {
+  if (!SRV || IS_WORDPRESS || SRV.role !== 'owner' || SRV.editorSessionToken) return;
+  const unsaved = saving || saveAgain || saveState !== 'ok' || JSON.stringify(doc()) !== lastCloudDocument;
+  openModal('Client review', `<div class="pc-workflow-help">
+    <p>${unsaved ? 'Your latest changes are not saved yet. Feedback links exclude them until saving succeeds.' : 'Feedback links show the latest saved draft, including later saved changes.'}</p>
+    <h3>Feedback on the saved draft</h3><p>Manage private or guest review links and comments. Opening Reviews does not create a link or send an invitation.</p>
+    <h3>Approval of a fixed version</h3><p>Formal review applies to one saved snapshot. Later edits do not inherit its approval. Review and approval do not publish your site.</p>
+    </div>`, `<button type="button" class="btn" id="clientReviewClose">Keep editing</button><a class="btn primary" href="/sites/${encodeURIComponent(SRV.siteId)}/reviews" target="_blank" rel="noopener">Open Reviews</a>`);
+  $('#clientReviewClose').addEventListener('click', closeModal);
+}
+
 function helpModal() {
   /* This is now the only place the shortcuts are written down — the inspector's
      empty state used to repeat a shorter list, and that panel no longer appears
@@ -28419,6 +28708,8 @@ HOOKS.note = msg => toast(msg);
   }
   await mountCanvas();
   bindTop();
+  $('#clientReviewBtn').hidden = !SRV || IS_WORDPRESS || SRV.role !== 'owner' || !!SRV.editorSessionToken;
+  $('#clientReviewBtn').addEventListener('click', clientReviewModal);
   renderPalette();
   setDev(state.ui.dev);
   if (loadBlocked) stamp('Not saving', true);

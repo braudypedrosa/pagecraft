@@ -5,6 +5,7 @@ import { runDueSchedules } from "./schedule-runner.ts";
 import type { PublicationScheduleStore } from "./schedules.ts";
 import { liveReviewRoutes } from './live-review-routes.ts';
 import { publicationPreviewHtml } from "./publication-preview.ts";
+import { withPreviewReadiness } from "./preview-readiness.ts";
 import { publicationChanges } from "./publication-changes.ts";
 import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
 import { prepareHostedEditor } from './editor-assets.ts';
@@ -2916,7 +2917,8 @@ export function createApp(o: Options) {
   app.get("/edit/:id", async (c) => {
     const id = c.req.param("id");
     const [access, snapshot] = await Promise.allSettled([
-      allowedMember(c, id), o.store.byId(id),
+      timed("editor.access", () => allowedMember(c, id)),
+      timed("editor.document", () => o.store.byId(id)),
     ]);
     if (access.status === 'rejected') throw access.reason;
     const gate = access.value;
@@ -2942,19 +2944,19 @@ export function createApp(o: Options) {
     // These reads have no dependencies on one another. Keep authorization fresh,
     // then overlap storage accounting and the WordPress link catalogue.
     const [storage, wordpressContent, schedules] = await Promise.all([
-      (async () => {
+      timed("editor.storage", async () => {
         const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
         const [usage, limitBytes] = await Promise.all([
           o.assets && mediaOwnerId ? o.assets.usage(mediaOwnerId) : { usedBytes: 0 },
           mediaOwnerId ? storageLimitForOwner(mediaOwnerId, gate.user) : FREE_STORAGE_BYTES,
         ]);
         return { usedBytes: usage.usedBytes, limitBytes };
-      })(),
-      wordpressContentForSite(site.id),
+      }),
+      timed("editor.wordpress", () => wordpressContentForSite(site.id)),
       // Local files beside the publication bytes; injected so opening Publish needs no request.
-      o.schedules && gate.role === "owner"
+      timed("editor.schedules", () => o.schedules && gate.role === "owner"
         ? o.schedules.forSite(site.id).then(rows => rows.slice(0, 5)).catch(() => [])
-        : Promise.resolve([]),
+        : Promise.resolve([])),
     ]);
     const config = {
       siteId: site.id,
@@ -2979,7 +2981,8 @@ export function createApp(o: Options) {
       doc: site.doc,
       wordpressContent,
     };
-    return c.html(inject(hostedEditor.html, config));
+    // Fixed phase names expose route work alongside gateway spans without document metadata.
+    return c.html(await timed("editor.shell", async () => inject(hostedEditor.html, config)));
   });
 
   /* The list is per person: a site nobody granted you is a site you do not know exists. */
@@ -3246,8 +3249,10 @@ export function createApp(o: Options) {
     c.header("Content-Security-Policy", "sandbox allow-scripts; connect-src 'none'; form-action 'none'; frame-ancestors 'self'");
     if (record.mediaType.startsWith("text/html")) {
       const html = await publicationPreviewHtml(o.publications, publication, path, new TextDecoder().decode(bytes));
-      return c.body(hostedHtml(html, path,
-        new Map(publication.files.map(file => [file.path, ""])), prefix));
+      // The opaque preview may report paint readiness, without gaining editor-origin access.
+      // Existing snapshot CSP permits scripts; no nonce exception or sandbox relaxation is needed.
+      return c.body(withPreviewReadiness(hostedHtml(html, path,
+        new Map(publication.files.map(file => [file.path, ""])), prefix), c.req.query("pcPreviewReady")));
     }
     return c.body(new Uint8Array(bytes).buffer);
   });

@@ -183,14 +183,26 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
     ? (C.findProp(C.findComponent(C.state.ui.cedit), pb.path) || { label: pb.path }).label
     : '';
   const helpId = fid || pbound || c.note ? `${labelId}-help` : undefined;
+  const dev = C.dk();
+  const responsive = !!c.r && !!c.c && dev !== 'd';
+  const owns = responsive && ownsValue(n, c);
+  const scopeId = responsive ? `${labelId}-scope` : undefined;
+  const scopeDescription = responsive
+    ? owns
+      ? `${C.DEV_LABEL[dev]} override. Use the device badge to clear it and inherit ${dev === 'm' ? 'Tablet values where set, then Desktop' : 'Desktop values'}.`
+      : `Inherited from ${dev === 'm' ? 'Tablet where set, then Desktop' : 'Desktop'}. Editing creates a ${C.DEV_LABEL[dev]} override.`
+    : '';
+  const describedBy = [helpId, scopeId].filter(Boolean).join(' ') || undefined;
   const inputIds: string[] = [];
-  const controls = labelControls(children, c.label || 'Value', labelId, helpId, '', inputIds);
+  const controls = labelControls(children, c.label || 'Value', labelId, describedBy, '', inputIds);
 
   return (
     <div class={'f' + (c.layout === 'inline' && c.t !== 'color' && !(bindable && C.bindScope(n.id)) && !pbound && C.state.ui.mode !== 'component' ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
       <label for={inputIds[0]}>
         <span id={labelId}>{c.label || ''}</span>
         {c.r ? <ResponsiveBadge n={n} c={c} /> : null}
+        {responsive ? <span id={scopeId} class="pc-responsive-status" role="note" title={scopeDescription}
+          aria-label={scopeDescription}>{owns ? 'Override' : 'Inherited'}</span> : null}
         <ResetBadge n={n} c={c} />
         {bindable ? <BindBadge n={n} c={c} /> : null}
         {varies ? <PropBadge n={n} c={c} /> : null}

@@ -74,7 +74,7 @@ test('non-Desktop Content names values shared across screen sizes only for commo
     inspect(C.N(type), 'content', 'tablet');
     const note = r.$('[data-context-help="content-scope"]')!;
     assert.equal(note.tagName, 'DIV', 'the scope note is visible rather than another disclosure');
-    assert.equal(note.textContent!.trim(), 'Text, images and links are shared across screen sizes.');
+    assert.equal(note.textContent!.trim(), 'Text, images and links are shared across screen sizes. Editing them here also updates Desktop.');
   }
 
   inspect(C.N('heading'), 'content', 'desktop');
@@ -92,7 +92,7 @@ test('content-only roles retain editable copy and the shared-content hint on Tab
   inspect(heading, 'advanced', 'tablet');
 
   assert.equal(r.$('.tabs'), null);
-  assert.equal(r.$('[data-context-help="content-scope"]')!.textContent!.trim(), 'Text, images and links are shared across screen sizes.');
+  assert.equal(r.$('[data-context-help="content-scope"]')!.textContent!.trim(), 'Text, images and links are shared across screen sizes. Editing them here also updates Desktop.');
   const editor = r.$('textarea') as HTMLTextAreaElement;
   assert.equal(editor.value, 'Shared heading');
   assert.equal(editor.disabled, false);
@@ -111,14 +111,14 @@ test('responsive help distinguishes the desktop base, inherited Tablet styles an
   inspect(heading, 'style', 'tablet');
   assert.match(help('responsive').querySelector('summary')!.textContent!, /Tablet inherits Desktop/);
   assert.match(help('responsive').textContent!, /does not describe your browser window size/);
-  assert.match(help('responsive').textContent!, /no saved responsive overrides/,
+  assert.match(help('responsive').textContent!, /no responsive overrides/,
     'a non-responsive CSS declaration does not change the responsive scope message');
   assert.equal(r.$('.rsp')!.tagName, 'SPAN', 'an inherited value is not presented as a reset action');
 
   heading.css.t['font-size'] = '34px';
   r.draw(() => <Inspector />);
   assert.match(help('responsive').querySelector('summary')!.textContent!, /Tablet has overrides/);
-  assert.match(help('responsive').textContent!, /1 saved responsive override/);
+  assert.match(help('responsive').textContent!, /1 responsive override/);
   assert.ok(r.$('button.rsp[aria-label="Clear Tablet override for Size"]'),
     'the original field-level override reset remains available');
 });
@@ -132,7 +132,7 @@ test('Mobile inherits Tablet before Desktop and only reports its own responsive 
 
   assert.match(help('responsive').querySelector('summary')!.textContent!, /Mobile inherits Tablet, then Desktop/);
   assert.match(help('responsive').textContent!, /values from Tablet where set, then Desktop for the rest/);
-  assert.match(help('responsive').textContent!, /no saved responsive overrides/,
+  assert.match(help('responsive').textContent!, /no responsive overrides/,
     'a non-responsive Mobile declaration is excluded');
   const size = r.$('.f input[type="number"]') as HTMLInputElement;
   assert.equal(size.value, '34', 'the field follows the same Mobile, Tablet, Desktop cascade');
@@ -141,7 +141,7 @@ test('Mobile inherits Tablet before Desktop and only reports its own responsive 
   heading.css.m['font-size'] = '28px';
   r.draw(() => <Inspector />);
   assert.match(help('responsive').querySelector('summary')!.textContent!, /Mobile has overrides/);
-  assert.match(help('responsive').textContent!, /1 saved responsive override/);
+  assert.match(help('responsive').textContent!, /1 responsive override/);
   assert.ok(r.$('button.rsp[aria-label="Clear Mobile override for Size"]'));
 });
 
@@ -165,7 +165,7 @@ test('committing a live Padding edit refreshes help and its badge without remoun
   assert.equal(help('responsive'), details, 'commit preserves the native disclosure element');
   assert.equal(details.open, true, 'open help stays open across the inspector repaint');
   assert.match(details.querySelector('summary')!.textContent!, /Tablet has overrides/);
-  assert.match(details.textContent!, /1 saved responsive override/,
+  assert.match(details.textContent!, /1 responsive override/,
     'four stored sides belong to one responsive Padding control');
   const reset = spacing.querySelector('button.rsp[aria-label="Clear Tablet override for Padding"]')!;
   assert.ok(reset, 'the matching field reset appears on commit');

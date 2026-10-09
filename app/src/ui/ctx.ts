@@ -127,6 +127,11 @@ export interface Legacy {
   consumeDragMoved(): boolean;
   /** append a widget at the smart target, select it, and scroll it into view */
   appendSmart(key: string): void;
+  insertionHint(key: string): string;
+  previewInsertion(key: string | null): void;
+  guideSavedDocument(): unknown | null;
+  guidePreview(): void;
+  guideSelect(pageIndex: number, nodeId: string): void;
 
   /** the new-page dialog */
   newPageModal(): void;

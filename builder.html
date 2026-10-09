@@ -124,6 +124,19 @@ input,select,textarea{font:inherit;color:inherit}
 .topgroup.divided{border-left:1px solid var(--rail-line);padding-left:var(--sp-4)}
 .topTools{gap:var(--sp-1)}
 .topActions{gap:var(--sp-3)}
+.f>label .pc-responsive-status{font-size:var(--fs-1);font-weight:400;color:var(--text-3);line-height:1.3}
+.pc-first-edit{margin:12px;padding:12px;border:1px solid var(--line);border-radius:var(--r-md);display:grid;gap:8px;font-size:var(--fs-2)}
+.pc-first-edit-head{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.pc-first-edit p{margin:0;line-height:1.5;color:var(--text-2)}
+.pc-first-edit small{color:var(--text-3);line-height:1.4}
+.pc-preview-state{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;padding:8px 0;font-size:var(--fs-2);color:var(--text-2)}
+.pc-preview-state[hidden]{display:none}
+#canvasPreviewState{position:absolute;bottom:12px;left:12px;right:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 12px;z-index:5}
+.pc-insertion-hint{margin:8px 0 0;font-size:var(--fs-1);line-height:1.5;color:var(--text-2)}
+.modebar .selectionCrumb{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;overflow-x:auto}
+.selectionCrumb button{flex-shrink:0;max-width:140px;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;border-radius:var(--r-sm);font-size:var(--fs-1);color:var(--text-2)}
+.selectionCrumb button:hover{background:var(--pc-hover-bg)}
+.selectionCrumb button[aria-current]{font-weight:600;color:var(--text)}
 
 /* segmented controls on Ink — active state is a green underline, not a fill */
 .seg{display:flex;gap:var(--sp-1);align-items:center}
@@ -1694,6 +1707,9 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
     <!-- Server mode only, and hidden otherwise: the single-file build has nowhere to share
          *to*. Beside Publish because it answers the same question — "how does somebody else
          see this?" — and a live URL is the answer that needs no download. -->
+    <button class="btn ghost" id="clientReviewBtn" title="Client review" aria-label="Client review" hidden>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2 2.5h12v8H7l-4 3v-3H2z"/><path d="M5 5h6M5 8h4"/></svg><span class="collapseLabel">Client review</span>
+    </button>
     <button class="btn ghost" id="shareBtn" title="Copy the published site link" aria-label="Copy the published site link" hidden>
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
       <span class="collapseLabel">Live link</span>
@@ -1752,6 +1768,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
       <div class="modebar pc-toolbar-context" id="modebar"></div>
       <div class="frameWrap" id="frameWrap"><iframe id="canvas" title="Page canvas"></iframe></div>
       <div class="dim pc-toolbar-context" id="dim"></div>
+      <div id="canvasPreviewState" class="pc-preview-state" hidden><span role="status"></span><button type="button" class="btn tiny" hidden>Retry images</button></div>
     </div>
 
     <!-- ============ RIGHT ============ -->
@@ -2368,6 +2385,43 @@ async function wordpressPublishModal() {
   if (result.status === 'error' && host.isConnected) host.innerHTML = `<b>Importer download unavailable.</b><span>${esc(result.message)}</span>`;
 }
 
+const publicationFrameCleanup = new Map();
+function clearPublicationFrames() {
+  publicationFrameCleanup.forEach(cleanup => cleanup());
+  publicationFrameCleanup.clear();
+}
+function loadPublicationFrame(frame, source) {
+  publicationFrameCleanup.get(frame)?.();
+  let strip = frame.parentElement.querySelector('.pc-preview-state');
+  if (!strip) {
+    strip = document.createElement('div'); strip.className = 'pc-preview-state';
+    frame.before(strip);
+  }
+  strip.innerHTML = '<span role="status">Loading page preview…</span><button type="button" class="btn tiny" hidden>Retry preview</button>';
+  const status = strip.querySelector('span'), retry = strip.querySelector('button');
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), value => value.toString(16).padStart(2, '0')).join('');
+  let active = true;
+  const cleanup = () => { active = false; clearTimeout(timer); window.removeEventListener('message', received); };
+  const finish = (text, canRetry) => {
+    if (!active || !frame.isConnected) return;
+    status.textContent = text; retry.hidden = !canRetry;
+    frame.setAttribute('aria-busy', 'false'); cleanup();
+  };
+  const received = event => {
+    if (event.source !== frame.contentWindow || event.data?.type !== 'pagecraft-preview-ready' || event.data.token !== token) return;
+    if (event.data.status === 'ready') finish('Page preview displayed.', false);
+    else if (event.data.status === 'degraded') finish('Some preview assets could not load. Check the page before publishing.', true);
+  };
+  const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true), 15000);
+  window.addEventListener('message', received);
+  publicationFrameCleanup.set(frame, cleanup);
+  retry.addEventListener('click', () => loadPublicationFrame(frame, source));
+  frame.setAttribute('aria-busy', 'true');
+  frame.removeAttribute('srcdoc');
+  const target = new URL(source, location.href); target.searchParams.set('pcPreviewReady', token);
+  frame.src = target.href;
+}
+
 async function preparePublicationReview(button) {
   const action = feedback().begin(button, 'Preparing preview…');
   if (!action) return;
@@ -2385,6 +2439,7 @@ async function preparePublicationReview(button) {
     const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
     const groups = [...new Set(reviewed.changes.map(change => change.group))];
     if ($('#exReview')) $('#exReview').hidden = true;
+    clearPublicationFrames();
     host.innerHTML = `<h3>Changes to publish</h3>
       <p class="help">Review of saved version ${esc(reviewed.sourceVersion)}. Publication includes the whole site. Shared changes may affect every page.</p>
       ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : groups.length ? groups.map(group => `<details><summary>${esc(group)}</summary><ul>${reviewed.changes.filter(change => change.group === group).map(change => `<li>${esc(change.label)} · ${esc(change.status)}${change.pages.length ? `<small> — ${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join(' ')}</small>` : ''}</li>`).join('')}</ul></details>`).join('') : '<p>No document changes since the current publication.</p>'}
@@ -2399,8 +2454,11 @@ async function preparePublicationReview(button) {
       const show = (frame, id, paths) => {
         if (!frame) return;
         if (paths && !paths.includes(page.value)) {
+          publicationFrameCleanup.get(frame)?.();
+          frame.parentElement.querySelector('.pc-preview-state')?.remove();
+          frame.removeAttribute('aria-busy');
           frame.removeAttribute('src'); frame.srcdoc = '<p style="font:14px system-ui;padding:16px">This page is not included in this version.</p>';
-        } else { frame.removeAttribute('srcdoc'); frame.src = url(id, page.value); }
+        } else { loadPublicationFrame(frame, url(id, page.value)); }
       };
       show($('#publicationAfter'), reviewed.snapshotId, reviewed.draftPages);
       show($('#publicationBefore'), reviewed.baselinePublicationId, reviewed.publishedPages);
@@ -2418,7 +2476,7 @@ async function preparePublicationReview(button) {
     publish.onclick = () => publishDraft(publish, reviewed);
     const schedule = $('#releaseSchedule');
     if (schedule) { schedule.disabled = false; schedule.onclick = () => openSchedulePanel(reviewed); }
-    action.success('Publication preview ready');
+    action.success('Review snapshot prepared. Page previews are loading.');
   } catch (error) { action.error(error.message || 'Could not prepare the preview. Try again.'); }
 }
 
@@ -2601,7 +2659,10 @@ function stamp(txt, bad) {
   const t = $('#savedTag');
   t.textContent = txt;
   t.classList.toggle('bad', !!bad);
-  if (!bad && saveState === 'ok') window.__pcFeedback?.resolveProblem('draft-save');
+  if (!bad && saveState === 'ok') {
+    window.__pcFeedback?.resolveProblem('draft-save');
+    if (UI) drawBlocks();
+  }
 }
 
 function writeNow() {
@@ -3359,6 +3420,47 @@ function runPreviewRuntime(html, editing = false) {
   };
 }
 
+let canvasReadyCleanup = () => {};
+function watchCanvasPreview(source) {
+  canvasReadyCleanup();
+  const strip = $('#canvasPreviewState');
+  if (!strip) return;
+  strip.hidden = !document.body.classList.contains('preview');
+  if (strip.hidden) return;
+  const status = strip.querySelector('span'), retry = strip.querySelector('button');
+  status.textContent = 'Rendering preview…'; retry.hidden = true;
+  let active = true, timer = null;
+  const listeners = [];
+  canvasReadyCleanup = () => { active = false; clearTimeout(timer); listeners.forEach(([image, fn]) => { image.removeEventListener('load', fn); image.removeEventListener('error', fn); }); };
+  const refs = [...source.matchAll(new RegExp(A_RE.source, 'g'))];
+  const missing = refs.some(match => !AS.mem.get(match[1])?.url);
+  retry.onclick = async () => {
+    retry.disabled = true;
+    try { if (SRV) await assetsLoadServer(); }
+    finally { retry.disabled = false; if (active) paint(); }
+  };
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!active) return;
+    const images = [...cdoc.images].filter(image => {
+      const rect = image.getBoundingClientRect();
+      return image.loading !== 'lazy' || rect.top < cwin.innerHeight && rect.bottom > 0;
+    });
+    const check = (expired = false) => {
+      if (!active) return;
+      const pending = images.some(image => !image.complete);
+      const failed = missing || images.some(image => image.complete && !image.naturalWidth);
+      if (pending && !expired) { status.textContent = 'Preview displayed; images are still loading…'; return; }
+      status.textContent = failed || pending ? 'Some preview images could not load. Check them before publishing.' : 'Preview displayed.';
+      retry.hidden = !(failed || pending);
+      clearTimeout(timer);
+    };
+    images.filter(image => !image.complete).forEach(image => {
+      const fn = () => check(); listeners.push([image, fn]);
+      image.addEventListener('load', fn); image.addEventListener('error', fn);
+    });
+    timer = setTimeout(() => check(true), 10000); check();
+  }));
+}
 function paint() {
   if (!cdoc) return;
   previewDispose();
@@ -3403,6 +3505,7 @@ function paint() {
   cdoc.getElementById('s-root').innerHTML = assetsToBlob(html);
   $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
   runPreviewRuntime(html, editing);
+  watchCanvasPreview(html + css);
   positionHud();
 }
 
@@ -4312,8 +4415,25 @@ async function saveBlockFlow(nodeId) {
 }
 
 
-function appendSmart(key) {
+function insertionHint(key) {
   const [container, index] = smartTarget(key);
+  if (!container && state.ui.mode === 'component') return 'Choose a container inside this component before adding an element.';
+  const list = container ? container.children : tree();
+  const where = container ? nameOf(container) : (scopeOf() === 'main' ? 'this page' : scopeOf());
+  const before = list[index];
+  return `Add ${labelOf(key)} ${before ? 'before ' + nameOf(before) + ' in ' : 'at the end of '}${where}. Missing layout containers are created automatically.`;
+}
+function previewInsertion(key) {
+  if (drag) return;
+  if (!key) { showDrop(null); return; }
+  const [container, index] = smartTarget(key);
+  if (!container && state.ui.mode === 'component') { showDrop(null); return; }
+  showDrop({ container, index, horiz: container?.type === 'row', list: container ? container.children : tree() });
+}
+function appendSmart(key) {
+  showDrop(null);
+  const [container, index] = smartTarget(key);
+  if (!container && state.ui.mode === 'component') { toast('Choose a container inside this component first.'); return; }
   let leaf = null;
   edit(() => { leaf = insert(key, container, index); });
   if (!leaf) { toast('That does not fit there'); return; }
@@ -4322,7 +4442,7 @@ function appendSmart(key) {
   select(leaf.id);
   toast(labelOf(key) + ' added');
   const el = cdoc && cdoc.getElementById(state.ui.sel);
-  if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 /* =============================================================== layers */
@@ -4342,7 +4462,19 @@ const ui = () => UI || (UI = PC_UI.mount(
   __CORE,
   { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent, wordpressContent,
     select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
-    askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart,
+    askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart, insertionHint, previewInsertion,
+    guideSavedDocument: () => { try { return lastCloudDocument ? JSON.parse(lastCloudDocument) : null; } catch { return null; } },
+    guidePreview: () => { if (!document.body.classList.contains('preview')) togglePreview(); },
+    guideSelect: (index, id) => {
+      if (editing.on) exitEdit(); endTx();
+      if (state.ui.mode === 'component') componentClose();
+      state.cur = index; state.ui.mode = 'page'; state.ui.stab = 'content';
+      showPanel('add'); render(); select(id, { scroll: true });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const field = $('#inspector-panel textarea') || $('#inspector-panel input') || $('#inspector-panel button');
+        field?.focus({ preventScroll: true });
+      }));
+    },
     /* Libraries are account-owned and cookie-authenticated, so a connected editor session and
        a non-owner never see them. See docs/phase5-libraries-design.md. */
     libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
@@ -5063,9 +5195,13 @@ function renderModebar() {
         : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — shared by all ${state.pages.length} pages</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`) +
     (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
-    (crumbs.length ? `<span class="crumb selectionCrumb">${crumbs.map(n => esc(kindOf(n))).join(' › ')}</span>` : '') +
+    (crumbs.length ? `<nav class="selectionCrumb" aria-label="Selected element path">${crumbs.map((n, i) => `<button type="button" data-select-ancestor="${esc(n.id)}" title="Select ${esc(nameOf(n))}"${i === crumbs.length - 1 ? ' aria-current="true"' : ''}>${esc(nameOf(n))}</button>`).join('<span aria-hidden="true">›</span>')}</nav>` : '') +
     itemBarHtml() +
     `<span class="pill modeDevice">${svg('desktop', 11)} ${DEV_LABEL[dk()]}${dk() !== 'd' ? ' override' : ' base'}</span>`;
+  $$('[data-select-ancestor]', $('#modebar')).forEach(button => button.addEventListener('click', () => {
+    const id = button.dataset.selectAncestor; select(id, { scroll: true });
+    $('#modebar [data-select-ancestor="' + CSS.escape(id) + '"]')?.focus();
+  }));
   $('#quickPage')?.addEventListener('change', e => openPage(+e.target.value, state.ui.tab === 'pages'));
   $('#pageSettings')?.addEventListener('click', () => openPage(state.cur, true));
   const done = $('#doneScope');
@@ -5392,6 +5528,7 @@ function syncDialogLayers() {
   lock($('#ask'), false);
 }
 function openModal(title, bodyHtml, footHtml, size) {
+  clearPublicationFrames();
   modalMotionVersion++;
   const mask = $('#modal'), box = $('#modalBox');
   const wasHidden = mask.hidden || mask.hasAttribute('data-pc-motion-closing');
@@ -5410,6 +5547,7 @@ function openModal(title, bodyHtml, footHtml, size) {
   }
 }
 const closeModal = afterClose => {
+  clearPublicationFrames();
   const mask = $('#modal'), box = $('#modalBox');
   // Click handlers pass an event; only explicit callbacks run after the exit.
   const resume = typeof afterClose === 'function' ? afterClose : () => {};
@@ -6376,6 +6514,17 @@ function findModal() {
   q.focus(); q.select();
 }
 
+function clientReviewModal() {
+  if (!SRV || IS_WORDPRESS || SRV.role !== 'owner' || SRV.editorSessionToken) return;
+  const unsaved = saving || saveAgain || saveState !== 'ok' || JSON.stringify(doc()) !== lastCloudDocument;
+  openModal('Client review', `<div class="pc-workflow-help">
+    <p>${unsaved ? 'Your latest changes are not saved yet. Feedback links exclude them until saving succeeds.' : 'Feedback links show the latest saved draft, including later saved changes.'}</p>
+    <h3>Feedback on the saved draft</h3><p>Manage private or guest review links and comments. Opening Reviews does not create a link or send an invitation.</p>
+    <h3>Approval of a fixed version</h3><p>Formal review applies to one saved snapshot. Later edits do not inherit its approval. Review and approval do not publish your site.</p>
+    </div>`, `<button type="button" class="btn" id="clientReviewClose">Keep editing</button><a class="btn primary" href="/sites/${encodeURIComponent(SRV.siteId)}/reviews" target="_blank" rel="noopener">Open Reviews</a>`);
+  $('#clientReviewClose').addEventListener('click', closeModal);
+}
+
 function helpModal() {
   /* This is now the only place the shortcuts are written down — the inspector's
      empty state used to repeat a shorter list, and that panel no longer appears
@@ -6785,6 +6934,8 @@ HOOKS.note = msg => toast(msg);
   }
   await mountCanvas();
   bindTop();
+  $('#clientReviewBtn').hidden = !SRV || IS_WORDPRESS || SRV.role !== 'owner' || !!SRV.editorSessionToken;
+  $('#clientReviewBtn').addEventListener('click', clientReviewModal);
   renderPalette();
   setDev(state.ui.dev);
   if (loadBlocked) stamp('Not saving', true);

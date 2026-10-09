@@ -449,7 +449,7 @@ function ContentScopeHint({ n }: { n: PcNode }) {
   if (C.dk() === 'd' || !SHARED_CONTENT_TYPES.has(n.type)) return null;
   return (
     <div class="pc-context-help" data-context-help="content-scope">
-      Text, images and links are shared across screen sizes.
+      Text, images and links are shared across screen sizes. Editing them here also updates Desktop.
     </div>
   );
 }
@@ -490,8 +490,8 @@ function ResponsiveHelp({ n, controls }: { n: PcNode; controls: Control[] }) {
   return (
     <ContextHelp kind="responsive" summary={`Responsive styles · ${label} ${count ? 'has overrides' : `inherits ${inheritance}`}`}>
       {count
-        ? <>{label} has {count} saved responsive {count === 1 ? 'override' : 'overrides'} in this panel. Other responsive controls use {inheritedValues}.</>
-        : <>{label} has no saved responsive overrides in this panel. It uses {inheritedValues}. Changing a responsive control creates a {label} override.</>}
+        ? <>{label} has {count} responsive {count === 1 ? 'override' : 'overrides'} in this panel. Other responsive controls use {inheritedValues}.</>
+        : <>{label} has no responsive overrides in this panel. It uses {inheritedValues}. Changing a responsive control creates a {label} override.</>}
       {' '}The canvas shows the {label} breakpoint; it does not describe your browser window size. Use a lit device badge to clear that field's override.
     </ContextHelp>
   );

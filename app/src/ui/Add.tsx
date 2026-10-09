@@ -14,6 +14,7 @@ import { Icon } from './Icon';
 import { Libraries, addToLibrary, fromLabel, linkOf } from './Libraries';
 import type { LibraryItemKind } from '../core/libraries';
 import { useState } from 'preact/hooks';
+import { FirstEditGuide } from './FirstEditGuide';
 
 /* Lives here because the Add panel is the only thing that reads it: which widgets are
    offered, and how they are grouped. */
@@ -103,10 +104,15 @@ function LibraryAdd({ kind, id }: { kind: LibraryItemKind; id: string }) {
 type PaletteGroup = (typeof PAL)[number];
 
 function WidgetTiles({ group }: { group: PaletteGroup }) {
-  return (
+  const [hint, setHint] = useState('');
+  return (<>
     <div class="pgrid">
       {group.items.map(([k, label]) => (
-        <button type="button" class="pitem" key={k} title="Drag onto the canvas — or click to append"
+        <button type="button" class="pitem" key={k} title={L.insertionHint(k)}
+          onFocus={() => { setHint(k); L.previewInsertion(k); }}
+          onMouseEnter={() => { setHint(k); L.previewInsertion(k); }}
+          onBlur={() => { setHint(''); L.previewInsertion(null); }}
+          onMouseLeave={() => { setHint(''); L.previewInsertion(null); }}
           onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
             { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
           onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
@@ -115,7 +121,8 @@ function WidgetTiles({ group }: { group: PaletteGroup }) {
         </button>
       ))}
     </div>
-  );
+    {hint ? <p class="pc-insertion-hint" role="status">{L.insertionHint(hint)}</p> : null}
+  </>);
 }
 
 function Widgets({ templates }: { templates(): void }) {
@@ -466,6 +473,7 @@ export function Add() {
 
   return (
     <>
+      <FirstEditGuide />
       <div class="addSwitcher" role="tablist" aria-label="Add category">
         {shown.map(([key, label, , icon]) => (
           <button key={key} role="tab" aria-selected={t === key ? 'true' : 'false'}
