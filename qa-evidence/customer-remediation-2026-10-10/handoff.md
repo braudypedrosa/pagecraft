@@ -1,9 +1,5 @@
-# Customer remediation — 2026-10-10
+# Customer remediation handoff
 
-Implementation ready for staging. Test account verified Pro in the staging account UI. No shared database cleared.
+Source candidate 8ac73d88e49392ebf0e3bf8c06ecd98e84c2bb68 on development. All confirmed audit defects implemented, plus Collection insertion/defaults and stale-save recovery. Final suite 1964 passed / 5 skipped, demo and diff passed. Final shared gallery 24/24 matched; earlier 30 behavior checks passed.
 
-Fixed the 16 audit findings plus invalid-colour feedback, opacity bounds, gradient picker state, duplicate controls, component-root insertion, CMS native confirmations, current-page persistence and cut/move form identity.
-
-Local checks: 1957 tests passed, 5 skipped; TypeScript passed. Built-in browser: 30 shared gallery behavior checks passed; 24 screenshots captured. 22 matched prior baselines; reviewed two Builder menu popover differences (lower edge/padding, labels remain visible). CMS cancel retains draft, confirmed navigation opens preview, rich-text keyboard link with pointer-edited URL persists after reload. Golden WordPress artifact regenerated for intentional renderer output changes; released template versions/hashes unchanged.
-
-Pending: exact staging SHA verification, fresh repaired module browser checks, remaining end-to-end workflows from customer-acceptance coverage ledger. Do not claim production-ready or exhaustive acceptance yet.
+See task-close.md for verification boundaries, browser-checks.json for staging checks, local-workflows.json and local-save-recovery.json for isolated workflows. Check deployment.json and staging-final-checks.json for final staging delivery. No production promotion. Test account Pro; no shared DB clear. Original Fieldwork preserved. Remaining release gates include DB isolation, external integrations, role separation, export/import and untested settings combinations. Do not claim exhaustive acceptance or production-ready.
