@@ -39,7 +39,8 @@ function labelControls(children: any, label: string, id: string, help?: string, 
       ...(leaf ? {
         id: props.id || `${id}${key}`,
         ...(!props['aria-label'] && !props['aria-labelledby']
-          ? part ? { 'aria-label': `${label} ${part}` } : { 'aria-labelledby': id } : {}),
+          ? part ? { 'aria-label': `${label} ${part}` }
+            : { 'aria-labelledby': id, ...(child.type === 'select' ? { 'aria-label': label } : {}) } : {}),
         'aria-describedby': [props['aria-describedby'], help].filter(Boolean).join(' ') || undefined,
       } : {}),
       ...(props.children != null ? { children: labelControls(props.children, label, id, help, key, ids) } : {}),

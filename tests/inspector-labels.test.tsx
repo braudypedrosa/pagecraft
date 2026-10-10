@@ -52,3 +52,22 @@ test('inspector labels stay unique through selection and delete/undo remounts', 
   assertInspectorNamesAreUnique();
   assert.equal(r.$('textarea')?.getAttribute('aria-labelledby') != null, true);
 });
+
+test('enhanced selects get concise names without inheriting help text or status badges', () => {
+  const heading = C.insert('heading', null, 0)!;
+  C.state.ui.stab = 'style';
+  C.state.ui.dev = 'mobile';
+  C.selSet([heading.id]);
+  r.draw(() => <Inspector />, 'right');
+
+  for (const name of ['Weight', 'Transition']) {
+    const select = r.$(`select[aria-label="${name}"]`)!;
+    assert.ok(select, `${name} has an explicit name for the enhanced select`);
+    assert.ok(select.getAttribute('aria-labelledby'), 'native label association remains');
+    const descriptions = select.getAttribute('aria-describedby')!.split(' ')
+      .map(id => document.getElementById(id)!.textContent).join(' ');
+    assert.match(descriptions, name === 'Weight' ? /Inherited/ : /hover/,
+      'status and guidance remain available as descriptions');
+  }
+  assertInspectorNamesAreUnique();
+});

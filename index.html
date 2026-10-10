@@ -17160,7 +17160,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       return W(child, {
         ...leaf ? {
           id: props.id || `${id}${key2}`,
-          ...!props["aria-label"] && !props["aria-labelledby"] ? part ? { "aria-label": `${label} ${part}` } : { "aria-labelledby": id } : {},
+          ...!props["aria-label"] && !props["aria-labelledby"] ? part ? { "aria-label": `${label} ${part}` } : { "aria-labelledby": id, ...child.type === "select" ? { "aria-label": label } : {} } : {},
           "aria-describedby": [props["aria-describedby"], help].filter(Boolean).join(" ") || void 0
         } : {},
         ...props.children != null ? { children: labelControls(props.children, label, id, help, key2, ids) } : {}
