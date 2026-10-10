@@ -4681,7 +4681,17 @@ function ensureMobileMenuComponent(n: PcNode): ComponentDef {
       text: item.label || 'Link', link: item.href || HOME,
       target: item.target === '_blank' ? '_blank' : '', rel: item.rel || '',
       objectType: item.objectType || '', objectId: item.objectId || '', anchor: item.anchor || ''
-    }, { d: { background: 'transparent', color: cvar('text'), 'font-size': '22px', 'justify-content': 'flex-start', padding: '12px 0', border: '0' }, t: {}, m: {} });
+    });
+    /* Replace the Button defaults rather than mixing their longhands with overriding
+       shorthands. JSON object storage may canonicalise key order, and CSS changes meaning
+       when `background` moves before `background-color` or `padding` before its longhands.
+       A generated menu link therefore stores one canonical longhand per visual property. */
+    button.css = { d: {
+      'padding-top': '12px', 'padding-right': '0', 'padding-bottom': '12px', 'padding-left': '0',
+      'border-width': '0', 'border-radius': '0', 'background-color': 'transparent',
+      color: cvar('text'), 'font-size': '22px', 'justify-content': 'flex-start',
+      'align-self': 'flex-start'
+    }, t: {}, m: {} };
     button.adv.cls = String(item.cls || '').trim();
     return button;
   };

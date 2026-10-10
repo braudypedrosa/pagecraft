@@ -218,6 +218,44 @@ describe('customer rendering defects', () => {
     expect(html).toContain('rel="nofollow noopener"');
   });
 
+  test('generated mobile links survive canonical JSON key ordering without Button defaults', () => {
+    const nav = C.N('nav', { items: [{ id: 'work', label: 'Work', href: '/work' }] });
+    C.state.header.push(nav);
+    const definition = C.ensureMobileMenuComponent(nav);
+    const ordinary = C.N('button', { text: 'Keep me' }, {
+      d: { 'background-color': '#123456', 'padding-left': '31px', 'border-radius': '20px' },
+      t: {}, m: {},
+    });
+    C.state.pages[0].tree.push(ordinary);
+    const ordinaryCss = C.clone(ordinary.css);
+
+    const canonicalize = (value: any): any => {
+      if (Array.isArray(value)) return value.map(canonicalize);
+      if (!value || typeof value !== 'object') return value;
+      return Object.fromEntries(Object.keys(value).sort((a, b) => a.length - b.length || a.localeCompare(b))
+        .map(key => [key, canonicalize(value[key])]));
+    };
+    const loaded = C.migrate(JSON.parse(JSON.stringify(canonicalize(C.doc()))))!;
+    C.restore(loaded);
+
+    const restored = C.findComponent(definition.id)!;
+    const buttons: any[] = [];
+    C.eachNode([restored.node], node => { if (node.type === 'button') buttons.push(node); });
+    const link = buttons[0];
+    expect(link.css.d).toMatchObject({
+      'padding-top': '12px', 'padding-right': '0', 'padding-bottom': '12px', 'padding-left': '0',
+      'border-width': '0', 'border-radius': '0', 'background-color': 'transparent',
+    });
+    expect(link.css.d).not.toHaveProperty('padding');
+    expect(link.css.d).not.toHaveProperty('background');
+    expect(link.css.d).not.toHaveProperty('border');
+    const rule = C.bucket(link, 'd', false);
+    expect(rule).toContain('background-color:transparent;');
+    expect(rule).not.toContain('background-color:var(--c-brand)');
+    expect(rule).toContain('padding-left:0;');
+    expect(C.locate(ordinary.id)!.node.css).toEqual(ordinaryCss);
+  });
+
   test('component Add targets its editable root before any canvas selection', () => {
     const root = C.N('section', { tag: 'div', width: 'full' }, {}, []);
     C.state.meta.components = [{ id: 'mobile-menu', name: 'Mobile menu', mobileMenu: true, node: root, props: [] }];

@@ -5,7 +5,7 @@
 - Status: confirmed-defect repair delivered to development; production acceptance remains partial.
 - Scope: customer-style builder testing and autonomous fixes, using disposable test content. The test account remains Pro. No shared database was cleared.
 - Source: /Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft, development
-- Candidate: 8ac73d88e49392ebf0e3bf8c06ecd98e84c2bb68
+- Final delivery SHA: see deployment.json
 - Staging review: https://staging.itspagecraft.com/edit/ef0523d5-c3f8-4df8-b73e-11d31e17eb76
 - Original Fieldwork site preserved. No production code promotion.
 
@@ -17,13 +17,15 @@ Additional repairs cover invalid colour feedback, opacity bounds, gradient picke
 
 Continued customer testing added usable Collection insertion (an empty editable card and correct Add target), explicit/default-compatible Collection settings, and deliberate conflict recovery. Reload theirs now cancels pending stale writes and bypasses the unsaved guard only for that explicit recovery action.
 
+Final save/reload inspection also found canonical JSON key order could turn generated custom-menu links into filled Buttons. New generated links now store unambiguous longhand CSS. Existing customized definitions are preserved; regenerate or explicitly restyle affected old menu links. Canonical serialization/migration regression verifies new menus and preserves ordinary custom Buttons.
+
 Core repair commits: ca4fc42, 0078903, d50ee1c, 88bd550, 8ac73d8. Released premade-template versions and hashes remain unchanged.
 
 ## Verification
 
 | Check | Environment | Result | Evidence |
 | --- | --- | --- | --- |
-| Build, TypeScript and automated suite | Local final candidate | 1,964 passed; 5 skipped | tests-release.log |
+| Build, TypeScript and automated suite | Local final candidate | 1,965 passed; 5 skipped | tests-menu-reload.log |
 | Demo build and diff check | Local final candidate | Passed | demo-release.log |
 | Gallery interaction checklist | Built-in browser, Cloud and Builder | 30/30 passed | gallery-behavior-checks.json |
 | Final gallery rendering | Built-in browser, 1440px and 768px | 24/24 matched reviewed baselines | gallery-recovery/capture.json, gallery-recovery/diffs/results.json |
@@ -35,7 +37,7 @@ Core repair commits: ca4fc42, 0078903, d50ee1c, 88bd550, 8ac73d8. Released prema
 | Form move identity | Isolated local fixture | Cut/paste kept qa-ui-contact | local-form-move.json |
 | Version restoration | Isolated local fixture | Restore created version 19 from 17; version 18 retained | local-history-restored.png, local-collection-checks.json |
 | Collection binding, pagination and contains filter | Isolated local fixture | Card/title binding; 3 per page; next page changes; drafts excluded; contains 2. yields 2 and 12 | local-collection-checks.json, local-collection-filter.png |
-| Two-tab stale save and recovery | Isolated local fixture, final candidate | Stale save blocked; Reload theirs loads winning heading without overwrite | local-save-recovery.json, local-conflict-recovered.png |
+| Two-tab stale save and recovery | Isolated local fixture and staging | Stale save blocked; Reload theirs loads winning heading without overwrite | local-save-recovery.json, staging-conflict-recovered.png, staging-final-checks.json |
 | Pro account | Staging | Confirmed Pro in account UI | staging-pro-account.png |
 
 Browser actions used the built-in browser and normal customer controls. Read-only DOM/computed measurements supplemented screenshots. The local fixture authenticates one fictional owner and resets on restart; it cannot prove production persistence, role separation, or external delivery.
