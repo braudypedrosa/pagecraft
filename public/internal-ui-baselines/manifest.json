@@ -1,18 +1,18 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-10T02:35:27.085Z",
+  "capturedAt": "2026-10-10T03:58:30.407Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "6eab6a244b25a1d70589d2045923e9a41f739b6c084df5d530dab3560b8732df",
-    "app/src/ui/Pages.tsx": "e4797e910d379298c746aa170dbdd067aa7189a1372f713c8abf2f34d65207a0",
+    "builder.html": "5840e173515537562fb6971685e793c2bc139c11cddf1395dfedad97f43a0258",
+    "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
     "app/src/ui/CmsWorkspace.tsx": "11b19eb457f1d90e68414857c727a869baded14343eff36c563d9f21645fcaf0",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "0156f423b0f235d46b4129facb18a999da04c2f365241693e91618f53d8b66e3",
-    "app/src/ui/inspector/Inspector.tsx": "2cd55e7437f4701d04f2be17fec183e0d39febf4837c8c66c0e052487c7017f0",
-    "app/src/ui/inspector/Lists.tsx": "e61d813ba1db4bfa28d8f2b444e4bcbb631dadc6cea5e2af5575113a32679a3e",
+    "app/src/ui/inspector/Inspector.tsx": "05311aeb2d02244082fc0ed1ae14c46c3aea05b17d96d733819ead27c5cffd58",
+    "app/src/ui/inspector/Lists.tsx": "25cb67b4cb091b4c17ad1e741e8c515877826c65f3a2c89942463eeefc5bc957",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
@@ -566,7 +566,7 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-fields-768.png": {
-      "sha256": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+      "sha256": "5a3c1929c682846eac8a19ffc3868a78673210e1a87f121d369ccc0a90160f4b",
       "width": 768,
       "height": 1587,
       "state": "Focused field, readonly, disabled and validation samples"
@@ -632,13 +632,13 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-fields-1440.png": {
-      "sha256": "aa7761f8a5e760d5fbf7d32017c52d29239b87414b0d1e6f95220a33ff8bca41",
+      "sha256": "00088993cbaa1c78f712d22e9a700ebe341429b1e823252a5c4518e867abd7dc",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-fields-768.png": {
-      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+      "sha256": "079af5c890e18f829129b1eabc0ac71638622dbc497065b8dd9d6a953d18c78c",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples"
@@ -674,7 +674,7 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-menus-768.png": {
-      "sha256": "246b0b16c0ccd4df2345028c2a0f95116e89822e3b0a598609247e3e80d8e676",
+      "sha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
       "width": 768,
       "height": 959,
       "state": "Open picker, selected/disabled options and menu items"

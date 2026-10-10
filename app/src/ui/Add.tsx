@@ -73,12 +73,12 @@ const ALIASES: Record<string, string> = {
 };
 
 const TABS = [
-  ['widgets', 'Elements', 'Basic elements for building a page', 'plus'],
-  ['templates', 'Templates', 'Ready-made sections using this project’s styles', 'section'],
-  ['components', 'Components', 'Reusable elements that stay synchronized', 'component'],
-  ['blocks', 'Blocks', 'Reusable copies you can edit independently', 'copy'],
+  ['widgets', 'Elements', 'plus'],
+  ['templates', 'Templates', 'section'],
+  ['components', 'Components', 'component'],
+  ['blocks', 'Blocks', 'copy'],
   /* Only where libraries exist: the hosted editor, for the site's owner. */
-  ['libraries', 'Libraries', 'Your account’s components, blocks and styles, for any site you own', 'library']
+  ['libraries', 'Libraries', 'library']
 ] as const;
 type AddTab = (typeof TABS)[number][0];
 const tabs = () => L.libraries() ? TABS : TABS.filter(([key]) => key !== 'libraries');
@@ -176,7 +176,7 @@ function Widgets({ templates }: { templates(): void }) {
         )) : (
           <div class="pc-add-empty" role="status">
             <b>No elements found</b>
-            <span>Try another word, or clear the search to browse every group.</span>
+            <span>Change or clear the search.</span>
             <button type="button" class="btn" onClick={clear}>Clear search</button>
           </div>
         )
@@ -328,8 +328,7 @@ function Blocks() {
         );
       }) : (
         <div class="hint">
-          No saved blocks yet. Select an element and save it as a block to reuse on other pages.
-          Edit each block independently, or use <b>Components</b> to update all instances together.
+          No saved blocks. Select an element to save one.
         </div>
       )}
       <button class="btn block" disabled={!sel}
@@ -432,8 +431,7 @@ function Components() {
         );
       }) : (
         <div class="hint">
-          Nothing yet. Select something on the canvas and save it as a component: every place
-          you put it stays connected, and what varies between them is up to you.
+          No components. Select an element to create one.
         </div>
       )}
       <button class="btn block" disabled={!sel}
@@ -449,7 +447,6 @@ function Components() {
 export function Add() {
   const t = tab();
   const shown = tabs();
-  const current = shown.find(([key]) => key === t) || TABS[0];
 
   const choose = (key: AddTab) => {
     C.state.ui.atab = key;
@@ -470,7 +467,7 @@ export function Add() {
     <>
       <FirstEditGuide />
       <div class="addSwitcher" role="tablist" aria-label="Add category">
-        {shown.map(([key, label, , icon]) => (
+        {shown.map(([key, label, icon]) => (
           <button key={key} role="tab" aria-selected={t === key ? 'true' : 'false'}
             id={'add-tab-' + key} aria-controls="add-category-panel" tabIndex={t === key ? 0 : -1}
             class={t === key ? 'on' : ''} onClick={() => choose(key)} onKeyDown={e => keyNav(e, key)}>
@@ -479,7 +476,6 @@ export function Add() {
           </button>
         ))}
       </div>
-      {t !== 'widgets' ? <div class="addContext">{current[2]}</div> : null}
       <div class="palette" id="add-category-panel" role="tabpanel" aria-labelledby={'add-tab-' + t}>
         {t === 'widgets' ? <Widgets templates={() => choose('templates')} />
           : t === 'components' ? <Components />

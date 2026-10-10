@@ -402,13 +402,13 @@ details.pc-add-group{border-top:1px solid var(--line);padding-top:var(--gap-1);m
 .pc-add-guide>.btn{width:100%;white-space:normal}
 .pc-add-empty{display:grid;gap:var(--gap-1);padding:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3)}
 .pc-add-empty>b{color:var(--text)}
-.pc-context-help{padding:var(--gap-1) var(--gap-3);border-bottom:1px solid var(--line);color:var(--text-2);font-size:var(--fs-3);line-height:1.5}
-.gb .pc-context-help{padding:var(--gap-1) 0;border-bottom:0}
-.pc-context-help>summary{padding:var(--gap-1) 0;cursor:pointer;font-weight:500;color:var(--text-2);overflow-wrap:anywhere}
-.pc-context-help[open]>summary{color:var(--text)}
-.pc-context-help__body{margin:var(--gap-1) 0;font-size:var(--fs-3);line-height:1.6}
-.pc-context-help__body>p{margin:0 0 var(--gap-1)}
-.pc-context-help__body>p:last-child{margin-bottom:0}
+.pc-label-with-help{display:flex;align-items:center;gap:4px;margin-bottom:var(--gap-1)}
+.pc-label-with-help>label{margin:0}
+.pc-help-trigger{display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;min-height:0;padding:0;margin-left:4px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-2);vertical-align:middle;cursor:help}
+.pc-help-trigger:hover,.pc-help-trigger:focus-visible{color:var(--text);background:var(--pc-hover-bg)}
+.pc-help-tip{position:fixed;z-index:10050;display:block;width:max-content;max-width:min(260px,calc(100vw - 16px));padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-family:var(--sans);font-size:var(--fs-2);font-weight:400;line-height:1.5;overflow-wrap:anywhere;white-space:normal}
+.pc-help-tip[hidden]{display:none}
+.pc-shared-status{color:var(--text-2);font-size:var(--fs-1);font-weight:400;margin-left:4px}
 .pc-problem-list{list-style:none;padding:0;margin:var(--gap-2) 0}
 .pc-problem-list>li{padding:var(--gap-2) 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .pc-problem-list>li>p{margin:var(--gap-1) 0;color:var(--text-2)}
@@ -449,10 +449,6 @@ details.pc-add-group{border-top:1px solid var(--line);padding-top:var(--gap-1);m
   background:var(--pc-selection-bg);border-color:var(--line-2);color:var(--pc-selection-text);font-weight:600;
 }
 .addSwitcher button.on .addSwitcherIcon{color:var(--text-2)}
-.addContext{
-  padding:9px 14px 0;color:var(--text-3);font-family:var(--label);
-  font-size:var(--fs-1);line-height:1.45;
-}
 .brow .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;opacity:0}
 .brow:hover .bx{opacity:1}
 .brow .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
@@ -4665,7 +4661,7 @@ function mediaBrowserMarkup() {
     <div class="media-browser-results"></div>
     <div class="media-browser-page"><span class="note" data-media-count></span><button type="button" class="btn" data-media-more hidden>Show more</button></div>
     </div>
-    <div data-media-upload-view hidden><div class="media-upload-target"><span>${svg('image',24)}</span><strong>Drag and drop images here</strong><span class="note">Or choose images from your device.</span><button type="button" class="btn" data-media-choose>Choose files</button></div></div>
+    <div data-media-upload-view hidden><div class="media-upload-target"><span>${svg('image',24)}</span><strong>Drag and drop images here</strong><button type="button" class="btn" data-media-choose>Choose files</button></div></div>
   </div>`;
 }
 function wireMediaViews(root, takeFiles, state, multiple = true) {
@@ -6189,35 +6185,31 @@ function projectModal() {
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
       <div class="f"><label for="mSize">Base font size</label>${unitField('mSize', m.size, ['px', 'rem', '%'])}</div>
       ${IS_WORDPRESS ? '' : `<div class="f"><label for="mLang">Language</label>${langSelect('mLang', m.lang)}</div>
-      <div class="f"><label for="mBase">Site URL <span style="color:var(--text-3);font-weight:400">— enables canonical tags and a sitemap</span></label>
-        <input class="ctl" id="mBase" value="${esc(m.baseUrl)}" placeholder="https://example.com"></div>`}
+      <div class="f"><label for="mBase">Site URL</label>
+        <input class="ctl" id="mBase" title="Used for canonical URLs and the sitemap" value="${esc(m.baseUrl)}" placeholder="https://example.com"></div>`}
     </div>
-    ${IS_WORDPRESS ? `<div class="note" style="margin:0 0 var(--gap-3)">These visual defaults belong to this WordPress site. WordPress continues to manage the site title, language, URL, Site Icon and publishing.</div>` : `<div class="fgrid">
+    ${IS_WORDPRESS ? `<div class="note" style="margin:0 0 var(--gap-3)">Site identity and publishing are managed in WordPress.</div>` : `<div class="fgrid">
       <div class="f"><label>Favicon</label><div id="mFavBox"></div></div>
-      <div class="f"><label>Social share image <span style="color:var(--text-3);font-weight:400">— when a page has none</span></label><div id="mOgBox"></div></div>
+      <div class="f"><label>Default social image</label><div id="mOgBox"></div></div>
     </div>`}
 
-    <div class="f"><label>Colours <span style="color:var(--text-3);font-weight:500">— change one here and every element linked to it follows</span></label>
+    <div class="f"><label>Shared colours</label>
       <div id="mColors"></div></div>
 
-    <div class="f"><label>Text styles <span style="color:var(--text-3);font-weight:500">— reusable typography, edited from any element that uses one</span></label>
+    <div class="f"><label>Text styles</label>
       <div id="mStyles"></div></div>
 
-    <div class="f"><label>Style classes <span style="color:var(--text-3);font-weight:500">— any reusable styling; later in the list wins</span></label>
+    <div class="f"><label>Style classes</label>
       <div id="mClasses"></div></div>
 
-    <div class="f"><label for="mCss">${IS_WORDPRESS ? 'Global CSS — applied to every Pagecraft page' : 'Global CSS — injected into every exported page'}</label>
+    <div class="f"><label for="mCss">Global CSS</label>
       <textarea class="ctl" id="mCss" style="min-height:88px">${esc(m.css)}</textarea></div>
-    ${IS_WORDPRESS ? '' : `<div class="f"><label for="mHeadHtml">Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
-      <textarea class="ctl" id="mHeadHtml" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>
+    ${IS_WORDPRESS ? '' : `<div class="f"><label for="mHeadHtml">Extra &lt;head&gt; HTML</label>
+      <textarea class="ctl" id="mHeadHtml" title="Web fonts, analytics, and other code for every page’s head" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>
     <div class="f"><label>Webfonts</label>
       <label class="swrow"><input type="checkbox" id="mSelfHost"${m.selfHostFonts ? ' checked' : ''}>
         <span>Ship the font files with the site</span></label>
-      <div class="note">On, the archive carries the woff2 files and each page declares them itself —
-        no request to <code>fonts.googleapis.com</code>, which is a round trip before any text
-        renders and, in the EU, a transfer of your visitor's IP address. Latin and Latin Extended
-        only. Applies to the <b>separate files</b> export and the archive; one self-contained file
-        has nowhere to put them.</div></div>`}`, IS_WORDPRESS ? `
+      <div class="note">Archive and separate-file exports only. Latin and Latin Extended fonts.</div></div>`}`, IS_WORDPRESS ? `
     <span style="flex:1"></span>
     <button class="btn primary" id="mDone">Save settings</button>` : `
     <button class="btn" id="mBlank" title="Clear the pages and global regions, keep your colours and styles">Start an empty site</button>
@@ -6479,8 +6471,6 @@ function bindModal(rootId) {
   };
 
   openModal(`Bind to ${col.name}`, `
-    <div class="note" style="margin:0 0 var(--gap-2)">Each row takes its value from a field, once
-      per item. A field can be used twice if you want it twice. Nothing is written until you commit.</div>
     <div id="bsBody"></div>`, `
     <span class="note" id="bsCount" style="margin:0;flex:1;text-align:left"></span>
     <button class="btn" id="bsGuess">Suggest again</button>

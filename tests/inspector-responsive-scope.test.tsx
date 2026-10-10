@@ -102,5 +102,5 @@ test('Desktop and shared content do not show responsive field badges', () => {
   assert.equal(r.$('.pc-responsive-status'), null);
   C.state.ui.stab = 'content';
   r.draw(<Inspector />);
-  assert.match(r.$('[data-context-help="content-scope"]')!.textContent!, /also updates Desktop/);
+  assert.match(r.$('.pc-shared-status')!.getAttribute('title')!, /also updates Desktop/);
 });

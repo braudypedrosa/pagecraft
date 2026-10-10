@@ -407,13 +407,13 @@ details.pc-add-group{border-top:1px solid var(--line);padding-top:var(--gap-1);m
 .pc-add-guide>.btn{width:100%;white-space:normal}
 .pc-add-empty{display:grid;gap:var(--gap-1);padding:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3)}
 .pc-add-empty>b{color:var(--text)}
-.pc-context-help{padding:var(--gap-1) var(--gap-3);border-bottom:1px solid var(--line);color:var(--text-2);font-size:var(--fs-3);line-height:1.5}
-.gb .pc-context-help{padding:var(--gap-1) 0;border-bottom:0}
-.pc-context-help>summary{padding:var(--gap-1) 0;cursor:pointer;font-weight:500;color:var(--text-2);overflow-wrap:anywhere}
-.pc-context-help[open]>summary{color:var(--text)}
-.pc-context-help__body{margin:var(--gap-1) 0;font-size:var(--fs-3);line-height:1.6}
-.pc-context-help__body>p{margin:0 0 var(--gap-1)}
-.pc-context-help__body>p:last-child{margin-bottom:0}
+.pc-label-with-help{display:flex;align-items:center;gap:4px;margin-bottom:var(--gap-1)}
+.pc-label-with-help>label{margin:0}
+.pc-help-trigger{display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;min-height:0;padding:0;margin-left:4px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-2);vertical-align:middle;cursor:help}
+.pc-help-trigger:hover,.pc-help-trigger:focus-visible{color:var(--text);background:var(--pc-hover-bg)}
+.pc-help-tip{position:fixed;z-index:10050;display:block;width:max-content;max-width:min(260px,calc(100vw - 16px));padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-family:var(--sans);font-size:var(--fs-2);font-weight:400;line-height:1.5;overflow-wrap:anywhere;white-space:normal}
+.pc-help-tip[hidden]{display:none}
+.pc-shared-status{color:var(--text-2);font-size:var(--fs-1);font-weight:400;margin-left:4px}
 .pc-problem-list{list-style:none;padding:0;margin:var(--gap-2) 0}
 .pc-problem-list>li{padding:var(--gap-2) 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .pc-problem-list>li>p{margin:var(--gap-1) 0;color:var(--text-2)}
@@ -454,10 +454,6 @@ details.pc-add-group{border-top:1px solid var(--line);padding-top:var(--gap-1);m
   background:var(--pc-selection-bg);border-color:var(--line-2);color:var(--pc-selection-text);font-weight:600;
 }
 .addSwitcher button.on .addSwitcherIcon{color:var(--text-2)}
-.addContext{
-  padding:9px 14px 0;color:var(--text-3);font-family:var(--label);
-  font-size:var(--fs-1);line-height:1.45;
-}
 .brow .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;opacity:0}
 .brow:hover .bx{opacity:1}
 .brow .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
@@ -12383,12 +12379,7 @@ var PC_UI = (() => {
     const [busy, setBusy] = d2(false);
     const add = async () => {
       if (pending2.current) return;
-      const name = await L2.askText(
-        "New collection",
-        "Name",
-        "Projects",
-        { ok: "Create", note: "Plural reads best \u2014 Projects, Posts, Team." }
-      );
+      const name = await L2.askText("New collection", "Name", "Projects", { ok: "Create" });
       if (!name) return;
       if (L2.dynamicContentProvider() !== "pagecraft") {
         let made = null;
@@ -12417,21 +12408,14 @@ var PC_UI = (() => {
       }
     };
     return /* @__PURE__ */ u2(S, { children: [
-      L2.canStructure() ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px 0" }, children: [
-        /* @__PURE__ */ u2("button", { class: "btn primary block", disabled: busy, "aria-busy": busy, "data-pc-pending": busy ? "" : void 0, onClick: add, children: [
-          !busy && /* @__PURE__ */ u2(Icon, { name: "plus", size: 13 }),
-          " ",
-          busy ? "Creating\u2026" : "New collection"
-        ] }),
-        /* @__PURE__ */ u2("div", { class: "note", children: "Fields, and the items that fill them." })
-      ] }) : null,
+      L2.canStructure() ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px 0" }, children: /* @__PURE__ */ u2("button", { class: "btn primary block", disabled: busy, "aria-busy": busy, "data-pc-pending": busy ? "" : void 0, onClick: add, children: [
+        !busy && /* @__PURE__ */ u2(Icon, { name: "plus", size: 13 }),
+        " ",
+        busy ? "Creating\u2026" : "New collection"
+      ] }) }) : null,
       list2.length ? /* @__PURE__ */ u2("div", { style: { padding: "12px 14px" }, children: list2.map((c3) => /* @__PURE__ */ u2(CollectionRow, { col: c3 }, c3.id)) }) : /* @__PURE__ */ u2("div", { class: "empty", children: [
         "No collections yet.",
-        /* @__PURE__ */ u2("br", {}),
-        /* @__PURE__ */ u2("br", {}),
-        "A ",
-        /* @__PURE__ */ u2("b", { children: "Projects" }),
-        " collection with a title, a cover and a summary is enough to drive a work grid and a page for every project."
+        L2.canStructure() ? " Create one to add structured content." : ""
       ] })
     ] });
   }
@@ -12737,6 +12721,105 @@ var PC_UI = (() => {
     return plan;
   }
 
+  // app/src/ui/HelpTip.tsx
+  var nextHelpId = 0;
+  function HelpTip({ label, text, id }) {
+    const ownId = A2("");
+    if (!ownId.current) ownId.current = `pc-help-${++nextHelpId}`;
+    const helpId = id || ownId.current;
+    const button = A2(null);
+    const tip = A2(null);
+    const timer = A2();
+    const [at, setAt] = d2(null);
+    const cancelClose = () => clearTimeout(timer.current);
+    const close = () => {
+      cancelClose();
+      setAt(null);
+    };
+    const show = () => {
+      cancelClose();
+      const rect = button.current.getBoundingClientRect();
+      setAt({ left: Math.max(8, Math.min(rect.left, window.innerWidth - 268)), top: rect.bottom + 6 });
+    };
+    const leave = () => {
+      cancelClose();
+      timer.current = setTimeout(() => {
+        if (document.activeElement !== button.current) setAt(null);
+      }, 150);
+    };
+    _2(() => {
+      const surface = tip.current;
+      if (!at) return;
+      surface.style.left = `${at.left}px`;
+      surface.style.top = `${at.top}px`;
+      const rect = surface.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight - 8) {
+        surface.style.top = `${Math.max(8, button.current.getBoundingClientRect().top - rect.height - 6)}px`;
+      }
+    }, [at, text, helpId]);
+    h2(() => {
+      if (!at) return;
+      const key2 = (event) => {
+        if (event.key !== "Escape") return;
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+      };
+      const outside = (event) => {
+        if (!button.current?.contains(event.target) && !tip.current?.contains(event.target)) close();
+      };
+      document.addEventListener("keydown", key2, true);
+      document.addEventListener("pointerdown", outside, true);
+      window.addEventListener("resize", close);
+      window.addEventListener("scroll", close, true);
+      return () => {
+        document.removeEventListener("keydown", key2, true);
+        document.removeEventListener("pointerdown", outside, true);
+        window.removeEventListener("resize", close);
+        window.removeEventListener("scroll", close, true);
+      };
+    }, [!!at]);
+    h2(() => () => cancelClose(), []);
+    return /* @__PURE__ */ u2(S, { children: [
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          ref: button,
+          type: "button",
+          class: "pc-help-trigger",
+          "aria-label": `${label} help`,
+          "aria-describedby": helpId,
+          onMouseEnter: show,
+          onMouseLeave: leave,
+          onFocus: show,
+          onBlur: close,
+          onClick: (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            show();
+          },
+          children: /* @__PURE__ */ u2("svg", { width: "12", height: "12", viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", "stroke-width": "1.4", "aria-hidden": "true", children: [
+            /* @__PURE__ */ u2("circle", { cx: "8", cy: "8", r: "6" }),
+            /* @__PURE__ */ u2("path", { d: "M6.3 6a1.8 1.8 0 0 1 3.5.5c0 1.3-1.8 1.3-1.8 2.7M8 11v.5" })
+          ] })
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "span",
+        {
+          ref: tip,
+          id: helpId,
+          role: "tooltip",
+          class: "pc-help-tip",
+          hidden: !at,
+          onMouseEnter: cancelClose,
+          onMouseLeave: leave,
+          children: text
+        }
+      )
+    ] });
+  }
+
   // app/src/ui/useProcessingAction.ts
   function useProcessingAction(key2) {
     const [label, setLabel] = d2("");
@@ -12878,7 +12961,7 @@ var PC_UI = (() => {
           }
         ) : null
       ] }),
-      note ? /* @__PURE__ */ u2("div", { class: "note", dangerouslySetInnerHTML: { __html: note } }) : null
+      note ? /* @__PURE__ */ u2(HelpTip, { label: "Image", text: note }) : null
     ] });
   }
 
@@ -15078,8 +15161,7 @@ var PC_UI = (() => {
     const waiting = pending ? nameOf(siteItem(pending.kind, pending.id), pending.id) : "";
     const create = async () => {
       const name = (await L2.askText("New library", "Name", "", {
-        ok: "Create library",
-        note: "A library belongs to your account. Publish to it from any site you own, and import from it into any other."
+        ok: "Create library"
       }) || "").trim();
       if (!name) return;
       setBusy(true);
@@ -15133,7 +15215,7 @@ var PC_UI = (() => {
           },
           library.id
         );
-      }) : /* @__PURE__ */ u2("div", { class: "hint", children: "No libraries yet. A library keeps components, blocks and styles that you can import into any site you own, and update there when you choose." }),
+      }) : /* @__PURE__ */ u2("div", { class: "hint", children: "No libraries yet." }),
       /* @__PURE__ */ u2(
         "button",
         {
@@ -15150,13 +15232,14 @@ var PC_UI = (() => {
       )
     ] });
   }
-  function Head({ library, back, sub }) {
+  function Head({ library, back, sub, help }) {
     return /* @__PURE__ */ u2("div", { class: "lib-head", children: [
       /* @__PURE__ */ u2("button", { type: "button", class: "bx lib-back", title: "Back", "aria-label": "Back", onClick: back, children: /* @__PURE__ */ u2(Icon, { name: "arrow", size: 12, cls: "lib-back-icon" }) }),
       /* @__PURE__ */ u2("span", { class: "bn", children: [
         /* @__PURE__ */ u2("b", { children: library ? library.name : "Library" }),
         sub && /* @__PURE__ */ u2("small", { children: sub })
-      ] })
+      ] }),
+      help && /* @__PURE__ */ u2(HelpTip, { label: sub || "Library", text: help })
     ] });
   }
   function useLibrary(libs, id) {
@@ -15302,7 +15385,7 @@ var PC_UI = (() => {
               children: busy ? "Importing\u2026" : picked.size ? `Import ${plural(picked.size, "item")}` : "Choose items to import"
             }
           ),
-          /* @__PURE__ */ u2("p", { class: "lib-note", children: "Imported items become this site\u2019s own. Whatever they use \u2014 nested components, styles, colors and images \u2014 comes with them." })
+          /* @__PURE__ */ u2("p", { class: "lib-note", children: "Imports become site-owned copies; their dependencies come with them." })
         ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: "Everything in this version is already in this site." })
       ] }) : /* @__PURE__ */ u2("p", { class: "lib-note", children: owns(library) ? "Publish components, blocks or styles from this site to make version 1." : `${ownerOf(library)} has not published anything yet.` }),
       owns(library) ? /* @__PURE__ */ u2("div", { class: "lib-actions", children: [
@@ -15335,7 +15418,7 @@ var PC_UI = (() => {
         /* @__PURE__ */ u2("p", { class: "lib-note", children: [
           "Shared with you by ",
           ownerOf(library),
-          ". You can import from it and take its updates; only they publish new versions."
+          " \xB7 they publish updates."
         ] }),
         /* @__PURE__ */ u2("button", { type: "button", class: "btn ghost block", disabled: busy, style: { fontSize: "var(--fs-2)" }, onClick: leave, children: "Leave this library" })
       ] })
@@ -15385,8 +15468,15 @@ var PC_UI = (() => {
       }
     };
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2(Head, { library, back, sub: "Share" }),
-      /* @__PURE__ */ u2("p", { class: "lib-note", children: "After accepting your invitation, people can import from this library into sites they own and take its updates. Only you publish new versions." }),
+      /* @__PURE__ */ u2(
+        Head,
+        {
+          library,
+          back,
+          sub: "Share",
+          help: "Invited people can import and update. Only you can publish."
+        }
+      ),
       /* @__PURE__ */ u2("form", { class: "lib-share", onSubmit: share, children: [
         /* @__PURE__ */ u2(
           "input",
@@ -15497,12 +15587,15 @@ var PC_UI = (() => {
       }
     };
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2(Head, { library, back, sub: `Publish version ${next}` }),
-      /* @__PURE__ */ u2("p", { class: "lib-note", children: [
-        "Version ",
-        next,
-        " holds exactly what you tick, and whatever that uses. Sites that imported something you leave out keep their copy."
-      ] }),
+      /* @__PURE__ */ u2(
+        Head,
+        {
+          library,
+          back,
+          sub: `Publish version ${next}`,
+          help: "Selected items and their dependencies are published. Existing imports keep anything omitted."
+        }
+      ),
       GROUPS.map(([kind, label]) => {
         const items = siteList(kind).filter((item) => !isFoundation(kind, item.id));
         if (!items.length) return null;
@@ -15544,7 +15637,7 @@ var PC_UI = (() => {
       chosen.length > 0 && !problems.length && /* @__PURE__ */ u2("p", { class: "lib-note", children: [
         plural(chosen.length, "item"),
         carried > 0 ? `, plus ${plural(carried, "thing")} they use` : "",
-        ". The draft is saved first, so the library gets exactly what you see."
+        " \xB7 current draft saved first."
       ] })
     ] });
   }
@@ -15653,7 +15746,7 @@ var PC_UI = (() => {
           children: busy ? "Updating\u2026" : preview.unresolved.length ? `Choose for ${plural(preview.unresolved.length, "conflict")}` : changes.length ? "Apply update" : `Mark version ${summary.version} as seen`
         }
       ),
-      /* @__PURE__ */ u2("p", { class: "lib-note", children: "What each placement shows \u2014 its text, variant and slot content \u2014 is kept. Undo reverses the whole update." })
+      /* @__PURE__ */ u2("p", { class: "lib-note", children: "Placement content is kept. Undo reverses the update." })
     ] });
   }
 
@@ -15869,12 +15962,12 @@ var PC_UI = (() => {
     list: "collection cms dynamic"
   };
   var TABS = [
-    ["widgets", "Elements", "Basic elements for building a page", "plus"],
-    ["templates", "Templates", "Ready-made sections using this project\u2019s styles", "section"],
-    ["components", "Components", "Reusable elements that stay synchronized", "component"],
-    ["blocks", "Blocks", "Reusable copies you can edit independently", "copy"],
+    ["widgets", "Elements", "plus"],
+    ["templates", "Templates", "section"],
+    ["components", "Components", "component"],
+    ["blocks", "Blocks", "copy"],
     /* Only where libraries exist: the hosted editor, for the site's owner. */
-    ["libraries", "Libraries", "Your account\u2019s components, blocks and styles, for any site you own", "library"]
+    ["libraries", "Libraries", "library"]
   ];
   var tabs = () => L2.libraries() ? TABS : TABS.filter(([key2]) => key2 !== "libraries");
   var tab = () => {
@@ -15983,7 +16076,7 @@ var PC_UI = (() => {
         /* @__PURE__ */ u2(WidgetTiles, { group })
       ] }, group.g)) : /* @__PURE__ */ u2("div", { class: "pc-add-empty", role: "status", children: [
         /* @__PURE__ */ u2("b", { children: "No elements found" }),
-        /* @__PURE__ */ u2("span", { children: "Try another word, or clear the search to browse every group." }),
+        /* @__PURE__ */ u2("span", { children: "Change or clear the search." }),
         /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: clear, children: "Clear search" })
       ] }) : /* @__PURE__ */ u2(S, { children: [
         recentItems.length ? /* @__PURE__ */ u2("div", { class: "pc-add-group", children: [
@@ -16104,11 +16197,7 @@ var PC_UI = (() => {
           },
           b2.id
         );
-      }) : /* @__PURE__ */ u2("div", { class: "hint", children: [
-        "No saved blocks yet. Select an element and save it as a block to reuse on other pages. Edit each block independently, or use ",
-        /* @__PURE__ */ u2("b", { children: "Components" }),
-        " to update all instances together."
-      ] }),
+      }) : /* @__PURE__ */ u2("div", { class: "hint", children: "No saved blocks. Select an element to save one." }),
       /* @__PURE__ */ u2(
         "button",
         {
@@ -16208,7 +16297,7 @@ var PC_UI = (() => {
           },
           cd.id
         );
-      }) : /* @__PURE__ */ u2("div", { class: "hint", children: "Nothing yet. Select something on the canvas and save it as a component: every place you put it stays connected, and what varies between them is up to you." }),
+      }) : /* @__PURE__ */ u2("div", { class: "hint", children: "No components. Select an element to create one." }),
       /* @__PURE__ */ u2(
         "button",
         {
@@ -16227,7 +16316,6 @@ var PC_UI = (() => {
   function Add() {
     const t3 = tab();
     const shown2 = tabs();
-    const current = shown2.find(([key2]) => key2 === t3) || TABS[0];
     const choose = (key2) => {
       C2.state.ui.atab = key2;
       repaint("add");
@@ -16243,7 +16331,7 @@ var PC_UI = (() => {
     };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2(FirstEditGuide, {}),
-      /* @__PURE__ */ u2("div", { class: "addSwitcher", role: "tablist", "aria-label": "Add category", children: shown2.map(([key2, label, , icon]) => /* @__PURE__ */ u2(
+      /* @__PURE__ */ u2("div", { class: "addSwitcher", role: "tablist", "aria-label": "Add category", children: shown2.map(([key2, label, icon]) => /* @__PURE__ */ u2(
         "button",
         {
           role: "tab",
@@ -16261,7 +16349,6 @@ var PC_UI = (() => {
         },
         key2
       )) }),
-      t3 !== "widgets" ? /* @__PURE__ */ u2("div", { class: "addContext", children: current[2] }) : null,
       /* @__PURE__ */ u2("div", { class: "palette", id: "add-category-panel", role: "tabpanel", "aria-labelledby": "add-tab-" + t3, children: t3 === "widgets" ? /* @__PURE__ */ u2(Widgets, { templates: () => choose("templates") }) : t3 === "components" ? /* @__PURE__ */ u2(Components, {}) : t3 === "templates" ? /* @__PURE__ */ u2(Templates, {}) : t3 === "libraries" ? /* @__PURE__ */ u2(Libraries, {}) : /* @__PURE__ */ u2(Blocks, {}) })
     ] });
   }
@@ -16825,7 +16912,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           )
         ] }),
         /* @__PURE__ */ u2("div", { class: "f", children: [
-          /* @__PURE__ */ u2("label", { htmlFor: "page-slug", children: "Slug" }),
+          /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+            /* @__PURE__ */ u2("label", { htmlFor: "page-slug", children: "Slug" }),
+            /* @__PURE__ */ u2(HelpTip, { label: "Slug", text: C2.isFront(pg) ? "The front page is fixed at index and served at /." : "Sets the published path. Internal links update when this changes." })
+          ] }),
           /* @__PURE__ */ u2(
             "input",
             {
@@ -16851,21 +16941,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               }
             }
           ),
-          /* @__PURE__ */ u2("div", { class: "note", children: [
-            C2.isFront(pg) ? /* @__PURE__ */ u2(S, { children: [
-              "Fixed at ",
-              /* @__PURE__ */ u2("code", { children: "index" }),
-              " \u2014 a host serves it at the root."
-            ] }) : /* @__PURE__ */ u2(S, { children: [
-              "Published at ",
-              /* @__PURE__ */ u2("code", { children: [
-                "/",
-                pg.slug || "\u2026"
-              ] }),
-              "."
-            ] }),
-            C2.isNotFound(pg) ? " Your not-found page: out of the sitemap, and noindex." : ""
-          ] }),
+          C2.isNotFound(pg) ? /* @__PURE__ */ u2("div", { class: "note", children: "Not-found page \xB7 excluded from the sitemap \xB7 noindex." }) : null,
           C2.isFront(pg) ? null : /* @__PURE__ */ u2(
             "button",
             {
@@ -16918,12 +16994,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           )
         ] }),
         /* @__PURE__ */ u2("div", { class: "f", children: [
-          /* @__PURE__ */ u2("label", { children: "Social share image" }),
+          /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+            /* @__PURE__ */ u2("label", { children: "Social share image" }),
+            /* @__PURE__ */ u2(HelpTip, { label: "Social share image", text: "Falls back to the project image when empty." })
+          ] }),
           /* @__PURE__ */ u2(
             AssetField,
             {
               value: pg.ogImage,
-              note: "Falls back to the project image when empty.",
               onChange: (v3) => {
                 C2.edit(() => {
                   C2.page().ogImage = v3;
@@ -16934,7 +17012,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           )
         ] }),
         /* @__PURE__ */ u2("div", { class: "f", children: [
-          /* @__PURE__ */ u2("label", { htmlFor: "page-head-html", children: "Extra <head> HTML" }),
+          /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+            /* @__PURE__ */ u2("label", { htmlFor: "page-head-html", children: "Extra <head> HTML" }),
+            /* @__PURE__ */ u2(HelpTip, { label: "Extra head HTML", text: "Added on this page after the project-wide head HTML." })
+          ] }),
           /* @__PURE__ */ u2(
             "textarea",
             {
@@ -16947,13 +17028,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                 C2.page().headHtml = v3;
               })
             }
-          ),
-          /* @__PURE__ */ u2("div", { class: "note", children: "This page only, after the project's block." })
+          )
         ] }),
         /* @__PURE__ */ u2("div", { class: "f", children: [
-          /* @__PURE__ */ u2("label", { htmlFor: "page-collection", children: [
-            "Detail template ",
-            /* @__PURE__ */ u2("span", { style: { color: "var(--text-3)", fontWeight: 400 }, children: "\u2014 one page per item" })
+          /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+            /* @__PURE__ */ u2("label", { htmlFor: "page-collection", children: "Detail template" }),
+            /* @__PURE__ */ u2(HelpTip, { label: "Detail template", text: "Creates one published page per collection item." })
           ] }),
           /* @__PURE__ */ u2(
             "select",
@@ -16974,7 +17054,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               ]
             }
           ),
-          pg.collection && C2.findCollection(pg.collection) ? /* @__PURE__ */ u2(DetailBindings, { colId: pg.collection }) : cols.length ? /* @__PURE__ */ u2("div", { class: "note", children: "Becomes a template: one file per item." }) : null
+          pg.collection && C2.findCollection(pg.collection) ? /* @__PURE__ */ u2(DetailBindings, { colId: pg.collection }) : null
         ] })
       ] }) }) })
     ] });
@@ -17221,12 +17301,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const dev = C2.dk();
     const responsive = !!c3.r && !!c3.c && dev !== "d";
     const owns2 = responsive && ownsValue(n2, c3);
-    const scopeId = responsive ? `${labelId}-scope` : void 0;
+    const shared = dev !== "d" && !!c3.k && !c3.c && C2.contentKeysOf(n2).has(c3.k);
+    const sharedDescription = "Shared across screen sizes. Editing this content also updates Desktop.";
+    const scopeId = responsive || shared ? `${labelId}-scope` : void 0;
     const scopeDescription = responsive ? owns2 ? `${C2.DEV_LABEL[dev]} override. Use the device badge to clear it and inherit ${dev === "m" ? "Tablet values where set, then Desktop" : "Desktop values"}.` : `Inherited from ${dev === "m" ? "Tablet where set, then Desktop" : "Desktop"}. Editing creates a ${C2.DEV_LABEL[dev]} override.` : "";
     const describedBy = [helpId, scopeId].filter(Boolean).join(" ") || void 0;
     const inputIds = [];
     const controls = labelControls(children, c3.label || "Value", labelId, describedBy, "", inputIds);
-    return /* @__PURE__ */ u2("div", { class: "f" + (c3.layout === "inline" && c3.t !== "color" && !(bindable && C2.bindScope(n2.id)) && !pbound && C2.state.ui.mode !== "component" ? " f-inline" : "") + (fid ? " bound" : ""), role: "group", "aria-labelledby": labelId, children: [
+    return /* @__PURE__ */ u2("div", { class: "f" + (c3.layout === "inline" && c3.t !== "color" && !(bindable && C2.bindScope(n2.id)) && !pbound && C2.state.ui.mode !== "component" ? " f-inline" : "") + (fid ? " bound" : ""), role: "group", "aria-labelledby": labelId, "aria-describedby": describedBy, children: [
       /* @__PURE__ */ u2("label", { for: inputIds[0], children: [
         /* @__PURE__ */ u2("span", { id: labelId, children: c3.label || "" }),
         c3.r ? /* @__PURE__ */ u2(ResponsiveBadge, { n: n2, c: c3 }) : null,
@@ -17241,6 +17323,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             children: owns2 ? "Override" : "Inherited"
           }
         ) : null,
+        shared ? /* @__PURE__ */ u2("span", { id: scopeId, class: "pc-shared-status", role: "note", title: sharedDescription, "aria-label": sharedDescription, children: "Shared" }) : null,
+        c3.note && !fid && !pbound ? /* @__PURE__ */ u2(HelpTip, { label: c3.label || "Field", text: c3.note, id: helpId }) : null,
         /* @__PURE__ */ u2(ResetBadge, { n: n2, c: c3 }),
         bindable ? /* @__PURE__ */ u2(BindBadge, { n: n2, c: c3 }) : null,
         varies ? /* @__PURE__ */ u2(PropBadge, { n: n2, c: c3 }) : null
@@ -17255,7 +17339,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         "Set on each instance \u2014 ",
         /* @__PURE__ */ u2("b", { children: pbound }),
         "."
-      ] }) : c3.note ? /* @__PURE__ */ u2("div", { id: helpId, class: "note", children: c3.note }) : null
+      ] }) : null
     ] });
   }
 
@@ -17573,14 +17657,6 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
 
-  // app/src/ui/inspector/ContextHelp.tsx
-  function ContextHelp({ kind, summary, children }) {
-    return /* @__PURE__ */ u2("details", { class: "pc-context-help", "data-context-help": kind, children: [
-      /* @__PURE__ */ u2("summary", { children: summary }),
-      /* @__PURE__ */ u2("div", { class: "pc-context-help__body", children })
-    ] });
-  }
-
   // app/src/ui/WordPressContentPicker.tsx
   function wordpressContentTargets() {
     if (C2.cloudFormsEnabled()) return [];
@@ -17627,7 +17703,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (!targets.length) return null;
     const selected = wordpressDestinationForValue(value)?.reference || "";
     return /* @__PURE__ */ u2("div", { class: "wp-link-picker", children: [
-      /* @__PURE__ */ u2("label", { htmlFor: selectId, children: "WordPress content" }),
+      /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+        /* @__PURE__ */ u2("label", { htmlFor: selectId, children: "WordPress content" }),
+        /* @__PURE__ */ u2(
+          HelpTip,
+          {
+            id: noteId,
+            label: "WordPress content",
+            text: "WordPress owns this content. Pagecraft stores a route that works across environments."
+          }
+        )
+      ] }),
       /* @__PURE__ */ u2(
         "select",
         {
@@ -17650,8 +17736,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             }) }, target.connectionId))
           ]
         }
-      ),
-      /* @__PURE__ */ u2("div", { class: "note", id: noteId, children: "WordPress-owned content stays editable only in WordPress. Pagecraft stores its target-neutral route." })
+      )
     ] });
   }
 
@@ -17755,7 +17840,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       n2.props.menuLocation ? /* @__PURE__ */ u2("div", { class: "note native-menu-note", children: [
         "WordPress menu \xB7 ",
         String(n2.props.menuLocation).replace(/(^|[-_])\w/g, (value) => value.replace(/[-_]/, " ").toUpperCase()),
-        " navigation. Content changes here also appear in Appearance \u2192 Menus; Pagecraft keeps the visual settings."
+        " navigation. Content syncs to Appearance \u2192 Menus; Pagecraft controls styling."
       ] }) : null,
       arr.map((it, k3) => {
         const link = parsed(it);
@@ -17822,7 +17907,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               /* @__PURE__ */ u2(MotionPresence, { show: open === k3, class: "navitem-body", kind: "panel", children: [
                 /* @__PURE__ */ u2("label", { children: "Navigation label" }),
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Link label" }),
-                /* @__PURE__ */ u2("label", { children: "Destination" }),
+                /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+                  /* @__PURE__ */ u2("label", { children: "Destination" }),
+                  /* @__PURE__ */ u2(
+                    HelpTip,
+                    {
+                      label: "Destination",
+                      text: "Custom destinations accept URLs, email, phone, and section links."
+                    }
+                  )
+                ] }),
                 /* @__PURE__ */ u2("select", { class: "ctl", value: mode, "aria-label": `Destination for ${it.label || "untitled link"}`, onChange: (e3) => {
                   const next = e3.target.value;
                   commitDestination(k3, next === "page" ? C2.buildLink({ mode: "page", page: C2.page().slug, frag: "" }) : next === "wordpress" ? firstWordPressReference : "");
@@ -17853,13 +17947,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                       " \u2014 missing"
                     ] }) : null
                   ] })
-                ] }) : mode === "wordpress" ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => commitDestination(k3, url) }) : /* @__PURE__ */ u2(S, { children: [
-                  /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "href", placeholder: "https://example.com or #section" }),
-                  /* @__PURE__ */ u2("div", { class: "note", children: "Supports external URLs, email, phone, and section links." })
+                ] }) : mode === "wordpress" ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => commitDestination(k3, url) }) : /* @__PURE__ */ u2(S, { children: /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "href", placeholder: "https://example.com or #section" }) }),
+                /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+                  /* @__PURE__ */ u2("label", { children: "CSS classes" }),
+                  /* @__PURE__ */ u2(
+                    HelpTip,
+                    {
+                      label: "CSS classes",
+                      text: "Applied to this menu item. Separate multiple classes with spaces."
+                    }
+                  )
                 ] }),
-                /* @__PURE__ */ u2("label", { children: "CSS classes" }),
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "cls", placeholder: "featured-link another-class" }),
-                /* @__PURE__ */ u2("div", { class: "note", children: "Applied to this menu item. Separate multiple classes with spaces." }),
                 /* @__PURE__ */ u2("label", { children: "Parent item" }),
                 /* @__PURE__ */ u2("select", { class: "ctl", value: it.parentId || "", onChange: (e3) => commit2(k3, "parentId", e3.target.value), children: [
                   /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
@@ -17873,9 +17972,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     candidate.id || index
                   ))
                 ] }),
-                /* @__PURE__ */ u2("label", { children: "Link relationship" }),
+                /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+                  /* @__PURE__ */ u2("label", { children: "Link relationship" }),
+                  /* @__PURE__ */ u2(
+                    HelpTip,
+                    {
+                      label: "Link relationship",
+                      text: "Optional values such as nofollow or sponsored, separated by spaces."
+                    }
+                  )
+                ] }),
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "rel", placeholder: "nofollow sponsored" }),
-                /* @__PURE__ */ u2("div", { class: "note", children: "Optional relationship values, separated by spaces." }),
                 /* @__PURE__ */ u2("div", { class: "tog-row navitem-target", children: [
                   /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
                   /* @__PURE__ */ u2(
@@ -18176,7 +18283,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           }
         ) : null
       ] }),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Alt text is what a screen reader reads." })
+      /* @__PURE__ */ u2(HelpTip, { label: "Gallery alt text", text: "Describe each image for screen readers." })
     ] });
   }
 
@@ -18464,19 +18571,19 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         role: "switch",
         "aria-checked": on ? "true" : "false",
         "aria-label": c3.label || "Toggle",
-        "aria-describedby": c3.note ? helpId : void 0,
+        "aria-describedby": c3.note && !c3.k?.startsWith(C2.VAL) ? helpId : void 0,
         class: "sw-tog" + (on ? " on" : ""),
         onClick: () => w3.hard(on ? 0 : 1),
         children: /* @__PURE__ */ u2("i", {})
       }
     );
-    return c3.k?.startsWith(C2.VAL) ? /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "tog-row", children: toggle }) }) : /* @__PURE__ */ u2("div", { class: "f", children: [
-      /* @__PURE__ */ u2("div", { class: "tog-row", children: [
-        /* @__PURE__ */ u2("span", { children: c3.label }),
-        toggle
+    return c3.k?.startsWith(C2.VAL) ? /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "tog-row", children: toggle }) }) : /* @__PURE__ */ u2("div", { class: "f", children: /* @__PURE__ */ u2("div", { class: "tog-row", children: [
+      /* @__PURE__ */ u2("span", { children: [
+        c3.label,
+        c3.note ? /* @__PURE__ */ u2(HelpTip, { label: c3.label || "Field", text: c3.note, id: helpId }) : null
       ] }),
-      c3.note ? /* @__PURE__ */ u2("div", { id: helpId, class: "note", children: c3.note }) : null
-    ] });
+      toggle
+    ] }) });
   }
   var SIDES = ["top", "right", "bottom", "left"];
   function boxParts(value) {
@@ -18614,6 +18721,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       /* @__PURE__ */ u2("div", { class: "f", children: [
         /* @__PURE__ */ u2("label", { children: [
           /* @__PURE__ */ u2("span", { children: "Border edge" }),
+          /* @__PURE__ */ u2(HelpTip, { label: "Border edge", text: "A dot marks an edge with a stored value." }),
           ownsSide(side) ? /* @__PURE__ */ u2(
             "button",
             {
@@ -18637,8 +18745,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             children: label
           },
           value
-        )) }),
-        /* @__PURE__ */ u2("div", { class: "note", children: "A dot marks an edge with a stored value." })
+        )) })
       ] }),
       /* @__PURE__ */ u2(SelectCtl, { n: n2, c: {
         t: "select",
@@ -18710,8 +18817,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             ]
           }
         ) : null
-      ] }),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Exported inline, or as a file beside the page." })
+      ] })
     ] });
   }
   function Dropzone({ onChoose, onFiles, disabled = false }) {
@@ -18751,6 +18857,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     );
   }
   function SourceCtl({ n: n2, c: c3 }) {
+    c3 = { ...c3, note: "Choose a collection, then bind its fields to elements inside this list." };
     const cur = n2.src && C2.findCollection(n2.src) ? n2.src : "";
     const set = (v3) => {
       C2.edit(() => {
@@ -18787,18 +18894,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         "No collections yet \u2014 make one in ",
         /* @__PURE__ */ u2("b", { children: "CMS" }),
         "."
-      ] }),
-      /* @__PURE__ */ u2(ContextHelp, { kind: "cms", summary: "How CMS content works", children: cur ? /* @__PURE__ */ u2(S, { children: [
-        /* @__PURE__ */ u2("p", { children: "The collection supplies the repeated items and makes its fields available inside this list. Choosing it does not replace any content by itself." }),
-        /* @__PURE__ */ u2("p", { children: [
-          "Next, select something inside and use its CMS button to choose a field, or use ",
-          /* @__PURE__ */ u2("b", { children: "Bind the fields inside" }),
-          " above."
-        ] })
-      ] }) : /* @__PURE__ */ u2(S, { children: [
-        /* @__PURE__ */ u2("p", { children: "First choose the collection whose items this list should repeat." }),
-        /* @__PURE__ */ u2("p", { children: "Then select something inside and use its CMS button to bind a field." })
-      ] }) })
+      ] })
     ] });
   }
   function RichCtl({ n: n2, c: c3 }) {
@@ -18808,20 +18904,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       "Bound to ",
       /* @__PURE__ */ u2("b", { children: (f4 || { name: "a missing field" }).name }),
       ". Unbind to edit here."
-    ] }) : /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2(
-        "button",
-        {
-          class: "btn block",
-          onClick: () => L2.enterEdit(n2.id),
-          children: [
-            /* @__PURE__ */ u2(Icon, { name: "edit", size: 13 }),
-            " Edit on canvas"
-          ]
-        }
-      ),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Or double-click on the canvas." })
-    ] }) });
+    ] }) : /* @__PURE__ */ u2(S, { children: /* @__PURE__ */ u2(
+      "button",
+      {
+        class: "btn block",
+        title: "Edit text here, or double-click it on the canvas",
+        onClick: () => L2.enterEdit(n2.id),
+        children: [
+          /* @__PURE__ */ u2(Icon, { name: "edit", size: 13 }),
+          " Edit on canvas"
+        ]
+      }
+    ) }) });
   }
   function TstyleCtl({ n: n2, c: c3 }) {
     const cur = C2.findStyle(String(valueOf(n2, c3) || ""));
@@ -18902,8 +18996,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             " Save as text style"
           ]
         }
-      ) }),
-      /* @__PURE__ */ u2("div", { class: "note", children: cur ? `${used} use${used === 1 ? "" : "s"}. Below overrides this element only.` : "Save it as a style to reuse it." })
+      ) })
     ] });
   }
   function OptCtl({ n: n2, c: c3 }) {
@@ -19062,12 +19155,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ) : null
       ] }) : null,
       link.mode === "item" && scope ? /* @__PURE__ */ u2("div", { class: "note", children: [
-        "Each card links to its own page under ",
-        /* @__PURE__ */ u2("b", { children: [
-          scope.col.slug,
-          "/"
-        ] }),
-        "."
+        "/",
+        scope.col.slug,
+        "/<slug>"
       ] }) : null,
       link.mode !== "none" ? /* @__PURE__ */ u2("div", { class: "tog-row", style: { marginTop: "var(--gap-1)" }, children: [
         /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
@@ -19188,7 +19278,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       C2.edit(() => C2.applyCols(n2, C2.LAYOUTS[k3][0]));
     };
     return /* @__PURE__ */ u2("div", { class: "f", children: [
-      /* @__PURE__ */ u2("label", { children: c3.label || "" }),
+      /* @__PURE__ */ u2("label", { children: [
+        c3.label || "",
+        /* @__PURE__ */ u2(HelpTip, { label: "Columns", text: "Drag a gutter on the canvas to adjust column widths." })
+      ] }),
       /* @__PURE__ */ u2("div", { class: "pick", children: C2.COUNTS.map((k3) => /* @__PURE__ */ u2(
         "button",
         {
@@ -19212,7 +19305,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           k3
         )) })
       ] }) : null,
-      /* @__PURE__ */ u2("div", { class: "note", children: count > top ? `${count} columns \u2014 set each width individually.` : "Drag a gutter on the canvas to change the split." })
+      count > top ? /* @__PURE__ */ u2("div", { class: "note", children: [
+        count,
+        " columns"
+      ] }) : null
     ] });
   }
   var KINDS = {
@@ -19485,11 +19581,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       });
     };
     return /* @__PURE__ */ u2(Panel, { title: "Styling", n: n2, gk: n2.type + ":Styling", children: [
-      /* @__PURE__ */ u2("div", { class: "tgrow", children: /* @__PURE__ */ u2("button", { class: "tg" + (target ? "" : " on"), onClick: () => pick(""), children: "This element" }) }),
+      /* @__PURE__ */ u2("div", { class: "tgrow", children: /* @__PURE__ */ u2("button", { class: "tg" + (target ? "" : " on"), title: "Style this element only", onClick: () => pick(""), children: "This element" }) }),
       applied.map((c3) => {
         const uses = C2.classUsage(c3.id);
         return /* @__PURE__ */ u2("div", { class: "tgrow", children: [
-          /* @__PURE__ */ u2("button", { class: "tg" + (target === c3.id ? " on" : ""), onClick: () => pick(c3.id), children: [
+          /* @__PURE__ */ u2("button", { class: "tg" + (target === c3.id ? " on" : ""), title: `Style all ${uses} elements using this class`, onClick: () => pick(c3.id), children: [
             ".",
             c3.id
           ] }),
@@ -19532,14 +19628,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             /* @__PURE__ */ u2("option", { value: "__new", children: "\uFF0B New class from this element\u2026" })
           ]
         }
-      ),
-      /* @__PURE__ */ u2("div", { class: "note", children: target ? /* @__PURE__ */ u2(S, { children: [
-        "Reaches all ",
-        C2.classUsage(target),
-        " element",
-        C2.classUsage(target) === 1 ? "" : "s",
-        " using it."
-      ] }) : "This element only." })
+      )
     ] });
   }
   function VariantPick({ n: n2 }) {
@@ -19656,7 +19745,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       /* @__PURE__ */ u2(Ctl, { n: n2, c: transitionCtl() }),
       /* @__PURE__ */ u2("div", { class: "plabel", children: "When it enters the view" }),
       /* @__PURE__ */ u2("div", { class: "f", children: [
-        /* @__PURE__ */ u2("label", { children: "Animation" }),
+        /* @__PURE__ */ u2("label", { children: [
+          "Animation ",
+          /* @__PURE__ */ u2(HelpTip, { label: "Animation", text: "Animations run in Preview and on the published site." })
+        ] }),
         /* @__PURE__ */ u2(
           "select",
           {
@@ -19668,8 +19760,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               C2.ANIM_NAMES.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2.replace(/-/g, " ").replace(/^./, (c3) => c3.toUpperCase()) }, x2))
             ]
           }
-        ),
-        a3.name ? /* @__PURE__ */ u2("div", { class: "note", children: "The canvas holds still \u2014 use Preview." }) : null
+        )
       ] }),
       a3.name ? /* @__PURE__ */ u2(S, { children: [
         time("dur", "Duration", "0.6s"),
@@ -19713,6 +19804,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function ContentSource({ n: n2 }) {
     const col = n2.src ? C2.findCollection(n2.src) : null;
     return /* @__PURE__ */ u2(Panel, { title: "Content source", n: n2, children: [
+      /* @__PURE__ */ u2("label", { children: [
+        "Collection ",
+        /* @__PURE__ */ u2(HelpTip, { label: "Content source", text: "Choose a collection, then bind its fields to elements inside this container." })
+      ] }),
       /* @__PURE__ */ u2(
         "select",
         {
@@ -19722,7 +19817,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           onChange: (e3) => {
             const v3 = e3.target.value;
             C2.edit(() => C2.srcSet(n2, v3));
-            L2.toast(v3 ? C2.findCollection(v3).name + " is the scope \u2014 now bind a field" : "Content source cleared");
+            L2.toast(v3 ? "Content source: " + C2.findCollection(v3).name : "Content source cleared");
           },
           children: [
             /* @__PURE__ */ u2("option", { value: "", children: "\u2014 None \u2014" }),
@@ -19748,101 +19843,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           ]
         }
       ) : null,
-      /* @__PURE__ */ u2("div", { class: "note", children: col ? "Select something inside, then bind a field to it." : C2.collections().length ? "Point this at a collection to bind fields inside it." : /* @__PURE__ */ u2(S, { children: [
-        "No collections yet \u2014 make one in ",
-        /* @__PURE__ */ u2("b", { children: "CMS" }),
-        "."
-      ] }) }),
-      /* @__PURE__ */ u2(ContextHelp, { kind: "cms", summary: "How CMS content works", children: col ? /* @__PURE__ */ u2(S, { children: [
-        /* @__PURE__ */ u2("p", { children: [
-          /* @__PURE__ */ u2("b", { children: col.name }),
-          " sets which items and fields are available inside this container. It does not replace any content by itself."
-        ] }),
-        /* @__PURE__ */ u2("p", { children: [
-          "Next, select something inside and use its CMS button to choose a field, or use ",
-          /* @__PURE__ */ u2("b", { children: "Bind the fields inside" }),
-          " above."
-        ] })
-      ] }) : /* @__PURE__ */ u2(S, { children: [
-        /* @__PURE__ */ u2("p", { children: "First choose a collection. That sets which items and fields are available inside this container." }),
-        /* @__PURE__ */ u2("p", { children: "Then select something inside and use its CMS button to bind a field." })
-      ] }) })
-    ] });
-  }
-  var CONTAINER_HELP = {
-    section: {
-      summary: "About this Section",
-      body: "A Section creates a page-wide region. Set its content width, then place Rows or Boxes inside it."
-    },
-    row: {
-      summary: "About this Row and its Columns",
-      body: "A Row arranges Columns side by side. Add or remove columns here, then set their gap, alignment, wrapping, and width share."
-    },
-    box: {
-      summary: "About this Box",
-      body: "A Box stacks its direct children in normal document order. Use it to group content before adding spacing, decoration, or effects."
-    },
-    flex: {
-      summary: "About this Flex container",
-      body: "A Flex container arranges direct children along one flexible axis. Set direction, alignment, wrapping, and gap on the container."
-    },
-    grid: {
-      summary: "About this Grid",
-      body: "A Grid arranges direct children in tracks. Set the column pattern and gap on the grid; each direct child occupies a grid cell."
-    }
-  };
-  function LayoutHelp({ n: n2 }) {
-    const kind = n2.type === "box" ? n2.props.layout === "grid" ? "grid" : n2.props.layout === "flex" ? "flex" : "box" : n2.type;
-    const help = CONTAINER_HELP[kind];
-    return help ? /* @__PURE__ */ u2(ContextHelp, { kind: "layout", summary: help.summary, children: help.body }) : null;
-  }
-  var SHARED_CONTENT_TYPES = /* @__PURE__ */ new Set(["heading", "text", "image", "button"]);
-  function ContentScopeHint({ n: n2 }) {
-    if (C2.dk() === "d" || !SHARED_CONTENT_TYPES.has(n2.type)) return null;
-    return /* @__PURE__ */ u2("div", { class: "pc-context-help", "data-context-help": "content-scope", children: "Text, images and links are shared across screen sizes. Editing them here also updates Desktop." });
-  }
-  var RESPONSIVE_BOX_SIDES = ["top", "right", "bottom", "left"];
-  function responsiveOverrideCount(n2, controls) {
-    const bag = C2.stRead(C2.tgtObj(n2))[C2.dk()] || {};
-    const seen = /* @__PURE__ */ new Set();
-    return controls.filter((c3) => {
-      if (!c3.r || !c3.c || c3.when && !c3.when(n2)) return false;
-      const key2 = c3.t + ":" + c3.c;
-      if (seen.has(key2)) return false;
-      seen.add(key2);
-      if (c3.paint) return bag[c3.c] !== void 0 || /^linear-gradient\(/i.test(String(bag["background-image"] || "")) || /^linear-gradient\(/i.test(String(bag.background || ""));
-      return c3.t === "box" ? bag[c3.c] !== void 0 || RESPONSIVE_BOX_SIDES.some((side) => bag[c3.c + "-" + side] !== void 0) : bag[c3.c] !== void 0;
-    }).length;
-  }
-  function ResponsiveHelp({ n: n2, controls }) {
-    const dev = C2.dk();
-    if (dev === "d") return /* @__PURE__ */ u2(ContextHelp, { kind: "responsive", summary: "Responsive styles \xB7 Desktop base", children: "Desktop is the base for responsive styles. Tablet and Mobile inherit these values until you change a responsive control at those breakpoints." });
-    const count = responsiveOverrideCount(n2, controls);
-    const label = C2.DEV_LABEL[dev];
-    const inheritance = dev === "m" ? "Tablet, then Desktop" : "Desktop";
-    const inheritedValues = dev === "m" ? "values from Tablet where set, then Desktop for the rest" : "Desktop values";
-    return /* @__PURE__ */ u2(ContextHelp, { kind: "responsive", summary: `Responsive styles \xB7 ${label} ${count ? "has overrides" : `inherits ${inheritance}`}`, children: [
-      count ? /* @__PURE__ */ u2(S, { children: [
-        label,
-        " has ",
-        count,
-        " responsive ",
-        count === 1 ? "override" : "overrides",
-        " in this panel. Other responsive controls use ",
-        inheritedValues,
-        "."
-      ] }) : /* @__PURE__ */ u2(S, { children: [
-        label,
-        " has no responsive overrides in this panel. It uses ",
-        inheritedValues,
-        ". Changing a responsive control creates a ",
-        label,
-        " override."
-      ] }),
-      " ",
-      "The canvas shows the ",
-      label,
-      " breakpoint; it does not describe your browser window size. Use a lit device badge to clear that field's override."
+      !C2.collections().length ? /* @__PURE__ */ u2("div", { class: "note", children: "No collections yet. Create one in CMS." }) : null
     ] });
   }
   var DEV_ICON2 = { d: "desktop", t: "tablet", m: "mobile" };
@@ -19923,9 +19924,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         }
       )
     ] }, pr.k)) : /* @__PURE__ */ u2("div", { class: "note", children: [
-      "Nothing varies between instances yet. Every control that holds a value has a",
-      /* @__PURE__ */ u2("b", { children: " component badge" }),
-      " beside its label \u2014 press it to make that value a property."
+      "No properties yet. ",
+      /* @__PURE__ */ u2(HelpTip, { label: "Component properties", text: "Use a control\u2019s component badge to make its value editable on each instance." })
     ] }) });
   }
   function ShowIf({ n: n2 }) {
@@ -19968,7 +19968,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ), children: sources.map(([v3, label]) => /* @__PURE__ */ u2("option", { value: v3, children: label }, v3)) })
       ] }),
       cur ? /* @__PURE__ */ u2("div", { class: "f", children: [
-        /* @__PURE__ */ u2("label", { children: "Condition" }),
+        /* @__PURE__ */ u2("label", { children: [
+          "Condition ",
+          /* @__PURE__ */ u2(HelpTip, { label: "Condition", text: "Hidden items have a dashed outline in the editor and are omitted from the published page." })
+        ] }),
         /* @__PURE__ */ u2("select", { value: cur.op, onChange: (e3) => write(
           key2,
           e3.target.value,
@@ -19983,8 +19986,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             placeholder: "Value to compare",
             onChange: (e3) => write(key2, cur.op, e3.target.value)
           }
-        ) : null,
-        /* @__PURE__ */ u2("div", { class: "note", children: "Dashed blue on the canvas when it is not showing for the item you are looking at. Left out of the exported page entirely." })
+        ) : null
       ] }) : null
     ] });
   }
@@ -20002,6 +20004,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             type: "button",
             role: "switch",
             "aria-label": `Hide on ${C2.DEV_LABEL[b2]}`,
+            title: "Hidden elements remain selectable in the editor",
             "aria-checked": n2.hide && n2.hide[b2] ? "true" : "false",
             class: "sw-tog" + (n2.hide && n2.hide[b2] ? " on" : ""),
             onClick: () => C2.edit(() => {
@@ -20012,7 +20015,6 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           }
         )
       ] }, b2)),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Ghosted on the canvas, so you can still select them." }),
       /* @__PURE__ */ u2(ShowIf, { n: n2 })
     ] });
   }
@@ -20037,10 +20039,6 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const all = C2.contentControls(n2);
     const keys2 = L2.canStructure() ? null : C2.contentKeysOf(n2);
     const content = keys2 ? all.filter((c3) => !c3.c && !!c3.k && keys2.has(c3.k)) : all;
-    const styleControls = [
-      ...style,
-      ...C2.COMMON_STYLE.filter((group) => C2.canDo(n2, group.cap)).flatMap((group) => group.items)
-    ];
     const advanced = advControls(n2);
     const many = C2.selIds().length > 1;
     const formHandling = n2.type === "form" && C2.cloudFormsEnabled() ? C2.resolveFormHandling(n2.props, n2.id) : null;
@@ -20086,23 +20084,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "aria-labelledby": L2.canStructure() ? "inspector-tab-" + tab2 : void 0,
           children: [
             tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
-            tab2 === "content" && !many && L2.canStructure() ? /* @__PURE__ */ u2(LayoutHelp, { n: n2 }) : null,
-            tab2 === "content" && !many ? /* @__PURE__ */ u2(ContentScopeHint, { n: n2 }) : null,
             tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
             tab2 === "content" && formHandling ? /* @__PURE__ */ u2("p", { class: "note", style: "padding:12px", children: formHandling.note }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
             tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys3]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys3.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
-              "Nothing varies between instances yet. Open this component in the",
-              /* @__PURE__ */ u2("b", { children: " Components" }),
-              " tab and mark what should."
+              "No editable properties. ",
+              /* @__PURE__ */ u2(HelpTip, { label: "Component properties", text: "Edit the component definition to add properties that vary between instances." })
             ] }) : /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
-              !many ? /* @__PURE__ */ u2(ResponsiveHelp, { n: n2, controls: styleControls }) : null,
               /* @__PURE__ */ u2(StylingTarget, { n: n2 }),
               style.length ? /* @__PURE__ */ u2(Group, { title: d3.styleLabel || (n2.type === "box" ? C2.nameOf(n2) : d3.label), n: n2, items: style }) : null,
               C2.COMMON_STYLE.filter((g3) => C2.canDo(n2, g3.cap)).map((g3) => /* @__PURE__ */ u2(Group, { title: g3.g, n: n2, items: g3.items }, g3.g)),
               many || !C2.canDo(n2, "animation") ? null : /* @__PURE__ */ u2(Motion, { n: n2 })
             ] }) : /* @__PURE__ */ u2(S, { children: [
-              !many ? /* @__PURE__ */ u2(ResponsiveHelp, { n: n2, controls: advanced }) : null,
               /* @__PURE__ */ u2(Group, { title: "Identity & layout", n: n2, items: advanced }),
               d3.level < 4 ? /* @__PURE__ */ u2(ContentSource, { n: n2 }) : null,
               /* @__PURE__ */ u2(Visibility, { n: n2 })
@@ -20242,8 +20235,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const list2 = C2.classes();
     const add = async () => {
       const name = await L2.askText("New class style", "Class name", "New class", {
-        ok: "Add class",
-        note: "Apply it to an element, then edit its shared styling from the Style tab."
+        ok: "Add class"
       });
       if (name === null) return;
       C2.edit(() => C2.classAdd(name));
@@ -20264,11 +20256,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       L2.toast("Class deleted, looks kept");
     };
     return /* @__PURE__ */ u2(S, { children: [
-      !list2.length && /* @__PURE__ */ u2("div", { class: "note", children: [
-        "No class styles yet. Add one here, then apply it to an element and edit its shared styling from the ",
-        /* @__PURE__ */ u2("b", { children: "Style" }),
-        " tab."
-      ] }),
+      !list2.length && /* @__PURE__ */ u2("div", { class: "note", children: "No class styles. Add one to reuse styling across elements." }),
       list2.map((c3, i3) => {
         return /* @__PURE__ */ u2("div", { class: "arow", children: [
           /* @__PURE__ */ u2("span", { style: {
@@ -20303,7 +20291,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "button",
             {
               class: "iconbtn",
-              title: "Raise precedence",
+              title: "Raise precedence \u2014 lower classes override higher classes; element styling wins",
               disabled: i3 === 0,
               onClick: () => {
                 C2.edit(() => C2.classMove(c3.id, -1));
@@ -20326,8 +20314,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       /* @__PURE__ */ u2("button", { class: "btn block", style: { fontSize: "var(--fs-1)" }, onClick: add, children: [
         /* @__PURE__ */ u2(Icon, { name: "plus", size: 12 }),
         " Add class style"
-      ] }),
-      /* @__PURE__ */ u2("div", { class: "note", children: "Lower overrides higher. Element styling wins." })
+      ] })
     ] });
   }
   var esc9 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
@@ -20466,22 +20453,25 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       repaint("styles");
     };
     return /* @__PURE__ */ u2("div", { class: "tsedit", children: [
-      /* @__PURE__ */ u2("div", { class: "pick", style: { marginBottom: "var(--gap-2)" }, children: ["d", "t", "m"].map((d3) => /* @__PURE__ */ u2(
-        "button",
-        {
-          class: styleDev === d3 ? "on" : "",
-          onClick: () => {
-            styleDev = d3;
-            repaint("styles");
+      /* @__PURE__ */ u2("div", { class: "pc-label-with-help", style: { marginBottom: "var(--gap-2)" }, children: [
+        /* @__PURE__ */ u2("div", { class: "pick", style: { flex: 1 }, children: ["d", "t", "m"].map((d3) => /* @__PURE__ */ u2(
+          "button",
+          {
+            class: styleDev === d3 ? "on" : "",
+            onClick: () => {
+              styleDev = d3;
+              repaint("styles");
+            },
+            children: [
+              /* @__PURE__ */ u2(Icon, { name: DEV_ICON3[d3], size: 12 }),
+              " ",
+              C2.DEV_LABEL[d3]
+            ]
           },
-          children: [
-            /* @__PURE__ */ u2(Icon, { name: DEV_ICON3[d3], size: 12 }),
-            " ",
-            C2.DEV_LABEL[d3]
-          ]
-        },
-        d3
-      )) }),
+          d3
+        )) }),
+        /* @__PURE__ */ u2(HelpTip, { label: "Responsive text styles", text: styleDev === "d" ? "Tablet and Mobile only need values that differ from Desktop." : "Empty fields inherit the Desktop value shown as a placeholder." })
+      ] }),
       /* @__PURE__ */ u2("div", { class: "row2", children: [
         /* @__PURE__ */ u2("div", { class: "f", children: [
           /* @__PURE__ */ u2("label", { children: "Size" }),
@@ -20511,9 +20501,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         } })
       ] }),
       styleDev === "d" ? /* @__PURE__ */ u2("div", { class: "f", children: [
-        /* @__PURE__ */ u2("label", { children: [
-          "Default HTML tag ",
-          /* @__PURE__ */ u2("span", { style: { color: "var(--text-3)", fontWeight: 400 }, children: "\u2014 applied when a heading takes this style" })
+        /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
+          /* @__PURE__ */ u2("label", { children: "Default HTML tag" }),
+          /* @__PURE__ */ u2(HelpTip, { label: "Default HTML tag", text: "Applied when a heading uses this text style." })
         ] }),
         /* @__PURE__ */ u2(
           "select",
@@ -20568,8 +20558,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             c3.id
           )) })
         ] })
-      ] }),
-      /* @__PURE__ */ u2("div", { class: "note", children: styleDev === "d" ? "The base values. Switch to Tablet or Mobile to override only what differs there." : "Only what you set here overrides desktop. Empty fields fall through to the base value shown as a placeholder." })
+      ] })
     ] });
   }
   function Row2({ t: t3 }) {
@@ -26598,7 +26587,7 @@ function mediaBrowserMarkup() {
     <div class="media-browser-results"></div>
     <div class="media-browser-page"><span class="note" data-media-count></span><button type="button" class="btn" data-media-more hidden>Show more</button></div>
     </div>
-    <div data-media-upload-view hidden><div class="media-upload-target"><span>${svg('image',24)}</span><strong>Drag and drop images here</strong><span class="note">Or choose images from your device.</span><button type="button" class="btn" data-media-choose>Choose files</button></div></div>
+    <div data-media-upload-view hidden><div class="media-upload-target"><span>${svg('image',24)}</span><strong>Drag and drop images here</strong><button type="button" class="btn" data-media-choose>Choose files</button></div></div>
   </div>`;
 }
 function wireMediaViews(root, takeFiles, state, multiple = true) {
@@ -28122,35 +28111,31 @@ function projectModal() {
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
       <div class="f"><label for="mSize">Base font size</label>${unitField('mSize', m.size, ['px', 'rem', '%'])}</div>
       ${IS_WORDPRESS ? '' : `<div class="f"><label for="mLang">Language</label>${langSelect('mLang', m.lang)}</div>
-      <div class="f"><label for="mBase">Site URL <span style="color:var(--text-3);font-weight:400">— enables canonical tags and a sitemap</span></label>
-        <input class="ctl" id="mBase" value="${esc(m.baseUrl)}" placeholder="https://example.com"></div>`}
+      <div class="f"><label for="mBase">Site URL</label>
+        <input class="ctl" id="mBase" title="Used for canonical URLs and the sitemap" value="${esc(m.baseUrl)}" placeholder="https://example.com"></div>`}
     </div>
-    ${IS_WORDPRESS ? `<div class="note" style="margin:0 0 var(--gap-3)">These visual defaults belong to this WordPress site. WordPress continues to manage the site title, language, URL, Site Icon and publishing.</div>` : `<div class="fgrid">
+    ${IS_WORDPRESS ? `<div class="note" style="margin:0 0 var(--gap-3)">Site identity and publishing are managed in WordPress.</div>` : `<div class="fgrid">
       <div class="f"><label>Favicon</label><div id="mFavBox"></div></div>
-      <div class="f"><label>Social share image <span style="color:var(--text-3);font-weight:400">— when a page has none</span></label><div id="mOgBox"></div></div>
+      <div class="f"><label>Default social image</label><div id="mOgBox"></div></div>
     </div>`}
 
-    <div class="f"><label>Colours <span style="color:var(--text-3);font-weight:500">— change one here and every element linked to it follows</span></label>
+    <div class="f"><label>Shared colours</label>
       <div id="mColors"></div></div>
 
-    <div class="f"><label>Text styles <span style="color:var(--text-3);font-weight:500">— reusable typography, edited from any element that uses one</span></label>
+    <div class="f"><label>Text styles</label>
       <div id="mStyles"></div></div>
 
-    <div class="f"><label>Style classes <span style="color:var(--text-3);font-weight:500">— any reusable styling; later in the list wins</span></label>
+    <div class="f"><label>Style classes</label>
       <div id="mClasses"></div></div>
 
-    <div class="f"><label for="mCss">${IS_WORDPRESS ? 'Global CSS — applied to every Pagecraft page' : 'Global CSS — injected into every exported page'}</label>
+    <div class="f"><label for="mCss">Global CSS</label>
       <textarea class="ctl" id="mCss" style="min-height:88px">${esc(m.css)}</textarea></div>
-    ${IS_WORDPRESS ? '' : `<div class="f"><label for="mHeadHtml">Extra &lt;head&gt; HTML — web fonts, analytics, favicons</label>
-      <textarea class="ctl" id="mHeadHtml" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>
+    ${IS_WORDPRESS ? '' : `<div class="f"><label for="mHeadHtml">Extra &lt;head&gt; HTML</label>
+      <textarea class="ctl" id="mHeadHtml" title="Web fonts, analytics, and other code for every page’s head" style="min-height:66px" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/…&quot;&gt;">${esc(m.headHtml)}</textarea></div>
     <div class="f"><label>Webfonts</label>
       <label class="swrow"><input type="checkbox" id="mSelfHost"${m.selfHostFonts ? ' checked' : ''}>
         <span>Ship the font files with the site</span></label>
-      <div class="note">On, the archive carries the woff2 files and each page declares them itself —
-        no request to <code>fonts.googleapis.com</code>, which is a round trip before any text
-        renders and, in the EU, a transfer of your visitor's IP address. Latin and Latin Extended
-        only. Applies to the <b>separate files</b> export and the archive; one self-contained file
-        has nowhere to put them.</div></div>`}`, IS_WORDPRESS ? `
+      <div class="note">Archive and separate-file exports only. Latin and Latin Extended fonts.</div></div>`}`, IS_WORDPRESS ? `
     <span style="flex:1"></span>
     <button class="btn primary" id="mDone">Save settings</button>` : `
     <button class="btn" id="mBlank" title="Clear the pages and global regions, keep your colours and styles">Start an empty site</button>
@@ -28412,8 +28397,6 @@ function bindModal(rootId) {
   };
 
   openModal(`Bind to ${col.name}`, `
-    <div class="note" style="margin:0 0 var(--gap-2)">Each row takes its value from a field, once
-      per item. A field can be used twice if you want it twice. Nothing is written until you commit.</div>
     <div id="bsBody"></div>`, `
     <span class="note" id="bsCount" style="margin:0;flex:1;text-align:left"></span>
     <button class="btn" id="bsGuess">Suggest again</button>

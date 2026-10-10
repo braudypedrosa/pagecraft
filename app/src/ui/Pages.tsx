@@ -12,6 +12,7 @@ import { useState } from 'preact/hooks';
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { AssetField } from './AssetField';
+import { HelpTip } from './HelpTip';
 import { MotionPresence } from './MotionPresence';
 
 function PageRow({ i }: { i: number }) {
@@ -213,7 +214,10 @@ export function Pages() {
             Preview follows links by slug for the same reason. */}
         {/* through `pageSlugSet`, so every href pointing at the old slug follows. Writing
             `page().slug` directly is what left the review to report the breakage afterwards. */}
-        <div class="f"><label htmlFor="page-slug">Slug</label>
+        <div class="f"><div class="pc-label-with-help"><label htmlFor="page-slug">Slug</label>
+          <HelpTip label="Slug" text={C.isFront(pg)
+            ? 'The front page is fixed at index and served at /.'
+            : 'Sets the published path. Internal links update when this changes.'} /></div>
           {/* on change, not on input. Renaming rewrites every href that pointed at the old
               slug, and `field` commits on every keystroke — which would relink once per letter
               and refuse half of them as taken. The DOM holds the half-typed text; this reads it
@@ -232,10 +236,7 @@ export function Pages() {
               }
               repaint('pages'); L.renderModebar();
             }} />
-          <div class="note">{C.isFront(pg)
-              ? <>Fixed at <code>index</code> — a host serves it at the root.</>
-              : <>Published at <code>/{pg.slug || '…'}</code>.</>}
-            {C.isNotFound(pg) ? ' Your not-found page: out of the sitemap, and noindex.' : ''}</div>
+          {C.isNotFound(pg) ? <div class="note">Not-found page · excluded from the sitemap · noindex.</div> : null}
           {C.isFront(pg) ? null : (
             <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
               onClick={async () => {
@@ -261,23 +262,24 @@ export function Pages() {
             style={{ minHeight: '56px' }}
             {...field('desc', v => { C.page().desc = v; })} /></div>
 
-        <div class="f"><label>Social share image</label>
-          <AssetField value={pg.ogImage} note="Falls back to the project image when empty."
+        <div class="f"><div class="pc-label-with-help"><label>Social share image</label>
+          <HelpTip label="Social share image" text="Falls back to the project image when empty." /></div>
+          <AssetField value={pg.ogImage}
             onChange={v => { C.edit(() => { C.page().ogImage = v; }); repaint('pages'); }} /></div>
 
         {/* Project settings has the site-wide version. This is the per-page one, which is
             where a page-specific meta tag, a schema block or a one-page script goes — there
             was nowhere for those before, only the project-wide block. */}
-        <div class="f"><label htmlFor="page-head-html">Extra &lt;head&gt; HTML</label>
+        <div class="f"><div class="pc-label-with-help"><label htmlFor="page-head-html">Extra &lt;head&gt; HTML</label>
+          <HelpTip label="Extra head HTML" text="Added on this page after the project-wide head HTML." /></div>
           <textarea class="ctl" id="page-head-html" value={pg.headHtml || ''}
             style={{ minHeight: '56px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
             placeholder="&lt;meta name=&quot;robots&quot; content=&quot;noindex&quot;&gt;"
-            {...field('headHtml', v => { C.page().headHtml = v; })} />
-          <div class="note">This page only, after the project's block.</div></div>
+            {...field('headHtml', v => { C.page().headHtml = v; })} /></div>
 
         <div class="f">
-          <label htmlFor="page-collection">Detail template <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>
-            — one page per item</span></label>
+          <div class="pc-label-with-help"><label htmlFor="page-collection">Detail template</label>
+            <HelpTip label="Detail template" text="Creates one published page per collection item." /></div>
           <select class="ctl" id="page-collection" value={pg.collection || ''}
             onChange={e => setCollection((e.target as HTMLSelectElement).value)}>
             <option value="">— An ordinary page —</option>
@@ -289,9 +291,7 @@ export function Pages() {
           </select>
           {pg.collection && C.findCollection(pg.collection)
             ? <DetailBindings colId={pg.collection} />
-            : cols.length
-              ? <div class="note">Becomes a template: one file per item.</div>
-              : null}
+            : null}
         </div>
         </>}
       </div></div>

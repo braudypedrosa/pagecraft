@@ -12,7 +12,6 @@ export function StyleClasses() {
   const add = async () => {
     const name = await L.askText('New class style', 'Class name', 'New class', {
       ok: 'Add class',
-      note: 'Apply it to an element, then edit its shared styling from the Style tab.'
     });
     if (name === null) return;
     C.edit(() => C.classAdd(name));
@@ -34,8 +33,7 @@ export function StyleClasses() {
 
   return (
     <>
-      {!list.length && <div class="note">No class styles yet. Add one here, then apply it
-        to an element and edit its shared styling from the <b>Style</b> tab.</div>}
+      {!list.length && <div class="note">No class styles. Add one to reuse styling across elements.</div>}
       {list.map((c, i) => {
         return (
           <div class="arow" key={c.id}>
@@ -51,7 +49,7 @@ export function StyleClasses() {
                   if (cls) { cls.name = (e.target as HTMLInputElement).value; L.save(); }
                 }} onBlur={L.endTx} aria-label="Class name" />
             </span>
-            <button class="iconbtn" title="Raise precedence" disabled={i === 0}
+            <button class="iconbtn" title="Raise precedence — lower classes override higher classes; element styling wins" disabled={i === 0}
               onClick={() => { C.edit(() => C.classMove(c.id, -1)); repaint('classes'); }}>
               <Icon name="caretUp" size={12} /></button>
             <button class="iconbtn" title="Delete — elements keep the look"
@@ -62,7 +60,6 @@ export function StyleClasses() {
       <button class="btn block" style={{ fontSize: 'var(--fs-1)' }} onClick={add}>
         <Icon name="plus" size={12} /> Add class style
       </button>
-      <div class="note">Lower overrides higher. Element styling wins.</div>
     </>
   );
 }

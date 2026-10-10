@@ -14,6 +14,7 @@ import {
   WordPressContentPicker, wordpressContentTargets, wordpressDestinationForValue,
   wordpressReferenceForItem
 } from '../WordPressContentPicker';
+import { HelpTip } from '../HelpTip';
 import type { Control, Node as PcNode } from '../../core/types';
 import { useRef, useState } from 'preact/hooks';
 import { MotionPresence } from '../MotionPresence';
@@ -112,7 +113,7 @@ export function ItemsCtl({ n, c }: P) {
   return <Field n={n} c={c}>
     {n.props.menuLocation ? <div class="note native-menu-note">
       WordPress menu · {String(n.props.menuLocation).replace(/(^|[-_])\w/g, value => value.replace(/[-_]/, ' ').toUpperCase())} navigation.
-      Content changes here also appear in Appearance → Menus; Pagecraft keeps the visual settings.
+      Content syncs to Appearance → Menus; Pagecraft controls styling.
     </div> : null}
     {arr.map((it, k) => {
       const link = parsed(it);
@@ -152,7 +153,8 @@ export function ItemsCtl({ n, c }: P) {
           <label>Navigation label</label>
           <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label" />
 
-          <label>Destination</label>
+          <div class="pc-label-with-help"><label>Destination</label><HelpTip label="Destination"
+            text="Custom destinations accept URLs, email, phone, and section links." /></div>
           <select class="ctl" value={mode} aria-label={`Destination for ${it.label || 'untitled link'}`} onChange={e => {
             const next = (e.target as HTMLSelectElement).value;
             commitDestination(k, next === 'page'
@@ -182,12 +184,11 @@ export function ItemsCtl({ n, c }: P) {
             <WordPressContentPicker value={it.href} onChange={url => commitDestination(k, url)} />
           ) : <>
             <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section" />
-            <div class="note">Supports external URLs, email, phone, and section links.</div>
           </>}
 
-          <label>CSS classes</label>
+          <div class="pc-label-with-help"><label>CSS classes</label><HelpTip label="CSS classes"
+            text="Applied to this menu item. Separate multiple classes with spaces." /></div>
           <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class" />
-          <div class="note">Applied to this menu item. Separate multiple classes with spaces.</div>
 
           <label>Parent item</label>
           <select class="ctl" value={it.parentId || ''} onChange={e => commit(k, 'parentId', (e.target as HTMLSelectElement).value)}>
@@ -200,9 +201,9 @@ export function ItemsCtl({ n, c }: P) {
             ))}
           </select>
 
-          <label>Link relationship</label>
+          <div class="pc-label-with-help"><label>Link relationship</label><HelpTip label="Link relationship"
+            text="Optional values such as nofollow or sponsored, separated by spaces." /></div>
           <RowInput n={n} c={c} k={k} prop="rel" placeholder="nofollow sponsored" />
-          <div class="note">Optional relationship values, separated by spaces.</div>
 
           <div class="tog-row navitem-target">
             <span>Open in a new tab</span>
@@ -386,6 +387,6 @@ export function ImgsCtl({ n, c }: P) {
           }}><Icon name="copy" size={13} /> Library</button>
       ) : null}
     </div>
-    <div class="note">Alt text is what a screen reader reads.</div>
+    <HelpTip label="Gallery alt text" text="Describe each image for screen readers." />
   </Field>;
 }

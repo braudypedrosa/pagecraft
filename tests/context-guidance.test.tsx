@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
 import { Inspector } from '../app/src/ui/inspector/Inspector';
+import { HelpTip } from '../app/src/ui/HelpTip';
 import { rig, type Rig } from './ui.setup';
 
 let r: Rig;
-
 beforeEach(() => { r = rig(); });
 afterEach(() => { act(() => r.draw(null)); r.host.remove(); });
 
@@ -20,190 +20,101 @@ function inspect(n: ReturnType<typeof C.N>, tab: 'content' | 'style' | 'advanced
   r.draw(() => <Inspector />, 'right');
 }
 
-function help(kind: string) {
-  return r.$(`details[data-context-help="${kind}"]`) as HTMLDetailsElement;
-}
+const tipFor = (button: Element) => document.getElementById(button.getAttribute('aria-describedby')!)!;
 
-test('container help identifies Section, Row and each Box layout without replacing their controls', () => {
-  const cases = [
-    [C.N('section'), 'About this Section', 'page-wide region'],
-    [C.N('row'), 'About this Row and its Columns', 'arranges Columns side by side'],
-    [C.N('box', { layout: 'block' }), 'About this Box', 'stacks its direct children'],
-    [C.N('box', { layout: 'flex' }), 'About this Flex container', 'one flexible axis'],
-    [C.N('box', { layout: 'grid' }), 'About this Grid', 'occupies a grid cell']
-  ] as const;
-
-  for (const [node, summary, description] of cases) {
+test('container controls remain available without instructional disclosures', () => {
+  for (const node of [C.N('section'), C.N('row'), C.N('box', { layout: 'block' }),
+    C.N('box', { layout: 'flex' }), C.N('box', { layout: 'grid' })]) {
     inspect(node);
-    assert.equal(help('layout').open, false, 'guidance stays optional');
-    assert.equal(help('layout').querySelector('summary')!.textContent, summary);
-    assert.match(help('layout').textContent!, new RegExp(description));
-    assert.ok(r.$('.gh'), 'the original control group remains available');
+    assert.equal(r.$('.pc-context-help'), null);
+    assert.ok(r.$('.gh'));
   }
 });
 
-test('native help remains open across an inspector repaint', () => {
-  const section = C.N('section');
-  inspect(section);
-  const details = help('layout');
-  assert.equal(details.querySelector('summary')!.tagName, 'SUMMARY');
-  details.open = true;
-  r.draw(() => <Inspector />);
-  assert.equal(help('layout'), details, 'repaint keeps the same native disclosure element');
-  assert.equal(help('layout').open, true);
+test('optional help opens on focus, dismisses with Escape, and keeps focus on its trigger', () => {
+  r.draw(<HelpTip label="Example" text="Useful guidance" />);
+  const button = r.$('button')!;
+  const tip = tipFor(button);
+  assert.equal(tip.hidden, true);
+  act(() => button.focus());
+  assert.equal(tip.hidden, false);
+  assert.equal(tip.getAttribute('role'), 'tooltip');
+  assert.equal(tip.textContent, 'Useful guidance');
+  act(() => { button.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); });
+  assert.equal(tip.hidden, true);
+  assert.equal(document.activeElement, button);
+  act(() => r.click(button));
+  assert.equal(tip.hidden, false, 'tap/click reopens dismissed help');
+  act(() => { window.dispatchEvent(new Event('scroll')); });
+  assert.equal(tip.hidden, true, 'scroll closes stale positioned help');
 });
 
-test('content-only accounts get content editing without structural layout guidance', () => {
-  r.host.remove();
-  r = rig({ canStructure: false });
-
-  inspect(C.N('section'));
-  assert.equal(help('layout'), null, 'a role that cannot change structure gets no structural prompt');
-  assert.equal(r.$('.tabs'), null, 'the existing content-only inspector remains single-purpose');
-
-  const heading = C.N('heading', { text: 'Editable copy' });
-  inspect(heading);
-  const editor = r.$('textarea') as HTMLTextAreaElement;
-  assert.ok(editor, 'content editing remains available');
-  assert.equal(editor.value, 'Editable copy');
-  assert.equal(editor.disabled, false);
+test('help opens on hover and disappears when its owning control unmounts', () => {
+  r.draw(<HelpTip label="Example" text="Useful guidance" />);
+  const button = r.$('button')!;
+  const tip = tipFor(button);
+  act(() => { button.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true })); });
+  assert.equal(tip.hidden, false);
+  act(() => r.draw(null));
+  assert.equal(document.getElementById(tip.id), null, 'tooltip content is cleaned up');
 });
 
-test('non-Desktop Content names values shared across screen sizes only for common content elements', () => {
-  for (const type of ['heading', 'text', 'image', 'button'] as const) {
-    inspect(C.N(type), 'content', 'tablet');
-    const note = r.$('[data-context-help="content-scope"]')!;
-    assert.equal(note.tagName, 'DIV', 'the scope note is visible rather than another disclosure');
-    assert.equal(note.textContent!.trim(), 'Text, images and links are shared across screen sizes. Editing them here also updates Desktop.');
-  }
-
-  inspect(C.N('heading'), 'content', 'desktop');
-  assert.equal(r.$('[data-context-help="content-scope"]'), null, 'Desktop does not need a cross-breakpoint reminder');
-  inspect(C.N('heading'), 'style', 'tablet');
-  assert.equal(r.$('[data-context-help="content-scope"]'), null, 'the note belongs only to Content');
-  inspect(C.N('section'), 'content', 'tablet');
-  assert.equal(r.$('[data-context-help="content-scope"]'), null, 'container Content controls can include responsive CSS');
-});
-
-test('content-only roles retain editable copy and the shared-content hint on Tablet', () => {
-  r.host.remove();
-  r = rig({ canStructure: false });
-  const heading = C.N('heading', { text: 'Shared heading' });
-  inspect(heading, 'advanced', 'tablet');
-
+test('content-only accounts keep editable copy with a compact shared-content state', () => {
+  r.host.remove(); r = rig({ canStructure: false });
+  inspect(C.N('heading', { text: 'Shared heading' }), 'advanced', 'tablet');
   assert.equal(r.$('.tabs'), null);
-  assert.equal(r.$('[data-context-help="content-scope"]')!.textContent!.trim(), 'Text, images and links are shared across screen sizes. Editing them here also updates Desktop.');
+  assert.equal(r.$('.pc-context-help'), null);
+  assert.equal(r.$('.pc-shared-status')!.textContent, 'Shared');
   const editor = r.$('textarea') as HTMLTextAreaElement;
   assert.equal(editor.value, 'Shared heading');
   assert.equal(editor.disabled, false);
+  assert.ok(editor.getAttribute('aria-describedby')?.includes(r.$('.pc-shared-status')!.id));
 });
 
-test('responsive help distinguishes the desktop base, inherited Tablet styles and Tablet overrides', () => {
-  const heading = C.N('heading');
-  heading.css.d['font-size'] = '48px';
-
-  inspect(heading, 'style', 'desktop');
-  assert.match(help('responsive').querySelector('summary')!.textContent!, /Desktop base/);
-  assert.match(help('responsive').textContent!, /Tablet and Mobile inherit/);
-  assert.ok(r.$('button.rst'), 'desktop reset controls remain available');
-
-  heading.css.t.transform = 'translateY(-2px)';
-  inspect(heading, 'style', 'tablet');
-  assert.match(help('responsive').querySelector('summary')!.textContent!, /Tablet inherits Desktop/);
-  assert.match(help('responsive').textContent!, /does not describe your browser window size/);
-  assert.match(help('responsive').textContent!, /no responsive overrides/,
-    'a non-responsive CSS declaration does not change the responsive scope message');
-  assert.equal(r.$('.rsp')!.tagName, 'SPAN', 'an inherited value is not presented as a reset action');
-
-  heading.css.t['font-size'] = '34px';
-  r.draw(() => <Inspector />);
-  assert.match(help('responsive').querySelector('summary')!.textContent!, /Tablet has overrides/);
-  assert.match(help('responsive').textContent!, /1 responsive override/);
-  assert.ok(r.$('button.rsp[aria-label="Clear Tablet override for Size"]'),
-    'the original field-level override reset remains available');
-});
-
-test('Mobile inherits Tablet before Desktop and only reports its own responsive overrides', () => {
+test('responsive scope stays at the field and reset restores inherited values', () => {
   const heading = C.N('heading');
   heading.css.d['font-size'] = '48px';
   heading.css.t['font-size'] = '34px';
-  heading.css.m['box-shadow'] = '0 4px 12px rgba(0,0,0,.1)';
   inspect(heading, 'style', 'mobile');
-
-  assert.match(help('responsive').querySelector('summary')!.textContent!, /Mobile inherits Tablet, then Desktop/);
-  assert.match(help('responsive').textContent!, /values from Tablet where set, then Desktop for the rest/);
-  assert.match(help('responsive').textContent!, /no responsive overrides/,
-    'a non-responsive Mobile declaration is excluded');
-  const size = r.$('.f input[type="number"]') as HTMLInputElement;
-  assert.equal(size.value, '34', 'the field follows the same Mobile, Tablet, Desktop cascade');
-  assert.equal(r.$('.rsp')!.tagName, 'SPAN', 'an inherited Tablet value has no Mobile reset');
-
+  assert.equal(r.$('.pc-context-help'), null);
+  assert.match(r.$('.pc-responsive-status')!.getAttribute('title')!, /Tablet where set, then Desktop/);
+  assert.equal((r.$('input[type="number"]') as HTMLInputElement).value, '34');
   heading.css.m['font-size'] = '28px';
   r.draw(() => <Inspector />);
-  assert.match(help('responsive').querySelector('summary')!.textContent!, /Mobile has overrides/);
-  assert.match(help('responsive').textContent!, /1 responsive override/);
-  assert.ok(r.$('button.rsp[aria-label="Clear Mobile override for Size"]'));
+  const reset = r.$('button.rsp[aria-label="Clear Mobile override for Size"]')!;
+  assert.ok(reset);
+  r.click(reset);
+  assert.equal(heading.css.m['font-size'], undefined);
+  assert.equal((r.$('input[type="number"]') as HTMLInputElement).value, '34');
 });
 
-test('committing a live Padding edit refreshes help and its badge without remounting the control', () => {
-  const section = C.N('section');
-  inspect(section, 'style', 'tablet');
-  const details = help('responsive');
-  details.open = true;
+test('committing a Padding edit refreshes its badge without remounting the field', () => {
+  inspect(C.N('section'), 'style', 'tablet');
   const spacing = r.$$('.group').find(group => group.querySelector('.gh')?.textContent?.includes('Spacing'))!;
   const top = spacing.querySelector('input[data-field-part="top"]') as HTMLInputElement;
-
-  top.focus();
-  r.type(top, '84');
-  assert.equal(r.$('input[data-field-part="top"]'), top, 'live input keeps the same DOM node');
-  assert.equal(document.activeElement, top, 'live input keeps focus and cursor ownership');
-  assert.match(help('responsive').querySelector('summary')!.textContent!, /Tablet inherits Desktop/,
-    'guidance changes when the edit commits');
-
+  top.focus(); r.type(top, '84');
+  assert.equal(r.$('input[data-field-part="top"]'), top);
+  assert.equal(document.activeElement, top);
   top.blur();
-  assert.equal(r.$('input[data-field-part="top"]'), top, 'commit reconciles the existing input');
-  assert.equal(help('responsive'), details, 'commit preserves the native disclosure element');
-  assert.equal(details.open, true, 'open help stays open across the inspector repaint');
-  assert.match(details.querySelector('summary')!.textContent!, /Tablet has overrides/);
-  assert.match(details.textContent!, /1 responsive override/,
-    'four stored sides belong to one responsive Padding control');
+  assert.equal(r.$('input[data-field-part="top"]'), top);
   const reset = spacing.querySelector('button.rsp[aria-label="Clear Tablet override for Padding"]')!;
-  assert.ok(reset, 'the matching field reset appears on commit');
-
+  assert.ok(reset);
   r.click(reset);
-  assert.match(help('responsive').querySelector('summary')!.textContent!, /Tablet inherits Desktop/);
-  assert.equal(help('responsive').open, true, 'reset also preserves the open disclosure');
   assert.equal(spacing.querySelector('button.rsp[aria-label="Clear Tablet override for Padding"]'), null);
 });
 
-test('CMS source help explains collection scope before field binding and reuses the existing next action', () => {
+test('CMS source controls retain selection, binding and on-demand guidance', () => {
   const section = C.N('section');
   const collection = C.collectionAdd('Projects')!;
   inspect(section, 'advanced');
-
-  let cms = help('cms');
-  assert.match(cms.textContent!, /First choose a collection/);
-  assert.match(cms.textContent!, /Then select something inside/);
-  const panel = cms.closest('.group')!;
-  assert.equal(panel.querySelector('select')!.getAttribute('aria-label'), 'Content source collection');
-  r.pick(panel.querySelector('select')!, collection.id);
+  const select = r.$('select[aria-label="Content source collection"]')!;
+  const panel = select.closest('.group')!;
+  const tip = tipFor(panel.querySelector('.pc-help-trigger')!);
+  assert.equal(tip.hidden, true);
+  assert.match(tip.textContent!, /bind its fields/);
+  r.pick(select, collection.id);
   r.draw(() => <Inspector />);
-
-  cms = help('cms');
-  assert.match(cms.textContent!, /Projects.*sets which items and fields are available/);
-  assert.match(cms.textContent!, /does not replace any content by itself/);
-  const bind = cms.closest('.group')!.querySelector('button.btn.block')!;
-  assert.match(bind.textContent!, /Bind the fields inside/);
-  r.click(bind);
+  r.click(panel.querySelector('button.btn.block')!);
   assert.deepEqual(r.arg('bindModal'), [section.id]);
-});
-
-test('Collection list keeps the same source and binding controls with help at the point of use', () => {
-  const list = C.N('list');
-  C.collectionAdd('Articles');
-  inspect(list);
-  const cms = help('cms');
-  assert.match(cms.textContent!, /First choose the collection whose items this list should repeat/);
-  assert.ok(cms.closest('.f')!.querySelector('select'));
-  assert.match(cms.closest('.group')!.querySelector('.gh')!.textContent!, /Collection list/);
+  assert.equal(section.src, collection.id);
 });

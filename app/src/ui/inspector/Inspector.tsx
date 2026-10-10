@@ -13,7 +13,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Ctl } from './Controls';
-import { ContextHelp } from './ContextHelp';
+import { HelpTip } from '../HelpTip';
 import { MobileMenuBuilder } from './MobileMenuBuilder';
 import type { Control, Node as PcNode } from '../../core/types';
 
@@ -159,13 +159,13 @@ function StylingTarget({ n }: { n: PcNode }) {
   return (
     <Panel title="Styling" n={n} gk={n.type + ':Styling'}>
       <div class="tgrow">
-        <button class={'tg' + (target ? '' : ' on')} onClick={() => pick('')}>This element</button>
+        <button class={'tg' + (target ? '' : ' on')} title="Style this element only" onClick={() => pick('')}>This element</button>
       </div>
       {applied.map(c => {
         const uses = C.classUsage(c.id);
         return (
           <div class="tgrow" key={c.id}>
-            <button class={'tg' + (target === c.id ? ' on' : '')} onClick={() => pick(c.id)}>.{c.id}</button>
+            <button class={'tg' + (target === c.id ? ' on' : '')} title={`Style all ${uses} elements using this class`} onClick={() => pick(c.id)}>.{c.id}</button>
             <small>{uses} use{uses === 1 ? '' : 's'}</small>
             <button class="tgx" title="Remove this class from the element"
               onClick={() => {
@@ -183,9 +183,6 @@ function StylingTarget({ n }: { n: PcNode }) {
         ))}
         <option value="__new">＋ New class from this element…</option>
       </select>
-      <div class="note">{target
-        ? <>Reaches all {C.classUsage(target)} element{C.classUsage(target) === 1 ? '' : 's'} using it.</>
-        : 'This element only.'}</div>
     </Panel>
   );
 }
@@ -330,7 +327,7 @@ function Motion({ n }: { n: PcNode }) {
       <Ctl n={n} c={transitionCtl()} />
 
       <div class="plabel">When it enters the view</div>
-      <div class="f"><label>Animation</label>
+      <div class="f"><label>Animation <HelpTip label="Animation" text="Animations run in Preview and on the published site." /></label>
         <select class="ctl" value={a.name || ''}
           onChange={e => set({ name: (e.target as HTMLSelectElement).value })}>
           <option value="">— none —</option>
@@ -338,7 +335,6 @@ function Motion({ n }: { n: PcNode }) {
             <option key={x} value={x}>{x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
           ))}
         </select>
-        {a.name ? <div class="note">The canvas holds still — use Preview.</div> : null}
       </div>
       {a.name ? (
         <>
@@ -375,6 +371,7 @@ function ContentSource({ n }: { n: PcNode }) {
   const col = n.src ? C.findCollection(n.src) : null;
   return (
     <Panel title="Content source" n={n}>
+      <label>Collection <HelpTip label="Content source" text="Choose a collection, then bind its fields to elements inside this container." /></label>
       <select class="ctl" aria-label="Content source collection" value={n.src || ''}
         onChange={e => {
           const v = (e.target as HTMLSelectElement).value;
@@ -382,7 +379,7 @@ function ContentSource({ n }: { n: PcNode }) {
           /* not "Bound to X" — that is what binding a *field* does, and reusing the
              word here is most of why setting a source reads as though it should have
              changed something on its own */
-          L.toast(v ? C.findCollection(v)!.name + ' is the scope — now bind a field' : 'Content source cleared');
+          L.toast(v ? 'Content source: ' + C.findCollection(v)!.name : 'Content source cleared');
         }}>
         <option value="">— None —</option>
         {C.collections().map(c => (
@@ -393,108 +390,8 @@ function ContentSource({ n }: { n: PcNode }) {
         <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
           onClick={() => L.bindModal(n.id)}><Icon name="cms" size={13} /> Bind the fields inside…</button>
       ) : null}
-      <div class="note">{col
-        ? 'Select something inside, then bind a field to it.'
-        : C.collections().length
-          ? 'Point this at a collection to bind fields inside it.'
-          : <>No collections yet — make one in <b>CMS</b>.</>}</div>
-      <ContextHelp kind="cms" summary="How CMS content works">
-        {col ? <>
-          <p><b>{col.name}</b> sets which items and fields are available inside this container. It does not replace any content by itself.</p>
-          <p>Next, select something inside and use its CMS button to choose a field, or use <b>Bind the fields inside</b> above.</p>
-        </> : <>
-          <p>First choose a collection. That sets which items and fields are available inside this container.</p>
-          <p>Then select something inside and use its CMS button to bind a field.</p>
-        </>}
-      </ContextHelp>
+      {!C.collections().length ? <div class="note">No collections yet. Create one in CMS.</div> : null}
     </Panel>
-  );
-}
-
-const CONTAINER_HELP: Record<string, { summary: string; body: string }> = {
-  section: {
-    summary: 'About this Section',
-    body: 'A Section creates a page-wide region. Set its content width, then place Rows or Boxes inside it.'
-  },
-  row: {
-    summary: 'About this Row and its Columns',
-    body: 'A Row arranges Columns side by side. Add or remove columns here, then set their gap, alignment, wrapping, and width share.'
-  },
-  box: {
-    summary: 'About this Box',
-    body: 'A Box stacks its direct children in normal document order. Use it to group content before adding spacing, decoration, or effects.'
-  },
-  flex: {
-    summary: 'About this Flex container',
-    body: 'A Flex container arranges direct children along one flexible axis. Set direction, alignment, wrapping, and gap on the container.'
-  },
-  grid: {
-    summary: 'About this Grid',
-    body: 'A Grid arranges direct children in tracks. Set the column pattern and gap on the grid; each direct child occupies a grid cell.'
-  }
-};
-
-function LayoutHelp({ n }: { n: PcNode }) {
-  const kind = n.type === 'box'
-    ? n.props.layout === 'grid' ? 'grid' : n.props.layout === 'flex' ? 'flex' : 'box'
-    : n.type;
-  const help = CONTAINER_HELP[kind];
-  return help ? <ContextHelp kind="layout" summary={help.summary}>{help.body}</ContextHelp> : null;
-}
-
-const SHARED_CONTENT_TYPES = new Set(['heading', 'text', 'image', 'button']);
-
-/** Content values on these common elements do not fork by breakpoint. Keep the note narrower
- * than the whole tab: some neighbouring Content controls write responsive CSS. */
-function ContentScopeHint({ n }: { n: PcNode }) {
-  if (C.dk() === 'd' || !SHARED_CONTENT_TYPES.has(n.type)) return null;
-  return (
-    <div class="pc-context-help" data-context-help="content-scope">
-      Text, images and links are shared across screen sizes. Editing them here also updates Desktop.
-    </div>
-  );
-}
-
-const RESPONSIVE_BOX_SIDES = ['top', 'right', 'bottom', 'left'];
-
-/** Count the same responsive values whose device badges can clear them. CSS that always writes
- * to Desktop must not make Tablet or Mobile look overridden merely because a document happens
- * to contain that property in the breakpoint bag. */
-function responsiveOverrideCount(n: PcNode, controls: Control[]) {
-  const bag = C.stRead(C.tgtObj(n))[C.dk()] || {};
-  const seen = new Set<string>();
-  return controls.filter(c => {
-    if (!c.r || !c.c || (c.when && !c.when(n))) return false;
-    const key = c.t + ':' + c.c;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    if (c.paint) return bag[c.c] !== undefined
-      || /^linear-gradient\(/i.test(String(bag['background-image'] || ''))
-      || /^linear-gradient\(/i.test(String(bag.background || ''));
-    return c.t === 'box'
-      ? bag[c.c] !== undefined || RESPONSIVE_BOX_SIDES.some(side => bag[c.c + '-' + side] !== undefined)
-      : bag[c.c] !== undefined;
-  }).length;
-}
-
-function ResponsiveHelp({ n, controls }: { n: PcNode; controls: Control[] }) {
-  const dev = C.dk();
-  if (dev === 'd') return (
-    <ContextHelp kind="responsive" summary="Responsive styles · Desktop base">
-      Desktop is the base for responsive styles. Tablet and Mobile inherit these values until you change a responsive control at those breakpoints.
-    </ContextHelp>
-  );
-  const count = responsiveOverrideCount(n, controls);
-  const label = C.DEV_LABEL[dev];
-  const inheritance = dev === 'm' ? 'Tablet, then Desktop' : 'Desktop';
-  const inheritedValues = dev === 'm' ? 'values from Tablet where set, then Desktop for the rest' : 'Desktop values';
-  return (
-    <ContextHelp kind="responsive" summary={`Responsive styles · ${label} ${count ? 'has overrides' : `inherits ${inheritance}`}`}>
-      {count
-        ? <>{label} has {count} responsive {count === 1 ? 'override' : 'overrides'} in this panel. Other responsive controls use {inheritedValues}.</>
-        : <>{label} has no responsive overrides in this panel. It uses {inheritedValues}. Changing a responsive control creates a {label} override.</>}
-      {' '}The canvas shows the {label} breakpoint; it does not describe your browser window size. Use a lit device badge to clear that field's override.
-    </ContextHelp>
   );
 }
 
@@ -560,8 +457,7 @@ function ComponentProps({ n }: { n: PcNode }) {
         </div>
       )) : (
         <div class="note">
-          Nothing varies between instances yet. Every control that holds a value has a
-          <b> component badge</b> beside its label — press it to make that value a property.
+          No properties yet. <HelpTip label="Component properties" text="Use a control’s component badge to make its value editable on each instance." />
         </div>
       )}
     </Panel>
@@ -617,7 +513,7 @@ function ShowIf({ n }: { n: PcNode }) {
       </div>
       {cur ? (
         <div class="f">
-          <label>Condition</label>
+          <label>Condition <HelpTip label="Condition" text="Hidden items have a dashed outline in the editor and are omitted from the published page." /></label>
           <select value={cur.op} onChange={e => write(key, (e.target as HTMLSelectElement).value,
             cur.value || '')}>
             {C.COND_OPS.map(([op, label]) => <option key={op} value={op}>{label}</option>)}
@@ -627,10 +523,6 @@ function ShowIf({ n }: { n: PcNode }) {
               placeholder="Value to compare"
               onChange={e => write(key, cur.op, (e.target as HTMLInputElement).value)} />
           ) : null}
-          <div class="note">
-            Dashed blue on the canvas when it is not showing for the item you are looking at.
-            Left out of the exported page entirely.
-          </div>
         </div>
       ) : null}
     </>
@@ -644,12 +536,12 @@ function Visibility({ n }: { n: PcNode }) {
         <div class="tog-row" key={b} style={{ marginBottom: 'var(--gap-1)' }}>
           <span><Icon name={DEV_ICON[b]} size={12} /> Hide on {C.DEV_LABEL[b]}</span>
           <button type="button" role="switch" aria-label={`Hide on ${C.DEV_LABEL[b]}`}
+            title="Hidden elements remain selectable in the editor"
             aria-checked={n.hide && n.hide[b] ? 'true' : 'false'}
             class={'sw-tog' + (n.hide && n.hide[b] ? ' on' : '')}
             onClick={() => C.edit(() => { n.hide = n.hide || {}; n.hide[b] = !n.hide[b]; })}><i /></button>
         </div>
       ))}
-      <div class="note">Ghosted on the canvas, so you can still select them.</div>
       <ShowIf n={n} />
     </Panel>
   );
@@ -691,10 +583,6 @@ export function Inspector() {
   const all = C.contentControls(n);
   const keys = L.canStructure() ? null : C.contentKeysOf(n);
   const content = keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all;
-  const styleControls = [
-    ...style,
-    ...C.COMMON_STYLE.filter(group => C.canDo(n, group.cap)).flatMap(group => group.items)
-  ];
   const advanced = advControls(n);
   const many = C.selIds().length > 1;
   const formHandling = n.type === 'form' && C.cloudFormsEnabled()
@@ -730,8 +618,6 @@ export function Inspector() {
       <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
         {tab === 'content' || many ? null : <StatePick />}
-        {tab === 'content' && !many && L.canStructure() ? <LayoutHelp n={n} /> : null}
-        {tab === 'content' && !many ? <ContentScopeHint n={n} /> : null}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
         {tab === 'content' && formHandling ? <p class="note" style="padding:12px">{formHandling.note}</p> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}
@@ -747,14 +633,12 @@ export function Inspector() {
                   properties come from, because the answer is not on this panel. */}
               {n.use
                 ? <div class="note">
-                  Nothing varies between instances yet. Open this component in the
-                  <b> Components</b> tab and mark what should.
+                  No editable properties. <HelpTip label="Component properties" text="Edit the component definition to add properties that vary between instances." />
                 </div>
                 : <div class="note">No content options — use the Style tab.</div>}
             </Panel>
         ) : tab === 'style' ? (
           <>
-            {!many ? <ResponsiveHelp n={n} controls={styleControls} /> : null}
             <StylingTarget n={n} />
             {style.length ? <Group title={d.styleLabel || (n.type === 'box' ? C.nameOf(n) : d.label)} n={n} items={style} /> : null}
             {/* A group appears because the widget declares the capability it belongs to, not
@@ -773,7 +657,6 @@ export function Inspector() {
           </>
         ) : (
           <>
-            {!many ? <ResponsiveHelp n={n} controls={advanced} /> : null}
             <Group title="Identity & layout" n={n} items={advanced} />
             {d.level < 4 ? <ContentSource n={n} /> : null}
             <Visibility n={n} />

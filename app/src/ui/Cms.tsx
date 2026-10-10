@@ -64,8 +64,7 @@ export function Cms() {
 
   const add = async () => {
     if (pending.current) return;
-    const name = await L.askText('New collection', 'Name', 'Projects',
-      { ok: 'Create', note: 'Plural reads best — Projects, Posts, Team.' });
+    const name = await L.askText('New collection', 'Name', 'Projects', { ok: 'Create' });
     if (!name) return;
     if (L.dynamicContentProvider() !== 'pagecraft') {
       let made: { id:string } | null = null;
@@ -100,17 +99,13 @@ export function Cms() {
           <button class="btn primary block" disabled={busy} aria-busy={busy} data-pc-pending={busy ? '' : undefined} onClick={add}>
             {!busy && <Icon name="plus" size={13} />} {busy ? 'Creating…' : 'New collection'}
           </button>
-          <div class="note">Fields, and the items that fill them.</div>
         </div>
       ) : null}
       {list.length
         ? <div style={{ padding: '12px 14px' }}>
           {list.map(c => <CollectionRow key={c.id} col={c} />)}
         </div>
-        : <div class="empty">No collections yet.<br /><br />
-          A <b>Projects</b> collection with a title, a cover and a summary is enough to
-          drive a work grid and a page for every project.
-        </div>}
+        : <div class="empty">No collections yet.{L.canStructure() ? ' Create one to add structured content.' : ''}</div>}
     </>
   );
 }

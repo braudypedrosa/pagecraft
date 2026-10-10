@@ -365,7 +365,7 @@ test('the editor chrome keeps navigation compact and the whole Add library reach
   await new Promise(r => setTimeout(r, 0));
   a.equal(C.state.ui.atab, 'templates');
   a.equal(doc.querySelector('#paneAdd .addSwitcher button[aria-selected="true"]').textContent.trim(), 'Templates');
-  a.match(doc.querySelector('#paneAdd .addContext').textContent, /Ready-made sections/);
+  a.equal(doc.querySelector('#paneAdd .addContext'), null, 'category descriptions do not take up panel space');
   C.state.ui.atab = 'widgets';
   w.renderPalette();
   a.equal(doc.querySelector('#projBtn'), null, 'Project is duplicated in the top bar');

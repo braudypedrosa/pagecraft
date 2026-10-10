@@ -8,6 +8,7 @@
    unbinding is the one thing you still need to do to a bound field. */
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
+import { HelpTip } from '../HelpTip';
 import { bound, writer } from './ctl';
 import type { Control, Node as PcNode } from '../../core/types';
 import { useRef } from 'preact/hooks';
@@ -186,7 +187,9 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
   const dev = C.dk();
   const responsive = !!c.r && !!c.c && dev !== 'd';
   const owns = responsive && ownsValue(n, c);
-  const scopeId = responsive ? `${labelId}-scope` : undefined;
+  const shared = dev !== 'd' && !!c.k && !c.c && C.contentKeysOf(n).has(c.k);
+  const sharedDescription = 'Shared across screen sizes. Editing this content also updates Desktop.';
+  const scopeId = responsive || shared ? `${labelId}-scope` : undefined;
   const scopeDescription = responsive
     ? owns
       ? `${C.DEV_LABEL[dev]} override. Use the device badge to clear it and inherit ${dev === 'm' ? 'Tablet values where set, then Desktop' : 'Desktop values'}.`
@@ -197,12 +200,14 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
   const controls = labelControls(children, c.label || 'Value', labelId, describedBy, '', inputIds);
 
   return (
-    <div class={'f' + (c.layout === 'inline' && c.t !== 'color' && !(bindable && C.bindScope(n.id)) && !pbound && C.state.ui.mode !== 'component' ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId}>
+    <div class={'f' + (c.layout === 'inline' && c.t !== 'color' && !(bindable && C.bindScope(n.id)) && !pbound && C.state.ui.mode !== 'component' ? ' f-inline' : '') + (fid ? ' bound' : '')} role="group" aria-labelledby={labelId} aria-describedby={describedBy}>
       <label for={inputIds[0]}>
         <span id={labelId}>{c.label || ''}</span>
         {c.r ? <ResponsiveBadge n={n} c={c} /> : null}
         {responsive ? <span id={scopeId} class="pc-responsive-status" role="note" title={scopeDescription}
           aria-label={scopeDescription}>{owns ? 'Override' : 'Inherited'}</span> : null}
+        {shared ? <span id={scopeId} class="pc-shared-status" role="note" title={sharedDescription} aria-label={sharedDescription}>Shared</span> : null}
+        {c.note && !fid && !pbound ? <HelpTip label={c.label || 'Field'} text={c.note} id={helpId} /> : null}
         <ResetBadge n={n} c={c} />
         {bindable ? <BindBadge n={n} c={c} /> : null}
         {varies ? <PropBadge n={n} c={c} /> : null}
@@ -212,7 +217,7 @@ export function Field({ n, c, children }: { n: PcNode; c: Control; children?: an
         ? <div id={helpId} class="note">{f ? <>From <b>{f.label}</b> · {scope!.col.name}</> : <>CMS field or source is missing. Reconnect or clear the CMS binding.</>}</div>
         : pbound
           ? <div id={helpId} class="note">Set on each instance — <b>{pbound}</b>.</div>
-          : c.note ? <div id={helpId} class="note">{c.note}</div> : null}
+          : null}
     </div>
   );
 }

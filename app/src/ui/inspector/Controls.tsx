@@ -13,7 +13,7 @@ import { useImageUpload } from '../useImageUpload';
 import { useProcessingAction } from '../useProcessingAction';
 import { valueOf, bound, writer } from './ctl';
 import { ColorPop } from './ColorPop';
-import { ContextHelp } from './ContextHelp';
+import { HelpTip } from '../HelpTip';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
 import type { Control, Node as PcNode, PropBag } from '../../core/types';
@@ -222,13 +222,12 @@ function ToggleCtl({ n, c }: P) {
   const on = !['', '0', 'false'].includes(String(valueOf(n, c) ?? ''));
   const helpId = useId();
   const toggle = <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
-    aria-describedby={c.note ? helpId : undefined}
+    aria-describedby={c.note && !c.k?.startsWith(C.VAL) ? helpId : undefined}
     class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
   return c.k?.startsWith(C.VAL)
     ? <Field n={n} c={c}><div class="tog-row">{toggle}</div></Field>
     : <div class="f">
-        <div class="tog-row"><span>{c.label}</span>{toggle}</div>
-        {c.note ? <div id={helpId} class="note">{c.note}</div> : null}
+        <div class="tog-row"><span>{c.label}{c.note ? <HelpTip label={c.label || 'Field'} text={c.note} id={helpId} /> : null}</span>{toggle}</div>
       </div>;
 }
 
@@ -370,7 +369,7 @@ function BorderCtl({ n }: P) {
   return <div class="borderctl">
     <div class="f">
       <label>
-        <span>Border edge</span>
+        <span>Border edge</span><HelpTip label="Border edge" text="A dot marks an edge with a stored value." />
         {ownsSide(side) ? <button type="button" class="rst" title={'Restore default for ' + sideLabel + ' border'}
           aria-label={'Restore default for ' + sideLabel + ' border'} onClick={reset}>
           <Icon name="reset" size={9} />
@@ -383,7 +382,6 @@ function BorderCtl({ n }: P) {
             onClick={() => setChoice({ nodeId: n.id, side: value })}>{label}</button>
         ))}
       </div>
-      <div class="note">A dot marks an edge with a stored value.</div>
     </div>
     <SelectCtl n={n} c={{
       t: 'select', c: prefix + '-style', label: sideLabel + ' style', r: 1,
@@ -440,7 +438,6 @@ function ImgCtl({ n, c }: P) {
         </button>
       ) : null}
     </div>
-    <div class="note">Exported inline, or as a file beside the page.</div>
   </Field>;
 }
 
@@ -471,6 +468,7 @@ export function Dropzone({ onChoose, onFiles, disabled = false }: {
 }
 
 function SourceCtl({ n, c }: P) {
+  c = { ...c, note: 'Choose a collection, then bind its fields to elements inside this list.' };
   const cur = n.src && C.findCollection(n.src) ? n.src : '';
   const set = (v: string) => {
     C.edit(() => { C.srcSet(n, v); if (!v) n.props.sort = ''; });
@@ -489,15 +487,6 @@ function SourceCtl({ n, c }: P) {
         onClick={() => L.bindModal(n.id)}><Icon name="cms" size={13} /> Bind the fields inside…</button>
     ) : null}
     {C.collections().length ? null : <div class="note">No collections yet — make one in <b>CMS</b>.</div>}
-    <ContextHelp kind="cms" summary="How CMS content works">
-      {cur ? <>
-        <p>The collection supplies the repeated items and makes its fields available inside this list. Choosing it does not replace any content by itself.</p>
-        <p>Next, select something inside and use its CMS button to choose a field, or use <b>Bind the fields inside</b> above.</p>
-      </> : <>
-        <p>First choose the collection whose items this list should repeat.</p>
-        <p>Then select something inside and use its CMS button to bind a field.</p>
-      </>}
-    </ContextHelp>
   </Field>;
 }
 
@@ -508,9 +497,8 @@ function RichCtl({ n, c }: P) {
     {fid
       ? <div class="note">Bound to <b>{(f || { name: 'a missing field' }).name}</b>. Unbind to edit here.</div>
       : <>
-        <button class="btn block"
+        <button class="btn block" title="Edit text here, or double-click it on the canvas"
           onClick={() => L.enterEdit(n.id)}><Icon name="edit" size={13} /> Edit on canvas</button>
-        <div class="note">Or double-click on the canvas.</div>
       </>}
   </Field>;
 }
@@ -559,9 +547,6 @@ function TstyleCtl({ n, c }: P) {
         : <button class="btn"
           onClick={create}><Icon name="plus" size={12} /> Save as text style</button>}
     </div>
-    <div class="note">{cur
-        ? `${used} use${used === 1 ? '' : 's'}. Below overrides this element only.`
-        : 'Save it as a style to reuse it.'}</div>
   </Field>;
 }
 
@@ -682,7 +667,7 @@ function LinkCtl({ n, c }: P) {
     </> : null}
 
     {link.mode === 'item' && scope ? (
-      <div class="note">Each card links to its own page under <b>{scope.col.slug}/</b>.</div>
+      <div class="note">/{scope.col.slug}/&lt;slug&gt;</div>
     ) : null}
 
     {link.mode !== 'none' ? (
@@ -767,7 +752,7 @@ function ColsCtl({ n, c }: P) {
   };
 
   return <div class="f">
-    <label>{c.label || ''}</label>
+    <label>{c.label || ''}<HelpTip label="Columns" text="Drag a gutter on the canvas to adjust column widths." /></label>
     <div class="pick">
       {C.COUNTS.map(k => (
         <button key={k} class={k === count ? 'on' : ''} title={`${k} column${k === 1 ? '' : 's'}`}
@@ -785,9 +770,7 @@ function ColsCtl({ n, c }: P) {
         ))}
       </div>
     </> : null}
-    <div class="note">{count > top
-        ? `${count} columns — set each width individually.`
-        : 'Drag a gutter on the canvas to change the split.'}</div>
+    {count > top ? <div class="note">{count} columns</div> : null}
   </div>;
 }
 

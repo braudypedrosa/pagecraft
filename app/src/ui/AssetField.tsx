@@ -10,6 +10,7 @@
    exactly one writer, so Preact can own it outright. */
 import { C, L } from './ctx';
 import { Icon } from './Icon';
+import { HelpTip } from './HelpTip';
 import { isTemplateImage } from '../core/cms-validation';
 import { useId } from 'preact/hooks';
 import { useImageUpload } from './useImageUpload';
@@ -72,7 +73,7 @@ export function AssetField({ value, note, onChange, disabled = false }: {
           </button>
         ) : null}
       </div>
-      {note ? <div class="note" dangerouslySetInnerHTML={{ __html: note }} /> : null}
+      {note ? <HelpTip label="Image" text={note} /> : null}
     </>
   );
 }

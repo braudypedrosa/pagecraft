@@ -19,6 +19,7 @@ import type { Doc } from '../core/types';
 import type { WebLibrary, WebLibraryAdapter, WebLibraryMember, WebLibraryVersionSummary } from '../host/types';
 import { C, L } from './ctx';
 import { Icon } from './Icon';
+import { HelpTip } from './HelpTip';
 
 /* ---- shared with the Components and Blocks tabs ------------------------ */
 
@@ -168,7 +169,6 @@ function LibraryList({ libs, open }: Props) {
   const create = async () => {
     const name = (await L.askText('New library', 'Name', '', {
       ok: 'Create library',
-      note: 'A library belongs to your account. Publish to it from any site you own, and import from it into any other.',
     }) || '').trim();
     if (!name) return;
     setBusy(true);
@@ -217,10 +217,7 @@ function LibraryList({ libs, open }: Props) {
           </button>
         );
       }) : (
-        <div class="hint">
-          No libraries yet. A library keeps components, blocks and styles that you can import into any
-          site you own, and update there when you choose.
-        </div>
+        <div class="hint">No libraries yet.</div>
       )}
       <button type="button" class="btn block" disabled={busy}
         style={{ marginTop: 'var(--gap-1)', fontSize: 'var(--fs-2)' }} onClick={create}>
@@ -230,7 +227,7 @@ function LibraryList({ libs, open }: Props) {
   );
 }
 
-function Head({ library, back, sub }: { library?: WebLibrary; back: () => void; sub?: string }) {
+function Head({ library, back, sub, help }: { library?: WebLibrary; back: () => void; sub?: string; help?: string }) {
   return (
     <div class="lib-head">
       <button type="button" class="bx lib-back" title="Back" aria-label="Back" onClick={back}>
@@ -240,6 +237,7 @@ function Head({ library, back, sub }: { library?: WebLibrary; back: () => void; 
         <b>{library ? library.name : 'Library'}</b>
         {sub && <small>{sub}</small>}
       </span>
+      {help && <HelpTip label={sub || 'Library'} text={help} />}
     </div>
   );
 }
@@ -380,8 +378,7 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
                 {busy ? 'Importing…' : picked.size ? `Import ${plural(picked.size, 'item')}` : 'Choose items to import'}
               </button>
               <p class="lib-note">
-                Imported items become this site’s own. Whatever they use — nested components, styles,
-                colors and images — comes with them.
+                Imports become site-owned copies; their dependencies come with them.
               </p>
             </>
           ) : (
@@ -407,8 +404,7 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
       ) : (
         <>
           <p class="lib-note">
-            Shared with you by {ownerOf(library)}. You can import from it and take its updates; only
-            they publish new versions.
+            Shared with you by {ownerOf(library)} · they publish updates.
           </p>
           <button type="button" class="btn ghost block" disabled={busy} style={{ fontSize: 'var(--fs-2)' }} onClick={leave}>
             Leave this library
@@ -466,11 +462,8 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
 
   return (
     <>
-      <Head library={library} back={back} sub="Share" />
-      <p class="lib-note">
-        After accepting your invitation, people can import from this library into sites they own and take its updates.
-        Only you publish new versions.
-      </p>
+      <Head library={library} back={back} sub="Share"
+        help="Invited people can import and update. Only you can publish." />
       <form class="lib-share" onSubmit={share}>
         <input class="ctl" type="email" required placeholder="name@example.com" aria-label="Email address"
           value={email} disabled={busy} onInput={e => setEmail((e.currentTarget as HTMLInputElement).value)} />
@@ -575,11 +568,8 @@ function PublishPick({ libs, id, open }: Props & { id: string }) {
 
   return (
     <>
-      <Head library={library} back={back} sub={`Publish version ${next}`} />
-      <p class="lib-note">
-        Version {next} holds exactly what you tick, and whatever that uses. Sites that imported something
-        you leave out keep their copy.
-      </p>
+      <Head library={library} back={back} sub={`Publish version ${next}`}
+        help="Selected items and their dependencies are published. Existing imports keep anything omitted." />
       {GROUPS.map(([kind, label]) => {
         const items = siteList(kind).filter(item => !isFoundation(kind, item.id));
         if (!items.length) return null;
@@ -614,8 +604,7 @@ function PublishPick({ libs, id, open }: Props & { id: string }) {
       </button>
       {chosen.length > 0 && !problems.length && (
         <p class="lib-note">
-          {plural(chosen.length, 'item')}{carried > 0 ? `, plus ${plural(carried, 'thing')} they use` : ''}. The
-          draft is saved first, so the library gets exactly what you see.
+          {plural(chosen.length, 'item')}{carried > 0 ? `, plus ${plural(carried, 'thing')} they use` : ''} · current draft saved first.
         </p>
       )}
     </>
@@ -704,7 +693,7 @@ function UpdateReview({ libs, id, open }: Props & { id: string }) {
           : changes.length ? 'Apply update' : `Mark version ${summary.version} as seen`}
       </button>
       <p class="lib-note">
-        What each placement shows — its text, variant and slot content — is kept. Undo reverses the whole update.
+        Placement content is kept. Undo reverses the update.
       </p>
     </>
   );

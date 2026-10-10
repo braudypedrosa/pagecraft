@@ -11,6 +11,7 @@
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { FontSelect } from './FontSelect';
+import { HelpTip } from './HelpTip';
 import type { TextStyle, Bp } from '../core/types';
 
 let openStyle: string | null = null;
@@ -87,13 +88,18 @@ function Editor({ t }: { t: TextStyle }) {
 
   return (
     <div class="tsedit">
-      <div class="pick" style={{ marginBottom: 'var(--gap-2)' }}>
-        {(['d', 't', 'm'] as Bp[]).map(d => (
-          <button key={d} class={styleDev === d ? 'on' : ''}
-            onClick={() => { styleDev = d; repaint('styles'); }}>
-            <Icon name={DEV_ICON[d]} size={12} /> {C.DEV_LABEL[d]}
-          </button>
-        ))}
+      <div class="pc-label-with-help" style={{ marginBottom: 'var(--gap-2)' }}>
+        <div class="pick" style={{ flex: 1 }}>
+          {(['d', 't', 'm'] as Bp[]).map(d => (
+            <button key={d} class={styleDev === d ? 'on' : ''}
+              onClick={() => { styleDev = d; repaint('styles'); }}>
+              <Icon name={DEV_ICON[d]} size={12} /> {C.DEV_LABEL[d]}
+            </button>
+          ))}
+        </div>
+        <HelpTip label="Responsive text styles" text={styleDev === 'd'
+          ? 'Tablet and Mobile only need values that differ from Desktop.'
+          : 'Empty fields inherit the Desktop value shown as a placeholder.'} />
       </div>
 
       <div class="row2">
@@ -115,8 +121,8 @@ function Editor({ t }: { t: TextStyle }) {
       {/* the tag is a property of the style itself, not of a breakpoint */}
       {styleDev === 'd' ? (
         <div class="f">
-          <label>Default HTML tag <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>
-            — applied when a heading takes this style</span></label>
+          <div class="pc-label-with-help"><label>Default HTML tag</label>
+            <HelpTip label="Default HTML tag" text="Applied when a heading uses this text style." /></div>
           <select class="ctl" value={t.tag || ''}
             onChange={e => {
               L.tx('tstag:' + t.id);
@@ -152,9 +158,6 @@ function Editor({ t }: { t: TextStyle }) {
         </div>
       </div>
 
-      <div class="note">{styleDev === 'd'
-        ? 'The base values. Switch to Tablet or Mobile to override only what differs there.'
-        : 'Only what you set here overrides desktop. Empty fields fall through to the base value shown as a placeholder.'}</div>
     </div>
   );
 }

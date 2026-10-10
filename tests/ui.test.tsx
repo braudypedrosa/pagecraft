@@ -749,12 +749,15 @@ test('the external link control stores a target-neutral WordPress route rather t
   a.ok(picker, 'an indexed target makes the optional picker available');
   const label = r2.$(`label[for="${picker.id}"]`);
   a.equal(label?.textContent, 'WordPress content', 'the picker has a visible programmatic label');
-  a.ok(picker.getAttribute('aria-describedby'), 'ownership guidance is associated with the picker');
+  const helpId = picker.getAttribute('aria-describedby');
+  a.ok(helpId, 'ownership guidance is associated with the picker');
+  const help = document.getElementById(helpId!);
+  a.match(help?.textContent || '', /WordPress owns this content/,
+    'the associated tooltip preserves the ownership boundary');
   a.deepEqual(r2.$$('.wp-link-picker optgroup').map(group => group.getAttribute('label')), [
     'Staging · https://stage.example.test/preview',
     'Production · https://www.example.test'
   ]);
-  a.match(r2.$('.wp-link-picker')!.textContent || '', /editable only in WordPress/);
   a.doesNotMatch(r2.$('.wp-link-picker')!.textContent || '', /Preview-only native/,
     'query-bearing native destinations are not offered because dropping the query would change the link');
 
@@ -770,7 +773,7 @@ test('the external link control stores a target-neutral WordPress route rather t
     'the neutral reference is detected again after editor state reloads');
   a.equal(r2.$('input[aria-label="Custom or external URL"]'), null,
     'an internal typed reference is not exposed as a raw custom scheme');
-  a.equal(r2.$('.wp-link-picker a, .wp-link-picker button'), null,
+  a.equal(r2.$('.wp-link-picker a, .wp-link-picker button:not(.pc-help-trigger)'), null,
     'the catalogue has no native-content edit affordance');
   r2.host.remove();
 });
@@ -844,9 +847,11 @@ test('a toggle explains a setting with accessible helper text', () => {
   r.draw(<Ctl n={n} c={c} />);
 
   const toggle = r.$('.sw-tog')!;
-  const help = r.$('.note')!;
+  const help = document.getElementById(toggle.getAttribute('aria-describedby')!)!;
   a.equal(help.textContent, c.note);
-  a.equal(toggle.getAttribute('aria-describedby'), help.id);
+  a.equal(help.hidden, true, 'guidance stays out of the layout until requested');
+  a.equal(r.$('.note'), null);
+  a.equal(r.$('.pc-help-trigger')!.getAttribute('aria-describedby'), help.id);
 });
 
 /* ------------------------------------------------------------ fan-out through the panel */
