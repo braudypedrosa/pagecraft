@@ -2753,6 +2753,7 @@ function writeNow() {
    is about to consume, and the server correctly calls it stale — so the editor would report
    a conflict it caused itself. */
 let saving = false, saveAgain = false;
+let deliberateReload = false, saveTimer = null;
 
 async function writeServer(opts = {}) {
   if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
@@ -2848,7 +2849,7 @@ function warnStale(info) {
     <span style="flex:1"></span>
     <button class="btn primary" id="stReload">Reload theirs</button>`);
   $('#stBackup').addEventListener('click', event => backupJson(event));
-  $('#stReload').addEventListener('click', () => location.reload());
+  $('#stReload').addEventListener('click', reloadDiscardingChanges);
 }
 
 /* A content account tried to change something structural. Not an error on their part —
@@ -2870,7 +2871,7 @@ function warnContentOnly(info) {
     <span style="flex:1"></span>
     <button class="btn primary" id="coReload">Reload</button>`);
   $('#coBackup').addEventListener('click', event => backupJson(event));
-  $('#coReload').addEventListener('click', () => location.reload());
+  $('#coReload').addEventListener('click', reloadDiscardingChanges);
 }
 
 /* WordPress refused the REST nonce even after a fresh one was asked for, which means the login
@@ -2889,9 +2890,24 @@ function warnSessionExpired() {
     <span style="flex:1"></span>
     <button class="btn primary" id="seReload">Reload</button>`);
   $('#seBackup').addEventListener('click', event => backupJson(event));
-  $('#seReload').addEventListener('click', () => location.reload());
+  $('#seReload').addEventListener('click', reloadDiscardingChanges);
 }
-const saveSoon = dbounce(writeNow, 500);
+/* Recovery dialogs are the one place where leaving is an explicit decision to discard this
+   tab's failed draft. Cancel its queued debounce and suppress both unload guards before asking
+   the browser to reload; otherwise beforeunload keeps the stale tab in place and pagehide can
+   immediately retry the write the person just chose to abandon. */
+function reloadDiscardingChanges() {
+  deliberateReload = true;
+  dirty = false;
+  saveAgain = false;
+  if (saveTimer !== null) clearTimeout(saveTimer);
+  saveTimer = null;
+  location.reload();
+}
+const saveSoon = () => {
+  if (saveTimer !== null) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveTimer = null; writeNow(); }, 500);
+};
 /* Dirty from the moment a save is scheduled, not from when it runs: closing the tab inside that
    half-second is a change the page has to know it has not written yet. */
 const save = () => { dirty = true; saveSoon(); };
@@ -2927,7 +2943,7 @@ const backupJson = event => withAction(event?.currentTarget || null, 'Preparing 
   'application/json'), 'Project backup ready. Download started.', {key:'project-backup', paint:true});
 
 window.addEventListener('beforeunload', e => {
-  if (loadBlocked) return;                 // nothing here was ever going to be saved
+  if (loadBlocked || deliberateReload) return; // explicit recovery owns this navigation
   if (saveState === 'failed' || dirty || saving) { e.preventDefault(); e.returnValue = ''; return ''; }
 });
 /* The last edit before the tab closes is still waiting on the debounce. Write it now: localStorage
@@ -2935,7 +2951,7 @@ window.addEventListener('beforeunload', e => {
    small enough for the browser to allow that, which the transport decides. A bigger one, or one
    behind a save still in flight, is what the prompt above is for. */
 window.addEventListener('pagehide', () => {
-  if (loadBlocked || !dirty || saving) return;
+  if (loadBlocked || deliberateReload || !dirty || saving) return;
   if (SRV) writeServer({ keepalive: true }); else writeNow();
 });
 

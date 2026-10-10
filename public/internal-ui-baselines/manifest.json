@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-10T09:55:07.279Z",
+  "capturedAt": "2026-10-10T10:46:08.283Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "af221849075b452ede05b0b985cb1490ae489fb840ad1a40ec397d19a8d1041b",
+    "builder.html": "396cba90c39a10e86b3a7462fcf02a2883696e176a4eb5a0eecf61d7d824388b",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
     "app/src/ui/CmsWorkspace.tsx": "abd5ed15ae4f4fe5ed3703040cce6d0b99978dcca49f2499b52f0c65d6373267",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
