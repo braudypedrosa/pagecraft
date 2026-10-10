@@ -1453,6 +1453,7 @@ pre.code{
 .review .go{flex:0 0 auto;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--line-2);font-size:var(--fs-2);background:var(--panel)}
 .review .go:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .alert{display:flex;flex-direction:column;gap:var(--sp-3);padding:13px 15px;border-radius:var(--r-md);background:#a8402f0f;border:1px solid #a8402f40}
+.publication-preview-error{margin-bottom:var(--gap-2)}
 .schedule-panel{display:grid;gap:var(--sp-3);padding:var(--sp-4);margin-bottom:var(--sp-4);border:1px solid var(--line);border-radius:var(--r-md)}.schedule-panel h3{margin:0}.schedule-panel .f,.schedule-panel .help{margin:0}.schedule-ack{display:flex;align-items:center;gap:var(--pc-action-gap)}.schedule-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--pc-action-gap)}#scheduleStatus:empty{display:none}.schedule-status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--pc-action-gap)}.schedule-status .help{margin:0;flex:1 1 260px}
 .alert b{font-size:var(--fs-4);color:var(--danger);font-weight:600}
 .alert span{font-size:var(--fs-3);color:var(--text-2);line-height:1.55}
@@ -2424,12 +2425,80 @@ function loadPublicationFrame(frame, source) {
   frame.src = target.href;
 }
 
+function publicationPreviewFailure(error) {
+  const payload = error?.payload && typeof error.payload === 'object' ? error.payload : {};
+  const findings = Array.isArray(payload.findings)
+    ? payload.findings.filter(finding => finding && typeof finding === 'object')
+    : [];
+  const code = String(payload.error || error?.message || '');
+  const validation = error?.status === 422 && (code === 'publication_validation_failed' || findings.length);
+  const problems = findings.filter(finding => finding.level !== 'warn').length;
+  const trustedLocalMessage = !error?.status && code === 'The draft changed while preparing the preview. Create a new preview.'
+    ? code : '';
+  let message;
+  if (trustedLocalMessage) message = trustedLocalMessage;
+  else if (validation && problems) message = 'This draft did not pass publication checks. Fix the problems below, then create a new preview.';
+  else if (validation && findings.length) message = 'This draft needs publication suggestions reviewed. Review them below, then create a new preview.';
+  else if (validation) message = 'This draft did not pass publication checks. Review Site checks, then create a new preview.';
+  else if (error?.status === 401 || error?.status === 403) message = 'Your publishing access could not be confirmed. Refresh Pagecraft and try again.';
+  else if (error?.status) message = 'Pagecraft could not create the publication preview. Try again.';
+  else message = 'Pagecraft could not reach the publishing service. Check your connection and try again.';
+  return { message, findings };
+}
+
+function renderPublicationPreviewFailure(host, failure) {
+  if (!host?.isConnected) return;
+  const location = finding => {
+    const where = finding.where && typeof finding.where === 'object' ? finding.where : {};
+    return [where.page, where.region, where.node].filter(value => typeof value === 'string' && value.trim()).join(' · ');
+  };
+  const canShow = finding => {
+    const where = finding.where && typeof finding.where === 'object' ? finding.where : {};
+    return (typeof where.slug === 'string' && state.pages.some(page => page.slug === where.slug))
+      || (typeof finding.nodeId === 'string' && !!locate(finding.nodeId));
+  };
+  const problems = failure.findings.filter(finding => finding.level !== 'warn').length;
+  const suggestions = failure.findings.length - problems;
+  const summary = [
+    problems ? `${problems} ${problems === 1 ? 'problem' : 'problems'}` : '',
+    suggestions ? `${suggestions} ${suggestions === 1 ? 'suggestion' : 'suggestions'}` : ''
+  ].filter(Boolean).join(' · ');
+  host.innerHTML = `<div class="alert publication-preview-error" role="alert">
+      <b>Publication preview needs attention.</b><span>${esc(failure.message)}</span>
+    </div>
+    ${failure.findings.length ? `<div class="review publication-preview-findings">
+      <div class="rh"><span class="dot ${problems ? 'bad' : 'warn'}"></span><span>${summary}</span></div>
+      <ul>${failure.findings.map((finding, index) => {
+        const message = typeof finding.message === 'string' && finding.message.trim()
+          ? finding.message.trim() : 'A publication check needs attention.';
+        const place = location(finding);
+        const level = finding.level === 'warn' ? 'warn' : 'error';
+        return `<li><span class="lv ${level}"></span><span class="msg">${esc(message)}${place ? `<em>${esc(place)}</em>` : ''}</span>${canShow(finding) ? `<button class="go" type="button" data-publication-finding="${index}">Show me</button>` : ''}</li>`;
+      }).join('')}</ul>
+    </div>` : ''}`;
+  host.querySelectorAll('[data-publication-finding]').forEach(button => button.addEventListener('click', () => {
+    const finding = failure.findings[+button.dataset.publicationFinding];
+    const where = finding?.where && typeof finding.where === 'object' ? finding.where : {};
+    const page = typeof where.slug === 'string' ? state.pages.findIndex(candidate => candidate.slug === where.slug) : -1;
+    if (page > -1) state.cur = page;
+    const mode = {'global header':'header','global footer':'footer'}[where.region] || 'page';
+    state.ui.mode = mode;
+    closeModal(); render();
+    if (typeof finding?.nodeId === 'string' && locate(finding.nodeId)) select(finding.nodeId, {scroll:true});
+    else showPanel('layers');
+  }));
+}
+
 async function preparePublicationReview(button) {
   const action = feedback().begin(button, 'Preparing preview…');
   if (!action) return;
   const host = $('#publicationChanges');
-  if ($('#releasePublish')) $('#releasePublish').disabled = true;
-  if ($('#releaseSchedule')) $('#releaseSchedule').disabled = true;
+  const publish = $('#releasePublish');
+  const schedule = $('#releaseSchedule');
+  if (publish) { publish.disabled = true; publish.onclick = null; }
+  if (schedule) { schedule.disabled = true; schedule.onclick = null; }
+  clearPublicationFrames();
+  if (host?.isConnected) host.innerHTML = '<p role="status">Preparing a new publication preview…</p>';
   try {
     await flushDraft();
     const baseline = JSON.stringify(doc());
@@ -2441,7 +2510,6 @@ async function preparePublicationReview(button) {
     const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
     const groups = [...new Set(reviewed.changes.map(change => change.group))];
     if ($('#exReview')) $('#exReview').hidden = true;
-    clearPublicationFrames();
     host.innerHTML = `<h3>Changes to publish</h3>
       <p class="help">Review of saved version ${esc(reviewed.sourceVersion)}. Publication includes the whole site. Shared changes may affect every page.</p>
       ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : groups.length ? groups.map(group => `<details><summary>${esc(group)}</summary><ul>${reviewed.changes.filter(change => change.group === group).map(change => `<li>${esc(change.label)} · ${esc(change.status)}${change.pages.length ? `<small> — ${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join(' ')}</small>` : ''}</li>`).join('')}</ul></details>`).join('') : '<p>No document changes since the current publication.</p>'}
@@ -2473,13 +2541,15 @@ async function preparePublicationReview(button) {
       else { toast('This page has no output in the reviewed draft. It may have been removed or has no published entries.'); }
     }));
     update();
-    const publish = $('#releasePublish');
     publish.disabled = false; publish.textContent = 'Publish reviewed version';
     publish.onclick = () => publishDraft(publish, reviewed);
-    const schedule = $('#releaseSchedule');
     if (schedule) { schedule.disabled = false; schedule.onclick = () => openSchedulePanel(reviewed); }
     action.success('Review snapshot prepared. Page previews are loading.');
-  } catch (error) { action.error(error.message || 'Could not prepare the preview. Try again.'); }
+  } catch (error) {
+    const failure = publicationPreviewFailure(error);
+    renderPublicationPreviewFailure(host, failure);
+    action.error(failure.message);
+  }
 }
 
 /* Scheduling publishes this exact reviewed version later, and only if nothing newer has been

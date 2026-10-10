@@ -3,8 +3,12 @@ import { JSDOM } from 'jsdom';
 import * as C from '../app/src/core/index';
 
 const windows = [];
+const runtimeErrors = [];
 beforeEach(() => C.blankProject('Mobile menu tests'));
-afterEach(() => { for (const dom of windows.splice(0)) dom.window.close(); });
+afterEach(() => {
+  for (const dom of windows.splice(0)) dom.window.close();
+  expect(runtimeErrors.splice(0), 'menu interactions must not throw').toEqual([]);
+});
 const items = [{ id: 'gardens', label: 'Gardens', href: '#gardens' }, { id: 'courtyard', parentId: 'gardens', label: 'Courtyard', href: '#courtyard' }];
 function menu(props = {}) {
   return C.renderNode(C.N('nav', { aria: 'Primary', items, ...props }), { edit: false });
@@ -13,6 +17,7 @@ function runtime(props = {}) {
   const dom = new JSDOM(`<html style="overflow:clip"><body><header>${menu(props)}</header></body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://example.test/' });
   windows.push(dom);
   const w = dom.window, d = w.document;
+  w.addEventListener('error', event => { runtimeErrors.push(event.message); event.preventDefault(); });
   // Native dialog modality/focus trapping is browser-verified. This shim exposes
   // the standard open/close lifecycle so the nav cleanup can be exercised here.
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true; this.querySelector('button')?.focus(); };
@@ -87,6 +92,27 @@ test('resizing across the collapse breakpoint closes the dialog and desktop cann
   toggle.style.display = 'flex';
   toggle.click();
   expect(dialog().open || dialog().dataset.testOpen === 'true').toBe(true);
+});
+
+test('dropdown navigation closes without a bubbling-click exception and can reopen', () => {
+  const { toggle, list, dialog } = runtime();
+  toggle.click();
+  list.querySelector('a').click();
+  expect(dialog()).toBeNull();
+  toggle.click();
+  expect(dialog().contains(list)).toBe(true);
+  toggle.click();
+  expect(dialog()).toBeNull();
+});
+
+test('fullscreen background click closes while a click inside the panel stays open', () => {
+  const { w, toggle, dialog } = runtime({ mobileMenu: 'fullscreen' });
+  toggle.click();
+  dialog().getBoundingClientRect = () => ({ left: 0, right: 414, top: 0, bottom: 896 });
+  dialog().dispatchEvent(new w.MouseEvent('click', { bubbles: true, clientX: 20, clientY: 100 }));
+  expect(dialog()).not.toBeNull();
+  dialog().dispatchEvent(new w.MouseEvent('click', { bubbles: true, clientX: 500, clientY: 100 }));
+  expect(dialog()).toBeNull();
 });
 
 

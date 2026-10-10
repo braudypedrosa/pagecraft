@@ -122,6 +122,12 @@ export function ColorPop(
   const rgba = mode === 'gradient' ? stops[activeStop] : solid;
   const hsv = C.rgb2hsv(rgba);
   const css = C.fmtColor(rgba);
+  /* The value field is live while it is being typed, then commits on blur. Capture the
+     value at focus time so simply focusing it and closing the popover cannot turn a
+     token reference into its resolved hex value. The dirty flag keeps picker keyboard
+     commits from being committed a second time by that blur. */
+  const fieldFocus = useRef(css);
+  const fieldDirty = useRef(false);
   /* `hue` leads while dragging the square, but a value arriving from the hex field or the
      eyedropper carries its own — so the strip follows rgb whenever rgb has a hue to give. */
   const h = hsv.s > 0.004 && hsv.v > 0.004 ? hsv.h : hue;
@@ -274,12 +280,18 @@ export function ColorPop(
       <div class="cp-foot">
         <input class="ctl cp-val" value={css} spellcheck={false}
           aria-label="Colour value"
+          onFocus={() => { fieldFocus.current = css; fieldDirty.current = false; }}
           onInput={e => {
             const c = C.parseColor((e.target as HTMLInputElement).value);
             if (!c) return;                       /* mid-typing is not an error */
+            fieldDirty.current = true;
             setHue(C.rgb2hsv(c).h); put(c);
           }}
-          onBlur={() => onDone(css)} />
+          onBlur={() => {
+            const changed = css !== fieldFocus.current;
+            if (fieldDirty.current && changed) put(rgba, true);
+            fieldDirty.current = false;
+          }} />
         <span class="cp-pc">{Math.round(rgba.a * 100)}%</span>
       </div>
     </div>

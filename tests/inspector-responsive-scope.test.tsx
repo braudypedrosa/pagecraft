@@ -47,6 +47,27 @@ test('field scope follows Mobile overrides and clearing restores Tablet inherita
   assert.equal((r.$('input') as HTMLInputElement).value, '48');
 });
 
+test('Heading Colour edits only Mobile and clearing restores the inherited Tablet colour', () => {
+  const n = heading();
+  n.css.d.color = C.cvar('ink');
+  n.css.t.color = '#224466';
+  const colour = C.DEF.heading.controls.style.find(c => c.c === 'color')!;
+  r.draw(<Ctl n={n} c={colour} />);
+  r.click(r.$('button[title="Craft Green"]'));
+  r.draw(<Ctl n={n} c={colour} />);
+  assert.equal(r.$('.pc-responsive-status')?.textContent, 'Override');
+  assert.equal(n.css.d.color, C.cvar('ink'));
+  assert.equal(n.css.t.color, '#224466');
+  assert.ok(C.isRef(n.css.m.color));
+  assert.notEqual(n.css.m.color, n.css.d.color);
+
+  r.click(r.$('button.rsp'));
+  r.draw(<Ctl n={n} c={colour} />);
+  assert.equal(n.css.m.color, undefined);
+  assert.equal(r.$('.pc-responsive-status')?.textContent, 'Inherited');
+  assert.equal(C.cssVal(n, 'color', true).v, '#224466');
+});
+
 test('scope follows the targeted class and interaction state, including box sides', () => {
   const n = heading();
   n.css.m['padding-top'] = '10px';

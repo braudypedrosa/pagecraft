@@ -2191,7 +2191,7 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "color", c: "color", label: "Colour", layout: "inline", r: 1 },
         { t: "select", c: "font-weight", label: "Weight", layout: "inline", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
@@ -4466,7 +4466,7 @@ function lint() {
         if (noAlt) add("error", "gallery-no-alt", `${noAlt} of ${tiles.length} image${tiles.length === 1 ? "" : "s"} in a gallery in the ${region} have no alt text. Describe each one.`, w, n.id);
         if (noDim) add("warn", "gallery-no-dimensions", `${noDim} image${noDim === 1 ? "" : "s"} in a gallery in the ${region} have no width/height, so the grid will shift as it loads.`, w, n.id);
       }
-      if (n.type === "heading" && HEADING_TAGS.test(String(n.props.level || "")))
+      if (n.type === "heading" && !n.use && HEADING_TAGS.test(String(n.props.level || "")))
         headings.push({ level: +String(n.props.level)[1], node: n, region });
       if (n.type === "form") {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
@@ -8588,7 +8588,7 @@ function set(o,restore){
   w.classList.add('is-open');b.setAttribute('aria-expanded','true');
   close.addEventListener('click',function(){set(false,true);});
   dialog.addEventListener('cancel',function(e){e.preventDefault();set(false,true);});
-  dialog.addEventListener('click',function(e){var r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))set(false,true);});
+  dialog.addEventListener('click',function(e){if(!dialog||e.target!==dialog)return;var r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)set(false,true);});
   var opened=dialog;
   dialog.addEventListener('close',function(){if(dialog===opened)set(false,true);});
   if(fullscreen)dialog.showModal();
