@@ -6595,6 +6595,11 @@ function dropTree(fresh, intoId) {
 function smartTarget(key) {
   let container = null, index = null;
   const s = state.ui.sel ? locate(state.ui.sel) : null;
+  if (!s && state.ui.mode === "component") {
+    const root = tree()[0] || null;
+    if (root && holds(root.type, key)) return [root, root.children.length];
+    return [null, 0];
+  }
   if (s) {
     let node = s.node, parent = s.parent;
     if (holds(node.type, key)) {
@@ -7335,11 +7340,43 @@ function ensureMobileMenuComponent(n) {
   const base = tokenId(name) || "mobile-menu";
   let id = base, suffix = 2;
   while (findComponent(id)) id = base + "-" + suffix++;
-  const links = (n.props.items || []).map((item) => N(
-    "button",
-    { text: item.label || "Link", link: item.href || HOME },
-    { d: { background: "transparent", color: cvar("text"), "font-size": "22px", "justify-content": "flex-start", padding: "12px 0", border: "0" }, t: {}, m: {} }
-  ));
+  const items = n.props.items || [];
+  const keyed = new Map(items.filter((item) => item.id).map((item) => [String(item.id), item]));
+  const linkNode = (item) => {
+    const button = N("button", {
+      text: item.label || "Link",
+      link: item.href || HOME,
+      target: item.target === "_blank" ? "_blank" : "",
+      rel: item.rel || "",
+      objectType: item.objectType || "",
+      objectId: item.objectId || "",
+      anchor: item.anchor || ""
+    }, { d: { background: "transparent", color: cvar("text"), "font-size": "22px", "justify-content": "flex-start", padding: "12px 0", border: "0" }, t: {}, m: {} });
+    button.adv.cls = String(item.cls || "").trim();
+    return button;
+  };
+  const branches = (parentId, ancestry) => items.filter((item) => {
+    const parent = String(item.parentId || "");
+    if (!parentId) return !parent || !keyed.has(parent);
+    return parent === parentId;
+  }).map((item) => {
+    const itemId = String(item.id || "");
+    if (itemId && ancestry.has(itemId)) return null;
+    const next = new Set(ancestry);
+    if (itemId) next.add(itemId);
+    const descendants = itemId ? branches(itemId, next) : [];
+    if (!descendants.length) return linkNode(item);
+    return N("box", { layout: "flex", tag: "div" }, {
+      d: { "flex-direction": "column", "align-items": "stretch", "flex-wrap": "nowrap" },
+      t: {},
+      m: {}
+    }, [linkNode(item), N("box", { layout: "flex", tag: "div" }, {
+      d: { "flex-direction": "column", "align-items": "stretch", "flex-wrap": "nowrap", "padding-left": "20px" },
+      t: {},
+      m: {}
+    }, descendants)]);
+  }).filter((node2) => !!node2);
+  const links = branches("", /* @__PURE__ */ new Set());
   const node = N(
     "section",
     { tag: "div", width: "full" },
@@ -9246,7 +9283,15 @@ var PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
 var MQ = { t: "@media (max-width:1024px)", m: "@media (max-width:767px)" };
 function decl(map) {
   let out = "";
-  for (const k in map) {
+  const borderRank = (k) => {
+    if (k === "border") return 0;
+    if (/^border-(width|style|color)$/.test(k)) return 1;
+    if (/^border-(top|right|bottom|left)$/.test(k)) return 2;
+    if (/^border-(top|right|bottom|left)-(width|style|color)$/.test(k)) return 3;
+    return 4;
+  };
+  const keys = Object.keys(map).map((k, i) => ({ k, i, rank: borderRank(k) })).sort((a, b) => a.rank - b.rank || a.i - b.i);
+  for (const { k } of keys) {
     const v = map[k];
     if (v === "" || v == null) continue;
     out += `${k}:${v};`;
@@ -9259,6 +9304,7 @@ var nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
 var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
 var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
 var selOf = (n) => "." + nodeClass(n);
+var IMAGE_CONTENT_STYLE = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
 function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   const map = { ...n.css[b] || {} };
   if (n.type === "column") {
@@ -9274,22 +9320,89 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   }
   let extra = "";
   if (n.hide && n.hide[b]) extra = editing ? "opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;" : "display:none !important;";
+  const imageNode = n.type === "image";
+  const wrappedImage = imageNode && !!(n.props.caption || n.props.link);
+  const imageMap = {};
+  if (imageNode) {
+    for (const k of IMAGE_CONTENT_STYLE) {
+      if (map[k] === void 0) continue;
+      imageMap[k] = map[k];
+      if (wrappedImage) delete map[k];
+    }
+    if (map.width) imageMap.width = "100%";
+  }
   const body = decl(map) + extra;
   const rules = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  if (imageNode && decl(imageMap)) {
+    const reset = {};
+    if (imageMap.height !== void 0) reset.height = "auto";
+    if (imageMap["object-fit"] !== void 0) reset["object-fit"] = "initial";
+    if (imageMap["border-radius"] !== void 0) reset["border-radius"] = "0";
+    if (imageMap.opacity !== void 0) reset.opacity = "1";
+    if (imageMap.filter !== void 0) reset.filter = "none";
+    const resetBody = decl(reset);
+    if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure{${resetBody}}`);
+    rules.push(`${selOf(n)} .pagecraft-image{${decl(imageMap)}}`);
+  }
+  if (n.type === "box" && map["flex-wrap"]) {
+    rules.push(`${selOf(n)}.pagecraft-box{flex-wrap:${map["flex-wrap"]}}`);
+  }
   STATES.forEach(([k, , sel]) => {
-    const d = decl(n.st && n.st[k] && n.st[k][b] || {});
+    const stateMap = { ...n.st && n.st[k] && n.st[k][b] || {} };
+    const imageState = {};
+    if (imageNode) for (const prop of IMAGE_CONTENT_STYLE) {
+      if (stateMap[prop] === void 0) continue;
+      imageState[prop] = stateMap[prop];
+      if (wrappedImage) delete stateMap[prop];
+    }
+    const d = decl(stateMap);
     if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+    const imageD = decl(imageState);
+    if (imageD) {
+      const reset = {};
+      if (imageState.height !== void 0) reset.height = "auto";
+      if (imageState["object-fit"] !== void 0) reset["object-fit"] = "initial";
+      if (imageState["border-radius"] !== void 0) reset["border-radius"] = "0";
+      if (imageState.opacity !== void 0) reset.opacity = "1";
+      if (imageState.filter !== void 0) reset.filter = "none";
+      const resetBody = decl(reset);
+      if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure${sel}{${resetBody}}`);
+      rules.push(`${selOf(n)}${sel} .pagecraft-image{${imageD}}`);
+    }
   });
   if (n.type === "text" && map["--link"]) rules.push(`${selOf(n)} a{color:${map["--link"]}}`);
   return rules.join("");
+}
+function inheritedElementPriority(n, b) {
+  const own = n.css && n.css[b] || {};
+  const inherited = b === "t" ? { ...n.css && n.css.d || {} } : { ...n.css && n.css.d || {}, ...n.css && n.css.t || {} };
+  const reusable = [findStyle(n.props.ts), ...nodeClasses(n)].filter(Boolean);
+  const collisions = /* @__PURE__ */ new Set();
+  reusable.forEach((source) => Object.keys(source.css && source.css[b] || {}).forEach((k) => collisions.add(k)));
+  const bridge = {};
+  collisions.forEach((k) => {
+    if ((own[k] === void 0 || own[k] === "") && inherited[k] !== void 0 && inherited[k] !== "") {
+      bridge[k] = inherited[k];
+    }
+  });
+  const wrappedImage = n.type === "image" && !!(n.props.caption || n.props.link);
+  const imageBridge = {};
+  if (wrappedImage) for (const k of IMAGE_CONTENT_STYLE) {
+    if (bridge[k] === void 0) continue;
+    imageBridge[k] = bridge[k];
+    delete bridge[k];
+  }
+  const body = decl(bridge);
+  const imageBody = decl(imageBridge);
+  return (body ? `${selOf(n)}{${body}}` : "") + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : "");
 }
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
   if (n.type === "form" && n.props.fields?.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
     const selector = selOf(n);
-    acc.d += `${selector}.pagecraft-form-percent{display:flex}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
+    acc.d += `${selector}.pagecraft-form-percent{display:var(--f-layout,flex)}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
     for (const [width, columns] of [[50, 2], [33, 3], [25, 4], [20, 5]]) {
       acc.d += `${selector}>.field-width-${width}{flex-basis:calc((100% - var(--f-gap,16px) * ${columns - 1}) / ${columns})}`;
     }
@@ -9305,7 +9418,9 @@ function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) 
     else if (c !== "never") acc.m += navCollapse(n);
   }
   acc.t += bucket(n, "t", editing, parent, detachedComponentRoot);
+  acc.t += inheritedElementPriority(n, "t");
   acc.m += bucket(n, "m", editing, parent, detachedComponentRoot);
+  acc.m += inheritedElementPriority(n, "m");
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
   (n.children || []).forEach((c) => nodeCss(c, editing, acc, n));
   return acc;
@@ -9391,8 +9506,12 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:${m.headFont || "inherit"}}
 .pagecraft-wysiwyg blockquote{margin:1em 0;padding-left:1em;border-left:3px solid currentColor;opacity:.85}
 .pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
+.pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
+.pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
+.pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
 .pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
+.pagecraft-figure>a{display:block;width:100%;max-width:100%}
 .pagecraft-image{display:block;width:100%;height:auto}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
 .pagecraft-slider-box{position:relative;width:100%}
@@ -9489,10 +9608,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   background:var(--tbl-head-bg,transparent);color:var(--tbl-head-text,#111311);
   font-weight:var(--tbl-head-weight,600);border-bottom:2px solid var(--tbl-line,#e5e1d6);
 }
-.pagecraft-table tbody th{font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
+.pagecraft-table tbody th{background:var(--tbl-head-bg,transparent);font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
 .pagecraft-table[data-rules=rows] tbody tr+tr>*{border-top:1px solid var(--tbl-line,#e5e1d6)}
 .pagecraft-table[data-rules=all] th,.pagecraft-table[data-rules=all] td{border:1px solid var(--tbl-line,#e5e1d6)}
-.pagecraft-table[data-zebra] tbody tr:nth-child(even)>*{background:var(--tbl-zebra,#f8f6ef)}
+.pagecraft-table[data-zebra] tbody tr:nth-child(even)>td{background:var(--tbl-zebra,#f8f6ef)}
 .pagecraft-tabs{width:100%}
 .pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
 .pagecraft-tab{
@@ -10045,8 +10164,11 @@ function renderNode(n, o) {
       const ico = p.icon && p.icon !== "none" ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${BICON[p.icon] || ""}</svg>` : "";
       const bhref = pageHref(p.link, o);
       const tag = bhref ? "a" : "button";
-      const attrs = bhref ? `href="${esc(bhref)}"${blank}` : 'type="button"';
-      return `<${tag} ${at} ${cx("pagecraft-button")} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
+      const rel = String(p.rel || "").trim().split(/\s+/).filter(Boolean);
+      if (p.target === "_blank" && !rel.includes("noopener")) rel.push("noopener");
+      const attrs = bhref ? `href="${esc(bhref)}"${p.target === "_blank" ? ' target="_blank"' : ""}${rel.length ? ` rel="${esc(rel.join(" "))}"` : ""}` : 'type="button"';
+      const variant = ["outline", "ghost", "link"].includes(String(p.variant)) ? String(p.variant) : "solid";
+      return `<${tag} ${at} ${cx("pagecraft-button")} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case "nav": {
       const items = Array.isArray(p.items) ? p.items : [];
@@ -10118,13 +10240,19 @@ function renderNode(n, o) {
     }
     case "crumbs": {
       const manual = p.mode === "manual";
-      const trail = manual ? (Array.isArray(p.items) ? p.items : []).map((it, i, all) => ({ label: String(it.label || ""), href: i === all.length - 1 ? "" : String(it.href || "") })) : crumbTrail(o.pg, o, String(p.home == null ? "Home" : p.home));
+      const trail = manual ? (Array.isArray(p.items) ? p.items : []).map((it, i, all) => ({ ...it, label: String(it.label || ""), href: i === all.length - 1 ? "" : String(it.href || "") })) : crumbTrail(o.pg, o, String(p.home == null ? "Home" : p.home));
       if (!trail.length || !manual && o.pg && isFront(o.pg) && trail.length < 2) return o.edit ? `<nav ${at} ${cx("pagecraft-crumbs")}><div class="s-empty">${svg("crumbs", 12)}` + (manual ? " Add a crumb in the panel" : " The front page shows no trail") + "</div></nav>" : "";
       const li = trail.map((c, i) => {
         const last = i === trail.length - 1;
         const label = esc(c.label);
         const href = last ? "" : pageHref(c.href, o);
-        return "<li>" + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${esc(href)}">${label}</a>`) + "</li>";
+        const itemClass = manual ? String(c.cls || "").trim() : "";
+        const cls = itemClass ? ` class="${esc(itemClass)}"` : "";
+        const rel = manual ? String(c.rel || "").trim().split(/\s+/).filter(Boolean) : [];
+        const target = manual && c.target === "_blank" ? ' target="_blank"' : "";
+        if (target && !rel.includes("noopener")) rel.push("noopener");
+        const relationship = rel.length ? ` rel="${esc(rel.join(" "))}"` : "";
+        return `<li${cls}>` + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${esc(href)}"${target}${relationship}>${label}</a>`) + "</li>";
       }).join("");
       return `<nav ${at} ${cx("pagecraft-crumbs")} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || "chevron"))}"><ol>${li}</ol></nav>`;
     }
@@ -10319,7 +10447,8 @@ function set(o,restore){
   var fullscreen=w.dataset.mobileMenu==='fullscreen';
   dialog=document.createElement(fullscreen?'dialog':'div');dialog.className='pagecraft-mobile-menu';
   dialog.dataset.layout=fullscreen?'fullscreen':'dropdown';
-  if(!fullscreen){dialog.setAttribute('popover','manual');dialog.setAttribute('role','navigation');}
+  if(fullscreen){dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');}
+  else{dialog.setAttribute('popover','manual');dialog.setAttribute('role','navigation');}
   dialog.setAttribute('aria-label',(w.getAttribute('aria-label')||'Navigation')+' menu');
   var head=document.createElement('div');head.className='pagecraft-mobile-menu-head';
   var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
@@ -10333,7 +10462,7 @@ function set(o,restore){
   dialog.addEventListener('click',function(e){if(!dialog||e.target!==dialog)return;var r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)set(false,true);});
   var opened=dialog;
   dialog.addEventListener('close',function(){if(dialog===opened)set(false,true);});
-  if(fullscreen)dialog.showModal();
+  if(fullscreen){dialog.showModal();close.focus();}
   else if(dialog.showPopover)dialog.showPopover();
   else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
  }else{
@@ -10343,7 +10472,16 @@ function set(o,restore){
  }
 }
 b.addEventListener('click',function(e){e.stopPropagation();set(!dialog,true);});
-document.addEventListener('keydown',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&e.key==='Escape'){e.preventDefault();set(false,true);}});
+document.addEventListener('keydown',function(e){
+ if(!dialog)return;
+ if(e.key==='Escape'){e.preventDefault();set(false,true);return;}
+ if(dialog.dataset.layout!=='fullscreen'||e.key!=='Tab')return;
+ var focusable=[].slice.call(dialog.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+ if(!focusable.length){e.preventDefault();dialog.focus();return;}
+ var first=focusable[0],last=focusable[focusable.length-1];
+ if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus();}
+});
 document.addEventListener('click',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
 document.addEventListener('focusin',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
 Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
@@ -12998,6 +13136,8 @@ var PC_UI = (() => {
     const [page2, setPage] = d2(0);
     const [busy, setBusy] = d2(false);
     const pending2 = A2(false);
+    const confirming = A2(false);
+    const approvedNavigation = A2(false);
     const [actionLabel, setActionLabel] = d2("");
     const [errors, setErrors] = d2({});
     const [notice, setNotice] = d2("");
@@ -13007,30 +13147,56 @@ var PC_UI = (() => {
     const [viewId, setViewId] = d2("");
     const root = A2(null);
     const dirty = !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
-    const discard = () => !dirty || window.confirm("Discard your unsaved CMS changes?");
-    const leave = () => {
-      if (!busy && discard()) close();
+    const confirm = async (title, message, ok) => {
+      if (pending2.current || confirming.current) return false;
+      confirming.current = true;
+      try {
+        return await L2.askConfirm(title, message, { ok, danger: true });
+      } finally {
+        confirming.current = false;
+      }
+    };
+    const discard = async () => !dirty || await confirm(
+      "Discard unsaved changes?",
+      "Your unsaved CMS changes will be lost.",
+      "Discard changes"
+    );
+    const leave = async () => {
+      if (!busy && !pending2.current && await discard()) close();
     };
     _2(() => {
       const navigate = (event) => {
+        if (approvedNavigation.current) return;
         const target = event.target;
-        if (target.closest("#undoBtn, #redoBtn")) {
-          if (busy || pending2.current || !discard()) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            return;
-          }
-          reset();
-          setNotice("");
-          return;
-        }
-        if (!target.closest("#leftRail button, .topbar button, .topbar a")) return;
-        if (target.closest('#leftRail button[data-t="cms"]') || busy || !discard()) {
+        const history = target.closest("#undoBtn, #redoBtn");
+        const trigger = history || target.closest("#leftRail button, .topbar button, .topbar a");
+        if (!trigger) return;
+        if (target.closest('#leftRail button[data-t="cms"]') || busy || pending2.current || confirming.current) {
           event.preventDefault();
           event.stopImmediatePropagation();
           return;
         }
-        close();
+        if (!dirty) {
+          if (history) {
+            reset();
+            setNotice("");
+          } else close();
+          return;
+        }
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        void discard().then((accepted) => {
+          if (!accepted) return;
+          reset();
+          setNotice("");
+          if (!history) close();
+          approvedNavigation.current = true;
+          try {
+            if (trigger.isConnected) trigger.click();
+          } finally {
+            approvedNavigation.current = false;
+          }
+        });
       };
       document.addEventListener("click", navigate, true);
       return () => document.removeEventListener("click", navigate, true);
@@ -13066,16 +13232,16 @@ var PC_UI = (() => {
       setErrors({});
       setBaseline("");
     };
-    const historyStep = (which) => {
-      if (busy || pending2.current || !discard()) return;
+    const historyStep = async (which) => {
+      if (busy || pending2.current || !await discard()) return;
       reset();
       setNotice("");
       if (which === "undo") C2.undo();
       else C2.redo();
       refresh((n2) => n2 + 1);
     };
-    const openEntry = (item) => {
-      if (pending2.current || !discard()) return;
+    const openEntry = async (item) => {
+      if (pending2.current || !await discard()) return;
       const next = item ? copy(item) : { id: C2.uid(), slug: "", draft: 1, values: {} };
       reset();
       setEntry(next);
@@ -13126,8 +13292,10 @@ var PC_UI = (() => {
         return;
       }
       const old = col.items.find((i3) => i3.id === next.id);
-      if (old && old.slug !== next.slug && !window.confirm(
-        `Change /${col.slug}/${old.slug} to /${col.slug}/${next.slug}? Existing links will stop working; no redirect is created.`
+      if (old && old.slug !== next.slug && !await confirm(
+        "Change this entry URL?",
+        `Change <b>/${esc2(col.slug)}/${esc2(old.slug)}</b> to <b>/${esc2(col.slug)}/${esc2(next.slug)}</b>? Existing links will stop working; no redirect is created.`,
+        "Change URL"
       ))
         return;
       const collections2 = copy(C2.collections());
@@ -13161,8 +13329,10 @@ var PC_UI = (() => {
     };
     const removeEntry = async (item) => {
       if (pending2.current) return;
-      if (!window.confirm(
-        `Delete \u201C${C2.itemTitle(col, item) || item.slug}\u201D? References to this entry will need updating. Its public page is removed on the next site publish.`
+      if (!await confirm(
+        "Delete this entry?",
+        `<b>${esc2(C2.itemTitle(col, item) || item.slug)}</b> will be removed. References to this entry will need updating. Its public page is removed on the next site publish.`,
+        "Delete entry"
       ))
         return;
       const next = copy(C2.collections());
@@ -13340,8 +13510,8 @@ var PC_UI = (() => {
               {
                 class: "btn block " + (c3.id === id ? "primary" : ""),
                 disabled: busy,
-                onClick: () => {
-                  if (discard()) {
+                onClick: async () => {
+                  if (await discard()) {
                     setId(c3.id);
                     setSelected(/* @__PURE__ */ new Set());
                     setViewId("");
@@ -13381,7 +13551,7 @@ var PC_UI = (() => {
                       class: "btn",
                       disabled: busy,
                       onClick: () => {
-                        if (discard()) fileInput.current?.click();
+                        fileInput.current?.click();
                       },
                       children: "Import CSV"
                     }
@@ -13488,8 +13658,8 @@ var PC_UI = (() => {
                           type: "button",
                           class: "btn",
                           disabled: busy,
-                          onClick: () => {
-                            if (discard()) reset();
+                          onClick: async () => {
+                            if (await discard()) reset();
                           },
                           children: "Cancel"
                         }
@@ -13590,9 +13760,11 @@ var PC_UI = (() => {
                               disabled: schema.fields.length === 1,
                               title: "Delete field",
                               "aria-label": "Delete field " + f4.name,
-                              onClick: () => {
-                                if (window.confirm(
-                                  `Delete ${f4.name} and its stored values? ${bindingImpact(id, f4.id)}`
+                              onClick: async () => {
+                                if (await confirm(
+                                  "Delete this field?",
+                                  `Delete <b>${esc2(f4.name)}</b> and its stored values? ${esc2(bindingImpact(id, f4.id))}`,
+                                  "Delete field"
                                 ))
                                   setSchema({
                                     ...schema,
@@ -13668,8 +13840,8 @@ var PC_UI = (() => {
                           class: "btn",
                           type: "button",
                           disabled: busy,
-                          onClick: () => {
-                            if (discard()) reset();
+                          onClick: async () => {
+                            if (await discard()) reset();
                           },
                           children: "Cancel"
                         }
@@ -17554,7 +17726,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             /* @__PURE__ */ u2("select", { class: "ctl", value: String(angle), onChange: (e3) => {
               const next = Number(e3.target.value);
               setAngle(next);
-              gradient?.onDone(gradientCss(stops, next));
+              gradient?.onLive(gradientCss(stops, next));
             }, children: [0, 45, 90, 135, 180, 225, 270, 315].map((value) => /* @__PURE__ */ u2("option", { value, children: [
               value,
               "\xB0"
@@ -17789,12 +17961,35 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const [dragging, setDragging] = d2(null);
     const [dragOver, setDragOver] = d2(null);
     const dragFrom = A2(null);
+    const legacyIds = A2(/* @__PURE__ */ new WeakMap());
+    const usedIds = /* @__PURE__ */ new Set();
+    const itemIds = arr.map((item) => {
+      const stored = String(item.id || "");
+      if (stored && !usedIds.has(stored)) {
+        usedIds.add(stored);
+        return stored;
+      }
+      let id = legacyIds.current.get(item);
+      do {
+        id ||= C2.uid();
+      } while (usedIds.has(id));
+      legacyIds.current.set(item, id);
+      usedIds.add(id);
+      return id;
+    });
     const wordpressTargets = wordpressContentTargets();
     const firstWordPressTarget = wordpressTargets.find((target) => target.items.some((item) => !!wordpressReferenceForItem(target, item))) || null;
     const firstWordPress = firstWordPressTarget?.items.find((item) => !!wordpressReferenceForItem(firstWordPressTarget, item)) || null;
     const firstWordPressReference = firstWordPressTarget && firstWordPress ? wordpressReferenceForItem(firstWordPressTarget, firstWordPress)?.reference || "" : "";
     const commit2 = (k3, prop, value) => C2.edit(() => {
       rows(n2, c3)[k3][prop] = value;
+    });
+    const commitParent = (k3, value) => C2.edit(() => {
+      const items = rows(n2, c3);
+      items.forEach((item, index) => {
+        if (String(item.id || "") !== itemIds[index]) item.id = itemIds[index];
+      });
+      items[k3].parentId = value;
     });
     const commitDestination = (k3, value) => C2.edit(() => {
       const row = rows(n2, c3)[k3];
@@ -17824,10 +18019,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       else if (open !== null && from > open && to <= open) setOpen(open + 1);
     };
     const wouldCreateParentCycle = (itemIndex, candidateIndex) => {
-      const itemId = String(arr[itemIndex]?.id || "");
-      let candidateId = String(arr[candidateIndex]?.id || "");
-      if (!itemId || !candidateId) return true;
-      const byId = new Map(arr.map((item) => [String(item.id || ""), item]));
+      const itemId = itemIds[itemIndex];
+      let candidateId = itemIds[candidateIndex];
+      const byId = new Map(arr.map((item, index) => [itemIds[index], item]));
       const seen = /* @__PURE__ */ new Set();
       while (candidateId && !seen.has(candidateId)) {
         if (candidateId === itemId) return true;
@@ -17960,16 +18154,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                 ] }),
                 /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "cls", placeholder: "featured-link another-class" }),
                 /* @__PURE__ */ u2("label", { children: "Parent item" }),
-                /* @__PURE__ */ u2("select", { class: "ctl", value: it.parentId || "", onChange: (e3) => commit2(k3, "parentId", e3.target.value), children: [
+                /* @__PURE__ */ u2("select", { class: "ctl", value: it.parentId || "", onChange: (e3) => commitParent(k3, e3.target.value), children: [
                   /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
                   arr.map((candidate, index) => index === k3 ? null : /* @__PURE__ */ u2(
                     "option",
                     {
-                      value: candidate.id || "",
-                      disabled: !candidate.id || wouldCreateParentCycle(k3, index),
+                      value: itemIds[index],
+                      disabled: wouldCreateParentCycle(k3, index),
                       children: candidate.label || "Untitled link"
                     },
-                    candidate.id || index
+                    itemIds[index]
                   ))
                 ] }),
                 /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
@@ -18334,22 +18528,27 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function SelectCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const opts = typeof c3.opts === "function" ? c3.opts(n2) : c3.opts || [];
+    const value = String(shown(n2, c3));
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
       "select",
       {
         class: "ctl",
-        value: String(shown(n2, c3)),
+        value,
         disabled: inert(n2, c3),
         onChange: (e3) => w3.hard(e3.target.value),
         children: opts.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
-      }
+      },
+      value
     ) });
   }
   function UnitCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const { n: num, u: parsed } = C2.parseU(valueOf(n2, c3));
     const units = c3.units || ["px"];
-    const u4 = units.includes(parsed) ? parsed : units[0];
+    const resolvedUnit = units.includes(parsed) ? parsed : units[0];
+    const choiceKey = [n2.id, c3.c || c3.k || c3.t, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || ""].join("|");
+    const [choice, setChoice] = d2({ key: choiceKey, unit: resolvedUnit });
+    const u4 = num !== "" ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
     const push = (root) => {
       const numEl = root.querySelector("input");
       const unitEl = root.querySelector("select");
@@ -18377,7 +18576,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           class: "ctl",
           value: u4,
           onChange: (e3) => {
-            push(e3.target.parentElement);
+            const select = e3.target;
+            setChoice({ key: choiceKey, unit: select.value });
+            const root = select.parentElement;
+            if (root.querySelector("input").value.trim()) push(root);
             w3.done();
           },
           children: units.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 || "\u2014" }, x2))
@@ -18389,7 +18591,20 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const w3 = writer(n2, c3);
     const raw = valueOf(n2, c3);
     const v3 = raw === "" || raw == null ? c3.max === 1 ? 1 : c3.min : parseFloat(String(raw));
-    const push = (x2) => w3.live(c3.raw ? String(x2) : x2 + "px");
+    const push = (root, x2) => {
+      if (x2 === "") {
+        w3.live("");
+        return;
+      }
+      const parsed = Number(x2);
+      if (!Number.isFinite(parsed)) return;
+      const clamped = Math.min(c3.max ?? parsed, Math.max(c3.min ?? parsed, parsed));
+      const value = String(clamped);
+      root.querySelectorAll("input").forEach((input) => {
+        input.value = value;
+      });
+      w3.live(c3.raw ? value : value + "px");
+    };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "sld", children: [
       /* @__PURE__ */ u2(
         "input",
@@ -18400,7 +18615,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           max: c3.max,
           step: c3.step,
           value: v3,
-          onInput: (e3) => push(e3.target.value),
+          onInput: (e3) => push(e3.target.parentElement, e3.target.value),
           onChange: w3.done
         }
       ),
@@ -18414,12 +18629,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           max: c3.max,
           step: c3.step,
           value: v3,
-          onInput: (e3) => push(e3.target.value),
+          onInput: (e3) => push(e3.target.parentElement, e3.target.value),
           onBlur: w3.done
         }
       )
     ] }) });
   }
+  var validCssColor = (value) => {
+    const input = value.trim();
+    if (!input || C2.parseColor(input) || C2.isRef(input)) return true;
+    if (/^(?:currentcolor|inherit|initial|unset|revert|revert-layer)$/i.test(input)) return true;
+    const cssApi = window.CSS;
+    if (cssApi?.supports) return cssApi.supports("color", input);
+    const probe = document.createElement("span").style;
+    probe.color = "";
+    probe.color = input;
+    return probe.color !== "";
+  };
   function ColorCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const v3 = String(valueOf(n2, c3) || "");
@@ -18432,6 +18658,19 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const gradientControl = { ...c3, c: /^linear-gradient\(/i.test(shorthandPaint) ? "background" : "background-image", label: "Gradient" };
     const gradientWriter = writer(n2, gradientControl);
     const [pop, setPop] = d2(null);
+    const editKey = [n2.id, c3.c || c3.k || c3.t, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || ""].join("|");
+    const [draft, setDraft] = d2({ key: editKey, value: v3, active: false });
+    const inputValue = draft.key === editKey && draft.active ? draft.value : v3;
+    const inputValid = validCssColor(inputValue);
+    const errorId = g2();
+    const liveColour = (value) => {
+      setDraft({ key: editKey, value, active: false });
+      w3.live(value);
+    };
+    const hardColour = (value) => {
+      setDraft({ key: editKey, value, active: false });
+      w3.hard(value);
+    };
     const addToken = async () => {
       const name = await L2.askText(
         "New colour token",
@@ -18477,10 +18716,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               start: lit || (c3.c ? C2.resolveColor(C2.effectiveAt(n2.id, c3.c)) : ""),
               anchor: pop,
               gradient: c3.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : void 0,
-              onLive: w3.live,
-              onDone: (val) => {
-                w3.hard(val);
-              },
+              onLive: liveColour,
+              onDone: hardColour,
               onClose: () => {
                 w3.done();
                 if (c3.paint) gradientWriter.done();
@@ -18501,7 +18738,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             {
               class: "x",
               title: "Unlink \u2014 keep the colour, drop the link",
-              onClick: () => w3.hard(C2.resolveColor(cur())),
+              onClick: () => hardColour(C2.resolveColor(cur())),
               children: /* @__PURE__ */ u2(Icon, { name: "unlink", size: 11 })
             }
           )
@@ -18510,15 +18747,26 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "input",
             {
               class: "ctl hex",
-              value: v3,
+              value: inputValue,
               placeholder: "inherit",
-              onInput: (e3) => w3.live(e3.target.value.trim()),
-              onBlur: w3.done
+              "aria-invalid": !inputValid ? "true" : void 0,
+              "aria-describedby": !inputValid ? errorId : void 0,
+              onFocus: () => setDraft({ key: editKey, value: v3, active: true }),
+              onInput: (e3) => {
+                const next = e3.target.value.trim();
+                setDraft({ key: editKey, value: next, active: true });
+                if (validCssColor(next)) w3.live(next);
+              },
+              onBlur: () => {
+                if (inputValid) setDraft({ key: editKey, value: inputValue, active: false });
+                w3.done();
+              }
             }
           ),
-          /* @__PURE__ */ u2("button", { class: "x", title: "Clear", onClick: () => w3.hard(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+          /* @__PURE__ */ u2("button", { class: "x", title: "Clear", onClick: () => hardColour(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
         ] })
       ] }),
+      !inputValid ? /* @__PURE__ */ u2("div", { class: "note", id: errorId, role: "alert", children: "Enter a valid colour." }) : null,
       /* @__PURE__ */ u2("div", { class: "toks", children: [
         C2.colors().map((t3) => /* @__PURE__ */ u2(
           "button",
@@ -18526,7 +18774,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             class: "tok" + (tok && tok.id === t3.id ? " on" : ""),
             title: t3.name,
             style: { background: t3.value },
-            onClick: () => w3.hard(C2.cvar(t3.id))
+            onClick: () => hardColour(C2.cvar(t3.id))
           },
           t3.id
         )),
@@ -18762,7 +19010,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const w3 = writer(n2, c3);
     const val = String(valueOf(n2, c3) || "");
     const rawv = c3.bg ? val.replace(/^url\(["']?|["']?\)$/g, "") : val;
-    const ref = rawv.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
+    const assetValue = /^(?:(?:repeating-)?(?:linear|radial|conic)-gradient)\(/i.test(rawv) ? "" : rawv;
+    const ref = assetValue.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
     const a3 = ref ? L2.asset(ref[1]) : null;
     const wrap = (v3) => c3.bg ? v3 ? `url("${v3}")` : "" : v3;
     const use = (id) => {
@@ -18788,10 +19037,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           ] })
         ] }),
         /* @__PURE__ */ u2("button", { class: "x", title: "Remove image", disabled: files.busy, onClick: () => w3.hard(wrap("")), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
-      ] }) : rawv ? /* @__PURE__ */ u2("div", { class: "imgset missing", children: [
+      ] }) : assetValue ? /* @__PURE__ */ u2("div", { class: "imgset missing", children: [
         /* @__PURE__ */ u2("span", { class: "an", children: [
           /* @__PURE__ */ u2("b", { children: "Not in this project" }),
-          /* @__PURE__ */ u2("small", { children: rawv.slice(0, 40) })
+          /* @__PURE__ */ u2("small", { children: assetValue.slice(0, 40) })
         ] }),
         /* @__PURE__ */ u2("button", { class: "x", title: "Clear", disabled: files.busy, onClick: () => w3.hard(wrap("")), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
       ] }) : /* @__PURE__ */ u2(Dropzone, { disabled: files.busy, onChoose: files.choose, onFiles: files.takeFiles }),
@@ -19364,7 +19613,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!id) C2.edit(() => {
         id = C2.ensureMobileMenuComponent(n2).id;
       });
-      if (id) L2.editComponent(id);
+      if (id) {
+        const rootId = C2.findComponent(id)?.node.id;
+        L2.editComponent(id);
+        if (rootId) L2.select(rootId, { scroll: false });
+      }
     };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "f", children: [
@@ -19720,13 +19973,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   });
   function Motion({ n: n2 }) {
     const a3 = n2.anim || {};
-    const set = (patch) => {
-      C2.edit(() => {
-        const next = { ...n2.anim || {}, ...patch };
-        if (!next.name) delete n2.anim;
-        else n2.anim = next;
-      });
+    const apply = (patch) => {
+      const next = { ...n2.anim || {}, ...patch };
+      if (!next.name) delete n2.anim;
+      else n2.anim = next;
+    };
+    const hard = (patch) => {
+      L2.tx(n2.id + "|motion");
+      apply(patch);
+      L2.paint();
+      L2.save();
+      L2.endTx();
       repaint("right");
+    };
+    const live = (k3, value) => {
+      L2.tx(n2.id + "|motion|" + k3);
+      apply({ [k3]: value.trim() });
+      L2.repaint();
     };
     const time = (k3, label, ph) => /* @__PURE__ */ u2("div", { class: "f", children: [
       /* @__PURE__ */ u2("label", { children: label }),
@@ -19736,7 +19999,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           class: "ctl",
           value: a3[k3] || "",
           placeholder: ph,
-          onChange: (e3) => set({ [k3]: e3.target.value.trim() })
+          onInput: (e3) => live(k3, e3.target.value),
+          onBlur: () => {
+            L2.endTx();
+            repaint("right");
+          }
         }
       )
     ] });
@@ -19754,7 +20021,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           {
             class: "ctl",
             value: a3.name || "",
-            onChange: (e3) => set({ name: e3.target.value }),
+            onChange: (e3) => hard({ name: e3.target.value }),
             children: [
               /* @__PURE__ */ u2("option", { value: "", children: "\u2014 none \u2014" }),
               C2.ANIM_NAMES.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2.replace(/-/g, " ").replace(/^./, (c3) => c3.toUpperCase()) }, x2))
@@ -19773,7 +20040,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               class: "ctl",
               value: a3.ease || "",
               placeholder: "ease-in-out",
-              onChange: (e3) => set({ ease: e3.target.value.trim() })
+              onInput: (e3) => live("ease", e3.target.value),
+              onBlur: () => {
+                L2.endTx();
+                repaint("right");
+              }
             }
           )
         ] }),
@@ -19783,7 +20054,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             {
               type: "checkbox",
               checked: !!a3.once,
-              onChange: (e3) => set({ once: e3.target.checked ? 1 : 0 })
+              onChange: (e3) => hard({ once: e3.target.checked ? 1 : 0 })
             }
           ),
           /* @__PURE__ */ u2("span", { children: "Only the first time it comes into view" })
@@ -20036,6 +20307,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const n2 = h3.node, d3 = C2.DEF[n2.type];
     const tab2 = L2.canStructure() ? C2.state.ui.stab : "content";
     const style = d3.controls.style || [];
+    const moduleStyleKeys = new Set(style.flatMap((c3) => c3.c ? ["css:" + c3.c] : c3.k ? ["prop:" + c3.k] : []));
+    const commonStyle = C2.COMMON_STYLE.map((group) => ({
+      ...group,
+      items: group.items.filter((c3) => !moduleStyleKeys.has(c3.c ? "css:" + c3.c : c3.k ? "prop:" + c3.k : ""))
+    }));
     const all = C2.contentControls(n2);
     const keys2 = L2.canStructure() ? null : C2.contentKeysOf(n2);
     const content = keys2 ? all.filter((c3) => !c3.c && !!c3.k && keys2.has(c3.k)) : all;
@@ -20093,7 +20369,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             ] }) : /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [
               /* @__PURE__ */ u2(StylingTarget, { n: n2 }),
               style.length ? /* @__PURE__ */ u2(Group, { title: d3.styleLabel || (n2.type === "box" ? C2.nameOf(n2) : d3.label), n: n2, items: style }) : null,
-              C2.COMMON_STYLE.filter((g3) => C2.canDo(n2, g3.cap)).map((g3) => /* @__PURE__ */ u2(Group, { title: g3.g, n: n2, items: g3.items }, g3.g)),
+              commonStyle.filter((g3) => C2.canDo(n2, g3.cap)).map((g3) => /* @__PURE__ */ u2(Group, { title: g3.g, n: n2, items: g3.items }, g3.g)),
               many || !C2.canDo(n2, "animation") ? null : /* @__PURE__ */ u2(Motion, { n: n2 })
             ] }) : /* @__PURE__ */ u2(S, { children: [
               /* @__PURE__ */ u2(Group, { title: "Identity & layout", n: n2, items: advanced }),
@@ -24925,7 +25201,7 @@ function load() {
       if (!state.meta.tokens) state.meta.tokens = defaultTokens(state.meta);
       state.header = d.header || []; state.footer = d.footer || [];
       state.pages = d.pages;
-      state.cur = 0;
+      state.cur = rememberedPageIndex(state.pages);
       applyWordPressDesignSettings();
       return;
     }
@@ -25707,6 +25983,50 @@ function paintSel() {
   positionHud();
 }
 
+/* ---- element clipboard identity ----------------------------------------
+   Copy is duplication and must receive fresh ids. Cut is a move: retaining the
+   detached subtree's ids keeps form submissions and other identity-backed data
+   attached to the element after it lands somewhere else.
+
+   The flag is set only after a real deletion. A component definition's root cannot
+   be removed (tree() exposes a throwaway one-item list there), so it is refused
+   before touching the clipboard. Before an identity-preserving paste, every held id
+   is checked across pages, shared regions and component definitions. Undo may have
+   restored the old subtree; a conflicting id safely turns that paste into a copy. */
+let elementClipboardCut = false;
+function copyElement(id) {
+  if (!copyNode(id)) return false;
+  elementClipboardCut = false;
+  return true;
+}
+function cutElement(id) {
+  const h = locate(id);
+  if (!h || !canStructure() || (state.ui.mode === 'component' && !h.parent)) return false;
+  if (!copyNode(id)) return false;
+  edit(() => delNode(id));
+  const removed = !h.list.includes(h.node);
+  elementClipboardCut = removed;
+  return removed;
+}
+function clipboardIdsInUse() {
+  if (!clip.node) return false;
+  const ids = new Set();
+  eachNode([clip.node], n => ids.add(n.id));
+  if ([...ids].some(id => locateAny(id))) return true;
+  let found = false;
+  components().forEach(def => eachNode([def.node], n => { if (ids.has(n.id)) found = true; }));
+  return found;
+}
+function pasteElement(intoId) {
+  if (!clip.node) return null;
+  const move = elementClipboardCut && !clipboardIdsInUse();
+  const made = move ? dropTree(clone(clip.node), intoId) : pasteNode(intoId);
+  /* A completed cut becomes an ordinary clipboard copy. Repeated paste must not
+     create duplicate ids; a failed placement remains retryable as the move. */
+  if (made) elementClipboardCut = false;
+  return made;
+}
+
 /* ---- one dispatcher for every element verb -----------------------------
    The HUD bar, the Navigator row, the inspector footer and the context menu all call
    this. Before it, duplicate and delete existed three times over, each with its own
@@ -25719,20 +26039,19 @@ function runAct(act, ids) {
     case 'edit': enterEdit(id); break;
     case 'up': { const h = locate(id); select(h.parent ? h.parent.id : null); break; }
     case 'copy':
-      if (copyNode(id)) toast(kindOf(locate(id).node) + ' copied'
+      if (copyElement(id)) toast(kindOf(locate(id).node) + ' copied'
         + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
     case 'cut': {
-      if (!copyNode(id)) break;
       const label = kindOf(locate(id).node);
-      if (canStructure()) edit(() => delNode(id));
+      if (!cutElement(id)) break;
       toast(label + ' cut' + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
     }
     case 'paste': {
       if (!clip.node) break;
       let made = null;
-      edit(() => { made = pasteNode(id); if (made) selSet([made.id]); });
+      edit(() => { made = pasteElement(id); if (made) selSet([made.id]); });
       toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
       break;
     }
@@ -26212,7 +26531,7 @@ function onDrop(e, fromFrame) {
 }
 
 /* ========================================================= inline editing */
-const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [] };
+const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [], prompt: false };
 
 document.head.insertAdjacentHTML('beforeend', `<style>
 #rt{
@@ -26268,13 +26587,26 @@ function placeRT() {
    dialog takes focus out of it. Save the range, put it back, then run the
    command — otherwise the link lands nowhere. */
 async function linkPrompt() {
+  if (!editing.on || editing.prompt) return;
+  const host = editing.el;
   const sel = cwin.getSelection();
   const saved = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
-  const url = await askText('Add a link', 'Link URL', 'https://', { ok: 'Add link', placeholder: 'https://example.com' });
-  if (!url) return;
-  if (editing.el) editing.el.focus();
-  if (saved) { const s2 = cwin.getSelection(); s2.removeAllRanges(); s2.addRange(saved); }
-  cdoc.execCommand('createLink', false, url);
+  editing.prompt = true;
+  try {
+    const url = await askText('Add a link', 'Link URL', 'https://', { ok: 'Add link', placeholder: 'https://example.com' });
+    if (!editing.on || editing.el !== host || !host.isConnected) return;
+    host.focus();
+    if (saved && host.contains(saved.commonAncestorContainer)) {
+      const selection = cwin.getSelection();
+      selection.removeAllRanges(); selection.addRange(saved);
+    }
+    if (!url) return;
+    cdoc.execCommand('createLink', false, url);
+    // The keyboard shortcut does not pass through the toolbar's sync handler.
+    syncEdit();
+  } finally {
+    editing.prompt = false;
+  }
 }
 $('#rt').addEventListener('mousedown', async e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -26385,7 +26717,8 @@ function exitEdit() {
   paint(); renderRight();
 }
 document.addEventListener('pointerdown', e => {
-  if (editing.on && !e.target.closest('#rt') && !e.target.closest('#canvas')) exitEdit();
+  // Link-dialog pointer events must not destroy the editable host and saved range.
+  if (editing.on && !editing.prompt && !e.target.closest('#rt') && !e.target.closest('#canvas')) exitEdit();
 });
 
 
@@ -27113,6 +27446,21 @@ function backToBuilder() {
   showPanel('layers');
   render();
 }
+// Page selection belongs to this browser tab, not the shared site document.
+function rememberedPageIndex(pages) {
+  try {
+    const id = sessionStorage.getItem('pagecraft.current-page:' + location.pathname);
+    const index = pages.findIndex(p => p.id === id);
+    return index < 0 ? 0 : index;
+  } catch { return 0; }
+}
+function rememberCurrentPage() {
+  try {
+    const id = state.pages[state.cur]?.id;
+    if (id) sessionStorage.setItem('pagecraft.current-page:' + location.pathname, id);
+  } catch { /* Storage can be disabled without blocking the editor. */ }
+}
+
 function openPage(index, settings = false) {
   if (!state.pages[index]) return;
   if (editing.on) exitEdit();
@@ -27176,6 +27524,7 @@ function renderRight() { ui().renderRight(); }
 
 /* =============================================================== chrome */
 function renderModebar() {
+  rememberCurrentPage();
   const s = state.ui.sel ? locate(state.ui.sel) : null;
   const crumbs = [];
   if (s) {
@@ -28615,17 +28964,17 @@ function hotkey(e) {
   }
   const oneDeep = ' — the clipboard holds one element at a time';
   if (meta && k === 'c') {
-    if (state.ui.sel && copyNode(state.ui.sel)) {
+    if (state.ui.sel && copyElement(state.ui.sel)) {
       e.preventDefault();
       toast(kindOf(locate(state.ui.sel).node) + ' copied' + (multiOn() ? oneDeep : ''));
     }
     return;
   }
   if (meta && k === 'x') {
-    if (state.ui.sel && copyNode(state.ui.sel)) {
+    if (state.ui.sel && locate(state.ui.sel)) {
       e.preventDefault();
       const label = kindOf(locate(state.ui.sel).node), many = multiOn();
-      edit(() => delNode(state.ui.sel));
+      if (!cutElement(state.ui.sel)) return;
       toast(label + ' cut' + (many ? oneDeep : ''));
     }
     return;
@@ -28634,7 +28983,7 @@ function hotkey(e) {
     if (!clip.node) return;
     e.preventDefault();
     let made = null;
-    edit(() => { made = pasteNode(state.ui.sel); if (made) selSet([made.id]); });
+    edit(() => { made = pasteElement(state.ui.sel); if (made) selSet([made.id]); });
     toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
     return;
   }

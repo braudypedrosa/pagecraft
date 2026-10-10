@@ -234,7 +234,9 @@ export function ColorPop(
           <label>Angle
             <select class="ctl" value={String(angle)} onChange={e => {
               const next = Number((e.target as HTMLSelectElement).value);
-              setAngle(next); gradient?.onDone(gradientCss(stops, next));
+              /* Keep the popover mounted while selecting an angle. Closing the picker commits
+                 the live transaction through its normal onClose path. */
+              setAngle(next); gradient?.onLive(gradientCss(stops, next));
             }}>
               {[0, 45, 90, 135, 180, 225, 270, 315].map(value => <option key={value} value={value}>{value}°</option>)}
             </select>

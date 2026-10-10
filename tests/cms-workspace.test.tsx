@@ -137,11 +137,11 @@ test('content role sees entry management, not schema or design actions', () => {
 });
 test('cancel warns and does not add an entry', async () => {
   const col = start();
-  vi.spyOn(window, 'confirm').mockReturnValue(true);
+  const confirm = vi.spyOn(L, 'askConfirm').mockResolvedValue(true);
   await click('New entry');
   await act(() => r.type(r.$('#cms-value-title')!, 'Unsaved'));
   await click('Cancel');
-  expect(window.confirm).toHaveBeenCalled();
+  expect(confirm).toHaveBeenCalled();
   expect(col.items).toHaveLength(0);
 });
 

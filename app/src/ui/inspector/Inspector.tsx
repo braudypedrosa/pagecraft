@@ -306,19 +306,30 @@ const transitionCtl = (): Control => ({
 
 function Motion({ n }: { n: PcNode }) {
   const a = n.anim || {};
-  const set = (patch: Record<string, unknown>) => {
-    C.edit(() => {
-      const next = { ...(n.anim || {}), ...patch };
-      /* dropped outright when there is nothing left in it, so a project carries no empty blocks
-         and `animUsed` cannot be fooled by one */
-      if (!next.name) delete n.anim; else n.anim = next as typeof n.anim;
-    });
+  const apply = (patch: Record<string, unknown>) => {
+    const next = { ...(n.anim || {}), ...patch };
+    /* dropped outright when there is nothing left in it, so a project carries no empty blocks
+       and `animUsed` cannot be fooled by one */
+    if (!next.name) delete n.anim; else n.anim = next as typeof n.anim;
+  };
+  const hard = (patch: Record<string, unknown>) => {
+    L.tx(n.id + '|motion');
+    apply(patch);
+    L.paint(); L.save(); L.endTx();
     repaint('right');
+  };
+  const live = (k: 'dur' | 'delay' | 'ease', value: string) => {
+    /* Keep native typing outside C.edit's synchronous full-app render. The document changes
+       immediately; the normal debounced paint/save path closes as one undo step on blur. */
+    L.tx(n.id + '|motion|' + k);
+    apply({ [k]: value.trim() });
+    L.repaint();
   };
   const time = (k: 'dur' | 'delay', label: string, ph: string) => (
     <div class="f"><label>{label}</label>
       <input class="ctl" value={(a as Record<string, string>)[k] || ''} placeholder={ph}
-        onChange={e => set({ [k]: (e.target as HTMLInputElement).value.trim() })} /></div>
+        onInput={e => live(k, (e.target as HTMLInputElement).value)}
+        onBlur={() => { L.endTx(); repaint('right'); }} /></div>
   );
 
   return (
@@ -329,7 +340,7 @@ function Motion({ n }: { n: PcNode }) {
       <div class="plabel">When it enters the view</div>
       <div class="f"><label>Animation <HelpTip label="Animation" text="Animations run in Preview and on the published site." /></label>
         <select class="ctl" value={a.name || ''}
-          onChange={e => set({ name: (e.target as HTMLSelectElement).value })}>
+          onChange={e => hard({ name: (e.target as HTMLSelectElement).value })}>
           <option value="">— none —</option>
           {C.ANIM_NAMES.map(x => (
             <option key={x} value={x}>{x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
@@ -342,10 +353,11 @@ function Motion({ n }: { n: PcNode }) {
           {time('delay', 'Delay', '0s')}
           <div class="f"><label>Easing</label>
             <input class="ctl" value={a.ease || ''} placeholder="ease-in-out"
-              onChange={e => set({ ease: (e.target as HTMLInputElement).value.trim() })} /></div>
+              onInput={e => live('ease', (e.target as HTMLInputElement).value)}
+              onBlur={() => { L.endTx(); repaint('right'); }} /></div>
           <label class="swrow" style={{ marginTop: 'var(--gap-1)' }}>
             <input type="checkbox" checked={!!a.once}
-              onChange={e => set({ once: (e.target as HTMLInputElement).checked ? 1 : 0 })} />
+              onChange={e => hard({ once: (e.target as HTMLInputElement).checked ? 1 : 0 })} />
             <span>Only the first time it comes into view</span>
           </label>
         </>
@@ -572,6 +584,11 @@ export function Inspector() {
      role was known would otherwise render a Style pane with no tab row to leave it by. */
   const tab = L.canStructure() ? C.state.ui.stab : 'content';
   const style = d.controls.style || [];
+  const moduleStyleKeys = new Set(style.flatMap(c => c.c ? ['css:' + c.c] : c.k ? ['prop:' + c.k] : []));
+  const commonStyle = C.COMMON_STYLE.map(group => ({
+    ...group,
+    items: group.items.filter(c => !moduleStyleKeys.has(c.c ? 'css:' + c.c : c.k ? 'prop:' + c.k : ''))
+  }));
   /* The Content tab is not the same line the server draws. It holds a heading's text, and
      also its HTML tag, its text style and its alignment — a tag is structure and the other
      two write CSS, so a content account offered them would be offered a refused save. The
@@ -644,7 +661,7 @@ export function Inspector() {
             {/* A group appears because the widget declares the capability it belongs to, not
                 because a predicate excludes nine widget types by name. A heading has no
                 `decoration`, so there is no Background group to hide controls inside. */}
-            {C.COMMON_STYLE.filter(g => C.canDo(n, g.cap))
+            {commonStyle.filter(g => C.canDo(n, g.cap))
               .map(g => <Group key={g.g} title={g.g} n={n} items={g.items} />)}
             {/* Last, and only for a single selection: motion is one value per element and a
                 group that wrote to several at once would be lying about what it edits.

@@ -56,8 +56,12 @@ function AreaCtl({ n, c }: P) {
 function SelectCtl({ n, c }: P) {
   const w = writer(n, c);
   const opts = typeof c.opts === 'function' ? c.opts(n) : (c.opts || []);
+  const value = String(shown(n, c));
   return <Field n={n} c={c}>
-    <select class="ctl" value={String(shown(n, c))} disabled={inert(n, c)}
+    {/* Native selects may keep their last user-selected option across a re-entrant panel
+        repaint. Keying the controlled leaf to its resolved value makes reset/inheritance
+        readback match the document immediately. */}
+    <select key={value} class="ctl" value={value} disabled={inert(n, c)}
       onChange={e => w.hard((e.target as HTMLSelectElement).value)}>
       {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
     </select>
@@ -74,7 +78,12 @@ function UnitCtl({ n, c }: P) {
      so a typed number was stored as `max-width: 900` — a declaration the browser
      throws away. Falling back to the first unit is what the old markup did by
      accident, and what it has to do on purpose. */
-  const u = units.includes(parsed) ? parsed : units[0];
+  const resolvedUnit = units.includes(parsed) ? parsed : units[0];
+  const choiceKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
+  const [choice, setChoice] = useState({ key: choiceKey, unit: resolvedUnit });
+  /* A unit chosen before a number exists is UI state, not an empty CSS declaration. Keep it
+     until the number makes the pair persist. Changing target or breakpoint starts fresh. */
+  const u = num !== '' ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
   /* the unit is read off the select rather than closed over, so changing either half
      sends the pair — a number with the old unit is a different value */
   const push = (root: HTMLElement) => {
@@ -88,7 +97,13 @@ function UnitCtl({ n, c }: P) {
       <input data-field-part="value" class="ctl" type="number" step={c.step || 1} value={num} placeholder="auto"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={w.done} />
       <select data-field-part="unit" class="ctl" value={u}
-        onChange={e => { push((e.target as HTMLElement).parentElement!); w.done(); }}>
+        onChange={e => {
+          const select = e.target as HTMLSelectElement;
+          setChoice({ key: choiceKey, unit: select.value });
+          const root = select.parentElement!;
+          if ((root.querySelector('input') as HTMLInputElement).value.trim()) push(root);
+          w.done();
+        }}>
         {units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
       </select>
     </div>
@@ -99,16 +114,36 @@ function SliderCtl({ n, c }: P) {
   const w = writer(n, c);
   const raw = valueOf(n, c);
   const v = raw === '' || raw == null ? (c.max === 1 ? 1 : c.min) : parseFloat(String(raw));
-  const push = (x: string) => w.live(c.raw ? String(x) : x + 'px');
+  const push = (root: HTMLElement, x: string) => {
+    if (x === '') { w.live(''); return; }
+    const parsed = Number(x);
+    if (!Number.isFinite(parsed)) return;
+    const clamped = Math.min(c.max ?? parsed, Math.max(c.min ?? parsed, parsed));
+    const value = String(clamped);
+    root.querySelectorAll<HTMLInputElement>('input').forEach(input => { input.value = value; });
+    w.live(c.raw ? value : value + 'px');
+  };
   return <Field n={n} c={c}>
     <div class="sld">
       <input data-field-part="slider" type="range" min={c.min} max={c.max} step={c.step} value={v}
-        onInput={e => push((e.target as HTMLInputElement).value)} onChange={w.done} />
+        onInput={e => push((e.target as HTMLElement).parentElement!, (e.target as HTMLInputElement).value)} onChange={w.done} />
       <input data-field-part="value" class="ctl num" type="number" min={c.min} max={c.max} step={c.step} value={v}
-        onInput={e => push((e.target as HTMLInputElement).value)} onBlur={w.done} />
+        onInput={e => push((e.target as HTMLElement).parentElement!, (e.target as HTMLInputElement).value)} onBlur={w.done} />
     </div>
   </Field>;
 }
+
+const validCssColor = (value: string) => {
+  const input = value.trim();
+  if (!input || C.parseColor(input) || C.isRef(input)) return true;
+  if (/^(?:currentcolor|inherit|initial|unset|revert|revert-layer)$/i.test(input)) return true;
+  const cssApi = window.CSS as { supports?: (property: string, value: string) => boolean } | undefined;
+  if (cssApi?.supports) return cssApi.supports('color', input);
+  const probe = document.createElement('span').style;
+  probe.color = '';
+  probe.color = input;
+  return probe.color !== '';
+};
 
 function ColorCtl({ n, c }: P) {
   const w = writer(n, c);
@@ -128,6 +163,19 @@ function ColorCtl({ n, c }: P) {
      rect, and holding the element is what lets it also tell an outside pointerdown from
      the click that opened it. */
   const [pop, setPop] = useState<HTMLElement | null>(null);
+  const editKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
+  const [draft, setDraft] = useState({ key: editKey, value: v, active: false });
+  const inputValue = draft.key === editKey && draft.active ? draft.value : v;
+  const inputValid = validCssColor(inputValue);
+  const errorId = useId();
+  const liveColour = (value: string) => {
+    setDraft({ key: editKey, value, active: false });
+    w.live(value);
+  };
+  const hardColour = (value: string) => {
+    setDraft({ key: editKey, value, active: false });
+    w.hard(value);
+  };
 
   const addToken = async () => {
     const name = await L.askText('New colour token', 'Colour name', 'Accent',
@@ -162,8 +210,8 @@ function ColorCtl({ n, c }: P) {
            landed back on black, which is the thing it was meant to fix. */
         <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} anchor={pop}
           gradient={c.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : undefined}
-          onLive={w.live}
-          onDone={val => { w.hard(val); }}
+          onLive={liveColour}
+          onDone={hardColour}
           onClose={() => { w.done(); if (c.paint) gradientWriter.done(); setPop(null); if (C.isRef(cur())) repaint('right'); }} />
       ) : null}
       {tok
@@ -172,18 +220,29 @@ function ColorCtl({ n, c }: P) {
             <Icon name="link" size={10} /> {tok.name}
           </span>
           <button class="x" title="Unlink — keep the colour, drop the link"
-            onClick={() => w.hard(C.resolveColor(cur()))}><Icon name="unlink" size={11} /></button>
+            onClick={() => hardColour(C.resolveColor(cur()))}><Icon name="unlink" size={11} /></button>
         </>
         : <>
-          <input class="ctl hex" value={v} placeholder="inherit"
-            onInput={e => w.live((e.target as HTMLInputElement).value.trim())} onBlur={w.done} />
-          <button class="x" title="Clear" onClick={() => w.hard('')}><Icon name="trash" size={11} /></button>
+          <input class="ctl hex" value={inputValue} placeholder="inherit" aria-invalid={!inputValid ? 'true' : undefined}
+            aria-describedby={!inputValid ? errorId : undefined}
+            onFocus={() => setDraft({ key: editKey, value: v, active: true })}
+            onInput={e => {
+              const next = (e.target as HTMLInputElement).value.trim();
+              setDraft({ key: editKey, value: next, active: true });
+              if (validCssColor(next)) w.live(next);
+            }}
+            onBlur={() => {
+              if (inputValid) setDraft({ key: editKey, value: inputValue, active: false });
+              w.done();
+            }} />
+          <button class="x" title="Clear" onClick={() => hardColour('')}><Icon name="trash" size={11} /></button>
         </>}
     </div>
+    {!inputValid ? <div class="note" id={errorId} role="alert">Enter a valid colour.</div> : null}
     <div class="toks">
       {C.colors().map(t => (
         <button key={t.id} class={'tok' + (tok && tok.id === t.id ? ' on' : '')} title={t.name}
-          style={{ background: t.value }} onClick={() => w.hard(C.cvar(t.id))} />
+          style={{ background: t.value }} onClick={() => hardColour(C.cvar(t.id))} />
       ))}
       <button class="tok add" title="Save this colour as a new token" onClick={addToken}>
         <Icon name="plus" size={10} />
@@ -396,7 +455,9 @@ function ImgCtl({ n, c }: P) {
   const w = writer(n, c);
   const val = String(valueOf(n, c) || '');
   const rawv = c.bg ? val.replace(/^url\(["']?|["']?\)$/g, '') : val;
-  const ref = rawv.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
+  /* Gradients share background-image with uploaded paint, but they are not missing media. */
+  const assetValue = /^(?:(?:repeating-)?(?:linear|radial|conic)-gradient)\(/i.test(rawv) ? '' : rawv;
+  const ref = assetValue.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
   const wrap = (v: string) => c.bg ? (v ? `url("${v}")` : '') : v;
 
@@ -420,9 +481,9 @@ function ImgCtl({ n, c }: P) {
         <button class="x" title="Remove image" disabled={files.busy} onClick={() => w.hard(wrap(''))}>
           <Icon name="trash" size={12} /></button>
       </div>
-      : rawv
+      : assetValue
         ? <div class="imgset missing">
-          <span class="an"><b>Not in this project</b><small>{rawv.slice(0, 40)}</small></span>
+          <span class="an"><b>Not in this project</b><small>{assetValue.slice(0, 40)}</small></span>
           <button class="x" title="Clear" disabled={files.busy} onClick={() => w.hard(wrap(''))}>
             <Icon name="trash" size={12} /></button>
         </div>

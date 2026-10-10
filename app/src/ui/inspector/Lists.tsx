@@ -61,6 +61,17 @@ export function ItemsCtl({ n, c }: P) {
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const dragFrom = useRef<number | null>(null);
+  const legacyIds = useRef(new WeakMap<object, string>());
+  const usedIds = new Set<string>();
+  const itemIds = arr.map(item => {
+    const stored = String(item.id || '');
+    if (stored && !usedIds.has(stored)) { usedIds.add(stored); return stored; }
+    let id = legacyIds.current.get(item as object);
+    do { id ||= C.uid(); } while (usedIds.has(id));
+    legacyIds.current.set(item as object, id);
+    usedIds.add(id);
+    return id;
+  });
   const wordpressTargets = wordpressContentTargets();
   const firstWordPressTarget = wordpressTargets.find(target => target.items.some(item =>
     !!wordpressReferenceForItem(target, item))) || null;
@@ -69,6 +80,11 @@ export function ItemsCtl({ n, c }: P) {
   const firstWordPressReference = firstWordPressTarget && firstWordPress
     ? wordpressReferenceForItem(firstWordPressTarget, firstWordPress)?.reference || '' : '';
   const commit = (k: number, prop: string, value: string) => C.edit(() => { rows(n, c)[k][prop] = value; });
+  const commitParent = (k: number, value: string) => C.edit(() => {
+    const items = rows(n, c);
+    items.forEach((item, index) => { if (String(item.id || '') !== itemIds[index]) item.id = itemIds[index]; });
+    items[k].parentId = value;
+  });
   const commitDestination = (k: number, value: string) => C.edit(() => {
     const row = rows(n, c)[k];
     row.href = value;
@@ -97,10 +113,9 @@ export function ItemsCtl({ n, c }: P) {
     else if (open !== null && from > open && to <= open) setOpen(open + 1);
   };
   const wouldCreateParentCycle = (itemIndex: number, candidateIndex: number) => {
-    const itemId = String(arr[itemIndex]?.id || '');
-    let candidateId = String(arr[candidateIndex]?.id || '');
-    if (!itemId || !candidateId) return true;
-    const byId = new Map(arr.map(item => [String(item.id || ''), item]));
+    const itemId = itemIds[itemIndex];
+    let candidateId = itemIds[candidateIndex];
+    const byId = new Map(arr.map((item, index) => [itemIds[index], item]));
     const seen = new Set<string>();
     while (candidateId && !seen.has(candidateId)) {
       if (candidateId === itemId) return true;
@@ -191,11 +206,11 @@ export function ItemsCtl({ n, c }: P) {
           <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class" />
 
           <label>Parent item</label>
-          <select class="ctl" value={it.parentId || ''} onChange={e => commit(k, 'parentId', (e.target as HTMLSelectElement).value)}>
+          <select class="ctl" value={it.parentId || ''} onChange={e => commitParent(k, (e.target as HTMLSelectElement).value)}>
             <option value="">Top level</option>
             {arr.map((candidate, index) => index === k ? null : (
-              <option key={candidate.id || index} value={candidate.id || ''}
-                disabled={!candidate.id || wouldCreateParentCycle(k, index)}>
+              <option key={itemIds[index]} value={itemIds[index]}
+                disabled={wouldCreateParentCycle(k, index)}>
                 {candidate.label || 'Untitled link'}
               </option>
             ))}

@@ -2999,7 +2999,7 @@ function load() {
       if (!state.meta.tokens) state.meta.tokens = defaultTokens(state.meta);
       state.header = d.header || []; state.footer = d.footer || [];
       state.pages = d.pages;
-      state.cur = 0;
+      state.cur = rememberedPageIndex(state.pages);
       applyWordPressDesignSettings();
       return;
     }
@@ -3781,6 +3781,50 @@ function paintSel() {
   positionHud();
 }
 
+/* ---- element clipboard identity ----------------------------------------
+   Copy is duplication and must receive fresh ids. Cut is a move: retaining the
+   detached subtree's ids keeps form submissions and other identity-backed data
+   attached to the element after it lands somewhere else.
+
+   The flag is set only after a real deletion. A component definition's root cannot
+   be removed (tree() exposes a throwaway one-item list there), so it is refused
+   before touching the clipboard. Before an identity-preserving paste, every held id
+   is checked across pages, shared regions and component definitions. Undo may have
+   restored the old subtree; a conflicting id safely turns that paste into a copy. */
+let elementClipboardCut = false;
+function copyElement(id) {
+  if (!copyNode(id)) return false;
+  elementClipboardCut = false;
+  return true;
+}
+function cutElement(id) {
+  const h = locate(id);
+  if (!h || !canStructure() || (state.ui.mode === 'component' && !h.parent)) return false;
+  if (!copyNode(id)) return false;
+  edit(() => delNode(id));
+  const removed = !h.list.includes(h.node);
+  elementClipboardCut = removed;
+  return removed;
+}
+function clipboardIdsInUse() {
+  if (!clip.node) return false;
+  const ids = new Set();
+  eachNode([clip.node], n => ids.add(n.id));
+  if ([...ids].some(id => locateAny(id))) return true;
+  let found = false;
+  components().forEach(def => eachNode([def.node], n => { if (ids.has(n.id)) found = true; }));
+  return found;
+}
+function pasteElement(intoId) {
+  if (!clip.node) return null;
+  const move = elementClipboardCut && !clipboardIdsInUse();
+  const made = move ? dropTree(clone(clip.node), intoId) : pasteNode(intoId);
+  /* A completed cut becomes an ordinary clipboard copy. Repeated paste must not
+     create duplicate ids; a failed placement remains retryable as the move. */
+  if (made) elementClipboardCut = false;
+  return made;
+}
+
 /* ---- one dispatcher for every element verb -----------------------------
    The HUD bar, the Navigator row, the inspector footer and the context menu all call
    this. Before it, duplicate and delete existed three times over, each with its own
@@ -3793,20 +3837,19 @@ function runAct(act, ids) {
     case 'edit': enterEdit(id); break;
     case 'up': { const h = locate(id); select(h.parent ? h.parent.id : null); break; }
     case 'copy':
-      if (copyNode(id)) toast(kindOf(locate(id).node) + ' copied'
+      if (copyElement(id)) toast(kindOf(locate(id).node) + ' copied'
         + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
     case 'cut': {
-      if (!copyNode(id)) break;
       const label = kindOf(locate(id).node);
-      if (canStructure()) edit(() => delNode(id));
+      if (!cutElement(id)) break;
       toast(label + ' cut' + (many ? ' — the clipboard holds one element at a time' : ''));
       break;
     }
     case 'paste': {
       if (!clip.node) break;
       let made = null;
-      edit(() => { made = pasteNode(id); if (made) selSet([made.id]); });
+      edit(() => { made = pasteElement(id); if (made) selSet([made.id]); });
       toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
       break;
     }
@@ -4286,7 +4329,7 @@ function onDrop(e, fromFrame) {
 }
 
 /* ========================================================= inline editing */
-const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [] };
+const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [], prompt: false };
 
 document.head.insertAdjacentHTML('beforeend', `<style>
 #rt{
@@ -4342,13 +4385,26 @@ function placeRT() {
    dialog takes focus out of it. Save the range, put it back, then run the
    command — otherwise the link lands nowhere. */
 async function linkPrompt() {
+  if (!editing.on || editing.prompt) return;
+  const host = editing.el;
   const sel = cwin.getSelection();
   const saved = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
-  const url = await askText('Add a link', 'Link URL', 'https://', { ok: 'Add link', placeholder: 'https://example.com' });
-  if (!url) return;
-  if (editing.el) editing.el.focus();
-  if (saved) { const s2 = cwin.getSelection(); s2.removeAllRanges(); s2.addRange(saved); }
-  cdoc.execCommand('createLink', false, url);
+  editing.prompt = true;
+  try {
+    const url = await askText('Add a link', 'Link URL', 'https://', { ok: 'Add link', placeholder: 'https://example.com' });
+    if (!editing.on || editing.el !== host || !host.isConnected) return;
+    host.focus();
+    if (saved && host.contains(saved.commonAncestorContainer)) {
+      const selection = cwin.getSelection();
+      selection.removeAllRanges(); selection.addRange(saved);
+    }
+    if (!url) return;
+    cdoc.execCommand('createLink', false, url);
+    // The keyboard shortcut does not pass through the toolbar's sync handler.
+    syncEdit();
+  } finally {
+    editing.prompt = false;
+  }
 }
 $('#rt').addEventListener('mousedown', async e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -4459,7 +4515,8 @@ function exitEdit() {
   paint(); renderRight();
 }
 document.addEventListener('pointerdown', e => {
-  if (editing.on && !e.target.closest('#rt') && !e.target.closest('#canvas')) exitEdit();
+  // Link-dialog pointer events must not destroy the editable host and saved range.
+  if (editing.on && !editing.prompt && !e.target.closest('#rt') && !e.target.closest('#canvas')) exitEdit();
 });
 
 
@@ -5187,6 +5244,21 @@ function backToBuilder() {
   showPanel('layers');
   render();
 }
+// Page selection belongs to this browser tab, not the shared site document.
+function rememberedPageIndex(pages) {
+  try {
+    const id = sessionStorage.getItem('pagecraft.current-page:' + location.pathname);
+    const index = pages.findIndex(p => p.id === id);
+    return index < 0 ? 0 : index;
+  } catch { return 0; }
+}
+function rememberCurrentPage() {
+  try {
+    const id = state.pages[state.cur]?.id;
+    if (id) sessionStorage.setItem('pagecraft.current-page:' + location.pathname, id);
+  } catch { /* Storage can be disabled without blocking the editor. */ }
+}
+
 function openPage(index, settings = false) {
   if (!state.pages[index]) return;
   if (editing.on) exitEdit();
@@ -5250,6 +5322,7 @@ function renderRight() { ui().renderRight(); }
 
 /* =============================================================== chrome */
 function renderModebar() {
+  rememberCurrentPage();
   const s = state.ui.sel ? locate(state.ui.sel) : null;
   const crumbs = [];
   if (s) {
@@ -6689,17 +6762,17 @@ function hotkey(e) {
   }
   const oneDeep = ' — the clipboard holds one element at a time';
   if (meta && k === 'c') {
-    if (state.ui.sel && copyNode(state.ui.sel)) {
+    if (state.ui.sel && copyElement(state.ui.sel)) {
       e.preventDefault();
       toast(kindOf(locate(state.ui.sel).node) + ' copied' + (multiOn() ? oneDeep : ''));
     }
     return;
   }
   if (meta && k === 'x') {
-    if (state.ui.sel && copyNode(state.ui.sel)) {
+    if (state.ui.sel && locate(state.ui.sel)) {
       e.preventDefault();
       const label = kindOf(locate(state.ui.sel).node), many = multiOn();
-      edit(() => delNode(state.ui.sel));
+      if (!cutElement(state.ui.sel)) return;
       toast(label + ' cut' + (many ? oneDeep : ''));
     }
     return;
@@ -6708,7 +6781,7 @@ function hotkey(e) {
     if (!clip.node) return;
     e.preventDefault();
     let made = null;
-    edit(() => { made = pasteNode(state.ui.sel); if (made) selSet([made.id]); });
+    edit(() => { made = pasteElement(state.ui.sel); if (made) selSet([made.id]); });
     toast(made ? kindOf(made) + ' pasted' : 'A ' + kindOf(clip.node) + ' cannot go there');
     return;
   }

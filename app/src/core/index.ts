@@ -3663,6 +3663,14 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
 function smartTarget(key: WidgetType): [PcNode | null, number] {
   let container: PcNode | null = null, index: number | null = null;
   const s = state.ui.sel ? locate(state.ui.sel) : null;
+  /* A component editor has one fixed root and deliberately refuses insertions at its
+     throwaway array root. With no selection, use that editable root when it can contain the
+     requested element; this makes Add work on first open without weakening the root guard. */
+  if (!s && state.ui.mode === 'component') {
+    const root = tree()[0] || null;
+    if (root && holds(root.type, key)) return [root, root.children.length];
+    return [null, 0];
+  }
   if (s) {
     let node = s.node, parent = s.parent;
     if (holds(node.type, key)) { container = node; index = node.children.length; }
@@ -4640,8 +4648,35 @@ function ensureMobileMenuComponent(n: PcNode): ComponentDef {
   const base = tokenId(name) || 'mobile-menu';
   let id = base, suffix = 2;
   while (findComponent(id)) id = base + '-' + suffix++;
-  const links = ((n.props.items || []) as NavItem[]).map(item => N('button', { text: item.label || 'Link', link: item.href || HOME },
-    { d: { background: 'transparent', color: cvar('text'), 'font-size': '22px', 'justify-content': 'flex-start', padding: '12px 0', border: '0' }, t: {}, m: {} }));
+  const items = (n.props.items || []) as NavItem[];
+  const keyed = new Map(items.filter(item => item.id).map(item => [String(item.id), item]));
+  const linkNode = (item: NavItem) => {
+    const button = N('button', {
+      text: item.label || 'Link', link: item.href || HOME,
+      target: item.target === '_blank' ? '_blank' : '', rel: item.rel || '',
+      objectType: item.objectType || '', objectId: item.objectId || '', anchor: item.anchor || ''
+    }, { d: { background: 'transparent', color: cvar('text'), 'font-size': '22px', 'justify-content': 'flex-start', padding: '12px 0', border: '0' }, t: {}, m: {} });
+    button.adv.cls = String(item.cls || '').trim();
+    return button;
+  };
+  const branches = (parentId: string, ancestry: Set<string>): PcNode[] => items.filter(item => {
+    const parent = String(item.parentId || '');
+    if (!parentId) return !parent || !keyed.has(parent);
+    return parent === parentId;
+  }).map(item => {
+    const itemId = String(item.id || '');
+    if (itemId && ancestry.has(itemId)) return null;
+    const next = new Set(ancestry);
+    if (itemId) next.add(itemId);
+    const descendants = itemId ? branches(itemId, next) : [];
+    if (!descendants.length) return linkNode(item);
+    return N('box', { layout: 'flex', tag: 'div' }, {
+      d: { 'flex-direction': 'column', 'align-items': 'stretch', 'flex-wrap': 'nowrap' }, t: {}, m: {}
+    }, [linkNode(item), N('box', { layout: 'flex', tag: 'div' }, {
+      d: { 'flex-direction': 'column', 'align-items': 'stretch', 'flex-wrap': 'nowrap', 'padding-left': '20px' }, t: {}, m: {}
+    }, descendants)]);
+  }).filter((node): node is PcNode => !!node);
+  const links = branches('', new Set());
   const node = N('section', { tag: 'div', width: 'full' },
     { d: { padding: '16px 0', background: 'transparent' }, t: {}, m: {} },
     [N('row', {}, {}, [N('column', {}, {}, links)])]);
@@ -6504,7 +6539,19 @@ const MQ = { t: '@media (max-width:1024px)', m: '@media (max-width:767px)' };
 
 function decl(map: Decls) {
   let out = '';
-  for (const k in map) {
+  /* CSS preserves declaration order. Broad border declarations must precede their
+     edge-specific counterparts regardless of when the inspector first created each key;
+     otherwise a later `border-width` silently resets an earlier `border-left-width`. */
+  const borderRank = (k: string) => {
+    if (k === 'border') return 0;
+    if (/^border-(width|style|color)$/.test(k)) return 1;
+    if (/^border-(top|right|bottom|left)$/.test(k)) return 2;
+    if (/^border-(top|right|bottom|left)-(width|style|color)$/.test(k)) return 3;
+    return 4;
+  };
+  const keys = Object.keys(map).map((k, i) => ({ k, i, rank: borderRank(k) }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i);
+  for (const { k } of keys) {
     const v = map[k];
     if (v === '' || v == null) continue;
     out += `${k}:${v};`;
@@ -6520,6 +6567,8 @@ const nodeClass = (n: PcNode) => PFX + String(n.id).replace(/^n/, '');
 const autoId = (n: PcNode) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, '')}`;
 const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);
 const selOf = (n: PcNode) => '.' + nodeClass(n);
+
+const IMAGE_CONTENT_STYLE = new Set(['height', 'object-fit', 'border-radius', 'opacity', 'filter']);
 
 /* per-node CSS for one breakpoint bucket */
 function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null,
@@ -6547,17 +6596,98 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
   }
   let extra = '';
   if (n.hide && n.hide[b]) extra = editing ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;' : 'display:none !important;';
+  /* A caption or link adds semantic wrappers. Layout and spacing stay on that wrapper while
+     the pixels-only image controls land on the image itself. This keeps captions in flow and
+     prevents an authored image height from clipping or stretching the figure. */
+  const imageNode = n.type === 'image';
+  const wrappedImage = imageNode && !!(n.props.caption || n.props.link);
+  const imageMap: Decls = {};
+  if (imageNode) {
+    for (const k of IMAGE_CONTENT_STYLE) {
+      if (map[k] === undefined) continue;
+      imageMap[k] = map[k];
+      if (wrappedImage) delete map[k];
+    }
+    if (map.width) imageMap.width = '100%';
+  }
   const body = decl(map) + extra;
   const rules: string[] = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  if (imageNode && decl(imageMap)) {
+    const reset: Decls = {};
+    if (imageMap.height !== undefined) reset.height = 'auto';
+    if (imageMap['object-fit'] !== undefined) reset['object-fit'] = 'initial';
+    if (imageMap['border-radius'] !== undefined) reset['border-radius'] = '0';
+    if (imageMap.opacity !== undefined) reset.opacity = '1';
+    if (imageMap.filter !== undefined) reset.filter = 'none';
+    const resetBody = decl(reset);
+    if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure{${resetBody}}`);
+    rules.push(`${selOf(n)} .pagecraft-image{${decl(imageMap)}}`);
+  }
+  /* `.pagecraft-box.l-flex` supplies the default wrap behavior with two classes. Match that
+     specificity so the selected per-node value can override it at every breakpoint. */
+  if (n.type === 'box' && map['flex-wrap']) {
+    rules.push(`${selOf(n)}.pagecraft-box{flex-wrap:${map['flex-wrap']}}`);
+  }
   /* after the base rule, and `:hover` outranks the bare class anyway, so a state wins on
      specificity as well as on order */
   STATES.forEach(([k, , sel]) => {
-    const d = decl((n.st && n.st[k] && n.st[k]![b]) || {});
+    const stateMap = { ...((n.st && n.st[k] && n.st[k]![b]) || {}) };
+    const imageState: Decls = {};
+    if (imageNode) for (const prop of IMAGE_CONTENT_STYLE) {
+      if (stateMap[prop] === undefined) continue;
+      imageState[prop] = stateMap[prop];
+      if (wrappedImage) delete stateMap[prop];
+    }
+    const d = decl(stateMap);
     if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+    const imageD = decl(imageState);
+    if (imageD) {
+      const reset: Decls = {};
+      if (imageState.height !== undefined) reset.height = 'auto';
+      if (imageState['object-fit'] !== undefined) reset['object-fit'] = 'initial';
+      if (imageState['border-radius'] !== undefined) reset['border-radius'] = '0';
+      if (imageState.opacity !== undefined) reset.opacity = '1';
+      if (imageState.filter !== undefined) reset.filter = 'none';
+      const resetBody = decl(reset);
+      if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure${sel}{${resetBody}}`);
+      rules.push(`${selOf(n)}${sel} .pagecraft-image{${imageD}}`);
+    }
   });
   if (n.type === 'text' && map['--link']) rules.push(`${selOf(n)} a{color:${map['--link']}}`);
   return rules.join('');
+}
+
+/** A narrower reusable-style rule appears in a later media block and can otherwise outrank
+ * an element value inherited from a wider breakpoint. Re-assert only colliding inherited
+ * element properties after reusable rules, at their normal specificity. Equal specificity is
+ * deliberate: an explicit element value in the still-narrower media block must remain able to
+ * override this bridge by source order. Wrapped images keep pixel styling on their inner img. */
+function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
+  const own = (n.css && n.css[b]) || {};
+  const inherited = b === 't'
+    ? { ...((n.css && n.css.d) || {}) }
+    : { ...((n.css && n.css.d) || {}), ...((n.css && n.css.t) || {}) };
+  const reusable = [findStyle(n.props.ts), ...nodeClasses(n)].filter(Boolean) as Array<{ css?: Css }>;
+  const collisions = new Set<string>();
+  reusable.forEach(source => Object.keys((source.css && source.css[b]) || {}).forEach(k => collisions.add(k)));
+  const bridge: Decls = {};
+  collisions.forEach(k => {
+    if ((own[k] === undefined || own[k] === '') && inherited[k] !== undefined && inherited[k] !== '') {
+      bridge[k] = inherited[k];
+    }
+  });
+  const wrappedImage = n.type === 'image' && !!(n.props.caption || n.props.link);
+  const imageBridge: Decls = {};
+  if (wrappedImage) for (const k of IMAGE_CONTENT_STYLE) {
+    if (bridge[k] === undefined) continue;
+    imageBridge[k] = bridge[k];
+    delete bridge[k];
+  }
+  const body = decl(bridge);
+  const imageBody = decl(imageBridge);
+  return (body ? `${selOf(n)}{${body}}` : '')
+    + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : '');
 }
 
 /* Mobile lists move into a native top-layer dialog when opened. This keeps full-width
@@ -6570,7 +6700,7 @@ function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: st
   acc.d += bucket(n, 'd', editing, parent, detachedComponentRoot);
   if (n.type === 'form' && n.props.fields?.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
     const selector = selOf(n);
-    acc.d += `${selector}.pagecraft-form-percent{display:flex}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
+    acc.d += `${selector}.pagecraft-form-percent{display:var(--f-layout,flex)}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
     for (const [width, columns] of [[50, 2], [33, 3], [25, 4], [20, 5]]) {
       acc.d += `${selector}>.field-width-${width}{flex-basis:calc((100% - var(--f-gap,16px) * ${columns - 1}) / ${columns})}`;
     }
@@ -6586,7 +6716,9 @@ function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: st
     else if (c !== 'never') acc.m += navCollapse(n);
   }
   acc.t += bucket(n, 't', editing, parent, detachedComponentRoot);
+  acc.t += inheritedElementPriority(n, 't');
   acc.m += bucket(n, 'm', editing, parent, detachedComponentRoot);
+  acc.m += inheritedElementPriority(n, 'm');
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
   (n.children || []).forEach(c => nodeCss(c, editing, acc, n));
   return acc;
@@ -6709,8 +6841,12 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:${m.headFont || 'inherit'}}
 .pagecraft-wysiwyg blockquote{margin:1em 0;padding-left:1em;border-left:3px solid currentColor;opacity:.85}
 .pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
+.pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
+.pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
+.pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
 .pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
+.pagecraft-figure>a{display:block;width:100%;max-width:100%}
 .pagecraft-image{display:block;width:100%;height:auto}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
 .pagecraft-slider-box{position:relative;width:100%}
@@ -6807,10 +6943,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   background:var(--tbl-head-bg,transparent);color:var(--tbl-head-text,#111311);
   font-weight:var(--tbl-head-weight,600);border-bottom:2px solid var(--tbl-line,#e5e1d6);
 }
-.pagecraft-table tbody th{font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
+.pagecraft-table tbody th{background:var(--tbl-head-bg,transparent);font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
 .pagecraft-table[data-rules=rows] tbody tr+tr>*{border-top:1px solid var(--tbl-line,#e5e1d6)}
 .pagecraft-table[data-rules=all] th,.pagecraft-table[data-rules=all] td{border:1px solid var(--tbl-line,#e5e1d6)}
-.pagecraft-table[data-zebra] tbody tr:nth-child(even)>*{background:var(--tbl-zebra,#f8f6ef)}
+.pagecraft-table[data-zebra] tbody tr:nth-child(even)>td{background:var(--tbl-zebra,#f8f6ef)}
 .pagecraft-tabs{width:100%}
 .pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
 .pagecraft-tab{
@@ -7490,8 +7626,13 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const ico = p.icon && p.icon !== 'none' ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${BICON[p.icon] || ''}</svg>` : '';
       const bhref = pageHref(p.link, o);
       const tag = bhref ? 'a' : 'button';
-      const attrs = bhref ? `href="${esc(bhref)}"${blank}` : 'type="button"';
-      return `<${tag} ${at} ${cx('pagecraft-button')} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
+      const rel = String((p as PropBag).rel || '').trim().split(/\s+/).filter(Boolean);
+      if (p.target === '_blank' && !rel.includes('noopener')) rel.push('noopener');
+      const attrs = bhref
+        ? `href="${esc(bhref)}"${p.target === '_blank' ? ' target="_blank"' : ''}${rel.length ? ` rel="${esc(rel.join(' '))}"` : ''}`
+        : 'type="button"';
+      const variant = ['outline', 'ghost', 'link'].includes(String(p.variant)) ? String(p.variant) : 'solid';
+      return `<${tag} ${at} ${cx('pagecraft-button')} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case 'nav': {
       const items = Array.isArray(p.items) ? p.items as NavItem[] : [];
@@ -7592,7 +7733,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const manual = p.mode === 'manual';
       const trail = manual
         ? (Array.isArray(p.items) ? p.items as NavItem[] : []).map((it, i, all) =>
-            ({ label: String(it.label || ''), href: i === all.length - 1 ? '' : String(it.href || '') }))
+            ({ ...it, label: String(it.label || ''), href: i === all.length - 1 ? '' : String(it.href || '') }))
         : crumbTrail(o.pg, o, String(p.home == null ? 'Home' : p.home));
       /* Nothing on the front page. A breadcrumb there points at the page it is on, which
          is what "you are here" already says — and search engines ask for it to be left off. */
@@ -7603,9 +7744,15 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         const last = i === trail.length - 1;
         const label = esc(c.label);
         const href = last ? '' : pageHref(c.href, o);
-        return '<li>' + (last || !href
+        const itemClass = manual ? String((c as NavItem).cls || '').trim() : '';
+        const cls = itemClass ? ` class="${esc(itemClass)}"` : '';
+        const rel = manual ? String((c as NavItem).rel || '').trim().split(/\s+/).filter(Boolean) : [];
+        const target = manual && (c as NavItem).target === '_blank' ? ' target="_blank"' : '';
+        if (target && !rel.includes('noopener')) rel.push('noopener');
+        const relationship = rel.length ? ` rel="${esc(rel.join(' '))}"` : '';
+        return `<li${cls}>` + (last || !href
           ? `<span aria-current="page">${label}</span>`
-          : `<a href="${esc(href)}">${label}</a>`) + '</li>';
+          : `<a href="${esc(href)}"${target}${relationship}>${label}</a>`) + '</li>';
       }).join('');
       /* The separator is a `data-sep` for CSS to draw, never a character in the markup: a
          screen reader should read the trail, not the punctuation between it. */
@@ -7905,7 +8052,8 @@ function set(o,restore){
   var fullscreen=w.dataset.mobileMenu==='fullscreen';
   dialog=document.createElement(fullscreen?'dialog':'div');dialog.className='pagecraft-mobile-menu';
   dialog.dataset.layout=fullscreen?'fullscreen':'dropdown';
-  if(!fullscreen){dialog.setAttribute('popover','manual');dialog.setAttribute('role','navigation');}
+  if(fullscreen){dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');}
+  else{dialog.setAttribute('popover','manual');dialog.setAttribute('role','navigation');}
   dialog.setAttribute('aria-label',(w.getAttribute('aria-label')||'Navigation')+' menu');
   var head=document.createElement('div');head.className='pagecraft-mobile-menu-head';
   var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
@@ -7919,7 +8067,7 @@ function set(o,restore){
   dialog.addEventListener('click',function(e){if(!dialog||e.target!==dialog)return;var r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)set(false,true);});
   var opened=dialog;
   dialog.addEventListener('close',function(){if(dialog===opened)set(false,true);});
-  if(fullscreen)dialog.showModal();
+  if(fullscreen){dialog.showModal();close.focus();}
   else if(dialog.showPopover)dialog.showPopover();
   else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
  }else{
@@ -7929,7 +8077,16 @@ function set(o,restore){
  }
 }
 b.addEventListener('click',function(e){e.stopPropagation();set(!dialog,true);});
-document.addEventListener('keydown',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&e.key==='Escape'){e.preventDefault();set(false,true);}});
+document.addEventListener('keydown',function(e){
+ if(!dialog)return;
+ if(e.key==='Escape'){e.preventDefault();set(false,true);return;}
+ if(dialog.dataset.layout!=='fullscreen'||e.key!=='Tab')return;
+ var focusable=[].slice.call(dialog.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+ if(!focusable.length){e.preventDefault();dialog.focus();return;}
+ var first=focusable[0],last=focusable[focusable.length-1];
+ if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus();}
+});
 document.addEventListener('click',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
 document.addEventListener('focusin',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
 Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
