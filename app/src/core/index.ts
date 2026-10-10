@@ -526,7 +526,9 @@ const DEF: Record<string, WidgetDef> = {
     label: 'Collection list', icon: 'cms', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
-      props: { collectionLayout: 'grid', sort: '', dir: 'asc', limit: '' },
+      props: {
+        collectionLayout: 'grid', sort: '', dir: 'asc', where: '', op: 'is', limit: ''
+      },
       css: { d: { gap: '24px', 'align-items': 'stretch', 'flex-wrap': 'wrap' }, t: {}, m: { gap: '20px' } }
     }),
     controls: {
@@ -2653,6 +2655,9 @@ const tgtIsClass = (n: PcNode) => tgtObj(n) !== n;
    writes — this one and `applyOne` — and both understand the prefix, which is the whole of what
    makes a property editable by controls that were written years before components existed. */
 const VAL = 'val:';
+const LIST_PROP_DEFAULTS: Record<string, string> = {
+  collectionLayout: 'grid', sort: '', dir: 'asc', where: '', op: 'is'
+};
 const propVal = (n: PcNode, k?: string) => {
   if (k == null) return undefined;
   if (k.startsWith(VAL)) {
@@ -2660,7 +2665,14 @@ const propVal = (n: PcNode, k?: string) => {
     return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
   }
   if (n.type === 'nav' && k === 'mobileMenu') return n.props.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown';
-  return (n.props as PropBag)[k];
+  const value = (n.props as PropBag)[k];
+  /* Older Collection nodes can predate one or more explicit enum defaults. Their renderer
+     already treats those absences as Grid, CMS order, ascending order, no filter and `is`;
+     read the same values in the controls without rewriting saved or released documents. */
+  if (value == null && n.type === 'list' && Object.prototype.hasOwnProperty.call(LIST_PROP_DEFAULTS, k)) {
+    return LIST_PROP_DEFAULTS[k];
+  }
+  return value;
 };
 
 /** A link's mode is derived from the href it holds, so a mode picked but not yet

@@ -2029,7 +2029,14 @@ var DEF = {
     level: 2,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
-      props: { collectionLayout: "grid", sort: "", dir: "asc", limit: "" },
+      props: {
+        collectionLayout: "grid",
+        sort: "",
+        dir: "asc",
+        where: "",
+        op: "is",
+        limit: ""
+      },
       css: { d: { gap: "24px", "align-items": "stretch", "flex-wrap": "wrap" }, t: {}, m: { gap: "20px" } }
     }),
     controls: {
@@ -4061,6 +4068,13 @@ function tgtObj(n) {
 }
 var tgtIsClass = (n) => tgtObj(n) !== n;
 var VAL = "val:";
+var LIST_PROP_DEFAULTS = {
+  collectionLayout: "grid",
+  sort: "",
+  dir: "asc",
+  where: "",
+  op: "is"
+};
 var propVal = (n, k) => {
   if (k == null) return void 0;
   if (k.startsWith(VAL)) {
@@ -4068,7 +4082,11 @@ var propVal = (n, k) => {
     return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
   }
   if (n.type === "nav" && k === "mobileMenu") return n.props.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown";
-  return n.props[k];
+  const value = n.props[k];
+  if (value == null && n.type === "list" && Object.prototype.hasOwnProperty.call(LIST_PROP_DEFAULTS, k)) {
+    return LIST_PROP_DEFAULTS[k];
+  }
+  return value;
 };
 function linkOf(n, propKey, here) {
   const L = parseLink(propVal(n, propKey), here);

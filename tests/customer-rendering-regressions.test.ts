@@ -146,6 +146,32 @@ describe('customer rendering defects', () => {
       .toContain(`.${C.nodeClass(list)}.pagecraft-list{flex-wrap:nowrap}`);
   });
 
+  test('collection enum defaults match filtering and rendering semantics', () => {
+    const collection = C.collectionAdd('Work');
+    const category = C.fieldAdd(collection.id, 'Category', 'text')!;
+    const workshop = C.itemAdd(collection.id)!;
+    const article = C.itemAdd(collection.id)!;
+    C.itemSet(collection.id, workshop.id, category.id, 'Workshop');
+    C.itemSet(collection.id, article.id, category.id, 'Article');
+    const list = C.N('list');
+    C.srcSet(list, collection.id);
+
+    expect(list.props).toMatchObject({
+      collectionLayout: 'grid', sort: '', dir: 'asc', where: '', op: 'is',
+    });
+    list.props.where = category.id;
+    list.props.val = 'Workshop';
+    expect(C.listItems(list, collection).map(item => item.id)).toEqual([workshop.id]);
+
+    const legacy = C.N('list');
+    const legacyProps = legacy.props as Record<string, unknown>;
+    for (const key of ['collectionLayout', 'sort', 'dir', 'where', 'op']) delete legacyProps[key];
+    expect(Object.fromEntries(['collectionLayout', 'sort', 'dir', 'where', 'op']
+      .map(key => [key, C.propVal(legacy, key)]))).toEqual({
+      collectionLayout: 'grid', sort: '', dir: 'asc', where: '', op: 'is',
+    });
+  });
+
   test('palette collections arrive with an editable card and Add targets that card', () => {
     const list = C.insert('list', null, 0)!;
     expect(list.type).toBe('list');
