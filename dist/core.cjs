@@ -2029,7 +2029,7 @@ var DEF = {
     level: 2,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
-      props: { sort: "", dir: "asc", limit: "" },
+      props: { collectionLayout: "grid", sort: "", dir: "asc", limit: "" },
       css: { d: { gap: "24px", "align-items": "stretch", "flex-wrap": "wrap" }, t: {}, m: { gap: "20px" } }
     }),
     controls: {
@@ -3509,6 +3509,7 @@ var nowhere = (parentNode) => !parentNode && state.ui.mode === "component";
 function insert(type, parentNode, index) {
   if (nowhere(parentNode)) return null;
   const leaf = makeFor(type);
+  if (type === "list" && !leaf.children.length) leaf.children.push(N("column"));
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();
   list.splice(Math.max(0, Math.min(index, list.length)), 0, packed);
@@ -4042,7 +4043,9 @@ function cssVal(n, c, resp) {
   if (own !== void 0 && own !== "") return { v: own, own: true };
   if (b === "m" && src.t && src.t[c]) return { v: src.t[c], own: false };
   const d = src.d ? src.d[c] : "";
-  return { v: d == null ? "" : d, own: false };
+  if (d !== void 0 && d !== "") return { v: d, own: false };
+  if (n.type === "row" && c === "flex-wrap") return { v: "wrap", own: false };
+  return { v: "", own: false };
 }
 function setCss(n, c, val, resp) {
   const dest = stWrite(n);
@@ -4860,7 +4863,11 @@ function smartTarget(key) {
   }
   if (s) {
     let node = s.node, parent = s.parent;
-    if (holds(node.type, key)) {
+    const card = node.type === "list" && node.children[0]?.type === "column" && holds("column", key) ? node.children[0] : null;
+    if (card) {
+      container = card;
+      index = card.children.length;
+    } else if (holds(node.type, key)) {
       container = node;
       index = node.children.length;
     } else {
@@ -7603,8 +7610,8 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
     if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure{${resetBody}}`);
     rules.push(`${selOf(n)} .pagecraft-image{${decl(imageMap)}}`);
   }
-  if (n.type === "box" && map["flex-wrap"]) {
-    rules.push(`${selOf(n)}.pagecraft-box{flex-wrap:${map["flex-wrap"]}}`);
+  if ((n.type === "box" || n.type === "list") && map["flex-wrap"]) {
+    rules.push(`${selOf(n)}.${n.type === "box" ? "pagecraft-box" : "pagecraft-list"}{flex-wrap:${map["flex-wrap"]}}`);
   }
   STATES.forEach(([k, , sel]) => {
     const stateMap = { ...n.st && n.st[k] && n.st[k][b] || {} };

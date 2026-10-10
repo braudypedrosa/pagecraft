@@ -132,6 +132,44 @@ describe('customer rendering defects', () => {
     expect(css).not.toContain(`.${C.nodeClass(form)}.pagecraft-form-percent{display:flex}`);
   });
 
+  test('new collections select Grid and an explicit no-wrap reaches the rendered list', () => {
+    const collection = C.collectionAdd('Projects');
+    C.itemAdd(collection.id);
+    const list = C.N('list', {}, { d: { 'flex-wrap': 'nowrap' }, t: {}, m: {} }, [C.N('column')]);
+    C.srcSet(list, collection.id);
+
+    expect(list.props.collectionLayout).toBe('grid');
+    const html = C.renderNode(list, { edit: false });
+    expect(html).toContain('pagecraft-list');
+    expect(html).not.toContain('pagecraft-slider');
+    expect(C.treeCss([[list]], false))
+      .toContain(`.${C.nodeClass(list)}.pagecraft-list{flex-wrap:nowrap}`);
+  });
+
+  test('palette collections arrive with an editable card and Add targets that card', () => {
+    const list = C.insert('list', null, 0)!;
+    expect(list.type).toBe('list');
+    expect(list.children).toHaveLength(1);
+    const card = list.children[0];
+    expect(card.type).toBe('column');
+    expect(C.renderNode(list, { edit: true })).toContain('Pick a collection for this list');
+
+    C.selSet([list.id]);
+    const [container, index] = C.smartTarget('heading');
+    expect(container).toBe(card);
+    expect(index).toBe(0);
+    const heading = C.insert('heading', container, index)!;
+    expect(card.children).toEqual([heading]);
+
+    expect(C.N('list').children).toHaveLength(0);
+  });
+
+  test('new Rows read back their built-in Wrap enum without storing redundant CSS', () => {
+    const row = C.N('row');
+    expect(row.css.d['flex-wrap']).toBeUndefined();
+    expect(C.cssVal(row, 'flex-wrap')).toEqual({ v: 'wrap', own: false });
+  });
+
   test('built mobile menu preserves nested link metadata and renders it', () => {
     const nav = C.N('nav', { items: [
       { id: 'parent', label: 'Parent', href: '/parent', cls: 'featured', rel: 'nofollow', target: '_blank' },

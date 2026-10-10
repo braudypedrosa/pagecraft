@@ -526,7 +526,7 @@ const DEF: Record<string, WidgetDef> = {
     label: 'Collection list', icon: 'cms', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
-      props: { sort: '', dir: 'asc', limit: '' },
+      props: { collectionLayout: 'grid', sort: '', dir: 'asc', limit: '' },
       css: { d: { gap: '24px', 'align-items': 'stretch', 'flex-wrap': 'wrap' }, t: {}, m: { gap: '20px' } }
     }),
     controls: {
@@ -1931,6 +1931,10 @@ const nowhere = (parentNode: unknown) => !parentNode && state.ui.mode === 'compo
 function insert(type: string, parentNode: any, index: number) {
   if (nowhere(parentNode)) return null;
   const leaf = makeFor(type);
+  /* The palette creates a usable Collection List: its one Column is the repeatable card.
+     Keep this out of N('list') so imported data, templates and programmatic fixtures retain
+     their exact shape. The no-source editor prompt still renders until a collection is chosen. */
+  if (type === 'list' && !leaf.children.length) leaf.children.push(N('column'));
   /* `takes`, not the parent's own level: a Box takes children at level 4, so a heading dropped
      into a Grid goes in as it is rather than arriving inside a Column nothing asked for. The
      row-in-a-column case needs no exception any more — a column takes 4, so `wrap` returns the
@@ -2616,7 +2620,12 @@ function cssVal(n: { css: Css; st?: States }, c: string, resp?: boolean): { v: s
   if (own !== undefined && own !== '') return { v: own, own: true };
   if (b === 'm' && src.t && src.t[c]) return { v: src.t[c], own: false };
   const d = src.d ? src.d[c] : '';
-  return { v: d == null ? '' : d, own: false };
+  if (d !== undefined && d !== '') return { v: d, own: false };
+  /* A fresh Row relies on the renderer's built-in wrap rule, but Wrap is a two-choice enum:
+     showing “Choose an option” describes no real third state. Keep the readback truthful
+     without serialising a redundant declaration into existing rows, patterns or templates. */
+  if ((n as PcNode).type === 'row' && c === 'flex-wrap') return { v: 'wrap', own: false };
+  return { v: '', own: false };
 }
 
 /** Write one CSS property at the breakpoint being edited. An empty value deletes the
@@ -3673,7 +3682,12 @@ function smartTarget(key: WidgetType): [PcNode | null, number] {
   }
   if (s) {
     let node = s.node, parent = s.parent;
-    if (holds(node.type, key)) { container = node; index = node.children.length; }
+    /* A Collection List repeats its first Column as the card. Adding content while the list
+       itself is selected belongs inside that card, not in a second implicit card beside it. */
+    const card = node.type === 'list' && node.children[0]?.type === 'column'
+      && holds('column', key) ? node.children[0] : null;
+    if (card) { container = card; index = card.children.length; }
+    else if (holds(node.type, key)) { container = node; index = node.children.length; }
     else {
       while (parent && !holds(parent.type, key)) {
         node = parent;
@@ -6624,10 +6638,10 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
     if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure{${resetBody}}`);
     rules.push(`${selOf(n)} .pagecraft-image{${decl(imageMap)}}`);
   }
-  /* `.pagecraft-box.l-flex` supplies the default wrap behavior with two classes. Match that
-     specificity so the selected per-node value can override it at every breakpoint. */
-  if (n.type === 'box' && map['flex-wrap']) {
-    rules.push(`${selOf(n)}.pagecraft-box{flex-wrap:${map['flex-wrap']}}`);
+  /* Include the rendered container class so its selected per-node wrap value wins over the
+     built-in Box and Collection layout rules at every breakpoint. */
+  if ((n.type === 'box' || n.type === 'list') && map['flex-wrap']) {
+    rules.push(`${selOf(n)}.${n.type === 'box' ? 'pagecraft-box' : 'pagecraft-list'}{flex-wrap:${map['flex-wrap']}}`);
   }
   /* after the base rule, and `:hover` outranks the bare class anyway, so a state wins on
      specificity as well as on order */
