@@ -399,10 +399,8 @@ body.content-only .s-hud [data-x=down]{display:none}
 .pc-add-search .bx{display:grid;place-items:center;flex:0 0 var(--ic-sm);width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm)}
 .pc-add-search .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
 .pc-add-group{margin-bottom:var(--gap-2)}
-details.pc-add-group{border-top:1px solid var(--line);padding-top:var(--gap-1);margin-bottom:var(--gap-1)}
-.pc-add-group-summary{min-height:var(--h-ctl);padding:var(--gap-1) 0;cursor:pointer;font-size:var(--fs-3);font-weight:600;color:var(--text)}
-.pc-add-group-summary>span{float:right;font-weight:400;color:var(--text-2)}
-.pc-add-group[open]>.pc-add-group-summary{margin-bottom:var(--gap-1)}
+.pc-add-category{margin:0 -14px}
+.pc-add-guide+.pc-add-category{border-top:1px solid var(--line)}
 .pc-add-guide{display:grid;gap:var(--gap-1);margin:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3);line-height:1.5}
 .pc-add-guide>.btn{width:100%;white-space:normal}
 .pc-add-empty{display:grid;gap:var(--gap-1);padding:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3)}
@@ -775,7 +773,9 @@ body.preview .dim{display:none}
 .group{border-bottom:1px solid var(--line)}
 .gh{display:flex;align-items:center;gap:var(--sp-4);width:100%;padding:11px 14px;cursor:pointer;text-align:left;font-size:var(--fs-3);font-weight:600;color:var(--text)}
 .gh:hover{color:var(--text)}
-.gh svg{width:9px;height:9px;color:var(--text-3);transition:transform .12s}
+.gh svg{flex:0 0 9px;width:9px;height:9px;color:var(--text-3);transition:transform .12s}
+.pc-disclosure-title{min-width:0;overflow-wrap:anywhere}
+.pc-disclosure-count{margin-left:auto;font-weight:400;color:var(--text-2)}
 .group.closed .gh svg{transform:rotate(-90deg)}
 .gb{height:auto;overflow:hidden;padding:0 14px 14px;opacity:1;visibility:visible;transition:height var(--pc-motion-enter) var(--pc-ease-enter),padding-bottom var(--pc-motion-enter) var(--pc-ease-enter),opacity var(--pc-motion-quick) var(--pc-ease-enter),visibility 0s}
 .group.closed .gb{height:0;padding-bottom:0;opacity:0;visibility:hidden;transition:height var(--pc-motion-exit) var(--pc-ease-exit),padding-bottom var(--pc-motion-exit) var(--pc-ease-exit),opacity var(--pc-motion-quick) var(--pc-ease-exit),visibility 0s var(--pc-motion-exit)}
@@ -14557,6 +14557,36 @@ var PC_UI = (() => {
     ] });
   }
 
+  // app/src/ui/Disclosure.tsx
+  var nextId = 0;
+  function Disclosure({ title, count, open, onToggle, class: className = "", children }) {
+    const id = A2("");
+    if (!id.current) id.current = `pc-disclosure-${++nextId}`;
+    const [localOpen, setLocalOpen] = d2(false);
+    const expanded = open ?? localOpen;
+    return /* @__PURE__ */ u2("div", { class: `group pc-disclosure${expanded ? "" : " closed"}${className ? " " + className : ""}`, children: [
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "gh",
+          "aria-expanded": expanded ? "true" : "false",
+          "aria-controls": id.current,
+          onClick: () => {
+            setLocalOpen(!expanded);
+            onToggle?.(!expanded);
+          },
+          children: [
+            /* @__PURE__ */ u2(Icon, { name: "caret", size: 10 }),
+            /* @__PURE__ */ u2("span", { class: "pc-disclosure-title", children: title }),
+            count !== void 0 ? /* @__PURE__ */ u2("span", { class: "pc-disclosure-count", children: count }) : null
+          ]
+        }
+      ),
+      /* @__PURE__ */ u2("div", { class: "gb", id: id.current, "aria-hidden": expanded ? void 0 : "true", inert: !expanded, children })
+    ] });
+  }
+
   // app/src/core/safe-html.ts
   var safeUrl = (u4) => {
     const v3 = String(u4 == null ? "" : u4).trim();
@@ -16294,13 +16324,7 @@ var PC_UI = (() => {
           /* @__PURE__ */ u2(WidgetTiles, { group: { g: "Recently used", items: recentItems } })
         ] }) : null,
         /* @__PURE__ */ u2("div", { class: "pc-add-guide", children: /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: templates, children: "Browse starter sections" }) }),
-        groups.filter((group) => group.items.length).map((group) => /* @__PURE__ */ u2("details", { class: "pc-add-group", children: [
-          /* @__PURE__ */ u2("summary", { class: "pc-add-group-summary", children: [
-            group.g,
-            /* @__PURE__ */ u2("span", { children: group.items.length })
-          ] }),
-          /* @__PURE__ */ u2(WidgetTiles, { group })
-        ] }, group.g))
+        groups.filter((group) => group.items.length).map((group) => /* @__PURE__ */ u2(Disclosure, { class: "pc-add-category", title: group.g, count: group.items.length, children: /* @__PURE__ */ u2(WidgetTiles, { group }) }, group.g))
       ] })
     ] });
   }
@@ -19679,65 +19703,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
 
   // app/src/ui/inspector/Inspector.tsx
   var esc7 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
-  var nextGroupId = 0;
-  function useGroupId() {
-    const id = A2("");
-    if (!id.current) id.current = `inspector-group-${++nextGroupId}`;
-    return id.current;
-  }
   function Group({ title, n: n2, items, gk, collapsed = false }) {
-    const bodyId = useGroupId();
     const key2 = gk || n2.type + ":" + title;
     const closed = C2.state.ui.open[key2] === false || C2.state.ui.open[key2] === void 0 && collapsed;
     const shown2 = items ? items.filter((c3) => (!c3.when || c3.when(n2)) && !(C2.cloudFormsEnabled() && n2.type === "form" && c3.k === "mode")) : null;
     if (shown2 && !shown2.length) return null;
-    return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
-      /* @__PURE__ */ u2(
-        "button",
-        {
-          type: "button",
-          class: "gh",
-          "aria-expanded": closed ? "false" : "true",
-          "aria-controls": bodyId,
-          onClick: () => {
-            C2.state.ui.open[key2] = closed;
-            repaint("right");
-          },
-          children: [
-            /* @__PURE__ */ u2(Icon, { name: "caret", size: 10 }),
-            " ",
-            title
-          ]
-        }
-      ),
-      /* @__PURE__ */ u2("div", { class: "gb", id: bodyId, "aria-hidden": closed ? "true" : void 0, children: shown2 ? shown2.map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null })
-    ] });
+    return /* @__PURE__ */ u2(Disclosure, { title, open: !closed, onToggle: (open) => {
+      C2.state.ui.open[key2] = open;
+      repaint("right");
+    }, children: shown2 ? shown2.map((c3, i3) => /* @__PURE__ */ u2(Ctl, { n: n2, c: c3 }, c3.t + (c3.c || c3.k || i3))) : null });
   }
   function Panel({ title, n: n2, gk, children }) {
-    const bodyId = useGroupId();
     const key2 = gk || n2.type + ":" + title;
     const closed = C2.state.ui.open[key2] === false;
-    return /* @__PURE__ */ u2("div", { class: "group" + (closed ? " closed" : ""), children: [
-      /* @__PURE__ */ u2(
-        "button",
-        {
-          type: "button",
-          class: "gh",
-          "aria-expanded": closed ? "false" : "true",
-          "aria-controls": bodyId,
-          onClick: () => {
-            C2.state.ui.open[key2] = closed;
-            repaint("right");
-          },
-          children: [
-            /* @__PURE__ */ u2(Icon, { name: "caret", size: 10 }),
-            " ",
-            title
-          ]
-        }
-      ),
-      /* @__PURE__ */ u2("div", { class: "gb", id: bodyId, "aria-hidden": closed ? "true" : void 0, children })
-    ] });
+    return /* @__PURE__ */ u2(Disclosure, { title, open: !closed, onToggle: (open) => {
+      C2.state.ui.open[key2] = open;
+      repaint("right");
+    }, children });
   }
   function Head2({ h: h3 }) {
     const n2 = h3.node, d3 = C2.DEF[n2.type];
@@ -21100,7 +21082,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     let typeahead = "";
     let typeaheadTimer = 0;
     let scheduled = false;
-    let nextId = 0;
+    let nextId2 = 0;
     const selectedOption = (select) => select.options[select.selectedIndex] || null;
     const labelOf = (select) => {
       const owner = select.labels?.[0];
@@ -21351,7 +21333,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       caret.innerHTML = '<path d="m4.5 6.5 3.5 3.5 3.5-3.5"/>';
       trigger.append(label, caret);
       const menu = document.createElement("div");
-      menu.id = `pc-custom-select-${++nextId}`;
+      menu.id = `pc-custom-select-${++nextId2}`;
       menu.className = "pc-custom-select-popover";
       menu.setAttribute("role", "listbox");
       menu.hidden = true;

@@ -394,10 +394,8 @@ body.content-only .s-hud [data-x=down]{display:none}
 .pc-add-search .bx{display:grid;place-items:center;flex:0 0 var(--ic-sm);width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm)}
 .pc-add-search .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
 .pc-add-group{margin-bottom:var(--gap-2)}
-details.pc-add-group{border-top:1px solid var(--line);padding-top:var(--gap-1);margin-bottom:var(--gap-1)}
-.pc-add-group-summary{min-height:var(--h-ctl);padding:var(--gap-1) 0;cursor:pointer;font-size:var(--fs-3);font-weight:600;color:var(--text)}
-.pc-add-group-summary>span{float:right;font-weight:400;color:var(--text-2)}
-.pc-add-group[open]>.pc-add-group-summary{margin-bottom:var(--gap-1)}
+.pc-add-category{margin:0 -14px}
+.pc-add-guide+.pc-add-category{border-top:1px solid var(--line)}
 .pc-add-guide{display:grid;gap:var(--gap-1);margin:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3);line-height:1.5}
 .pc-add-guide>.btn{width:100%;white-space:normal}
 .pc-add-empty{display:grid;gap:var(--gap-1);padding:var(--gap-2) 0;color:var(--text-2);font-size:var(--fs-3)}
@@ -770,7 +768,9 @@ body.preview .dim{display:none}
 .group{border-bottom:1px solid var(--line)}
 .gh{display:flex;align-items:center;gap:var(--sp-4);width:100%;padding:11px 14px;cursor:pointer;text-align:left;font-size:var(--fs-3);font-weight:600;color:var(--text)}
 .gh:hover{color:var(--text)}
-.gh svg{width:9px;height:9px;color:var(--text-3);transition:transform .12s}
+.gh svg{flex:0 0 9px;width:9px;height:9px;color:var(--text-3);transition:transform .12s}
+.pc-disclosure-title{min-width:0;overflow-wrap:anywhere}
+.pc-disclosure-count{margin-left:auto;font-weight:400;color:var(--text-2)}
 .group.closed .gh svg{transform:rotate(-90deg)}
 .gb{height:auto;overflow:hidden;padding:0 14px 14px;opacity:1;visibility:visible;transition:height var(--pc-motion-enter) var(--pc-ease-enter),padding-bottom var(--pc-motion-enter) var(--pc-ease-enter),opacity var(--pc-motion-quick) var(--pc-ease-enter),visibility 0s}
 .group.closed .gb{height:0;padding-bottom:0;opacity:0;visibility:hidden;transition:height var(--pc-motion-exit) var(--pc-ease-exit),padding-bottom var(--pc-motion-exit) var(--pc-ease-exit),opacity var(--pc-motion-quick) var(--pc-ease-exit),visibility 0s var(--pc-motion-exit)}

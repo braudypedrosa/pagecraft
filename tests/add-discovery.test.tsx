@@ -9,7 +9,7 @@ import { rig, type Rig } from './ui.setup';
 let r: Rig;
 
 const labels = () => r.$$('.pitem span').map(item => item.textContent);
-const commonLabels = () => r.$$('.pc-add-group:not(details) .pitem span').map(item => item.textContent);
+const commonLabels = () => r.$$('.pc-add-group .pitem span').map(item => item.textContent);
 const search = () => r.$('#add-element-search') as HTMLInputElement;
 const type = (value: string) => act(() => r.type(search(), value));
 
@@ -33,21 +33,33 @@ describe('Add element discovery', () => {
   test('omits empty history and exposes every element in its category', () => {
     expect(commonLabels()).toEqual([]);
     expect(r.$('.addContext')).toBeNull();
-    expect(r.$$('details.pc-add-group').map(group => group.querySelector('summary')?.textContent)).toEqual([
+    expect(r.$$('.pc-add-category').map(group => group.querySelector('.gh')?.textContent)).toEqual([
       'Layout9', 'Content9', 'Interactive7', 'Spacing2'
     ]);
-    expect(r.$$('details.pc-add-group').every(group => group.hasAttribute('open'))).toBe(false);
+    expect(r.$$('.pc-add-category').every(group => group.querySelector('.gh')?.getAttribute('aria-expanded') === 'true')).toBe(false);
     expect(r.$('.pc-add-guide')?.textContent).toBe('Browse starter sections');
 
     act(() => r.click(r.$$('.pc-add-guide button')[0]));
     expect(r.$('.addSwitcher button[aria-selected="true"]')?.textContent?.trim()).toBe('Templates');
   });
 
+  test('categories toggle independently and retain their open state across repaint', () => {
+    const groups = r.$$('.pc-add-category');
+    act(() => { r.click(groups[0].querySelector('button')); r.click(groups[1].querySelector('button')); });
+    act(() => repaint('add'));
+    expect(groups[0].querySelector('.gh')?.getAttribute('aria-expanded')).toBe('true');
+    expect(groups[1].querySelector('.gh')?.getAttribute('aria-expanded')).toBe('true');
+    act(() => r.click(groups[0].querySelector('button')));
+    expect(groups[0].querySelector('.gb')?.hasAttribute('inert')).toBe(true);
+    expect(groups[1].querySelector('.gb')?.hasAttribute('inert')).toBe(false);
+    expect(groups[0].querySelector('.gh')?.getAttribute('aria-controls')).toBe(groups[0].querySelector('.gb')?.id);
+  });
+
   test('shows the six most recent successful element types without removing category entries', () => {
     act(() => ['heading', 'text', 'button', 'image', 'columns', 'nav', 'spacer', 'heading'].forEach(recordElementUse));
     expect(commonLabels()).toEqual(['Heading', 'Spacer', 'Nav menu', 'Columns', 'Image', 'Button']);
-    expect(r.$$('.pc-add-group:not(details) .plabel')[0]?.textContent).toBe('Recently used');
-    expect(r.$$('details .pitem span').map(item => item.textContent)).toContain('Heading');
+    expect(r.$$('.pc-add-group .plabel')[0]?.textContent).toBe('Recently used');
+    expect(r.$$('.pc-add-category .pitem span').map(item => item.textContent)).toContain('Heading');
     act(() => repaint('add'));
     expect(commonLabels()).toHaveLength(6);
   });
@@ -58,7 +70,7 @@ describe('Add element discovery', () => {
       'Section', 'Columns', 'Row', 'Flex', 'Grid', 'Box', 'Link block', 'Slider', 'Collection'
     ]);
     expect(new Set(labels()).size).toBe(labels().length);
-    expect(r.$('details.pc-add-group')).toBeNull();
+    expect(r.$('.pc-add-category')).toBeNull();
 
     type('paragraph');
     expect(labels()).toEqual(['Rich text']);

@@ -1,17 +1,19 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-10T10:46:08.283Z",
+  "capturedAt": "2026-10-11T04:24:49.679Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "396cba90c39a10e86b3a7462fcf02a2883696e176a4eb5a0eecf61d7d824388b",
+    "builder.html": "cc60fa71667ceeec98d42d78cdc9eb7e688607a65b46d9c70258e5a035943418",
+    "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
+    "app/src/ui/Add.tsx": "6a9a200307ca5b1f32cb0a5d9e0b0e98b0f6783e46594f618446157a20be465f",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
     "app/src/ui/CmsWorkspace.tsx": "abd5ed15ae4f4fe5ed3703040cce6d0b99978dcca49f2499b52f0c65d6373267",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "894649e75b9a0c5e325de63c37c94762de7488f51182debea9029c6533ea80cf",
-    "app/src/ui/inspector/Inspector.tsx": "412c7beb1f44eac8fba74b27fd4b4528ecdd320d58bfa65909a018a9f90c469e",
+    "app/src/ui/inspector/Inspector.tsx": "96e8a6d121caac543e743c3f78a5fd8898e9b9b041c8cc88d1229a708a6c1146",
     "app/src/ui/inspector/Lists.tsx": "3d2b8380a6a9529d522df2972eca5729829d75c8b39606ffe35557d849793c26",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",
@@ -26,7 +28,7 @@
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
     "server/src/account-pages.ts": "965bb05761004c9b939cd9984f4698b5252118bd1b74a517e172b247309f9aea",
-    "server/src/component-gallery.ts": "f69cce571fb95455cd2f20b6ca09b844c6cfdaef245f4923315b2e7af7ad5602",
+    "server/src/component-gallery.ts": "f5aea66c3554fa97d3cbfa566c6bf7cad03c7bbc9daf1e89262174f3a80cf1f9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
@@ -644,15 +646,15 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-actions-1440.png": {
-      "sha256": "5b3014931a0eca0ecf5db03688b74c9d3b59805ac5a7b8f60164f94c86fe2803",
+      "sha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
       "width": 1440,
-      "height": 934,
+      "height": 1224,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-actions-768.png": {
-      "sha256": "efe1e7ce89a6e98a8ce447ea78c82fbd9b9305166fb57eba053ba387ba2fcfa8",
+      "sha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
       "width": 768,
-      "height": 989,
+      "height": 1279,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-tables-1440.png": {

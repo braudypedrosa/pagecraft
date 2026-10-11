@@ -11,6 +11,7 @@
    element would also be appended where it started. */
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
+import { Disclosure } from './Disclosure';
 import { Libraries, addToLibrary, fromLabel, linkOf } from './Libraries';
 import type { LibraryItemKind } from '../core/libraries';
 import { useLayoutEffect, useState } from 'preact/hooks';
@@ -190,10 +191,9 @@ function Widgets({ templates }: { templates(): void }) {
             <button type="button" class="btn" onClick={templates}>Browse starter sections</button>
           </div>
           {groups.filter(group => group.items.length).map(group => (
-            <details class="pc-add-group" key={group.g}>
-              <summary class="pc-add-group-summary">{group.g}<span>{group.items.length}</span></summary>
+            <Disclosure class="pc-add-category" key={group.g} title={group.g} count={group.items.length}>
               <WidgetTiles group={group} />
-            </details>
+            </Disclosure>
           ))}
         </>
       )}
