@@ -653,7 +653,10 @@ export function Inspector() {
           ))}
         </div>
       ) : null}
-      <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
+      {/* Select enhancement inserts sibling buttons into this body. Replace the body
+          when its control shape changes, while retaining Inspector's filter state and
+          preserving focused controls during ordinary same-scope field repaints. */}
+      <div key={n.type + ':' + tab} class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
         {tab === 'content' || many ? null : <StatePick />}
         {tab === 'style' || tab === 'advanced' ? (

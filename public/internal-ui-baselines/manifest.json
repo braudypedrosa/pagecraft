@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-12T01:12:08.691Z",
+  "capturedAt": "2026-10-12T05:23:47.488Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -13,7 +13,7 @@
     "app/src/ui/CmsWorkspace.tsx": "abd5ed15ae4f4fe5ed3703040cce6d0b99978dcca49f2499b52f0c65d6373267",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "894649e75b9a0c5e325de63c37c94762de7488f51182debea9029c6533ea80cf",
-    "app/src/ui/inspector/Inspector.tsx": "4dd305982f7ea6e51d5e5a76dd3e4a7a99cfcc3160bebdaa55b209c593859de0",
+    "app/src/ui/inspector/Inspector.tsx": "c7ae34ec9c2ebc5a0406d0d4e056180a9e82e0323ff569f8314a8d8097450ecd",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "3d2b8380a6a9529d522df2972eca5729829d75c8b39606ffe35557d849793c26",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
@@ -635,7 +635,7 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-fields-1440.png": {
-      "sha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+      "sha256": "aa7761f8a5e760d5fbf7d32017c52d29239b87414b0d1e6f95220a33ff8bca41",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples"
@@ -671,7 +671,7 @@
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-menus-1440.png": {
-      "sha256": "1b9a3980ea37d9365cfad3955644890d1e093144b149411e6ef7774b26acd497",
+      "sha256": "96d00d6377cff13db153e4d7555f970d7c5ed01dd5d38400eb8131f077d9231f",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"
