@@ -13,6 +13,7 @@ import { CmsWorkspace } from './CmsWorkspace';
 import { ProposalsWorkspace } from './ProposalsWorkspace';
 import { Add } from './Add';
 export { recordElementUse } from './Add';
+export { selectionToolbarTop } from './canvas-placement';
 import { Pages, PagesWorkspace } from './Pages';
 import { Inspector } from './inspector/Inspector';
 import { AssetField } from './AssetField';
@@ -61,6 +62,17 @@ export function mount(core: Core, legacy: Legacy) {
      keeps its own state, because the same keyed component is rendered again. */
   let cmsWorkspace: (() => any) | null = null;
   const renderCmsPanel = panel('paneCms', () => <Cms />, true);
+  const inspectorScroll = new Map<string, number>();
+  let inspectorScope = '';
+  const renderInspector = () => {
+    const old = document.getElementById('inspector-panel');
+    if (old && inspectorScope) inspectorScroll.set(inspectorScope, old.scrollTop);
+    const selected = core.state.ui.sel && core.locate(core.state.ui.sel)?.node;
+    inspectorScope = selected ? selected.type + ':' + core.state.ui.stab : '';
+    panel('right', () => <Inspector />)();
+    const next = document.getElementById('inspector-panel');
+    if (next) next.scrollTop = inspectorScroll.get(inspectorScope) || 0;
+  };
   const painters = {
     renderLayers: panel('paneLayers', () => <Layers />),
     renderCms: () => {
@@ -75,7 +87,7 @@ export function mount(core: Core, legacy: Legacy) {
     },
     /* #right is hidden and shown by the Inspector itself, so it must render even while
        hidden — the component is what decides. */
-    renderRight: panel('right', () => <Inspector />)
+    renderRight: renderInspector
   };
   registerPainter('layers', painters.renderLayers);
   registerPainter('add', painters.renderAdd);

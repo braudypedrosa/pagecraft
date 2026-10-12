@@ -431,30 +431,21 @@ body.content-only .s-hud [data-x=down]{display:none}
 .brow .bn small{display:block;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Four categories stay visible without forcing four labels into one narrow row. */
 .addSwitcher{
-  position:sticky;top:0;z-index:4;display:grid;grid-template-columns:1fr 1fr;
-  gap:4px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:4;display:grid;grid-template-columns:auto minmax(0,1fr);
+  align-items:center;gap:var(--gap-2);padding:10px 14px;
+  background:var(--panel);border-bottom:1px solid var(--line);
 }
-.addSwitcher button{
-  min-width:0;height:36px;padding:0 9px;display:flex;align-items:center;gap:7px;
-  border:1px solid transparent;
-  border-radius:var(--r-sm);background:transparent;color:var(--text-2);
-  font-size:var(--fs-2);font-weight:500;text-align:left;
-}
-.addSwitcherIcon{display:grid;place-items:center;color:var(--text-3);flex:0 0 auto}
-.addSwitcherIcon svg{display:block}
-.addSwitcher button:hover{background:var(--pc-hover-bg);color:var(--text)}
-.addSwitcher button.on{
-  background:var(--pc-selection-bg);border-color:var(--line-2);color:var(--pc-selection-text);font-weight:600;
-}
-.addSwitcher button.on .addSwitcherIcon{color:var(--text-2)}
+.pc-add-category-picker>label{font-size:var(--fs-2);font-weight:600;color:var(--text-2)}
+.pc-add-category-picker .ctl{min-width:0}
+.inspector-scope-actions{display:grid;gap:var(--gap-1);padding:10px 14px;border-bottom:1px solid var(--line)}
+.inspector-modified-filter{display:flex;align-items:center;gap:var(--gap-1);min-height:28px;color:var(--text-2);font-size:var(--fs-2)}
+.inspector-breakpoint-reset{justify-self:start}
+.inspector-modified-empty{padding:var(--gap-3)}
 .brow .bx{width:var(--ic-sm);height:var(--ic-sm);border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;opacity:0}
 .brow:hover .bx{opacity:1}
 .brow .bx:hover{background:var(--pc-hover-bg);color:var(--text)}
 .brow .bx.danger:hover{background:var(--risk-bg);color:var(--risk-fg)}
-/* ---- libraries, the fifth Add category ---------------------------------
-   The fifth tab takes the last row to itself rather than squeezing a third column into
-   272px. Library rows are buttons, because opening one is the only thing they do. */
-.addSwitcher button:last-child:nth-child(odd){grid-column:1/-1}
+/* Libraries use the same category picker as the other Add surfaces. */
 .brow.lib-row{width:100%;cursor:pointer;font:inherit;color:inherit;text-align:left}
 .brow .bn small.lib-from{color:var(--text-2)}
 .lib-head{display:flex;align-items:center;gap:var(--sp-3);margin:0 0 var(--gap-1)}
@@ -513,6 +504,11 @@ body.content-only .s-hud [data-x=down]{display:none}
 .pv-g{fill:var(--green)}
 .pv-i{fill:#22251f}
 .pvcard:hover .pvw{background:var(--panel)}
+.pc-add-starters{margin-bottom:var(--gap-3)}
+.pc-add-starters .pvgrid{grid-template-columns:1fr;gap:var(--gap-1)}
+.pc-add-starter{display:grid;grid-template-columns:88px minmax(0,1fr);align-items:center}
+.pc-add-starter>span{border-top:0;white-space:normal;font-size:var(--fs-2);line-height:1.35}
+.pc-add-starter>div{border-right:1px solid var(--line)}
 .templateChooser{display:grid;gap:var(--sp-6)}
 .templateControls{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(260px,1fr);gap:var(--sp-6);align-items:end}
 .templateControls>.f,.templateControls>.f:last-child{margin-bottom:0}
@@ -2980,7 +2976,7 @@ window.addEventListener('storage', e => {
     <button class="btn primary" id="tbMine">Keep this one</button>`);
   $('#tbTheirs').addEventListener('click', () => {
     const d = migrate(other);
-    if (d) { hist.u.push(clone(doc())); restore(d); }
+    if (d) { checkpoint('Reload saved project'); restore(d); }
     closeModal(); tabWarned = false; toast('Loaded the other tab’s version');
   });
   $('#tbMine').addEventListener('click', () => { closeModal(); tabWarned = false; writeNow(); });
@@ -3706,23 +3702,12 @@ function positionHud() {
   const x = Math.max(0, Math.min(r.left, cwin.innerWidth - barBounds.width));
   bar.style.left = (x + cwin.scrollX) + 'px';
 
-  /* One clamp, and the position set outright rather than nudged by a transform. Above the
-     element is the preference, but the bar has to stay inside the part of the canvas you can
-     actually see — and the case that matters is scrolling down with a tall section selected:
-     its top edge goes off-screen, and both "above the top edge" and "hanging from the top
-     edge" go off-screen with it. Pinning to the top of the view keeps the bar with the
-     selection the whole way down a page.
-
-       want  above the element, which is where it sits whenever there is room
-       0     the top of what is visible; never higher than this
-       hi    still over the element; never lower, so it cannot float free of what it labels */
-  const want = r.top - h;
-  const hi = Math.max(0, r.bottom - h);
-  const y = Math.min(Math.max(want, 0), hi);
+  // A short element at the top of the viewport needs the bar below it, so
+  // the controls never cover the text the user is trying to select or edit.
+  const y = PC_UI.selectionToolbarTop(r, h, cwin.innerHeight);
   bar.style.top = (y + cwin.scrollY) + 'px';
-  /* flush above gets the tab shape it always had; anything else is sitting over the element,
-     so it rounds on the side that is no longer touching an edge */
-  if (y > want + 0.5) bar.style.borderRadius = '0 6px 6px 6px';
+  if (y >= r.bottom) bar.style.borderRadius = '0 0 6px 6px';
+
 }
 
 /* A grip per gutter, on the row that is selected — or on the parent row when a
@@ -3778,10 +3763,17 @@ function select(id, opts = {}) {
   renderModebar();
   renderLayers();
   drawBlocks();
-  if (opts.scroll && state.ui.sel && cdoc) {
-    const el = cdoc.getElementById(state.ui.sel);
-    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
+  if (state.ui.sel) requestAnimationFrame(() => revealSelection(!!opts.scroll));
+}
+// Panel changes can reflow the canvas. Reveal only an offscreen selection;
+// ordinary edits must not snap a tall section back to its beginning.
+function revealSelection(force = false) {
+  const el = cdoc && state.ui.sel && cdoc.getElementById(state.ui.sel);
+  if (!el || document.body.classList.contains('preview')) return;
+  const r = el.getBoundingClientRect();
+  if (force || r.bottom <= 0 || r.top >= cwin.innerHeight || r.right <= 0 || r.left >= cwin.innerWidth)
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  positionHud();
 }
 /* cheap selection repaint — avoids rebuilding the whole canvas */
 function paintSel() {
@@ -4130,7 +4122,7 @@ let drag = null, dragDidMove = false;
 
 function startDrag(e, payload, fromFrame) {
   e.preventDefault();
-  drag = { ...payload, fromFrame, drop: null, moved: false };
+  drag = { ...payload, fromFrame, drop: null, moved: false, startX: e.clientX, startY: e.clientY };
   document.body.classList.add('dragging');
   const g = $('#ghost');
   g.innerHTML = svg(payload.icon || (payload.kind === 'move' ? 'drag' : 'plus'), 13) + esc(payload.label);
@@ -4142,14 +4134,18 @@ function startDrag(e, payload, fromFrame) {
   const dOwn = fromFrame ? cdoc : document;
   const mv = ev => onDragMove(ev, fromFrame);
   const up = ev => { onDrop(ev, fromFrame); cleanup(); };
+  const cancel = () => { if (drag) drag.drop = null; onDrop(null, fromFrame); cleanup(); };
+  const key = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); cancel(); } };
   function cleanup() {
     dOwn.removeEventListener('pointermove', mv);
     dOwn.removeEventListener('pointerup', up);
-    dOwn.removeEventListener('pointercancel', up);
+    dOwn.removeEventListener('pointercancel', cancel);
+    dOwn.removeEventListener('keydown', key, true);
   }
   dOwn.addEventListener('pointermove', mv);
   dOwn.addEventListener('pointerup', up);
-  dOwn.addEventListener('pointercancel', up);
+  dOwn.addEventListener('pointercancel', cancel);
+  dOwn.addEventListener('keydown', key, true);
 }
 
 /* Dragging a gutter. Writes at the breakpoint being edited, because the column's
@@ -4214,6 +4210,7 @@ function moveGhost(e, fromFrame) {
 
 function onDragMove(e, fromFrame) {
   if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) * (fromFrame ? zoomK : 1) < 5) return;
   drag.moved = true;
   moveGhost(e, fromFrame);
   const r = frameRect();
@@ -4227,7 +4224,8 @@ function onDragMove(e, fromFrame) {
     : drag.kind === 'pattern' ? 'section'
       : drag.kind === 'block' ? blockRootType(drag.blockId)
         : drag.kind === 'component' ? ((findComponent(drag.componentId) || {}).node || {}).type
-          : locate(drag.id).node.type;
+          : locate(drag.id)?.node.type;
+  if (!type) { drag.drop = null; showDrop(null); return; }
   const d = findDrop(x, y, type, drag.kind === 'move' ? drag.id : null);
   drag.drop = d;
   showDrop(d);
@@ -4280,10 +4278,23 @@ function findDrop(x, y, type, movingId) {
 function showDrop(d) {
   if (!cdoc) return;
   let ind = cdoc.getElementById('s-drop');
+  const oldLabel = cdoc.getElementById('s-drop-label');
+  if (oldLabel) oldLabel.remove();
   if (!d) { if (ind) ind.remove(); return; }
   if (!ind) { ind = cdoc.createElement('div'); ind.id = 's-drop'; cdoc.getElementById('s-hud').appendChild(ind); }
   const sx = cwin.scrollX, sy = cwin.scrollY;
   const { container, index, horiz, list } = d;
+  const label = cdoc.createElement('div');
+  label.id = 's-drop-label';
+  const neighbor = list[index] || list[list.length - 1];
+  label.textContent = (drag?.kind === 'move' ? 'Move' : 'Add') + ' ' + (drag?.label || 'element')
+    + (neighbor ? (index < list.length ? ' before ' : ' after ') + kindOf(neighbor) : ' inside ' + (container ? kindOf(container) : 'page'));
+  cdoc.getElementById('s-hud').appendChild(label);
+  const placeLabel = () => {
+    const bounds = ind.getBoundingClientRect(), box = label.getBoundingClientRect();
+    label.style.left = Math.max(0, Math.min(bounds.left, cwin.innerWidth - box.width)) + sx + 'px';
+    label.style.top = Math.max(0, bounds.top - box.height - 4 / zoomK) + sy + 'px';
+  };
 
   if (!list.length) {
     const host = container ? (container.type === 'section' ? cdoc.querySelector('#' + container.id + ' > .pagecraft-container') : cdoc.getElementById(container.id)) : cdoc.getElementById('s-root');
@@ -4291,6 +4302,7 @@ function showDrop(d) {
     const r = host.getBoundingClientRect();
     ind.className = 'box';
     Object.assign(ind.style, { left: r.left + sx + 'px', top: r.top + sy + 'px', width: r.width + 'px', height: Math.max(r.height, 40) + 'px' });
+    placeLabel();
     return;
   }
   const after = index >= list.length;
@@ -4304,6 +4316,7 @@ function showDrop(d) {
   } else {
     Object.assign(ind.style, { left: r.left + sx + 'px', top: (after ? r.bottom : r.top) - 1.5 + sy + 'px', width: r.width + 'px', height: '3px' });
   }
+  placeLabel();
 }
 
 function onDrop(e, fromFrame) {
@@ -4312,11 +4325,11 @@ function onDrop(e, fromFrame) {
   showDrop(null);
   const d = drag; drag = null;
   dragDidMove = !!(d && d.moved);
-  if (!d || !d.drop) { return; }
+  if (!d || !d.moved || !d.drop) { return; }
   const { container, index } = d.drop;
   if (d.kind === 'pattern') {
     let made = null;
-    edit(() => { made = patternInsert(d.patId, container, index); if (made) selSet([made.id]); });
+    edit(() => { made = patternInsert(d.patId, container, index); if (made) selSet([made.id]); }, 'Add section');
     toast(made ? d.label + ' added' : 'That does not fit there');
   } else if (d.kind === 'block') {
     let made = null;
@@ -4339,9 +4352,12 @@ function onDrop(e, fromFrame) {
       edit(() => { k = moveMany(set, container, index); });
       toast(k === set.length ? `${k} elements moved` : k ? `${k} of ${set.length} moved — the rest do not fit there` : 'They do not fit there');
     } else {
-      edit(() => moveNode(d.id, container, index));
+      // The destination index describes the list before removal. moveMany also
+      // adjusts that index for one element moving forward within its own list.
+      edit(() => moveMany([d.id], container, index), 'Move ' + kindOf(locate(d.id).node).toLowerCase());
     }
   }
+  requestAnimationFrame(() => revealSelection(true));
 }
 
 /* ========================================================= inline editing */
@@ -4467,7 +4483,7 @@ function enterEdit(id) {
   const host = cdoc.getElementById(id); if (!host) return;
   const target = editTarget(n, host);
 
-  hist.u.push(clone(doc())); hist.r.length = 0;
+  checkpoint('Change ' + kindOf(n).toLowerCase() + ' text');
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
   editing.prop = n.use ? property.path : null;
   target.contentEditable = 'true';
@@ -5301,15 +5317,19 @@ function openPage(index, settings = false) {
    the button looked dead. Anything that moves history depth calls this. */
 function paintHistory() {
   const u = $('#undoBtn'), r = $('#redoBtn');
-  if (u) u.disabled = !hist.u.length;
-  if (r) r.disabled = !hist.r.length;
+  for (const [button, direction, stack, shortcut] of [[u, 'undo', hist.u, '⌘Z'], [r, 'redo', hist.r, '⌘⇧Z']]) {
+    if (!button) continue;
+    const verb = direction === 'undo' ? 'Undo' : 'Redo';
+    const label = stack.length ? verb + ': ' + historyLabel(direction) : verb;
+    button.disabled = !stack.length;
+    button.title = label + ' (' + shortcut + ')';
+    button.setAttribute('aria-label', label);
+  }
 }
 let txKey = null;
 function tx(key) {
   if (txKey === key) return;
-  txKey = key; hist.u.push(clone(doc()));
-  if (hist.u.length > hist.max) hist.u.shift();
-  hist.r.length = 0;
+  txKey = key; checkpoint();
   paintHistory();
 }
 const endTx = () => { txKey = null; paintHistory(); };
@@ -5507,6 +5527,7 @@ function render(opts = {}) {
   renderPanelHead(); renderDoc(); layoutCanvas(); renderDim(); drawBlocks();
   paintReview(); refreshReview();
   paintHistory();
+  requestAnimationFrame(() => revealSelection());
 }
 
 function setMode(m) {
@@ -6155,7 +6176,7 @@ function exportModal() {
         let d = null;
         try { d = migrate(JSON.parse(rd.result)); } catch (e) { d = null; }
         if (!d) { action.error('That file is not a Pagecraft project this build can open'); return; }
-        hist.u.push(clone(doc()));
+        checkpoint('Import project');
         state.meta = { ...state.meta, ...d.meta }; state.header = d.header || []; state.footer = d.footer || [];
         state.pages = d.pages; state.cur = 0; selSet([]);
         closeModal(); render(); writeNow(); action.success('Project imported.');
@@ -6506,7 +6527,7 @@ function projectModal() {
   const resetButton = $('#mReset');
   if (resetButton) resetButton.addEventListener('click', async () => {
     if (!await askConfirm('Replace everything?', '<b>Your current pages are lost.</b> Export a project JSON first to keep them.', { ok: 'Replace with demo' })) return;
-    hist.u.push(clone(doc()));
+    checkpoint('Replace with demo');
     seed(); selSet([]); closeModal(); render(); writeNow(); toast('Demo content restored');
   });
 }
@@ -6744,8 +6765,8 @@ function hotkey(e) {
   /* Native controls own activation and navigation keys. Let Enter/Space reach their
      default action instead of entering canvas text editing or moving its selection. */
   if (!meta && t.closest?.('button,summary,a[href],[role="button"],[role="combobox"],[role="listbox"]')) return;
-  if (meta && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
-  if (meta && k === 'y') { e.preventDefault(); redo(); return; }
+  if (meta && k === 'z') { e.preventDefault(); endTx(); e.shiftKey ? redo() : undo(); return; }
+  if (meta && k === 'y') { e.preventDefault(); endTx(); redo(); return; }
   if (document.body.classList.contains('pages-open')) {
     if (e.key === 'Escape') { e.preventDefault(); backToBuilder(); }
     return;
@@ -6911,8 +6932,8 @@ function bindTop() {
     }
   }
   $$('#devSeg button').forEach(b => b.addEventListener('click', () => setDev(b.dataset.dev)));
-  $('#undoBtn').addEventListener('click', undo);
-  $('#redoBtn').addEventListener('click', redo);
+  $('#undoBtn').addEventListener('click', () => { endTx(); undo(); });
+  $('#redoBtn').addEventListener('click', () => { endTx(); redo(); });
   if (HOST_FEATURES.preview === 'wordpress' && WP.previewUrl) {
     $('#previewBtn').title = 'Preview this WordPress page';
     $('#previewBtn').setAttribute('aria-label', 'Preview this WordPress page');

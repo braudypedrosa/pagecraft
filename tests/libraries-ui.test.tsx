@@ -157,19 +157,19 @@ async function openLibrary(name: string) {
   await click(r.$$('button.lib-row').find(b => b.querySelector('b')?.textContent === name));
 }
 
-test('the tab exists only where libraries do', async () => {
+test('the category exists only where libraries do', async () => {
   const plain = rig();
   C.state.ui.atab = 'libraries';
   plain.draw(() => <Add />, 'add');
-  const labels = plain.$$('.addSwitcher button').map(b => b.textContent?.trim());
+  const labels = plain.$$('#add-category-select option').map(option => option.textContent?.trim());
   expect(labels).toEqual(['Elements', 'Templates', 'Components', 'Blocks']);
-  expect(plain.$('.addSwitcher button[aria-selected="true"]')?.textContent?.trim()).toBe('Elements');
+  expect((plain.$('#add-category-select') as HTMLSelectElement).value).toBe('widgets');
   render(null, plain.host);
   plain.host.remove();
 
   r = rig({ libraries: fake.adapter, siteDraft: () => ({ siteId: SITE, version: draftVersion }) });
   await openTab();
-  expect(r.$$('.addSwitcher button').map(b => b.textContent?.trim())).toContain('Libraries');
+  expect(r.$$('#add-category-select option').map(option => option.textContent?.trim())).toContain('Libraries');
   expect(r.$('.hint')?.textContent).toMatch(/No libraries yet/);
 });
 

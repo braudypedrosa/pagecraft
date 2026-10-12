@@ -130,6 +130,7 @@ __export(index_exports, {
   canvasCsp: () => canvasCsp,
   canvasWidth: () => canvasWidth,
   chainTo: () => chainTo,
+  checkpoint: () => checkpoint,
   classAdd: () => classAdd,
   classApply: () => classApply,
   classDelete: () => classDelete,
@@ -233,6 +234,7 @@ __export(index_exports, {
   hasBackdrop: () => hasBackdrop,
   hex2rgb: () => hex2rgb,
   hist: () => hist,
+  historyLabel: () => historyLabel,
   holds: () => holds,
   hsv2rgb: () => hsv2rgb,
   iconOf: () => iconOf,
@@ -1492,6 +1494,146 @@ function cleanRich(html) {
   return out + close(0);
 }
 
+// app/src/core/history-labels.ts
+var KIND = {
+  section: "section",
+  row: "row",
+  column: "column",
+  box: "box",
+  heading: "heading",
+  text: "text",
+  quote: "quote",
+  image: "image",
+  gallery: "gallery",
+  video: "video",
+  icon: "icon",
+  button: "button",
+  nav: "menu",
+  form: "form",
+  accordion: "accordion",
+  tabs: "tabs",
+  table: "table",
+  code: "code",
+  crumbs: "breadcrumbs",
+  slider: "slider",
+  embed: "embed",
+  spacer: "spacer",
+  divider: "divider",
+  list: "list"
+};
+var same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+var kind = (node) => KIND[node.type] || "element";
+function nodes(doc2) {
+  const out = /* @__PURE__ */ new Map();
+  const walk = (list, parent, region) => list.forEach((node, index) => {
+    out.set(node.id, { node, parent, index, region });
+    walk(node.children || [], node.id, region);
+  });
+  walk(doc2.header, "", "header");
+  doc2.pages.forEach((page2) => walk(page2.tree, "", `page:${page2.id}`));
+  walk(doc2.footer, "", "footer");
+  for (const component of doc2.meta.components || []) walk([component.node], "", `component:${component.id}`);
+  for (const block of doc2.meta.blocks || []) walk([block.node], "", `block:${block.id}`);
+  return out;
+}
+function changedLeafKeys(before, after) {
+  const keys = /* @__PURE__ */ new Set();
+  const collect = (value) => {
+    if (!value || typeof value !== "object") return;
+    for (const [key, child] of Object.entries(value)) {
+      if (child && typeof child === "object") collect(child);
+      else keys.add(key);
+    }
+  };
+  collect(before);
+  collect(after);
+  const values = (value, wanted) => {
+    const found = [];
+    const visit = (part) => {
+      if (!part || typeof part !== "object") return;
+      for (const [key, child] of Object.entries(part)) {
+        if (key === wanted && (!child || typeof child !== "object")) found.push(child);
+        else if (child && typeof child === "object") visit(child);
+      }
+    };
+    visit(value);
+    return found;
+  };
+  return [...keys].filter((key) => !same(values(before, key), values(after, key)));
+}
+function cssChange(before, after) {
+  const changed = changedLeafKeys({ css: before.css, st: before.st }, { css: after.css, st: after.st });
+  if (!changed.length) return null;
+  if (changed.some((key) => /^(padding|margin)(-|$)|^gap$/.test(key))) return "spacing";
+  if (changed.some((key) => /font-size|width|height|max-width|min-height|flex-(?:grow|basis)/.test(key))) return "size";
+  if (changed.some((key) => /align|justify|text-align/.test(key))) return "alignment";
+  if (changed.some((key) => /color/.test(key))) return "colour";
+  if (changed.some((key) => /background/.test(key))) return "background";
+  if (changed.some((key) => /^border/.test(key))) return "border";
+  if (changed.some((key) => /shadow/.test(key))) return "shadow";
+  if (changed.some((key) => /opacity/.test(key))) return "opacity";
+  if (changed.some((key) => /transform/.test(key))) return "transform";
+  if (changed.some((key) => /position|^(?:top|right|bottom|left|z-index)$/.test(key))) return "position";
+  return "style";
+}
+function propChange(before, after) {
+  const keys = /* @__PURE__ */ new Set([...Object.keys(before.props || {}), ...Object.keys(after.props || {})]);
+  const changed = [...keys].filter((key) => !same(before.props[key], after.props[key]));
+  if (!changed.length && !same(before.vals, after.vals)) return "content";
+  if (!changed.length) return null;
+  if (changed.some((key) => /link|href|target|url|src/.test(key))) return changed.some((key) => /src/.test(key)) ? "source" : "link";
+  if (changed.some((key) => /text|html|label|caption|alt|title|by|source/.test(key))) return "text";
+  return "content";
+}
+function inferHistoryAction(before, after) {
+  const beforePages = new Map(before.pages.map((page2, index) => [page2.id, { page: page2, index }]));
+  const afterPages = new Map(after.pages.map((page2, index) => [page2.id, { page: page2, index }]));
+  if (after.pages.some((page2) => !beforePages.has(page2.id))) return "Add page";
+  if (before.pages.some((page2) => !afterPages.has(page2.id))) return "Remove page";
+  if (after.pages.some((page2, index) => beforePages.get(page2.id)?.index !== index)) return "Move page";
+  const a = nodes(before), b = nodes(after);
+  const added = [...b.values()].reverse().find((place) => !a.has(place.node.id));
+  if (added) return `Add ${kind(added.node)}`;
+  const removed = [...a.values()].find((place) => !b.has(place.node.id));
+  if (removed) return `Remove ${kind(removed.node)}`;
+  const moved = [...b.values()].find((place) => {
+    const old = a.get(place.node.id);
+    return old && (old.parent !== place.parent || old.index !== place.index || old.region !== place.region);
+  });
+  if (moved) return `Move ${kind(moved.node)}`;
+  for (const [id, old] of a) {
+    const current = b.get(id);
+    if (!current) continue;
+    const css = cssChange(old.node, current.node);
+    if (css) return `Change ${kind(current.node)} ${css}`;
+    const prop = propChange(old.node, current.node);
+    if (prop) return `Change ${kind(current.node)} ${prop}`;
+    if (!same(old.node.hide, current.node.hide)) return `Change ${kind(current.node)} visibility`;
+    if (!same(old.node.anim, current.node.anim)) return `Change ${kind(current.node)} motion`;
+    if (!same(old.node.cls, current.node.cls)) return `Change ${kind(current.node)} classes`;
+    if (!same(old.node.adv, current.node.adv)) return `Change ${kind(current.node)} advanced settings`;
+  }
+  for (const page2 of after.pages) {
+    const old = beforePages.get(page2.id)?.page;
+    if (!old) continue;
+    if (old.name !== page2.name) return "Rename page";
+    if (old.slug !== page2.slug) return "Change page URL";
+    if (!same(
+      { title: old.title, desc: old.desc, ogImage: old.ogImage, collection: old.collection, bindTitle: old.bindTitle, bindDesc: old.bindDesc, headHtml: old.headHtml },
+      { title: page2.title, desc: page2.desc, ogImage: page2.ogImage, collection: page2.collection, bindTitle: page2.bindTitle, bindDesc: page2.bindDesc, headHtml: page2.headHtml }
+    )) return "Change page settings";
+  }
+  if (before.meta.name !== after.meta.name) return "Rename project";
+  if (!same(before.meta, after.meta)) return "Change project settings";
+  if (!same(before.header, after.header)) return "Edit header";
+  if (!same(before.footer, after.footer)) return "Edit footer";
+  return "Edit page";
+}
+function conciseHistoryLabel(label) {
+  const clean = label?.replace(/\s+/g, " ").trim();
+  return clean ? clean.slice(0, 80) : null;
+}
+
 // app/src/core/media-references.ts
 var managedUrlPattern = () => /url\(\s*(['"]?)(asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?)\1\s*\)/gi;
 var tokenPattern = () => /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
@@ -1515,7 +1657,7 @@ function mediaReferences(document) {
       } else styles2(child, [...path, key], context);
     });
   };
-  const nodes = (list, path, context) => list.forEach((node, i) => {
+  const nodes2 = (list, path, context) => list.forEach((node, i) => {
     const base = [...path, i];
     const where = { ...context, nodeId: node.id };
     const props = node.props;
@@ -1526,18 +1668,18 @@ function mediaReferences(document) {
     definition?.props.filter((prop) => prop.t === "img").forEach((prop) => scan(node.vals?.[prop.k], [...base, "vals", prop.k], where));
     styles2(node.css, [...base, "css"], where);
     styles2(node.st, [...base, "st"], where);
-    nodes(node.children, [...base, "children"], context);
+    nodes2(node.children, [...base, "children"], context);
   });
   document.pages.forEach((page2, i) => {
     const context = { scope: "page", label: page2.name, ownerId: page2.id };
     scan(page2.ogImage, ["pages", i, "ogImage"], context);
-    nodes(page2.tree, ["pages", i, "tree"], context);
+    nodes2(page2.tree, ["pages", i, "tree"], context);
   });
-  for (const scope of ["header", "footer"]) nodes(document[scope], [scope], { scope, label: `Global ${scope}` });
+  for (const scope of ["header", "footer"]) nodes2(document[scope], [scope], { scope, label: `Global ${scope}` });
   document.meta.components?.forEach((def, i) => {
     const context = { scope: "component", label: def.name, ownerId: def.id };
     const start = result.length;
-    nodes([def.node], ["meta", "components", i, "node"], context);
+    nodes2([def.node], ["meta", "components", i, "node"], context);
     result.slice(start).forEach((ref) => ref.path.splice(4, 1));
     def.props.forEach((prop, j) => {
       if (prop.t !== "img") return;
@@ -1547,7 +1689,7 @@ function mediaReferences(document) {
   });
   document.meta.blocks.forEach((block, i) => {
     const start = result.length;
-    nodes([block.node], ["meta", "blocks", i, "node"], { scope: "block", label: block.name, ownerId: block.id });
+    nodes2([block.node], ["meta", "blocks", i, "node"], { scope: "block", label: block.name, ownerId: block.id });
     result.slice(start).forEach((ref) => ref.path.splice(4, 1));
   });
   document.meta.collections?.forEach((collection, i) => collection.items.forEach((item, j) => collection.fields.filter((field) => field.type === "image").forEach((field) => scan(
@@ -3455,20 +3597,30 @@ var ctlKeys = (type) => {
   return out;
 };
 function fanTargets(c, ids) {
-  const nodes = ids.map((id) => locate(id)).filter(Boolean).map((h) => h.node);
-  if (c.k === "_id") return nodes.slice(0, 1);
-  if (c.c || ADV_SHARED.has(c.k)) return nodes;
-  return nodes.filter((n) => ctlKeys(n.type).has(c.k));
+  const nodes2 = ids.map((id) => locate(id)).filter(Boolean).map((h) => h.node);
+  if (c.k === "_id") return nodes2.slice(0, 1);
+  if (c.c || ADV_SHARED.has(c.k)) return nodes2;
+  return nodes2.filter((n) => ctlKeys(n.type).has(c.k));
 }
 var HOOKS = { change() {
 }, save() {
 }, note() {
 } };
 var hist = { u: [], r: [], max: 80 };
-function edit(fn) {
-  hist.u.push(clone(doc()));
+var historyLabels = /* @__PURE__ */ new WeakMap();
+function rememberHistory(snapshot, label) {
+  const clean = conciseHistoryLabel(label);
+  if (clean) historyLabels.set(snapshot, clean);
+}
+function checkpoint(label) {
+  const snapshot = clone(doc());
+  rememberHistory(snapshot, label);
+  hist.u.push(snapshot);
   if (hist.u.length > hist.max) hist.u.shift();
   hist.r.length = 0;
+}
+function edit(fn, label) {
+  checkpoint(label);
   fn();
   HOOKS.change();
   HOOKS.save();
@@ -3483,17 +3635,33 @@ function restore(snap) {
   HOOKS.change();
   HOOKS.save();
 }
+function historyLabel(direction) {
+  const stack = direction === "undo" ? hist.u : hist.r;
+  const target = stack[stack.length - 1];
+  if (!target) return direction === "undo" ? "Undo" : "Redo";
+  return historyLabels.get(target) || (direction === "undo" ? inferHistoryAction(target, doc()) : inferHistoryAction(doc(), target));
+}
 function undo() {
   if (!hist.u.length) return;
-  hist.r.push(clone(doc()));
-  restore(hist.u.pop());
-  HOOKS.note("Undo");
+  const target = hist.u[hist.u.length - 1];
+  const label = historyLabel("undo");
+  const current = clone(doc());
+  rememberHistory(current, label);
+  hist.r.push(current);
+  hist.u.pop();
+  restore(target);
+  HOOKS.note("Undo: " + label);
 }
 function redo() {
   if (!hist.r.length) return;
-  hist.u.push(clone(doc()));
-  restore(hist.r.pop());
-  HOOKS.note("Redo");
+  const target = hist.r[hist.r.length - 1];
+  const label = historyLabel("redo");
+  const current = clone(doc());
+  rememberHistory(current, label);
+  hist.u.push(current);
+  hist.r.pop();
+  restore(target);
+  HOOKS.note("Redo: " + label);
 }
 var lvl = (t) => DEF[BASE[t] || t].level;
 var CHAIN = { 1: "section", 2: "row", 3: "column" };
@@ -5059,8 +5227,8 @@ function matches(col, item, where, op, val) {
   if (op === "unset") return raw === "";
   if (want === "") return true;
   if (op === "has") return raw.toLowerCase().includes(want.toLowerCase());
-  const same = f.type === "number" ? parseFloat(raw) === parseFloat(want) : raw.toLowerCase() === want.toLowerCase();
-  return op === "not" ? !same : same;
+  const same2 = f.type === "number" ? parseFloat(raw) === parseFloat(want) : raw.toLowerCase() === want.toLowerCase();
+  return op === "not" ? !same2 : same2;
 }
 function listItems(n, col) {
   const p = n.props;
@@ -5825,8 +5993,8 @@ var PROP_KIND = {
 function propFromControl(cid, nodeId, c) {
   const def = findComponent(cid);
   if (!def || !c.k || c.k.startsWith(VAL)) return null;
-  const kind = PROP_KIND[c.t];
-  if (!kind) return null;
+  const kind2 = PROP_KIND[c.t];
+  if (!kind2) return null;
   let hit = null;
   eachNode([def.node], (x) => {
     if (x.id === nodeId) hit = x;
@@ -5834,9 +6002,9 @@ function propFromControl(cid, nodeId, c) {
   const n = hit;
   if (!n) return null;
   const cur = propVal(n, c.k);
-  const k = propAdd(cid, c.label || c.k, kind, cur == null ? "" : String(cur));
+  const k = propAdd(cid, c.label || c.k, kind2, cur == null ? "" : String(cur));
   if (!k) return null;
-  if (kind === "select") {
+  if (kind2 === "select") {
     const pr = findProp(def, k);
     const opts = typeof c.opts === "function" ? null : c.opts;
     if (pr && opts) pr.opts = opts.map((o) => [String(o[0]), String(o[1])]);
@@ -8207,6 +8375,7 @@ ${m.css || ""}
 #s-hud .bar button:hover{background:#ffffff26;opacity:1;color:#b7f34a}
 #s-hud .bar button.g{cursor:grab}
 #s-drop{position:absolute;z-index:9999;pointer-events:none;background:#b7f34a;border-radius:2px;box-shadow:0 0 0 calc(1px / var(--z,1)) #11131126}
+#s-drop-label{position:absolute;z-index:10000;pointer-events:none;box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);padding:5px 8px;border-radius:4px;background:#111311;color:#f5f7f8;font:500 12px "DM Sans",system-ui,sans-serif;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;white-space:normal}
 #s-drop.box{background:#b7f34a24;border:1.5px solid #b7f34a;border-radius:8px;box-shadow:none}
 ` : "");
 }
@@ -8995,8 +9164,8 @@ var proposalWords = (v, max = 48) => {
 };
 var proposalNodeLabel = (n) => {
   const words = proposalWords(textSlots(n).map((sl) => String(slotGet(n, sl) || "")).find(Boolean) || "", 32);
-  const kind = n.use ? findComponent(n.use)?.name || "Component" : labelOf(n.type);
-  return `${kind}${words ? ` \u201C${words}\u201D` : ""}`;
+  const kind2 = n.use ? findComponent(n.use)?.name || "Component" : labelOf(n.type);
+  return `${kind2}${words ? ` \u201C${words}\u201D` : ""}`;
 };
 function proposalLink(raw) {
   const v = raw.trim();
@@ -9365,6 +9534,7 @@ function proposalApply(changes, proposalId = "") {
   canvasCsp,
   canvasWidth,
   chainTo,
+  checkpoint,
   classAdd,
   classApply,
   classDelete,
@@ -9468,6 +9638,7 @@ function proposalApply(changes, proposalId = "") {
   hasBackdrop,
   hex2rgb,
   hist,
+  historyLabel,
   holds,
   hsv2rgb,
   iconOf,

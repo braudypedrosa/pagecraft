@@ -355,17 +355,26 @@ test('the editor chrome keeps navigation compact and the whole Add library reach
   const { window: w, doc } = await boot();
   const C = w.__CORE;
   w.renderPalette();
-  const categories = [...doc.querySelectorAll('#paneAdd .addSwitcher button')];
+  const category = doc.querySelector('#paneAdd #add-category-select');
+  const categories = [...category.options];
   a.deepEqual(categories.map(x => x.textContent.trim()),
     ['Elements', 'Templates', 'Components', 'Blocks']);
-  a.deepEqual(categories.map(x => x.querySelector('svg')?.getAttribute('width')),
-    ['14', '14', '14', '14']);
-  a.equal(categories[0].getAttribute('aria-selected'), 'true');
-  categories[1].click();
+  a.equal(category.value, 'widgets');
+  a.equal(category.labels[0].textContent, 'Add');
+  category.value = 'templates';
+  category.dispatchEvent(new w.Event('change', { bubbles: true }));
   await new Promise(r => setTimeout(r, 0));
   a.equal(C.state.ui.atab, 'templates');
-  a.equal(doc.querySelector('#paneAdd .addSwitcher button[aria-selected="true"]').textContent.trim(), 'Templates');
+  a.equal(doc.querySelector('#paneAdd #add-category-select').value, 'templates');
+  a.equal(doc.querySelector('#paneAdd #add-category-panel').getAttribute('aria-label'), 'Templates to add');
   a.equal(doc.querySelector('#paneAdd .addContext'), null, 'category descriptions do not take up panel space');
+  C.state.ui.atab = 'widgets';
+  w.renderPalette();
+  const starterShortcut = [...doc.querySelectorAll('#paneAdd button')].find(button => button.textContent.trim() === 'Browse starter sections');
+  starterShortcut.click();
+  await new Promise(r => setTimeout(r, 0));
+  a.equal(doc.querySelector('.pc-add-category-picker [role="combobox"]').textContent.trim(), 'Templates',
+    'internal navigation must keep the enhanced category label in sync');
   C.state.ui.atab = 'widgets';
   w.renderPalette();
   a.equal(doc.querySelector('#projBtn'), null, 'Project is duplicated in the top bar');

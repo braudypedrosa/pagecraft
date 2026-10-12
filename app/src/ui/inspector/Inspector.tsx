@@ -9,7 +9,7 @@
 
    None of that survives. A control's handlers are written beside its markup, `CUR` and
    `data-ci` are gone, and the guard has nothing left to check. */
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Disclosure } from '../Disclosure';
@@ -17,6 +17,10 @@ import { Ctl } from './Controls';
 import { HelpTip } from '../HelpTip';
 import { MobileMenuBuilder } from './MobileMenuBuilder';
 import type { Control, Node as PcNode } from '../../core/types';
+import {
+  advancedControlIsModified, clearOwnBreakpointChanges, commonControlsFirst,
+  controlIsModified, hasOwnBreakpointChanges, scopeDeclarations
+} from './scope';
 
 /* `askConfirm` takes HTML, so the one value interpolated into it is escaped by hand — the same
    reason Add.tsx has this line. */
@@ -263,6 +267,28 @@ function StatePick() {
   );
 }
 
+function ModifiedFilter({ active, onChange }: { active: boolean; onChange: (active: boolean) => void }) {
+  return (
+    <label class="inspector-modified-filter">
+      <input type="checkbox" checked={active}
+        onChange={e => onChange((e.target as HTMLInputElement).checked)} />
+      <span>Show modified settings</span>
+    </label>
+  );
+}
+
+function BreakpointReset({ n }: { n: PcNode }) {
+  const breakpoint = C.dk();
+  const state = C.state.ui.st || '';
+  if (breakpoint === 'd' || C.tgtIsClass(n) || !hasOwnBreakpointChanges(n, breakpoint, state)) return null;
+  const label = `Reset ${C.DEV_LABEL[breakpoint].toLowerCase()} changes`;
+  return <button type="button" class="btn tiny inspector-breakpoint-reset" onClick={() => {
+    C.edit(() => clearOwnBreakpointChanges(n, breakpoint, state), label);
+    L.toast(label);
+    repaint('right');
+  }}>{label}</button>;
+}
+
 /* Everything that moves, in one group. It held only the scroll animation, while Transition sat
    two groups up under Effects and the state switcher told you to go and find it — three places
    for one subject, and the state switcher and this group both read as "motion" from their names
@@ -283,7 +309,7 @@ const transitionCtl = (): Control => ({
   note: 'Animates a hover, a focus, or a class change.'
 });
 
-function Motion({ n }: { n: PcNode }) {
+function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode; showTransition?: boolean; showAnimation?: boolean }) {
   const a = n.anim || {};
   const apply = (patch: Record<string, unknown>) => {
     const next = { ...(n.anim || {}), ...patch };
@@ -313,10 +339,10 @@ function Motion({ n }: { n: PcNode }) {
 
   return (
     <Panel title="Motion" n={n} gk={n.type + ':Motion'}>
-      <div class="plabel">When it changes</div>
-      <Ctl n={n} c={transitionCtl()} />
+      {showTransition ? <><div class="plabel">When it changes</div>
+      <Ctl n={n} c={transitionCtl()} /></> : null}
 
-      <div class="plabel">When it enters the view</div>
+      {showAnimation ? <><div class="plabel">When it enters the view</div>
       <div class="f"><label>Animation <HelpTip label="Animation" text="Animations run in Preview and on the published site." /></label>
         <select class="ctl" value={a.name || ''}
           onChange={e => hard({ name: (e.target as HTMLSelectElement).value })}>
@@ -340,7 +366,7 @@ function Motion({ n }: { n: PcNode }) {
             <span>Only the first time it comes into view</span>
           </label>
         </>
-      ) : null}
+      ) : null}</> : null}
     </Panel>
   );
 }
@@ -539,6 +565,7 @@ function Visibility({ n }: { n: PcNode }) {
 }
 
 export function Inspector() {
+  const [modifiedOnly, setModifiedOnly] = useState(false);
   const h = C.state.ui.sel ? C.locate(C.state.ui.sel) : null;
 
   /* Joining or leaving changes the canvas width, so the selection frame and the px
@@ -562,7 +589,7 @@ export function Inspector() {
   /* Forced, not merely defaulted: `stab` persists, so a session that was on Style before the
      role was known would otherwise render a Style pane with no tab row to leave it by. */
   const tab = L.canStructure() ? C.state.ui.stab : 'content';
-  const style = d.controls.style || [];
+  const style = commonControlsFirst(d.controls.style || []);
   const moduleStyleKeys = new Set(style.flatMap(c => c.c ? ['css:' + c.c] : c.k ? ['prop:' + c.k] : []));
   const commonStyle = C.COMMON_STYLE.map(group => ({
     ...group,
@@ -578,7 +605,7 @@ export function Inspector() {
      to say about it. Same reader for the content-role filter, for the same reason. */
   const all = C.contentControls(n);
   const keys = L.canStructure() ? null : C.contentKeysOf(n);
-  const content = keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all;
+  const content = commonControlsFirst(keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all);
   const advanced = advControls(n);
   const many = C.selIds().length > 1;
   const formHandling = n.type === 'form' && C.cloudFormsEnabled()
@@ -594,6 +621,21 @@ export function Inspector() {
     e.preventDefault(); chooseTab(keys[next]);
     requestAnimationFrame(() => document.getElementById('inspector-tab-' + keys[next])?.focus());
   };
+  const scopedDeclarations = scopeDeclarations(C.tgtObj(n), C.dk(), C.state.ui.st || '');
+  const visibleStyle = modifiedOnly ? style.filter(control => controlIsModified(control, scopedDeclarations)) : style;
+  const visibleCommonStyle = commonStyle.filter(group => group.g !== 'Effects').map(group => ({
+    ...group,
+    items: modifiedOnly ? group.items.filter(control => controlIsModified(control, scopedDeclarations)) : group.items
+  }));
+  const visibleAdvanced = modifiedOnly
+    ? advanced.filter(control => advancedControlIsModified(control, n, scopedDeclarations)) : advanced;
+  const effects = commonStyle.find(group => group.g === 'Effects');
+  const effectControls = C.canDo(n, 'effects') ? (effects?.items || []).filter(control => !modifiedOnly || controlIsModified(control, scopedDeclarations)) : [];
+  const showTransition = !modifiedOnly || controlIsModified(transitionCtl(), scopedDeclarations);
+  const showAnimation = !modifiedOnly || (C.dk() === 'd' && !C.state.ui.st && !C.tgtIsClass(n) && !!n.anim?.name);
+  const showMotion = !many && C.canDo(n, 'animation') && (showTransition || showAnimation);
+  const hasModifiedStyle = visibleStyle.length > 0 || visibleCommonStyle.some(group => C.canDo(n, group.cap) && group.items.length > 0) || showMotion;
+  const hasModifiedAdvanced = visibleAdvanced.length > 0 || effectControls.length > 0;
 
   return (
     <>
@@ -614,6 +656,12 @@ export function Inspector() {
       <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
         {tab === 'content' || many ? null : <StatePick />}
+        {tab === 'style' || tab === 'advanced' ? (
+          <div class="inspector-scope-actions">
+            <ModifiedFilter active={modifiedOnly} onChange={setModifiedOnly} />
+            {many ? null : <BreakpointReset n={n} />}
+          </div>
+        ) : null}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
         {tab === 'content' && formHandling ? <p class="note" style="padding:12px">{formHandling.note}</p> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}
@@ -636,11 +684,11 @@ export function Inspector() {
         ) : tab === 'style' ? (
           <>
             <StylingTarget n={n} />
-            {style.length ? <Group title={d.styleLabel || (n.type === 'box' ? C.nameOf(n) : d.label)} n={n} items={style} /> : null}
+            {visibleStyle.length ? <Group title={d.styleLabel || (n.type === 'box' ? C.nameOf(n) : d.label)} n={n} items={visibleStyle} /> : null}
             {/* A group appears because the widget declares the capability it belongs to, not
                 because a predicate excludes nine widget types by name. A heading has no
                 `decoration`, so there is no Background group to hide controls inside. */}
-            {commonStyle.filter(g => C.canDo(n, g.cap))
+            {visibleCommonStyle.filter(g => C.canDo(n, g.cap))
               .map(g => <Group key={g.g} title={g.g} n={n} items={g.items} />)}
             {/* Last, and only for a single selection: motion is one value per element and a
                 group that wrote to several at once would be lying about what it edits.
@@ -649,13 +697,16 @@ export function Inspector() {
                 changes nothing on screen — and a declared capability that nothing reads is a
                 wish rather than a description, which is the failure the registry exists to
                 avoid. The day a widget should not move, saying so will be enough. */}
-            {many || !C.canDo(n, 'animation') ? null : <Motion n={n} />}
+            {showMotion ? <Motion n={n} showTransition={showTransition} showAnimation={showAnimation} /> : null}
+            {modifiedOnly && !hasModifiedStyle ? <div class="empty inspector-modified-empty">No modified settings in this scope.</div> : null}
           </>
         ) : (
           <>
-            <Group title="Identity & layout" n={n} items={advanced} />
-            {d.level < 4 ? <ContentSource n={n} /> : null}
-            <Visibility n={n} />
+            {visibleAdvanced.length ? <Group title="Identity & layout" n={n} items={visibleAdvanced} /> : null}
+            {effectControls.length ? <Group title="Effects" n={n} items={effectControls} /> : null}
+            {modifiedOnly ? null : d.level < 4 ? <ContentSource n={n} /> : null}
+            {modifiedOnly ? null : <Visibility n={n} />}
+            {modifiedOnly && !hasModifiedAdvanced ? <div class="empty inspector-modified-empty">No modified settings in this scope.</div> : null}
           </>
         )}
         {tab === 'content' && n.type === 'nav' && !n.use && !many && L.canStructure()

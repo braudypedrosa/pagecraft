@@ -313,19 +313,21 @@ test('every template group is offered from the page, header and footer alike', (
     a.ok(groups.includes('Header'), `Header offered in ${mode} mode`);
     a.ok(groups.includes('Footer'), `Footer offered in ${mode} mode`);
     a.ok(groups.includes('Hero'), `page sections offered in ${mode} mode`);
-    a.equal(r.$$('.pvcard').length, C.PATTERNS.length, `all ${C.PATTERNS.length} cards in ${mode} mode`);
+    a.equal(r.$$('.pvcard:not(.pc-add-starter)').length, C.PATTERNS.length,
+      `all ${C.PATTERNS.length} library cards in ${mode} mode`);
+    a.equal(r.$$('.pc-add-starter').length, 3, `three starter shortcuts in ${mode} mode`);
   });
 });
 
-test('the Header and Footer groups lead the list', () => {
+test('starter sections lead into the Header and Footer groups', () => {
   /* Two groups against twelve: in declaration order they sat at the bottom of a long
      scroll, which is close to where they were when they did not appear at all. */
   C.state.ui.mode = 'page';
   C.state.ui.atab = 'templates';
   r.draw(<Add />);
   const groups = r.$$('.plabel').map(e => e.textContent);
-  a.deepEqual(groups.slice(0, 2), ['Header', 'Footer']);
-  a.equal(groups[2], 'Hero', 'and the page sections keep their own order behind them');
+  a.deepEqual(groups.slice(0, 3), ['Starter sections', 'Header', 'Footer']);
+  a.equal(groups[3], 'Hero', 'and the page sections keep their own order behind them');
   a.equal(new Set(groups).size, groups.length, 'no group listed twice');
 });
 
@@ -954,8 +956,11 @@ test('Add tiles, inspector groups, and Navigator rows have keyboard semantics', 
   C.state.ui.atab = 'widgets';
   r.draw(() => <Add />, 'add');
   a.equal(r.$('.pitem')!.tagName, 'BUTTON');
-  const firstTab = r.$('.addSwitcher [role="tab"]')!;
-  firstTab.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  const category = r.$('#add-category-select') as HTMLSelectElement;
+  a.equal(category.tagName, 'SELECT');
+  a.equal(category.labels?.[0]?.textContent, 'Add');
+  category.value = 'templates';
+  category.dispatchEvent(new window.Event('change', { bubbles: true }));
   a.equal(C.state.ui.atab, 'templates');
 
   const n = heading();

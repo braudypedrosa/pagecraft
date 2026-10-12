@@ -12,6 +12,11 @@ const labels = () => r.$$('.pitem span').map(item => item.textContent);
 const commonLabels = () => r.$$('.pc-add-group .pitem span').map(item => item.textContent);
 const search = () => r.$('#add-element-search') as HTMLInputElement;
 const type = (value: string) => act(() => r.type(search(), value));
+const category = () => r.$('#add-category-select') as HTMLSelectElement;
+const chooseCategory = (value: string) => act(() => {
+  category().value = value;
+  category().dispatchEvent(new window.Event('change', { bubbles: true }));
+});
 
 beforeEach(() => {
   const values = new Map<string, string>();
@@ -40,7 +45,19 @@ describe('Add element discovery', () => {
     expect(r.$('.pc-add-guide')?.textContent).toBe('Browse starter sections');
 
     act(() => r.click(r.$$('.pc-add-guide button')[0]));
-    expect(r.$('.addSwitcher button[aria-selected="true"]')?.textContent?.trim()).toBe('Templates');
+    expect(category().value).toBe('templates');
+    expect(r.$('#add-category-panel')?.getAttribute('aria-label')).toBe('Templates to add');
+  });
+
+  test('uses one keyboard-native category selector and preserves available categories', () => {
+    expect(r.$$('select#add-category-select option').map(option => option.textContent)).toEqual([
+      'Elements', 'Templates', 'Components', 'Blocks'
+    ]);
+    expect(category().labels?.[0]?.textContent).toBe('Add');
+
+    chooseCategory('components');
+    expect(C.state.ui.atab).toBe('components');
+    expect(r.$('#add-category-panel')?.getAttribute('aria-label')).toBe('Components to add');
   });
 
   test('categories toggle independently and retain their open state across repaint', () => {
@@ -130,6 +147,21 @@ describe('Add element discovery', () => {
     const selected = r.arg('select');
     expect(selected).toHaveLength(1);
     expect(C.locate(selected![0])?.node.type).toBe('section');
+  });
+
+  test('starter sections reuse visual native patterns and insert through the canonical path', () => {
+    chooseCategory('templates');
+    const starters = r.$$('.pc-add-starter');
+    expect(starters.map(card => card.textContent)).toEqual([
+      'Image beside text', 'Three columns', 'Contact section'
+    ]);
+    expect(starters.every(card => card.querySelector('svg.pvw'))).toBe(true);
+
+    act(() => r.click(starters[1]));
+    const selected = r.arg('select');
+    expect(selected).toHaveLength(1);
+    expect(C.locate(selected![0])?.node.type).toBe('section');
+    expect(r.arg('toast')).toEqual(['Three features added']);
   });
 
   test.each([

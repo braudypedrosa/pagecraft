@@ -88,6 +88,12 @@ const tab = (): AddTab => {
   return (tabs().find(([key]) => key === want) || TABS[0])[0];
 };
 
+const STARTER_SECTIONS = [
+  ['hero-split', 'Image beside text'],
+  ['features-3', 'Three columns'],
+  ['contact', 'Contact section']
+] as const;
+
 /* A row's library line and its "Add to library…" button, shared by Components and Blocks. */
 function LibraryFrom({ kind, id }: { kind: LibraryItemKind; id: string }) {
   const link = L.libraries() ? linkOf(kind, id) : null;
@@ -236,7 +242,7 @@ function Templates() {
     if (jumped) L.setMode(want);
 
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.patternInsert(id, undefined); });
+    C.edit(() => { made = C.patternInsert(id, undefined); }, pat.scope ? 'Add global ' + pat.scope : 'Add section');
     if (!made) { L.toast('That does not fit there'); return; }
     L.select((made as { id: string }).id);
     /* say where it went when that is not where you were looking, or a header appearing to
@@ -248,6 +254,24 @@ function Templates() {
 
   return (
     <>
+      <div class="pc-add-starters" aria-labelledby="starter-sections-label">
+        <div class="plabel" id="starter-sections-label">Starter sections</div>
+        <div class="pvgrid">
+          {STARTER_SECTIONS.map(([id, label]) => {
+            const pattern = C.PATTERNS.find(candidate => candidate.id === id);
+            return pattern ? (
+              <button type="button" class="pvcard pc-add-starter" key={id}
+                title={`${pattern.desc} — drag onto the canvas, or click to append`}
+                onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
+                  { kind: 'pattern', patId: pattern.id, label: pattern.name, icon: 'section' }, false)}
+                onClick={() => place(pattern.id)}>
+                <div dangerouslySetInnerHTML={{ __html: pattern.preview() }} />
+                <span>{label}</span>
+              </button>
+            ) : null;
+          })}
+        </div>
+      </div>
       {cats.map(cat => (
         <>
           <div class="plabel">{cat}</div>
@@ -452,31 +476,24 @@ export function Add() {
     C.state.ui.atab = key;
     repaint('add');
   };
-  const keys = shown.map(([key]) => key);
-  const keyNav = (e: KeyboardEvent, key: AddTab) => {
-    const move = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
-      : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
-    const next = e.key === 'Home' ? 0 : e.key === 'End' ? keys.length - 1
-      : move ? (keys.indexOf(key) + move + keys.length) % keys.length : -1;
-    if (next < 0) return;
-    e.preventDefault(); choose(keys[next]);
-    requestAnimationFrame(() => document.getElementById('add-tab-' + keys[next])?.focus());
-  };
+  const current = shown.find(([key]) => key === t)!;
+  // Internal shortcuts also change this select. Its enhanced label listens to input
+  // events; setting the native value alone is not an observable DOM mutation.
+  useLayoutEffect(() => {
+    document.getElementById('add-category-select')?.dispatchEvent(new Event('input', { bubbles: true }));
+  }, [t]);
 
   return (
     <>
       <FirstEditGuide />
-      <div class="addSwitcher" role="tablist" aria-label="Add category">
-        {shown.map(([key, label, icon]) => (
-          <button key={key} role="tab" aria-selected={t === key ? 'true' : 'false'}
-            id={'add-tab-' + key} aria-controls="add-category-panel" tabIndex={t === key ? 0 : -1}
-            class={t === key ? 'on' : ''} onClick={() => choose(key)} onKeyDown={e => keyNav(e, key)}>
-            <span class="addSwitcherIcon" aria-hidden="true"><Icon name={icon} size={14} /></span>
-            <span>{label}</span>
-          </button>
-        ))}
+      <div class="addSwitcher pc-add-category-picker">
+        <label for="add-category-select">Add</label>
+        <select class="ctl" id="add-category-select" value={t}
+          onChange={e => choose(e.currentTarget.value as AddTab)}>
+          {shown.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+        </select>
       </div>
-      <div class="palette" id="add-category-panel" role="tabpanel" aria-labelledby={'add-tab-' + t}>
+      <div class="palette" id="add-category-panel" role="region" aria-label={`${current[1]} to add`}>
         {t === 'widgets' ? <Widgets templates={() => choose('templates')} />
           : t === 'components' ? <Components />
             : t === 'templates' ? <Templates />
