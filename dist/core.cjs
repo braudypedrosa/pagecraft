@@ -6470,6 +6470,16 @@ var pb = (x, y, w, h, r) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" 
 var pl = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
 var pg = (x, y, w) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
 var ph = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
+var starterActionForeground = () => {
+  const background = cvar("brand");
+  for (const id of ["ink", "surface", "bg"]) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = "#000000", light = "#ffffff";
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar("ink");
+  return darkRatio >= lightRatio ? dark : light;
+};
 var PATTERNS = [
   {
     id: "hero-split",
@@ -6949,7 +6959,7 @@ var PATTERNS = [
         [N("button", { text: "Get started", ts: "btn" }, {
           d: {
             "background-color": cvar("brand"),
-            color: cvar("ink"),
+            color: starterActionForeground(),
             "align-self": "flex-end",
             "white-space": "nowrap",
             "border-radius": "8px",

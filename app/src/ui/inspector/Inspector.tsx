@@ -564,8 +564,15 @@ function Visibility({ n }: { n: PcNode }) {
   );
 }
 
-export function Inspector() {
-  const [modifiedOnly, setModifiedOnly] = useState(false);
+export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }: {
+  initialModifiedOnly?: boolean;
+  onModifiedOnlyChange?: (active: boolean) => void;
+} = {}) {
+  const [modifiedOnly, setModifiedOnlyState] = useState(initialModifiedOnly);
+  const setModifiedOnly = (active: boolean) => {
+    setModifiedOnlyState(active);
+    onModifiedOnlyChange?.(active);
+  };
   const h = C.state.ui.sel ? C.locate(C.state.ui.sel) : null;
 
   /* Joining or leaving changes the canvas width, so the selection frame and the px
@@ -653,10 +660,7 @@ export function Inspector() {
           ))}
         </div>
       ) : null}
-      {/* Select enhancement inserts sibling buttons into this body. Replace the body
-          when its control shape changes, while retaining Inspector's filter state and
-          preserving focused controls during ordinary same-scope field repaints. */}
-      <div key={n.type + ':' + tab} class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
+      <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
         {tab === 'content' || many ? null : <StatePick />}
         {tab === 'style' || tab === 'advanced' ? (

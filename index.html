@@ -8206,6 +8206,16 @@ var pb = (x, y, w, h, r) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" 
 var pl = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
 var pg = (x, y, w) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
 var ph = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
+var starterActionForeground = () => {
+  const background = cvar("brand");
+  for (const id of ["ink", "surface", "bg"]) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = "#000000", light = "#ffffff";
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar("ink");
+  return darkRatio >= lightRatio ? dark : light;
+};
 var PATTERNS = [
   {
     id: "hero-split",
@@ -8685,7 +8695,7 @@ var PATTERNS = [
         [N("button", { text: "Get started", ts: "btn" }, {
           d: {
             "background-color": cvar("brand"),
-            color: cvar("ink"),
+            color: starterActionForeground(),
             "align-self": "flex-end",
             "white-space": "nowrap",
             "border-radius": "8px",
@@ -20586,8 +20596,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       /* @__PURE__ */ u2(ShowIf, { n: n2 })
     ] });
   }
-  function Inspector() {
-    const [modifiedOnly, setModifiedOnly] = d2(false);
+  function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange } = {}) {
+    const [modifiedOnly, setModifiedOnlyState] = d2(initialModifiedOnly);
+    const setModifiedOnly = (active) => {
+      setModifiedOnlyState(active);
+      onModifiedOnlyChange?.(active);
+    };
     const h3 = C2.state.ui.sel ? C2.locate(C2.state.ui.sel) : null;
     h2(() => {
       const host = document.getElementById("right");
@@ -20697,8 +20711,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             ] }),
             tab2 === "content" && n2.type === "nav" && !n2.use && !many && L2.canStructure() && n2.props.collapse !== "never" && n2.props.mobileMenu !== "fullscreen" ? /* @__PURE__ */ u2(Panel, { title: "Mobile menu builder", n: n2, children: /* @__PURE__ */ u2(MobileMenuBuilder, { n: n2 }) }) : null
           ]
-        },
-        n2.type + ":" + tab2
+        }
       ),
       /* @__PURE__ */ u2("div", { class: "sFoot", children: [
         /* @__PURE__ */ u2("button", { class: "btn", onClick: () => L2.runAct("dup", C2.selIds()), children: [
@@ -24192,13 +24205,28 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const renderCmsPanel = panel("paneCms", () => /* @__PURE__ */ u2(Cms, {}), true);
     const inspectorScroll = /* @__PURE__ */ new Map();
     let inspectorScope = "";
+    let inspectorModifiedOnly = false;
     const renderInspector = () => {
-      const old = document.getElementById("inspector-panel");
+      const host = document.getElementById("right");
+      const old = host?.querySelector("#inspector-panel");
       if (old && inspectorScope) inspectorScroll.set(inspectorScope, old.scrollTop);
       const selected = core.state.ui.sel && core.locate(core.state.ui.sel)?.node;
-      inspectorScope = selected ? selected.type + ":" + core.state.ui.stab : "";
-      panel("right", () => /* @__PURE__ */ u2(Inspector, {}))();
-      const next = document.getElementById("inspector-panel");
+      const nextScope = selected ? selected.type + ":" + core.state.ui.stab : "";
+      if (host && inspectorScope !== nextScope && host.childNodes.length) {
+        R(null, host);
+        host.replaceChildren();
+      }
+      inspectorScope = nextScope;
+      if (host) R(/* @__PURE__ */ u2(
+        Inspector,
+        {
+          initialModifiedOnly: inspectorModifiedOnly,
+          onModifiedOnlyChange: (active) => {
+            inspectorModifiedOnly = active;
+          }
+        }
+      ), host);
+      const next = host?.querySelector("#inspector-panel");
       if (next) next.scrollTop = inspectorScroll.get(inspectorScope) || 0;
     };
     const painters2 = {

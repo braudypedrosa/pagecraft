@@ -21,12 +21,17 @@ test('mounted inspector stays coherent across enhanced-select selection and tab 
   const section = C.insert('section', null, 3)!;
   const ui = mount(C, stubLegacy([], { dynamicContentProvider: 'wordpress' }));
 
+  const assertOneInspector = () => {
+    for (const selector of ['.sHead', '.tabs', '.sFoot', '#inspector-panel']) {
+      assert.equal(right.querySelectorAll(selector).length, 1, `${selector} is not duplicated`);
+    }
+  };
   const draw = async (node: typeof heading, tab: 'content' | 'style' | 'advanced') => {
     C.selSet([node.id]);
     C.state.ui.stab = tab;
     act(() => ui.renderRight());
     await settleEnhancements();
-    assert.equal(right.querySelectorAll('#inspector-panel').length, 1);
+    assertOneInspector();
     assert.equal(right.querySelector('.sHead b')?.textContent, C.kindOf(node));
   };
 
@@ -49,6 +54,20 @@ test('mounted inspector stays coherent across enhanced-select selection and tab 
   assert.notEqual(right.querySelector('#inspector-panel'), textPanel);
   assert.match(right.textContent || '', /Image source/);
   assert.doesNotMatch(right.textContent || '', /Rich text/);
+  const imagePanel = right.querySelector('#inspector-panel');
+  const alt = right.querySelector<HTMLInputElement>('input[placeholder="Describe the image"]')!;
+  alt.focus();
+  alt.value = 'Bakery counter';
+  act(() => { alt.dispatchEvent(new Event('input', { bubbles: true })); });
+  act(() => alt.blur());
+  await settleEnhancements();
+  assert.equal(image.props.alt, 'Bakery counter');
+  assert.equal(right.querySelector('#inspector-panel'), imagePanel,
+    'an image property repaint stays in the same mounted inspector');
+  assertOneInspector();
+
+  await draw(heading, 'content');
+  assert.doesNotMatch(right.textContent || '', /Image source|Rich text/);
 
   section.css.m['padding-top'] = '12px';
   C.state.ui.dev = 'mobile';
@@ -68,7 +87,11 @@ test('mounted inspector stays coherent across enhanced-select selection and tab 
   assert.equal(right.querySelectorAll('[role="tab"]').length, 3);
   assert.equal(right.querySelector('[role="tab"][aria-selected="true"]')?.textContent, 'Advanced');
   assert.equal(right.querySelector<HTMLInputElement>('.inspector-modified-filter input')?.checked, true,
-    'changing tabs keeps the modified-settings filter while replacing only the control body');
+    'changing tabs keeps the modified-settings filter through a whole-inspector remount');
+
+  await draw(heading, 'style');
+  assert.equal(right.querySelector<HTMLInputElement>('.inspector-modified-filter input')?.checked, true,
+    'changing element kind also keeps the modified-settings filter');
 
   await draw(heading, 'content');
   assert.equal(right.querySelector<HTMLElement>('#inspector-panel')!.scrollTop, 73,

@@ -64,13 +64,25 @@ export function mount(core: Core, legacy: Legacy) {
   const renderCmsPanel = panel('paneCms', () => <Cms />, true);
   const inspectorScroll = new Map<string, number>();
   let inspectorScope = '';
+  let inspectorModifiedOnly = false;
   const renderInspector = () => {
-    const old = document.getElementById('inspector-panel');
+    const host = document.getElementById('right');
+    const old = host?.querySelector<HTMLElement>('#inspector-panel');
     if (old && inspectorScope) inspectorScroll.set(inspectorScope, old.scrollTop);
     const selected = core.state.ui.sel && core.locate(core.state.ui.sel)?.node;
-    inspectorScope = selected ? selected.type + ':' + core.state.ui.stab : '';
-    panel('right', () => <Inspector />)();
-    const next = document.getElementById('inspector-panel');
+    const nextScope = selected ? selected.type + ':' + core.state.ui.stab : '';
+    /* Custom selects add sibling buttons inside the Preact-owned inspector. When its
+       element kind or tab changes, unmount the whole inspector and explicitly remove
+       enhancer leftovers before drawing the new shape. Ordinary same-scope repaints
+       retain the mount, so typing focus and component state are not disturbed. */
+    if (host && inspectorScope !== nextScope && host.childNodes.length) {
+      render(null, host);
+      host.replaceChildren();
+    }
+    inspectorScope = nextScope;
+    if (host) render(<Inspector initialModifiedOnly={inspectorModifiedOnly}
+      onModifiedOnlyChange={active => { inspectorModifiedOnly = active; }} />, host);
+    const next = host?.querySelector<HTMLElement>('#inspector-panel');
     if (next) next.scrollTop = inspectorScroll.get(inspectorScope) || 0;
   };
   const painters = {

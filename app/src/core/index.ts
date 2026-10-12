@@ -5516,6 +5516,20 @@ interface Pattern {
   preview: () => string;
   build: () => PcNode;
 }
+/* Starter actions inherit the project's brand fill, but `ink` is not guaranteed to
+   contrast with a customized brand. Keep the default semantic pair when it clears AA,
+   then prefer an existing light palette surface. Black or white is the last resort for
+   a palette that omitted those standard tokens. */
+const starterActionForeground = () => {
+  const background = cvar('brand');
+  for (const id of ['ink', 'surface', 'bg']) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = '#000000', light = '#ffffff';
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar('ink');
+  return darkRatio >= lightRatio ? dark : light;
+};
 const PATTERNS: Pattern[] = [
   {
     id: 'hero-split', cat: 'Hero', preview: () => PV(ph(8,12,34)+ph(8,20,26)+pl(8,30,32)+pl(8,36,24)+pg(8,44)+pb(54,10,34,38,2)),
@@ -5874,7 +5888,7 @@ const PATTERNS: Pattern[] = [
            414px, which broke “Get started” across two lines and made the bar 79px tall. */
         [N('button', { text: 'Get started', ts: 'btn' }, {
           d: {
-            'background-color': cvar('brand'), color: cvar('ink'), 'align-self': 'flex-end',
+            'background-color': cvar('brand'), color: starterActionForeground(), 'align-self': 'flex-end',
             'white-space': 'nowrap', 'border-radius': '8px', ...BOX('9px', '16px', '9px', '16px')
           },
           m: { ...BOX('8px', '12px', '8px', '12px'), 'font-size': '14px' }
