@@ -15,6 +15,7 @@ export function installCanvasFocus(onLayout: () => void) {
   document.getElementById('leftRail')?.addEventListener('click', event => {
     if ((event.target as Element).closest('button[data-t]')) set(false);
   });
+  document.getElementById('pageSettings')?.addEventListener('click', () => set(false));
   document.addEventListener('keydown', event => {
     const target = event.target as Element | null;
     if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || event.key !== '\\'

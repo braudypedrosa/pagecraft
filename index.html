@@ -20916,6 +20916,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     document.getElementById("leftRail")?.addEventListener("click", (event) => {
       if (event.target.closest("button[data-t]")) set(false);
     });
+    document.getElementById("pageSettings")?.addEventListener("click", () => set(false));
     document.addEventListener("keydown", (event) => {
       const target = event.target;
       if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || event.key !== "\\" || target?.closest('input,textarea,select,[contenteditable="true"],.mask:not([hidden]),#ask:not([hidden])')) return;
