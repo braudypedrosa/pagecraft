@@ -2544,6 +2544,7 @@ async function preparePublicationReview(button) {
           onNavigate: (path, hash) => {
             if (!reviewed.pages.includes(path)) return;
             page.value = path;
+            page.dispatchEvent(new Event('input', {bubbles:true}));
             update(hash);
           }
         }); }
@@ -2555,7 +2556,7 @@ async function preparePublicationReview(button) {
     host.querySelectorAll('[data-review-page]').forEach(link => link.addEventListener('click', () => {
       const path = link.dataset.reviewPage + '.html';
       const available = reviewed.pages.find(candidate => candidate === path || candidate.startsWith(link.dataset.reviewPage + '/'));
-      if (available) { page.value = available; update(); $('#publicationAfter').scrollIntoView({block:'nearest'}); }
+      if (available) { page.value = available; page.dispatchEvent(new Event('input', {bubbles:true})); update(); $('#publicationAfter').scrollIntoView({block:'nearest'}); }
       else { toast('This page has no output in the reviewed draft. It may have been removed or has no published entries.'); }
     }));
     update();

@@ -14,7 +14,9 @@ test('canvas focus is reversible and opening a tool restores panels without a do
   expect(document.body.classList.contains('canvas-focus')).toBe(false);
   expect(toggle.getAttribute('aria-pressed')).toBe('false');
   toggle.click();
-  document.getElementById('pageSettings')!.click();
+  // The mode bar replaces its controls when the page changes.
+  document.getElementById('pageSettings')!.outerHTML = '<button id="pageSettings"><span>Settings & SEO</span></button>';
+  document.querySelector<HTMLSpanElement>('#pageSettings span')!.click();
   expect(document.body.classList.contains('canvas-focus')).toBe(false);
   expect(toggle.getAttribute('aria-pressed')).toBe('false');
   document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'\\', ctrlKey:true, shiftKey:true, bubbles:true}));

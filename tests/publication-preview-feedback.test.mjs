@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, test, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
+import { installCustomSelects } from '../shared/custom-select.js';
 
 const builder = readFileSync(new URL('../builder.html', import.meta.url), 'utf8');
 const publicationSource = builder.slice(
@@ -48,6 +49,27 @@ function fixture(prepare) {
 }
 
 describe('publication preview failure feedback', () => {
+  test('clicking a snapshot link updates its enhanced page picker and keeps the destination hash', async () => {
+    const { dom, w, doc } = fixture(async () => ({
+      snapshotId:'reviewed-4', sourceVersion:4, baselinePublicationId:null,
+      comparisonAvailable:true, changes:[], pages:['index.html', 'menu.html'], warnings:[],
+      draftPages:['index.html', 'menu.html'], publishedPages:[]
+    }));
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    w.eval(`(${installCustomSelects.toString()})('');`);
+    const page = doc.querySelector('#publicationPage'), frame = doc.querySelector('#publicationAfter');
+    expect(page.nextElementSibling.textContent).toBe('Home');
+    const token = new URL(frame.src).searchParams.get('pcPreviewReady');
+    w.dispatchEvent(new w.MessageEvent('message', {source:frame.contentWindow, data:{
+      type:'pagecraft-preview-navigate', token, path:'menu.html', hash:'#pastries'
+    }}));
+    expect(page.value).toBe('menu.html');
+    expect(page.nextElementSibling.textContent).toBe('menu');
+    expect(new URL(frame.src).pathname.endsWith('/files/menu.html')).toBe(true);
+    expect(new URL(frame.src).hash).toBe('#pastries');
+    w.clearPublicationFrames(); dom.window.close();
+  });
+
   test('snapshot navigation stays gated by frame, token and exact page inventory after paint readiness', () => {
     const { dom, w, doc } = fixture(async () => {});
     const wrapper = doc.createElement('div'), frame = doc.createElement('iframe');
