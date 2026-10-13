@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-13T17:47:50.353Z",
+  "capturedAt": "2026-10-13T18:42:13.520Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "0b9a56f039aa9f920b303372d25838e76f0678287c5fb1986787d43e735e6558",
+    "builder.html": "a10d03cd71bf50f695951a7c71341459e65ee063e37394a7c4f9fac6c7ee7a4a",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -641,7 +641,7 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-fields-768.png": {
-      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+      "sha256": "079af5c890e18f829129b1eabc0ac71638622dbc497065b8dd9d6a953d18c78c",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples"

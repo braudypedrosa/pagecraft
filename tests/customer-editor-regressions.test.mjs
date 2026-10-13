@@ -30,6 +30,53 @@ test('rich text link dialog keeps editing alive, restores selection and persists
   const cancel = w.linkPrompt(); answer(null); await cancel;
   expect(w.syncEdit).toHaveBeenCalledTimes(1);
 });
+function richBlockHarness(html, selector = '#editable') {
+  const dom = new JSDOM(`<div id="editable" contenteditable>${html}</div>`, {runScripts:'outside-only'});
+  windows.push(dom); const w = dom.window, host = w.document.querySelector('#editable');
+  Object.assign(w, {editing:{el:host},cwin:w,cdoc:w.document});
+  const start=source.indexOf('function formatRichBlock(tag) {'),end=source.indexOf("\n$('#rt').addEventListener('mousedown'",start);
+  w.eval(source.slice(start,end));
+  const range=w.document.createRange();range.selectNodeContents(w.document.querySelector(selector));w.getSelection().addRange(range);
+  return {w,host};
+}
+test('paragraph formatting unwraps selected quote and list content into valid sibling paragraphs',()=>{
+ const {w,host}=richBlockHarness('<blockquote><p><b>Lead</b></p><ol><li>One</li><li><i>Two</i></li></ol></blockquote>');
+ expect(w.formatRichBlock('p')).toBe(true);
+ expect(host.innerHTML).toBe('<p><b>Lead</b></p><p>One</p><p><i>Two</i></p>');
+ expect(host.querySelector('p ol, p ul, blockquote')).toBeNull();expect(w.getSelection().toString()).toBe('LeadOneTwo');
+});
+test('paragraph formatting repairs existing invalid paragraph and list nesting',()=>{
+ const {w,host}=richBlockHarness('<blockquote></blockquote>'),quote=host.querySelector('blockquote'),bad=w.document.createElement('p'),list=w.document.createElement('ol');
+ bad.append('Before ');list.innerHTML='<li>One</li><li>Two</li>';bad.append(list,' After');quote.append(bad);
+ const range=w.document.createRange();range.selectNodeContents(host);w.getSelection().removeAllRanges();w.getSelection().addRange(range);w.formatRichBlock('p');
+ expect(host.innerHTML).toBe('<p>Before </p><p>One</p><p>Two</p><p> After</p>');expect(host.querySelector('p ol,p ul,blockquote')).toBeNull();
+});
+test.each([['h2','H2'],['h3','H3'],['blockquote','BLOCKQUOTE']])('%s formatting converts selected list items without nesting lists in blocks',(tag,nodeName)=>{
+ const {w,host}=richBlockHarness('<ul><li>A <strong>bold</strong></li><li>B</li></ul><p>Tail</p>');w.formatRichBlock(tag);
+ expect([...host.children].map(node=>node.nodeName)).toEqual([nodeName,nodeName,nodeName]);
+ expect(host.querySelector(`${tag} ol,${tag} ul`)).toBeNull();expect(host.textContent).toBe('A boldBTail');
+});
+test('partial selection splits each affected list and preserves unselected list items',()=>{
+ const {w,host}=richBlockHarness('<ol><li>Keep A</li><li id="first">Change A</li><li>Keep B</li></ol><ul><li id="second">Change B</li><li>Keep C</li></ul>','#first');
+ const range=w.document.createRange();range.setStartBefore(host.querySelector('#first'));range.setEndAfter(host.querySelector('#second'));w.getSelection().removeAllRanges();w.getSelection().addRange(range);w.formatRichBlock('h2');
+ expect(host.innerHTML).toBe('<ol><li>Keep A</li></ol><h2>Change A</h2><h2>Keep B</h2><h2>Change B</h2><ul><li>Keep C</li></ul>');
+ expect(host.querySelector('h2 ol,h2 ul')).toBeNull();
+});
+test('a list-item boundary selection never leaves marker or block nodes inside a list',()=>{
+ const {w,host}=richBlockHarness('<ol><li>Keep</li><li id="change"><span style="color:red"><b>Change</b></span></li><li>After</li></ol>','#change'),item=host.querySelector('#change');
+ const range=w.document.createRange();range.setStartBefore(item);range.setEndAfter(item);w.getSelection().removeAllRanges();w.getSelection().addRange(range);w.formatRichBlock('h3');
+ expect(host.innerHTML).toBe('<ol><li>Keep</li></ol><h3><span style="color:red"><b>Change</b></span></h3><ol><li>After</li></ol>');
+ expect(host.querySelector('ol > :not(li),ul > :not(li),h3 ol,h3 ul')).toBeNull();expect(w.getSelection().toString()).toBe('Change');
+});
+test('nested selected list items become valid sibling blocks',()=>{
+ const {w,host}=richBlockHarness('<ul><li id="parent">Parent<ul><li>Child <i>detail</i></li></ul></li><li>Keep</li></ul>','#parent');w.formatRichBlock('h2');
+ expect(host.innerHTML).toBe('<h2>Parent</h2><h2>Child <i>detail</i></h2><ul><li>Keep</li></ul>');expect(host.querySelector('h2 ul,h2 ol')).toBeNull();
+});
+test('collapsed root and empty-host carets create or convert one valid block',()=>{
+ const first=richBlockHarness('<p>First</p><p>Second</p>'),range=first.w.document.createRange();range.setStart(first.host,1);range.collapse(true);first.w.getSelection().removeAllRanges();first.w.getSelection().addRange(range);first.w.formatRichBlock('h2');
+ expect(first.host.innerHTML).toBe('<p>First</p><h2>Second</h2>');expect(first.w.getSelection().isCollapsed).toBe(true);expect(first.w.getSelection().anchorNode.parentElement.nodeName).toBe('H2');expect(first.w.getSelection().anchorOffset).toBe(0);
+ const empty=richBlockHarness('');empty.w.formatRichBlock('p');expect(empty.host.innerHTML).toBe('<p><br></p>');expect(empty.w.getSelection().isCollapsed).toBe(true);
+});
 test('current page survives reload by stable id, stays site scoped and falls back when removed', () => {
   const w = browser();
   w.eval(source.slice(source.indexOf('function rememberedPageIndex('),source.indexOf('\nfunction openPage(index')));

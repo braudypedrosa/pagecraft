@@ -4465,11 +4465,115 @@ async function linkPrompt() {
     editing.prompt = false;
   }
 }
+
+/* formatBlock is inconsistent around lists: Chromium can put an OL inside a P,
+   which is invalid HTML and changes again when saved. Split structural containers
+   at the selection instead, then replace only their selected leaf blocks. Text
+   offsets restore the live selection without inserting marker nodes into lists. */
+function formatRichBlock(tag) {
+  const host = editing.el;
+  const selection = cwin.getSelection();
+  if (!host || !selection || !selection.rangeCount) return false;
+  const range = selection.getRangeAt(0);
+  if (!host.contains(range.commonAncestorContainer)) return false;
+  tag = String(tag || '').toLowerCase();
+  if (!['p', 'h2', 'h3', 'blockquote'].includes(tag)) return false;
+
+  const textOffset = (node, offset) => {
+    const before = cdoc.createRange(); before.setStart(host, 0); before.setEnd(node, offset);
+    return before.toString().length;
+  };
+  const startOffset = textOffset(range.startContainer, range.startOffset);
+  const endOffset = textOffset(range.endContainer, range.endOffset);
+  const rootCaret = range.collapsed && range.startContainer === host;
+  const selectedNodes = new Set();
+  const selectionWalker = cdoc.createTreeWalker(host, cwin.NodeFilter.SHOW_ALL);
+  let selectionNode;
+  while ((selectionNode = selectionWalker.nextNode())) {
+    const node = selectionNode;
+    const contents = cdoc.createRange(); contents.selectNodeContents(node);
+    const from = textOffset(contents.startContainer, contents.startOffset);
+    const to = textOffset(contents.endContainer, contents.endOffset);
+    if (endOffset > from && startOffset < to) selectedNodes.add(node);
+  }
+  if (range.collapsed) {
+    let node = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    if (node === host) node = host.children[range.startOffset] || host.children[range.startOffset - 1];
+    for (; node && node !== host; node = node.parentElement) selectedNodes.add(node);
+  }
+  const selected = node => selectedNodes.has(node) || [...selectedNodes].some(selectedNode => node.contains(selectedNode));
+  const replacement = child => {
+    const out = cdoc.createDocumentFragment(); let block = null;
+    [...child.childNodes].forEach(node => {
+      if (node.nodeType === 1 && node.matches('ol,ul')) { block = null; out.appendChild(node); return; }
+      if (!block) { block = cdoc.createElement(tag); out.appendChild(block); }
+      block.appendChild(node);
+    });
+    if (!out.childNodes.length) out.appendChild(cdoc.createElement(tag));
+    return out;
+  };
+  const splitContainer = (container, childTag) => {
+    const out = cdoc.createDocumentFragment();
+    let retained = null;
+    [...container.children].forEach(child => {
+      if ((childTag && child.tagName !== childTag) || !selected(child)) {
+        if (!retained) retained = container.cloneNode(false);
+        retained.appendChild(child); return;
+      }
+      if (retained) { out.appendChild(retained); retained = null; }
+      out.appendChild(child.matches('ol,ul') ? child : replacement(child));
+    });
+    if (retained) out.appendChild(retained);
+    container.replaceWith(out);
+  };
+
+  /* Repair malformed output already produced by formatBlock before this fix.
+     Lists become siblings; inline content on either side stays in requested blocks. */
+  [...host.querySelectorAll('p,h1,h2,h3,h4,h5,h6')]
+    .filter(block => selected(block) && block.querySelector(':scope > ol,:scope > ul'))
+    .forEach(block => {
+      const out = cdoc.createDocumentFragment(); let inline = null;
+      [...block.childNodes].forEach(child => {
+        if (child.nodeType === 1 && child.matches('ol,ul')) { inline = null; out.appendChild(child); return; }
+        if (!inline) { inline = cdoc.createElement(tag); out.appendChild(inline); }
+        inline.appendChild(child);
+      });
+      block.replaceWith(out);
+    });
+
+  /* Outermost quotes first. A selected list moved out of a quote is then split
+     into sibling blocks below, never wrapped in the requested block element. */
+  [...host.querySelectorAll('blockquote')].filter(q => !q.parentElement.closest('blockquote'))
+    .filter(selected).forEach(q => splitContainer(q));
+  [...host.querySelectorAll('ol,ul')].filter(selected).forEach(list => splitContainer(list, 'LI'));
+  [...host.querySelectorAll('p,h1,h2,h3,h4,h5,h6')]
+    .filter(block => selected(block) && !block.closest('ol,ul,blockquote'))
+    .forEach(block => { if (block.tagName.toLowerCase() !== tag) block.replaceWith(replacement(block)); });
+
+  if (!host.children.length) {
+    const block = cdoc.createElement(tag); block.appendChild(cdoc.createElement('br')); host.appendChild(block);
+  }
+  const pointAt = (offset, forwardBoundary = false) => {
+    const walker = cdoc.createTreeWalker(host, cwin.NodeFilter.SHOW_TEXT);
+    let left = offset, text;
+    while ((text = walker.nextNode())) {
+      if (left < text.data.length || (left === text.data.length && !forwardBoundary)) return [text, left];
+      left -= text.data.length;
+    }
+    const last = host.lastElementChild || host;
+    return [last, last.childNodes.length];
+  };
+  const [startNode, startAt] = pointAt(startOffset, rootCaret), [endNode, endAt] = pointAt(endOffset, rootCaret);
+  const restored = cdoc.createRange();
+  restored.setStart(startNode, startAt); restored.setEnd(endNode, endAt);
+  selection.removeAllRanges(); selection.addRange(restored);
+  return true;
+}
 $('#rt').addEventListener('mousedown', async e => {
   const b = e.target.closest('button'); if (!b) return;
   e.preventDefault();
   if (b.dataset.c) cdoc.execCommand(b.dataset.c, false, null);
-  else if (b.dataset.b) cdoc.execCommand('formatBlock', false, b.dataset.b);
+  else if (b.dataset.b) formatRichBlock(b.dataset.b);
   else if (b.dataset.link) await linkPrompt();
   syncEdit();
 });
