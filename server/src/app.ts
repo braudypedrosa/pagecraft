@@ -3739,6 +3739,7 @@ export function createApp(o: Options) {
           code: finding.code,
           message: finding.msg,
           where: finding.where,
+          nodeId: finding.nodeId,
         })),
       }, 422);
     }
@@ -3749,6 +3750,7 @@ export function createApp(o: Options) {
           code: finding.code,
           message: finding.msg,
           where: finding.where,
+          nodeId: finding.nodeId,
         })),
       }, 409);
     }
@@ -3781,7 +3783,7 @@ export function createApp(o: Options) {
         host: site.host,
         sourceVersion,
         source: { document: revision.doc, baselinePublicationId: site.publishedPublicationId || null,
-          warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where })) },
+          warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where, nodeId: finding.nodeId })) },
         files,
       });
     } catch (error) {
@@ -3810,7 +3812,7 @@ export function createApp(o: Options) {
         draftPages: publication.files.filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
         publishedPages: (baseline?.files || []).filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
         pages: [...new Set([...publication.files, ...(baseline?.files || [])].filter(file => file.mediaType.startsWith("text/html")).map(file => file.path))],
-        warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where })),
+        warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where, nodeId: finding.nodeId })),
       }, 201);
     }
     }

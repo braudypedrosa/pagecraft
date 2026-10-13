@@ -30,7 +30,7 @@ export interface PublicationFile {
 export interface PublicationSource {
   document: unknown;
   baselinePublicationId: string | null;
-  warnings?: { code: string; message: string; where?: { page?: string; slug?: string; region?: string; node?: string } }[];
+  warnings?: { code: string; message: string; where?: { page?: string; slug?: string; region?: string; node?: string }; nodeId?: string }[];
 }
 
 export interface PublicationSummary {

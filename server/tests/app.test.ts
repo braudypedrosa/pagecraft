@@ -11,6 +11,10 @@ import { MemoryAuthStore, type Role } from '../src/auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import { validatePortablePackage } from '../src/portable-packages.ts';
 import { MemoryHostedPublicationStore } from '../src/publications.ts';
+import { FileSubmissionStore } from '../src/submissions.ts';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 /* The demo project, not an empty one: it has a header, a footer, two pages and most of the
    widget set, so a byte-identity claim over it means something. */
@@ -25,7 +29,7 @@ const demo = (): Doc => {
 
 /* A rig that signs in the way a person does: ask for a link, follow it, keep the cookie.
    Fabricating a session would leave the login flow untested by everything that uses it. */
-const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>) => {
+const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>, nativeForms = false) => {
   const store = new MemoryStore();
   const auth = new MemoryAuthStore();
   const publications = hostedPublications ? new MemoryHostedPublicationStore() : undefined;
@@ -33,6 +37,7 @@ const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?
   const app = createApp({
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
     editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications,
+    submissions: nativeForms ? new FileSubmissionStore(join(tmpdir(), `pagecraft-app-test-${randomUUID()}`)) : undefined,
     optimizeAsset: hostedPublications
       ? async bytes => { await onOptimize?.(); return { bytes, type: 'image/webp', w: 960, h: 600, extension: 'webp' }; }
       : undefined
@@ -724,6 +729,56 @@ test('reviewed snapshot serves authenticated frozen files and publishes the same
   a.equal(published.status, 200, await published.clone().text());
   a.equal((await published.json()).publicationId, snapshotId);
   a.equal((await r.publications!.currentBySlug(r.site.slug))?.id, snapshotId);
+});
+
+test('hosted snapshots route native inbox forms and preserve actionable form findings', async () => {
+  const r = await rig('owner', true, undefined, true);
+  const { cookie } = await r.signIn();
+  const form = (id: string, action: string, method: 'get' | 'post') => {
+    const node = Core.N('form');
+    node.id = id;
+    node.props.mode = 'external';
+    node.props.action = action;
+    node.props.method = method;
+    node.props.aria = id;
+    node.props.fields = [{ type: 'email', label: 'Email', name: 'email', required: 1 }];
+    return node;
+  };
+  const native = form('native-contact', '', 'post');
+  const external = form('external-contact', 'https://provider.test/send', 'post');
+  const search = form('missing-search', '', 'get');
+  const doc = structuredClone(r.site.doc) as Doc;
+  doc.pages[0].tree.push(native, external, search);
+  a.equal((await r.put(r.site.id, doc, 1, cookie)).status, 200);
+
+  const prepared = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+  }, cookie);
+  a.equal(prepared.status, 201, await prepared.clone().text());
+  const snapshot = await prepared.json() as {
+    snapshotId: string;
+    warnings: { code: string; nodeId?: string }[];
+  };
+  a.equal(snapshot.warnings.find(finding => finding.code === 'form-no-action')?.nodeId, search.id);
+  const preview = await r.admin(
+    `/api/sites/${r.site.id}/publication-snapshots/${snapshot.snapshotId}/files/`, {}, cookie
+  );
+  a.equal(preview.status, 200);
+  const html = await preview.text();
+  a.match(html, new RegExp(`action="http://admin\\.test/forms/${r.site.id}/${native.id}" method="post"`));
+  a.match(html, /action="https:\/\/provider\.test\/send" method="post"/);
+
+  const unsafe = structuredClone(doc) as Doc;
+  (unsafe.pages[0].tree.find(node => node.id === external.id)!).props.action = 'javascript:alert(1)';
+  a.equal((await r.put(r.site.id, unsafe, 2, cookie)).status, 200);
+  const rejected = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 3 })
+  }, cookie);
+  a.equal(rejected.status, 422);
+  const failure = await rejected.json() as {
+    findings: { code: string; nodeId?: string }[];
+  };
+  a.equal(failure.findings.find(finding => finding.code === 'unsafe-form-action')?.nodeId, external.id);
 });
 
 test('content accounts cannot prepare publication snapshots', async () => {

@@ -8,6 +8,7 @@ import { MemoryAuthStore } from '../server/src/auth.ts';
 import { MemoryAssetStore } from '../server/src/assets.ts';
 import { MemoryOwnedSiteStore } from '../server/src/accounts.ts';
 import { FileHostedPublicationStore } from '../server/src/publications.ts';
+import { FileSubmissionStore } from '../server/src/submissions.ts';
 import { FileSiteTemplateStore } from '../server/src/site-templates.ts';
 import { TestHumanChallenge } from '../server/src/turnstile.ts';
 import type { AccountAuth } from '../server/src/account-auth.ts';
@@ -38,6 +39,6 @@ class ProFixtureAuth extends MemoryAuthStore {
 const store=new MemoryStore(),auth=new ProFixtureAuth(),assets=new MemoryAssetStore();
 const identity={authUserId:'template-local-qa',email:'template-qa@example.invalid',name:'Template QA (local fixture)'};
 const accountAuth:AccountAuth={identity:async()=>identity,oauth:async()=>null,signUp:async()=> 'confirmation_required',signIn:async()=>identity,confirm:async()=>identity,forgot:async()=>{},reset:async()=>false,updateEmail:async()=>false,updatePassword:async()=>false,signOut:async()=>{}};
-const app=createApp({componentGallery:true,store,auth,assets,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),challenge:new TestHumanChallenge(),turnstileSiteKey:'local-test-only',editorHost:'localhost',editorOrigin:`http://localhost:${port}`,editorHtml:await readFile(process.env.TEMPLATE_QA_EDITOR_HTML || resolve(root,'index.html'),'utf8'),siteTemplates:new FileSiteTemplateStore(catalog),publications:new FileHostedPublicationStore(resolve(scratch,'publications'))});
+const app=createApp({componentGallery:true,store,auth,assets,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),challenge:new TestHumanChallenge(),turnstileSiteKey:'local-test-only',editorHost:'localhost',editorOrigin:`http://localhost:${port}`,editorHtml:await readFile(process.env.TEMPLATE_QA_EDITOR_HTML || resolve(root,'index.html'),'utf8'),siteTemplates:new FileSiteTemplateStore(catalog),publications:new FileHostedPublicationStore(resolve(scratch,'publications')),submissions:new FileSubmissionStore(resolve(scratch,'submissions'))});
 serve({fetch:app.fetch,port,hostname:'127.0.0.1'});
 console.log(`Template Cloud QA http://localhost:${port} — disposable in-memory data, local fixture identity; not a Supabase authentication test.`);
