@@ -661,8 +661,8 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'select', c: 'font-weight', label: 'Weight', layout: 'inline', r: 1, opts: [['', 'Default'], ['300', 'Light 300'], ['400', 'Regular 400'], ['500', 'Medium 500'], ['600', 'Semibold 600'], ['700', 'Bold 700'], ['800', 'Extrabold 800'], ['900', 'Black 900']] },
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, units: U.track },
-        { t: 'opt', c: 'font-family', label: 'Font', og: fontGroups, ph: "'Family',sans-serif" },
-        { t: 'select', c: 'text-transform', label: 'Transform', opts: [['', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
+        { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
       ]
     }
   },
@@ -682,10 +682,10 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: 'color', label: 'Colour', layout: 'inline' },
+        { t: 'color', c: 'color', label: 'Colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
-        { t: 'opt', c: 'font-family', label: 'Font', og: fontGroups, ph: "'Family',sans-serif" },
-        { t: 'color', c: '--link', label: 'Link colour' }
+        { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: 'color', c: '--link', label: 'Link colour', r: 1 }
       ]
     }
   },
@@ -733,16 +733,16 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: 'color', label: 'Colour', layout: 'inline' },
+        { t: 'color', c: 'color', label: 'Colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
-        { t: 'opt', c: 'font-family', label: 'Font', og: fontGroups, ph: "'Family',sans-serif" },
+        { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
         /* ch first, and not U.len: the default measure is in ch, and a unit control
            whose list omits the stored unit falls back to its first entry — which would
            quietly rewrite 34ch as 34px the moment anyone touched the field. */
         { t: 'unit', c: 'max-width', label: 'Measure', layout: 'inline', r: 1, units: ['ch', 'px', 'rem', '%'],
           note: 'How wide the lines may run. 34ch reads well.' },
         { t: 'pick', c: 'text-align', label: 'Text alignment', r: 1, opts: [['left', 'alignL'], ['center', 'alignC'], ['right', 'alignR']] },
-        { t: 'color', c: 'border-left-color', label: 'Rule colour', layout: 'inline' },
+        { t: 'color', c: 'border-left-color', label: 'Rule colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'border-left-width', label: 'Rule width', layout: 'inline', r: 1, units: U.border },
         { t: 'box', c: 'padding', label: 'Padding', r: 1 }
       ]
@@ -775,10 +775,10 @@ const DEF: Record<string, WidgetDef> = {
       style: [
         { t: 'unit', c: 'width', label: 'Width', layout: 'inline', r: 1, units: U.len },
         { t: 'unit', c: 'height', label: 'Height', layout: 'inline', r: 1, units: U.len },
-        { t: 'select', c: 'object-fit', label: 'Fit', opts: [['cover', 'Cover'], ['contain', 'Contain'], ['fill', 'Fill'], ['none', 'None']] },
+        { t: 'select', c: 'object-fit', label: 'Fit', r: 1, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['fill', 'Fill'], ['none', 'None']] },
         { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
-        { t: 'slider', c: 'opacity', label: 'Opacity', min: 0, max: 1, step: .01, raw: 1 },
-        { t: 'opt', c: 'filter', label: 'Filter', opts: FILTERS, ph: 'grayscale(1) blur(2px)' }
+        { t: 'slider', c: 'opacity', label: 'Opacity', r: 1, min: 0, max: 1, step: .01, raw: 1 },
+        { t: 'opt', c: 'filter', label: 'Filter', r: 1, opts: FILTERS, ph: 'grayscale(1) blur(2px)' }
       ]
     }
   },
@@ -836,13 +836,13 @@ const DEF: Record<string, WidgetDef> = {
         }
       ],
       style: [
-        { t: 'color', c: 'background-color', label: 'Background' },
-        { t: 'color', c: 'color', label: 'Text colour', layout: 'inline' },
+        { t: 'color', c: 'background-color', label: 'Background', r: 1 },
+        { t: 'color', c: 'color', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.space },
-        { t: 'select', c: 'font-weight', label: 'Weight', layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
+        { t: 'select', c: 'font-weight', label: 'Weight', r: 1, layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
         { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },
@@ -879,12 +879,12 @@ const DEF: Record<string, WidgetDef> = {
       style: [
         { t: 'unit', c: '--nav-gap', label: 'Link spacing', r: 1, units: U.space },
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.space },
-        { t: 'select', c: 'font-weight', label: 'Weight', layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
-        { t: 'color', c: 'color', label: 'Link colour' },
-        { t: 'color', c: '--nav-hover', label: 'Hover colour' },
+        { t: 'select', c: 'font-weight', label: 'Weight', r: 1, layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
+        { t: 'color', c: 'color', label: 'Link colour', r: 1 },
+        { t: 'color', c: '--nav-hover', label: 'Hover colour', r: 1 },
         { t: 'color', c: '--nav-panel', label: 'Menu background', r: 1 },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },
@@ -925,13 +925,13 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'select', c: '--f-button-align', label: 'Alignment', r: 1, opts: [['flex-start', 'Top'], ['end', 'Bottom']] },
         { t: 'unit', c: '--f-gap', label: 'Field spacing', r: 1, units: U.space },
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--f-bg', label: 'Field background' },
-        { t: 'color', c: '--f-border', label: 'Field border' },
-        { t: 'color', c: '--f-text', label: 'Field text' },
-        { t: 'color', c: '--f-label', label: 'Label colour' },
+        { t: 'color', c: '--f-bg', label: 'Field background', r: 1 },
+        { t: 'color', c: '--f-border', label: 'Field border', r: 1 },
+        { t: 'color', c: '--f-text', label: 'Field text', r: 1 },
+        { t: 'color', c: '--f-label', label: 'Label colour', r: 1 },
         { t: 'unit', c: '--f-radius', label: 'Field radius', r: 1, units: U.radius },
-        { t: 'color', c: '--f-btn-bg', label: 'Button background' },
-        { t: 'color', c: '--f-btn-fg', label: 'Button text' }
+        { t: 'color', c: '--f-btn-bg', label: 'Button background', r: 1 },
+        { t: 'color', c: '--f-btn-fg', label: 'Button text', r: 1 }
       ]
     }
   },
@@ -950,8 +950,8 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'unit', c: 'border-top-width', label: 'Thickness', layout: 'inline', r: 1, units: U.border },
-        { t: 'select', c: 'border-top-style', label: 'Style', opts: [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']] },
-        { t: 'color', c: 'border-top-color', label: 'Colour', layout: 'inline' },
+        { t: 'select', c: 'border-top-style', label: 'Style', r: 1, opts: [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']] },
+        { t: 'color', c: 'border-top-color', label: 'Colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'width', label: 'Width', layout: 'inline', r: 1, units: U.len }
       ], style: []
     }
@@ -991,8 +991,8 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: '--cb-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--cb-color', label: 'Link colour' },
-        { t: 'color', c: '--cb-current', label: 'Current page colour' },
+        { t: 'color', c: '--cb-color', label: 'Link colour', r: 1 },
+        { t: 'color', c: '--cb-current', label: 'Current page colour', r: 1 },
         { t: 'unit', c: '--cb-gap', label: 'Spacing', layout: 'inline', r: 1, units: U.space }
       ]
     }
@@ -1026,16 +1026,16 @@ const DEF: Record<string, WidgetDef> = {
           note: 'Hidden unless the browser can copy, so it is never a button that does nothing' }
       ],
       style: [
-        { t: 'color', c: '--cd-bg', label: 'Background' },
-        { t: 'color', c: '--cd-text', label: 'Text colour', layout: 'inline' },
+        { t: 'color', c: '--cd-bg', label: 'Background', r: 1 },
+        { t: 'color', c: '--cd-text', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'unit', c: '--cd-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
         { t: 'unit', c: '--cd-pad', label: 'Padding', r: 1, units: U.space },
         { t: 'unit', c: '--cd-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
-        { t: 'color', c: '--cd-com', label: 'Comments', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-str', label: 'Strings', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-kw', label: 'Keywords', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-num', label: 'Numbers', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-key', label: 'Names', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' }
+        { t: 'color', c: '--cd-com', label: 'Comments', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-str', label: 'Strings', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-kw', label: 'Keywords', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-num', label: 'Numbers', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-key', label: 'Names', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' }
       ]
     }
   },
@@ -1073,13 +1073,13 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: '--tbl-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--tbl-text', label: 'Text colour', layout: 'inline' },
+        { t: 'color', c: '--tbl-text', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'unit', c: '--tbl-pad', label: 'Cell padding', layout: 'inline', r: 1, units: U.space },
-        { t: 'color', c: '--tbl-line', label: 'Line colour', layout: 'inline' },
-        { t: 'color', c: '--tbl-head-bg', label: 'Header background' },
-        { t: 'color', c: '--tbl-head-text', label: 'Heading colour' },
-        { t: 'color', c: '--tbl-zebra', label: 'Shading', layout: 'inline', when: n => !!(n.props as PropBag).zebra },
-        { t: 'color', c: '--tbl-caption-color', label: 'Caption colour', when: n => !!String((n.props as PropBag).caption || '').trim() }
+        { t: 'color', c: '--tbl-line', label: 'Line colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tbl-head-bg', label: 'Header background', r: 1 },
+        { t: 'color', c: '--tbl-head-text', label: 'Heading colour', r: 1 },
+        { t: 'color', c: '--tbl-zebra', label: 'Shading', r: 1, layout: 'inline', when: n => !!(n.props as PropBag).zebra },
+        { t: 'color', c: '--tbl-caption-color', label: 'Caption colour', r: 1, when: n => !!String((n.props as PropBag).caption || '').trim() }
       ]
     }
   },
@@ -1113,13 +1113,13 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', c: '--tb-align', label: 'Tabs sit', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
       ],
       style: [
-        { t: 'color', c: '--tb-on', label: 'Selected label' },
-        { t: 'color', c: '--tb-off', label: 'Other labels' },
-        { t: 'color', c: '--tb-line', label: 'Rule' },
+        { t: 'color', c: '--tb-on', label: 'Selected label', r: 1 },
+        { t: 'color', c: '--tb-off', label: 'Other labels', r: 1 },
+        { t: 'color', c: '--tb-line', label: 'Rule', r: 1 },
         { t: 'unit', c: '--tb-size', label: 'Label size', layout: 'inline', r: 1, units: U.size },
         { t: 'unit', c: '--tb-gap', label: 'Label spacing', r: 1, units: U.space },
         { t: 'unit', c: '--tb-body-size', label: 'Body size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--tb-body-color', label: 'Body colour', layout: 'inline' },
+        { t: 'color', c: '--tb-body-color', label: 'Body colour', r: 1, layout: 'inline' },
         { t: 'unit', c: '--tb-body-pad', label: 'Body padding', r: 1, units: U.space }
       ]
     }
@@ -1154,15 +1154,15 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'select', k: 'marker', label: 'Marker', opts: [['plus', 'Plus / minus'], ['caret', 'Caret'], ['none', 'None']] }
       ],
       style: [
-        { t: 'color', c: '--ac-line', label: 'Divider colour' },
+        { t: 'color', c: '--ac-line', label: 'Divider colour', r: 1 },
         { t: 'unit', c: '--ac-pad', label: 'Row padding', r: 1, units: U.space },
         { t: 'unit', c: '--ac-gap', label: 'Row gap', layout: 'inline', r: 1, units: U.space },
         { t: 'unit', c: '--ac-q-size', label: 'Question size', r: 1, units: U.size },
-        { t: 'select', c: '--ac-q-weight', label: 'Question weight', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
-        { t: 'color', c: '--ac-q-color', label: 'Question colour' },
+        { t: 'select', c: '--ac-q-weight', label: 'Question weight', r: 1, opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
+        { t: 'color', c: '--ac-q-color', label: 'Question colour', r: 1 },
         { t: 'unit', c: '--ac-a-size', label: 'Answer size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--ac-a-color', label: 'Answer colour' },
-        { t: 'color', c: '--ac-mark', label: 'Marker colour' },
+        { t: 'color', c: '--ac-a-color', label: 'Answer colour', r: 1 },
+        { t: 'color', c: '--ac-mark', label: 'Marker colour', r: 1 },
         { t: 'unit', c: '--ac-radius', label: 'Row radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
@@ -1215,9 +1215,9 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: '--icon-size', label: 'Glyph size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: 'color', label: 'Colour', layout: 'inline' },
-        { t: 'slider', c: '--icon-stroke', label: 'Stroke weight', min: 1, max: 3, step: .05, raw: 1 },
-        { t: 'color', c: 'background-color', label: 'Badge background' },
+        { t: 'color', c: 'color', label: 'Colour', r: 1, layout: 'inline' },
+        { t: 'slider', c: '--icon-stroke', label: 'Stroke weight', r: 1, min: 1, max: 3, step: .05, raw: 1 },
+        { t: 'color', c: 'background-color', label: 'Badge background', r: 1 },
         { t: 'box', c: 'padding', label: 'Badge padding', r: 1 },
         { t: 'unit', c: 'border-radius', label: 'Badge radius', r: 1, units: U.radius }
       ]
@@ -1594,15 +1594,15 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
   { g: 'Spacing', cap: 'spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
   {
     g: 'Background', cap: 'decoration', items: [
-      { t: 'color', c: 'background-color', label: 'Colour', paint: 1 },
-      { t: 'img', c: 'background-image', label: 'Image', bg: 1 },
-      { t: 'select', c: 'background-size', label: 'Size', when: hasBackdrop, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
+      { t: 'color', c: 'background-color', label: 'Colour', r: 1, paint: 1 },
+      { t: 'img', c: 'background-image', label: 'Image', r: 1, bg: 1 },
+      { t: 'select', c: 'background-size', label: 'Size', r: 1, when: hasBackdrop, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
-      { t: 'pick', c: 'background-position', label: 'Position', when: hasBackdrop, opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
-      { t: 'select', c: 'background-repeat', label: 'Repeat', when: hasBackdrop, opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] }
+      { t: 'pick', c: 'background-position', label: 'Position', r: 1, when: hasBackdrop, opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
+      { t: 'select', c: 'background-repeat', label: 'Repeat', r: 1, when: hasBackdrop, opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] }
     ]
   },
   {
@@ -1612,7 +1612,7 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
          render on the canvas while the inspector appeared to say there was no border. */
       { t: 'border', label: 'Border' },
       { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
-      { t: 'opt', c: 'box-shadow', label: 'Shadow', opts: SHADOWS, ph: '0 20px 40px -12px rgba(17,19,17,.2)' }
+      { t: 'opt', c: 'box-shadow', label: 'Shadow', r: 1, opts: SHADOWS, ph: '0 20px 40px -12px rgba(17,19,17,.2)' }
     ]
   },
   {
@@ -1621,8 +1621,8 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
        a change, so it belongs with the other motion rather than beside the properties it
        happens to animate. */
     g: 'Effects', cap: 'effects', items: [
-      { t: 'slider', c: 'opacity', label: 'Opacity', min: 0, max: 1, step: .01, raw: 1 },
-      { t: 'text', c: 'transform', label: 'Transform', ph: 'translateY(-4px) rotate(2deg)' }
+      { t: 'slider', c: 'opacity', label: 'Opacity', r: 1, min: 0, max: 1, step: .01, raw: 1 },
+      { t: 'text', c: 'transform', label: 'Transform', r: 1, ph: 'translateY(-4px) rotate(2deg)' }
     ]
   }
 ];

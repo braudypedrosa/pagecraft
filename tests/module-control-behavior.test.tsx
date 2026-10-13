@@ -113,7 +113,7 @@ test('all 27 conditional declarations render only in their applicable state', ()
   }
 });
 
-test('all eight shared Advanced controls render and its three responsive controls compile every breakpoint', () => {
+test('all eight shared Advanced controls render and its five CSS controls compile every breakpoint', () => {
   let n = place('heading');
   drawInspector('advanced');
   const advanced = advControls(n);
@@ -122,13 +122,13 @@ test('all eight shared Advanced controls render and its three responsive control
     expect(hasLabel(control.label || ''), `Advanced:${control.label} should be visible`).toBe(true);
 
   const responsive = advanced.filter(control => control.c && control.r);
-  expect(responsive).toHaveLength(3);
+  expect(responsive).toHaveLength(5);
   for (const control of responsive) {
     n = place('heading');
     for (const [device, bucket, value] of [
-      ['desktop', 'd', control.t === 'select' ? 'relative' : '11px'],
-      ['tablet', 't', control.t === 'select' ? 'absolute' : '12px'],
-      ['mobile', 'm', control.t === 'select' ? 'sticky' : '13px'],
+      ['desktop', 'd', control.c === 'overflow' ? 'hidden' : control.c === 'z-index' ? '11' : control.t === 'select' ? 'relative' : '11px'],
+      ['tablet', 't', control.c === 'overflow' ? 'auto' : control.c === 'z-index' ? '12' : control.t === 'select' ? 'absolute' : '12px'],
+      ['mobile', 'm', control.c === 'overflow' ? 'hidden' : control.c === 'z-index' ? '13' : control.t === 'select' ? 'sticky' : '13px'],
     ] as const) {
       C.state.ui.dev = device;
       C.edit(() => C.applyC(n, control, value));
@@ -138,7 +138,7 @@ test('all eight shared Advanced controls render and its three responsive control
     expect(C.locateAny(n.id)!.node.css.m[control.c!], `${control.label}:undo mobile`).toBeUndefined();
     C.redo();
     n = C.locateAny(n.id)!.node;
-    expect(n.css.m[control.c!], `${control.label}:redo mobile`).toBe(control.t === 'select' ? 'sticky' : '13px');
+    expect(n.css.m[control.c!], `${control.label}:redo mobile`).toBe(control.c === 'overflow' ? 'hidden' : control.c === 'z-index' ? '13' : control.t === 'select' ? 'sticky' : '13px');
     const saved = C.clone(C.doc());
     const savedNode = findInDoc(saved, n.id)!;
     const css = { d: '', t: '', m: '' };
@@ -277,21 +277,23 @@ function cssValue(c: Control, n: PcNode, before: unknown) {
   return 'initial';
 }
 
-test('all 64 nonresponsive CSS declarations compile and share the same Undo/save model', () => {
+test('all 156 CSS declarations compile and share the same Undo/save model', () => {
   const declarations: Array<{ owner: string; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF))
     for (const control of [...def.controls.content, ...def.controls.style])
-      if (control.c && !control.r) declarations.push({ owner, control });
+      if (control.c) declarations.push({ owner, control });
   for (const group of C.COMMON_STYLE)
-    for (const control of group.items) if (control.c && !control.r) declarations.push({ owner: 'shared', control });
+    for (const control of group.items) if (control.c) declarations.push({ owner: 'shared', control });
   for (const control of advControls(C.N('heading')))
-    if (control.c && !control.r) declarations.push({ owner: 'heading', control });
+    if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(64);
+  expect(declarations).toHaveLength(156);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
-    const n = place(type);
+    const setup = conditionalSetup[`${owner}:${control.label}`];
+    const n = place(type, setup?.onParent);
     makeApplicable(owner, n, control);
+    setup?.on(n);
     expect(!control.when || control.when(n), `${owner}:${control.label} fixture`).toBe(true);
     const before = C.cssVal(C.tgtObj(n), control.c!, false).v;
     const requested = cssValue(control, n, before);
@@ -313,6 +315,7 @@ test('all 64 nonresponsive CSS declarations compile and share the same Undo/save
     expect(String(C.cssVal(savedNode, control.c!, false).v), `${owner}:${control.label} serialized`).toBe(String(after));
     const css = { d: '', t: '', m: '' };
     C.nodeCss(savedNode, false, css);
-    expect(css.d, `${owner}:${control.label} compiled`).toContain(control.c!);
+    const renderedProperty = control.c === '--pc-column-v-align' ? 'justify-content' : control.c!;
+    expect(css.d, `${owner}:${control.label} compiled`).toContain(renderedProperty);
   }
 });

@@ -39,11 +39,11 @@ function RowInput({ n, c, k, prop, ...rest }: P & { k: number; prop: string } & 
 }
 
 /** Move-up and remove, which every row has. */
-function RowActs({ n, c, k }: P & { k: number }) {
+function RowActs({ n, c, k, context }: P & { k: number; context: string }) {
   return <>
-    <button class="x" title="Move up" disabled={k === 0} onClick={() => liftRow(n, c, k)}>
+    <button class="x" title="Move up" aria-label={`Move ${context} up`} disabled={k === 0} onClick={() => liftRow(n, c, k)}>
       <Icon name="caretUp" size={11} /></button>
-    <button class="x" title="Remove" onClick={() => dropRow(n, c, k)}>
+    <button class="x" title="Remove" aria-label={`Remove ${context}`} onClick={() => dropRow(n, c, k)}>
       <Icon name="trash" size={11} /></button>
   </>;
 }
@@ -137,11 +137,12 @@ export function ItemsCtl({ n, c }: P) {
       const page = link.page || C.page().slug;
       const anchors = mode === 'page' ? C.anchorsOf(page) : [];
       const isDragging = dragging === k;
+      const itemContext = `${it.label || 'untitled link'}, item ${k + 1}`;
       return <div class={'navitem' + (open === k ? ' on' : '') + (isDragging ? ' dragging' : '') + (dragOver === k && !isDragging ? ' dragover' : '')}
         key={k} onDragOver={e => { e.preventDefault(); if (dragFrom.current !== null && dragFrom.current !== k) setDragOver(k); }}
         onDrop={e => { e.preventDefault(); finishDrag(k); }}>
         <div class="navitem-head">
-          <button class="navitem-drag" draggable aria-label={`Drag ${it.label || 'untitled link'} to reorder`}
+          <button class="navitem-drag" draggable aria-label={`Drag ${itemContext} to reorder`}
             title="Drag to reorder"
             onDragStart={e => {
               dragFrom.current = k;
@@ -155,22 +156,23 @@ export function ItemsCtl({ n, c }: P) {
             onDragEnd={() => { dragFrom.current = null; setDragging(null); setDragOver(null); }}>
             <Icon name="drag" size={12} />
           </button>
-          <button class="navitem-main" aria-expanded={open === k ? 'true' : 'false'}
+          <button class="navitem-main" aria-label={`Edit ${itemContext}`} aria-expanded={open === k ? 'true' : 'false'}
             onClick={() => setOpen(open === k ? null : k)}>
             <span><b>{it.label || 'Untitled link'}</b><small>{summary(it)}</small></span>
             <Icon name="caret" size={11} />
           </button>
-          <button class="x" title="Remove" onClick={() => dropRow(n, c, k)}>
+          <button class="x" title="Remove" aria-label={`Remove ${itemContext}`} onClick={() => dropRow(n, c, k)}>
             <Icon name="trash" size={11} />
           </button>
         </div>
         <MotionPresence show={open === k} class="navitem-body" kind="panel">
           <label>Navigation label</label>
-          <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label" />
+          <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label"
+            aria-label={`Navigation label for ${itemContext}`} />
 
           <div class="pc-label-with-help"><label>Destination</label><HelpTip label="Destination"
             text="Custom destinations accept URLs, email, phone, and section links." /></div>
-          <select class="ctl" value={mode} aria-label={`Destination for ${it.label || 'untitled link'}`} onChange={e => {
+          <select class="ctl" value={mode} aria-label={`Destination for ${itemContext}`} onChange={e => {
             const next = (e.target as HTMLSelectElement).value;
             commitDestination(k, next === 'page'
               ? C.buildLink({ mode: 'page', page: C.page().slug, frag: '' })
@@ -182,12 +184,12 @@ export function ItemsCtl({ n, c }: P) {
           </select>
 
           {mode === 'page' ? <>
-            <select class="ctl" value={page} onChange={e => {
+            <select class="ctl" value={page} aria-label={`Destination page for ${itemContext}`} onChange={e => {
               commitDestination(k, C.buildLink({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' }));
             }}>
               {C.state.pages.map(p => <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
             </select>
-            <select class="ctl" value={link.frag || ''} onChange={e => {
+            <select class="ctl" value={link.frag || ''} aria-label={`Destination section/anchor for ${itemContext}`} onChange={e => {
               commit(k, 'href', C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }));
             }}>
               <option value="">Top of the page</option>
@@ -198,15 +200,18 @@ export function ItemsCtl({ n, c }: P) {
           </> : mode === 'wordpress' ? (
             <WordPressContentPicker value={it.href} onChange={url => commitDestination(k, url)} />
           ) : <>
-            <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section" />
+            <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section"
+              aria-label={`Custom URL or section for ${itemContext}`} />
           </>}
 
           <div class="pc-label-with-help"><label>CSS classes</label><HelpTip label="CSS classes"
             text="Applied to this menu item. Separate multiple classes with spaces." /></div>
-          <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class" />
+          <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class"
+            aria-label={`CSS classes for ${itemContext}`} />
 
           <label>Parent item</label>
-          <select class="ctl" value={it.parentId || ''} onChange={e => commitParent(k, (e.target as HTMLSelectElement).value)}>
+          <select class="ctl" value={it.parentId || ''} aria-label={`Parent item for ${itemContext}`}
+            onChange={e => commitParent(k, (e.target as HTMLSelectElement).value)}>
             <option value="">Top level</option>
             {arr.map((candidate, index) => index === k ? null : (
               <option key={itemIds[index]} value={itemIds[index]}
@@ -218,11 +223,12 @@ export function ItemsCtl({ n, c }: P) {
 
           <div class="pc-label-with-help"><label>Link relationship</label><HelpTip label="Link relationship"
             text="Optional values such as nofollow or sponsored, separated by spaces." /></div>
-          <RowInput n={n} c={c} k={k} prop="rel" placeholder="nofollow sponsored" />
+          <RowInput n={n} c={c} k={k} prop="rel" placeholder="nofollow sponsored"
+            aria-label={`Link relationship for ${itemContext}`} />
 
           <div class="tog-row navitem-target">
             <span>Open in a new tab</span>
-            <button type="button" role="switch" aria-label="Open in a new tab"
+            <button type="button" role="switch" aria-label={`Open ${itemContext} in a new tab`}
               aria-checked={it.target === '_blank' ? 'true' : 'false'}
               class={'sw-tog' + (it.target === '_blank' ? ' on' : '')} onClick={() => {
               commit(k, 'target', it.target === '_blank' ? '' : '_blank');
@@ -256,13 +262,13 @@ function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
   const expanded = open === k;
   return <div class={'frow repeater-row' + (expanded ? ' on' : '')}>
     <div class="repeater-head">
-      <button type="button" class="repeater-toggle" aria-expanded={expanded}
+      <button type="button" class="repeater-toggle" aria-label={`Edit ${title}, item ${k + 1}`} aria-expanded={expanded}
         onClick={() => { L.endTx(); setOpen(expanded ? null : k); }}>
         <Icon name="caret" size={10} /><span>{title}</span>
       </button>
-      <button type="button" class="x" title="Move up" disabled={k === 0}
+      <button type="button" class="x" title="Move up" aria-label={`Move ${title}, item ${k + 1} up`} disabled={k === 0}
         onClick={() => { liftRow(n, c, k); setOpen(k - 1); }}><Icon name="caretUp" size={11} /></button>
-      <button type="button" class="x" title="Duplicate" onClick={() => {
+      <button type="button" class="x" title="Duplicate" aria-label={`Duplicate ${title}, item ${k + 1}`} onClick={() => {
         C.edit(() => {
           const copy = structuredClone(rows(n, c)[k]);
           // A copied form control must have a distinct submission key.
@@ -276,7 +282,7 @@ function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
         });
         setOpen(k + 1);
       }}><Icon name="copy" size={11} /></button>
-      <button type="button" class="x" title="Remove" onClick={() => {
+      <button type="button" class="x" title="Remove" aria-label={`Remove ${title}, item ${k + 1}`} onClick={() => {
         dropRow(n, c, k);
         setOpen(open === k ? null : open !== null && open > k ? open - 1 : open);
       }}><Icon name="trash" size={11} /></button>
@@ -344,9 +350,11 @@ export function QaCtl({ n, c }: P) {
   return <Field n={n} c={c}>
     {arr.map((it, k) => <RepeaterRow n={n} c={c} k={k} key={k}
       title={it[kA] || 'Item ' + (k + 1)} open={open} setOpen={setOpen}>
-      <label class="frow-control"><span>{phA}</span><RowInput n={n} c={c} k={k} prop={kA} placeholder={phA} /></label>
+      <label class="frow-control"><span>{phA}</span><RowInput n={n} c={c} k={k} prop={kA} placeholder={phA}
+        aria-label={`${phA} for ${it[kA] || 'untitled item'}, item ${k + 1}`} /></label>
       <label class="repeater-long"><span>{kB === 'a' ? 'Answer' : 'Content'}</span>
         <textarea class="ctl" rows={4} value={it[kB] || ''} placeholder={phB}
+          aria-label={`${kB === 'a' ? 'Answer' : 'Content'} for ${it[kA] || 'untitled item'}, item ${k + 1}`}
           onInput={e => { L.tx(key); rows(n, c)[k][kB] = (e.target as HTMLTextAreaElement).value; L.repaint(); }} onBlur={L.endTx} />
       </label>
     </RepeaterRow>)}
@@ -382,10 +390,12 @@ export function ImgsCtl({ n, c }: P) {
             {a ? <img src={a.url} alt="" /> : <span>not in<br />project</span>}
           </span>
           <span class="gmeta">
-            <RowInput n={n} c={c} k={k} prop="alt" placeholder="Alt text — describe it" />
-            <RowInput n={n} c={c} k={k} prop="caption" placeholder="Caption (optional)" />
+            <RowInput n={n} c={c} k={k} prop="alt" placeholder="Alt text — describe it"
+              aria-label={`Alt text for image ${k + 1}`} />
+            <RowInput n={n} c={c} k={k} prop="caption" placeholder="Caption (optional)"
+              aria-label={`Caption for image ${k + 1}`} />
           </span>
-          <span class="gacts"><RowActs n={n} c={c} k={k} /></span>
+          <span class="gacts"><RowActs n={n} c={c} k={k} context={`image ${k + 1}`} /></span>
         </div>
       );
     })}
