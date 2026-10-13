@@ -77,6 +77,14 @@ test('collapsed root and empty-host carets create or convert one valid block',()
  expect(first.host.innerHTML).toBe('<p>First</p><h2>Second</h2>');expect(first.w.getSelection().isCollapsed).toBe(true);expect(first.w.getSelection().anchorNode.parentElement.nodeName).toBe('H2');expect(first.w.getSelection().anchorOffset).toBe(0);
  const empty=richBlockHarness('');empty.w.formatRichBlock('p');expect(empty.host.innerHTML).toBe('<p><br></p>');expect(empty.w.getSelection().isCollapsed).toBe(true);
 });
+test('entering inline edit enables history controls without repainting the editable canvas',()=>{
+ const start=source.indexOf('function checkpointInlineEdit(label) {'),end=source.indexOf('\n\nfunction enterEdit(id)',start);expect(start).toBeGreaterThan(-1);expect(end).toBeGreaterThan(start);
+ const calls=[];const checkpoint=vi.fn(label=>calls.push(['checkpoint',label])),paintHistory=vi.fn(()=>calls.push(['history']));
+ const checkpointInlineEdit=new Function('checkpoint','paintHistory',`${source.slice(start,end)}; return checkpointInlineEdit;`)(checkpoint,paintHistory);
+ checkpointInlineEdit('Change rich text text');
+ expect(calls).toEqual([['checkpoint','Change rich text text'],['history']]);expect(source.slice(start,end)).not.toMatch(/\bpaint\s*\(/);
+ expect(source.slice(source.indexOf('function enterEdit(id)'),source.indexOf('\nfunction syncEdit()',source.indexOf('function enterEdit(id)')))).toContain("checkpointInlineEdit('Change ' + kindOf(n).toLowerCase() + ' text')");
+});
 test('current page survives reload by stable id, stays site scoped and falls back when removed', () => {
   const w = browser();
   w.eval(source.slice(source.indexOf('function rememberedPageIndex('),source.indexOf('\nfunction openPage(index')));

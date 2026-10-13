@@ -224,8 +224,8 @@ function VariantPick({ n }: { n: PcNode }) {
 
   return (
     <div class="f">
-      <label>Variant</label>
-      <select aria-label="Variant" value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
+      <label>Component variant</label>
+      <select aria-label="Component variant" value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
           <option value="">Default</option>
           {list.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>

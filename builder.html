@@ -3423,12 +3423,22 @@ function syncFonts() {
   if (link.getAttribute('href') !== href) link.setAttribute('href', href);
 }
 
+/* A divider can be one CSS pixel tall, then half a screen pixel at Fit. Give its existing
+   <hr> a larger editor-only pointer box without changing its layout or exported markup. */
+const DIVIDER_EDITOR_HIT_CSS = `
+[data-t=divider].pagecraft-divider::before{
+  content:"";position:absolute;inset:-12px 0;z-index:1;pointer-events:auto;background:transparent;
+}`;
+function canvasCss(sets, editing) {
+  return assetsToBlob(treeCss(sets, editing)) + (editing ? DIVIDER_EDITOR_HIT_CSS : '');
+}
+
 function paintCss() {
   if (!cdoc) return;
   syncFonts();
   const el = cdoc.getElementById('s-css');
   if (!el) return;
-  el.textContent = assetsToBlob(treeCss(curSets(), !document.body.classList.contains('preview')));
+  el.textContent = canvasCss(curSets(), !document.body.classList.contains('preview'));
   positionHud();
 }
 
@@ -3580,7 +3590,7 @@ function paint() {
   const editing = !document.body.classList.contains('preview');
   const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
-  const css = treeCss(curSets(), editing);
+  const css = canvasCss(curSets(), editing);
 
   let html = '';
   for (const R of regions()) {
@@ -3613,7 +3623,7 @@ function paint() {
   if (!editing) html = html || '';
 
   syncFonts();
-  cdoc.getElementById('s-css').textContent = assetsToBlob(css);
+  cdoc.getElementById('s-css').textContent = css;
   cdoc.getElementById('s-root').innerHTML = assetsToBlob(html);
   $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
   runPreviewRuntime(html, editing);
@@ -4591,6 +4601,13 @@ $('#rt').addEventListener('mousedown', async e => {
 const EDIT_IN = { button: 'span', quote: 'p' };
 const editTarget = (n, host) => (EDIT_IN[n.type] && host.querySelector(EDIT_IN[n.type])) || host;
 
+/* Entering inline edit creates the undo snapshot before the first input event. Update only
+   history controls here: a full paint would replace the contenteditable node and steal focus. */
+function checkpointInlineEdit(label) {
+  checkpoint(label);
+  paintHistory();
+}
+
 function enterEdit(id) {
   const h = locate(id); if (!h) return;
   const n = h.node, d = DEF[n.type];
@@ -4614,7 +4631,7 @@ function enterEdit(id) {
   const host = cdoc.getElementById(id); if (!host) return;
   const target = editTarget(n, host);
 
-  checkpoint('Change ' + kindOf(n).toLowerCase() + ' text');
+  checkpointInlineEdit('Change ' + kindOf(n).toLowerCase() + ' text');
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
   editing.prop = n.use ? property.path : null;
   target.contentEditable = 'true';

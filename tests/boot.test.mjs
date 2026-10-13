@@ -907,22 +907,28 @@ test('default component instances always offer variant creation and assignment',
   const original=C.state.meta.components;
   const page=C.state.pages[0];
   const inst=C.N('box'); inst.use='qa-variant-picker';
-  const def={id:inst.use,name:'QA variants',node:C.N('box'),props:[]};
+  const def={id:inst.use,name:'QA variants',node:C.N('box'),props:[
+    {k:'button-variant',label:'Variant',t:'select',def:'solid',opts:[['solid','Solid'],['outline','Outline']]}
+  ]};
   C.state.meta.components=[...(original||[]),def]; page.tree.push(inst);
   try {
     C.state.ui.mode='page'; C.state.ui.stab='content'; C.selSet([inst.id]); w.renderRight();
-    let select=doc.querySelector('select[aria-label="Variant"]');
+    let select=doc.querySelector('select[aria-label="Component variant"]');
     a.ok(select,'Default instances must expose the variant picker');
+    a.equal(select.closest('.f').querySelector('label').textContent,'Component variant');
+    const propertySelect=doc.querySelector('select[aria-label="Variant"]');
+    a.ok(propertySelect,'A property named Variant keeps its accessible name');
+    a.notEqual(select,propertySelect,'Component and property variant selectors have unique names');
     a.equal(select.options[0].textContent,'Default');
     const save=[...doc.querySelectorAll('#right button')].find(b=>b.textContent==='Save as variant');
     a.ok(save); a.equal(save.disabled,false);
     const variant=C.variantFromInstance(inst,'QA preset');
     C.variantSet(inst,null); w.renderRight();
-    select=doc.querySelector('select[aria-label="Variant"]');
+    select=doc.querySelector('select[aria-label="Component variant"]');
     a.equal(select.options.length,2);
     select.value=variant; select.dispatchEvent(new w.Event('change',{bubbles:true}));
     a.equal(inst.variant,variant,'The picker assigns a saved variant');
-    select=doc.querySelector('select[aria-label="Variant"]');
+    select=doc.querySelector('select[aria-label="Component variant"]');
     select.value=''; select.dispatchEvent(new w.Event('change',{bubbles:true}));
     a.equal(inst.variant,undefined,'Default removes the variant assignment');
   } finally {page.tree.splice(page.tree.indexOf(inst),1); C.state.meta.components=original; C.selSet([]); w.render();}

@@ -127,6 +127,47 @@ test('collection schema and content changes outrank their binding cleanup', () =
   expect(C.historyLabel('undo')).not.toContain('Changed privately');
 });
 
+test('saving a real block outranks duplicate definition node ids and keeps its name private', () => {
+  const button = C.insert('button', null, 0)!;
+  button.props.text = 'Private proposal action';
+  C.hist.u.length = 0;
+
+  C.edit(() => C.blockSave(button.id, 'Private proposal block'));
+  expect(C.historyLabel('undo')).toBe('Save block');
+  expect(C.historyLabel('undo')).not.toContain('Private proposal');
+  C.undo();
+  expect(C.historyLabel('redo')).toBe('Save block');
+});
+
+test('creating a real component outranks its new definition leaves and instance rewrite', () => {
+  const section = C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [C.N('button', { text: 'Private component action' })])])]);
+  C.state.pages[0].tree = [section];
+  C.hist.u.length = 0;
+
+  C.edit(() => C.componentFromNode(section.id, 'Private proposal component'));
+  expect(C.historyLabel('undo')).toBe('Create component');
+  expect(C.historyLabel('undo')).not.toContain('Private proposal');
+  C.undo();
+  expect(C.historyLabel('redo')).toBe('Create component');
+});
+
+test('reusable asset deletion and rename keep structural labels ahead of tree changes', () => {
+  const heading = C.insert('heading', null, 0)!;
+  const blockId = C.blockSave(heading.id, 'Private block')!;
+  const componentId = C.componentFromNode(heading.id, 'Private component')!;
+  C.hist.u.length = 0;
+  C.edit(() => C.blockDelete(blockId));
+  expect(C.historyLabel('undo')).toBe('Delete block');
+  C.edit(() => C.componentDelete(componentId));
+  expect(C.historyLabel('undo')).toBe('Delete component');
+
+  const replacementId = C.componentFromNode(heading.id, 'Original private name')!;
+  C.hist.u.length = 0;
+  C.edit(() => C.componentRename(replacementId, 'Renamed private component'));
+  expect(C.historyLabel('undo')).toBe('Rename component');
+  expect(C.historyLabel('undo')).not.toContain('private');
+});
+
 test('history still caps undo at 80 and new edits clear redo', () => {
   for (let i = 0; i < 85; i++) C.edit(() => { C.state.meta.size = `${i}px`; });
   expect(C.hist.u).toHaveLength(80);

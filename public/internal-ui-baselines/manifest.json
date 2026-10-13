@@ -1,19 +1,19 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-13T18:42:13.520Z",
+  "capturedAt": "2026-10-13T20:14:06.591Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "a10d03cd71bf50f695951a7c71341459e65ee063e37394a7c4f9fac6c7ee7a4a",
+    "builder.html": "5c3850c0445fefc015a1afe104c424e82e46575d2f01be3ceca59eb89578cb11",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
     "app/src/ui/CmsWorkspace.tsx": "baa82c07850aaa41b571c4794aaf7dcab5a0eb32e4b41fa6726d8c6e2aed5bb5",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "894649e75b9a0c5e325de63c37c94762de7488f51182debea9029c6533ea80cf",
-    "app/src/ui/inspector/Inspector.tsx": "433f38f40015d65c78b79a38b10cb54dace1e85c849e3d8303d0f7d6076cac48",
+    "app/src/ui/inspector/Inspector.tsx": "dc26e8633a5cf8da3eeb03f60cbb7a4c2385064526812293b3572ea6b7520bbd",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "88df7855535c32e56b609ac52f3d9e52de4fa0ac64b84261416a7702318c3620",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
@@ -24,7 +24,7 @@
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
     "shared/workspace-styles.js": "f963eae63734c0fd9b5a5fb65b4778aefbd33898e24ecb3953e9d5e8e5cf3ba5",
     "shared/dialog-styles.js": "69dec71c358816f39a565f833feb3542ee23276af69005ac936a346375f8b28c",
-    "shared/custom-select.js": "f0d361b690637b1ed52d72a02ad3f04b2590af81d375dd2afb9139e58d0204f5",
+    "shared/custom-select.js": "5a2f4968cd4748e5514a1a2e827d14b75b529a97a839edf77327893d90578cbf",
     "shared/action-feedback.js": "b74e2f3f0085655f4e224626c3623b080d24ea32a80e48c5f461621611a3c5ae",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
@@ -641,7 +641,7 @@
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-fields-768.png": {
-      "sha256": "079af5c890e18f829129b1eabc0ac71638622dbc497065b8dd9d6a953d18c78c",
+      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples"

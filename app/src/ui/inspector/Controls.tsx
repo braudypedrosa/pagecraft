@@ -341,7 +341,13 @@ function BoxCtl({ n, c }: P) {
   const w = writer(n, c);
   const vals = boxValues(n, c.c!).map(C.parseU);
   const withUnit = vals.find(x => x.u);
-  const u = withUnit ? withUnit.u : 'px';
+  const resolvedUnit = withUnit ? withUnit.u : 'px';
+  const choiceKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
+  const [choice, setChoice] = useState({ key: choiceKey, unit: resolvedUnit });
+  /* Empty box fields have no CSS unit to read. Keep a unit selected in this inspector
+     scope until author enters first value; changing breakpoint, state, or class target
+     starts from current resolved CSS again. */
+  const u = withUnit ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
 
   /* all four sides are written on every change, reading the unit off the select — one
      side holding an old unit is a value nobody asked for */
@@ -372,7 +378,14 @@ function BoxCtl({ n, c }: P) {
           onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={w.done} />
       ))}
       <select data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
-        onChange={e => { push((e.target as HTMLElement).closest('.f')!); w.done(); }}>
+        onChange={e => {
+          const select = e.target as HTMLSelectElement;
+          setChoice({ key: choiceKey, unit: select.value });
+          const root = select.parentElement!;
+          const hasValue = [...root.querySelectorAll<HTMLInputElement>('input')]
+            .some(input => input.value.trim() !== '');
+          if (hasValue) { push(root); w.done(); }
+        }}>
         {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
       </select>
     </div>

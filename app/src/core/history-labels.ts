@@ -82,6 +82,26 @@ export function inferHistoryAction(before: Doc, after: Doc): string {
   if (before.pages.some(page => !afterPages.has(page.id))) return 'Remove page';
   if (after.pages.some((page, index) => beforePages.get(page.id)?.index !== index)) return 'Move page';
 
+  /* Definitions contain full node trees. Inspect their identities before flattening nodes:
+     saved blocks intentionally reuse source ids, while component creation replaces the source
+     tree with an instance, so node-level inference cannot name either operation reliably. */
+  const beforeBlocks = before.meta.blocks || [], afterBlocks = after.meta.blocks || [];
+  const oldBlocks = new Map(beforeBlocks.map(block => [block.id, block]));
+  const newBlocks = new Map(afterBlocks.map(block => [block.id, block]));
+  if (afterBlocks.some(block => !oldBlocks.has(block.id))) return 'Save block';
+  if (beforeBlocks.some(block => !newBlocks.has(block.id))) return 'Delete block';
+  const beforeComponents = before.meta.components || [], afterComponents = after.meta.components || [];
+  const oldComponents = new Map(beforeComponents.map(component => [component.id, component]));
+  const newComponents = new Map(afterComponents.map(component => [component.id, component]));
+  if (afterComponents.some(component => !oldComponents.has(component.id))) return 'Create component';
+  if (beforeComponents.some(component => !newComponents.has(component.id))) return 'Delete component';
+  for (const block of afterBlocks) if (oldBlocks.get(block.id)?.name !== block.name) return 'Rename block';
+  for (const component of afterComponents) {
+    const old = oldComponents.get(component.id)!;
+    if (old.name !== component.name) return 'Rename component';
+    if (!same(old.props, component.props)) return 'Change component settings';
+  }
+
   /* CMS deletes atomically disconnect list, page and reference bindings. Recognize the
      collection/schema change before those necessary node prop changes so history names the
      action the editor chose rather than one cleanup side effect. */

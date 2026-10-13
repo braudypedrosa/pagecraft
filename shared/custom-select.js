@@ -119,7 +119,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (!record || record.menu.hidden || record.menu.hasAttribute('data-pc-motion-closing')) return;
     record.trigger.setAttribute('aria-expanded', 'false');
     if (openRecord === record) openRecord = null;
-    if (focus) record.trigger.focus();
+    record.restoreFocus = focus && !record.trigger.isConnected;
+    if (focus) record.trigger.focus({ preventScroll: true });
     const finishPopover = () => {
       if (record.popoverOpen) {
         try { record.menu.hidePopover(); } catch {}
@@ -137,7 +138,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   };
 
   const choose = (record, option) => {
-    if (!option || option.disabled || option.parentElement?.disabled) return;
+    if (!record.select.isConnected || record.select.disabled || !option || !record.select.contains(option)
+      || option.disabled || option.parentElement?.disabled) return;
     const changed = record.select.value !== option.value;
     record.select.value = option.value;
     if (changed) {
@@ -167,6 +169,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
 
   const optionsForButton = (record, button) => [...record.select.options].find(option => option.value === button.dataset.value);
   const setActive = (record, option) => {
+    if (openRecord !== record || !record.select.isConnected || isClosed(record.menu)) return;
     const buttons = [...record.menu.querySelectorAll('.pc-custom-select-option:not(:disabled)')];
     buttons.forEach(button => { button.dataset.active = String(button.dataset.value === option?.value); });
     const active = buttons.find(button => button.dataset.active === 'true');
@@ -209,7 +212,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   };
 
   const open = record => {
-    if (record.select.disabled) return;
+    if (!record.select.isConnected || !record.trigger.isConnected || record.select.disabled) return;
     if (openRecord && openRecord !== record) close(openRecord);
     record.modal = modalFor(record);
     const host = record.modal || document.body;
@@ -249,10 +252,15 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
 
   function sync(record) {
     if (!record.select.isConnected) return;
+    record.owner = record.select.parentNode;
     /* Frameworks only know about the native select. When conditional siblings are inserted,
        they can land between it and our enhanced trigger; keep the trigger in the select's
        exact visual slot without changing the framework-owned sibling order. */
     if (record.select.nextElementSibling !== record.trigger) record.select.after(record.trigger);
+    if (record.restoreFocus) {
+      record.restoreFocus = false;
+      record.trigger.focus({ preventScroll: true });
+    }
     const option = selectedOption(record.select);
     record.label.textContent = option?.label || 'Choose an option';
     record.trigger.disabled = record.select.disabled;
@@ -268,11 +276,48 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (!record.menu.hidden && record.signature !== optionSignature(record.select)) renderMenu(record);
   }
 
+  const bindNative = record => {
+    const select = record.select;
+    const refresh = () => sync(record);
+    const focus = () => record.trigger.focus();
+    const invalid = event => { event.preventDefault(); record.trigger.focus(); open(record); };
+    select.addEventListener('change', refresh);
+    select.addEventListener('input', refresh);
+    select.addEventListener('focus', focus);
+    select.addEventListener('invalid', invalid);
+    record.unbindNative = () => {
+      select.removeEventListener('change', refresh);
+      select.removeEventListener('input', refresh);
+      select.removeEventListener('focus', focus);
+      select.removeEventListener('invalid', invalid);
+    };
+  };
+  const hideNative = select => {
+    select.classList.add('pc-custom-select-native');
+    select.hidden = true;
+    select.setAttribute('aria-hidden', 'true');
+    select.tabIndex = -1;
+  };
+
   const enhance = select => {
     if (!(select instanceof HTMLSelectElement) || select.multiple || select.size > 1) return;
-    const current = records.get(select);
-    if (current?.trigger.isConnected) { sync(current); return; }
-    if (current) records.delete(select);
+    const current = records.get(select) || (select.id && [...records.values()].find(record =>
+      !record.select.isConnected && record.owner === select.parentNode && record.select.id === select.id));
+    if (current) {
+      /* Input blur can repaint framework-owned siblings between pointer down and click.
+         Keep the gesture's trigger instead of replacing it. A replaced native leaf may
+         reuse that enhancement only inside the same surviving field and with the same id. */
+      if (current.select !== select) {
+        current.unbindNative();
+        records.delete(current.select);
+        current.select = select;
+        records.set(select, current);
+        hideNative(select);
+        bindNative(current);
+      }
+      sync(current);
+      return;
+    }
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
@@ -301,22 +346,16 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     trigger.setAttribute('aria-controls', menu.id);
     document.body.append(menu);
     select.after(trigger);
-    select.classList.add('pc-custom-select-native');
-    select.hidden = true;
-    select.setAttribute('aria-hidden', 'true');
-    select.tabIndex = -1;
+    hideNative(select);
 
-    const record = { select, trigger, label, menu, signature: '', modal: null, popoverOpen: false };
+    const record = { select, trigger, label, menu, owner: select.parentNode, signature: '', modal: null, popoverOpen: false };
     records.set(select, record);
     sync(record);
-    select.addEventListener('change', () => sync(record));
-    select.addEventListener('input', () => sync(record));
-    select.addEventListener('focus', () => trigger.focus());
-    select.addEventListener('invalid', event => { event.preventDefault(); trigger.focus(); open(record); });
+    bindNative(record);
     trigger.addEventListener('click', () => isClosed(menu) ? open(record) : close(record, true));
     trigger.addEventListener('keydown', event => {
-      const options = enabledOptions(select);
-      const currentIndex = Math.max(0, options.indexOf(selectedOption(select)));
+      const options = enabledOptions(record.select);
+      const currentIndex = Math.max(0, options.indexOf(selectedOption(record.select)));
       if (event.key === 'Escape') {
         if (!isClosed(menu)) { event.preventDefault(); event.stopPropagation(); close(record, true); }
         return;
@@ -328,7 +367,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
       }
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        isClosed(menu) ? open(record) : choose(record, selectedOption(select));
+        isClosed(menu) ? open(record) : choose(record, selectedOption(record.select));
         return;
       }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
@@ -373,8 +412,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (typeof document === 'undefined') return;
     document.querySelectorAll('select:not([multiple])').forEach(enhance);
     for (const [select, record] of records) {
-      if (!select.isConnected) { close(record); record.trigger.remove(); record.menu.remove(); records.delete(select); }
-      else if (!record.trigger.isConnected) { record.menu.remove(); records.delete(select); enhance(select); }
+      if (!select.isConnected) { close(record); record.unbindNative(); record.trigger.remove(); record.menu.remove(); records.delete(select); }
       else sync(record);
     }
   };
