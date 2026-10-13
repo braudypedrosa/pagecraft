@@ -32,7 +32,11 @@ export function createFirstEditGuide(document: Document): Guide {
   const page = document.pages.find(page => guideNodes(page.tree).some(node => node.type === 'heading')) || document.pages[0];
   const nodes = page ? guideNodes(page.tree) : [];
   return { version: 1, dismissed: false, tasks: STEPS.flatMap(step => {
-    const node = nodes.find(node => node.type === step.type);
+    const node = step.type === 'heading'
+      ? nodes.find(node => node.type === 'heading' && node.props?.level === 'h1')
+        || nodes.find(node => node.type === 'heading' && /^h[2-6]$/.test(String(node.props?.level)))
+        || nodes.find(node => node.type === 'heading')
+      : nodes.find(node => node.type === step.type);
     return node ? [{ id: node.id, pageId: page.id, type: step.type, before: guideFingerprint(node) }] : [];
   }) };
 }

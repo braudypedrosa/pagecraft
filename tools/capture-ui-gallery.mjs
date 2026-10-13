@@ -9,6 +9,14 @@ const states={fields:'Focused field, readonly, disabled and validation samples',
 export async function captureGallery(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion}={}){
  if(!behaviorChecks?.length||behaviorChecks.some(check=>check.passed!==true))throw new Error('Pass the completed behavior-check results before capturing.');
  await mkdir(directory,{recursive:true});const cdp=await tab.capabilities.get('cdp');
+ const screenshot=async params=>{
+  try{return await cdp.send('Page.captureScreenshot',params);}
+  catch(error){
+   if(!tab.getAXState)throw error;
+   await tab.getAXState({emit:false});
+   return cdp.send('Page.captureScreenshot',params);
+  }
+ };
  const evidence={capturedAt:new Date().toISOString(),browser,...(browserVersion?{browserVersion}:{}),deviceScaleFactor:1,viewportHeight:900,reducedMotion:true,sources:await sourceHashes(),behaviorChecks,captures:{}};
  await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  try{
@@ -36,15 +44,14 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
    // The built-in surface captures the painted viewport. Expand long field
    // pages before capture so offscreen content cannot become a blank tail.
    if(measurement.height>900){await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:measurement.height,deviceScaleFactor:1,mobile:false});await new Promise(r=>setTimeout(r,500));}
-   // Capture the emulated viewport after expanding it to the full document. Very
-   // tall pages are scaled into the built-in surface before requesting their CSS
-   // pixel clip; shorter pages avoid offscreen compositor tiles altogether.
+   // Capture at scale 1 after expanding to the full document. Scaling the
+   // emulated viewport can stall the built-in compositor on tablet table pages.
    let image;
    if(measurement.height>1200){
-    await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:measurement.height,deviceScaleFactor:1,mobile:false,scale:Math.min(1,1000/measurement.height)});
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width,height:measurement.height,deviceScaleFactor:1,mobile:false,scale:1});
     await new Promise(r=>setTimeout(r,500));
-    image=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width,height:measurement.height,scale:1}});
-   }else image=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,fromSurface:true,clip:{x:0,y:0,width,height:measurement.height,scale:1}});
+    image=await screenshot({format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width,height:measurement.height,scale:1}});
+   }else image=await screenshot({format:'png',captureBeyondViewport:true,fromSurface:true,clip:{x:0,y:0,width,height:measurement.height,scale:1}});
    const name=`${host}-${section}-${width}.png`;await writeFile(resolve(directory,name),Buffer.from(image.data,'base64'));
    evidence.captures[name]={state:states[section],...measurement};
    if(section==='menus'||section==='dialogs')await tab.pressKey('Escape');

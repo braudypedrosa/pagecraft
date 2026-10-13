@@ -1284,7 +1284,14 @@ function bindingImpact(collectionId: string, fieldId: string): string {
         affected.add(page.name + ' / ' + C.nameOf(n));
     });
   }
-  return affected.size
+  const bindings = affected.size
     ? 'Review these bindings: ' + [...affected].join(', ') + '.'
     : 'No page field bindings were found. Check shared components and references before publishing.';
+  const settings = C.collectionFieldSettingUsage(collectionId, fieldId);
+  const resets = [];
+  if (settings.sort)
+    resets.push(`${settings.sort} Collection List ${settings.sort === 1 ? 'sort' : 'sorts'} will reset to CMS order.`);
+  if (settings.filter)
+    resets.push(`${settings.filter} Collection List ${settings.filter === 1 ? 'filter' : 'filters'} will reset to show every item.`);
+  return bindings + (resets.length ? ' ' + resets.join(' ') : '');
 }

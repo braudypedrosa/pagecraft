@@ -332,7 +332,7 @@ function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode;
   };
   const time = (k: 'dur' | 'delay', label: string, ph: string) => (
     <div class="f"><label>{label}</label>
-      <input class="ctl" value={(a as Record<string, string>)[k] || ''} placeholder={ph}
+      <input class="ctl" aria-label={label} value={(a as Record<string, string>)[k] || ''} placeholder={ph}
         onInput={e => live(k, (e.target as HTMLInputElement).value)}
         onBlur={() => { L.endTx(); repaint('right'); }} /></div>
   );
@@ -344,7 +344,7 @@ function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode;
 
       {showAnimation ? <><div class="plabel">When it enters the view</div>
       <div class="f"><label>Animation <HelpTip label="Animation" text="Animations run in Preview and on the published site." /></label>
-        <select class="ctl" value={a.name || ''}
+        <select class="ctl" aria-label="Animation" value={a.name || ''}
           onChange={e => hard({ name: (e.target as HTMLSelectElement).value })}>
           <option value="">— none —</option>
           {C.ANIM_NAMES.map(x => (
@@ -357,7 +357,7 @@ function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode;
           {time('dur', 'Duration', '0.6s')}
           {time('delay', 'Delay', '0s')}
           <div class="f"><label>Easing</label>
-            <input class="ctl" value={a.ease || ''} placeholder="ease-in-out"
+            <input class="ctl" aria-label="Easing" value={a.ease || ''} placeholder="ease-in-out"
               onInput={e => live('ease', (e.target as HTMLInputElement).value)}
               onBlur={() => { L.endTx(); repaint('right'); }} /></div>
           <label class="swrow" style={{ marginTop: 'var(--gap-1)' }}>

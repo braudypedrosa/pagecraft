@@ -60,7 +60,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     askConfirm: async (...a: any[]) => { calls.push(['askConfirm', ...a]); return true; },
     askPick: async (...a: any[]) => { calls.push(['askPick', ...a]); return ''; },
     cmsModal: rec('cmsModal'),
-    cmsCommit: async collections => { C.edit(() => { C.state.meta.collections = collections; }); },
+    cmsCommit: async collections => { C.edit(() => { C.collectionsReplace(C.doc(), collections); }); },
     libraries: () => opts.libraries || null,
     siteDraft: () => opts.siteDraft ? opts.siteDraft() : null,
     insertionHint: () => '',

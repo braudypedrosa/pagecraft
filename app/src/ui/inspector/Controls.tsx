@@ -260,6 +260,7 @@ function PickCtl({ n, c }: P) {
       {opts.map(([v, l]) => (
         <button type="button" key={v} class={val === String(v) ? 'on' : ''}
           aria-pressed={val === String(v) ? 'true' : 'false'}
+          disabled={inert(n, c)}
           title={C.IC[l] ? (PICK_TIP[l] || l) : l}
           onClick={() => w.hard(v)}>{C.IC[l] ? <Icon name={l} size={13} /> : l}</button>
       ))}
@@ -282,7 +283,7 @@ function ToggleCtl({ n, c }: P) {
   const helpId = useId();
   const toggle = <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
     aria-describedby={c.note && !c.k?.startsWith(C.VAL) ? helpId : undefined}
-    class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
+    class={'sw-tog' + (on ? ' on' : '')} disabled={inert(n, c)} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
   return c.k?.startsWith(C.VAL)
     ? <Field n={n} c={c}><div class="tog-row">{toggle}</div></Field>
     : <div class="f">
@@ -787,7 +788,7 @@ function IconCtl({ n, c }: P) {
         <div class="ipgroup" key={'g' + g}>{g}</div>
         <div class="ipgrid" key={'r' + g}>
           {(list as string[][]).map(([nm]) => (
-            <button key={nm} class={nm === cur ? 'on' : ''} title={nm} onClick={() => w.hard(nm)}
+            <button key={nm} class={nm === cur ? 'on' : ''} title={nm} disabled={inert(n, c)} onClick={() => w.hard(nm)}
               dangerouslySetInnerHTML={{ __html: C.iconSvg(nm) }} />
           ))}
         </div>

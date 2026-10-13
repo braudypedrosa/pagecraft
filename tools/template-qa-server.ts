@@ -25,9 +25,19 @@ await mkdir(destination,{recursive:true});
 const manifest=JSON.parse(await readFile(resolve(source,'manifest.json'),'utf8'));
 await copyFile(resolve(source,'site.pagecraft-site.zip'),resolve(destination,'site.pagecraft-site.zip'));
 await writeFile(resolve(catalog,'catalog.json'),JSON.stringify({format:'pagecraft.site-template-catalog.v1',templates:[manifest]}));
-const store=new MemoryStore(),auth=new MemoryAuthStore(),assets=new MemoryAssetStore();
+// A fictional Pro owner exercises the same allowances as the authorized staging QA account.
+class ProFixtureAuth extends MemoryAuthStore {
+  async userById(id: string) {
+    const user = await super.userById(id);
+    return user ? { ...user, plan: 'pro' as const } : null;
+  }
+  async ensureAuthUser(id: string, email: string, name = '') {
+    return { ...await super.ensureAuthUser(id, email, name), plan: 'pro' as const };
+  }
+}
+const store=new MemoryStore(),auth=new ProFixtureAuth(),assets=new MemoryAssetStore();
 const identity={authUserId:'template-local-qa',email:'template-qa@example.invalid',name:'Template QA (local fixture)'};
 const accountAuth:AccountAuth={identity:async()=>identity,oauth:async()=>null,signUp:async()=> 'confirmation_required',signIn:async()=>identity,confirm:async()=>identity,forgot:async()=>{},reset:async()=>false,updateEmail:async()=>false,updatePassword:async()=>false,signOut:async()=>{}};
-const app=createApp({store,auth,assets,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),challenge:new TestHumanChallenge(),turnstileSiteKey:'local-test-only',editorHost:'localhost',editorOrigin:`http://localhost:${port}`,editorHtml:await readFile(process.env.TEMPLATE_QA_EDITOR_HTML || resolve(root,'index.html'),'utf8'),siteTemplates:new FileSiteTemplateStore(catalog),publications:new FileHostedPublicationStore(resolve(scratch,'publications'))});
+const app=createApp({componentGallery:true,store,auth,assets,accountAuth,ownedSites:new MemoryOwnedSiteStore(store,auth),challenge:new TestHumanChallenge(),turnstileSiteKey:'local-test-only',editorHost:'localhost',editorOrigin:`http://localhost:${port}`,editorHtml:await readFile(process.env.TEMPLATE_QA_EDITOR_HTML || resolve(root,'index.html'),'utf8'),siteTemplates:new FileSiteTemplateStore(catalog),publications:new FileHostedPublicationStore(resolve(scratch,'publications'))});
 serve({fetch:app.fetch,port,hostname:'127.0.0.1'});
 console.log(`Template Cloud QA http://localhost:${port} — disposable in-memory data, local fixture identity; not a Supabase authentication test.`);

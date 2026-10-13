@@ -5186,7 +5186,7 @@ async function cmsCommit(collections) {
   if (loadBlocked) throw new Error('This site could not be opened, so nothing is being saved.');
   if (saveState === 'failed') throw new Error('Resolve the draft save error in the builder before saving CMS changes. Your entry is still here.');
   const next = JSON.parse(JSON.stringify(doc()));
-  next.meta.collections = collections;
+  collectionsReplace(next, collections);
   saving = true;
   try {
     if (SRV) {
@@ -5196,7 +5196,7 @@ async function cmsCommit(collections) {
     } else {
       localStorage.setItem(LS, JSON.stringify({ ...next, v: SCHEMA, cur: state.cur, tab: TABID }));
     }
-    edit(() => { state.meta.collections = collections; });
+    edit(() => { collectionsReplace(doc(), collections); });
     saveState = 'ok';
     stamp('Draft saved — not published', false);
   } catch (error) {

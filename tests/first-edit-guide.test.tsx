@@ -53,6 +53,16 @@ test('different template shapes get only supported targets or a safe empty fallb
   assert.deepEqual(createFirstEditGuide(doc).tasks.map(task => task.type), ['image']);
 });
 
+test('headline guidance selects the page H1 before an earlier eyebrow or section title', () => {
+  const doc = template();
+  doc.pages[0].tree.unshift(node('eyebrow', 'heading', { level: 'p', text: 'From early' }));
+  doc.pages[0].tree.unshift(node('section-title', 'heading', { level: 'h2', text: 'Our cafe' }));
+  doc.pages[0].tree[2].props!.level = 'h1';
+  assert.equal(createFirstEditGuide(doc).tasks[0].id, 'heading');
+  doc.pages[0].tree[2].props!.level = 'div';
+  assert.equal(createFirstEditGuide(doc).tasks[0].id, 'section-title');
+});
+
 test('hidden, bound, collection, component and conditional subtrees cannot become first-edit targets', () => {
   const child = node('nested-heading', 'heading', { text: 'Hidden or dynamic' });
   const excluded = [
