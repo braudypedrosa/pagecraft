@@ -4982,8 +4982,16 @@ async function mediaUploadFiles(files, after, button = null, zone = null) {
 function mediaChooseFiles(takeFiles, multiple = true) {
   const fi = document.createElement('input');
   fi.type = 'file'; fi.accept = 'image/*'; fi.multiple = multiple;
-  fi.onchange = () => takeFiles(fi.files);
-  fi.click();
+  fi.hidden = true; fi.tabIndex = -1; fi.setAttribute('aria-hidden', 'true');
+  const cleanup = () => fi.remove();
+  fi.addEventListener('change', () => {
+    const files = fi.files;
+    cleanup();
+    takeFiles(files);
+  }, {once:true});
+  fi.addEventListener('cancel', cleanup, {once:true});
+  document.body.appendChild(fi);
+  try { fi.click(); } catch (error) { cleanup(); throw error; }
 }
 
 /* Only OS file drags belong to this surface. Counting nested enters/leaves keeps
