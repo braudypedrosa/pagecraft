@@ -138,9 +138,12 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
 
   const choose = (record, option) => {
     if (!option || option.disabled || option.parentElement?.disabled) return;
+    const changed = record.select.value !== option.value;
     record.select.value = option.value;
-    record.select.dispatchEvent(new Event('input', { bubbles: true }));
-    record.select.dispatchEvent(new Event('change', { bubbles: true }));
+    if (changed) {
+      record.select.dispatchEvent(new Event('input', { bubbles: true }));
+      record.select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     sync(record);
     close(record, true);
   };

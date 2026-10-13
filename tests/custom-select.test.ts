@@ -9,7 +9,8 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
     <option value="updated">Last edited</option><option value="name">Name</option>
   </select>`;
   const select = document.querySelector('select')!;
-  let changes = 0;
+  let inputs = 0, changes = 0;
+  select.addEventListener('input', () => { inputs++; });
   select.addEventListener('change', () => { changes++; });
 
   installCustomSelects();
@@ -32,9 +33,20 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   a.equal(name.isConnected, true);
   name.click();
   a.equal(select.value, 'name');
+  a.equal(inputs, 1);
   a.equal(changes, 1);
   a.equal(trigger.textContent?.trim(), 'Name');
   a.equal(menu.hidden, true);
+
+  trigger.click();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  [...menu.querySelectorAll<HTMLButtonElement>('[role="option"]')]
+    .find(option => option.textContent?.includes('Name'))!.click();
+  a.equal(select.value, 'name');
+  a.equal(inputs, 1, 'choosing the selected option does not emit a native input event');
+  a.equal(changes, 1, 'choosing the selected option does not emit a native change event');
+  a.equal(menu.hidden, true, 'the same-value choice still closes the popup');
+  a.equal(document.activeElement, trigger, 'the same-value choice returns focus to the trigger');
 
   // Closing a menu must not also invoke the builder's Escape-to-select-parent shortcut.
   let escapedToEditor = 0;
