@@ -2,7 +2,8 @@ import { L } from './ctx';
 import { useProcessingAction } from './useProcessingAction';
 
 /** Inspector, gallery, CMS and SEO fields share one upload gesture and result. */
-export function useImageUpload(key: string, take: (ids: string[]) => void, multiple = false, disabled = false) {
+export function useImageUpload(key: string, take: (ids: string[]) => void, multiple = false, disabled = false,
+  pickerTitle = multiple ? 'Choose images' : 'Choose image') {
   const action = useProcessingAction(key);
   const uploadFiles = async (files: FileList | File[]) => {
     const selected = Array.from(files || []);
@@ -21,7 +22,7 @@ export function useImageUpload(key: string, take: (ids: string[]) => void, multi
   };
   const choose = async () => {
     if (disabled || action.isPending()) return;
-    const id = await L.mediaPicker({view:'upload', multiple, onFiles:async files => (await uploadFiles(files))?.status === 'success'});
+    const id = await L.mediaPicker({title:pickerTitle, view:'upload', multiple, onFiles:async files => (await uploadFiles(files))?.status === 'success'});
     if (id) { take([id]); L.writeNow(); }
   };
   return {busy:action.busy, choose, takeFiles: async (files: FileList | File[]) => { await uploadFiles(files); }};

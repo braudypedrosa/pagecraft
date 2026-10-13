@@ -559,7 +559,8 @@ test('status messages and narrow-workspace controls expose accessible hooks', as
     'the WordPress Navigator exposes an explicit return to the Add panel');
   a.match(html, /\.panelHead \.panelHeadAction\{[\s\S]*?align-items:center;justify-content:center/,
     'the Navigator return action centers its icon and label as one control');
-  a.match(html, /@media\(max-width:1024px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/);
+  a.match(html, /@media\(max-width:1360px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/,
+    'small laptops keep one working panel beside the canvas');
   a.match(html, /@media\(max-width:600px\)[\s\S]*?\.left,\.right\{[\s\S]*?position:absolute/);
 });
 

@@ -186,7 +186,7 @@ export interface Legacy {
   /** take a File into the library, returning its id */
   mediaTake(file: File, options?: {feedback?: boolean}): Promise<string | null>;
   /** the library picker */
-  mediaPicker(options?: {view?: 'upload' | 'library'; multiple?: boolean; onFiles?: (files: File[]) => Promise<unknown>}): Promise<string | null>;
+  mediaPicker(options?: {title?: string; view?: 'upload' | 'library'; uploadOnly?: boolean; multiple?: boolean; onFiles?: (files: File[]) => Promise<unknown>}): Promise<string | null>;
   /** resolve `asset:id` to something an <img> can load */
   assetsToBlob(v: string): string;
   /** read an image's intrinsic size */

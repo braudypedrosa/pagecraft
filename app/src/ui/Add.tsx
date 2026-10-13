@@ -17,6 +17,11 @@ import type { LibraryItemKind } from '../core/libraries';
 import { useLayoutEffect, useState } from 'preact/hooks';
 import { createRecentElementsStore } from './recent-elements';
 import { FirstEditGuide } from './FirstEditGuide';
+import {
+  actionDestinationOptions, applyRegionSetup, firstAction, placementIndex,
+  placementOptions, selectedSectionIndex, starterNavItems, suggestedActionDestination,
+  type SectionPlacement
+} from './section-insertion';
 
 /* Lives here because the Add panel is the only thing that reads it: which widgets are
    offered, and how they are grouped. */
@@ -231,25 +236,103 @@ function Templates() {
   const LEAD = ['Header', 'Footer'];
   const cats = [...LEAD.filter(c => seen.includes(c)), ...seen.filter(c => !LEAD.includes(c))];
 
-  const place = (id: string) => {
+  const place = async (id: string) => {
     if (L.consumeDragMoved()) return;
     const pat = C.PATTERNS.find(x => x.id === id)!;
-    const want = pat.scope || 'page';
-    const jumped = C.state.ui.mode !== want;
-    /* before the insert, because `patternInsert` reads `tree()` and `tree()` reads the
-       mode. Mode is UI state and is not in the undo snapshot, so it sits outside the
-       transaction on purpose — undoing the insert should not also move you. */
-    if (jumped) L.setMode(want);
+    const originalMode = C.state.ui.mode;
+    const originalPageId = C.page().id;
+
+    if (!pat.scope) {
+      const selectedId = selectedSectionIndex(C.page().tree, C.state.ui.sel) == null ? null : C.state.ui.sel;
+      const options = placementOptions(C.page().tree, selectedId);
+      let picked = 'end';
+      if (options.length > 1) {
+        const choice = await L.askPick('Place section', options, 'end');
+        if (!choice) return;
+        picked = choice;
+        if (C.page().id !== originalPageId || (selectedId && !C.locate(selectedId, C.page().tree))) {
+          L.toast('The page changed. Choose the section again.');
+          return;
+        }
+      }
+      const page = C.page();
+      const index = placementIndex(page.tree, selectedId, picked as SectionPlacement);
+      let made: { id: string } | null = null;
+      /* patternInsert reads the active tree. Keep a global editing scope stable by using page
+         mode only during the synchronous transaction, then restoring it before repaint. */
+      C.state.ui.mode = 'page';
+      C.edit(() => { made = C.patternInsert(id, null, index); }, 'Add section');
+      C.state.ui.mode = originalMode;
+      if (!made) { L.toast('That does not fit there'); return; }
+      if (originalMode === 'page') L.select((made as { id: string }).id);
+      L.toast(`${pat.name} added`);
+      return;
+    }
+
+    const scope = pat.scope;
+    const currentRegion = () => scope === 'header' ? C.state.header : C.state.footer;
+    const regionSnapshot = JSON.stringify(currentRegion());
+    const contextChanged = () => C.page().id !== originalPageId || JSON.stringify(currentRegion()) !== regionSnapshot;
+    let action = 'add' as 'add' | 'replace' | 'edit';
+    if (currentRegion().length) {
+      const picked = await L.askPick(`Add or replace ${scope}`, [
+        ['add', `Add another ${scope} — keep current ${scope}`],
+        ['replace', `Replace current ${scope} — Undo restores it`],
+        ['edit', `Edit existing ${scope} — no changes`]
+      ], 'replace');
+      if (!picked) return;
+      if (contextChanged()) {
+        L.toast(`The ${scope} changed. Choose the template again.`);
+        return;
+      }
+      action = picked as 'add' | 'replace' | 'edit';
+      if (action === 'edit') {
+        L.setMode(scope);
+        L.select(currentRegion()[0].id);
+        L.toast(`Editing current ${scope}`);
+        return;
+      }
+    }
+
+    const navItems = starterNavItems(currentRegion(), C.state.pages);
+    const staged = pat.build();
+
+    let actionSetup: { label: string; href: string } | null = null;
+    const button = firstAction(staged);
+    if (button) {
+      const label = await L.askText(`Set up ${scope} action`, 'Action label', String(button.props.text || ''), {
+        ok: 'Continue'
+      });
+      if (label == null) return;
+      if (contextChanged()) {
+        L.toast(`The ${scope} changed. Choose the template again.`);
+        return;
+      }
+      const destination = await L.askPick('Action destination', actionDestinationOptions(C.state.pages),
+        suggestedActionDestination(C.state.pages));
+      if (destination == null) return;
+      if (contextChanged()) {
+        L.toast(`The ${scope} changed. Choose the template again.`);
+        return;
+      }
+      actionSetup = { label: label.trim() || 'Action', href: destination };
+    }
 
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.patternInsert(id, undefined); }, pat.scope ? 'Add global ' + pat.scope : 'Add section');
+    L.setMode(scope);
+    C.edit(() => {
+      const region = currentRegion();
+      const oldLength = region.length;
+      made = C.patternInsert(id, null, region.length);
+      if (!made) return;
+      applyRegionSetup(made as any, navItems, actionSetup);
+      if (action === 'replace') region.splice(0, oldLength);
+    }, action === 'replace' ? `Replace global ${scope}` : `Add global ${scope}`);
     if (!made) { L.toast('That does not fit there'); return; }
     L.select((made as { id: string }).id);
-    /* say where it went when that is not where you were looking, or a header appearing to
-       replace the page you had open reads as the template having gone wrong */
-    L.toast(pat.scope && jumped
-      ? `${pat.name} added — now editing the global ${pat.scope}`
-      : `${pat.name} added`);
+    L.toast(action === 'replace'
+      ? `${pat.name} replaced the current ${scope}. Undo restores it.`
+      : `${pat.name} added — now editing the global ${scope}`);
   };
 
   return (
@@ -261,7 +344,7 @@ function Templates() {
             const pattern = C.PATTERNS.find(candidate => candidate.id === id);
             return pattern ? (
               <button type="button" class="pvcard pc-add-starter" key={id}
-                title={`${pattern.desc} — drag onto the canvas, or click to append`}
+                title={`${pattern.desc} — drag onto the canvas, or click to choose where to place`}
                 onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
                   { kind: 'pattern', patId: pattern.id, label: pattern.name, icon: 'section' }, false)}
                 onClick={() => place(pattern.id)}>
@@ -279,8 +362,8 @@ function Templates() {
             {C.PATTERNS.filter(t => t.cat === cat).map(t => (
               <button class="pvcard" key={t.id}
                 title={t.scope
-                  ? `${t.desc} — click to add it to the global ${t.scope}, shared by every page`
-                  : `${t.desc} — drag onto the canvas, or click to append`}
+                  ? `${t.desc} — click to add, replace, or edit the global ${t.scope}`
+                  : `${t.desc} — drag onto the canvas, or click to choose where to place`}
                 /* No drag for a region pattern. A drop lands wherever the drop target says,
                    which in page mode is page content — the one placement this must not
                    allow. There is also nowhere meaningful to aim a global header. */

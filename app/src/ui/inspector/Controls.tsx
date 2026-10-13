@@ -471,7 +471,8 @@ function ImgCtl({ n, c }: P) {
       if (!c.bg && got.w) { n.props.w = String(got.w); n.props.h = String(got.h); }
     });
   };
-  const files = useImageUpload('image-' + n.id + '-' + (c.c || c.k), ids => use(ids[ids.length - 1]));
+  const pickerTitle = assetValue ? 'Replace image' : 'Choose image';
+  const files = useImageUpload('image-' + n.id + '-' + (c.c || c.k), ids => use(ids[ids.length - 1]), false, false, pickerTitle);
 
   return <Field n={n} c={c}>
     {a
@@ -494,7 +495,7 @@ function ImgCtl({ n, c }: P) {
       </button>
       {L.assetCount() ? (
         <button class="btn grow" disabled={files.busy} title="Pick from the Media library"
-          onClick={async () => { const id = await L.mediaPicker(); if (id) use(id); }}>
+          onClick={async () => { const id = await L.mediaPicker({title:pickerTitle}); if (id) use(id); }}>
           <Icon name="copy" size={13} /> Library
         </button>
       ) : null}

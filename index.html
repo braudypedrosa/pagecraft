@@ -1469,7 +1469,7 @@ pre.code{
    canvas into the 116px sliver the three fixed columns used to leave at 768px. These
    rules intentionally live after every panel's base rule so the responsive dimensions
    win the cascade. */
-@media(max-width:1024px){
+@media(max-width:1360px){
   body:not(.library-focus) .left{display:none}
   body.library-focus .right{display:none}
   .rail button{height:52px}
@@ -1477,6 +1477,11 @@ pre.code{
   .right{width:300px;flex-basis:300px}
   .stage{padding-inline:12px}
 }
+/* A smaller laptop uses one working panel at a time. Authors can also clear both
+   panels explicitly without changing selection, editing scope, or canvas width. */
+body.canvas-focus .left,body.canvas-focus .right{display:none!important}
+body.canvas-focus #canvasFocusBtn{color:var(--green)}
+body.preview #canvasFocusBtn{display:none}
 /* At narrow layout widths, including enlarged desktop views, use drawers over the
    canvas. The rail closes the library; the inspector has an explicit close control. */
 @media(max-width:600px){
@@ -2023,6 +2028,9 @@ input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{f
     </div>
 
     <div class="topgroup topTools divided">
+      <button class="iconbtn" id="canvasFocusBtn" title="Hide side panels (⌘⇧\)" aria-label="Hide side panels" aria-pressed="false">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4"/></svg>
+      </button>
       <button class="iconbtn" id="undoBtn" title="Undo (⌘Z)" aria-label="Undo">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h7.5a3 3 0 010 6H7"/><path d="M5.5 5.5L3 8l2.5 2.5"/></svg>
       </button>
@@ -12051,11 +12059,11 @@ var PC_UI = (() => {
   }
   function Rows({ list: list2, depth }) {
     const out = [];
-    const walk = (arr, d3) => arr.forEach((n2) => {
+    const walk2 = (arr, d3) => arr.forEach((n2) => {
       out.push(/* @__PURE__ */ u2(NodeRow, { n: n2, depth: d3 }, n2.id));
-      if ((n2.children || []).length && !C2.state.ui.collapsed[n2.id]) walk(n2.children, d3 + 1);
+      if ((n2.children || []).length && !C2.state.ui.collapsed[n2.id]) walk2(n2.children, d3 + 1);
     });
-    walk(list2, depth);
+    walk2(list2, depth);
     return /* @__PURE__ */ u2(S, { children: out });
   }
   function Layers() {
@@ -13197,7 +13205,7 @@ var PC_UI = (() => {
   }
 
   // app/src/ui/useImageUpload.ts
-  function useImageUpload(key2, take, multiple = false, disabled = false) {
+  function useImageUpload(key2, take, multiple = false, disabled = false, pickerTitle = multiple ? "Choose images" : "Choose image") {
     const action = useProcessingAction(key2);
     const uploadFiles = async (files) => {
       const selected = Array.from(files || []);
@@ -13220,7 +13228,7 @@ var PC_UI = (() => {
     };
     const choose = async () => {
       if (disabled || action.isPending()) return;
-      const id = await L2.mediaPicker({ view: "upload", multiple, onFiles: async (files) => (await uploadFiles(files))?.status === "success" });
+      const id = await L2.mediaPicker({ title: pickerTitle, view: "upload", multiple, onFiles: async (files) => (await uploadFiles(files))?.status === "success" });
       if (id) {
         take([id]);
         L2.writeNow();
@@ -13234,11 +13242,12 @@ var PC_UI = (() => {
   // app/src/ui/AssetField.tsx
   function AssetField({ value, note, onChange, disabled = false }) {
     const key2 = g2();
-    const { busy, choose, takeFiles } = useImageUpload("asset-field-" + key2, (ids) => onChange("asset:" + ids[ids.length - 1]), false, disabled);
     const ref = String(value || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
     const a3 = ref ? L2.asset(ref[1]) : null;
     const shared = isTemplateImage(String(value || ""));
     const hasImage = !!a3 || shared;
+    const pickerTitle = hasImage ? "Replace image" : "Choose image";
+    const { busy, choose, takeFiles } = useImageUpload("asset-field-" + key2, (ids) => onChange("asset:" + ids[ids.length - 1]), false, disabled, pickerTitle);
     const commit2 = (v3) => {
       onChange(v3);
       L2.writeNow();
@@ -13303,7 +13312,7 @@ var PC_UI = (() => {
             disabled: disabled || busy,
             title: "Pick from the Media library",
             onClick: async () => {
-              const id = await L2.mediaPicker();
+              const id = await L2.mediaPicker({ title: pickerTitle });
               if (id) commit2("asset:" + id);
             },
             children: [
@@ -16306,6 +16315,84 @@ var PC_UI = (() => {
     ] });
   }
 
+  // app/src/ui/section-insertion.ts
+  var contains = (node, id) => node.id === id || node.children.some((child) => contains(child, id));
+  function selectedSectionIndex(tree2, selectedId) {
+    if (!selectedId) return null;
+    const index = tree2.findIndex((node) => contains(node, selectedId));
+    return index < 0 ? null : index;
+  }
+  function placementIndex(tree2, selectedId, placement) {
+    const selected = selectedSectionIndex(tree2, selectedId);
+    if (selected == null || placement === "end") return tree2.length;
+    return placement === "before" ? selected : selected + 1;
+  }
+  function placementOptions(tree2, selectedId) {
+    return selectedSectionIndex(tree2, selectedId) == null ? [["end", "At end of page"]] : [
+      ["before", "Before selected section"],
+      ["after", "After selected section"],
+      ["end", "At end of page"]
+    ];
+  }
+  var normalized = (value) => String(value || "").trim().toLowerCase();
+  var pageForHref = (href, pages) => {
+    const match = href.match(/^([\w-]+)\.html(?:#([\w-]+))?$/);
+    return match ? pages.find((page2) => page2.slug === match[1]) : null;
+  };
+  var legacyStarterNav = (items) => {
+    if (items.length !== 3) return false;
+    const labels = items.map((item) => normalized(item.label));
+    const hrefs = items.map((item) => normalized(item.href).replace(/^\.\//, ""));
+    return labels.join("|") === "work|about|contact" && hrefs.every((href) => href === "index.html");
+  };
+  var validDestination = (href, pages) => /^(https?:\/\/|mailto:|tel:|#|\/(?!\/))/i.test(href) || !!pageForHref(href, pages);
+  function starterNavItems(existing, pages) {
+    const candidates = [];
+    existing.forEach((root) => walk(root, (node) => {
+      if (node.type !== "nav" || candidates.length) return;
+      const items = Array.isArray(node.props.items) ? node.props.items : [];
+      if (legacyStarterNav(items)) return;
+      candidates.push(...items.filter((item) => {
+        const label = String(item.label || "").trim();
+        const href = String(item.href || "").trim();
+        return !!label && !!href && validDestination(href, pages);
+      }));
+    }));
+    if (candidates.length) return candidates.map((item) => ({ ...item }));
+    return pages.map((page2) => ({ label: page2.name, href: `${page2.slug}.html` }));
+  }
+  function firstAction(root) {
+    let found = null;
+    walk(root, (node) => {
+      if (!found && node.type === "button") found = node;
+    });
+    return found;
+  }
+  function applyRegionSetup(root, navItems, action) {
+    walk(root, (node) => {
+      if (node.type === "nav" && navItems.length) node.props.items = navItems.map((item) => ({ ...item }));
+    });
+    const button = firstAction(root);
+    if (button && action) {
+      button.props.text = action.label;
+      button.props.link = action.href;
+    }
+  }
+  function actionDestinationOptions(pages) {
+    return [
+      ["", "No link \u2014 choose a destination later"],
+      ...pages.map((page2) => [`${page2.slug}.html`, page2.name])
+    ];
+  }
+  function suggestedActionDestination(pages) {
+    const target = pages.find((page2, index) => index > 0 && page2.slug !== "index");
+    return target ? `${target.slug}.html` : "";
+  }
+  function walk(root, visit) {
+    visit(root);
+    root.children.forEach((child) => walk(child, visit));
+  }
+
   // app/src/ui/Add.tsx
   var PAL = [
     {
@@ -16516,22 +16603,105 @@ var PC_UI = (() => {
     });
     const LEAD = ["Header", "Footer"];
     const cats = [...LEAD.filter((c3) => seen.includes(c3)), ...seen.filter((c3) => !LEAD.includes(c3))];
-    const place2 = (id) => {
+    const place2 = async (id) => {
       if (L2.consumeDragMoved()) return;
       const pat = C2.PATTERNS.find((x2) => x2.id === id);
-      const want = pat.scope || "page";
-      const jumped = C2.state.ui.mode !== want;
-      if (jumped) L2.setMode(want);
+      const originalMode = C2.state.ui.mode;
+      const originalPageId = C2.page().id;
+      if (!pat.scope) {
+        const selectedId = selectedSectionIndex(C2.page().tree, C2.state.ui.sel) == null ? null : C2.state.ui.sel;
+        const options = placementOptions(C2.page().tree, selectedId);
+        let picked = "end";
+        if (options.length > 1) {
+          const choice = await L2.askPick("Place section", options, "end");
+          if (!choice) return;
+          picked = choice;
+          if (C2.page().id !== originalPageId || selectedId && !C2.locate(selectedId, C2.page().tree)) {
+            L2.toast("The page changed. Choose the section again.");
+            return;
+          }
+        }
+        const page2 = C2.page();
+        const index = placementIndex(page2.tree, selectedId, picked);
+        let made2 = null;
+        C2.state.ui.mode = "page";
+        C2.edit(() => {
+          made2 = C2.patternInsert(id, null, index);
+        }, "Add section");
+        C2.state.ui.mode = originalMode;
+        if (!made2) {
+          L2.toast("That does not fit there");
+          return;
+        }
+        if (originalMode === "page") L2.select(made2.id);
+        L2.toast(`${pat.name} added`);
+        return;
+      }
+      const scope = pat.scope;
+      const currentRegion = () => scope === "header" ? C2.state.header : C2.state.footer;
+      const regionSnapshot = JSON.stringify(currentRegion());
+      const contextChanged = () => C2.page().id !== originalPageId || JSON.stringify(currentRegion()) !== regionSnapshot;
+      let action = "add";
+      if (currentRegion().length) {
+        const picked = await L2.askPick(`Add or replace ${scope}`, [
+          ["add", `Add another ${scope} \u2014 keep current ${scope}`],
+          ["replace", `Replace current ${scope} \u2014 Undo restores it`],
+          ["edit", `Edit existing ${scope} \u2014 no changes`]
+        ], "replace");
+        if (!picked) return;
+        if (contextChanged()) {
+          L2.toast(`The ${scope} changed. Choose the template again.`);
+          return;
+        }
+        action = picked;
+        if (action === "edit") {
+          L2.setMode(scope);
+          L2.select(currentRegion()[0].id);
+          L2.toast(`Editing current ${scope}`);
+          return;
+        }
+      }
+      const navItems = starterNavItems(currentRegion(), C2.state.pages);
+      const staged = pat.build();
+      let actionSetup = null;
+      const button = firstAction(staged);
+      if (button) {
+        const label = await L2.askText(`Set up ${scope} action`, "Action label", String(button.props.text || ""), {
+          ok: "Continue"
+        });
+        if (label == null) return;
+        if (contextChanged()) {
+          L2.toast(`The ${scope} changed. Choose the template again.`);
+          return;
+        }
+        const destination = await L2.askPick(
+          "Action destination",
+          actionDestinationOptions(C2.state.pages),
+          suggestedActionDestination(C2.state.pages)
+        );
+        if (destination == null) return;
+        if (contextChanged()) {
+          L2.toast(`The ${scope} changed. Choose the template again.`);
+          return;
+        }
+        actionSetup = { label: label.trim() || "Action", href: destination };
+      }
       let made = null;
+      L2.setMode(scope);
       C2.edit(() => {
-        made = C2.patternInsert(id, void 0);
-      }, pat.scope ? "Add global " + pat.scope : "Add section");
+        const region = currentRegion();
+        const oldLength = region.length;
+        made = C2.patternInsert(id, null, region.length);
+        if (!made) return;
+        applyRegionSetup(made, navItems, actionSetup);
+        if (action === "replace") region.splice(0, oldLength);
+      }, action === "replace" ? `Replace global ${scope}` : `Add global ${scope}`);
       if (!made) {
         L2.toast("That does not fit there");
         return;
       }
       L2.select(made.id);
-      L2.toast(pat.scope && jumped ? `${pat.name} added \u2014 now editing the global ${pat.scope}` : `${pat.name} added`);
+      L2.toast(action === "replace" ? `${pat.name} replaced the current ${scope}. Undo restores it.` : `${pat.name} added \u2014 now editing the global ${scope}`);
     };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "pc-add-starters", "aria-labelledby": "starter-sections-label", children: [
@@ -16543,7 +16713,7 @@ var PC_UI = (() => {
             {
               type: "button",
               class: "pvcard pc-add-starter",
-              title: `${pattern.desc} \u2014 drag onto the canvas, or click to append`,
+              title: `${pattern.desc} \u2014 drag onto the canvas, or click to choose where to place`,
               onPointerDown: (e3) => L2.startDrag(
                 e3,
                 { kind: "pattern", patId: pattern.id, label: pattern.name, icon: "section" },
@@ -16565,7 +16735,7 @@ var PC_UI = (() => {
           "button",
           {
             class: "pvcard",
-            title: t3.scope ? `${t3.desc} \u2014 click to add it to the global ${t3.scope}, shared by every page` : `${t3.desc} \u2014 drag onto the canvas, or click to append`,
+            title: t3.scope ? `${t3.desc} \u2014 click to add, replace, or edit the global ${t3.scope}` : `${t3.desc} \u2014 drag onto the canvas, or click to choose where to place`,
             onPointerDown: t3.scope ? void 0 : (e3) => L2.startDrag(
               e3,
               { kind: "pattern", patId: t3.id, label: t3.name, icon: "section" },
@@ -17167,9 +17337,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const term = query.trim().toLowerCase();
     if (!term) return true;
     if (/^\/+$/u.test(term)) return front;
-    const normalized = term.replace(/^\/+|\/+$/gu, "");
+    const normalized2 = term.replace(/^\/+|\/+$/gu, "");
     const path = front ? "/" : "/" + p3.slug;
-    return [p3.name, p3.slug, path].some((value) => value.toLowerCase().includes(normalized));
+    return [p3.name, p3.slug, path].some((value) => value.toLowerCase().includes(normalized2));
   }
   function PagesWorkspace() {
     const [query, setQuery] = d2("");
@@ -19292,7 +19462,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         }
       });
     };
-    const files = useImageUpload("image-" + n2.id + "-" + (c3.c || c3.k), (ids) => use(ids[ids.length - 1]));
+    const pickerTitle = assetValue ? "Replace image" : "Choose image";
+    const files = useImageUpload("image-" + n2.id + "-" + (c3.c || c3.k), (ids) => use(ids[ids.length - 1]), false, false, pickerTitle);
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       a3 ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
         /* @__PURE__ */ u2("img", { src: a3.url, alt: "" }),
@@ -19324,7 +19495,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             disabled: files.busy,
             title: "Pick from the Media library",
             onClick: async () => {
-              const id = await L2.mediaPicker();
+              const id = await L2.mediaPicker({ title: pickerTitle });
               if (id) use(id);
             },
             children: [
@@ -20726,6 +20897,32 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ] })
       ] })
     ] });
+  }
+
+  // app/src/ui/canvas-focus.ts
+  function installCanvasFocus(onLayout) {
+    const button = document.getElementById("canvasFocusBtn");
+    if (!button || button.dataset.wired) return;
+    button.dataset.wired = "1";
+    const set = (active) => {
+      document.body.classList.toggle("canvas-focus", active);
+      const label = active ? "Show side panels" : "Hide side panels";
+      button.setAttribute("aria-label", label);
+      button.setAttribute("aria-pressed", String(active));
+      button.title = label + " (\u2318\u21E7\\)";
+      requestAnimationFrame(onLayout);
+    };
+    button.addEventListener("click", () => set(!document.body.classList.contains("canvas-focus")));
+    document.getElementById("leftRail")?.addEventListener("click", (event) => {
+      if (event.target.closest("button[data-t]")) set(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      const target = event.target;
+      if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || event.key !== "\\" || target?.closest('input,textarea,select,[contenteditable="true"],.mask:not([hidden]),#ask:not([hidden])')) return;
+      event.preventDefault();
+      button.click();
+    });
+    set(false);
   }
 
   // app/src/ui/ColorTokens.tsx
@@ -23541,18 +23738,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const v3 = schemaVersion ?? legacyVersion ?? 1;
     if (v3 > SCHEMA) return null;
     const everyNode = (fn) => {
-      const walk = (n2) => {
+      const walk2 = (n2) => {
         fn(n2);
-        (n2.children || []).forEach(walk);
+        (n2.children || []).forEach(walk2);
       };
-      (d3.header || []).forEach(walk);
-      (d3.footer || []).forEach(walk);
-      (d3.pages || []).forEach((pg) => (pg.tree || []).forEach(walk));
+      (d3.header || []).forEach(walk2);
+      (d3.footer || []).forEach(walk2);
+      (d3.pages || []).forEach((pg) => (pg.tree || []).forEach(walk2));
       ((d3.meta || {}).blocks || []).forEach((bl) => {
-        if (bl.node) walk(bl.node);
+        if (bl.node) walk2(bl.node);
       });
       ((d3.meta || {}).components || []).forEach((cd) => {
-        if (cd.node) walk(cd.node);
+        if (cd.node) walk2(cd.node);
       });
     };
     if (v3 < 3) {
@@ -24192,6 +24389,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     install(core, legacy);
     if (window.PC_SERVER) requestAnimationFrame(() => openReviewTarget(core, legacy, location.search));
     installUiMotion();
+    installCanvasFocus(() => {
+      legacy.layoutCanvas();
+      legacy.positionHud();
+      legacy.renderDim();
+    });
     installCustomSelects();
     installActionFeedback();
     if (legacy.dynamicContentProvider() === "pagecraft") installAccountActions();
@@ -27584,9 +27786,66 @@ function wireMediaDrop(zone, takeFiles) {
   });
 }
 
+/* The global Media button can either place a new image or replace the selected Image.
+   Pin the target when the library opens: later selection changes must not redirect a replace. */
+function mediaSelectedImageTarget() {
+  if (multiOn() || !state.ui.sel) return null;
+  const found = locate(state.ui.sel);
+  if (!found || found.node.type !== 'image') return null;
+  const mode = state.ui.mode;
+  const ownerId = mode === 'page' ? page().id : mode === 'component' ? state.ui.cedit : mode;
+  const ownerLabel = mode === 'page' ? page().name
+    : mode === 'component' ? (findComponent(state.ui.cedit)?.name || 'Component')
+      : mode === 'header' ? 'Global header' : 'Global footer';
+  return Object.freeze({
+    id: found.node.id, mode, ownerId, src: String(found.node.props.src || ''),
+    label: `${nameOf(found.node)} · ${ownerLabel}`
+  });
+}
+
+function mediaResolveImageTarget(target) {
+  if (!target) return null;
+  let list = null;
+  if (target.mode === 'page') list = state.pages.find(item => item.id === target.ownerId)?.tree;
+  else if (target.mode === 'header') list = state.header;
+  else if (target.mode === 'footer') list = state.footer;
+  else if (target.mode === 'component') {
+    const definition = findComponent(target.ownerId);
+    list = definition ? [definition.node] : null;
+  }
+  const found = list && locate(target.id, list);
+  if (!found || found.node.type !== 'image' || String(found.node.props.src || '') !== target.src) return null;
+  return found.node;
+}
+
+function mediaApplyIntent(intent, target, assetId) {
+  const asset = AS.mem.get(assetId);
+  if (!asset) return 'missing';
+  if (intent === 'replace') {
+    const image = mediaResolveImageTarget(target);
+    if (!image) return 'stale';
+    edit(() => {
+      image.props.src = 'asset:' + asset.id;
+      if (asset.w) { image.props.w = String(asset.w); image.props.h = String(asset.h); }
+    }, 'Replace image');
+    return 'replaced';
+  }
+  let made = null;
+  edit(() => {
+    made = insert('image', ...smartTarget('image'));
+    if (!made) return;
+    made.props.src = 'asset:' + asset.id;
+    made.props.alt = '';
+    if (asset.w) { made.props.w = String(asset.w); made.props.h = String(asset.h); }
+    selSet([made.id]);
+  }, 'Insert image');
+  return made ? 'inserted' : 'does-not-fit';
+}
+
 function mediaModal() {
   if (editing.on) exitEdit();
-  const browserState = {};
+  const target = mediaSelectedImageTarget();
+  const browserState = {intent: target ? 'replace' : 'insert'};
   const draw = () => {
     const use = assetUsage();
     const list = [...AS.mem.values()];
@@ -27596,8 +27855,14 @@ function mediaModal() {
       <div class="media-library-overlay" aria-hidden="true">${svg('image', 24)}<span>Drop images to upload</span></div>
     </div>`,
       `<span class="note" style="margin:0;flex:1;text-align:left">${list.length
-        ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())} · drop images here or click one to place it`
-        : IS_WORDPRESS ? 'Stored in the WordPress media library' : SRV ? 'Stored with this project' : 'Stored in this browser'}</span>
+        ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())}`
+        : IS_WORDPRESS ? 'Stored in the WordPress media library' : SRV ? 'Stored with this project' : 'Stored in this browser'}${target
+          ? ` · <span data-media-target-status>Selected: ${esc(target.label)}</span>`
+          : list.length ? ' · click an image to insert it' : ''}</span>
+       ${target ? `<div class="media-view-switch" role="group" aria-label="Action for chosen image">
+         <button type="button" class="btn" data-media-intent="replace" aria-pressed="${browserState.intent === 'replace'}" title="Replace only ${esc(target.label)}">Replace selected image</button>
+         <button type="button" class="btn" data-media-intent="insert" aria-pressed="${browserState.intent === 'insert'}" title="Add a separate Image element">Insert new image</button>
+       </div>` : ''}
        ${orphans ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
        <button class="btn" id="mmUp">${svg('image', 13)} Upload</button>
        <button class="btn primary" id="mmDone">Done</button>`, 'lg media-library');
@@ -27612,6 +27877,10 @@ function mediaModal() {
     const showView = wireMediaViews(zone, takeFiles, browserState);
     upload.addEventListener('click', () => showView('upload'));
     $('#mmDone').addEventListener('click', closeModal);
+    $$('[data-media-intent]', $('#mFoot')).forEach(button => button.addEventListener('click', () => {
+      browserState.intent = button.dataset.mediaIntent;
+      $$('[data-media-intent]', $('#mFoot')).forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    }));
     const prune = $('#mmPrune');
     if (prune) prune.addEventListener('click', async () => {
       const action = feedback().begin(prune, 'Removing unused images…');
@@ -27624,17 +27893,16 @@ function mediaModal() {
     });
     wireMediaBrowser($('#mBody'), use, 'data-use', id => {
       const a = AS.mem.get(id); if (!a) return;
-      let made = null;
-      edit(() => {
-        made = insert('image', ...smartTarget('image'));
-        if (!made) return;
-        made.props.src = 'asset:' + a.id;
-        made.props.alt = '';
-        if (a.w) { made.props.w = String(a.w); made.props.h = String(a.h); }
-        selSet([made.id]);
-      });
+      const result = mediaApplyIntent(browserState.intent, target, id);
+      if (result === 'stale') {
+        $('[data-media-target-status]', $('#mFoot')).textContent = 'Target changed — reopen Media';
+        $('[data-media-intent="replace"]', $('#mFoot')).disabled = true;
+        toast('Selected image changed. Reopen Media to choose the current target.', {tone:'error'});
+        return;
+      }
       closeModal();
-      toast(made ? `${a.name} placed — add alt text` : 'That does not fit there');
+      toast(result === 'replaced' ? `${a.name} replaced ${target.label}`
+        : result === 'inserted' ? `${a.name} placed — add alt text` : 'That does not fit there');
     }, async (id, b) => {
       if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
       if (!await assetDel(id, b)) return;
@@ -28412,7 +28680,7 @@ function askPick(title, opts, current = '') {
 }
 
 function mediaPicker(options = {}) {
-  const title = typeof options === 'string' ? options : 'Media library';
+  const title = typeof options === 'string' ? options : options.title || 'Media library';
   const browserState = {view: options.view || 'library'};
   const p = askOpen(title, '', null, false);
   $('#askBox').classList.add('media-library');

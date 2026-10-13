@@ -16,6 +16,7 @@ export { recordElementUse } from './Add';
 export { selectionToolbarTop } from './canvas-placement';
 import { Pages, PagesWorkspace } from './Pages';
 import { Inspector } from './inspector/Inspector';
+import { installCanvasFocus } from './canvas-focus';
 import { AssetField } from './AssetField';
 import { ColorTokens } from './ColorTokens';
 import { StyleClasses } from './StyleClasses';
@@ -41,6 +42,7 @@ export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
   if ((window as any).PC_SERVER) requestAnimationFrame(() => openReviewTarget(core, legacy, location.search));
   installUiMotion();
+  installCanvasFocus(() => { legacy.layoutCanvas(); legacy.positionHud(); legacy.renderDim(); });
   installCustomSelects();
   installActionFeedback();
   if (legacy.dynamicContentProvider() === 'pagecraft') installAccountActions();

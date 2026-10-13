@@ -22,11 +22,12 @@ export function AssetField({ value, note, onChange, disabled = false }: {
   onChange: (v: string) => void;
 }) {
   const key = useId();
-  const {busy, choose, takeFiles} = useImageUpload('asset-field-' + key, ids => onChange('asset:' + ids[ids.length - 1]), false, disabled);
   const ref = String(value || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
   const shared = isTemplateImage(String(value || ''));
   const hasImage = !!a || shared;
+  const pickerTitle = hasImage ? 'Replace image' : 'Choose image';
+  const {busy, choose, takeFiles} = useImageUpload('asset-field-' + key, ids => onChange('asset:' + ids[ids.length - 1]), false, disabled, pickerTitle);
 
   /* clearing and picking from the library write straight through, because neither goes
      via mediaTake — which is what saves after an upload */
@@ -68,7 +69,7 @@ export function AssetField({ value, note, onChange, disabled = false }: {
         {L.assetCount() ? (
           <button type="button" class="btn grow" disabled={disabled || busy}
             title="Pick from the Media library"
-            onClick={async () => { const id = await L.mediaPicker(); if (id) commit('asset:' + id); }}>
+            onClick={async () => { const id = await L.mediaPicker({title:pickerTitle}); if (id) commit('asset:' + id); }}>
             <Icon name="copy" size={13} /> Library
           </button>
         ) : null}

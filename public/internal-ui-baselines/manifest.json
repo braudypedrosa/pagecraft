@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-12T16:35:52.139Z",
+  "capturedAt": "2026-10-13T03:06:13.465Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "d9107aaec77457885e5b3fe229842f444dccb4fc7d7240b7b29fba7dcb926594",
+    "builder.html": "60694a405f8631f5f867ff3f394f5224aec3d0b036b48bf500d3c079ebda170d",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
-    "app/src/ui/Add.tsx": "4553605e9b98abef3b972e8d588d6bf3ecfda269541dee81f86f177cd3102421",
+    "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
     "app/src/ui/CmsWorkspace.tsx": "abd5ed15ae4f4fe5ed3703040cce6d0b99978dcca49f2499b52f0c65d6373267",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",

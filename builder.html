@@ -1464,7 +1464,7 @@ pre.code{
    canvas into the 116px sliver the three fixed columns used to leave at 768px. These
    rules intentionally live after every panel's base rule so the responsive dimensions
    win the cascade. */
-@media(max-width:1024px){
+@media(max-width:1360px){
   body:not(.library-focus) .left{display:none}
   body.library-focus .right{display:none}
   .rail button{height:52px}
@@ -1472,6 +1472,11 @@ pre.code{
   .right{width:300px;flex-basis:300px}
   .stage{padding-inline:12px}
 }
+/* A smaller laptop uses one working panel at a time. Authors can also clear both
+   panels explicitly without changing selection, editing scope, or canvas width. */
+body.canvas-focus .left,body.canvas-focus .right{display:none!important}
+body.canvas-focus #canvasFocusBtn{color:var(--green)}
+body.preview #canvasFocusBtn{display:none}
 /* At narrow layout widths, including enlarged desktop views, use drawers over the
    canvas. The rail closes the library; the inspector has an explicit close control. */
 @media(max-width:600px){
@@ -1672,6 +1677,9 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
     </div>
 
     <div class="topgroup topTools divided">
+      <button class="iconbtn" id="canvasFocusBtn" title="Hide side panels (⌘⇧\)" aria-label="Hide side panels" aria-pressed="false">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4"/></svg>
+      </button>
       <button class="iconbtn" id="undoBtn" title="Undo (⌘Z)" aria-label="Undo">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h7.5a3 3 0 010 6H7"/><path d="M5.5 5.5L3 8l2.5 2.5"/></svg>
       </button>
@@ -5012,9 +5020,66 @@ function wireMediaDrop(zone, takeFiles) {
   });
 }
 
+/* The global Media button can either place a new image or replace the selected Image.
+   Pin the target when the library opens: later selection changes must not redirect a replace. */
+function mediaSelectedImageTarget() {
+  if (multiOn() || !state.ui.sel) return null;
+  const found = locate(state.ui.sel);
+  if (!found || found.node.type !== 'image') return null;
+  const mode = state.ui.mode;
+  const ownerId = mode === 'page' ? page().id : mode === 'component' ? state.ui.cedit : mode;
+  const ownerLabel = mode === 'page' ? page().name
+    : mode === 'component' ? (findComponent(state.ui.cedit)?.name || 'Component')
+      : mode === 'header' ? 'Global header' : 'Global footer';
+  return Object.freeze({
+    id: found.node.id, mode, ownerId, src: String(found.node.props.src || ''),
+    label: `${nameOf(found.node)} · ${ownerLabel}`
+  });
+}
+
+function mediaResolveImageTarget(target) {
+  if (!target) return null;
+  let list = null;
+  if (target.mode === 'page') list = state.pages.find(item => item.id === target.ownerId)?.tree;
+  else if (target.mode === 'header') list = state.header;
+  else if (target.mode === 'footer') list = state.footer;
+  else if (target.mode === 'component') {
+    const definition = findComponent(target.ownerId);
+    list = definition ? [definition.node] : null;
+  }
+  const found = list && locate(target.id, list);
+  if (!found || found.node.type !== 'image' || String(found.node.props.src || '') !== target.src) return null;
+  return found.node;
+}
+
+function mediaApplyIntent(intent, target, assetId) {
+  const asset = AS.mem.get(assetId);
+  if (!asset) return 'missing';
+  if (intent === 'replace') {
+    const image = mediaResolveImageTarget(target);
+    if (!image) return 'stale';
+    edit(() => {
+      image.props.src = 'asset:' + asset.id;
+      if (asset.w) { image.props.w = String(asset.w); image.props.h = String(asset.h); }
+    }, 'Replace image');
+    return 'replaced';
+  }
+  let made = null;
+  edit(() => {
+    made = insert('image', ...smartTarget('image'));
+    if (!made) return;
+    made.props.src = 'asset:' + asset.id;
+    made.props.alt = '';
+    if (asset.w) { made.props.w = String(asset.w); made.props.h = String(asset.h); }
+    selSet([made.id]);
+  }, 'Insert image');
+  return made ? 'inserted' : 'does-not-fit';
+}
+
 function mediaModal() {
   if (editing.on) exitEdit();
-  const browserState = {};
+  const target = mediaSelectedImageTarget();
+  const browserState = {intent: target ? 'replace' : 'insert'};
   const draw = () => {
     const use = assetUsage();
     const list = [...AS.mem.values()];
@@ -5024,8 +5089,14 @@ function mediaModal() {
       <div class="media-library-overlay" aria-hidden="true">${svg('image', 24)}<span>Drop images to upload</span></div>
     </div>`,
       `<span class="note" style="margin:0;flex:1;text-align:left">${list.length
-        ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())} · drop images here or click one to place it`
-        : IS_WORDPRESS ? 'Stored in the WordPress media library' : SRV ? 'Stored with this project' : 'Stored in this browser'}</span>
+        ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())}`
+        : IS_WORDPRESS ? 'Stored in the WordPress media library' : SRV ? 'Stored with this project' : 'Stored in this browser'}${target
+          ? ` · <span data-media-target-status>Selected: ${esc(target.label)}</span>`
+          : list.length ? ' · click an image to insert it' : ''}</span>
+       ${target ? `<div class="media-view-switch" role="group" aria-label="Action for chosen image">
+         <button type="button" class="btn" data-media-intent="replace" aria-pressed="${browserState.intent === 'replace'}" title="Replace only ${esc(target.label)}">Replace selected image</button>
+         <button type="button" class="btn" data-media-intent="insert" aria-pressed="${browserState.intent === 'insert'}" title="Add a separate Image element">Insert new image</button>
+       </div>` : ''}
        ${orphans ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
        <button class="btn" id="mmUp">${svg('image', 13)} Upload</button>
        <button class="btn primary" id="mmDone">Done</button>`, 'lg media-library');
@@ -5040,6 +5111,10 @@ function mediaModal() {
     const showView = wireMediaViews(zone, takeFiles, browserState);
     upload.addEventListener('click', () => showView('upload'));
     $('#mmDone').addEventListener('click', closeModal);
+    $$('[data-media-intent]', $('#mFoot')).forEach(button => button.addEventListener('click', () => {
+      browserState.intent = button.dataset.mediaIntent;
+      $$('[data-media-intent]', $('#mFoot')).forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    }));
     const prune = $('#mmPrune');
     if (prune) prune.addEventListener('click', async () => {
       const action = feedback().begin(prune, 'Removing unused images…');
@@ -5052,17 +5127,16 @@ function mediaModal() {
     });
     wireMediaBrowser($('#mBody'), use, 'data-use', id => {
       const a = AS.mem.get(id); if (!a) return;
-      let made = null;
-      edit(() => {
-        made = insert('image', ...smartTarget('image'));
-        if (!made) return;
-        made.props.src = 'asset:' + a.id;
-        made.props.alt = '';
-        if (a.w) { made.props.w = String(a.w); made.props.h = String(a.h); }
-        selSet([made.id]);
-      });
+      const result = mediaApplyIntent(browserState.intent, target, id);
+      if (result === 'stale') {
+        $('[data-media-target-status]', $('#mFoot')).textContent = 'Target changed — reopen Media';
+        $('[data-media-intent="replace"]', $('#mFoot')).disabled = true;
+        toast('Selected image changed. Reopen Media to choose the current target.', {tone:'error'});
+        return;
+      }
       closeModal();
-      toast(made ? `${a.name} placed — add alt text` : 'That does not fit there');
+      toast(result === 'replaced' ? `${a.name} replaced ${target.label}`
+        : result === 'inserted' ? `${a.name} placed — add alt text` : 'That does not fit there');
     }, async (id, b) => {
       if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
       if (!await assetDel(id, b)) return;
@@ -5840,7 +5914,7 @@ function askPick(title, opts, current = '') {
 }
 
 function mediaPicker(options = {}) {
-  const title = typeof options === 'string' ? options : 'Media library';
+  const title = typeof options === 'string' ? options : options.title || 'Media library';
   const browserState = {view: options.view || 'library'};
   const p = askOpen(title, '', null, false);
   $('#askBox').classList.add('media-library');
